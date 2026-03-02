@@ -1,0 +1,25 @@
+{
+    "$schema": "./tools/vendor/infection/infection/resources/schema.json",
+    "source": {
+        "directories": [
+            "src"
+        ]
+    },
+    "timeout": 30,
+    "threads": "max",
+    "logs": {
+        "text": "build/logs/infection/infection.log",
+        "html": "build/logs/infection/infection.html",
+        "stryker": {
+            "report": "1.x"
+        }
+    },
+    "tmpDir": "build",
+    "minMsi": 100,
+    "minCoveredMsi": 100,
+    "mutators": {
+        "@default": true
+    },
+    "testFramework": "phpunit",
+    "testFrameworkOptions": "--group=unit-test"
+}

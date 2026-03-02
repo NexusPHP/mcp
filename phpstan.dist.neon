@@ -1,0 +1,34 @@
+includes:
+	- phar://phpstan.phar/conf/bleedingEdge.neon
+
+parameters:
+  phpVersion:
+    min: 80300
+    max: 80599
+  level: 10
+  tmpDir: build/phpstan
+  paths:
+    - src
+    - tests
+    - tools
+  excludePaths:
+    analyse:
+      - tools/vendor/**
+  bootstrapFiles:
+    - vendor/autoload.php
+  exceptions:
+    check:
+      throwTypeCovariance: true
+  checkBenevolentUnionTypes: true
+  checkMissingCallableSignature: true
+  checkMissingOverrideMethodAttribute: true
+  checkTooWideReturnTypesInProtectedAndPublicMethods: true
+  checkTooWideThrowTypesInProtectedAndPublicMethods: true
+  checkUninitializedProperties: true
+  reportAlwaysTrueInLastCondition: true
+  reportAnyTypeWideningInVarTag: true
+  reportPossiblyNonexistentGeneralArrayOffset: true
+  reportPossiblyNonexistentConstantArrayOffset: true
+  treatPhpDocTypesAsCertain: false
+  editorUrl: 'vscode://file/%%file%%:%%line%%'
+  editorUrlTitle: '%%relFile%%:%%line%%'
