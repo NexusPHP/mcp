@@ -7,13 +7,13 @@ It is intentionally architected differently from the official PHP MCP SDK.
 
 ## Monorepo Structure
 
-The repository is organized as a Composer monorepo with three distinct packages:
+The repository is a single Composer monorepo with three logical namespaces under `src/`:
 
 - `src/Core/` — Shared foundation: JSON-RPC 2.0 types, MCP schema classes, and reusable utilities used by both server and client packages.
 - `src/Server/` — MCP server implementation: handling tool/resource/prompt registration and responding to client requests.
 - `src/Client/` — MCP client implementation: connecting to MCP servers, calling tools, reading resources, and getting prompts.
 
-Each package has its own `composer.json` but all packages are released at the same version. Releases are managed from the root repository; a subtree split script pushes each package directory to its own read-only mirror repository for Packagist. The root `composer.json` wires packages together via path repositories for local development.
+All code is managed under the unified namespace `Nexus\Mcp\` with the directory structure mirroring the namespace hierarchy. Tests mirror the source structure under `tests/` with namespace `Nexus\Mcp\Tests\`. Development tooling is isolated in a separate `tools/` directory with its own dependencies.
 
 ## Tooling
 
@@ -23,16 +23,14 @@ Each package has its own `composer.json` but all packages are released at the sa
 # Install all dependencies (run from repo root)
 composer update  # composer.lock is not committed; update is the standard setup command
 
-# Run all tests
+# Run all tests (includes code style, static analysis, automatic review, mutation)
 composer test:all
 
-# Run tests for a single package
-./vendor/bin/phpunit tests/Core
-./vendor/bin/phpunit tests/Server
-./vendor/bin/phpunit tests/Client
+# Run automatic code review tests (conformance tests and architecture checks)
+composer test:auto-review
 
-# Run automatic review tests (includes conformance tests)
-./vendor/bin/phpunit tests/AutoReview
+# Run unit tests with code coverage
+composer test:unit
 
 # Run a single test file or test method
 ./vendor/bin/phpunit tests/Core/SomeTest.php
@@ -41,6 +39,10 @@ composer test:all
 # Static analysis
 composer phpstan:check    # runs PHPStan across all packages
 composer phpstan:baseline # regenerates the PHPStan baseline — only use when a confirmed false positive/negative requires suppression; never add baseline entries to silence real errors
+
+# Mutation testing (checks for code quality via mutation detection)
+composer mutation:check      # runs Infection on whole codebase
+composer mutation:filter     # runs Infection on added and modified files only
 
 # Code style (check only)
 composer cs:check
@@ -60,7 +62,7 @@ composer cs:fix
 
 ### Core Package
 
-The `core` package owns all MCP protocol types. These are modeled as immutable readonly classes or enums.
+The `Core/` subdirectory owns all MCP protocol types. These are modeled as immutable readonly classes or enums under `Nexus\Mcp\Core\`.
 No server or client logic belongs here — only types, interfaces, and JSON-RPC primitives.
 It can also provide abstract classes or traits for shared logic, but it should not have any concrete implementations of protocol handling.
 
@@ -68,22 +70,22 @@ MCP schema types map directly to the [MCP specification](https://spec.modelconte
 
 ### Server Package
 
-The server package depends on `core`. It defines:
+The `Server/` subdirectory under `Nexus\Mcp\Server\` depends on `Core`. It defines:
 - Handler interfaces that consumers implement (e.g., `ToolHandlerInterface`)
 - A `Server` class that wires transports to protocol handling
 - Transport implementations (stdio, Streamable HTTP)
 
 ### Client Package
 
-The client package depends on `core`. It provides a `Client` class that connects over a transport and exposes typed methods for each MCP capability.
+The `Client/` subdirectory under `Nexus\Mcp\Client\` depends on `Core`. It provides a `Client` class that connects over a transport and exposes typed methods for each MCP capability.
 
 ### Transport Layer
 
-Transports are abstracted behind an interface defined in `core`. Both `server` and `client` depend on this interface. Concrete transport implementations live in the package that uses them.
+Transports are abstracted behind an interface defined in `Core`. Both `Server` and `Client` depend on this interface. Concrete transport implementations live in the package that uses them.
 
 ### JSON-RPC
 
-All MCP communication is JSON-RPC 2.0. Request/response/notification types live in `core`. The server and client packages build on these primitives and should not define their own wire-format types.
+All MCP communication is JSON-RPC 2.0. Request/response/notification types live in `Core`. The `Server` and `Client` packages build on these primitives and should not define their own wire-format types.
 
 ## Conformance Testing
 
@@ -94,7 +96,7 @@ Conformance tests live in `tests/AutoReview/`, which is also the home for all ot
 ## Code Style
 
 - Strict types declared in every file: `declare(strict_types=1);`
-- Namespace root per package: `Nexus\Core`, `Nexus\Server`, `Nexus\Client`
+- Namespace root: `Nexus\Mcp\` with subnamespaces for `Core`, `Server`, and `Client` (e.g., `Nexus\Mcp\Core\`, `Nexus\Mcp\Server\`, `Nexus\Mcp\Client\`)
 - Readonly classes for value objects and protocol types
 - No public mutable properties; use constructor promotion with `readonly`
 - PHPStan at max level — all code must pass without `@phpstan-ignore`. Test code can use `@phpstan-ignore` if necessary, but production code should not.
@@ -102,5 +104,5 @@ Conformance tests live in `tests/AutoReview/`, which is also the home for all ot
 - Classes should be final by default unless they are designed for extension (e.g., abstract classes or interfaces).
 - Properties, parameters, and return types should be fully typed. Use `mixed` only when absolutely necessary, and prefer union types or generics (via docblocks) to express complex types.
 - Use constructor injection for dependencies. Avoid service locators or static access to shared services.
-- All exceptions must extend a package-specific base exception class (TBA). This allows consumers to catch all SDK errors with a single catch block.
+- All exceptions must extend a package-specific base exception class. This allows consumers to catch all SDK errors with a single catch block.
 - Mark implementation details with `@internal` so consumers know what is part of the public API vs internal to the SDK.

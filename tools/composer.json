@@ -1,0 +1,25 @@
+{
+    "type": "project",
+    "require": {
+        "php": "^8.3",
+        "friendsofphp/php-cs-fixer": "^3.94",
+        "infection/infection": "^0.32.6",
+        "kubawerlos/php-cs-fixer-custom-fixers": "^3.36",
+        "nexusphp/cs-config": "^3.28"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Nexus\\Mcp\\Tools\\": "src/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "infection/extension-installer": true
+        },
+        "optimize-autoloader": true,
+        "prefer-stable": true,
+        "sort-packages": true
+    }
+}

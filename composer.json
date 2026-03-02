@@ -1,0 +1,97 @@
+{
+    "name": "nexusphp/mcp-sdk",
+    "description": "PHP SDK for the MCP specification",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "mcp",
+        "model context protocol",
+        "mcp-sdk"
+    ],
+    "authors": [
+        {
+            "name": "John Paul E. Balandan, CPA",
+            "email": "paulbalandan@gmail.com"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/NexusPHP/mcp-sdk/issues",
+        "source": "https://github.com/NexusPHP/mcp-sdk.git"
+    },
+    "require": {
+        "php": "^8.3",
+        "nexusphp/assert": "1.x-dev"
+    },
+    "require-dev": {
+        "nexusphp/tachycardia": "^2.4",
+        "phpstan/extension-installer": "^1.4",
+        "phpstan/phpstan": "^2.1",
+        "phpstan/phpstan-deprecation-rules": "^2.0",
+        "phpstan/phpstan-phpunit": "^2.0",
+        "phpstan/phpstan-strict-rules": "^2.0",
+        "phpunit/phpunit": "^12.5"
+    },
+    "replace": {
+        "nexusphp/mcp-client-sdk": "self.version",
+        "nexusphp/mcp-core-sdk": "self.version",
+        "nexusphp/mcp-server-sdk": "self.version"
+    },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/NexusPHP/assert",
+            "canonical": true
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Nexus\\Mcp\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Nexus\\Mcp\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "phpstan/extension-installer": true
+        },
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
+    "scripts": {
+        "post-autoload-dump": [
+            "@composer update --ansi --working-dir=tools"
+        ],
+        "cs:check": "tools/vendor/bin/php-cs-fixer check --ansi --verbose --diff",
+        "cs:fix": "tools/vendor/bin/php-cs-fixer fix --ansi --verbose --diff",
+        "mutation:check": "tools/vendor/bin/infection --ansi --with-uncovered --static-analysis-tool=phpstan",
+        "mutation:filter": "@mutation:check --git-diff-filter=AM --git-diff-base=origin/1.x",
+        "phpstan:baseline": "phpstan analyse --ansi --verbose --generate-baseline=phpstan-baseline.neon",
+        "phpstan:check": "phpstan analyse --ansi --verbose",
+        "test:all": [
+            "@cs:check",
+            "@phpstan:check",
+            "@test:auto-review",
+            "@mutation:check",
+            "@test:unit"
+        ],
+        "test:auto-review": "phpunit --group=auto-review --colors=always",
+        "test:unit": "phpunit --group=unit-test --colors=always --coverage-html=build/phpunit/html"
+    },
+    "scripts-descriptions": {
+        "cs:check": "Checks for coding style violations",
+        "cs:fix": "Fixes any coding style violations",
+        "mutation:check": "Runs Infection on whole codebase",
+        "mutation:filter": "Runs Infection on added and modified files only",
+        "phpstan:baseline": "Runs PHPStan and dumps resulting errors to baseline",
+        "phpstan:check": "Runs PHPStan",
+        "test:all": "Runs all tests (coding style, static analysis, automatic code review, and unit tests)",
+        "test:auto-review": "Runs the automatic code review tests",
+        "test:unit": "Runs the unit tests with code coverage"
+    }
+}

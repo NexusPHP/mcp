@@ -1,4 +1,6 @@
 /build/
+/tools/vendor/
+/tools/composer.lock
 /vendor/
 /composer.lock
 /.php-cs-fixer.php
