@@ -19,9 +19,7 @@
         </testsuite>
         <testsuite name="Unit Tests">
             <directory>tests</directory>
-            <exclude>
-                <directory>tests/AutoReview</directory>
-            </exclude>
+            <exclude>tests/AutoReview</exclude>
         </testsuite>
     </testsuites>
 
