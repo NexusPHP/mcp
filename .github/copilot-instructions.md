@@ -30,7 +30,10 @@ composer test:all
 composer test:auto-review
 
 # Run unit tests with code coverage
-composer test:unit
+composer test:unit   # runs all unit tests
+composer test:client # only client tests
+composer test:core   # only core tests
+composer test:server # only server tests
 
 # Run a single test file or test method
 ./vendor/bin/phpunit tests/Core/SomeTest.php

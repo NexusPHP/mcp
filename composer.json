@@ -80,8 +80,11 @@
             "@mutation:check",
             "@test:unit"
         ],
-        "test:auto-review": "phpunit --group=auto-review --colors=always",
-        "test:unit": "phpunit --group=unit-test --colors=always --coverage-html=build/phpunit/html"
+        "test:auto-review": "phpunit --group=auto-review --colors=always --no-coverage",
+        "test:client": "phpunit --group=client-tests --colors=always --coverage-html=build/phpunit/html",
+        "test:core": "phpunit --group=core-tests --colors=always --coverage-html=build/phpunit/html",
+        "test:server": "phpunit --group=server-tests --colors=always --coverage-html=build/phpunit/html",
+        "test:unit": "phpunit --group=unit-tests --colors=always --coverage-html=build/phpunit/html"
     },
     "scripts-descriptions": {
         "cs:check": "Checks for coding style violations",
@@ -92,6 +95,9 @@
         "phpstan:check": "Runs PHPStan",
         "test:all": "Runs all tests (coding style, static analysis, automatic code review, and unit tests)",
         "test:auto-review": "Runs the automatic code review tests",
+        "test:client": "Runs the Client component tests with code coverage",
+        "test:core": "Runs the Core component tests with code coverage",
+        "test:server": "Runs the Server component tests with code coverage",
         "test:unit": "Runs the unit tests with code coverage"
     }
 }
