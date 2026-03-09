@@ -49,7 +49,7 @@ final class SchemaConformanceTest extends TestCase
     /**
      * @param class-string $schemaClass
      */
-    #[DataProvider('provideSchemaClasses')]
+    #[DataProvider('provideSchemaDescriptionIsAccurateCases')]
     public function testSchemaDescriptionIsAccurate(string $schema, string $schemaClass): void
     {
         self::assertArrayHasKey($schema, self::$latestSchema, \sprintf('Schema key "%s" is missing in the latest schema definitions.', $schema));
@@ -63,13 +63,26 @@ final class SchemaConformanceTest extends TestCase
         $docComment = $reflection->getDocComment();
         self::assertIsString($docComment, \sprintf('Schema class "%s" does not have a PHPDoc comment.', $schemaClass));
 
-        self::assertStringContainsString($description, $docComment);
+        self::assertDescriptionContains($description, $docComment);
+    }
+
+    /**
+     * @return iterable<string, array{string, class-string}>
+     */
+    public static function provideSchemaDescriptionIsAccurateCases(): iterable
+    {
+        self::generateLatestSchema();
+        self::sortSchemaDefinition();
+
+        foreach (self::$sortedSchema['schema'] as $basename => $schemaClass) {
+            yield $basename => [$basename, $schemaClass];
+        }
     }
 
     /**
      * @param class-string $schemaClass
      */
-    #[DataProvider('provideSchemaClasses')]
+    #[DataProvider('provideSchemaTypeMatchesPropertiesCases')]
     public function testSchemaTypeMatchesProperties(string $schema, string $schemaClass): void
     {
         self::assertArrayHasKey($schema, self::$latestSchema, \sprintf('Schema key "%s" is missing in the latest schema definitions.', $schema));
@@ -122,17 +135,70 @@ final class SchemaConformanceTest extends TestCase
         }
     }
 
-    /**
-     * @return iterable<string, array{string, class-string}>
-     */
-    public static function provideSchemaClasses(): iterable
+    public static function provideSchemaTypeMatchesPropertiesCases(): iterable
     {
         self::generateLatestSchema();
         self::sortSchemaDefinition();
 
         foreach (self::$sortedSchema['schema'] as $basename => $schemaClass) {
+            if (enum_exists($schemaClass)) {
+                continue;
+            }
+
             yield $basename => [$basename, $schemaClass];
         }
+    }
+
+    /**
+     * @param class-string<\UnitEnum> $schemaClass
+     */
+    #[DataProvider('provideSchemaEnumMatchesCasesCases')]
+    public function testSchemaEnumMatchesCases(string $schema, string $schemaClass): void
+    {
+        self::assertArrayHasKey($schema, self::$latestSchema, \sprintf('Schema key "%s" is missing in the latest schema definitions.', $schema));
+        self::assertIsArray(self::$latestSchema[$schema], \sprintf('Schema definition for "%s" is not an array.', $schema));
+        self::assertArrayHasKey('enum', self::$latestSchema[$schema], \sprintf('Schema definition for "%s" does not have an enum.', $schema));
+
+        $enum = self::$latestSchema[$schema]['enum'];
+        self::assertIsArray($enum, \sprintf('Enum for schema "%s" is not an array.', $schema));
+
+        $reflection = new \ReflectionEnum($schemaClass);
+        self::assertTrue($reflection->isBacked(), \sprintf('Enum class "%s" is not a backed enum.', $schemaClass));
+
+        $caseValues = array_map(
+            static fn(\ReflectionEnumBackedCase $case) => $case->getBackingValue(),
+            $reflection->getCases(),
+        );
+        sort($caseValues);
+
+        self::assertSame($enum, $caseValues, \sprintf(
+            'Schema key "%s"\'s enum values ("%s") do not match case values in enum class "%s" ("%s").',
+            $schema,
+            implode('", "', $enum),
+            $schemaClass,
+            implode('", "', $caseValues),
+        ));
+    }
+
+    public static function provideSchemaEnumMatchesCasesCases(): iterable
+    {
+        self::generateLatestSchema();
+        self::sortSchemaDefinition();
+
+        foreach (self::$sortedSchema['schema'] as $basename => $schemaClass) {
+            if (! enum_exists($schemaClass)) {
+                continue;
+            }
+
+            yield $basename => [$basename, $schemaClass];
+        }
+    }
+
+    private static function assertDescriptionContains(string $description, string $docComment): void
+    {
+        $docComment = str_replace(["/**\n", ' * ', ' *', ' */'], '', $docComment);
+
+        self::assertStringContainsString($description, $docComment, 'Schema description does not match class PHPDoc comment.');
     }
 
     private static function normaliseJsonType(string $type): string
