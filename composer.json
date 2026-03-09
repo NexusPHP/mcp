@@ -77,8 +77,8 @@
             "@cs:check",
             "@phpstan:check",
             "@test:auto-review",
-            "@mutation:check",
-            "@test:unit"
+            "@test:unit",
+            "@mutation:check"
         ],
         "test:auto-review": "phpunit --group=auto-review --colors=always --no-coverage",
         "test:client": "phpunit --group=client-tests --colors=always --coverage-html=build/phpunit/html",
