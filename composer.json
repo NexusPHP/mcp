@@ -71,7 +71,7 @@
         "cs:fix": "tools/vendor/bin/php-cs-fixer fix --ansi --verbose --diff",
         "mutation:check": "tools/vendor/bin/infection --ansi --with-uncovered --static-analysis-tool=phpstan",
         "mutation:filter": "@mutation:check --git-diff-filter=AM --git-diff-base=origin/1.x",
-        "phpstan:baseline": "phpstan analyse --ansi --verbose --generate-baseline=phpstan-baseline.neon",
+        "phpstan:baseline": "phpstan analyse --ansi --verbose --generate-baseline=phpstan-baseline.php",
         "phpstan:check": "phpstan analyse --ansi --verbose",
         "test:all": [
             "@cs:check",
