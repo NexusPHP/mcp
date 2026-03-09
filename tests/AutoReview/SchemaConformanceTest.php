@@ -194,6 +194,25 @@ final class SchemaConformanceTest extends TestCase
         }
     }
 
+    public function testProtocolSchemaExistsOnlyInCore(): void
+    {
+        self::generateLatestSchema();
+        self::sortSchemaDefinition();
+
+        foreach (self::$sortedSchema['schema'] as $basename => $schemaClass) {
+            $parts = explode('\\', $schemaClass);
+            self::assertArrayHasKey(2, $parts);
+
+            $package = $parts[2];
+            self::assertSame('Core', $package, \sprintf(
+                'Protocol schema "%s" (class: %s) must be defined in Core, not %s.',
+                $basename,
+                $schemaClass,
+                $package,
+            ));
+        }
+    }
+
     private static function assertDescriptionContains(string $description, string $docComment): void
     {
         $docComment = str_replace(["/**\n", ' * ', ' *', ' */'], '', $docComment);

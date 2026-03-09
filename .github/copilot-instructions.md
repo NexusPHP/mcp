@@ -68,6 +68,7 @@ composer cs:fix
 The `Core/` subdirectory owns all MCP protocol types. These are modeled as immutable readonly classes or enums under `Nexus\Mcp\Core\`.
 No server or client logic belongs here — only types, interfaces, and JSON-RPC primitives.
 It can also provide abstract classes or traits for shared logic, but it should not have any concrete implementations of protocol handling.
+All protocol wire contracts (request/response/notification payload schemas) must be defined in `Core` even if one side typically originates them.
 
 MCP schema types map directly to the [MCP specification](https://spec.modelcontextprotocol.io). When the spec defines an object, it becomes a readonly PHP class. Enums in the spec map to PHP backed enums.
 
@@ -89,6 +90,8 @@ Transports are abstracted behind an interface defined in `Core`. Both `Server` a
 ### JSON-RPC
 
 All MCP communication is JSON-RPC 2.0. Request/response/notification types live in `Core`. The `Server` and `Client` packages build on these primitives and should not define their own wire-format types.
+
+If a type is implementation-internal and never appears on the wire, it may live in `Server` or `Client`; once it becomes a protocol contract, it belongs in `Core`.
 
 ## Conformance Testing
 
