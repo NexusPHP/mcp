@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\AutoReview;
 
 use Nexus\Mcp\Core\Schema\Arrayable;
+use Nexus\Mcp\Tools\McpSchemaProcessor;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -26,10 +27,6 @@ use PHPUnit\Framework\TestCase;
 #[Group('auto-review')]
 final class SchemaConformanceTest extends TestCase
 {
-    public const string LATEST_SCHEMA_URL = 'https://raw.githubusercontent.com/modelcontextprotocol/modelcontextprotocol/main/schema/2025-11-25/schema.json';
-    private const string LATEST_SCHEMA_JSON_PATH = __DIR__.'/../../latest-schema.json';
-    private const string SORTED_SCHEMA_JSON_PATH = __DIR__.'/../../sorted-schema.json';
-
     /**
      * @var array<string, mixed>
      */
@@ -37,13 +34,15 @@ final class SchemaConformanceTest extends TestCase
 
     /**
      * @var array{
-     *   schema: array<string, class-string>,
-     *   nonSchema: array<string, class-string>,
+     *   processed_schema: array<string, class-string>,
+     *   internal_schema: array<string, class-string>,
+     *   unprocessed_schema: list<string>,
      * }
      */
     private static array $sortedSchema = [
-        'schema' => [],
-        'nonSchema' => [],
+        'processed_schema' => [],
+        'internal_schema' => [],
+        'unprocessed_schema' => [],
     ];
 
     /**
@@ -52,11 +51,7 @@ final class SchemaConformanceTest extends TestCase
     #[DataProvider('provideSchemaDescriptionIsAccurateCases')]
     public function testSchemaDescriptionIsAccurate(string $schema, string $schemaClass): void
     {
-        self::assertArrayHasKey($schema, self::$latestSchema, \sprintf('Schema key "%s" is missing in the latest schema definitions.', $schema));
-        self::assertIsArray(self::$latestSchema[$schema], \sprintf('Schema definition for "%s" is not an array.', $schema));
-        self::assertArrayHasKey('description', self::$latestSchema[$schema], \sprintf('Schema definition for "%s" does not have a description.', $schema));
-
-        $description = self::$latestSchema[$schema]['description'];
+        $description = self::getSchemaProperty($schema, 'description');
         self::assertIsString($description, \sprintf('Description for schema "%s" is not a string.', $schema));
 
         $reflection = new \ReflectionClass($schemaClass);
@@ -71,12 +66,7 @@ final class SchemaConformanceTest extends TestCase
      */
     public static function provideSchemaDescriptionIsAccurateCases(): iterable
     {
-        self::generateLatestSchema();
-        self::sortSchemaDefinition();
-
-        foreach (self::$sortedSchema['schema'] as $basename => $schemaClass) {
-            yield $basename => [$basename, $schemaClass];
-        }
+        yield from self::getProtocolSchemasForTesting();
     }
 
     /**
@@ -85,11 +75,7 @@ final class SchemaConformanceTest extends TestCase
     #[DataProvider('provideSchemaTypeMatchesPropertiesCases')]
     public function testSchemaTypeMatchesProperties(string $schema, string $schemaClass): void
     {
-        self::assertArrayHasKey($schema, self::$latestSchema, \sprintf('Schema key "%s" is missing in the latest schema definitions.', $schema));
-        self::assertIsArray(self::$latestSchema[$schema], \sprintf('Schema definition for "%s" is not an array.', $schema));
-        self::assertArrayHasKey('type', self::$latestSchema[$schema], \sprintf('Schema definition for "%s" does not have a type.', $schema));
-
-        $type = self::$latestSchema[$schema]['type'];
+        $type = self::getSchemaProperty($schema, 'type');
         self::assertThat($type, self::logicalOr(self::isArray(), self::isString()), \sprintf('Type for schema "%s" is neither string nor array.', $schema));
         \assert(\is_string($type) || \is_array($type)); // for phpstan only
 
@@ -137,16 +123,7 @@ final class SchemaConformanceTest extends TestCase
 
     public static function provideSchemaTypeMatchesPropertiesCases(): iterable
     {
-        self::generateLatestSchema();
-        self::sortSchemaDefinition();
-
-        foreach (self::$sortedSchema['schema'] as $basename => $schemaClass) {
-            if (enum_exists($schemaClass)) {
-                continue;
-            }
-
-            yield $basename => [$basename, $schemaClass];
-        }
+        yield from self::getProtocolSchemasForTesting(static fn(string $class) => ! enum_exists($class));
     }
 
     /**
@@ -155,11 +132,7 @@ final class SchemaConformanceTest extends TestCase
     #[DataProvider('provideSchemaEnumMatchesCasesCases')]
     public function testSchemaEnumMatchesCases(string $schema, string $schemaClass): void
     {
-        self::assertArrayHasKey($schema, self::$latestSchema, \sprintf('Schema key "%s" is missing in the latest schema definitions.', $schema));
-        self::assertIsArray(self::$latestSchema[$schema], \sprintf('Schema definition for "%s" is not an array.', $schema));
-        self::assertArrayHasKey('enum', self::$latestSchema[$schema], \sprintf('Schema definition for "%s" does not have an enum.', $schema));
-
-        $enum = self::$latestSchema[$schema]['enum'];
+        $enum = self::getSchemaProperty($schema, 'enum');
         self::assertIsArray($enum, \sprintf('Enum for schema "%s" is not an array.', $schema));
 
         $reflection = new \ReflectionEnum($schemaClass);
@@ -182,31 +155,20 @@ final class SchemaConformanceTest extends TestCase
 
     public static function provideSchemaEnumMatchesCasesCases(): iterable
     {
-        self::generateLatestSchema();
-        self::sortSchemaDefinition();
-
-        foreach (self::$sortedSchema['schema'] as $basename => $schemaClass) {
-            if (! enum_exists($schemaClass)) {
-                continue;
-            }
-
-            yield $basename => [$basename, $schemaClass];
-        }
+        // @phpstan-ignore-next-line argument.type
+        yield from self::getProtocolSchemasForTesting(static fn(string $class) => enum_exists($class));
     }
 
     public function testProtocolSchemaExistsOnlyInCore(): void
     {
-        self::generateLatestSchema();
-        self::sortSchemaDefinition();
-
-        foreach (self::$sortedSchema['schema'] as $basename => $schemaClass) {
+        foreach (self::getProtocolSchemasForTesting() as [$schema, $schemaClass]) {
             $parts = explode('\\', $schemaClass);
             self::assertArrayHasKey(2, $parts);
 
             $package = $parts[2];
             self::assertSame('Core', $package, \sprintf(
                 'Protocol schema "%s" (class: %s) must be defined in Core, not %s.',
-                $basename,
+                $schema,
                 $schemaClass,
                 $package,
             ));
@@ -236,44 +198,7 @@ final class SchemaConformanceTest extends TestCase
             return;
         }
 
-        $schemaJson = file_get_contents(self::LATEST_SCHEMA_URL);
-
-        if (false === $schemaJson) {
-            throw new \RuntimeException(\sprintf('Failed to fetch the latest schema from %s.', self::LATEST_SCHEMA_URL));
-        }
-
-        $decodedSchema = json_decode($schemaJson, true);
-
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new \RuntimeException(\sprintf('Failed to decode the latest schema JSON: %s', json_last_error_msg()));
-        }
-
-        if (! \is_array($decodedSchema)) {
-            throw new \RuntimeException('The decoded schema is not a valid array.');
-        }
-
-        if (! is_file(self::LATEST_SCHEMA_JSON_PATH) || getenv('MCP_FETCH_LATEST_SCHEMA') !== false) {
-            // for debugging
-            $encodedSchema = json_encode($decodedSchema, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-
-            if (false === $encodedSchema) {
-                throw new \RuntimeException(\sprintf('Failed to encode the latest schema to JSON: %s', json_last_error_msg()));
-            }
-
-            $encodedSchema = strtr($encodedSchema, [
-                '"additionalProperties": []' => '"additionalProperties": {}',
-                '"properties": []' => '"properties": {}',
-            ]);
-            file_put_contents(self::LATEST_SCHEMA_JSON_PATH, $encodedSchema);
-        }
-
-        unset($decodedSchema['$schema']);
-
-        if (! \array_key_exists('$defs', $decodedSchema) || ! \is_array($decodedSchema['$defs'])) {
-            throw new \RuntimeException('The latest schema does not contain valid $defs.');
-        }
-
-        self::$latestSchema = $decodedSchema['$defs']; // @phpstan-ignore assign.propertyType
+        self::$latestSchema = McpSchemaProcessor::fetchAndSaveLatestSchema();
     }
 
     private static function sortSchemaDefinition(): void
@@ -283,67 +208,45 @@ final class SchemaConformanceTest extends TestCase
         }
 
         if (
-            ['schema' => [], 'nonSchema' => []] !== self::$sortedSchema
+            ['processed_schema' => [], 'internal_schema' => [], 'unprocessed_schema' => []] !== self::$sortedSchema
             && getenv('MCP_FETCH_LATEST_SCHEMA') === false
         ) {
             return;
         }
 
-        foreach ([
-            __DIR__.'/../../src/Core/Schema',
-            __DIR__.'/../../src/Client/Schema',
-            __DIR__.'/../../src/Server/Schema',
-        ] as $schemaDir) {
-            if (! is_dir($schemaDir)) {
+        self::$sortedSchema = McpSchemaProcessor::sortAndSaveSchema(self::$latestSchema);
+    }
+
+    /**
+     * Retrieve a property from a schema definition with validation.
+     */
+    private static function getSchemaProperty(string $schema, string $property): mixed
+    {
+        self::assertArrayHasKey($schema, self::$latestSchema, \sprintf('Schema key "%s" is missing in the latest schema definitions.', $schema));
+        self::assertIsArray(self::$latestSchema[$schema], \sprintf('Schema definition for "%s" is not an array.', $schema));
+        self::assertArrayHasKey($property, self::$latestSchema[$schema], \sprintf('Schema definition for "%s" does not have "%s".', $schema, $property));
+
+        return self::$latestSchema[$schema][$property]; // @phpstan-ignore offsetAccess.notFound
+    }
+
+    /**
+     * Generate and yield protocol schemas from the sorted schema definition.
+     *
+     * @param null|(callable(string): bool) $filter Optional filter function that receives class name and returns true to include
+     *
+     * @return iterable<string, array{string, class-string}>
+     */
+    private static function getProtocolSchemasForTesting(?callable $filter = null): iterable
+    {
+        self::generateLatestSchema();
+        self::sortSchemaDefinition();
+
+        foreach (self::$sortedSchema['processed_schema'] as $basename => $schemaClass) {
+            if (null !== $filter && ! $filter($schemaClass)) {
                 continue;
             }
 
-            $iterator = new \RecursiveIteratorIterator(
-                new \RecursiveDirectoryIterator($schemaDir, \RecursiveDirectoryIterator::SKIP_DOTS | \RecursiveDirectoryIterator::UNIX_PATHS),
-                \RecursiveIteratorIterator::CHILD_FIRST,
-            );
-
-            $rootSrc = realpath(__DIR__.'/../../src/');
-            \assert(false !== $rootSrc);
-
-            /** @var \SplFileInfo $file */
-            foreach ($iterator as $file) {
-                if (! $file->isFile() || $file->getExtension() !== 'php') {
-                    continue;
-                }
-
-                $schemaClass = \sprintf(
-                    'Nexus\\Mcp\\%s',
-                    str_replace('/', '\\', substr((string) $file->getRealPath(), \strlen($rootSrc) + 1, -4)),
-                );
-                $basename = $file->getBasename('.php');
-
-                \assert(class_exists($schemaClass) || interface_exists($schemaClass));
-
-                if (\array_key_exists($basename, self::$latestSchema)) {
-                    self::$sortedSchema['schema'][$basename] = $schemaClass;
-                } else {
-                    self::$sortedSchema['nonSchema'][$basename] = $schemaClass;
-                }
-            }
-        }
-
-        ksort(self::$sortedSchema['schema']);
-        ksort(self::$sortedSchema['nonSchema']);
-
-        if (! is_file(self::SORTED_SCHEMA_JSON_PATH) || getenv('MCP_FETCH_LATEST_SCHEMA') !== false) {
-            $data = [
-                'generatedAt' => (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->format('D, d M Y H:i:s T'),
-                'sortedSchema' => self::$sortedSchema,
-            ];
-
-            $encodedData = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-
-            if (false === $encodedData) {
-                throw new \RuntimeException(\sprintf('Failed to encode sorted schema data to JSON: %s', json_last_error_msg()));
-            }
-
-            file_put_contents(self::SORTED_SCHEMA_JSON_PATH, $encodedData);
+            yield $basename => [$basename, $schemaClass];
         }
     }
 }

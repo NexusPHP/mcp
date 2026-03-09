@@ -1,0 +1,58 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+/**
+ * This file is part of the Nexus MCP SDK package.
+ *
+ * (c) 2026 John Paul E. Balandan, CPA <paulbalandan@gmail.com>
+ *
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
+ */
+
+use Nexus\Mcp\Tools\McpSchemaProcessor;
+
+if (! is_file(__DIR__.'/../composer.json')) {
+    throw new RuntimeException('Could not determine repository root. Are you running from the repository directory?');
+}
+
+if (is_file(__DIR__.'/../vendor/autoload.php')) {
+    require __DIR__.'/../vendor/autoload.php';
+} elseif (is_file(__DIR__.'/../tools/vendor/autoload.php')) {
+    require __DIR__.'/../tools/vendor/autoload.php';
+}
+
+putenv('MCP_FETCH_LATEST_SCHEMA=1');
+
+try {
+    echo "\033[36mGenerating schema files...\033[0m\n\n";
+
+    $latestSchema = McpSchemaProcessor::fetchAndSaveLatestSchema();
+    echo "\033[32m✓\033[0m Fetched latest MCP schema\n";
+    printf("\033[32m✓\033[0m Saved latest schema to %s\n", realpath(McpSchemaProcessor::LATEST_SCHEMA_PATH));
+
+    $sortedSchema = McpSchemaProcessor::sortAndSaveSchema($latestSchema);
+    printf(
+        <<<EOT
+            \033[32m✓\033[0m Protocol schema classes:
+              - Processed schema  : \033[33m%d\033[0m
+              - Internal schema   : \033[33m%d\033[0m
+              - Unprocessed schema: \033[33m%d\033[0m
+
+            EOT,
+        count($sortedSchema['processed_schema']),
+        count($sortedSchema['internal_schema']),
+        count($sortedSchema['unprocessed_schema']),
+    );
+    printf("\033[32m✓\033[0m Saved sorted schema metadata to %s\n", realpath(McpSchemaProcessor::SORTED_SCHEMA_PATH));
+
+    echo "\n\033[32m✓\033[0m Schema generation complete!\n";
+
+    exit(0);
+} catch (Throwable $e) {
+    printf("\n\033[31m✗ Error:\033[0m %s\n", $e->getMessage());
+
+    exit(1);
+}

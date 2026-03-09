@@ -52,7 +52,8 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Nexus\\Mcp\\Tests\\": "tests/"
+            "Nexus\\Mcp\\Tests\\": "tests/",
+            "Nexus\\Mcp\\Tools\\": "tools/src/"
         }
     },
     "config": {
@@ -67,6 +68,7 @@
         "post-autoload-dump": [
             "@composer update --ansi --working-dir=tools"
         ],
+        "schema:generate": "tools/generate-schema",
         "cs:check": "tools/vendor/bin/php-cs-fixer check --ansi --verbose --diff",
         "cs:fix": "tools/vendor/bin/php-cs-fixer fix --ansi --verbose --diff",
         "mutation:check": "tools/vendor/bin/infection --ansi --with-uncovered --static-analysis-tool=phpstan",
@@ -87,6 +89,7 @@
         "test:unit": "phpunit --group=unit-tests --colors=always --coverage-html=build/phpunit/html"
     },
     "scripts-descriptions": {
+        "schema:generate": "Generates latest-schema.json and sorted-schema.json files",
         "cs:check": "Checks for coding style violations",
         "cs:fix": "Fixes any coding style violations",
         "mutation:check": "Runs Infection on whole codebase",

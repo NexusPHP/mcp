@@ -26,6 +26,7 @@ $finder = Finder::create()
     ])
     ->append([
         __FILE__,
+        __DIR__.'/tools/generate-schema',
     ])
 ;
 
