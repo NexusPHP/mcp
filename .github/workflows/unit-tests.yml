@@ -1,0 +1,97 @@
+name: Unit Tests
+
+on:
+  push:
+    branches:
+      - 1.x
+    paths:
+      - .github/workflows/unit-tests.yml
+      - src/**
+      - tests/**
+      - composer.json
+      - phpunit.dist.xml
+  pull_request:
+    branches:
+      - 1.x
+    paths:
+      - .github/workflows/unit-tests.yml
+      - src/**
+      - tests/**
+      - composer.json
+      - phpunit.dist.xml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@db91e1a0e48e84637d325a7ee4d2677e146ceec4 # 2.36.0
+        with:
+          php-version: '8.3'
+          coverage: none
+
+      - name: Validate composer.json
+        run: composer validate # add --strict when nexusphp/assert is versioned
+
+  unit-tests:
+    name: Tests on PHP ${{ matrix.php-version }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: validate
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version:
+          - '8.3'
+          - '8.4'
+          - '8.5'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@db91e1a0e48e84637d325a7ee4d2677e146ceec4 # 2.36.0
+        with:
+          php-version: ${{ matrix.php-version }}
+          coverage: xdebug
+
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: composer-${{ matrix.php-version }}-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            composer-${{ matrix.php-version }}-
+            composer-
+
+      - name: Install dependencies
+        run: composer update --ansi --no-interaction
+
+      - name: Run Composer security audit
+        run: composer audit --ansi
+
+      - name: Run unit tests
+        run: composer test:unit

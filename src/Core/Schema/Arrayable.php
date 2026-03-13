@@ -24,8 +24,10 @@ interface Arrayable extends \JsonSerializable
      * Create an instance of the class from an array.
      *
      * @param T $data
+     *
+     * @return self<T>
      */
-    public static function fromArray(array $data): static;
+    public static function fromArray(array $data): self;
 
     /**
      * Convert the instance to an array.

@@ -8,10 +8,10 @@ updates:
     schedule:
       interval: 'daily'
     open-pull-requests-limit: 10
-    ignore:
-      - dependency-name: '*'
-        update-types:
-          - 'version-update:semver-patch'
+    groups:
+      github-actions:
+        patterns:
+          - '*'
 
   - package-ecosystem: 'composer'
     directory: '/'
