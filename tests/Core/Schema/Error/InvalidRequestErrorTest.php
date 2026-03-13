@@ -1,0 +1,123 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * This file is part of the Nexus MCP SDK package.
+ *
+ * (c) 2026 John Paul E. Balandan, CPA <paulbalandan@gmail.com>
+ *
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
+ */
+
+namespace Nexus\Mcp\Tests\Core\Schema\Error;
+
+use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
+use Nexus\Mcp\Core\Schema\Error;
+use Nexus\Mcp\Core\Schema\Error\InvalidRequestError;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\TestCase;
+
+/**
+ * @internal
+ */
+#[CoversClass(InvalidRequestError::class)]
+#[CoversClass(Error::class)]
+#[Group('unit-tests')]
+#[Group('core-tests')]
+final class InvalidRequestErrorTest extends TestCase
+{
+    public function testInvalidRequestErrorHasCorrectDefaultMessage(): void
+    {
+        $error = new InvalidRequestError();
+        self::assertSame('Invalid request', $error->message);
+    }
+
+    public function testInvalidRequestErrorCanOverrideMessage(): void
+    {
+        $error = new InvalidRequestError('Request is malformed');
+        self::assertSame('Request is malformed', $error->message);
+    }
+
+    public function testInvalidRequestErrorHasCorrectCode(): void
+    {
+        $error = new InvalidRequestError();
+        self::assertSame(ProtocolErrorCode::InvalidRequest->value, $error->code);
+        self::assertSame(-32600, $error->code);
+    }
+
+    public function testInvalidRequestErrorCanIncludeData(): void
+    {
+        $data = ['field' => 'method', 'reason' => 'missing'];
+        $error = new InvalidRequestError('Invalid request', $data);
+        self::assertSame($data, $error->data);
+    }
+
+    public function testInvalidRequestErrorFromArrayWithAllFields(): void
+    {
+        $data = [
+            'message' => 'The request is invalid',
+            'data' => ['validation' => 'errors'],
+        ];
+
+        $error = InvalidRequestError::fromArray($data);
+
+        self::assertSame('The request is invalid', $error->message);
+        self::assertSame(-32600, $error->code);
+        self::assertSame(['validation' => 'errors'], $error->data);
+    }
+
+    public function testInvalidRequestErrorFromArrayUsesDefaultMessage(): void
+    {
+        $data = [];
+        $error = InvalidRequestError::fromArray($data);
+
+        self::assertSame('Invalid request', $error->message);
+    }
+
+    public function testInvalidRequestErrorFromArrayWithoutData(): void
+    {
+        $data = ['message' => 'Custom message'];
+        $error = InvalidRequestError::fromArray($data);
+
+        self::assertNull($error->data);
+    }
+
+    public function testInvalidRequestErrorToArray(): void
+    {
+        $error = new InvalidRequestError('Bad request', ['why' => 'malformed']);
+        $array = $error->toArray();
+
+        self::assertSame([
+            'code' => -32600,
+            'message' => 'Bad request',
+            'data' => ['why' => 'malformed'],
+        ], $array);
+    }
+
+    public function testInvalidRequestErrorJsonSerialize(): void
+    {
+        $error = new InvalidRequestError('Bad request');
+        $result = $error->jsonSerialize();
+
+        self::assertSame([
+            'code' => -32600,
+            'message' => 'Bad request',
+        ], $result);
+    }
+
+    public function testInvalidRequestErrorJsonSerializeWithData(): void
+    {
+        $data = ['field' => 'id'];
+        $error = new InvalidRequestError('Bad request', $data);
+        $result = $error->jsonSerialize();
+
+        self::assertSame([
+            'code' => -32600,
+            'message' => 'Bad request',
+            'data' => $data,
+        ], $result);
+    }
+}

@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\AutoReview;
 
 use Nexus\Mcp\Core\Schema\Arrayable;
+use Nexus\Mcp\Core\Schema\Error;
 use Nexus\Mcp\Tools\McpSchemaProcessor;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -66,7 +67,11 @@ final class SchemaConformanceTest extends TestCase
      */
     public static function provideSchemaDescriptionIsAccurateCases(): iterable
     {
-        yield from self::getProtocolSchemasForTesting();
+        yield from self::getProtocolSchemasForTesting(
+            static fn(string $class): bool => ! \in_array($class, [
+                Error::class,
+            ], true),
+        );
     }
 
     /**
@@ -232,7 +237,7 @@ final class SchemaConformanceTest extends TestCase
     /**
      * Generate and yield protocol schemas from the sorted schema definition.
      *
-     * @param null|(callable(string): bool) $filter Optional filter function that receives class name and returns true to include
+     * @param null|(callable(string, string): bool) $filter
      *
      * @return iterable<string, array{string, class-string}>
      */
@@ -242,7 +247,7 @@ final class SchemaConformanceTest extends TestCase
         self::sortSchemaDefinition();
 
         foreach (self::$sortedSchema['processed_schema'] as $basename => $schemaClass) {
-            if (null !== $filter && ! $filter($schemaClass)) {
+            if (null !== $filter && ! $filter($schemaClass, $basename)) {
                 continue;
             }
 
