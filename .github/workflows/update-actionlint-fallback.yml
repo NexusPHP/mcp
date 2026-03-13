@@ -1,0 +1,47 @@
+name: Update Actionlint Fallback
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 3 * * 1'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  update-actionlint-fallback:
+    name: Update fallback actionlint pin
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: '3.13'
+
+      - name: Update fallback actionlint version and checksum
+        run: python3 .github/scripts/update_actionlint_fallback.py
+
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: chore/update-actionlint-fallback
+          commit-message: 'Update fallback actionlint pin'
+          title: 'Update fallback actionlint pin'
+          body: |
+            This automated change updates the fallback actionlint binary version and checksum used by `.github/workflows/yaml-validation.yml`.
+          add-paths: |
+            .github/workflows/yaml-validation.yml
+          delete-branch: true

@@ -1,3 +1,4 @@
+/.venv/
 /build/
 /tools/vendor/
 /tools/composer.lock

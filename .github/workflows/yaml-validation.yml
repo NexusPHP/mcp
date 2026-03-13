@@ -1,0 +1,86 @@
+name: YAML Validation
+
+on:
+  push:
+    branches:
+      - 1.x
+    paths:
+      - .github/workflows/**/*.yml
+      - .github/dependabot.yml
+      - .github/scripts/validate_yaml.py
+      - .github/scripts/requirements.txt
+  pull_request:
+    branches:
+      - 1.x
+    paths:
+      - .github/workflows/**/*.yml
+      - .github/dependabot.yml
+      - .github/scripts/validate_yaml.py
+      - .github/scripts/requirements.txt
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-yaml:
+    name: Validate YAML files
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: '3.13'
+
+      - name: Install Python dependencies
+        run: python3 -m pip install --disable-pip-version-check -r .github/scripts/requirements.txt
+
+      - name: Validate repository YAML files
+        run: python3 .github/scripts/validate_yaml.py
+
+      - name: Install actionlint fallback binary
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
+        run: |
+          curl -fsSL -o actionlint.tar.gz https://github.com/rhysd/actionlint/releases/download/v1.7.11/actionlint_1.7.11_linux_amd64.tar.gz
+          echo '900919a84f2229bac68ca9cd4103ea297abc35e9689ebb842c6e34a3d1b01b0a  actionlint.tar.gz' | sha256sum --check --strict
+          tar -xzf actionlint.tar.gz actionlint
+          chmod +x actionlint
+
+      - name: Validate GitHub Actions workflows with fallback binary
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
+        run: ./actionlint -color
+
+  reviewdog-actionlint:
+    name: Reviewdog Actionlint
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      checks: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Validate GitHub Actions workflows with reviewdog
+        uses: reviewdog/action-actionlint@30f054494d5c1aa100ec4e57d1c7601100fc8f45 # v1.71.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          reporter: github-pr-check
+          filter_mode: nofilter
+          fail_level: error
+          level: error
+          actionlint_flags: -color
