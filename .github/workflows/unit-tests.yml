@@ -46,7 +46,7 @@ jobs:
           coverage: none
 
       - name: Validate composer.json
-        run: composer validate # add --strict when nexusphp/assert is versioned
+        run: composer validate --strict
 
   unit-tests:
     name: Tests on PHP ${{ matrix.php-version }}
