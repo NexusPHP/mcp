@@ -1,11 +1,12 @@
+/.github/scripts/actionlint
+/.php-cs-fixer.php
 /.venv/
 /build/
-/tools/vendor/
-/tools/composer.lock
-/vendor/
 /composer.lock
-/.php-cs-fixer.php
 /latest-schema.json
 /phpstan.neon
 /phpunit.xml
 /sorted-schema.json
+/tools/composer.lock
+/tools/vendor/
+/vendor/

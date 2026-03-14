@@ -10,17 +10,14 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 
-WORKFLOW_PATH = Path('.github/workflows/yaml-validation.yml')
+INSTALL_SCRIPT_PATH = Path('.github/scripts/install-actionlint.sh')
 RELEASE_API = 'https://api.github.com/repos/rhysd/actionlint/releases/latest'
 RESET = '\033[0m'
 RED = '\033[31m'
 GREEN = '\033[32m'
 BLUE = '\033[34m'
 YELLOW = '\033[33m'
-URL_PATTERN = re.compile(
-    r'https://github\.com/rhysd/actionlint/releases/download/v\d+\.\d+\.\d+/actionlint_\d+\.\d+\.\d+_linux_amd64\.tar\.gz'
-)
-CHECKSUM_PATTERN = re.compile(r"echo '[0-9a-f]{64}  actionlint\.tar\.gz' \| sha256sum --check --strict")
+VERSION_PATTERN = re.compile(r'VERSION="\$\{2:-\$\{ACTIONLINT_VERSION:-\d+\.\d+\.\d+\}\}"')
 
 
 def colorise(text: str, colour: str) -> str:
@@ -48,35 +45,17 @@ def get_latest_release_tag() -> str:
     return tag_name
 
 
-def get_checksum(tag: str, asset_filename: str) -> str:
-    checksum_url = (
-        f'https://github.com/rhysd/actionlint/releases/download/{tag}/'
-        f'actionlint_{tag.removeprefix("v")}_checksums.txt'
-    )
-    checksums_text = http_get(checksum_url)
-
-    for line in checksums_text.splitlines():
-        columns = line.split()
-        if len(columns) == 2 and columns[1] == asset_filename:
-            return columns[0]
-
-    raise RuntimeError(f'Checksum for {asset_filename} not found in {checksum_url}.')
-
-
-def update_workflow_file(tag: str, checksum: str) -> bool:
+def update_install_script(tag: str) -> bool:
     version = tag.removeprefix('v')
-    asset_filename = f'actionlint_{version}_linux_amd64.tar.gz'
-    download_url = f'https://github.com/rhysd/actionlint/releases/download/{tag}/{asset_filename}'
-    checksum_line = f"echo '{checksum}  actionlint.tar.gz' | sha256sum --check --strict"
+    new_version_line = f'VERSION="${{2:-${{ACTIONLINT_VERSION:-{version}}}}}"'
 
-    content = WORKFLOW_PATH.read_text(encoding='utf-8')
-    updated = URL_PATTERN.sub(download_url, content, count=1)
-    updated = CHECKSUM_PATTERN.sub(checksum_line, updated, count=1)
+    content = INSTALL_SCRIPT_PATH.read_text(encoding='utf-8')
+    updated = VERSION_PATTERN.sub(new_version_line, content, count=1)
 
     if updated == content:
         return False
 
-    WORKFLOW_PATH.write_text(updated, encoding='utf-8')
+    INSTALL_SCRIPT_PATH.write_text(updated, encoding='utf-8')
     return True
 
 
@@ -85,18 +64,15 @@ def main() -> int:
 
     try:
         tag = get_latest_release_tag()
-        version = tag.removeprefix('v')
-        asset_filename = f'actionlint_{version}_linux_amd64.tar.gz'
-        checksum = get_checksum(tag, asset_filename)
-        changed = update_workflow_file(tag, checksum)
+        changed = update_install_script(tag)
     except (HTTPError, URLError, RuntimeError, OSError, json.JSONDecodeError) as error:
-        print(colorise(f'[FAIL] Failed to update actionlint fallback pins: {error}', RED), file=sys.stderr)
+        print(colorise(f'[FAIL] Failed to update actionlint version: {error}', RED), file=sys.stderr)
         return 1
 
     if changed:
-        print(colorise(f'[ OK ] Updated fallback actionlint pin to {tag}.', GREEN))
+        print(colorise(f'[ OK ] Updated actionlint version to {tag}.', GREEN))
     else:
-        print(colorise('[INFO] No fallback actionlint update required.', YELLOW))
+        print(colorise('[INFO] No actionlint version update required.', YELLOW))
 
     return 0
 
