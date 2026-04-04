@@ -139,6 +139,7 @@ final class SchemaConformanceTest extends TestCase
     {
         $enum = self::getSchemaProperty($schema, 'enum');
         self::assertIsArray($enum, \sprintf('Enum for schema "%s" is not an array.', $schema));
+        self::assertSame($enum, array_filter($enum, is_string(...)), \sprintf('Enum for schema "%s" contains non-string values.', $schema));
 
         $reflection = new \ReflectionEnum($schemaClass);
         self::assertTrue($reflection->isBacked(), \sprintf('Enum class "%s" is not a backed enum.', $schemaClass));
