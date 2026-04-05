@@ -67,7 +67,6 @@ final readonly class Icon implements Arrayable
         if (null !== $sizes) {
             foreach ($sizes as $size) {
                 Assert::that($size)
-                    ->nullOr()
                     ->isNonEmptyString('Icon size must be a non-empty string.')
                     ->matchesRegularExpression('/^(\d+x\d+|any)$/', 'Icon size must be in the format "WIDTHxHEIGHT" or "any".')
                 ;
