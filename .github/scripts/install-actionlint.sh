@@ -6,7 +6,7 @@
 set -euo pipefail
 
 DOWNLOAD_DIR="${1:-.github/scripts}"
-VERSION="${2:-${ACTIONLINT_VERSION:-1.7.11}}"
+VERSION="${2:-${ACTIONLINT_VERSION:-1.7.12}}"
 
 # Detect OS and architecture
 OS=$(uname -s)
