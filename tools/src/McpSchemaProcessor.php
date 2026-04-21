@@ -35,11 +35,11 @@ final class McpSchemaProcessor
             throw new \RuntimeException(\sprintf('Failed to fetch the latest schema from %s', self::LATEST_SCHEMA_URL));
         }
 
-        if (filter_var(getenv('MCP_FETCH_LATEST_SCHEMA'), FILTER_VALIDATE_BOOL)) {
+        if (filter_var(getenv('MCP_FETCH_LATEST_SCHEMA'), \FILTER_VALIDATE_BOOL)) {
             file_put_contents(self::LATEST_SCHEMA_PATH, $schemaJson);
         }
 
-        $decodedSchema = json_decode($schemaJson, true, flags: JSON_THROW_ON_ERROR);
+        $decodedSchema = json_decode($schemaJson, true, flags: \JSON_THROW_ON_ERROR);
 
         if (! \is_array($decodedSchema)) {
             throw new \RuntimeException('The decoded schema is not a valid array.');
@@ -115,12 +115,12 @@ final class McpSchemaProcessor
             'unprocessed_schema' => $unprocessedSchema,
         ];
 
-        if (filter_var(getenv('MCP_FETCH_LATEST_SCHEMA'), FILTER_VALIDATE_BOOL)) {
+        if (filter_var(getenv('MCP_FETCH_LATEST_SCHEMA'), \FILTER_VALIDATE_BOOL)) {
             $data = [
                 'created_at' => date('l, d F Y H:i:sP'),
                 'sorted_schema' => $sortedSchema,
             ];
-            file_put_contents(self::SORTED_SCHEMA_PATH, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR));
+            file_put_contents(self::SORTED_SCHEMA_PATH, json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_THROW_ON_ERROR));
         }
 
         return $sortedSchema;

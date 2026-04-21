@@ -85,7 +85,7 @@ final readonly class Annotations implements Arrayable
         }
 
         if (null !== $this->lastModified) {
-            $data['lastModified'] = $this->lastModified->format(DATE_RFC3339);
+            $data['lastModified'] = $this->lastModified->format(\DATE_RFC3339);
         }
 
         return $data;
