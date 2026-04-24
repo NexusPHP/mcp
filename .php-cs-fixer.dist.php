@@ -31,7 +31,7 @@ $finder = Finder::create()
 ;
 
 $overrides = [
-    'final_public_method_for_abstract_class' => false,
+    'single_line_empty_body' => false,
 ];
 
 $options = [
