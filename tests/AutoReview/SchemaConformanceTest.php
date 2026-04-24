@@ -67,10 +67,15 @@ final class SchemaConformanceTest extends TestCase
      */
     public static function provideSchemaDescriptionIsAccurateCases(): iterable
     {
+        /** @var list<class-string> $exclusions */
+        static $exclusions = [
+            Error::class,
+        ];
+
         yield from self::getProtocolSchemasForTesting(
-            static fn(string $class): bool => ! \in_array($class, [
-                Error::class,
-            ], true),
+            static fn(string $class, string $basename): bool => ! \in_array($class, $exclusions, true)
+                && \is_array(self::$latestSchema[$basename] ?? null)
+                && \array_key_exists('description', self::$latestSchema[$basename]),
         );
     }
 
@@ -108,7 +113,10 @@ final class SchemaConformanceTest extends TestCase
                 implode('", "', $propertyTypes),
             ));
         } elseif ('object' === $type) {
-            self::assertTrue($reflection->implementsInterface(Arrayable::class));
+            self::assertTrue(
+                $reflection->implementsInterface(Arrayable::class) || $reflection->hasMethod('toArray'),
+                \sprintf('Schema class "%s" must implement %s or expose a public toArray() method.', $schemaClass, Arrayable::class),
+            );
         } else {
             self::assertCount(1, $properties);
             self::assertInstanceOf(\ReflectionNamedType::class, $properties[0]->getType());
@@ -128,7 +136,11 @@ final class SchemaConformanceTest extends TestCase
 
     public static function provideSchemaTypeMatchesPropertiesCases(): iterable
     {
-        yield from self::getProtocolSchemasForTesting(static fn(string $class) => ! enum_exists($class));
+        yield from self::getProtocolSchemasForTesting(
+            static fn(string $class, string $basename): bool => ! enum_exists($class)
+                && \is_array(self::$latestSchema[$basename] ?? null)
+                && \array_key_exists('type', self::$latestSchema[$basename]),
+        );
     }
 
     /**

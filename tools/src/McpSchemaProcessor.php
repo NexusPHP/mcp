@@ -51,7 +51,10 @@ final class McpSchemaProcessor
             throw new \RuntimeException('The latest schema does not contain valid $defs.');
         }
 
-        return $decodedSchema['$defs']; // @phpstan-ignore return.type
+        /** @var array<string, mixed> $defs */
+        $defs = $decodedSchema['$defs'];
+
+        return self::resolveRefAliases($defs);
     }
 
     /**
@@ -96,8 +99,10 @@ final class McpSchemaProcessor
                 continue;
             }
 
-            if (\array_key_exists($basename, $schemaDefs)) {
-                $processedSchema[$basename] = $schemaClass;
+            $specKey = self::resolveSpecKey($basename, $schemaDefs);
+
+            if (null !== $specKey) {
+                $processedSchema[$specKey] = $schemaClass;
             } else {
                 $internalSchema[$basename] = $schemaClass;
             }
@@ -124,5 +129,65 @@ final class McpSchemaProcessor
         }
 
         return $sortedSchema;
+    }
+
+    /**
+     * Resolves a class basename to the matching top-level spec key, accounting
+     * for naming conventions that differ between PHP (camelCase `JsonRpc*`) and
+     * the MCP spec (uppercase-acronym `JSONRPC*`).
+     *
+     * @param array<string, mixed> $schemaDefs
+     *
+     * @return null|non-empty-string
+     */
+    private static function resolveSpecKey(string $basename, array $schemaDefs): ?string
+    {
+        if (\array_key_exists($basename, $schemaDefs)) {
+            return '' === $basename ? null : $basename;
+        }
+
+        if (str_starts_with($basename, 'JsonRpc')) {
+            $candidate = 'JSONRPC'.substr($basename, \strlen('JsonRpc'));
+
+            if (\array_key_exists($candidate, $schemaDefs)) {
+                return $candidate;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Inlines `$ref` aliases that point to other top-level `$defs` entries, so
+     * aliased schemas (e.g. `EmptyResult = { "$ref": "#/$defs/Result" }`) expose
+     * the same fields as the underlying definition for conformance testing.
+     *
+     * @param array<string, mixed> $defs
+     *
+     * @return array<string, mixed>
+     */
+    private static function resolveRefAliases(array $defs): array
+    {
+        $prefix = '#/$defs/';
+
+        foreach ($defs as $key => $def) {
+            if (! \is_array($def) || ! isset($def['$ref']) || \count($def) !== 1) {
+                continue;
+            }
+
+            $ref = $def['$ref'];
+
+            if (! \is_string($ref) || ! str_starts_with($ref, $prefix)) {
+                continue;
+            }
+
+            $target = substr($ref, \strlen($prefix));
+
+            if (\array_key_exists($target, $defs) && \is_array($defs[$target])) {
+                $defs[$key] = $defs[$target];
+            }
+        }
+
+        return $defs;
     }
 }
