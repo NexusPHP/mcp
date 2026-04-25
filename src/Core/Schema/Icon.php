@@ -83,12 +83,37 @@ final readonly class Icon implements Arrayable
         $this->theme = $theme;
     }
 
+    /**
+     * @param array<string, mixed> $data
+     */
     #[\Override]
     public static function fromArray(array $data): static
     {
-        $data += ['mimeType' => null, 'sizes' => null, 'theme' => null];
+        Assert::that($data)->hasOffset('src', 'Icon wire data missing "src".');
 
-        return new self($data['src'], $data['mimeType'], $data['sizes'], $data['theme']);
+        $src = $data['src'];
+        Assert::that($src)->isString('Icon wire "src" must be a string, {type} given.');
+
+        $mimeType = $data['mimeType'] ?? null;
+        Assert::that($mimeType)->nullOr()->isString('Icon wire "mimeType" must be a string or null, {type} given.');
+
+        $sizes = null;
+
+        if (isset($data['sizes'])) {
+            Assert::that($data['sizes'])->isArray('Icon wire "sizes" must be a list of strings or null, {type} given.');
+
+            $sizes = [];
+
+            foreach ($data['sizes'] as $size) {
+                Assert::that($size)->isString('Icon wire "sizes" entry must be a string, {type} given.');
+                $sizes[] = $size;
+            }
+        }
+
+        $theme = $data['theme'] ?? null;
+        Assert::that($theme)->nullOr()->isString('Icon wire "theme" must be a string or null, {type} given.');
+
+        return new self($src, $mimeType, $sizes, $theme);
     }
 
     #[\Override]
