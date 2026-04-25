@@ -4,6 +4,7 @@
 /build/
 /composer.lock
 /latest-schema.json
+/latest-schema.ts
 /phpstan.neon
 /phpunit.xml
 /sorted-schema.json

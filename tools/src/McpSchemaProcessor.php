@@ -18,9 +18,27 @@ namespace Nexus\Mcp\Tools;
  */
 final class McpSchemaProcessor
 {
-    public const string LATEST_SCHEMA_URL = 'https://raw.githubusercontent.com/modelcontextprotocol/modelcontextprotocol/main/schema/2025-11-25/schema.json';
-    public const string LATEST_SCHEMA_PATH = __DIR__.'/../../latest-schema.json';
-    public const string SORTED_SCHEMA_PATH = __DIR__.'/../../sorted-schema.json';
+    public const string LATEST_SCHEMA_JSON_URL = 'https://raw.githubusercontent.com/modelcontextprotocol/modelcontextprotocol/main/schema/2025-11-25/schema.json';
+    public const string LATEST_SCHEMA_JSON_PATH = __DIR__.'/../../latest-schema.json';
+    public const string SORTED_SCHEMA_JSON_PATH = __DIR__.'/../../sorted-schema.json';
+    public const string LATEST_SCHEMA_TS_URL = 'https://raw.githubusercontent.com/modelcontextprotocol/modelcontextprotocol/main/schema/2025-11-25/schema.ts';
+    public const string LATEST_SCHEMA_TS_PATH = __DIR__.'/../../latest-schema.ts';
+
+    /**
+     * Fetches the upstream `schema.ts` source and saves it locally as a
+     * developer reference for inheritance and type aliases that the JSON schema
+     * does not preserve. The file is git-ignored.
+     */
+    public static function fetchAndSaveLatestSchemaTs(): void
+    {
+        $schemaTs = file_get_contents(self::LATEST_SCHEMA_TS_URL);
+
+        if (false === $schemaTs) {
+            throw new \RuntimeException(\sprintf('Failed to fetch the latest schema.ts from %s', self::LATEST_SCHEMA_TS_URL));
+        }
+
+        file_put_contents(self::LATEST_SCHEMA_TS_PATH, $schemaTs);
+    }
 
     /**
      * Fetches the latest schema from the remote URL and saves it locally.
@@ -29,14 +47,14 @@ final class McpSchemaProcessor
      */
     public static function fetchAndSaveLatestSchema(): array
     {
-        $schemaJson = file_get_contents(self::LATEST_SCHEMA_URL);
+        $schemaJson = file_get_contents(self::LATEST_SCHEMA_JSON_URL);
 
         if (false === $schemaJson) {
-            throw new \RuntimeException(\sprintf('Failed to fetch the latest schema from %s', self::LATEST_SCHEMA_URL));
+            throw new \RuntimeException(\sprintf('Failed to fetch the latest schema from %s', self::LATEST_SCHEMA_JSON_URL));
         }
 
         if (filter_var(getenv('MCP_FETCH_LATEST_SCHEMA'), \FILTER_VALIDATE_BOOL)) {
-            file_put_contents(self::LATEST_SCHEMA_PATH, $schemaJson);
+            file_put_contents(self::LATEST_SCHEMA_JSON_PATH, $schemaJson);
         }
 
         $decodedSchema = json_decode($schemaJson, true, flags: \JSON_THROW_ON_ERROR);
@@ -125,7 +143,7 @@ final class McpSchemaProcessor
                 'created_at' => date('l, d F Y H:i:sP'),
                 'sorted_schema' => $sortedSchema,
             ];
-            file_put_contents(self::SORTED_SCHEMA_PATH, json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_THROW_ON_ERROR));
+            file_put_contents(self::SORTED_SCHEMA_JSON_PATH, json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_THROW_ON_ERROR));
         }
 
         return $sortedSchema;

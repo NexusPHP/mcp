@@ -31,7 +31,10 @@ try {
 
     $latestSchema = McpSchemaProcessor::fetchAndSaveLatestSchema();
     echo "\033[32m✓\033[0m Fetched latest MCP schema\n";
-    printf("\033[32m✓\033[0m Saved latest schema to %s\n", realpath(McpSchemaProcessor::LATEST_SCHEMA_PATH));
+    printf("\033[32m✓\033[0m Saved latest schema to %s\n", realpath(McpSchemaProcessor::LATEST_SCHEMA_JSON_PATH));
+
+    McpSchemaProcessor::fetchAndSaveLatestSchemaTs();
+    printf("\033[32m✓\033[0m Saved latest schema.ts to %s\n", realpath(McpSchemaProcessor::LATEST_SCHEMA_TS_PATH));
 
     $sortedSchema = McpSchemaProcessor::sortAndSaveSchema($latestSchema);
     printf(
@@ -46,7 +49,7 @@ try {
         count($sortedSchema['internal_schema']),
         count($sortedSchema['unprocessed_schema']),
     );
-    printf("\033[32m✓\033[0m Saved sorted schema metadata to %s\n", realpath(McpSchemaProcessor::SORTED_SCHEMA_PATH));
+    printf("\033[32m✓\033[0m Saved sorted schema metadata to %s\n", realpath(McpSchemaProcessor::SORTED_SCHEMA_JSON_PATH));
 
     echo "\n\033[32m✓\033[0m Schema generation complete!\n";
 
