@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Tests\AutoReview;
 
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\Error;
+use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Tools\McpSchemaProcessor;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -45,6 +46,11 @@ final class SchemaConformanceTest extends TestCase
         'internal_schema' => [],
         'unprocessed_schema' => [],
     ];
+
+    /**
+     * @var null|array<string, array{members: list<string>, allowsResultSubclass: bool}>
+     */
+    private static ?array $specUnions = null;
 
     /**
      * @param class-string $schemaClass
@@ -193,6 +199,99 @@ final class SchemaConformanceTest extends TestCase
         }
     }
 
+    /**
+     * @param class-string $memberClass
+     * @param class-string $unionInterface
+     */
+    #[DataProvider('provideSchemaUnionMemberImplementsMarkerCases')]
+    public function testSchemaUnionMemberImplementsMarker(string $union, string $member, string $unionInterface, string $memberClass): void
+    {
+        self::assertTrue(
+            is_subclass_of($memberClass, $unionInterface),
+            \sprintf(
+                'Class "%s" is a member of spec union "%s" but does not implement marker interface "%s".',
+                $memberClass,
+                $union,
+                $unionInterface,
+            ),
+        );
+    }
+
+    /**
+     * @return iterable<string, array{string, string, class-string, class-string}>
+     */
+    public static function provideSchemaUnionMemberImplementsMarkerCases(): iterable
+    {
+        self::generateLatestSchema();
+        self::sortSchemaDefinition();
+
+        foreach (self::getSpecUnions() as $union => $unionData) {
+            $unionInterface = self::$sortedSchema['processed_schema'][$union] ?? null;
+            self::assertIsString($unionInterface, \sprintf('Spec union "%s" has no PHP marker interface.', $union));
+
+            foreach ($unionData['members'] as $member) {
+                $memberClass = self::$sortedSchema['processed_schema'][$member] ?? null;
+
+                if (! \is_string($memberClass)) {
+                    continue;
+                }
+
+                yield \sprintf('%s contains %s', $union, $member) => [$union, $member, $unionInterface, $memberClass];
+            }
+        }
+    }
+
+    /**
+     * @param class-string $unionInterface
+     * @param class-string $implementer
+     */
+    #[DataProvider('provideSchemaUnionMarkerImplementersAreInUnionCases')]
+    public function testSchemaUnionMarkerImplementersAreInUnion(string $union, string $unionInterface, string $implementer, string $implementerBasename): void
+    {
+        $unionData = self::getSpecUnions()[$union] ?? null;
+        self::assertIsArray($unionData);
+
+        $licensed = \in_array($implementerBasename, $unionData['members'], true)
+            || ($unionData['allowsResultSubclass'] && is_subclass_of($implementer, Result::class));
+
+        self::assertTrue($licensed, \sprintf(
+            'Class "%s" implements marker "%s" but basename "%s" is not in spec union "%s".',
+            $implementer,
+            $unionInterface,
+            $implementerBasename,
+            $union,
+        ));
+    }
+
+    /**
+     * @return iterable<string, array{string, class-string, class-string, string}>
+     */
+    public static function provideSchemaUnionMarkerImplementersAreInUnionCases(): iterable
+    {
+        self::generateLatestSchema();
+        self::sortSchemaDefinition();
+
+        foreach (array_keys(self::getSpecUnions()) as $union) {
+            $unionInterface = self::$sortedSchema['processed_schema'][$union] ?? null;
+
+            if (! \is_string($unionInterface)) {
+                continue;
+            }
+
+            foreach (self::$sortedSchema['processed_schema'] as $basename => $candidate) {
+                if ($candidate === $unionInterface) {
+                    continue;
+                }
+
+                if (! is_subclass_of($candidate, $unionInterface)) {
+                    continue;
+                }
+
+                yield \sprintf('%s implements %s', $candidate, $union) => [$union, $unionInterface, $candidate, $basename];
+            }
+        }
+    }
+
     private static function assertDescriptionContains(string $description, string $docComment): void
     {
         $docComment = str_replace(["/**\n", ' * ', ' *', ' */'], '', $docComment);
@@ -245,6 +344,61 @@ final class SchemaConformanceTest extends TestCase
         self::assertArrayHasKey($property, self::$latestSchema[$schema], \sprintf('Schema definition for "%s" does not have "%s".', $schema, $property));
 
         return self::$latestSchema[$schema][$property]; // @phpstan-ignore offsetAccess.notFound
+    }
+
+    /**
+     * Resolve the six spec-level direction unions (`ClientRequest`, `ServerRequest`,
+     * `ClientNotification`, `ServerNotification`, `ClientResult`, `ServerResult`)
+     * to their explicit member basenames. The bare `{"$ref": "Result"}` entry
+     * appearing in `ClientResult` / `ServerResult` is recorded separately as a
+     * structural license, not folded into the explicit members list.
+     *
+     * @return array<string, array{members: list<string>, allowsResultSubclass: bool}>
+     */
+    private static function getSpecUnions(): array
+    {
+        if (null !== self::$specUnions) {
+            return self::$specUnions;
+        }
+
+        self::generateLatestSchema();
+
+        $prefix = '#/$defs/';
+        $unions = [];
+
+        foreach (['ClientRequest', 'ServerRequest', 'ClientNotification', 'ServerNotification', 'ClientResult', 'ServerResult'] as $name) {
+            $def = self::$latestSchema[$name] ?? null;
+
+            if (! \is_array($def) || ! \is_array($def['anyOf'] ?? null)) {
+                continue;
+            }
+
+            $members = [];
+            $allowsResultSubclass = false;
+
+            /** @var array<int, mixed> $anyOf */
+            $anyOf = $def['anyOf'];
+
+            foreach ($anyOf as $entry) {
+                if (! \is_array($entry) || ! \is_string($entry['$ref'] ?? null) || ! str_starts_with($entry['$ref'], $prefix)) {
+                    continue;
+                }
+
+                $member = substr($entry['$ref'], \strlen($prefix));
+
+                if ('Result' === $member) {
+                    $allowsResultSubclass = true;
+
+                    continue;
+                }
+
+                $members[] = $member;
+            }
+
+            $unions[$name] = ['members' => $members, 'allowsResultSubclass' => $allowsResultSubclass];
+        }
+
+        return self::$specUnions = $unions;
     }
 
     /**
