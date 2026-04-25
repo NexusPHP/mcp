@@ -25,7 +25,7 @@ on:
       - phpstan-baseline.php
 
 env:
-  PHP_VERSION_DEFAULT: '8.3'
+  PHP_VERSION_DEFAULT: '8.4'
 
 permissions:
   contents: read

@@ -79,7 +79,7 @@ final class AnnotationsTest extends TestCase
         $annotations = new Annotations(lastModified: $lastModified);
 
         self::assertInstanceOf(\DateTimeImmutable::class, $annotations->lastModified);
-        self::assertSame((new \DateTimeImmutable($lastModified))->getTimestamp(), $annotations->lastModified->getTimestamp());
+        self::assertSame(new \DateTimeImmutable($lastModified)->getTimestamp(), $annotations->lastModified->getTimestamp());
     }
 
     /**

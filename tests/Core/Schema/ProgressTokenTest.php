@@ -29,9 +29,9 @@ final class ProgressTokenTest extends TestCase
 {
     public function testProgressTokenCapturesTokenAsIs(): void
     {
-        self::assertSame('token123', (new ProgressToken('token123'))->token);
-        self::assertSame('xyz789', (new ProgressToken('xyz789'))->token);
-        self::assertSame(456, (new ProgressToken(456))->token);
+        self::assertSame('token123', new ProgressToken('token123')->token);
+        self::assertSame('xyz789', new ProgressToken('xyz789')->token);
+        self::assertSame(456, new ProgressToken(456)->token);
     }
 
     public function testProgressTokenCannotBeEmptyString(): void

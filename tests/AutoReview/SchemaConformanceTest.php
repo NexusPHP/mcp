@@ -144,7 +144,7 @@ final class SchemaConformanceTest extends TestCase
     }
 
     /**
-     * @param class-string<\UnitEnum> $schemaClass
+     * @param class-string<\BackedEnum> $schemaClass
      */
     #[DataProvider('provideSchemaEnumMatchesCasesCases')]
     public function testSchemaEnumMatchesCases(string $schema, string $schemaClass): void

@@ -59,7 +59,7 @@ composer cs:fix
 - **PHPUnit** — test framework
 - **PHPStan level 10** — static analysis (strict)
 - **PHP-CS-Fixer + Nexus CS Config** — code style enforcement
-- **Minimum PHP version: 8.3**
+- **Minimum PHP version: 8.4**
 
 ## Architecture Conventions
 
@@ -106,7 +106,7 @@ Conformance tests live in `tests/AutoReview/`, which is also the home for all ot
 - Readonly classes for value objects and protocol types
 - No public mutable properties; use constructor promotion with `readonly`
 - PHPStan at max level — all code must pass without `@phpstan-ignore`. Test code can use `@phpstan-ignore` if necessary, but production code should not.
-- Code style should use the `Nexus83` preset from Nexus CS Config. Use that library to construct the config for PHP-CS-Fixer.
+- Code style should use the `Nexus84` preset from Nexus CS Config. Use that library to construct the config for PHP-CS-Fixer.
 - Classes should be final by default unless they are designed for extension (e.g., abstract classes or interfaces).
 - Properties, parameters, and return types should be fully typed. Use `mixed` only when absolutely necessary, and prefer union types or generics (via docblocks) to express complex types.
 - Use constructor injection for dependencies. Avoid service locators or static access to shared services.

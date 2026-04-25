@@ -19,7 +19,7 @@
         "source": "https://github.com/NexusPHP/mcp-sdk.git"
     },
     "require": {
-        "php": "^8.3",
+        "php": "^8.4",
         "nexusphp/assert": "^1.0"
     },
     "require-dev": {

@@ -12,7 +12,7 @@ declare(strict_types=1);
  */
 
 use Nexus\CsConfig\Factory;
-use Nexus\CsConfig\Ruleset\Nexus83;
+use Nexus\CsConfig\Ruleset\Nexus84;
 use PhpCsFixer\Finder;
 use PhpCsFixerCustomFixers\Fixer;
 use PhpCsFixerCustomFixers\Fixers;
@@ -57,7 +57,7 @@ $options = [
     ],
 ];
 
-return Factory::create(new Nexus83(), $overrides, $options)->forLibrary(
+return Factory::create(new Nexus84(), $overrides, $options)->forLibrary(
     'the Nexus MCP SDK package',
     'John Paul E. Balandan, CPA',
     'paulbalandan@gmail.com',
