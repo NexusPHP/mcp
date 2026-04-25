@@ -9,9 +9,9 @@ It is intentionally architected differently from the official PHP MCP SDK.
 
 The repository is a single Composer monorepo with three logical namespaces under `src/`:
 
-- `src/Core/` — Shared foundation: JSON-RPC 2.0 types, MCP schema classes, and reusable utilities used by both server and client packages.
-- `src/Server/` — MCP server implementation: handling tool/resource/prompt registration and responding to client requests.
-- `src/Client/` — MCP client implementation: connecting to MCP servers, calling tools, reading resources, and getting prompts.
+- `src/Core/`: shared foundation. JSON-RPC 2.0 types, MCP schema classes, and reusable utilities used by both server and client packages.
+- `src/Server/`: MCP server implementation. Handles tool/resource/prompt registration and responds to client requests.
+- `src/Client/`: MCP client implementation. Connects to MCP servers, calls tools, reads resources, and gets prompts.
 
 All code is managed under the unified namespace `Nexus\Mcp\` with the directory structure mirroring the namespace hierarchy. Tests mirror the source structure under `tests/` with namespace `Nexus\Mcp\Tests\`. Development tooling is isolated in a separate `tools/` directory with its own dependencies.
 
@@ -41,7 +41,7 @@ composer test:server # only server tests
 
 # Static analysis
 composer phpstan:check    # runs PHPStan across all packages
-composer phpstan:baseline # regenerates the PHPStan baseline — only use when a confirmed false positive/negative requires suppression; never add baseline entries to silence real errors
+composer phpstan:baseline # regenerates the PHPStan baseline; only use when a confirmed false positive/negative requires suppression; never add baseline entries to silence real errors
 
 # Mutation testing (checks for code quality via mutation detection)
 composer mutation:check      # runs Infection on whole codebase
@@ -56,9 +56,9 @@ composer cs:fix
 
 ### Key Tools
 
-- **PHPUnit** — test framework
-- **PHPStan level 10** — static analysis (strict)
-- **PHP-CS-Fixer + Nexus CS Config** — code style enforcement
+- **PHPUnit**: test framework
+- **PHPStan level 10**: static analysis (strict)
+- **PHP-CS-Fixer + Nexus CS Config**: code style enforcement
 - **Minimum PHP version: 8.4**
 
 ## Architecture Conventions
@@ -66,7 +66,7 @@ composer cs:fix
 ### Core Package
 
 The `Core/` subdirectory owns all MCP protocol types. These are modeled as immutable readonly classes or enums under `Nexus\Mcp\Core\`.
-No server or client logic belongs here — only types, interfaces, and JSON-RPC primitives.
+No server or client logic belongs here; only types, interfaces, and JSON-RPC primitives.
 It can also provide abstract classes or traits for shared logic, but it should not have any concrete implementations of protocol handling.
 All protocol wire contracts (request/response/notification payload schemas) must be defined in `Core` even if one side typically originates them.
 
@@ -95,7 +95,7 @@ If a type is implementation-internal and never appears on the wire, it may live 
 
 ## Conformance Testing
 
-This SDK must pass the official [MCP conformance test suite](https://github.com/modelcontextprotocol/modelcontextprotocol) maintained by the MCP project. Conformance tests are the authoritative check that the implementation adheres to the protocol specification. All new server and client functionality must remain conformance-compliant — if a conformance test fails, the implementation is wrong, not the test.
+This SDK must pass the official [MCP conformance test suite](https://github.com/modelcontextprotocol/modelcontextprotocol) maintained by the MCP project. Conformance tests are the authoritative check that the implementation adheres to the protocol specification. All new server and client functionality must remain conformance-compliant. If a conformance test fails, the implementation is wrong, not the test.
 
 Conformance tests live in `tests/AutoReview/`, which is also the home for all other automatic review tests (e.g., architecture checks, coding standard enforcement at the test level).
 
@@ -105,7 +105,7 @@ Conformance tests live in `tests/AutoReview/`, which is also the home for all ot
 - Namespace root: `Nexus\Mcp\` with subnamespaces for `Core`, `Server`, and `Client` (e.g., `Nexus\Mcp\Core\`, `Nexus\Mcp\Server\`, `Nexus\Mcp\Client\`)
 - Readonly classes for value objects and protocol types
 - No public mutable properties; use constructor promotion with `readonly`
-- PHPStan at max level — all code must pass without `@phpstan-ignore`. Test code can use `@phpstan-ignore` if necessary, but production code should not.
+- PHPStan at max level; all code must pass without `@phpstan-ignore`. Test code can use `@phpstan-ignore` if necessary, but production code should not.
 - Code style should use the `Nexus84` preset from Nexus CS Config. Use that library to construct the config for PHP-CS-Fixer.
 - Classes should be final by default unless they are designed for extension (e.g., abstract classes or interfaces).
 - Properties, parameters, and return types should be fully typed. Use `mixed` only when absolutely necessary, and prefer union types or generics (via docblocks) to express complex types.
