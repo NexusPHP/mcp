@@ -30,7 +30,7 @@ final readonly class Meta implements Arrayable
     }
 
     #[\Override]
-    public static function fromArray(array $data): self
+    public static function fromArray(array $data): static
     {
         return new self($data);
     }

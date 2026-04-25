@@ -84,7 +84,7 @@ final readonly class Icon implements Arrayable
     }
 
     #[\Override]
-    public static function fromArray(array $data): self
+    public static function fromArray(array $data): static
     {
         $data += ['mimeType' => null, 'sizes' => null, 'theme' => null];
 

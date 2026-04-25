@@ -33,7 +33,7 @@ final readonly class RequestMeta implements Arrayable
     }
 
     #[\Override]
-    public static function fromArray(array $data): self
+    public static function fromArray(array $data): static
     {
         $progressToken = null;
 

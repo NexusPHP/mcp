@@ -27,7 +27,7 @@ final readonly class InvalidRequestError extends Error
      * @param array{message?: string, data?: array<string, mixed>} $data
      */
     #[\Override]
-    public static function fromArray(array $data): self
+    public static function fromArray(array $data): static
     {
         return new self($data['message'] ?? 'Invalid request', $data['data'] ?? null);
     }

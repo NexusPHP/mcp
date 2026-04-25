@@ -60,7 +60,7 @@ final readonly class Annotations implements Arrayable
     }
 
     #[\Override]
-    public static function fromArray(array $data): self
+    public static function fromArray(array $data): static
     {
         $data += ['audience' => null, 'priority' => null, 'lastModified' => null];
 
