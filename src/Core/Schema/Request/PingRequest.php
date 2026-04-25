@@ -1,0 +1,61 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * This file is part of the Nexus MCP SDK package.
+ *
+ * (c) 2026 John Paul E. Balandan, CPA <paulbalandan@gmail.com>
+ *
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
+ */
+
+namespace Nexus\Mcp\Core\Schema\Request;
+
+use Nexus\Assert\Assert;
+use Nexus\Mcp\Core\Schema\Internal\RequestParams;
+use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
+use Nexus\Mcp\Core\Schema\RequestId;
+
+/**
+ * A ping, issued by either the server or the client, to check that the other party is still alive. The receiver must promptly respond, or else may be disconnected.
+ *
+ * @see https://modelcontextprotocol.io/specification/2025-11-25/basic/utilities/ping
+ *
+ * @extends JsonRpcRequest<'ping'>
+ */
+final readonly class PingRequest extends JsonRpcRequest implements ClientRequest, ServerRequest
+{
+    public function __construct(RequestId $id, RequestParams $params = new RequestParams())
+    {
+        parent::__construct($id, $params);
+    }
+
+    #[\Override]
+    public static function method(): string
+    {
+        return 'ping';
+    }
+
+    #[\Override]
+    public static function fromArray(array $data): static
+    {
+        Assert::that($data)->hasOffset('id', 'PingRequest wire data missing "id".');
+
+        $id = $data['id'];
+        Assert::that($id)->isArrayKey('PingRequest wire "id" must be int or string, {type} given.');
+
+        $params = new RequestParams();
+
+        if (\array_key_exists('params', $data)) {
+            Assert::that($data['params'])
+                ->isArray('PingRequest wire "params" must be an object, {type} given.')
+                ->isMap('PingRequest wire "params" must be a string-keyed object.')
+            ;
+            $params = RequestParams::fromArray($data['params']);
+        }
+
+        return new self(new RequestId($id), $params);
+    }
+}
