@@ -140,6 +140,9 @@ final class SchemaConformanceTest extends TestCase
         }
     }
 
+    /**
+     * @return iterable<string, array{string, class-string}>
+     */
     public static function provideSchemaTypeMatchesPropertiesCases(): iterable
     {
         yield from self::getProtocolSchemasForTesting(
@@ -177,6 +180,9 @@ final class SchemaConformanceTest extends TestCase
         ));
     }
 
+    /**
+     * @return iterable<string, array{string, class-string}>
+     */
     public static function provideSchemaEnumMatchesCasesCases(): iterable
     {
         // @phpstan-ignore-next-line argument.type

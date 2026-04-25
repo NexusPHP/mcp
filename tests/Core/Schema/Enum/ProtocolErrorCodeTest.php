@@ -34,7 +34,7 @@ final class ProtocolErrorCodeTest extends TestCase
     }
 
     /**
-     * @return iterable<array-key, array{ProtocolErrorCode, int}>
+     * @return iterable<string, array{ProtocolErrorCode, int}>
      */
     public static function provideProtocolErrorCodeCaseValueCases(): iterable
     {
