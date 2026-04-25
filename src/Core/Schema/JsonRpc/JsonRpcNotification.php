@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Schema\JsonRpc;
 
+use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\Internal\Notification;
 
 /**
@@ -23,22 +24,41 @@ use Nexus\Mcp\Core\Schema\Internal\Notification;
  * @template-covariant TMethod of non-empty-string
  *
  * @extends Notification<TMethod>
+ *
+ * @implements Arrayable<array{
+ *   jsonrpc: '2.0',
+ *   method: non-empty-string,
+ *   params?: array<string, mixed>,
+ * }>
  */
-abstract readonly class JsonRpcNotification extends Notification implements JsonRpcMessage
+abstract readonly class JsonRpcNotification extends Notification implements Arrayable, JsonRpcMessage
 {
     /**
-     * @return array{
-     *   jsonrpc: '2.0',
-     *   method: non-empty-string,
-     *   params?: array<string, mixed>,
-     * }
+     * @param array<string, mixed> $data
      */
+    #[\Override]
+    abstract public static function fromArray(array $data): static;
+
     #[\Override]
     public function toArray(): array
     {
-        return [
+        $envelope = [
             'jsonrpc' => self::JSONRPC_VERSION,
-            ...parent::toArray(),
+            'method' => static::method(),
         ];
+
+        $params = $this->params->toArray();
+
+        if ([] !== $params) {
+            $envelope['params'] = $params;
+        }
+
+        return $envelope;
+    }
+
+    #[\Override]
+    public function jsonSerialize(): array
+    {
+        return $this->toArray();
     }
 }

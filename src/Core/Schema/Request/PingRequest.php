@@ -27,11 +27,6 @@ use Nexus\Mcp\Core\Schema\RequestId;
  */
 final readonly class PingRequest extends JsonRpcRequest implements ClientRequest, ServerRequest
 {
-    public function __construct(RequestId $id, RequestParams $params = new RequestParams())
-    {
-        parent::__construct($id, $params);
-    }
-
     #[\Override]
     public static function method(): string
     {

@@ -16,8 +16,6 @@ namespace Nexus\Mcp\Core\Schema\JsonRpc;
 /**
  * A response to a request, containing either the result or error.
  *
- * Sealed by {@see JsonRpcResultResponse} and {@see JsonRpcErrorResponse}.
- *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/basic#responses
  */
 interface JsonRpcResponse extends JsonRpcMessage

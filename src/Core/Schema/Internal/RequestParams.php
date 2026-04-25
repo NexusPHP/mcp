@@ -20,9 +20,6 @@ use Nexus\Mcp\Core\Schema\RequestMeta;
 /**
  * Common params for any request.
  *
- * Methods with no typed params use this base directly; methods that add typed
- * fields subclass and override {@see self::fromArray()}.
- *
  * @phpstan-consistent-constructor
  *
  * @implements Arrayable<array{_meta?: array<string, mixed>}>

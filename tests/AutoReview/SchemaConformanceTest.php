@@ -30,6 +30,15 @@ use PHPUnit\Framework\TestCase;
 final class SchemaConformanceTest extends TestCase
 {
     /**
+     * Spec keys that the SDK represents on the class as a constant or static
+     * accessor instead of a constructor parameter (always-required values).
+     */
+    private const array SPEC_KEY_TO_NON_PROPERTY_REPRESENTATION = [
+        'jsonrpc' => ['kind' => 'constant', 'name' => 'JSONRPC_VERSION'],
+        'method' => ['kind' => 'static-method', 'name' => 'method'],
+    ];
+
+    /**
      * @var array<string, mixed>
      */
     private static array $latestSchema = [];
@@ -65,7 +74,7 @@ final class SchemaConformanceTest extends TestCase
         $docComment = $reflection->getDocComment();
         self::assertIsString($docComment, \sprintf('Schema class "%s" does not have a PHPDoc comment.', $schemaClass));
 
-        self::assertDescriptionContains($description, $docComment);
+        self::assertDescriptionMatches($description, $docComment, $schemaClass);
     }
 
     /**
@@ -119,10 +128,40 @@ final class SchemaConformanceTest extends TestCase
                 implode('", "', $propertyTypes),
             ));
         } elseif ('object' === $type) {
-            self::assertTrue(
-                $reflection->implementsInterface(Arrayable::class) || $reflection->hasMethod('toArray'),
-                \sprintf('Schema class "%s" must implement %s or expose a public toArray() method.', $schemaClass, Arrayable::class),
-            );
+            self::assertArrayHasKey($schema, self::$latestSchema);
+            $schemaDef = self::$latestSchema[$schema];
+            self::assertIsArray($schemaDef);
+
+            $specProperties = $schemaDef['properties'] ?? [];
+            self::assertIsArray($specProperties);
+
+            $specRequired = $schemaDef['required'] ?? [];
+            self::assertIsArray($specRequired);
+
+            $specPropertyKeys = array_filter(array_keys($specProperties), is_string(...));
+            $specRequiredKeys = array_values(array_filter($specRequired, is_string(...)));
+            $specOptionalKeys = array_values(array_diff($specPropertyKeys, $specRequiredKeys));
+
+            $findings = [];
+
+            $shape = self::extractArrayableShape($reflection);
+
+            if (null !== $shape) {
+                foreach (self::diffShapeAgainstSpec($shape, $specRequiredKeys, $specOptionalKeys, $schema) as $finding) {
+                    $findings[] = '[@implements Arrayable<...>] '.$finding;
+                }
+            }
+
+            foreach (self::diffPropertiesAgainstSpec($reflection, $specRequiredKeys, $specOptionalKeys) as $finding) {
+                $findings[] = '[property structure] '.$finding;
+            }
+
+            self::assertSame([], $findings, \sprintf(
+                "Schema class \"%s\" diverges from spec \"%s\":\n  * %s",
+                $schemaClass,
+                $schema,
+                implode("\n  * ", $findings),
+            ));
         } else {
             self::assertCount(1, $properties);
             self::assertInstanceOf(\ReflectionNamedType::class, $properties[0]->getType());
@@ -298,11 +337,397 @@ final class SchemaConformanceTest extends TestCase
         }
     }
 
-    private static function assertDescriptionContains(string $description, string $docComment): void
+    private static function assertDescriptionMatches(string $description, string $docComment, string $schemaClass): void
     {
-        $docComment = str_replace(["/**\n", ' * ', ' *', ' */'], '', $docComment);
+        $body = self::extractDocblockNarrative($docComment);
 
-        self::assertStringContainsString($description, $docComment, 'Schema description does not match class PHPDoc comment.');
+        $normalise = static fn(string $s): string => rtrim(trim((string) preg_replace('/\s+/', ' ', $s)), '.');
+
+        self::assertSame(
+            $normalise($description),
+            $normalise($body),
+            \sprintf('Schema class "%s" PHPDoc narrative must match the spec description verbatim.', $schemaClass),
+        );
+    }
+
+    /**
+     * Verify each spec property has a corresponding PHP representation and
+     * that required/optional matches: required spec keys must have no default;
+     * optional spec keys must have a default. Spec keys backed by a constant
+     * or static method (jsonrpc, method) are always-required and verified
+     * to exist on the class.
+     *
+     * @param \ReflectionClass<object> $reflection
+     * @param list<string>             $specRequired
+     * @param list<string>             $specOptional
+     *
+     * @return list<string>
+     */
+    private static function diffPropertiesAgainstSpec(
+        \ReflectionClass $reflection,
+        array $specRequired,
+        array $specOptional,
+    ): array {
+        $findings = [];
+        $constructor = $reflection->getConstructor();
+        $params = [];
+
+        if (null !== $constructor) {
+            foreach ($constructor->getParameters() as $param) {
+                $params[$param->getName()] = $param;
+            }
+        }
+
+        foreach ([...$specRequired, ...$specOptional] as $key) {
+            $isRequired = \in_array($key, $specRequired, true);
+
+            if (isset(self::SPEC_KEY_TO_NON_PROPERTY_REPRESENTATION[$key])) {
+                $rep = self::SPEC_KEY_TO_NON_PROPERTY_REPRESENTATION[$key];
+
+                if ('constant' === $rep['kind'] && ! $reflection->hasConstant($rep['name'])) {
+                    $findings[] = \sprintf(
+                        'spec \'%s\' must be backed by class constant %s::%s but it is not defined.',
+                        $key,
+                        $reflection->getShortName(),
+                        $rep['name'],
+                    );
+                }
+
+                if ('static-method' === $rep['kind']) {
+                    if (! $reflection->hasMethod($rep['name'])) {
+                        $findings[] = \sprintf(
+                            'spec \'%s\' must be backed by public static method %s::%s() but it is not defined.',
+                            $key,
+                            $reflection->getShortName(),
+                            $rep['name'],
+                        );
+                    } else {
+                        $accessor = $reflection->getMethod($rep['name']);
+
+                        if (! $accessor->isPublic() || ! $accessor->isStatic()) {
+                            $findings[] = \sprintf(
+                                'spec \'%s\' must be backed by public static method %s::%s() but its visibility/staticness is wrong.',
+                                $key,
+                                $reflection->getShortName(),
+                                $rep['name'],
+                            );
+                        }
+                    }
+                }
+
+                if (! $isRequired) {
+                    $findings[] = \sprintf(
+                        'spec \'%s\' is optional but is backed by an always-present constant/method; consider whether the spec marks it required.',
+                        $key,
+                    );
+                }
+
+                continue;
+            }
+
+            $phpName = self::specKeyToPhpName($key);
+
+            if (\array_key_exists($phpName, $params)) {
+                $param = $params[$phpName];
+                $hasDefault = $param->isDefaultValueAvailable();
+                $type = $param->getType();
+                $allowsNull = null !== $type && $type->allowsNull();
+                $source = \sprintf('constructor parameter $%s', $phpName);
+            } elseif ($reflection->hasProperty($phpName) && $reflection->getProperty($phpName)->isPublic()) {
+                $property = $reflection->getProperty($phpName);
+                $hasDefault = $property->hasDefaultValue();
+                $type = $property->getType();
+                $allowsNull = null !== $type && $type->allowsNull();
+                $source = \sprintf('property $%s', $phpName);
+            } else {
+                $findings[] = \sprintf(
+                    'spec \'%s\' has no constructor parameter $%s, no public property $%s, no class constant, and no public static method on %s.',
+                    $key,
+                    $phpName,
+                    $phpName,
+                    $reflection->getShortName(),
+                );
+
+                continue;
+            }
+
+            if ($isRequired) {
+                if ($hasDefault) {
+                    $findings[] = \sprintf(
+                        'spec \'%s\' is required but %s has a default value; remove the default.',
+                        $key,
+                        $source,
+                    );
+                }
+
+                if ($allowsNull) {
+                    $findings[] = \sprintf(
+                        'spec \'%s\' is required but %s is nullable; remove the \'?\' from its type.',
+                        $key,
+                        $source,
+                    );
+                }
+            } elseif (! $hasDefault && ! $allowsNull) {
+                $findings[] = \sprintf(
+                    'spec \'%s\' is optional but %s is neither nullable nor has a default value; add `= null` (or any default) so callers can omit it, or change the type to `?T`.',
+                    $key,
+                    $source,
+                );
+            }
+        }
+
+        sort($findings);
+
+        return $findings;
+    }
+
+    /**
+     * Map a spec property name to its expected PHP constructor parameter name.
+     * The leading underscore on `_meta` is dropped to match the project's
+     * convention of `$meta` for the meta value object.
+     */
+    private static function specKeyToPhpName(string $key): string
+    {
+        return ltrim($key, '_');
+    }
+
+    /**
+     * Compare a parsed shape against the spec's required/optional sets and
+     * return human-readable findings explaining exactly what is wrong and how
+     * to fix it. An empty list means the shape matches the spec.
+     *
+     * @param array{required: list<string>, optional: list<string>} $shape
+     * @param list<string>                                          $specRequired
+     * @param list<string>                                          $specOptional
+     *
+     * @return list<string>
+     */
+    private static function diffShapeAgainstSpec(array $shape, array $specRequired, array $specOptional, string $schema): array
+    {
+        $findings = [];
+
+        foreach (array_diff($shape['required'], $specRequired) as $key) {
+            if (\in_array($key, $specOptional, true)) {
+                $findings[] = \sprintf('\'%s\' is declared as required (no \'?\') but spec "%s" marks it optional; use \'%s?:\' instead.', $key, $schema, $key);
+            } else {
+                $findings[] = \sprintf('\'%s\' is declared as required but spec "%s" does not list it; remove it from the shape.', $key, $schema);
+            }
+        }
+
+        foreach (array_diff($shape['optional'], $specOptional) as $key) {
+            if (\in_array($key, $specRequired, true)) {
+                $findings[] = \sprintf('\'%s\' is declared as optional (\'%s?:\') but spec "%s" marks it required; drop the \'?\'.', $key, $key, $schema);
+            } else {
+                $findings[] = \sprintf('\'%s\' is declared as optional but spec "%s" does not list it; remove it from the shape.', $key, $schema);
+            }
+        }
+
+        foreach (array_diff($specRequired, $shape['required'], $shape['optional']) as $key) {
+            $findings[] = \sprintf('\'%s\' is required by spec "%s" but is missing from the shape; add \'%s:\'.', $key, $schema, $key);
+        }
+
+        foreach (array_diff($specOptional, $shape['optional'], $shape['required']) as $key) {
+            $findings[] = \sprintf('\'%s\' is optional in spec "%s" but is missing from the shape; add \'%s?:\'.', $key, $schema, $key);
+        }
+
+        sort($findings);
+
+        return $findings;
+    }
+
+    /**
+     * Extract top-level keys from a class's `@implements Arrayable<array{...}>`
+     * docblock. Reads the class's own docblock (no walk-up). Returns null when
+     * the class has no docblock, no `@implements Arrayable<array{...}>`, or a
+     * loose shape (e.g. `Arrayable<array<string, mixed>>`).
+     *
+     * @param \ReflectionClass<object> $reflection
+     *
+     * @return null|array{required: list<string>, optional: list<string>}
+     */
+    private static function extractArrayableShape(\ReflectionClass $reflection): ?array
+    {
+        $docComment = $reflection->getDocComment();
+
+        if (! \is_string($docComment)) {
+            return null;
+        }
+
+        return self::parseShapeAfter($docComment, '/@implements\s+Arrayable\s*<\s*array\{/');
+    }
+
+    /**
+     * Find the literal `array{` opener using `$openerPattern`, balance-extract
+     * its inner content, then split into top-level keys.
+     *
+     * @return null|array{required: list<string>, optional: list<string>}
+     */
+    private static function parseShapeAfter(string $docComment, string $openerPattern): ?array
+    {
+        if (1 !== preg_match($openerPattern, $docComment, $matches)) {
+            return null;
+        }
+
+        $opener = array_shift($matches);
+
+        if (! \is_string($opener)) {
+            return null;
+        }
+
+        $offset = strpos($docComment, $opener);
+
+        if (false === $offset) {
+            return null;
+        }
+
+        $start = $offset + \strlen($opener);
+        $inner = self::extractBalancedBraces($docComment, $start);
+
+        if (null === $inner) {
+            return null;
+        }
+
+        $inner = (string) preg_replace('/\n\s*\*\s?/', "\n", $inner);
+
+        return self::parseShapeKeys($inner);
+    }
+
+    /**
+     * Walk forward from `$start` (just past an opening `{`), tracking nested
+     * `{}` and `<>` and quote runs, until the matching `}`. Returns the inner
+     * content (excluding the closing brace), or null if unbalanced.
+     */
+    private static function extractBalancedBraces(string $haystack, int $start): ?string
+    {
+        $depth = 1;
+        $offset = $start;
+        $length = \strlen($haystack);
+        $inSingle = false;
+        $inDouble = false;
+
+        while ($offset < $length && $depth > 0) {
+            $char = $haystack[$offset];
+
+            if ($inSingle) {
+                if ('\'' === $char) {
+                    $inSingle = false;
+                }
+            } elseif ($inDouble) {
+                if ('"' === $char) {
+                    $inDouble = false;
+                }
+            } elseif ('\'' === $char) {
+                $inSingle = true;
+            } elseif ('"' === $char) {
+                $inDouble = true;
+            } elseif ('{' === $char) {
+                ++$depth;
+            } elseif ('}' === $char) {
+                --$depth;
+            }
+
+            if ($depth > 0) {
+                ++$offset;
+            }
+        }
+
+        if (0 !== $depth) {
+            return null;
+        }
+
+        return substr($haystack, $start, $offset - $start);
+    }
+
+    /**
+     * Split a shape body into top-level keys, distinguishing `key:` (required)
+     * from `key?:` (optional).
+     *
+     * @return array{required: list<string>, optional: list<string>}
+     */
+    private static function parseShapeKeys(string $inner): array
+    {
+        $required = [];
+        $optional = [];
+        $current = '';
+        $depth = 0;
+        $inSingle = false;
+        $inDouble = false;
+
+        $flush = static function (string $entry) use (&$required, &$optional): void {
+            $entry = trim($entry);
+
+            if ('' === $entry) {
+                return;
+            }
+
+            if (1 !== preg_match('/^([\'"]?)([A-Za-z_][\w\-]*)\1(\??):/', $entry, $m)) {
+                return;
+            }
+
+            if ('?' === $m[3]) {
+                $optional[] = $m[2];
+            } else {
+                $required[] = $m[2];
+            }
+        };
+
+        foreach (mb_str_split($inner) as $char) {
+            if ($inSingle) {
+                if ('\'' === $char) {
+                    $inSingle = false;
+                }
+            } elseif ($inDouble) {
+                if ('"' === $char) {
+                    $inDouble = false;
+                }
+            } elseif ('\'' === $char) {
+                $inSingle = true;
+            } elseif ('"' === $char) {
+                $inDouble = true;
+            } elseif ('{' === $char || '<' === $char) {
+                ++$depth;
+            } elseif ('}' === $char || '>' === $char) {
+                --$depth;
+            } elseif (',' === $char && 0 === $depth) {
+                $flush($current);
+                $current = '';
+
+                continue;
+            }
+
+            $current .= $char;
+        }
+
+        $flush($current);
+
+        return ['required' => $required, 'optional' => $optional];
+    }
+
+    /**
+     * Extract the narrative prose of a docblock: lines between the opener and
+     * the first `@tag`, with the `*` line prefix stripped.
+     */
+    private static function extractDocblockNarrative(string $docComment): string
+    {
+        $body = [];
+
+        foreach (explode("\n", $docComment) as $line) {
+            $trimmed = trim($line);
+
+            if ('/**' === $trimmed || '*/' === $trimmed) {
+                continue;
+            }
+
+            $content = preg_replace('/^\s*\*\s?/', '', $line) ?? '';
+
+            if (str_starts_with(ltrim($content), '@')) {
+                break;
+            }
+
+            $body[] = $content;
+        }
+
+        return implode("\n", $body);
     }
 
     private static function normaliseJsonType(string $type): string

@@ -13,20 +13,14 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Schema\Internal;
 
-use Nexus\Mcp\Core\Schema\Arrayable;
-
 /**
- * Base for an MCP request (the method-specific body of a JSON-RPC request).
- *
  * @internal
  *
  * @template-covariant TMethod of non-empty-string
- *
- * @implements Arrayable<array{method: non-empty-string, params?: array<string, mixed>}>
  */
-abstract readonly class Request implements Arrayable
+abstract readonly class Request
 {
-    public function __construct(public RequestParams $params)
+    public function __construct(public RequestParams $params = new RequestParams())
     {
     }
 
@@ -34,35 +28,4 @@ abstract readonly class Request implements Arrayable
      * @return TMethod
      */
     abstract public static function method(): string;
-
-    /**
-     * @param array<string, mixed> $data
-     */
-    #[\Override]
-    abstract public static function fromArray(array $data): static;
-
-    /**
-     * @return array{method: non-empty-string, params?: array<string, mixed>}
-     */
-    #[\Override]
-    public function toArray(): array
-    {
-        $out = ['method' => static::method()];
-        $params = $this->params->toArray();
-
-        if ([] !== $params) {
-            $out['params'] = $params;
-        }
-
-        return $out;
-    }
-
-    /**
-     * @return array{method: non-empty-string, params?: array<string, mixed>}
-     */
-    #[\Override]
-    public function jsonSerialize(): array
-    {
-        return $this->toArray();
-    }
 }

@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Schema\JsonRpc;
 
+use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\Internal\Request;
 use Nexus\Mcp\Core\Schema\Internal\RequestParams;
 use Nexus\Mcp\Core\Schema\RequestId;
@@ -25,29 +26,48 @@ use Nexus\Mcp\Core\Schema\RequestId;
  * @template-covariant TMethod of non-empty-string
  *
  * @extends Request<TMethod>
+ *
+ * @implements Arrayable<array{
+ *   jsonrpc: '2.0',
+ *   id: int|non-empty-string,
+ *   method: non-empty-string,
+ *   params?: array<string, mixed>,
+ * }>
  */
-abstract readonly class JsonRpcRequest extends Request implements JsonRpcMessage
+abstract readonly class JsonRpcRequest extends Request implements Arrayable, JsonRpcMessage
 {
-    public function __construct(public RequestId $id, RequestParams $params)
+    public function __construct(public RequestId $id, RequestParams $params = new RequestParams())
     {
         parent::__construct($params);
     }
 
     /**
-     * @return array{
-     *   jsonrpc: '2.0',
-     *   id: int|non-empty-string,
-     *   method: non-empty-string,
-     *   params?: array<string, mixed>,
-     * }
+     * @param array<string, mixed> $data
      */
+    #[\Override]
+    abstract public static function fromArray(array $data): static;
+
     #[\Override]
     public function toArray(): array
     {
-        return [
+        $envelope = [
             'jsonrpc' => self::JSONRPC_VERSION,
             'id' => $this->id->id,
-            ...parent::toArray(),
+            'method' => static::method(),
         ];
+
+        $params = $this->params->toArray();
+
+        if ([] !== $params) {
+            $envelope['params'] = $params;
+        }
+
+        return $envelope;
+    }
+
+    #[\Override]
+    public function jsonSerialize(): array
+    {
+        return $this->toArray();
     }
 }

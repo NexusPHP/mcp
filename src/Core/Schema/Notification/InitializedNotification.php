@@ -26,11 +26,6 @@ use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
  */
 final readonly class InitializedNotification extends JsonRpcNotification implements ClientNotification
 {
-    public function __construct(NotificationParams $params = new NotificationParams())
-    {
-        parent::__construct($params);
-    }
-
     #[\Override]
     public static function method(): string
     {
