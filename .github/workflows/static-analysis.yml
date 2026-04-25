@@ -71,3 +71,6 @@ jobs:
 
       - name: Run PHPStan
         run: composer phpstan:check
+
+      - name: Run PHPStan type inference tests
+        run: composer test:stan

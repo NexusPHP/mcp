@@ -61,6 +61,9 @@
         "post-autoload-dump": [
             "@composer update --ansi --working-dir=tools"
         ],
+        "post-update-cmd": [
+            "Nexus\\Mcp\\Tools\\ComposerScripts::postUpdate"
+        ],
         "schema:generate": "tools/generate-schema",
         "cs:check": "tools/vendor/bin/php-cs-fixer check --ansi --verbose --diff",
         "cs:fix": "tools/vendor/bin/php-cs-fixer fix --ansi --verbose --diff",
@@ -72,6 +75,7 @@
             "@cs:check",
             "@phpstan:check",
             "@test:auto-review",
+            "@test:stan",
             "@test:unit",
             "@mutation:check"
         ],
@@ -79,6 +83,7 @@
         "test:client": "phpunit --group=client-tests --colors=always --coverage-html=build/phpunit/html",
         "test:core": "phpunit --group=core-tests --colors=always --coverage-html=build/phpunit/html",
         "test:server": "phpunit --group=server-tests --colors=always --coverage-html=build/phpunit/html",
+        "test:stan": "phpunit --group=stan --colors=always --no-coverage",
         "test:unit": "phpunit --group=unit-tests --colors=always --coverage-html=build/phpunit/html"
     },
     "scripts-descriptions": {
@@ -89,11 +94,12 @@
         "mutation:filter": "Runs Infection on added and modified files only",
         "phpstan:baseline": "Runs PHPStan and dumps resulting errors to baseline",
         "phpstan:check": "Runs PHPStan",
-        "test:all": "Runs all tests (coding style, static analysis, automatic code review, and unit tests)",
+        "test:all": "Runs all tests (coding style, static analysis, automatic code review, type inference, and unit tests)",
         "test:auto-review": "Runs the automatic code review tests",
         "test:client": "Runs the Client component tests with code coverage",
         "test:core": "Runs the Core component tests with code coverage",
         "test:server": "Runs the Server component tests with code coverage",
+        "test:stan": "Runs the PHPStan type-inference lock-in tests",
         "test:unit": "Runs the unit tests with code coverage"
     }
 }
