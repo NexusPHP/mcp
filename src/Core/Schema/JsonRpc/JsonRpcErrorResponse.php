@@ -27,14 +27,11 @@ use Nexus\Mcp\Core\Schema\RequestId;
 /**
  * A response to a request that indicates an error occurred.
  *
- * The correlation `id` is optional: a server that could not even parse the request
- * to an id MUST still return an error response with `id: null`.
- *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/basic#responses
  *
  * @implements Arrayable<array{
  *   jsonrpc: '2.0',
- *   id: null|int|non-empty-string,
+ *   id?: int|non-empty-string,
  *   error: array{code: int, message: non-empty-string, data?: array<string, mixed>},
  * }>
  */
@@ -73,17 +70,21 @@ final readonly class JsonRpcErrorResponse implements Arrayable, JsonRpcResponse
     #[\Override]
     public function toArray(): array
     {
-        return [
-            'jsonrpc' => self::JSONRPC_VERSION,
-            'id' => $this->id?->id,
-            'error' => $this->error->toArray(),
-        ];
+        $envelope = ['jsonrpc' => self::JSONRPC_VERSION];
+
+        if (null !== $this->id) {
+            $envelope['id'] = $this->id->id;
+        }
+
+        $envelope['error'] = $this->error->toArray();
+
+        return $envelope;
     }
 
     /**
      * @return array{
      *   jsonrpc: '2.0',
-     *   id: null|int|non-empty-string,
+     *   id?: int|non-empty-string,
      *   error: array{code: int, message: non-empty-string, data?: array<string, mixed>},
      * }
      */

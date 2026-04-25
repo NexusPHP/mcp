@@ -47,18 +47,31 @@ final class JsonRpcErrorResponseTest extends TestCase
         );
     }
 
-    public function testToArrayWithNullIdForUnparsableRequest(): void
+    public function testToArrayOmitsIdWhenUnparsable(): void
     {
         $response = new JsonRpcErrorResponse(null, new ParseError('bad json'));
 
+        $envelope = $response->toArray();
+
+        self::assertArrayNotHasKey('id', $envelope);
         self::assertSame(
             [
                 'jsonrpc' => '2.0',
-                'id' => null,
                 'error' => ['code' => ProtocolErrorCode::ParseError->value, 'message' => 'bad json'],
             ],
-            $response->toArray(),
+            $envelope,
         );
+    }
+
+    public function testFromArrayAcceptsAbsentIdAndOmitsItOnRoundTrip(): void
+    {
+        $response = JsonRpcErrorResponse::fromArray([
+            'jsonrpc' => '2.0',
+            'error' => ['code' => ProtocolErrorCode::ParseError->value, 'message' => 'bad json'],
+        ]);
+
+        self::assertNull($response->id);
+        self::assertArrayNotHasKey('id', $response->toArray());
     }
 
     public function testJsonSerializeMatchesToArray(): void
