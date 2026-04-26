@@ -15,6 +15,8 @@ namespace Nexus\Mcp\Core\Schema\Request;
 
 /**
  * Marker for a request that a client may send to a server.
+ *
+ * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#clientrequest
  */
 interface ClientRequest
 {

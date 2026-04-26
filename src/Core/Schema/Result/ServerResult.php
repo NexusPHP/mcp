@@ -15,6 +15,8 @@ namespace Nexus\Mcp\Core\Schema\Result;
 
 /**
  * Marker for a result a server may return in response to a client request.
+ *
+ * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#serverresult
  */
 interface ServerResult
 {

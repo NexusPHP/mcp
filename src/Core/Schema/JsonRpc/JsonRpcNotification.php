@@ -19,8 +19,6 @@ use Nexus\Mcp\Core\Schema\Notification;
 /**
  * A notification which does not expect a response.
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/basic#notifications
- *
  * @template-covariant TMethod of non-empty-string
  *
  * @extends Notification<TMethod>
@@ -30,6 +28,8 @@ use Nexus\Mcp\Core\Schema\Notification;
  *   method: non-empty-string,
  *   params?: array<string, mixed>,
  * }>
+ *
+ * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#jsonrpcnotification
  */
 abstract readonly class JsonRpcNotification extends Notification implements Arrayable, JsonRpcMessage
 {

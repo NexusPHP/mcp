@@ -15,6 +15,8 @@ namespace Nexus\Mcp\Core\Schema;
 
 /**
  * Base interface to add `icons` property.
+ *
+ * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#icons
  */
 interface Icons
 {

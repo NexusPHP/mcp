@@ -24,6 +24,8 @@ use Nexus\Assert\Assert;
  *   sizes?: list<non-empty-string>,
  *   theme?: 'dark'|'light',
  * }>
+ *
+ * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#icon
  */
 final readonly class Icon implements Arrayable
 {

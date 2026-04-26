@@ -14,7 +14,18 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\AutoReview;
 
 use Nexus\Mcp\Core\Schema\Arrayable;
+use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Error;
+use Nexus\Mcp\Core\Schema\Error\InternalError;
+use Nexus\Mcp\Core\Schema\Error\InvalidParamsError;
+use Nexus\Mcp\Core\Schema\Error\InvalidRequestError;
+use Nexus\Mcp\Core\Schema\Error\MethodNotFoundError;
+use Nexus\Mcp\Core\Schema\Error\ParseError;
+use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
+use Nexus\Mcp\Core\Schema\ProtocolVersion;
+use Nexus\Mcp\Core\Schema\RequestMeta;
+use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Tools\McpSchemaProcessor;
 use PHPUnit\Framework\Attributes\CoversNothing;
@@ -36,6 +47,36 @@ final class SchemaConformanceTest extends TestCase
     private const array SPEC_KEY_TO_NON_PROPERTY_REPRESENTATION = [
         'jsonrpc' => ['kind' => 'constant', 'name' => 'JSONRPC_VERSION'],
         'method' => ['kind' => 'static-method', 'name' => 'method'],
+    ];
+
+    private const string SCHEMA_ANCHOR_BASE_URL = 'https://modelcontextprotocol.io/specification/2025-11-25/schema#';
+    private const string JSON_RPC_ERROR_OBJECT_URL = 'https://www.jsonrpc.org/specification#error_object';
+
+    /**
+     * Schema classes whose `@see` is not a 1:1 schema-anchor URL because the
+     * class has no dedicated spec def. Each entry pins the exact spec URL the
+     * class must reference instead.
+     */
+    private const array NON_SCHEMA_ANCHOR_SEE_URLS = [
+        Meta::class => 'https://modelcontextprotocol.io/specification/2025-11-25/basic#meta',
+        RequestMeta::class => 'https://modelcontextprotocol.io/specification/2025-11-25/basic#meta',
+        ProtocolVersion::class => 'https://modelcontextprotocol.io/specification/2025-11-25/basic/lifecycle#version-negotiation',
+        EmptyRequestParams::class => self::SCHEMA_ANCHOR_BASE_URL.'requestparams',
+        EmptyNotificationParams::class => self::SCHEMA_ANCHOR_BASE_URL.'notificationparams',
+        ProtocolErrorCode::class => self::JSON_RPC_ERROR_OBJECT_URL,
+        InternalError::class => self::JSON_RPC_ERROR_OBJECT_URL,
+        InvalidParamsError::class => self::JSON_RPC_ERROR_OBJECT_URL,
+        InvalidRequestError::class => self::JSON_RPC_ERROR_OBJECT_URL,
+        MethodNotFoundError::class => self::JSON_RPC_ERROR_OBJECT_URL,
+        ParseError::class => self::JSON_RPC_ERROR_OBJECT_URL,
+    ];
+
+    /**
+     * Schema classes intentionally not annotated with `@see` because they are
+     * PHP-only infrastructure with no protocol mapping.
+     */
+    private const array SEE_ANNOTATION_EXEMPT = [
+        Arrayable::class,
     ];
 
     /**
@@ -241,6 +282,86 @@ final class SchemaConformanceTest extends TestCase
                 $schemaClass,
                 $package,
             ));
+        }
+    }
+
+    /**
+     * @param class-string $schemaClass
+     */
+    #[DataProvider('provideSchemaClassDeclaresExpectedSeeAnnotationCases')]
+    public function testSchemaClassDeclaresExpectedSeeAnnotation(string $schemaClass, string $expectedUrl): void
+    {
+        $reflection = new \ReflectionClass($schemaClass);
+        $docComment = $reflection->getDocComment();
+        self::assertIsString($docComment, \sprintf('Schema class "%s" does not have a PHPDoc comment.', $schemaClass));
+
+        $pattern = '/^\s*\*\s*@see\s+'.preg_quote($expectedUrl, '/').'\s*$/m';
+        self::assertMatchesRegularExpression($pattern, $docComment, \sprintf(
+            'Schema class "%s" must declare "@see %s" in its PHPDoc.',
+            $schemaClass,
+            $expectedUrl,
+        ));
+
+        preg_match_all('/^\s*\*\s*(@\S+)/m', $docComment, $tagMatches);
+        $tags = $tagMatches[1];
+        self::assertNotEmpty($tags, \sprintf('Schema class "%s" docblock has no recognisable tags.', $schemaClass));
+        self::assertSame('@see', end($tags), \sprintf(
+            'Schema class "%s": "@see" must be the last tag in the docblock, but the last tag is "%s".',
+            $schemaClass,
+            end($tags),
+        ));
+    }
+
+    /**
+     * @return iterable<string, array{class-string, string}>
+     */
+    public static function provideSchemaClassDeclaresExpectedSeeAnnotationCases(): iterable
+    {
+        foreach (self::getProtocolSchemasForTesting() as $basename => [, $schemaClass]) {
+            yield $basename => [$schemaClass, self::SCHEMA_ANCHOR_BASE_URL.strtolower($basename)];
+        }
+
+        foreach (self::NON_SCHEMA_ANCHOR_SEE_URLS as $schemaClass => $expectedUrl) {
+            yield new \ReflectionClass($schemaClass)->getShortName() => [$schemaClass, $expectedUrl];
+        }
+    }
+
+    public function testEverySchemaClassIsAccountedForBySeeConformance(): void
+    {
+        self::generateLatestSchema();
+        self::sortSchemaDefinition();
+
+        $accounted = [
+            ...array_keys(self::NON_SCHEMA_ANCHOR_SEE_URLS),
+            ...self::SEE_ANNOTATION_EXEMPT,
+        ];
+
+        $unaccounted = array_values(array_diff(
+            array_values(self::$sortedSchema['internal_schema']),
+            $accounted,
+        ));
+
+        self::assertSame([], $unaccounted, \sprintf(
+            'Schema classes without a 1:1 spec def must be listed in either NON_SCHEMA_ANCHOR_SEE_URLS (with the spec URL their @see should reference) or SEE_ANNOTATION_EXEMPT (PHP-only infrastructure). Unaccounted: %s.',
+            implode(', ', $unaccounted),
+        ));
+    }
+
+    public function testSeeAnnotationExemptClassesHaveNoSeeTag(): void
+    {
+        foreach (self::SEE_ANNOTATION_EXEMPT as $schemaClass) {
+            $reflection = new \ReflectionClass($schemaClass);
+            $docComment = $reflection->getDocComment();
+
+            if (! \is_string($docComment)) {
+                continue;
+            }
+
+            self::assertDoesNotMatchRegularExpression(
+                '/^\s*\*\s*@see\s+/m',
+                $docComment,
+                \sprintf('Schema class "%s" is in SEE_ANNOTATION_EXEMPT but declares an @see tag; remove the tag or move the class out of the exemption list.', $schemaClass),
+            );
         }
     }
 

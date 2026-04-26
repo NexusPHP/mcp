@@ -16,6 +16,11 @@ namespace Nexus\Mcp\Core\Schema\Error;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Error;
 
+/**
+ * Error indicating that an internal JSON-RPC error occurred (code -32603).
+ *
+ * @see https://www.jsonrpc.org/specification#error_object
+ */
 final readonly class InternalError extends Error
 {
     public function __construct(string $message = 'Internal error', ?array $data = null)

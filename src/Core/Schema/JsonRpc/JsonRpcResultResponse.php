@@ -20,6 +20,8 @@ use Nexus\Mcp\Core\Schema\Result;
  * A successful (non-error) response to a request.
  *
  * @template T of Result
+ *
+ * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#jsonrpcresultresponse
  */
 final readonly class JsonRpcResultResponse implements \JsonSerializable, JsonRpcResponse
 {

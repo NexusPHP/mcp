@@ -16,9 +16,9 @@ namespace Nexus\Mcp\Core\Schema;
 /**
  * The `_meta` extension slot carried by notifications and results.
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/basic#meta
- *
  * @implements Arrayable<array<string, mixed>>
+ *
+ * @see https://modelcontextprotocol.io/specification/2025-11-25/basic#meta
  */
 final readonly class Meta implements Arrayable
 {

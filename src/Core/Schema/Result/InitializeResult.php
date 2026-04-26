@@ -23,7 +23,7 @@ use Nexus\Mcp\Core\Schema\ServerCapabilities;
 /**
  * After receiving an initialize request from the client, the server sends this response.
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/basic/lifecycle
+ * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#initializeresult
  */
 final readonly class InitializeResult extends Result implements ServerResult
 {

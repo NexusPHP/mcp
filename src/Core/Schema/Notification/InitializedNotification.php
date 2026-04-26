@@ -20,9 +20,9 @@ use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
 /**
  * This notification is sent from the client to the server after initialization has finished.
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/basic/lifecycle
- *
  * @extends JsonRpcNotification<'notifications/initialized'>
+ *
+ * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#initializednotification
  */
 final readonly class InitializedNotification extends JsonRpcNotification implements ClientNotification
 {

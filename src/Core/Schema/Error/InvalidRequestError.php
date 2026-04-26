@@ -16,6 +16,11 @@ namespace Nexus\Mcp\Core\Schema\Error;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Error;
 
+/**
+ * Error indicating that the request payload is not a valid JSON-RPC request (code -32600).
+ *
+ * @see https://www.jsonrpc.org/specification#error_object
+ */
 final readonly class InvalidRequestError extends Error
 {
     public function __construct(string $message = 'Invalid request', ?array $data = null)

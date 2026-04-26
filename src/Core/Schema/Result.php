@@ -18,9 +18,9 @@ namespace Nexus\Mcp\Core\Schema;
  * Concrete subclasses define the method-specific fields; this base only
  * threads the typed `_meta`.
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/basic#responses
- *
  * @implements Arrayable<array<string, mixed>>
+ *
+ * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#result
  */
 abstract readonly class Result implements Arrayable
 {

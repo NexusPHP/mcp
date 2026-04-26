@@ -22,6 +22,8 @@ use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
  *   message: non-empty-string,
  *   data?: array<string, mixed>
  * }>
+ *
+ * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#error
  */
 abstract readonly class Error implements Arrayable
 {

@@ -20,6 +20,8 @@ use Nexus\Mcp\Core\Schema\Result;
 /**
  * A result that carries no fields beyond the optional `_meta`. Used by methods
  * like `ping` whose acknowledgement has no payload.
+ *
+ * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#emptyresult
  */
 final readonly class EmptyResult extends Result implements ClientResult, ServerResult
 {

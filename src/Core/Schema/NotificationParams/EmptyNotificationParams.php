@@ -19,6 +19,8 @@ use Nexus\Mcp\Core\Schema\NotificationParams;
 
 /**
  * Default notification params for methods that carry no typed fields beyond `_meta`.
+ *
+ * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#notificationparams
  */
 final readonly class EmptyNotificationParams extends NotificationParams
 {

@@ -16,6 +16,11 @@ namespace Nexus\Mcp\Core\Schema\Error;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Error;
 
+/**
+ * Error indicating that the JSON-RPC method's params are invalid (code -32602).
+ *
+ * @see https://www.jsonrpc.org/specification#error_object
+ */
 final readonly class InvalidParamsError extends Error
 {
     public function __construct(string $message = 'Invalid params', ?array $data = null)

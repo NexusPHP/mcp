@@ -16,6 +16,11 @@ namespace Nexus\Mcp\Core\Schema\Error;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Error;
 
+/**
+ * Error indicating that the JSON-RPC method does not exist or is not available (code -32601).
+ *
+ * @see https://www.jsonrpc.org/specification#error_object
+ */
 final readonly class MethodNotFoundError extends Error
 {
     public function __construct(string $message = 'Method not found', ?array $data = null)

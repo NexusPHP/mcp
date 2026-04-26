@@ -48,6 +48,8 @@ use Nexus\Assert\Assert;
  *   tasks?: ServerTasksCapability,
  *   tools?: ToolsCapability,
  * }>
+ *
+ * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#servercapabilities
  */
 final readonly class ServerCapabilities implements Arrayable
 {

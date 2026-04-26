@@ -21,9 +21,9 @@ use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 /**
  * A ping, issued by either the server or the client, to check that the other party is still alive. The receiver must promptly respond, or else may be disconnected.
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/basic/utilities/ping
- *
  * @extends JsonRpcRequest<'ping'>
+ *
+ * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#pingrequest
  */
 final readonly class PingRequest extends JsonRpcRequest implements ClientRequest, ServerRequest
 {

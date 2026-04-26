@@ -16,6 +16,11 @@ namespace Nexus\Mcp\Core\Schema\Error;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Error;
 
+/**
+ * Error indicating that the received JSON could not be parsed (code -32700).
+ *
+ * @see https://www.jsonrpc.org/specification#error_object
+ */
 final readonly class ParseError extends Error
 {
     /**

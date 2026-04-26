@@ -17,6 +17,8 @@ namespace Nexus\Mcp\Core\Schema;
  * Common params for any notification.
  *
  * @implements Arrayable<array<string, mixed>>
+ *
+ * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#notificationparams
  */
 abstract readonly class NotificationParams implements Arrayable
 {

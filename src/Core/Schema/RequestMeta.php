@@ -19,9 +19,9 @@ use Nexus\Assert\Assert;
  * The `_meta` extension slot carried by request params. Adds a typed `progressToken`
  * alongside open-ended extras.
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/basic#meta
- *
  * @implements Arrayable<array<string, mixed>>
+ *
+ * @see https://modelcontextprotocol.io/specification/2025-11-25/basic#meta
  */
 final readonly class RequestMeta implements Arrayable
 {

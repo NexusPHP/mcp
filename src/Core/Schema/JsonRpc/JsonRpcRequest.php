@@ -22,8 +22,6 @@ use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 /**
  * A request that expects a response.
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/basic#requests
- *
  * @template-covariant TMethod of non-empty-string
  *
  * @extends Request<TMethod>
@@ -34,6 +32,8 @@ use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
  *   method: non-empty-string,
  *   params?: array<string, mixed>,
  * }>
+ *
+ * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#jsonrpcrequest
  */
 abstract readonly class JsonRpcRequest extends Request implements Arrayable, JsonRpcMessage
 {

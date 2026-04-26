@@ -15,6 +15,8 @@ namespace Nexus\Mcp\Core\Schema\Notification;
 
 /**
  * Marker for a notification that a client may send to a server.
+ *
+ * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#clientnotification
  */
 interface ClientNotification
 {

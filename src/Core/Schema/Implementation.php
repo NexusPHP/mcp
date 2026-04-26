@@ -26,6 +26,8 @@ use Nexus\Assert\Assert;
  *   websiteUrl?: non-empty-string,
  *   icons?: list<template-type<Icon, Arrayable, 'T'>>,
  * }>
+ *
+ * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#implementation
  */
 final readonly class Implementation extends BaseMetadata implements Arrayable, Icons
 {

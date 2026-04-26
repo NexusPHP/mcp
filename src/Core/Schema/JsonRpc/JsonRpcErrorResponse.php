@@ -27,13 +27,13 @@ use Nexus\Mcp\Core\Schema\RequestId;
 /**
  * A response to a request that indicates an error occurred.
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/basic#responses
- *
  * @implements Arrayable<array{
  *   jsonrpc: '2.0',
  *   id?: int|non-empty-string,
  *   error: array{code: int, message: non-empty-string, data?: array<string, mixed>},
  * }>
+ *
+ * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#jsonrpcerrorresponse
  */
 final readonly class JsonRpcErrorResponse implements Arrayable, JsonRpcResponse
 {

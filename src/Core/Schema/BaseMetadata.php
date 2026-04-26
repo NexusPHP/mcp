@@ -17,6 +17,8 @@ use Nexus\Assert\Assert;
 
 /**
  * Base interface for metadata with name (identifier) and title (display name) properties.
+ *
+ * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#basemetadata
  */
 abstract readonly class BaseMetadata
 {

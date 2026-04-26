@@ -23,7 +23,7 @@ use Nexus\Mcp\Core\Schema\RequestParams;
 /**
  * Parameters for an `initialize` request.
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/basic/lifecycle
+ * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#initializerequestparams
  */
 final readonly class InitializeRequestParams extends RequestParams
 {

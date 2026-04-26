@@ -24,6 +24,8 @@ use Nexus\Mcp\Core\Schema\Enum\Role;
  *   priority?: float,
  *   lastModified?: string,
  * }>
+ *
+ * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#annotations
  */
 final readonly class Annotations implements Arrayable
 {
