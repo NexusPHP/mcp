@@ -48,41 +48,6 @@ use Nexus\Assert\Assert;
 final readonly class ServerCapabilities implements Arrayable
 {
     /**
-     * @var null|CompletionsCapability
-     */
-    public ?array $completions;
-
-    /**
-     * @var null|ServerExperimentalCapability
-     */
-    public ?array $experimental;
-
-    /**
-     * @var null|LoggingCapability
-     */
-    public ?array $logging;
-
-    /**
-     * @var null|PromptsCapability
-     */
-    public ?array $prompts;
-
-    /**
-     * @var null|ResourcesCapability
-     */
-    public ?array $resources;
-
-    /**
-     * @var null|ServerTasksCapability
-     */
-    public ?array $tasks;
-
-    /**
-     * @var null|ToolsCapability
-     */
-    public ?array $tools;
-
-    /**
      * @param null|CompletionsCapability        $completions
      * @param null|ServerExperimentalCapability $experimental
      * @param null|LoggingCapability            $logging
@@ -92,21 +57,14 @@ final readonly class ServerCapabilities implements Arrayable
      * @param null|ToolsCapability              $tools
      */
     public function __construct(
-        ?array $completions = null,
-        ?array $experimental = null,
-        ?array $logging = null,
-        ?array $prompts = null,
-        ?array $resources = null,
-        ?array $tasks = null,
-        ?array $tools = null,
+        public ?array $completions = null,
+        public ?array $experimental = null,
+        public ?array $logging = null,
+        public ?array $prompts = null,
+        public ?array $resources = null,
+        public ?array $tasks = null,
+        public ?array $tools = null,
     ) {
-        $this->completions = $completions;
-        $this->experimental = $experimental;
-        $this->logging = $logging;
-        $this->prompts = $prompts;
-        $this->resources = $resources;
-        $this->tasks = $tasks;
-        $this->tools = $tools;
     }
 
     /**

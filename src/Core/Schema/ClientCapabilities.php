@@ -45,31 +45,6 @@ use Nexus\Assert\Assert;
 final readonly class ClientCapabilities implements Arrayable
 {
     /**
-     * @var null|ElicitationCapability
-     */
-    public ?array $elicitation;
-
-    /**
-     * @var null|ExperimentalCapability
-     */
-    public ?array $experimental;
-
-    /**
-     * @var null|RootsCapability
-     */
-    public ?array $roots;
-
-    /**
-     * @var null|SamplingCapability
-     */
-    public ?array $sampling;
-
-    /**
-     * @var null|ClientTasksCapability
-     */
-    public ?array $tasks;
-
-    /**
      * @param null|ElicitationCapability  $elicitation
      * @param null|ExperimentalCapability $experimental
      * @param null|RootsCapability        $roots
@@ -77,17 +52,12 @@ final readonly class ClientCapabilities implements Arrayable
      * @param null|ClientTasksCapability  $tasks
      */
     public function __construct(
-        ?array $elicitation = null,
-        ?array $experimental = null,
-        ?array $roots = null,
-        ?array $sampling = null,
-        ?array $tasks = null,
+        public ?array $elicitation = null,
+        public ?array $experimental = null,
+        public ?array $roots = null,
+        public ?array $sampling = null,
+        public ?array $tasks = null,
     ) {
-        $this->elicitation = $elicitation;
-        $this->experimental = $experimental;
-        $this->roots = $roots;
-        $this->sampling = $sampling;
-        $this->tasks = $tasks;
     }
 
     /**
