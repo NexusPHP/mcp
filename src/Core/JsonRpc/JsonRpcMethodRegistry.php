@@ -41,6 +41,7 @@ final class JsonRpcMethodRegistry
     public static function notifications(): array
     {
         return [
+            Notification\CancelledNotification::method() => Notification\CancelledNotification::class,
             Notification\InitializedNotification::method() => Notification\InitializedNotification::class,
         ];
     }

@@ -243,11 +243,11 @@ final class JsonRpcMessageParserTest extends TestCase
         $parser = new JsonRpcMessageParser();
 
         $this->expectException(JsonRpcParserException::class);
-        $this->expectExceptionMessage('No notification class registered for method "notifications/cancelled".');
+        $this->expectExceptionMessage('No notification class registered for method "notifications/__test_only__".');
 
         $parser->parse([
             'jsonrpc' => '2.0',
-            'method' => 'notifications/cancelled',
+            'method' => 'notifications/__test_only__',
         ]);
     }
 

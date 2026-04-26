@@ -14,9 +14,8 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\JsonRpc;
 
 use Nexus\Mcp\Core\JsonRpc\JsonRpcMethodRegistry;
-use Nexus\Mcp\Core\Schema\Notification\InitializedNotification;
-use Nexus\Mcp\Core\Schema\Request\InitializeRequest;
-use Nexus\Mcp\Core\Schema\Request\PingRequest;
+use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
+use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
@@ -57,22 +56,52 @@ final class JsonRpcMethodRegistryTest extends TestCase
         }
     }
 
-    public function testRequestsRegistersInitializeAndPing(): void
+    public function testEveryConcreteJsonRpcRequestClassIsRegistered(): void
     {
-        self::assertSame(
-            [
-                'initialize' => InitializeRequest::class,
-                'ping' => PingRequest::class,
-            ],
-            JsonRpcMethodRegistry::requests(),
-        );
+        $registry = JsonRpcMethodRegistry::requests();
+
+        foreach (self::concreteSubclassesUnder(__DIR__.'/../../../src/Core/Schema/Request', 'Nexus\\Mcp\\Core\\Schema\\Request', JsonRpcRequest::class) as $class) {
+            $method = $class::method();
+            self::assertArrayHasKey($method, $registry, \sprintf('Concrete request class "%s" (method "%s") must be registered.', $class, $method));
+            self::assertSame($class, $registry[$method], \sprintf('Method "%s" must map to "%s".', $method, $class));
+        }
     }
 
-    public function testNotificationsRegistersInitialized(): void
+    public function testEveryConcreteJsonRpcNotificationClassIsRegistered(): void
     {
-        self::assertSame(
-            ['notifications/initialized' => InitializedNotification::class],
-            JsonRpcMethodRegistry::notifications(),
-        );
+        $registry = JsonRpcMethodRegistry::notifications();
+
+        foreach (self::concreteSubclassesUnder(__DIR__.'/../../../src/Core/Schema/Notification', 'Nexus\\Mcp\\Core\\Schema\\Notification', JsonRpcNotification::class) as $class) {
+            $method = $class::method();
+            self::assertArrayHasKey($method, $registry, \sprintf('Concrete notification class "%s" (method "%s") must be registered.', $class, $method));
+            self::assertSame($class, $registry[$method], \sprintf('Method "%s" must map to "%s".', $method, $class));
+        }
+    }
+
+    /**
+     * @template T of object
+     *
+     * @param class-string<T> $parentClass
+     *
+     * @return iterable<class-string<T>>
+     */
+    private static function concreteSubclassesUnder(string $directory, string $namespace, string $parentClass): iterable
+    {
+        $files = glob($directory.'/*.php');
+        self::assertIsArray($files, \sprintf('Failed to list files under "%s".', $directory));
+
+        foreach ($files as $file) {
+            $class = $namespace.'\\'.basename($file, '.php');
+
+            if (! class_exists($class) || ! is_subclass_of($class, $parentClass)) {
+                continue;
+            }
+
+            if (new \ReflectionClass($class)->isAbstract()) {
+                continue;
+            }
+
+            yield $class;
+        }
     }
 }

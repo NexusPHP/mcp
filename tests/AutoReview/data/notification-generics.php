@@ -11,8 +11,10 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
+use Nexus\Mcp\Core\Schema\Notification\CancelledNotification;
 use Nexus\Mcp\Core\Schema\Notification\InitializedNotification;
 
 use function PHPStan\Testing\assertType;
 
+assertType('\'notifications/cancelled\'', CancelledNotification::method());
 assertType('\'notifications/initialized\'', InitializedNotification::method());
