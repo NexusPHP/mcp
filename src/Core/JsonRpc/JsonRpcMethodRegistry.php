@@ -20,7 +20,12 @@ use Nexus\Mcp\Core\Schema\Request;
 
 /**
  * Spec-default method → class maps consumed by {@see JsonRpcMessageParser}.
- * Per-key merge applies when the parser receives user entries: user wins over defaults.
+ *
+ * The parser merges caller-supplied maps over these defaults with caller-wins
+ * precedence. Two uses of that merge share the same path: overriding a spec
+ * method (key matches an entry here) or extending the dispatch table with a
+ * vendor method (key does not). The registry itself owns no merge logic; see
+ * {@see JsonRpcMessageParser::__construct()} for the override/extension contract.
  */
 final class JsonRpcMethodRegistry
 {
