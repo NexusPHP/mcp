@@ -115,6 +115,11 @@ When `mutation:check` reports surviving mutants, categorize before writing tests
 - **Real gaps**: a code path has no covering test. Add one.
 - **Equivalent mutants**: two code forms that truly do the same thing. Refactor the source to eliminate the duplication (e.g. an explicit match arm that is identical to `default`). Do not add a test that asserts equivalence.
 - **Cosmetic constants**: defaulted exception codes (the `0` in `new RuntimeException($msg, 0, $e)`) generate mutation noise without matching real bugs. Use named args (`previous: $e`) or drop the defaulted arguments entirely so there is no literal to mutate.
+- **Investigate the code before adjusting tooling.** A mutant that escapes or times out is the framework telling you that some piece of code has no observable effect any test asserts on. The fix lives in the source or the tests, not in `infection.json5`. Two patterns recur:
+  - *Reachable behavior, no test exercises it* → add the test. Common with defensive validation (`Assert::that(...)->isX(...)`, guard clauses, error-message branches) where the happy path is well-covered but the failure path was never asserted on.
+  - *Structurally unreachable code* → remove it. Common with defensive paranoia inside helpers that callers can only feed valid input through (e.g. an `Assert::isMap` inside a recursive walker fed by a schema-typed `toArray()`). Adjust types at the helper boundary so static analysis still narrows: usually means widening the helper's input type (`array<string, mixed>` → `array<array-key, mixed>`) and doing the strict-typing work at the outermost call site.
+
+  Bumping `infection.json5`'s `timeout` is a last resort, only justified after you've confirmed the slow mutants don't represent dead/untested code.
 
 ## Committing
 

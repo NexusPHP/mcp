@@ -129,4 +129,12 @@ final class InternalErrorTest extends TestCase
             'message' => 'Unexpected error',
         ], $error->toArray());
     }
+
+    public function testInternalErrorRejectsEmptyMessage(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Error message must be a non-empty string.');
+
+        new InternalError('');
+    }
 }

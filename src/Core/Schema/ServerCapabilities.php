@@ -169,27 +169,30 @@ final readonly class ServerCapabilities implements Arrayable
     #[\Override]
     public function jsonSerialize(): array
     {
-        return self::normalizeEmptyObjects($this->toArray());
+        $data = $this->toArray();
+
+        foreach ($data as $key => $value) {
+            if (\is_array($value)) {
+                $data[$key] = [] === $value ? new \stdClass() : self::normalizeEmptyObjects($value);
+            }
+        }
+
+        return $data;
     }
 
     /**
      * Substitutes `\stdClass` for empty arrays so `json_encode` emits `{}`. Safe
      * because every capability slot is spec-typed as an object (no list-typed leaves).
      *
-     * @param array<string, mixed> $data
+     * @param array<array-key, mixed> $data
      *
-     * @return array<string, mixed>
+     * @return array<array-key, mixed>
      */
     private static function normalizeEmptyObjects(array $data): array
     {
         foreach ($data as $key => $value) {
             if (\is_array($value)) {
-                if ([] === $value) {
-                    $data[$key] = new \stdClass();
-                } else {
-                    Assert::that($value)->isMap('Capability sub-object must be a string-keyed array.');
-                    $data[$key] = self::normalizeEmptyObjects($value);
-                }
+                $data[$key] = [] === $value ? new \stdClass() : self::normalizeEmptyObjects($value);
             }
         }
 
