@@ -1,0 +1,142 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * This file is part of the Nexus MCP SDK package.
+ *
+ * (c) 2026 John Paul E. Balandan, CPA <paulbalandan@gmail.com>
+ *
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
+ */
+
+namespace Nexus\Mcp\Tests\Core\Schema\Notification;
+
+use Nexus\Assert\ExpectationFailedException;
+use Nexus\Mcp\Core\Schema\Enum\LoggingLevel;
+use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
+use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\Notification;
+use Nexus\Mcp\Core\Schema\Notification\LoggingMessageNotification;
+use Nexus\Mcp\Core\Schema\NotificationParams\LoggingMessageNotificationParams;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\TestCase;
+
+/**
+ * @internal
+ */
+#[CoversClass(LoggingMessageNotification::class)]
+#[CoversClass(JsonRpcNotification::class)]
+#[CoversClass(Notification::class)]
+#[Group('unit-tests')]
+#[Group('core-tests')]
+final class LoggingMessageNotificationTest extends TestCase
+{
+    public function testMethodIsNotificationsMessage(): void
+    {
+        self::assertSame('notifications/message', LoggingMessageNotification::method());
+    }
+
+    public function testToArrayBuildsEnvelope(): void
+    {
+        $notification = new LoggingMessageNotification(
+            new LoggingMessageNotificationParams(LoggingLevel::Warning, 'msg'),
+        );
+
+        self::assertSame(
+            [
+                'jsonrpc' => '2.0',
+                'method' => 'notifications/message',
+                'params' => ['level' => 'warning', 'data' => 'msg'],
+            ],
+            $notification->toArray(),
+        );
+    }
+
+    public function testToArrayWithFullParams(): void
+    {
+        $notification = new LoggingMessageNotification(
+            new LoggingMessageNotificationParams(
+                LoggingLevel::Error,
+                ['kind' => 'oom'],
+                'app',
+                new Meta(['vendor' => 'x']),
+            ),
+        );
+
+        self::assertSame(
+            [
+                'jsonrpc' => '2.0',
+                'method' => 'notifications/message',
+                'params' => [
+                    '_meta' => ['vendor' => 'x'],
+                    'level' => 'error',
+                    'data' => ['kind' => 'oom'],
+                    'logger' => 'app',
+                ],
+            ],
+            $notification->toArray(),
+        );
+    }
+
+    public function testJsonSerializeMatchesToArray(): void
+    {
+        $notification = new LoggingMessageNotification(
+            new LoggingMessageNotificationParams(LoggingLevel::Info, 'x', 'app'),
+        );
+
+        self::assertSame($notification->toArray(), $notification->jsonSerialize());
+    }
+
+    public function testFromArrayFullRoundTrip(): void
+    {
+        $original = new LoggingMessageNotification(
+            new LoggingMessageNotificationParams(
+                LoggingLevel::Notice,
+                ['k' => 'v'],
+                'app.db',
+                new Meta(['vendor' => 'x']),
+            ),
+        );
+
+        $rebuilt = LoggingMessageNotification::fromArray($original->toArray());
+
+        self::assertSame($original->toArray(), $rebuilt->toArray());
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
+    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessage($expectedMessage);
+
+        LoggingMessageNotification::fromArray($payload);
+    }
+
+    /**
+     * @return iterable<string, array{array<string, mixed>, string}>
+     */
+    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    {
+        yield 'missing params' => [
+            ['jsonrpc' => '2.0', 'method' => 'notifications/message'],
+            'LoggingMessageNotification wire data missing "params".',
+        ];
+
+        yield 'params not an object' => [
+            ['jsonrpc' => '2.0', 'method' => 'notifications/message', 'params' => 'bad'],
+            'LoggingMessageNotification wire "params" must be an object, string given.',
+        ];
+
+        yield 'params list-keyed' => [
+            ['jsonrpc' => '2.0', 'method' => 'notifications/message', 'params' => ['x']],
+            'LoggingMessageNotification wire "params" must be a string-keyed object.',
+        ];
+    }
+}

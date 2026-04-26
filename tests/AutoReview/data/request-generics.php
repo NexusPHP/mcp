@@ -12,7 +12,9 @@ declare(strict_types=1);
  */
 
 use Nexus\Mcp\Core\Schema\Request\PingRequest;
+use Nexus\Mcp\Core\Schema\Request\SetLevelRequest;
 
 use function PHPStan\Testing\assertType;
 
 assertType('\'ping\'', PingRequest::method());
+assertType('\'logging/setLevel\'', SetLevelRequest::method());

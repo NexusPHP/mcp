@@ -572,6 +572,8 @@ final class SchemaConformanceTest extends TestCase
                 continue;
             }
 
+            $isMixed = $type instanceof \ReflectionNamedType && $type->getName() === 'mixed';
+
             if ($isRequired) {
                 if ($hasDefault) {
                     $findings[] = \sprintf(
@@ -581,7 +583,7 @@ final class SchemaConformanceTest extends TestCase
                     );
                 }
 
-                if ($allowsNull) {
+                if ($allowsNull && ! $isMixed) {
                     $findings[] = \sprintf(
                         'spec \'%s\' is required but %s is nullable; remove the \'?\' from its type.',
                         $key,

@@ -13,8 +13,10 @@ declare(strict_types=1);
 
 use Nexus\Mcp\Core\Schema\Notification\CancelledNotification;
 use Nexus\Mcp\Core\Schema\Notification\InitializedNotification;
+use Nexus\Mcp\Core\Schema\Notification\LoggingMessageNotification;
 
 use function PHPStan\Testing\assertType;
 
 assertType('\'notifications/cancelled\'', CancelledNotification::method());
 assertType('\'notifications/initialized\'', InitializedNotification::method());
+assertType('\'notifications/message\'', LoggingMessageNotification::method());
