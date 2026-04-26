@@ -36,6 +36,7 @@ final class JsonRpcMethodRegistry
     {
         return [
             Request\InitializeRequest::method() => Request\InitializeRequest::class,
+            Request\ListRootsRequest::method() => Request\ListRootsRequest::class,
             Request\PingRequest::method() => Request\PingRequest::class,
             Request\SetLevelRequest::method() => Request\SetLevelRequest::class,
             Request\SubscribeRequest::method() => Request\SubscribeRequest::class,

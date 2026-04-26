@@ -11,6 +11,7 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
+use Nexus\Mcp\Core\Schema\Request\ListRootsRequest;
 use Nexus\Mcp\Core\Schema\Request\PingRequest;
 use Nexus\Mcp\Core\Schema\Request\SetLevelRequest;
 use Nexus\Mcp\Core\Schema\Request\SubscribeRequest;
@@ -22,3 +23,4 @@ assertType('\'ping\'', PingRequest::method());
 assertType('\'logging/setLevel\'', SetLevelRequest::method());
 assertType('\'resources/subscribe\'', SubscribeRequest::method());
 assertType('\'resources/unsubscribe\'', UnsubscribeRequest::method());
+assertType('\'roots/list\'', ListRootsRequest::method());
