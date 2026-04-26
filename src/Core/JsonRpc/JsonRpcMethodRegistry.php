@@ -45,6 +45,7 @@ final class JsonRpcMethodRegistry
             Notification\CancelledNotification::method() => Notification\CancelledNotification::class,
             Notification\InitializedNotification::method() => Notification\InitializedNotification::class,
             Notification\LoggingMessageNotification::method() => Notification\LoggingMessageNotification::class,
+            Notification\ProgressNotification::method() => Notification\ProgressNotification::class,
         ];
     }
 }
