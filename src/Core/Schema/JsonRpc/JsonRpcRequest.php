@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\JsonRpc;
 
 use Nexus\Mcp\Core\Schema\Arrayable;
-use Nexus\Mcp\Core\Schema\Internal\Request;
-use Nexus\Mcp\Core\Schema\Internal\RequestParams;
+use Nexus\Mcp\Core\Schema\Request;
 use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 
 /**

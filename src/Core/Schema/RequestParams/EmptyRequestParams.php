@@ -14,8 +14,8 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\RequestParams;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\Schema\Internal\RequestParams;
 use Nexus\Mcp\Core\Schema\RequestMeta;
+use Nexus\Mcp\Core\Schema\RequestParams;
 
 /**
  * Default request params for methods that carry no typed fields beyond `_meta`.

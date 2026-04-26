@@ -36,7 +36,7 @@ Both enforce **100% MSI, 100% Code Coverage, 100% Covered Code MSI** per [infect
 ### Namespaces and layout
 
 - `Nexus\Mcp\Core\Schema\*`: protocol types only (value objects, enums, interfaces). No behavior.
-- `Nexus\Mcp\Core\Schema\Internal\*`: shared abstract bases and helpers used by schema classes. Treat as non-public API.
+- Abstract bases sit at the root and concrete subclasses live in same-named subfolders: `Schema/Result.php` + `Schema/Result/EmptyResult.php`, `Schema/Request.php` + `Schema/Request/PingRequest.php`, `Schema/Notification.php` + `Schema/Notification/InitializedNotification.php`, `Schema/RequestParams.php` + `Schema/RequestParams/EmptyRequestParams.php`, `Schema/NotificationParams.php` + `Schema/NotificationParams/EmptyNotificationParams.php`.
 - `Nexus\Mcp\Core\JsonRpc\*`: wire-level behavior (parser, guards). The wire-parsing guard lives here, not under `Schema\`, even though schema classes consume it.
 - `Nexus\Mcp\Core\Exception\*`: every SDK exception implements the `McpExceptionInterface` marker so consumers can `catch (McpExceptionInterface $e)`.
 
@@ -48,14 +48,13 @@ Keep class and method docblocks **concise and behavior-focused**. A class docblo
 
 ### `@internal`, `@final`, `@no-final`
 
-- **Do** apply the `@internal` phpdoc tag to classes in the `Internal\` namespace (and any other implementation-detail class). PHPStan flags external callers that use an `@internal` class, which is exactly what we want.
+- **Do** apply the `@internal` phpdoc tag to implementation-detail classes that should not be consumed externally. PHPStan flags external callers that use an `@internal` class, which is exactly what we want.
 - **If a class should be final but cannot use the `final` keyword** (typical reason: the class is mocked in tests), add a `@final` phpdoc tag to communicate the intent to PHPStan and humans.
-- **If an `@internal` class is explicitly meant to be extended by subclasses in this package**, add `@no-final` so the `final_internal_class` CS fixer does not promote it to `final`. Concrete classes in `Internal\` that are *not* individually tagged `@internal` are not subject to that fixer and do not need `@no-final`.
+- **If an `@internal` class is explicitly meant to be extended by subclasses in this package**, add `@no-final` so the `final_internal_class` CS fixer does not promote it to `final`.
 
 ### Spec mapping
 
 - PHP class names map to spec defs via a basename-normalizer in the schema processor under `tools/`. If a new class's name diverges from the spec's, extend the normalizer rather than renaming the class.
-- `Internal\*` classes are auto-bucketed and excluded from conformance testing. That is deliberate.
 - `$ref` aliases (where one spec def points to another shape) are inlined at load time so aliased schemas expose the full shape for conformance testing.
 
 ### Per-method request/notification/result classes
@@ -65,7 +64,7 @@ The spec defines methods as named JSON-RPC operations. Each gets a concrete requ
 - Each concrete request/notification overrides `static method(): string` to return the JSON-RPC method name as a literal. That accessor is the single source of truth: registry, parser, error messages, and tests all read it. Do not introduce a `JSONRPC_METHOD` constant; the method name is polymorphic per-subclass behavior and belongs in a method, not a constant.
 - Pin the literal at the type level. Bases declare `@template-covariant TMethod of non-empty-string`; concrete subclasses must bind it via `@extends Base<'method-name'>`. Without that binding, `method()` widens to `non-empty-string` and the type-inference tests under `tests/AutoReview/data/` will fail.
 - When adding a new spec-defined request/notification class, wire it into the method registry under `Core/JsonRpc/` so callers get it automatically. User-supplied maps passed to the parser merge over the defaults per-key; callers need only specify overrides or non-default method classes.
-- For methods with no typed params, reuse the shared concrete `RequestParams`/`NotificationParams` from `Core/Schema/Internal/`. Only subclass when the method adds typed fields beyond `_meta`. Same rule for `Result` subclasses: use the shared empty-fields result unless the method carries typed payload.
+- For methods with no typed params, reuse the shared `EmptyRequestParams`/`EmptyNotificationParams` (under `Core/Schema/RequestParams/` and `Core/Schema/NotificationParams/`). Only add a new subclass of the abstract `RequestParams`/`NotificationParams` base when the method carries typed fields beyond `_meta`. Same rule for `Result` subclasses: use `EmptyResult` unless the method carries a typed payload.
 
 ### `Arrayable` and the success-response exception
 

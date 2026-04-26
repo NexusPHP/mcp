@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\JsonRpc;
 
 use Nexus\Mcp\Core\Schema\Arrayable;
-use Nexus\Mcp\Core\Schema\Internal\Notification;
+use Nexus\Mcp\Core\Schema\Notification;
 
 /**
  * A notification which does not expect a response.

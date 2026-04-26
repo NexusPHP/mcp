@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\NotificationParams;
 
-use Nexus\Mcp\Core\Schema\Internal\NotificationParams;
 use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\NotificationParams;
 use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;

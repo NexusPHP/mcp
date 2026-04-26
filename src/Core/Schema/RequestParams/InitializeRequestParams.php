@@ -16,9 +16,9 @@ namespace Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\ClientCapabilities;
 use Nexus\Mcp\Core\Schema\Implementation;
-use Nexus\Mcp\Core\Schema\Internal\RequestParams;
 use Nexus\Mcp\Core\Schema\ProtocolVersion;
 use Nexus\Mcp\Core\Schema\RequestMeta;
+use Nexus\Mcp\Core\Schema\RequestParams;
 
 /**
  * Parameters for an `initialize` request.

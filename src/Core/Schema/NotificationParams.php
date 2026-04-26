@@ -11,21 +11,16 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Nexus\Mcp\Core\Schema\Internal;
-
-use Nexus\Mcp\Core\Schema\Arrayable;
-use Nexus\Mcp\Core\Schema\RequestMeta;
+namespace Nexus\Mcp\Core\Schema;
 
 /**
- * Common params for any request.
- *
- * @internal
+ * Common params for any notification.
  *
  * @implements Arrayable<array<string, mixed>>
  */
-abstract readonly class RequestParams implements Arrayable
+abstract readonly class NotificationParams implements Arrayable
 {
-    public function __construct(public ?RequestMeta $meta = null)
+    public function __construct(public ?Meta $meta = null)
     {
     }
 

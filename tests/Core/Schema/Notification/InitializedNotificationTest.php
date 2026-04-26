@@ -13,9 +13,9 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\Notification;
 
-use Nexus\Mcp\Core\Schema\Internal\Notification;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\Notification;
 use Nexus\Mcp\Core\Schema\Notification\InitializedNotification;
 use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
 use PHPUnit\Framework\Attributes\CoversClass;

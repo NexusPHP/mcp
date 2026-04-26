@@ -18,13 +18,13 @@ use Nexus\Mcp\Core\Schema\Error\InvalidRequestError;
 use Nexus\Mcp\Core\Schema\Error\MethodNotFoundError;
 use Nexus\Mcp\Core\Schema\Error\ParseError;
 use Nexus\Mcp\Core\Schema\Icon;
-use Nexus\Mcp\Core\Schema\Internal\NotificationParams;
-use Nexus\Mcp\Core\Schema\Internal\RequestParams;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\Meta;
 use Nexus\Mcp\Core\Schema\Notification;
+use Nexus\Mcp\Core\Schema\NotificationParams;
 use Nexus\Mcp\Core\Schema\Request;
 use Nexus\Mcp\Core\Schema\RequestMeta;
+use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\Result;
 
 use function PHPStan\Testing\assertType;

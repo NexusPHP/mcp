@@ -14,8 +14,8 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\NotificationParams;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\Schema\Internal\NotificationParams;
 use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\NotificationParams;
 
 /**
  * Default notification params for methods that carry no typed fields beyond `_meta`.

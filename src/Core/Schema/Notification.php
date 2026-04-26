@@ -11,18 +11,16 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Nexus\Mcp\Core\Schema\Internal;
+namespace Nexus\Mcp\Core\Schema;
 
-use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
+use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
 
 /**
- * @internal
- *
  * @template-covariant TMethod of non-empty-string
  */
-abstract readonly class Request
+abstract readonly class Notification
 {
-    public function __construct(public RequestParams $params = new EmptyRequestParams())
+    public function __construct(public NotificationParams $params = new EmptyNotificationParams())
     {
     }
 

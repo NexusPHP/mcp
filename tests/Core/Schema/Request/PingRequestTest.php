@@ -13,9 +13,9 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\Request;
 
-use Nexus\Mcp\Core\Schema\Internal\Request;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\ProgressToken;
+use Nexus\Mcp\Core\Schema\Request;
 use Nexus\Mcp\Core\Schema\Request\PingRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestMeta;
