@@ -14,6 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\JsonRpc;
 
 use Nexus\Mcp\Core\JsonRpc\JsonRpcMethodRegistry;
+use Nexus\Mcp\Core\Schema\Notification\InitializedNotification;
+use Nexus\Mcp\Core\Schema\Request\InitializeRequest;
+use Nexus\Mcp\Core\Schema\Request\PingRequest;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
@@ -52,5 +55,24 @@ final class JsonRpcMethodRegistryTest extends TestCase
                 $class,
             ));
         }
+    }
+
+    public function testRequestsRegistersInitializeAndPing(): void
+    {
+        self::assertSame(
+            [
+                'initialize' => InitializeRequest::class,
+                'ping' => PingRequest::class,
+            ],
+            JsonRpcMethodRegistry::requests(),
+        );
+    }
+
+    public function testNotificationsRegistersInitialized(): void
+    {
+        self::assertSame(
+            ['notifications/initialized' => InitializedNotification::class],
+            JsonRpcMethodRegistry::notifications(),
+        );
     }
 }
