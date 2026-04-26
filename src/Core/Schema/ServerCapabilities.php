@@ -16,17 +16,13 @@ namespace Nexus\Mcp\Core\Schema;
 use Nexus\Assert\Assert;
 
 /**
- * Capabilities that a server may support. Known capabilities are defined here, in this schema, but this is not a closed set: any server can define its own, additional capabilities.
+ * Capabilities that a server may support. Known capabilities are defined here, in this schema, but this
+ * is not a closed set: any server can define its own, additional capabilities.
  *
  * @phpstan-type CompletionsCapability array<string, mixed>
  * @phpstan-type LoggingCapability array<string, mixed>
- * @phpstan-type PromptsCapability array{
- *   listChanged?: bool,
- * }
- * @phpstan-type ResourcesCapability array{
- *   listChanged?: bool,
- *   subscribe?: bool,
- * }
+ * @phpstan-type PromptsCapability array{listChanged?: bool}
+ * @phpstan-type ResourcesCapability array{listChanged?: bool, subscribe?: bool}
  * @phpstan-type ServerExperimentalCapability array<string, array<string, mixed>>
  * @phpstan-type ServerTasksCapability array{
  *   cancel?: array<string, mixed>,
@@ -35,9 +31,7 @@ use Nexus\Assert\Assert;
  *     tools?: array{call?: array<string, mixed>},
  *   },
  * }
- * @phpstan-type ToolsCapability array{
- *   listChanged?: bool,
- * }
+ * @phpstan-type ToolsCapability array{listChanged?: bool}
  *
  * @implements Arrayable<array{
  *   completions?: CompletionsCapability,

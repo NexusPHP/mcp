@@ -16,20 +16,13 @@ namespace Nexus\Mcp\Core\Schema;
 use Nexus\Assert\Assert;
 
 /**
- * Capabilities a client may support. Known capabilities are defined here, in this schema, but this is not a closed set: any client can define its own, additional capabilities.
+ * Capabilities a client may support. Known capabilities are defined here, in this schema, but this is
+ * not a closed set: any client can define its own, additional capabilities.
  *
- * @phpstan-type ElicitationCapability array{
- *   form?: array<string, mixed>,
- *   url?: array<string, mixed>,
- * }
+ * @phpstan-type ElicitationCapability array{form?: array<string, mixed>, url?: array<string, mixed>}
  * @phpstan-type ExperimentalCapability array<string, array<string, mixed>>
- * @phpstan-type RootsCapability array{
- *   listChanged?: bool,
- * }
- * @phpstan-type SamplingCapability array{
- *   context?: array<string, mixed>,
- *   tools?: array<string, mixed>,
- * }
+ * @phpstan-type RootsCapability array{listChanged?: bool}
+ * @phpstan-type SamplingCapability array{context?: array<string, mixed>, tools?: array<string, mixed>}
  * @phpstan-type ClientTasksCapability array{
  *   cancel?: array<string, mixed>,
  *   list?: array<string, mixed>,

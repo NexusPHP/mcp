@@ -17,7 +17,8 @@ use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Enum\Role;
 
 /**
- * Optional annotations for the client. The client can use annotations to inform how objects are used or displayed.
+ * Optional annotations for the client. The client can use annotations to inform how objects are
+ * used or displayed.
  *
  * @implements Arrayable<array{
  *   audience?: list<'assistant'|'user'>,
