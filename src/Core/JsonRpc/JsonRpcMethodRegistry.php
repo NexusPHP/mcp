@@ -51,6 +51,10 @@ final class JsonRpcMethodRegistry
             Notification\InitializedNotification::method() => Notification\InitializedNotification::class,
             Notification\LoggingMessageNotification::method() => Notification\LoggingMessageNotification::class,
             Notification\ProgressNotification::method() => Notification\ProgressNotification::class,
+            Notification\PromptListChangedNotification::method() => Notification\PromptListChangedNotification::class,
+            Notification\ResourceListChangedNotification::method() => Notification\ResourceListChangedNotification::class,
+            Notification\RootsListChangedNotification::method() => Notification\RootsListChangedNotification::class,
+            Notification\ToolListChangedNotification::method() => Notification\ToolListChangedNotification::class,
         ];
     }
 }

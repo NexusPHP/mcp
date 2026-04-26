@@ -15,6 +15,10 @@ use Nexus\Mcp\Core\Schema\Notification\CancelledNotification;
 use Nexus\Mcp\Core\Schema\Notification\InitializedNotification;
 use Nexus\Mcp\Core\Schema\Notification\LoggingMessageNotification;
 use Nexus\Mcp\Core\Schema\Notification\ProgressNotification;
+use Nexus\Mcp\Core\Schema\Notification\PromptListChangedNotification;
+use Nexus\Mcp\Core\Schema\Notification\ResourceListChangedNotification;
+use Nexus\Mcp\Core\Schema\Notification\RootsListChangedNotification;
+use Nexus\Mcp\Core\Schema\Notification\ToolListChangedNotification;
 
 use function PHPStan\Testing\assertType;
 
@@ -22,3 +26,7 @@ assertType('\'notifications/cancelled\'', CancelledNotification::method());
 assertType('\'notifications/initialized\'', InitializedNotification::method());
 assertType('\'notifications/message\'', LoggingMessageNotification::method());
 assertType('\'notifications/progress\'', ProgressNotification::method());
+assertType('\'notifications/prompts/list_changed\'', PromptListChangedNotification::method());
+assertType('\'notifications/resources/list_changed\'', ResourceListChangedNotification::method());
+assertType('\'notifications/roots/list_changed\'', RootsListChangedNotification::method());
+assertType('\'notifications/tools/list_changed\'', ToolListChangedNotification::method());
