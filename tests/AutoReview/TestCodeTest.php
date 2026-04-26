@@ -208,7 +208,7 @@ final class TestCodeTest extends TestCase
         $returnType = $reflection->getReturnType();
 
         self::assertTrue(
-            $returnType instanceof \ReflectionNamedType && 'iterable' === $returnType->getName(),
+            $returnType instanceof \ReflectionNamedType && $returnType->getName() === 'iterable',
             \sprintf('Data provider "%s::%s()" must declare `iterable` as method return type.', $testClassName, $dataProviderMethod),
         );
 
@@ -284,7 +284,7 @@ final class TestCodeTest extends TestCase
         foreach ($iterator as $file) {
             if (
                 ! $file->isFile()
-                || 'php' !== $file->getExtension()
+                || $file->getExtension() !== 'php'
                 || str_contains($file->getPath(), \DIRECTORY_SEPARATOR.'Fixtures')
                 || str_contains($file->getPath(), \DIRECTORY_SEPARATOR.'data')
             ) {

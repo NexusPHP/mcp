@@ -26,11 +26,43 @@ use PHPUnit\Framework\TestCase;
 final class SourceCodeTest extends TestCase
 {
     private const int DOCBLOCK_SUMMARY_MAX_WIDTH = 120;
+    private const array YODA_SCAN_DIRECTORIES = ['src', 'tests'];
+    private const array CALL_CHAIN_TOKEN_IDS = [
+        \T_STRING,
+        \T_VARIABLE,
+        \T_NAME_QUALIFIED,
+        \T_NAME_FULLY_QUALIFIED,
+        \T_NAME_RELATIVE,
+        \T_NS_SEPARATOR,
+        \T_DOUBLE_COLON,
+        \T_OBJECT_OPERATOR,
+        \T_NULLSAFE_OBJECT_OPERATOR,
+    ];
+    private const array CALL_CHAIN_START_TOKEN_IDS = [
+        \T_STRING,
+        \T_VARIABLE,
+        \T_NAME_QUALIFIED,
+        \T_NAME_FULLY_QUALIFIED,
+        \T_NAME_RELATIVE,
+        \T_NS_SEPARATOR,
+    ];
+    private const array TRIVIA_TOKEN_IDS = [\T_WHITESPACE, \T_COMMENT, \T_DOC_COMMENT];
+    private const array COMPARISON_TOKEN_IDS = [
+        \T_IS_IDENTICAL,
+        \T_IS_NOT_IDENTICAL,
+        \T_IS_EQUAL,
+        \T_IS_NOT_EQUAL,
+    ];
 
     /**
      * @var list<class-string>
      */
     private static array $sourceClasses = [];
+
+    /**
+     * @var list<array{string, string}>
+     */
+    private static array $phpFiles = [];
 
     /**
      * @param class-string $class
@@ -75,6 +107,39 @@ final class SourceCodeTest extends TestCase
         }
     }
 
+    #[DataProvider('provideNoFunctionCallYodaComparisonCases')]
+    public function testNoFunctionCallYodaComparison(string $relativePath, string $absolutePath): void
+    {
+        $source = file_get_contents($absolutePath);
+        self::assertIsString($source, \sprintf('Could not read "%s".', $relativePath));
+
+        $report = array_map(
+            static fn(array $violation): string => \sprintf(
+                '  line %d: `%s %s ...(...)` — function call must be on the LEFT of the comparison operator.',
+                $violation['line'],
+                $violation['literal'],
+                $violation['operator'],
+            ),
+            self::findFunctionCallYodaViolations($source),
+        );
+
+        self::assertSame([], $report, \sprintf(
+            "%s contains function-call yoda comparisons (`yoda_style` does not auto-fix these — write `func() === \$x` not `\$x === func()`):\n%s",
+            $relativePath,
+            implode("\n", $report),
+        ));
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function provideNoFunctionCallYodaComparisonCases(): iterable
+    {
+        foreach (self::getPhpFiles() as [$relativePath, $absolutePath]) {
+            yield $relativePath => [$relativePath, $absolutePath];
+        }
+    }
+
     /**
      * @return list<class-string>
      */
@@ -100,7 +165,7 @@ final class SourceCodeTest extends TestCase
         foreach ($iterator as $file) {
             \assert($file instanceof \SplFileInfo);
 
-            if (! $file->isFile() || 'php' !== $file->getExtension()) {
+            if (! $file->isFile() || $file->getExtension() !== 'php') {
                 continue;
             }
 
@@ -145,5 +210,151 @@ final class SourceCodeTest extends TestCase
         }
 
         return $lines;
+    }
+
+    /**
+     * @return list<array{string, string}>
+     */
+    private static function getPhpFiles(): array
+    {
+        if ([] !== self::$phpFiles) {
+            return self::$phpFiles;
+        }
+
+        $base = realpath(__DIR__.'/../..');
+        \assert(\is_string($base));
+
+        $files = [];
+
+        foreach (self::YODA_SCAN_DIRECTORIES as $dir) {
+            $directory = $base.'/'.$dir;
+
+            if (! is_dir($directory)) {
+                continue;
+            }
+
+            $iterator = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator(
+                    $directory,
+                    \FilesystemIterator::SKIP_DOTS | \FilesystemIterator::UNIX_PATHS,
+                ),
+                \RecursiveIteratorIterator::CHILD_FIRST,
+            );
+
+            foreach ($iterator as $file) {
+                \assert($file instanceof \SplFileInfo);
+
+                if (! $file->isFile() || $file->getExtension() !== 'php') {
+                    continue;
+                }
+
+                $relative = substr($file->getPathname(), \strlen($base) + 1);
+                $files[] = [$relative, $file->getPathname()];
+            }
+        }
+
+        sort($files);
+
+        return self::$phpFiles = $files;
+    }
+
+    /**
+     * Token-walks the source looking for `<literal> [!=]==? <call-chain>(...)` —
+     * a comparison where a literal/keyword sits on the left and a function or
+     * method call sits on the right. The `yoda_style` fixer (with
+     * `always_move_variable: true`) leaves these alone, so we gate manually.
+     *
+     * @return list<array{line: int, literal: string, operator: string}>
+     */
+    private static function findFunctionCallYodaViolations(string $source): array
+    {
+        $tokens = token_get_all($source);
+        $violations = [];
+
+        foreach ($tokens as $i => $token) {
+            if (! \is_array($token) || ! self::isLiteralOrKeyword($token)) {
+                continue;
+            }
+
+            $j = self::skipTrivia($tokens, $i + 1);
+
+            if (! isset($tokens[$j]) || ! self::tokenIs($tokens[$j], self::COMPARISON_TOKEN_IDS)) {
+                continue;
+            }
+
+            $k = self::skipTrivia($tokens, $j + 1);
+
+            if (! isset($tokens[$k]) || ! self::tokenIs($tokens[$k], self::CALL_CHAIN_START_TOKEN_IDS)) {
+                continue;
+            }
+
+            if (! self::callChainEndsInOpenParen($tokens, $k)) {
+                continue;
+            }
+
+            $operator = $tokens[$j];
+            $violations[] = [
+                'line' => $token[2],
+                'literal' => $token[1],
+                'operator' => \is_array($operator) ? $operator[1] : $operator,
+            ];
+        }
+
+        return $violations;
+    }
+
+    /**
+     * @param array{int, string, int} $token
+     */
+    private static function isLiteralOrKeyword(array $token): bool
+    {
+        return match (true) {
+            \in_array($token[0], [\T_CONSTANT_ENCAPSED_STRING, \T_LNUMBER, \T_DNUMBER], true) => true,
+            \T_STRING === $token[0] && \in_array(strtolower($token[1]), ['null', 'true', 'false'], true) => true,
+            default => false,
+        };
+    }
+
+    /**
+     * @param array{int, string, int}|string $token
+     * @param list<int>                      $ids
+     */
+    private static function tokenIs(array|string $token, array $ids): bool
+    {
+        return \is_array($token) && \in_array($token[0], $ids, true);
+    }
+
+    /**
+     * @param list<array{int, string, int}|string> $tokens
+     */
+    private static function callChainEndsInOpenParen(array $tokens, int $start): bool
+    {
+        for ($i = $start; isset($tokens[$i]); ++$i) {
+            $token = $tokens[$i];
+
+            if (\is_array($token)) {
+                if (\in_array($token[0], [...self::CALL_CHAIN_TOKEN_IDS, \T_WHITESPACE], true)) {
+                    continue;
+                }
+
+                return false;
+            }
+
+            return '(' === $token;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param list<array{int, string, int}|string> $tokens
+     */
+    private static function skipTrivia(array $tokens, int $i): int
+    {
+        while (isset($tokens[$i]) && self::tokenIs($tokens[$i], self::TRIVIA_TOKEN_IDS)) {
+            ++$i;
+        }
+
+        return $i;
     }
 }
