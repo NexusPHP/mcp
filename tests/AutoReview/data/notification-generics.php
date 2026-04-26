@@ -17,6 +17,7 @@ use Nexus\Mcp\Core\Schema\Notification\LoggingMessageNotification;
 use Nexus\Mcp\Core\Schema\Notification\ProgressNotification;
 use Nexus\Mcp\Core\Schema\Notification\PromptListChangedNotification;
 use Nexus\Mcp\Core\Schema\Notification\ResourceListChangedNotification;
+use Nexus\Mcp\Core\Schema\Notification\ResourceUpdatedNotification;
 use Nexus\Mcp\Core\Schema\Notification\RootsListChangedNotification;
 use Nexus\Mcp\Core\Schema\Notification\ToolListChangedNotification;
 
@@ -28,5 +29,6 @@ assertType('\'notifications/message\'', LoggingMessageNotification::method());
 assertType('\'notifications/progress\'', ProgressNotification::method());
 assertType('\'notifications/prompts/list_changed\'', PromptListChangedNotification::method());
 assertType('\'notifications/resources/list_changed\'', ResourceListChangedNotification::method());
+assertType('\'notifications/resources/updated\'', ResourceUpdatedNotification::method());
 assertType('\'notifications/roots/list_changed\'', RootsListChangedNotification::method());
 assertType('\'notifications/tools/list_changed\'', ToolListChangedNotification::method());

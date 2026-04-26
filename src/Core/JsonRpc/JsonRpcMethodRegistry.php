@@ -38,6 +38,8 @@ final class JsonRpcMethodRegistry
             Request\InitializeRequest::method() => Request\InitializeRequest::class,
             Request\PingRequest::method() => Request\PingRequest::class,
             Request\SetLevelRequest::method() => Request\SetLevelRequest::class,
+            Request\SubscribeRequest::method() => Request\SubscribeRequest::class,
+            Request\UnsubscribeRequest::method() => Request\UnsubscribeRequest::class,
         ];
     }
 
@@ -53,6 +55,7 @@ final class JsonRpcMethodRegistry
             Notification\ProgressNotification::method() => Notification\ProgressNotification::class,
             Notification\PromptListChangedNotification::method() => Notification\PromptListChangedNotification::class,
             Notification\ResourceListChangedNotification::method() => Notification\ResourceListChangedNotification::class,
+            Notification\ResourceUpdatedNotification::method() => Notification\ResourceUpdatedNotification::class,
             Notification\RootsListChangedNotification::method() => Notification\RootsListChangedNotification::class,
             Notification\ToolListChangedNotification::method() => Notification\ToolListChangedNotification::class,
         ];

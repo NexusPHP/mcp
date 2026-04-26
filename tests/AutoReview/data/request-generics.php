@@ -13,8 +13,12 @@ declare(strict_types=1);
 
 use Nexus\Mcp\Core\Schema\Request\PingRequest;
 use Nexus\Mcp\Core\Schema\Request\SetLevelRequest;
+use Nexus\Mcp\Core\Schema\Request\SubscribeRequest;
+use Nexus\Mcp\Core\Schema\Request\UnsubscribeRequest;
 
 use function PHPStan\Testing\assertType;
 
 assertType('\'ping\'', PingRequest::method());
 assertType('\'logging/setLevel\'', SetLevelRequest::method());
+assertType('\'resources/subscribe\'', SubscribeRequest::method());
+assertType('\'resources/unsubscribe\'', UnsubscribeRequest::method());
