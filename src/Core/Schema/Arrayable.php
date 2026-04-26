@@ -39,7 +39,10 @@ interface Arrayable extends \JsonSerializable
     public function toArray(): array;
 
     /**
-     * @return T
+     * Implementations may substitute `\stdClass` for empty arrays at object-typed
+     * positions so `json_encode` emits `{}` rather than `[]`.
+     *
+     * @return array<string, mixed>
      */
     #[\Override]
     public function jsonSerialize(): array;

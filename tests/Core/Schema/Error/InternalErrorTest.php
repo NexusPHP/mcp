@@ -119,4 +119,14 @@ final class InternalErrorTest extends TestCase
             'data' => $data,
         ], $result);
     }
+
+    public function testInternalErrorToArrayOmitsEmptyData(): void
+    {
+        $error = new InternalError('Unexpected error', []);
+
+        self::assertSame([
+            'code' => -32603,
+            'message' => 'Unexpected error',
+        ], $error->toArray());
+    }
 }

@@ -54,7 +54,7 @@ abstract readonly class Error implements Arrayable
             'message' => $this->message,
         ];
 
-        if (null !== $this->data) {
+        if (null !== $this->data && [] !== $this->data) {
             $result['data'] = $this->data;
         }
 

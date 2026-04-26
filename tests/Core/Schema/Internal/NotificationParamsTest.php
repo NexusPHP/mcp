@@ -44,6 +44,13 @@ final class NotificationParamsTest extends TestCase
         self::assertSame(['_meta' => ['vendor' => 'x']], $params->toArray());
     }
 
+    public function testToArrayOmitsEmptyMeta(): void
+    {
+        $params = new NotificationParams(new Meta());
+
+        self::assertSame([], $params->toArray());
+    }
+
     public function testFromArrayWithoutMetaYieldsNullMeta(): void
     {
         self::assertNull(NotificationParams::fromArray([])->meta);

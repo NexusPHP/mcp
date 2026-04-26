@@ -56,7 +56,13 @@ readonly class RequestParams implements Arrayable
     #[\Override]
     public function toArray(): array
     {
-        return null !== $this->meta ? ['_meta' => $this->meta->toArray()] : [];
+        if (null === $this->meta) {
+            return [];
+        }
+
+        $meta = $this->meta->toArray();
+
+        return [] === $meta ? [] : ['_meta' => $meta];
     }
 
     #[\Override]

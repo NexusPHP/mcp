@@ -45,6 +45,13 @@ final class RequestParamsTest extends TestCase
         self::assertSame(['_meta' => ['progressToken' => 'tok-1']], $params->toArray());
     }
 
+    public function testToArrayOmitsEmptyMeta(): void
+    {
+        $params = new RequestParams(new RequestMeta());
+
+        self::assertSame([], $params->toArray());
+    }
+
     public function testFromArrayWithoutMetaYieldsNullMeta(): void
     {
         self::assertNull(RequestParams::fromArray([])->meta);
