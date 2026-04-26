@@ -564,7 +564,7 @@ final class SchemaConformanceTest extends TestCase
      */
     private static function parseShapeAfter(string $docComment, string $openerPattern): ?array
     {
-        if (1 !== preg_match($openerPattern, $docComment, $matches)) {
+        if (preg_match($openerPattern, $docComment, $matches) !== 1) {
             return null;
         }
 
@@ -660,7 +660,7 @@ final class SchemaConformanceTest extends TestCase
                 return;
             }
 
-            if (1 !== preg_match('/^([\'"]?)([A-Za-z_][\w\-]*)\1(\??):/', $entry, $m)) {
+            if (preg_match('/^([\'"]?)([A-Za-z_][\w\-]*)\1(\??):/', $entry, $m) !== 1) {
                 return;
             }
 
