@@ -28,11 +28,6 @@ use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
  */
 final readonly class PingRequest extends JsonRpcRequest implements ClientRequest, ServerRequest
 {
-    public function __construct(RequestId $id, EmptyRequestParams $params = new EmptyRequestParams())
-    {
-        parent::__construct($id, $params);
-    }
-
     #[\Override]
     public static function method(): string
     {
