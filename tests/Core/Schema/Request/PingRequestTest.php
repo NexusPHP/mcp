@@ -14,12 +14,12 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Schema\Request;
 
 use Nexus\Mcp\Core\Schema\Internal\Request;
-use Nexus\Mcp\Core\Schema\Internal\RequestParams;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\ProgressToken;
 use Nexus\Mcp\Core\Schema\Request\PingRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestMeta;
+use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
@@ -38,7 +38,7 @@ final class PingRequestTest extends TestCase
     {
         $request = new PingRequest(new RequestId(1));
 
-        self::assertSame(RequestParams::class, $request->params::class);
+        self::assertSame(EmptyRequestParams::class, $request->params::class);
         self::assertNull($request->params->meta);
     }
 
@@ -56,7 +56,7 @@ final class PingRequestTest extends TestCase
     {
         $request = new PingRequest(
             new RequestId('req-1'),
-            new RequestParams(new RequestMeta(new ProgressToken('tok-1'))),
+            new EmptyRequestParams(new RequestMeta(new ProgressToken('tok-1'))),
         );
 
         self::assertSame(

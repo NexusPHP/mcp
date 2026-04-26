@@ -13,18 +13,17 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Schema\Internal;
 
-use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\RequestMeta;
 
 /**
  * Common params for any request.
  *
- * @phpstan-consistent-constructor
+ * @internal
  *
- * @implements Arrayable<array{_meta?: array<string, mixed>}>
+ * @implements Arrayable<array<string, mixed>>
  */
-readonly class RequestParams implements Arrayable
+abstract readonly class RequestParams implements Arrayable
 {
     public function __construct(public ?RequestMeta $meta = null)
     {
@@ -34,20 +33,7 @@ readonly class RequestParams implements Arrayable
      * @param array<string, mixed> $data
      */
     #[\Override]
-    public static function fromArray(array $data): static
-    {
-        $meta = null;
-
-        if (\array_key_exists('_meta', $data)) {
-            Assert::that($data['_meta'])
-                ->isArray('Request params "_meta" must be an object, {type} given.')
-                ->isMap('Request params "_meta" must be a string-keyed object.')
-            ;
-            $meta = RequestMeta::fromArray($data['_meta']);
-        }
-
-        return new static($meta);
-    }
+    abstract public static function fromArray(array $data): static;
 
     /**
      * Serializes the params body. Subclasses override to merge their own fields

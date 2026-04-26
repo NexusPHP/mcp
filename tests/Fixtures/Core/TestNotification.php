@@ -14,8 +14,8 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Fixtures\Core;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\Schema\Internal\NotificationParams;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
+use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
 
 /**
  * @internal
@@ -24,7 +24,7 @@ use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
  */
 final readonly class TestNotification extends JsonRpcNotification
 {
-    public function __construct(NotificationParams $params = new NotificationParams())
+    public function __construct(EmptyNotificationParams $params = new EmptyNotificationParams())
     {
         parent::__construct($params);
     }
@@ -38,14 +38,14 @@ final readonly class TestNotification extends JsonRpcNotification
     #[\Override]
     public static function fromArray(array $data): static
     {
-        $params = new NotificationParams();
+        $params = new EmptyNotificationParams();
 
         if (\array_key_exists('params', $data)) {
             Assert::that($data['params'])
                 ->isArray('TestNotification wire "params" must be an object, {type} given.')
                 ->isMap('TestNotification wire "params" must be a string-keyed object.')
             ;
-            $params = NotificationParams::fromArray($data['params']);
+            $params = EmptyNotificationParams::fromArray($data['params']);
         }
 
         return new self($params);

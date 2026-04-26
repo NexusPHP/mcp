@@ -13,19 +13,17 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Schema\Internal;
 
-use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\Meta;
 
 /**
- * Methods with no typed params use this base directly; methods that add typed
- * fields subclass and override {@see self::fromArray()}.
+ * Common params for any notification.
  *
- * @phpstan-consistent-constructor
+ * @internal
  *
- * @implements Arrayable<array{_meta?: array<string, mixed>}>
+ * @implements Arrayable<array<string, mixed>>
  */
-readonly class NotificationParams implements Arrayable
+abstract readonly class NotificationParams implements Arrayable
 {
     public function __construct(public ?Meta $meta = null)
     {
@@ -35,20 +33,7 @@ readonly class NotificationParams implements Arrayable
      * @param array<string, mixed> $data
      */
     #[\Override]
-    public static function fromArray(array $data): static
-    {
-        $meta = null;
-
-        if (\array_key_exists('_meta', $data)) {
-            Assert::that($data['_meta'])
-                ->isArray('Notification params "_meta" must be an object, {type} given.')
-                ->isMap('Notification params "_meta" must be a string-keyed object.')
-            ;
-            $meta = Meta::fromArray($data['_meta']);
-        }
-
-        return new static($meta);
-    }
+    abstract public static function fromArray(array $data): static;
 
     /**
      * Serializes the params body. Subclasses override to merge their own fields

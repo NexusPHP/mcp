@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Schema\Internal;
 
+use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
+
 /**
  * @internal
  *
@@ -20,7 +22,7 @@ namespace Nexus\Mcp\Core\Schema\Internal;
  */
 abstract readonly class Notification
 {
-    public function __construct(public NotificationParams $params = new NotificationParams())
+    public function __construct(public NotificationParams $params = new EmptyNotificationParams())
     {
     }
 

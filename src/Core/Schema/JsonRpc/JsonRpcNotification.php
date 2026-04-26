@@ -59,6 +59,17 @@ abstract readonly class JsonRpcNotification extends Notification implements Arra
     #[\Override]
     public function jsonSerialize(): array
     {
-        return $this->toArray();
+        $envelope = [
+            'jsonrpc' => self::JSONRPC_VERSION,
+            'method' => static::method(),
+        ];
+
+        $params = $this->params->jsonSerialize();
+
+        if ([] !== $params) {
+            $envelope['params'] = $params;
+        }
+
+        return $envelope;
     }
 }

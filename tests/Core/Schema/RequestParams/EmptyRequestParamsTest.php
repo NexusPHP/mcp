@@ -11,11 +11,12 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Nexus\Mcp\Tests\Core\Schema\Internal;
+namespace Nexus\Mcp\Tests\Core\Schema\RequestParams;
 
 use Nexus\Mcp\Core\Schema\Internal\RequestParams;
 use Nexus\Mcp\Core\Schema\ProgressToken;
 use Nexus\Mcp\Core\Schema\RequestMeta;
+use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
@@ -23,43 +24,44 @@ use PHPUnit\Framework\TestCase;
 /**
  * @internal
  */
+#[CoversClass(EmptyRequestParams::class)]
 #[CoversClass(RequestParams::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class RequestParamsTest extends TestCase
+final class EmptyRequestParamsTest extends TestCase
 {
     public function testDefaultsToNullMeta(): void
     {
-        self::assertNull(new RequestParams()->meta);
+        self::assertNull(new EmptyRequestParams()->meta);
     }
 
     public function testToArrayIsEmptyWhenNoMeta(): void
     {
-        self::assertSame([], new RequestParams()->toArray());
+        self::assertSame([], new EmptyRequestParams()->toArray());
     }
 
     public function testToArrayEmitsMetaUnderUnderscoreKey(): void
     {
-        $params = new RequestParams(new RequestMeta(new ProgressToken('tok-1')));
+        $params = new EmptyRequestParams(new RequestMeta(new ProgressToken('tok-1')));
 
         self::assertSame(['_meta' => ['progressToken' => 'tok-1']], $params->toArray());
     }
 
     public function testToArrayOmitsEmptyMeta(): void
     {
-        $params = new RequestParams(new RequestMeta());
+        $params = new EmptyRequestParams(new RequestMeta());
 
         self::assertSame([], $params->toArray());
     }
 
     public function testFromArrayWithoutMetaYieldsNullMeta(): void
     {
-        self::assertNull(RequestParams::fromArray([])->meta);
+        self::assertNull(EmptyRequestParams::fromArray([])->meta);
     }
 
     public function testFromArrayParsesMeta(): void
     {
-        $params = RequestParams::fromArray(['_meta' => ['progressToken' => 42]]);
+        $params = EmptyRequestParams::fromArray(['_meta' => ['progressToken' => 42]]);
 
         self::assertNotNull($params->meta);
         self::assertNotNull($params->meta->progressToken);
@@ -71,12 +73,12 @@ final class RequestParamsTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Request params "_meta" must be an object, string given.');
 
-        RequestParams::fromArray(['_meta' => 'bad']);
+        EmptyRequestParams::fromArray(['_meta' => 'bad']);
     }
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $params = new RequestParams(new RequestMeta(null, ['vendor' => 'x']));
+        $params = new EmptyRequestParams(new RequestMeta(null, ['vendor' => 'x']));
 
         self::assertSame($params->toArray(), $params->jsonSerialize());
     }

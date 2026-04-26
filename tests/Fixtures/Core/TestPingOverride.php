@@ -13,9 +13,9 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Fixtures\Core;
 
-use Nexus\Mcp\Core\Schema\Internal\RequestParams;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 
 /**
  * @internal
@@ -24,7 +24,7 @@ use Nexus\Mcp\Core\Schema\RequestId;
  */
 final readonly class TestPingOverride extends JsonRpcRequest
 {
-    public function __construct(RequestId $id, RequestParams $params = new RequestParams())
+    public function __construct(RequestId $id, EmptyRequestParams $params = new EmptyRequestParams())
     {
         parent::__construct($id, $params);
     }

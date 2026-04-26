@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\Request;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\Schema\Internal\RequestParams;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 
 /**
  * A ping, issued by either the server or the client, to check that the other party is still alive. The receiver must promptly respond, or else may be disconnected.
@@ -27,6 +27,11 @@ use Nexus\Mcp\Core\Schema\RequestId;
  */
 final readonly class PingRequest extends JsonRpcRequest implements ClientRequest, ServerRequest
 {
+    public function __construct(RequestId $id, EmptyRequestParams $params = new EmptyRequestParams())
+    {
+        parent::__construct($id, $params);
+    }
+
     #[\Override]
     public static function method(): string
     {
@@ -41,14 +46,14 @@ final readonly class PingRequest extends JsonRpcRequest implements ClientRequest
         $id = $data['id'];
         Assert::that($id)->isArrayKey('PingRequest wire "id" must be int or string, {type} given.');
 
-        $params = new RequestParams();
+        $params = new EmptyRequestParams();
 
         if (\array_key_exists('params', $data)) {
             Assert::that($data['params'])
                 ->isArray('PingRequest wire "params" must be an object, {type} given.')
                 ->isMap('PingRequest wire "params" must be a string-keyed object.')
             ;
-            $params = RequestParams::fromArray($data['params']);
+            $params = EmptyRequestParams::fromArray($data['params']);
         }
 
         return new self(new RequestId($id), $params);

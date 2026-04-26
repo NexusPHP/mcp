@@ -14,10 +14,10 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Schema\Notification;
 
 use Nexus\Mcp\Core\Schema\Internal\Notification;
-use Nexus\Mcp\Core\Schema\Internal\NotificationParams;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 use Nexus\Mcp\Core\Schema\Meta;
 use Nexus\Mcp\Core\Schema\Notification\InitializedNotification;
+use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
@@ -36,7 +36,7 @@ final class InitializedNotificationTest extends TestCase
     {
         $notification = new InitializedNotification();
 
-        self::assertSame(NotificationParams::class, $notification->params::class);
+        self::assertSame(EmptyNotificationParams::class, $notification->params::class);
         self::assertNull($notification->params->meta);
     }
 
@@ -52,7 +52,7 @@ final class InitializedNotificationTest extends TestCase
 
     public function testToArrayIncludesParamsWithMeta(): void
     {
-        $notification = new InitializedNotification(new NotificationParams(new Meta(['vendor' => 'x'])));
+        $notification = new InitializedNotification(new EmptyNotificationParams(new Meta(['vendor' => 'x'])));
 
         self::assertSame(
             [
@@ -66,7 +66,7 @@ final class InitializedNotificationTest extends TestCase
 
     public function testToArrayPreservesKeyOrderStartingWithJsonRpc(): void
     {
-        $notification = new InitializedNotification(new NotificationParams(new Meta(['k' => 'v'])));
+        $notification = new InitializedNotification(new EmptyNotificationParams(new Meta(['k' => 'v'])));
 
         self::assertSame(
             ['jsonrpc', 'method', 'params'],
@@ -76,7 +76,7 @@ final class InitializedNotificationTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $notification = new InitializedNotification(new NotificationParams(new Meta(['k' => 'v'])));
+        $notification = new InitializedNotification(new EmptyNotificationParams(new Meta(['k' => 'v'])));
 
         self::assertSame($notification->toArray(), $notification->jsonSerialize());
     }
@@ -88,7 +88,7 @@ final class InitializedNotificationTest extends TestCase
             'method' => 'notifications/initialized',
         ]);
 
-        self::assertSame(NotificationParams::class, $notification->params::class);
+        self::assertSame(EmptyNotificationParams::class, $notification->params::class);
         self::assertNull($notification->params->meta);
     }
 

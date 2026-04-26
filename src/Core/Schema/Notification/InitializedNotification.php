@@ -14,8 +14,8 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\Notification;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\Schema\Internal\NotificationParams;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
+use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
 
 /**
  * This notification is sent from the client to the server after initialization has finished.
@@ -26,6 +26,11 @@ use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
  */
 final readonly class InitializedNotification extends JsonRpcNotification implements ClientNotification
 {
+    public function __construct(EmptyNotificationParams $params = new EmptyNotificationParams())
+    {
+        parent::__construct($params);
+    }
+
     #[\Override]
     public static function method(): string
     {
@@ -35,14 +40,14 @@ final readonly class InitializedNotification extends JsonRpcNotification impleme
     #[\Override]
     public static function fromArray(array $data): static
     {
-        $params = new NotificationParams();
+        $params = new EmptyNotificationParams();
 
         if (\array_key_exists('params', $data)) {
             Assert::that($data['params'])
                 ->isArray('InitializedNotification wire "params" must be an object, {type} given.')
                 ->isMap('InitializedNotification wire "params" must be a string-keyed object.')
             ;
-            $params = NotificationParams::fromArray($data['params']);
+            $params = EmptyNotificationParams::fromArray($data['params']);
         }
 
         return new self($params);

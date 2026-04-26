@@ -11,10 +11,11 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Nexus\Mcp\Tests\Core\Schema\Internal;
+namespace Nexus\Mcp\Tests\Core\Schema\NotificationParams;
 
 use Nexus\Mcp\Core\Schema\Internal\NotificationParams;
 use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
@@ -22,43 +23,44 @@ use PHPUnit\Framework\TestCase;
 /**
  * @internal
  */
+#[CoversClass(EmptyNotificationParams::class)]
 #[CoversClass(NotificationParams::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class NotificationParamsTest extends TestCase
+final class EmptyNotificationParamsTest extends TestCase
 {
     public function testDefaultsToNullMeta(): void
     {
-        self::assertNull(new NotificationParams()->meta);
+        self::assertNull(new EmptyNotificationParams()->meta);
     }
 
     public function testToArrayIsEmptyWhenNoMeta(): void
     {
-        self::assertSame([], new NotificationParams()->toArray());
+        self::assertSame([], new EmptyNotificationParams()->toArray());
     }
 
     public function testToArrayEmitsMetaUnderUnderscoreKey(): void
     {
-        $params = new NotificationParams(new Meta(['vendor' => 'x']));
+        $params = new EmptyNotificationParams(new Meta(['vendor' => 'x']));
 
         self::assertSame(['_meta' => ['vendor' => 'x']], $params->toArray());
     }
 
     public function testToArrayOmitsEmptyMeta(): void
     {
-        $params = new NotificationParams(new Meta());
+        $params = new EmptyNotificationParams(new Meta());
 
         self::assertSame([], $params->toArray());
     }
 
     public function testFromArrayWithoutMetaYieldsNullMeta(): void
     {
-        self::assertNull(NotificationParams::fromArray([])->meta);
+        self::assertNull(EmptyNotificationParams::fromArray([])->meta);
     }
 
     public function testFromArrayParsesMetaAsBaseMeta(): void
     {
-        $params = NotificationParams::fromArray(['_meta' => ['any' => 'value']]);
+        $params = EmptyNotificationParams::fromArray(['_meta' => ['any' => 'value']]);
 
         self::assertNotNull($params->meta);
         self::assertSame(['any' => 'value'], $params->meta->extras);
@@ -69,12 +71,12 @@ final class NotificationParamsTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Notification params "_meta" must be an object, int given.');
 
-        NotificationParams::fromArray(['_meta' => 1]);
+        EmptyNotificationParams::fromArray(['_meta' => 1]);
     }
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $params = new NotificationParams(new Meta(['k' => 'v']));
+        $params = new EmptyNotificationParams(new Meta(['k' => 'v']));
 
         self::assertSame($params->toArray(), $params->jsonSerialize());
     }

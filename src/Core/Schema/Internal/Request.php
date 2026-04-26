@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Schema\Internal;
 
+use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
+
 /**
  * @internal
  *
@@ -20,7 +22,7 @@ namespace Nexus\Mcp\Core\Schema\Internal;
  */
 abstract readonly class Request
 {
-    public function __construct(public RequestParams $params = new RequestParams())
+    public function __construct(public RequestParams $params = new EmptyRequestParams())
     {
     }
 

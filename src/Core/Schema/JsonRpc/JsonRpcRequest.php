@@ -17,6 +17,7 @@ use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\Internal\Request;
 use Nexus\Mcp\Core\Schema\Internal\RequestParams;
 use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 
 /**
  * A request that expects a response.
@@ -36,7 +37,7 @@ use Nexus\Mcp\Core\Schema\RequestId;
  */
 abstract readonly class JsonRpcRequest extends Request implements Arrayable, JsonRpcMessage
 {
-    public function __construct(public RequestId $id, RequestParams $params = new RequestParams())
+    public function __construct(public RequestId $id, RequestParams $params = new EmptyRequestParams())
     {
         parent::__construct($params);
     }
@@ -68,6 +69,18 @@ abstract readonly class JsonRpcRequest extends Request implements Arrayable, Jso
     #[\Override]
     public function jsonSerialize(): array
     {
-        return $this->toArray();
+        $envelope = [
+            'jsonrpc' => self::JSONRPC_VERSION,
+            'id' => $this->id->id,
+            'method' => static::method(),
+        ];
+
+        $params = $this->params->jsonSerialize();
+
+        if ([] !== $params) {
+            $envelope['params'] = $params;
+        }
+
+        return $envelope;
     }
 }
