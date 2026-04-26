@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Schema\JsonRpc;
 
+use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result;
 
@@ -33,7 +34,7 @@ final readonly class JsonRpcResultResponse implements \JsonSerializable, JsonRpc
     }
 
     /**
-     * @return array{jsonrpc: '2.0', id: int|non-empty-string, result: array<string, mixed>}
+     * @return array{jsonrpc: '2.0', id: int|non-empty-string, result: template-type<T, Arrayable, 'T'>}
      */
     public function toArray(): array
     {
@@ -45,7 +46,7 @@ final readonly class JsonRpcResultResponse implements \JsonSerializable, JsonRpc
     }
 
     /**
-     * @return array{jsonrpc: '2.0', id: int|non-empty-string, result: array<string, mixed>}
+     * @return array{jsonrpc: '2.0', id: int|non-empty-string, result: template-type<T, Arrayable, 'T'>}
      */
     #[\Override]
     public function jsonSerialize(): array

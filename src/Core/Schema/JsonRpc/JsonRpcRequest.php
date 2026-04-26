@@ -30,7 +30,7 @@ use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
  *   jsonrpc: '2.0',
  *   id: int|non-empty-string,
  *   method: non-empty-string,
- *   params?: array<string, mixed>,
+ *   params?: template-type<RequestParams, Arrayable, 'T'>,
  * }>
  *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#jsonrpcrequest

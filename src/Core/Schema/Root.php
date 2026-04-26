@@ -21,7 +21,7 @@ use Nexus\Assert\Assert;
  * @implements Arrayable<array{
  *   uri: string,
  *   name?: string,
- *   _meta?: array<string, mixed>,
+ *   _meta?: template-type<Meta, Arrayable, 'T'>,
  * }>
  *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#root

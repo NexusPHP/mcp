@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Core\Schema\JsonRpc;
 
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\Notification;
+use Nexus\Mcp\Core\Schema\NotificationParams;
 
 /**
  * A notification which does not expect a response.
@@ -26,7 +27,7 @@ use Nexus\Mcp\Core\Schema\Notification;
  * @implements Arrayable<array{
  *   jsonrpc: '2.0',
  *   method: non-empty-string,
- *   params?: array<string, mixed>,
+ *   params?: template-type<NotificationParams, Arrayable, 'T'>,
  * }>
  *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#jsonrpcnotification

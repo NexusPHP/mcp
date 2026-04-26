@@ -16,7 +16,7 @@ namespace Nexus\Mcp\Core\Schema;
 /**
  * Common params for any request.
  *
- * @implements Arrayable<array<string, mixed>>
+ * @implements Arrayable<array{_meta?: template-type<RequestMeta, Arrayable, 'T'>, ...}>
  *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#requestparams
  */
