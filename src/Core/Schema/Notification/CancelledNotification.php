@@ -57,4 +57,26 @@ final readonly class CancelledNotification extends JsonRpcNotification implement
 
         return new self(CancelledNotificationParams::fromArray($data['params']));
     }
+
+    #[\Override]
+    public function toArray(): array
+    {
+        return [
+            'jsonrpc' => self::JSONRPC_VERSION,
+            'method' => static::method(),
+            'params' => $this->params->toArray(),
+        ];
+    }
+
+    #[\Override]
+    public function jsonSerialize(): array
+    {
+        $params = $this->params->jsonSerialize();
+
+        return [
+            'jsonrpc' => self::JSONRPC_VERSION,
+            'method' => static::method(),
+            'params' => [] === $params ? new \stdClass() : $params,
+        ];
+    }
 }

@@ -1,0 +1,11 @@
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "ping",
+    "params": {
+        "_meta": {
+            "vendor.brand": "acme",
+            "progressToken": "progress-1"
+        }
+    }
+}

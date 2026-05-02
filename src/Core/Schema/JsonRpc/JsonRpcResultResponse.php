@@ -46,11 +46,15 @@ final readonly class JsonRpcResultResponse implements \JsonSerializable, JsonRpc
     }
 
     /**
-     * @return array{jsonrpc: '2.0', id: int|non-empty-string, result: template-type<T, Arrayable, 'T'>}
+     * @return array{jsonrpc: '2.0', id: int|non-empty-string, result: array<string, mixed>}
      */
     #[\Override]
     public function jsonSerialize(): array
     {
-        return $this->toArray();
+        return [
+            'jsonrpc' => self::JSONRPC_VERSION,
+            'id' => $this->id->id,
+            'result' => $this->result->jsonSerialize(),
+        ];
     }
 }

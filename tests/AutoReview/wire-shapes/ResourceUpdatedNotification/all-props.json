@@ -1,0 +1,10 @@
+{
+    "jsonrpc": "2.0",
+    "method": "notifications/resources/updated",
+    "params": {
+        "_meta": {
+            "vendor.brand": "acme"
+        },
+        "uri": "file:///tmp/sample"
+    }
+}

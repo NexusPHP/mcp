@@ -1,3 +1,5 @@
+*.json                  text eol=lf
+
 /.*                     export-ignore
 /CLAUDE.md              export-ignore
 /infection.dist.json5   export-ignore

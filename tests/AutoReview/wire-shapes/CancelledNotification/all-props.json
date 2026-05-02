@@ -1,0 +1,11 @@
+{
+    "jsonrpc": "2.0",
+    "method": "notifications/cancelled",
+    "params": {
+        "_meta": {
+            "vendor.brand": "acme"
+        },
+        "requestId": 42,
+        "reason": "User cancelled the request."
+    }
+}

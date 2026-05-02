@@ -1,0 +1,11 @@
+{
+    "jsonrpc": "2.0",
+    "error": {
+        "code": -32601,
+        "message": "Method \"tools/run\" is not registered.",
+        "data": {
+            "context": "unit-test",
+            "attempt": 2
+        }
+    }
+}

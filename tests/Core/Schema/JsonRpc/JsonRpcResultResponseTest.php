@@ -13,10 +13,14 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\JsonRpc;
 
+use Nexus\Mcp\Core\Schema\Implementation;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\ProtocolVersion;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
+use Nexus\Mcp\Core\Schema\Result\InitializeResult;
+use Nexus\Mcp\Core\Schema\ServerCapabilities;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
@@ -56,10 +60,27 @@ final class JsonRpcResultResponseTest extends TestCase
         );
     }
 
-    public function testJsonSerializeMatchesToArray(): void
+    public function testJsonSerializeMatchesToArrayForLeafResult(): void
     {
         $response = new JsonRpcResultResponse(new RequestId(1), new EmptyResult());
 
         self::assertSame($response->toArray(), $response->jsonSerialize());
+    }
+
+    public function testJsonSerializePreservesEmptyObjectMarkersFromInnerResult(): void
+    {
+        $response = new JsonRpcResultResponse(
+            new RequestId(99),
+            new InitializeResult(
+                new ProtocolVersion(ProtocolVersion::LATEST_VERSION),
+                new ServerCapabilities(logging: []),
+                new Implementation('srv', '1.0.0'),
+            ),
+        );
+
+        $encoded = json_encode($response);
+
+        self::assertIsString($encoded);
+        self::assertStringContainsString('"logging":{}', $encoded, 'Empty capability markers must encode as JSON objects, not arrays.');
     }
 }

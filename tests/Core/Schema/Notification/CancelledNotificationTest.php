@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\Notification;
 
+use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 use Nexus\Mcp\Core\Schema\Meta;
 use Nexus\Mcp\Core\Schema\Notification;
@@ -150,5 +151,48 @@ final class CancelledNotificationTest extends TestCase
             'method' => 'notifications/cancelled',
             'params' => ['a', 'b'],
         ]);
+    }
+
+    public function testToArrayAlwaysIncludesParamsKeyEvenWhenEmpty(): void
+    {
+        $notification = new CancelledNotification(new CancelledNotificationParams());
+
+        self::assertSame(
+            [
+                'jsonrpc' => '2.0',
+                'method' => 'notifications/cancelled',
+                'params' => [],
+            ],
+            $notification->toArray(),
+        );
+    }
+
+    public function testJsonSerializeSubstitutesStdClassForEmptyParams(): void
+    {
+        $notification = new CancelledNotification(new CancelledNotificationParams());
+
+        $serialized = $notification->jsonSerialize();
+
+        self::assertArrayHasKey('params', $serialized);
+        self::assertInstanceOf(\stdClass::class, $serialized['params']);
+        self::assertSame('{"jsonrpc":"2.0","method":"notifications/cancelled","params":{}}', json_encode($notification, \JSON_UNESCAPED_SLASHES));
+    }
+
+    public function testEmptyParamsRoundTripsThroughWireEnvelope(): void
+    {
+        $original = new CancelledNotification(new CancelledNotificationParams());
+
+        $wire = json_encode($original);
+        self::assertIsString($wire);
+
+        $decoded = json_decode($wire, true);
+        Assert::that($decoded)
+            ->isArray()
+            ->isMap()
+        ;
+
+        $rebuilt = CancelledNotification::fromArray($decoded);
+
+        self::assertSame($original->toArray(), $rebuilt->toArray());
     }
 }

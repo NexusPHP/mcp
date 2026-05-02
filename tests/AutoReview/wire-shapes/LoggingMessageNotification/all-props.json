@@ -1,0 +1,15 @@
+{
+    "jsonrpc": "2.0",
+    "method": "notifications/message",
+    "params": {
+        "_meta": {
+            "vendor.brand": "acme"
+        },
+        "level": "warning",
+        "data": {
+            "message": "connection lost",
+            "attempt": 3
+        },
+        "logger": "network"
+    }
+}

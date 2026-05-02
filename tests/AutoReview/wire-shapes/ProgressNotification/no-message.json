@@ -1,0 +1,12 @@
+{
+    "jsonrpc": "2.0",
+    "method": "notifications/progress",
+    "params": {
+        "_meta": {
+            "vendor.brand": "acme"
+        },
+        "progressToken": "progress-1",
+        "progress": 50.5,
+        "total": 100.5
+    }
+}

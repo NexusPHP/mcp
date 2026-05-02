@@ -1,0 +1,11 @@
+{
+    "jsonrpc": "2.0",
+    "error": {
+        "code": -32600,
+        "message": "Request envelope is malformed.",
+        "data": {
+            "context": "unit-test",
+            "attempt": 2
+        }
+    }
+}

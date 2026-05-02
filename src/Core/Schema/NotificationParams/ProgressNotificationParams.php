@@ -46,11 +46,13 @@ final readonly class ProgressNotificationParams extends NotificationParams
         Assert::that($progressToken)->isArrayKey('ProgressNotificationParams wire "progressToken" must be int or string, {type} given.');
 
         Assert::that($data)->hasOffset('progress', 'ProgressNotificationParams wire data missing "progress".');
-        $progress = $data['progress'];
-        Assert::that($progress)->isFloat('ProgressNotificationParams wire "progress" must be a float, {type} given.');
+        $progress = self::parseNumber($data['progress'], 'ProgressNotificationParams wire "progress" must be a number, {type} given.');
 
         $total = $data['total'] ?? null;
-        Assert::that($total)->nullOr()->isFloat('ProgressNotificationParams wire "total" must be a float or null, {type} given.');
+
+        if (null !== $total) {
+            $total = self::parseNumber($total, 'ProgressNotificationParams wire "total" must be a number or null, {type} given.');
+        }
 
         $message = $data['message'] ?? null;
         Assert::that($message)->nullOr()->isString('ProgressNotificationParams wire "message" must be a string or null, {type} given.');
@@ -91,5 +93,19 @@ final readonly class ProgressNotificationParams extends NotificationParams
     public function jsonSerialize(): array
     {
         return $this->toArray();
+    }
+
+    /**
+     * @param non-empty-string $message
+     */
+    private static function parseNumber(mixed $value, string $message): float
+    {
+        if (\is_int($value)) {
+            return (float) $value;
+        }
+
+        Assert::that($value)->isFloat($message);
+
+        return $value;
     }
 }

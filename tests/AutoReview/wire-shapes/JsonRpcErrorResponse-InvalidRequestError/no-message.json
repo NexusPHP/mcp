@@ -1,0 +1,12 @@
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "error": {
+        "code": -32600,
+        "message": "Invalid request",
+        "data": {
+            "context": "unit-test",
+            "attempt": 2
+        }
+    }
+}

@@ -1,0 +1,12 @@
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "resources/unsubscribe",
+    "params": {
+        "_meta": {
+            "vendor.brand": "acme",
+            "progressToken": "progress-1"
+        },
+        "uri": "file:///tmp/sample"
+    }
+}

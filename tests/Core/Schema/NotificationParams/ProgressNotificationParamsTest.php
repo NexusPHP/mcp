@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\NotificationParams;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Meta;
 use Nexus\Mcp\Core\Schema\NotificationParams;
 use Nexus\Mcp\Core\Schema\NotificationParams\ProgressNotificationParams;
@@ -200,7 +199,7 @@ final class ProgressNotificationParamsTest extends TestCase
     #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
     public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage($expectedMessage);
 
         ProgressNotificationParams::fromArray($payload);
@@ -226,19 +225,19 @@ final class ProgressNotificationParamsTest extends TestCase
             'ProgressNotificationParams wire data missing "progress".',
         ];
 
-        yield 'progress not a float' => [
-            ['progressToken' => 'p-1', 'progress' => 5],
-            'ProgressNotificationParams wire "progress" must be a float, int given.',
-        ];
-
         yield 'progress is string' => [
             ['progressToken' => 'p-1', 'progress' => 'oops'],
-            'ProgressNotificationParams wire "progress" must be a float, string given.',
+            'ProgressNotificationParams wire "progress" must be a number, string given.',
         ];
 
-        yield 'total not a float' => [
-            ['progressToken' => 'p-1', 'progress' => 0.5, 'total' => 10],
-            'ProgressNotificationParams wire "total" must be a float or null, int given.',
+        yield 'progress is bool' => [
+            ['progressToken' => 'p-1', 'progress' => true],
+            'ProgressNotificationParams wire "progress" must be a number, bool given.',
+        ];
+
+        yield 'total is string' => [
+            ['progressToken' => 'p-1', 'progress' => 0.5, 'total' => 'oops'],
+            'ProgressNotificationParams wire "total" must be a number or null, string given.',
         ];
 
         yield 'message not a string' => [
@@ -255,5 +254,17 @@ final class ProgressNotificationParamsTest extends TestCase
             ['progressToken' => 'p-1', 'progress' => 0.5, '_meta' => ['x']],
             'Notification params "_meta" must be a string-keyed object.',
         ];
+    }
+
+    public function testFromArrayCoercesIntegerProgressToFloat(): void
+    {
+        $params = ProgressNotificationParams::fromArray([
+            'progressToken' => 'p-1',
+            'progress' => 5,
+            'total' => 10,
+        ]);
+
+        self::assertSame(5.0, $params->progress);
+        self::assertSame(10.0, $params->total);
     }
 }
