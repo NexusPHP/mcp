@@ -1,0 +1,10 @@
+{
+    "src": "https://example.com/icon.png",
+    "mimeType": "image/png",
+    "sizes": [
+        "32x32",
+        "64x64",
+        "any"
+    ],
+    "theme": "light"
+}

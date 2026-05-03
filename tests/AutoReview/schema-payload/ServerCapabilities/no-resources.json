@@ -1,0 +1,16 @@
+{
+    "completions": {},
+    "experimental": {
+        "acme.preview": {}
+    },
+    "logging": {},
+    "prompts": {
+        "listChanged": true
+    },
+    "tasks": {
+        "cancel": {}
+    },
+    "tools": {
+        "listChanged": true
+    }
+}

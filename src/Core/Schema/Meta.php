@@ -42,8 +42,8 @@ final readonly class Meta implements Arrayable
     }
 
     #[\Override]
-    public function jsonSerialize(): array
+    public function jsonSerialize(): array|\stdClass
     {
-        return $this->toArray();
+        return [] === $this->extras ? new \stdClass() : $this->extras;
     }
 }

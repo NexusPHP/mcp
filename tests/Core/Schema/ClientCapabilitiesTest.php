@@ -114,6 +114,14 @@ final class ClientCapabilitiesTest extends TestCase
         self::assertSame($caps->toArray(), $caps->jsonSerialize());
     }
 
+    public function testJsonSerializeSubstitutesStdClassWhenEmpty(): void
+    {
+        $caps = new ClientCapabilities();
+
+        self::assertInstanceOf(\stdClass::class, $caps->jsonSerialize());
+        self::assertSame('{}', json_encode($caps));
+    }
+
     public function testJsonEncodeEmitsEmptyObjectsForEmptyCapabilitySlots(): void
     {
         $caps = new ClientCapabilities(

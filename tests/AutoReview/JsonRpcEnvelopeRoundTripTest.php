@@ -40,9 +40,7 @@ use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Core\Schema\Result\InitializeResult;
 use Nexus\Mcp\Core\Schema\Result\ListRootsResult;
 use PHPUnit\Framework\Attributes\CoversNothing;
-use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * Pins the exact JSON-RPC envelope shape that every concrete request,
@@ -64,66 +62,8 @@ use PHPUnit\Framework\TestCase;
  */
 #[CoversNothing]
 #[Group('auto-review')]
-final class JsonRpcEnvelopeRoundTripTest extends TestCase
+final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
 {
-    private const string FIXTURE_ROOT = __DIR__.'/wire-shapes';
-    private const int JSON_FLAGS = \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE;
-
-    /**
-     * @param class-string              $wrapper
-     * @param null|class-string<Result> $inner
-     */
-    #[DataProvider('provideFixtureRoundTripsToCanonicalWireShapeCases')]
-    public function testFixtureRoundTripsToCanonicalWireShape(string $dir, string $wrapper, ?string $inner, string $fixturePath): void
-    {
-        $jsonString = file_get_contents($fixturePath);
-        self::assertIsString($jsonString, \sprintf('Could not read fixture "%s".', $fixturePath));
-
-        $jsonString = rtrim(str_replace("\r\n", "\n", $jsonString), "\n");
-
-        $decoded = json_decode($jsonString, true, flags: \JSON_THROW_ON_ERROR);
-        self::assertIsArray($decoded, \sprintf('Fixture "%s" must decode to a JSON object.', $fixturePath));
-        self::assertStringKeyed($decoded, $fixturePath);
-
-        $instance = self::reconstruct($wrapper, $inner, $decoded);
-
-        $reEncoded = json_encode($instance, self::JSON_FLAGS | \JSON_THROW_ON_ERROR);
-
-        self::assertSame($jsonString, $reEncoded, \sprintf(
-            'Wire shape for "%s/%s" does not round-trip. Fixture is the source of truth — either the schema class\'s `toArray`/`jsonSerialize` drifted from the spec, or the fixture needs updating.',
-            $dir,
-            basename($fixturePath, '.json'),
-        ));
-    }
-
-    /**
-     * @return iterable<string, array{string, class-string, null|class-string<Result>, string}>
-     */
-    public static function provideFixtureRoundTripsToCanonicalWireShapeCases(): iterable
-    {
-        foreach (self::registry() as $dir => $entry) {
-            $directory = self::FIXTURE_ROOT.'/'.$dir;
-
-            if (! is_dir($directory)) {
-                continue;
-            }
-
-            $files = glob($directory.'/*.json');
-
-            if (false === $files) {
-                self::fail(\sprintf('Could not enumerate JSON fixtures in directory "%s".', $directory));
-            }
-
-            sort($files);
-
-            foreach ($files as $file) {
-                $variant = basename($file, '.json');
-
-                yield \sprintf('%s/%s', $dir, $variant) => [$dir, $entry['wrapper'], $entry['inner'], $file];
-            }
-        }
-    }
-
     public function testEveryConcreteRequestHasFixtures(): void
     {
         self::assertEveryConcreteSubclassIsRegistered(JsonRpcRequest::class, 'requests');
@@ -142,7 +82,7 @@ final class JsonRpcEnvelopeRoundTripTest extends TestCase
             $shortName = new \ReflectionClass($resultClass)->getShortName();
             $expectedDir = 'JsonRpcResultResponse-'.$shortName;
 
-            if (! is_dir(self::FIXTURE_ROOT.'/'.$expectedDir)) {
+            if (! is_dir(self::fixtureRoot().'/'.$expectedDir)) {
                 $missing[] = $resultClass;
             }
         }
@@ -161,7 +101,7 @@ final class JsonRpcEnvelopeRoundTripTest extends TestCase
             $shortName = new \ReflectionClass($errorClass)->getShortName();
             $expectedDir = 'JsonRpcErrorResponse-'.$shortName;
 
-            if (! is_dir(self::FIXTURE_ROOT.'/'.$expectedDir)) {
+            if (! is_dir(self::fixtureRoot().'/'.$expectedDir)) {
                 $missing[] = $errorClass;
             }
         }
@@ -172,60 +112,10 @@ final class JsonRpcEnvelopeRoundTripTest extends TestCase
         ));
     }
 
-    public function testNoOrphanFixtureDirectoriesExist(): void
+    #[\Override]
+    protected static function fixtureRoot(): string
     {
-        $registered = [];
-
-        foreach (self::registry() as $dir => $_entry) {
-            $registered[$dir] = true;
-        }
-
-        $onDisk = glob(self::FIXTURE_ROOT.'/*', \GLOB_ONLYDIR);
-
-        if (false === $onDisk) {
-            self::fail(\sprintf('Failed to enumerate fixture directories under "%s".', self::FIXTURE_ROOT));
-        }
-
-        $orphans = [];
-
-        foreach ($onDisk as $path) {
-            $name = basename($path);
-
-            if (! isset($registered[$name])) {
-                $orphans[] = $name;
-            }
-        }
-
-        self::assertSame([], $orphans, \sprintf(
-            'Fixture directories without a matching entry in self::registry(): %s. Either register them or remove the directory.',
-            implode(', ', $orphans),
-        ));
-    }
-
-    public function testEveryRegisteredEntryHasFixtures(): void
-    {
-        $empty = [];
-
-        foreach (self::registry() as $dir => $_entry) {
-            $directory = self::FIXTURE_ROOT.'/'.$dir;
-
-            if (! is_dir($directory)) {
-                $empty[] = $dir.' (directory missing)';
-
-                continue;
-            }
-
-            $files = glob($directory.'/*.json');
-
-            if (! \is_array($files) || [] === $files) {
-                $empty[] = $dir.' (no .json fixtures)';
-            }
-        }
-
-        self::assertSame([], $empty, \sprintf(
-            'Registered entries without on-disk fixtures: %s.',
-            implode(', ', $empty),
-        ));
+        return __DIR__.'/wire-shapes';
     }
 
     /**
@@ -235,7 +125,8 @@ final class JsonRpcEnvelopeRoundTripTest extends TestCase
      *
      * @return iterable<string, array{wrapper: class-string, inner: null|class-string<Result>}>
      */
-    private static function registry(): iterable
+    #[\Override]
+    protected static function registry(): iterable
     {
         // Concrete requests.
         yield 'PingRequest' => ['wrapper' => PingRequest::class, 'inner' => null];
@@ -290,6 +181,44 @@ final class JsonRpcEnvelopeRoundTripTest extends TestCase
     }
 
     /**
+     * @param array<string, mixed> $entry
+     * @param array<string, mixed> $decoded
+     */
+    #[\Override]
+    protected static function reconstruct(array $entry, array $decoded): \JsonSerializable
+    {
+        self::assertArrayHasKey('wrapper', $entry);
+        self::assertArrayHasKey('inner', $entry);
+
+        $wrapper = $entry['wrapper'];
+        self::assertIsString($wrapper);
+
+        $inner = $entry['inner'];
+
+        if (JsonRpcResultResponse::class === $wrapper) {
+            self::assertIsString($inner, 'JsonRpcResultResponse fixtures must declare an inner Result class.');
+            self::assertArrayHasKey('id', $decoded);
+            self::assertArrayHasKey('result', $decoded);
+            self::assertIsArray($decoded['result']);
+            self::assertStringKeyed($decoded['result'], 'inner result');
+
+            $id = $decoded['id'];
+
+            if (! \is_int($id) && ! \is_string($id)) {
+                self::fail('JsonRpcResultResponse fixture "id" must be an int or string.');
+            }
+
+            \assert(is_subclass_of($inner, Result::class));
+
+            return new JsonRpcResultResponse(new RequestId($id), $inner::fromArray($decoded['result']));
+        }
+
+        \assert(is_subclass_of($wrapper, Arrayable::class));
+
+        return $wrapper::fromArray($decoded);
+    }
+
+    /**
      * @param class-string $abstractBase
      */
     private static function assertEveryConcreteSubclassIsRegistered(string $abstractBase, string $label): void
@@ -319,125 +248,5 @@ final class JsonRpcEnvelopeRoundTripTest extends TestCase
             $label,
             implode(', ', $missing),
         ));
-    }
-
-    /**
-     * Asserts the decoded fixture is a string-keyed map (a JSON object). PHPUnit
-     * has no built-in equivalent that produces the `array<string, mixed>` shape
-     * downstream callers need, so we narrow here.
-     *
-     * @param array<array-key, mixed> $value
-     *
-     * @phpstan-assert array<string, mixed> $value
-     */
-    private static function assertStringKeyed(array $value, string $fixturePath): void
-    {
-        foreach (array_keys($value) as $key) {
-            self::assertIsString($key, \sprintf('Fixture "%s" must decode to a string-keyed object.', $fixturePath));
-        }
-    }
-
-    /**
-     * @param class-string              $wrapper
-     * @param null|class-string<Result> $inner
-     * @param array<string, mixed>      $decoded
-     */
-    private static function reconstruct(string $wrapper, ?string $inner, array $decoded): \JsonSerializable
-    {
-        if (JsonRpcResultResponse::class === $wrapper) {
-            self::assertIsString($inner, 'JsonRpcResultResponse fixtures must declare an inner Result class.');
-            self::assertArrayHasKey('id', $decoded);
-            self::assertArrayHasKey('result', $decoded);
-            self::assertIsArray($decoded['result']);
-            self::assertStringKeyed($decoded['result'], 'inner result');
-
-            $id = $decoded['id'];
-
-            if (! \is_int($id) && ! \is_string($id)) {
-                self::fail('JsonRpcResultResponse fixture "id" must be an int or string.');
-            }
-
-            return new JsonRpcResultResponse(new RequestId($id), $inner::fromArray($decoded['result']));
-        }
-
-        \assert(is_subclass_of($wrapper, Arrayable::class));
-
-        return $wrapper::fromArray($decoded);
-    }
-
-    /**
-     * Walks `src/Core/Schema/` and returns every concrete subclass of the
-     * given abstract/interface base — used by completeness gates.
-     *
-     * @param class-string $base
-     *
-     * @return list<class-string>
-     */
-    private static function concreteSubclasses(string $base): array
-    {
-        $matches = [];
-
-        foreach (self::sourceClasses() as $class) {
-            if (! is_subclass_of($class, $base)) {
-                continue;
-            }
-
-            $reflection = new \ReflectionClass($class);
-
-            if ($reflection->isAbstract()) {
-                continue;
-            }
-
-            $matches[] = $class;
-        }
-
-        sort($matches);
-
-        return $matches;
-    }
-
-    /**
-     * Walks `src/` once and caches every concrete/abstract class found there.
-     *
-     * @return list<class-string>
-     */
-    private static function sourceClasses(): array
-    {
-        /** @var null|list<class-string> $cache */
-        static $cache = null;
-
-        if (null !== $cache) {
-            return $cache;
-        }
-
-        $directory = realpath(__DIR__.'/../../src');
-        \assert(\is_string($directory));
-
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator(
-                $directory,
-                \FilesystemIterator::SKIP_DOTS | \FilesystemIterator::UNIX_PATHS,
-            ),
-            \RecursiveIteratorIterator::CHILD_FIRST,
-        );
-
-        $classes = [];
-
-        foreach ($iterator as $file) {
-            \assert($file instanceof \SplFileInfo);
-
-            if (! $file->isFile() || $file->getExtension() !== 'php') {
-                continue;
-            }
-
-            $relativePath = substr($file->getPathname(), \strlen($directory) + 1, -4);
-            $class = 'Nexus\\Mcp\\'.strtr($relativePath, '/', '\\');
-
-            if (class_exists($class)) {
-                $classes[] = $class;
-            }
-        }
-
-        return $cache = $classes;
     }
 }

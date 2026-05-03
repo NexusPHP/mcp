@@ -1,0 +1,14 @@
+{
+    "elicitation": {
+        "form": {}
+    },
+    "experimental": {
+        "acme.preview": {}
+    },
+    "roots": {
+        "listChanged": true
+    },
+    "tasks": {
+        "cancel": {}
+    }
+}

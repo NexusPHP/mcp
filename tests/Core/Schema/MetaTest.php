@@ -67,4 +67,12 @@ final class MetaTest extends TestCase
 
         self::assertSame($original->toArray(), Meta::fromArray($original->toArray())->toArray());
     }
+
+    public function testJsonSerializeSubstitutesStdClassWhenEmpty(): void
+    {
+        $meta = new Meta();
+
+        self::assertInstanceOf(\stdClass::class, $meta->jsonSerialize());
+        self::assertSame('{}', json_encode($meta));
+    }
 }

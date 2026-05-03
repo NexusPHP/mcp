@@ -103,4 +103,12 @@ final class RequestMetaTest extends TestCase
 
         self::assertSame($original->toArray(), RequestMeta::fromArray($original->toArray())->toArray());
     }
+
+    public function testJsonSerializeSubstitutesStdClassWhenEmpty(): void
+    {
+        $meta = new RequestMeta();
+
+        self::assertInstanceOf(\stdClass::class, $meta->jsonSerialize());
+        self::assertSame('{}', json_encode($meta));
+    }
 }

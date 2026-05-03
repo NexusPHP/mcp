@@ -1,0 +1,14 @@
+{
+    "experimental": {
+        "acme.preview": {}
+    },
+    "roots": {
+        "listChanged": true
+    },
+    "sampling": {
+        "tools": {}
+    },
+    "tasks": {
+        "cancel": {}
+    }
+}

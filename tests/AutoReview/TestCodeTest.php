@@ -49,11 +49,18 @@ final class TestCodeTest extends TestCase
      * @param class-string<TestCase> $class
      */
     #[DataProvider('provideTestClassCases')]
-    public function testEachTestClassIsFinalAndInternal(string $class): void
+    public function testEachTestClassIsFinalOrAbstractAndInternal(string $class): void
     {
         $reflection = new \ReflectionClass($class);
 
-        self::assertTrue($reflection->isFinal(), \sprintf('Test class "%s" should be final.', $class));
+        if ($reflection->isAbstract()) {
+            self::assertStringStartsWith('Abstract', $reflection->getShortName(), \sprintf(
+                'Abstract test class "%s" must have a class name starting with "Abstract".',
+                $class,
+            ));
+        } else {
+            self::assertTrue($reflection->isFinal(), \sprintf('Test class "%s" should be final.', $class));
+        }
 
         $docComment = $reflection->getDocComment();
         self::assertIsString($docComment, \sprintf('Test class "%s" is missing a class-level PHPDoc.', $class));

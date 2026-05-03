@@ -67,12 +67,17 @@ final readonly class Icon implements Arrayable
         ;
 
         if (null !== $sizes) {
+            $validated = [];
+
             foreach ($sizes as $size) {
                 Assert::that($size)
                     ->isNonEmptyString('Icon size must be a non-empty string.')
                     ->matchesRegularExpression('/^(\d+x\d+|any)$/', 'Icon size must be in the format "WIDTHxHEIGHT" or "any".')
                 ;
+                $validated[] = $size;
             }
+
+            $sizes = $validated;
         }
 
         if (null !== $theme && ! \in_array($theme, self::VALID_ICON_THEMES, true)) {

@@ -1,0 +1,11 @@
+{
+    "name": "acme-server",
+    "version": "2.3.4",
+    "title": "Acme Server",
+    "description": "Reference MCP server implementation",
+    "icons": [
+        {
+            "src": "https://acme.example.com/icon.png"
+        }
+    ]
+}

@@ -1,0 +1,14 @@
+{
+    "elicitation": {
+        "form": {}
+    },
+    "roots": {
+        "listChanged": true
+    },
+    "sampling": {
+        "tools": {}
+    },
+    "tasks": {
+        "cancel": {}
+    }
+}

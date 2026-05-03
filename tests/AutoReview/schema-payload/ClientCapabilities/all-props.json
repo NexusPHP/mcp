@@ -1,0 +1,28 @@
+{
+    "elicitation": {
+        "form": {},
+        "url": {}
+    },
+    "experimental": {
+        "acme.preview": {}
+    },
+    "roots": {
+        "listChanged": true
+    },
+    "sampling": {
+        "context": {},
+        "tools": {}
+    },
+    "tasks": {
+        "cancel": {},
+        "list": {},
+        "requests": {
+            "elicitation": {
+                "create": {}
+            },
+            "sampling": {
+                "createMessage": {}
+            }
+        }
+    }
+}

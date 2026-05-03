@@ -146,14 +146,8 @@ final class InitializeResultTest extends TestCase
         );
 
         self::assertSame(
-            [
-                '_meta' => ['vendor' => 'x'],
-                'protocolVersion' => '2025-11-25',
-                'capabilities' => [],
-                'serverInfo' => ['name' => 'server', 'version' => '1.0.0'],
-                'instructions' => 'hint',
-            ],
-            $result->jsonSerialize(),
+            '{"_meta":{"vendor":"x"},"protocolVersion":"2025-11-25","capabilities":{},"serverInfo":{"name":"server","version":"1.0.0"},"instructions":"hint"}',
+            json_encode($result, \JSON_UNESCAPED_SLASHES),
         );
     }
 

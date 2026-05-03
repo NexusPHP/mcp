@@ -124,13 +124,8 @@ final class InitializeRequestParamsTest extends TestCase
         );
 
         self::assertSame(
-            [
-                '_meta' => ['vendor' => 'x'],
-                'protocolVersion' => '2025-11-25',
-                'capabilities' => [],
-                'clientInfo' => ['name' => 'client', 'version' => '1.0.0'],
-            ],
-            $params->jsonSerialize(),
+            '{"_meta":{"vendor":"x"},"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"client","version":"1.0.0"}}',
+            json_encode($params, \JSON_UNESCAPED_SLASHES),
         );
     }
 

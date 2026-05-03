@@ -121,9 +121,13 @@ final readonly class ServerCapabilities implements Arrayable
     }
 
     #[\Override]
-    public function jsonSerialize(): array
+    public function jsonSerialize(): array|\stdClass
     {
         $data = $this->toArray();
+
+        if ([] === $data) {
+            return new \stdClass();
+        }
 
         foreach ($data as $key => $value) {
             if (\is_array($value)) {

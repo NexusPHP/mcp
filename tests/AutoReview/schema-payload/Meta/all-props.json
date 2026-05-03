@@ -1,0 +1,11 @@
+{
+    "vendor": "acme",
+    "trace": {
+        "id": "abc-123",
+        "depth": 4
+    },
+    "tags": [
+        "alpha",
+        "beta"
+    ]
+}
