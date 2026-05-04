@@ -14,24 +14,36 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\RequestParams;
 
 use Nexus\Assert\Assert;
+use Nexus\Mcp\Core\Schema\Cursor;
 use Nexus\Mcp\Core\Schema\RequestMeta;
 use Nexus\Mcp\Core\Schema\RequestParams;
 
 /**
- * Default request params for methods that carry no typed fields beyond `_meta`.
+ * Common parameters for paginated requests.
  *
  * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2025-11-25/schema.ts
  */
-final readonly class EmptyRequestParams extends RequestParams
+final readonly class PaginatedRequestParams extends RequestParams
 {
-    public function __construct(?RequestMeta $meta = null)
+    public function __construct(public ?Cursor $cursor = null, ?RequestMeta $meta = null)
     {
         parent::__construct($meta);
     }
 
+    /**
+     * @param array<string, mixed> $data
+     */
     #[\Override]
     public static function fromArray(array $data): static
     {
+        $cursor = null;
+
+        if (\array_key_exists('cursor', $data)) {
+            $raw = $data['cursor'];
+            Assert::that($raw)->isString('PaginatedRequestParams wire "cursor" must be a string, {type} given.');
+            $cursor = new Cursor($raw);
+        }
+
         $meta = null;
 
         if (\array_key_exists('_meta', $data)) {
@@ -42,6 +54,24 @@ final readonly class EmptyRequestParams extends RequestParams
             $meta = RequestMeta::fromArray($data['_meta']);
         }
 
-        return new self($meta);
+        return new self($cursor, $meta);
+    }
+
+    #[\Override]
+    public function toArray(): array
+    {
+        $data = parent::toArray();
+
+        if (null !== $this->cursor) {
+            $data['cursor'] = $this->cursor->cursor;
+        }
+
+        return $data;
+    }
+
+    #[\Override]
+    public function jsonSerialize(): array
+    {
+        return $this->toArray();
     }
 }

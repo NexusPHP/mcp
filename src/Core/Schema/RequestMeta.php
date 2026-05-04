@@ -21,7 +21,7 @@ use Nexus\Assert\Assert;
  *
  * @implements Arrayable<array<string, mixed>>
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/basic#meta
+ * @see https://modelcontextprotocol.io/specification/2025-11-25/basic#_meta
  */
 final readonly class RequestMeta implements Arrayable
 {

@@ -58,12 +58,12 @@ final readonly class Icon implements Arrayable
     {
         Assert::that($src)
             ->isNonEmptyString('Icon src must be a non-empty string.')
-            ->matchesRegularExpression('/^(?:https?:\/\/\S+|data:[^;]+;base64,[A-Za-z0-9+\/]+={0,2})$/', 'Icon src must be a valid HTTP/HTTPS URL or a data URI with base64-encoded data.')
+            ->matchesRegularExpression('/\A(?:https?:\/\/\S+|data:[^;]+;base64,[A-Za-z0-9+\/]+={0,2})\z/', 'Icon src must be a valid HTTP/HTTPS URL or a data URI with base64-encoded data.')
         ;
         Assert::that($mimeType)
             ->nullOr()
             ->isNonEmptyString('Icon mimeType must be a non-empty string or null.')
-            ->matchesRegularExpression('/^[a-zA-Z][a-zA-Z!#$&^_.+-]*\/[a-zA-Z0-9][a-zA-Z0-9!#$&^_.+-]*$/', 'Icon mimeType must be a valid MIME type in the format "type/subtype".')
+            ->matchesRegularExpression('/\A[a-zA-Z][a-zA-Z!#$&^_.+-]*\/[a-zA-Z0-9][a-zA-Z0-9!#$&^_.+-]*\z/', 'Icon mimeType must be a valid MIME type in the format "type/subtype".')
         ;
 
         if (null !== $sizes) {
@@ -72,7 +72,7 @@ final readonly class Icon implements Arrayable
             foreach ($sizes as $size) {
                 Assert::that($size)
                     ->isNonEmptyString('Icon size must be a non-empty string.')
-                    ->matchesRegularExpression('/^(\d+x\d+|any)$/', 'Icon size must be in the format "WIDTHxHEIGHT" or "any".')
+                    ->matchesRegularExpression('/\A(\d+x\d+|any)\z/', 'Icon size must be in the format "WIDTHxHEIGHT" or "any".')
                 ;
                 $validated[] = $size;
             }

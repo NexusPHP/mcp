@@ -29,6 +29,7 @@ use Nexus\Mcp\Core\Schema\Notification\ResourceUpdatedNotification;
 use Nexus\Mcp\Core\Schema\Notification\RootsListChangedNotification;
 use Nexus\Mcp\Core\Schema\Notification\ToolListChangedNotification;
 use Nexus\Mcp\Core\Schema\Request\InitializeRequest;
+use Nexus\Mcp\Core\Schema\Request\ListResourcesRequest;
 use Nexus\Mcp\Core\Schema\Request\ListRootsRequest;
 use Nexus\Mcp\Core\Schema\Request\PingRequest;
 use Nexus\Mcp\Core\Schema\Request\SetLevelRequest;
@@ -38,6 +39,7 @@ use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Core\Schema\Result\InitializeResult;
+use Nexus\Mcp\Core\Schema\Result\ListResourcesResult;
 use Nexus\Mcp\Core\Schema\Result\ListRootsResult;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Group;
@@ -133,6 +135,8 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
 
         yield 'InitializeRequest' => ['wrapper' => InitializeRequest::class, 'inner' => null];
 
+        yield 'ListResourcesRequest' => ['wrapper' => ListResourcesRequest::class, 'inner' => null];
+
         yield 'ListRootsRequest' => ['wrapper' => ListRootsRequest::class, 'inner' => null];
 
         yield 'SetLevelRequest' => ['wrapper' => SetLevelRequest::class, 'inner' => null];
@@ -164,6 +168,8 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
         yield 'JsonRpcResultResponse-EmptyResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => EmptyResult::class];
 
         yield 'JsonRpcResultResponse-InitializeResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => InitializeResult::class];
+
+        yield 'JsonRpcResultResponse-ListResourcesResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => ListResourcesResult::class];
 
         yield 'JsonRpcResultResponse-ListRootsResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => ListRootsResult::class];
 

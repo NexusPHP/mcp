@@ -30,6 +30,8 @@ use Nexus\Mcp\Core\Schema\Enum\Role;
  */
 final readonly class Annotations implements Arrayable
 {
+    use ParsesNumber;
+
     /**
      * @var null|list<Role>
      */
@@ -62,16 +64,35 @@ final readonly class Annotations implements Arrayable
         $this->lastModified = $lastModified;
     }
 
+    /**
+     * @param array<string, mixed> $data
+     */
     #[\Override]
     public static function fromArray(array $data): static
     {
-        $data += ['audience' => null, 'priority' => null, 'lastModified' => null];
+        $audience = null;
 
         if (isset($data['audience'])) {
-            $data['audience'] = array_map(static fn(string $role): Role => Role::from($role), $data['audience']);
+            Assert::that($data['audience'])->isArray('Annotations wire "audience" must be an array, {type} given.');
+
+            $audience = [];
+
+            foreach ($data['audience'] as $role) {
+                Assert::that($role)->isString('Annotations wire audience entry must be a string, {type} given.');
+                $audience[] = Role::from($role);
+            }
         }
 
-        return new self($data['audience'], $data['priority'], $data['lastModified']);
+        $priority = $data['priority'] ?? null;
+
+        if (null !== $priority) {
+            $priority = self::parseNumber($priority, 'Annotations wire "priority" must be a number or null, {type} given.');
+        }
+
+        $lastModified = $data['lastModified'] ?? null;
+        Assert::that($lastModified)->nullOr()->isString('Annotations wire "lastModified" must be a string or null, {type} given.');
+
+        return new self($audience, $priority, $lastModified);
     }
 
     #[\Override]

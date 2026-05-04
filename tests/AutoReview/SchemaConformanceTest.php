@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\AutoReview;
 
 use Nexus\Mcp\Core\Schema\Arrayable;
+use Nexus\Mcp\Core\Schema\BaseMetadata;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Error;
 use Nexus\Mcp\Core\Schema\Error\InternalError;
@@ -21,12 +22,27 @@ use Nexus\Mcp\Core\Schema\Error\InvalidParamsError;
 use Nexus\Mcp\Core\Schema\Error\InvalidRequestError;
 use Nexus\Mcp\Core\Schema\Error\MethodNotFoundError;
 use Nexus\Mcp\Core\Schema\Error\ParseError;
+use Nexus\Mcp\Core\Schema\Icons;
+use Nexus\Mcp\Core\Schema\JsonRpc\PaginatedRequest;
 use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\Notification;
+use Nexus\Mcp\Core\Schema\Notification\ClientNotification;
+use Nexus\Mcp\Core\Schema\Notification\ServerNotification;
+use Nexus\Mcp\Core\Schema\NotificationParams;
 use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
 use Nexus\Mcp\Core\Schema\ProtocolVersion;
+use Nexus\Mcp\Core\Schema\Request;
+use Nexus\Mcp\Core\Schema\Request\ClientRequest;
+use Nexus\Mcp\Core\Schema\Request\ServerRequest;
 use Nexus\Mcp\Core\Schema\RequestMeta;
+use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
+use Nexus\Mcp\Core\Schema\RequestParams\PaginatedRequestParams;
+use Nexus\Mcp\Core\Schema\RequestParams\ResourceRequestParams;
 use Nexus\Mcp\Core\Schema\Result;
+use Nexus\Mcp\Core\Schema\Result\ClientResult;
+use Nexus\Mcp\Core\Schema\Result\PaginatedResult;
+use Nexus\Mcp\Core\Schema\Result\ServerResult;
 use Nexus\Mcp\Tools\McpSchemaProcessor;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -51,18 +67,38 @@ final class SchemaConformanceTest extends TestCase
 
     private const string SCHEMA_ANCHOR_BASE_URL = 'https://modelcontextprotocol.io/specification/2025-11-25/schema#';
     private const string JSON_RPC_ERROR_OBJECT_URL = 'https://www.jsonrpc.org/specification#error_object';
+    private const string TS_SCHEMA_FILE_URL = 'https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2025-11-25/schema.ts';
 
     /**
-     * Schema classes whose `@see` is not a 1:1 schema-anchor URL because the
-     * class has no dedicated spec def. Each entry pins the exact spec URL the
-     * class must reference instead.
+     * Schema classes whose `@see` cannot be the default 1:1 schema-anchor URL,
+     * because either (a) the class has no dedicated spec def, (b) the class's
+     * spec def is on a different docs page than the schema reference, or
+     * (c) the spec def exists in the TypeScript schema but the docs site
+     * does not render it as a navigable anchor (abstract bases and unions).
+     * Each entry pins the exact URL the class must reference instead.
      */
     private const array NON_SCHEMA_ANCHOR_SEE_URLS = [
-        Meta::class => 'https://modelcontextprotocol.io/specification/2025-11-25/basic#meta',
-        RequestMeta::class => 'https://modelcontextprotocol.io/specification/2025-11-25/basic#meta',
+        Meta::class => 'https://modelcontextprotocol.io/specification/2025-11-25/basic#_meta',
+        RequestMeta::class => 'https://modelcontextprotocol.io/specification/2025-11-25/basic#_meta',
+        Icons::class => 'https://modelcontextprotocol.io/specification/2025-11-25/basic#icons',
         ProtocolVersion::class => 'https://modelcontextprotocol.io/specification/2025-11-25/basic/lifecycle#version-negotiation',
-        EmptyRequestParams::class => self::SCHEMA_ANCHOR_BASE_URL.'requestparams',
-        EmptyNotificationParams::class => self::SCHEMA_ANCHOR_BASE_URL.'notificationparams',
+        BaseMetadata::class => self::TS_SCHEMA_FILE_URL,
+        Notification::class => self::TS_SCHEMA_FILE_URL,
+        NotificationParams::class => self::TS_SCHEMA_FILE_URL,
+        EmptyNotificationParams::class => self::TS_SCHEMA_FILE_URL,
+        PaginatedRequest::class => self::TS_SCHEMA_FILE_URL,
+        PaginatedRequestParams::class => self::TS_SCHEMA_FILE_URL,
+        PaginatedResult::class => self::TS_SCHEMA_FILE_URL,
+        Request::class => self::TS_SCHEMA_FILE_URL,
+        RequestParams::class => self::TS_SCHEMA_FILE_URL,
+        EmptyRequestParams::class => self::TS_SCHEMA_FILE_URL,
+        ResourceRequestParams::class => self::TS_SCHEMA_FILE_URL,
+        ClientNotification::class => self::TS_SCHEMA_FILE_URL,
+        ServerNotification::class => self::TS_SCHEMA_FILE_URL,
+        ClientRequest::class => self::TS_SCHEMA_FILE_URL,
+        ServerRequest::class => self::TS_SCHEMA_FILE_URL,
+        ClientResult::class => self::TS_SCHEMA_FILE_URL,
+        ServerResult::class => self::TS_SCHEMA_FILE_URL,
         ProtocolErrorCode::class => self::JSON_RPC_ERROR_OBJECT_URL,
         InternalError::class => self::JSON_RPC_ERROR_OBJECT_URL,
         InvalidParamsError::class => self::JSON_RPC_ERROR_OBJECT_URL,
@@ -318,6 +354,10 @@ final class SchemaConformanceTest extends TestCase
     public static function provideSchemaClassDeclaresExpectedSeeAnnotationCases(): iterable
     {
         foreach (self::getProtocolSchemasForTesting() as $basename => [, $schemaClass]) {
+            if (\array_key_exists($schemaClass, self::NON_SCHEMA_ANCHOR_SEE_URLS)) {
+                continue;
+            }
+
             yield $basename => [$schemaClass, self::SCHEMA_ANCHOR_BASE_URL.strtolower($basename)];
         }
 

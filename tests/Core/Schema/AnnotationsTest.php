@@ -151,7 +151,14 @@ final class AnnotationsTest extends TestCase
     {
         $this->expectException(\ValueError::class);
 
-        Annotations::fromArray(['audience' => ['invalid-role']]); // @phpstan-ignore argument.type
+        Annotations::fromArray(['audience' => ['invalid-role']]);
+    }
+
+    public function testAnnotationsFromArrayCoercesIntPriority(): void
+    {
+        $annotations = Annotations::fromArray(['priority' => 1]);
+
+        self::assertSame(1.0, $annotations->priority);
     }
 
     public function testAnnotationsToArrayOmitsNullProperties(): void

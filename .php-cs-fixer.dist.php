@@ -32,6 +32,13 @@ $finder = Finder::create()
 
 $overrides = [
     'single_line_empty_body' => false,
+    'phpdoc_no_alias_tag' => [
+        'replacements' => [
+            'const' => 'var',
+            'link' => 'see',
+            'type' => 'var',
+        ],
+    ],
 ];
 
 $options = [

@@ -18,7 +18,7 @@ use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 /**
  * @template-covariant TMethod of non-empty-string
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#request
+ * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2025-11-25/schema.ts
  */
 abstract readonly class Request
 {

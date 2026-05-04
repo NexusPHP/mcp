@@ -16,6 +16,7 @@ namespace Nexus\Mcp\Core\Schema\NotificationParams;
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Meta;
 use Nexus\Mcp\Core\Schema\NotificationParams;
+use Nexus\Mcp\Core\Schema\ParsesNumber;
 use Nexus\Mcp\Core\Schema\ProgressToken;
 
 /**
@@ -25,6 +26,8 @@ use Nexus\Mcp\Core\Schema\ProgressToken;
  */
 final readonly class ProgressNotificationParams extends NotificationParams
 {
+    use ParsesNumber;
+
     public function __construct(
         public ProgressToken $progressToken,
         public float $progress,
@@ -93,19 +96,5 @@ final readonly class ProgressNotificationParams extends NotificationParams
     public function jsonSerialize(): array
     {
         return $this->toArray();
-    }
-
-    /**
-     * @param non-empty-string $message
-     */
-    private static function parseNumber(mixed $value, string $message): float
-    {
-        if (\is_int($value)) {
-            return (float) $value;
-        }
-
-        Assert::that($value)->isFloat($message);
-
-        return $value;
     }
 }

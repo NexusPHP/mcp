@@ -42,7 +42,7 @@ final readonly class ProtocolVersion
     {
         Assert::that($version)
             ->isNonEmptyString('Protocol version must be a non-empty string.')
-            ->matchesRegularExpression('/^\d{4}-\d{2}-\d{2}$/', 'Protocol version must be in the format "YYYY-MM-DD".')
+            ->matchesRegularExpression('/\A\d{4}-\d{2}-\d{2}\z/', 'Protocol version must be in the format "YYYY-MM-DD".')
         ;
 
         $this->version = $version;

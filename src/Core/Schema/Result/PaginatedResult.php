@@ -11,19 +11,21 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Nexus\Mcp\Core\Schema\RequestParams;
+namespace Nexus\Mcp\Core\Schema\Result;
 
-use Nexus\Mcp\Core\Schema\RequestMeta;
-use Nexus\Mcp\Core\Schema\RequestParams;
+use Nexus\Mcp\Core\Schema\Cursor;
+use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\Result;
 
 /**
- * Common parameters when working with resources.
+ * Common shape for results that paginate via an opaque cursor. Subclasses add their own
+ * payload field alongside the optional `nextCursor`.
  *
  * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2025-11-25/schema.ts
  */
-abstract readonly class ResourceRequestParams extends RequestParams
+abstract readonly class PaginatedResult extends Result
 {
-    public function __construct(public string $uri, ?RequestMeta $meta = null)
+    public function __construct(public ?Cursor $nextCursor = null, ?Meta $meta = null)
     {
         parent::__construct($meta);
     }
@@ -31,9 +33,13 @@ abstract readonly class ResourceRequestParams extends RequestParams
     #[\Override]
     public function toArray(): array
     {
-        return array_merge(parent::toArray(), [
-            'uri' => $this->uri,
-        ]);
+        $data = parent::toArray();
+
+        if (null !== $this->nextCursor) {
+            $data['nextCursor'] = $this->nextCursor->cursor;
+        }
+
+        return $data;
     }
 
     #[\Override]

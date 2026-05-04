@@ -11,13 +11,17 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Nexus\Mcp\Core\Schema\Notification;
+namespace Nexus\Mcp\Core\Schema\JsonRpc;
 
 /**
- * Marker for a notification that a client may send to a server.
+ * A request that paginates its result via an opaque cursor.
+ *
+ * @template-covariant TMethod of non-empty-string
+ *
+ * @extends JsonRpcRequest<TMethod>
  *
  * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2025-11-25/schema.ts
  */
-interface ClientNotification
+abstract readonly class PaginatedRequest extends JsonRpcRequest
 {
 }

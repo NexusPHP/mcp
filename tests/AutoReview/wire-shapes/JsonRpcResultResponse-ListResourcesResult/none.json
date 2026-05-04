@@ -1,0 +1,12 @@
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "resources": [
+            {
+                "name": "sample",
+                "uri": "file:///tmp/sample"
+            }
+        ]
+    }
+}

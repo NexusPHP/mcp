@@ -69,7 +69,7 @@ final readonly class Implementation extends BaseMetadata implements Arrayable, I
         Assert::that($websiteUrl)
             ->nullOr()
             ->isNonEmptyString('Implementation websiteUrl must be a non-empty string or null.')
-            ->matchesRegularExpression('/^https?:\/\/\S+$/', 'Implementation websiteUrl must be an HTTP or HTTPS URL.')
+            ->matchesRegularExpression('/\Ahttps?:\/\/\S+\z/', 'Implementation websiteUrl must be an HTTP or HTTPS URL.')
         ;
 
         if (null !== $icons) {
