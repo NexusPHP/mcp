@@ -21,6 +21,8 @@ use Nexus\Mcp\Core\Schema\RequestParams\InitializeRequestParams;
 /**
  * This request is sent from the client to the server when it first connects, asking it to begin initialization.
  *
+ * @property-read InitializeRequestParams $params
+ *
  * @extends JsonRpcRequest<'initialize'>
  *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#initializerequest

@@ -21,6 +21,8 @@ use Nexus\Mcp\Core\Schema\RequestParams\SetLevelRequestParams;
 /**
  * A request from the client to the server, to enable or adjust logging.
  *
+ * @property-read SetLevelRequestParams $params
+ *
  * @extends JsonRpcRequest<'logging/setLevel'>
  *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#setlevelrequest

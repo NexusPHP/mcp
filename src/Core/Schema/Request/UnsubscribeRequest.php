@@ -22,6 +22,8 @@ use Nexus\Mcp\Core\Schema\RequestParams\UnsubscribeRequestParams;
  * Sent from the client to request cancellation of resources/updated notifications from the
  * server. This should follow a previous resources/subscribe request.
  *
+ * @property-read UnsubscribeRequestParams $params
+ *
  * @extends JsonRpcRequest<'resources/unsubscribe'>
  *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#unsubscriberequest

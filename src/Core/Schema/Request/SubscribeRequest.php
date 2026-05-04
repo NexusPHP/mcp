@@ -22,6 +22,8 @@ use Nexus\Mcp\Core\Schema\RequestParams\SubscribeRequestParams;
  * Sent from the client to request resources/updated notifications from the server whenever a
  * particular resource changes.
  *
+ * @property-read SubscribeRequestParams $params
+ *
  * @extends JsonRpcRequest<'resources/subscribe'>
  *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#subscriberequest
