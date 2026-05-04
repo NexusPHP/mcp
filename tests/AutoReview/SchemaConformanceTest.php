@@ -499,6 +499,23 @@ final class SchemaConformanceTest extends TestCase
         $licensed = \in_array($implementerBasename, $unionData['members'], true)
             || ($unionData['allowsResultSubclass'] && is_subclass_of($implementer, Result::class));
 
+        if (! $licensed) {
+            // Transitive license: the implementer is a subclass of a member.
+            // Wire-envelope unions like `JSONRPCMessage` list the abstract
+            // bases (`JSONRPCRequest`, `JSONRPCNotification`, ...) as members;
+            // every concrete request/notification/response inherits the
+            // marker through one of those bases and is thereby licensed.
+            foreach ($unionData['members'] as $memberBasename) {
+                $memberClass = self::$sortedSchema['processed_schema'][$memberBasename] ?? null;
+
+                if (\is_string($memberClass) && is_subclass_of($implementer, $memberClass)) {
+                    $licensed = true;
+
+                    break;
+                }
+            }
+        }
+
         self::assertTrue($licensed, \sprintf(
             'Class "%s" implements marker "%s" but basename "%s" is not in spec union "%s".',
             $implementer,
@@ -529,6 +546,13 @@ final class SchemaConformanceTest extends TestCase
                 }
 
                 if (! is_subclass_of($candidate, $unionInterface)) {
+                    continue;
+                }
+
+                if (\array_key_exists($basename, self::getSpecUnions())) {
+                    // Candidate is itself a spec union (e.g. `JSONRPCResponse`
+                    // sitting under the broader `JSONRPCMessage`); license
+                    // it via its own union's members rather than the parent.
                     continue;
                 }
 
@@ -980,11 +1004,16 @@ final class SchemaConformanceTest extends TestCase
     }
 
     /**
-     * Resolve the six spec-level direction unions (`ClientRequest`, `ServerRequest`,
-     * `ClientNotification`, `ServerNotification`, `ClientResult`, `ServerResult`)
-     * to their explicit member basenames. The bare `{"$ref": "Result"}` entry
-     * appearing in `ClientResult` / `ServerResult` is recorded separately as a
-     * structural license, not folded into the explicit members list.
+     * Resolve every spec-level `anyOf` union (direction unions like
+     * `ClientRequest`, content unions like `ContentBlock`, wire-envelope
+     * unions like `JSONRPCMessage`, etc.) to its explicit member basenames.
+     * The bare `{"$ref": "Result"}` entry appearing in `ClientResult` and
+     * `ServerResult` is recorded separately as a structural license, not
+     * folded into the explicit members list.
+     *
+     * Unions whose PHP marker class/interface does not yet exist (because the
+     * type hasn't been built in this SDK yet) are filtered out so the test
+     * stays green until the marker lands.
      *
      * @return array<string, array{members: list<string>, allowsResultSubclass: bool}>
      */
@@ -995,14 +1024,18 @@ final class SchemaConformanceTest extends TestCase
         }
 
         self::generateLatestSchema();
+        self::sortSchemaDefinition();
 
         $prefix = '#/$defs/';
         $unions = [];
 
-        foreach (['ClientRequest', 'ServerRequest', 'ClientNotification', 'ServerNotification', 'ClientResult', 'ServerResult'] as $name) {
-            $def = self::$latestSchema[$name] ?? null;
-
+        foreach (self::$latestSchema as $name => $def) {
             if (! \is_array($def) || ! \is_array($def['anyOf'] ?? null)) {
+                continue;
+            }
+
+            if (! \is_string($name) || ! isset(self::$sortedSchema['processed_schema'][$name])) {
+                // Union whose PHP marker hasn't been built yet; skip until it lands.
                 continue;
             }
 
