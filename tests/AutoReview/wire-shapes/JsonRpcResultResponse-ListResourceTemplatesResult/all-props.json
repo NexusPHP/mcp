@@ -1,0 +1,16 @@
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "_meta": {
+            "vendor.brand": "acme"
+        },
+        "nextCursor": "cursor-token",
+        "resourceTemplates": [
+            {
+                "name": "sample",
+                "uriTemplate": "file:///tmp/{name}"
+            }
+        ]
+    }
+}

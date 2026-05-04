@@ -11,18 +11,24 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
+use Nexus\Mcp\Core\Schema\Request\InitializeRequest;
 use Nexus\Mcp\Core\Schema\Request\ListResourcesRequest;
+use Nexus\Mcp\Core\Schema\Request\ListResourceTemplatesRequest;
 use Nexus\Mcp\Core\Schema\Request\ListRootsRequest;
 use Nexus\Mcp\Core\Schema\Request\PingRequest;
+use Nexus\Mcp\Core\Schema\Request\ReadResourceRequest;
 use Nexus\Mcp\Core\Schema\Request\SetLevelRequest;
 use Nexus\Mcp\Core\Schema\Request\SubscribeRequest;
 use Nexus\Mcp\Core\Schema\Request\UnsubscribeRequest;
 
 use function PHPStan\Testing\assertType;
 
-assertType('\'ping\'', PingRequest::method());
+assertType('\'initialize\'', InitializeRequest::method());
 assertType('\'logging/setLevel\'', SetLevelRequest::method());
+assertType('\'ping\'', PingRequest::method());
+assertType('\'resources/list\'', ListResourcesRequest::method());
+assertType('\'resources/read\'', ReadResourceRequest::method());
 assertType('\'resources/subscribe\'', SubscribeRequest::method());
+assertType('\'resources/templates/list\'', ListResourceTemplatesRequest::method());
 assertType('\'resources/unsubscribe\'', UnsubscribeRequest::method());
 assertType('\'roots/list\'', ListRootsRequest::method());
-assertType('\'resources/list\'', ListResourcesRequest::method());
