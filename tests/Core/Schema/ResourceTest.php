@@ -170,14 +170,6 @@ final class ResourceTest extends TestCase
         self::assertSame($original->toArray(), $rebuilt->toArray());
     }
 
-    public function testConstructorRejectsEmptyUri(): void
-    {
-        $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('Resource URI must be a non-empty string.');
-
-        new Resource('my-resource', '');
-    }
-
     public function testConstructorRejectsNameViolatingSep986(): void
     {
         $this->expectException(ExpectationFailedException::class);
@@ -186,72 +178,12 @@ final class ResourceTest extends TestCase
         new Resource('my resource', 'file:///x');
     }
 
-    /**
-     * @param non-empty-string $uri
-     * @param non-empty-string $expectedMessage
-     */
-    #[DataProvider('provideConstructorRejectsInvalidUriCases')]
-    public function testConstructorRejectsInvalidUri(string $uri, string $expectedMessage): void
+    public function testConstructorRejectsUriViolatingRfc3986(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageMatches($expectedMessage);
+        $this->expectExceptionMessageMatches('/\AResource URI must be a valid RFC 3986/');
 
-        new Resource('my-resource', $uri);
-    }
-
-    /**
-     * @return iterable<string, array{non-empty-string, non-empty-string}>
-     */
-    public static function provideConstructorRejectsInvalidUriCases(): iterable
-    {
-        yield 'no scheme' => ['my-resource', '/\AResource URI must be a valid RFC 3986/'];
-
-        yield 'scheme starts with digit' => ['1http://example.com', '/\AResource URI must be a valid RFC 3986/'];
-
-        yield 'embedded space' => ['file:///path with space', '/\AResource URI must contain only ASCII printable/'];
-
-        yield 'tab character' => ["file:///x\ty", '/\AResource URI must contain only ASCII printable/'];
-
-        yield 'newline' => ["file:///x\n", '/\AResource URI must contain only ASCII printable/'];
-
-        yield 'null byte' => ["file:///x\0", '/\AResource URI must contain only ASCII printable/'];
-
-        yield 'non-ASCII path' => ['file:///résumé', '/\AResource URI must contain only ASCII printable/'];
-
-        yield 'just a colon' => [':rest', '/\AResource URI must be a valid RFC 3986/'];
-    }
-
-    /**
-     * @param non-empty-string $uri
-     */
-    #[DataProvider('provideConstructorAcceptsValidUriCases')]
-    public function testConstructorAcceptsValidUri(string $uri): void
-    {
-        $resource = new Resource('my-resource', $uri);
-
-        self::assertSame($uri, $resource->uri);
-    }
-
-    /**
-     * @return iterable<string, array{non-empty-string}>
-     */
-    public static function provideConstructorAcceptsValidUriCases(): iterable
-    {
-        yield 'file uri' => ['file:///tmp/sample'];
-
-        yield 'https uri' => ['https://example.com/path'];
-
-        yield 'custom scheme with plus' => ['git+ssh://example.com/repo.git'];
-
-        yield 'scheme with dot and dash' => ['my.app-1://host'];
-
-        yield 'with query and fragment' => ['https://example.com/path?q=1&r=2#section'];
-
-        yield 'urn-style' => ['urn:isbn:0451450523'];
-
-        yield 'mailto' => ['mailto:user@example.com'];
-
-        yield 'percent-encoded path' => ['https://example.com/r%C3%A9sum%C3%A9'];
+        new Resource('my-resource', 'not-a-uri');
     }
 
     public function testConstructorRejectsEmptyDescription(): void

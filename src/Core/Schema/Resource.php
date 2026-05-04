@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema;
 
 use Nexus\Assert\Assert;
+use Nexus\Mcp\Core\Validation\Rfc3986UriValidator;
 use Nexus\Mcp\Core\Validation\Sep986NameValidator;
 
 /**
@@ -74,18 +75,7 @@ final readonly class Resource extends BaseMetadata implements Arrayable, Icons
         parent::__construct($name, $title);
 
         Sep986NameValidator::validate($name, 'Resource');
-
-        Assert::that($uri)
-            ->isNonEmptyString('Resource URI must be a non-empty string.')
-            ->matchesRegularExpression(
-                '/\A[\x21-\x7E]+\z/',
-                'Resource URI must contain only ASCII printable characters (no whitespace or control characters), got {value}.',
-            )
-            ->matchesRegularExpression(
-                '/\A[A-Za-z][A-Za-z0-9+.\-]*:(?:\/\/[^\/?#]*)?[^?#]*(?:\?[^#]*)?(?:#.*)?\z/',
-                'Resource URI must be a valid RFC 3986 absolute URI, got {value}.',
-            )
-        ;
+        Rfc3986UriValidator::validate($uri, 'Resource');
 
         Assert::that($description)->nullOr()->isNonEmptyString('Resource description must be a non-empty string or null.');
         Assert::that($mimeType)->nullOr()->isNonEmptyString('Resource mimeType must be a non-empty string or null.');

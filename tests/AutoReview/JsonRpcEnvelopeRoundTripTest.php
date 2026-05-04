@@ -32,6 +32,7 @@ use Nexus\Mcp\Core\Schema\Request\InitializeRequest;
 use Nexus\Mcp\Core\Schema\Request\ListResourcesRequest;
 use Nexus\Mcp\Core\Schema\Request\ListRootsRequest;
 use Nexus\Mcp\Core\Schema\Request\PingRequest;
+use Nexus\Mcp\Core\Schema\Request\ReadResourceRequest;
 use Nexus\Mcp\Core\Schema\Request\SetLevelRequest;
 use Nexus\Mcp\Core\Schema\Request\SubscribeRequest;
 use Nexus\Mcp\Core\Schema\Request\UnsubscribeRequest;
@@ -41,6 +42,7 @@ use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Core\Schema\Result\InitializeResult;
 use Nexus\Mcp\Core\Schema\Result\ListResourcesResult;
 use Nexus\Mcp\Core\Schema\Result\ListRootsResult;
+use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Group;
 
@@ -133,6 +135,8 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
         // Concrete requests.
         yield 'PingRequest' => ['wrapper' => PingRequest::class, 'inner' => null];
 
+        yield 'ReadResourceRequest' => ['wrapper' => ReadResourceRequest::class, 'inner' => null];
+
         yield 'InitializeRequest' => ['wrapper' => InitializeRequest::class, 'inner' => null];
 
         yield 'ListResourcesRequest' => ['wrapper' => ListResourcesRequest::class, 'inner' => null];
@@ -172,6 +176,8 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
         yield 'JsonRpcResultResponse-ListResourcesResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => ListResourcesResult::class];
 
         yield 'JsonRpcResultResponse-ListRootsResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => ListRootsResult::class];
+
+        yield 'JsonRpcResultResponse-ReadResourceResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => ReadResourceResult::class];
 
         // Error responses, organized per Error subclass even though
         // `JsonRpcErrorResponse::fromArray` self-dispatches on `code`.

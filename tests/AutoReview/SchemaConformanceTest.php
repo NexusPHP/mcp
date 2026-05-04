@@ -39,6 +39,7 @@ use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\PaginatedRequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\ResourceRequestParams;
+use Nexus\Mcp\Core\Schema\ResourceContents;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\ClientResult;
 use Nexus\Mcp\Core\Schema\Result\PaginatedResult;
@@ -93,6 +94,7 @@ final class SchemaConformanceTest extends TestCase
         Request::class => self::TS_SCHEMA_FILE_URL,
         RequestParams::class => self::TS_SCHEMA_FILE_URL,
         EmptyRequestParams::class => self::TS_SCHEMA_FILE_URL,
+        ResourceContents::class => self::TS_SCHEMA_FILE_URL,
         ResourceRequestParams::class => self::TS_SCHEMA_FILE_URL,
         ClientNotification::class => self::TS_SCHEMA_FILE_URL,
         ServerNotification::class => self::TS_SCHEMA_FILE_URL,
