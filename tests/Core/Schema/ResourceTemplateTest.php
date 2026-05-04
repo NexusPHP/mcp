@@ -166,9 +166,17 @@ final class ResourceTemplateTest extends TestCase
     public function testConstructorRejectsEmptyUriTemplate(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ResourceTemplate uriTemplate must be a non-empty string.');
+        $this->expectExceptionMessage('ResourceTemplate URI template must be a non-empty string.');
 
         new ResourceTemplate('my-template', '');
+    }
+
+    public function testConstructorRejectsInvalidUriTemplate(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageMatches('/\AResourceTemplate URI template must be a valid RFC 6570/');
+
+        new ResourceTemplate('my-template', 'not-a-template');
     }
 
     public function testConstructorRejectsEmptyDescription(): void

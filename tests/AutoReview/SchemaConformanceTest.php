@@ -65,6 +65,7 @@ final class SchemaConformanceTest extends TestCase
     private const array SPEC_KEY_TO_NON_PROPERTY_REPRESENTATION = [
         'jsonrpc' => ['kind' => 'constant', 'name' => 'JSONRPC_VERSION'],
         'method' => ['kind' => 'static-method', 'name' => 'method'],
+        'type' => ['kind' => 'constant', 'name' => 'TYPE'],
     ];
 
     private const string SCHEMA_ANCHOR_BASE_URL = 'https://modelcontextprotocol.io/specification/2025-11-25/schema#';
