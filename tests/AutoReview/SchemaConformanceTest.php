@@ -43,6 +43,7 @@ use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\ClientResult;
 use Nexus\Mcp\Core\Schema\Result\PaginatedResult;
 use Nexus\Mcp\Core\Schema\Result\ServerResult;
+use Nexus\Mcp\Tools\McpAnchorSnapshot;
 use Nexus\Mcp\Tools\McpSchemaProcessor;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -137,6 +138,11 @@ final class SchemaConformanceTest extends TestCase
      * @var null|array<string, array{members: list<string>, allowsResultSubclass: bool}>
      */
     private static ?array $specUnions = null;
+
+    /**
+     * @var null|array<string, list<string>>
+     */
+    private static ?array $anchorSnapshot = null;
 
     /**
      * @param class-string $schemaClass
@@ -345,6 +351,37 @@ final class SchemaConformanceTest extends TestCase
             'Schema class "%s": "@see" must be the last tag in the docblock, but the last tag is "%s".',
             $schemaClass,
             end($tags),
+        ));
+
+        // Off-site URLs (TS schema on github.com, JSON-RPC spec on
+        // jsonrpc.org) are not in the snapshot and are out of scope.
+        if (parse_url($expectedUrl, \PHP_URL_HOST) !== 'modelcontextprotocol.io') {
+            return;
+        }
+
+        $snapshot = self::loadAnchorSnapshot();
+
+        $hash = strpos($expectedUrl, '#');
+        $pageUrl = false === $hash ? $expectedUrl : substr($expectedUrl, 0, $hash);
+        $fragment = false === $hash ? null : substr($expectedUrl, $hash + 1);
+
+        self::assertArrayHasKey($pageUrl, $snapshot, \sprintf(
+            'Schema class "%s" references docs page "%s", but that page is not in the spec anchor snapshot. Add the page to McpAnchorSnapshot::SPEC_PAGES and run `composer spec:snapshot-anchors`.',
+            $schemaClass,
+            $pageUrl,
+        ));
+
+        if (null === $fragment) {
+            return;
+        }
+
+        self::assertContains($fragment, $snapshot[$pageUrl], \sprintf(
+            'Schema class "%s" references "%s#%s", but the snapshot of "%s" has no anchor "%s". Either fix the URL or refresh the snapshot via `composer spec:snapshot-anchors`.',
+            $schemaClass,
+            $pageUrl,
+            $fragment,
+            $pageUrl,
+            $fragment,
         ));
     }
 
@@ -993,6 +1030,18 @@ final class SchemaConformanceTest extends TestCase
         }
 
         return self::$specUnions = $unions;
+    }
+
+    /**
+     * @return array<string, list<string>>
+     */
+    private static function loadAnchorSnapshot(): array
+    {
+        if (null !== self::$anchorSnapshot) {
+            return self::$anchorSnapshot;
+        }
+
+        return self::$anchorSnapshot = McpAnchorSnapshot::loadAnchorSnapshot();
     }
 
     /**

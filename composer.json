@@ -58,19 +58,20 @@
         "sort-packages": true
     },
     "scripts": {
-        "post-autoload-dump": [
-            "@composer update --ansi --working-dir=tools"
-        ],
         "post-update-cmd": [
             "Nexus\\Mcp\\Tools\\ComposerScripts::postUpdate"
         ],
-        "schema:generate": "tools/generate-schema",
+        "post-autoload-dump": [
+            "@composer update --ansi --working-dir=tools"
+        ],
         "cs:check": "tools/vendor/bin/php-cs-fixer check --ansi --verbose --diff",
         "cs:fix": "tools/vendor/bin/php-cs-fixer fix --ansi --verbose --diff",
         "mutation:check": "tools/vendor/bin/infection --ansi --with-uncovered --static-analysis-tool=phpstan",
         "mutation:filter": "@mutation:check --git-diff-filter=AM --git-diff-base=origin/1.x",
         "phpstan:baseline": "phpstan analyse --ansi --verbose --generate-baseline=phpstan-baseline.php",
         "phpstan:check": "phpstan analyse --ansi --verbose",
+        "schema:generate": "tools/generate-schema",
+        "spec:snapshot-anchors": "tools/snapshot-spec-anchors",
         "test:all": [
             "@cs:check",
             "@phpstan:check",
@@ -87,13 +88,14 @@
         "test:unit": "phpunit --group=unit-tests --colors=always --coverage-html=build/phpunit/html"
     },
     "scripts-descriptions": {
-        "schema:generate": "Generates latest-schema.json and sorted-schema.json files",
         "cs:check": "Checks for coding style violations",
         "cs:fix": "Fixes any coding style violations",
         "mutation:check": "Runs Infection on whole codebase",
         "mutation:filter": "Runs Infection on added and modified files only",
         "phpstan:baseline": "Runs PHPStan and dumps resulting errors to baseline",
         "phpstan:check": "Runs PHPStan",
+        "schema:generate": "Generates latest-schema.json and sorted-schema.json files",
+        "spec:snapshot-anchors": "Snapshots heading anchor IDs from MCP spec docs pages for @see verification",
         "test:all": "Runs all tests (coding style, static analysis, automatic code review, type inference, and unit tests)",
         "test:auto-review": "Runs the automatic code review tests",
         "test:client": "Runs the Client component tests with code coverage",
