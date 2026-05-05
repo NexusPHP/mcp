@@ -67,6 +67,6 @@ final readonly class TextResourceContents extends ResourceContents
     #[\Override]
     public function toArray(): array
     {
-        return array_merge(parent::toArray(), ['text' => $this->text]);
+        return [...parent::toArray(), 'text' => $this->text];
     }
 }

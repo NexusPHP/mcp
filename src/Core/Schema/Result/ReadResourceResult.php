@@ -81,9 +81,10 @@ final readonly class ReadResourceResult extends Result implements ServerResult
     #[\Override]
     public function toArray(): array
     {
-        return array_merge(parent::toArray(), [
+        return [
+            ...parent::toArray(),
             'contents' => array_map(static fn(ResourceContents $entry): array => $entry->toArray(), $this->contents),
-        ]);
+        ];
     }
 
     #[\Override]

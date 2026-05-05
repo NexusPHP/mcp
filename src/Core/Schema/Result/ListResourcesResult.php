@@ -86,9 +86,10 @@ final readonly class ListResourcesResult extends PaginatedResult implements Serv
     #[\Override]
     public function toArray(): array
     {
-        return array_merge(parent::toArray(), [
+        return [
+            ...parent::toArray(),
             'resources' => array_map(static fn(Resource $resource): array => $resource->toArray(), $this->resources),
-        ]);
+        ];
     }
 
     #[\Override]

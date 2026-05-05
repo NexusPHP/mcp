@@ -79,20 +79,22 @@ final readonly class InitializeRequestParams extends RequestParams
     #[\Override]
     public function toArray(): array
     {
-        return array_merge(parent::toArray(), [
+        return [
+            ...parent::toArray(),
             'protocolVersion' => $this->protocolVersion->version,
             'capabilities' => $this->capabilities->toArray(),
             'clientInfo' => $this->clientInfo->toArray(),
-        ]);
+        ];
     }
 
     #[\Override]
     public function jsonSerialize(): array
     {
-        return array_merge(parent::toArray(), [
+        return [
+            ...parent::toArray(),
             'protocolVersion' => $this->protocolVersion->version,
             'capabilities' => $this->capabilities->jsonSerialize(),
             'clientInfo' => $this->clientInfo->jsonSerialize(),
-        ]);
+        ];
     }
 }

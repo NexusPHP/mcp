@@ -31,9 +31,10 @@ abstract readonly class ResourceRequestParams extends RequestParams
     #[\Override]
     public function toArray(): array
     {
-        return array_merge(parent::toArray(), [
+        return [
+            ...parent::toArray(),
             'uri' => $this->uri,
-        ]);
+        ];
     }
 
     #[\Override]

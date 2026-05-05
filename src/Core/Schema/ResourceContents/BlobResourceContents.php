@@ -67,6 +67,6 @@ final readonly class BlobResourceContents extends ResourceContents
     #[\Override]
     public function toArray(): array
     {
-        return array_merge(parent::toArray(), ['blob' => $this->blob]);
+        return [...parent::toArray(), 'blob' => $this->blob];
     }
 }

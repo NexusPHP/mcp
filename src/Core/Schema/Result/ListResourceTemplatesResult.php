@@ -86,12 +86,13 @@ final readonly class ListResourceTemplatesResult extends PaginatedResult impleme
     #[\Override]
     public function toArray(): array
     {
-        return array_merge(parent::toArray(), [
+        return [
+            ...parent::toArray(),
             'resourceTemplates' => array_map(
                 static fn(ResourceTemplate $template): array => $template->toArray(),
                 $this->resourceTemplates,
             ),
-        ]);
+        ];
     }
 
     #[\Override]

@@ -65,10 +65,11 @@ final readonly class LoggingMessageNotificationParams extends NotificationParams
     #[\Override]
     public function toArray(): array
     {
-        $data = array_merge(parent::toArray(), [
+        $data = [
+            ...parent::toArray(),
             'level' => $this->level->value,
             'data' => $this->data,
-        ]);
+        ];
 
         if (null !== $this->logger) {
             $data['logger'] = $this->logger;

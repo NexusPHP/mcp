@@ -80,9 +80,10 @@ final readonly class ListRootsResult extends Result implements ClientResult
     #[\Override]
     public function toArray(): array
     {
-        return array_merge(parent::toArray(), [
+        return [
+            ...parent::toArray(),
             'roots' => array_map(static fn(Root $root): array => $root->toArray(), $this->roots),
-        ]);
+        ];
     }
 
     #[\Override]

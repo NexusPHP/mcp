@@ -76,10 +76,11 @@ final readonly class ProgressNotificationParams extends NotificationParams
     #[\Override]
     public function toArray(): array
     {
-        $data = array_merge(parent::toArray(), [
+        $data = [
+            ...parent::toArray(),
             'progressToken' => $this->progressToken->token,
             'progress' => $this->progress,
-        ]);
+        ];
 
         if (null !== $this->total) {
             $data['total'] = $this->total;

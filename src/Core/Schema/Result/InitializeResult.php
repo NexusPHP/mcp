@@ -90,11 +90,12 @@ final readonly class InitializeResult extends Result implements ServerResult
     #[\Override]
     public function toArray(): array
     {
-        $data = array_merge(parent::toArray(), [
+        $data = [
+            ...parent::toArray(),
             'protocolVersion' => $this->protocolVersion->version,
             'capabilities' => $this->capabilities->toArray(),
             'serverInfo' => $this->serverInfo->toArray(),
-        ]);
+        ];
 
         if (null !== $this->instructions) {
             $data['instructions'] = $this->instructions;
@@ -106,11 +107,12 @@ final readonly class InitializeResult extends Result implements ServerResult
     #[\Override]
     public function jsonSerialize(): array
     {
-        $data = array_merge(parent::toArray(), [
+        $data = [
+            ...parent::toArray(),
             'protocolVersion' => $this->protocolVersion->version,
             'capabilities' => $this->capabilities->jsonSerialize(),
             'serverInfo' => $this->serverInfo->jsonSerialize(),
-        ]);
+        ];
 
         if (null !== $this->instructions) {
             $data['instructions'] = $this->instructions;
