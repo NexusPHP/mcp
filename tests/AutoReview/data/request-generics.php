@@ -11,6 +11,7 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
+use Nexus\Mcp\Core\Schema\Request\CompleteRequest;
 use Nexus\Mcp\Core\Schema\Request\GetPromptRequest;
 use Nexus\Mcp\Core\Schema\Request\InitializeRequest;
 use Nexus\Mcp\Core\Schema\Request\ListPromptsRequest;
@@ -25,6 +26,7 @@ use Nexus\Mcp\Core\Schema\Request\UnsubscribeRequest;
 
 use function PHPStan\Testing\assertType;
 
+assertType('\'completion/complete\'', CompleteRequest::method());
 assertType('\'initialize\'', InitializeRequest::method());
 assertType('\'logging/setLevel\'', SetLevelRequest::method());
 assertType('\'ping\'', PingRequest::method());

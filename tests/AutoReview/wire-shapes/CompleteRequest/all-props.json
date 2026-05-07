@@ -1,0 +1,24 @@
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "completion/complete",
+    "params": {
+        "_meta": {
+            "vendor.brand": "acme",
+            "progressToken": "progress-1"
+        },
+        "ref": {
+            "name": "code-review",
+            "type": "ref/prompt"
+        },
+        "argument": {
+            "name": "topic",
+            "value": "auth"
+        },
+        "context": {
+            "arguments": {
+                "topic": "auth"
+            }
+        }
+    }
+}

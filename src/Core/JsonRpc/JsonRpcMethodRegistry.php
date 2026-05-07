@@ -35,6 +35,7 @@ final class JsonRpcMethodRegistry
     public static function requests(): array
     {
         return [
+            Request\CompleteRequest::method() => Request\CompleteRequest::class,
             Request\InitializeRequest::method() => Request\InitializeRequest::class,
             Request\SetLevelRequest::method() => Request\SetLevelRequest::class,
             Request\PingRequest::method() => Request\PingRequest::class,

@@ -28,6 +28,7 @@ use Nexus\Mcp\Core\Schema\Notification\ResourceListChangedNotification;
 use Nexus\Mcp\Core\Schema\Notification\ResourceUpdatedNotification;
 use Nexus\Mcp\Core\Schema\Notification\RootsListChangedNotification;
 use Nexus\Mcp\Core\Schema\Notification\ToolListChangedNotification;
+use Nexus\Mcp\Core\Schema\Request\CompleteRequest;
 use Nexus\Mcp\Core\Schema\Request\GetPromptRequest;
 use Nexus\Mcp\Core\Schema\Request\InitializeRequest;
 use Nexus\Mcp\Core\Schema\Request\ListPromptsRequest;
@@ -41,6 +42,7 @@ use Nexus\Mcp\Core\Schema\Request\SubscribeRequest;
 use Nexus\Mcp\Core\Schema\Request\UnsubscribeRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result;
+use Nexus\Mcp\Core\Schema\Result\CompleteResult;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
 use Nexus\Mcp\Core\Schema\Result\InitializeResult;
@@ -145,6 +147,8 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
 
         yield 'InitializeRequest' => ['wrapper' => InitializeRequest::class, 'inner' => null];
 
+        yield 'CompleteRequest' => ['wrapper' => CompleteRequest::class, 'inner' => null];
+
         yield 'GetPromptRequest' => ['wrapper' => GetPromptRequest::class, 'inner' => null];
 
         yield 'ListPromptsRequest' => ['wrapper' => ListPromptsRequest::class, 'inner' => null];
@@ -181,6 +185,8 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
         yield 'ToolListChangedNotification' => ['wrapper' => ToolListChangedNotification::class, 'inner' => null];
 
         // Result responses, parameterized by the inner Result subclass.
+        yield 'JsonRpcResultResponse-CompleteResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => CompleteResult::class];
+
         yield 'JsonRpcResultResponse-EmptyResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => EmptyResult::class];
 
         yield 'JsonRpcResultResponse-GetPromptResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => GetPromptResult::class];

@@ -1,0 +1,125 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * This file is part of the Nexus MCP SDK package.
+ *
+ * (c) 2026 John Paul E. Balandan, CPA <paulbalandan@gmail.com>
+ *
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
+ */
+
+namespace Nexus\Mcp\Tests\Core\Schema\Request;
+
+use Nexus\Assert\ExpectationFailedException;
+use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
+use Nexus\Mcp\Core\Schema\PromptReference;
+use Nexus\Mcp\Core\Schema\Request;
+use Nexus\Mcp\Core\Schema\Request\CompleteRequest;
+use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Core\Schema\RequestParams\CompleteRequestParams;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\TestCase;
+
+/**
+ * @internal
+ */
+#[CoversClass(CompleteRequest::class)]
+#[CoversClass(JsonRpcRequest::class)]
+#[CoversClass(Request::class)]
+#[Group('unit-tests')]
+#[Group('core-tests')]
+final class CompleteRequestTest extends TestCase
+{
+    public function testMethodIsCompletionComplete(): void
+    {
+        self::assertSame('completion/complete', CompleteRequest::method());
+    }
+
+    public function testToArray(): void
+    {
+        $request = new CompleteRequest(
+            new RequestId(1),
+            new CompleteRequestParams(
+                new PromptReference('code-review'),
+                ['name' => 'topic', 'value' => 'auth'],
+            ),
+        );
+
+        self::assertSame(
+            [
+                'jsonrpc' => '2.0',
+                'id' => 1,
+                'method' => 'completion/complete',
+                'params' => [
+                    'ref' => ['name' => 'code-review', 'type' => 'ref/prompt'],
+                    'argument' => ['name' => 'topic', 'value' => 'auth'],
+                ],
+            ],
+            $request->toArray(),
+        );
+    }
+
+    public function testFromArrayFullRoundTrip(): void
+    {
+        $original = new CompleteRequest(
+            new RequestId('req-1'),
+            new CompleteRequestParams(
+                new PromptReference('code-review'),
+                ['name' => 'topic', 'value' => 'auth'],
+                ['arguments' => ['topic' => 'auth']],
+            ),
+        );
+
+        $rebuilt = CompleteRequest::fromArray($original->toArray());
+
+        self::assertSame($original->toArray(), $rebuilt->toArray());
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
+    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessage($expectedMessage);
+
+        CompleteRequest::fromArray($payload);
+    }
+
+    /**
+     * @return iterable<string, array{array<string, mixed>, string}>
+     */
+    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    {
+        yield 'missing id' => [
+            ['jsonrpc' => '2.0', 'method' => 'completion/complete'],
+            'CompleteRequest wire data missing "id".',
+        ];
+
+        yield 'id not int or string' => [
+            ['jsonrpc' => '2.0', 'id' => [], 'method' => 'completion/complete'],
+            'CompleteRequest wire "id" must be int or string, array given.',
+        ];
+
+        yield 'missing params' => [
+            ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'completion/complete'],
+            'CompleteRequest wire data missing "params".',
+        ];
+
+        yield 'params not an object' => [
+            ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'completion/complete', 'params' => 'bad'],
+            'CompleteRequest wire "params" must be an object, string given.',
+        ];
+
+        yield 'params list-keyed' => [
+            ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'completion/complete', 'params' => ['x']],
+            'CompleteRequest wire "params" must be a string-keyed object.',
+        ];
+    }
+}

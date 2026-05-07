@@ -1,0 +1,15 @@
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "completion/complete",
+    "params": {
+        "ref": {
+            "type": "ref/resource",
+            "uri": "file:///{path}"
+        },
+        "argument": {
+            "name": "path",
+            "value": "src/"
+        }
+    }
+}
