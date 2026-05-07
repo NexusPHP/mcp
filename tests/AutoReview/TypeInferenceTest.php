@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\AutoReview;
 
+use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
+use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use PHPStan\Testing\TypeInferenceTestCase;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -25,6 +27,8 @@ use PHPUnit\Framework\Attributes\Group;
 #[Group('stan')]
 final class TypeInferenceTest extends TypeInferenceTestCase
 {
+    use SchemaClassDiscovery;
+
     #[DataProvider('provideFileAssertsCases')]
     public function testFileAsserts(mixed ...$args): void
     {
@@ -36,5 +40,54 @@ final class TypeInferenceTest extends TypeInferenceTestCase
     public static function provideFileAssertsCases(): iterable
     {
         yield from self::gatherAssertTypesFromDirectory(__DIR__.'/data');
+    }
+
+    public function testEveryConcreteRequestHasMethodTypeAssertion(): void
+    {
+        self::assertEveryConcreteHasMethodAssertion(
+            JsonRpcRequest::class,
+            __DIR__.'/data/request-generics.php',
+        );
+    }
+
+    public function testEveryConcreteNotificationHasMethodTypeAssertion(): void
+    {
+        self::assertEveryConcreteHasMethodAssertion(
+            JsonRpcNotification::class,
+            __DIR__.'/data/notification-generics.php',
+        );
+    }
+
+    /**
+     * Asserts the data file contains a `ShortName::method()` reference for
+     * every concrete subclass of the given base. The literal-string return
+     * type pinned by these assertions is the load-bearing contract; without
+     * an entry per class, a regression to a wider `non-empty-string` would
+     * slip through. Extend the data file rather than relax this gate.
+     *
+     * @param class-string $base
+     */
+    private static function assertEveryConcreteHasMethodAssertion(string $base, string $dataFile): void
+    {
+        $contents = file_get_contents($dataFile);
+        self::assertIsString($contents, \sprintf('Could not read type-inference data file "%s".', $dataFile));
+
+        $missing = [];
+
+        foreach (self::concreteSubclasses($base) as $class) {
+            $shortName = new \ReflectionClass($class)->getShortName();
+
+            if (! str_contains($contents, $shortName.'::method()')) {
+                $missing[] = $class;
+            }
+        }
+
+        self::assertSame([], $missing, \sprintf(
+            'Concrete subclasses of %s without a method() type assertion in %s: %s. Add an `assertType(\'\\\'method-name\\\'\', %s::method())` line.',
+            $base,
+            basename($dataFile),
+            implode(', ', $missing),
+            'ShortName',
+        ));
     }
 }

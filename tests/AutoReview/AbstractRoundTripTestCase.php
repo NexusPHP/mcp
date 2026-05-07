@@ -30,6 +30,8 @@ use PHPUnit\Framework\TestCase;
 #[Group('auto-review')]
 abstract class AbstractRoundTripTestCase extends TestCase
 {
+    use SchemaClassDiscovery;
+
     protected const int JSON_FLAGS = \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE;
 
     /**
@@ -176,83 +178,5 @@ abstract class AbstractRoundTripTestCase extends TestCase
         foreach (array_keys($value) as $key) {
             self::assertIsString($key, \sprintf('Fixture "%s" must decode to a string-keyed object.', $fixturePath));
         }
-    }
-
-    /**
-     * Walks `src/` and returns every concrete subclass of the given
-     * abstract/interface base — used by completeness gates.
-     *
-     * @template T of object
-     *
-     * @param class-string<T> $base
-     *
-     * @return list<class-string<T>>
-     */
-    protected static function concreteSubclasses(string $base): array
-    {
-        $matches = [];
-
-        foreach (self::sourceClasses() as $class) {
-            if (! is_subclass_of($class, $base)) {
-                continue;
-            }
-
-            $reflection = new \ReflectionClass($class);
-
-            if ($reflection->isAbstract()) {
-                continue;
-            }
-
-            $matches[] = $class;
-        }
-
-        sort($matches);
-
-        return $matches;
-    }
-
-    /**
-     * Walks `src/` once and caches every concrete/abstract class found there.
-     *
-     * @return list<class-string>
-     */
-    private static function sourceClasses(): array
-    {
-        /** @var null|list<class-string> $cache */
-        static $cache = null;
-
-        if (null !== $cache) {
-            return $cache;
-        }
-
-        $directory = realpath(__DIR__.'/../../src');
-        self::assertIsString($directory);
-
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator(
-                $directory,
-                \FilesystemIterator::SKIP_DOTS | \FilesystemIterator::UNIX_PATHS,
-            ),
-            \RecursiveIteratorIterator::CHILD_FIRST,
-        );
-
-        $classes = [];
-
-        foreach ($iterator as $file) {
-            self::assertInstanceOf(\SplFileInfo::class, $file);
-
-            if (! $file->isFile() || $file->getExtension() !== 'php') {
-                continue;
-            }
-
-            $relativePath = substr($file->getPathname(), \strlen($directory) + 1, -4);
-            $class = 'Nexus\\Mcp\\'.strtr($relativePath, '/', '\\');
-
-            if (class_exists($class)) {
-                $classes[] = $class;
-            }
-        }
-
-        return $cache = $classes;
     }
 }
