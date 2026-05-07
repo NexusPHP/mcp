@@ -56,6 +56,16 @@ final class JsonRpcMethodRegistryTest extends TestCase
         }
     }
 
+    public function testRequestsAreSortedByEvaluatedMethodKey(): void
+    {
+        self::assertRegistryIsSortedByKey(JsonRpcMethodRegistry::requests(), 'requests');
+    }
+
+    public function testNotificationsAreSortedByEvaluatedMethodKey(): void
+    {
+        self::assertRegistryIsSortedByKey(JsonRpcMethodRegistry::notifications(), 'notifications');
+    }
+
     public function testEveryConcreteJsonRpcRequestClassIsRegistered(): void
     {
         $registry = JsonRpcMethodRegistry::requests();
@@ -76,6 +86,28 @@ final class JsonRpcMethodRegistryTest extends TestCase
             self::assertArrayHasKey($method, $registry, \sprintf('Concrete notification class "%s" (method "%s") must be registered.', $class, $method));
             self::assertSame($class, $registry[$method], \sprintf('Method "%s" must map to "%s".', $method, $class));
         }
+    }
+
+    /**
+     * Verifies the registry's iteration order matches `sort()` on its keys.
+     * The order itself is human-meaningful (entries are easier to find when
+     * grouped by method-name prefix), so a regression — e.g. appending a
+     * new entry at the bottom instead of at its sorted position — should
+     * fail the build rather than silently drift.
+     *
+     * @param array<non-empty-string, class-string> $registry
+     */
+    private static function assertRegistryIsSortedByKey(array $registry, string $label): void
+    {
+        $keys = array_keys($registry);
+        $sorted = $keys;
+        sort($sorted);
+
+        self::assertSame($sorted, $keys, \sprintf(
+            'JsonRpcMethodRegistry::%s() entries must be sorted by evaluated method key. Expected order: %s.',
+            $label,
+            implode(', ', $sorted),
+        ));
     }
 
     /**

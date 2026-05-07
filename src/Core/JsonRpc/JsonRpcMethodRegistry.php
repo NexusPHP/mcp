@@ -36,14 +36,14 @@ final class JsonRpcMethodRegistry
     {
         return [
             Request\InitializeRequest::method() => Request\InitializeRequest::class,
-            Request\ListResourcesRequest::method() => Request\ListResourcesRequest::class,
-            Request\ListResourceTemplatesRequest::method() => Request\ListResourceTemplatesRequest::class,
-            Request\ListRootsRequest::method() => Request\ListRootsRequest::class,
-            Request\PingRequest::method() => Request\PingRequest::class,
-            Request\ReadResourceRequest::method() => Request\ReadResourceRequest::class,
             Request\SetLevelRequest::method() => Request\SetLevelRequest::class,
+            Request\PingRequest::method() => Request\PingRequest::class,
+            Request\ListResourcesRequest::method() => Request\ListResourcesRequest::class,
+            Request\ReadResourceRequest::method() => Request\ReadResourceRequest::class,
             Request\SubscribeRequest::method() => Request\SubscribeRequest::class,
+            Request\ListResourceTemplatesRequest::method() => Request\ListResourceTemplatesRequest::class,
             Request\UnsubscribeRequest::method() => Request\UnsubscribeRequest::class,
+            Request\ListRootsRequest::method() => Request\ListRootsRequest::class,
         ];
     }
 
