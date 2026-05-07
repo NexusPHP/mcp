@@ -1,0 +1,8 @@
+{
+    "uri": "file:///tmp/sample.bin",
+    "mimeType": "application/octet-stream",
+    "_meta": {
+        "vendor.brand": "acme"
+    },
+    "blob": "aGVsbG8="
+}

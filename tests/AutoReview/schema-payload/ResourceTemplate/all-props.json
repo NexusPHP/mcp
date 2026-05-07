@@ -1,0 +1,21 @@
+{
+    "name": "sample-template",
+    "uriTemplate": "file:///tmp/{name}",
+    "title": "Sample Template",
+    "description": "A sample resource template for fixture round-trip tests.",
+    "mimeType": "text/plain",
+    "annotations": {
+        "audience": [
+            "user"
+        ],
+        "priority": 0.5
+    },
+    "icons": [
+        {
+            "src": "https://example.com/icon.png"
+        }
+    ],
+    "_meta": {
+        "vendor.brand": "acme"
+    }
+}

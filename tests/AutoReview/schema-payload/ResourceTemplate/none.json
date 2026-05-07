@@ -1,0 +1,4 @@
+{
+    "name": "sample-template",
+    "uriTemplate": "file:///tmp/{name}"
+}

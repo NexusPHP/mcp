@@ -14,13 +14,6 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\AutoReview;
 
 use Nexus\Mcp\Core\Schema\Arrayable;
-use Nexus\Mcp\Core\Schema\ClientCapabilities;
-use Nexus\Mcp\Core\Schema\Icon;
-use Nexus\Mcp\Core\Schema\Implementation;
-use Nexus\Mcp\Core\Schema\Meta;
-use Nexus\Mcp\Core\Schema\RequestMeta;
-use Nexus\Mcp\Core\Schema\Root;
-use Nexus\Mcp\Core\Schema\ServerCapabilities;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Group;
 
@@ -32,6 +25,11 @@ use PHPUnit\Framework\Attributes\Group;
  * fixture, reconstructs the instance via `Arrayable::fromArray`, re-encodes
  * with `JSON_PRETTY_PRINT`, and asserts the string round-trips byte-for-byte.
  *
+ * The registry auto-discovers every concrete `Arrayable` outside the
+ * wire-envelope namespaces (those are covered by
+ * `JsonRpcEnvelopeRoundTripTest`); adding a new payload class therefore
+ * forces a fixture or the auto-review build fails.
+ *
  * Variant convention is `N + 2`: `all-props.json`, `none.json`, plus one
  * `no-{paramName}.json` per optional constructor param.
  *
@@ -41,6 +39,24 @@ use PHPUnit\Framework\Attributes\Group;
 #[Group('auto-review')]
 final class SchemaPayloadRoundTripTest extends AbstractRoundTripTestCase
 {
+    /**
+     * Concrete `Arrayable` classes under these namespaces ship inside a
+     * JSON-RPC envelope and are exercised by `JsonRpcEnvelopeRoundTripTest`
+     * (request/notification/result/error wrappers, plus the params bags
+     * carried by their parent request/notification). Excluding them here
+     * avoids double coverage and keeps schema-payload focused on value
+     * objects with standalone identity.
+     */
+    private const array WIRE_ENVELOPE_NAMESPACES = [
+        'Nexus\\Mcp\\Core\\Schema\\Error\\',
+        'Nexus\\Mcp\\Core\\Schema\\JsonRpc\\',
+        'Nexus\\Mcp\\Core\\Schema\\Notification\\',
+        'Nexus\\Mcp\\Core\\Schema\\NotificationParams\\',
+        'Nexus\\Mcp\\Core\\Schema\\Request\\',
+        'Nexus\\Mcp\\Core\\Schema\\RequestParams\\',
+        'Nexus\\Mcp\\Core\\Schema\\Result\\',
+    ];
+
     public function testEveryRegisteredEntryIsArrayable(): void
     {
         $nonArrayable = [];
@@ -64,29 +80,32 @@ final class SchemaPayloadRoundTripTest extends AbstractRoundTripTestCase
     }
 
     /**
-     * Schema payload fixture registry. Each entry binds a fixture directory
-     * to the `Arrayable` class whose wire shape it pins. The class is loose
-     * `class-string` because `Arrayable`'s template parameter is invariant;
-     * `reconstruct()` enforces `Arrayable`-conformance at the runtime boundary.
+     * Schema payload fixture registry, auto-derived from `src/Core/Schema/`:
+     * every concrete `Arrayable` outside the wire-envelope namespaces
+     * appears here keyed by short class name, and each must have on-disk
+     * fixtures under `schema-payload/{ShortName}/`.
      *
      * @return iterable<string, array{class: class-string}>
      */
     #[\Override]
     protected static function registry(): iterable
     {
-        yield 'ClientCapabilities' => ['class' => ClientCapabilities::class];
+        $entries = [];
 
-        yield 'Icon' => ['class' => Icon::class];
+        foreach (self::concreteSubclasses(Arrayable::class) as $class) {
+            foreach (self::WIRE_ENVELOPE_NAMESPACES as $excluded) {
+                if (str_starts_with($class, $excluded)) {
+                    continue 2;
+                }
+            }
 
-        yield 'Implementation' => ['class' => Implementation::class];
+            $shortName = new \ReflectionClass($class)->getShortName();
+            $entries[$shortName] = ['class' => $class];
+        }
 
-        yield 'Meta' => ['class' => Meta::class];
+        ksort($entries);
 
-        yield 'RequestMeta' => ['class' => RequestMeta::class];
-
-        yield 'Root' => ['class' => Root::class];
-
-        yield 'ServerCapabilities' => ['class' => ServerCapabilities::class];
+        return $entries;
     }
 
     /**

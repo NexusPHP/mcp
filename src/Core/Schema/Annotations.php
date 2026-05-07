@@ -116,9 +116,11 @@ final readonly class Annotations implements Arrayable
     }
 
     #[\Override]
-    public function jsonSerialize(): array
+    public function jsonSerialize(): array|\stdClass
     {
-        return $this->toArray();
+        $data = $this->toArray();
+
+        return [] === $data ? new \stdClass() : $data;
     }
 
     private static function parseLastModified(string $lastModified): \DateTimeImmutable

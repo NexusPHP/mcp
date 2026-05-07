@@ -182,9 +182,11 @@ abstract class AbstractRoundTripTestCase extends TestCase
      * Walks `src/` and returns every concrete subclass of the given
      * abstract/interface base — used by completeness gates.
      *
-     * @param class-string $base
+     * @template T of object
      *
-     * @return list<class-string>
+     * @param class-string<T> $base
+     *
+     * @return list<class-string<T>>
      */
     protected static function concreteSubclasses(string $base): array
     {
