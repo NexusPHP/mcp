@@ -31,7 +31,7 @@ final class TestCodeTest extends TestCase
         'client-tests',
         'core-tests',
         'server-tests',
-        'stan',
+        'static-analysis',
         'unit-tests',
     ];
 

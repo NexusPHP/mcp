@@ -84,7 +84,7 @@
         "test:client": "phpunit --group=client-tests --colors=always --coverage-html=build/phpunit/html",
         "test:core": "phpunit --group=core-tests --colors=always --coverage-html=build/phpunit/html",
         "test:server": "phpunit --group=server-tests --colors=always --coverage-html=build/phpunit/html",
-        "test:stan": "phpunit --group=stan --colors=always --no-coverage",
+        "test:stan": "phpunit --group=static-analysis --colors=always --no-coverage",
         "test:unit": "phpunit --group=unit-tests --colors=always --coverage-html=build/phpunit/html"
     },
     "scripts-descriptions": {
@@ -101,7 +101,7 @@
         "test:client": "Runs the Client component tests with code coverage",
         "test:core": "Runs the Core component tests with code coverage",
         "test:server": "Runs the Server component tests with code coverage",
-        "test:stan": "Runs the PHPStan type-inference lock-in tests",
+        "test:stan": "Runs the static-analysis (PHPStan type-inference lock-in) tests",
         "test:unit": "Runs the unit tests with code coverage"
     }
 }

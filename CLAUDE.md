@@ -19,10 +19,10 @@ Every change must survive these three checks before being considered done:
 ```bash
 composer phpstan:check     # level max + strict rules; no `@phpstan-ignore` in production code
 composer cs:check          # Nexus84 preset; run cs:fix to auto-apply
-composer test:all          # runs cs, phpstan, auto-review, stan, unit, and mutation
+composer test:all          # runs cs, phpstan, auto-review, static-analysis, unit, and mutation
 ```
 
-For fast iteration while coding, the single-concern scripts work: `composer test:core`, `composer test:auto-review`, `composer test:stan` (PHPStan type-inference lock-in assertions under `tests/AutoReview/data/`).
+For fast iteration while coding, the single-concern scripts work: `composer test:core`, `composer test:auto-review`, `composer test:stan` (PHPStan type-inference lock-in assertions under `tests/AutoReview/data/`, run as the `static-analysis` PHPUnit group).
 
 Mutation testing has two modes:
 

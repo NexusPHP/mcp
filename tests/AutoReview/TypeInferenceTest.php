@@ -24,7 +24,7 @@ use PHPUnit\Framework\Attributes\Group;
  * @internal
  */
 #[CoversNothing]
-#[Group('stan')]
+#[Group('static-analysis')]
 final class TypeInferenceTest extends TypeInferenceTestCase
 {
     use SchemaClassDiscovery;
