@@ -1065,7 +1065,9 @@ final class SchemaConformanceTest extends TestCase
             $unions[$name] = ['members' => $members, 'allowsResultSubclass' => $allowsResultSubclass];
         }
 
-        return self::$specUnions = $unions;
+        self::$specUnions = $unions;
+
+        return self::$specUnions;
     }
 
     /**
@@ -1077,7 +1079,9 @@ final class SchemaConformanceTest extends TestCase
             return self::$anchorSnapshot;
         }
 
-        return self::$anchorSnapshot = McpAnchorSnapshot::loadAnchorSnapshot();
+        self::$anchorSnapshot = McpAnchorSnapshot::loadAnchorSnapshot();
+
+        return self::$anchorSnapshot;
     }
 
     /**

@@ -179,7 +179,9 @@ final class SourceCodeTest extends TestCase
 
         sort($classes);
 
-        return self::$sourceClasses = $classes;
+        self::$sourceClasses = $classes;
+
+        return self::$sourceClasses;
     }
 
     /**
@@ -255,7 +257,9 @@ final class SourceCodeTest extends TestCase
 
         sort($files);
 
-        return self::$phpFiles = $files;
+        self::$phpFiles = $files;
+
+        return self::$phpFiles;
     }
 
     /**
