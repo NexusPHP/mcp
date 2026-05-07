@@ -11,7 +11,9 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
+use Nexus\Mcp\Core\Schema\Request\GetPromptRequest;
 use Nexus\Mcp\Core\Schema\Request\InitializeRequest;
+use Nexus\Mcp\Core\Schema\Request\ListPromptsRequest;
 use Nexus\Mcp\Core\Schema\Request\ListResourcesRequest;
 use Nexus\Mcp\Core\Schema\Request\ListResourceTemplatesRequest;
 use Nexus\Mcp\Core\Schema\Request\ListRootsRequest;
@@ -26,6 +28,8 @@ use function PHPStan\Testing\assertType;
 assertType('\'initialize\'', InitializeRequest::method());
 assertType('\'logging/setLevel\'', SetLevelRequest::method());
 assertType('\'ping\'', PingRequest::method());
+assertType('\'prompts/get\'', GetPromptRequest::method());
+assertType('\'prompts/list\'', ListPromptsRequest::method());
 assertType('\'resources/list\'', ListResourcesRequest::method());
 assertType('\'resources/read\'', ReadResourceRequest::method());
 assertType('\'resources/subscribe\'', SubscribeRequest::method());

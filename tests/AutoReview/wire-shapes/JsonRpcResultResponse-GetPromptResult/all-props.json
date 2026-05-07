@@ -1,0 +1,26 @@
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "_meta": {
+            "vendor.brand": "acme"
+        },
+        "messages": [
+            {
+                "content": {
+                    "text": "Please review.",
+                    "type": "text"
+                },
+                "role": "user"
+            },
+            {
+                "content": {
+                    "text": "Looks good.",
+                    "type": "text"
+                },
+                "role": "assistant"
+            }
+        ],
+        "description": "Code review template."
+    }
+}

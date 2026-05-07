@@ -93,11 +93,31 @@ final class Sep986NameValidatorTest extends TestCase
         yield 'trailing newline' => ["my-resource\n"];
     }
 
-    public function testContextPrefixAppearsInErrorMessage(): void
+    /**
+     * The `string $name` parameter type widens past the literal-string types
+     * PHPStan would otherwise pin on the data-provider values, so the
+     * validator's `@phpstan-assert non-empty-string $name` doesn't produce an
+     * always-true error at the call site.
+     *
+     * @param non-empty-string $context
+     * @param non-empty-string $messagePattern
+     */
+    #[DataProvider('provideContextPrefixAppearsInErrorMessageCases')]
+    public function testContextPrefixAppearsInErrorMessage(string $name, string $context, string $messagePattern): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageMatches('/\ATool name must be 1-64 characters/');
+        $this->expectExceptionMessageMatches($messagePattern);
 
-        Sep986NameValidator::validate('bad name', 'Tool');
+        Sep986NameValidator::validate($name, $context);
+    }
+
+    /**
+     * @return iterable<string, array{string, non-empty-string, non-empty-string}>
+     */
+    public static function provideContextPrefixAppearsInErrorMessageCases(): iterable
+    {
+        yield 'Tool prefix' => ['bad name', 'Tool', '/\ATool name must be 1-64 characters/'];
+
+        yield 'Prompt prefix' => ['bad name', 'Prompt', '/\APrompt name must be 1-64 characters/'];
     }
 }

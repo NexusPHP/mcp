@@ -1,0 +1,170 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * This file is part of the Nexus MCP SDK package.
+ *
+ * (c) 2026 John Paul E. Balandan, CPA <paulbalandan@gmail.com>
+ *
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
+ */
+
+namespace Nexus\Mcp\Tests\Core\Schema;
+
+use Nexus\Assert\ExpectationFailedException;
+use Nexus\Mcp\Core\Schema\BaseMetadata;
+use Nexus\Mcp\Core\Schema\PromptArgument;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\TestCase;
+
+/**
+ * @internal
+ */
+#[CoversClass(PromptArgument::class)]
+#[CoversClass(BaseMetadata::class)]
+#[Group('unit-tests')]
+#[Group('core-tests')]
+final class PromptArgumentTest extends TestCase
+{
+    public function testConstructionMinimal(): void
+    {
+        $arg = new PromptArgument('topic');
+
+        self::assertSame('topic', $arg->name);
+        self::assertNull($arg->title);
+        self::assertNull($arg->description);
+        self::assertNull($arg->required);
+    }
+
+    public function testConstructionWithAllFields(): void
+    {
+        $arg = new PromptArgument('topic', 'Topic', 'The topic of discussion.', true);
+
+        self::assertSame('topic', $arg->name);
+        self::assertSame('Topic', $arg->title);
+        self::assertSame('The topic of discussion.', $arg->description);
+        self::assertTrue($arg->required);
+    }
+
+    public function testToArrayMinimal(): void
+    {
+        $arg = new PromptArgument('topic');
+
+        self::assertSame(['name' => 'topic'], $arg->toArray());
+    }
+
+    public function testToArrayWithAllFields(): void
+    {
+        $arg = new PromptArgument('topic', 'Topic', 'The topic of discussion.', true);
+
+        self::assertSame(
+            [
+                'name' => 'topic',
+                'title' => 'Topic',
+                'description' => 'The topic of discussion.',
+                'required' => true,
+            ],
+            $arg->toArray(),
+        );
+    }
+
+    public function testJsonSerializeMatchesToArray(): void
+    {
+        $arg = new PromptArgument('topic', 'Topic', 'desc', false);
+
+        self::assertSame($arg->toArray(), $arg->jsonSerialize());
+    }
+
+    public function testFromArrayMinimal(): void
+    {
+        $arg = PromptArgument::fromArray(['name' => 'topic']);
+
+        self::assertSame('topic', $arg->name);
+    }
+
+    public function testFromArrayParsesAllFields(): void
+    {
+        $arg = PromptArgument::fromArray([
+            'name' => 'topic',
+            'title' => 'Topic',
+            'description' => 'desc',
+            'required' => true,
+        ]);
+
+        self::assertSame('Topic', $arg->title);
+        self::assertSame('desc', $arg->description);
+        self::assertTrue($arg->required);
+    }
+
+    public function testFromArrayFullRoundTrip(): void
+    {
+        $original = new PromptArgument('topic', 'Topic', 'desc', true);
+
+        $rebuilt = PromptArgument::fromArray($original->toArray());
+
+        self::assertSame($original->toArray(), $rebuilt->toArray());
+    }
+
+    public function testConstructorRejectsNameViolatingSep986(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageMatches('/\APromptArgument name must be 1-64 characters/');
+
+        new PromptArgument('bad name');
+    }
+
+    public function testConstructorRejectsEmptyDescription(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessage('PromptArgument description must be a non-empty string or null.');
+
+        new PromptArgument('topic', null, '');
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
+    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessage($expectedMessage);
+
+        PromptArgument::fromArray($payload);
+    }
+
+    /**
+     * @return iterable<string, array{array<string, mixed>, string}>
+     */
+    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    {
+        yield 'missing name' => [
+            [],
+            'PromptArgument wire data missing "name".',
+        ];
+
+        yield 'name not a string' => [
+            ['name' => 1],
+            'PromptArgument wire "name" must be a string, int given.',
+        ];
+
+        yield 'title not a string' => [
+            ['name' => 'topic', 'title' => 1],
+            'PromptArgument wire "title" must be a string or null, int given.',
+        ];
+
+        yield 'description not a string' => [
+            ['name' => 'topic', 'description' => 1],
+            'PromptArgument wire "description" must be a string or null, int given.',
+        ];
+
+        yield 'required not a bool' => [
+            ['name' => 'topic', 'required' => 'yes'],
+            'PromptArgument wire "required" must be a bool or null, string given.',
+        ];
+    }
+}

@@ -38,6 +38,8 @@ final class JsonRpcMethodRegistry
             Request\InitializeRequest::method() => Request\InitializeRequest::class,
             Request\SetLevelRequest::method() => Request\SetLevelRequest::class,
             Request\PingRequest::method() => Request\PingRequest::class,
+            Request\GetPromptRequest::method() => Request\GetPromptRequest::class,
+            Request\ListPromptsRequest::method() => Request\ListPromptsRequest::class,
             Request\ListResourcesRequest::method() => Request\ListResourcesRequest::class,
             Request\ReadResourceRequest::method() => Request\ReadResourceRequest::class,
             Request\SubscribeRequest::method() => Request\SubscribeRequest::class,

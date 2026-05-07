@@ -1,0 +1,200 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * This file is part of the Nexus MCP SDK package.
+ *
+ * (c) 2026 John Paul E. Balandan, CPA <paulbalandan@gmail.com>
+ *
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
+ */
+
+namespace Nexus\Mcp\Tests\Core\Schema\RequestParams;
+
+use Nexus\Assert\ExpectationFailedException;
+use Nexus\Mcp\Core\Schema\ProgressToken;
+use Nexus\Mcp\Core\Schema\RequestMeta;
+use Nexus\Mcp\Core\Schema\RequestParams;
+use Nexus\Mcp\Core\Schema\RequestParams\GetPromptRequestParams;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\TestCase;
+
+/**
+ * @internal
+ */
+#[CoversClass(GetPromptRequestParams::class)]
+#[CoversClass(RequestParams::class)]
+#[Group('unit-tests')]
+#[Group('core-tests')]
+final class GetPromptRequestParamsTest extends TestCase
+{
+    public function testConstructionMinimal(): void
+    {
+        $params = new GetPromptRequestParams('code-review');
+
+        self::assertSame('code-review', $params->name);
+        self::assertNull($params->arguments);
+        self::assertNull($params->meta);
+    }
+
+    public function testConstructionWithAllFields(): void
+    {
+        $meta = new RequestMeta(new ProgressToken('p-1'), ['vendor.brand' => 'acme']);
+        $params = new GetPromptRequestParams('code-review', ['topic' => 'auth'], $meta);
+
+        self::assertSame(['topic' => 'auth'], $params->arguments);
+        self::assertSame($meta, $params->meta);
+    }
+
+    public function testToArrayMinimal(): void
+    {
+        $params = new GetPromptRequestParams('code-review');
+
+        self::assertSame(['name' => 'code-review'], $params->toArray());
+    }
+
+    public function testToArrayWithArguments(): void
+    {
+        $params = new GetPromptRequestParams('code-review', ['topic' => 'auth']);
+
+        self::assertSame(
+            ['name' => 'code-review', 'arguments' => ['topic' => 'auth']],
+            $params->toArray(),
+        );
+    }
+
+    public function testToArrayWithMeta(): void
+    {
+        $meta = new RequestMeta(null, ['vendor.brand' => 'acme']);
+        $params = new GetPromptRequestParams('code-review', null, $meta);
+
+        self::assertSame(
+            ['_meta' => ['vendor.brand' => 'acme'], 'name' => 'code-review'],
+            $params->toArray(),
+        );
+    }
+
+    public function testJsonSerializeMatchesToArray(): void
+    {
+        $params = new GetPromptRequestParams('code-review', ['topic' => 'auth']);
+
+        self::assertSame($params->toArray(), $params->jsonSerialize());
+    }
+
+    public function testFromArrayMinimal(): void
+    {
+        $params = GetPromptRequestParams::fromArray(['name' => 'code-review']);
+
+        self::assertSame('code-review', $params->name);
+        self::assertNull($params->arguments);
+    }
+
+    public function testFromArrayParsesAllFields(): void
+    {
+        $params = GetPromptRequestParams::fromArray([
+            'name' => 'code-review',
+            'arguments' => ['topic' => 'auth'],
+            '_meta' => ['vendor.brand' => 'acme'],
+        ]);
+
+        self::assertSame(['topic' => 'auth'], $params->arguments);
+        self::assertNotNull($params->meta);
+        self::assertSame(['vendor.brand' => 'acme'], $params->meta->extras);
+    }
+
+    public function testFromArrayFullRoundTrip(): void
+    {
+        $original = new GetPromptRequestParams(
+            'code-review',
+            ['topic' => 'auth'],
+            new RequestMeta(null, ['vendor.brand' => 'acme']),
+        );
+
+        $rebuilt = GetPromptRequestParams::fromArray($original->toArray());
+
+        self::assertSame($original->toArray(), $rebuilt->toArray());
+    }
+
+    public function testConstructorRejectsNameViolatingSep986(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageMatches('/\AGetPromptRequestParams name must be 1-64 characters/');
+
+        new GetPromptRequestParams('bad name');
+    }
+
+    public function testConstructorRejectsListKeyedArguments(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessage('GetPromptRequestParams arguments must be a string-keyed map.');
+
+        // @phpstan-ignore argument.type
+        new GetPromptRequestParams('topic', ['v1', 'v2']);
+    }
+
+    public function testConstructorRejectsNonStringArgumentValue(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessage('GetPromptRequestParams arguments values must all be strings, int given.');
+
+        // @phpstan-ignore argument.type
+        new GetPromptRequestParams('topic', ['k' => 1]);
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
+    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessage($expectedMessage);
+
+        GetPromptRequestParams::fromArray($payload);
+    }
+
+    /**
+     * @return iterable<string, array{array<string, mixed>, string}>
+     */
+    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    {
+        yield 'missing name' => [
+            [],
+            'GetPromptRequestParams wire data missing "name".',
+        ];
+
+        yield 'name not a string' => [
+            ['name' => 1],
+            'GetPromptRequestParams wire "name" must be a string, int given.',
+        ];
+
+        yield 'arguments not an object' => [
+            ['name' => 'topic', 'arguments' => 'oops'],
+            'GetPromptRequestParams wire "arguments" must be an object, string given.',
+        ];
+
+        yield 'arguments list-keyed' => [
+            ['name' => 'topic', 'arguments' => ['v']],
+            'GetPromptRequestParams wire "arguments" must be a string-keyed object.',
+        ];
+
+        yield 'argument value not a string' => [
+            ['name' => 'topic', 'arguments' => ['k' => 1]],
+            'GetPromptRequestParams wire argument value must be a string, int given.',
+        ];
+
+        yield '_meta not an object' => [
+            ['name' => 'topic', '_meta' => 'oops'],
+            'Request params "_meta" must be an object, string given.',
+        ];
+
+        yield '_meta list-keyed' => [
+            ['name' => 'topic', '_meta' => ['v']],
+            'Request params "_meta" must be a string-keyed object.',
+        ];
+    }
+}

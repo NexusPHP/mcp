@@ -32,6 +32,8 @@ final class Sep986NameValidator
      * @param non-empty-string $context label prefix for the error message (e.g. "Resource", "Tool")
      *
      * @throws ExpectationFailedException when `$name` does not match the SEP-986 pattern
+     *
+     * @phpstan-assert non-empty-string $name
      */
     public static function validate(string $name, string $context): void
     {

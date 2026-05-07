@@ -28,7 +28,9 @@ use Nexus\Mcp\Core\Schema\Notification\ResourceListChangedNotification;
 use Nexus\Mcp\Core\Schema\Notification\ResourceUpdatedNotification;
 use Nexus\Mcp\Core\Schema\Notification\RootsListChangedNotification;
 use Nexus\Mcp\Core\Schema\Notification\ToolListChangedNotification;
+use Nexus\Mcp\Core\Schema\Request\GetPromptRequest;
 use Nexus\Mcp\Core\Schema\Request\InitializeRequest;
+use Nexus\Mcp\Core\Schema\Request\ListPromptsRequest;
 use Nexus\Mcp\Core\Schema\Request\ListResourcesRequest;
 use Nexus\Mcp\Core\Schema\Request\ListResourceTemplatesRequest;
 use Nexus\Mcp\Core\Schema\Request\ListRootsRequest;
@@ -40,7 +42,9 @@ use Nexus\Mcp\Core\Schema\Request\UnsubscribeRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
+use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
 use Nexus\Mcp\Core\Schema\Result\InitializeResult;
+use Nexus\Mcp\Core\Schema\Result\ListPromptsResult;
 use Nexus\Mcp\Core\Schema\Result\ListResourcesResult;
 use Nexus\Mcp\Core\Schema\Result\ListResourceTemplatesResult;
 use Nexus\Mcp\Core\Schema\Result\ListRootsResult;
@@ -141,6 +145,10 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
 
         yield 'InitializeRequest' => ['wrapper' => InitializeRequest::class, 'inner' => null];
 
+        yield 'GetPromptRequest' => ['wrapper' => GetPromptRequest::class, 'inner' => null];
+
+        yield 'ListPromptsRequest' => ['wrapper' => ListPromptsRequest::class, 'inner' => null];
+
         yield 'ListResourcesRequest' => ['wrapper' => ListResourcesRequest::class, 'inner' => null];
 
         yield 'ListResourceTemplatesRequest' => ['wrapper' => ListResourceTemplatesRequest::class, 'inner' => null];
@@ -175,7 +183,11 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
         // Result responses, parameterized by the inner Result subclass.
         yield 'JsonRpcResultResponse-EmptyResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => EmptyResult::class];
 
+        yield 'JsonRpcResultResponse-GetPromptResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => GetPromptResult::class];
+
         yield 'JsonRpcResultResponse-InitializeResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => InitializeResult::class];
+
+        yield 'JsonRpcResultResponse-ListPromptsResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => ListPromptsResult::class];
 
         yield 'JsonRpcResultResponse-ListResourcesResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => ListResourcesResult::class];
 

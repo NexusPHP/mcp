@@ -1,0 +1,11 @@
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "prompts": [
+            {
+                "name": "code-review"
+            }
+        ]
+    }
+}

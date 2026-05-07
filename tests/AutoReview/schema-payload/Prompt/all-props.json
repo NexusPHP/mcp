@@ -1,0 +1,19 @@
+{
+    "name": "code-review",
+    "title": "Code Review",
+    "description": "Reviews changes against the project guidelines.",
+    "arguments": [
+        {
+            "name": "topic",
+            "title": "Topic"
+        }
+    ],
+    "icons": [
+        {
+            "src": "https://example.com/icon.png"
+        }
+    ],
+    "_meta": {
+        "vendor.brand": "acme"
+    }
+}

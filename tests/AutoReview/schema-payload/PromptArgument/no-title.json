@@ -1,0 +1,5 @@
+{
+    "name": "topic",
+    "description": "The topic of discussion.",
+    "required": true
+}
