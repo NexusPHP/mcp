@@ -1,0 +1,22 @@
+{
+    "name": "sample-link",
+    "type": "resource_link",
+    "uri": "file:///tmp/sample.txt",
+    "title": "Sample Link",
+    "description": "A sample resource link for fixture round-trip tests.",
+    "annotations": {
+        "audience": [
+            "user"
+        ],
+        "priority": 0.5
+    },
+    "size": 1024.5,
+    "icons": [
+        {
+            "src": "https://example.com/icon.png"
+        }
+    ],
+    "_meta": {
+        "vendor.brand": "acme"
+    }
+}

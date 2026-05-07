@@ -1,0 +1,14 @@
+{
+    "data": "iVBORw0KGgoAAAANSUhEUg==",
+    "mimeType": "image/png",
+    "type": "image",
+    "annotations": {
+        "audience": [
+            "user"
+        ],
+        "priority": 0.5
+    },
+    "_meta": {
+        "vendor.brand": "acme"
+    }
+}

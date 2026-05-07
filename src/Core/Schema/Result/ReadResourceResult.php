@@ -16,6 +16,8 @@ namespace Nexus\Mcp\Core\Schema\Result;
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Meta;
 use Nexus\Mcp\Core\Schema\ResourceContents;
+use Nexus\Mcp\Core\Schema\ResourceContents\BlobResourceContents;
+use Nexus\Mcp\Core\Schema\ResourceContents\TextResourceContents;
 use Nexus\Mcp\Core\Schema\Result;
 
 /**
@@ -26,12 +28,12 @@ use Nexus\Mcp\Core\Schema\Result;
 final readonly class ReadResourceResult extends Result implements ServerResult
 {
     /**
-     * @var list<ResourceContents>
+     * @var list<BlobResourceContents|TextResourceContents>
      */
     public array $contents;
 
     /**
-     * @param list<ResourceContents> $contents
+     * @param list<BlobResourceContents|TextResourceContents> $contents
      */
     public function __construct(array $contents, ?Meta $meta = null)
     {

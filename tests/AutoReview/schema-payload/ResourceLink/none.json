@@ -1,0 +1,5 @@
+{
+    "name": "sample-link",
+    "type": "resource_link",
+    "uri": "file:///tmp/sample.txt"
+}

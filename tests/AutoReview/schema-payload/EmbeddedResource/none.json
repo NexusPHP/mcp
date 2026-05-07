@@ -1,0 +1,7 @@
+{
+    "resource": {
+        "uri": "file:///tmp/sample.txt",
+        "text": "hello"
+    },
+    "type": "resource"
+}

@@ -1,0 +1,14 @@
+{
+    "data": "SUQzAwAAAAAAAA==",
+    "mimeType": "audio/mp3",
+    "type": "audio",
+    "annotations": {
+        "audience": [
+            "user"
+        ],
+        "priority": 0.5
+    },
+    "_meta": {
+        "vendor.brand": "acme"
+    }
+}

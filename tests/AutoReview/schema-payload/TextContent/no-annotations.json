@@ -1,0 +1,7 @@
+{
+    "text": "Hello, world.",
+    "type": "text",
+    "_meta": {
+        "vendor.brand": "acme"
+    }
+}

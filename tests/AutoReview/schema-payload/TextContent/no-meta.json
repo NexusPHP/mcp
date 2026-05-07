@@ -1,0 +1,10 @@
+{
+    "text": "Hello, world.",
+    "type": "text",
+    "annotations": {
+        "audience": [
+            "user"
+        ],
+        "priority": 0.5
+    }
+}

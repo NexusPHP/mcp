@@ -58,13 +58,14 @@ abstract readonly class ResourceContents implements Arrayable
      * Discriminates the wire payload by the presence of `text` vs `blob` and
      * dispatches to the matching concrete subclass. Used by consumers like
      * `ReadResourceResult` and `EmbeddedResource` that carry a structurally
-     * tagged union.
+     * tagged union; the narrowed return type lets IDEs and PHPStan resolve
+     * `text` / `blob` on the result without an explicit `instanceof` check.
      *
      * @param array<string, mixed> $data
      *
      * @throws ExpectationFailedException when neither (or both) discriminators are present
      */
-    public static function from(array $data): self
+    public static function from(array $data): BlobResourceContents|TextResourceContents
     {
         if (\array_key_exists('text', $data) && \array_key_exists('blob', $data)) {
             throw new ExpectationFailedException('ResourceContents wire data must not have both "text" and "blob".');
