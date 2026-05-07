@@ -64,15 +64,7 @@ final readonly class ListRootsResult extends Result implements ClientResult
             $roots[] = Root::fromArray($rootData);
         }
 
-        $meta = null;
-
-        if (\array_key_exists('_meta', $data)) {
-            Assert::that($data['_meta'])
-                ->isArray('Result "_meta" must be an object, {type} given.')
-                ->isMap('Result "_meta" must be a string-keyed object.')
-            ;
-            $meta = Meta::fromArray($data['_meta']);
-        }
+        $meta = Meta::parseFromWire($data, 'Result');
 
         return new self($roots, $meta);
     }

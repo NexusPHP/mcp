@@ -74,15 +74,7 @@ final readonly class EmbeddedResource implements Arrayable, ContentBlock
             $annotations = Annotations::fromArray($data['annotations']);
         }
 
-        $meta = null;
-
-        if (\array_key_exists('_meta', $data)) {
-            Assert::that($data['_meta'])
-                ->isArray('EmbeddedResource "_meta" must be an object, {type} given.')
-                ->isMap('EmbeddedResource "_meta" must be a string-keyed object.')
-            ;
-            $meta = Meta::fromArray($data['_meta']);
-        }
+        $meta = Meta::parseFromWire($data, 'EmbeddedResource');
 
         return new self($resource, $annotations, $meta);
     }

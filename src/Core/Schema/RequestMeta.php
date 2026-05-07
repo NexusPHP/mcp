@@ -48,6 +48,28 @@ final readonly class RequestMeta implements Arrayable
         return new self($progressToken, $data);
     }
 
+    /**
+     * Reads the optional `_meta` slot from a parent wire payload, validating
+     * its shape. Returns `null` when the key is absent. The `$context` prefix
+     * scopes the error message to the calling shape (e.g. `"Request params"`).
+     *
+     * @param array<string, mixed> $data
+     * @param non-empty-string     $context
+     */
+    public static function parseFromWire(array $data, string $context): ?self
+    {
+        if (! \array_key_exists('_meta', $data)) {
+            return null;
+        }
+
+        Assert::that($data['_meta'])
+            ->isArray(\sprintf('%s "_meta" must be an object, {type} given.', $context))
+            ->isMap(\sprintf('%s "_meta" must be a string-keyed object.', $context))
+        ;
+
+        return self::fromArray($data['_meta']);
+    }
+
     #[\Override]
     public function toArray(): array
     {

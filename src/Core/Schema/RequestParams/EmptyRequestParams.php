@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Schema\RequestParams;
 
-use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\RequestMeta;
 use Nexus\Mcp\Core\Schema\RequestParams;
 
@@ -32,15 +31,7 @@ final readonly class EmptyRequestParams extends RequestParams
     #[\Override]
     public static function fromArray(array $data): static
     {
-        $meta = null;
-
-        if (\array_key_exists('_meta', $data)) {
-            Assert::that($data['_meta'])
-                ->isArray('Request params "_meta" must be an object, {type} given.')
-                ->isMap('Request params "_meta" must be a string-keyed object.')
-            ;
-            $meta = RequestMeta::fromArray($data['_meta']);
-        }
+        $meta = RequestMeta::parseFromWire($data, 'Request params');
 
         return new self($meta);
     }

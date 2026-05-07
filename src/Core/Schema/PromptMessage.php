@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Core\Schema;
 
 use Nexus\Assert\Assert;
 use Nexus\Assert\ExpectationFailedException;
+use Nexus\Mcp\Core\JsonRpc\WireDiscriminator;
 use Nexus\Mcp\Core\Schema\ContentBlock\AudioContent;
 use Nexus\Mcp\Core\Schema\ContentBlock\EmbeddedResource;
 use Nexus\Mcp\Core\Schema\ContentBlock\ImageContent;
@@ -76,9 +77,7 @@ final readonly class PromptMessage implements Arrayable
 
     /**
      * Discriminates the content payload by its `type` field and dispatches to
-     * the matching `ContentBlock` subclass. Inlined here pending a second
-     * consumer (`CallToolResult.content`); when that lands, extract to a
-     * shared helper rather than duplicate this match.
+     * the matching `ContentBlock` subclass.
      *
      * @param array<string, mixed> $data
      *
@@ -86,9 +85,7 @@ final readonly class PromptMessage implements Arrayable
      */
     private static function dispatchContent(array $data): AudioContent|EmbeddedResource|ImageContent|ResourceLink|TextContent
     {
-        Assert::that($data)->hasOffset('type', 'PromptMessage content wire data missing "type".');
-        $type = $data['type'];
-        Assert::that($type)->isString('PromptMessage content wire "type" must be a string, {type} given.');
+        $type = WireDiscriminator::readType($data, 'PromptMessage content');
 
         return match ($type) {
             TextContent::TYPE => TextContent::fromArray($data),
@@ -96,10 +93,11 @@ final readonly class PromptMessage implements Arrayable
             AudioContent::TYPE => AudioContent::fromArray($data),
             ResourceLink::TYPE => ResourceLink::fromArray($data),
             EmbeddedResource::TYPE => EmbeddedResource::fromArray($data),
-            default => throw new ExpectationFailedException(\sprintf(
-                'PromptMessage content wire "type" must be one of "text", "image", "audio", "resource_link", "resource"; "%s" given.',
+            default => throw WireDiscriminator::unknownType(
+                'PromptMessage content',
+                [TextContent::TYPE, ImageContent::TYPE, AudioContent::TYPE, ResourceLink::TYPE, EmbeddedResource::TYPE],
                 $type,
-            )),
+            ),
         };
     }
 }

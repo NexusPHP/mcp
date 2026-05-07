@@ -76,15 +76,7 @@ final readonly class GetPromptResult extends Result implements ServerResult
         $description = $data['description'] ?? null;
         Assert::that($description)->nullOr()->isString('GetPromptResult wire "description" must be a string or null, {type} given.');
 
-        $meta = null;
-
-        if (\array_key_exists('_meta', $data)) {
-            Assert::that($data['_meta'])
-                ->isArray('Result "_meta" must be an object, {type} given.')
-                ->isMap('Result "_meta" must be a string-keyed object.')
-            ;
-            $meta = Meta::fromArray($data['_meta']);
-        }
+        $meta = Meta::parseFromWire($data, 'Result');
 
         return new self($messages, $description, $meta);
     }

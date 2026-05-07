@@ -66,15 +66,7 @@ final readonly class TextContent implements Arrayable, ContentBlock
             $annotations = Annotations::fromArray($data['annotations']);
         }
 
-        $meta = null;
-
-        if (\array_key_exists('_meta', $data)) {
-            Assert::that($data['_meta'])
-                ->isArray('TextContent "_meta" must be an object, {type} given.')
-                ->isMap('TextContent "_meta" must be a string-keyed object.')
-            ;
-            $meta = Meta::fromArray($data['_meta']);
-        }
+        $meta = Meta::parseFromWire($data, 'TextContent');
 
         return new self($text, $annotations, $meta);
     }

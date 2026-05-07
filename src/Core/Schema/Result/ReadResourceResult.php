@@ -67,15 +67,7 @@ final readonly class ReadResourceResult extends Result implements ServerResult
             $contents[] = ResourceContents::from($entry);
         }
 
-        $meta = null;
-
-        if (\array_key_exists('_meta', $data)) {
-            Assert::that($data['_meta'])
-                ->isArray('Result "_meta" must be an object, {type} given.')
-                ->isMap('Result "_meta" must be a string-keyed object.')
-            ;
-            $meta = Meta::fromArray($data['_meta']);
-        }
+        $meta = Meta::parseFromWire($data, 'Result');
 
         return new self($contents, $meta);
     }

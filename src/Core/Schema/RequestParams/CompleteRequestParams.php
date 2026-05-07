@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Core\Schema\RequestParams;
 
 use Nexus\Assert\Assert;
 use Nexus\Assert\ExpectationFailedException;
+use Nexus\Mcp\Core\JsonRpc\WireDiscriminator;
 use Nexus\Mcp\Core\Schema\PromptReference;
 use Nexus\Mcp\Core\Schema\RequestMeta;
 use Nexus\Mcp\Core\Schema\RequestParams;
@@ -116,15 +117,7 @@ final readonly class CompleteRequestParams extends RequestParams
             }
         }
 
-        $meta = null;
-
-        if (\array_key_exists('_meta', $data)) {
-            Assert::that($data['_meta'])
-                ->isArray('Request params "_meta" must be an object, {type} given.')
-                ->isMap('Request params "_meta" must be a string-keyed object.')
-            ;
-            $meta = RequestMeta::fromArray($data['_meta']);
-        }
+        $meta = RequestMeta::parseFromWire($data, 'Request params');
 
         return new self(
             self::dispatchRef($data['ref']),
@@ -163,19 +156,16 @@ final readonly class CompleteRequestParams extends RequestParams
      */
     private static function dispatchRef(array $data): PromptReference|ResourceTemplateReference
     {
-        Assert::that($data)->hasOffset('type', 'CompleteRequestParams ref wire data missing "type".');
-        $type = $data['type'];
-        Assert::that($type)->isString('CompleteRequestParams ref wire "type" must be a string, {type} given.');
+        $type = WireDiscriminator::readType($data, 'CompleteRequestParams ref');
 
         return match ($type) {
             PromptReference::TYPE => PromptReference::fromArray($data),
             ResourceTemplateReference::TYPE => ResourceTemplateReference::fromArray($data),
-            default => throw new ExpectationFailedException(\sprintf(
-                'CompleteRequestParams ref wire "type" must be one of "%s", "%s"; "%s" given.',
-                PromptReference::TYPE,
-                ResourceTemplateReference::TYPE,
+            default => throw WireDiscriminator::unknownType(
+                'CompleteRequestParams ref',
+                [PromptReference::TYPE, ResourceTemplateReference::TYPE],
                 $type,
-            )),
+            ),
         };
     }
 }

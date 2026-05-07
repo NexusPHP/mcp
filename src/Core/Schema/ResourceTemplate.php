@@ -137,15 +137,7 @@ final readonly class ResourceTemplate extends BaseMetadata implements Arrayable,
             }
         }
 
-        $meta = null;
-
-        if (\array_key_exists('_meta', $data)) {
-            Assert::that($data['_meta'])
-                ->isArray('ResourceTemplate "_meta" must be an object, {type} given.')
-                ->isMap('ResourceTemplate "_meta" must be a string-keyed object.')
-            ;
-            $meta = Meta::fromArray($data['_meta']);
-        }
+        $meta = Meta::parseFromWire($data, 'ResourceTemplate');
 
         return new self($name, $uriTemplate, $title, $description, $mimeType, $annotations, $icons, $meta);
     }

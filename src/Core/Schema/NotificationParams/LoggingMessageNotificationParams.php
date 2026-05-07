@@ -49,15 +49,7 @@ final readonly class LoggingMessageNotificationParams extends NotificationParams
         $logger = $data['logger'] ?? null;
         Assert::that($logger)->nullOr()->isString('LoggingMessageNotificationParams wire "logger" must be a string or null, {type} given.');
 
-        $meta = null;
-
-        if (\array_key_exists('_meta', $data)) {
-            Assert::that($data['_meta'])
-                ->isArray('Notification params "_meta" must be an object, {type} given.')
-                ->isMap('Notification params "_meta" must be a string-keyed object.')
-            ;
-            $meta = Meta::fromArray($data['_meta']);
-        }
+        $meta = Meta::parseFromWire($data, 'Notification params');
 
         return new self(LoggingLevel::from($level), $data['data'], $logger, $meta);
     }
