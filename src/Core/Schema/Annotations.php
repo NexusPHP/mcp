@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Core\Schema;
 
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Enum\Role;
+use Nexus\Mcp\Core\Validation\Iso8601DateTimeValidator;
 
 /**
  * Optional annotations for the client. The client can use annotations to inform how objects are
@@ -32,35 +33,30 @@ final readonly class Annotations implements Arrayable
 {
     use ParsesNumber;
 
-    /**
-     * @var null|list<Role>
-     */
-    public ?array $audience;
-
-    public ?float $priority;
     public ?\DateTimeImmutable $lastModified;
 
     /**
      * @param null|list<Role> $audience
      */
-    public function __construct(?array $audience = null, ?float $priority = null, ?string $lastModified = null)
-    {
-        if (null !== $audience) {
-            foreach ($audience as $role) {
+    public function __construct(
+        public ?array $audience = null,
+        public ?float $priority = null,
+        ?string $lastModified = null,
+    ) {
+        if (null !== $this->audience) {
+            foreach ($this->audience as $role) {
                 Assert::that($role)->isInstanceOf(Role::class);
             }
         }
 
-        if (null !== $priority && ($priority < 0.0 || $priority > 1.0)) {
+        if (null !== $this->priority && ($this->priority < 0.0 || $this->priority > 1.0)) {
             throw new \InvalidArgumentException('Priority must be between 0.0 and 1.0.');
         }
 
         if (null !== $lastModified) {
-            $lastModified = self::parseLastModified($lastModified);
+            $lastModified = Iso8601DateTimeValidator::parse($lastModified, 'Last modified');
         }
 
-        $this->audience = $audience;
-        $this->priority = $priority;
         $this->lastModified = $lastModified;
     }
 
@@ -121,30 +117,5 @@ final readonly class Annotations implements Arrayable
         $data = $this->toArray();
 
         return [] === $data ? new \stdClass() : $data;
-    }
-
-    private static function parseLastModified(string $lastModified): \DateTimeImmutable
-    {
-        if (str_contains($lastModified, "\0")) {
-            throw new \InvalidArgumentException('Last modified must not contain NULL bytes.');
-        }
-
-        $parsed = \DateTimeImmutable::createFromFormat(\DateTimeInterface::RFC3339_EXTENDED, $lastModified);
-
-        if (false === $parsed) {
-            $parsed = \DateTimeImmutable::createFromFormat(\DateTimeInterface::RFC3339, $lastModified);
-        }
-
-        if (false === $parsed) {
-            throw new \InvalidArgumentException('Last modified must be a valid ISO 8601 datetime.');
-        }
-
-        $errors = \DateTimeImmutable::getLastErrors();
-
-        if (false !== $errors && [] !== $errors['warnings']) {
-            throw new \InvalidArgumentException(implode('; ', $errors['warnings']).'.');
-        }
-
-        return $parsed;
     }
 }

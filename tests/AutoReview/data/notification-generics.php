@@ -19,6 +19,7 @@ use Nexus\Mcp\Core\Schema\Notification\PromptListChangedNotification;
 use Nexus\Mcp\Core\Schema\Notification\ResourceListChangedNotification;
 use Nexus\Mcp\Core\Schema\Notification\ResourceUpdatedNotification;
 use Nexus\Mcp\Core\Schema\Notification\RootsListChangedNotification;
+use Nexus\Mcp\Core\Schema\Notification\TaskStatusNotification;
 use Nexus\Mcp\Core\Schema\Notification\ToolListChangedNotification;
 
 use function PHPStan\Testing\assertType;
@@ -31,4 +32,5 @@ assertType('\'notifications/prompts/list_changed\'', PromptListChangedNotificati
 assertType('\'notifications/resources/list_changed\'', ResourceListChangedNotification::method());
 assertType('\'notifications/resources/updated\'', ResourceUpdatedNotification::method());
 assertType('\'notifications/roots/list_changed\'', RootsListChangedNotification::method());
+assertType('\'notifications/tasks/status\'', TaskStatusNotification::method());
 assertType('\'notifications/tools/list_changed\'', ToolListChangedNotification::method());

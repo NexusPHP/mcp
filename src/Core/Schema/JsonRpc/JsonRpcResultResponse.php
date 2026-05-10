@@ -46,7 +46,7 @@ final readonly class JsonRpcResultResponse implements \JsonSerializable, JsonRpc
     }
 
     /**
-     * @return array{jsonrpc: '2.0', id: int|non-empty-string, result: array<string, mixed>}
+     * @return array{jsonrpc: '2.0', id: int|non-empty-string, result: array<string, mixed>|\stdClass}
      */
     #[\Override]
     public function jsonSerialize(): array

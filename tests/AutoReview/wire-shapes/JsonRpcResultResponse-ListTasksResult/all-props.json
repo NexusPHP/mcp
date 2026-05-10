@@ -1,0 +1,19 @@
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "_meta": {
+            "vendor.brand": "acme"
+        },
+        "nextCursor": "cursor-2",
+        "tasks": [
+            {
+                "taskId": "task-abc",
+                "status": "completed",
+                "createdAt": "2026-05-10T12:00:00+00:00",
+                "lastUpdatedAt": "2026-05-10T12:01:00+00:00",
+                "ttl": 60000
+            }
+        ]
+    }
+}

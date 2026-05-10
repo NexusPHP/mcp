@@ -58,11 +58,6 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
     public ?array $outputSchema;
 
     /**
-     * @var null|list<Icon>
-     */
-    public ?array $icons;
-
-    /**
      * @param array<string, mixed>      $inputSchema
      * @param null|array<string, mixed> $outputSchema
      * @param null|list<Icon>           $icons
@@ -75,7 +70,7 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
         ?array $outputSchema = null,
         public ?ToolAnnotations $annotations = null,
         public ?ToolExecution $execution = null,
-        ?array $icons = null,
+        public ?array $icons = null,
         public ?Meta $meta = null,
     ) {
         parent::__construct($name, $title);
@@ -83,8 +78,8 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
         IdentifierNameValidator::validate($name, 'Tool');
         Assert::that($description)->nullOr()->isNonEmptyString('Tool description must be a non-empty string or null.');
 
-        if (null !== $icons) {
-            foreach ($icons as $icon) {
+        if (null !== $this->icons) {
+            foreach ($this->icons as $icon) {
                 Assert::that($icon)->isInstanceOf(Icon::class);
             }
         }
@@ -92,7 +87,6 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
         $this->description = $description;
         $this->inputSchema = self::projectSchemaEnvelope($inputSchema, 'Tool inputSchema');
         $this->outputSchema = null === $outputSchema ? null : self::projectSchemaEnvelope($outputSchema, 'Tool outputSchema');
-        $this->icons = $icons;
     }
 
     /**

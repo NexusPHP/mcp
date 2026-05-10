@@ -1,0 +1,11 @@
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "taskId": "task-abc",
+        "status": "working",
+        "createdAt": "2026-05-10T12:00:00+00:00",
+        "lastUpdatedAt": "2026-05-10T12:00:30+00:00",
+        "ttl": null
+    }
+}

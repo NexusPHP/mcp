@@ -18,7 +18,7 @@ namespace Nexus\Mcp\Core\Schema;
  * Concrete subclasses define the method-specific fields; this base only
  * threads the typed `_meta`.
  *
- * @implements Arrayable<array{_meta?: template-type<Meta, Arrayable, 'T'>, ...}>
+ * @implements Arrayable<array<string, mixed>>
  *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#result
  */
@@ -51,8 +51,10 @@ abstract readonly class Result implements Arrayable
     }
 
     #[\Override]
-    public function jsonSerialize(): array
+    public function jsonSerialize(): array|\stdClass
     {
-        return $this->toArray();
+        $data = $this->toArray();
+
+        return [] === $data ? new \stdClass() : $data;
     }
 }

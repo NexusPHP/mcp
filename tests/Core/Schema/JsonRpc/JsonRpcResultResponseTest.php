@@ -62,7 +62,7 @@ final class JsonRpcResultResponseTest extends TestCase
 
     public function testJsonSerializeMatchesToArrayForLeafResult(): void
     {
-        $response = new JsonRpcResultResponse(new RequestId(1), new EmptyResult());
+        $response = new JsonRpcResultResponse(new RequestId(1), new EmptyResult(new Meta(['vendor' => 'x'])));
 
         self::assertSame($response->toArray(), $response->jsonSerialize());
     }

@@ -12,13 +12,17 @@ declare(strict_types=1);
  */
 
 use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
+use Nexus\Mcp\Core\Schema\Request\CancelTaskRequest;
 use Nexus\Mcp\Core\Schema\Request\CompleteRequest;
 use Nexus\Mcp\Core\Schema\Request\GetPromptRequest;
+use Nexus\Mcp\Core\Schema\Request\GetTaskPayloadRequest;
+use Nexus\Mcp\Core\Schema\Request\GetTaskRequest;
 use Nexus\Mcp\Core\Schema\Request\InitializeRequest;
 use Nexus\Mcp\Core\Schema\Request\ListPromptsRequest;
 use Nexus\Mcp\Core\Schema\Request\ListResourcesRequest;
 use Nexus\Mcp\Core\Schema\Request\ListResourceTemplatesRequest;
 use Nexus\Mcp\Core\Schema\Request\ListRootsRequest;
+use Nexus\Mcp\Core\Schema\Request\ListTasksRequest;
 use Nexus\Mcp\Core\Schema\Request\ListToolsRequest;
 use Nexus\Mcp\Core\Schema\Request\PingRequest;
 use Nexus\Mcp\Core\Schema\Request\ReadResourceRequest;
@@ -40,5 +44,9 @@ assertType('\'resources/subscribe\'', SubscribeRequest::method());
 assertType('\'resources/templates/list\'', ListResourceTemplatesRequest::method());
 assertType('\'resources/unsubscribe\'', UnsubscribeRequest::method());
 assertType('\'roots/list\'', ListRootsRequest::method());
+assertType('\'tasks/cancel\'', CancelTaskRequest::method());
+assertType('\'tasks/get\'', GetTaskRequest::method());
+assertType('\'tasks/list\'', ListTasksRequest::method());
+assertType('\'tasks/result\'', GetTaskPayloadRequest::method());
 assertType('\'tools/call\'', CallToolRequest::method());
 assertType('\'tools/list\'', ListToolsRequest::method());

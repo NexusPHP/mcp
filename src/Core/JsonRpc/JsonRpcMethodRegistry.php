@@ -47,6 +47,10 @@ final class JsonRpcMethodRegistry
             Request\ListResourceTemplatesRequest::method() => Request\ListResourceTemplatesRequest::class,
             Request\UnsubscribeRequest::method() => Request\UnsubscribeRequest::class,
             Request\ListRootsRequest::method() => Request\ListRootsRequest::class,
+            Request\CancelTaskRequest::method() => Request\CancelTaskRequest::class,
+            Request\GetTaskRequest::method() => Request\GetTaskRequest::class,
+            Request\ListTasksRequest::method() => Request\ListTasksRequest::class,
+            Request\GetTaskPayloadRequest::method() => Request\GetTaskPayloadRequest::class,
             Request\CallToolRequest::method() => Request\CallToolRequest::class,
             Request\ListToolsRequest::method() => Request\ListToolsRequest::class,
         ];
@@ -66,6 +70,7 @@ final class JsonRpcMethodRegistry
             Notification\ResourceListChangedNotification::method() => Notification\ResourceListChangedNotification::class,
             Notification\ResourceUpdatedNotification::method() => Notification\ResourceUpdatedNotification::class,
             Notification\RootsListChangedNotification::method() => Notification\RootsListChangedNotification::class,
+            Notification\TaskStatusNotification::method() => Notification\TaskStatusNotification::class,
             Notification\ToolListChangedNotification::method() => Notification\ToolListChangedNotification::class,
         ];
     }

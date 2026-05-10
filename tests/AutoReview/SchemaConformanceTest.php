@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\AutoReview;
 
+use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\BaseMetadata;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
@@ -37,7 +38,10 @@ use Nexus\Mcp\Core\Schema\Request\ClientRequest;
 use Nexus\Mcp\Core\Schema\Request\ServerRequest;
 use Nexus\Mcp\Core\Schema\RequestMeta;
 use Nexus\Mcp\Core\Schema\RequestParams;
+use Nexus\Mcp\Core\Schema\RequestParams\CancelTaskRequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
+use Nexus\Mcp\Core\Schema\RequestParams\GetTaskPayloadRequestParams;
+use Nexus\Mcp\Core\Schema\RequestParams\GetTaskRequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\PaginatedRequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\ResourceRequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\TaskAugmentedRequestParams;
@@ -101,6 +105,9 @@ final class SchemaConformanceTest extends TestCase
         ResourceRequestParams::class => self::TS_SCHEMA_FILE_URL,
         TaskAugmentedRequestParams::class => self::TS_SCHEMA_FILE_URL,
         TaskSupport::class => self::TS_SCHEMA_FILE_URL,
+        GetTaskRequestParams::class => 'https://modelcontextprotocol.io/specification/2025-11-25/schema#gettaskrequest',
+        GetTaskPayloadRequestParams::class => 'https://modelcontextprotocol.io/specification/2025-11-25/schema#gettaskpayloadrequest',
+        CancelTaskRequestParams::class => 'https://modelcontextprotocol.io/specification/2025-11-25/schema#canceltaskrequest',
         ClientNotification::class => self::TS_SCHEMA_FILE_URL,
         ServerNotification::class => self::TS_SCHEMA_FILE_URL,
         ClientRequest::class => self::TS_SCHEMA_FILE_URL,
@@ -242,7 +249,16 @@ final class SchemaConformanceTest extends TestCase
                 }
             }
 
-            foreach (self::diffPropertiesAgainstSpec($reflection, $specRequiredKeys, $specOptionalKeys) as $finding) {
+            $typedSpecProperties = [];
+
+            foreach ($specProperties as $propertyName => $propertyShape) {
+                if (\is_string($propertyName)) {
+                    Assert::that($propertyShape)->isMap('Spec property shape must be a string-keyed object.');
+                    $typedSpecProperties[$propertyName] = $propertyShape;
+                }
+            }
+
+            foreach (self::diffPropertiesAgainstSpec($reflection, $specRequiredKeys, $specOptionalKeys, $typedSpecProperties) as $finding) {
                 $findings[] = '[property structure] '.$finding;
             }
 
@@ -586,9 +602,10 @@ final class SchemaConformanceTest extends TestCase
      * or static method (jsonrpc, method) are always-required and verified
      * to exist on the class.
      *
-     * @param \ReflectionClass<object> $reflection
-     * @param list<string>             $specRequired
-     * @param list<string>             $specOptional
+     * @param \ReflectionClass<object>            $reflection
+     * @param list<string>                        $specRequired
+     * @param list<string>                        $specOptional
+     * @param array<string, array<string, mixed>> $specProperties
      *
      * @return list<string>
      */
@@ -596,6 +613,7 @@ final class SchemaConformanceTest extends TestCase
         \ReflectionClass $reflection,
         array $specRequired,
         array $specOptional,
+        array $specProperties = [],
     ): array {
         $findings = [];
         $constructor = $reflection->getConstructor();
@@ -609,6 +627,8 @@ final class SchemaConformanceTest extends TestCase
 
         foreach ([...$specRequired, ...$specOptional] as $key) {
             $isRequired = \in_array($key, $specRequired, true);
+            $specType = $specProperties[$key]['type'] ?? null;
+            $specAllowsNull = \is_array($specType) && \in_array('null', $specType, true);
 
             if (isset(self::SPEC_KEY_TO_NON_PROPERTY_REPRESENTATION[$key])) {
                 $rep = self::SPEC_KEY_TO_NON_PROPERTY_REPRESENTATION[$key];
@@ -691,7 +711,7 @@ final class SchemaConformanceTest extends TestCase
                     );
                 }
 
-                if ($allowsNull && ! $isMixed) {
+                if ($allowsNull && ! $isMixed && ! $specAllowsNull) {
                     $findings[] = \sprintf(
                         'spec \'%s\' is required but %s is nullable; remove the \'?\' from its type.',
                         $key,
