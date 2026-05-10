@@ -18,6 +18,7 @@ use Nexus\Mcp\Core\Schema\Annotations;
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\ContentBlock;
 use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\Sampling\SamplingMessageContentBlock;
 
 /**
  * Audio provided to or from an LLM.
@@ -32,7 +33,7 @@ use Nexus\Mcp\Core\Schema\Meta;
  *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#audiocontent
  */
-final readonly class AudioContent implements Arrayable, ContentBlock
+final readonly class AudioContent implements Arrayable, ContentBlock, SamplingMessageContentBlock
 {
     public const string TYPE = 'audio';
 

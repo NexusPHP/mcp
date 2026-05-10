@@ -1,0 +1,187 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * This file is part of the Nexus MCP SDK package.
+ *
+ * (c) 2026 John Paul E. Balandan, CPA <paulbalandan@gmail.com>
+ *
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
+ */
+
+namespace Nexus\Mcp\Tests\Core\Schema\Sampling;
+
+use Nexus\Assert\ExpectationFailedException;
+use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
+use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\Sampling\ToolResultContent;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\TestCase;
+
+/**
+ * @internal
+ */
+#[CoversClass(ToolResultContent::class)]
+#[Group('unit-tests')]
+#[Group('core-tests')]
+final class ToolResultContentTest extends TestCase
+{
+    public function testConstruction(): void
+    {
+        $content = new ToolResultContent('tu-1', [new TextContent('Sunny, 22°C')]);
+
+        self::assertSame('tu-1', $content->toolUseId);
+        self::assertCount(1, $content->content);
+        self::assertNull($content->isError);
+        self::assertNull($content->structuredContent);
+        self::assertNull($content->meta);
+    }
+
+    public function testConstructorRejectsEmptyToolUseId(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessage('ToolResultContent toolUseId must be a non-empty string.');
+
+        new ToolResultContent('', []);
+    }
+
+    public function testConstructorRejectsNonContentBlockEntry(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessage('Value "\'not-a-block\'" is expected to be an instance of \'Nexus\\\\Mcp\\\\Core\\\\Schema\\\\Arrayable\' but got string instead.');
+
+        new ToolResultContent('tu-1', ['not-a-block']); // @phpstan-ignore argument.type
+    }
+
+    public function testToArrayMinimal(): void
+    {
+        $content = new ToolResultContent('tu-1', [new TextContent('hi')]);
+
+        self::assertSame(
+            [
+                'content' => [['text' => 'hi', 'type' => 'text']],
+                'toolUseId' => 'tu-1',
+                'type' => 'tool_result',
+            ],
+            $content->toArray(),
+        );
+    }
+
+    public function testToArrayFull(): void
+    {
+        $content = new ToolResultContent('tu-1', [new TextContent('hi')], false, ['t' => 22], new Meta(extras: ['trace_id' => 'abc']));
+
+        self::assertSame(
+            [
+                'content' => [['text' => 'hi', 'type' => 'text']],
+                'toolUseId' => 'tu-1',
+                'type' => 'tool_result',
+                'isError' => false,
+                'structuredContent' => ['t' => 22],
+                '_meta' => ['trace_id' => 'abc'],
+            ],
+            $content->toArray(),
+        );
+    }
+
+    public function testJsonSerializeWrapsEmptyStructuredContent(): void
+    {
+        $content = new ToolResultContent('tu-1', [new TextContent('hi')], structuredContent: []);
+
+        self::assertSame(
+            '{"content":[{"text":"hi","type":"text"}],"toolUseId":"tu-1","type":"tool_result","structuredContent":{}}',
+            json_encode($content),
+        );
+    }
+
+    public function testJsonSerializeKeepsNonEmptyStructuredContent(): void
+    {
+        $content = new ToolResultContent('tu-1', [new TextContent('hi')], structuredContent: ['t' => 22]);
+
+        self::assertStringContainsString('"structuredContent":{"t":22}', (string) json_encode($content));
+    }
+
+    public function testFromArrayFullRoundTrip(): void
+    {
+        $original = new ToolResultContent('tu-1', [new TextContent('hi')], true, ['t' => 22]);
+
+        $rebuilt = ToolResultContent::fromArray($original->toArray());
+
+        self::assertSame($original->toArray(), $rebuilt->toArray());
+    }
+
+    public function testFromArrayRejectsMissingType(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessage('ToolResultContent wire data missing "type".');
+
+        ToolResultContent::fromArray(['toolUseId' => 'x', 'content' => []]);
+    }
+
+    public function testFromArrayRejectsWrongType(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessage('ToolResultContent wire "type" must be "tool_result", \'text\' given.');
+
+        ToolResultContent::fromArray(['type' => 'text', 'toolUseId' => 'x', 'content' => []]);
+    }
+
+    public function testFromArrayRejectsMissingToolUseId(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessage('ToolResultContent wire data missing "toolUseId".');
+
+        ToolResultContent::fromArray(['type' => 'tool_result', 'content' => []]);
+    }
+
+    public function testFromArrayRejectsMissingContent(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessage('ToolResultContent wire data missing "content".');
+
+        ToolResultContent::fromArray(['type' => 'tool_result', 'toolUseId' => 'x']);
+    }
+
+    public function testFromArrayRejectsNonArrayContent(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessage('ToolResultContent wire "content" must be an array, string given.');
+
+        ToolResultContent::fromArray(['type' => 'tool_result', 'toolUseId' => 'x', 'content' => 'oops']);
+    }
+
+    public function testFromArrayRejectsNonObjectContentEntry(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessage('ToolResultContent wire content entry must be an object, string given.');
+
+        ToolResultContent::fromArray(['type' => 'tool_result', 'toolUseId' => 'x', 'content' => ['oops']]);
+    }
+
+    public function testFromArrayRejectsNonBoolIsError(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessage('ToolResultContent wire "isError" must be a bool or null, string given.');
+
+        ToolResultContent::fromArray(['type' => 'tool_result', 'toolUseId' => 'x', 'content' => [], 'isError' => 'oops']);
+    }
+
+    public function testFromArrayRejectsNonObjectStructuredContent(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessage('ToolResultContent wire "structuredContent" must be an object, string given.');
+
+        ToolResultContent::fromArray(['type' => 'tool_result', 'toolUseId' => 'x', 'content' => [], 'structuredContent' => 'oops']);
+    }
+
+    public function testFromArrayRejectsListKeyedStructuredContent(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessage('ToolResultContent wire "structuredContent" must be a string-keyed object.');
+
+        ToolResultContent::fromArray(['type' => 'tool_result', 'toolUseId' => 'x', 'content' => [], 'structuredContent' => ['x']]);
+    }
+}

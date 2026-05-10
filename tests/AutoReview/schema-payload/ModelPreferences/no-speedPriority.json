@@ -1,0 +1,9 @@
+{
+    "hints": [
+        {
+            "name": "claude-3-5-sonnet"
+        }
+    ],
+    "costPriority": 0.2,
+    "intelligencePriority": 0.9
+}

@@ -1,0 +1,14 @@
+{
+    "content": [
+        {
+            "text": "Sunny, 22°C",
+            "type": "text"
+        }
+    ],
+    "toolUseId": "tu-1",
+    "type": "tool_result",
+    "isError": false,
+    "structuredContent": {
+        "temperatureC": 22
+    }
+}

@@ -32,6 +32,7 @@ use Nexus\Mcp\Core\Schema\Notification\ToolListChangedNotification;
 use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
 use Nexus\Mcp\Core\Schema\Request\CancelTaskRequest;
 use Nexus\Mcp\Core\Schema\Request\CompleteRequest;
+use Nexus\Mcp\Core\Schema\Request\CreateMessageRequest;
 use Nexus\Mcp\Core\Schema\Request\GetPromptRequest;
 use Nexus\Mcp\Core\Schema\Request\GetTaskPayloadRequest;
 use Nexus\Mcp\Core\Schema\Request\GetTaskRequest;
@@ -52,6 +53,7 @@ use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Core\Schema\Result\CancelTaskResult;
 use Nexus\Mcp\Core\Schema\Result\CompleteResult;
+use Nexus\Mcp\Core\Schema\Result\CreateMessageResult;
 use Nexus\Mcp\Core\Schema\Result\CreateTaskResult;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
@@ -163,6 +165,8 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
 
         yield 'CompleteRequest' => ['wrapper' => CompleteRequest::class, 'inner' => null];
 
+        yield 'CreateMessageRequest' => ['wrapper' => CreateMessageRequest::class, 'inner' => null];
+
         yield 'GetPromptRequest' => ['wrapper' => GetPromptRequest::class, 'inner' => null];
 
         yield 'CallToolRequest' => ['wrapper' => CallToolRequest::class, 'inner' => null];
@@ -218,6 +222,8 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
         yield 'JsonRpcResultResponse-CancelTaskResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => CancelTaskResult::class];
 
         yield 'JsonRpcResultResponse-CompleteResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => CompleteResult::class];
+
+        yield 'JsonRpcResultResponse-CreateMessageResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => CreateMessageResult::class];
 
         yield 'JsonRpcResultResponse-CreateTaskResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => CreateTaskResult::class];
 

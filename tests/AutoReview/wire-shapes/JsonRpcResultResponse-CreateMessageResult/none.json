@@ -1,0 +1,12 @@
+{
+    "jsonrpc": "2.0",
+    "id": "req-1",
+    "result": {
+        "model": "claude-3-5-sonnet",
+        "role": "assistant",
+        "content": {
+            "text": "Hi there.",
+            "type": "text"
+        }
+    }
+}

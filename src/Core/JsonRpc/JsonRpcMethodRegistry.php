@@ -47,6 +47,7 @@ final class JsonRpcMethodRegistry
             Request\ListResourceTemplatesRequest::method() => Request\ListResourceTemplatesRequest::class,
             Request\UnsubscribeRequest::method() => Request\UnsubscribeRequest::class,
             Request\ListRootsRequest::method() => Request\ListRootsRequest::class,
+            Request\CreateMessageRequest::method() => Request\CreateMessageRequest::class,
             Request\CancelTaskRequest::method() => Request\CancelTaskRequest::class,
             Request\GetTaskRequest::method() => Request\GetTaskRequest::class,
             Request\ListTasksRequest::method() => Request\ListTasksRequest::class,

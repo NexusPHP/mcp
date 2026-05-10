@@ -16,8 +16,10 @@ namespace Nexus\Mcp\Tests\AutoReview;
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\BaseMetadata;
+use Nexus\Mcp\Core\Schema\Enum\IncludeContext;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Enum\TaskSupport;
+use Nexus\Mcp\Core\Schema\Enum\ToolChoiceMode;
 use Nexus\Mcp\Core\Schema\Error;
 use Nexus\Mcp\Core\Schema\Error\InternalError;
 use Nexus\Mcp\Core\Schema\Error\InvalidParamsError;
@@ -105,6 +107,8 @@ final class SchemaConformanceTest extends TestCase
         ResourceRequestParams::class => self::TS_SCHEMA_FILE_URL,
         TaskAugmentedRequestParams::class => self::TS_SCHEMA_FILE_URL,
         TaskSupport::class => self::TS_SCHEMA_FILE_URL,
+        ToolChoiceMode::class => self::TS_SCHEMA_FILE_URL,
+        IncludeContext::class => self::TS_SCHEMA_FILE_URL,
         GetTaskRequestParams::class => 'https://modelcontextprotocol.io/specification/2025-11-25/schema#gettaskrequest',
         GetTaskPayloadRequestParams::class => 'https://modelcontextprotocol.io/specification/2025-11-25/schema#gettaskpayloadrequest',
         CancelTaskRequestParams::class => 'https://modelcontextprotocol.io/specification/2025-11-25/schema#canceltaskrequest',
