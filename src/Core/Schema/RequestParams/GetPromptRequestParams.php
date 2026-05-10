@@ -16,7 +16,7 @@ namespace Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\RequestMeta;
 use Nexus\Mcp\Core\Schema\RequestParams;
-use Nexus\Mcp\Core\Validation\Sep986NameValidator;
+use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
 
 /**
  * Parameters for a `prompts/get` request.
@@ -40,7 +40,7 @@ final readonly class GetPromptRequestParams extends RequestParams
      */
     public function __construct(string $name, ?array $arguments = null, ?RequestMeta $meta = null)
     {
-        Sep986NameValidator::validate($name, 'GetPromptRequestParams');
+        IdentifierNameValidator::validate($name, 'GetPromptRequestParams');
 
         if (null !== $arguments) {
             Assert::that($arguments)->isMap('GetPromptRequestParams arguments must be a string-keyed map.');

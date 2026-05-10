@@ -14,8 +14,8 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema;
 
 use Nexus\Assert\Assert;
+use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
 use Nexus\Mcp\Core\Validation\Rfc6570UriTemplateValidator;
-use Nexus\Mcp\Core\Validation\Sep986NameValidator;
 
 /**
  * A template description for resources available on the server.
@@ -70,7 +70,7 @@ final readonly class ResourceTemplate extends BaseMetadata implements Arrayable,
     ) {
         parent::__construct($name, $title);
 
-        Sep986NameValidator::validate($name, 'ResourceTemplate');
+        IdentifierNameValidator::validate($name, 'ResourceTemplate');
         Rfc6570UriTemplateValidator::validate($uriTemplate, 'ResourceTemplate');
 
         Assert::that($description)->nullOr()->isNonEmptyString('ResourceTemplate description must be a non-empty string or null.');

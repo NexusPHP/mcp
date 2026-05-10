@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Validation;
 
 use Nexus\Assert\ExpectationFailedException;
-use Nexus\Mcp\Core\Validation\Sep986NameValidator;
+use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -23,10 +23,10 @@ use PHPUnit\Framework\TestCase;
 /**
  * @internal
  */
-#[CoversClass(Sep986NameValidator::class)]
+#[CoversClass(IdentifierNameValidator::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class Sep986NameValidatorTest extends TestCase
+final class IdentifierNameValidatorTest extends TestCase
 {
     /**
      * @param non-empty-string $name
@@ -36,7 +36,7 @@ final class Sep986NameValidatorTest extends TestCase
     {
         $this->expectNotToPerformAssertions();
 
-        Sep986NameValidator::validate($name, 'Resource');
+        IdentifierNameValidator::validate($name, 'Resource');
     }
 
     /**
@@ -52,11 +52,9 @@ final class Sep986NameValidatorTest extends TestCase
 
         yield 'dotted namespace' => ['admin.tools.list'];
 
-        yield 'forward-slash namespace' => ['user-profile/update'];
-
         yield 'single character' => ['a'];
 
-        yield 'exactly 64 characters' => [str_repeat('a', 64)];
+        yield 'exactly 128 characters' => [str_repeat('a', 128)];
     }
 
     /**
@@ -66,9 +64,9 @@ final class Sep986NameValidatorTest extends TestCase
     public function testRejectsInvalidName(string $name): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageMatches('/\AResource name must be 1-64 characters/');
+        $this->expectExceptionMessageMatches('/\AResource name must be 1-128 characters/');
 
-        Sep986NameValidator::validate($name, 'Resource');
+        IdentifierNameValidator::validate($name, 'Resource');
     }
 
     /**
@@ -84,7 +82,9 @@ final class Sep986NameValidatorTest extends TestCase
 
         yield 'unicode letter' => ['résource'];
 
-        yield 'longer than 64 characters' => [str_repeat('a', 65)];
+        yield 'forward-slash' => ['user-profile/update'];
+
+        yield 'longer than 128 characters' => [str_repeat('a', 129)];
 
         yield 'special character' => ['my-resource!'];
 
@@ -108,7 +108,7 @@ final class Sep986NameValidatorTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageMatches($messagePattern);
 
-        Sep986NameValidator::validate($name, $context);
+        IdentifierNameValidator::validate($name, $context);
     }
 
     /**
@@ -116,8 +116,8 @@ final class Sep986NameValidatorTest extends TestCase
      */
     public static function provideContextPrefixAppearsInErrorMessageCases(): iterable
     {
-        yield 'Tool prefix' => ['bad name', 'Tool', '/\ATool name must be 1-64 characters/'];
+        yield 'Tool prefix' => ['bad name', 'Tool', '/\ATool name must be 1-128 characters/'];
 
-        yield 'Prompt prefix' => ['bad name', 'Prompt', '/\APrompt name must be 1-64 characters/'];
+        yield 'Prompt prefix' => ['bad name', 'Prompt', '/\APrompt name must be 1-128 characters/'];
     }
 }

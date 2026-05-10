@@ -105,10 +105,10 @@ final class PromptReferenceTest extends TestCase
         self::assertSame($original->toArray(), $rebuilt->toArray());
     }
 
-    public function testConstructorRejectsNameViolatingSep986(): void
+    public function testConstructorRejectsInvalidName(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageMatches('/\APromptReference name must be 1-64 characters/');
+        $this->expectExceptionMessageMatches('/\APromptReference name must be 1-128 characters/');
 
         new PromptReference('my prompt');
     }

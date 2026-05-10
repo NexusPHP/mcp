@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\Validation\Sep986NameValidator;
+use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
 
 /**
  * Definition for a tool the client can call.
@@ -80,7 +80,7 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
     ) {
         parent::__construct($name, $title);
 
-        Sep986NameValidator::validate($name, 'Tool');
+        IdentifierNameValidator::validate($name, 'Tool');
         Assert::that($description)->nullOr()->isNonEmptyString('Tool description must be a non-empty string or null.');
 
         if (null !== $icons) {

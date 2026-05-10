@@ -16,7 +16,7 @@ namespace Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\RequestMeta;
 use Nexus\Mcp\Core\Schema\TaskMetadata;
-use Nexus\Mcp\Core\Validation\Sep986NameValidator;
+use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
 
 /**
  * Parameters for a `tools/call` request.
@@ -44,7 +44,7 @@ final readonly class CallToolRequestParams extends TaskAugmentedRequestParams
         ?TaskMetadata $task = null,
         ?RequestMeta $meta = null,
     ) {
-        Sep986NameValidator::validate($name, 'CallToolRequestParams');
+        IdentifierNameValidator::validate($name, 'CallToolRequestParams');
 
         if (null !== $arguments) {
             Assert::that($arguments)->isMap('CallToolRequestParams arguments must be a string-keyed map.');

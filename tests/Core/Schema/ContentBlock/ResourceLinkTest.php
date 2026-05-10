@@ -177,10 +177,10 @@ final class ResourceLinkTest extends TestCase
         self::assertSame($original->toArray(), $rebuilt->toArray());
     }
 
-    public function testConstructorRejectsNameViolatingSep986(): void
+    public function testConstructorRejectsInvalidName(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageMatches('/\AResourceLink name must be 1-64 characters/');
+        $this->expectExceptionMessageMatches('/\AResourceLink name must be 1-128 characters/');
 
         new ResourceLink('my link', 'file:///tmp/x');
     }

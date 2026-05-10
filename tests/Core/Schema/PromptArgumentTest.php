@@ -109,10 +109,10 @@ final class PromptArgumentTest extends TestCase
         self::assertSame($original->toArray(), $rebuilt->toArray());
     }
 
-    public function testConstructorRejectsNameViolatingSep986(): void
+    public function testConstructorRejectsInvalidName(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageMatches('/\APromptArgument name must be 1-64 characters/');
+        $this->expectExceptionMessageMatches('/\APromptArgument name must be 1-128 characters/');
 
         new PromptArgument('bad name');
     }

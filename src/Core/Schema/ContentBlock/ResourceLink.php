@@ -22,8 +22,8 @@ use Nexus\Mcp\Core\Schema\Icon;
 use Nexus\Mcp\Core\Schema\Icons;
 use Nexus\Mcp\Core\Schema\Meta;
 use Nexus\Mcp\Core\Schema\ParsesNumber;
+use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
 use Nexus\Mcp\Core\Validation\Rfc3986UriValidator;
-use Nexus\Mcp\Core\Validation\Sep986NameValidator;
 
 /**
  * A resource that the server is capable of reading, included in a prompt or tool call result.
@@ -87,7 +87,7 @@ final readonly class ResourceLink extends BaseMetadata implements Arrayable, Con
     ) {
         parent::__construct($name, $title);
 
-        Sep986NameValidator::validate($name, 'ResourceLink');
+        IdentifierNameValidator::validate($name, 'ResourceLink');
         Rfc3986UriValidator::validate($uri, 'ResourceLink');
 
         Assert::that($description)->nullOr()->isNonEmptyString('ResourceLink description must be a non-empty string or null.');

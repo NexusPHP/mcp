@@ -14,8 +14,8 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema;
 
 use Nexus\Assert\Assert;
+use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
 use Nexus\Mcp\Core\Validation\Rfc3986UriValidator;
-use Nexus\Mcp\Core\Validation\Sep986NameValidator;
 
 /**
  * A known resource that the server is capable of reading.
@@ -74,7 +74,7 @@ final readonly class Resource extends BaseMetadata implements Arrayable, Icons
     ) {
         parent::__construct($name, $title);
 
-        Sep986NameValidator::validate($name, 'Resource');
+        IdentifierNameValidator::validate($name, 'Resource');
         Rfc3986UriValidator::validate($uri, 'Resource');
 
         Assert::that($description)->nullOr()->isNonEmptyString('Resource description must be a non-empty string or null.');

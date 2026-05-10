@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\Validation\Sep986NameValidator;
+use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
 
 /**
  * Identifies a prompt.
@@ -35,7 +35,7 @@ final readonly class PromptReference extends BaseMetadata implements Arrayable
     {
         parent::__construct($name, $title);
 
-        Sep986NameValidator::validate($name, 'PromptReference');
+        IdentifierNameValidator::validate($name, 'PromptReference');
     }
 
     /**
