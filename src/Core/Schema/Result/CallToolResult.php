@@ -67,9 +67,6 @@ final readonly class CallToolResult extends Result implements ServerResult
         parent::__construct($meta);
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
     #[\Override]
     public static function fromArray(array $data): static
     {

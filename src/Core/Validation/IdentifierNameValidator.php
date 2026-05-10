@@ -18,13 +18,9 @@ use Nexus\Assert\ExpectationFailedException;
 
 /**
  * Enforces a stable identifier-name format: 1-128 characters drawn from
- * `A-Z`, `a-z`, `0-9`, `_`, `-`, and `.`. Applied to spec types whose name
- * is a stable handle that clients invoke (tools, prompts, resources,
- * resource templates), not to free-form display names.
- *
- * The 2025-11-25 spec normatively specifies this format only for tool names
- * (per SEP-986); the SDK extends the same constraint to other named
- * identifiers as a uniform convention.
+ * `A-Z`, `a-z`, `0-9`, `_`, `-`, and `.`. Applied to schema types where
+ * `name` is a stable handle clients invoke (tools, prompts, resources,
+ * resource templates).
  *
  * @internal
  *

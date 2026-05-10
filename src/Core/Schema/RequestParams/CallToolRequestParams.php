@@ -56,9 +56,6 @@ final readonly class CallToolRequestParams extends TaskAugmentedRequestParams
         parent::__construct($task, $meta);
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
     #[\Override]
     public static function fromArray(array $data): static
     {
