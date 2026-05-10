@@ -19,7 +19,7 @@ use Nexus\Mcp\Core\Schema\Meta;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\ListToolsResult;
 use Nexus\Mcp\Core\Schema\Result\PaginatedResult;
-use Nexus\Mcp\Core\Schema\Tool;
+use Nexus\Mcp\Core\Schema\Tool\Tool;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;

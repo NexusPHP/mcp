@@ -18,7 +18,7 @@ use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 use Nexus\Mcp\Core\Schema\Notification;
 use Nexus\Mcp\Core\Schema\Notification\TaskStatusNotification;
 use Nexus\Mcp\Core\Schema\NotificationParams\TaskStatusNotificationParams;
-use Nexus\Mcp\Core\Schema\Task;
+use Nexus\Mcp\Core\Schema\Task\Task;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;

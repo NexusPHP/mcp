@@ -15,11 +15,11 @@ namespace Nexus\Mcp\Tests\Core\Schema\RequestParams;
 
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\ProgressToken;
-use Nexus\Mcp\Core\Schema\PromptReference;
+use Nexus\Mcp\Core\Schema\Prompt\PromptReference;
 use Nexus\Mcp\Core\Schema\RequestMeta;
 use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\CompleteRequestParams;
-use Nexus\Mcp\Core\Schema\ResourceTemplateReference;
+use Nexus\Mcp\Core\Schema\Resource\ResourceTemplateReference;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;

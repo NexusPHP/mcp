@@ -16,10 +16,10 @@ namespace Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Assert\Assert;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\JsonRpc\WireDiscriminator;
-use Nexus\Mcp\Core\Schema\PromptReference;
+use Nexus\Mcp\Core\Schema\Prompt\PromptReference;
 use Nexus\Mcp\Core\Schema\RequestMeta;
 use Nexus\Mcp\Core\Schema\RequestParams;
-use Nexus\Mcp\Core\Schema\ResourceTemplateReference;
+use Nexus\Mcp\Core\Schema\Resource\ResourceTemplateReference;
 
 /**
  * Parameters for a `completion/complete` request.

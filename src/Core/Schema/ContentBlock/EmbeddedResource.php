@@ -18,9 +18,9 @@ use Nexus\Mcp\Core\Schema\Annotations;
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\ContentBlock;
 use Nexus\Mcp\Core\Schema\Meta;
-use Nexus\Mcp\Core\Schema\ResourceContents;
-use Nexus\Mcp\Core\Schema\ResourceContents\BlobResourceContents;
-use Nexus\Mcp\Core\Schema\ResourceContents\TextResourceContents;
+use Nexus\Mcp\Core\Schema\Resource\BlobResourceContents;
+use Nexus\Mcp\Core\Schema\Resource\ResourceContents;
+use Nexus\Mcp\Core\Schema\Resource\TextResourceContents;
 
 /**
  * The contents of a resource, embedded into a prompt or tool call result.

@@ -15,7 +15,7 @@ namespace Nexus\Mcp\Tests\Core\Schema\Request;
 
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
-use Nexus\Mcp\Core\Schema\PromptReference;
+use Nexus\Mcp\Core\Schema\Prompt\PromptReference;
 use Nexus\Mcp\Core\Schema\Request;
 use Nexus\Mcp\Core\Schema\Request\CompleteRequest;
 use Nexus\Mcp\Core\Schema\RequestId;

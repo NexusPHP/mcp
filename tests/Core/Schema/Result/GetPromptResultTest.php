@@ -17,7 +17,7 @@ use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Enum\Role;
 use Nexus\Mcp\Core\Schema\Meta;
-use Nexus\Mcp\Core\Schema\PromptMessage;
+use Nexus\Mcp\Core\Schema\Prompt\PromptMessage;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
 use PHPUnit\Framework\Attributes\CoversClass;

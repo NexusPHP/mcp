@@ -16,7 +16,7 @@ namespace Nexus\Mcp\Core\Schema\Result;
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Cursor;
 use Nexus\Mcp\Core\Schema\Meta;
-use Nexus\Mcp\Core\Schema\Tool;
+use Nexus\Mcp\Core\Schema\Tool\Tool;
 
 /**
  * The server's response to a tools/list request from the client.

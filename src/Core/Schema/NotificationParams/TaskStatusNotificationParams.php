@@ -15,7 +15,7 @@ namespace Nexus\Mcp\Core\Schema\NotificationParams;
 
 use Nexus\Mcp\Core\Schema\Meta;
 use Nexus\Mcp\Core\Schema\NotificationParams;
-use Nexus\Mcp\Core\Schema\Task;
+use Nexus\Mcp\Core\Schema\Task\Task;
 
 /**
  * Parameters for a `notifications/tasks/status` notification.

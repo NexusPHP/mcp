@@ -16,7 +16,7 @@ namespace Nexus\Mcp\Core\Schema\Result;
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Meta;
 use Nexus\Mcp\Core\Schema\Result;
-use Nexus\Mcp\Core\Schema\Task;
+use Nexus\Mcp\Core\Schema\Task\Task;
 
 /**
  * A response to a task-augmented request.

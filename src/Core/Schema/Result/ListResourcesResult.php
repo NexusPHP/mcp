@@ -16,7 +16,7 @@ namespace Nexus\Mcp\Core\Schema\Result;
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Cursor;
 use Nexus\Mcp\Core\Schema\Meta;
-use Nexus\Mcp\Core\Schema\Resource;
+use Nexus\Mcp\Core\Schema\Resource\Resource;
 
 /**
  * The server's response to a resources/list request from the client.

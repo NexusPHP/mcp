@@ -15,7 +15,7 @@ namespace Nexus\Mcp\Core\Schema\RequestParams;
 
 use Nexus\Mcp\Core\Schema\RequestMeta;
 use Nexus\Mcp\Core\Schema\RequestParams;
-use Nexus\Mcp\Core\Schema\TaskMetadata;
+use Nexus\Mcp\Core\Schema\Task\TaskMetadata;
 
 /**
  * Common params for any task-augmented request.

@@ -45,7 +45,7 @@ use Nexus\Mcp\Core\Schema\RequestParams\GetTaskRequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\PaginatedRequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\ResourceRequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\TaskAugmentedRequestParams;
-use Nexus\Mcp\Core\Schema\ResourceContents;
+use Nexus\Mcp\Core\Schema\Resource\ResourceContents;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\ClientResult;
 use Nexus\Mcp\Core\Schema\Result\PaginatedResult;

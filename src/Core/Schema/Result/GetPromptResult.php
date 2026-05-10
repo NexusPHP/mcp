@@ -15,7 +15,7 @@ namespace Nexus\Mcp\Core\Schema\Result;
 
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Meta;
-use Nexus\Mcp\Core\Schema\PromptMessage;
+use Nexus\Mcp\Core\Schema\Prompt\PromptMessage;
 use Nexus\Mcp\Core\Schema\Result;
 
 /**

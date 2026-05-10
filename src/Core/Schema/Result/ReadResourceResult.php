@@ -15,9 +15,9 @@ namespace Nexus\Mcp\Core\Schema\Result;
 
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Meta;
-use Nexus\Mcp\Core\Schema\ResourceContents;
-use Nexus\Mcp\Core\Schema\ResourceContents\BlobResourceContents;
-use Nexus\Mcp\Core\Schema\ResourceContents\TextResourceContents;
+use Nexus\Mcp\Core\Schema\Resource\BlobResourceContents;
+use Nexus\Mcp\Core\Schema\Resource\ResourceContents;
+use Nexus\Mcp\Core\Schema\Resource\TextResourceContents;
 use Nexus\Mcp\Core\Schema\Result;
 
 /**

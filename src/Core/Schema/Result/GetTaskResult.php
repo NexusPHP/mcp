@@ -15,7 +15,7 @@ namespace Nexus\Mcp\Core\Schema\Result;
 
 use Nexus\Mcp\Core\Schema\Meta;
 use Nexus\Mcp\Core\Schema\Result;
-use Nexus\Mcp\Core\Schema\Task;
+use Nexus\Mcp\Core\Schema\Task\Task;
 
 /**
  * The response to a tasks/get request.

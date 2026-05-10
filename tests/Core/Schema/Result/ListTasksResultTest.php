@@ -20,7 +20,7 @@ use Nexus\Mcp\Core\Schema\Meta;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\ListTasksResult;
 use Nexus\Mcp\Core\Schema\Result\PaginatedResult;
-use Nexus\Mcp\Core\Schema\Task;
+use Nexus\Mcp\Core\Schema\Task\Task;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;

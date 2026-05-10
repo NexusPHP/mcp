@@ -19,7 +19,7 @@ use Nexus\Mcp\Core\Schema\RequestMeta;
 use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\CallToolRequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\TaskAugmentedRequestParams;
-use Nexus\Mcp\Core\Schema\TaskMetadata;
+use Nexus\Mcp\Core\Schema\Task\TaskMetadata;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;

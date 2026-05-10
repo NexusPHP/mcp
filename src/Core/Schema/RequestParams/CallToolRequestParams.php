@@ -15,7 +15,7 @@ namespace Nexus\Mcp\Core\Schema\RequestParams;
 
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\RequestMeta;
-use Nexus\Mcp\Core\Schema\TaskMetadata;
+use Nexus\Mcp\Core\Schema\Task\TaskMetadata;
 use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
 
 /**

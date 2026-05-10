@@ -16,7 +16,7 @@ namespace Nexus\Mcp\Core\Schema\Result;
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Cursor;
 use Nexus\Mcp\Core\Schema\Meta;
-use Nexus\Mcp\Core\Schema\Prompt;
+use Nexus\Mcp\Core\Schema\Prompt\Prompt;
 
 /**
  * The server's response to a prompts/list request from the client.
