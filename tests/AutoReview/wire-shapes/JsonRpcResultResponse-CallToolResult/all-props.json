@@ -1,0 +1,19 @@
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "_meta": {
+            "vendor.brand": "acme"
+        },
+        "content": [
+            {
+                "text": "File contents.",
+                "type": "text"
+            }
+        ],
+        "structuredContent": {
+            "lines": 42
+        },
+        "isError": false
+    }
+}

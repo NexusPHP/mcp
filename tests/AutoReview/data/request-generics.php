@@ -11,6 +11,7 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
+use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
 use Nexus\Mcp\Core\Schema\Request\CompleteRequest;
 use Nexus\Mcp\Core\Schema\Request\GetPromptRequest;
 use Nexus\Mcp\Core\Schema\Request\InitializeRequest;
@@ -18,6 +19,7 @@ use Nexus\Mcp\Core\Schema\Request\ListPromptsRequest;
 use Nexus\Mcp\Core\Schema\Request\ListResourcesRequest;
 use Nexus\Mcp\Core\Schema\Request\ListResourceTemplatesRequest;
 use Nexus\Mcp\Core\Schema\Request\ListRootsRequest;
+use Nexus\Mcp\Core\Schema\Request\ListToolsRequest;
 use Nexus\Mcp\Core\Schema\Request\PingRequest;
 use Nexus\Mcp\Core\Schema\Request\ReadResourceRequest;
 use Nexus\Mcp\Core\Schema\Request\SetLevelRequest;
@@ -38,3 +40,5 @@ assertType('\'resources/subscribe\'', SubscribeRequest::method());
 assertType('\'resources/templates/list\'', ListResourceTemplatesRequest::method());
 assertType('\'resources/unsubscribe\'', UnsubscribeRequest::method());
 assertType('\'roots/list\'', ListRootsRequest::method());
+assertType('\'tools/call\'', CallToolRequest::method());
+assertType('\'tools/list\'', ListToolsRequest::method());

@@ -1,0 +1,26 @@
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "_meta": {
+            "vendor.brand": "acme"
+        },
+        "nextCursor": "cursor-2",
+        "tools": [
+            {
+                "name": "read-file",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "path": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "path"
+                    ]
+                }
+            }
+        ]
+    }
+}

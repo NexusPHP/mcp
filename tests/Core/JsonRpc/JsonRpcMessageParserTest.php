@@ -229,12 +229,12 @@ final class JsonRpcMessageParserTest extends TestCase
         $parser = new JsonRpcMessageParser();
 
         $this->expectException(JsonRpcParserException::class);
-        $this->expectExceptionMessage('No request class registered for method "tools/list".');
+        $this->expectExceptionMessage('No request class registered for method "vendor/unknown".');
 
         $parser->parse([
             'jsonrpc' => '2.0',
             'id' => 1,
-            'method' => 'tools/list',
+            'method' => 'vendor/unknown',
         ]);
     }
 

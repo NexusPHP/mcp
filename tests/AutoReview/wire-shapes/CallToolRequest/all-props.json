@@ -1,0 +1,18 @@
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "tools/call",
+    "params": {
+        "_meta": {
+            "vendor.brand": "acme",
+            "progressToken": "progress-1"
+        },
+        "task": {
+            "ttl": 60000
+        },
+        "name": "read-file",
+        "arguments": {
+            "path": "src/index.php"
+        }
+    }
+}

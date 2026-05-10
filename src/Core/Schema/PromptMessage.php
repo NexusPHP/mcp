@@ -14,8 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema;
 
 use Nexus\Assert\Assert;
-use Nexus\Assert\ExpectationFailedException;
-use Nexus\Mcp\Core\JsonRpc\WireDiscriminator;
+use Nexus\Mcp\Core\JsonRpc\ContentBlockDispatcher;
 use Nexus\Mcp\Core\Schema\ContentBlock\AudioContent;
 use Nexus\Mcp\Core\Schema\ContentBlock\EmbeddedResource;
 use Nexus\Mcp\Core\Schema\ContentBlock\ImageContent;
@@ -57,7 +56,7 @@ final readonly class PromptMessage implements Arrayable
             ->isMap('PromptMessage wire "content" must be a string-keyed object.')
         ;
 
-        return new self(Role::from($role), self::dispatchContent($data['content']));
+        return new self(Role::from($role), ContentBlockDispatcher::fromArray($data['content'], 'PromptMessage content'));
     }
 
     #[\Override]
@@ -73,31 +72,5 @@ final readonly class PromptMessage implements Arrayable
     public function jsonSerialize(): array
     {
         return $this->toArray();
-    }
-
-    /**
-     * Discriminates the content payload by its `type` field and dispatches to
-     * the matching `ContentBlock` subclass.
-     *
-     * @param array<string, mixed> $data
-     *
-     * @throws ExpectationFailedException when `type` is missing or unknown
-     */
-    private static function dispatchContent(array $data): AudioContent|EmbeddedResource|ImageContent|ResourceLink|TextContent
-    {
-        $type = WireDiscriminator::readType($data, 'PromptMessage content');
-
-        return match ($type) {
-            TextContent::TYPE => TextContent::fromArray($data),
-            ImageContent::TYPE => ImageContent::fromArray($data),
-            AudioContent::TYPE => AudioContent::fromArray($data),
-            ResourceLink::TYPE => ResourceLink::fromArray($data),
-            EmbeddedResource::TYPE => EmbeddedResource::fromArray($data),
-            default => throw WireDiscriminator::unknownType(
-                'PromptMessage content',
-                [TextContent::TYPE, ImageContent::TYPE, AudioContent::TYPE, ResourceLink::TYPE, EmbeddedResource::TYPE],
-                $type,
-            ),
-        };
     }
 }

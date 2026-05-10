@@ -28,6 +28,7 @@ use Nexus\Mcp\Core\Schema\Notification\ResourceListChangedNotification;
 use Nexus\Mcp\Core\Schema\Notification\ResourceUpdatedNotification;
 use Nexus\Mcp\Core\Schema\Notification\RootsListChangedNotification;
 use Nexus\Mcp\Core\Schema\Notification\ToolListChangedNotification;
+use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
 use Nexus\Mcp\Core\Schema\Request\CompleteRequest;
 use Nexus\Mcp\Core\Schema\Request\GetPromptRequest;
 use Nexus\Mcp\Core\Schema\Request\InitializeRequest;
@@ -35,6 +36,7 @@ use Nexus\Mcp\Core\Schema\Request\ListPromptsRequest;
 use Nexus\Mcp\Core\Schema\Request\ListResourcesRequest;
 use Nexus\Mcp\Core\Schema\Request\ListResourceTemplatesRequest;
 use Nexus\Mcp\Core\Schema\Request\ListRootsRequest;
+use Nexus\Mcp\Core\Schema\Request\ListToolsRequest;
 use Nexus\Mcp\Core\Schema\Request\PingRequest;
 use Nexus\Mcp\Core\Schema\Request\ReadResourceRequest;
 use Nexus\Mcp\Core\Schema\Request\SetLevelRequest;
@@ -42,6 +44,7 @@ use Nexus\Mcp\Core\Schema\Request\SubscribeRequest;
 use Nexus\Mcp\Core\Schema\Request\UnsubscribeRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result;
+use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Core\Schema\Result\CompleteResult;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
@@ -50,6 +53,7 @@ use Nexus\Mcp\Core\Schema\Result\ListPromptsResult;
 use Nexus\Mcp\Core\Schema\Result\ListResourcesResult;
 use Nexus\Mcp\Core\Schema\Result\ListResourceTemplatesResult;
 use Nexus\Mcp\Core\Schema\Result\ListRootsResult;
+use Nexus\Mcp\Core\Schema\Result\ListToolsResult;
 use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Group;
@@ -151,6 +155,8 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
 
         yield 'GetPromptRequest' => ['wrapper' => GetPromptRequest::class, 'inner' => null];
 
+        yield 'CallToolRequest' => ['wrapper' => CallToolRequest::class, 'inner' => null];
+
         yield 'ListPromptsRequest' => ['wrapper' => ListPromptsRequest::class, 'inner' => null];
 
         yield 'ListResourcesRequest' => ['wrapper' => ListResourcesRequest::class, 'inner' => null];
@@ -158,6 +164,8 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
         yield 'ListResourceTemplatesRequest' => ['wrapper' => ListResourceTemplatesRequest::class, 'inner' => null];
 
         yield 'ListRootsRequest' => ['wrapper' => ListRootsRequest::class, 'inner' => null];
+
+        yield 'ListToolsRequest' => ['wrapper' => ListToolsRequest::class, 'inner' => null];
 
         yield 'SetLevelRequest' => ['wrapper' => SetLevelRequest::class, 'inner' => null];
 
@@ -185,6 +193,8 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
         yield 'ToolListChangedNotification' => ['wrapper' => ToolListChangedNotification::class, 'inner' => null];
 
         // Result responses, parameterized by the inner Result subclass.
+        yield 'JsonRpcResultResponse-CallToolResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => CallToolResult::class];
+
         yield 'JsonRpcResultResponse-CompleteResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => CompleteResult::class];
 
         yield 'JsonRpcResultResponse-EmptyResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => EmptyResult::class];
@@ -200,6 +210,8 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
         yield 'JsonRpcResultResponse-ListResourceTemplatesResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => ListResourceTemplatesResult::class];
 
         yield 'JsonRpcResultResponse-ListRootsResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => ListRootsResult::class];
+
+        yield 'JsonRpcResultResponse-ListToolsResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => ListToolsResult::class];
 
         yield 'JsonRpcResultResponse-ReadResourceResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => ReadResourceResult::class];
 
