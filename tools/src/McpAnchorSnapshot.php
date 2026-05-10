@@ -96,14 +96,9 @@ final class McpAnchorSnapshot
 
         ksort($snapshot);
 
-        $payload = [
-            'created_at' => date('l, d F Y H:i:sP'),
-            'anchors' => $snapshot,
-        ];
-
         file_put_contents(
             self::SNAPSHOT_PATH,
-            json_encode($payload, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_THROW_ON_ERROR)."\n",
+            json_encode(['anchors' => $snapshot], \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_THROW_ON_ERROR)."\n",
         );
 
         return $snapshot;
