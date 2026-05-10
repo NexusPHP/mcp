@@ -16,6 +16,7 @@ namespace Nexus\Mcp\Tests\AutoReview;
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\BaseMetadata;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
+use Nexus\Mcp\Core\Schema\Enum\TaskSupport;
 use Nexus\Mcp\Core\Schema\Error;
 use Nexus\Mcp\Core\Schema\Error\InternalError;
 use Nexus\Mcp\Core\Schema\Error\InvalidParamsError;
@@ -97,6 +98,7 @@ final class SchemaConformanceTest extends TestCase
         EmptyRequestParams::class => self::TS_SCHEMA_FILE_URL,
         ResourceContents::class => self::TS_SCHEMA_FILE_URL,
         ResourceRequestParams::class => self::TS_SCHEMA_FILE_URL,
+        TaskSupport::class => self::TS_SCHEMA_FILE_URL,
         ClientNotification::class => self::TS_SCHEMA_FILE_URL,
         ServerNotification::class => self::TS_SCHEMA_FILE_URL,
         ClientRequest::class => self::TS_SCHEMA_FILE_URL,

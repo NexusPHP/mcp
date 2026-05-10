@@ -1,0 +1,6 @@
+{
+    "name": "read-file",
+    "inputSchema": {
+        "type": "object"
+    }
+}

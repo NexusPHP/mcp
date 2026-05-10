@@ -1,0 +1,6 @@
+{
+    "title": "Read File",
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+}
