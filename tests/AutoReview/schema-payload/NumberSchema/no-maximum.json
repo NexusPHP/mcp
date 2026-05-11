@@ -1,7 +1,0 @@
-{
-    "type": "integer",
-    "title": "Page size",
-    "description": "How many items to return per page.",
-    "minimum": 1,
-    "default": 25
-}

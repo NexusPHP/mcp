@@ -37,10 +37,9 @@ use PHPUnit\Framework\Attributes\Group;
  * ensure every concrete spec class has at least one fixture and that no
  * orphan fixture directory exists on disk.
  *
- * Variant convention is `N + 2`: `all-props.json`, `none.json`, plus one
- * `no-{paramName}.json` per optional constructor param. With `N <= 1`
- * the redundant variants collapse (`no-{x}` == `none`, `none` == `all-props`),
- * so fewer files are written.
+ * Variant convention is two files per class: `all-props.json` (every optional
+ * field populated) and `none.json` (only required fields). With no optional
+ * params they collapse to a single `all-props.json`.
  *
  * @internal
  */

@@ -30,8 +30,9 @@ use PHPUnit\Framework\Attributes\Group;
  * `JsonRpcEnvelopeRoundTripTest`); adding a new payload class therefore
  * forces a fixture or the auto-review build fails.
  *
- * Variant convention is `N + 2`: `all-props.json`, `none.json`, plus one
- * `no-{paramName}.json` per optional constructor param.
+ * Variant convention is two files per class: `all-props.json` (every optional
+ * field populated) and `none.json` (only required fields). With no optional
+ * params they collapse to a single `all-props.json`.
  *
  * @internal
  */

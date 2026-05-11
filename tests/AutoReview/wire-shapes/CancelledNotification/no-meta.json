@@ -1,8 +1,0 @@
-{
-    "jsonrpc": "2.0",
-    "method": "notifications/cancelled",
-    "params": {
-        "requestId": 42,
-        "reason": "User cancelled the request."
-    }
-}

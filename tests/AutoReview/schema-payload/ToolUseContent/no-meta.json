@@ -1,8 +1,0 @@
-{
-    "id": "tu-1",
-    "input": {
-        "city": "Paris"
-    },
-    "name": "get_weather",
-    "type": "tool_use"
-}

@@ -1,5 +1,0 @@
-{
-    "type": "boolean",
-    "description": "Whether the user accepts the terms of service.",
-    "default": false
-}

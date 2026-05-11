@@ -1,8 +1,0 @@
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "error": {
-        "code": -32600,
-        "message": "Request envelope is malformed."
-    }
-}

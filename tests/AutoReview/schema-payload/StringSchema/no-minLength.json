@@ -1,8 +1,0 @@
-{
-    "type": "string",
-    "title": "Email address",
-    "description": "The user's primary contact email.",
-    "maxLength": 320,
-    "format": "email",
-    "default": "user@example.com"
-}
