@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Schema;
 
 use Nexus\Assert\ExpectationFailedException;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Root;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -57,7 +57,7 @@ final class RootTest extends TestCase
 
     public function testToArrayWithMeta(): void
     {
-        $root = new Root('file:///x', null, new Meta(['vendor' => 'x']));
+        $root = new Root('file:///x', null, new MetaObject(['vendor' => 'x']));
 
         self::assertSame(
             ['uri' => 'file:///x', '_meta' => ['vendor' => 'x']],
@@ -67,14 +67,14 @@ final class RootTest extends TestCase
 
     public function testToArrayOmitsEmptyMeta(): void
     {
-        $root = new Root('file:///x', null, new Meta([]));
+        $root = new Root('file:///x', null, new MetaObject([]));
 
         self::assertSame(['uri' => 'file:///x'], $root->toArray());
     }
 
     public function testToArrayKeyOrder(): void
     {
-        $root = new Root('file:///x', 'project', new Meta(['k' => 'v']));
+        $root = new Root('file:///x', 'project', new MetaObject(['k' => 'v']));
 
         self::assertSame(
             ['uri', 'name', '_meta'],
@@ -84,7 +84,7 @@ final class RootTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $root = new Root('file:///x', 'project', new Meta(['k' => 'v']));
+        $root = new Root('file:///x', 'project', new MetaObject(['k' => 'v']));
 
         self::assertSame($root->toArray(), $root->jsonSerialize());
     }
@@ -114,7 +114,7 @@ final class RootTest extends TestCase
 
     public function testFromArrayFullRoundTrip(): void
     {
-        $original = new Root('file:///x', 'project', new Meta(['vendor' => 'x']));
+        $original = new Root('file:///x', 'project', new MetaObject(['vendor' => 'x']));
 
         $rebuilt = Root::fromArray($original->toArray());
 

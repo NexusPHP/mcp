@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\Result;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Prompt\PromptMessage;
 use Nexus\Mcp\Core\Schema\Result;
 
@@ -38,7 +38,7 @@ final readonly class GetPromptResult extends Result implements ServerResult
     /**
      * @param list<PromptMessage> $messages
      */
-    public function __construct(array $messages, ?string $description = null, ?Meta $meta = null)
+    public function __construct(array $messages, ?string $description = null, ?MetaObject $meta = null)
     {
         Assert::that($messages)->isList('GetPromptResult messages must be a list, got non-list array.');
 
@@ -76,7 +76,7 @@ final readonly class GetPromptResult extends Result implements ServerResult
         $description = $data['description'] ?? null;
         Assert::that($description)->nullOr()->isString('GetPromptResult wire "description" must be a string or null, {type} given.');
 
-        $meta = Meta::parseFromWire($data, 'Result');
+        $meta = MetaObject::parseFromWire($data, 'Result');
 
         return new self($messages, $description, $meta);
     }

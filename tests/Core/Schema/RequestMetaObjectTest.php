@@ -15,7 +15,7 @@ namespace Nexus\Mcp\Tests\Core\Schema;
 
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\ProgressToken;
-use Nexus\Mcp\Core\Schema\RequestMeta;
+use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
@@ -23,14 +23,14 @@ use PHPUnit\Framework\TestCase;
 /**
  * @internal
  */
-#[CoversClass(RequestMeta::class)]
+#[CoversClass(RequestMetaObject::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class RequestMetaTest extends TestCase
+final class RequestMetaObjectTest extends TestCase
 {
     public function testDefaultsToNoProgressTokenAndNoExtras(): void
     {
-        $meta = new RequestMeta();
+        $meta = new RequestMetaObject();
 
         self::assertNull($meta->progressToken);
         self::assertSame([], $meta->extras);
@@ -38,7 +38,7 @@ final class RequestMetaTest extends TestCase
 
     public function testCapturesProgressTokenAndExtras(): void
     {
-        $meta = new RequestMeta(new ProgressToken('tok-1'), ['vendor' => 'x']);
+        $meta = new RequestMetaObject(new ProgressToken('tok-1'), ['vendor' => 'x']);
 
         self::assertInstanceOf(ProgressToken::class, $meta->progressToken);
         self::assertSame('tok-1', $meta->progressToken->token);
@@ -47,28 +47,28 @@ final class RequestMetaTest extends TestCase
 
     public function testToArrayEmitsProgressTokenAtExpectedKey(): void
     {
-        $meta = new RequestMeta(new ProgressToken(42));
+        $meta = new RequestMetaObject(new ProgressToken(42));
 
         self::assertSame(['progressToken' => 42], $meta->toArray());
     }
 
     public function testToArrayMergesExtrasAndProgressToken(): void
     {
-        $meta = new RequestMeta(new ProgressToken('tok-1'), ['vendor' => 'x']);
+        $meta = new RequestMetaObject(new ProgressToken('tok-1'), ['vendor' => 'x']);
 
         self::assertSame(['vendor' => 'x', 'progressToken' => 'tok-1'], $meta->toArray());
     }
 
     public function testToArrayOmitsProgressTokenWhenNull(): void
     {
-        $meta = new RequestMeta(null, ['a' => 1]);
+        $meta = new RequestMetaObject(null, ['a' => 1]);
 
         self::assertSame(['a' => 1], $meta->toArray());
     }
 
     public function testFromArrayExtractsProgressTokenAndKeepsExtras(): void
     {
-        $meta = RequestMeta::fromArray(['progressToken' => 'tok-1', 'vendor' => 'x']);
+        $meta = RequestMetaObject::fromArray(['progressToken' => 'tok-1', 'vendor' => 'x']);
 
         self::assertNotNull($meta->progressToken);
         self::assertSame('tok-1', $meta->progressToken->token);
@@ -77,7 +77,7 @@ final class RequestMetaTest extends TestCase
 
     public function testFromArrayWithoutProgressTokenLeavesItNull(): void
     {
-        $meta = RequestMeta::fromArray(['a' => 1, 'b' => 2]);
+        $meta = RequestMetaObject::fromArray(['a' => 1, 'b' => 2]);
 
         self::assertNull($meta->progressToken);
         self::assertSame(['a' => 1, 'b' => 2], $meta->extras);
@@ -88,26 +88,26 @@ final class RequestMetaTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Progress token must be an int or string, array given.');
 
-        RequestMeta::fromArray(['progressToken' => []]);
+        RequestMetaObject::fromArray(['progressToken' => []]);
     }
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $meta = new RequestMeta(new ProgressToken('tok-1'), ['vendor' => 'x']);
+        $meta = new RequestMetaObject(new ProgressToken('tok-1'), ['vendor' => 'x']);
 
         self::assertSame($meta->toArray(), $meta->jsonSerialize());
     }
 
     public function testRoundTripPreservesEverything(): void
     {
-        $original = new RequestMeta(new ProgressToken(7), ['key' => 'value']);
+        $original = new RequestMetaObject(new ProgressToken(7), ['key' => 'value']);
 
-        self::assertSame($original->toArray(), RequestMeta::fromArray($original->toArray())->toArray());
+        self::assertSame($original->toArray(), RequestMetaObject::fromArray($original->toArray())->toArray());
     }
 
     public function testJsonSerializeSubstitutesStdClassWhenEmpty(): void
     {
-        $meta = new RequestMeta();
+        $meta = new RequestMetaObject();
 
         self::assertInstanceOf(\stdClass::class, $meta->jsonSerialize());
         self::assertSame('{}', json_encode($meta));
@@ -115,12 +115,12 @@ final class RequestMetaTest extends TestCase
 
     public function testParseFromWireReturnsNullWhenMetaAbsent(): void
     {
-        self::assertNull(RequestMeta::parseFromWire(['name' => 'x'], 'Request params'));
+        self::assertNull(RequestMetaObject::parseFromWire(['name' => 'x'], 'Request params'));
     }
 
     public function testParseFromWireReadsAndContextualizes(): void
     {
-        $meta = RequestMeta::parseFromWire(
+        $meta = RequestMetaObject::parseFromWire(
             ['_meta' => ['progressToken' => 'tok-1', 'vendor' => 'x']],
             'Request params',
         );
@@ -136,7 +136,7 @@ final class RequestMetaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage('Request params "_meta" must be an object, string given.');
 
-        RequestMeta::parseFromWire(['_meta' => 'oops'], 'Request params');
+        RequestMetaObject::parseFromWire(['_meta' => 'oops'], 'Request params');
     }
 
     public function testParseFromWireRejectsListKeyedMeta(): void
@@ -144,6 +144,6 @@ final class RequestMetaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage('Request params "_meta" must be a string-keyed object.');
 
-        RequestMeta::parseFromWire(['_meta' => ['x']], 'Request params');
+        RequestMetaObject::parseFromWire(['_meta' => ['x']], 'Request params');
     }
 }

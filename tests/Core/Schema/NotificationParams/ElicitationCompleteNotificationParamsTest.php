@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Schema\NotificationParams;
 
 use Nexus\Assert\ExpectationFailedException;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\NotificationParams;
 use Nexus\Mcp\Core\Schema\NotificationParams\ElicitationCompleteNotificationParams;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -48,7 +48,7 @@ final class ElicitationCompleteNotificationParamsTest extends TestCase
 
     public function testToArrayWithMeta(): void
     {
-        $params = new ElicitationCompleteNotificationParams('elicit-1', new Meta(['vendor' => 'x']));
+        $params = new ElicitationCompleteNotificationParams('elicit-1', new MetaObject(['vendor' => 'x']));
 
         self::assertSame(
             ['_meta' => ['vendor' => 'x'], 'elicitationId' => 'elicit-1'],
@@ -58,14 +58,14 @@ final class ElicitationCompleteNotificationParamsTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $params = new ElicitationCompleteNotificationParams('elicit-1', new Meta(['k' => 'v']));
+        $params = new ElicitationCompleteNotificationParams('elicit-1', new MetaObject(['k' => 'v']));
 
         self::assertSame($params->toArray(), $params->jsonSerialize());
     }
 
     public function testFromArrayFullRoundTrip(): void
     {
-        $original = new ElicitationCompleteNotificationParams('elicit-1', new Meta(['vendor' => 'x']));
+        $original = new ElicitationCompleteNotificationParams('elicit-1', new MetaObject(['vendor' => 'x']));
 
         $rebuilt = ElicitationCompleteNotificationParams::fromArray($original->toArray());
 

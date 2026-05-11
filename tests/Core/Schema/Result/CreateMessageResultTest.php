@@ -16,7 +16,7 @@ namespace Nexus\Mcp\Tests\Core\Schema\Result;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Enum\Role;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\CreateMessageResult;
 use Nexus\Mcp\Core\Schema\Sampling\ToolUseContent;
@@ -81,7 +81,7 @@ final class CreateMessageResultTest extends TestCase
             'claude-3-5-sonnet',
             Role::Assistant,
             new TextContent('Hi.'),
-            meta: new Meta(extras: ['vendor' => 'acme']),
+            meta: new MetaObject(extras: ['vendor' => 'acme']),
         );
 
         self::assertSame(

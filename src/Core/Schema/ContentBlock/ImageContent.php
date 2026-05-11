@@ -17,7 +17,7 @@ use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Annotations;
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\ContentBlock;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Sampling\SamplingMessageContentBlock;
 
 /**
@@ -28,7 +28,7 @@ use Nexus\Mcp\Core\Schema\Sampling\SamplingMessageContentBlock;
  *   mimeType: non-empty-string,
  *   type: 'image',
  *   annotations?: template-type<Annotations, Arrayable, 'T'>,
- *   _meta?: template-type<Meta, Arrayable, 'T'>,
+ *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
  * }>
  *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#imagecontent
@@ -51,7 +51,7 @@ final readonly class ImageContent implements Arrayable, ContentBlock, SamplingMe
         string $data,
         string $mimeType,
         public ?Annotations $annotations = null,
-        public ?Meta $meta = null,
+        public ?MetaObject $meta = null,
     ) {
         Assert::that($data)->isNonEmptyString('ImageContent data must be a non-empty string.');
         Assert::that($mimeType)->isNonEmptyString('ImageContent mimeType must be a non-empty string.');
@@ -88,7 +88,7 @@ final readonly class ImageContent implements Arrayable, ContentBlock, SamplingMe
             $annotations = Annotations::fromArray($data['annotations']);
         }
 
-        $meta = Meta::parseFromWire($data, 'ImageContent');
+        $meta = MetaObject::parseFromWire($data, 'ImageContent');
 
         return new self($payload, $mimeType, $annotations, $meta);
     }

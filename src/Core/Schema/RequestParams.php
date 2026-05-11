@@ -16,13 +16,13 @@ namespace Nexus\Mcp\Core\Schema;
 /**
  * Common params for any request.
  *
- * @implements Arrayable<array{_meta?: template-type<RequestMeta, Arrayable, 'T'>, ...}>
+ * @implements Arrayable<array{_meta?: template-type<RequestMetaObject, Arrayable, 'T'>, ...}>
  *
  * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2025-11-25/schema.ts
  */
 abstract readonly class RequestParams implements Arrayable
 {
-    public function __construct(public ?RequestMeta $meta = null)
+    public function __construct(public ?RequestMetaObject $meta = null)
     {
     }
 

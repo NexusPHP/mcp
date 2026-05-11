@@ -17,7 +17,7 @@ use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\ClientCapabilities;
 use Nexus\Mcp\Core\Schema\Implementation;
 use Nexus\Mcp\Core\Schema\ProtocolVersion;
-use Nexus\Mcp\Core\Schema\RequestMeta;
+use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\InitializeRequestParams;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -54,7 +54,7 @@ final class InitializeRequestParamsTest extends TestCase
             new ProtocolVersion('2025-11-25'),
             new ClientCapabilities(),
             new Implementation('client', '1.0.0'),
-            new RequestMeta(null, ['vendor' => 'x']),
+            new RequestMetaObject(null, ['vendor' => 'x']),
         );
 
         self::assertNotNull($params->meta);
@@ -85,7 +85,7 @@ final class InitializeRequestParamsTest extends TestCase
             new ProtocolVersion('2025-11-25'),
             new ClientCapabilities(),
             new Implementation('client', '1.0.0'),
-            new RequestMeta(null, ['vendor' => 'x']),
+            new RequestMetaObject(null, ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -120,7 +120,7 @@ final class InitializeRequestParamsTest extends TestCase
             new ProtocolVersion('2025-11-25'),
             new ClientCapabilities(),
             new Implementation('client', '1.0.0'),
-            new RequestMeta(null, ['vendor' => 'x']),
+            new RequestMetaObject(null, ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -153,7 +153,7 @@ final class InitializeRequestParamsTest extends TestCase
             new ProtocolVersion('2025-11-25'),
             new ClientCapabilities(roots: ['listChanged' => true]),
             new Implementation('client', '1.0.0'),
-            new RequestMeta(null, ['vendor' => 'x']),
+            new RequestMetaObject(null, ['vendor' => 'x']),
         );
 
         $rebuilt = InitializeRequestParams::fromArray($original->toArray());

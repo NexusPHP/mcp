@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Schema\RequestParams;
 
-use Nexus\Mcp\Core\Schema\RequestMeta;
+use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams;
 
 /**
@@ -23,7 +23,7 @@ use Nexus\Mcp\Core\Schema\RequestParams;
  */
 final readonly class EmptyRequestParams extends RequestParams
 {
-    public function __construct(?RequestMeta $meta = null)
+    public function __construct(?RequestMetaObject $meta = null)
     {
         parent::__construct($meta);
     }
@@ -31,7 +31,7 @@ final readonly class EmptyRequestParams extends RequestParams
     #[\Override]
     public static function fromArray(array $data): static
     {
-        $meta = RequestMeta::parseFromWire($data, 'Request params');
+        $meta = RequestMetaObject::parseFromWire($data, 'Request params');
 
         return new self($meta);
     }

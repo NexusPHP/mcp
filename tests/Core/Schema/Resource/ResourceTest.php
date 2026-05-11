@@ -17,7 +17,7 @@ use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Annotations;
 use Nexus\Mcp\Core\Schema\BaseMetadata;
 use Nexus\Mcp\Core\Schema\Icon;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Resource\Resource;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -69,7 +69,7 @@ final class ResourceTest extends TestCase
             new Annotations(null, 0.5),
             1024.0,
             [new Icon('https://example.com/icon.png')],
-            new Meta(['vendor' => 'x']),
+            new MetaObject(['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -99,7 +99,7 @@ final class ResourceTest extends TestCase
             null,
             42.0,
             null,
-            new Meta(['k' => 'v']),
+            new MetaObject(['k' => 'v']),
         );
 
         self::assertSame($resource->toArray(), $resource->jsonSerialize());
@@ -162,7 +162,7 @@ final class ResourceTest extends TestCase
             new Annotations(null, 0.5),
             42.0,
             [new Icon('https://example.com/icon.png')],
-            new Meta(['vendor' => 'x']),
+            new MetaObject(['vendor' => 'x']),
         );
 
         $rebuilt = Resource::fromArray($original->toArray());

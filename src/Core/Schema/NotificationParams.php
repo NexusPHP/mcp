@@ -16,13 +16,13 @@ namespace Nexus\Mcp\Core\Schema;
 /**
  * Common params for any notification.
  *
- * @implements Arrayable<array{_meta?: template-type<Meta, Arrayable, 'T'>, ...}>
+ * @implements Arrayable<array{_meta?: template-type<MetaObject, Arrayable, 'T'>, ...}>
  *
  * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2025-11-25/schema.ts
  */
 abstract readonly class NotificationParams implements Arrayable
 {
-    public function __construct(public ?Meta $meta = null)
+    public function __construct(public ?MetaObject $meta = null)
     {
     }
 

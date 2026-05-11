@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\Resource;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 
 /**
  * Binary resource contents. The `blob` payload carries a base64-encoded
@@ -28,7 +28,7 @@ final readonly class BlobResourceContents extends ResourceContents
         string $uri,
         public string $blob,
         ?string $mimeType = null,
-        ?Meta $meta = null,
+        ?MetaObject $meta = null,
     ) {
         parent::__construct($uri, $mimeType, $meta);
     }
@@ -50,7 +50,7 @@ final readonly class BlobResourceContents extends ResourceContents
         $mimeType = $data['mimeType'] ?? null;
         Assert::that($mimeType)->nullOr()->isString('BlobResourceContents wire "mimeType" must be a string or null, {type} given.');
 
-        $meta = Meta::parseFromWire($data, 'ResourceContents');
+        $meta = MetaObject::parseFromWire($data, 'ResourceContents');
 
         return new self($uri, $blob, $mimeType, $meta);
     }

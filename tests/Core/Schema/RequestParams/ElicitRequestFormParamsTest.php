@@ -16,7 +16,7 @@ namespace Nexus\Mcp\Tests\Core\Schema\RequestParams;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequestedSchema;
 use Nexus\Mcp\Core\Schema\Elicitation\StringSchema;
-use Nexus\Mcp\Core\Schema\RequestMeta;
+use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\ElicitRequestFormParams;
 use Nexus\Mcp\Core\Schema\RequestParams\TaskAugmentedRequestParams;
@@ -87,7 +87,7 @@ final class ElicitRequestFormParamsTest extends TestCase
             new ElicitRequestedSchema(['x' => new StringSchema()]),
             'form',
             new TaskMetadata(60000),
-            new RequestMeta(null, ['vendor' => 'x']),
+            new RequestMetaObject(null, ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -122,7 +122,7 @@ final class ElicitRequestFormParamsTest extends TestCase
             new ElicitRequestedSchema(['x' => new StringSchema()]),
             'form',
             new TaskMetadata(60000),
-            new RequestMeta(null, ['vendor' => 'x']),
+            new RequestMetaObject(null, ['vendor' => 'x']),
         );
 
         $rebuilt = ElicitRequestFormParams::fromArray($original->toArray());

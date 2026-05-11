@@ -15,7 +15,7 @@ namespace Nexus\Mcp\Tests\Core\Schema\RequestParams;
 
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Cursor;
-use Nexus\Mcp\Core\Schema\RequestMeta;
+use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\PaginatedRequestParams;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -56,7 +56,7 @@ final class PaginatedRequestParamsTest extends TestCase
 
     public function testToArrayWithMeta(): void
     {
-        $params = new PaginatedRequestParams(null, new RequestMeta(null, ['vendor' => 'x']));
+        $params = new PaginatedRequestParams(null, new RequestMetaObject(null, ['vendor' => 'x']));
 
         self::assertSame(['_meta' => ['vendor' => 'x']], $params->toArray());
     }
@@ -65,7 +65,7 @@ final class PaginatedRequestParamsTest extends TestCase
     {
         $params = new PaginatedRequestParams(
             new Cursor('cur-1'),
-            new RequestMeta(null, ['k' => 'v']),
+            new RequestMetaObject(null, ['k' => 'v']),
         );
 
         self::assertSame(
@@ -78,7 +78,7 @@ final class PaginatedRequestParamsTest extends TestCase
     {
         $params = new PaginatedRequestParams(
             new Cursor('cur-1'),
-            new RequestMeta(null, ['k' => 'v']),
+            new RequestMetaObject(null, ['k' => 'v']),
         );
 
         self::assertSame($params->toArray(), $params->jsonSerialize());
@@ -112,7 +112,7 @@ final class PaginatedRequestParamsTest extends TestCase
     {
         $original = new PaginatedRequestParams(
             new Cursor('cur-1'),
-            new RequestMeta(null, ['vendor' => 'x']),
+            new RequestMetaObject(null, ['vendor' => 'x']),
         );
 
         $rebuilt = PaginatedRequestParams::fromArray($original->toArray());

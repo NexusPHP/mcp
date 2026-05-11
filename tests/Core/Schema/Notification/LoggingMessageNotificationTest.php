@@ -16,7 +16,7 @@ namespace Nexus\Mcp\Tests\Core\Schema\Notification;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Enum\LoggingLevel;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Notification;
 use Nexus\Mcp\Core\Schema\Notification\LoggingMessageNotification;
 use Nexus\Mcp\Core\Schema\NotificationParams\LoggingMessageNotificationParams;
@@ -63,7 +63,7 @@ final class LoggingMessageNotificationTest extends TestCase
                 LoggingLevel::Error,
                 ['kind' => 'oom'],
                 'app',
-                new Meta(['vendor' => 'x']),
+                new MetaObject(['vendor' => 'x']),
             ),
         );
 
@@ -98,7 +98,7 @@ final class LoggingMessageNotificationTest extends TestCase
                 LoggingLevel::Notice,
                 ['k' => 'v'],
                 'app.db',
-                new Meta(['vendor' => 'x']),
+                new MetaObject(['vendor' => 'x']),
             ),
         );
 

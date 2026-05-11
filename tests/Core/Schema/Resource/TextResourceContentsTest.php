@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Schema\Resource;
 
 use Nexus\Assert\ExpectationFailedException;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Resource\ResourceContents;
 use Nexus\Mcp\Core\Schema\Resource\TextResourceContents;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -47,7 +47,7 @@ final class TextResourceContentsTest extends TestCase
             'file:///x',
             'hello',
             'text/plain',
-            new Meta(['vendor' => 'x']),
+            new MetaObject(['vendor' => 'x']),
         );
 
         self::assertSame('text/plain', $contents->mimeType);
@@ -87,7 +87,7 @@ final class TextResourceContentsTest extends TestCase
             'file:///x',
             'hello',
             'text/plain',
-            new Meta(['vendor' => 'x']),
+            new MetaObject(['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -136,7 +136,7 @@ final class TextResourceContentsTest extends TestCase
             'file:///x',
             'hello',
             'text/plain',
-            new Meta(['vendor' => 'x']),
+            new MetaObject(['vendor' => 'x']),
         );
 
         self::assertSame($original->toArray(), TextResourceContents::fromArray($original->toArray())->toArray());

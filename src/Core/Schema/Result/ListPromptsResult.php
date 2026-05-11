@@ -15,7 +15,7 @@ namespace Nexus\Mcp\Core\Schema\Result;
 
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Cursor;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Prompt\Prompt;
 
 /**
@@ -33,7 +33,7 @@ final readonly class ListPromptsResult extends PaginatedResult implements Server
     /**
      * @param list<Prompt> $prompts
      */
-    public function __construct(array $prompts, ?Cursor $nextCursor = null, ?Meta $meta = null)
+    public function __construct(array $prompts, ?Cursor $nextCursor = null, ?MetaObject $meta = null)
     {
         Assert::that($prompts)
             ->isList('ListPromptsResult prompts must be a list, got non-list array.')
@@ -65,7 +65,7 @@ final readonly class ListPromptsResult extends PaginatedResult implements Server
             $nextCursor = new Cursor($raw);
         }
 
-        $meta = Meta::parseFromWire($data, 'Result');
+        $meta = MetaObject::parseFromWire($data, 'Result');
 
         return new self($prompts, $nextCursor, $meta);
     }

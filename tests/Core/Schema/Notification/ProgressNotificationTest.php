@@ -15,7 +15,7 @@ namespace Nexus\Mcp\Tests\Core\Schema\Notification;
 
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Notification;
 use Nexus\Mcp\Core\Schema\Notification\ProgressNotification;
 use Nexus\Mcp\Core\Schema\NotificationParams\ProgressNotificationParams;
@@ -64,7 +64,7 @@ final class ProgressNotificationTest extends TestCase
                 3.0,
                 10.0,
                 'fetching',
-                new Meta(['vendor' => 'x']),
+                new MetaObject(['vendor' => 'x']),
             ),
         );
 
@@ -101,7 +101,7 @@ final class ProgressNotificationTest extends TestCase
                 7.0,
                 14.0,
                 'halfway',
-                new Meta(['vendor' => 'x']),
+                new MetaObject(['vendor' => 'x']),
             ),
         );
 

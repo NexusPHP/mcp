@@ -15,7 +15,7 @@ namespace Nexus\Mcp\Tests\Core\Schema\Result;
 
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Enum\ElicitAction;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\ElicitResult;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -53,7 +53,7 @@ final class ElicitResultTest extends TestCase
         $result = new ElicitResult(
             ElicitAction::Accept,
             ['email' => 'a@b.com', 'age' => 30, 'opt' => true, 'topics' => ['php', 'mcp']],
-            new Meta(['vendor' => 'x']),
+            new MetaObject(['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -97,7 +97,7 @@ final class ElicitResultTest extends TestCase
         $original = new ElicitResult(
             ElicitAction::Accept,
             ['email' => 'a@b.com', 'count' => 5, 'optIn' => true, 'tags' => ['a']],
-            new Meta(['vendor' => 'x']),
+            new MetaObject(['vendor' => 'x']),
         );
 
         $rebuilt = ElicitResult::fromArray($original->toArray());

@@ -17,7 +17,7 @@ use Nexus\Assert\Assert;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\JsonRpc\WireDiscriminator;
 use Nexus\Mcp\Core\Schema\Prompt\PromptReference;
-use Nexus\Mcp\Core\Schema\RequestMeta;
+use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\Resource\ResourceTemplateReference;
 
@@ -46,7 +46,7 @@ final readonly class CompleteRequestParams extends RequestParams
         public PromptReference|ResourceTemplateReference $ref,
         array $argument,
         ?array $context = null,
-        ?RequestMeta $meta = null,
+        ?RequestMetaObject $meta = null,
     ) {
         Assert::that($argument['name'])->isString('CompleteRequestParams argument "name" must be a string, {type} given.');
         Assert::that($argument['value'])->isString('CompleteRequestParams argument "value" must be a string, {type} given.');
@@ -108,7 +108,7 @@ final readonly class CompleteRequestParams extends RequestParams
             }
         }
 
-        $meta = RequestMeta::parseFromWire($data, 'Request params');
+        $meta = RequestMetaObject::parseFromWire($data, 'Request params');
 
         return new self(
             self::dispatchRef($data['ref']),

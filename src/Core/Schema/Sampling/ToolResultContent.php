@@ -21,7 +21,7 @@ use Nexus\Mcp\Core\Schema\ContentBlock\EmbeddedResource;
 use Nexus\Mcp\Core\Schema\ContentBlock\ImageContent;
 use Nexus\Mcp\Core\Schema\ContentBlock\ResourceLink;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 
 /**
  * The result of a tool use, provided by the user back to the assistant.
@@ -38,7 +38,7 @@ use Nexus\Mcp\Core\Schema\Meta;
  *   type: 'tool_result',
  *   isError?: bool,
  *   structuredContent?: array<string, mixed>,
- *   _meta?: template-type<Meta, Arrayable, 'T'>,
+ *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
  * }>
  *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#toolresultcontent
@@ -61,7 +61,7 @@ final readonly class ToolResultContent implements Arrayable, SamplingMessageCont
         public array $content,
         public ?bool $isError = null,
         public ?array $structuredContent = null,
-        public ?Meta $meta = null,
+        public ?MetaObject $meta = null,
     ) {
         Assert::that($toolUseId)->isNonEmptyString('ToolResultContent toolUseId must be a non-empty string.');
         Assert::that($content)->values()->isInstanceOf(Arrayable::class);
@@ -108,7 +108,7 @@ final readonly class ToolResultContent implements Arrayable, SamplingMessageCont
             $structuredContent = $data['structuredContent'];
         }
 
-        $meta = Meta::parseFromWire($data, 'ToolResultContent');
+        $meta = MetaObject::parseFromWire($data, 'ToolResultContent');
 
         return new self($toolUseId, $content, $isError, $structuredContent, $meta);
     }

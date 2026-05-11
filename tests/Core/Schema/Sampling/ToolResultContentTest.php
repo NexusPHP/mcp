@@ -15,7 +15,7 @@ namespace Nexus\Mcp\Tests\Core\Schema\Sampling;
 
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Sampling\ToolResultContent;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
@@ -72,7 +72,7 @@ final class ToolResultContentTest extends TestCase
 
     public function testToArrayFull(): void
     {
-        $content = new ToolResultContent('tu-1', [new TextContent('hi')], false, ['t' => 22], new Meta(extras: ['trace_id' => 'abc']));
+        $content = new ToolResultContent('tu-1', [new TextContent('hi')], false, ['t' => 22], new MetaObject(extras: ['trace_id' => 'abc']));
 
         self::assertSame(
             [

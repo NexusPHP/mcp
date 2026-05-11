@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\RequestParams;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\Schema\RequestMeta;
+use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\Task\TaskMetadata;
 
 /**
@@ -52,7 +52,7 @@ final readonly class ElicitRequestUrlParams extends TaskAugmentedRequestParams i
         string $mode,
         string $url,
         ?TaskMetadata $task = null,
-        ?RequestMeta $meta = null,
+        ?RequestMetaObject $meta = null,
     ) {
         Assert::that($elicitationId)->isNonEmptyString('ElicitRequestUrlParams elicitationId must be a non-empty string.');
         Assert::that($message)->isNonEmptyString('ElicitRequestUrlParams message must be a non-empty string.');
@@ -90,7 +90,7 @@ final readonly class ElicitRequestUrlParams extends TaskAugmentedRequestParams i
         Assert::that($url)->isString('ElicitRequestUrlParams wire "url" must be a string, {type} given.');
 
         $task = TaskMetadata::parseFromWire($data, 'ElicitRequestUrlParams');
-        $meta = RequestMeta::parseFromWire($data, 'Request params');
+        $meta = RequestMetaObject::parseFromWire($data, 'Request params');
 
         return new self($elicitationId, $message, $mode, $url, $task, $meta);
     }

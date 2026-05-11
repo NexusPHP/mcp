@@ -15,7 +15,7 @@ namespace Nexus\Mcp\Core\Schema\Result;
 
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Implementation;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\ProtocolVersion;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\ServerCapabilities;
@@ -37,7 +37,7 @@ final readonly class InitializeResult extends Result implements ServerResult
         public ServerCapabilities $capabilities,
         public Implementation $serverInfo,
         ?string $instructions = null,
-        ?Meta $meta = null,
+        ?MetaObject $meta = null,
     ) {
         Assert::that($instructions)->nullOr()->isNonEmptyString('InitializeResult instructions must be a non-empty string or null.');
 
@@ -68,7 +68,7 @@ final readonly class InitializeResult extends Result implements ServerResult
         $instructions = $data['instructions'] ?? null;
         Assert::that($instructions)->nullOr()->isString('InitializeResult wire "instructions" must be a string or null, {type} given.');
 
-        $meta = Meta::parseFromWire($data, 'Result');
+        $meta = MetaObject::parseFromWire($data, 'Result');
 
         return new self(
             new ProtocolVersion($protocolVersion),

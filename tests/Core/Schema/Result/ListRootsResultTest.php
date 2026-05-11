@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Schema\Result;
 
 use Nexus\Assert\ExpectationFailedException;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\ListRootsResult;
 use Nexus\Mcp\Core\Schema\Root;
@@ -86,7 +86,7 @@ final class ListRootsResultTest extends TestCase
     {
         $result = new ListRootsResult(
             [new Root('file:///x')],
-            new Meta(['vendor' => 'x']),
+            new MetaObject(['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -102,7 +102,7 @@ final class ListRootsResultTest extends TestCase
     {
         $result = new ListRootsResult(
             [new Root('file:///x', 'project')],
-            new Meta(['k' => 'v']),
+            new MetaObject(['k' => 'v']),
         );
 
         self::assertSame($result->toArray(), $result->jsonSerialize());
@@ -138,8 +138,8 @@ final class ListRootsResultTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new ListRootsResult(
-            [new Root('file:///x', 'project', new Meta(['k' => 'v']))],
-            new Meta(['vendor' => 'x']),
+            [new Root('file:///x', 'project', new MetaObject(['k' => 'v']))],
+            new MetaObject(['vendor' => 'x']),
         );
 
         $rebuilt = ListRootsResult::fromArray($original->toArray());

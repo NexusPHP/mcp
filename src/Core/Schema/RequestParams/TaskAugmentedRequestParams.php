@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Schema\RequestParams;
 
-use Nexus\Mcp\Core\Schema\RequestMeta;
+use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\Task\TaskMetadata;
 
@@ -24,7 +24,7 @@ use Nexus\Mcp\Core\Schema\Task\TaskMetadata;
  */
 abstract readonly class TaskAugmentedRequestParams extends RequestParams
 {
-    public function __construct(public ?TaskMetadata $task = null, ?RequestMeta $meta = null)
+    public function __construct(public ?TaskMetadata $task = null, ?RequestMetaObject $meta = null)
     {
         parent::__construct($meta);
     }

@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\Resource;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 
 /**
  * Text-encoded resource contents. The `text` payload is set only when the
@@ -28,7 +28,7 @@ final readonly class TextResourceContents extends ResourceContents
         string $uri,
         public string $text,
         ?string $mimeType = null,
-        ?Meta $meta = null,
+        ?MetaObject $meta = null,
     ) {
         parent::__construct($uri, $mimeType, $meta);
     }
@@ -50,7 +50,7 @@ final readonly class TextResourceContents extends ResourceContents
         $mimeType = $data['mimeType'] ?? null;
         Assert::that($mimeType)->nullOr()->isString('TextResourceContents wire "mimeType" must be a string or null, {type} given.');
 
-        $meta = Meta::parseFromWire($data, 'ResourceContents');
+        $meta = MetaObject::parseFromWire($data, 'ResourceContents');
 
         return new self($uri, $text, $mimeType, $meta);
     }

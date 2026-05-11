@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\Result;
 
 use Nexus\Mcp\Core\Schema\Cursor;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Result;
 
 /**
@@ -25,7 +25,7 @@ use Nexus\Mcp\Core\Schema\Result;
  */
 abstract readonly class PaginatedResult extends Result
 {
-    public function __construct(public ?Cursor $nextCursor = null, ?Meta $meta = null)
+    public function __construct(public ?Cursor $nextCursor = null, ?MetaObject $meta = null)
     {
         parent::__construct($meta);
     }

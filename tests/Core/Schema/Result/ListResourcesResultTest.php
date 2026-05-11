@@ -15,7 +15,7 @@ namespace Nexus\Mcp\Tests\Core\Schema\Result;
 
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Cursor;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Resource\Resource;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\ListResourcesResult;
@@ -90,7 +90,7 @@ final class ListResourcesResultTest extends TestCase
         $result = new ListResourcesResult(
             [new Resource('a', 'file:///a')],
             null,
-            new Meta(['vendor' => 'x']),
+            new MetaObject(['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -107,7 +107,7 @@ final class ListResourcesResultTest extends TestCase
         $result = new ListResourcesResult(
             [new Resource('a', 'file:///a')],
             new Cursor('cur-1'),
-            new Meta(['vendor' => 'x']),
+            new MetaObject(['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -125,7 +125,7 @@ final class ListResourcesResultTest extends TestCase
         $result = new ListResourcesResult(
             [new Resource('a', 'file:///a')],
             new Cursor('cur-1'),
-            new Meta(['k' => 'v']),
+            new MetaObject(['k' => 'v']),
         );
 
         self::assertSame($result->toArray(), $result->jsonSerialize());
@@ -165,7 +165,7 @@ final class ListResourcesResultTest extends TestCase
         $original = new ListResourcesResult(
             [new Resource('a', 'file:///a', 'A')],
             new Cursor('cur-1'),
-            new Meta(['vendor' => 'x']),
+            new MetaObject(['vendor' => 'x']),
         );
 
         $rebuilt = ListResourcesResult::fromArray($original->toArray());

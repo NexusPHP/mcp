@@ -17,7 +17,7 @@ use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Annotations;
 use Nexus\Mcp\Core\Schema\BaseMetadata;
 use Nexus\Mcp\Core\Schema\Icon;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Resource\ResourceTemplate;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -67,7 +67,7 @@ final class ResourceTemplateTest extends TestCase
             'text/plain',
             new Annotations(null, 0.5),
             [new Icon('https://example.com/icon.png')],
-            new Meta(['vendor' => 'x']),
+            new MetaObject(['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -95,7 +95,7 @@ final class ResourceTemplateTest extends TestCase
             'text/plain',
             null,
             null,
-            new Meta(['k' => 'v']),
+            new MetaObject(['k' => 'v']),
         );
 
         self::assertSame($template->toArray(), $template->jsonSerialize());
@@ -147,7 +147,7 @@ final class ResourceTemplateTest extends TestCase
             'text/plain',
             new Annotations(null, 0.5),
             [new Icon('https://example.com/icon.png')],
-            new Meta(['vendor' => 'x']),
+            new MetaObject(['vendor' => 'x']),
         );
 
         $rebuilt = ResourceTemplate::fromArray($original->toArray());

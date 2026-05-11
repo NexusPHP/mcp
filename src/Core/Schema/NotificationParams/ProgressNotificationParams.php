@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\NotificationParams;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\NotificationParams;
 use Nexus\Mcp\Core\Schema\ParsesNumber;
 use Nexus\Mcp\Core\Schema\ProgressToken;
@@ -33,7 +33,7 @@ final readonly class ProgressNotificationParams extends NotificationParams
         public float $progress,
         public ?float $total = null,
         public ?string $message = null,
-        ?Meta $meta = null,
+        ?MetaObject $meta = null,
     ) {
         parent::__construct($meta);
     }
@@ -60,7 +60,7 @@ final readonly class ProgressNotificationParams extends NotificationParams
         $message = $data['message'] ?? null;
         Assert::that($message)->nullOr()->isString('ProgressNotificationParams wire "message" must be a string or null, {type} given.');
 
-        $meta = Meta::parseFromWire($data, 'Notification params');
+        $meta = MetaObject::parseFromWire($data, 'Notification params');
 
         return new self(new ProgressToken($progressToken), $progress, $total, $message, $meta);
     }

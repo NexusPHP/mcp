@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Schema\Result;
 
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Result;
 
 /**
@@ -24,7 +24,7 @@ use Nexus\Mcp\Core\Schema\Result;
  */
 final readonly class EmptyResult extends Result implements ClientResult, ServerResult
 {
-    public function __construct(?Meta $meta = null)
+    public function __construct(?MetaObject $meta = null)
     {
         parent::__construct($meta);
     }
@@ -32,7 +32,7 @@ final readonly class EmptyResult extends Result implements ClientResult, ServerR
     #[\Override]
     public static function fromArray(array $data): static
     {
-        $meta = Meta::parseFromWire($data, 'Result');
+        $meta = MetaObject::parseFromWire($data, 'Result');
 
         return new self($meta);
     }

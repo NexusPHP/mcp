@@ -16,7 +16,7 @@ namespace Nexus\Mcp\Core\Schema\Resource;
 use Nexus\Assert\Assert;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Arrayable;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Validation\Rfc3986UriValidator;
 
 /**
@@ -25,7 +25,7 @@ use Nexus\Mcp\Core\Validation\Rfc3986UriValidator;
  * @implements Arrayable<array{
  *   uri: non-empty-string,
  *   mimeType?: non-empty-string,
- *   _meta?: template-type<Meta, Arrayable, 'T'>,
+ *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
  * }>
  *
  * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2025-11-25/schema.ts
@@ -45,7 +45,7 @@ abstract readonly class ResourceContents implements Arrayable
     public function __construct(
         string $uri,
         ?string $mimeType = null,
-        public ?Meta $meta = null,
+        public ?MetaObject $meta = null,
     ) {
         Rfc3986UriValidator::validate($uri, 'ResourceContents');
         Assert::that($mimeType)->nullOr()->isNonEmptyString('ResourceContents mimeType must be a non-empty string or null.');

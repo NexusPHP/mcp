@@ -15,7 +15,7 @@ namespace Nexus\Mcp\Core\Schema\RequestParams;
 
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Cursor;
-use Nexus\Mcp\Core\Schema\RequestMeta;
+use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams;
 
 /**
@@ -25,7 +25,7 @@ use Nexus\Mcp\Core\Schema\RequestParams;
  */
 final readonly class PaginatedRequestParams extends RequestParams
 {
-    public function __construct(public ?Cursor $cursor = null, ?RequestMeta $meta = null)
+    public function __construct(public ?Cursor $cursor = null, ?RequestMetaObject $meta = null)
     {
         parent::__construct($meta);
     }
@@ -44,7 +44,7 @@ final readonly class PaginatedRequestParams extends RequestParams
             $cursor = new Cursor($raw);
         }
 
-        $meta = RequestMeta::parseFromWire($data, 'Request params');
+        $meta = RequestMetaObject::parseFromWire($data, 'Request params');
 
         return new self($cursor, $meta);
     }

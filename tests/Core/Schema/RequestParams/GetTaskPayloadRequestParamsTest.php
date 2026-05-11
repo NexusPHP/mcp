@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Schema\RequestParams;
 
 use Nexus\Assert\ExpectationFailedException;
-use Nexus\Mcp\Core\Schema\RequestMeta;
+use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\GetTaskPayloadRequestParams;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -47,7 +47,7 @@ final class GetTaskPayloadRequestParamsTest extends TestCase
 
     public function testToArrayWithMeta(): void
     {
-        $params = new GetTaskPayloadRequestParams('task-abc', new RequestMeta(null, ['vendor' => 'x']));
+        $params = new GetTaskPayloadRequestParams('task-abc', new RequestMetaObject(null, ['vendor' => 'x']));
 
         self::assertSame(
             ['_meta' => ['vendor' => 'x'], 'taskId' => 'task-abc'],
@@ -64,7 +64,7 @@ final class GetTaskPayloadRequestParamsTest extends TestCase
 
     public function testFromArrayFullRoundTrip(): void
     {
-        $original = new GetTaskPayloadRequestParams('task-abc', new RequestMeta(null, ['vendor' => 'x']));
+        $original = new GetTaskPayloadRequestParams('task-abc', new RequestMetaObject(null, ['vendor' => 'x']));
 
         $rebuilt = GetTaskPayloadRequestParams::fromArray($original->toArray());
 

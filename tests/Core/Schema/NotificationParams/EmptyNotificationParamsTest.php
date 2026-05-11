@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\NotificationParams;
 
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\NotificationParams;
 use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -41,14 +41,14 @@ final class EmptyNotificationParamsTest extends TestCase
 
     public function testToArrayEmitsMetaUnderUnderscoreKey(): void
     {
-        $params = new EmptyNotificationParams(new Meta(['vendor' => 'x']));
+        $params = new EmptyNotificationParams(new MetaObject(['vendor' => 'x']));
 
         self::assertSame(['_meta' => ['vendor' => 'x']], $params->toArray());
     }
 
     public function testToArrayOmitsEmptyMeta(): void
     {
-        $params = new EmptyNotificationParams(new Meta());
+        $params = new EmptyNotificationParams(new MetaObject());
 
         self::assertSame([], $params->toArray());
     }
@@ -76,7 +76,7 @@ final class EmptyNotificationParamsTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $params = new EmptyNotificationParams(new Meta(['k' => 'v']));
+        $params = new EmptyNotificationParams(new MetaObject(['k' => 'v']));
 
         self::assertSame($params->toArray(), $params->jsonSerialize());
     }

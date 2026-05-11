@@ -18,7 +18,7 @@ use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\BaseMetadata;
 use Nexus\Mcp\Core\Schema\Icon;
 use Nexus\Mcp\Core\Schema\Icons;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
 
 /**
@@ -30,7 +30,7 @@ use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
  *   description?: non-empty-string,
  *   arguments?: list<template-type<PromptArgument, Arrayable, 'T'>>,
  *   icons?: list<template-type<Icon, Arrayable, 'T'>>,
- *   _meta?: template-type<Meta, Arrayable, 'T'>,
+ *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
  * }>
  *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#prompt
@@ -62,7 +62,7 @@ final readonly class Prompt extends BaseMetadata implements Arrayable, Icons
         ?string $description = null,
         ?array $arguments = null,
         ?array $icons = null,
-        public ?Meta $meta = null,
+        public ?MetaObject $meta = null,
     ) {
         parent::__construct($name, $title);
 
@@ -122,7 +122,7 @@ final readonly class Prompt extends BaseMetadata implements Arrayable, Icons
             $icons = array_map(Icon::fromArray(...), $data['icons']);
         }
 
-        $meta = Meta::parseFromWire($data, 'Prompt');
+        $meta = MetaObject::parseFromWire($data, 'Prompt');
 
         return new self($name, $title, $description, $arguments, $icons, $meta);
     }

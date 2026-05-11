@@ -17,7 +17,7 @@ use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\BaseMetadata;
 use Nexus\Mcp\Core\Schema\Enum\TaskSupport;
 use Nexus\Mcp\Core\Schema\Icon;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Tool\Tool;
 use Nexus\Mcp\Core\Schema\Tool\ToolAnnotations;
 use Nexus\Mcp\Core\Schema\Tool\ToolExecution;
@@ -74,7 +74,7 @@ final class ToolTest extends TestCase
             annotations: new ToolAnnotations(readOnlyHint: true),
             execution: new ToolExecution(TaskSupport::Optional),
             icons: [new Icon('https://example.com/icon.png')],
-            meta: new Meta(['vendor' => 'x']),
+            meta: new MetaObject(['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -166,7 +166,7 @@ final class ToolTest extends TestCase
             annotations: new ToolAnnotations(title: 'Read File', readOnlyHint: true),
             execution: new ToolExecution(TaskSupport::Optional),
             icons: [new Icon('https://example.com/icon.png')],
-            meta: new Meta(['vendor' => 'x']),
+            meta: new MetaObject(['vendor' => 'x']),
         );
 
         $rebuilt = Tool::fromArray($original->toArray());

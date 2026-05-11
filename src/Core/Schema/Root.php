@@ -21,7 +21,7 @@ use Nexus\Assert\Assert;
  * @implements Arrayable<array{
  *   uri: string,
  *   name?: string,
- *   _meta?: template-type<Meta, Arrayable, 'T'>,
+ *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
  * }>
  *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#root
@@ -31,7 +31,7 @@ final readonly class Root implements Arrayable
     public function __construct(
         public string $uri,
         public ?string $name = null,
-        public ?Meta $meta = null,
+        public ?MetaObject $meta = null,
     ) {
         Assert::that($uri)->startsWith('file://', 'Root URI must start with {needle}, got {value}.');
     }
@@ -49,7 +49,7 @@ final readonly class Root implements Arrayable
         $name = $data['name'] ?? null;
         Assert::that($name)->nullOr()->isString('Root wire "name" must be a string or null, {type} given.');
 
-        $meta = Meta::parseFromWire($data, 'Root');
+        $meta = MetaObject::parseFromWire($data, 'Root');
 
         return new self($uri, $name, $meta);
     }

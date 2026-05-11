@@ -15,7 +15,7 @@ namespace Nexus\Mcp\Core\Schema\Result;
 
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Cursor;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Tool\Tool;
 
 /**
@@ -33,7 +33,7 @@ final readonly class ListToolsResult extends PaginatedResult implements ServerRe
     /**
      * @param list<Tool> $tools
      */
-    public function __construct(array $tools, ?Cursor $nextCursor = null, ?Meta $meta = null)
+    public function __construct(array $tools, ?Cursor $nextCursor = null, ?MetaObject $meta = null)
     {
         Assert::that($tools)
             ->isList('ListToolsResult tools must be a list, got non-list array.')
@@ -65,7 +65,7 @@ final readonly class ListToolsResult extends PaginatedResult implements ServerRe
             $nextCursor = new Cursor($raw);
         }
 
-        $meta = Meta::parseFromWire($data, 'Result');
+        $meta = MetaObject::parseFromWire($data, 'Result');
 
         return new self($tools, $nextCursor, $meta);
     }

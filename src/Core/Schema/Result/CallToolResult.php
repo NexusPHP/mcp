@@ -21,7 +21,7 @@ use Nexus\Mcp\Core\Schema\ContentBlock\EmbeddedResource;
 use Nexus\Mcp\Core\Schema\ContentBlock\ImageContent;
 use Nexus\Mcp\Core\Schema\ContentBlock\ResourceLink;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Result;
 
 /**
@@ -49,7 +49,7 @@ final readonly class CallToolResult extends Result implements ServerResult
         array $content,
         ?array $structuredContent = null,
         public ?bool $isError = null,
-        ?Meta $meta = null,
+        ?MetaObject $meta = null,
     ) {
         Assert::that($content)
             ->isList('CallToolResult content must be a list, got non-list array.')
@@ -94,7 +94,7 @@ final readonly class CallToolResult extends Result implements ServerResult
         $isError = $data['isError'] ?? null;
         Assert::that($isError)->nullOr()->isBool('CallToolResult wire "isError" must be a bool or null, {type} given.');
 
-        $meta = Meta::parseFromWire($data, 'Result');
+        $meta = MetaObject::parseFromWire($data, 'Result');
 
         return new self($content, $structuredContent, $isError, $meta);
     }

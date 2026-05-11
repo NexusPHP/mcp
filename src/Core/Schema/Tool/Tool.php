@@ -18,7 +18,7 @@ use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\BaseMetadata;
 use Nexus\Mcp\Core\Schema\Icon;
 use Nexus\Mcp\Core\Schema\Icons;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
 
 /**
@@ -40,7 +40,7 @@ use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
  *   annotations?: template-type<ToolAnnotations, Arrayable, 'T'>,
  *   execution?: template-type<ToolExecution, Arrayable, 'T'>,
  *   icons?: list<template-type<Icon, Arrayable, 'T'>>,
- *   _meta?: template-type<Meta, Arrayable, 'T'>,
+ *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
  * }>
  *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#tool
@@ -76,7 +76,7 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
         public ?ToolAnnotations $annotations = null,
         public ?ToolExecution $execution = null,
         public ?array $icons = null,
-        public ?Meta $meta = null,
+        public ?MetaObject $meta = null,
     ) {
         parent::__construct($name, $title);
 
@@ -157,7 +157,7 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
             $icons = array_map(Icon::fromArray(...), $data['icons']);
         }
 
-        $meta = Meta::parseFromWire($data, 'Tool');
+        $meta = MetaObject::parseFromWire($data, 'Tool');
 
         return new self($name, $inputSchema, $title, $description, $outputSchema, $annotations, $execution, $icons, $meta);
     }

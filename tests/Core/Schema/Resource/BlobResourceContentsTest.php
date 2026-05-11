@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Schema\Resource;
 
 use Nexus\Assert\ExpectationFailedException;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Resource\BlobResourceContents;
 use Nexus\Mcp\Core\Schema\Resource\ResourceContents;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -47,7 +47,7 @@ final class BlobResourceContentsTest extends TestCase
             'file:///x',
             'aGVsbG8=',
             'application/octet-stream',
-            new Meta(['vendor' => 'x']),
+            new MetaObject(['vendor' => 'x']),
         );
 
         self::assertSame('application/octet-stream', $contents->mimeType);
@@ -71,7 +71,7 @@ final class BlobResourceContentsTest extends TestCase
             'file:///x',
             'aGVsbG8=',
             'application/octet-stream',
-            new Meta(['vendor' => 'x']),
+            new MetaObject(['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -120,7 +120,7 @@ final class BlobResourceContentsTest extends TestCase
             'file:///x',
             'aGVsbG8=',
             'application/octet-stream',
-            new Meta(['vendor' => 'x']),
+            new MetaObject(['vendor' => 'x']),
         );
 
         self::assertSame($original->toArray(), BlobResourceContents::fromArray($original->toArray())->toArray());

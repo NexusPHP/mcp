@@ -19,7 +19,7 @@ use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\BaseMetadata;
 use Nexus\Mcp\Core\Schema\Icon;
 use Nexus\Mcp\Core\Schema\Icons;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
 use Nexus\Mcp\Core\Validation\Rfc6570UriTemplateValidator;
 
@@ -34,7 +34,7 @@ use Nexus\Mcp\Core\Validation\Rfc6570UriTemplateValidator;
  *   mimeType?: non-empty-string,
  *   annotations?: template-type<Annotations, Arrayable, 'T'>,
  *   icons?: list<template-type<Icon, Arrayable, 'T'>>,
- *   _meta?: template-type<Meta, Arrayable, 'T'>,
+ *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
  * }>
  *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#resourcetemplate
@@ -72,7 +72,7 @@ final readonly class ResourceTemplate extends BaseMetadata implements Arrayable,
         ?string $mimeType = null,
         public ?Annotations $annotations = null,
         ?array $icons = null,
-        public ?Meta $meta = null,
+        public ?MetaObject $meta = null,
     ) {
         parent::__construct($name, $title);
 
@@ -137,7 +137,7 @@ final readonly class ResourceTemplate extends BaseMetadata implements Arrayable,
             $icons = array_map(Icon::fromArray(...), $data['icons']);
         }
 
-        $meta = Meta::parseFromWire($data, 'ResourceTemplate');
+        $meta = MetaObject::parseFromWire($data, 'ResourceTemplate');
 
         return new self($name, $uriTemplate, $title, $description, $mimeType, $annotations, $icons, $meta);
     }

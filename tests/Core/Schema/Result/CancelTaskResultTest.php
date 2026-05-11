@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Schema\Result;
 
 use Nexus\Mcp\Core\Schema\Enum\TaskStatus;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\CancelTaskResult;
 use Nexus\Mcp\Core\Schema\Task\Task;
@@ -58,7 +58,7 @@ final class CancelTaskResultTest extends TestCase
 
     public function testToArrayWithMeta(): void
     {
-        $result = new CancelTaskResult(self::task(), new Meta(['vendor' => 'x']));
+        $result = new CancelTaskResult(self::task(), new MetaObject(['vendor' => 'x']));
 
         self::assertSame(
             [
@@ -82,7 +82,7 @@ final class CancelTaskResultTest extends TestCase
 
     public function testFromArrayFullRoundTrip(): void
     {
-        $original = new CancelTaskResult(self::task(), new Meta(['vendor' => 'x']));
+        $original = new CancelTaskResult(self::task(), new MetaObject(['vendor' => 'x']));
 
         $rebuilt = CancelTaskResult::fromArray($original->toArray());
 

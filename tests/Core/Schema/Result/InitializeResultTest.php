@@ -15,7 +15,7 @@ namespace Nexus\Mcp\Tests\Core\Schema\Result;
 
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Implementation;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\ProtocolVersion;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\InitializeResult;
@@ -41,7 +41,7 @@ final class InitializeResultTest extends TestCase
             new ServerCapabilities(prompts: ['listChanged' => true]),
             new Implementation('server', '1.2.3'),
             'Use these tools wisely.',
-            new Meta(['vendor' => 'x']),
+            new MetaObject(['vendor' => 'x']),
         );
 
         self::assertSame('2025-11-25', $result->protocolVersion->version);
@@ -102,7 +102,7 @@ final class InitializeResultTest extends TestCase
             new ServerCapabilities(),
             new Implementation('server', '1.0.0'),
             'hint',
-            new Meta(['vendor' => 'x']),
+            new MetaObject(['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -142,7 +142,7 @@ final class InitializeResultTest extends TestCase
             new ServerCapabilities(),
             new Implementation('server', '1.0.0'),
             'hint',
-            new Meta(['vendor' => 'x']),
+            new MetaObject(['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -158,7 +158,7 @@ final class InitializeResultTest extends TestCase
             new ServerCapabilities(prompts: ['listChanged' => true]),
             new Implementation('server', '1.2.3'),
             'instructions',
-            new Meta(['vendor' => 'x']),
+            new MetaObject(['vendor' => 'x']),
         );
 
         $rebuilt = InitializeResult::fromArray($original->toArray());

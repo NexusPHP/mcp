@@ -24,7 +24,7 @@ namespace Nexus\Mcp\Core\Schema;
  */
 abstract readonly class Result implements Arrayable
 {
-    public function __construct(public ?Meta $meta = null)
+    public function __construct(public ?MetaObject $meta = null)
     {
     }
 

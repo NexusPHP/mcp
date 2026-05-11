@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\RequestParams;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\Schema\RequestMeta;
+use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
 
@@ -38,7 +38,7 @@ final readonly class GetPromptRequestParams extends RequestParams
     /**
      * @param null|array<string, string> $arguments
      */
-    public function __construct(string $name, ?array $arguments = null, ?RequestMeta $meta = null)
+    public function __construct(string $name, ?array $arguments = null, ?RequestMetaObject $meta = null)
     {
         IdentifierNameValidator::validate($name, 'GetPromptRequestParams');
 
@@ -76,7 +76,7 @@ final readonly class GetPromptRequestParams extends RequestParams
             $arguments = $data['arguments'];
         }
 
-        $meta = RequestMeta::parseFromWire($data, 'Request params');
+        $meta = RequestMetaObject::parseFromWire($data, 'Request params');
 
         return new self($name, $arguments, $meta);
     }

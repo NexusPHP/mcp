@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\Result;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Result;
 
 /**
@@ -32,7 +32,7 @@ final readonly class CompleteResult extends Result implements ServerResult
     /**
      * @param array{values: list<string>, total?: int, hasMore?: bool} $completion
      */
-    public function __construct(array $completion, ?Meta $meta = null)
+    public function __construct(array $completion, ?MetaObject $meta = null)
     {
         Assert::that($completion['values'])
             ->isList('CompleteResult completion "values" must be a list, got non-list array.')
@@ -86,7 +86,7 @@ final readonly class CompleteResult extends Result implements ServerResult
             $completion['hasMore'] = $data['completion']['hasMore'];
         }
 
-        $meta = Meta::parseFromWire($data, 'Result');
+        $meta = MetaObject::parseFromWire($data, 'Result');
 
         return new self($completion, $meta);
     }

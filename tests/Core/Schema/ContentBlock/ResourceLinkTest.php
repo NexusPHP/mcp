@@ -18,7 +18,7 @@ use Nexus\Mcp\Core\Schema\Annotations;
 use Nexus\Mcp\Core\Schema\BaseMetadata;
 use Nexus\Mcp\Core\Schema\ContentBlock\ResourceLink;
 use Nexus\Mcp\Core\Schema\Icon;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -69,7 +69,7 @@ final class ResourceLinkTest extends TestCase
             new Annotations(null, 0.5),
             1024.0,
             [new Icon('https://example.com/icon.png')],
-            new Meta(['vendor' => 'x']),
+            new MetaObject(['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -100,7 +100,7 @@ final class ResourceLinkTest extends TestCase
             null,
             42.0,
             null,
-            new Meta(['k' => 'v']),
+            new MetaObject(['k' => 'v']),
         );
 
         self::assertSame($link->toArray(), $link->jsonSerialize());
@@ -169,7 +169,7 @@ final class ResourceLinkTest extends TestCase
             new Annotations(null, 0.5),
             42.0,
             [new Icon('https://example.com/icon.png')],
-            new Meta(['vendor' => 'x']),
+            new MetaObject(['vendor' => 'x']),
         );
 
         $rebuilt = ResourceLink::fromArray($original->toArray());

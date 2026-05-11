@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\Result;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Root;
 
@@ -35,7 +35,7 @@ final readonly class ListRootsResult extends Result implements ClientResult
     /**
      * @param list<Root> $roots
      */
-    public function __construct(array $roots, ?Meta $meta = null)
+    public function __construct(array $roots, ?MetaObject $meta = null)
     {
         Assert::that($roots)
             ->isList('ListRootsResult roots must be a list, got non-list array.')
@@ -59,7 +59,7 @@ final readonly class ListRootsResult extends Result implements ClientResult
         ;
         $roots = array_map(Root::fromArray(...), $data['roots']);
 
-        $meta = Meta::parseFromWire($data, 'Result');
+        $meta = MetaObject::parseFromWire($data, 'Result');
 
         return new self($roots, $meta);
     }

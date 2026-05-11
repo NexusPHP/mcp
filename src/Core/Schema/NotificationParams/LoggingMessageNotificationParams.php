@@ -15,7 +15,7 @@ namespace Nexus\Mcp\Core\Schema\NotificationParams;
 
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Enum\LoggingLevel;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\NotificationParams;
 
 /**
@@ -29,7 +29,7 @@ final readonly class LoggingMessageNotificationParams extends NotificationParams
         public LoggingLevel $level,
         public mixed $data,
         public ?string $logger = null,
-        ?Meta $meta = null,
+        ?MetaObject $meta = null,
     ) {
         parent::__construct($meta);
     }
@@ -49,7 +49,7 @@ final readonly class LoggingMessageNotificationParams extends NotificationParams
         $logger = $data['logger'] ?? null;
         Assert::that($logger)->nullOr()->isString('LoggingMessageNotificationParams wire "logger" must be a string or null, {type} given.');
 
-        $meta = Meta::parseFromWire($data, 'Notification params');
+        $meta = MetaObject::parseFromWire($data, 'Notification params');
 
         return new self(LoggingLevel::from($level), $data['data'], $logger, $meta);
     }

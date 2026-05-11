@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\Result;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Resource\BlobResourceContents;
 use Nexus\Mcp\Core\Schema\Resource\ResourceContents;
 use Nexus\Mcp\Core\Schema\Resource\TextResourceContents;
@@ -35,7 +35,7 @@ final readonly class ReadResourceResult extends Result implements ServerResult
     /**
      * @param list<BlobResourceContents|TextResourceContents> $contents
      */
-    public function __construct(array $contents, ?Meta $meta = null)
+    public function __construct(array $contents, ?MetaObject $meta = null)
     {
         Assert::that($contents)
             ->isList('ReadResourceResult contents must be a list, got non-list array.')
@@ -62,7 +62,7 @@ final readonly class ReadResourceResult extends Result implements ServerResult
         ;
         $contents = array_map(ResourceContents::from(...), $data['contents']);
 
-        $meta = Meta::parseFromWire($data, 'Result');
+        $meta = MetaObject::parseFromWire($data, 'Result');
 
         return new self($contents, $meta);
     }

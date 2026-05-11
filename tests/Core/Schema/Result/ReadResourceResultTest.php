@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Schema\Result;
 
 use Nexus\Assert\ExpectationFailedException;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Resource\BlobResourceContents;
 use Nexus\Mcp\Core\Schema\Resource\TextResourceContents;
 use Nexus\Mcp\Core\Schema\Result;
@@ -103,7 +103,7 @@ final class ReadResourceResultTest extends TestCase
     {
         $result = new ReadResourceResult(
             [new TextResourceContents('file:///x', 'hi')],
-            new Meta(['vendor' => 'x']),
+            new MetaObject(['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -119,7 +119,7 @@ final class ReadResourceResultTest extends TestCase
     {
         $result = new ReadResourceResult(
             [new TextResourceContents('file:///x', 'hi')],
-            new Meta(['k' => 'v']),
+            new MetaObject(['k' => 'v']),
         );
 
         self::assertSame($result->toArray(), $result->jsonSerialize());
@@ -174,7 +174,7 @@ final class ReadResourceResultTest extends TestCase
                 new TextResourceContents('file:///a', 'hi', 'text/plain'),
                 new BlobResourceContents('file:///b', 'aGVsbG8=', 'application/octet-stream'),
             ],
-            new Meta(['vendor' => 'x']),
+            new MetaObject(['vendor' => 'x']),
         );
 
         self::assertSame($original->toArray(), ReadResourceResult::fromArray($original->toArray())->toArray());

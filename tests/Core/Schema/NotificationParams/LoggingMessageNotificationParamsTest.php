@@ -15,7 +15,7 @@ namespace Nexus\Mcp\Tests\Core\Schema\NotificationParams;
 
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Enum\LoggingLevel;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\NotificationParams;
 use Nexus\Mcp\Core\Schema\NotificationParams\LoggingMessageNotificationParams;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -78,7 +78,7 @@ final class LoggingMessageNotificationParamsTest extends TestCase
             LoggingLevel::Notice,
             'x',
             null,
-            new Meta(['vendor' => 'x']),
+            new MetaObject(['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -93,7 +93,7 @@ final class LoggingMessageNotificationParamsTest extends TestCase
             LoggingLevel::Critical,
             'x',
             'app',
-            new Meta(['k' => 'v']),
+            new MetaObject(['k' => 'v']),
         );
 
         self::assertSame(
@@ -138,7 +138,7 @@ final class LoggingMessageNotificationParamsTest extends TestCase
             LoggingLevel::Info,
             'x',
             'app',
-            new Meta(['k' => 'v']),
+            new MetaObject(['k' => 'v']),
         );
 
         self::assertSame($params->toArray(), $params->jsonSerialize());
@@ -197,7 +197,7 @@ final class LoggingMessageNotificationParamsTest extends TestCase
             LoggingLevel::Emergency,
             ['kind' => 'oom', 'pid' => 123],
             'app.db',
-            new Meta(['vendor' => 'x']),
+            new MetaObject(['vendor' => 'x']),
         );
 
         $rebuilt = LoggingMessageNotificationParams::fromArray($original->toArray());

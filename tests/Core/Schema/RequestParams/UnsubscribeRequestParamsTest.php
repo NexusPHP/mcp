@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Schema\RequestParams;
 
 use Nexus\Assert\ExpectationFailedException;
-use Nexus\Mcp\Core\Schema\RequestMeta;
+use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\ResourceRequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\UnsubscribeRequestParams;
@@ -52,7 +52,7 @@ final class UnsubscribeRequestParamsTest extends TestCase
     {
         $params = new UnsubscribeRequestParams(
             'file:///x',
-            new RequestMeta(null, ['vendor' => 'x']),
+            new RequestMetaObject(null, ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -65,7 +65,7 @@ final class UnsubscribeRequestParamsTest extends TestCase
     {
         $params = new UnsubscribeRequestParams(
             'file:///x',
-            new RequestMeta(null, ['k' => 'v']),
+            new RequestMetaObject(null, ['k' => 'v']),
         );
 
         self::assertSame($params->toArray(), $params->jsonSerialize());
@@ -94,7 +94,7 @@ final class UnsubscribeRequestParamsTest extends TestCase
     {
         $original = new UnsubscribeRequestParams(
             'file:///x',
-            new RequestMeta(null, ['vendor' => 'x']),
+            new RequestMetaObject(null, ['vendor' => 'x']),
         );
 
         $rebuilt = UnsubscribeRequestParams::fromArray($original->toArray());

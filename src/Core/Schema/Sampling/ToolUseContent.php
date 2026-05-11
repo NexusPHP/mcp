@@ -15,7 +15,7 @@ namespace Nexus\Mcp\Core\Schema\Sampling;
 
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Arrayable;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 
 /**
  * A request from the assistant to call a tool.
@@ -25,7 +25,7 @@ use Nexus\Mcp\Core\Schema\Meta;
  *   input: array<string, mixed>,
  *   name: non-empty-string,
  *   type: 'tool_use',
- *   _meta?: template-type<Meta, Arrayable, 'T'>,
+ *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
  * }>
  *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#toolusecontent
@@ -51,7 +51,7 @@ final readonly class ToolUseContent implements Arrayable, SamplingMessageContent
         string $id,
         string $name,
         public array $input,
-        public ?Meta $meta = null,
+        public ?MetaObject $meta = null,
     ) {
         Assert::that($id)->isNonEmptyString('ToolUseContent id must be a non-empty string.');
         Assert::that($name)->isNonEmptyString('ToolUseContent name must be a non-empty string.');
@@ -85,7 +85,7 @@ final readonly class ToolUseContent implements Arrayable, SamplingMessageContent
         ;
         $input = $data['input'];
 
-        $meta = Meta::parseFromWire($data, 'ToolUseContent');
+        $meta = MetaObject::parseFromWire($data, 'ToolUseContent');
 
         return new self($id, $name, $input, $meta);
     }

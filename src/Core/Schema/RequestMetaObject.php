@@ -23,7 +23,7 @@ use Nexus\Assert\Assert;
  *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/basic#_meta
  */
-final readonly class RequestMeta implements Arrayable
+final readonly class RequestMetaObject implements Arrayable
 {
     /**
      * @param array<string, mixed> $extras

@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Schema;
 
 use Nexus\Assert\ExpectationFailedException;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
@@ -22,56 +22,56 @@ use PHPUnit\Framework\TestCase;
 /**
  * @internal
  */
-#[CoversClass(Meta::class)]
+#[CoversClass(MetaObject::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class MetaTest extends TestCase
+final class MetaObjectTest extends TestCase
 {
     public function testDefaultsToEmptyExtras(): void
     {
-        $meta = new Meta();
+        $meta = new MetaObject();
 
         self::assertSame([], $meta->extras);
     }
 
     public function testCapturesExtras(): void
     {
-        $meta = new Meta(['vendor' => 'x', 'trace-id' => 123]);
+        $meta = new MetaObject(['vendor' => 'x', 'trace-id' => 123]);
 
         self::assertSame(['vendor' => 'x', 'trace-id' => 123], $meta->extras);
     }
 
     public function testFromArrayPopulatesExtras(): void
     {
-        $meta = Meta::fromArray(['foo' => 1, 'bar' => ['nested' => true]]);
+        $meta = MetaObject::fromArray(['foo' => 1, 'bar' => ['nested' => true]]);
 
         self::assertSame(['foo' => 1, 'bar' => ['nested' => true]], $meta->extras);
     }
 
     public function testToArrayEmitsExtrasVerbatim(): void
     {
-        $meta = new Meta(['a' => 1]);
+        $meta = new MetaObject(['a' => 1]);
 
         self::assertSame(['a' => 1], $meta->toArray());
     }
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $meta = new Meta(['a' => 1]);
+        $meta = new MetaObject(['a' => 1]);
 
         self::assertSame($meta->toArray(), $meta->jsonSerialize());
     }
 
     public function testRoundTripPreservesExtras(): void
     {
-        $original = new Meta(['key' => 'value', 'num' => 42]);
+        $original = new MetaObject(['key' => 'value', 'num' => 42]);
 
-        self::assertSame($original->toArray(), Meta::fromArray($original->toArray())->toArray());
+        self::assertSame($original->toArray(), MetaObject::fromArray($original->toArray())->toArray());
     }
 
     public function testJsonSerializeSubstitutesStdClassWhenEmpty(): void
     {
-        $meta = new Meta();
+        $meta = new MetaObject();
 
         self::assertInstanceOf(\stdClass::class, $meta->jsonSerialize());
         self::assertSame('{}', json_encode($meta));
@@ -79,12 +79,12 @@ final class MetaTest extends TestCase
 
     public function testParseFromWireReturnsNullWhenMetaAbsent(): void
     {
-        self::assertNull(Meta::parseFromWire(['name' => 'x'], 'Result'));
+        self::assertNull(MetaObject::parseFromWire(['name' => 'x'], 'Result'));
     }
 
     public function testParseFromWireReadsAndContextualizes(): void
     {
-        $meta = Meta::parseFromWire(['_meta' => ['vendor' => 'x']], 'Result');
+        $meta = MetaObject::parseFromWire(['_meta' => ['vendor' => 'x']], 'Result');
 
         self::assertNotNull($meta);
         self::assertSame(['vendor' => 'x'], $meta->extras);
@@ -95,7 +95,7 @@ final class MetaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage('Result "_meta" must be an object, string given.');
 
-        Meta::parseFromWire(['_meta' => 'oops'], 'Result');
+        MetaObject::parseFromWire(['_meta' => 'oops'], 'Result');
     }
 
     public function testParseFromWireRejectsListKeyedMeta(): void
@@ -103,6 +103,6 @@ final class MetaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage('Notification params "_meta" must be a string-keyed object.');
 
-        Meta::parseFromWire(['_meta' => ['x']], 'Notification params');
+        MetaObject::parseFromWire(['_meta' => ['x']], 'Notification params');
     }
 }

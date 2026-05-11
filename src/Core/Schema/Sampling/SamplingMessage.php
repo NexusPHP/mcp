@@ -20,7 +20,7 @@ use Nexus\Mcp\Core\Schema\ContentBlock\AudioContent;
 use Nexus\Mcp\Core\Schema\ContentBlock\ImageContent;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Enum\Role;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 
 /**
  * Describes a message issued to or received from an LLM API.
@@ -30,7 +30,7 @@ use Nexus\Mcp\Core\Schema\Meta;
  * @implements Arrayable<array{
  *   content: array<string, mixed>|list<array<string, mixed>>,
  *   role: value-of<Role>,
- *   _meta?: template-type<Meta, Arrayable, 'T'>,
+ *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
  * }>
  *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#samplingmessage
@@ -48,7 +48,7 @@ final readonly class SamplingMessage implements Arrayable
     public function __construct(
         public Role $role,
         array|AudioContent|ImageContent|TextContent|ToolResultContent|ToolUseContent $content,
-        public ?Meta $meta = null,
+        public ?MetaObject $meta = null,
     ) {
         if (\is_array($content)) {
             Assert::that($content)->values()->isInstanceOf(SamplingMessageContentBlock::class);
@@ -77,7 +77,7 @@ final readonly class SamplingMessage implements Arrayable
             $content = self::parseContentBlock($data['content']);
         }
 
-        $meta = Meta::parseFromWire($data, 'SamplingMessage');
+        $meta = MetaObject::parseFromWire($data, 'SamplingMessage');
 
         return new self(Role::from($role), $content, $meta);
     }

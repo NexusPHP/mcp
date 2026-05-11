@@ -15,7 +15,7 @@ namespace Nexus\Mcp\Tests\Core\Schema\RequestParams;
 
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\ProgressToken;
-use Nexus\Mcp\Core\Schema\RequestMeta;
+use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\GetPromptRequestParams;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -43,7 +43,7 @@ final class GetPromptRequestParamsTest extends TestCase
 
     public function testConstructionWithAllFields(): void
     {
-        $meta = new RequestMeta(new ProgressToken('p-1'), ['vendor.brand' => 'acme']);
+        $meta = new RequestMetaObject(new ProgressToken('p-1'), ['vendor.brand' => 'acme']);
         $params = new GetPromptRequestParams('code-review', ['topic' => 'auth'], $meta);
 
         self::assertSame(['topic' => 'auth'], $params->arguments);
@@ -69,7 +69,7 @@ final class GetPromptRequestParamsTest extends TestCase
 
     public function testToArrayWithMeta(): void
     {
-        $meta = new RequestMeta(null, ['vendor.brand' => 'acme']);
+        $meta = new RequestMetaObject(null, ['vendor.brand' => 'acme']);
         $params = new GetPromptRequestParams('code-review', null, $meta);
 
         self::assertSame(
@@ -111,7 +111,7 @@ final class GetPromptRequestParamsTest extends TestCase
         $original = new GetPromptRequestParams(
             'code-review',
             ['topic' => 'auth'],
-            new RequestMeta(null, ['vendor.brand' => 'acme']),
+            new RequestMetaObject(null, ['vendor.brand' => 'acme']),
         );
 
         $rebuilt = GetPromptRequestParams::fromArray($original->toArray());

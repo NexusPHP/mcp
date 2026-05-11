@@ -15,7 +15,7 @@ namespace Nexus\Mcp\Tests\Core\Schema\RequestParams;
 
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\ProgressToken;
-use Nexus\Mcp\Core\Schema\RequestMeta;
+use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\CallToolRequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\TaskAugmentedRequestParams;
@@ -48,7 +48,7 @@ final class CallToolRequestParamsTest extends TestCase
     public function testConstructionWithAllFields(): void
     {
         $task = new TaskMetadata(60000);
-        $meta = new RequestMeta(new ProgressToken('p-1'), ['vendor.brand' => 'acme']);
+        $meta = new RequestMetaObject(new ProgressToken('p-1'), ['vendor.brand' => 'acme']);
         $params = new CallToolRequestParams('read-file', ['path' => 'src/'], $task, $meta);
 
         self::assertSame(['path' => 'src/'], $params->arguments);
@@ -79,7 +79,7 @@ final class CallToolRequestParamsTest extends TestCase
             'read-file',
             null,
             new TaskMetadata(60000),
-            new RequestMeta(null, ['vendor.brand' => 'acme']),
+            new RequestMetaObject(null, ['vendor.brand' => 'acme']),
         );
 
         self::assertSame(
@@ -137,7 +137,7 @@ final class CallToolRequestParamsTest extends TestCase
             'read-file',
             ['path' => 'src/'],
             new TaskMetadata(60000),
-            new RequestMeta(null, ['vendor.brand' => 'acme']),
+            new RequestMetaObject(null, ['vendor.brand' => 'acme']),
         );
 
         $rebuilt = CallToolRequestParams::fromArray($original->toArray());

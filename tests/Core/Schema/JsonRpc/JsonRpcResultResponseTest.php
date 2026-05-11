@@ -15,7 +15,7 @@ namespace Nexus\Mcp\Tests\Core\Schema\JsonRpc;
 
 use Nexus\Mcp\Core\Schema\Implementation;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\ProtocolVersion;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
@@ -47,7 +47,7 @@ final class JsonRpcResultResponseTest extends TestCase
     {
         $response = new JsonRpcResultResponse(
             new RequestId('req-1'),
-            new EmptyResult(new Meta(['vendor' => 'x'])),
+            new EmptyResult(new MetaObject(['vendor' => 'x'])),
         );
 
         self::assertSame(
@@ -62,7 +62,7 @@ final class JsonRpcResultResponseTest extends TestCase
 
     public function testJsonSerializeMatchesToArrayForLeafResult(): void
     {
-        $response = new JsonRpcResultResponse(new RequestId(1), new EmptyResult(new Meta(['vendor' => 'x'])));
+        $response = new JsonRpcResultResponse(new RequestId(1), new EmptyResult(new MetaObject(['vendor' => 'x'])));
 
         self::assertSame($response->toArray(), $response->jsonSerialize());
     }

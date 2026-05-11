@@ -16,7 +16,7 @@ namespace Nexus\Mcp\Tests\Core\Schema\ContentBlock;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Annotations;
 use Nexus\Mcp\Core\Schema\ContentBlock\EmbeddedResource;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Resource\BlobResourceContents;
 use Nexus\Mcp\Core\Schema\Resource\TextResourceContents;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -79,7 +79,7 @@ final class EmbeddedResourceTest extends TestCase
         $embedded = new EmbeddedResource(
             new TextResourceContents('file:///x', 'hello'),
             new Annotations(null, 0.5),
-            new Meta(['vendor' => 'x']),
+            new MetaObject(['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -98,7 +98,7 @@ final class EmbeddedResourceTest extends TestCase
         $embedded = new EmbeddedResource(
             new TextResourceContents('file:///x', 'hello'),
             null,
-            new Meta(['k' => 'v']),
+            new MetaObject(['k' => 'v']),
         );
 
         self::assertSame($embedded->toArray(), $embedded->jsonSerialize());
@@ -147,7 +147,7 @@ final class EmbeddedResourceTest extends TestCase
         $original = new EmbeddedResource(
             new TextResourceContents('file:///x', 'hello'),
             new Annotations(null, 0.5),
-            new Meta(['vendor' => 'x']),
+            new MetaObject(['vendor' => 'x']),
         );
 
         $rebuilt = EmbeddedResource::fromArray($original->toArray());

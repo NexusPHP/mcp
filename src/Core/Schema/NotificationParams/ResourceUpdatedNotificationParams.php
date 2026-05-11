@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\NotificationParams;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\NotificationParams;
 
 /**
@@ -24,7 +24,7 @@ use Nexus\Mcp\Core\Schema\NotificationParams;
  */
 final readonly class ResourceUpdatedNotificationParams extends NotificationParams
 {
-    public function __construct(public string $uri, ?Meta $meta = null)
+    public function __construct(public string $uri, ?MetaObject $meta = null)
     {
         parent::__construct($meta);
     }
@@ -39,7 +39,7 @@ final readonly class ResourceUpdatedNotificationParams extends NotificationParam
         $uri = $data['uri'];
         Assert::that($uri)->isString('ResourceUpdatedNotificationParams wire "uri" must be a string, {type} given.');
 
-        $meta = Meta::parseFromWire($data, 'Notification params');
+        $meta = MetaObject::parseFromWire($data, 'Notification params');
 
         return new self($uri, $meta);
     }

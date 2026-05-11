@@ -16,7 +16,7 @@ namespace Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Enum\IncludeContext;
 use Nexus\Mcp\Core\Schema\ParsesNumber;
-use Nexus\Mcp\Core\Schema\RequestMeta;
+use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\Sampling\ModelPreferences;
 use Nexus\Mcp\Core\Schema\Sampling\SamplingMessage;
@@ -76,7 +76,7 @@ final readonly class CreateMessageRequestParams extends RequestParams
         public ?ToolChoice $toolChoice = null,
         ?array $tools = null,
         ?array $metadata = null,
-        ?RequestMeta $meta = null,
+        ?RequestMetaObject $meta = null,
     ) {
         Assert::that($maxTokens)->isNaturalInt('CreateMessageRequestParams maxTokens must be a non-negative integer.');
         Assert::that($messages)->values()->isInstanceOf(SamplingMessage::class);
@@ -198,7 +198,7 @@ final readonly class CreateMessageRequestParams extends RequestParams
             $metadata = $data['metadata'];
         }
 
-        $meta = RequestMeta::parseFromWire($data, 'Request params');
+        $meta = RequestMetaObject::parseFromWire($data, 'Request params');
 
         return new self(
             $maxTokens,

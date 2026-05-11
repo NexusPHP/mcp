@@ -15,7 +15,7 @@ namespace Nexus\Mcp\Core\Schema\Result;
 
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Enum\ElicitAction;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Result;
 
 /**
@@ -36,7 +36,7 @@ final readonly class ElicitResult extends Result implements ClientResult
     public function __construct(
         public ElicitAction $action,
         ?array $content = null,
-        ?Meta $meta = null,
+        ?MetaObject $meta = null,
     ) {
         if (null !== $content) {
             Assert::that($content)
@@ -80,7 +80,7 @@ final readonly class ElicitResult extends Result implements ClientResult
             $content = $data['content'];
         }
 
-        $meta = Meta::parseFromWire($data, 'Result');
+        $meta = MetaObject::parseFromWire($data, 'Result');
 
         return new self(ElicitAction::from($action), $content, $meta);
     }

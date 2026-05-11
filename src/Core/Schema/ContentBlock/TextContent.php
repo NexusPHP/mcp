@@ -17,7 +17,7 @@ use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Annotations;
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\ContentBlock;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Sampling\SamplingMessageContentBlock;
 
 /**
@@ -27,7 +27,7 @@ use Nexus\Mcp\Core\Schema\Sampling\SamplingMessageContentBlock;
  *   text: string,
  *   type: 'text',
  *   annotations?: template-type<Annotations, Arrayable, 'T'>,
- *   _meta?: template-type<Meta, Arrayable, 'T'>,
+ *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
  * }>
  *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#textcontent
@@ -39,7 +39,7 @@ final readonly class TextContent implements Arrayable, ContentBlock, SamplingMes
     public function __construct(
         public string $text,
         public ?Annotations $annotations = null,
-        public ?Meta $meta = null,
+        public ?MetaObject $meta = null,
     ) {
     }
 
@@ -67,7 +67,7 @@ final readonly class TextContent implements Arrayable, ContentBlock, SamplingMes
             $annotations = Annotations::fromArray($data['annotations']);
         }
 
-        $meta = Meta::parseFromWire($data, 'TextContent');
+        $meta = MetaObject::parseFromWire($data, 'TextContent');
 
         return new self($text, $annotations, $meta);
     }

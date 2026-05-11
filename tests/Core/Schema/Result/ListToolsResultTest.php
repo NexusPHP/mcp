@@ -15,7 +15,7 @@ namespace Nexus\Mcp\Tests\Core\Schema\Result;
 
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Cursor;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\ListToolsResult;
 use Nexus\Mcp\Core\Schema\Result\PaginatedResult;
@@ -65,7 +65,7 @@ final class ListToolsResultTest extends TestCase
         $result = new ListToolsResult(
             [new Tool('read-file', ['type' => 'object'])],
             new Cursor('cursor-1'),
-            new Meta(['vendor' => 'x']),
+            new MetaObject(['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -90,7 +90,7 @@ final class ListToolsResultTest extends TestCase
         $original = new ListToolsResult(
             [new Tool('read-file', ['type' => 'object'])],
             new Cursor('cursor-1'),
-            new Meta(['vendor' => 'x']),
+            new MetaObject(['vendor' => 'x']),
         );
 
         $rebuilt = ListToolsResult::fromArray($original->toArray());

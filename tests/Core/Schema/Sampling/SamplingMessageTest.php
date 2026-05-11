@@ -16,7 +16,7 @@ namespace Nexus\Mcp\Tests\Core\Schema\Sampling;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Enum\Role;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Sampling\SamplingMessage;
 use Nexus\Mcp\Core\Schema\Sampling\ToolUseContent;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -77,7 +77,7 @@ final class SamplingMessageTest extends TestCase
 
     public function testToArrayWithMeta(): void
     {
-        $msg = new SamplingMessage(Role::User, new TextContent('hi'), new Meta(extras: ['trace' => 'abc']));
+        $msg = new SamplingMessage(Role::User, new TextContent('hi'), new MetaObject(extras: ['trace' => 'abc']));
 
         self::assertSame(
             ['role' => 'user', 'content' => ['text' => 'hi', 'type' => 'text'], '_meta' => ['trace' => 'abc']],
@@ -87,7 +87,7 @@ final class SamplingMessageTest extends TestCase
 
     public function testToArrayOmitsEmptyMeta(): void
     {
-        $msg = new SamplingMessage(Role::User, new TextContent('hi'), new Meta());
+        $msg = new SamplingMessage(Role::User, new TextContent('hi'), new MetaObject());
 
         self::assertArrayNotHasKey('_meta', $msg->toArray());
     }

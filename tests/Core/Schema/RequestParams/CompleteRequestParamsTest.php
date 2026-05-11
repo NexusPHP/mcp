@@ -16,7 +16,7 @@ namespace Nexus\Mcp\Tests\Core\Schema\RequestParams;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\ProgressToken;
 use Nexus\Mcp\Core\Schema\Prompt\PromptReference;
-use Nexus\Mcp\Core\Schema\RequestMeta;
+use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\CompleteRequestParams;
 use Nexus\Mcp\Core\Schema\Resource\ResourceTemplateReference;
@@ -49,7 +49,7 @@ final class CompleteRequestParamsTest extends TestCase
 
     public function testConstructionWithAllFields(): void
     {
-        $meta = new RequestMeta(new ProgressToken('p-1'), ['vendor.brand' => 'acme']);
+        $meta = new RequestMetaObject(new ProgressToken('p-1'), ['vendor.brand' => 'acme']);
         $params = new CompleteRequestParams(
             new ResourceTemplateReference('file:///{path}'),
             ['name' => 'path', 'value' => 'src/'],
@@ -95,7 +95,7 @@ final class CompleteRequestParamsTest extends TestCase
             new ResourceTemplateReference('file:///{path}'),
             ['name' => 'path', 'value' => 'src/'],
             ['arguments' => ['path' => 'src/']],
-            new RequestMeta(null, ['vendor.brand' => 'acme']),
+            new RequestMetaObject(null, ['vendor.brand' => 'acme']),
         );
 
         self::assertSame(
@@ -167,7 +167,7 @@ final class CompleteRequestParamsTest extends TestCase
             new PromptReference('code-review'),
             ['name' => 'topic', 'value' => 'auth'],
             ['arguments' => ['topic' => 'auth']],
-            new RequestMeta(null, ['vendor.brand' => 'acme']),
+            new RequestMetaObject(null, ['vendor.brand' => 'acme']),
         );
 
         $rebuilt = CompleteRequestParams::fromArray($original->toArray());

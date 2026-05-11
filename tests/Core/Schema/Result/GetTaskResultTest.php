@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Schema\Result;
 
 use Nexus\Mcp\Core\Schema\Enum\TaskStatus;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\GetTaskResult;
 use Nexus\Mcp\Core\Schema\Task\Task;
@@ -58,7 +58,7 @@ final class GetTaskResultTest extends TestCase
 
     public function testToArrayWithMeta(): void
     {
-        $result = new GetTaskResult(self::task(), new Meta(['vendor' => 'x']));
+        $result = new GetTaskResult(self::task(), new MetaObject(['vendor' => 'x']));
 
         self::assertSame(
             [
@@ -82,7 +82,7 @@ final class GetTaskResultTest extends TestCase
 
     public function testFromArrayFullRoundTrip(): void
     {
-        $original = new GetTaskResult(self::task(), new Meta(['vendor' => 'x']));
+        $original = new GetTaskResult(self::task(), new MetaObject(['vendor' => 'x']));
 
         $rebuilt = GetTaskResult::fromArray($original->toArray());
 

@@ -18,7 +18,7 @@ use Nexus\Mcp\Core\Schema\ProgressToken;
 use Nexus\Mcp\Core\Schema\Request;
 use Nexus\Mcp\Core\Schema\Request\PingRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
-use Nexus\Mcp\Core\Schema\RequestMeta;
+use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
@@ -56,7 +56,7 @@ final class PingRequestTest extends TestCase
     {
         $request = new PingRequest(
             new RequestId('req-1'),
-            new EmptyRequestParams(new RequestMeta(new ProgressToken('tok-1'))),
+            new EmptyRequestParams(new RequestMetaObject(new ProgressToken('tok-1'))),
         );
 
         self::assertSame(

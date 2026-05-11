@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\RequestParams;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\Schema\RequestMeta;
+use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\Task\TaskMetadata;
 use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
 
@@ -42,7 +42,7 @@ final readonly class CallToolRequestParams extends TaskAugmentedRequestParams
         string $name,
         ?array $arguments = null,
         ?TaskMetadata $task = null,
-        ?RequestMeta $meta = null,
+        ?RequestMetaObject $meta = null,
     ) {
         IdentifierNameValidator::validate($name, 'CallToolRequestParams');
 
@@ -74,7 +74,7 @@ final readonly class CallToolRequestParams extends TaskAugmentedRequestParams
         }
 
         $task = TaskMetadata::parseFromWire($data, 'CallToolRequestParams');
-        $meta = RequestMeta::parseFromWire($data, 'Request params');
+        $meta = RequestMetaObject::parseFromWire($data, 'Request params');
 
         return new self($name, $arguments, $task, $meta);
     }

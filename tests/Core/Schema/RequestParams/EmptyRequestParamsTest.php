@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Schema\RequestParams;
 
 use Nexus\Mcp\Core\Schema\ProgressToken;
-use Nexus\Mcp\Core\Schema\RequestMeta;
+use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -42,14 +42,14 @@ final class EmptyRequestParamsTest extends TestCase
 
     public function testToArrayEmitsMetaUnderUnderscoreKey(): void
     {
-        $params = new EmptyRequestParams(new RequestMeta(new ProgressToken('tok-1')));
+        $params = new EmptyRequestParams(new RequestMetaObject(new ProgressToken('tok-1')));
 
         self::assertSame(['_meta' => ['progressToken' => 'tok-1']], $params->toArray());
     }
 
     public function testToArrayOmitsEmptyMeta(): void
     {
-        $params = new EmptyRequestParams(new RequestMeta());
+        $params = new EmptyRequestParams(new RequestMetaObject());
 
         self::assertSame([], $params->toArray());
     }
@@ -78,7 +78,7 @@ final class EmptyRequestParamsTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $params = new EmptyRequestParams(new RequestMeta(null, ['vendor' => 'x']));
+        $params = new EmptyRequestParams(new RequestMetaObject(null, ['vendor' => 'x']));
 
         self::assertSame($params->toArray(), $params->jsonSerialize());
     }

@@ -15,7 +15,7 @@ namespace Nexus\Mcp\Tests\Core\Schema\RequestParams;
 
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Enum\LoggingLevel;
-use Nexus\Mcp\Core\Schema\RequestMeta;
+use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\SetLevelRequestParams;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -51,7 +51,7 @@ final class SetLevelRequestParamsTest extends TestCase
     {
         $params = new SetLevelRequestParams(
             LoggingLevel::Debug,
-            new RequestMeta(null, ['vendor' => 'x']),
+            new RequestMetaObject(null, ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -64,7 +64,7 @@ final class SetLevelRequestParamsTest extends TestCase
     {
         $params = new SetLevelRequestParams(
             LoggingLevel::Error,
-            new RequestMeta(null, ['k' => 'v']),
+            new RequestMetaObject(null, ['k' => 'v']),
         );
 
         self::assertSame($params->toArray(), $params->jsonSerialize());
@@ -93,7 +93,7 @@ final class SetLevelRequestParamsTest extends TestCase
     {
         $original = new SetLevelRequestParams(
             LoggingLevel::Notice,
-            new RequestMeta(null, ['vendor' => 'x']),
+            new RequestMetaObject(null, ['vendor' => 'x']),
         );
 
         $rebuilt = SetLevelRequestParams::fromArray($original->toArray());

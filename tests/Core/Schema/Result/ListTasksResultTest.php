@@ -16,7 +16,7 @@ namespace Nexus\Mcp\Tests\Core\Schema\Result;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Cursor;
 use Nexus\Mcp\Core\Schema\Enum\TaskStatus;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\ListTasksResult;
 use Nexus\Mcp\Core\Schema\Result\PaginatedResult;
@@ -66,7 +66,7 @@ final class ListTasksResultTest extends TestCase
         $result = new ListTasksResult(
             [self::task()],
             new Cursor('cursor-1'),
-            new Meta(['vendor' => 'x']),
+            new MetaObject(['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -99,7 +99,7 @@ final class ListTasksResultTest extends TestCase
         $original = new ListTasksResult(
             [self::task()],
             new Cursor('cursor-1'),
-            new Meta(['vendor' => 'x']),
+            new MetaObject(['vendor' => 'x']),
         );
 
         $rebuilt = ListTasksResult::fromArray($original->toArray());

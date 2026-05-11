@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\RequestParams;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\Schema\RequestMeta;
+use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams;
 
 /**
@@ -24,7 +24,7 @@ use Nexus\Mcp\Core\Schema\RequestParams;
  */
 final readonly class CancelTaskRequestParams extends RequestParams
 {
-    public function __construct(public string $taskId, ?RequestMeta $meta = null)
+    public function __construct(public string $taskId, ?RequestMetaObject $meta = null)
     {
         parent::__construct($meta);
     }
@@ -36,7 +36,7 @@ final readonly class CancelTaskRequestParams extends RequestParams
         $taskId = $data['taskId'];
         Assert::that($taskId)->isString('CancelTaskRequestParams wire "taskId" must be a string, {type} given.');
 
-        $meta = RequestMeta::parseFromWire($data, 'Request params');
+        $meta = RequestMetaObject::parseFromWire($data, 'Request params');
 
         return new self($taskId, $meta);
     }

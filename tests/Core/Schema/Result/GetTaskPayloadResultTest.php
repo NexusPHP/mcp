@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\Result;
 
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\GetTaskPayloadResult;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -63,7 +63,7 @@ final class GetTaskPayloadResultTest extends TestCase
     {
         $result = new GetTaskPayloadResult(
             ['isError' => false],
-            new Meta(['vendor' => 'x']),
+            new MetaObject(['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -107,7 +107,7 @@ final class GetTaskPayloadResultTest extends TestCase
     {
         $original = new GetTaskPayloadResult(
             ['content' => [['type' => 'text', 'text' => 'hello']]],
-            new Meta(['vendor' => 'x']),
+            new MetaObject(['vendor' => 'x']),
         );
 
         $rebuilt = GetTaskPayloadResult::fromArray($original->toArray());

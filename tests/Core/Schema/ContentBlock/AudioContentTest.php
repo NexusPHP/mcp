@@ -16,7 +16,7 @@ namespace Nexus\Mcp\Tests\Core\Schema\ContentBlock;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Annotations;
 use Nexus\Mcp\Core\Schema\ContentBlock\AudioContent;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -56,7 +56,7 @@ final class AudioContentTest extends TestCase
             'aGVsbG8=',
             'audio/mp3',
             new Annotations(null, 0.5),
-            new Meta(['vendor' => 'x']),
+            new MetaObject(['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -73,7 +73,7 @@ final class AudioContentTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $content = new AudioContent('aGVsbG8=', 'audio/mp3', null, new Meta(['k' => 'v']));
+        $content = new AudioContent('aGVsbG8=', 'audio/mp3', null, new MetaObject(['k' => 'v']));
 
         self::assertSame($content->toArray(), $content->jsonSerialize());
     }
@@ -102,7 +102,7 @@ final class AudioContentTest extends TestCase
             'aGVsbG8=',
             'audio/mp3',
             new Annotations(null, 0.5),
-            new Meta(['vendor' => 'x']),
+            new MetaObject(['vendor' => 'x']),
         );
 
         $rebuilt = AudioContent::fromArray($original->toArray());

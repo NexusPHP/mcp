@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\RequestParams;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\Schema\RequestMeta;
+use Nexus\Mcp\Core\Schema\RequestMetaObject;
 
 /**
  * Parameters for a `resources/read` request.
@@ -33,7 +33,7 @@ final readonly class ReadResourceRequestParams extends ResourceRequestParams
         $uri = $data['uri'];
         Assert::that($uri)->isString('ReadResourceRequestParams wire "uri" must be a string, {type} given.');
 
-        $meta = RequestMeta::parseFromWire($data, 'Request params');
+        $meta = RequestMetaObject::parseFromWire($data, 'Request params');
 
         return new self($uri, $meta);
     }

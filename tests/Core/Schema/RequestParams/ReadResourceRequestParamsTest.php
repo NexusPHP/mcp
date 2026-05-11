@@ -15,7 +15,7 @@ namespace Nexus\Mcp\Tests\Core\Schema\RequestParams;
 
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\ProgressToken;
-use Nexus\Mcp\Core\Schema\RequestMeta;
+use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\ReadResourceRequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\ResourceRequestParams;
@@ -46,7 +46,7 @@ final class ReadResourceRequestParamsTest extends TestCase
     {
         $params = new ReadResourceRequestParams(
             'file:///x',
-            new RequestMeta(new ProgressToken('p-1'), ['vendor' => 'x']),
+            new RequestMetaObject(new ProgressToken('p-1'), ['vendor' => 'x']),
         );
 
         self::assertNotNull($params->meta);
@@ -65,7 +65,7 @@ final class ReadResourceRequestParamsTest extends TestCase
     {
         $params = new ReadResourceRequestParams(
             'file:///x',
-            new RequestMeta(new ProgressToken('p-1')),
+            new RequestMetaObject(new ProgressToken('p-1')),
         );
 
         self::assertSame(
@@ -108,7 +108,7 @@ final class ReadResourceRequestParamsTest extends TestCase
     {
         $original = new ReadResourceRequestParams(
             'file:///x',
-            new RequestMeta(new ProgressToken('p-1'), ['vendor' => 'x']),
+            new RequestMetaObject(new ProgressToken('p-1'), ['vendor' => 'x']),
         );
 
         self::assertSame($original->toArray(), ReadResourceRequestParams::fromArray($original->toArray())->toArray());

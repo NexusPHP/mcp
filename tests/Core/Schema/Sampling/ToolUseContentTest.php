@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Schema\Sampling;
 
 use Nexus\Assert\ExpectationFailedException;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Sampling\ToolUseContent;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
@@ -66,7 +66,7 @@ final class ToolUseContentTest extends TestCase
 
     public function testToArrayWithMeta(): void
     {
-        $content = new ToolUseContent('tu-1', 'get_weather', ['city' => 'Paris'], new Meta(extras: ['trace_id' => 'abc']));
+        $content = new ToolUseContent('tu-1', 'get_weather', ['city' => 'Paris'], new MetaObject(extras: ['trace_id' => 'abc']));
 
         self::assertSame(
             ['id' => 'tu-1', 'input' => ['city' => 'Paris'], 'name' => 'get_weather', 'type' => 'tool_use', '_meta' => ['trace_id' => 'abc']],
@@ -76,7 +76,7 @@ final class ToolUseContentTest extends TestCase
 
     public function testToArrayOmitsEmptyMeta(): void
     {
-        $content = new ToolUseContent('tu-1', 'get_weather', [], new Meta());
+        $content = new ToolUseContent('tu-1', 'get_weather', [], new MetaObject());
 
         self::assertSame(
             ['id' => 'tu-1', 'input' => [], 'name' => 'get_weather', 'type' => 'tool_use'],

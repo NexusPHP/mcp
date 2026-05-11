@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\NotificationParams;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\NotificationParams;
 
 /**
@@ -29,7 +29,7 @@ final readonly class ElicitationCompleteNotificationParams extends NotificationP
      */
     public string $elicitationId;
 
-    public function __construct(string $elicitationId, ?Meta $meta = null)
+    public function __construct(string $elicitationId, ?MetaObject $meta = null)
     {
         Assert::that($elicitationId)->isNonEmptyString('ElicitationCompleteNotificationParams elicitationId must be a non-empty string.');
 
@@ -48,7 +48,7 @@ final readonly class ElicitationCompleteNotificationParams extends NotificationP
         $elicitationId = $data['elicitationId'];
         Assert::that($elicitationId)->isString('ElicitationCompleteNotificationParams wire "elicitationId" must be a string, {type} given.');
 
-        $meta = Meta::parseFromWire($data, 'Notification params');
+        $meta = MetaObject::parseFromWire($data, 'Notification params');
 
         return new self($elicitationId, $meta);
     }

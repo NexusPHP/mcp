@@ -17,7 +17,7 @@ use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Annotations;
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\ContentBlock;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Resource\BlobResourceContents;
 use Nexus\Mcp\Core\Schema\Resource\ResourceContents;
 use Nexus\Mcp\Core\Schema\Resource\TextResourceContents;
@@ -31,7 +31,7 @@ use Nexus\Mcp\Core\Schema\Resource\TextResourceContents;
  *   resource: template-type<ResourceContents, Arrayable, 'T'>,
  *   type: 'resource',
  *   annotations?: template-type<Annotations, Arrayable, 'T'>,
- *   _meta?: template-type<Meta, Arrayable, 'T'>,
+ *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
  * }>
  *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#embeddedresource
@@ -43,7 +43,7 @@ final readonly class EmbeddedResource implements Arrayable, ContentBlock
     public function __construct(
         public BlobResourceContents|TextResourceContents $resource,
         public ?Annotations $annotations = null,
-        public ?Meta $meta = null,
+        public ?MetaObject $meta = null,
     ) {
     }
 
@@ -74,7 +74,7 @@ final readonly class EmbeddedResource implements Arrayable, ContentBlock
             $annotations = Annotations::fromArray($data['annotations']);
         }
 
-        $meta = Meta::parseFromWire($data, 'EmbeddedResource');
+        $meta = MetaObject::parseFromWire($data, 'EmbeddedResource');
 
         return new self($resource, $annotations, $meta);
     }

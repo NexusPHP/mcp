@@ -22,7 +22,7 @@ use Nexus\Mcp\Core\Schema\Notification\InitializedNotification;
 use Nexus\Mcp\Core\Schema\ProgressToken;
 use Nexus\Mcp\Core\Schema\Request\PingRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
-use Nexus\Mcp\Core\Schema\RequestMeta;
+use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Tests\Fixtures\Core\TestNotification;
@@ -83,7 +83,7 @@ final class JsonRpcMessageParserTest extends TestCase
 
         $original = new PingRequest(
             new RequestId('req-1'),
-            new EmptyRequestParams(new RequestMeta(new ProgressToken('tok-1'), ['vendor' => 'x'])),
+            new EmptyRequestParams(new RequestMetaObject(new ProgressToken('tok-1'), ['vendor' => 'x'])),
         );
 
         $wire = $original->toArray();

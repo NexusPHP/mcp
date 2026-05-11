@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\Result;
 
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -41,7 +41,7 @@ final class EmptyResultTest extends TestCase
 
     public function testToArrayEmitsMeta(): void
     {
-        $result = new EmptyResult(new Meta(['vendor' => 'x']));
+        $result = new EmptyResult(new MetaObject(['vendor' => 'x']));
 
         self::assertSame(['_meta' => ['vendor' => 'x']], $result->toArray());
     }
@@ -69,14 +69,14 @@ final class EmptyResultTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $result = new EmptyResult(new Meta(['k' => 'v']));
+        $result = new EmptyResult(new MetaObject(['k' => 'v']));
 
         self::assertSame($result->toArray(), $result->jsonSerialize());
     }
 
     public function testRoundTripPreservesMeta(): void
     {
-        $original = new EmptyResult(new Meta(['vendor' => 'x']));
+        $original = new EmptyResult(new MetaObject(['vendor' => 'x']));
 
         self::assertSame($original->toArray(), EmptyResult::fromArray($original->toArray())->toArray());
     }

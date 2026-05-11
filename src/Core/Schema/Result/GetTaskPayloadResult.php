@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Schema\Result;
 
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Result;
 
 /**
@@ -28,7 +28,7 @@ final readonly class GetTaskPayloadResult extends Result implements ClientResult
     /**
      * @param array<string, mixed> $payload
      */
-    public function __construct(public array $payload = [], ?Meta $meta = null)
+    public function __construct(public array $payload = [], ?MetaObject $meta = null)
     {
         parent::__construct($meta);
     }
@@ -39,7 +39,7 @@ final readonly class GetTaskPayloadResult extends Result implements ClientResult
     #[\Override]
     public static function fromArray(array $data): static
     {
-        $meta = Meta::parseFromWire($data, 'Result');
+        $meta = MetaObject::parseFromWire($data, 'Result');
 
         unset($data['_meta']);
 

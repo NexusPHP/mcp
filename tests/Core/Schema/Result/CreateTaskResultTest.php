@@ -15,7 +15,7 @@ namespace Nexus\Mcp\Tests\Core\Schema\Result;
 
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Enum\TaskStatus;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\CreateTaskResult;
 use Nexus\Mcp\Core\Schema\Task\Task;
@@ -62,7 +62,7 @@ final class CreateTaskResultTest extends TestCase
 
     public function testToArrayWithMeta(): void
     {
-        $result = new CreateTaskResult(self::task(), new Meta(['vendor' => 'x']));
+        $result = new CreateTaskResult(self::task(), new MetaObject(['vendor' => 'x']));
 
         self::assertSame(
             [
@@ -88,7 +88,7 @@ final class CreateTaskResultTest extends TestCase
 
     public function testFromArrayFullRoundTrip(): void
     {
-        $original = new CreateTaskResult(self::task(), new Meta(['vendor' => 'x']));
+        $original = new CreateTaskResult(self::task(), new MetaObject(['vendor' => 'x']));
 
         $rebuilt = CreateTaskResult::fromArray($original->toArray());
 

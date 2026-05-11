@@ -33,7 +33,7 @@ use Nexus\Mcp\Core\Schema\Error\UrlElicitationRequiredErrorPayload;
 use Nexus\Mcp\Core\Schema\Icons;
 use Nexus\Mcp\Core\Schema\JsonRpc\PaginatedRequest;
 use Nexus\Mcp\Core\Schema\JsonRpc\UrlElicitationRequiredError;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Notification;
 use Nexus\Mcp\Core\Schema\Notification\ClientNotification;
 use Nexus\Mcp\Core\Schema\Notification\ServerNotification;
@@ -44,7 +44,7 @@ use Nexus\Mcp\Core\Schema\ProtocolVersion;
 use Nexus\Mcp\Core\Schema\Request;
 use Nexus\Mcp\Core\Schema\Request\ClientRequest;
 use Nexus\Mcp\Core\Schema\Request\ServerRequest;
-use Nexus\Mcp\Core\Schema\RequestMeta;
+use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\CancelTaskRequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
@@ -95,8 +95,8 @@ final class SchemaConformanceTest extends TestCase
      * Each entry pins the exact URL the class must reference instead.
      */
     private const array NON_SCHEMA_ANCHOR_SEE_URLS = [
-        Meta::class => 'https://modelcontextprotocol.io/specification/2025-11-25/basic#_meta',
-        RequestMeta::class => 'https://modelcontextprotocol.io/specification/2025-11-25/basic#_meta',
+        MetaObject::class => 'https://modelcontextprotocol.io/specification/2025-11-25/basic#_meta',
+        RequestMetaObject::class => 'https://modelcontextprotocol.io/specification/2025-11-25/basic#_meta',
         Icons::class => 'https://modelcontextprotocol.io/specification/2025-11-25/basic#icons',
         ProtocolVersion::class => 'https://modelcontextprotocol.io/specification/2025-11-25/basic/lifecycle#version-negotiation',
         BaseMetadata::class => self::TS_SCHEMA_FILE_URL,

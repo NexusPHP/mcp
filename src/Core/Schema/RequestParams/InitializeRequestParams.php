@@ -17,7 +17,7 @@ use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\ClientCapabilities;
 use Nexus\Mcp\Core\Schema\Implementation;
 use Nexus\Mcp\Core\Schema\ProtocolVersion;
-use Nexus\Mcp\Core\Schema\RequestMeta;
+use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams;
 
 /**
@@ -31,7 +31,7 @@ final readonly class InitializeRequestParams extends RequestParams
         public ProtocolVersion $protocolVersion,
         public ClientCapabilities $capabilities,
         public Implementation $clientInfo,
-        ?RequestMeta $meta = null,
+        ?RequestMetaObject $meta = null,
     ) {
         parent::__construct($meta);
     }
@@ -58,7 +58,7 @@ final readonly class InitializeRequestParams extends RequestParams
             ->isMap('InitializeRequestParams wire "clientInfo" must be a string-keyed object.')
         ;
 
-        $meta = RequestMeta::parseFromWire($data, 'Request params');
+        $meta = RequestMetaObject::parseFromWire($data, 'Request params');
 
         return new self(
             new ProtocolVersion($protocolVersion),

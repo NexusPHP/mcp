@@ -19,7 +19,7 @@ use Nexus\Mcp\Core\Schema\ContentBlock\AudioContent;
 use Nexus\Mcp\Core\Schema\ContentBlock\ImageContent;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Enum\Role;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Sampling\SamplingMessage;
 use Nexus\Mcp\Core\Schema\Sampling\ToolResultContent;
@@ -59,7 +59,7 @@ final readonly class CreateMessageResult extends Result implements ClientResult
         public Role $role,
         array|AudioContent|ImageContent|TextContent|ToolResultContent|ToolUseContent $content,
         ?string $stopReason = null,
-        ?Meta $meta = null,
+        ?MetaObject $meta = null,
     ) {
         Assert::that($model)->isNonEmptyString('CreateMessageResult model must be a non-empty string.');
         Assert::that($stopReason)->nullOr()->isNonEmptyString('CreateMessageResult stopReason must be a non-empty string or null.');
@@ -98,7 +98,7 @@ final readonly class CreateMessageResult extends Result implements ClientResult
         $stopReason = $data['stopReason'] ?? null;
         Assert::that($stopReason)->nullOr()->isString('CreateMessageResult wire "stopReason" must be a string or null, {type} given.');
 
-        $meta = Meta::parseFromWire($data, 'Result');
+        $meta = MetaObject::parseFromWire($data, 'Result');
 
         return new self($model, Role::from($role), $content, $stopReason, $meta);
     }

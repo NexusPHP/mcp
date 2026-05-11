@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\NotificationParams;
 
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\NotificationParams;
 use Nexus\Mcp\Core\Schema\NotificationParams\ProgressNotificationParams;
 use Nexus\Mcp\Core\Schema\ProgressToken;
@@ -99,7 +99,7 @@ final class ProgressNotificationParamsTest extends TestCase
             0.25,
             null,
             null,
-            new Meta(['vendor' => 'x']),
+            new MetaObject(['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -115,7 +115,7 @@ final class ProgressNotificationParamsTest extends TestCase
             5.0,
             10.0,
             'fetching',
-            new Meta(['k' => 'v']),
+            new MetaObject(['k' => 'v']),
         );
 
         self::assertSame(
@@ -131,7 +131,7 @@ final class ProgressNotificationParamsTest extends TestCase
             5.0,
             10.0,
             'fetching',
-            new Meta(['k' => 'v']),
+            new MetaObject(['k' => 'v']),
         );
 
         self::assertSame($params->toArray(), $params->jsonSerialize());
@@ -185,7 +185,7 @@ final class ProgressNotificationParamsTest extends TestCase
             3.14,
             42.0,
             'crunching',
-            new Meta(['vendor' => 'x']),
+            new MetaObject(['vendor' => 'x']),
         );
 
         $rebuilt = ProgressNotificationParams::fromArray($original->toArray());

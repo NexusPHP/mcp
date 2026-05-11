@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Schema\RequestParams;
 
-use Nexus\Mcp\Core\Schema\RequestMeta;
+use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams;
 
 /**
@@ -23,7 +23,7 @@ use Nexus\Mcp\Core\Schema\RequestParams;
  */
 abstract readonly class ResourceRequestParams extends RequestParams
 {
-    public function __construct(public string $uri, ?RequestMeta $meta = null)
+    public function __construct(public string $uri, ?RequestMetaObject $meta = null)
     {
         parent::__construct($meta);
     }

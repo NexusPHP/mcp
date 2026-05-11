@@ -15,7 +15,7 @@ namespace Nexus\Mcp\Core\Schema\RequestParams;
 
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequestedSchema;
-use Nexus\Mcp\Core\Schema\RequestMeta;
+use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\Task\TaskMetadata;
 
 /**
@@ -42,7 +42,7 @@ final readonly class ElicitRequestFormParams extends TaskAugmentedRequestParams 
         public ElicitRequestedSchema $requestedSchema,
         string $mode = self::MODE,
         ?TaskMetadata $task = null,
-        ?RequestMeta $meta = null,
+        ?RequestMetaObject $meta = null,
     ) {
         Assert::that($message)->isNonEmptyString('ElicitRequestFormParams message must be a non-empty string.');
         Assert::that($mode)->isIdentical(self::MODE, \sprintf('ElicitRequestFormParams mode must be "%s", {value} given.', self::MODE));
@@ -74,7 +74,7 @@ final readonly class ElicitRequestFormParams extends TaskAugmentedRequestParams 
         $requestedSchema = ElicitRequestedSchema::fromArray($data['requestedSchema']);
 
         $task = TaskMetadata::parseFromWire($data, 'ElicitRequestFormParams');
-        $meta = RequestMeta::parseFromWire($data, 'Request params');
+        $meta = RequestMetaObject::parseFromWire($data, 'Request params');
 
         return new self($message, $requestedSchema, $mode, $task, $meta);
     }

@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Schema\Result;
 
 use Nexus\Assert\ExpectationFailedException;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\CompleteResult;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -50,7 +50,7 @@ final class CompleteResultTest extends TestCase
     {
         $result = new CompleteResult(
             ['values' => ['auth', 'auth-bearer'], 'total' => 2, 'hasMore' => false],
-            new Meta(['vendor.brand' => 'acme']),
+            new MetaObject(['vendor.brand' => 'acme']),
         );
 
         self::assertSame(
@@ -73,7 +73,7 @@ final class CompleteResultTest extends TestCase
     {
         $result = new CompleteResult(
             ['values' => ['auth'], 'total' => 1, 'hasMore' => false],
-            new Meta(['vendor.brand' => 'acme']),
+            new MetaObject(['vendor.brand' => 'acme']),
         );
 
         self::assertSame(
@@ -96,7 +96,7 @@ final class CompleteResultTest extends TestCase
     {
         $original = new CompleteResult(
             ['values' => ['auth', 'auth-bearer'], 'total' => 2, 'hasMore' => true],
-            new Meta(['vendor.brand' => 'acme']),
+            new MetaObject(['vendor.brand' => 'acme']),
         );
 
         $rebuilt = CompleteResult::fromArray($original->toArray());

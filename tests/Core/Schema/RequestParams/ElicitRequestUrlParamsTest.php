@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Schema\RequestParams;
 
 use Nexus\Assert\ExpectationFailedException;
-use Nexus\Mcp\Core\Schema\RequestMeta;
+use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\ElicitRequestUrlParams;
 use Nexus\Mcp\Core\Schema\RequestParams\TaskAugmentedRequestParams;
@@ -79,7 +79,7 @@ final class ElicitRequestUrlParamsTest extends TestCase
             'url',
             'https://auth.example.com',
             new TaskMetadata(60000),
-            new RequestMeta(null, ['vendor' => 'x']),
+            new RequestMetaObject(null, ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -115,7 +115,7 @@ final class ElicitRequestUrlParamsTest extends TestCase
             'url',
             'https://auth.example.com',
             new TaskMetadata(60000),
-            new RequestMeta(null, ['vendor' => 'x']),
+            new RequestMetaObject(null, ['vendor' => 'x']),
         );
 
         $rebuilt = ElicitRequestUrlParams::fromArray($original->toArray());

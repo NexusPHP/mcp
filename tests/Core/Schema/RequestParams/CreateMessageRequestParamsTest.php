@@ -18,7 +18,7 @@ use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Enum\IncludeContext;
 use Nexus\Mcp\Core\Schema\Enum\Role;
 use Nexus\Mcp\Core\Schema\Enum\ToolChoiceMode;
-use Nexus\Mcp\Core\Schema\RequestMeta;
+use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\CreateMessageRequestParams;
 use Nexus\Mcp\Core\Schema\Sampling\ModelHint;
@@ -192,7 +192,7 @@ final class CreateMessageRequestParamsTest extends TestCase
         $params = new CreateMessageRequestParams(
             maxTokens: 1,
             messages: [new SamplingMessage(Role::User, new TextContent('hi'))],
-            meta: new RequestMeta(extras: ['vendor' => 'acme']),
+            meta: new RequestMetaObject(extras: ['vendor' => 'acme']),
         );
 
         self::assertSame(

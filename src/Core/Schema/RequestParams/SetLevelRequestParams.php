@@ -15,7 +15,7 @@ namespace Nexus\Mcp\Core\Schema\RequestParams;
 
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Enum\LoggingLevel;
-use Nexus\Mcp\Core\Schema\RequestMeta;
+use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams;
 
 /**
@@ -25,7 +25,7 @@ use Nexus\Mcp\Core\Schema\RequestParams;
  */
 final readonly class SetLevelRequestParams extends RequestParams
 {
-    public function __construct(public LoggingLevel $level, ?RequestMeta $meta = null)
+    public function __construct(public LoggingLevel $level, ?RequestMetaObject $meta = null)
     {
         parent::__construct($meta);
     }
@@ -40,7 +40,7 @@ final readonly class SetLevelRequestParams extends RequestParams
         $level = $data['level'];
         Assert::that($level)->isString('SetLevelRequestParams wire "level" must be a string, {type} given.');
 
-        $meta = RequestMeta::parseFromWire($data, 'Request params');
+        $meta = RequestMetaObject::parseFromWire($data, 'Request params');
 
         return new self(LoggingLevel::from($level), $meta);
     }

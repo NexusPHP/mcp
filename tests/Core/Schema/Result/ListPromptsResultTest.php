@@ -15,7 +15,7 @@ namespace Nexus\Mcp\Tests\Core\Schema\Result;
 
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Cursor;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Prompt\Prompt;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\ListPromptsResult;
@@ -69,7 +69,7 @@ final class ListPromptsResultTest extends TestCase
         $result = new ListPromptsResult(
             [new Prompt('a')],
             new Cursor('cur-1'),
-            new Meta(['vendor' => 'x']),
+            new MetaObject(['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -87,7 +87,7 @@ final class ListPromptsResultTest extends TestCase
         $result = new ListPromptsResult(
             [new Prompt('a')],
             new Cursor('cur-1'),
-            new Meta(['k' => 'v']),
+            new MetaObject(['k' => 'v']),
         );
 
         self::assertSame($result->toArray(), $result->jsonSerialize());
@@ -114,7 +114,7 @@ final class ListPromptsResultTest extends TestCase
         $original = new ListPromptsResult(
             [new Prompt('a', 'A')],
             new Cursor('cur-1'),
-            new Meta(['vendor' => 'x']),
+            new MetaObject(['vendor' => 'x']),
         );
 
         $rebuilt = ListPromptsResult::fromArray($original->toArray());

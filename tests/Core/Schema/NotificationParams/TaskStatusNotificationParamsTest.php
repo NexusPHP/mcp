@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Schema\NotificationParams;
 
 use Nexus\Mcp\Core\Schema\Enum\TaskStatus;
-use Nexus\Mcp\Core\Schema\Meta;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\NotificationParams;
 use Nexus\Mcp\Core\Schema\NotificationParams\TaskStatusNotificationParams;
 use Nexus\Mcp\Core\Schema\Task\Task;
@@ -58,7 +58,7 @@ final class TaskStatusNotificationParamsTest extends TestCase
 
     public function testToArrayWithMeta(): void
     {
-        $params = new TaskStatusNotificationParams(self::task(), new Meta(['vendor' => 'x']));
+        $params = new TaskStatusNotificationParams(self::task(), new MetaObject(['vendor' => 'x']));
 
         self::assertSame(
             [
@@ -82,7 +82,7 @@ final class TaskStatusNotificationParamsTest extends TestCase
 
     public function testFromArrayFullRoundTrip(): void
     {
-        $original = new TaskStatusNotificationParams(self::task(), new Meta(['vendor' => 'x']));
+        $original = new TaskStatusNotificationParams(self::task(), new MetaObject(['vendor' => 'x']));
 
         $rebuilt = TaskStatusNotificationParams::fromArray($original->toArray());
 
