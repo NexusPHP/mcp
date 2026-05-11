@@ -62,17 +62,17 @@
             "Nexus\\Mcp\\Tools\\ComposerScripts::postUpdate"
         ],
         "post-autoload-dump": [
-            "@composer update --ansi --working-dir=tools"
+            "@composer update --working-dir=tools"
         ],
-        "cs:check": "tools/vendor/bin/php-cs-fixer check --ansi --verbose --diff",
-        "cs:fix": "tools/vendor/bin/php-cs-fixer fix --ansi --verbose --diff",
+        "cs:check": "tools/vendor/bin/php-cs-fixer check --verbose --diff",
+        "cs:fix": "tools/vendor/bin/php-cs-fixer fix --verbose --diff",
         "mutation:check": [
             "Composer\\Config::disableProcessTimeout",
-            "tools/vendor/bin/infection --ansi --with-uncovered --static-analysis-tool=phpstan"
+            "tools/vendor/bin/infection --with-uncovered --static-analysis-tool=phpstan"
         ],
         "mutation:filter": "@mutation:check --git-diff-filter=AM --git-diff-base=origin/1.x",
-        "phpstan:baseline": "phpstan analyse --ansi --verbose --generate-baseline=phpstan-baseline.php",
-        "phpstan:check": "phpstan analyse --ansi --verbose",
+        "phpstan:baseline": "phpstan analyse --verbose --generate-baseline=phpstan-baseline.php",
+        "phpstan:check": "phpstan analyse --verbose",
         "schema:generate": "tools/generate-schema",
         "spec:snapshot-anchors": "tools/snapshot-spec-anchors",
         "test:all": [
