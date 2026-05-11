@@ -19,57 +19,10 @@ use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
-use Nexus\Mcp\Core\Schema\Notification\CancelledNotification;
-use Nexus\Mcp\Core\Schema\Notification\ElicitationCompleteNotification;
-use Nexus\Mcp\Core\Schema\Notification\InitializedNotification;
-use Nexus\Mcp\Core\Schema\Notification\LoggingMessageNotification;
-use Nexus\Mcp\Core\Schema\Notification\ProgressNotification;
-use Nexus\Mcp\Core\Schema\Notification\PromptListChangedNotification;
-use Nexus\Mcp\Core\Schema\Notification\ResourceListChangedNotification;
-use Nexus\Mcp\Core\Schema\Notification\ResourceUpdatedNotification;
-use Nexus\Mcp\Core\Schema\Notification\RootsListChangedNotification;
-use Nexus\Mcp\Core\Schema\Notification\TaskStatusNotification;
-use Nexus\Mcp\Core\Schema\Notification\ToolListChangedNotification;
-use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
-use Nexus\Mcp\Core\Schema\Request\CancelTaskRequest;
-use Nexus\Mcp\Core\Schema\Request\CompleteRequest;
-use Nexus\Mcp\Core\Schema\Request\CreateMessageRequest;
-use Nexus\Mcp\Core\Schema\Request\ElicitRequest;
-use Nexus\Mcp\Core\Schema\Request\GetPromptRequest;
-use Nexus\Mcp\Core\Schema\Request\GetTaskPayloadRequest;
-use Nexus\Mcp\Core\Schema\Request\GetTaskRequest;
-use Nexus\Mcp\Core\Schema\Request\InitializeRequest;
-use Nexus\Mcp\Core\Schema\Request\ListPromptsRequest;
-use Nexus\Mcp\Core\Schema\Request\ListResourcesRequest;
-use Nexus\Mcp\Core\Schema\Request\ListResourceTemplatesRequest;
-use Nexus\Mcp\Core\Schema\Request\ListRootsRequest;
-use Nexus\Mcp\Core\Schema\Request\ListTasksRequest;
-use Nexus\Mcp\Core\Schema\Request\ListToolsRequest;
-use Nexus\Mcp\Core\Schema\Request\PingRequest;
-use Nexus\Mcp\Core\Schema\Request\ReadResourceRequest;
-use Nexus\Mcp\Core\Schema\Request\SetLevelRequest;
-use Nexus\Mcp\Core\Schema\Request\SubscribeRequest;
-use Nexus\Mcp\Core\Schema\Request\UnsubscribeRequest;
+use Nexus\Mcp\Core\Schema\Notification;
+use Nexus\Mcp\Core\Schema\Request;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result;
-use Nexus\Mcp\Core\Schema\Result\CallToolResult;
-use Nexus\Mcp\Core\Schema\Result\CancelTaskResult;
-use Nexus\Mcp\Core\Schema\Result\CompleteResult;
-use Nexus\Mcp\Core\Schema\Result\CreateMessageResult;
-use Nexus\Mcp\Core\Schema\Result\CreateTaskResult;
-use Nexus\Mcp\Core\Schema\Result\ElicitResult;
-use Nexus\Mcp\Core\Schema\Result\EmptyResult;
-use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
-use Nexus\Mcp\Core\Schema\Result\GetTaskPayloadResult;
-use Nexus\Mcp\Core\Schema\Result\GetTaskResult;
-use Nexus\Mcp\Core\Schema\Result\InitializeResult;
-use Nexus\Mcp\Core\Schema\Result\ListPromptsResult;
-use Nexus\Mcp\Core\Schema\Result\ListResourcesResult;
-use Nexus\Mcp\Core\Schema\Result\ListResourceTemplatesResult;
-use Nexus\Mcp\Core\Schema\Result\ListRootsResult;
-use Nexus\Mcp\Core\Schema\Result\ListTasksResult;
-use Nexus\Mcp\Core\Schema\Result\ListToolsResult;
-use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Group;
 
@@ -160,105 +113,105 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
     protected static function registry(): iterable
     {
         // Concrete requests.
-        yield 'PingRequest' => ['wrapper' => PingRequest::class, 'inner' => null];
+        yield 'PingRequest' => ['wrapper' => Request\PingRequest::class, 'inner' => null];
 
-        yield 'ReadResourceRequest' => ['wrapper' => ReadResourceRequest::class, 'inner' => null];
+        yield 'ReadResourceRequest' => ['wrapper' => Request\ReadResourceRequest::class, 'inner' => null];
 
-        yield 'InitializeRequest' => ['wrapper' => InitializeRequest::class, 'inner' => null];
+        yield 'InitializeRequest' => ['wrapper' => Request\InitializeRequest::class, 'inner' => null];
 
-        yield 'CompleteRequest' => ['wrapper' => CompleteRequest::class, 'inner' => null];
+        yield 'CompleteRequest' => ['wrapper' => Request\CompleteRequest::class, 'inner' => null];
 
-        yield 'CreateMessageRequest' => ['wrapper' => CreateMessageRequest::class, 'inner' => null];
+        yield 'CreateMessageRequest' => ['wrapper' => Request\CreateMessageRequest::class, 'inner' => null];
 
-        yield 'GetPromptRequest' => ['wrapper' => GetPromptRequest::class, 'inner' => null];
+        yield 'GetPromptRequest' => ['wrapper' => Request\GetPromptRequest::class, 'inner' => null];
 
-        yield 'CallToolRequest' => ['wrapper' => CallToolRequest::class, 'inner' => null];
+        yield 'CallToolRequest' => ['wrapper' => Request\CallToolRequest::class, 'inner' => null];
 
-        yield 'CancelTaskRequest' => ['wrapper' => CancelTaskRequest::class, 'inner' => null];
+        yield 'CancelTaskRequest' => ['wrapper' => Request\CancelTaskRequest::class, 'inner' => null];
 
-        yield 'GetTaskRequest' => ['wrapper' => GetTaskRequest::class, 'inner' => null];
+        yield 'GetTaskRequest' => ['wrapper' => Request\GetTaskRequest::class, 'inner' => null];
 
-        yield 'GetTaskPayloadRequest' => ['wrapper' => GetTaskPayloadRequest::class, 'inner' => null];
+        yield 'GetTaskPayloadRequest' => ['wrapper' => Request\GetTaskPayloadRequest::class, 'inner' => null];
 
-        yield 'ListPromptsRequest' => ['wrapper' => ListPromptsRequest::class, 'inner' => null];
+        yield 'ListPromptsRequest' => ['wrapper' => Request\ListPromptsRequest::class, 'inner' => null];
 
-        yield 'ListResourcesRequest' => ['wrapper' => ListResourcesRequest::class, 'inner' => null];
+        yield 'ListResourcesRequest' => ['wrapper' => Request\ListResourcesRequest::class, 'inner' => null];
 
-        yield 'ListResourceTemplatesRequest' => ['wrapper' => ListResourceTemplatesRequest::class, 'inner' => null];
+        yield 'ListResourceTemplatesRequest' => ['wrapper' => Request\ListResourceTemplatesRequest::class, 'inner' => null];
 
-        yield 'ListRootsRequest' => ['wrapper' => ListRootsRequest::class, 'inner' => null];
+        yield 'ListRootsRequest' => ['wrapper' => Request\ListRootsRequest::class, 'inner' => null];
 
-        yield 'ListTasksRequest' => ['wrapper' => ListTasksRequest::class, 'inner' => null];
+        yield 'ListTasksRequest' => ['wrapper' => Request\ListTasksRequest::class, 'inner' => null];
 
-        yield 'ListToolsRequest' => ['wrapper' => ListToolsRequest::class, 'inner' => null];
+        yield 'ListToolsRequest' => ['wrapper' => Request\ListToolsRequest::class, 'inner' => null];
 
-        yield 'SetLevelRequest' => ['wrapper' => SetLevelRequest::class, 'inner' => null];
+        yield 'SetLevelRequest' => ['wrapper' => Request\SetLevelRequest::class, 'inner' => null];
 
-        yield 'SubscribeRequest' => ['wrapper' => SubscribeRequest::class, 'inner' => null];
+        yield 'SubscribeRequest' => ['wrapper' => Request\SubscribeRequest::class, 'inner' => null];
 
-        yield 'UnsubscribeRequest' => ['wrapper' => UnsubscribeRequest::class, 'inner' => null];
+        yield 'UnsubscribeRequest' => ['wrapper' => Request\UnsubscribeRequest::class, 'inner' => null];
 
-        yield 'ElicitRequest' => ['wrapper' => ElicitRequest::class, 'inner' => null];
+        yield 'ElicitRequest' => ['wrapper' => Request\ElicitRequest::class, 'inner' => null];
 
         // Concrete notifications.
-        yield 'CancelledNotification' => ['wrapper' => CancelledNotification::class, 'inner' => null];
+        yield 'CancelledNotification' => ['wrapper' => Notification\CancelledNotification::class, 'inner' => null];
 
-        yield 'InitializedNotification' => ['wrapper' => InitializedNotification::class, 'inner' => null];
+        yield 'InitializedNotification' => ['wrapper' => Notification\InitializedNotification::class, 'inner' => null];
 
-        yield 'LoggingMessageNotification' => ['wrapper' => LoggingMessageNotification::class, 'inner' => null];
+        yield 'LoggingMessageNotification' => ['wrapper' => Notification\LoggingMessageNotification::class, 'inner' => null];
 
-        yield 'ProgressNotification' => ['wrapper' => ProgressNotification::class, 'inner' => null];
+        yield 'ProgressNotification' => ['wrapper' => Notification\ProgressNotification::class, 'inner' => null];
 
-        yield 'PromptListChangedNotification' => ['wrapper' => PromptListChangedNotification::class, 'inner' => null];
+        yield 'PromptListChangedNotification' => ['wrapper' => Notification\PromptListChangedNotification::class, 'inner' => null];
 
-        yield 'ResourceListChangedNotification' => ['wrapper' => ResourceListChangedNotification::class, 'inner' => null];
+        yield 'ResourceListChangedNotification' => ['wrapper' => Notification\ResourceListChangedNotification::class, 'inner' => null];
 
-        yield 'ResourceUpdatedNotification' => ['wrapper' => ResourceUpdatedNotification::class, 'inner' => null];
+        yield 'ResourceUpdatedNotification' => ['wrapper' => Notification\ResourceUpdatedNotification::class, 'inner' => null];
 
-        yield 'RootsListChangedNotification' => ['wrapper' => RootsListChangedNotification::class, 'inner' => null];
+        yield 'RootsListChangedNotification' => ['wrapper' => Notification\RootsListChangedNotification::class, 'inner' => null];
 
-        yield 'TaskStatusNotification' => ['wrapper' => TaskStatusNotification::class, 'inner' => null];
+        yield 'TaskStatusNotification' => ['wrapper' => Notification\TaskStatusNotification::class, 'inner' => null];
 
-        yield 'ToolListChangedNotification' => ['wrapper' => ToolListChangedNotification::class, 'inner' => null];
+        yield 'ToolListChangedNotification' => ['wrapper' => Notification\ToolListChangedNotification::class, 'inner' => null];
 
-        yield 'ElicitationCompleteNotification' => ['wrapper' => ElicitationCompleteNotification::class, 'inner' => null];
+        yield 'ElicitationCompleteNotification' => ['wrapper' => Notification\ElicitationCompleteNotification::class, 'inner' => null];
 
         // Result responses, parameterized by the inner Result subclass.
-        yield 'JsonRpcResultResponse-CallToolResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => CallToolResult::class];
+        yield 'JsonRpcResultResponse-CallToolResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => Result\CallToolResult::class];
 
-        yield 'JsonRpcResultResponse-CancelTaskResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => CancelTaskResult::class];
+        yield 'JsonRpcResultResponse-CancelTaskResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => Result\CancelTaskResult::class];
 
-        yield 'JsonRpcResultResponse-CompleteResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => CompleteResult::class];
+        yield 'JsonRpcResultResponse-CompleteResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => Result\CompleteResult::class];
 
-        yield 'JsonRpcResultResponse-CreateMessageResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => CreateMessageResult::class];
+        yield 'JsonRpcResultResponse-CreateMessageResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => Result\CreateMessageResult::class];
 
-        yield 'JsonRpcResultResponse-CreateTaskResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => CreateTaskResult::class];
+        yield 'JsonRpcResultResponse-CreateTaskResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => Result\CreateTaskResult::class];
 
-        yield 'JsonRpcResultResponse-EmptyResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => EmptyResult::class];
+        yield 'JsonRpcResultResponse-EmptyResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => Result\EmptyResult::class];
 
-        yield 'JsonRpcResultResponse-GetPromptResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => GetPromptResult::class];
+        yield 'JsonRpcResultResponse-GetPromptResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => Result\GetPromptResult::class];
 
-        yield 'JsonRpcResultResponse-GetTaskResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => GetTaskResult::class];
+        yield 'JsonRpcResultResponse-GetTaskResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => Result\GetTaskResult::class];
 
-        yield 'JsonRpcResultResponse-GetTaskPayloadResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => GetTaskPayloadResult::class];
+        yield 'JsonRpcResultResponse-GetTaskPayloadResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => Result\GetTaskPayloadResult::class];
 
-        yield 'JsonRpcResultResponse-InitializeResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => InitializeResult::class];
+        yield 'JsonRpcResultResponse-InitializeResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => Result\InitializeResult::class];
 
-        yield 'JsonRpcResultResponse-ListPromptsResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => ListPromptsResult::class];
+        yield 'JsonRpcResultResponse-ListPromptsResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => Result\ListPromptsResult::class];
 
-        yield 'JsonRpcResultResponse-ListResourcesResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => ListResourcesResult::class];
+        yield 'JsonRpcResultResponse-ListResourcesResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => Result\ListResourcesResult::class];
 
-        yield 'JsonRpcResultResponse-ListResourceTemplatesResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => ListResourceTemplatesResult::class];
+        yield 'JsonRpcResultResponse-ListResourceTemplatesResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => Result\ListResourceTemplatesResult::class];
 
-        yield 'JsonRpcResultResponse-ListRootsResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => ListRootsResult::class];
+        yield 'JsonRpcResultResponse-ListRootsResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => Result\ListRootsResult::class];
 
-        yield 'JsonRpcResultResponse-ListTasksResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => ListTasksResult::class];
+        yield 'JsonRpcResultResponse-ListTasksResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => Result\ListTasksResult::class];
 
-        yield 'JsonRpcResultResponse-ListToolsResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => ListToolsResult::class];
+        yield 'JsonRpcResultResponse-ListToolsResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => Result\ListToolsResult::class];
 
-        yield 'JsonRpcResultResponse-ReadResourceResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => ReadResourceResult::class];
+        yield 'JsonRpcResultResponse-ReadResourceResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => Result\ReadResourceResult::class];
 
-        yield 'JsonRpcResultResponse-ElicitResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => ElicitResult::class];
+        yield 'JsonRpcResultResponse-ElicitResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => Result\ElicitResult::class];
 
         // Error responses, organized per Error subclass even though
         // `JsonRpcErrorResponse::fromArray` self-dispatches on `code`.
