@@ -35,11 +35,10 @@ final readonly class ListResourcesResult extends PaginatedResult implements Serv
      */
     public function __construct(array $resources, ?Cursor $nextCursor = null, ?Meta $meta = null)
     {
-        Assert::that($resources)->isList('ListResourcesResult resources must be a list, got non-list array.');
-
-        foreach ($resources as $resource) {
-            Assert::that($resource)->isInstanceOf(Resource::class);
-        }
+        Assert::that($resources)
+            ->isList('ListResourcesResult resources must be a list, got non-list array.')
+            ->values()->isInstanceOf(Resource::class)
+        ;
 
         $this->resources = $resources;
 
@@ -50,17 +49,13 @@ final readonly class ListResourcesResult extends PaginatedResult implements Serv
     public static function fromArray(array $data): static
     {
         Assert::that($data)->hasOffset('resources', 'ListResourcesResult wire data missing "resources".');
-        Assert::that($data['resources'])->isArray('ListResourcesResult wire "resources" must be an array, {type} given.');
-
-        $resources = [];
-
-        foreach ($data['resources'] as $resourceData) {
-            Assert::that($resourceData)
-                ->isArray('ListResourcesResult wire resource entry must be an object, {type} given.')
-                ->isMap('ListResourcesResult wire resource entry must be a string-keyed object.')
-            ;
-            $resources[] = Resource::fromArray($resourceData);
-        }
+        Assert::that($data['resources'])
+            ->isList('ListResourcesResult wire "resources" must be a list, {type} given.')
+            ->values()
+            ->isArray('ListResourcesResult wire resource entry must be an object, {type} given.')
+            ->isMap('ListResourcesResult wire resource entry must be a string-keyed object.')
+        ;
+        $resources = array_map(Resource::fromArray(...), $data['resources']);
 
         $nextCursor = null;
 

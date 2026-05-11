@@ -188,7 +188,7 @@ final class CallToolResultTest extends TestCase
 
         yield 'content not an array' => [
             ['content' => 'oops'],
-            'CallToolResult wire "content" must be an array, string given.',
+            'CallToolResult wire "content" must be a list, string given.',
         ];
 
         yield 'content entry not an object' => [

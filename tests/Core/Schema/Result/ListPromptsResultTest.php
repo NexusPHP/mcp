@@ -163,7 +163,7 @@ final class ListPromptsResultTest extends TestCase
 
         yield 'prompts not an array' => [
             ['prompts' => 'oops'],
-            'ListPromptsResult wire "prompts" must be an array, string given.',
+            'ListPromptsResult wire "prompts" must be a list, string given.',
         ];
 
         yield 'prompt entry not an object' => [

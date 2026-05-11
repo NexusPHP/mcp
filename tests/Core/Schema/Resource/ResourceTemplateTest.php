@@ -267,7 +267,7 @@ final class ResourceTemplateTest extends TestCase
 
         yield 'icons not an array' => [
             ['name' => 'my-template', 'uriTemplate' => 'file:///tmp/{name}', 'icons' => 'oops'],
-            'ResourceTemplate wire "icons" must be an array, string given.',
+            'ResourceTemplate wire "icons" must be a list, string given.',
         ];
 
         yield 'icon entry not an object' => [

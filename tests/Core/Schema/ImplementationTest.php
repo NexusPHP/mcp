@@ -242,7 +242,7 @@ final class ImplementationTest extends TestCase
     public function testFromArrayBadIconsTypeIsRejected(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('Implementation wire "icons" must be an array, string given.');
+        $this->expectExceptionMessage('Implementation wire "icons" must be a list, string given.');
 
         Implementation::fromArray(['name' => 'Nexus MCP', 'version' => '1.0.0', 'icons' => 'oops']);
     }

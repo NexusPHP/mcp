@@ -33,11 +33,10 @@ final readonly class ListTasksResult extends PaginatedResult implements ClientRe
         ?Cursor $nextCursor = null,
         ?Meta $meta = null,
     ) {
-        Assert::that($this->tasks)->isList('ListTasksResult tasks must be a list, got non-list array.');
-
-        foreach ($this->tasks as $task) {
-            Assert::that($task)->isInstanceOf(Task::class);
-        }
+        Assert::that($this->tasks)
+            ->isList('ListTasksResult tasks must be a list, got non-list array.')
+            ->values()->isInstanceOf(Task::class)
+        ;
 
         parent::__construct($nextCursor, $meta);
     }
@@ -49,17 +48,13 @@ final readonly class ListTasksResult extends PaginatedResult implements ClientRe
     public static function fromArray(array $data): static
     {
         Assert::that($data)->hasOffset('tasks', 'ListTasksResult wire data missing "tasks".');
-        Assert::that($data['tasks'])->isArray('ListTasksResult wire "tasks" must be an array, {type} given.');
-
-        $tasks = [];
-
-        foreach ($data['tasks'] as $entry) {
-            Assert::that($entry)
-                ->isArray('ListTasksResult wire task entry must be an object, {type} given.')
-                ->isMap('ListTasksResult wire task entry must be a string-keyed object.')
-            ;
-            $tasks[] = Task::fromArray($entry);
-        }
+        Assert::that($data['tasks'])
+            ->isList('ListTasksResult wire "tasks" must be a list, {type} given.')
+            ->values()
+            ->isArray('ListTasksResult wire task entry must be an object, {type} given.')
+            ->isMap('ListTasksResult wire task entry must be a string-keyed object.')
+        ;
+        $tasks = array_map(Task::fromArray(...), $data['tasks']);
 
         $nextCursor = null;
 

@@ -44,14 +44,10 @@ final readonly class Annotations implements Arrayable
         ?string $lastModified = null,
     ) {
         if (null !== $this->audience) {
-            foreach ($this->audience as $role) {
-                Assert::that($role)->isInstanceOf(Role::class);
-            }
+            Assert::that($this->audience)->values()->isInstanceOf(Role::class);
         }
 
-        if (null !== $this->priority && ($this->priority < 0.0 || $this->priority > 1.0)) {
-            throw new \InvalidArgumentException('Priority must be between 0.0 and 1.0.');
-        }
+        Assert::that($this->priority)->nullOr()->isBetween(0.0, 1.0, message: 'Priority must be between 0.0 and 1.0.');
 
         if (null !== $lastModified) {
             $lastModified = Iso8601DateTimeValidator::parse($lastModified, 'Last modified');
@@ -69,14 +65,11 @@ final readonly class Annotations implements Arrayable
         $audience = null;
 
         if (isset($data['audience'])) {
-            Assert::that($data['audience'])->isArray('Annotations wire "audience" must be an array, {type} given.');
-
-            $audience = [];
-
-            foreach ($data['audience'] as $role) {
-                Assert::that($role)->isString('Annotations wire audience entry must be a string, {type} given.');
-                $audience[] = Role::from($role);
-            }
+            Assert::that($data['audience'])
+                ->isList('Annotations wire "audience" must be a list, {type} given.')
+                ->values()->isString('Annotations wire audience entry must be a string, {type} given.')
+            ;
+            $audience = array_map(static fn(string $role): Role => Role::from($role), $data['audience']);
         }
 
         $priority = $data['priority'] ?? null;

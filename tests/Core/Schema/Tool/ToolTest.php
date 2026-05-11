@@ -347,7 +347,7 @@ final class ToolTest extends TestCase
 
         yield 'icons not an array' => [
             ['name' => 'read-file', 'inputSchema' => ['type' => 'object'], 'icons' => 'oops'],
-            'Tool wire "icons" must be an array, string given.',
+            'Tool wire "icons" must be a list, string given.',
         ];
 
         yield 'icon entry not an object' => [

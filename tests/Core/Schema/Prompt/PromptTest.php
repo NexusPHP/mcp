@@ -200,7 +200,7 @@ final class PromptTest extends TestCase
 
         yield 'arguments not an array' => [
             ['name' => 'code-review', 'arguments' => 'oops'],
-            'Prompt wire "arguments" must be an array, string given.',
+            'Prompt wire "arguments" must be a list, string given.',
         ];
 
         yield 'argument entry not an object' => [
@@ -215,7 +215,7 @@ final class PromptTest extends TestCase
 
         yield 'icons not an array' => [
             ['name' => 'code-review', 'icons' => 'oops'],
-            'Prompt wire "icons" must be an array, string given.',
+            'Prompt wire "icons" must be a list, string given.',
         ];
 
         yield 'icon entry not an object' => [

@@ -279,7 +279,7 @@ final class ResourceTest extends TestCase
 
         yield 'icons not an array' => [
             ['name' => 'my-resource', 'uri' => 'file:///x', 'icons' => 'oops'],
-            'Resource wire "icons" must be an array, string given.',
+            'Resource wire "icons" must be a list, string given.',
         ];
 
         yield 'icon entry not an object' => [

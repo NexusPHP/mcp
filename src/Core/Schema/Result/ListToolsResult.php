@@ -35,11 +35,10 @@ final readonly class ListToolsResult extends PaginatedResult implements ServerRe
      */
     public function __construct(array $tools, ?Cursor $nextCursor = null, ?Meta $meta = null)
     {
-        Assert::that($tools)->isList('ListToolsResult tools must be a list, got non-list array.');
-
-        foreach ($tools as $tool) {
-            Assert::that($tool)->isInstanceOf(Tool::class);
-        }
+        Assert::that($tools)
+            ->isList('ListToolsResult tools must be a list, got non-list array.')
+            ->values()->isInstanceOf(Tool::class)
+        ;
 
         $this->tools = $tools;
 
@@ -50,17 +49,13 @@ final readonly class ListToolsResult extends PaginatedResult implements ServerRe
     public static function fromArray(array $data): static
     {
         Assert::that($data)->hasOffset('tools', 'ListToolsResult wire data missing "tools".');
-        Assert::that($data['tools'])->isArray('ListToolsResult wire "tools" must be an array, {type} given.');
-
-        $tools = [];
-
-        foreach ($data['tools'] as $entry) {
-            Assert::that($entry)
-                ->isArray('ListToolsResult wire tool entry must be an object, {type} given.')
-                ->isMap('ListToolsResult wire tool entry must be a string-keyed object.')
-            ;
-            $tools[] = Tool::fromArray($entry);
-        }
+        Assert::that($data['tools'])
+            ->isList('ListToolsResult wire "tools" must be a list, {type} given.')
+            ->values()
+            ->isArray('ListToolsResult wire tool entry must be an object, {type} given.')
+            ->isMap('ListToolsResult wire tool entry must be a string-keyed object.')
+        ;
+        $tools = array_map(Tool::fromArray(...), $data['tools']);
 
         $nextCursor = null;
 

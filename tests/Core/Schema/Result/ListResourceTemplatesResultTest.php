@@ -214,7 +214,7 @@ final class ListResourceTemplatesResultTest extends TestCase
 
         yield 'resourceTemplates not an array' => [
             ['resourceTemplates' => 'oops'],
-            'ListResourceTemplatesResult wire "resourceTemplates" must be an array, string given.',
+            'ListResourceTemplatesResult wire "resourceTemplates" must be a list, string given.',
         ];
 
         yield 'entry not an object' => [

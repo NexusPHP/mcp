@@ -20,7 +20,7 @@
     },
     "require": {
         "php": "^8.4",
-        "nexusphp/assert": "^1.0"
+        "nexusphp/assert": "^1.1"
     },
     "require-dev": {
         "nexusphp/tachycardia": "^2.4",

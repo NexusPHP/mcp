@@ -37,11 +37,10 @@ final readonly class ReadResourceResult extends Result implements ServerResult
      */
     public function __construct(array $contents, ?Meta $meta = null)
     {
-        Assert::that($contents)->isList('ReadResourceResult contents must be a list, got non-list array.');
-
-        foreach ($contents as $entry) {
-            Assert::that($entry)->isInstanceOf(ResourceContents::class);
-        }
+        Assert::that($contents)
+            ->isList('ReadResourceResult contents must be a list, got non-list array.')
+            ->values()->isInstanceOf(ResourceContents::class)
+        ;
 
         $this->contents = $contents;
 
@@ -55,17 +54,13 @@ final readonly class ReadResourceResult extends Result implements ServerResult
     public static function fromArray(array $data): static
     {
         Assert::that($data)->hasOffset('contents', 'ReadResourceResult wire data missing "contents".');
-        Assert::that($data['contents'])->isArray('ReadResourceResult wire "contents" must be an array, {type} given.');
-
-        $contents = [];
-
-        foreach ($data['contents'] as $entry) {
-            Assert::that($entry)
-                ->isArray('ReadResourceResult wire contents entry must be an object, {type} given.')
-                ->isMap('ReadResourceResult wire contents entry must be a string-keyed object.')
-            ;
-            $contents[] = ResourceContents::from($entry);
-        }
+        Assert::that($data['contents'])
+            ->isList('ReadResourceResult wire "contents" must be a list, {type} given.')
+            ->values()
+            ->isArray('ReadResourceResult wire contents entry must be an object, {type} given.')
+            ->isMap('ReadResourceResult wire contents entry must be a string-keyed object.')
+        ;
+        $contents = array_map(ResourceContents::from(...), $data['contents']);
 
         $meta = Meta::parseFromWire($data, 'Result');
 

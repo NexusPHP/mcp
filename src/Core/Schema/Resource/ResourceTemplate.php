@@ -83,9 +83,7 @@ final readonly class ResourceTemplate extends BaseMetadata implements Arrayable,
         Assert::that($mimeType)->nullOr()->isNonEmptyString('ResourceTemplate mimeType must be a non-empty string or null.');
 
         if (null !== $icons) {
-            foreach ($icons as $icon) {
-                Assert::that($icon)->isInstanceOf(Icon::class);
-            }
+            Assert::that($icons)->values()->isInstanceOf(Icon::class);
         }
 
         $this->uriTemplate = $uriTemplate;
@@ -130,17 +128,13 @@ final readonly class ResourceTemplate extends BaseMetadata implements Arrayable,
         $icons = null;
 
         if (isset($data['icons'])) {
-            Assert::that($data['icons'])->isArray('ResourceTemplate wire "icons" must be an array, {type} given.');
-
-            $icons = [];
-
-            foreach ($data['icons'] as $iconData) {
-                Assert::that($iconData)
-                    ->isArray('ResourceTemplate wire icon entry must be an object, {type} given.')
-                    ->isMap('ResourceTemplate wire icon entry must be a string-keyed object.')
-                ;
-                $icons[] = Icon::fromArray($iconData);
-            }
+            Assert::that($data['icons'])
+                ->isList('ResourceTemplate wire "icons" must be a list, {type} given.')
+                ->values()
+                ->isArray('ResourceTemplate wire icon entry must be an object, {type} given.')
+                ->isMap('ResourceTemplate wire icon entry must be a string-keyed object.')
+            ;
+            $icons = array_map(Icon::fromArray(...), $data['icons']);
         }
 
         $meta = Meta::parseFromWire($data, 'ResourceTemplate');

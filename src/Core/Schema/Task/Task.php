@@ -59,14 +59,8 @@ final readonly class Task implements Arrayable
     ) {
         Assert::that($taskId)->isNonEmptyString('Task taskId must be a non-empty string.');
         Assert::that($statusMessage)->nullOr()->isNonEmptyString('Task statusMessage must be a non-empty string or null.');
-
-        if (null !== $ttl && $ttl < 0) {
-            throw new \InvalidArgumentException('Task ttl must be a non-negative integer or null.');
-        }
-
-        if (null !== $pollInterval && $pollInterval < 0) {
-            throw new \InvalidArgumentException('Task pollInterval must be a non-negative integer or null.');
-        }
+        Assert::that($ttl)->nullOr()->isNaturalInt('Task ttl must be a non-negative integer or null.');
+        Assert::that($pollInterval)->nullOr()->isNaturalInt('Task pollInterval must be a non-negative integer or null.');
 
         $this->taskId = $taskId;
         $this->createdAt = Iso8601DateTimeValidator::parse($createdAt, 'Task createdAt');

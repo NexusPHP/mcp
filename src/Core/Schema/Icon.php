@@ -29,8 +29,6 @@ use Nexus\Assert\Assert;
  */
 final readonly class Icon implements Arrayable
 {
-    private const array VALID_ICON_THEMES = ['light', 'dark'];
-
     /**
      * @var non-empty-string
      */
@@ -67,22 +65,14 @@ final readonly class Icon implements Arrayable
         ;
 
         if (null !== $sizes) {
-            $validated = [];
-
-            foreach ($sizes as $size) {
-                Assert::that($size)
-                    ->isNonEmptyString('Icon size must be a non-empty string.')
-                    ->matchesRegularExpression('/\A(\d+x\d+|any)\z/', 'Icon size must be in the format "WIDTHxHEIGHT" or "any".')
-                ;
-                $validated[] = $size;
-            }
-
-            $sizes = $validated;
+            Assert::that($sizes)
+                ->values()
+                ->isNonEmptyString('Icon size must be a non-empty string.')
+                ->matchesRegularExpression('/\A(\d+x\d+|any)\z/', 'Icon size must be in the format "WIDTHxHEIGHT" or "any".')
+            ;
         }
 
-        if (null !== $theme && ! \in_array($theme, self::VALID_ICON_THEMES, true)) {
-            throw new \InvalidArgumentException(\sprintf('Icon theme must be one of "%s".', implode('", "', self::VALID_ICON_THEMES)));
-        }
+        Assert::that($theme)->nullOr()->isOneOf(['light', 'dark'], 'Icon theme must be one of "light", "dark".');
 
         $this->src = $src;
         $this->mimeType = $mimeType;
@@ -107,14 +97,11 @@ final readonly class Icon implements Arrayable
         $sizes = null;
 
         if (isset($data['sizes'])) {
-            Assert::that($data['sizes'])->isArray('Icon wire "sizes" must be a list of strings or null, {type} given.');
-
-            $sizes = [];
-
-            foreach ($data['sizes'] as $size) {
-                Assert::that($size)->isString('Icon wire "sizes" entry must be a string, {type} given.');
-                $sizes[] = $size;
-            }
+            Assert::that($data['sizes'])
+                ->isList('Icon wire "sizes" must be a list of strings or null, {type} given.')
+                ->values()->isString('Icon wire "sizes" entry must be a string, {type} given.')
+            ;
+            $sizes = $data['sizes'];
         }
 
         $theme = $data['theme'] ?? null;

@@ -58,16 +58,12 @@ final readonly class ModelPreferences implements Arrayable
         public ?float $intelligencePriority = null,
     ) {
         if (null !== $hints) {
-            foreach ($hints as $hint) {
-                Assert::that($hint)->isInstanceOf(ModelHint::class);
-            }
+            Assert::that($hints)->values()->isInstanceOf(ModelHint::class);
         }
 
-        foreach (['costPriority' => $costPriority, 'speedPriority' => $speedPriority, 'intelligencePriority' => $intelligencePriority] as $field => $value) {
-            if (null !== $value && ($value < 0.0 || $value > 1.0)) {
-                throw new \InvalidArgumentException(\sprintf('ModelPreferences "%s" must be between 0.0 and 1.0.', $field));
-            }
-        }
+        Assert::that($costPriority)->nullOr()->isBetween(0.0, 1.0, message: 'ModelPreferences "costPriority" must be between 0.0 and 1.0.');
+        Assert::that($speedPriority)->nullOr()->isBetween(0.0, 1.0, message: 'ModelPreferences "speedPriority" must be between 0.0 and 1.0.');
+        Assert::that($intelligencePriority)->nullOr()->isBetween(0.0, 1.0, message: 'ModelPreferences "intelligencePriority" must be between 0.0 and 1.0.');
 
         $this->hints = $hints;
     }
@@ -81,17 +77,13 @@ final readonly class ModelPreferences implements Arrayable
         $hints = null;
 
         if (isset($data['hints'])) {
-            Assert::that($data['hints'])->isArray('ModelPreferences wire "hints" must be an array, {type} given.');
-
-            $hints = [];
-
-            foreach ($data['hints'] as $hint) {
-                Assert::that($hint)
-                    ->isArray('ModelPreferences wire hint entry must be an object, {type} given.')
-                    ->isMap('ModelPreferences wire hint entry must be a string-keyed object.')
-                ;
-                $hints[] = ModelHint::fromArray($hint);
-            }
+            Assert::that($data['hints'])
+                ->isList('ModelPreferences wire "hints" must be a list, {type} given.')
+                ->values()
+                ->isArray('ModelPreferences wire hint entry must be an object, {type} given.')
+                ->isMap('ModelPreferences wire hint entry must be a string-keyed object.')
+            ;
+            $hints = array_map(ModelHint::fromArray(...), $data['hints']);
         }
 
         $costPriority = $data['costPriority'] ?? null;

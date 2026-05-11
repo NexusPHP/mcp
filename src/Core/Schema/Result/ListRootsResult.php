@@ -37,11 +37,10 @@ final readonly class ListRootsResult extends Result implements ClientResult
      */
     public function __construct(array $roots, ?Meta $meta = null)
     {
-        Assert::that($roots)->isList('ListRootsResult roots must be a list, got non-list array.');
-
-        foreach ($roots as $root) {
-            Assert::that($root)->isInstanceOf(Root::class);
-        }
+        Assert::that($roots)
+            ->isList('ListRootsResult roots must be a list, got non-list array.')
+            ->values()->isInstanceOf(Root::class)
+        ;
 
         $this->roots = $roots;
 
@@ -52,17 +51,13 @@ final readonly class ListRootsResult extends Result implements ClientResult
     public static function fromArray(array $data): static
     {
         Assert::that($data)->hasOffset('roots', 'ListRootsResult wire data missing "roots".');
-        Assert::that($data['roots'])->isArray('ListRootsResult wire "roots" must be an array, {type} given.');
-
-        $roots = [];
-
-        foreach ($data['roots'] as $rootData) {
-            Assert::that($rootData)
-                ->isArray('ListRootsResult wire root entry must be an object, {type} given.')
-                ->isMap('ListRootsResult wire root entry must be a string-keyed object.')
-            ;
-            $roots[] = Root::fromArray($rootData);
-        }
+        Assert::that($data['roots'])
+            ->isList('ListRootsResult wire "roots" must be a list, {type} given.')
+            ->values()
+            ->isArray('ListRootsResult wire root entry must be an object, {type} given.')
+            ->isMap('ListRootsResult wire root entry must be a string-keyed object.')
+        ;
+        $roots = array_map(Root::fromArray(...), $data['roots']);
 
         $meta = Meta::parseFromWire($data, 'Result');
 

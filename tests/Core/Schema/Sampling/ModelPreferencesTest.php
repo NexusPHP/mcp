@@ -52,7 +52,7 @@ final class ModelPreferencesTest extends TestCase
     public function testConstructorRejectsNonHintEntry(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('Value "\'not-a-hint\'" is expected to be an instance of \'Nexus\\\\Mcp\\\\Core\\\\Schema\\\\Sampling\\\\ModelHint\' but got string instead.');
+        $this->expectExceptionMessage('Value "\'not-a-hint\'" in iterable is expected to be an instance of \'Nexus\\\\Mcp\\\\Core\\\\Schema\\\\Sampling\\\\ModelHint\' but got string instead.');
 
         new ModelPreferences(['not-a-hint']); // @phpstan-ignore argument.type
     }
@@ -165,10 +165,10 @@ final class ModelPreferencesTest extends TestCase
         self::assertSame(1.0, $prefs->costPriority);
     }
 
-    public function testFromArrayRejectsNonArrayHints(): void
+    public function testFromArrayRejectsNonListHints(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ModelPreferences wire "hints" must be an array, string given.');
+        $this->expectExceptionMessage('ModelPreferences wire "hints" must be a list, string given.');
 
         ModelPreferences::fromArray(['hints' => 'oops']);
     }

@@ -84,9 +84,7 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
         Assert::that($description)->nullOr()->isNonEmptyString('Tool description must be a non-empty string or null.');
 
         if (null !== $this->icons) {
-            foreach ($this->icons as $icon) {
-                Assert::that($icon)->isInstanceOf(Icon::class);
-            }
+            Assert::that($this->icons)->values()->isInstanceOf(Icon::class);
         }
 
         $this->description = $description;
@@ -150,17 +148,13 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
         $icons = null;
 
         if (isset($data['icons'])) {
-            Assert::that($data['icons'])->isArray('Tool wire "icons" must be an array, {type} given.');
-
-            $icons = [];
-
-            foreach ($data['icons'] as $iconData) {
-                Assert::that($iconData)
-                    ->isArray('Tool wire icon entry must be an object, {type} given.')
-                    ->isMap('Tool wire icon entry must be a string-keyed object.')
-                ;
-                $icons[] = Icon::fromArray($iconData);
-            }
+            Assert::that($data['icons'])
+                ->isList('Tool wire "icons" must be a list, {type} given.')
+                ->values()
+                ->isArray('Tool wire icon entry must be an object, {type} given.')
+                ->isMap('Tool wire icon entry must be a string-keyed object.')
+            ;
+            $icons = array_map(Icon::fromArray(...), $data['icons']);
         }
 
         $meta = Meta::parseFromWire($data, 'Tool');
@@ -252,32 +246,19 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
             Assert::that($schema['properties'])
                 ->isArray(\sprintf('%s "properties" must be an object, {type} given.', $context))
                 ->isMap(\sprintf('%s "properties" must be a string-keyed object.', $context))
+                ->values()
+                ->isArray(\sprintf('%s property entry must be an object, {type} given.', $context))
+                ->isMap(\sprintf('%s property entry must be a string-keyed object.', $context))
             ;
-
-            $properties = [];
-
-            foreach ($schema['properties'] as $key => $value) {
-                Assert::that($value)
-                    ->isArray(\sprintf('%s property entry must be an object, {type} given.', $context))
-                    ->isMap(\sprintf('%s property entry must be a string-keyed object.', $context))
-                ;
-                $properties[$key] = $value;
-            }
-
-            $out['properties'] = $properties;
+            $out['properties'] = $schema['properties'];
         }
 
         if (\array_key_exists('required', $schema)) {
-            Assert::that($schema['required'])->isList(\sprintf('%s "required" must be a list, got non-list array.', $context));
-
-            $required = [];
-
-            foreach ($schema['required'] as $name) {
-                Assert::that($name)->isString(\sprintf('%s "required" entries must be strings, {type} given.', $context));
-                $required[] = $name;
-            }
-
-            $out['required'] = $required;
+            Assert::that($schema['required'])
+                ->isList(\sprintf('%s "required" must be a list, got non-list array.', $context))
+                ->values()->isString(\sprintf('%s "required" entries must be strings, {type} given.', $context))
+            ;
+            $out['required'] = $schema['required'];
         }
 
         return $out;

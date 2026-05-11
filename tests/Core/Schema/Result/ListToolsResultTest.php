@@ -139,7 +139,7 @@ final class ListToolsResultTest extends TestCase
 
         yield 'tools not an array' => [
             ['tools' => 'oops'],
-            'ListToolsResult wire "tools" must be an array, string given.',
+            'ListToolsResult wire "tools" must be a list, string given.',
         ];
 
         yield 'tool entry not an object' => [

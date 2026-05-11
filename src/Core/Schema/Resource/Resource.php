@@ -88,9 +88,7 @@ final readonly class Resource extends BaseMetadata implements Arrayable, Icons
         Assert::that($mimeType)->nullOr()->isNonEmptyString('Resource mimeType must be a non-empty string or null.');
 
         if (null !== $icons) {
-            foreach ($icons as $icon) {
-                Assert::that($icon)->isInstanceOf(Icon::class);
-            }
+            Assert::that($icons)->values()->isInstanceOf(Icon::class);
         }
 
         $this->uri = $uri;
@@ -141,17 +139,13 @@ final readonly class Resource extends BaseMetadata implements Arrayable, Icons
         $icons = null;
 
         if (isset($data['icons'])) {
-            Assert::that($data['icons'])->isArray('Resource wire "icons" must be an array, {type} given.');
-
-            $icons = [];
-
-            foreach ($data['icons'] as $iconData) {
-                Assert::that($iconData)
-                    ->isArray('Resource wire icon entry must be an object, {type} given.')
-                    ->isMap('Resource wire icon entry must be a string-keyed object.')
-                ;
-                $icons[] = Icon::fromArray($iconData);
-            }
+            Assert::that($data['icons'])
+                ->isList('Resource wire "icons" must be a list, {type} given.')
+                ->values()
+                ->isArray('Resource wire icon entry must be an object, {type} given.')
+                ->isMap('Resource wire icon entry must be a string-keyed object.')
+            ;
+            $icons = array_map(Icon::fromArray(...), $data['icons']);
         }
 
         $meta = Meta::parseFromWire($data, 'Resource');

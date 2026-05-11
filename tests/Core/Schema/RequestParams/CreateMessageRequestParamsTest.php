@@ -79,7 +79,7 @@ final class CreateMessageRequestParamsTest extends TestCase
     public function testConstructorRejectsNonSamplingMessageEntry(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('Value "\'not-a-message\'" is expected to be an instance of \'Nexus\\\\Mcp\\\\Core\\\\Schema\\\\Sampling\\\\SamplingMessage\' but got string instead.');
+        $this->expectExceptionMessage('Value "\'not-a-message\'" in iterable is expected to be an instance of \'Nexus\\\\Mcp\\\\Core\\\\Schema\\\\Sampling\\\\SamplingMessage\' but got string instead.');
 
         new CreateMessageRequestParams(maxTokens: 1, messages: ['not-a-message']); // @phpstan-ignore argument.type
     }
@@ -120,7 +120,7 @@ final class CreateMessageRequestParamsTest extends TestCase
     public function testConstructorRejectsNonToolEntry(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('Value "\'not-a-tool\'" is expected to be an instance of \'Nexus\\\\Mcp\\\\Core\\\\Schema\\\\Tool\\\\Tool\' but got string instead.');
+        $this->expectExceptionMessage('Value "\'not-a-tool\'" in iterable is expected to be an instance of \'Nexus\\\\Mcp\\\\Core\\\\Schema\\\\Tool\\\\Tool\' but got string instead.');
 
         new CreateMessageRequestParams(maxTokens: 1, messages: [], tools: ['not-a-tool']); // @phpstan-ignore argument.type
     }

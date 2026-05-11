@@ -179,12 +179,12 @@ final class CompleteResultTest extends TestCase
 
         yield 'completion values not an array' => [
             ['completion' => ['values' => 'oops']],
-            'CompleteResult wire completion "values" must be an array, string given.',
+            'CompleteResult wire completion "values" must be a list, string given.',
         ];
 
         yield 'completion values not a list' => [
             ['completion' => ['values' => [5 => 'auth']]],
-            'CompleteResult wire completion "values" must be a list, got non-list array.',
+            'CompleteResult wire completion "values" must be a list, array given.',
         ];
 
         yield 'completion value not a string' => [

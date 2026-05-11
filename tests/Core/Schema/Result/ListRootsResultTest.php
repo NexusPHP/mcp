@@ -171,7 +171,7 @@ final class ListRootsResultTest extends TestCase
 
         yield 'roots not an array' => [
             ['roots' => 'oops'],
-            'ListRootsResult wire "roots" must be an array, string given.',
+            'ListRootsResult wire "roots" must be a list, string given.',
         ];
 
         yield 'root entry not an object' => [

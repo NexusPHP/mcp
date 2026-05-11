@@ -148,7 +148,7 @@ final class ListTasksResultTest extends TestCase
 
         yield 'tasks not an array' => [
             ['tasks' => 'oops'],
-            'ListTasksResult wire "tasks" must be an array, string given.',
+            'ListTasksResult wire "tasks" must be a list, string given.',
         ];
 
         yield 'task entry not an object' => [

@@ -51,7 +51,7 @@ final class ToolResultContentTest extends TestCase
     public function testConstructorRejectsNonContentBlockEntry(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('Value "\'not-a-block\'" is expected to be an instance of \'Nexus\\\\Mcp\\\\Core\\\\Schema\\\\Arrayable\' but got string instead.');
+        $this->expectExceptionMessage('Value "\'not-a-block\'" in iterable is expected to be an instance of \'Nexus\\\\Mcp\\\\Core\\\\Schema\\\\Arrayable\' but got string instead.');
 
         new ToolResultContent('tu-1', ['not-a-block']); // @phpstan-ignore argument.type
     }
@@ -145,10 +145,10 @@ final class ToolResultContentTest extends TestCase
         ToolResultContent::fromArray(['type' => 'tool_result', 'toolUseId' => 'x']);
     }
 
-    public function testFromArrayRejectsNonArrayContent(): void
+    public function testFromArrayRejectsNonListContent(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ToolResultContent wire "content" must be an array, string given.');
+        $this->expectExceptionMessage('ToolResultContent wire "content" must be a list, string given.');
 
         ToolResultContent::fromArray(['type' => 'tool_result', 'toolUseId' => 'x', 'content' => 'oops']);
     }

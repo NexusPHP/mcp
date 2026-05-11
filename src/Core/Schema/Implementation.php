@@ -73,9 +73,7 @@ final readonly class Implementation extends BaseMetadata implements Arrayable, I
         ;
 
         if (null !== $icons) {
-            foreach ($icons as $icon) {
-                Assert::that($icon)->isInstanceOf(Icon::class);
-            }
+            Assert::that($icons)->values()->isInstanceOf(Icon::class);
         }
 
         $this->version = $version;
@@ -110,17 +108,13 @@ final readonly class Implementation extends BaseMetadata implements Arrayable, I
         $icons = null;
 
         if (isset($data['icons'])) {
-            Assert::that($data['icons'])->isArray('Implementation wire "icons" must be an array, {type} given.');
-
-            $icons = [];
-
-            foreach ($data['icons'] as $iconData) {
-                Assert::that($iconData)
-                    ->isArray('Implementation wire icon entry must be an object, {type} given.')
-                    ->isMap('Implementation wire icon entry must be a string-keyed object.')
-                ;
-                $icons[] = Icon::fromArray($iconData);
-            }
+            Assert::that($data['icons'])
+                ->isList('Implementation wire "icons" must be a list, {type} given.')
+                ->values()
+                ->isArray('Implementation wire icon entry must be an object, {type} given.')
+                ->isMap('Implementation wire icon entry must be a string-keyed object.')
+            ;
+            $icons = array_map(Icon::fromArray(...), $data['icons']);
         }
 
         return new self($name, $version, $title, $description, $websiteUrl, $icons);

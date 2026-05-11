@@ -51,11 +51,10 @@ final readonly class CallToolResult extends Result implements ServerResult
         public ?bool $isError = null,
         ?Meta $meta = null,
     ) {
-        Assert::that($content)->isList('CallToolResult content must be a list, got non-list array.');
-
-        foreach ($content as $block) {
-            Assert::that($block)->isInstanceOf(ContentBlock::class);
-        }
+        Assert::that($content)
+            ->isList('CallToolResult content must be a list, got non-list array.')
+            ->values()->isInstanceOf(ContentBlock::class)
+        ;
 
         if (null !== $structuredContent) {
             Assert::that($structuredContent)->isMap('CallToolResult structuredContent must be a string-keyed map.');
@@ -71,17 +70,16 @@ final readonly class CallToolResult extends Result implements ServerResult
     public static function fromArray(array $data): static
     {
         Assert::that($data)->hasOffset('content', 'CallToolResult wire data missing "content".');
-        Assert::that($data['content'])->isArray('CallToolResult wire "content" must be an array, {type} given.');
-
-        $content = [];
-
-        foreach ($data['content'] as $block) {
-            Assert::that($block)
-                ->isArray('CallToolResult wire content entry must be an object, {type} given.')
-                ->isMap('CallToolResult wire content entry must be a string-keyed object.')
-            ;
-            $content[] = ContentBlockDispatcher::fromArray($block, 'CallToolResult content');
-        }
+        Assert::that($data['content'])
+            ->isList('CallToolResult wire "content" must be a list, {type} given.')
+            ->values()
+            ->isArray('CallToolResult wire content entry must be an object, {type} given.')
+            ->isMap('CallToolResult wire content entry must be a string-keyed object.')
+        ;
+        $content = array_map(
+            static fn(array $block): AudioContent|EmbeddedResource|ImageContent|ResourceLink|TextContent => ContentBlockDispatcher::fromArray($block, 'CallToolResult content'),
+            $data['content'],
+        );
 
         $structuredContent = null;
 

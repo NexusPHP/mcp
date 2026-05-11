@@ -51,9 +51,7 @@ final readonly class SamplingMessage implements Arrayable
         public ?Meta $meta = null,
     ) {
         if (\is_array($content)) {
-            foreach ($content as $block) {
-                Assert::that($block)->isInstanceOf(SamplingMessageContentBlock::class);
-            }
+            Assert::that($content)->values()->isInstanceOf(SamplingMessageContentBlock::class);
         }
 
         $this->content = $content;
@@ -127,23 +125,19 @@ final readonly class SamplingMessage implements Arrayable
     }
 
     /**
-     * @param array<array-key, mixed> $value
+     * @param list<mixed> $value
      *
      * @return list<ContentMember>
      */
     private static function parseContentList(array $value): array
     {
-        $blocks = [];
+        Assert::that($value)
+            ->values()
+            ->isArray('SamplingMessage wire content entry must be an object, {type} given.')
+            ->isMap('SamplingMessage wire content entry must be a string-keyed object.')
+        ;
 
-        foreach ($value as $entry) {
-            Assert::that($entry)
-                ->isArray('SamplingMessage wire content entry must be an object, {type} given.')
-                ->isMap('SamplingMessage wire content entry must be a string-keyed object.')
-            ;
-            $blocks[] = self::parseContentBlock($entry);
-        }
-
-        return $blocks;
+        return array_map(self::parseContentBlock(...), $value);
     }
 
     /**

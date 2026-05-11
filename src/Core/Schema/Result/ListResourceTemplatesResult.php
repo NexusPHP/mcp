@@ -35,11 +35,10 @@ final readonly class ListResourceTemplatesResult extends PaginatedResult impleme
      */
     public function __construct(array $resourceTemplates, ?Cursor $nextCursor = null, ?Meta $meta = null)
     {
-        Assert::that($resourceTemplates)->isList('ListResourceTemplatesResult resourceTemplates must be a list, got non-list array.');
-
-        foreach ($resourceTemplates as $resourceTemplate) {
-            Assert::that($resourceTemplate)->isInstanceOf(ResourceTemplate::class);
-        }
+        Assert::that($resourceTemplates)
+            ->isList('ListResourceTemplatesResult resourceTemplates must be a list, got non-list array.')
+            ->values()->isInstanceOf(ResourceTemplate::class)
+        ;
 
         $this->resourceTemplates = $resourceTemplates;
 
@@ -50,17 +49,13 @@ final readonly class ListResourceTemplatesResult extends PaginatedResult impleme
     public static function fromArray(array $data): static
     {
         Assert::that($data)->hasOffset('resourceTemplates', 'ListResourceTemplatesResult wire data missing "resourceTemplates".');
-        Assert::that($data['resourceTemplates'])->isArray('ListResourceTemplatesResult wire "resourceTemplates" must be an array, {type} given.');
-
-        $resourceTemplates = [];
-
-        foreach ($data['resourceTemplates'] as $entry) {
-            Assert::that($entry)
-                ->isArray('ListResourceTemplatesResult wire resourceTemplate entry must be an object, {type} given.')
-                ->isMap('ListResourceTemplatesResult wire resourceTemplate entry must be a string-keyed object.')
-            ;
-            $resourceTemplates[] = ResourceTemplate::fromArray($entry);
-        }
+        Assert::that($data['resourceTemplates'])
+            ->isList('ListResourceTemplatesResult wire "resourceTemplates" must be a list, {type} given.')
+            ->values()
+            ->isArray('ListResourceTemplatesResult wire resourceTemplate entry must be an object, {type} given.')
+            ->isMap('ListResourceTemplatesResult wire resourceTemplate entry must be a string-keyed object.')
+        ;
+        $resourceTemplates = array_map(ResourceTemplate::fromArray(...), $data['resourceTemplates']);
 
         $nextCursor = null;
 

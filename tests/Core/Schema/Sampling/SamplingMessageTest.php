@@ -50,7 +50,7 @@ final class SamplingMessageTest extends TestCase
     public function testConstructorRejectsNonContentBlockEntry(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('Value "\'not-a-block\'" is expected to be an instance of \'Nexus\\\\Mcp\\\\Core\\\\Schema\\\\Sampling\\\\SamplingMessageContentBlock\' but got string instead.');
+        $this->expectExceptionMessage('Value "\'not-a-block\'" in iterable is expected to be an instance of \'Nexus\\\\Mcp\\\\Core\\\\Schema\\\\Sampling\\\\SamplingMessageContentBlock\' but got string instead.');
 
         new SamplingMessage(Role::User, ['not-a-block']); // @phpstan-ignore argument.type
     }

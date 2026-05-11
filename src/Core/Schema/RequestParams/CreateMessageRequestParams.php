@@ -78,30 +78,18 @@ final readonly class CreateMessageRequestParams extends RequestParams
         ?array $metadata = null,
         ?RequestMeta $meta = null,
     ) {
-        if ($maxTokens < 0) {
-            throw new \InvalidArgumentException('CreateMessageRequestParams maxTokens must be a non-negative integer.');
-        }
-
-        foreach ($messages as $message) {
-            Assert::that($message)->isInstanceOf(SamplingMessage::class);
-        }
-
+        Assert::that($maxTokens)->isNaturalInt('CreateMessageRequestParams maxTokens must be a non-negative integer.');
+        Assert::that($messages)->values()->isInstanceOf(SamplingMessage::class);
         Assert::that($systemPrompt)->nullOr()->isNonEmptyString('CreateMessageRequestParams systemPrompt must be a non-empty string or null.');
 
         if (null !== $stopSequences) {
-            foreach ($stopSequences as $stop) {
-                Assert::that($stop)->isString('CreateMessageRequestParams stopSequences entries must be strings, {type} given.');
-            }
+            Assert::that($stopSequences)->values()->isString('CreateMessageRequestParams stopSequences entries must be strings, {type} given.');
         }
 
-        if (null !== $temperature && ($temperature < 0.0 || $temperature > 2.0)) {
-            throw new \InvalidArgumentException('CreateMessageRequestParams temperature must be between 0.0 and 2.0.');
-        }
+        Assert::that($temperature)->nullOr()->isBetween(0.0, 2.0, message: 'CreateMessageRequestParams temperature must be between 0.0 and 2.0.');
 
         if (null !== $tools) {
-            foreach ($tools as $tool) {
-                Assert::that($tool)->isInstanceOf(Tool::class);
-            }
+            Assert::that($tools)->values()->isInstanceOf(Tool::class);
         }
 
         $this->messages = $messages;
@@ -124,17 +112,13 @@ final readonly class CreateMessageRequestParams extends RequestParams
         Assert::that($maxTokens)->isInt('CreateMessageRequestParams wire "maxTokens" must be an int, {type} given.');
 
         Assert::that($data)->hasOffset('messages', 'CreateMessageRequestParams wire data missing "messages".');
-        Assert::that($data['messages'])->isList('CreateMessageRequestParams wire "messages" must be a list, got non-list array.');
-
-        $messages = [];
-
-        foreach ($data['messages'] as $message) {
-            Assert::that($message)
-                ->isArray('CreateMessageRequestParams wire message entry must be an object, {type} given.')
-                ->isMap('CreateMessageRequestParams wire message entry must be a string-keyed object.')
-            ;
-            $messages[] = SamplingMessage::fromArray($message);
-        }
+        Assert::that($data['messages'])
+            ->isList('CreateMessageRequestParams wire "messages" must be a list, got non-list array.')
+            ->values()
+            ->isArray('CreateMessageRequestParams wire message entry must be an object, {type} given.')
+            ->isMap('CreateMessageRequestParams wire message entry must be a string-keyed object.')
+        ;
+        $messages = array_map(SamplingMessage::fromArray(...), $data['messages']);
 
         $includeContext = null;
 
@@ -156,14 +140,11 @@ final readonly class CreateMessageRequestParams extends RequestParams
         $stopSequences = null;
 
         if (\array_key_exists('stopSequences', $data)) {
-            Assert::that($data['stopSequences'])->isList('CreateMessageRequestParams wire "stopSequences" must be a list, got non-list array.');
-
-            $stopSequences = [];
-
-            foreach ($data['stopSequences'] as $stop) {
-                Assert::that($stop)->isString('CreateMessageRequestParams wire stopSequences entry must be a string, {type} given.');
-                $stopSequences[] = $stop;
-            }
+            Assert::that($data['stopSequences'])
+                ->isList('CreateMessageRequestParams wire "stopSequences" must be a list, got non-list array.')
+                ->values()->isString('CreateMessageRequestParams wire stopSequences entry must be a string, {type} given.')
+            ;
+            $stopSequences = $data['stopSequences'];
         }
 
         $systemPrompt = $data['systemPrompt'] ?? null;
@@ -198,17 +179,13 @@ final readonly class CreateMessageRequestParams extends RequestParams
         $tools = null;
 
         if (\array_key_exists('tools', $data)) {
-            Assert::that($data['tools'])->isList('CreateMessageRequestParams wire "tools" must be a list, got non-list array.');
-
-            $tools = [];
-
-            foreach ($data['tools'] as $tool) {
-                Assert::that($tool)
-                    ->isArray('CreateMessageRequestParams wire tool entry must be an object, {type} given.')
-                    ->isMap('CreateMessageRequestParams wire tool entry must be a string-keyed object.')
-                ;
-                $tools[] = Tool::fromArray($tool);
-            }
+            Assert::that($data['tools'])
+                ->isList('CreateMessageRequestParams wire "tools" must be a list, got non-list array.')
+                ->values()
+                ->isArray('CreateMessageRequestParams wire tool entry must be an object, {type} given.')
+                ->isMap('CreateMessageRequestParams wire tool entry must be a string-keyed object.')
+            ;
+            $tools = array_map(Tool::fromArray(...), $data['tools']);
         }
 
         $metadata = null;

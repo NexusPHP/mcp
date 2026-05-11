@@ -35,11 +35,10 @@ final readonly class ListPromptsResult extends PaginatedResult implements Server
      */
     public function __construct(array $prompts, ?Cursor $nextCursor = null, ?Meta $meta = null)
     {
-        Assert::that($prompts)->isList('ListPromptsResult prompts must be a list, got non-list array.');
-
-        foreach ($prompts as $prompt) {
-            Assert::that($prompt)->isInstanceOf(Prompt::class);
-        }
+        Assert::that($prompts)
+            ->isList('ListPromptsResult prompts must be a list, got non-list array.')
+            ->values()->isInstanceOf(Prompt::class)
+        ;
 
         $this->prompts = $prompts;
 
@@ -50,17 +49,13 @@ final readonly class ListPromptsResult extends PaginatedResult implements Server
     public static function fromArray(array $data): static
     {
         Assert::that($data)->hasOffset('prompts', 'ListPromptsResult wire data missing "prompts".');
-        Assert::that($data['prompts'])->isArray('ListPromptsResult wire "prompts" must be an array, {type} given.');
-
-        $prompts = [];
-
-        foreach ($data['prompts'] as $entry) {
-            Assert::that($entry)
-                ->isArray('ListPromptsResult wire prompt entry must be an object, {type} given.')
-                ->isMap('ListPromptsResult wire prompt entry must be a string-keyed object.')
-            ;
-            $prompts[] = Prompt::fromArray($entry);
-        }
+        Assert::that($data['prompts'])
+            ->isList('ListPromptsResult wire "prompts" must be a list, {type} given.')
+            ->values()
+            ->isArray('ListPromptsResult wire prompt entry must be an object, {type} given.')
+            ->isMap('ListPromptsResult wire prompt entry must be a string-keyed object.')
+        ;
+        $prompts = array_map(Prompt::fromArray(...), $data['prompts']);
 
         $nextCursor = null;
 

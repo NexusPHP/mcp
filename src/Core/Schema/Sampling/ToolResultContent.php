@@ -64,10 +64,7 @@ final readonly class ToolResultContent implements Arrayable, SamplingMessageCont
         public ?Meta $meta = null,
     ) {
         Assert::that($toolUseId)->isNonEmptyString('ToolResultContent toolUseId must be a non-empty string.');
-
-        foreach ($content as $block) {
-            Assert::that($block)->isInstanceOf(Arrayable::class);
-        }
+        Assert::that($content)->values()->isInstanceOf(Arrayable::class);
 
         $this->toolUseId = $toolUseId;
     }
@@ -87,17 +84,16 @@ final readonly class ToolResultContent implements Arrayable, SamplingMessageCont
         Assert::that($toolUseId)->isString('ToolResultContent wire "toolUseId" must be a string, {type} given.');
 
         Assert::that($data)->hasOffset('content', 'ToolResultContent wire data missing "content".');
-        Assert::that($data['content'])->isArray('ToolResultContent wire "content" must be an array, {type} given.');
-
-        $content = [];
-
-        foreach ($data['content'] as $entry) {
-            Assert::that($entry)
-                ->isArray('ToolResultContent wire content entry must be an object, {type} given.')
-                ->isMap('ToolResultContent wire content entry must be a string-keyed object.')
-            ;
-            $content[] = ContentBlockDispatcher::fromArray($entry, 'ToolResultContent content');
-        }
+        Assert::that($data['content'])
+            ->isList('ToolResultContent wire "content" must be a list, {type} given.')
+            ->values()
+            ->isArray('ToolResultContent wire content entry must be an object, {type} given.')
+            ->isMap('ToolResultContent wire content entry must be a string-keyed object.')
+        ;
+        $content = array_map(
+            static fn(array $entry): AudioContent|EmbeddedResource|ImageContent|ResourceLink|TextContent => ContentBlockDispatcher::fromArray($entry, 'ToolResultContent content'),
+            $data['content'],
+        );
 
         $isError = $data['isError'] ?? null;
         Assert::that($isError)->nullOr()->isBool('ToolResultContent wire "isError" must be a bool or null, {type} given.');

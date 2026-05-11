@@ -214,7 +214,7 @@ final class ListResourcesResultTest extends TestCase
 
         yield 'resources not an array' => [
             ['resources' => 'oops'],
-            'ListResourcesResult wire "resources" must be an array, string given.',
+            'ListResourcesResult wire "resources" must be a list, string given.',
         ];
 
         yield 'resource entry not an object' => [

@@ -43,11 +43,10 @@ final readonly class GetPromptRequestParams extends RequestParams
         IdentifierNameValidator::validate($name, 'GetPromptRequestParams');
 
         if (null !== $arguments) {
-            Assert::that($arguments)->isMap('GetPromptRequestParams arguments must be a string-keyed map.');
-
-            foreach ($arguments as $value) {
-                Assert::that($value)->isString('GetPromptRequestParams arguments values must all be strings, {type} given.');
-            }
+            Assert::that($arguments)
+                ->isMap('GetPromptRequestParams arguments must be a string-keyed map.')
+                ->values()->isString('GetPromptRequestParams arguments values must all be strings, {type} given.')
+            ;
         }
 
         $this->name = $name;
@@ -72,13 +71,9 @@ final readonly class GetPromptRequestParams extends RequestParams
             Assert::that($data['arguments'])
                 ->isArray('GetPromptRequestParams wire "arguments" must be an object, {type} given.')
                 ->isMap('GetPromptRequestParams wire "arguments" must be a string-keyed object.')
+                ->values()->isString('GetPromptRequestParams wire argument value must be a string, {type} given.')
             ;
-            $arguments = [];
-
-            foreach ($data['arguments'] as $key => $value) {
-                Assert::that($value)->isString('GetPromptRequestParams wire argument value must be a string, {type} given.');
-                $arguments[$key] = $value;
-            }
+            $arguments = $data['arguments'];
         }
 
         $meta = RequestMeta::parseFromWire($data, 'Request params');

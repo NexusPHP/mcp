@@ -296,7 +296,7 @@ final class ResourceLinkTest extends TestCase
 
         yield 'icons not an array' => [
             ['type' => 'resource_link', 'name' => 'my-link', 'uri' => 'file:///tmp/x', 'icons' => 'oops'],
-            'ResourceLink wire "icons" must be an array, string given.',
+            'ResourceLink wire "icons" must be a list, string given.',
         ];
 
         yield 'icon entry not an object' => [

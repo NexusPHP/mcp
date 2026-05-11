@@ -34,11 +34,10 @@ final readonly class CompleteResult extends Result implements ServerResult
      */
     public function __construct(array $completion, ?Meta $meta = null)
     {
-        Assert::that($completion['values'])->isList('CompleteResult completion "values" must be a list, got non-list array.');
-
-        foreach ($completion['values'] as $value) {
-            Assert::that($value)->isString('CompleteResult completion values must all be strings, {type} given.');
-        }
+        Assert::that($completion['values'])
+            ->isList('CompleteResult completion "values" must be a list, got non-list array.')
+            ->values()->isString('CompleteResult completion values must all be strings, {type} given.')
+        ;
 
         $normalized = ['values' => $completion['values']];
 
@@ -70,17 +69,12 @@ final readonly class CompleteResult extends Result implements ServerResult
         ;
 
         Assert::that($data['completion'])->hasOffset('values', 'CompleteResult wire completion missing "values".');
-        Assert::that($data['completion']['values'])->isArray('CompleteResult wire completion "values" must be an array, {type} given.');
-        Assert::that($data['completion']['values'])->isList('CompleteResult wire completion "values" must be a list, got non-list array.');
+        Assert::that($data['completion']['values'])
+            ->isList('CompleteResult wire completion "values" must be a list, {type} given.')
+            ->values()->isString('CompleteResult wire completion value must be a string, {type} given.')
+        ;
 
-        $values = [];
-
-        foreach ($data['completion']['values'] as $value) {
-            Assert::that($value)->isString('CompleteResult wire completion value must be a string, {type} given.');
-            $values[] = $value;
-        }
-
-        $completion = ['values' => $values];
+        $completion = ['values' => $data['completion']['values']];
 
         if (\array_key_exists('total', $data['completion'])) {
             Assert::that($data['completion']['total'])->isInt('CompleteResult wire completion "total" must be an int, {type} given.');

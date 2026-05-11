@@ -221,7 +221,7 @@ final class ReadResourceResultTest extends TestCase
 
         yield 'contents not an array' => [
             ['contents' => 'oops'],
-            'ReadResourceResult wire "contents" must be an array, string given.',
+            'ReadResourceResult wire "contents" must be a list, string given.',
         ];
 
         yield 'contents entry not an object' => [

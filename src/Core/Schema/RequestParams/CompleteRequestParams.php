@@ -55,11 +55,8 @@ final readonly class CompleteRequestParams extends RequestParams
             Assert::that($context['arguments'])
                 ->isArray('CompleteRequestParams context "arguments" must be an object, {type} given.')
                 ->isMap('CompleteRequestParams context "arguments" must be a string-keyed object.')
+                ->values()->isString('CompleteRequestParams context argument value must be a string, {type} given.')
             ;
-
-            foreach ($context['arguments'] as $value) {
-                Assert::that($value)->isString('CompleteRequestParams context argument value must be a string, {type} given.');
-            }
         }
 
         $this->argument = ['name' => $argument['name'], 'value' => $argument['value']];
@@ -105,15 +102,9 @@ final readonly class CompleteRequestParams extends RequestParams
                 Assert::that($data['context']['arguments'])
                     ->isArray('CompleteRequestParams wire context "arguments" must be an object, {type} given.')
                     ->isMap('CompleteRequestParams wire context "arguments" must be a string-keyed object.')
+                    ->values()->isString('CompleteRequestParams wire context argument value must be a string, {type} given.')
                 ;
-                $arguments = [];
-
-                foreach ($data['context']['arguments'] as $key => $value) {
-                    Assert::that($value)->isString('CompleteRequestParams wire context argument value must be a string, {type} given.');
-                    $arguments[$key] = $value;
-                }
-
-                $context['arguments'] = $arguments;
+                $context['arguments'] = $data['context']['arguments'];
             }
         }
 
