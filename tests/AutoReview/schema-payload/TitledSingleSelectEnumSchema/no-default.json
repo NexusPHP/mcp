@@ -1,0 +1,15 @@
+{
+    "type": "string",
+    "oneOf": [
+        {
+            "const": "free",
+            "title": "Free plan"
+        },
+        {
+            "const": "pro",
+            "title": "Pro plan"
+        }
+    ],
+    "title": "Subscription tier",
+    "description": "The subscription tier to apply to the workspace."
+}

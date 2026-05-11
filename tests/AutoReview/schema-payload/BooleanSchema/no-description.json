@@ -1,0 +1,5 @@
+{
+    "type": "boolean",
+    "title": "Accept terms",
+    "default": false
+}

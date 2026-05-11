@@ -1,0 +1,8 @@
+{
+    "type": "string",
+    "title": "Email address",
+    "minLength": 3,
+    "maxLength": 320,
+    "format": "email",
+    "default": "user@example.com"
+}

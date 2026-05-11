@@ -16,6 +16,9 @@ namespace Nexus\Mcp\Tests\AutoReview;
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\BaseMetadata;
+use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequestedSchema;
+use Nexus\Mcp\Core\Schema\Elicitation\EnumOption;
+use Nexus\Mcp\Core\Schema\Enum\ElicitAction;
 use Nexus\Mcp\Core\Schema\Enum\IncludeContext;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Enum\TaskSupport;
@@ -26,13 +29,16 @@ use Nexus\Mcp\Core\Schema\Error\InvalidParamsError;
 use Nexus\Mcp\Core\Schema\Error\InvalidRequestError;
 use Nexus\Mcp\Core\Schema\Error\MethodNotFoundError;
 use Nexus\Mcp\Core\Schema\Error\ParseError;
+use Nexus\Mcp\Core\Schema\Error\UrlElicitationRequiredErrorPayload;
 use Nexus\Mcp\Core\Schema\Icons;
 use Nexus\Mcp\Core\Schema\JsonRpc\PaginatedRequest;
+use Nexus\Mcp\Core\Schema\JsonRpc\UrlElicitationRequiredError;
 use Nexus\Mcp\Core\Schema\Meta;
 use Nexus\Mcp\Core\Schema\Notification;
 use Nexus\Mcp\Core\Schema\Notification\ClientNotification;
 use Nexus\Mcp\Core\Schema\Notification\ServerNotification;
 use Nexus\Mcp\Core\Schema\NotificationParams;
+use Nexus\Mcp\Core\Schema\NotificationParams\ElicitationCompleteNotificationParams;
 use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
 use Nexus\Mcp\Core\Schema\ProtocolVersion;
 use Nexus\Mcp\Core\Schema\Request;
@@ -124,6 +130,12 @@ final class SchemaConformanceTest extends TestCase
         InvalidRequestError::class => self::JSON_RPC_ERROR_OBJECT_URL,
         MethodNotFoundError::class => self::JSON_RPC_ERROR_OBJECT_URL,
         ParseError::class => self::JSON_RPC_ERROR_OBJECT_URL,
+        UrlElicitationRequiredErrorPayload::class => self::JSON_RPC_ERROR_OBJECT_URL,
+        ElicitRequestedSchema::class => self::TS_SCHEMA_FILE_URL,
+        EnumOption::class => self::TS_SCHEMA_FILE_URL,
+        ElicitationCompleteNotificationParams::class => self::TS_SCHEMA_FILE_URL,
+        UrlElicitationRequiredError::class => self::TS_SCHEMA_FILE_URL,
+        ElicitAction::class => self::TS_SCHEMA_FILE_URL,
     ];
 
     /**

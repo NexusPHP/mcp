@@ -25,5 +25,5 @@ enum ProtocolErrorCode: int
     case MethodNotFound = -32601;
     case InvalidParams = -32602;
     case InternalError = -32603;
-    case UrlElicitationRequired = -32402;
+    case UrlElicitationRequired = -32042;
 }

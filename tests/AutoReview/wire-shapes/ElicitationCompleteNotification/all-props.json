@@ -1,0 +1,10 @@
+{
+    "jsonrpc": "2.0",
+    "method": "notifications/elicitation/complete",
+    "params": {
+        "_meta": {
+            "vendor.brand": "acme"
+        },
+        "elicitationId": "elicit-xyz"
+    }
+}

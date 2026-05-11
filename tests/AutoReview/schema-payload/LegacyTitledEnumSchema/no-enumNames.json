@@ -1,0 +1,11 @@
+{
+    "type": "string",
+    "enum": [
+        "S",
+        "M",
+        "L"
+    ],
+    "title": "Shirt size",
+    "description": "Pick a shirt size.",
+    "default": "M"
+}

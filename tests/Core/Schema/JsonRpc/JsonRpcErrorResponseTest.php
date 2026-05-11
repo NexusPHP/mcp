@@ -19,6 +19,7 @@ use Nexus\Mcp\Core\Schema\Error\InvalidParamsError;
 use Nexus\Mcp\Core\Schema\Error\InvalidRequestError;
 use Nexus\Mcp\Core\Schema\Error\MethodNotFoundError;
 use Nexus\Mcp\Core\Schema\Error\ParseError;
+use Nexus\Mcp\Core\Schema\Error\UrlElicitationRequiredErrorPayload;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\RequestId;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -124,6 +125,21 @@ final class JsonRpcErrorResponseTest extends TestCase
         ]);
 
         self::assertInstanceOf(InvalidParamsError::class, $response->error);
+    }
+
+    public function testFromArrayDispatchesUrlElicitationRequiredErrorPayload(): void
+    {
+        $response = JsonRpcErrorResponse::fromArray([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'error' => [
+                'code' => ProtocolErrorCode::UrlElicitationRequired->value,
+                'message' => 'URL elicitation required',
+                'data' => ['elicitations' => []],
+            ],
+        ]);
+
+        self::assertInstanceOf(UrlElicitationRequiredErrorPayload::class, $response->error);
     }
 
     public function testFromArrayDispatchesInternalError(): void

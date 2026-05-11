@@ -1,0 +1,32 @@
+{
+    "jsonrpc": "2.0",
+    "id": "req-1",
+    "method": "elicitation/create",
+    "params": {
+        "_meta": {
+            "vendor.brand": "acme",
+            "progressToken": "progress-1"
+        },
+        "task": {
+            "ttl": 60000
+        },
+        "mode": "form",
+        "message": "Please confirm your contact details.",
+        "requestedSchema": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "format": "email"
+                },
+                "newsletter": {
+                    "type": "boolean",
+                    "default": true
+                }
+            },
+            "required": [
+                "email"
+            ]
+        }
+    }
+}

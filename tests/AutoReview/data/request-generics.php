@@ -15,6 +15,7 @@ use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
 use Nexus\Mcp\Core\Schema\Request\CancelTaskRequest;
 use Nexus\Mcp\Core\Schema\Request\CompleteRequest;
 use Nexus\Mcp\Core\Schema\Request\CreateMessageRequest;
+use Nexus\Mcp\Core\Schema\Request\ElicitRequest;
 use Nexus\Mcp\Core\Schema\Request\GetPromptRequest;
 use Nexus\Mcp\Core\Schema\Request\GetTaskPayloadRequest;
 use Nexus\Mcp\Core\Schema\Request\GetTaskRequest;
@@ -34,6 +35,7 @@ use Nexus\Mcp\Core\Schema\Request\UnsubscribeRequest;
 use function PHPStan\Testing\assertType;
 
 assertType('\'completion/complete\'', CompleteRequest::method());
+assertType('\'elicitation/create\'', ElicitRequest::method());
 assertType('\'initialize\'', InitializeRequest::method());
 assertType('\'logging/setLevel\'', SetLevelRequest::method());
 assertType('\'ping\'', PingRequest::method());

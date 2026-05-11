@@ -1,0 +1,21 @@
+{
+    "type": "array",
+    "items": {
+        "anyOf": [
+            {
+                "const": "read",
+                "title": "Read access"
+            },
+            {
+                "const": "write",
+                "title": "Write access"
+            }
+        ]
+    },
+    "title": "Granted permissions",
+    "minItems": 1,
+    "maxItems": 2,
+    "default": [
+        "read"
+    ]
+}

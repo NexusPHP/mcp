@@ -1,0 +1,17 @@
+{
+    "type": "array",
+    "items": {
+        "type": "string",
+        "enum": [
+            "email",
+            "sms",
+            "push"
+        ]
+    },
+    "description": "Channels the user wants to receive notifications on.",
+    "minItems": 1,
+    "maxItems": 3,
+    "default": [
+        "email"
+    ]
+}

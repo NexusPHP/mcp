@@ -1,0 +1,15 @@
+{
+    "type": "string",
+    "oneOf": [
+        {
+            "const": "free",
+            "title": "Free plan"
+        },
+        {
+            "const": "pro",
+            "title": "Pro plan"
+        }
+    ],
+    "title": "Subscription tier",
+    "default": "free"
+}

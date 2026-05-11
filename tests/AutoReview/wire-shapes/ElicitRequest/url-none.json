@@ -1,0 +1,11 @@
+{
+    "jsonrpc": "2.0",
+    "id": 7,
+    "method": "elicitation/create",
+    "params": {
+        "elicitationId": "elicit-abc",
+        "message": "Sign in with your provider to continue.",
+        "mode": "url",
+        "url": "https://auth.example.com/login"
+    }
+}

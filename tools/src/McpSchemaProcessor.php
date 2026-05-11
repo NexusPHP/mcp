@@ -151,8 +151,11 @@ final class McpSchemaProcessor
 
     /**
      * Resolves a class basename to the matching top-level spec key, accounting
-     * for naming conventions that differ between PHP (camelCase `JsonRpc*`) and
-     * the MCP spec (uppercase-acronym `JSONRPC*`).
+     * for naming conventions that differ between PHP (camelCase `JsonRpc`,
+     * `Url`) and the MCP spec (uppercase-acronym `JSONRPC`, `URL`). Each
+     * acronym fragment is rewritten wherever it appears in the basename, not
+     * just at the start, so e.g. `ElicitRequestUrlParams` maps to spec
+     * `ElicitRequestURLParams`.
      *
      * @param array<string, mixed> $schemaDefs
      *
@@ -164,12 +167,10 @@ final class McpSchemaProcessor
             return '' === $basename ? null : $basename;
         }
 
-        if (str_starts_with($basename, 'JsonRpc')) {
-            $candidate = 'JSONRPC'.substr($basename, \strlen('JsonRpc'));
+        $candidate = strtr($basename, ['JsonRpc' => 'JSONRPC', 'Url' => 'URL']);
 
-            if (\array_key_exists($candidate, $schemaDefs)) {
-                return $candidate;
-            }
+        if ('' !== $candidate && $candidate !== $basename && \array_key_exists($candidate, $schemaDefs)) {
+            return $candidate;
         }
 
         return null;

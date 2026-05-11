@@ -1,0 +1,15 @@
+{
+    "type": "string",
+    "enum": [
+        "S",
+        "M",
+        "L"
+    ],
+    "title": "Shirt size",
+    "enumNames": [
+        "Small",
+        "Medium",
+        "Large"
+    ],
+    "default": "M"
+}

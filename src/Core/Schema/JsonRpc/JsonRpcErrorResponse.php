@@ -22,6 +22,7 @@ use Nexus\Mcp\Core\Schema\Error\InvalidParamsError;
 use Nexus\Mcp\Core\Schema\Error\InvalidRequestError;
 use Nexus\Mcp\Core\Schema\Error\MethodNotFoundError;
 use Nexus\Mcp\Core\Schema\Error\ParseError;
+use Nexus\Mcp\Core\Schema\Error\UrlElicitationRequiredErrorPayload;
 use Nexus\Mcp\Core\Schema\RequestId;
 
 /**
@@ -130,6 +131,7 @@ final readonly class JsonRpcErrorResponse implements Arrayable, JsonRpcResponse
             ProtocolErrorCode::InvalidRequest => InvalidRequestError::fromArray($narrow),
             ProtocolErrorCode::MethodNotFound => MethodNotFoundError::fromArray($narrow),
             ProtocolErrorCode::InvalidParams => InvalidParamsError::fromArray($narrow),
+            ProtocolErrorCode::UrlElicitationRequired => UrlElicitationRequiredErrorPayload::fromArray($narrow),
             default => InternalError::fromArray($narrow),
         };
     }

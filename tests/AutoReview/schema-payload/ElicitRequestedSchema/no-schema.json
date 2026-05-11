@@ -1,0 +1,16 @@
+{
+    "type": "object",
+    "properties": {
+        "email": {
+            "type": "string",
+            "format": "email"
+        },
+        "newsletter": {
+            "type": "boolean",
+            "default": true
+        }
+    },
+    "required": [
+        "email"
+    ]
+}

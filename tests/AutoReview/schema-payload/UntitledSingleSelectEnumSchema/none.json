@@ -1,0 +1,8 @@
+{
+    "type": "string",
+    "enum": [
+        "red",
+        "green",
+        "blue"
+    ]
+}

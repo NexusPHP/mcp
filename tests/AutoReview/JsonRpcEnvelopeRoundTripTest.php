@@ -20,6 +20,7 @@ use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\Notification\CancelledNotification;
+use Nexus\Mcp\Core\Schema\Notification\ElicitationCompleteNotification;
 use Nexus\Mcp\Core\Schema\Notification\InitializedNotification;
 use Nexus\Mcp\Core\Schema\Notification\LoggingMessageNotification;
 use Nexus\Mcp\Core\Schema\Notification\ProgressNotification;
@@ -33,6 +34,7 @@ use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
 use Nexus\Mcp\Core\Schema\Request\CancelTaskRequest;
 use Nexus\Mcp\Core\Schema\Request\CompleteRequest;
 use Nexus\Mcp\Core\Schema\Request\CreateMessageRequest;
+use Nexus\Mcp\Core\Schema\Request\ElicitRequest;
 use Nexus\Mcp\Core\Schema\Request\GetPromptRequest;
 use Nexus\Mcp\Core\Schema\Request\GetTaskPayloadRequest;
 use Nexus\Mcp\Core\Schema\Request\GetTaskRequest;
@@ -55,6 +57,7 @@ use Nexus\Mcp\Core\Schema\Result\CancelTaskResult;
 use Nexus\Mcp\Core\Schema\Result\CompleteResult;
 use Nexus\Mcp\Core\Schema\Result\CreateMessageResult;
 use Nexus\Mcp\Core\Schema\Result\CreateTaskResult;
+use Nexus\Mcp\Core\Schema\Result\ElicitResult;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
 use Nexus\Mcp\Core\Schema\Result\GetTaskPayloadResult;
@@ -195,6 +198,8 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
 
         yield 'UnsubscribeRequest' => ['wrapper' => UnsubscribeRequest::class, 'inner' => null];
 
+        yield 'ElicitRequest' => ['wrapper' => ElicitRequest::class, 'inner' => null];
+
         // Concrete notifications.
         yield 'CancelledNotification' => ['wrapper' => CancelledNotification::class, 'inner' => null];
 
@@ -215,6 +220,8 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
         yield 'TaskStatusNotification' => ['wrapper' => TaskStatusNotification::class, 'inner' => null];
 
         yield 'ToolListChangedNotification' => ['wrapper' => ToolListChangedNotification::class, 'inner' => null];
+
+        yield 'ElicitationCompleteNotification' => ['wrapper' => ElicitationCompleteNotification::class, 'inner' => null];
 
         // Result responses, parameterized by the inner Result subclass.
         yield 'JsonRpcResultResponse-CallToolResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => CallToolResult::class];
@@ -251,6 +258,8 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
 
         yield 'JsonRpcResultResponse-ReadResourceResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => ReadResourceResult::class];
 
+        yield 'JsonRpcResultResponse-ElicitResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => ElicitResult::class];
+
         // Error responses, organized per Error subclass even though
         // `JsonRpcErrorResponse::fromArray` self-dispatches on `code`.
         yield 'JsonRpcErrorResponse-InternalError' => ['wrapper' => JsonRpcErrorResponse::class, 'inner' => null];
@@ -262,6 +271,8 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
         yield 'JsonRpcErrorResponse-MethodNotFoundError' => ['wrapper' => JsonRpcErrorResponse::class, 'inner' => null];
 
         yield 'JsonRpcErrorResponse-ParseError' => ['wrapper' => JsonRpcErrorResponse::class, 'inner' => null];
+
+        yield 'JsonRpcErrorResponse-UrlElicitationRequiredErrorPayload' => ['wrapper' => JsonRpcErrorResponse::class, 'inner' => null];
     }
 
     /**

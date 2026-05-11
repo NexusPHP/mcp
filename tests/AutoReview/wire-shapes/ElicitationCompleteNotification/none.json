@@ -1,0 +1,7 @@
+{
+    "jsonrpc": "2.0",
+    "method": "notifications/elicitation/complete",
+    "params": {
+        "elicitationId": "elicit-abc"
+    }
+}

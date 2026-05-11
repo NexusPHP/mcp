@@ -1,0 +1,10 @@
+{
+    "type": "string",
+    "enum": [
+        "red",
+        "green",
+        "blue"
+    ],
+    "description": "The accent colour the user prefers.",
+    "default": "blue"
+}

@@ -1,0 +1,19 @@
+{
+    "jsonrpc": "2.0",
+    "id": "req-1",
+    "result": {
+        "_meta": {
+            "vendor.brand": "acme"
+        },
+        "action": "accept",
+        "content": {
+            "email": "user@example.com",
+            "age": 32,
+            "newsletter": true,
+            "topics": [
+                "php",
+                "mcp"
+            ]
+        }
+    }
+}

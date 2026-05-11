@@ -36,6 +36,7 @@ final class JsonRpcMethodRegistry
     {
         return [
             Request\CompleteRequest::method() => Request\CompleteRequest::class,
+            Request\ElicitRequest::method() => Request\ElicitRequest::class,
             Request\InitializeRequest::method() => Request\InitializeRequest::class,
             Request\SetLevelRequest::method() => Request\SetLevelRequest::class,
             Request\PingRequest::method() => Request\PingRequest::class,
@@ -64,6 +65,7 @@ final class JsonRpcMethodRegistry
     {
         return [
             Notification\CancelledNotification::method() => Notification\CancelledNotification::class,
+            Notification\ElicitationCompleteNotification::method() => Notification\ElicitationCompleteNotification::class,
             Notification\InitializedNotification::method() => Notification\InitializedNotification::class,
             Notification\LoggingMessageNotification::method() => Notification\LoggingMessageNotification::class,
             Notification\ProgressNotification::method() => Notification\ProgressNotification::class,
