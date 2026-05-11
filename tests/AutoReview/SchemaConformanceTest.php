@@ -88,47 +88,47 @@ final class SchemaConformanceTest extends TestCase
      * Each entry pins the exact URL the class must reference instead.
      */
     private const array NON_SCHEMA_ANCHOR_SEE_URLS = [
-        MetaObject::class => 'https://modelcontextprotocol.io/specification/2025-11-25/basic#_meta',
-        RequestMetaObject::class => 'https://modelcontextprotocol.io/specification/2025-11-25/basic#_meta',
-        Icons::class => 'https://modelcontextprotocol.io/specification/2025-11-25/basic#icons',
-        ProtocolVersion::class => 'https://modelcontextprotocol.io/specification/2025-11-25/basic/lifecycle#version-negotiation',
         BaseMetadata::class => self::TS_SCHEMA_FILE_URL,
-        Notification::class => self::TS_SCHEMA_FILE_URL,
-        NotificationParams::class => self::TS_SCHEMA_FILE_URL,
-        EmptyNotificationParams::class => self::TS_SCHEMA_FILE_URL,
-        PaginatedRequest::class => self::TS_SCHEMA_FILE_URL,
-        PaginatedRequestParams::class => self::TS_SCHEMA_FILE_URL,
-        Result\PaginatedResult::class => self::TS_SCHEMA_FILE_URL,
-        Request::class => self::TS_SCHEMA_FILE_URL,
-        RequestParams::class => self::TS_SCHEMA_FILE_URL,
-        EmptyRequestParams::class => self::TS_SCHEMA_FILE_URL,
-        ResourceContents::class => self::TS_SCHEMA_FILE_URL,
-        ResourceRequestParams::class => self::TS_SCHEMA_FILE_URL,
-        TaskAugmentedRequestParams::class => self::TS_SCHEMA_FILE_URL,
+        ElicitRequestedSchema::class => self::TS_SCHEMA_FILE_URL,
+        EnumOption::class => self::TS_SCHEMA_FILE_URL,
+        ElicitAction::class => self::TS_SCHEMA_FILE_URL,
+        IncludeContext::class => self::TS_SCHEMA_FILE_URL,
+        ProtocolErrorCode::class => self::JSON_RPC_ERROR_OBJECT_URL,
         TaskSupport::class => self::TS_SCHEMA_FILE_URL,
         ToolChoiceMode::class => self::TS_SCHEMA_FILE_URL,
-        IncludeContext::class => self::TS_SCHEMA_FILE_URL,
-        GetTaskRequestParams::class => 'https://modelcontextprotocol.io/specification/2025-11-25/schema#gettaskrequest',
-        GetTaskPayloadRequestParams::class => 'https://modelcontextprotocol.io/specification/2025-11-25/schema#gettaskpayloadrequest',
-        CancelTaskRequestParams::class => 'https://modelcontextprotocol.io/specification/2025-11-25/schema#canceltaskrequest',
-        Notification\ClientNotification::class => self::TS_SCHEMA_FILE_URL,
-        Notification\ServerNotification::class => self::TS_SCHEMA_FILE_URL,
-        Request\ClientRequest::class => self::TS_SCHEMA_FILE_URL,
-        Request\ServerRequest::class => self::TS_SCHEMA_FILE_URL,
-        Result\ClientResult::class => self::TS_SCHEMA_FILE_URL,
-        Result\ServerResult::class => self::TS_SCHEMA_FILE_URL,
-        ProtocolErrorCode::class => self::JSON_RPC_ERROR_OBJECT_URL,
         InternalError::class => self::JSON_RPC_ERROR_OBJECT_URL,
         InvalidParamsError::class => self::JSON_RPC_ERROR_OBJECT_URL,
         InvalidRequestError::class => self::JSON_RPC_ERROR_OBJECT_URL,
         MethodNotFoundError::class => self::JSON_RPC_ERROR_OBJECT_URL,
         ParseError::class => self::JSON_RPC_ERROR_OBJECT_URL,
         UrlElicitationRequiredErrorPayload::class => self::JSON_RPC_ERROR_OBJECT_URL,
-        ElicitRequestedSchema::class => self::TS_SCHEMA_FILE_URL,
-        EnumOption::class => self::TS_SCHEMA_FILE_URL,
-        ElicitationCompleteNotificationParams::class => self::TS_SCHEMA_FILE_URL,
+        Icons::class => 'https://modelcontextprotocol.io/specification/2025-11-25/basic#icons',
+        PaginatedRequest::class => self::TS_SCHEMA_FILE_URL,
         UrlElicitationRequiredError::class => self::TS_SCHEMA_FILE_URL,
-        ElicitAction::class => self::TS_SCHEMA_FILE_URL,
+        MetaObject::class => 'https://modelcontextprotocol.io/specification/2025-11-25/basic#_meta',
+        Notification::class => self::TS_SCHEMA_FILE_URL,
+        NotificationParams::class => self::TS_SCHEMA_FILE_URL,
+        ElicitationCompleteNotificationParams::class => self::TS_SCHEMA_FILE_URL,
+        EmptyNotificationParams::class => self::TS_SCHEMA_FILE_URL,
+        Notification\ClientNotification::class => self::TS_SCHEMA_FILE_URL,
+        Notification\ServerNotification::class => self::TS_SCHEMA_FILE_URL,
+        ProtocolVersion::class => 'https://modelcontextprotocol.io/specification/2025-11-25/basic/lifecycle#version-negotiation',
+        Request::class => self::TS_SCHEMA_FILE_URL,
+        RequestMetaObject::class => 'https://modelcontextprotocol.io/specification/2025-11-25/basic#_meta',
+        RequestParams::class => self::TS_SCHEMA_FILE_URL,
+        CancelTaskRequestParams::class => 'https://modelcontextprotocol.io/specification/2025-11-25/schema#canceltaskrequest',
+        EmptyRequestParams::class => self::TS_SCHEMA_FILE_URL,
+        GetTaskPayloadRequestParams::class => 'https://modelcontextprotocol.io/specification/2025-11-25/schema#gettaskpayloadrequest',
+        GetTaskRequestParams::class => 'https://modelcontextprotocol.io/specification/2025-11-25/schema#gettaskrequest',
+        PaginatedRequestParams::class => self::TS_SCHEMA_FILE_URL,
+        ResourceRequestParams::class => self::TS_SCHEMA_FILE_URL,
+        TaskAugmentedRequestParams::class => self::TS_SCHEMA_FILE_URL,
+        Request\ClientRequest::class => self::TS_SCHEMA_FILE_URL,
+        Request\ServerRequest::class => self::TS_SCHEMA_FILE_URL,
+        ResourceContents::class => self::TS_SCHEMA_FILE_URL,
+        Result\ClientResult::class => self::TS_SCHEMA_FILE_URL,
+        Result\PaginatedResult::class => self::TS_SCHEMA_FILE_URL,
+        Result\ServerResult::class => self::TS_SCHEMA_FILE_URL,
     ];
 
     /**
@@ -454,6 +454,15 @@ final class SchemaConformanceTest extends TestCase
             'Schema classes without a 1:1 spec def must be listed in either NON_SCHEMA_ANCHOR_SEE_URLS (with the spec URL their @see should reference) or SEE_ANNOTATION_EXEMPT (PHP-only infrastructure). Unaccounted: %s.',
             implode(', ', $unaccounted),
         ));
+    }
+
+    public function testNonSchemaAnchorSeeUrlsIsSortedByKey(): void
+    {
+        $keys = array_keys(self::NON_SCHEMA_ANCHOR_SEE_URLS);
+        $sorted = $keys;
+        sort($sorted);
+
+        self::assertSame($sorted, $keys, 'NON_SCHEMA_ANCHOR_SEE_URLS entries must be sorted by key (class FQN).');
     }
 
     public function testSeeAnnotationExemptClassesHaveNoSeeTag(): void
