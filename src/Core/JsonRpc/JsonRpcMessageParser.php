@@ -14,7 +14,10 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\JsonRpc;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\Exception\JsonRpcParserException;
+use Nexus\Mcp\Core\Exception\AbstractJsonRpcParserException;
+use Nexus\Mcp\Core\Exception\InvalidParamsException;
+use Nexus\Mcp\Core\Exception\InvalidRequestException;
+use Nexus\Mcp\Core\Exception\MethodNotFoundException;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcMessage;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
@@ -76,7 +79,7 @@ final class JsonRpcMessageParser
      *
      * @return JsonRpcErrorResponse|JsonRpcNotification<non-empty-string>|JsonRpcRequest<non-empty-string>|JsonRpcResultResponse<T>
      *
-     * @throws JsonRpcParserException
+     * @throws AbstractJsonRpcParserException
      */
     public function parse(array $message, ?string $resultClass = null): JsonRpcMessage
     {
@@ -86,13 +89,19 @@ final class JsonRpcMessageParser
             try {
                 return JsonRpcErrorResponse::fromArray($message);
             } catch (\InvalidArgumentException $e) {
-                throw new JsonRpcParserException('Invalid error response: '.$e->getMessage());
+                throw new InvalidRequestException(
+                    \sprintf('Invalid error response: %s', $e->getMessage()),
+                    self::extractRequestId($message),
+                );
             }
         }
 
         if (\array_key_exists('result', $message)) {
             if (null === $resultClass) {
-                throw new JsonRpcParserException('Success response requires the expected Result class; pass it as the second argument to parse().');
+                throw new InvalidRequestException(
+                    'Success response requires the expected Result class; pass it as the second argument to parse().',
+                    self::extractRequestId($message),
+                );
             }
 
             try {
@@ -104,13 +113,16 @@ final class JsonRpcMessageParser
                     ->isMap('Success response "result" must be a string-keyed object.')
                 ;
             } catch (\InvalidArgumentException $e) {
-                throw new JsonRpcParserException($e->getMessage());
+                throw new InvalidRequestException($e->getMessage(), self::extractRequestId($message));
             }
 
             try {
                 $typed = $resultClass::fromArray($message['result']);
             } catch (\InvalidArgumentException $e) {
-                throw new JsonRpcParserException(\sprintf('Invalid %s payload: %s', $resultClass, $e->getMessage()));
+                throw new InvalidRequestException(
+                    \sprintf('Invalid %s payload: %s', $resultClass, $e->getMessage()),
+                    self::extractRequestId($message),
+                );
             }
 
             return new JsonRpcResultResponse(new RequestId($message['id']), $typed);
@@ -120,7 +132,7 @@ final class JsonRpcMessageParser
             Assert::that($message)->hasOffset('method', 'Wire message must carry a "method" (request or notification), an "error" (error response), or a "result" (success response).');
             Assert::that($message['method'])->isNonEmptyString('Wire "method" must be a non-empty string, {type} given.');
         } catch (\InvalidArgumentException $e) {
-            throw new JsonRpcParserException($e->getMessage());
+            throw new InvalidRequestException($e->getMessage(), self::extractRequestId($message));
         }
 
         $method = $message['method'];
@@ -129,26 +141,29 @@ final class JsonRpcMessageParser
             $class = $this->requests[$method] ?? null;
 
             if (null === $class) {
-                throw new JsonRpcParserException(\sprintf('No request class registered for method "%s".', $method));
+                throw new MethodNotFoundException($method, self::extractRequestId($message));
             }
 
             try {
                 return $class::fromArray($message);
             } catch (\InvalidArgumentException $e) {
-                throw new JsonRpcParserException(\sprintf('Invalid "%s" request: %s', $method, $e->getMessage()));
+                throw new InvalidParamsException(
+                    \sprintf('Invalid "%s" request: %s', $method, $e->getMessage()),
+                    self::extractRequestId($message),
+                );
             }
         }
 
         $class = $this->notifications[$method] ?? null;
 
         if (null === $class) {
-            throw new JsonRpcParserException(\sprintf('No notification class registered for method "%s".', $method));
+            throw new MethodNotFoundException($method);
         }
 
         try {
             return $class::fromArray($message);
         } catch (\InvalidArgumentException $e) {
-            throw new JsonRpcParserException(\sprintf('Invalid "%s" notification: %s', $method, $e->getMessage()));
+            throw new InvalidParamsException(\sprintf('Invalid "%s" notification: %s', $method, $e->getMessage()));
         }
     }
 
@@ -160,11 +175,24 @@ final class JsonRpcMessageParser
         $version = $message['jsonrpc'] ?? null;
 
         if (JsonRpcMessage::JSONRPC_VERSION !== $version) {
-            throw new JsonRpcParserException(\sprintf(
-                'Invalid JSON-RPC version: expected "%s", got %s.',
-                JsonRpcMessage::JSONRPC_VERSION,
-                var_export($version, true),
-            ));
+            throw new InvalidRequestException(
+                \sprintf(
+                    'Invalid JSON-RPC version: expected "%s", got %s.',
+                    JsonRpcMessage::JSONRPC_VERSION,
+                    null === $version ? 'null' : var_export($version, true),
+                ),
+                self::extractRequestId($message),
+            );
         }
+    }
+
+    /**
+     * @param array<string, mixed> $message
+     */
+    private static function extractRequestId(array $message): null|int|string
+    {
+        $id = $message['id'] ?? null;
+
+        return \is_int($id) || \is_string($id) ? $id : null;
     }
 }
