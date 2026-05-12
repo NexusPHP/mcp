@@ -33,6 +33,11 @@ final class ProtocolVersionTest extends TestCase
         self::assertSame(ProtocolVersion::LATEST_VERSION, new ProtocolVersion(ProtocolVersion::LATEST_VERSION)->version);
     }
 
+    public function testLatestStaticConstructorBindsLatestVersion(): void
+    {
+        self::assertSame(ProtocolVersion::LATEST_VERSION, ProtocolVersion::latest()->version);
+    }
+
     public function testPreviousVersionsDoNotIncludeLatest(): void
     {
         self::assertNotContains(ProtocolVersion::LATEST_VERSION, ProtocolVersion::PREVIOUS_VERSIONS);
