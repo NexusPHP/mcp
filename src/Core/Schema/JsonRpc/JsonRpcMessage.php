@@ -16,6 +16,8 @@ namespace Nexus\Mcp\Core\Schema\JsonRpc;
 /**
  * Refers to any valid JSON-RPC object that can be decoded off the wire, or encoded to be sent.
  *
+ * @phpstan-sealed JsonRpcRequest|JsonRpcNotification|JsonRpcResponse
+ *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#jsonrpcmessage
  */
 interface JsonRpcMessage extends \JsonSerializable
