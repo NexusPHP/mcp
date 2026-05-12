@@ -141,6 +141,90 @@ final class SourceCodeTest extends TestCase
     }
 
     /**
+     * @param class-string $class
+     */
+    #[DataProvider('provideClassNamingConventionsCases')]
+    public function testClassNamingConventions(string $class): void
+    {
+        $reflection = new \ReflectionClass($class);
+        $name = $reflection->getShortName();
+
+        if ($reflection->isTrait()) {
+            self::assertStringEndsNotWith(
+                'Trait',
+                $name,
+                \sprintf('Trait "%s" must NOT use the *Trait suffix.', $class),
+            );
+
+            return;
+        }
+
+        if ($reflection->isEnum()) {
+            self::assertStringEndsNotWith(
+                'Enum',
+                $name,
+                \sprintf('Enum "%s" must NOT use the *Enum suffix.', $class),
+            );
+
+            return;
+        }
+
+        if (str_starts_with($class, 'Nexus\\Mcp\\Core\\Schema\\')) {
+            $this->expectNotToPerformAssertions();
+
+            return;
+        }
+
+        if ($reflection->isInterface()) {
+            self::assertStringEndsWith('Interface', $name, \sprintf(
+                'Interface "%s" outside src/Core/Schema/ must use the *Interface suffix.',
+                $class,
+            ));
+
+            return;
+        }
+
+        if ($reflection->isAbstract()) {
+            self::assertStringStartsWith('Abstract', $name, \sprintf(
+                'Abstract class "%s" outside src/Core/Schema/ must use the Abstract* prefix.',
+                $class,
+            ));
+
+            return;
+        }
+
+        if ($reflection->isFinal()) {
+            $this->expectNotToPerformAssertions();
+
+            return;
+        }
+
+        $docComment = $reflection->getDocComment();
+        self::assertIsString(
+            $docComment,
+            \sprintf('Concrete class "%s" outside src/Core/Schema/ is not final; a docblock is required.', $class),
+        );
+        self::assertStringContainsString(
+            '@no-final',
+            $docComment,
+            \sprintf(
+                'Concrete class "%s" outside src/Core/Schema/ is not final; its docblock must carry @no-final.',
+                $class,
+            ),
+        );
+    }
+
+    /**
+     * @return iterable<class-string, array{class-string}>
+     */
+    public static function provideClassNamingConventionsCases(): iterable
+    {
+        foreach (self::getSourceClasses() as $class) {
+            yield $class => [$class];
+        }
+    }
+
+    /**
      * @return list<class-string>
      */
     private static function getSourceClasses(): array
