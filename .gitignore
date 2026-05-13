@@ -11,3 +11,8 @@
 /tools/composer.lock
 /tools/vendor/
 /vendor/
+
+# Allow committing project-level Claude config + hooks; keep per-user notes ignored.
+!/.claude/
+/.claude/**/*.md
+/.claude/settings.local.json

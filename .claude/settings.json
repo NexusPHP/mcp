@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(composer phpstan:check *)",
+      "Bash(composer mutation:check *)",
+      "Bash(composer mutation:filter *)",
+      "Bash(composer cs:check *)",
+      "Bash(composer cs:fix *)",
+      "Bash(composer test:all *)",
+      "Bash(composer test:auto-review *)",
+      "Bash(composer test:client *)",
+      "Bash(composer test:core *)",
+      "Bash(composer test:server *)",
+      "Bash(composer test:stan *)",
+      "Bash(composer test:unit *)",
+      "Bash(composer test:with-untracked *)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/no-wire.sh"
+          },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/no-prose-semicolon.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
