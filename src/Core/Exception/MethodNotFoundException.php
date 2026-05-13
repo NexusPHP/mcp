@@ -16,10 +16,9 @@ namespace Nexus\Mcp\Core\Exception;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 
 /**
- * Thrown when the parser cannot resolve an inbound `method` to a registered
- * request or notification class.
+ * Thrown when no class or handler is registered for an inbound `method`.
  */
-final class MethodNotFoundException extends AbstractJsonRpcParserException
+final class MethodNotFoundException extends AbstractJsonRpcProtocolException
 {
     public function __construct(
         public readonly string $method,

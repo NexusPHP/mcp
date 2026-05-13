@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\JsonRpc;
 
-use Nexus\Mcp\Core\Exception\AbstractJsonRpcParserException;
+use Nexus\Mcp\Core\Exception\AbstractJsonRpcProtocolException;
 use Nexus\Mcp\Core\Exception\InvalidParamsException;
 use Nexus\Mcp\Core\Exception\InvalidRequestException;
 use Nexus\Mcp\Core\Exception\MethodNotFoundException;
@@ -396,14 +396,14 @@ final class JsonRpcMessageParserTest extends TestCase
         }
     }
 
-    public function testEveryParserExceptionIsAbstractBase(): void
+    public function testEveryParserFailureIsProtocolException(): void
     {
         $parser = new JsonRpcMessageParser();
 
         try {
             $parser->parse(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'unknown/method']);
-            self::fail('Expected an AbstractJsonRpcParserException.');
-        } catch (AbstractJsonRpcParserException $e) {
+            self::fail('Expected an AbstractJsonRpcProtocolException.');
+        } catch (AbstractJsonRpcProtocolException $e) {
             self::assertSame(ProtocolErrorCode::MethodNotFound, $e::errorCode());
             self::assertSame(1, $e->requestId);
         }

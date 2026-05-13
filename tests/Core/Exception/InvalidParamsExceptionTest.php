@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Exception;
 
-use Nexus\Mcp\Core\Exception\AbstractJsonRpcParserException;
+use Nexus\Mcp\Core\Exception\AbstractJsonRpcProtocolException;
 use Nexus\Mcp\Core\Exception\InvalidParamsException;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -24,7 +24,7 @@ use PHPUnit\Framework\TestCase;
  * @internal
  */
 #[CoversClass(InvalidParamsException::class)]
-#[CoversClass(AbstractJsonRpcParserException::class)]
+#[CoversClass(AbstractJsonRpcProtocolException::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
 final class InvalidParamsExceptionTest extends TestCase

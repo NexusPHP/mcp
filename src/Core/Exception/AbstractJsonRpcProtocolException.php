@@ -16,10 +16,10 @@ namespace Nexus\Mcp\Core\Exception;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 
 /**
- * Base for every parser failure. Concrete subclasses pin a JSON-RPC error
- * category and may carry category-specific context.
+ * Base for every JSON-RPC protocol-level failure raised by the SDK. Concrete
+ * subclasses pin a JSON-RPC error category and may carry category-specific context.
  */
-abstract class AbstractJsonRpcParserException extends \RuntimeException implements McpExceptionInterface
+abstract class AbstractJsonRpcProtocolException extends \RuntimeException implements McpExceptionInterface
 {
     public function __construct(
         string $message,

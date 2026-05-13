@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Exception;
 
-use Nexus\Mcp\Core\Exception\AbstractJsonRpcParserException;
-use Nexus\Mcp\Tests\Fixtures\Core\Exception\StubParserException;
+use Nexus\Mcp\Core\Exception\AbstractJsonRpcProtocolException;
+use Nexus\Mcp\Tests\Fixtures\Core\Exception\StubProtocolException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
@@ -22,14 +22,14 @@ use PHPUnit\Framework\TestCase;
 /**
  * @internal
  */
-#[CoversClass(AbstractJsonRpcParserException::class)]
+#[CoversClass(AbstractJsonRpcProtocolException::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class AbstractJsonRpcParserExceptionTest extends TestCase
+final class AbstractJsonRpcProtocolExceptionTest extends TestCase
 {
     public function testCarriesMessageAndDefaultsRequestIdToNull(): void
     {
-        $e = new StubParserException('boom');
+        $e = new StubProtocolException('boom');
 
         self::assertSame('boom', $e->getMessage());
         self::assertNull($e->requestId);
@@ -39,7 +39,7 @@ final class AbstractJsonRpcParserExceptionTest extends TestCase
     public function testCarriesProvidedRequestIdAndPrevious(): void
     {
         $previous = new \RuntimeException('inner');
-        $e = new StubParserException('boom', 'req-42', $previous);
+        $e = new StubProtocolException('boom', 'req-42', $previous);
 
         self::assertSame('boom', $e->getMessage());
         self::assertSame('req-42', $e->requestId);
@@ -48,7 +48,7 @@ final class AbstractJsonRpcParserExceptionTest extends TestCase
 
     public function testAcceptsIntegerRequestId(): void
     {
-        $e = new StubParserException('boom', 7);
+        $e = new StubProtocolException('boom', 7);
 
         self::assertSame(7, $e->requestId);
     }

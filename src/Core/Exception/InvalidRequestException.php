@@ -19,7 +19,7 @@ use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
  * Thrown when the JSON-RPC envelope is structurally valid JSON but does not
  * conform to the JSON-RPC shape (wrong version, missing fields, malformed response).
  */
-final class InvalidRequestException extends AbstractJsonRpcParserException
+final class InvalidRequestException extends AbstractJsonRpcProtocolException
 {
     #[\Override]
     public static function errorCode(): ProtocolErrorCode

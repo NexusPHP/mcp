@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\JsonRpc;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\Exception\AbstractJsonRpcParserException;
+use Nexus\Mcp\Core\Exception\AbstractJsonRpcProtocolException;
 use Nexus\Mcp\Core\Exception\InvalidParamsException;
 use Nexus\Mcp\Core\Exception\InvalidRequestException;
 use Nexus\Mcp\Core\Exception\MethodNotFoundException;
@@ -79,7 +79,7 @@ final class JsonRpcMessageParser
      *
      * @return JsonRpcErrorResponse|JsonRpcNotification<non-empty-string>|JsonRpcRequest<non-empty-string>|JsonRpcResultResponse<T>
      *
-     * @throws AbstractJsonRpcParserException
+     * @throws AbstractJsonRpcProtocolException
      */
     public function parse(array $message, ?string $resultClass = null): JsonRpcMessage
     {

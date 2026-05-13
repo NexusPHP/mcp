@@ -13,13 +13,13 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Fixtures\Core\Exception;
 
-use Nexus\Mcp\Core\Exception\AbstractJsonRpcParserException;
+use Nexus\Mcp\Core\Exception\AbstractJsonRpcProtocolException;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 
 /**
  * @internal
  */
-final class StubParserException extends AbstractJsonRpcParserException
+final class StubProtocolException extends AbstractJsonRpcProtocolException
 {
     #[\Override]
     public static function errorCode(): ProtocolErrorCode

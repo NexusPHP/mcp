@@ -19,7 +19,7 @@ use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
  * Thrown when the params payload of a known method fails the shape check the
  * concrete request or notification class enforces in `fromArray()`.
  */
-final class InvalidParamsException extends AbstractJsonRpcParserException
+final class InvalidParamsException extends AbstractJsonRpcProtocolException
 {
     #[\Override]
     public static function errorCode(): ProtocolErrorCode
