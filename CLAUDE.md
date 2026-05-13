@@ -14,20 +14,20 @@ For spec-driven work, do **NOT** introduce types, params, or response shapes tha
 
 ## Workflow gates
 
-Every change must survive these three checks before being considered done:
+Every change must survive these checks before being considered done:
 
 ```bash
-composer phpstan:check     # level max + strict rules; no `@phpstan-ignore` in production code
-composer cs:check          # Nexus84 preset; run cs:fix to auto-apply
-composer test:all          # runs cs, phpstan, auto-review, static-analysis, unit, and mutation
+composer test:all              # cs + phpstan + auto-review + static-analysis + unit + full-tree mutation
+# OR (mid-development, with unstaged/untracked changes):
+composer test:with-untracked   # same suite, but mutation step is diff-based via `mutation:filter`
 ```
 
 For fast iteration while coding, the single-concern scripts work: `composer test:core`, `composer test:auto-review`, `composer test:stan` (PHPStan type-inference lock-in assertions under `tests/AutoReview/data/`, run as the `static-analysis` PHPUnit group).
 
 Mutation testing has two modes:
 
-- `composer mutation:filter`: diff-based against `origin/1.x`. Only useful once your changes are committed or at least staged.
-- `composer mutation:check`: full tree. **Use this when building a new feature whose changes are still unstaged**, otherwise the filter finds nothing to test.
+- `composer mutation:filter`: diff-based against `origin/1.x`. Picks up committed, staged, modified-but-unstaged, and untracked files (the script transiently marks untracked files as `--intent-to-add` so `git diff` sees them, clearing on exit). Prefer this during iteration.
+- `composer mutation:check`: full tree. Reserve for pre-merge final verification, `infection.json5` changes, or when you suspect cross-file mutation interactions.
 
 Both enforce **100% MSI, 100% Code Coverage, 100% Covered Code MSI** per [infection.json5](infection.json5). Escaped mutants fail the build; do not add ignores, improve the tests instead.
 

@@ -74,7 +74,10 @@
             "Composer\\Config::disableProcessTimeout",
             "tools/vendor/bin/infection --with-uncovered --static-analysis-tool=phpstan"
         ],
-        "mutation:filter": "@mutation:check --git-diff-filter=AM --git-diff-base=origin/1.x",
+        "mutation:filter": [
+            "Composer\\Config::disableProcessTimeout",
+            "Nexus\\Mcp\\Tools\\ComposerScripts::runFilteredMutation"
+        ],
         "phpstan:baseline": "phpstan analyse --verbose --generate-baseline=phpstan-baseline.php",
         "phpstan:check": "phpstan analyse --verbose",
         "schema:generate": "tools/generate-schema",
@@ -92,7 +95,15 @@
         "test:core": "phpunit --group=core-tests --colors=always --no-coverage",
         "test:server": "phpunit --group=server-tests --colors=always --no-coverage",
         "test:stan": "phpunit --group=static-analysis --colors=always --no-coverage",
-        "test:unit": "phpunit --group=unit-tests --colors=always --coverage-html=build/phpunit/html"
+        "test:unit": "phpunit --group=unit-tests --colors=always --coverage-html=build/phpunit/html",
+        "test:with-untracked": [
+            "@cs:check",
+            "@phpstan:check",
+            "@test:auto-review",
+            "@test:stan",
+            "@test:unit",
+            "@mutation:filter"
+        ]
     },
     "scripts-descriptions": {
         "cs:check": "Checks for coding style violations",
@@ -109,6 +120,7 @@
         "test:core": "Runs the Core component tests with code coverage",
         "test:server": "Runs the Server component tests with code coverage",
         "test:stan": "Runs the static-analysis (PHPStan type-inference lock-in) tests",
-        "test:unit": "Runs the unit tests with code coverage"
+        "test:unit": "Runs the unit tests with code coverage",
+        "test:with-untracked": "Runs all tests on added and modified files only"
     }
 }

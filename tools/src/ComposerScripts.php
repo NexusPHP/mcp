@@ -23,6 +23,8 @@ final class ComposerScripts
     private const string PHPSTAN_PHAR = self::PROJECT_ROOT.'/vendor/phpstan/phpstan/phpstan.phar';
     private const string PHPSTAN_EXTRACTED_DIR = self::PROJECT_ROOT.'/vendor/phpstan/phpstan-phar';
     private const string INTELEPHENSE_INCLUDE_ENTRY = 'vendor/phpstan/phpstan-phar/';
+    private const string INFECTION_BIN = self::PROJECT_ROOT.'/tools/vendor/bin/infection';
+    private const array MUTATION_SOURCE_DIRECTORIES = ['src', 'tests'];
 
     public static function postUpdate(): void
     {
@@ -47,6 +49,78 @@ final class ComposerScripts
         }
 
         self::updateVscodeIntelephenseEnvironmentIncludePaths($settingsContents);
+    }
+
+    /**
+     * Runs Infection scoped to the diff against `origin/1.x`, including
+     * untracked files that `git diff` would not otherwise see. Marks each
+     * untracked source file as intent-to-add for the duration of the run, then
+     * clears the markers on exit so the working tree returns to its prior state.
+     */
+    public static function runFilteredMutation(): void
+    {
+        chdir(self::PROJECT_ROOT);
+
+        $untracked = self::listUntrackedSourceFiles();
+
+        if ([] !== $untracked) {
+            self::runGitCommand('add', '--intent-to-add', '--', ...$untracked);
+            register_shutdown_function(static function () use ($untracked): void {
+                self::runGitCommand('reset', '--quiet', 'HEAD', '--', ...$untracked);
+            });
+        }
+
+        $command = [
+            self::INFECTION_BIN,
+            '--with-uncovered',
+            '--static-analysis-tool=phpstan',
+            '--git-diff-filter=AM',
+            '--git-diff-base=origin/1.x',
+        ];
+
+        $proc = proc_open($command, [0 => \STDIN, 1 => \STDOUT, 2 => \STDERR], $pipes);
+
+        if (false === $proc) {
+            self::fail('Failed to launch infection.');
+        }
+
+        $exitCode = proc_close($proc);
+
+        if (0 !== $exitCode) {
+            exit($exitCode);
+        }
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function listUntrackedSourceFiles(): array
+    {
+        $output = shell_exec(implode(' ', array_map(escapeshellarg(...), [
+            'git',
+            'ls-files',
+            '--others',
+            '--exclude-standard',
+            '--',
+            ...self::MUTATION_SOURCE_DIRECTORIES,
+        ])));
+
+        if (! \is_string($output) || '' === trim($output)) {
+            return [];
+        }
+
+        $lines = preg_split('/\R/', trim($output));
+
+        if (false === $lines) {
+            return [];
+        }
+
+        return array_values(array_filter($lines, static fn(string $line): bool => '' !== $line));
+    }
+
+    private static function runGitCommand(string ...$args): void
+    {
+        passthru(implode(' ', array_map(escapeshellarg(...), ['git', ...$args])));
     }
 
     private static function recursiveDelete(string $directory): void

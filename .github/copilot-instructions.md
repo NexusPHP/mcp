@@ -23,8 +23,11 @@ All code is managed under the unified namespace `Nexus\Mcp\` with the directory 
 # Install all dependencies (run from repo root)
 composer update  # composer.lock is not committed; update is the standard setup command
 
-# Run all tests (includes code style, static analysis, automatic review, mutation)
+# Run all tests (includes code style, static analysis, automatic review, full-tree mutation)
 composer test:all
+
+# Same suite, but the mutation step is diff-based (use during iteration with unstaged/untracked changes)
+composer test:with-untracked
 
 # Run automatic code review tests (conformance tests and architecture checks)
 composer test:auto-review
@@ -45,7 +48,7 @@ composer phpstan:baseline # regenerates the PHPStan baseline; only use when a co
 
 # Mutation testing (checks for code quality via mutation detection)
 composer mutation:check      # runs Infection on whole codebase
-composer mutation:filter     # runs Infection on added and modified files only
+composer mutation:filter     # runs Infection on diff vs origin/1.x; includes untracked files via intent-to-add
 
 # Code style (check only)
 composer cs:check
