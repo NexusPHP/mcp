@@ -27,7 +27,7 @@ final class McpAnchorSnapshot
 
     /**
      * Spec docs pages whose anchors `@see` URLs may target. Add a page here
-     * when extending `@see` references to a new spec area; the test reads the
+     * when extending `@see` references to a new spec area. The test reads the
      * snapshot keyed by the full URL of each page.
      */
     private const array SPEC_PAGES = [
@@ -50,7 +50,7 @@ final class McpAnchorSnapshot
     /**
      * Concept-page anchors that aren't backed by a top-level `$defs` key but
      * are still referenced from `@see` URLs. Keys are page-relative paths
-     * (matching {@see self::SPEC_PAGES} entries); values are anchor IDs to
+     * (matching {@see self::SPEC_PAGES} entries). Values are anchor IDs to
      * keep when intersecting against the schema's `$defs`.
      */
     private const array EXTRA_VALID_ANCHORS = [
@@ -106,7 +106,7 @@ final class McpAnchorSnapshot
 
     /**
      * Reads the saved snapshot from disk, returning the page-URL → anchor-IDs
-     * map. Throws when the snapshot file is missing or malformed; refresh via
+     * map. Throws when the snapshot file is missing or malformed. Refresh via
      * `composer spec:snapshot-anchors`.
      *
      * @return array<string, list<string>>

@@ -58,7 +58,7 @@ abstract readonly class ResourceContents implements Arrayable
      * Discriminates the wire payload by the presence of `text` vs `blob` and
      * dispatches to the matching concrete subclass. Used by consumers like
      * `ReadResourceResult` and `EmbeddedResource` that carry a structurally
-     * tagged union; the narrowed return type lets IDEs and PHPStan resolve
+     * tagged union. The narrowed return type lets IDEs and PHPStan resolve
      * `text` / `blob` on the result without an explicit `instanceof` check.
      *
      * @param array<string, mixed> $data

@@ -14,9 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\Sampling;
 
 /**
- * Marker for the content of a `SamplingMessage`. The spec union members are
- * `TextContent`, `ImageContent`, `AudioContent`, `ToolUseContent`, and
- * `ToolResultContent`; each carries its own `type` discriminator.
+ * Marker for the content of a `SamplingMessage`. Each variant carries its own `type` discriminator.
  *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#samplingmessagecontentblock
  */

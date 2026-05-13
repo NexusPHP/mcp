@@ -17,6 +17,8 @@ namespace Nexus\Mcp\Core\Schema\Elicitation;
  * Marker for the `MultiSelectEnumSchema` union: `UntitledMultiSelectEnumSchema`
  * and `TitledMultiSelectEnumSchema`.
  *
+ * @phpstan-sealed UntitledMultiSelectEnumSchema|TitledMultiSelectEnumSchema
+ *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#multiselectenumschema
  */
 interface MultiSelectEnumSchema extends EnumSchema

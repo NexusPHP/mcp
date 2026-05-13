@@ -14,9 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\Enum;
 
 /**
- * Per-tool task support mode declared by `ToolExecution.taskSupport`. The spec
- * inlines this as a string-literal union; we name it as an enum so consumers
- * see the same closed set on the PHP side.
+ * Per-tool task support mode declared by `ToolExecution.taskSupport`.
  *
  * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2025-11-25/schema.ts
  */

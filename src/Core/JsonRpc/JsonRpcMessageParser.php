@@ -59,8 +59,8 @@ final class JsonRpcMessageParser
      *   `'myorg/custom-tool' => MyCustomRequest::class`) to add a new dispatch entry.
      *
      * No validation distinguishes these cases, so a typo in an override key (e.g.
-     * `'initiailze' => ...`) silently registers a dead method instead of overriding;
-     * verify the key matches a {@see JsonRpcMethodRegistry} entry when overriding.
+     * `'initiailze' => ...`) silently registers a dead method instead of overriding.
+     * Verify the key matches a {@see JsonRpcMethodRegistry} entry when overriding.
      *
      * @param array<non-empty-string, class-string<JsonRpcRequest<non-empty-string>>>      $requests
      * @param array<non-empty-string, class-string<JsonRpcNotification<non-empty-string>>> $notifications

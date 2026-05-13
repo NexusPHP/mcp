@@ -222,7 +222,7 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
     /**
      * Validates a wire-shape JSON Schema envelope and projects it to the typed
      * `ToolSchemaShape`. Per-property values inside `properties` stay opaque
-     * (`array<string, mixed>`) per spec; the projection narrows their inner
+     * (`array<string, mixed>`) per spec, so the projection narrows their inner
      * shape only as far as `array<string, mixed>`.
      *
      * @param array<string, mixed> $schema

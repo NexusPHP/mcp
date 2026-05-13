@@ -615,8 +615,8 @@ final class SchemaConformanceTest extends TestCase
 
     /**
      * Verify each spec property has a corresponding PHP representation and
-     * that required/optional matches: required spec keys must have no default;
-     * optional spec keys must have a default. Spec keys backed by a constant
+     * that required/optional matches: required spec keys must have no default,
+     * and optional spec keys must have a default. Spec keys backed by a constant
      * or static method (jsonrpc, method) are always-required and verified
      * to exist on the class.
      *

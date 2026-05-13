@@ -61,7 +61,7 @@ final class TypeInferenceTest extends TypeInferenceTestCase
     /**
      * Asserts the data file contains a `ShortName::method()` reference for
      * every concrete subclass of the given base. The literal-string return
-     * type pinned by these assertions is the load-bearing contract; without
+     * type pinned by these assertions is the load-bearing contract. Without
      * an entry per class, a regression to a wider `non-empty-string` would
      * slip through. Extend the data file rather than relax this gate.
      *

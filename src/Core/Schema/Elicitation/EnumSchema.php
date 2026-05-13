@@ -19,6 +19,8 @@ namespace Nexus\Mcp\Core\Schema\Elicitation;
  * `TitledSingleSelectEnumSchema`, `UntitledMultiSelectEnumSchema`,
  * `TitledMultiSelectEnumSchema`, and `LegacyTitledEnumSchema`.
  *
+ * @phpstan-sealed SingleSelectEnumSchema|MultiSelectEnumSchema|LegacyTitledEnumSchema
+ *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#enumschema
  */
 interface EnumSchema extends PrimitiveSchemaDefinition

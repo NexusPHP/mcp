@@ -498,7 +498,7 @@ final class StdioServerTransportTest extends TestCase
         EventLoop::run();
 
         self::assertContains(
-            'Stdio transport started; reading from stdin.',
+            'Stdio transport started. Reading from stdin.',
             $logger->messagesAtLevel(LogLevel::INFO),
         );
     }
@@ -562,31 +562,31 @@ final class StdioServerTransportTest extends TestCase
     {
         yield 'request' => [
             new PingRequest(new RequestId(42)),
-            'Stdio transport failed to send "{method}" request with ID of {id}; closing.',
+            'Stdio transport failed to send "{method}" request with ID of {id}. Closing.',
             ['method' => 'ping', 'id' => 42],
         ];
 
         yield 'notification' => [
             new CancelledNotification(new CancelledNotificationParams(new RequestId(7))),
-            'Stdio transport failed to send "{method}" notification; closing.',
+            'Stdio transport failed to send "{method}" notification. Closing.',
             ['method' => 'notifications/cancelled'],
         ];
 
         yield 'result response' => [
             new JsonRpcResultResponse(new RequestId(99), new EmptyResult()),
-            'Stdio transport failed to send result response for request ID of {id}; closing.',
+            'Stdio transport failed to send result response for request ID of {id}. Closing.',
             ['id' => 99],
         ];
 
         yield 'error response with id' => [
             new JsonRpcErrorResponse(new RequestId(5), new InvalidParamsError('bad params')),
-            'Stdio transport failed to send error response for request ID of {id}; closing.',
+            'Stdio transport failed to send error response for request ID of {id}. Closing.',
             ['id' => 5],
         ];
 
         yield 'error response with no id' => [
             new JsonRpcErrorResponse(null, new ParseError('unparseable')),
-            'Stdio transport failed to send error response with no correlatable ID; closing.',
+            'Stdio transport failed to send error response with no correlatable ID. Closing.',
             [],
         ];
     }
@@ -600,7 +600,7 @@ final class StdioServerTransportTest extends TestCase
         $transport->start();
         EventLoop::run();
 
-        $matches = $logger->recordsMatching(LogLevel::ERROR, 'Stdio transport read loop failed; closing.');
+        $matches = $logger->recordsMatching(LogLevel::ERROR, 'Stdio transport read loop failed. Closing.');
         self::assertCount(1, $matches);
         self::assertArrayHasKey('exception', $matches[0]['context']);
         self::assertSame($boom, $matches[0]['context']['exception']);
@@ -632,11 +632,11 @@ final class StdioServerTransportTest extends TestCase
         $subscription = $transport->onMessage(static function (array $envelope, ?ReceiveContext $context): void {});
         $subscription->dispose();
 
-        $registered = $logger->recordsMatching(LogLevel::DEBUG, 'Stdio transport registered message listener; {count} active.');
+        $registered = $logger->recordsMatching(LogLevel::DEBUG, 'Stdio transport registered a message listener. {count} active.');
         self::assertCount(1, $registered);
         self::assertSame(['count' => 1], $registered[0]['context']);
 
-        $disposed = $logger->recordsMatching(LogLevel::DEBUG, 'Stdio transport disposed message listener; {count} active.');
+        $disposed = $logger->recordsMatching(LogLevel::DEBUG, 'Stdio transport disposed a message listener. {count} active.');
         self::assertCount(1, $disposed);
         self::assertSame(['count' => 0], $disposed[0]['context']);
     }
@@ -649,11 +649,11 @@ final class StdioServerTransportTest extends TestCase
         $subscription = $transport->onClose(static function (): void {});
         $subscription->dispose();
 
-        $registered = $logger->recordsMatching(LogLevel::DEBUG, 'Stdio transport registered close listener; {count} active.');
+        $registered = $logger->recordsMatching(LogLevel::DEBUG, 'Stdio transport registered a close listener. {count} active.');
         self::assertCount(1, $registered);
         self::assertSame(['count' => 1], $registered[0]['context']);
 
-        $disposed = $logger->recordsMatching(LogLevel::DEBUG, 'Stdio transport disposed close listener; {count} active.');
+        $disposed = $logger->recordsMatching(LogLevel::DEBUG, 'Stdio transport disposed a close listener. {count} active.');
         self::assertCount(1, $disposed);
         self::assertSame(['count' => 0], $disposed[0]['context']);
     }
@@ -666,11 +666,11 @@ final class StdioServerTransportTest extends TestCase
         $subscription = $transport->onError(static function (\Throwable $e): void {});
         $subscription->dispose();
 
-        $registered = $logger->recordsMatching(LogLevel::DEBUG, 'Stdio transport registered error listener; {count} active.');
+        $registered = $logger->recordsMatching(LogLevel::DEBUG, 'Stdio transport registered an error listener. {count} active.');
         self::assertCount(1, $registered);
         self::assertSame(['count' => 1], $registered[0]['context']);
 
-        $disposed = $logger->recordsMatching(LogLevel::DEBUG, 'Stdio transport disposed error listener; {count} active.');
+        $disposed = $logger->recordsMatching(LogLevel::DEBUG, 'Stdio transport disposed an error listener. {count} active.');
         self::assertCount(1, $disposed);
         self::assertSame(['count' => 0], $disposed[0]['context']);
     }

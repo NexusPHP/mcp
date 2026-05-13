@@ -17,6 +17,8 @@ namespace Nexus\Mcp\Core\Schema\Elicitation;
  * Marker for the `SingleSelectEnumSchema` union: `UntitledSingleSelectEnumSchema`
  * and `TitledSingleSelectEnumSchema`.
  *
+ * @phpstan-sealed UntitledSingleSelectEnumSchema|TitledSingleSelectEnumSchema
+ *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#singleselectenumschema
  */
 interface SingleSelectEnumSchema extends EnumSchema

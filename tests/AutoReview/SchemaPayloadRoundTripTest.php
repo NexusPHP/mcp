@@ -27,7 +27,7 @@ use PHPUnit\Framework\Attributes\Group;
  *
  * The registry auto-discovers every concrete `Arrayable` outside the
  * wire-envelope namespaces (those are covered by
- * `JsonRpcEnvelopeRoundTripTest`); adding a new payload class therefore
+ * `JsonRpcEnvelopeRoundTripTest`). Adding a new payload class therefore
  * forces a fixture or the auto-review build fails.
  *
  * Variant convention is two files per class: `all-props.json` (every optional

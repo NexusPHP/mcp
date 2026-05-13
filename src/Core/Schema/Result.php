@@ -15,7 +15,7 @@ namespace Nexus\Mcp\Core\Schema;
 
 /**
  * Base for the `result` payload carried by a JSON-RPC success response.
- * Concrete subclasses define the method-specific fields; this base only
+ * Concrete subclasses define the method-specific fields. This base only
  * threads the typed `_meta`.
  *
  * @implements Arrayable<array<string, mixed>>

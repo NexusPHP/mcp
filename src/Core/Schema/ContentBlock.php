@@ -15,9 +15,7 @@ namespace Nexus\Mcp\Core\Schema;
 
 /**
  * Marker for a content block that can be embedded in a prompt message or tool
- * call result. The spec union members are `TextContent`, `ImageContent`,
- * `AudioContent`, `ResourceLink`, and `EmbeddedResource`; each carries its own
- * `type` discriminator.
+ * call result. Each variant carries its own `type` discriminator.
  *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#contentblock
  */

@@ -21,12 +21,14 @@ use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcMessage;
 /**
  * Bidirectional JSON-RPC envelope duplex between this SDK and a connected peer.
  *
- * Listeners fire in registration order; throws abort the chain; mid-dispatch disposes apply on the next emit.
+ * - Listeners fire in registration order.
+ * - A throw aborts the chain.
+ * - A dispose mid-dispatch applies on the next emit.
  */
 interface TransportInterface
 {
     /**
-     * Begins consuming inbound envelopes from the peer; returns immediately.
+     * Begins consuming inbound envelopes from the peer. Returns immediately.
      *
      * @throws TransportAlreadyStartedException
      * @throws TransportAlreadyClosedException
