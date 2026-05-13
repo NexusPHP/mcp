@@ -585,7 +585,7 @@ final class StdioServerTransportTest extends TestCase
         ];
 
         yield 'error response with no id' => [
-            new JsonRpcErrorResponse(null, new ParseError('unparseable')),
+            new JsonRpcErrorResponse(null, new ParseError('unparsable')),
             'Stdio transport failed to send error response with no correlatable ID. Closing.',
             [],
         ];
@@ -741,7 +741,7 @@ final class StdioServerTransportTest extends TestCase
         ];
 
         yield 'error response with no id' => [
-            new JsonRpcErrorResponse(null, new ParseError('unparseable')),
+            new JsonRpcErrorResponse(null, new ParseError('unparsable')),
             'Stdio transport sent error response with no correlatable ID.',
             [],
         ];

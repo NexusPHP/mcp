@@ -264,17 +264,13 @@ Based on [SEP-1730: SDKs Tiering System](https://github.com/modelcontextprotocol
 - **Conformance Test Framework**: https://github.com/modelcontextprotocol/conformance
 - **SDK Integration Guide**: https://github.com/modelcontextprotocol/conformance/blob/main/SDK_INTEGRATION.md
 - **Tiering Assessment Tool**: https://github.com/modelcontextprotocol/conformance/blob/main/.claude/skills/mcp-sdk-tier-audit/README.md
-- **MCP Spec (2025-11-25)**: https://spec.modelcontextprotocol.io/
+- **MCP Spec (2025-11-25)**: https://modelcontextprotocol.io/specification/2025-11-25
 
 ### General Notes
 
-_________________________
-_________________________
-_________________________
-
 ---
 
-**Progress Summary**
+### Progress Summary
 
 | Tier | Items Complete | Total Items | Status |
 |------|---|---|---|

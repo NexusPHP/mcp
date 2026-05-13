@@ -1,11 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(composer phpstan:check *)",
-      "Bash(composer mutation:check *)",
-      "Bash(composer mutation:filter *)",
       "Bash(composer cs:check *)",
       "Bash(composer cs:fix *)",
+      "Bash(composer lint:docs *)",
+      "Bash(composer mutation:check *)",
+      "Bash(composer mutation:filter *)",
+      "Bash(composer phpstan:check *)",
       "Bash(composer test:all *)",
       "Bash(composer test:auto-review *)",
       "Bash(composer test:client *)",

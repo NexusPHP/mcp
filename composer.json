@@ -63,13 +63,28 @@
     },
     "scripts": {
         "post-update-cmd": [
-            "Nexus\\Mcp\\Tools\\ComposerScripts::postUpdate"
+            "Nexus\\Mcp\\Tools\\ComposerScripts::postUpdate",
+            "Nexus\\Mcp\\Tools\\ComposerScripts::installDocLinters"
         ],
         "post-autoload-dump": [
             "@composer update --working-dir=tools"
         ],
         "cs:check": "tools/vendor/bin/php-cs-fixer check --verbose --diff",
         "cs:fix": "tools/vendor/bin/php-cs-fixer fix --verbose --diff",
+        "lint:docs": [
+            "@lint:typos",
+            "@lint:markdown",
+            "@lint:links"
+        ],
+        "lint:fix": [
+            "@lint:typos:fix",
+            "@lint:markdown:fix"
+        ],
+        "lint:links": "lychee --config lychee.toml '**/*.md'",
+        "lint:markdown": "markdownlint-cli2",
+        "lint:markdown:fix": "markdownlint-cli2 --fix",
+        "lint:typos": "typos && echo 'No typos found.'",
+        "lint:typos:fix": "typos --write-changes",
         "mutation:check": [
             "Composer\\Config::disableProcessTimeout",
             "tools/vendor/bin/infection --with-uncovered --static-analysis-tool=phpstan"
@@ -85,6 +100,7 @@
         "test:all": [
             "@cs:check",
             "@phpstan:check",
+            "@lint:docs",
             "@test:auto-review",
             "@test:stan",
             "@test:unit",
@@ -99,6 +115,7 @@
         "test:with-untracked": [
             "@cs:check",
             "@phpstan:check",
+            "@lint:docs",
             "@test:auto-review",
             "@test:stan",
             "@test:unit",
@@ -108,6 +125,13 @@
     "scripts-descriptions": {
         "cs:check": "Checks for coding style violations",
         "cs:fix": "Fixes any coding style violations",
+        "lint:docs": "Runs all documentation linters (typos, markdown, links)",
+        "lint:fix": "Runs all auto-fixable doc linters (typos, markdown)",
+        "lint:links": "Runs lychee link check across markdown files",
+        "lint:markdown": "Runs markdownlint-cli2 across markdown files",
+        "lint:markdown:fix": "Auto-fixes markdown violations with markdownlint-cli2",
+        "lint:typos": "Runs typos spell-check across the repository",
+        "lint:typos:fix": "Auto-fixes typos in place",
         "mutation:check": "Runs Infection on whole codebase",
         "mutation:filter": "Runs Infection on added and modified files only",
         "phpstan:baseline": "Runs PHPStan and dumps resulting errors to baseline",

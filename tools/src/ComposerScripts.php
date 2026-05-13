@@ -26,6 +26,16 @@ final class ComposerScripts
     private const string INFECTION_BIN = self::PROJECT_ROOT.'/tools/vendor/bin/infection';
     private const array MUTATION_SOURCE_DIRECTORIES = ['src', 'tests'];
 
+    /**
+     * Native binaries used by the doc-lint composer scripts, mapped to their
+     * Homebrew formula names.
+     */
+    private const array DOC_LINTER_BINARIES = [
+        'typos' => 'typos-cli',
+        'markdownlint-cli2' => 'markdownlint-cli2',
+        'lychee' => 'lychee',
+    ];
+
     public static function postUpdate(): void
     {
         $settingsContents = @file_get_contents(self::VSCODE_SETTINGS_JSON);
@@ -49,6 +59,58 @@ final class ComposerScripts
         }
 
         self::updateVscodeIntelephenseEnvironmentIncludePaths($settingsContents);
+    }
+
+    /**
+     * Installs the native binaries used by the `lint:*` composer scripts when
+     * missing. Mirrors the bootstrap pattern that `tools/composer.json` provides
+     * for PHP dev tools.
+     */
+    public static function installDocLinters(): void
+    {
+        $missing = [];
+
+        foreach (self::DOC_LINTER_BINARIES as $binary => $formula) {
+            if (! self::commandExists($binary)) {
+                $missing[$formula] = true;
+            }
+        }
+
+        if ([] === $missing) {
+            return;
+        }
+
+        $formulas = array_keys($missing);
+
+        if ('Darwin' !== \PHP_OS_FAMILY) {
+            fwrite(\STDERR, \sprintf(
+                "Doc linters not installed: %s. Install them with your platform's package manager.\n",
+                implode(', ', $formulas),
+            ));
+
+            return;
+        }
+
+        if (! self::commandExists('brew')) {
+            fwrite(\STDERR, \sprintf(
+                "Homebrew not found. Install doc linters manually: %s.\n",
+                implode(', ', $formulas),
+            ));
+
+            return;
+        }
+
+        $proc = proc_open(['brew', 'install', ...$formulas], [0 => \STDIN, 1 => \STDOUT, 2 => \STDERR], $pipes);
+
+        if (false === $proc) {
+            self::fail('Failed to launch brew.');
+        }
+
+        $exitCode = proc_close($proc);
+
+        if (0 !== $exitCode) {
+            self::fail(\sprintf('brew install failed for: %s', implode(', ', $formulas)));
+        }
     }
 
     /**
@@ -121,6 +183,13 @@ final class ComposerScripts
     private static function runGitCommand(string ...$args): void
     {
         passthru(implode(' ', array_map(escapeshellarg(...), ['git', ...$args])));
+    }
+
+    private static function commandExists(string $command): bool
+    {
+        $output = shell_exec(\sprintf('command -v %s 2>/dev/null', escapeshellarg($command)));
+
+        return \is_string($output) && '' !== trim($output);
     }
 
     private static function recursiveDelete(string $directory): void

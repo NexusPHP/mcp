@@ -1,0 +1,16 @@
+globs:
+  - '**/*.md'
+
+ignores:
+  - '.claude/**'
+  - 'build/**'
+  - 'tools/vendor/**'
+  - 'vendor/**'
+
+config:
+  default: true
+  MD013: false
+  MD024:
+    siblings_only: true
+  MD034: false
+  MD060: false

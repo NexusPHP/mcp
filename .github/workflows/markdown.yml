@@ -1,0 +1,58 @@
+name: Markdown Lint and Link Check
+
+on:
+  push:
+    branches:
+      - 1.x
+    paths:
+      - '**/*.md'
+      - .github/workflows/markdown.yml
+      - .markdownlint-cli2.yaml
+      - lychee.toml
+  pull_request:
+    branches:
+      - 1.x
+    paths:
+      - '**/*.md'
+      - .github/workflows/markdown.yml
+      - .markdownlint-cli2.yaml
+      - lychee.toml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  markdownlint:
+    name: Lint markdown
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Run markdownlint
+        uses: DavidAnson/markdownlint-cli2-action@ded1f9488f68a970bc66ea5619e13e9b52e601cd # v23.2.0
+
+  link-check:
+    name: Check links
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Run lychee link check
+        uses: lycheeverse/lychee-action@8646ba30535128ac92d33dfc9133794bfdd9b411 # v2.8.0
+        with:
+          args: --config lychee.toml '**/*.md'
+          fail: true

@@ -5,19 +5,19 @@ This file primes Claude sessions for the Nexus MCP SDK repo. For the general pro
 ## Before making changes
 
 - Target PHP 8.4 minimum. Use typed class constants (`public const string FOO = 'x';`), readonly classes, constructor property promotion, `#[\Override]`, asymmetric visibility (`public private(set)`), property hooks, and the `#[\Deprecated]` attribute where they fit.
-- The SDK tracks **MCP spec version 2025-11-25 and later**. Do not add back-compat for earlier revisions (e.g. 2025-03-26 batching). The live schema sits at [latest-schema.json](latest-schema.json); the class-to-schema map is in [sorted-schema.json](sorted-schema.json). If either file is missing, run `composer schema:generate` to regenerate them.
+- The SDK tracks **MCP spec version 2025-11-25 and later**. Do not add back-compat for earlier revisions (e.g. 2025-03-26 batching). The live schema sits at `latest-schema.json`; the class-to-schema map is in `sorted-schema.json`. If either file is missing, run `composer schema:generate` to regenerate them.
 - `Core/Schema/` is types-only; behavior (parsers, codecs, registries) lives in sibling namespaces under `Core/`, not under `Core/Schema/`. Prefer editing existing files over introducing new layers.
 
 ## Spec compliance
 
-For spec-driven work, do **NOT** introduce types, params, or response shapes that are not in the official spec. Ask before adding extension types. When in doubt, cite the section of [latest-schema.json](latest-schema.json) (or the upstream [modelcontextprotocol/modelcontextprotocol](https://github.com/modelcontextprotocol/modelcontextprotocol) schema.ts) that justifies the type. PHP-only scaffolding classes (parsers, guards, exceptions) are allowed, but any class meant to represent a JSON-RPC envelope or schema payload must correspond to a spec def.
+For spec-driven work, do **NOT** introduce types, params, or response shapes that are not in the official spec. Ask before adding extension types. When in doubt, cite the section of `latest-schema.json` (or the upstream [modelcontextprotocol/modelcontextprotocol](https://github.com/modelcontextprotocol/modelcontextprotocol) schema.ts) that justifies the type. PHP-only scaffolding classes (parsers, guards, exceptions) are allowed, but any class meant to represent a JSON-RPC envelope or schema payload must correspond to a spec def.
 
 ## Workflow gates
 
 Every change must survive these checks before being considered done:
 
 ```bash
-composer test:all              # cs + phpstan + auto-review + static-analysis + unit + full-tree mutation
+composer test:all              # cs + phpstan + doc lints + auto-review + static-analysis + unit + full-tree mutation
 # OR (mid-development, with unstaged/untracked changes):
 composer test:with-untracked   # same suite, but mutation step is diff-based via `mutation:filter`
 ```
@@ -31,7 +31,41 @@ Mutation testing has two modes:
 
 Both enforce **100% MSI, 100% Code Coverage, 100% Covered Code MSI** per [infection.json5](infection.json5). Escaped mutants fail the build; do not add ignores, improve the tests instead.
 
-## Conventions worth internalizing
+## Doc linters
+
+Three linters bundled into `composer test:all` and `test:with-untracked`, with different scopes:
+
+- **typos** scans the whole repo (PHP code, configs, docs). Catches misspellings in identifiers, strings, comments, and markdown alike.
+- **markdownlint** and **lychee** only inspect `.md` files (excluding `.claude/`, `build/`, `tools/vendor/`, `vendor/` per [.markdownlint-cli2.yaml](.markdownlint-cli2.yaml) and [lychee.toml](lychee.toml)).
+
+Run individually:
+
+```bash
+composer lint:typos      # spell-check (crate-ci/typos), whole repo
+composer lint:markdown   # markdownlint-cli2; reads .markdownlint-cli2.yaml
+composer lint:links      # lychee link check; reads lychee.toml
+composer lint:docs       # all three
+```
+
+The native binaries (`typos`, `markdownlint-cli2`, `lychee`) auto-install via Homebrew after `composer update` on macOS. CI runs the same checks in [.github/workflows/typos.yml](.github/workflows/typos.yml) and [.github/workflows/markdown.yml](.github/workflows/markdown.yml).
+
+Tuning false positives:
+
+- **typos**: add project-specific identifiers under `[default.extend-words]` in a repo-root `_typos.toml`.
+- **markdownlint**: relax rules under `config:` in [.markdownlint-cli2.yaml](.markdownlint-cli2.yaml). MD013 (line length), MD034 (bare URLs), MD060 (table style) are already off; MD024 narrowed to siblings-only.
+- **lychee**: extend `exclude_path` or add an `exclude` list (URL regexes) in [lychee.toml](lychee.toml).
+
+For auto-fixing, use the dedicated composer scripts (lychee has no autofixer):
+
+```bash
+composer lint:typos:fix       # typos --write-changes
+composer lint:markdown:fix    # markdownlint-cli2 --fix
+composer lint:fix             # both
+```
+
+Review the diff before staging; `typos --write-changes` rewrites identifiers in source files too, not just docs.
+
+## Conventions worth internalising
 
 ### Namespaces and layout
 
@@ -111,7 +145,7 @@ These all bit me at least once; note them up-front so you don't relearn:
 
 ## Mutation testing tips
 
-When `mutation:check` reports surviving mutants, categorize before writing tests:
+When `mutation:check` reports surviving mutants, categorise before writing tests:
 
 - **Real gaps**: a code path has no covering test. Add one.
 - **Equivalent mutants**: two code forms that truly do the same thing. Refactor the source to eliminate the duplication (e.g. an explicit match arm that is identical to `default`). Do not add a test that asserts equivalence.

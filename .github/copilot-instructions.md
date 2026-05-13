@@ -73,11 +73,12 @@ No server or client logic belongs here; only types, interfaces, and JSON-RPC pri
 It can also provide abstract classes or traits for shared logic, but it should not have any concrete implementations of protocol handling.
 All protocol envelope contracts (request/response/notification payload schemas) must be defined in `Core` even if one side typically originates them.
 
-MCP schema types map directly to the [MCP specification](https://spec.modelcontextprotocol.io). When the spec defines an object, it becomes a readonly PHP class. Enums in the spec map to PHP backed enums.
+MCP schema types map directly to the [MCP specification](https://modelcontextprotocol.io/specification). When the spec defines an object, it becomes a readonly PHP class. Enums in the spec map to PHP backed enums.
 
 ### Server Package
 
 The `Server/` subdirectory under `Nexus\Mcp\Server\` depends on `Core`. It defines:
+
 - Handler interfaces that consumers implement (e.g., `ToolHandlerInterface`)
 - A `Server` class that connects transports to protocol handling
 - Transport implementations (stdio, Streamable HTTP)
