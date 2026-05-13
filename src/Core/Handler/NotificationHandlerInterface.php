@@ -18,12 +18,17 @@ use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 /**
  * Handles a single inbound JSON-RPC notification.
  *
- * @template TNotification of JsonRpcNotification
+ * `TMethod` binds the literal returned by `static::method()` on the matching
+ * notification class so the registry can store handlers heterogeneously. It
+ * does not narrow `handle()`'s parameter, which stays at the wide envelope
+ * type.
+ *
+ * @template-covariant TMethod of non-empty-string
  */
 interface NotificationHandlerInterface
 {
     /**
-     * @param TNotification $notification
+     * @param JsonRpcNotification<non-empty-string> $notification
      */
     public function handle(JsonRpcNotification $notification): void;
 }

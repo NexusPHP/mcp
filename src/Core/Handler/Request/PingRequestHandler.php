@@ -17,14 +17,13 @@ use Nexus\Mcp\Core\Handler\AbstractContext;
 use Nexus\Mcp\Core\Handler\RequestHandlerInterface;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\MetaObject;
-use Nexus\Mcp\Core\Schema\Request\PingRequest;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 
 /**
  * Acknowledges a `ping` with an empty result. Bidirectional per spec: both
  * server and client register this handler.
  *
- * @implements RequestHandlerInterface<PingRequest, EmptyResult, AbstractContext>
+ * @implements RequestHandlerInterface<'ping', EmptyResult, AbstractContext>
  */
 final readonly class PingRequestHandler implements RequestHandlerInterface
 {
