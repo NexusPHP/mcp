@@ -1,0 +1,37 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * This file is part of the Nexus MCP SDK package.
+ *
+ * (c) 2026 John Paul E. Balandan, CPA <paulbalandan@gmail.com>
+ *
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
+ */
+
+namespace Nexus\Mcp\Core\Handler;
+
+use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
+use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
+use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
+use Nexus\Mcp\Core\Schema\Result;
+
+/**
+ * Outbound message pump used by {@see AbstractContext} helpers.
+ */
+interface SenderInterface
+{
+    /**
+     * @param JsonRpcNotification<non-empty-string> $notification
+     */
+    public function sendNotification(JsonRpcNotification $notification): void;
+
+    /**
+     * @param JsonRpcRequest<non-empty-string> $request
+     *
+     * @return JsonRpcResultResponse<Result>
+     */
+    public function sendRequest(JsonRpcRequest $request): JsonRpcResultResponse;
+}
