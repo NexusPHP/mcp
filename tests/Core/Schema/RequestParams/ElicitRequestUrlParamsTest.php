@@ -166,8 +166,8 @@ final class ElicitRequestUrlParamsTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -178,46 +178,46 @@ final class ElicitRequestUrlParamsTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing elicitationId' => [
             ['message' => 'm', 'mode' => 'url', 'url' => 'https://example.com'],
-            'ElicitRequestUrlParams wire data missing "elicitationId".',
+            'ElicitRequestUrlParams data missing "elicitationId".',
         ];
 
         yield 'elicitationId not a string' => [
             ['elicitationId' => 1, 'message' => 'm', 'mode' => 'url', 'url' => 'https://example.com'],
-            'ElicitRequestUrlParams wire "elicitationId" must be a string, int given.',
+            'ElicitRequestUrlParams "elicitationId" must be a string, int given.',
         ];
 
         yield 'missing message' => [
             ['elicitationId' => 'id', 'mode' => 'url', 'url' => 'https://example.com'],
-            'ElicitRequestUrlParams wire data missing "message".',
+            'ElicitRequestUrlParams data missing "message".',
         ];
 
         yield 'message not a string' => [
             ['elicitationId' => 'id', 'message' => 1, 'mode' => 'url', 'url' => 'https://example.com'],
-            'ElicitRequestUrlParams wire "message" must be a string, int given.',
+            'ElicitRequestUrlParams "message" must be a string, int given.',
         ];
 
         yield 'missing mode' => [
             ['elicitationId' => 'id', 'message' => 'm', 'url' => 'https://example.com'],
-            'ElicitRequestUrlParams wire data missing "mode".',
+            'ElicitRequestUrlParams data missing "mode".',
         ];
 
         yield 'mode not a string' => [
             ['elicitationId' => 'id', 'message' => 'm', 'mode' => 1, 'url' => 'https://example.com'],
-            'ElicitRequestUrlParams wire "mode" must be a string, int given.',
+            'ElicitRequestUrlParams "mode" must be a string, int given.',
         ];
 
         yield 'missing url' => [
             ['elicitationId' => 'id', 'message' => 'm', 'mode' => 'url'],
-            'ElicitRequestUrlParams wire data missing "url".',
+            'ElicitRequestUrlParams data missing "url".',
         ];
 
         yield 'url not a string' => [
             ['elicitationId' => 'id', 'message' => 'm', 'mode' => 'url', 'url' => 1],
-            'ElicitRequestUrlParams wire "url" must be a string, int given.',
+            'ElicitRequestUrlParams "url" must be a string, int given.',
         ];
     }
 }

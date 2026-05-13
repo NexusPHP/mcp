@@ -107,7 +107,7 @@ final class RootsListChangedNotificationTest extends TestCase
     public function testFromArrayRejectsNonObjectParams(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('RootsListChangedNotification wire "params" must be an object, string given.');
+        $this->expectExceptionMessage('RootsListChangedNotification "params" must be an object, string given.');
 
         RootsListChangedNotification::fromArray([
             'jsonrpc' => '2.0',

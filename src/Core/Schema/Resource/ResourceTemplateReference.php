@@ -49,13 +49,13 @@ final readonly class ResourceTemplateReference implements Arrayable
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('type', 'ResourceTemplateReference wire data missing "type".');
+        Assert::that($data)->hasOffset('type', 'ResourceTemplateReference data missing "type".');
         $type = $data['type'];
-        Assert::that($type)->isIdentical(self::TYPE, \sprintf('ResourceTemplateReference wire "type" must be "%s", {value} given.', self::TYPE));
+        Assert::that($type)->isIdentical(self::TYPE, \sprintf('ResourceTemplateReference "type" must be "%s", {value} given.', self::TYPE));
 
-        Assert::that($data)->hasOffset('uri', 'ResourceTemplateReference wire data missing "uri".');
+        Assert::that($data)->hasOffset('uri', 'ResourceTemplateReference data missing "uri".');
         $uri = $data['uri'];
-        Assert::that($uri)->isString('ResourceTemplateReference wire "uri" must be a string, {type} given.');
+        Assert::that($uri)->isString('ResourceTemplateReference "uri" must be a string, {type} given.');
 
         return new self($uri);
     }

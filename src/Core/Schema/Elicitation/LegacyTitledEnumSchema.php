@@ -92,35 +92,35 @@ final readonly class LegacyTitledEnumSchema implements Arrayable, EnumSchema
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('type', 'LegacyTitledEnumSchema wire data missing "type".');
+        Assert::that($data)->hasOffset('type', 'LegacyTitledEnumSchema data missing "type".');
         $type = $data['type'];
-        Assert::that($type)->isIdentical(self::TYPE, \sprintf('LegacyTitledEnumSchema wire "type" must be "%s", {value} given.', self::TYPE));
+        Assert::that($type)->isIdentical(self::TYPE, \sprintf('LegacyTitledEnumSchema "type" must be "%s", {value} given.', self::TYPE));
 
-        Assert::that($data)->hasOffset('enum', 'LegacyTitledEnumSchema wire data missing "enum".');
+        Assert::that($data)->hasOffset('enum', 'LegacyTitledEnumSchema data missing "enum".');
         Assert::that($data['enum'])
-            ->isList('LegacyTitledEnumSchema wire "enum" must be a list, got non-list array.')
-            ->values()->isString('LegacyTitledEnumSchema wire "enum" entry must be a string, {type} given.')
+            ->isList('LegacyTitledEnumSchema "enum" must be a list, got non-list array.')
+            ->values()->isString('LegacyTitledEnumSchema "enum" entry must be a string, {type} given.')
         ;
         $enum = $data['enum'];
 
         $title = $data['title'] ?? null;
-        Assert::that($title)->nullOr()->isString('LegacyTitledEnumSchema wire "title" must be a string or null, {type} given.');
+        Assert::that($title)->nullOr()->isString('LegacyTitledEnumSchema "title" must be a string or null, {type} given.');
 
         $description = $data['description'] ?? null;
-        Assert::that($description)->nullOr()->isString('LegacyTitledEnumSchema wire "description" must be a string or null, {type} given.');
+        Assert::that($description)->nullOr()->isString('LegacyTitledEnumSchema "description" must be a string or null, {type} given.');
 
         $enumNames = null;
 
         if (isset($data['enumNames'])) {
             Assert::that($data['enumNames'])
-                ->isList('LegacyTitledEnumSchema wire "enumNames" must be a list, got non-list array.')
-                ->values()->isString('LegacyTitledEnumSchema wire enumNames entry must be a string, {type} given.')
+                ->isList('LegacyTitledEnumSchema "enumNames" must be a list, got non-list array.')
+                ->values()->isString('LegacyTitledEnumSchema enumNames entry must be a string, {type} given.')
             ;
             $enumNames = $data['enumNames'];
         }
 
         $default = $data['default'] ?? null;
-        Assert::that($default)->nullOr()->isString('LegacyTitledEnumSchema wire "default" must be a string or null, {type} given.');
+        Assert::that($default)->nullOr()->isString('LegacyTitledEnumSchema "default" must be a string or null, {type} given.');
 
         return new self($enum, $title, $description, $enumNames, $default);
     }

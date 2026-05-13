@@ -73,8 +73,8 @@ final class SetLevelRequestTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -85,33 +85,33 @@ final class SetLevelRequestTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         $validParams = ['level' => 'info'];
 
         yield 'missing id' => [
             ['jsonrpc' => '2.0', 'method' => 'logging/setLevel', 'params' => $validParams],
-            'SetLevelRequest wire data missing "id".',
+            'SetLevelRequest data missing "id".',
         ];
 
         yield 'id not int or string' => [
             ['jsonrpc' => '2.0', 'id' => [], 'method' => 'logging/setLevel', 'params' => $validParams],
-            'SetLevelRequest wire "id" must be int or string, array given.',
+            'SetLevelRequest "id" must be int or string, array given.',
         ];
 
         yield 'missing params' => [
             ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'logging/setLevel'],
-            'SetLevelRequest wire data missing "params".',
+            'SetLevelRequest data missing "params".',
         ];
 
         yield 'params not an object' => [
             ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'logging/setLevel', 'params' => 'bad'],
-            'SetLevelRequest wire "params" must be an object, string given.',
+            'SetLevelRequest "params" must be an object, string given.',
         ];
 
         yield 'params list-keyed' => [
             ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'logging/setLevel', 'params' => ['x']],
-            'SetLevelRequest wire "params" must be a string-keyed object.',
+            'SetLevelRequest "params" must be a string-keyed object.',
         ];
     }
 }

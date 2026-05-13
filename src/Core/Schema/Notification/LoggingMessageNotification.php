@@ -41,10 +41,10 @@ final readonly class LoggingMessageNotification extends JsonRpcNotification impl
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('params', 'LoggingMessageNotification wire data missing "params".');
+        Assert::that($data)->hasOffset('params', 'LoggingMessageNotification data missing "params".');
         Assert::that($data['params'])
-            ->isArray('LoggingMessageNotification wire "params" must be an object, {type} given.')
-            ->isMap('LoggingMessageNotification wire "params" must be a string-keyed object.')
+            ->isArray('LoggingMessageNotification "params" must be an object, {type} given.')
+            ->isMap('LoggingMessageNotification "params" must be a string-keyed object.')
         ;
 
         return new self(LoggingMessageNotificationParams::fromArray($data['params']));

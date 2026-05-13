@@ -53,14 +53,14 @@ final readonly class EmbeddedResource implements Arrayable, ContentBlock
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('type', 'EmbeddedResource wire data missing "type".');
+        Assert::that($data)->hasOffset('type', 'EmbeddedResource data missing "type".');
         $type = $data['type'];
-        Assert::that($type)->isIdentical(self::TYPE, \sprintf('EmbeddedResource wire "type" must be "%s", {value} given.', self::TYPE));
+        Assert::that($type)->isIdentical(self::TYPE, \sprintf('EmbeddedResource "type" must be "%s", {value} given.', self::TYPE));
 
-        Assert::that($data)->hasOffset('resource', 'EmbeddedResource wire data missing "resource".');
+        Assert::that($data)->hasOffset('resource', 'EmbeddedResource data missing "resource".');
         Assert::that($data['resource'])
-            ->isArray('EmbeddedResource wire "resource" must be an object, {type} given.')
-            ->isMap('EmbeddedResource wire "resource" must be a string-keyed object.')
+            ->isArray('EmbeddedResource "resource" must be an object, {type} given.')
+            ->isMap('EmbeddedResource "resource" must be a string-keyed object.')
         ;
         $resource = ResourceContents::from($data['resource']);
 
@@ -68,13 +68,13 @@ final readonly class EmbeddedResource implements Arrayable, ContentBlock
 
         if (\array_key_exists('annotations', $data)) {
             Assert::that($data['annotations'])
-                ->isArray('EmbeddedResource wire "annotations" must be an object, {type} given.')
-                ->isMap('EmbeddedResource wire "annotations" must be a string-keyed object.')
+                ->isArray('EmbeddedResource "annotations" must be an object, {type} given.')
+                ->isMap('EmbeddedResource "annotations" must be a string-keyed object.')
             ;
             $annotations = Annotations::fromArray($data['annotations']);
         }
 
-        $meta = MetaObject::parseFromWire($data, 'EmbeddedResource');
+        $meta = MetaObject::parseFrom($data, 'EmbeddedResource');
 
         return new self($resource, $annotations, $meta);
     }

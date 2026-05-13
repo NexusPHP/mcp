@@ -193,8 +193,8 @@ final class ListResourceTemplatesResultTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -205,31 +205,31 @@ final class ListResourceTemplatesResultTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing resourceTemplates' => [
             [],
-            'ListResourceTemplatesResult wire data missing "resourceTemplates".',
+            'ListResourceTemplatesResult data missing "resourceTemplates".',
         ];
 
         yield 'resourceTemplates not an array' => [
             ['resourceTemplates' => 'oops'],
-            'ListResourceTemplatesResult wire "resourceTemplates" must be a list, string given.',
+            'ListResourceTemplatesResult "resourceTemplates" must be a list, string given.',
         ];
 
         yield 'entry not an object' => [
             ['resourceTemplates' => ['oops']],
-            'ListResourceTemplatesResult wire resourceTemplate entry must be an object, string given.',
+            'ListResourceTemplatesResult resourceTemplate entry must be an object, string given.',
         ];
 
         yield 'entry list-keyed' => [
             ['resourceTemplates' => [['x']]],
-            'ListResourceTemplatesResult wire resourceTemplate entry must be a string-keyed object.',
+            'ListResourceTemplatesResult resourceTemplate entry must be a string-keyed object.',
         ];
 
         yield 'nextCursor not a string' => [
             ['resourceTemplates' => [], 'nextCursor' => 1],
-            'ListResourceTemplatesResult wire "nextCursor" must be a string, int given.',
+            'ListResourceTemplatesResult "nextCursor" must be a string, int given.',
         ];
 
         yield '_meta not an object' => [

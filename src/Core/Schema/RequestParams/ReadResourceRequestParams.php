@@ -29,11 +29,11 @@ final readonly class ReadResourceRequestParams extends ResourceRequestParams
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('uri', 'ReadResourceRequestParams wire data missing "uri".');
+        Assert::that($data)->hasOffset('uri', 'ReadResourceRequestParams data missing "uri".');
         $uri = $data['uri'];
-        Assert::that($uri)->isString('ReadResourceRequestParams wire "uri" must be a string, {type} given.');
+        Assert::that($uri)->isString('ReadResourceRequestParams "uri" must be a string, {type} given.');
 
-        $meta = RequestMetaObject::parseFromWire($data, 'Request params');
+        $meta = RequestMetaObject::parseFrom($data, 'Request params');
 
         return new self($uri, $meta);
     }

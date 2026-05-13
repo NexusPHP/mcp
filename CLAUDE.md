@@ -10,7 +10,7 @@ This file primes Claude sessions for the Nexus MCP SDK repo. For the general pro
 
 ## Spec compliance
 
-For spec-driven work, do **NOT** introduce types, params, or response shapes that are not in the official spec. Ask before adding extension types. When in doubt, cite the section of [latest-schema.json](latest-schema.json) (or the upstream [modelcontextprotocol/modelcontextprotocol](https://github.com/modelcontextprotocol/modelcontextprotocol) schema.ts) that justifies the type. PHP-only scaffolding classes (parsers, guards, exceptions) are allowed, but any class meant to represent a wire-level shape must correspond to a spec def.
+For spec-driven work, do **NOT** introduce types, params, or response shapes that are not in the official spec. Ask before adding extension types. When in doubt, cite the section of [latest-schema.json](latest-schema.json) (or the upstream [modelcontextprotocol/modelcontextprotocol](https://github.com/modelcontextprotocol/modelcontextprotocol) schema.ts) that justifies the type. PHP-only scaffolding classes (parsers, guards, exceptions) are allowed, but any class meant to represent a JSON-RPC envelope or schema payload must correspond to a spec def.
 
 ## Workflow gates
 
@@ -37,7 +37,7 @@ Both enforce **100% MSI, 100% Code Coverage, 100% Covered Code MSI** per [infect
 
 - `Nexus\Mcp\Core\Schema\*`: protocol types only (value objects, enums, interfaces). No behavior.
 - Abstract bases sit at the root and concrete subclasses live in same-named subfolders: `Schema/Result.php` + `Schema/Result/EmptyResult.php`, `Schema/Request.php` + `Schema/Request/PingRequest.php`, `Schema/Notification.php` + `Schema/Notification/InitializedNotification.php`, `Schema/RequestParams.php` + `Schema/RequestParams/EmptyRequestParams.php`, `Schema/NotificationParams.php` + `Schema/NotificationParams/EmptyNotificationParams.php`.
-- `Nexus\Mcp\Core\JsonRpc\*`: wire-level behavior (parser, guards). The wire-parsing guard lives here, not under `Schema\`, even though schema classes consume it.
+- `Nexus\Mcp\Core\JsonRpc\*`: JSON-RPC envelope behavior (parser, guards). The envelope-parsing guard lives here, not under `Schema\`, even though schema classes consume it.
 - `Nexus\Mcp\Core\Exception\*`: every SDK exception implements the `McpExceptionInterface` marker so consumers can `catch (McpExceptionInterface $e)`.
 
 ### PHPDoc style
@@ -63,12 +63,12 @@ The spec defines methods as named JSON-RPC operations. Each gets a concrete requ
 
 - Each concrete request/notification overrides `static method(): string` to return the JSON-RPC method name as a literal. That accessor is the single source of truth: registry, parser, error messages, and tests all read it. Do not introduce a `JSONRPC_METHOD` constant; the method name is polymorphic per-subclass behavior and belongs in a method, not a constant.
 - Pin the literal at the type level. Bases declare `@template-covariant TMethod of non-empty-string`; concrete subclasses must bind it via `@extends Base<'method-name'>`. Without that binding, `method()` widens to `non-empty-string` and the type-inference tests under `tests/AutoReview/data/` will fail.
-- When adding a new spec-defined request/notification class, wire it into the method registry under `Core/JsonRpc/` so callers get it automatically. User-supplied maps passed to the parser merge over the defaults per-key; callers need only specify overrides or non-default method classes.
+- When adding a new spec-defined request/notification class, register it in the method registry under `Core/JsonRpc/` so callers get it automatically. User-supplied maps passed to the parser merge over the defaults per-key; callers need only specify overrides or non-default method classes.
 - For methods with no typed params, reuse the shared `EmptyRequestParams`/`EmptyNotificationParams` (under `Core/Schema/RequestParams/` and `Core/Schema/NotificationParams/`). Only add a new subclass of the abstract `RequestParams`/`NotificationParams` base when the method carries typed fields beyond `_meta`. Same rule for `Result` subclasses: use `EmptyResult` unless the method carries a typed payload.
 
 ### `Arrayable` and the success-response exception
 
-Schema classes implement `Arrayable` (`fromArray()` / `toArray()` / `jsonSerialize()`) for round-trip wire construction. The one documented exception is the JSON-RPC success-response wrapper: a success-response payload has no method-name or discriminator on the wire, so the parser requires caller-supplied context (the expected `Result` subclass) to decode it. That wrapper therefore has no `fromArray()` and is constructed only via the parser's success-response entry point.
+Schema classes implement `Arrayable` (`fromArray()` / `toArray()` / `jsonSerialize()`) for round-trip JSON-RPC envelope construction. The one documented exception is the JSON-RPC success-response wrapper: a success-response payload has no method-name or discriminator in its envelope, so the parser requires caller-supplied context (the expected `Result` subclass) to decode it. That wrapper therefore has no `fromArray()` and is constructed only via the parser's success-response entry point.
 
 When the spec defines two structurally similar shapes that differ only in optional extra fields, model them as peer final classes, not parent/child. Inheritance implies LSP substitutability that doesn't hold when the schemas diverge.
 
@@ -77,7 +77,7 @@ When the spec defines two structurally similar shapes that differ only in option
 [`nexusphp/assert`](https://github.com/NexusPHP/assert) is a production dependency. Reach for it in constructors and `fromArray()` methods instead of inline `is_int`/`is_string`/`sprintf` + `new \InvalidArgumentException(...)`. Its PHPStan type-specifying extension is auto-registered via `phpstan/extension-installer`, so the narrowing lands without extra config.
 
 - `Assert::ExpectationFailedException` extends `\InvalidArgumentException`, so existing `catch (\InvalidArgumentException $e)` wrap-and-rethrow patterns keep working.
-- Messages are templates interpolated via `strtr`: `{value}` (value-exported) and `{type}` (produced by `get_debug_type()`). Example: `'Wire "method" must be a non-empty string, {type} given.'`.
+- Messages are templates interpolated via `strtr`: `{value}` (value-exported) and `{type}` (produced by `get_debug_type()`). Example: `'JSON-RPC envelope "method" must be a non-empty string, {type} given.'`.
 - **String-keyed arrays**: `Assert::that($x)->isArray('… {type} given.')->isMap('… string-keyed object.')`. The two-step chain preserves distinct messages for "not an array" vs. "int-keyed array". A single `isMap` call collapses both into one message.
 - **Must-have keys on a known array**: `Assert::that($data)->hasOffset('key', 'missing message.')`. The bundled `isArray` check is redundant on already-typed input but harmless; preferred over a bare `array_key_exists` when you want the message to live next to the other Assert chains.
 - **Conditional keys** (`if (\array_key_exists('_meta', $data))`): leave as native PHP; Assert has no "optional key" shape.

@@ -103,8 +103,8 @@ final class ResourceUpdatedNotificationParamsTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -115,16 +115,16 @@ final class ResourceUpdatedNotificationParamsTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing uri' => [
             [],
-            'ResourceUpdatedNotificationParams wire data missing "uri".',
+            'ResourceUpdatedNotificationParams data missing "uri".',
         ];
 
         yield 'uri not a string' => [
             ['uri' => 1],
-            'ResourceUpdatedNotificationParams wire "uri" must be a string, int given.',
+            'ResourceUpdatedNotificationParams "uri" must be a string, int given.',
         ];
 
         yield '_meta not an object' => [

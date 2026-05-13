@@ -111,8 +111,8 @@ final class SetLevelRequestParamsTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -123,16 +123,16 @@ final class SetLevelRequestParamsTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing level' => [
             [],
-            'SetLevelRequestParams wire data missing "level".',
+            'SetLevelRequestParams data missing "level".',
         ];
 
         yield 'level not a string' => [
             ['level' => 1],
-            'SetLevelRequestParams wire "level" must be a string, int given.',
+            'SetLevelRequestParams "level" must be a string, int given.',
         ];
 
         yield '_meta not an object' => [

@@ -40,10 +40,10 @@ final readonly class ProgressNotification extends JsonRpcNotification implements
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('params', 'ProgressNotification wire data missing "params".');
+        Assert::that($data)->hasOffset('params', 'ProgressNotification data missing "params".');
         Assert::that($data['params'])
-            ->isArray('ProgressNotification wire "params" must be an object, {type} given.')
-            ->isMap('ProgressNotification wire "params" must be a string-keyed object.')
+            ->isArray('ProgressNotification "params" must be an object, {type} given.')
+            ->isMap('ProgressNotification "params" must be a string-keyed object.')
         ;
 
         return new self(ProgressNotificationParams::fromArray($data['params']));

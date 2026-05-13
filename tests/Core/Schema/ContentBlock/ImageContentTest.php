@@ -129,8 +129,8 @@ final class ImageContentTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -141,46 +141,46 @@ final class ImageContentTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing type' => [
             ['data' => 'aGVsbG8=', 'mimeType' => 'image/png'],
-            'ImageContent wire data missing "type".',
+            'ImageContent data missing "type".',
         ];
 
         yield 'wrong type literal' => [
             ['type' => 'audio', 'data' => 'aGVsbG8=', 'mimeType' => 'image/png'],
-            'ImageContent wire "type" must be "image", \'audio\' given.',
+            'ImageContent "type" must be "image", \'audio\' given.',
         ];
 
         yield 'missing data' => [
             ['type' => 'image', 'mimeType' => 'image/png'],
-            'ImageContent wire data missing "data".',
+            'ImageContent data missing "data".',
         ];
 
         yield 'data not a string' => [
             ['type' => 'image', 'data' => 1, 'mimeType' => 'image/png'],
-            'ImageContent wire "data" must be a string, int given.',
+            'ImageContent "data" must be a string, int given.',
         ];
 
         yield 'missing mimeType' => [
             ['type' => 'image', 'data' => 'aGVsbG8='],
-            'ImageContent wire data missing "mimeType".',
+            'ImageContent data missing "mimeType".',
         ];
 
         yield 'mimeType not a string' => [
             ['type' => 'image', 'data' => 'aGVsbG8=', 'mimeType' => 1],
-            'ImageContent wire "mimeType" must be a string, int given.',
+            'ImageContent "mimeType" must be a string, int given.',
         ];
 
         yield 'annotations not an object' => [
             ['type' => 'image', 'data' => 'aGVsbG8=', 'mimeType' => 'image/png', 'annotations' => 'oops'],
-            'ImageContent wire "annotations" must be an object, string given.',
+            'ImageContent "annotations" must be an object, string given.',
         ];
 
         yield 'annotations list-keyed' => [
             ['type' => 'image', 'data' => 'aGVsbG8=', 'mimeType' => 'image/png', 'annotations' => ['x']],
-            'ImageContent wire "annotations" must be a string-keyed object.',
+            'ImageContent "annotations" must be a string-keyed object.',
         ];
 
         yield '_meta not an object' => [

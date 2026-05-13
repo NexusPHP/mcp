@@ -50,13 +50,13 @@ final readonly class EnumOption implements Arrayable
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('const', 'EnumOption wire data missing "const".');
+        Assert::that($data)->hasOffset('const', 'EnumOption data missing "const".');
         $const = $data['const'];
-        Assert::that($const)->isString('EnumOption wire "const" must be a string, {type} given.');
+        Assert::that($const)->isString('EnumOption "const" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('title', 'EnumOption wire data missing "title".');
+        Assert::that($data)->hasOffset('title', 'EnumOption data missing "title".');
         $title = $data['title'];
-        Assert::that($title)->isString('EnumOption wire "title" must be a string, {type} given.');
+        Assert::that($title)->isString('EnumOption "title" must be a string, {type} given.');
 
         return new self($const, $title);
     }

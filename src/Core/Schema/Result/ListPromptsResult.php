@@ -48,12 +48,12 @@ final readonly class ListPromptsResult extends PaginatedResult implements Server
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('prompts', 'ListPromptsResult wire data missing "prompts".');
+        Assert::that($data)->hasOffset('prompts', 'ListPromptsResult data missing "prompts".');
         Assert::that($data['prompts'])
-            ->isList('ListPromptsResult wire "prompts" must be a list, {type} given.')
+            ->isList('ListPromptsResult "prompts" must be a list, {type} given.')
             ->values()
-            ->isArray('ListPromptsResult wire prompt entry must be an object, {type} given.')
-            ->isMap('ListPromptsResult wire prompt entry must be a string-keyed object.')
+            ->isArray('ListPromptsResult prompt entry must be an object, {type} given.')
+            ->isMap('ListPromptsResult prompt entry must be a string-keyed object.')
         ;
         $prompts = array_map(Prompt::fromArray(...), $data['prompts']);
 
@@ -61,11 +61,11 @@ final readonly class ListPromptsResult extends PaginatedResult implements Server
 
         if (\array_key_exists('nextCursor', $data)) {
             $raw = $data['nextCursor'];
-            Assert::that($raw)->isString('ListPromptsResult wire "nextCursor" must be a string, {type} given.');
+            Assert::that($raw)->isString('ListPromptsResult "nextCursor" must be a string, {type} given.');
             $nextCursor = new Cursor($raw);
         }
 
-        $meta = MetaObject::parseFromWire($data, 'Result');
+        $meta = MetaObject::parseFrom($data, 'Result');
 
         return new self($prompts, $nextCursor, $meta);
     }

@@ -90,8 +90,8 @@ final class ResourceTemplateReferenceTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -102,26 +102,26 @@ final class ResourceTemplateReferenceTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing type' => [
             ['uri' => 'file:///tmp/{name}'],
-            'ResourceTemplateReference wire data missing "type".',
+            'ResourceTemplateReference data missing "type".',
         ];
 
         yield 'wrong type literal' => [
             ['type' => 'ref/prompt', 'uri' => 'file:///tmp/{name}'],
-            'ResourceTemplateReference wire "type" must be "ref/resource", \'ref/prompt\' given.',
+            'ResourceTemplateReference "type" must be "ref/resource", \'ref/prompt\' given.',
         ];
 
         yield 'missing uri' => [
             ['type' => 'ref/resource'],
-            'ResourceTemplateReference wire data missing "uri".',
+            'ResourceTemplateReference data missing "uri".',
         ];
 
         yield 'uri not a string' => [
             ['type' => 'ref/resource', 'uri' => 1],
-            'ResourceTemplateReference wire "uri" must be a string, int given.',
+            'ResourceTemplateReference "uri" must be a string, int given.',
         ];
     }
 }

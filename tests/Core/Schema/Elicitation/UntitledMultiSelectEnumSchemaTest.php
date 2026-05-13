@@ -148,8 +148,8 @@ final class UntitledMultiSelectEnumSchemaTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -160,81 +160,81 @@ final class UntitledMultiSelectEnumSchemaTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing type' => [
             ['items' => []],
-            'UntitledMultiSelectEnumSchema wire data missing "type".',
+            'UntitledMultiSelectEnumSchema data missing "type".',
         ];
 
         yield 'wrong type literal' => [
             ['type' => 'string', 'items' => []],
-            'UntitledMultiSelectEnumSchema wire "type" must be "array", \'string\' given.',
+            'UntitledMultiSelectEnumSchema "type" must be "array", \'string\' given.',
         ];
 
         yield 'missing items' => [
             ['type' => 'array'],
-            'UntitledMultiSelectEnumSchema wire data missing "items".',
+            'UntitledMultiSelectEnumSchema data missing "items".',
         ];
 
         yield 'items not an object' => [
             ['type' => 'array', 'items' => 'oops'],
-            'UntitledMultiSelectEnumSchema wire "items" must be an object, string given.',
+            'UntitledMultiSelectEnumSchema "items" must be an object, string given.',
         ];
 
         yield 'items list-keyed' => [
             ['type' => 'array', 'items' => ['x']],
-            'UntitledMultiSelectEnumSchema wire "items" must be a string-keyed object.',
+            'UntitledMultiSelectEnumSchema "items" must be a string-keyed object.',
         ];
 
         yield 'items.type wrong literal' => [
             ['type' => 'array', 'items' => ['type' => 'number', 'enum' => ['a']]],
-            'UntitledMultiSelectEnumSchema wire items.type must be "string", \'number\' given.',
+            'UntitledMultiSelectEnumSchema items.type must be "string", \'number\' given.',
         ];
 
         yield 'items.enum missing' => [
             ['type' => 'array', 'items' => ['type' => 'string']],
-            'UntitledMultiSelectEnumSchema wire items.enum must be a list, null given.',
+            'UntitledMultiSelectEnumSchema items.enum must be a list, null given.',
         ];
 
         yield 'items.enum not a list' => [
             ['type' => 'array', 'items' => ['type' => 'string', 'enum' => ['k' => 'v']]],
-            'UntitledMultiSelectEnumSchema wire items.enum must be a list, got non-list array.',
+            'UntitledMultiSelectEnumSchema items.enum must be a list, got non-list array.',
         ];
 
         yield 'items.enum entry not a string' => [
             ['type' => 'array', 'items' => ['type' => 'string', 'enum' => [1]]],
-            'UntitledMultiSelectEnumSchema wire items.enum entry must be a string, int given.',
+            'UntitledMultiSelectEnumSchema items.enum entry must be a string, int given.',
         ];
 
         yield 'title not a string' => [
             ['type' => 'array', 'items' => ['type' => 'string', 'enum' => ['a']], 'title' => 1],
-            'UntitledMultiSelectEnumSchema wire "title" must be a string or null, int given.',
+            'UntitledMultiSelectEnumSchema "title" must be a string or null, int given.',
         ];
 
         yield 'description not a string' => [
             ['type' => 'array', 'items' => ['type' => 'string', 'enum' => ['a']], 'description' => 1],
-            'UntitledMultiSelectEnumSchema wire "description" must be a string or null, int given.',
+            'UntitledMultiSelectEnumSchema "description" must be a string or null, int given.',
         ];
 
         yield 'minItems not an int' => [
             ['type' => 'array', 'items' => ['type' => 'string', 'enum' => ['a']], 'minItems' => 'x'],
-            'UntitledMultiSelectEnumSchema wire "minItems" must be an int or null, string given.',
+            'UntitledMultiSelectEnumSchema "minItems" must be an int or null, string given.',
         ];
 
         yield 'maxItems not an int' => [
             ['type' => 'array', 'items' => ['type' => 'string', 'enum' => ['a']], 'maxItems' => 'x'],
-            'UntitledMultiSelectEnumSchema wire "maxItems" must be an int or null, string given.',
+            'UntitledMultiSelectEnumSchema "maxItems" must be an int or null, string given.',
         ];
 
         yield 'default not a list' => [
             ['type' => 'array', 'items' => ['type' => 'string', 'enum' => ['a']], 'default' => ['k' => 'v']],
-            'UntitledMultiSelectEnumSchema wire "default" must be a list, got non-list array.',
+            'UntitledMultiSelectEnumSchema "default" must be a list, got non-list array.',
         ];
 
         yield 'default entry not a string' => [
             ['type' => 'array', 'items' => ['type' => 'string', 'enum' => ['a']], 'default' => [1]],
-            'UntitledMultiSelectEnumSchema wire default entry must be a string, int given.',
+            'UntitledMultiSelectEnumSchema default entry must be a string, int given.',
         ];
     }
 }

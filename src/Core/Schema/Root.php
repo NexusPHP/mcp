@@ -42,14 +42,14 @@ final readonly class Root implements Arrayable
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('uri', 'Root wire data missing "uri".');
+        Assert::that($data)->hasOffset('uri', 'Root data missing "uri".');
         $uri = $data['uri'];
-        Assert::that($uri)->isString('Root wire "uri" must be a string, {type} given.');
+        Assert::that($uri)->isString('Root "uri" must be a string, {type} given.');
 
         $name = $data['name'] ?? null;
-        Assert::that($name)->nullOr()->isString('Root wire "name" must be a string or null, {type} given.');
+        Assert::that($name)->nullOr()->isString('Root "name" must be a string or null, {type} given.');
 
-        $meta = MetaObject::parseFromWire($data, 'Root');
+        $meta = MetaObject::parseFrom($data, 'Root');
 
         return new self($uri, $name, $meta);
     }

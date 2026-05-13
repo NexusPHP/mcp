@@ -163,8 +163,8 @@ final class StringSchemaTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -175,41 +175,41 @@ final class StringSchemaTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing type' => [
             [],
-            'StringSchema wire data missing "type".',
+            'StringSchema data missing "type".',
         ];
 
         yield 'wrong type literal' => [
             ['type' => 'number'],
-            'StringSchema wire "type" must be "string", \'number\' given.',
+            'StringSchema "type" must be "string", \'number\' given.',
         ];
 
         yield 'title not a string' => [
             ['type' => 'string', 'title' => 1],
-            'StringSchema wire "title" must be a string or null, int given.',
+            'StringSchema "title" must be a string or null, int given.',
         ];
 
         yield 'description not a string' => [
             ['type' => 'string', 'description' => 1],
-            'StringSchema wire "description" must be a string or null, int given.',
+            'StringSchema "description" must be a string or null, int given.',
         ];
 
         yield 'minLength not an int' => [
             ['type' => 'string', 'minLength' => 'x'],
-            'StringSchema wire "minLength" must be an int or null, string given.',
+            'StringSchema "minLength" must be an int or null, string given.',
         ];
 
         yield 'maxLength not an int' => [
             ['type' => 'string', 'maxLength' => 'x'],
-            'StringSchema wire "maxLength" must be an int or null, string given.',
+            'StringSchema "maxLength" must be an int or null, string given.',
         ];
 
         yield 'format not a string' => [
             ['type' => 'string', 'format' => 1],
-            'StringSchema wire "format" must be a string or null, int given.',
+            'StringSchema "format" must be a string or null, int given.',
         ];
 
         yield 'format unknown' => [
@@ -219,7 +219,7 @@ final class StringSchemaTest extends TestCase
 
         yield 'default not a string' => [
             ['type' => 'string', 'default' => 1],
-            'StringSchema wire "default" must be a string or null, int given.',
+            'StringSchema "default" must be a string or null, int given.',
         ];
     }
 }

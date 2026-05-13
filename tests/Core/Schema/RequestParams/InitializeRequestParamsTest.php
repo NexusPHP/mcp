@@ -177,8 +177,8 @@ final class InitializeRequestParamsTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -189,46 +189,46 @@ final class InitializeRequestParamsTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing protocolVersion' => [
             ['capabilities' => [], 'clientInfo' => ['name' => 'c', 'version' => '1']],
-            'InitializeRequestParams wire data missing "protocolVersion".',
+            'InitializeRequestParams data missing "protocolVersion".',
         ];
 
         yield 'protocolVersion not a string' => [
             ['protocolVersion' => 1, 'capabilities' => [], 'clientInfo' => ['name' => 'c', 'version' => '1']],
-            'InitializeRequestParams wire "protocolVersion" must be a string, int given.',
+            'InitializeRequestParams "protocolVersion" must be a string, int given.',
         ];
 
         yield 'missing capabilities' => [
             ['protocolVersion' => '2025-11-25', 'clientInfo' => ['name' => 'c', 'version' => '1']],
-            'InitializeRequestParams wire data missing "capabilities".',
+            'InitializeRequestParams data missing "capabilities".',
         ];
 
         yield 'capabilities not an object' => [
             ['protocolVersion' => '2025-11-25', 'capabilities' => 'oops', 'clientInfo' => ['name' => 'c', 'version' => '1']],
-            'InitializeRequestParams wire "capabilities" must be an object, string given.',
+            'InitializeRequestParams "capabilities" must be an object, string given.',
         ];
 
         yield 'capabilities list-keyed' => [
             ['protocolVersion' => '2025-11-25', 'capabilities' => ['x'], 'clientInfo' => ['name' => 'c', 'version' => '1']],
-            'InitializeRequestParams wire "capabilities" must be a string-keyed object.',
+            'InitializeRequestParams "capabilities" must be a string-keyed object.',
         ];
 
         yield 'missing clientInfo' => [
             ['protocolVersion' => '2025-11-25', 'capabilities' => []],
-            'InitializeRequestParams wire data missing "clientInfo".',
+            'InitializeRequestParams data missing "clientInfo".',
         ];
 
         yield 'clientInfo not an object' => [
             ['protocolVersion' => '2025-11-25', 'capabilities' => [], 'clientInfo' => 'oops'],
-            'InitializeRequestParams wire "clientInfo" must be an object, string given.',
+            'InitializeRequestParams "clientInfo" must be an object, string given.',
         ];
 
         yield 'clientInfo list-keyed' => [
             ['protocolVersion' => '2025-11-25', 'capabilities' => [], 'clientInfo' => ['x']],
-            'InitializeRequestParams wire "clientInfo" must be a string-keyed object.',
+            'InitializeRequestParams "clientInfo" must be a string-keyed object.',
         ];
 
         yield '_meta not an object' => [

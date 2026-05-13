@@ -116,8 +116,8 @@ final class PromptReferenceTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -128,31 +128,31 @@ final class PromptReferenceTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing type' => [
             ['name' => 'my-prompt'],
-            'PromptReference wire data missing "type".',
+            'PromptReference data missing "type".',
         ];
 
         yield 'wrong type literal' => [
             ['type' => 'ref/resource', 'name' => 'my-prompt'],
-            'PromptReference wire "type" must be "ref/prompt", \'ref/resource\' given.',
+            'PromptReference "type" must be "ref/prompt", \'ref/resource\' given.',
         ];
 
         yield 'missing name' => [
             ['type' => 'ref/prompt'],
-            'PromptReference wire data missing "name".',
+            'PromptReference data missing "name".',
         ];
 
         yield 'name not a string' => [
             ['type' => 'ref/prompt', 'name' => 1],
-            'PromptReference wire "name" must be a string, int given.',
+            'PromptReference "name" must be a string, int given.',
         ];
 
         yield 'title not a string' => [
             ['type' => 'ref/prompt', 'name' => 'my-prompt', 'title' => 1],
-            'PromptReference wire "title" must be a string or null, int given.',
+            'PromptReference "title" must be a string or null, int given.',
         ];
     }
 }

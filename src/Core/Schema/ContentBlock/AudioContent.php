@@ -66,29 +66,29 @@ final readonly class AudioContent implements Arrayable, ContentBlock, SamplingMe
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('type', 'AudioContent wire data missing "type".');
+        Assert::that($data)->hasOffset('type', 'AudioContent data missing "type".');
         $type = $data['type'];
-        Assert::that($type)->isIdentical(self::TYPE, \sprintf('AudioContent wire "type" must be "%s", {value} given.', self::TYPE));
+        Assert::that($type)->isIdentical(self::TYPE, \sprintf('AudioContent "type" must be "%s", {value} given.', self::TYPE));
 
-        Assert::that($data)->hasOffset('data', 'AudioContent wire data missing "data".');
+        Assert::that($data)->hasOffset('data', 'AudioContent data missing "data".');
         $payload = $data['data'];
-        Assert::that($payload)->isString('AudioContent wire "data" must be a string, {type} given.');
+        Assert::that($payload)->isString('AudioContent "data" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('mimeType', 'AudioContent wire data missing "mimeType".');
+        Assert::that($data)->hasOffset('mimeType', 'AudioContent data missing "mimeType".');
         $mimeType = $data['mimeType'];
-        Assert::that($mimeType)->isString('AudioContent wire "mimeType" must be a string, {type} given.');
+        Assert::that($mimeType)->isString('AudioContent "mimeType" must be a string, {type} given.');
 
         $annotations = null;
 
         if (\array_key_exists('annotations', $data)) {
             Assert::that($data['annotations'])
-                ->isArray('AudioContent wire "annotations" must be an object, {type} given.')
-                ->isMap('AudioContent wire "annotations" must be a string-keyed object.')
+                ->isArray('AudioContent "annotations" must be an object, {type} given.')
+                ->isMap('AudioContent "annotations" must be a string-keyed object.')
             ;
             $annotations = Annotations::fromArray($data['annotations']);
         }
 
-        $meta = MetaObject::parseFromWire($data, 'AudioContent');
+        $meta = MetaObject::parseFrom($data, 'AudioContent');
 
         return new self($payload, $mimeType, $annotations, $meta);
     }

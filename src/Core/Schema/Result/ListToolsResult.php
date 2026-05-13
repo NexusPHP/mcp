@@ -48,12 +48,12 @@ final readonly class ListToolsResult extends PaginatedResult implements ServerRe
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('tools', 'ListToolsResult wire data missing "tools".');
+        Assert::that($data)->hasOffset('tools', 'ListToolsResult data missing "tools".');
         Assert::that($data['tools'])
-            ->isList('ListToolsResult wire "tools" must be a list, {type} given.')
+            ->isList('ListToolsResult "tools" must be a list, {type} given.')
             ->values()
-            ->isArray('ListToolsResult wire tool entry must be an object, {type} given.')
-            ->isMap('ListToolsResult wire tool entry must be a string-keyed object.')
+            ->isArray('ListToolsResult tool entry must be an object, {type} given.')
+            ->isMap('ListToolsResult tool entry must be a string-keyed object.')
         ;
         $tools = array_map(Tool::fromArray(...), $data['tools']);
 
@@ -61,11 +61,11 @@ final readonly class ListToolsResult extends PaginatedResult implements ServerRe
 
         if (\array_key_exists('nextCursor', $data)) {
             $raw = $data['nextCursor'];
-            Assert::that($raw)->isString('ListToolsResult wire "nextCursor" must be a string, {type} given.');
+            Assert::that($raw)->isString('ListToolsResult "nextCursor" must be a string, {type} given.');
             $nextCursor = new Cursor($raw);
         }
 
-        $meta = MetaObject::parseFromWire($data, 'Result');
+        $meta = MetaObject::parseFrom($data, 'Result');
 
         return new self($tools, $nextCursor, $meta);
     }

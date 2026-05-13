@@ -128,8 +128,8 @@ final class PromptArgumentTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -140,31 +140,31 @@ final class PromptArgumentTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing name' => [
             [],
-            'PromptArgument wire data missing "name".',
+            'PromptArgument data missing "name".',
         ];
 
         yield 'name not a string' => [
             ['name' => 1],
-            'PromptArgument wire "name" must be a string, int given.',
+            'PromptArgument "name" must be a string, int given.',
         ];
 
         yield 'title not a string' => [
             ['name' => 'topic', 'title' => 1],
-            'PromptArgument wire "title" must be a string or null, int given.',
+            'PromptArgument "title" must be a string or null, int given.',
         ];
 
         yield 'description not a string' => [
             ['name' => 'topic', 'description' => 1],
-            'PromptArgument wire "description" must be a string or null, int given.',
+            'PromptArgument "description" must be a string or null, int given.',
         ];
 
         yield 'required not a bool' => [
             ['name' => 'topic', 'required' => 'yes'],
-            'PromptArgument wire "required" must be a bool or null, string given.',
+            'PromptArgument "required" must be a bool or null, string given.',
         ];
     }
 }

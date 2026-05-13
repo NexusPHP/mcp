@@ -145,8 +145,8 @@ final class GetPromptResultTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -157,31 +157,31 @@ final class GetPromptResultTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing messages' => [
             [],
-            'GetPromptResult wire data missing "messages".',
+            'GetPromptResult data missing "messages".',
         ];
 
         yield 'messages not an array' => [
             ['messages' => 'oops'],
-            'GetPromptResult wire "messages" must be an array, string given.',
+            'GetPromptResult "messages" must be an array, string given.',
         ];
 
         yield 'message entry not an object' => [
             ['messages' => ['oops']],
-            'GetPromptResult wire message entry must be an object, string given.',
+            'GetPromptResult message entry must be an object, string given.',
         ];
 
         yield 'message entry list-keyed' => [
             ['messages' => [['x']]],
-            'GetPromptResult wire message entry must be a string-keyed object.',
+            'GetPromptResult message entry must be a string-keyed object.',
         ];
 
         yield 'description not a string' => [
             ['messages' => [], 'description' => 1],
-            'GetPromptResult wire "description" must be a string or null, int given.',
+            'GetPromptResult "description" must be a string or null, int given.',
         ];
 
         yield '_meta not an object' => [

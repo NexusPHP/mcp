@@ -158,8 +158,8 @@ final class EmbeddedResourceTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -170,41 +170,41 @@ final class EmbeddedResourceTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing type' => [
             ['resource' => ['uri' => 'file:///x', 'text' => 'hello']],
-            'EmbeddedResource wire data missing "type".',
+            'EmbeddedResource data missing "type".',
         ];
 
         yield 'wrong type literal' => [
             ['type' => 'text', 'resource' => ['uri' => 'file:///x', 'text' => 'hello']],
-            'EmbeddedResource wire "type" must be "resource", \'text\' given.',
+            'EmbeddedResource "type" must be "resource", \'text\' given.',
         ];
 
         yield 'missing resource' => [
             ['type' => 'resource'],
-            'EmbeddedResource wire data missing "resource".',
+            'EmbeddedResource data missing "resource".',
         ];
 
         yield 'resource not an object' => [
             ['type' => 'resource', 'resource' => 'oops'],
-            'EmbeddedResource wire "resource" must be an object, string given.',
+            'EmbeddedResource "resource" must be an object, string given.',
         ];
 
         yield 'resource list-keyed' => [
             ['type' => 'resource', 'resource' => ['x']],
-            'EmbeddedResource wire "resource" must be a string-keyed object.',
+            'EmbeddedResource "resource" must be a string-keyed object.',
         ];
 
         yield 'annotations not an object' => [
             ['type' => 'resource', 'resource' => ['uri' => 'file:///x', 'text' => 'hello'], 'annotations' => 'oops'],
-            'EmbeddedResource wire "annotations" must be an object, string given.',
+            'EmbeddedResource "annotations" must be an object, string given.',
         ];
 
         yield 'annotations list-keyed' => [
             ['type' => 'resource', 'resource' => ['uri' => 'file:///x', 'text' => 'hello'], 'annotations' => ['x']],
-            'EmbeddedResource wire "annotations" must be a string-keyed object.',
+            'EmbeddedResource "annotations" must be a string-keyed object.',
         ];
 
         yield '_meta not an object' => [

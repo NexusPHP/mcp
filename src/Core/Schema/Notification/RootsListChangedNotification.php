@@ -41,8 +41,8 @@ final readonly class RootsListChangedNotification extends JsonRpcNotification im
 
         if (\array_key_exists('params', $data)) {
             Assert::that($data['params'])
-                ->isArray('RootsListChangedNotification wire "params" must be an object, {type} given.')
-                ->isMap('RootsListChangedNotification wire "params" must be a string-keyed object.')
+                ->isArray('RootsListChangedNotification "params" must be an object, {type} given.')
+                ->isMap('RootsListChangedNotification "params" must be a string-keyed object.')
             ;
             $params = EmptyNotificationParams::fromArray($data['params']);
         }

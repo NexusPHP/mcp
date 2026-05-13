@@ -96,44 +96,44 @@ final readonly class UntitledMultiSelectEnumSchema implements Arrayable, MultiSe
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('type', 'UntitledMultiSelectEnumSchema wire data missing "type".');
+        Assert::that($data)->hasOffset('type', 'UntitledMultiSelectEnumSchema data missing "type".');
         $type = $data['type'];
-        Assert::that($type)->isIdentical(self::TYPE, \sprintf('UntitledMultiSelectEnumSchema wire "type" must be "%s", {value} given.', self::TYPE));
+        Assert::that($type)->isIdentical(self::TYPE, \sprintf('UntitledMultiSelectEnumSchema "type" must be "%s", {value} given.', self::TYPE));
 
-        Assert::that($data)->hasOffset('items', 'UntitledMultiSelectEnumSchema wire data missing "items".');
+        Assert::that($data)->hasOffset('items', 'UntitledMultiSelectEnumSchema data missing "items".');
         Assert::that($data['items'])
-            ->isArray('UntitledMultiSelectEnumSchema wire "items" must be an object, {type} given.')
-            ->isMap('UntitledMultiSelectEnumSchema wire "items" must be a string-keyed object.')
+            ->isArray('UntitledMultiSelectEnumSchema "items" must be an object, {type} given.')
+            ->isMap('UntitledMultiSelectEnumSchema "items" must be a string-keyed object.')
         ;
 
         $itemsType = $data['items']['type'] ?? null;
-        Assert::that($itemsType)->isIdentical(self::ITEMS_TYPE, \sprintf('UntitledMultiSelectEnumSchema wire items.type must be "%s", {value} given.', self::ITEMS_TYPE));
+        Assert::that($itemsType)->isIdentical(self::ITEMS_TYPE, \sprintf('UntitledMultiSelectEnumSchema items.type must be "%s", {value} given.', self::ITEMS_TYPE));
 
         $itemsEnum = $data['items']['enum'] ?? null;
         Assert::that($itemsEnum)
-            ->isArray('UntitledMultiSelectEnumSchema wire items.enum must be a list, {type} given.')
-            ->isList('UntitledMultiSelectEnumSchema wire items.enum must be a list, got non-list array.')
-            ->values()->isString('UntitledMultiSelectEnumSchema wire items.enum entry must be a string, {type} given.')
+            ->isArray('UntitledMultiSelectEnumSchema items.enum must be a list, {type} given.')
+            ->isList('UntitledMultiSelectEnumSchema items.enum must be a list, got non-list array.')
+            ->values()->isString('UntitledMultiSelectEnumSchema items.enum entry must be a string, {type} given.')
         ;
 
         $title = $data['title'] ?? null;
-        Assert::that($title)->nullOr()->isString('UntitledMultiSelectEnumSchema wire "title" must be a string or null, {type} given.');
+        Assert::that($title)->nullOr()->isString('UntitledMultiSelectEnumSchema "title" must be a string or null, {type} given.');
 
         $description = $data['description'] ?? null;
-        Assert::that($description)->nullOr()->isString('UntitledMultiSelectEnumSchema wire "description" must be a string or null, {type} given.');
+        Assert::that($description)->nullOr()->isString('UntitledMultiSelectEnumSchema "description" must be a string or null, {type} given.');
 
         $minItems = $data['minItems'] ?? null;
-        Assert::that($minItems)->nullOr()->isInt('UntitledMultiSelectEnumSchema wire "minItems" must be an int or null, {type} given.');
+        Assert::that($minItems)->nullOr()->isInt('UntitledMultiSelectEnumSchema "minItems" must be an int or null, {type} given.');
 
         $maxItems = $data['maxItems'] ?? null;
-        Assert::that($maxItems)->nullOr()->isInt('UntitledMultiSelectEnumSchema wire "maxItems" must be an int or null, {type} given.');
+        Assert::that($maxItems)->nullOr()->isInt('UntitledMultiSelectEnumSchema "maxItems" must be an int or null, {type} given.');
 
         $default = null;
 
         if (isset($data['default'])) {
             Assert::that($data['default'])
-                ->isList('UntitledMultiSelectEnumSchema wire "default" must be a list, got non-list array.')
-                ->values()->isString('UntitledMultiSelectEnumSchema wire default entry must be a string, {type} given.')
+                ->isList('UntitledMultiSelectEnumSchema "default" must be a list, got non-list array.')
+                ->values()->isString('UntitledMultiSelectEnumSchema default entry must be a string, {type} given.')
             ;
             $default = $data['default'];
         }

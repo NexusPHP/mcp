@@ -129,8 +129,8 @@ final class NumberSchemaTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -141,16 +141,16 @@ final class NumberSchemaTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing type' => [
             [],
-            'NumberSchema wire data missing "type".',
+            'NumberSchema data missing "type".',
         ];
 
         yield 'type not a string' => [
             ['type' => 1],
-            'NumberSchema wire "type" must be a string, int given.',
+            'NumberSchema "type" must be a string, int given.',
         ];
 
         yield 'unknown type' => [
@@ -160,27 +160,27 @@ final class NumberSchemaTest extends TestCase
 
         yield 'title not a string' => [
             ['type' => 'number', 'title' => 1],
-            'NumberSchema wire "title" must be a string or null, int given.',
+            'NumberSchema "title" must be a string or null, int given.',
         ];
 
         yield 'description not a string' => [
             ['type' => 'number', 'description' => 1],
-            'NumberSchema wire "description" must be a string or null, int given.',
+            'NumberSchema "description" must be a string or null, int given.',
         ];
 
         yield 'minimum not an int' => [
             ['type' => 'number', 'minimum' => 'x'],
-            'NumberSchema wire "minimum" must be an int or null, string given.',
+            'NumberSchema "minimum" must be an int or null, string given.',
         ];
 
         yield 'maximum not an int' => [
             ['type' => 'number', 'maximum' => 'x'],
-            'NumberSchema wire "maximum" must be an int or null, string given.',
+            'NumberSchema "maximum" must be an int or null, string given.',
         ];
 
         yield 'default not an int' => [
             ['type' => 'number', 'default' => 'x'],
-            'NumberSchema wire "default" must be an int or null, string given.',
+            'NumberSchema "default" must be an int or null, string given.',
         ];
     }
 }

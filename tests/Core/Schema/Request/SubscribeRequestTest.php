@@ -72,8 +72,8 @@ final class SubscribeRequestTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -84,33 +84,33 @@ final class SubscribeRequestTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         $validParams = ['uri' => 'file:///x'];
 
         yield 'missing id' => [
             ['jsonrpc' => '2.0', 'method' => 'resources/subscribe', 'params' => $validParams],
-            'SubscribeRequest wire data missing "id".',
+            'SubscribeRequest data missing "id".',
         ];
 
         yield 'id not int or string' => [
             ['jsonrpc' => '2.0', 'id' => [], 'method' => 'resources/subscribe', 'params' => $validParams],
-            'SubscribeRequest wire "id" must be int or string, array given.',
+            'SubscribeRequest "id" must be int or string, array given.',
         ];
 
         yield 'missing params' => [
             ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'resources/subscribe'],
-            'SubscribeRequest wire data missing "params".',
+            'SubscribeRequest data missing "params".',
         ];
 
         yield 'params not an object' => [
             ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'resources/subscribe', 'params' => 'bad'],
-            'SubscribeRequest wire "params" must be an object, string given.',
+            'SubscribeRequest "params" must be an object, string given.',
         ];
 
         yield 'params list-keyed' => [
             ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'resources/subscribe', 'params' => ['x']],
-            'SubscribeRequest wire "params" must be a string-keyed object.',
+            'SubscribeRequest "params" must be a string-keyed object.',
         ];
     }
 }

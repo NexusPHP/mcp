@@ -168,7 +168,7 @@ final class ModelPreferencesTest extends TestCase
     public function testFromArrayRejectsNonListHints(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ModelPreferences wire "hints" must be a list, string given.');
+        $this->expectExceptionMessage('ModelPreferences "hints" must be a list, string given.');
 
         ModelPreferences::fromArray(['hints' => 'oops']);
     }
@@ -176,7 +176,7 @@ final class ModelPreferencesTest extends TestCase
     public function testFromArrayRejectsNonObjectHintEntry(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ModelPreferences wire hint entry must be an object, string given.');
+        $this->expectExceptionMessage('ModelPreferences hint entry must be an object, string given.');
 
         ModelPreferences::fromArray(['hints' => ['oops']]);
     }
@@ -184,7 +184,7 @@ final class ModelPreferencesTest extends TestCase
     public function testFromArrayRejectsListHintEntry(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ModelPreferences wire hint entry must be a string-keyed object.');
+        $this->expectExceptionMessage('ModelPreferences hint entry must be a string-keyed object.');
 
         ModelPreferences::fromArray(['hints' => [['x']]]);
     }
@@ -192,7 +192,7 @@ final class ModelPreferencesTest extends TestCase
     public function testFromArrayRejectsNonNumericPriority(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ModelPreferences wire "speedPriority" must be a number or null, string given.');
+        $this->expectExceptionMessage('ModelPreferences "speedPriority" must be a number or null, string given.');
 
         ModelPreferences::fromArray(['speedPriority' => 'oops']);
     }

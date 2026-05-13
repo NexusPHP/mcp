@@ -42,10 +42,10 @@ final readonly class ResourceUpdatedNotification extends JsonRpcNotification imp
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('params', 'ResourceUpdatedNotification wire data missing "params".');
+        Assert::that($data)->hasOffset('params', 'ResourceUpdatedNotification data missing "params".');
         Assert::that($data['params'])
-            ->isArray('ResourceUpdatedNotification wire "params" must be an object, {type} given.')
-            ->isMap('ResourceUpdatedNotification wire "params" must be a string-keyed object.')
+            ->isArray('ResourceUpdatedNotification "params" must be an object, {type} given.')
+            ->isMap('ResourceUpdatedNotification "params" must be a string-keyed object.')
         ;
 
         return new self(ResourceUpdatedNotificationParams::fromArray($data['params']));

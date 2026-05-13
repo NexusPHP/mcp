@@ -43,14 +43,14 @@ final readonly class CallToolRequest extends JsonRpcRequest implements ClientReq
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('id', 'CallToolRequest wire data missing "id".');
+        Assert::that($data)->hasOffset('id', 'CallToolRequest data missing "id".');
         $id = $data['id'];
-        Assert::that($id)->isArrayKey('CallToolRequest wire "id" must be int or string, {type} given.');
+        Assert::that($id)->isArrayKey('CallToolRequest "id" must be int or string, {type} given.');
 
-        Assert::that($data)->hasOffset('params', 'CallToolRequest wire data missing "params".');
+        Assert::that($data)->hasOffset('params', 'CallToolRequest data missing "params".');
         Assert::that($data['params'])
-            ->isArray('CallToolRequest wire "params" must be an object, {type} given.')
-            ->isMap('CallToolRequest wire "params" must be a string-keyed object.')
+            ->isArray('CallToolRequest "params" must be an object, {type} given.')
+            ->isMap('CallToolRequest "params" must be a string-keyed object.')
         ;
 
         return new self(new RequestId($id), CallToolRequestParams::fromArray($data['params']));

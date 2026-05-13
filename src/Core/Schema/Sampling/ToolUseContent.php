@@ -66,26 +66,26 @@ final readonly class ToolUseContent implements Arrayable, SamplingMessageContent
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('type', 'ToolUseContent wire data missing "type".');
+        Assert::that($data)->hasOffset('type', 'ToolUseContent data missing "type".');
         $type = $data['type'];
-        Assert::that($type)->isIdentical(self::TYPE, \sprintf('ToolUseContent wire "type" must be "%s", {value} given.', self::TYPE));
+        Assert::that($type)->isIdentical(self::TYPE, \sprintf('ToolUseContent "type" must be "%s", {value} given.', self::TYPE));
 
-        Assert::that($data)->hasOffset('id', 'ToolUseContent wire data missing "id".');
+        Assert::that($data)->hasOffset('id', 'ToolUseContent data missing "id".');
         $id = $data['id'];
-        Assert::that($id)->isString('ToolUseContent wire "id" must be a string, {type} given.');
+        Assert::that($id)->isString('ToolUseContent "id" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('name', 'ToolUseContent wire data missing "name".');
+        Assert::that($data)->hasOffset('name', 'ToolUseContent data missing "name".');
         $name = $data['name'];
-        Assert::that($name)->isString('ToolUseContent wire "name" must be a string, {type} given.');
+        Assert::that($name)->isString('ToolUseContent "name" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('input', 'ToolUseContent wire data missing "input".');
+        Assert::that($data)->hasOffset('input', 'ToolUseContent data missing "input".');
         Assert::that($data['input'])
-            ->isArray('ToolUseContent wire "input" must be an object, {type} given.')
-            ->isMap('ToolUseContent wire "input" must be a string-keyed object.')
+            ->isArray('ToolUseContent "input" must be an object, {type} given.')
+            ->isMap('ToolUseContent "input" must be a string-keyed object.')
         ;
         $input = $data['input'];
 
-        $meta = MetaObject::parseFromWire($data, 'ToolUseContent');
+        $meta = MetaObject::parseFrom($data, 'ToolUseContent');
 
         return new self($id, $name, $input, $meta);
     }

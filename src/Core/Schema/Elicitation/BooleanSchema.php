@@ -60,18 +60,18 @@ final readonly class BooleanSchema implements Arrayable, PrimitiveSchemaDefiniti
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('type', 'BooleanSchema wire data missing "type".');
+        Assert::that($data)->hasOffset('type', 'BooleanSchema data missing "type".');
         $type = $data['type'];
-        Assert::that($type)->isIdentical(self::TYPE, \sprintf('BooleanSchema wire "type" must be "%s", {value} given.', self::TYPE));
+        Assert::that($type)->isIdentical(self::TYPE, \sprintf('BooleanSchema "type" must be "%s", {value} given.', self::TYPE));
 
         $title = $data['title'] ?? null;
-        Assert::that($title)->nullOr()->isString('BooleanSchema wire "title" must be a string or null, {type} given.');
+        Assert::that($title)->nullOr()->isString('BooleanSchema "title" must be a string or null, {type} given.');
 
         $description = $data['description'] ?? null;
-        Assert::that($description)->nullOr()->isString('BooleanSchema wire "description" must be a string or null, {type} given.');
+        Assert::that($description)->nullOr()->isString('BooleanSchema "description" must be a string or null, {type} given.');
 
         $default = $data['default'] ?? null;
-        Assert::that($default)->nullOr()->isBool('BooleanSchema wire "default" must be a bool or null, {type} given.');
+        Assert::that($default)->nullOr()->isBool('BooleanSchema "default" must be a bool or null, {type} given.');
 
         return new self($title, $description, $default);
     }

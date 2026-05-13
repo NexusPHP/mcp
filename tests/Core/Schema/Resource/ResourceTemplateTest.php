@@ -206,8 +206,8 @@ final class ResourceTemplateTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -218,66 +218,66 @@ final class ResourceTemplateTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing name' => [
             ['uriTemplate' => 'file:///tmp/{name}'],
-            'ResourceTemplate wire data missing "name".',
+            'ResourceTemplate data missing "name".',
         ];
 
         yield 'missing uriTemplate' => [
             ['name' => 'my-template'],
-            'ResourceTemplate wire data missing "uriTemplate".',
+            'ResourceTemplate data missing "uriTemplate".',
         ];
 
         yield 'name not a string' => [
             ['name' => 1, 'uriTemplate' => 'file:///tmp/{name}'],
-            'ResourceTemplate wire "name" must be a string, int given.',
+            'ResourceTemplate "name" must be a string, int given.',
         ];
 
         yield 'uriTemplate not a string' => [
             ['name' => 'my-template', 'uriTemplate' => 1],
-            'ResourceTemplate wire "uriTemplate" must be a string, int given.',
+            'ResourceTemplate "uriTemplate" must be a string, int given.',
         ];
 
         yield 'title not a string' => [
             ['name' => 'my-template', 'uriTemplate' => 'file:///tmp/{name}', 'title' => 1],
-            'ResourceTemplate wire "title" must be a string or null, int given.',
+            'ResourceTemplate "title" must be a string or null, int given.',
         ];
 
         yield 'description not a string' => [
             ['name' => 'my-template', 'uriTemplate' => 'file:///tmp/{name}', 'description' => 1],
-            'ResourceTemplate wire "description" must be a string or null, int given.',
+            'ResourceTemplate "description" must be a string or null, int given.',
         ];
 
         yield 'mimeType not a string' => [
             ['name' => 'my-template', 'uriTemplate' => 'file:///tmp/{name}', 'mimeType' => 1],
-            'ResourceTemplate wire "mimeType" must be a string or null, int given.',
+            'ResourceTemplate "mimeType" must be a string or null, int given.',
         ];
 
         yield 'annotations not an object' => [
             ['name' => 'my-template', 'uriTemplate' => 'file:///tmp/{name}', 'annotations' => 'oops'],
-            'ResourceTemplate wire "annotations" must be an object, string given.',
+            'ResourceTemplate "annotations" must be an object, string given.',
         ];
 
         yield 'annotations list-keyed' => [
             ['name' => 'my-template', 'uriTemplate' => 'file:///tmp/{name}', 'annotations' => ['x']],
-            'ResourceTemplate wire "annotations" must be a string-keyed object.',
+            'ResourceTemplate "annotations" must be a string-keyed object.',
         ];
 
         yield 'icons not an array' => [
             ['name' => 'my-template', 'uriTemplate' => 'file:///tmp/{name}', 'icons' => 'oops'],
-            'ResourceTemplate wire "icons" must be a list, string given.',
+            'ResourceTemplate "icons" must be a list, string given.',
         ];
 
         yield 'icon entry not an object' => [
             ['name' => 'my-template', 'uriTemplate' => 'file:///tmp/{name}', 'icons' => ['oops']],
-            'ResourceTemplate wire icon entry must be an object, string given.',
+            'ResourceTemplate icon entry must be an object, string given.',
         ];
 
         yield 'icon entry list-keyed' => [
             ['name' => 'my-template', 'uriTemplate' => 'file:///tmp/{name}', 'icons' => [['x']]],
-            'ResourceTemplate wire icon entry must be a string-keyed object.',
+            'ResourceTemplate icon entry must be a string-keyed object.',
         ];
 
         yield '_meta not an object' => [

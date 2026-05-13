@@ -540,7 +540,7 @@ final class SchemaConformanceTest extends TestCase
 
         if (! $licensed) {
             // Transitive license: the implementer is a subclass of a member.
-            // Wire-envelope unions like `JSONRPCMessage` list the abstract
+            // JSON-RPC envelope unions like `JSONRPCMessage` list the abstract
             // bases (`JSONRPCRequest`, `JSONRPCNotification`, ...) as members;
             // every concrete request/notification/response inherits the
             // marker through one of those bases and is thereby licensed.
@@ -1048,7 +1048,7 @@ final class SchemaConformanceTest extends TestCase
 
     /**
      * Resolve every spec-level `anyOf` union (direction unions like
-     * `ClientRequest`, content unions like `ContentBlock`, wire-envelope
+     * `ClientRequest`, content unions like `ContentBlock`, JSON-RPC envelope
      * unions like `JSONRPCMessage`, etc.) to its explicit member basenames.
      * The bare `{"$ref": "Result"}` entry appearing in `ClientResult` and
      * `ServerResult` is recorded separately as a structural license, not

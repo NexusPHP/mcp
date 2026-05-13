@@ -98,29 +98,29 @@ final readonly class ResourceTemplate extends BaseMetadata implements Arrayable,
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('name', 'ResourceTemplate wire data missing "name".');
+        Assert::that($data)->hasOffset('name', 'ResourceTemplate data missing "name".');
         $name = $data['name'];
-        Assert::that($name)->isString('ResourceTemplate wire "name" must be a string, {type} given.');
+        Assert::that($name)->isString('ResourceTemplate "name" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('uriTemplate', 'ResourceTemplate wire data missing "uriTemplate".');
+        Assert::that($data)->hasOffset('uriTemplate', 'ResourceTemplate data missing "uriTemplate".');
         $uriTemplate = $data['uriTemplate'];
-        Assert::that($uriTemplate)->isString('ResourceTemplate wire "uriTemplate" must be a string, {type} given.');
+        Assert::that($uriTemplate)->isString('ResourceTemplate "uriTemplate" must be a string, {type} given.');
 
         $title = $data['title'] ?? null;
-        Assert::that($title)->nullOr()->isString('ResourceTemplate wire "title" must be a string or null, {type} given.');
+        Assert::that($title)->nullOr()->isString('ResourceTemplate "title" must be a string or null, {type} given.');
 
         $description = $data['description'] ?? null;
-        Assert::that($description)->nullOr()->isString('ResourceTemplate wire "description" must be a string or null, {type} given.');
+        Assert::that($description)->nullOr()->isString('ResourceTemplate "description" must be a string or null, {type} given.');
 
         $mimeType = $data['mimeType'] ?? null;
-        Assert::that($mimeType)->nullOr()->isString('ResourceTemplate wire "mimeType" must be a string or null, {type} given.');
+        Assert::that($mimeType)->nullOr()->isString('ResourceTemplate "mimeType" must be a string or null, {type} given.');
 
         $annotations = null;
 
         if (\array_key_exists('annotations', $data)) {
             Assert::that($data['annotations'])
-                ->isArray('ResourceTemplate wire "annotations" must be an object, {type} given.')
-                ->isMap('ResourceTemplate wire "annotations" must be a string-keyed object.')
+                ->isArray('ResourceTemplate "annotations" must be an object, {type} given.')
+                ->isMap('ResourceTemplate "annotations" must be a string-keyed object.')
             ;
             $annotations = Annotations::fromArray($data['annotations']);
         }
@@ -129,15 +129,15 @@ final readonly class ResourceTemplate extends BaseMetadata implements Arrayable,
 
         if (isset($data['icons'])) {
             Assert::that($data['icons'])
-                ->isList('ResourceTemplate wire "icons" must be a list, {type} given.')
+                ->isList('ResourceTemplate "icons" must be a list, {type} given.')
                 ->values()
-                ->isArray('ResourceTemplate wire icon entry must be an object, {type} given.')
-                ->isMap('ResourceTemplate wire icon entry must be a string-keyed object.')
+                ->isArray('ResourceTemplate icon entry must be an object, {type} given.')
+                ->isMap('ResourceTemplate icon entry must be a string-keyed object.')
             ;
             $icons = array_map(Icon::fromArray(...), $data['icons']);
         }
 
-        $meta = MetaObject::parseFromWire($data, 'ResourceTemplate');
+        $meta = MetaObject::parseFrom($data, 'ResourceTemplate');
 
         return new self($name, $uriTemplate, $title, $description, $mimeType, $annotations, $icons, $meta);
     }

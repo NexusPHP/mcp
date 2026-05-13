@@ -66,8 +66,8 @@ final readonly class Annotations implements Arrayable
 
         if (isset($data['audience'])) {
             Assert::that($data['audience'])
-                ->isList('Annotations wire "audience" must be a list, {type} given.')
-                ->values()->isString('Annotations wire audience entry must be a string, {type} given.')
+                ->isList('Annotations "audience" must be a list, {type} given.')
+                ->values()->isString('Annotations audience entry must be a string, {type} given.')
             ;
             $audience = array_map(static fn(string $role): Role => Role::from($role), $data['audience']);
         }
@@ -75,11 +75,11 @@ final readonly class Annotations implements Arrayable
         $priority = $data['priority'] ?? null;
 
         if (null !== $priority) {
-            $priority = self::parseNumber($priority, 'Annotations wire "priority" must be a number or null, {type} given.');
+            $priority = self::parseNumber($priority, 'Annotations "priority" must be a number or null, {type} given.');
         }
 
         $lastModified = $data['lastModified'] ?? null;
-        Assert::that($lastModified)->nullOr()->isString('Annotations wire "lastModified" must be a string or null, {type} given.');
+        Assert::that($lastModified)->nullOr()->isString('Annotations "lastModified" must be a string or null, {type} given.');
 
         return new self($audience, $priority, $lastModified);
     }

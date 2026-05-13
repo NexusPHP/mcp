@@ -27,12 +27,12 @@ use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result;
 
 /**
- * Parses wire data into concrete JSON-RPC message objects.
+ * Parses decoded JSON-RPC envelopes into concrete message objects.
  *
  * The single entry point {@see self::parse()} dispatches structurally:
  * `error` to an error response, `result` to a success response (which requires
- * the caller-supplied {@see Result} subclass since the wire carries no method
- * name), and `method` to a request or notification by id presence.
+ * the caller-supplied {@see Result} subclass since the envelope carries no
+ * method name), and `method` to a request or notification by id presence.
  *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/basic
  */
@@ -129,8 +129,8 @@ final class JsonRpcMessageParser
         }
 
         try {
-            Assert::that($message)->hasOffset('method', 'Wire message must carry a "method" (request or notification), an "error" (error response), or a "result" (success response).');
-            Assert::that($message['method'])->isNonEmptyString('Wire "method" must be a non-empty string, {type} given.');
+            Assert::that($message)->hasOffset('method', 'JSON-RPC envelope must carry a "method" (request or notification), an "error" (error response), or a "result" (success response).');
+            Assert::that($message['method'])->isNonEmptyString('JSON-RPC envelope "method" must be a non-empty string, {type} given.');
         } catch (\InvalidArgumentException $e) {
             throw new InvalidRequestException($e->getMessage(), self::extractRequestId($message));
         }

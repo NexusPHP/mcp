@@ -164,8 +164,8 @@ final class PromptTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -176,56 +176,56 @@ final class PromptTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing name' => [
             [],
-            'Prompt wire data missing "name".',
+            'Prompt data missing "name".',
         ];
 
         yield 'name not a string' => [
             ['name' => 1],
-            'Prompt wire "name" must be a string, int given.',
+            'Prompt "name" must be a string, int given.',
         ];
 
         yield 'title not a string' => [
             ['name' => 'code-review', 'title' => 1],
-            'Prompt wire "title" must be a string or null, int given.',
+            'Prompt "title" must be a string or null, int given.',
         ];
 
         yield 'description not a string' => [
             ['name' => 'code-review', 'description' => 1],
-            'Prompt wire "description" must be a string or null, int given.',
+            'Prompt "description" must be a string or null, int given.',
         ];
 
         yield 'arguments not an array' => [
             ['name' => 'code-review', 'arguments' => 'oops'],
-            'Prompt wire "arguments" must be a list, string given.',
+            'Prompt "arguments" must be a list, string given.',
         ];
 
         yield 'argument entry not an object' => [
             ['name' => 'code-review', 'arguments' => ['oops']],
-            'Prompt wire argument entry must be an object, string given.',
+            'Prompt argument entry must be an object, string given.',
         ];
 
         yield 'argument entry list-keyed' => [
             ['name' => 'code-review', 'arguments' => [['x']]],
-            'Prompt wire argument entry must be a string-keyed object.',
+            'Prompt argument entry must be a string-keyed object.',
         ];
 
         yield 'icons not an array' => [
             ['name' => 'code-review', 'icons' => 'oops'],
-            'Prompt wire "icons" must be a list, string given.',
+            'Prompt "icons" must be a list, string given.',
         ];
 
         yield 'icon entry not an object' => [
             ['name' => 'code-review', 'icons' => ['oops']],
-            'Prompt wire icon entry must be an object, string given.',
+            'Prompt icon entry must be an object, string given.',
         ];
 
         yield 'icon entry list-keyed' => [
             ['name' => 'code-review', 'icons' => [['x']]],
-            'Prompt wire icon entry must be a string-keyed object.',
+            'Prompt icon entry must be a string-keyed object.',
         ];
 
         yield '_meta not an object' => [

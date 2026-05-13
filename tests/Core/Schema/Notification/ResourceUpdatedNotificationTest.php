@@ -77,8 +77,8 @@ final class ResourceUpdatedNotificationTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -89,21 +89,21 @@ final class ResourceUpdatedNotificationTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing params' => [
             ['jsonrpc' => '2.0', 'method' => 'notifications/resources/updated'],
-            'ResourceUpdatedNotification wire data missing "params".',
+            'ResourceUpdatedNotification data missing "params".',
         ];
 
         yield 'params not an object' => [
             ['jsonrpc' => '2.0', 'method' => 'notifications/resources/updated', 'params' => 'bad'],
-            'ResourceUpdatedNotification wire "params" must be an object, string given.',
+            'ResourceUpdatedNotification "params" must be an object, string given.',
         ];
 
         yield 'params list-keyed' => [
             ['jsonrpc' => '2.0', 'method' => 'notifications/resources/updated', 'params' => ['x']],
-            'ResourceUpdatedNotification wire "params" must be a string-keyed object.',
+            'ResourceUpdatedNotification "params" must be a string-keyed object.',
         ];
     }
 }

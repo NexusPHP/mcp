@@ -78,8 +78,8 @@ final class EnumOptionTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -90,26 +90,26 @@ final class EnumOptionTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing const' => [
             ['title' => 'x'],
-            'EnumOption wire data missing "const".',
+            'EnumOption data missing "const".',
         ];
 
         yield 'const not a string' => [
             ['const' => 1, 'title' => 'x'],
-            'EnumOption wire "const" must be a string, int given.',
+            'EnumOption "const" must be a string, int given.',
         ];
 
         yield 'missing title' => [
             ['const' => 'x'],
-            'EnumOption wire data missing "title".',
+            'EnumOption data missing "title".',
         ];
 
         yield 'title not a string' => [
             ['const' => 'x', 'title' => 1],
-            'EnumOption wire "title" must be a string, int given.',
+            'EnumOption "title" must be a string, int given.',
         ];
     }
 }

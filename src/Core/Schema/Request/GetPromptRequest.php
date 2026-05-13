@@ -43,14 +43,14 @@ final readonly class GetPromptRequest extends JsonRpcRequest implements ClientRe
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('id', 'GetPromptRequest wire data missing "id".');
+        Assert::that($data)->hasOffset('id', 'GetPromptRequest data missing "id".');
         $id = $data['id'];
-        Assert::that($id)->isArrayKey('GetPromptRequest wire "id" must be int or string, {type} given.');
+        Assert::that($id)->isArrayKey('GetPromptRequest "id" must be int or string, {type} given.');
 
-        Assert::that($data)->hasOffset('params', 'GetPromptRequest wire data missing "params".');
+        Assert::that($data)->hasOffset('params', 'GetPromptRequest data missing "params".');
         Assert::that($data['params'])
-            ->isArray('GetPromptRequest wire "params" must be an object, {type} given.')
-            ->isMap('GetPromptRequest wire "params" must be a string-keyed object.')
+            ->isArray('GetPromptRequest "params" must be an object, {type} given.')
+            ->isMap('GetPromptRequest "params" must be a string-keyed object.')
         ;
 
         return new self(new RequestId($id), GetPromptRequestParams::fromArray($data['params']));

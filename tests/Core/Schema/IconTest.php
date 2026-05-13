@@ -299,8 +299,8 @@ final class IconTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -311,36 +311,36 @@ final class IconTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing src' => [
             [],
-            'Icon wire data missing "src".',
+            'Icon data missing "src".',
         ];
 
         yield 'src not a string' => [
             ['src' => 1],
-            'Icon wire "src" must be a string, int given.',
+            'Icon "src" must be a string, int given.',
         ];
 
         yield 'mimeType not a string' => [
             ['src' => 'https://example.com/icon.png', 'mimeType' => 1],
-            'Icon wire "mimeType" must be a string or null, int given.',
+            'Icon "mimeType" must be a string or null, int given.',
         ];
 
         yield 'sizes not an array' => [
             ['src' => 'https://example.com/icon.png', 'sizes' => 'oops'],
-            'Icon wire "sizes" must be a list of strings or null, string given.',
+            'Icon "sizes" must be a list of strings or null, string given.',
         ];
 
         yield 'sizes entry not a string' => [
             ['src' => 'https://example.com/icon.png', 'sizes' => [1]],
-            'Icon wire "sizes" entry must be a string, int given.',
+            'Icon "sizes" entry must be a string, int given.',
         ];
 
         yield 'theme not a string' => [
             ['src' => 'https://example.com/icon.png', 'theme' => 1],
-            'Icon wire "theme" must be a string or null, int given.',
+            'Icon "theme" must be a string or null, int given.',
         ];
     }
 }

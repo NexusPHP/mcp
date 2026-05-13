@@ -171,8 +171,8 @@ final class ElicitRequestTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -183,36 +183,36 @@ final class ElicitRequestTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing id' => [
             ['params' => []],
-            'ElicitRequest wire data missing "id".',
+            'ElicitRequest data missing "id".',
         ];
 
         yield 'id not int or string' => [
             ['id' => 1.5, 'params' => []],
-            'ElicitRequest wire "id" must be int or string, float given.',
+            'ElicitRequest "id" must be int or string, float given.',
         ];
 
         yield 'missing params' => [
             ['id' => 'r'],
-            'ElicitRequest wire data missing "params".',
+            'ElicitRequest data missing "params".',
         ];
 
         yield 'params not an object' => [
             ['id' => 'r', 'params' => 'oops'],
-            'ElicitRequest wire "params" must be an object, string given.',
+            'ElicitRequest "params" must be an object, string given.',
         ];
 
         yield 'params list-keyed' => [
             ['id' => 'r', 'params' => ['x']],
-            'ElicitRequest wire "params" must be a string-keyed object.',
+            'ElicitRequest "params" must be a string-keyed object.',
         ];
 
         yield 'params mode not a string' => [
             ['id' => 'r', 'params' => ['mode' => 1]],
-            'ElicitRequest wire params "mode" must be a string, int given.',
+            'ElicitRequest params "mode" must be a string, int given.',
         ];
     }
 }

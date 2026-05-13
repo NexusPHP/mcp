@@ -95,44 +95,44 @@ final readonly class TitledMultiSelectEnumSchema implements Arrayable, MultiSele
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('type', 'TitledMultiSelectEnumSchema wire data missing "type".');
+        Assert::that($data)->hasOffset('type', 'TitledMultiSelectEnumSchema data missing "type".');
         $type = $data['type'];
-        Assert::that($type)->isIdentical(self::TYPE, \sprintf('TitledMultiSelectEnumSchema wire "type" must be "%s", {value} given.', self::TYPE));
+        Assert::that($type)->isIdentical(self::TYPE, \sprintf('TitledMultiSelectEnumSchema "type" must be "%s", {value} given.', self::TYPE));
 
-        Assert::that($data)->hasOffset('items', 'TitledMultiSelectEnumSchema wire data missing "items".');
+        Assert::that($data)->hasOffset('items', 'TitledMultiSelectEnumSchema data missing "items".');
         Assert::that($data['items'])
-            ->isArray('TitledMultiSelectEnumSchema wire "items" must be an object, {type} given.')
-            ->isMap('TitledMultiSelectEnumSchema wire "items" must be a string-keyed object.')
+            ->isArray('TitledMultiSelectEnumSchema "items" must be an object, {type} given.')
+            ->isMap('TitledMultiSelectEnumSchema "items" must be a string-keyed object.')
         ;
 
         $anyOf = $data['items']['anyOf'] ?? null;
         Assert::that($anyOf)
-            ->isArray('TitledMultiSelectEnumSchema wire items.anyOf must be a list, {type} given.')
-            ->isList('TitledMultiSelectEnumSchema wire items.anyOf must be a list, got non-list array.')
+            ->isArray('TitledMultiSelectEnumSchema items.anyOf must be a list, {type} given.')
+            ->isList('TitledMultiSelectEnumSchema items.anyOf must be a list, got non-list array.')
             ->values()
-            ->isArray('TitledMultiSelectEnumSchema wire items.anyOf entry must be an object, {type} given.')
-            ->isMap('TitledMultiSelectEnumSchema wire items.anyOf entry must be a string-keyed object.')
+            ->isArray('TitledMultiSelectEnumSchema items.anyOf entry must be an object, {type} given.')
+            ->isMap('TitledMultiSelectEnumSchema items.anyOf entry must be a string-keyed object.')
         ;
         $items = array_map(EnumOption::fromArray(...), $anyOf);
 
         $title = $data['title'] ?? null;
-        Assert::that($title)->nullOr()->isString('TitledMultiSelectEnumSchema wire "title" must be a string or null, {type} given.');
+        Assert::that($title)->nullOr()->isString('TitledMultiSelectEnumSchema "title" must be a string or null, {type} given.');
 
         $description = $data['description'] ?? null;
-        Assert::that($description)->nullOr()->isString('TitledMultiSelectEnumSchema wire "description" must be a string or null, {type} given.');
+        Assert::that($description)->nullOr()->isString('TitledMultiSelectEnumSchema "description" must be a string or null, {type} given.');
 
         $minItems = $data['minItems'] ?? null;
-        Assert::that($minItems)->nullOr()->isInt('TitledMultiSelectEnumSchema wire "minItems" must be an int or null, {type} given.');
+        Assert::that($minItems)->nullOr()->isInt('TitledMultiSelectEnumSchema "minItems" must be an int or null, {type} given.');
 
         $maxItems = $data['maxItems'] ?? null;
-        Assert::that($maxItems)->nullOr()->isInt('TitledMultiSelectEnumSchema wire "maxItems" must be an int or null, {type} given.');
+        Assert::that($maxItems)->nullOr()->isInt('TitledMultiSelectEnumSchema "maxItems" must be an int or null, {type} given.');
 
         $default = null;
 
         if (isset($data['default'])) {
             Assert::that($data['default'])
-                ->isList('TitledMultiSelectEnumSchema wire "default" must be a list, got non-list array.')
-                ->values()->isString('TitledMultiSelectEnumSchema wire default entry must be a string, {type} given.')
+                ->isList('TitledMultiSelectEnumSchema "default" must be a list, got non-list array.')
+                ->values()->isString('TitledMultiSelectEnumSchema default entry must be a string, {type} given.')
             ;
             $default = $data['default'];
         }

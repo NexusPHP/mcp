@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\Enum;
 
 /**
- * Error codes for protocol errors that cross the wire as JSON-RPC error responses.
+ * Error codes for protocol errors that are transmitted as JSON-RPC error responses.
  *
  * @see https://www.jsonrpc.org/specification#error_object
  */

@@ -41,10 +41,10 @@ final readonly class ElicitationCompleteNotification extends JsonRpcNotification
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('params', 'ElicitationCompleteNotification wire data missing "params".');
+        Assert::that($data)->hasOffset('params', 'ElicitationCompleteNotification data missing "params".');
         Assert::that($data['params'])
-            ->isArray('ElicitationCompleteNotification wire "params" must be an object, {type} given.')
-            ->isMap('ElicitationCompleteNotification wire "params" must be a string-keyed object.')
+            ->isArray('ElicitationCompleteNotification "params" must be an object, {type} given.')
+            ->isMap('ElicitationCompleteNotification "params" must be a string-keyed object.')
         ;
 
         return new self(ElicitationCompleteNotificationParams::fromArray($data['params']));

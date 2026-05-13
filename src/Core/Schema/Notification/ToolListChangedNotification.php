@@ -41,8 +41,8 @@ final readonly class ToolListChangedNotification extends JsonRpcNotification imp
 
         if (\array_key_exists('params', $data)) {
             Assert::that($data['params'])
-                ->isArray('ToolListChangedNotification wire "params" must be an object, {type} given.')
-                ->isMap('ToolListChangedNotification wire "params" must be a string-keyed object.')
+                ->isArray('ToolListChangedNotification "params" must be an object, {type} given.')
+                ->isMap('ToolListChangedNotification "params" must be a string-keyed object.')
             ;
             $params = EmptyNotificationParams::fromArray($data['params']);
         }

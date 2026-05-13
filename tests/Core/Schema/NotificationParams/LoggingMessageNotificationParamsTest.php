@@ -215,8 +215,8 @@ final class LoggingMessageNotificationParamsTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -227,26 +227,26 @@ final class LoggingMessageNotificationParamsTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing level' => [
             ['data' => 'x'],
-            'LoggingMessageNotificationParams wire data missing "level".',
+            'LoggingMessageNotificationParams data missing "level".',
         ];
 
         yield 'level not a string' => [
             ['level' => 1, 'data' => 'x'],
-            'LoggingMessageNotificationParams wire "level" must be a string, int given.',
+            'LoggingMessageNotificationParams "level" must be a string, int given.',
         ];
 
         yield 'missing data' => [
             ['level' => 'info'],
-            'LoggingMessageNotificationParams wire data missing "data".',
+            'LoggingMessageNotificationParams data missing "data".',
         ];
 
         yield 'logger not a string' => [
             ['level' => 'info', 'data' => 'x', 'logger' => 1],
-            'LoggingMessageNotificationParams wire "logger" must be a string or null, int given.',
+            'LoggingMessageNotificationParams "logger" must be a string or null, int given.',
         ];
 
         yield '_meta not an object' => [

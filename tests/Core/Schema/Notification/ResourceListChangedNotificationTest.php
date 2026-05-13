@@ -107,7 +107,7 @@ final class ResourceListChangedNotificationTest extends TestCase
     public function testFromArrayRejectsNonObjectParams(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('ResourceListChangedNotification wire "params" must be an object, string given.');
+        $this->expectExceptionMessage('ResourceListChangedNotification "params" must be an object, string given.');
 
         ResourceListChangedNotification::fromArray([
             'jsonrpc' => '2.0',

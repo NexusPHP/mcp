@@ -166,8 +166,8 @@ final class ElicitRequestFormParamsTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -178,36 +178,36 @@ final class ElicitRequestFormParamsTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'mode not a string' => [
             ['mode' => 1, 'message' => 'm', 'requestedSchema' => ['type' => 'object', 'properties' => []]],
-            'ElicitRequestFormParams wire "mode" must be a string, int given.',
+            'ElicitRequestFormParams "mode" must be a string, int given.',
         ];
 
         yield 'missing message' => [
             ['requestedSchema' => ['type' => 'object', 'properties' => []]],
-            'ElicitRequestFormParams wire data missing "message".',
+            'ElicitRequestFormParams data missing "message".',
         ];
 
         yield 'message not a string' => [
             ['message' => 1, 'requestedSchema' => ['type' => 'object', 'properties' => []]],
-            'ElicitRequestFormParams wire "message" must be a string, int given.',
+            'ElicitRequestFormParams "message" must be a string, int given.',
         ];
 
         yield 'missing requestedSchema' => [
             ['message' => 'm'],
-            'ElicitRequestFormParams wire data missing "requestedSchema".',
+            'ElicitRequestFormParams data missing "requestedSchema".',
         ];
 
         yield 'requestedSchema not an object' => [
             ['message' => 'm', 'requestedSchema' => 'oops'],
-            'ElicitRequestFormParams wire "requestedSchema" must be an object, string given.',
+            'ElicitRequestFormParams "requestedSchema" must be an object, string given.',
         ];
 
         yield 'requestedSchema list-keyed' => [
             ['message' => 'm', 'requestedSchema' => ['x']],
-            'ElicitRequestFormParams wire "requestedSchema" must be a string-keyed object.',
+            'ElicitRequestFormParams "requestedSchema" must be a string-keyed object.',
         ];
     }
 }

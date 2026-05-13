@@ -43,14 +43,14 @@ final readonly class ReadResourceRequest extends JsonRpcRequest implements Clien
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('id', 'ReadResourceRequest wire data missing "id".');
+        Assert::that($data)->hasOffset('id', 'ReadResourceRequest data missing "id".');
         $id = $data['id'];
-        Assert::that($id)->isArrayKey('ReadResourceRequest wire "id" must be int or string, {type} given.');
+        Assert::that($id)->isArrayKey('ReadResourceRequest "id" must be int or string, {type} given.');
 
-        Assert::that($data)->hasOffset('params', 'ReadResourceRequest wire data missing "params".');
+        Assert::that($data)->hasOffset('params', 'ReadResourceRequest data missing "params".');
         Assert::that($data['params'])
-            ->isArray('ReadResourceRequest wire "params" must be an object, {type} given.')
-            ->isMap('ReadResourceRequest wire "params" must be a string-keyed object.')
+            ->isArray('ReadResourceRequest "params" must be an object, {type} given.')
+            ->isMap('ReadResourceRequest "params" must be a string-keyed object.')
         ;
 
         return new self(

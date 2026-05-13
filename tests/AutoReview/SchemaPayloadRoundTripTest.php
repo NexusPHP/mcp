@@ -18,7 +18,7 @@ use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
- * Pins the wire shape of standalone schema payload types — value objects
+ * Pins the shape of standalone schema payload types — value objects
  * that appear inside JSON-RPC envelopes but also have meaningful identity
  * on their own. Each fixture is a hand-authored, pretty-printed JSON file
  * under `schema-payload/{Class}/{variant}.json`. The test decodes the
@@ -26,7 +26,7 @@ use PHPUnit\Framework\Attributes\Group;
  * with `JSON_PRETTY_PRINT`, and asserts the string round-trips byte-for-byte.
  *
  * The registry auto-discovers every concrete `Arrayable` outside the
- * wire-envelope namespaces (those are covered by
+ * envelope namespaces (those are covered by
  * `JsonRpcEnvelopeRoundTripTest`). Adding a new payload class therefore
  * forces a fixture or the auto-review build fails.
  *
@@ -82,7 +82,7 @@ final class SchemaPayloadRoundTripTest extends AbstractRoundTripTestCase
 
     /**
      * Schema payload fixture registry, auto-derived from `src/Core/Schema/`:
-     * every concrete `Arrayable` outside the wire-envelope namespaces
+     * every concrete `Arrayable` outside the envelope namespaces
      * appears here keyed by short class name, and each must have on-disk
      * fixtures under `schema-payload/{ShortName}/`.
      *

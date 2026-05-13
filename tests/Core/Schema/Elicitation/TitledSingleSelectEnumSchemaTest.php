@@ -132,8 +132,8 @@ final class TitledSingleSelectEnumSchemaTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -144,51 +144,51 @@ final class TitledSingleSelectEnumSchemaTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing type' => [
             ['oneOf' => []],
-            'TitledSingleSelectEnumSchema wire data missing "type".',
+            'TitledSingleSelectEnumSchema data missing "type".',
         ];
 
         yield 'wrong type literal' => [
             ['type' => 'number', 'oneOf' => []],
-            'TitledSingleSelectEnumSchema wire "type" must be "string", \'number\' given.',
+            'TitledSingleSelectEnumSchema "type" must be "string", \'number\' given.',
         ];
 
         yield 'missing oneOf' => [
             ['type' => 'string'],
-            'TitledSingleSelectEnumSchema wire data missing "oneOf".',
+            'TitledSingleSelectEnumSchema data missing "oneOf".',
         ];
 
         yield 'oneOf not a list' => [
             ['type' => 'string', 'oneOf' => ['k' => []]],
-            'TitledSingleSelectEnumSchema wire "oneOf" must be a list, got non-list array.',
+            'TitledSingleSelectEnumSchema "oneOf" must be a list, got non-list array.',
         ];
 
         yield 'oneOf entry not an object' => [
             ['type' => 'string', 'oneOf' => ['oops']],
-            'TitledSingleSelectEnumSchema wire oneOf entry must be an object, string given.',
+            'TitledSingleSelectEnumSchema oneOf entry must be an object, string given.',
         ];
 
         yield 'oneOf entry list-keyed' => [
             ['type' => 'string', 'oneOf' => [['x']]],
-            'TitledSingleSelectEnumSchema wire oneOf entry must be a string-keyed object.',
+            'TitledSingleSelectEnumSchema oneOf entry must be a string-keyed object.',
         ];
 
         yield 'title not a string' => [
             ['type' => 'string', 'oneOf' => [], 'title' => 1],
-            'TitledSingleSelectEnumSchema wire "title" must be a string or null, int given.',
+            'TitledSingleSelectEnumSchema "title" must be a string or null, int given.',
         ];
 
         yield 'description not a string' => [
             ['type' => 'string', 'oneOf' => [], 'description' => 1],
-            'TitledSingleSelectEnumSchema wire "description" must be a string or null, int given.',
+            'TitledSingleSelectEnumSchema "description" must be a string or null, int given.',
         ];
 
         yield 'default not a string' => [
             ['type' => 'string', 'oneOf' => [], 'default' => 1],
-            'TitledSingleSelectEnumSchema wire "default" must be a string or null, int given.',
+            'TitledSingleSelectEnumSchema "default" must be a string or null, int given.',
         ];
     }
 }

@@ -71,35 +71,35 @@ final readonly class UrlElicitationRequiredError implements Arrayable
     public static function fromArray(array $data): static
     {
         $id = $data['id'] ?? null;
-        Assert::that($id)->nullOr()->isArrayKey('UrlElicitationRequiredError wire "id" must be int, string, or null; {type} given.');
+        Assert::that($id)->nullOr()->isArrayKey('UrlElicitationRequiredError "id" must be int, string, or null; {type} given.');
 
-        Assert::that($data)->hasOffset('error', 'UrlElicitationRequiredError wire data missing "error".');
+        Assert::that($data)->hasOffset('error', 'UrlElicitationRequiredError data missing "error".');
         Assert::that($data['error'])
-            ->isArray('UrlElicitationRequiredError wire "error" must be an object, {type} given.')
-            ->isMap('UrlElicitationRequiredError wire "error" must be a string-keyed object.')
+            ->isArray('UrlElicitationRequiredError "error" must be an object, {type} given.')
+            ->isMap('UrlElicitationRequiredError "error" must be a string-keyed object.')
         ;
 
         $errorData = $data['error'];
 
-        Assert::that($errorData)->hasOffset('data', 'UrlElicitationRequiredError wire error data missing "data".');
+        Assert::that($errorData)->hasOffset('data', 'UrlElicitationRequiredError error data missing "data".');
         Assert::that($errorData['data'])
-            ->isArray('UrlElicitationRequiredError wire error "data" must be an object, {type} given.')
-            ->isMap('UrlElicitationRequiredError wire error "data" must be a string-keyed object.')
+            ->isArray('UrlElicitationRequiredError error "data" must be an object, {type} given.')
+            ->isMap('UrlElicitationRequiredError error "data" must be a string-keyed object.')
         ;
 
         $payload = $errorData['data'];
 
-        Assert::that($payload)->hasOffset('elicitations', 'UrlElicitationRequiredError wire error data missing "elicitations".');
+        Assert::that($payload)->hasOffset('elicitations', 'UrlElicitationRequiredError error data missing "elicitations".');
         Assert::that($payload['elicitations'])
-            ->isList('UrlElicitationRequiredError wire "elicitations" must be a list, got non-list array.')
+            ->isList('UrlElicitationRequiredError "elicitations" must be a list, got non-list array.')
             ->values()
-            ->isArray('UrlElicitationRequiredError wire elicitations entry must be an object, {type} given.')
-            ->isMap('UrlElicitationRequiredError wire elicitations entry must be a string-keyed object.')
+            ->isArray('UrlElicitationRequiredError elicitations entry must be an object, {type} given.')
+            ->isMap('UrlElicitationRequiredError elicitations entry must be a string-keyed object.')
         ;
         $elicitations = array_map(ElicitRequestUrlParams::fromArray(...), $payload['elicitations']);
 
         $message = $errorData['message'] ?? null;
-        Assert::that($message)->isString('UrlElicitationRequiredError wire error "message" must be a string, {type} given.');
+        Assert::that($message)->isString('UrlElicitationRequiredError error "message" must be a string, {type} given.');
 
         $error = new UrlElicitationRequiredErrorPayload($message, $payload);
 

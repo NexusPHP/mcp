@@ -98,20 +98,20 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('name', 'Tool wire data missing "name".');
+        Assert::that($data)->hasOffset('name', 'Tool data missing "name".');
         $name = $data['name'];
-        Assert::that($name)->isString('Tool wire "name" must be a string, {type} given.');
+        Assert::that($name)->isString('Tool "name" must be a string, {type} given.');
 
         $title = $data['title'] ?? null;
-        Assert::that($title)->nullOr()->isString('Tool wire "title" must be a string or null, {type} given.');
+        Assert::that($title)->nullOr()->isString('Tool "title" must be a string or null, {type} given.');
 
         $description = $data['description'] ?? null;
-        Assert::that($description)->nullOr()->isString('Tool wire "description" must be a string or null, {type} given.');
+        Assert::that($description)->nullOr()->isString('Tool "description" must be a string or null, {type} given.');
 
-        Assert::that($data)->hasOffset('inputSchema', 'Tool wire data missing "inputSchema".');
+        Assert::that($data)->hasOffset('inputSchema', 'Tool data missing "inputSchema".');
         Assert::that($data['inputSchema'])
-            ->isArray('Tool wire "inputSchema" must be an object, {type} given.')
-            ->isMap('Tool wire "inputSchema" must be a string-keyed object.')
+            ->isArray('Tool "inputSchema" must be an object, {type} given.')
+            ->isMap('Tool "inputSchema" must be a string-keyed object.')
         ;
         $inputSchema = $data['inputSchema'];
 
@@ -119,8 +119,8 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
 
         if (\array_key_exists('outputSchema', $data)) {
             Assert::that($data['outputSchema'])
-                ->isArray('Tool wire "outputSchema" must be an object, {type} given.')
-                ->isMap('Tool wire "outputSchema" must be a string-keyed object.')
+                ->isArray('Tool "outputSchema" must be an object, {type} given.')
+                ->isMap('Tool "outputSchema" must be a string-keyed object.')
             ;
             $outputSchema = $data['outputSchema'];
         }
@@ -129,8 +129,8 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
 
         if (\array_key_exists('annotations', $data)) {
             Assert::that($data['annotations'])
-                ->isArray('Tool wire "annotations" must be an object, {type} given.')
-                ->isMap('Tool wire "annotations" must be a string-keyed object.')
+                ->isArray('Tool "annotations" must be an object, {type} given.')
+                ->isMap('Tool "annotations" must be a string-keyed object.')
             ;
             $annotations = ToolAnnotations::fromArray($data['annotations']);
         }
@@ -139,8 +139,8 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
 
         if (\array_key_exists('execution', $data)) {
             Assert::that($data['execution'])
-                ->isArray('Tool wire "execution" must be an object, {type} given.')
-                ->isMap('Tool wire "execution" must be a string-keyed object.')
+                ->isArray('Tool "execution" must be an object, {type} given.')
+                ->isMap('Tool "execution" must be a string-keyed object.')
             ;
             $execution = ToolExecution::fromArray($data['execution']);
         }
@@ -149,15 +149,15 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
 
         if (isset($data['icons'])) {
             Assert::that($data['icons'])
-                ->isList('Tool wire "icons" must be a list, {type} given.')
+                ->isList('Tool "icons" must be a list, {type} given.')
                 ->values()
-                ->isArray('Tool wire icon entry must be an object, {type} given.')
-                ->isMap('Tool wire icon entry must be a string-keyed object.')
+                ->isArray('Tool icon entry must be an object, {type} given.')
+                ->isMap('Tool icon entry must be a string-keyed object.')
             ;
             $icons = array_map(Icon::fromArray(...), $data['icons']);
         }
 
-        $meta = MetaObject::parseFromWire($data, 'Tool');
+        $meta = MetaObject::parseFrom($data, 'Tool');
 
         return new self($name, $inputSchema, $title, $description, $outputSchema, $annotations, $execution, $icons, $meta);
     }
@@ -220,7 +220,7 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
     }
 
     /**
-     * Validates a wire-shape JSON Schema envelope and projects it to the typed
+     * Validates a JSON Schema envelope and projects it to the typed
      * `ToolSchemaShape`. Per-property values inside `properties` stay opaque
      * (`array<string, mixed>`) per spec, so the projection narrows their inner
      * shape only as far as `array<string, mixed>`.

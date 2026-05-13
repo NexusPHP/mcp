@@ -66,8 +66,8 @@ final class GetTaskRequestTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -78,31 +78,31 @@ final class GetTaskRequestTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing id' => [
             ['jsonrpc' => '2.0', 'method' => 'tasks/get'],
-            'GetTaskRequest wire data missing "id".',
+            'GetTaskRequest data missing "id".',
         ];
 
         yield 'id not int or string' => [
             ['jsonrpc' => '2.0', 'id' => [], 'method' => 'tasks/get'],
-            'GetTaskRequest wire "id" must be int or string, array given.',
+            'GetTaskRequest "id" must be int or string, array given.',
         ];
 
         yield 'missing params' => [
             ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tasks/get'],
-            'GetTaskRequest wire data missing "params".',
+            'GetTaskRequest data missing "params".',
         ];
 
         yield 'params not an object' => [
             ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tasks/get', 'params' => 'bad'],
-            'GetTaskRequest wire "params" must be an object, string given.',
+            'GetTaskRequest "params" must be an object, string given.',
         ];
 
         yield 'params list-keyed' => [
             ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tasks/get', 'params' => ['x']],
-            'GetTaskRequest wire "params" must be a string-keyed object.',
+            'GetTaskRequest "params" must be a string-keyed object.',
         ];
     }
 }

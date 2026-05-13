@@ -36,7 +36,7 @@ final readonly class TaskStatusNotificationParams extends NotificationParams
     public static function fromArray(array $data): static
     {
         $task = Task::fromArray($data);
-        $meta = MetaObject::parseFromWire($data, 'Notification params');
+        $meta = MetaObject::parseFrom($data, 'Notification params');
 
         return new self($task, $meta);
     }

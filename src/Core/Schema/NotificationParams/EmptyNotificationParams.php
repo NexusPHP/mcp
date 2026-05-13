@@ -26,7 +26,7 @@ final readonly class EmptyNotificationParams extends NotificationParams
     #[\Override]
     public static function fromArray(array $data): static
     {
-        $meta = MetaObject::parseFromWire($data, 'Notification params');
+        $meta = MetaObject::parseFrom($data, 'Notification params');
 
         return new self($meta);
     }

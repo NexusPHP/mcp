@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\Result;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\JsonRpc\WireDiscriminator;
+use Nexus\Mcp\Core\JsonRpc\MessageDiscriminator;
 use Nexus\Mcp\Core\Schema\ContentBlock\AudioContent;
 use Nexus\Mcp\Core\Schema\ContentBlock\ImageContent;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
@@ -77,28 +77,28 @@ final readonly class CreateMessageResult extends Result implements ClientResult
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('model', 'CreateMessageResult wire data missing "model".');
+        Assert::that($data)->hasOffset('model', 'CreateMessageResult data missing "model".');
         $model = $data['model'];
-        Assert::that($model)->isString('CreateMessageResult wire "model" must be a string, {type} given.');
+        Assert::that($model)->isString('CreateMessageResult "model" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('role', 'CreateMessageResult wire data missing "role".');
+        Assert::that($data)->hasOffset('role', 'CreateMessageResult data missing "role".');
         $role = $data['role'];
-        Assert::that($role)->isString('CreateMessageResult wire "role" must be a string, {type} given.');
+        Assert::that($role)->isString('CreateMessageResult "role" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('content', 'CreateMessageResult wire data missing "content".');
-        Assert::that($data['content'])->isArray('CreateMessageResult wire "content" must be an object or array, {type} given.');
+        Assert::that($data)->hasOffset('content', 'CreateMessageResult data missing "content".');
+        Assert::that($data['content'])->isArray('CreateMessageResult "content" must be an object or array, {type} given.');
 
         if ([] === $data['content'] || array_is_list($data['content'])) {
             $content = self::parseContentList($data['content']);
         } else {
-            Assert::that($data['content'])->isMap('CreateMessageResult wire "content" must be a string-keyed object.');
+            Assert::that($data['content'])->isMap('CreateMessageResult "content" must be a string-keyed object.');
             $content = self::parseContentBlock($data['content']);
         }
 
         $stopReason = $data['stopReason'] ?? null;
-        Assert::that($stopReason)->nullOr()->isString('CreateMessageResult wire "stopReason" must be a string or null, {type} given.');
+        Assert::that($stopReason)->nullOr()->isString('CreateMessageResult "stopReason" must be a string or null, {type} given.');
 
-        $meta = MetaObject::parseFromWire($data, 'Result');
+        $meta = MetaObject::parseFrom($data, 'Result');
 
         return new self($model, Role::from($role), $content, $stopReason, $meta);
     }
@@ -156,8 +156,8 @@ final readonly class CreateMessageResult extends Result implements ClientResult
 
         foreach ($value as $entry) {
             Assert::that($entry)
-                ->isArray('CreateMessageResult wire content entry must be an object, {type} given.')
-                ->isMap('CreateMessageResult wire content entry must be a string-keyed object.')
+                ->isArray('CreateMessageResult content entry must be an object, {type} given.')
+                ->isMap('CreateMessageResult content entry must be a string-keyed object.')
             ;
             $blocks[] = self::parseContentBlock($entry);
         }
@@ -172,7 +172,7 @@ final readonly class CreateMessageResult extends Result implements ClientResult
      */
     private static function parseContentBlock(array $data): AudioContent|ImageContent|TextContent|ToolResultContent|ToolUseContent
     {
-        $type = WireDiscriminator::readType($data, 'CreateMessageResult content');
+        $type = MessageDiscriminator::readType($data, 'CreateMessageResult content');
 
         return match ($type) {
             TextContent::TYPE => TextContent::fromArray($data),
@@ -180,7 +180,7 @@ final readonly class CreateMessageResult extends Result implements ClientResult
             AudioContent::TYPE => AudioContent::fromArray($data),
             ToolUseContent::TYPE => ToolUseContent::fromArray($data),
             ToolResultContent::TYPE => ToolResultContent::fromArray($data),
-            default => throw WireDiscriminator::unknownType(
+            default => throw MessageDiscriminator::unknownType(
                 'CreateMessageResult content',
                 [TextContent::TYPE, ImageContent::TYPE, AudioContent::TYPE, ToolUseContent::TYPE, ToolResultContent::TYPE],
                 $type,

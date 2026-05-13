@@ -50,16 +50,16 @@ final readonly class ListRootsResult extends Result implements ClientResult
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('roots', 'ListRootsResult wire data missing "roots".');
+        Assert::that($data)->hasOffset('roots', 'ListRootsResult data missing "roots".');
         Assert::that($data['roots'])
-            ->isList('ListRootsResult wire "roots" must be a list, {type} given.')
+            ->isList('ListRootsResult "roots" must be a list, {type} given.')
             ->values()
-            ->isArray('ListRootsResult wire root entry must be an object, {type} given.')
-            ->isMap('ListRootsResult wire root entry must be a string-keyed object.')
+            ->isArray('ListRootsResult root entry must be an object, {type} given.')
+            ->isMap('ListRootsResult root entry must be a string-keyed object.')
         ;
         $roots = array_map(Root::fromArray(...), $data['roots']);
 
-        $meta = MetaObject::parseFromWire($data, 'Result');
+        $meta = MetaObject::parseFrom($data, 'Result');
 
         return new self($roots, $meta);
     }

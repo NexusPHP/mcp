@@ -60,27 +60,27 @@ final readonly class ElicitResult extends Result implements ClientResult
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('action', 'ElicitResult wire data missing "action".');
+        Assert::that($data)->hasOffset('action', 'ElicitResult data missing "action".');
         $action = $data['action'];
-        Assert::that($action)->isString('ElicitResult wire "action" must be a string, {type} given.');
+        Assert::that($action)->isString('ElicitResult "action" must be a string, {type} given.');
 
         $content = null;
 
         if (\array_key_exists('content', $data)) {
             Assert::that($data['content'])
-                ->isArray('ElicitResult wire "content" must be an object, {type} given.')
-                ->isMap('ElicitResult wire "content" must be a string-keyed object.')
+                ->isArray('ElicitResult "content" must be an object, {type} given.')
+                ->isMap('ElicitResult "content" must be a string-keyed object.')
             ;
 
             foreach ($data['content'] as $key => $value) {
-                self::validateValue('wire content entry '.$key, $value);
+                self::validateValue('content entry '.$key, $value);
             }
 
             /** @var array<string, bool|int|list<string>|string> $content */
             $content = $data['content'];
         }
 
-        $meta = MetaObject::parseFromWire($data, 'Result');
+        $meta = MetaObject::parseFrom($data, 'Result');
 
         return new self(ElicitAction::from($action), $content, $meta);
     }

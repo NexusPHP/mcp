@@ -222,8 +222,8 @@ final class TaskTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -234,7 +234,7 @@ final class TaskTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         $valid = [
             'taskId' => 'task-abc',
@@ -244,35 +244,35 @@ final class TaskTest extends TestCase
             'ttl' => null,
         ];
 
-        yield 'missing taskId' => [['status' => 'working'], 'Task wire data missing "taskId".'];
+        yield 'missing taskId' => [['status' => 'working'], 'Task data missing "taskId".'];
 
-        yield 'taskId not a string' => [[...$valid, 'taskId' => 42], 'Task wire "taskId" must be a string, int given.'];
+        yield 'taskId not a string' => [[...$valid, 'taskId' => 42], 'Task "taskId" must be a string, int given.'];
 
-        yield 'missing status' => [['taskId' => 'task-abc'], 'Task wire data missing "status".'];
+        yield 'missing status' => [['taskId' => 'task-abc'], 'Task data missing "status".'];
 
-        yield 'status not a string' => [[...$valid, 'status' => 42], 'Task wire "status" must be a string, int given.'];
+        yield 'status not a string' => [[...$valid, 'status' => 42], 'Task "status" must be a string, int given.'];
 
-        yield 'missing createdAt' => [['taskId' => 'task-abc', 'status' => 'working'], 'Task wire data missing "createdAt".'];
+        yield 'missing createdAt' => [['taskId' => 'task-abc', 'status' => 'working'], 'Task data missing "createdAt".'];
 
-        yield 'createdAt not a string' => [[...$valid, 'createdAt' => 42], 'Task wire "createdAt" must be a string, int given.'];
+        yield 'createdAt not a string' => [[...$valid, 'createdAt' => 42], 'Task "createdAt" must be a string, int given.'];
 
         yield 'missing lastUpdatedAt' => [
             ['taskId' => 'task-abc', 'status' => 'working', 'createdAt' => '2026-05-10T12:00:00+00:00'],
-            'Task wire data missing "lastUpdatedAt".',
+            'Task data missing "lastUpdatedAt".',
         ];
 
-        yield 'lastUpdatedAt not a string' => [[...$valid, 'lastUpdatedAt' => 42], 'Task wire "lastUpdatedAt" must be a string, int given.'];
+        yield 'lastUpdatedAt not a string' => [[...$valid, 'lastUpdatedAt' => 42], 'Task "lastUpdatedAt" must be a string, int given.'];
 
         yield 'missing ttl' => [
             ['taskId' => 'task-abc', 'status' => 'working', 'createdAt' => '2026-05-10T12:00:00+00:00', 'lastUpdatedAt' => '2026-05-10T12:00:30+00:00'],
-            'Task wire data missing "ttl".',
+            'Task data missing "ttl".',
         ];
 
-        yield 'ttl wrong type' => [[...$valid, 'ttl' => 'oops'], 'Task wire "ttl" must be an int or null, string given.'];
+        yield 'ttl wrong type' => [[...$valid, 'ttl' => 'oops'], 'Task "ttl" must be an int or null, string given.'];
 
-        yield 'statusMessage wrong type' => [[...$valid, 'statusMessage' => 42], 'Task wire "statusMessage" must be a string or null, int given.'];
+        yield 'statusMessage wrong type' => [[...$valid, 'statusMessage' => 42], 'Task "statusMessage" must be a string or null, int given.'];
 
-        yield 'pollInterval wrong type' => [[...$valid, 'pollInterval' => 'oops'], 'Task wire "pollInterval" must be an int or null, string given.'];
+        yield 'pollInterval wrong type' => [[...$valid, 'pollInterval' => 'oops'], 'Task "pollInterval" must be an int or null, string given.'];
     }
 
     public function testFromArrayParsesAllOptionalFields(): void

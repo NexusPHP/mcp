@@ -167,8 +167,8 @@ final class CallToolResultTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -179,51 +179,51 @@ final class CallToolResultTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing content' => [
             [],
-            'CallToolResult wire data missing "content".',
+            'CallToolResult data missing "content".',
         ];
 
         yield 'content not an array' => [
             ['content' => 'oops'],
-            'CallToolResult wire "content" must be a list, string given.',
+            'CallToolResult "content" must be a list, string given.',
         ];
 
         yield 'content entry not an object' => [
             ['content' => ['oops']],
-            'CallToolResult wire content entry must be an object, string given.',
+            'CallToolResult content entry must be an object, string given.',
         ];
 
         yield 'content entry list-keyed' => [
             ['content' => [['x']]],
-            'CallToolResult wire content entry must be a string-keyed object.',
+            'CallToolResult content entry must be a string-keyed object.',
         ];
 
         yield 'content entry missing type' => [
             ['content' => [['text' => 'x']]],
-            'CallToolResult content wire data missing "type".',
+            'CallToolResult content data missing "type".',
         ];
 
         yield 'content entry unknown type' => [
             ['content' => [['type' => 'unknown']]],
-            'CallToolResult content wire "type" must be one of "text", "image", "audio", "resource_link", "resource"; "unknown" given.',
+            'CallToolResult content "type" must be one of "text", "image", "audio", "resource_link", "resource"; "unknown" given.',
         ];
 
         yield 'structuredContent not an object' => [
             ['content' => [], 'structuredContent' => 'oops'],
-            'CallToolResult wire "structuredContent" must be an object, string given.',
+            'CallToolResult "structuredContent" must be an object, string given.',
         ];
 
         yield 'structuredContent list-keyed' => [
             ['content' => [], 'structuredContent' => ['x']],
-            'CallToolResult wire "structuredContent" must be a string-keyed object.',
+            'CallToolResult "structuredContent" must be a string-keyed object.',
         ];
 
         yield 'isError not a bool' => [
             ['content' => [], 'isError' => 'oops'],
-            'CallToolResult wire "isError" must be a bool or null, string given.',
+            'CallToolResult "isError" must be a bool or null, string given.',
         ];
 
         yield '_meta not an object' => [

@@ -117,8 +117,8 @@ final class ReadResourceRequestParamsTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -129,16 +129,16 @@ final class ReadResourceRequestParamsTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing uri' => [
             [],
-            'ReadResourceRequestParams wire data missing "uri".',
+            'ReadResourceRequestParams data missing "uri".',
         ];
 
         yield 'uri not a string' => [
             ['uri' => 1],
-            'ReadResourceRequestParams wire "uri" must be a string, int given.',
+            'ReadResourceRequestParams "uri" must be a string, int given.',
         ];
 
         yield '_meta not an object' => [

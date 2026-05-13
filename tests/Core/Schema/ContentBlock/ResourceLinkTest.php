@@ -220,8 +220,8 @@ final class ResourceLinkTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -232,81 +232,81 @@ final class ResourceLinkTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing type' => [
             ['name' => 'my-link', 'uri' => 'file:///tmp/x'],
-            'ResourceLink wire data missing "type".',
+            'ResourceLink data missing "type".',
         ];
 
         yield 'wrong type literal' => [
             ['type' => 'resource', 'name' => 'my-link', 'uri' => 'file:///tmp/x'],
-            'ResourceLink wire "type" must be "resource_link", \'resource\' given.',
+            'ResourceLink "type" must be "resource_link", \'resource\' given.',
         ];
 
         yield 'missing name' => [
             ['type' => 'resource_link', 'uri' => 'file:///tmp/x'],
-            'ResourceLink wire data missing "name".',
+            'ResourceLink data missing "name".',
         ];
 
         yield 'name not a string' => [
             ['type' => 'resource_link', 'name' => 1, 'uri' => 'file:///tmp/x'],
-            'ResourceLink wire "name" must be a string, int given.',
+            'ResourceLink "name" must be a string, int given.',
         ];
 
         yield 'missing uri' => [
             ['type' => 'resource_link', 'name' => 'my-link'],
-            'ResourceLink wire data missing "uri".',
+            'ResourceLink data missing "uri".',
         ];
 
         yield 'uri not a string' => [
             ['type' => 'resource_link', 'name' => 'my-link', 'uri' => 1],
-            'ResourceLink wire "uri" must be a string, int given.',
+            'ResourceLink "uri" must be a string, int given.',
         ];
 
         yield 'title not a string' => [
             ['type' => 'resource_link', 'name' => 'my-link', 'uri' => 'file:///tmp/x', 'title' => 1],
-            'ResourceLink wire "title" must be a string or null, int given.',
+            'ResourceLink "title" must be a string or null, int given.',
         ];
 
         yield 'description not a string' => [
             ['type' => 'resource_link', 'name' => 'my-link', 'uri' => 'file:///tmp/x', 'description' => 1],
-            'ResourceLink wire "description" must be a string or null, int given.',
+            'ResourceLink "description" must be a string or null, int given.',
         ];
 
         yield 'mimeType not a string' => [
             ['type' => 'resource_link', 'name' => 'my-link', 'uri' => 'file:///tmp/x', 'mimeType' => 1],
-            'ResourceLink wire "mimeType" must be a string or null, int given.',
+            'ResourceLink "mimeType" must be a string or null, int given.',
         ];
 
         yield 'annotations not an object' => [
             ['type' => 'resource_link', 'name' => 'my-link', 'uri' => 'file:///tmp/x', 'annotations' => 'oops'],
-            'ResourceLink wire "annotations" must be an object, string given.',
+            'ResourceLink "annotations" must be an object, string given.',
         ];
 
         yield 'annotations list-keyed' => [
             ['type' => 'resource_link', 'name' => 'my-link', 'uri' => 'file:///tmp/x', 'annotations' => ['x']],
-            'ResourceLink wire "annotations" must be a string-keyed object.',
+            'ResourceLink "annotations" must be a string-keyed object.',
         ];
 
         yield 'size not a number' => [
             ['type' => 'resource_link', 'name' => 'my-link', 'uri' => 'file:///tmp/x', 'size' => 'oops'],
-            'ResourceLink wire "size" must be a number or null, string given.',
+            'ResourceLink "size" must be a number or null, string given.',
         ];
 
         yield 'icons not an array' => [
             ['type' => 'resource_link', 'name' => 'my-link', 'uri' => 'file:///tmp/x', 'icons' => 'oops'],
-            'ResourceLink wire "icons" must be a list, string given.',
+            'ResourceLink "icons" must be a list, string given.',
         ];
 
         yield 'icon entry not an object' => [
             ['type' => 'resource_link', 'name' => 'my-link', 'uri' => 'file:///tmp/x', 'icons' => ['oops']],
-            'ResourceLink wire icon entry must be an object, string given.',
+            'ResourceLink icon entry must be an object, string given.',
         ];
 
         yield 'icon entry list-keyed' => [
             ['type' => 'resource_link', 'name' => 'my-link', 'uri' => 'file:///tmp/x', 'icons' => [['x']]],
-            'ResourceLink wire icon entry must be a string-keyed object.',
+            'ResourceLink icon entry must be a string-keyed object.',
         ];
 
         yield '_meta not an object' => [

@@ -49,26 +49,26 @@ final readonly class InitializeResult extends Result implements ServerResult
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('protocolVersion', 'InitializeResult wire data missing "protocolVersion".');
+        Assert::that($data)->hasOffset('protocolVersion', 'InitializeResult data missing "protocolVersion".');
         $protocolVersion = $data['protocolVersion'];
-        Assert::that($protocolVersion)->isString('InitializeResult wire "protocolVersion" must be a string, {type} given.');
+        Assert::that($protocolVersion)->isString('InitializeResult "protocolVersion" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('capabilities', 'InitializeResult wire data missing "capabilities".');
+        Assert::that($data)->hasOffset('capabilities', 'InitializeResult data missing "capabilities".');
         Assert::that($data['capabilities'])
-            ->isArray('InitializeResult wire "capabilities" must be an object, {type} given.')
-            ->isMap('InitializeResult wire "capabilities" must be a string-keyed object.')
+            ->isArray('InitializeResult "capabilities" must be an object, {type} given.')
+            ->isMap('InitializeResult "capabilities" must be a string-keyed object.')
         ;
 
-        Assert::that($data)->hasOffset('serverInfo', 'InitializeResult wire data missing "serverInfo".');
+        Assert::that($data)->hasOffset('serverInfo', 'InitializeResult data missing "serverInfo".');
         Assert::that($data['serverInfo'])
-            ->isArray('InitializeResult wire "serverInfo" must be an object, {type} given.')
-            ->isMap('InitializeResult wire "serverInfo" must be a string-keyed object.')
+            ->isArray('InitializeResult "serverInfo" must be an object, {type} given.')
+            ->isMap('InitializeResult "serverInfo" must be a string-keyed object.')
         ;
 
         $instructions = $data['instructions'] ?? null;
-        Assert::that($instructions)->nullOr()->isString('InitializeResult wire "instructions" must be a string or null, {type} given.');
+        Assert::that($instructions)->nullOr()->isString('InitializeResult "instructions" must be a string or null, {type} given.');
 
-        $meta = MetaObject::parseFromWire($data, 'Result');
+        $meta = MetaObject::parseFrom($data, 'Result');
 
         return new self(
             new ProtocolVersion($protocolVersion),

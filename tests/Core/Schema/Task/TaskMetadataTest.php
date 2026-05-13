@@ -94,37 +94,37 @@ final class TaskMetadataTest extends TestCase
     public function testFromArrayRejectsNonIntTtl(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('TaskMetadata wire "ttl" must be an int or null, string given.');
+        $this->expectExceptionMessage('TaskMetadata "ttl" must be an int or null, string given.');
 
         TaskMetadata::fromArray(['ttl' => 'oops']);
     }
 
-    public function testParseFromWireReturnsNullWhenAbsent(): void
+    public function testParseFromReturnsNullWhenAbsent(): void
     {
-        self::assertNull(TaskMetadata::parseFromWire(['name' => 'x'], 'CallToolRequestParams'));
+        self::assertNull(TaskMetadata::parseFrom(['name' => 'x'], 'CallToolRequestParams'));
     }
 
-    public function testParseFromWireReadsAndContextualizes(): void
+    public function testParseFromReadsAndContextualizes(): void
     {
-        $task = TaskMetadata::parseFromWire(['task' => ['ttl' => 60000]], 'CallToolRequestParams');
+        $task = TaskMetadata::parseFrom(['task' => ['ttl' => 60000]], 'CallToolRequestParams');
 
         self::assertNotNull($task);
         self::assertSame(60000, $task->ttl);
     }
 
-    public function testParseFromWireRejectsNonObjectTask(): void
+    public function testParseFromRejectsNonObjectTask(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('CallToolRequestParams wire "task" must be an object, string given.');
+        $this->expectExceptionMessage('CallToolRequestParams "task" must be an object, string given.');
 
-        TaskMetadata::parseFromWire(['task' => 'oops'], 'CallToolRequestParams');
+        TaskMetadata::parseFrom(['task' => 'oops'], 'CallToolRequestParams');
     }
 
-    public function testParseFromWireRejectsListKeyedTask(): void
+    public function testParseFromRejectsListKeyedTask(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('CallToolRequestParams wire "task" must be a string-keyed object.');
+        $this->expectExceptionMessage('CallToolRequestParams "task" must be a string-keyed object.');
 
-        TaskMetadata::parseFromWire(['task' => ['x']], 'CallToolRequestParams');
+        TaskMetadata::parseFrom(['task' => ['x']], 'CallToolRequestParams');
     }
 }

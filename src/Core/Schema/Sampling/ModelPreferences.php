@@ -78,10 +78,10 @@ final readonly class ModelPreferences implements Arrayable
 
         if (isset($data['hints'])) {
             Assert::that($data['hints'])
-                ->isList('ModelPreferences wire "hints" must be a list, {type} given.')
+                ->isList('ModelPreferences "hints" must be a list, {type} given.')
                 ->values()
-                ->isArray('ModelPreferences wire hint entry must be an object, {type} given.')
-                ->isMap('ModelPreferences wire hint entry must be a string-keyed object.')
+                ->isArray('ModelPreferences hint entry must be an object, {type} given.')
+                ->isMap('ModelPreferences hint entry must be a string-keyed object.')
             ;
             $hints = array_map(ModelHint::fromArray(...), $data['hints']);
         }
@@ -89,19 +89,19 @@ final readonly class ModelPreferences implements Arrayable
         $costPriority = $data['costPriority'] ?? null;
 
         if (null !== $costPriority) {
-            $costPriority = self::parseNumber($costPriority, 'ModelPreferences wire "costPriority" must be a number or null, {type} given.');
+            $costPriority = self::parseNumber($costPriority, 'ModelPreferences "costPriority" must be a number or null, {type} given.');
         }
 
         $speedPriority = $data['speedPriority'] ?? null;
 
         if (null !== $speedPriority) {
-            $speedPriority = self::parseNumber($speedPriority, 'ModelPreferences wire "speedPriority" must be a number or null, {type} given.');
+            $speedPriority = self::parseNumber($speedPriority, 'ModelPreferences "speedPriority" must be a number or null, {type} given.');
         }
 
         $intelligencePriority = $data['intelligencePriority'] ?? null;
 
         if (null !== $intelligencePriority) {
-            $intelligencePriority = self::parseNumber($intelligencePriority, 'ModelPreferences wire "intelligencePriority" must be a number or null, {type} given.');
+            $intelligencePriority = self::parseNumber($intelligencePriority, 'ModelPreferences "intelligencePriority" must be a number or null, {type} given.');
         }
 
         return new self($hints, $costPriority, $speedPriority, $intelligencePriority);

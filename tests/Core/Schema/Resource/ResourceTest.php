@@ -213,8 +213,8 @@ final class ResourceTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -225,71 +225,71 @@ final class ResourceTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing name' => [
             ['uri' => 'file:///x'],
-            'Resource wire data missing "name".',
+            'Resource data missing "name".',
         ];
 
         yield 'missing uri' => [
             ['name' => 'my-resource'],
-            'Resource wire data missing "uri".',
+            'Resource data missing "uri".',
         ];
 
         yield 'name not a string' => [
             ['name' => 1, 'uri' => 'file:///x'],
-            'Resource wire "name" must be a string, int given.',
+            'Resource "name" must be a string, int given.',
         ];
 
         yield 'uri not a string' => [
             ['name' => 'my-resource', 'uri' => 1],
-            'Resource wire "uri" must be a string, int given.',
+            'Resource "uri" must be a string, int given.',
         ];
 
         yield 'title not a string' => [
             ['name' => 'my-resource', 'uri' => 'file:///x', 'title' => 1],
-            'Resource wire "title" must be a string or null, int given.',
+            'Resource "title" must be a string or null, int given.',
         ];
 
         yield 'description not a string' => [
             ['name' => 'my-resource', 'uri' => 'file:///x', 'description' => 1],
-            'Resource wire "description" must be a string or null, int given.',
+            'Resource "description" must be a string or null, int given.',
         ];
 
         yield 'mimeType not a string' => [
             ['name' => 'my-resource', 'uri' => 'file:///x', 'mimeType' => 1],
-            'Resource wire "mimeType" must be a string or null, int given.',
+            'Resource "mimeType" must be a string or null, int given.',
         ];
 
         yield 'annotations not an object' => [
             ['name' => 'my-resource', 'uri' => 'file:///x', 'annotations' => 'oops'],
-            'Resource wire "annotations" must be an object, string given.',
+            'Resource "annotations" must be an object, string given.',
         ];
 
         yield 'annotations list-keyed' => [
             ['name' => 'my-resource', 'uri' => 'file:///x', 'annotations' => ['x']],
-            'Resource wire "annotations" must be a string-keyed object.',
+            'Resource "annotations" must be a string-keyed object.',
         ];
 
         yield 'size not a number' => [
             ['name' => 'my-resource', 'uri' => 'file:///x', 'size' => 'oops'],
-            'Resource wire "size" must be a number or null, string given.',
+            'Resource "size" must be a number or null, string given.',
         ];
 
         yield 'icons not an array' => [
             ['name' => 'my-resource', 'uri' => 'file:///x', 'icons' => 'oops'],
-            'Resource wire "icons" must be a list, string given.',
+            'Resource "icons" must be a list, string given.',
         ];
 
         yield 'icon entry not an object' => [
             ['name' => 'my-resource', 'uri' => 'file:///x', 'icons' => ['oops']],
-            'Resource wire icon entry must be an object, string given.',
+            'Resource icon entry must be an object, string given.',
         ];
 
         yield 'icon entry list-keyed' => [
             ['name' => 'my-resource', 'uri' => 'file:///x', 'icons' => [['x']]],
-            'Resource wire icon entry must be a string-keyed object.',
+            'Resource icon entry must be a string-keyed object.',
         ];
 
         yield '_meta not an object' => [

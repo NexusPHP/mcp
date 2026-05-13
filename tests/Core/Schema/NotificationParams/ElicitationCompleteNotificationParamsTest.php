@@ -83,8 +83,8 @@ final class ElicitationCompleteNotificationParamsTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -95,16 +95,16 @@ final class ElicitationCompleteNotificationParamsTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing elicitationId' => [
             [],
-            'ElicitationCompleteNotificationParams wire data missing "elicitationId".',
+            'ElicitationCompleteNotificationParams data missing "elicitationId".',
         ];
 
         yield 'elicitationId not a string' => [
             ['elicitationId' => 1],
-            'ElicitationCompleteNotificationParams wire "elicitationId" must be a string, int given.',
+            'ElicitationCompleteNotificationParams "elicitationId" must be a string, int given.',
         ];
     }
 }

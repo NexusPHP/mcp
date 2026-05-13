@@ -80,22 +80,22 @@ final readonly class ElicitRequestedSchema implements Arrayable
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('type', 'ElicitRequestedSchema wire data missing "type".');
+        Assert::that($data)->hasOffset('type', 'ElicitRequestedSchema data missing "type".');
         $type = $data['type'];
-        Assert::that($type)->isIdentical(self::TYPE, \sprintf('ElicitRequestedSchema wire "type" must be "%s", {value} given.', self::TYPE));
+        Assert::that($type)->isIdentical(self::TYPE, \sprintf('ElicitRequestedSchema "type" must be "%s", {value} given.', self::TYPE));
 
-        Assert::that($data)->hasOffset('properties', 'ElicitRequestedSchema wire data missing "properties".');
+        Assert::that($data)->hasOffset('properties', 'ElicitRequestedSchema data missing "properties".');
         Assert::that($data['properties'])
-            ->isArray('ElicitRequestedSchema wire "properties" must be an object, {type} given.')
-            ->isMap('ElicitRequestedSchema wire "properties" must be a string-keyed object.')
+            ->isArray('ElicitRequestedSchema "properties" must be an object, {type} given.')
+            ->isMap('ElicitRequestedSchema "properties" must be a string-keyed object.')
         ;
 
         $properties = [];
 
         foreach ($data['properties'] as $name => $shape) {
             Assert::that($shape)
-                ->isArray('ElicitRequestedSchema wire properties entry must be an object, {type} given.')
-                ->isMap('ElicitRequestedSchema wire properties entry must be a string-keyed object.')
+                ->isArray('ElicitRequestedSchema properties entry must be an object, {type} given.')
+                ->isMap('ElicitRequestedSchema properties entry must be a string-keyed object.')
             ;
 
             $properties[$name] = self::parsePrimitiveSchema($shape);
@@ -105,14 +105,14 @@ final readonly class ElicitRequestedSchema implements Arrayable
 
         if (isset($data['required'])) {
             Assert::that($data['required'])
-                ->isList('ElicitRequestedSchema wire "required" must be a list, got non-list array.')
-                ->values()->isString('ElicitRequestedSchema wire required entry must be a string, {type} given.')
+                ->isList('ElicitRequestedSchema "required" must be a list, got non-list array.')
+                ->values()->isString('ElicitRequestedSchema required entry must be a string, {type} given.')
             ;
             $required = $data['required'];
         }
 
         $schema = $data['$schema'] ?? null;
-        Assert::that($schema)->nullOr()->isString('ElicitRequestedSchema wire "$schema" must be a string or null, {type} given.');
+        Assert::that($schema)->nullOr()->isString('ElicitRequestedSchema "$schema" must be a string or null, {type} given.');
 
         return new self($properties, $required, $schema);
     }

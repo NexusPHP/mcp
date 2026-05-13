@@ -69,8 +69,8 @@ final class GetPromptRequestTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -81,31 +81,31 @@ final class GetPromptRequestTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing id' => [
             ['jsonrpc' => '2.0', 'method' => 'prompts/get'],
-            'GetPromptRequest wire data missing "id".',
+            'GetPromptRequest data missing "id".',
         ];
 
         yield 'id not int or string' => [
             ['jsonrpc' => '2.0', 'id' => [], 'method' => 'prompts/get'],
-            'GetPromptRequest wire "id" must be int or string, array given.',
+            'GetPromptRequest "id" must be int or string, array given.',
         ];
 
         yield 'missing params' => [
             ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'prompts/get'],
-            'GetPromptRequest wire data missing "params".',
+            'GetPromptRequest data missing "params".',
         ];
 
         yield 'params not an object' => [
             ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'prompts/get', 'params' => 'bad'],
-            'GetPromptRequest wire "params" must be an object, string given.',
+            'GetPromptRequest "params" must be an object, string given.',
         ];
 
         yield 'params list-keyed' => [
             ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'prompts/get', 'params' => ['x']],
-            'GetPromptRequest wire "params" must be a string-keyed object.',
+            'GetPromptRequest "params" must be a string-keyed object.',
         ];
     }
 }

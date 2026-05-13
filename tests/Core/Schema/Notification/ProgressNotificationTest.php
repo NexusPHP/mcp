@@ -113,8 +113,8 @@ final class ProgressNotificationTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -125,21 +125,21 @@ final class ProgressNotificationTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing params' => [
             ['jsonrpc' => '2.0', 'method' => 'notifications/progress'],
-            'ProgressNotification wire data missing "params".',
+            'ProgressNotification data missing "params".',
         ];
 
         yield 'params not an object' => [
             ['jsonrpc' => '2.0', 'method' => 'notifications/progress', 'params' => 'bad'],
-            'ProgressNotification wire "params" must be an object, string given.',
+            'ProgressNotification "params" must be an object, string given.',
         ];
 
         yield 'params list-keyed' => [
             ['jsonrpc' => '2.0', 'method' => 'notifications/progress', 'params' => ['x']],
-            'ProgressNotification wire "params" must be a string-keyed object.',
+            'ProgressNotification "params" must be a string-keyed object.',
         ];
     }
 }

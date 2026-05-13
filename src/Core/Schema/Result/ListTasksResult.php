@@ -47,23 +47,23 @@ final readonly class ListTasksResult extends PaginatedResult implements ClientRe
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('tasks', 'ListTasksResult wire data missing "tasks".');
+        Assert::that($data)->hasOffset('tasks', 'ListTasksResult data missing "tasks".');
         Assert::that($data['tasks'])
-            ->isList('ListTasksResult wire "tasks" must be a list, {type} given.')
+            ->isList('ListTasksResult "tasks" must be a list, {type} given.')
             ->values()
-            ->isArray('ListTasksResult wire task entry must be an object, {type} given.')
-            ->isMap('ListTasksResult wire task entry must be a string-keyed object.')
+            ->isArray('ListTasksResult task entry must be an object, {type} given.')
+            ->isMap('ListTasksResult task entry must be a string-keyed object.')
         ;
         $tasks = array_map(Task::fromArray(...), $data['tasks']);
 
         $nextCursor = null;
 
         if (\array_key_exists('nextCursor', $data)) {
-            Assert::that($data['nextCursor'])->isString('ListTasksResult wire "nextCursor" must be a string, {type} given.');
+            Assert::that($data['nextCursor'])->isString('ListTasksResult "nextCursor" must be a string, {type} given.');
             $nextCursor = new Cursor($data['nextCursor']);
         }
 
-        $meta = MetaObject::parseFromWire($data, 'Result');
+        $meta = MetaObject::parseFrom($data, 'Result');
 
         return new self($tasks, $nextCursor, $meta);
     }

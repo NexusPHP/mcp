@@ -88,24 +88,24 @@ final readonly class Prompt extends BaseMetadata implements Arrayable, Icons
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('name', 'Prompt wire data missing "name".');
+        Assert::that($data)->hasOffset('name', 'Prompt data missing "name".');
         $name = $data['name'];
-        Assert::that($name)->isString('Prompt wire "name" must be a string, {type} given.');
+        Assert::that($name)->isString('Prompt "name" must be a string, {type} given.');
 
         $title = $data['title'] ?? null;
-        Assert::that($title)->nullOr()->isString('Prompt wire "title" must be a string or null, {type} given.');
+        Assert::that($title)->nullOr()->isString('Prompt "title" must be a string or null, {type} given.');
 
         $description = $data['description'] ?? null;
-        Assert::that($description)->nullOr()->isString('Prompt wire "description" must be a string or null, {type} given.');
+        Assert::that($description)->nullOr()->isString('Prompt "description" must be a string or null, {type} given.');
 
         $arguments = null;
 
         if (isset($data['arguments'])) {
             Assert::that($data['arguments'])
-                ->isList('Prompt wire "arguments" must be a list, {type} given.')
+                ->isList('Prompt "arguments" must be a list, {type} given.')
                 ->values()
-                ->isArray('Prompt wire argument entry must be an object, {type} given.')
-                ->isMap('Prompt wire argument entry must be a string-keyed object.')
+                ->isArray('Prompt argument entry must be an object, {type} given.')
+                ->isMap('Prompt argument entry must be a string-keyed object.')
             ;
             $arguments = array_map(PromptArgument::fromArray(...), $data['arguments']);
         }
@@ -114,15 +114,15 @@ final readonly class Prompt extends BaseMetadata implements Arrayable, Icons
 
         if (isset($data['icons'])) {
             Assert::that($data['icons'])
-                ->isList('Prompt wire "icons" must be a list, {type} given.')
+                ->isList('Prompt "icons" must be a list, {type} given.')
                 ->values()
-                ->isArray('Prompt wire icon entry must be an object, {type} given.')
-                ->isMap('Prompt wire icon entry must be a string-keyed object.')
+                ->isArray('Prompt icon entry must be an object, {type} given.')
+                ->isMap('Prompt icon entry must be a string-keyed object.')
             ;
             $icons = array_map(Icon::fromArray(...), $data['icons']);
         }
 
-        $meta = MetaObject::parseFromWire($data, 'Prompt');
+        $meta = MetaObject::parseFrom($data, 'Prompt');
 
         return new self($name, $title, $description, $arguments, $icons, $meta);
     }

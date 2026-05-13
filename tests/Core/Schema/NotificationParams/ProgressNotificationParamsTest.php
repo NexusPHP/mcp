@@ -196,8 +196,8 @@ final class ProgressNotificationParamsTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -208,41 +208,41 @@ final class ProgressNotificationParamsTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing progressToken' => [
             ['progress' => 0.5],
-            'ProgressNotificationParams wire data missing "progressToken".',
+            'ProgressNotificationParams data missing "progressToken".',
         ];
 
         yield 'progressToken not int or string' => [
             ['progressToken' => [], 'progress' => 0.5],
-            'ProgressNotificationParams wire "progressToken" must be int or string, array given.',
+            'ProgressNotificationParams "progressToken" must be int or string, array given.',
         ];
 
         yield 'missing progress' => [
             ['progressToken' => 'p-1'],
-            'ProgressNotificationParams wire data missing "progress".',
+            'ProgressNotificationParams data missing "progress".',
         ];
 
         yield 'progress is string' => [
             ['progressToken' => 'p-1', 'progress' => 'oops'],
-            'ProgressNotificationParams wire "progress" must be a number, string given.',
+            'ProgressNotificationParams "progress" must be a number, string given.',
         ];
 
         yield 'progress is bool' => [
             ['progressToken' => 'p-1', 'progress' => true],
-            'ProgressNotificationParams wire "progress" must be a number, bool given.',
+            'ProgressNotificationParams "progress" must be a number, bool given.',
         ];
 
         yield 'total is string' => [
             ['progressToken' => 'p-1', 'progress' => 0.5, 'total' => 'oops'],
-            'ProgressNotificationParams wire "total" must be a number or null, string given.',
+            'ProgressNotificationParams "total" must be a number or null, string given.',
         ];
 
         yield 'message not a string' => [
             ['progressToken' => 'p-1', 'progress' => 0.5, 'message' => 1],
-            'ProgressNotificationParams wire "message" must be a string or null, int given.',
+            'ProgressNotificationParams "message" must be a string or null, int given.',
         ];
 
         yield '_meta not an object' => [

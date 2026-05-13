@@ -124,8 +124,8 @@ final class RootTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -136,16 +136,16 @@ final class RootTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing uri' => [
             [],
-            'Root wire data missing "uri".',
+            'Root data missing "uri".',
         ];
 
         yield 'uri not a string' => [
             ['uri' => 1],
-            'Root wire "uri" must be a string, int given.',
+            'Root "uri" must be a string, int given.',
         ];
 
         yield 'uri does not start with file://' => [
@@ -155,7 +155,7 @@ final class RootTest extends TestCase
 
         yield 'name not a string' => [
             ['uri' => 'file:///x', 'name' => 1],
-            'Root wire "name" must be a string or null, int given.',
+            'Root "name" must be a string or null, int given.',
         ];
 
         yield '_meta not an object' => [

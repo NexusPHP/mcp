@@ -74,7 +74,7 @@ final class GetTaskPayloadRequestParamsTest extends TestCase
     public function testFromArrayRejectsMissingTaskId(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('GetTaskPayloadRequestParams wire data missing "taskId".');
+        $this->expectExceptionMessage('GetTaskPayloadRequestParams data missing "taskId".');
 
         GetTaskPayloadRequestParams::fromArray([]);
     }
@@ -82,7 +82,7 @@ final class GetTaskPayloadRequestParamsTest extends TestCase
     public function testFromArrayRejectsNonStringTaskId(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('GetTaskPayloadRequestParams wire "taskId" must be a string, int given.');
+        $this->expectExceptionMessage('GetTaskPayloadRequestParams "taskId" must be a string, int given.');
 
         GetTaskPayloadRequestParams::fromArray(['taskId' => 42]);
     }

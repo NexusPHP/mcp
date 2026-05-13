@@ -53,16 +53,16 @@ final readonly class ReadResourceResult extends Result implements ServerResult
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('contents', 'ReadResourceResult wire data missing "contents".');
+        Assert::that($data)->hasOffset('contents', 'ReadResourceResult data missing "contents".');
         Assert::that($data['contents'])
-            ->isList('ReadResourceResult wire "contents" must be a list, {type} given.')
+            ->isList('ReadResourceResult "contents" must be a list, {type} given.')
             ->values()
-            ->isArray('ReadResourceResult wire contents entry must be an object, {type} given.')
-            ->isMap('ReadResourceResult wire contents entry must be a string-keyed object.')
+            ->isArray('ReadResourceResult contents entry must be an object, {type} given.')
+            ->isMap('ReadResourceResult contents entry must be a string-keyed object.')
         ;
         $contents = array_map(ResourceContents::from(...), $data['contents']);
 
-        $meta = MetaObject::parseFromWire($data, 'Result');
+        $meta = MetaObject::parseFrom($data, 'Result');
 
         return new self($contents, $meta);
     }

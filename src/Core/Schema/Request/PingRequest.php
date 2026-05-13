@@ -37,17 +37,17 @@ final readonly class PingRequest extends JsonRpcRequest implements ClientRequest
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('id', 'PingRequest wire data missing "id".');
+        Assert::that($data)->hasOffset('id', 'PingRequest data missing "id".');
 
         $id = $data['id'];
-        Assert::that($id)->isArrayKey('PingRequest wire "id" must be int or string, {type} given.');
+        Assert::that($id)->isArrayKey('PingRequest "id" must be int or string, {type} given.');
 
         $params = new EmptyRequestParams();
 
         if (\array_key_exists('params', $data)) {
             Assert::that($data['params'])
-                ->isArray('PingRequest wire "params" must be an object, {type} given.')
-                ->isMap('PingRequest wire "params" must be a string-keyed object.')
+                ->isArray('PingRequest "params" must be an object, {type} given.')
+                ->isMap('PingRequest "params" must be a string-keyed object.')
             ;
             $params = EmptyRequestParams::fromArray($data['params']);
         }

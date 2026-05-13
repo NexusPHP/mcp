@@ -73,24 +73,24 @@ final readonly class ElicitRequestUrlParams extends TaskAugmentedRequestParams i
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('elicitationId', 'ElicitRequestUrlParams wire data missing "elicitationId".');
+        Assert::that($data)->hasOffset('elicitationId', 'ElicitRequestUrlParams data missing "elicitationId".');
         $elicitationId = $data['elicitationId'];
-        Assert::that($elicitationId)->isString('ElicitRequestUrlParams wire "elicitationId" must be a string, {type} given.');
+        Assert::that($elicitationId)->isString('ElicitRequestUrlParams "elicitationId" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('message', 'ElicitRequestUrlParams wire data missing "message".');
+        Assert::that($data)->hasOffset('message', 'ElicitRequestUrlParams data missing "message".');
         $message = $data['message'];
-        Assert::that($message)->isString('ElicitRequestUrlParams wire "message" must be a string, {type} given.');
+        Assert::that($message)->isString('ElicitRequestUrlParams "message" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('mode', 'ElicitRequestUrlParams wire data missing "mode".');
+        Assert::that($data)->hasOffset('mode', 'ElicitRequestUrlParams data missing "mode".');
         $mode = $data['mode'];
-        Assert::that($mode)->isString('ElicitRequestUrlParams wire "mode" must be a string, {type} given.');
+        Assert::that($mode)->isString('ElicitRequestUrlParams "mode" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('url', 'ElicitRequestUrlParams wire data missing "url".');
+        Assert::that($data)->hasOffset('url', 'ElicitRequestUrlParams data missing "url".');
         $url = $data['url'];
-        Assert::that($url)->isString('ElicitRequestUrlParams wire "url" must be a string, {type} given.');
+        Assert::that($url)->isString('ElicitRequestUrlParams "url" must be a string, {type} given.');
 
-        $task = TaskMetadata::parseFromWire($data, 'ElicitRequestUrlParams');
-        $meta = RequestMetaObject::parseFromWire($data, 'Request params');
+        $task = TaskMetadata::parseFrom($data, 'ElicitRequestUrlParams');
+        $meta = RequestMetaObject::parseFrom($data, 'Request params');
 
         return new self($elicitationId, $message, $mode, $url, $task, $meta);
     }

@@ -77,32 +77,32 @@ final class MetaObjectTest extends TestCase
         self::assertSame('{}', json_encode($meta));
     }
 
-    public function testParseFromWireReturnsNullWhenMetaAbsent(): void
+    public function testParseFromReturnsNullWhenMetaAbsent(): void
     {
-        self::assertNull(MetaObject::parseFromWire(['name' => 'x'], 'Result'));
+        self::assertNull(MetaObject::parseFrom(['name' => 'x'], 'Result'));
     }
 
-    public function testParseFromWireReadsAndContextualizes(): void
+    public function testParseFromReadsAndContextualizes(): void
     {
-        $meta = MetaObject::parseFromWire(['_meta' => ['vendor' => 'x']], 'Result');
+        $meta = MetaObject::parseFrom(['_meta' => ['vendor' => 'x']], 'Result');
 
         self::assertNotNull($meta);
         self::assertSame(['vendor' => 'x'], $meta->extras);
     }
 
-    public function testParseFromWireRejectsNonObjectMeta(): void
+    public function testParseFromRejectsNonObjectMeta(): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage('Result "_meta" must be an object, string given.');
 
-        MetaObject::parseFromWire(['_meta' => 'oops'], 'Result');
+        MetaObject::parseFrom(['_meta' => 'oops'], 'Result');
     }
 
-    public function testParseFromWireRejectsListKeyedMeta(): void
+    public function testParseFromRejectsListKeyedMeta(): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage('Notification params "_meta" must be a string-keyed object.');
 
-        MetaObject::parseFromWire(['_meta' => ['x']], 'Notification params');
+        MetaObject::parseFrom(['_meta' => ['x']], 'Notification params');
     }
 }

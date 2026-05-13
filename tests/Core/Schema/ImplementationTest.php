@@ -186,7 +186,7 @@ final class ImplementationTest extends TestCase
     public function testFromArrayMissingNameIsRejected(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('Implementation wire data missing "name".');
+        $this->expectExceptionMessage('Implementation data missing "name".');
 
         Implementation::fromArray(['version' => '1.0.0']);
     }
@@ -194,7 +194,7 @@ final class ImplementationTest extends TestCase
     public function testFromArrayMissingVersionIsRejected(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('Implementation wire data missing "version".');
+        $this->expectExceptionMessage('Implementation data missing "version".');
 
         Implementation::fromArray(['name' => 'Nexus MCP']);
     }
@@ -202,7 +202,7 @@ final class ImplementationTest extends TestCase
     public function testFromArrayBadNameTypeIsRejected(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('Implementation wire "name" must be a string, int given.');
+        $this->expectExceptionMessage('Implementation "name" must be a string, int given.');
 
         Implementation::fromArray(['name' => 42, 'version' => '1.0.0']);
     }
@@ -210,7 +210,7 @@ final class ImplementationTest extends TestCase
     public function testFromArrayBadVersionTypeIsRejected(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('Implementation wire "version" must be a string, int given.');
+        $this->expectExceptionMessage('Implementation "version" must be a string, int given.');
 
         Implementation::fromArray(['name' => 'Nexus MCP', 'version' => 42]);
     }
@@ -218,7 +218,7 @@ final class ImplementationTest extends TestCase
     public function testFromArrayBadTitleTypeIsRejected(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('Implementation wire "title" must be a string or null, int given.');
+        $this->expectExceptionMessage('Implementation "title" must be a string or null, int given.');
 
         Implementation::fromArray(['name' => 'Nexus MCP', 'version' => '1.0.0', 'title' => 42]);
     }
@@ -226,7 +226,7 @@ final class ImplementationTest extends TestCase
     public function testFromArrayBadDescriptionTypeIsRejected(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('Implementation wire "description" must be a string or null, int given.');
+        $this->expectExceptionMessage('Implementation "description" must be a string or null, int given.');
 
         Implementation::fromArray(['name' => 'Nexus MCP', 'version' => '1.0.0', 'description' => 42]);
     }
@@ -234,7 +234,7 @@ final class ImplementationTest extends TestCase
     public function testFromArrayBadWebsiteUrlTypeIsRejected(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('Implementation wire "websiteUrl" must be a string or null, int given.');
+        $this->expectExceptionMessage('Implementation "websiteUrl" must be a string or null, int given.');
 
         Implementation::fromArray(['name' => 'Nexus MCP', 'version' => '1.0.0', 'websiteUrl' => 42]);
     }
@@ -242,7 +242,7 @@ final class ImplementationTest extends TestCase
     public function testFromArrayBadIconsTypeIsRejected(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('Implementation wire "icons" must be a list, string given.');
+        $this->expectExceptionMessage('Implementation "icons" must be a list, string given.');
 
         Implementation::fromArray(['name' => 'Nexus MCP', 'version' => '1.0.0', 'icons' => 'oops']);
     }
@@ -250,7 +250,7 @@ final class ImplementationTest extends TestCase
     public function testFromArrayBadIconEntryTypeIsRejected(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('Implementation wire icon entry must be an object, string given.');
+        $this->expectExceptionMessage('Implementation icon entry must be an object, string given.');
 
         Implementation::fromArray(['name' => 'Nexus MCP', 'version' => '1.0.0', 'icons' => ['not-an-object']]);
     }

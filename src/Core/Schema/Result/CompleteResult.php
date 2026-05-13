@@ -62,31 +62,31 @@ final readonly class CompleteResult extends Result implements ServerResult
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('completion', 'CompleteResult wire data missing "completion".');
+        Assert::that($data)->hasOffset('completion', 'CompleteResult data missing "completion".');
         Assert::that($data['completion'])
-            ->isArray('CompleteResult wire "completion" must be an object, {type} given.')
-            ->isMap('CompleteResult wire "completion" must be a string-keyed object.')
+            ->isArray('CompleteResult "completion" must be an object, {type} given.')
+            ->isMap('CompleteResult "completion" must be a string-keyed object.')
         ;
 
-        Assert::that($data['completion'])->hasOffset('values', 'CompleteResult wire completion missing "values".');
+        Assert::that($data['completion'])->hasOffset('values', 'CompleteResult completion missing "values".');
         Assert::that($data['completion']['values'])
-            ->isList('CompleteResult wire completion "values" must be a list, {type} given.')
-            ->values()->isString('CompleteResult wire completion value must be a string, {type} given.')
+            ->isList('CompleteResult completion "values" must be a list, {type} given.')
+            ->values()->isString('CompleteResult completion value must be a string, {type} given.')
         ;
 
         $completion = ['values' => $data['completion']['values']];
 
         if (\array_key_exists('total', $data['completion'])) {
-            Assert::that($data['completion']['total'])->isInt('CompleteResult wire completion "total" must be an int, {type} given.');
+            Assert::that($data['completion']['total'])->isInt('CompleteResult completion "total" must be an int, {type} given.');
             $completion['total'] = $data['completion']['total'];
         }
 
         if (\array_key_exists('hasMore', $data['completion'])) {
-            Assert::that($data['completion']['hasMore'])->isBool('CompleteResult wire completion "hasMore" must be a bool, {type} given.');
+            Assert::that($data['completion']['hasMore'])->isBool('CompleteResult completion "hasMore" must be a bool, {type} given.');
             $completion['hasMore'] = $data['completion']['hasMore'];
         }
 
-        $meta = MetaObject::parseFromWire($data, 'Result');
+        $meta = MetaObject::parseFrom($data, 'Result');
 
         return new self($completion, $meta);
     }

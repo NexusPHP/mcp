@@ -44,11 +44,11 @@ final readonly class ElicitationCompleteNotificationParams extends NotificationP
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('elicitationId', 'ElicitationCompleteNotificationParams wire data missing "elicitationId".');
+        Assert::that($data)->hasOffset('elicitationId', 'ElicitationCompleteNotificationParams data missing "elicitationId".');
         $elicitationId = $data['elicitationId'];
-        Assert::that($elicitationId)->isString('ElicitationCompleteNotificationParams wire "elicitationId" must be a string, {type} given.');
+        Assert::that($elicitationId)->isString('ElicitationCompleteNotificationParams "elicitationId" must be a string, {type} given.');
 
-        $meta = MetaObject::parseFromWire($data, 'Notification params');
+        $meta = MetaObject::parseFrom($data, 'Notification params');
 
         return new self($elicitationId, $meta);
     }

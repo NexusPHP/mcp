@@ -75,27 +75,27 @@ final readonly class TitledSingleSelectEnumSchema implements Arrayable, SingleSe
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('type', 'TitledSingleSelectEnumSchema wire data missing "type".');
+        Assert::that($data)->hasOffset('type', 'TitledSingleSelectEnumSchema data missing "type".');
         $type = $data['type'];
-        Assert::that($type)->isIdentical(self::TYPE, \sprintf('TitledSingleSelectEnumSchema wire "type" must be "%s", {value} given.', self::TYPE));
+        Assert::that($type)->isIdentical(self::TYPE, \sprintf('TitledSingleSelectEnumSchema "type" must be "%s", {value} given.', self::TYPE));
 
-        Assert::that($data)->hasOffset('oneOf', 'TitledSingleSelectEnumSchema wire data missing "oneOf".');
+        Assert::that($data)->hasOffset('oneOf', 'TitledSingleSelectEnumSchema data missing "oneOf".');
         Assert::that($data['oneOf'])
-            ->isList('TitledSingleSelectEnumSchema wire "oneOf" must be a list, got non-list array.')
+            ->isList('TitledSingleSelectEnumSchema "oneOf" must be a list, got non-list array.')
             ->values()
-            ->isArray('TitledSingleSelectEnumSchema wire oneOf entry must be an object, {type} given.')
-            ->isMap('TitledSingleSelectEnumSchema wire oneOf entry must be a string-keyed object.')
+            ->isArray('TitledSingleSelectEnumSchema oneOf entry must be an object, {type} given.')
+            ->isMap('TitledSingleSelectEnumSchema oneOf entry must be a string-keyed object.')
         ;
         $oneOf = array_map(EnumOption::fromArray(...), $data['oneOf']);
 
         $title = $data['title'] ?? null;
-        Assert::that($title)->nullOr()->isString('TitledSingleSelectEnumSchema wire "title" must be a string or null, {type} given.');
+        Assert::that($title)->nullOr()->isString('TitledSingleSelectEnumSchema "title" must be a string or null, {type} given.');
 
         $description = $data['description'] ?? null;
-        Assert::that($description)->nullOr()->isString('TitledSingleSelectEnumSchema wire "description" must be a string or null, {type} given.');
+        Assert::that($description)->nullOr()->isString('TitledSingleSelectEnumSchema "description" must be a string or null, {type} given.');
 
         $default = $data['default'] ?? null;
-        Assert::that($default)->nullOr()->isString('TitledSingleSelectEnumSchema wire "default" must be a string or null, {type} given.');
+        Assert::that($default)->nullOr()->isString('TitledSingleSelectEnumSchema "default" must be a string or null, {type} given.');
 
         return new self($oneOf, $title, $description, $default);
     }

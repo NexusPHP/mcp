@@ -245,8 +245,8 @@ final class ServerCapabilitiesTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -257,111 +257,111 @@ final class ServerCapabilitiesTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'completions not an object' => [
             ['completions' => 'oops'],
-            'ServerCapabilities wire "completions" must be an object, string given.',
+            'ServerCapabilities "completions" must be an object, string given.',
         ];
 
         yield 'completions list-keyed' => [
             ['completions' => ['x']],
-            'ServerCapabilities wire "completions" must be a string-keyed object.',
+            'ServerCapabilities "completions" must be a string-keyed object.',
         ];
 
         yield 'experimental not an object' => [
             ['experimental' => 'oops'],
-            'ServerCapabilities wire "experimental" must be an object, string given.',
+            'ServerCapabilities "experimental" must be an object, string given.',
         ];
 
         yield 'experimental list-keyed' => [
             ['experimental' => ['x']],
-            'ServerCapabilities wire "experimental" must be a string-keyed object.',
+            'ServerCapabilities "experimental" must be a string-keyed object.',
         ];
 
         yield 'experimental value not an object' => [
             ['experimental' => ['ext' => 'oops']],
-            'ServerCapabilities wire "experimental.ext" must be an object, string given.',
+            'ServerCapabilities "experimental.ext" must be an object, string given.',
         ];
 
         yield 'experimental value list-keyed' => [
             ['experimental' => ['ext' => ['x']]],
-            'ServerCapabilities wire "experimental.ext" must be a string-keyed object.',
+            'ServerCapabilities "experimental.ext" must be a string-keyed object.',
         ];
 
         yield 'logging not an object' => [
             ['logging' => 1],
-            'ServerCapabilities wire "logging" must be an object, int given.',
+            'ServerCapabilities "logging" must be an object, int given.',
         ];
 
         yield 'prompts not an object' => [
             ['prompts' => 'oops'],
-            'ServerCapabilities wire "prompts" must be an object, string given.',
+            'ServerCapabilities "prompts" must be an object, string given.',
         ];
 
         yield 'prompts list-keyed' => [
             ['prompts' => ['x']],
-            'ServerCapabilities wire "prompts" must be a string-keyed object.',
+            'ServerCapabilities "prompts" must be a string-keyed object.',
         ];
 
         yield 'prompts.listChanged not a boolean' => [
             ['prompts' => ['listChanged' => 'true']],
-            'ServerCapabilities wire "prompts.listChanged" must be a boolean, string given.',
+            'ServerCapabilities "prompts.listChanged" must be a boolean, string given.',
         ];
 
         yield 'resources not an object' => [
             ['resources' => 'oops'],
-            'ServerCapabilities wire "resources" must be an object, string given.',
+            'ServerCapabilities "resources" must be an object, string given.',
         ];
 
         yield 'resources.listChanged not a boolean' => [
             ['resources' => ['listChanged' => 1]],
-            'ServerCapabilities wire "resources.listChanged" must be a boolean, int given.',
+            'ServerCapabilities "resources.listChanged" must be a boolean, int given.',
         ];
 
         yield 'resources.subscribe not a boolean' => [
             ['resources' => ['subscribe' => 'yes']],
-            'ServerCapabilities wire "resources.subscribe" must be a boolean, string given.',
+            'ServerCapabilities "resources.subscribe" must be a boolean, string given.',
         ];
 
         yield 'tasks not an object' => [
             ['tasks' => 'oops'],
-            'ServerCapabilities wire "tasks" must be an object, string given.',
+            'ServerCapabilities "tasks" must be an object, string given.',
         ];
 
         yield 'tasks.cancel not an object' => [
             ['tasks' => ['cancel' => 'oops']],
-            'ServerCapabilities wire "tasks.cancel" must be an object, string given.',
+            'ServerCapabilities "tasks.cancel" must be an object, string given.',
         ];
 
         yield 'tasks.list not an object' => [
             ['tasks' => ['list' => 'oops']],
-            'ServerCapabilities wire "tasks.list" must be an object, string given.',
+            'ServerCapabilities "tasks.list" must be an object, string given.',
         ];
 
         yield 'tasks.requests not an object' => [
             ['tasks' => ['requests' => 'oops']],
-            'ServerCapabilities wire "tasks.requests" must be an object, string given.',
+            'ServerCapabilities "tasks.requests" must be an object, string given.',
         ];
 
         yield 'tasks.requests.tools not an object' => [
             ['tasks' => ['requests' => ['tools' => 'oops']]],
-            'ServerCapabilities wire "tasks.requests.tools" must be an object, string given.',
+            'ServerCapabilities "tasks.requests.tools" must be an object, string given.',
         ];
 
         yield 'tasks.requests.tools.call not an object' => [
             ['tasks' => ['requests' => ['tools' => ['call' => 'oops']]]],
-            'ServerCapabilities wire "tasks.requests.tools.call" must be an object, string given.',
+            'ServerCapabilities "tasks.requests.tools.call" must be an object, string given.',
         ];
 
         yield 'tools not an object' => [
             ['tools' => 'oops'],
-            'ServerCapabilities wire "tools" must be an object, string given.',
+            'ServerCapabilities "tools" must be an object, string given.',
         ];
 
         yield 'tools.listChanged not a boolean' => [
             ['tools' => ['listChanged' => 'true']],
-            'ServerCapabilities wire "tools.listChanged" must be a boolean, string given.',
+            'ServerCapabilities "tools.listChanged" must be a boolean, string given.',
         ];
     }
 }

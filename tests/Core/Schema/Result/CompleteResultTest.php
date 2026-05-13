@@ -143,8 +143,8 @@ final class CompleteResultTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -155,51 +155,51 @@ final class CompleteResultTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing completion' => [
             [],
-            'CompleteResult wire data missing "completion".',
+            'CompleteResult data missing "completion".',
         ];
 
         yield 'completion not an object' => [
             ['completion' => 'oops'],
-            'CompleteResult wire "completion" must be an object, string given.',
+            'CompleteResult "completion" must be an object, string given.',
         ];
 
         yield 'completion list-keyed' => [
             ['completion' => ['x']],
-            'CompleteResult wire "completion" must be a string-keyed object.',
+            'CompleteResult "completion" must be a string-keyed object.',
         ];
 
         yield 'completion missing values' => [
             ['completion' => []],
-            'CompleteResult wire completion missing "values".',
+            'CompleteResult completion missing "values".',
         ];
 
         yield 'completion values not an array' => [
             ['completion' => ['values' => 'oops']],
-            'CompleteResult wire completion "values" must be a list, string given.',
+            'CompleteResult completion "values" must be a list, string given.',
         ];
 
         yield 'completion values not a list' => [
             ['completion' => ['values' => [5 => 'auth']]],
-            'CompleteResult wire completion "values" must be a list, array given.',
+            'CompleteResult completion "values" must be a list, array given.',
         ];
 
         yield 'completion value not a string' => [
             ['completion' => ['values' => [1]]],
-            'CompleteResult wire completion value must be a string, int given.',
+            'CompleteResult completion value must be a string, int given.',
         ];
 
         yield 'completion total not an int' => [
             ['completion' => ['values' => [], 'total' => 'oops']],
-            'CompleteResult wire completion "total" must be an int, string given.',
+            'CompleteResult completion "total" must be an int, string given.',
         ];
 
         yield 'completion hasMore not a bool' => [
             ['completion' => ['values' => [], 'hasMore' => 'oops']],
-            'CompleteResult wire completion "hasMore" must be a bool, string given.',
+            'CompleteResult completion "hasMore" must be a bool, string given.',
         ];
 
         yield '_meta not an object' => [

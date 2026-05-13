@@ -129,8 +129,8 @@ final class AudioContentTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -141,46 +141,46 @@ final class AudioContentTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing type' => [
             ['data' => 'aGVsbG8=', 'mimeType' => 'audio/mp3'],
-            'AudioContent wire data missing "type".',
+            'AudioContent data missing "type".',
         ];
 
         yield 'wrong type literal' => [
             ['type' => 'image', 'data' => 'aGVsbG8=', 'mimeType' => 'audio/mp3'],
-            'AudioContent wire "type" must be "audio", \'image\' given.',
+            'AudioContent "type" must be "audio", \'image\' given.',
         ];
 
         yield 'missing data' => [
             ['type' => 'audio', 'mimeType' => 'audio/mp3'],
-            'AudioContent wire data missing "data".',
+            'AudioContent data missing "data".',
         ];
 
         yield 'data not a string' => [
             ['type' => 'audio', 'data' => 1, 'mimeType' => 'audio/mp3'],
-            'AudioContent wire "data" must be a string, int given.',
+            'AudioContent "data" must be a string, int given.',
         ];
 
         yield 'missing mimeType' => [
             ['type' => 'audio', 'data' => 'aGVsbG8='],
-            'AudioContent wire data missing "mimeType".',
+            'AudioContent data missing "mimeType".',
         ];
 
         yield 'mimeType not a string' => [
             ['type' => 'audio', 'data' => 'aGVsbG8=', 'mimeType' => 1],
-            'AudioContent wire "mimeType" must be a string, int given.',
+            'AudioContent "mimeType" must be a string, int given.',
         ];
 
         yield 'annotations not an object' => [
             ['type' => 'audio', 'data' => 'aGVsbG8=', 'mimeType' => 'audio/mp3', 'annotations' => 'oops'],
-            'AudioContent wire "annotations" must be an object, string given.',
+            'AudioContent "annotations" must be an object, string given.',
         ];
 
         yield 'annotations list-keyed' => [
             ['type' => 'audio', 'data' => 'aGVsbG8=', 'mimeType' => 'audio/mp3', 'annotations' => ['x']],
-            'AudioContent wire "annotations" must be a string-keyed object.',
+            'AudioContent "annotations" must be a string-keyed object.',
         ];
 
         yield '_meta not an object' => [

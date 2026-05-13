@@ -148,8 +148,8 @@ final class GetPromptRequestParamsTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -160,31 +160,31 @@ final class GetPromptRequestParamsTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing name' => [
             [],
-            'GetPromptRequestParams wire data missing "name".',
+            'GetPromptRequestParams data missing "name".',
         ];
 
         yield 'name not a string' => [
             ['name' => 1],
-            'GetPromptRequestParams wire "name" must be a string, int given.',
+            'GetPromptRequestParams "name" must be a string, int given.',
         ];
 
         yield 'arguments not an object' => [
             ['name' => 'topic', 'arguments' => 'oops'],
-            'GetPromptRequestParams wire "arguments" must be an object, string given.',
+            'GetPromptRequestParams "arguments" must be an object, string given.',
         ];
 
         yield 'arguments list-keyed' => [
             ['name' => 'topic', 'arguments' => ['v']],
-            'GetPromptRequestParams wire "arguments" must be a string-keyed object.',
+            'GetPromptRequestParams "arguments" must be a string-keyed object.',
         ];
 
         yield 'argument value not a string' => [
             ['name' => 'topic', 'arguments' => ['k' => 1]],
-            'GetPromptRequestParams wire argument value must be a string, int given.',
+            'GetPromptRequestParams argument value must be a string, int given.',
         ];
 
         yield '_meta not an object' => [

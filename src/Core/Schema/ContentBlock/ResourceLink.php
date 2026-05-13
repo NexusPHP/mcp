@@ -109,33 +109,33 @@ final readonly class ResourceLink extends BaseMetadata implements Arrayable, Con
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('type', 'ResourceLink wire data missing "type".');
+        Assert::that($data)->hasOffset('type', 'ResourceLink data missing "type".');
         $type = $data['type'];
-        Assert::that($type)->isIdentical(self::TYPE, \sprintf('ResourceLink wire "type" must be "%s", {value} given.', self::TYPE));
+        Assert::that($type)->isIdentical(self::TYPE, \sprintf('ResourceLink "type" must be "%s", {value} given.', self::TYPE));
 
-        Assert::that($data)->hasOffset('name', 'ResourceLink wire data missing "name".');
+        Assert::that($data)->hasOffset('name', 'ResourceLink data missing "name".');
         $name = $data['name'];
-        Assert::that($name)->isString('ResourceLink wire "name" must be a string, {type} given.');
+        Assert::that($name)->isString('ResourceLink "name" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('uri', 'ResourceLink wire data missing "uri".');
+        Assert::that($data)->hasOffset('uri', 'ResourceLink data missing "uri".');
         $uri = $data['uri'];
-        Assert::that($uri)->isString('ResourceLink wire "uri" must be a string, {type} given.');
+        Assert::that($uri)->isString('ResourceLink "uri" must be a string, {type} given.');
 
         $title = $data['title'] ?? null;
-        Assert::that($title)->nullOr()->isString('ResourceLink wire "title" must be a string or null, {type} given.');
+        Assert::that($title)->nullOr()->isString('ResourceLink "title" must be a string or null, {type} given.');
 
         $description = $data['description'] ?? null;
-        Assert::that($description)->nullOr()->isString('ResourceLink wire "description" must be a string or null, {type} given.');
+        Assert::that($description)->nullOr()->isString('ResourceLink "description" must be a string or null, {type} given.');
 
         $mimeType = $data['mimeType'] ?? null;
-        Assert::that($mimeType)->nullOr()->isString('ResourceLink wire "mimeType" must be a string or null, {type} given.');
+        Assert::that($mimeType)->nullOr()->isString('ResourceLink "mimeType" must be a string or null, {type} given.');
 
         $annotations = null;
 
         if (\array_key_exists('annotations', $data)) {
             Assert::that($data['annotations'])
-                ->isArray('ResourceLink wire "annotations" must be an object, {type} given.')
-                ->isMap('ResourceLink wire "annotations" must be a string-keyed object.')
+                ->isArray('ResourceLink "annotations" must be an object, {type} given.')
+                ->isMap('ResourceLink "annotations" must be a string-keyed object.')
             ;
             $annotations = Annotations::fromArray($data['annotations']);
         }
@@ -143,22 +143,22 @@ final readonly class ResourceLink extends BaseMetadata implements Arrayable, Con
         $size = $data['size'] ?? null;
 
         if (null !== $size) {
-            $size = self::parseNumber($size, 'ResourceLink wire "size" must be a number or null, {type} given.');
+            $size = self::parseNumber($size, 'ResourceLink "size" must be a number or null, {type} given.');
         }
 
         $icons = null;
 
         if (isset($data['icons'])) {
             Assert::that($data['icons'])
-                ->isList('ResourceLink wire "icons" must be a list, {type} given.')
+                ->isList('ResourceLink "icons" must be a list, {type} given.')
                 ->values()
-                ->isArray('ResourceLink wire icon entry must be an object, {type} given.')
-                ->isMap('ResourceLink wire icon entry must be a string-keyed object.')
+                ->isArray('ResourceLink icon entry must be an object, {type} given.')
+                ->isMap('ResourceLink icon entry must be a string-keyed object.')
             ;
             $icons = array_map(Icon::fromArray(...), $data['icons']);
         }
 
-        $meta = MetaObject::parseFromWire($data, 'ResourceLink');
+        $meta = MetaObject::parseFrom($data, 'ResourceLink');
 
         return new self($name, $uri, $title, $description, $mimeType, $annotations, $size, $icons, $meta);
     }

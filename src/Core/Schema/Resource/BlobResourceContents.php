@@ -39,18 +39,18 @@ final readonly class BlobResourceContents extends ResourceContents
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('uri', 'BlobResourceContents wire data missing "uri".');
+        Assert::that($data)->hasOffset('uri', 'BlobResourceContents data missing "uri".');
         $uri = $data['uri'];
-        Assert::that($uri)->isString('BlobResourceContents wire "uri" must be a string, {type} given.');
+        Assert::that($uri)->isString('BlobResourceContents "uri" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('blob', 'BlobResourceContents wire data missing "blob".');
+        Assert::that($data)->hasOffset('blob', 'BlobResourceContents data missing "blob".');
         $blob = $data['blob'];
-        Assert::that($blob)->isString('BlobResourceContents wire "blob" must be a string, {type} given.');
+        Assert::that($blob)->isString('BlobResourceContents "blob" must be a string, {type} given.');
 
         $mimeType = $data['mimeType'] ?? null;
-        Assert::that($mimeType)->nullOr()->isString('BlobResourceContents wire "mimeType" must be a string or null, {type} given.');
+        Assert::that($mimeType)->nullOr()->isString('BlobResourceContents "mimeType" must be a string or null, {type} given.');
 
-        $meta = MetaObject::parseFromWire($data, 'ResourceContents');
+        $meta = MetaObject::parseFrom($data, 'ResourceContents');
 
         return new self($uri, $blob, $mimeType, $meta);
     }

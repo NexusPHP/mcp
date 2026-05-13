@@ -45,14 +45,14 @@ final readonly class CreateMessageRequest extends JsonRpcRequest implements Serv
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('id', 'CreateMessageRequest wire data missing "id".');
+        Assert::that($data)->hasOffset('id', 'CreateMessageRequest data missing "id".');
         $id = $data['id'];
-        Assert::that($id)->isArrayKey('CreateMessageRequest wire "id" must be int or string, {type} given.');
+        Assert::that($id)->isArrayKey('CreateMessageRequest "id" must be int or string, {type} given.');
 
-        Assert::that($data)->hasOffset('params', 'CreateMessageRequest wire data missing "params".');
+        Assert::that($data)->hasOffset('params', 'CreateMessageRequest data missing "params".');
         Assert::that($data['params'])
-            ->isArray('CreateMessageRequest wire "params" must be an object, {type} given.')
-            ->isMap('CreateMessageRequest wire "params" must be a string-keyed object.')
+            ->isArray('CreateMessageRequest "params" must be an object, {type} given.')
+            ->isMap('CreateMessageRequest "params" must be a string-keyed object.')
         ;
 
         return new self(new RequestId($id), CreateMessageRequestParams::fromArray($data['params']));

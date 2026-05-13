@@ -150,8 +150,8 @@ final class ListRootsResultTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -162,26 +162,26 @@ final class ListRootsResultTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing roots' => [
             [],
-            'ListRootsResult wire data missing "roots".',
+            'ListRootsResult data missing "roots".',
         ];
 
         yield 'roots not an array' => [
             ['roots' => 'oops'],
-            'ListRootsResult wire "roots" must be a list, string given.',
+            'ListRootsResult "roots" must be a list, string given.',
         ];
 
         yield 'root entry not an object' => [
             ['roots' => ['oops']],
-            'ListRootsResult wire root entry must be an object, string given.',
+            'ListRootsResult root entry must be an object, string given.',
         ];
 
         yield 'root entry list-keyed' => [
             ['roots' => [['x']]],
-            'ListRootsResult wire root entry must be a string-keyed object.',
+            'ListRootsResult root entry must be a string-keyed object.',
         ];
 
         yield '_meta not an object' => [

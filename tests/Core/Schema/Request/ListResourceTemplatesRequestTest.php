@@ -97,8 +97,8 @@ final class ListResourceTemplatesRequestTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -109,26 +109,26 @@ final class ListResourceTemplatesRequestTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing id' => [
             ['jsonrpc' => '2.0', 'method' => 'resources/templates/list'],
-            'ListResourceTemplatesRequest wire data missing "id".',
+            'ListResourceTemplatesRequest data missing "id".',
         ];
 
         yield 'id not int or string' => [
             ['jsonrpc' => '2.0', 'id' => [], 'method' => 'resources/templates/list'],
-            'ListResourceTemplatesRequest wire "id" must be int or string, array given.',
+            'ListResourceTemplatesRequest "id" must be int or string, array given.',
         ];
 
         yield 'params not an object' => [
             ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'resources/templates/list', 'params' => 'bad'],
-            'ListResourceTemplatesRequest wire "params" must be an object, string given.',
+            'ListResourceTemplatesRequest "params" must be an object, string given.',
         ];
 
         yield 'params list-keyed' => [
             ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'resources/templates/list', 'params' => ['x']],
-            'ListResourceTemplatesRequest wire "params" must be a string-keyed object.',
+            'ListResourceTemplatesRequest "params" must be a string-keyed object.',
         ];
     }
 }

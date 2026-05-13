@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\JsonRpc;
 
 use Nexus\Assert\ExpectationFailedException;
-use Nexus\Mcp\Core\JsonRpc\WireDiscriminator;
+use Nexus\Mcp\Core\JsonRpc\MessageDiscriminator;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
@@ -22,14 +22,14 @@ use PHPUnit\Framework\TestCase;
 /**
  * @internal
  */
-#[CoversClass(WireDiscriminator::class)]
+#[CoversClass(MessageDiscriminator::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class WireDiscriminatorTest extends TestCase
+final class MessageDiscriminatorTest extends TestCase
 {
     public function testReadTypeReturnsTypeValue(): void
     {
-        $type = WireDiscriminator::readType(['type' => 'text', 'text' => 'hello'], 'PromptMessage content');
+        $type = MessageDiscriminator::readType(['type' => 'text', 'text' => 'hello'], 'PromptMessage content');
 
         self::assertSame('text', $type);
     }
@@ -37,39 +37,39 @@ final class WireDiscriminatorTest extends TestCase
     public function testReadTypeRejectsMissingType(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('PromptMessage content wire data missing "type".');
+        $this->expectExceptionMessage('PromptMessage content data missing "type".');
 
-        WireDiscriminator::readType(['text' => 'hello'], 'PromptMessage content');
+        MessageDiscriminator::readType(['text' => 'hello'], 'PromptMessage content');
     }
 
     public function testReadTypeRejectsNonStringType(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('CompleteRequestParams ref wire "type" must be a string, int given.');
+        $this->expectExceptionMessage('CompleteRequestParams ref "type" must be a string, int given.');
 
-        WireDiscriminator::readType(['type' => 1], 'CompleteRequestParams ref');
+        MessageDiscriminator::readType(['type' => 1], 'CompleteRequestParams ref');
     }
 
     public function testUnknownTypeFormatsExceptionWithAllowedValues(): void
     {
-        $exception = WireDiscriminator::unknownType(
+        $exception = MessageDiscriminator::unknownType(
             'CompleteRequestParams ref',
             ['ref/prompt', 'ref/resource'],
             'unknown',
         );
 
         self::assertSame(
-            'CompleteRequestParams ref wire "type" must be one of "ref/prompt", "ref/resource"; "unknown" given.',
+            'CompleteRequestParams ref "type" must be one of "ref/prompt", "ref/resource"; "unknown" given.',
             $exception->getMessage(),
         );
     }
 
     public function testUnknownTypeWithSingleAllowedValue(): void
     {
-        $exception = WireDiscriminator::unknownType('Foo', ['only'], 'other');
+        $exception = MessageDiscriminator::unknownType('Foo', ['only'], 'other');
 
         self::assertSame(
-            'Foo wire "type" must be one of "only"; "other" given.',
+            'Foo "type" must be one of "only"; "other" given.',
             $exception->getMessage(),
         );
     }

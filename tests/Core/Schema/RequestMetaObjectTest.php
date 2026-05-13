@@ -113,14 +113,14 @@ final class RequestMetaObjectTest extends TestCase
         self::assertSame('{}', json_encode($meta));
     }
 
-    public function testParseFromWireReturnsNullWhenMetaAbsent(): void
+    public function testParseFromReturnsNullWhenMetaAbsent(): void
     {
-        self::assertNull(RequestMetaObject::parseFromWire(['name' => 'x'], 'Request params'));
+        self::assertNull(RequestMetaObject::parseFrom(['name' => 'x'], 'Request params'));
     }
 
-    public function testParseFromWireReadsAndContextualizes(): void
+    public function testParseFromReadsAndContextualizes(): void
     {
-        $meta = RequestMetaObject::parseFromWire(
+        $meta = RequestMetaObject::parseFrom(
             ['_meta' => ['progressToken' => 'tok-1', 'vendor' => 'x']],
             'Request params',
         );
@@ -131,19 +131,19 @@ final class RequestMetaObjectTest extends TestCase
         self::assertSame(['vendor' => 'x'], $meta->extras);
     }
 
-    public function testParseFromWireRejectsNonObjectMeta(): void
+    public function testParseFromRejectsNonObjectMeta(): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage('Request params "_meta" must be an object, string given.');
 
-        RequestMetaObject::parseFromWire(['_meta' => 'oops'], 'Request params');
+        RequestMetaObject::parseFrom(['_meta' => 'oops'], 'Request params');
     }
 
-    public function testParseFromWireRejectsListKeyedMeta(): void
+    public function testParseFromRejectsListKeyedMeta(): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage('Request params "_meta" must be a string-keyed object.');
 
-        RequestMetaObject::parseFromWire(['_meta' => ['x']], 'Request params');
+        RequestMetaObject::parseFrom(['_meta' => ['x']], 'Request params');
     }
 }

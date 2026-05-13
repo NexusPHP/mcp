@@ -59,22 +59,22 @@ final readonly class CallToolRequestParams extends TaskAugmentedRequestParams
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('name', 'CallToolRequestParams wire data missing "name".');
+        Assert::that($data)->hasOffset('name', 'CallToolRequestParams data missing "name".');
         $name = $data['name'];
-        Assert::that($name)->isString('CallToolRequestParams wire "name" must be a string, {type} given.');
+        Assert::that($name)->isString('CallToolRequestParams "name" must be a string, {type} given.');
 
         $arguments = null;
 
         if (\array_key_exists('arguments', $data)) {
             Assert::that($data['arguments'])
-                ->isArray('CallToolRequestParams wire "arguments" must be an object, {type} given.')
-                ->isMap('CallToolRequestParams wire "arguments" must be a string-keyed object.')
+                ->isArray('CallToolRequestParams "arguments" must be an object, {type} given.')
+                ->isMap('CallToolRequestParams "arguments" must be a string-keyed object.')
             ;
             $arguments = $data['arguments'];
         }
 
-        $task = TaskMetadata::parseFromWire($data, 'CallToolRequestParams');
-        $meta = RequestMetaObject::parseFromWire($data, 'Request params');
+        $task = TaskMetadata::parseFrom($data, 'CallToolRequestParams');
+        $meta = RequestMetaObject::parseFrom($data, 'Request params');
 
         return new self($name, $arguments, $task, $meta);
     }

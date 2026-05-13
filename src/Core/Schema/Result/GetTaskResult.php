@@ -36,7 +36,7 @@ final readonly class GetTaskResult extends Result implements ClientResult, Serve
     public static function fromArray(array $data): static
     {
         $task = Task::fromArray($data);
-        $meta = MetaObject::parseFromWire($data, 'Result');
+        $meta = MetaObject::parseFrom($data, 'Result');
 
         return new self($task, $meta);
     }

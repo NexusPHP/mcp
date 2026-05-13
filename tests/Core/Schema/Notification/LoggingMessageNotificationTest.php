@@ -110,8 +110,8 @@ final class LoggingMessageNotificationTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -122,21 +122,21 @@ final class LoggingMessageNotificationTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing params' => [
             ['jsonrpc' => '2.0', 'method' => 'notifications/message'],
-            'LoggingMessageNotification wire data missing "params".',
+            'LoggingMessageNotification data missing "params".',
         ];
 
         yield 'params not an object' => [
             ['jsonrpc' => '2.0', 'method' => 'notifications/message', 'params' => 'bad'],
-            'LoggingMessageNotification wire "params" must be an object, string given.',
+            'LoggingMessageNotification "params" must be an object, string given.',
         ];
 
         yield 'params list-keyed' => [
             ['jsonrpc' => '2.0', 'method' => 'notifications/message', 'params' => ['x']],
-            'LoggingMessageNotification wire "params" must be a string-keyed object.',
+            'LoggingMessageNotification "params" must be a string-keyed object.',
         ];
     }
 }

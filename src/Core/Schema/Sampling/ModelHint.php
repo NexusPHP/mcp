@@ -47,7 +47,7 @@ final readonly class ModelHint implements Arrayable
     public static function fromArray(array $data): static
     {
         $name = $data['name'] ?? null;
-        Assert::that($name)->nullOr()->isString('ModelHint wire "name" must be a string or null, {type} given.');
+        Assert::that($name)->nullOr()->isString('ModelHint "name" must be a string or null, {type} given.');
 
         return new self($name);
     }

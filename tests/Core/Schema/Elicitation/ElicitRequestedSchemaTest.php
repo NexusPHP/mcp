@@ -236,8 +236,8 @@ final class ElicitRequestedSchemaTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -248,36 +248,36 @@ final class ElicitRequestedSchemaTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing type' => [
             ['properties' => []],
-            'ElicitRequestedSchema wire data missing "type".',
+            'ElicitRequestedSchema data missing "type".',
         ];
 
         yield 'wrong type literal' => [
             ['type' => 'array', 'properties' => []],
-            'ElicitRequestedSchema wire "type" must be "object", \'array\' given.',
+            'ElicitRequestedSchema "type" must be "object", \'array\' given.',
         ];
 
         yield 'missing properties' => [
             ['type' => 'object'],
-            'ElicitRequestedSchema wire data missing "properties".',
+            'ElicitRequestedSchema data missing "properties".',
         ];
 
         yield 'properties not an object' => [
             ['type' => 'object', 'properties' => 'oops'],
-            'ElicitRequestedSchema wire "properties" must be an object, string given.',
+            'ElicitRequestedSchema "properties" must be an object, string given.',
         ];
 
         yield 'properties list-keyed' => [
             ['type' => 'object', 'properties' => ['oops']],
-            'ElicitRequestedSchema wire "properties" must be a string-keyed object.',
+            'ElicitRequestedSchema "properties" must be a string-keyed object.',
         ];
 
         yield 'property entry not an object' => [
             ['type' => 'object', 'properties' => ['x' => 'oops']],
-            'ElicitRequestedSchema wire properties entry must be an object, string given.',
+            'ElicitRequestedSchema properties entry must be an object, string given.',
         ];
 
         yield 'property entry missing type' => [
@@ -292,17 +292,17 @@ final class ElicitRequestedSchemaTest extends TestCase
 
         yield 'required not a list' => [
             ['type' => 'object', 'properties' => [], 'required' => ['k' => 'v']],
-            'ElicitRequestedSchema wire "required" must be a list, got non-list array.',
+            'ElicitRequestedSchema "required" must be a list, got non-list array.',
         ];
 
         yield 'required entry not a string' => [
             ['type' => 'object', 'properties' => [], 'required' => [1]],
-            'ElicitRequestedSchema wire required entry must be a string, int given.',
+            'ElicitRequestedSchema required entry must be a string, int given.',
         ];
 
         yield '$schema not a string' => [
             ['type' => 'object', 'properties' => [], '$schema' => 1],
-            'ElicitRequestedSchema wire "$schema" must be a string or null, int given.',
+            'ElicitRequestedSchema "$schema" must be a string or null, int given.',
         ];
     }
 }

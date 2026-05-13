@@ -169,8 +169,8 @@ final class InitializeResultTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -181,41 +181,41 @@ final class InitializeResultTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing protocolVersion' => [
             ['capabilities' => [], 'serverInfo' => ['name' => 's', 'version' => '1']],
-            'InitializeResult wire data missing "protocolVersion".',
+            'InitializeResult data missing "protocolVersion".',
         ];
 
         yield 'protocolVersion not a string' => [
             ['protocolVersion' => 1, 'capabilities' => [], 'serverInfo' => ['name' => 's', 'version' => '1']],
-            'InitializeResult wire "protocolVersion" must be a string, int given.',
+            'InitializeResult "protocolVersion" must be a string, int given.',
         ];
 
         yield 'missing capabilities' => [
             ['protocolVersion' => '2025-11-25', 'serverInfo' => ['name' => 's', 'version' => '1']],
-            'InitializeResult wire data missing "capabilities".',
+            'InitializeResult data missing "capabilities".',
         ];
 
         yield 'capabilities not an object' => [
             ['protocolVersion' => '2025-11-25', 'capabilities' => 'oops', 'serverInfo' => ['name' => 's', 'version' => '1']],
-            'InitializeResult wire "capabilities" must be an object, string given.',
+            'InitializeResult "capabilities" must be an object, string given.',
         ];
 
         yield 'missing serverInfo' => [
             ['protocolVersion' => '2025-11-25', 'capabilities' => []],
-            'InitializeResult wire data missing "serverInfo".',
+            'InitializeResult data missing "serverInfo".',
         ];
 
         yield 'serverInfo not an object' => [
             ['protocolVersion' => '2025-11-25', 'capabilities' => [], 'serverInfo' => 'oops'],
-            'InitializeResult wire "serverInfo" must be an object, string given.',
+            'InitializeResult "serverInfo" must be an object, string given.',
         ];
 
         yield 'instructions not a string' => [
             ['protocolVersion' => '2025-11-25', 'capabilities' => [], 'serverInfo' => ['name' => 's', 'version' => '1'], 'instructions' => 1],
-            'InitializeResult wire "instructions" must be a string or null, int given.',
+            'InitializeResult "instructions" must be a string or null, int given.',
         ];
 
         yield '_meta not an object' => [

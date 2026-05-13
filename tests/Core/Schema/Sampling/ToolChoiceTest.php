@@ -80,7 +80,7 @@ final class ToolChoiceTest extends TestCase
     public function testFromArrayRejectsNonStringMode(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ToolChoice wire "mode" must be a string, int given.');
+        $this->expectExceptionMessage('ToolChoice "mode" must be a string, int given.');
 
         ToolChoice::fromArray(['mode' => 7]);
     }

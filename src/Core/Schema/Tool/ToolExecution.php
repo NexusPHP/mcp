@@ -40,7 +40,7 @@ final readonly class ToolExecution implements Arrayable
 
         if (\array_key_exists('taskSupport', $data)) {
             $value = $data['taskSupport'];
-            Assert::that($value)->isString('ToolExecution wire "taskSupport" must be a string, {type} given.');
+            Assert::that($value)->isString('ToolExecution "taskSupport" must be a string, {type} given.');
             $taskSupport = TaskSupport::from($value);
         }
 

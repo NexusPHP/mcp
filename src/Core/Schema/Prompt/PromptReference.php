@@ -46,16 +46,16 @@ final readonly class PromptReference extends BaseMetadata implements Arrayable
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('type', 'PromptReference wire data missing "type".');
+        Assert::that($data)->hasOffset('type', 'PromptReference data missing "type".');
         $type = $data['type'];
-        Assert::that($type)->isIdentical(self::TYPE, \sprintf('PromptReference wire "type" must be "%s", {value} given.', self::TYPE));
+        Assert::that($type)->isIdentical(self::TYPE, \sprintf('PromptReference "type" must be "%s", {value} given.', self::TYPE));
 
-        Assert::that($data)->hasOffset('name', 'PromptReference wire data missing "name".');
+        Assert::that($data)->hasOffset('name', 'PromptReference data missing "name".');
         $name = $data['name'];
-        Assert::that($name)->isString('PromptReference wire "name" must be a string, {type} given.');
+        Assert::that($name)->isString('PromptReference "name" must be a string, {type} given.');
 
         $title = $data['title'] ?? null;
-        Assert::that($title)->nullOr()->isString('PromptReference wire "title" must be a string or null, {type} given.');
+        Assert::that($title)->nullOr()->isString('PromptReference "title" must be a string or null, {type} given.');
 
         return new self($name, $title);
     }

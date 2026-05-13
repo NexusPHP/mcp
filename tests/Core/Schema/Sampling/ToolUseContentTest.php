@@ -116,7 +116,7 @@ final class ToolUseContentTest extends TestCase
     public function testFromArrayRejectsMissingType(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ToolUseContent wire data missing "type".');
+        $this->expectExceptionMessage('ToolUseContent data missing "type".');
 
         ToolUseContent::fromArray(['id' => 'tu-1', 'name' => 'x', 'input' => []]);
     }
@@ -124,7 +124,7 @@ final class ToolUseContentTest extends TestCase
     public function testFromArrayRejectsWrongType(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ToolUseContent wire "type" must be "tool_use", \'text\' given.');
+        $this->expectExceptionMessage('ToolUseContent "type" must be "tool_use", \'text\' given.');
 
         ToolUseContent::fromArray(['type' => 'text', 'id' => 'tu-1', 'name' => 'x', 'input' => []]);
     }
@@ -132,7 +132,7 @@ final class ToolUseContentTest extends TestCase
     public function testFromArrayRejectsMissingId(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ToolUseContent wire data missing "id".');
+        $this->expectExceptionMessage('ToolUseContent data missing "id".');
 
         ToolUseContent::fromArray(['type' => 'tool_use', 'name' => 'x', 'input' => []]);
     }
@@ -140,7 +140,7 @@ final class ToolUseContentTest extends TestCase
     public function testFromArrayRejectsMissingName(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ToolUseContent wire data missing "name".');
+        $this->expectExceptionMessage('ToolUseContent data missing "name".');
 
         ToolUseContent::fromArray(['type' => 'tool_use', 'id' => 'tu-1', 'input' => []]);
     }
@@ -148,7 +148,7 @@ final class ToolUseContentTest extends TestCase
     public function testFromArrayRejectsMissingInput(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ToolUseContent wire data missing "input".');
+        $this->expectExceptionMessage('ToolUseContent data missing "input".');
 
         ToolUseContent::fromArray(['type' => 'tool_use', 'id' => 'tu-1', 'name' => 'x']);
     }
@@ -156,7 +156,7 @@ final class ToolUseContentTest extends TestCase
     public function testFromArrayRejectsNonObjectInput(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ToolUseContent wire "input" must be an object, string given.');
+        $this->expectExceptionMessage('ToolUseContent "input" must be an object, string given.');
 
         ToolUseContent::fromArray(['type' => 'tool_use', 'id' => 'tu-1', 'name' => 'x', 'input' => 'oops']);
     }
@@ -164,7 +164,7 @@ final class ToolUseContentTest extends TestCase
     public function testFromArrayRejectsListKeyedInput(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ToolUseContent wire "input" must be a string-keyed object.');
+        $this->expectExceptionMessage('ToolUseContent "input" must be a string-keyed object.');
 
         ToolUseContent::fromArray(['type' => 'tool_use', 'id' => 'tu-1', 'name' => 'x', 'input' => ['a']]);
     }

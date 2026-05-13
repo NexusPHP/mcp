@@ -95,7 +95,7 @@ final class ToolExecutionTest extends TestCase
     public function testFromArrayRejectsNonStringTaskSupport(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ToolExecution wire "taskSupport" must be a string, int given.');
+        $this->expectExceptionMessage('ToolExecution "taskSupport" must be a string, int given.');
 
         ToolExecution::fromArray(['taskSupport' => 1]);
     }

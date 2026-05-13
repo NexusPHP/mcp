@@ -44,23 +44,23 @@ final readonly class ProgressNotificationParams extends NotificationParams
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('progressToken', 'ProgressNotificationParams wire data missing "progressToken".');
+        Assert::that($data)->hasOffset('progressToken', 'ProgressNotificationParams data missing "progressToken".');
         $progressToken = $data['progressToken'];
-        Assert::that($progressToken)->isArrayKey('ProgressNotificationParams wire "progressToken" must be int or string, {type} given.');
+        Assert::that($progressToken)->isArrayKey('ProgressNotificationParams "progressToken" must be int or string, {type} given.');
 
-        Assert::that($data)->hasOffset('progress', 'ProgressNotificationParams wire data missing "progress".');
-        $progress = self::parseNumber($data['progress'], 'ProgressNotificationParams wire "progress" must be a number, {type} given.');
+        Assert::that($data)->hasOffset('progress', 'ProgressNotificationParams data missing "progress".');
+        $progress = self::parseNumber($data['progress'], 'ProgressNotificationParams "progress" must be a number, {type} given.');
 
         $total = $data['total'] ?? null;
 
         if (null !== $total) {
-            $total = self::parseNumber($total, 'ProgressNotificationParams wire "total" must be a number or null, {type} given.');
+            $total = self::parseNumber($total, 'ProgressNotificationParams "total" must be a number or null, {type} given.');
         }
 
         $message = $data['message'] ?? null;
-        Assert::that($message)->nullOr()->isString('ProgressNotificationParams wire "message" must be a string or null, {type} given.');
+        Assert::that($message)->nullOr()->isString('ProgressNotificationParams "message" must be a string or null, {type} given.');
 
-        $meta = MetaObject::parseFromWire($data, 'Notification params');
+        $meta = MetaObject::parseFrom($data, 'Notification params');
 
         return new self(new ProgressToken($progressToken), $progress, $total, $message, $meta);
     }

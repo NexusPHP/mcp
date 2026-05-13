@@ -154,24 +154,24 @@ final readonly class ClientCapabilities implements Arrayable
         }
 
         Assert::that($value)
-            ->isArray('ClientCapabilities wire "elicitation" must be an object, {type} given.')
-            ->isMap('ClientCapabilities wire "elicitation" must be a string-keyed object.')
+            ->isArray('ClientCapabilities "elicitation" must be an object, {type} given.')
+            ->isMap('ClientCapabilities "elicitation" must be a string-keyed object.')
         ;
 
         $elicitation = [];
 
         if (\array_key_exists('form', $value)) {
             Assert::that($value['form'])
-                ->isArray('ClientCapabilities wire "elicitation.form" must be an object, {type} given.')
-                ->isMap('ClientCapabilities wire "elicitation.form" must be a string-keyed object.')
+                ->isArray('ClientCapabilities "elicitation.form" must be an object, {type} given.')
+                ->isMap('ClientCapabilities "elicitation.form" must be a string-keyed object.')
             ;
             $elicitation['form'] = $value['form'];
         }
 
         if (\array_key_exists('url', $value)) {
             Assert::that($value['url'])
-                ->isArray('ClientCapabilities wire "elicitation.url" must be an object, {type} given.')
-                ->isMap('ClientCapabilities wire "elicitation.url" must be a string-keyed object.')
+                ->isArray('ClientCapabilities "elicitation.url" must be an object, {type} given.')
+                ->isMap('ClientCapabilities "elicitation.url" must be a string-keyed object.')
             ;
             $elicitation['url'] = $value['url'];
         }
@@ -193,16 +193,16 @@ final readonly class ClientCapabilities implements Arrayable
         }
 
         Assert::that($value)
-            ->isArray('ClientCapabilities wire "experimental" must be an object, {type} given.')
-            ->isMap('ClientCapabilities wire "experimental" must be a string-keyed object.')
+            ->isArray('ClientCapabilities "experimental" must be an object, {type} given.')
+            ->isMap('ClientCapabilities "experimental" must be a string-keyed object.')
         ;
 
         $experimental = [];
 
         foreach ($value as $extKey => $extValue) {
             Assert::that($extValue)
-                ->isArray(\sprintf('ClientCapabilities wire "experimental.%s" must be an object, {type} given.', $extKey))
-                ->isMap(\sprintf('ClientCapabilities wire "experimental.%s" must be a string-keyed object.', $extKey))
+                ->isArray(\sprintf('ClientCapabilities "experimental.%s" must be an object, {type} given.', $extKey))
+                ->isMap(\sprintf('ClientCapabilities "experimental.%s" must be a string-keyed object.', $extKey))
             ;
             $experimental[$extKey] = $extValue;
         }
@@ -224,15 +224,15 @@ final readonly class ClientCapabilities implements Arrayable
         }
 
         Assert::that($value)
-            ->isArray('ClientCapabilities wire "roots" must be an object, {type} given.')
-            ->isMap('ClientCapabilities wire "roots" must be a string-keyed object.')
+            ->isArray('ClientCapabilities "roots" must be an object, {type} given.')
+            ->isMap('ClientCapabilities "roots" must be a string-keyed object.')
         ;
 
         $roots = [];
 
         if (\array_key_exists('listChanged', $value)) {
             Assert::that($value['listChanged'])
-                ->isBool('ClientCapabilities wire "roots.listChanged" must be a boolean, {type} given.')
+                ->isBool('ClientCapabilities "roots.listChanged" must be a boolean, {type} given.')
             ;
             $roots['listChanged'] = $value['listChanged'];
         }
@@ -254,24 +254,24 @@ final readonly class ClientCapabilities implements Arrayable
         }
 
         Assert::that($value)
-            ->isArray('ClientCapabilities wire "sampling" must be an object, {type} given.')
-            ->isMap('ClientCapabilities wire "sampling" must be a string-keyed object.')
+            ->isArray('ClientCapabilities "sampling" must be an object, {type} given.')
+            ->isMap('ClientCapabilities "sampling" must be a string-keyed object.')
         ;
 
         $sampling = [];
 
         if (\array_key_exists('context', $value)) {
             Assert::that($value['context'])
-                ->isArray('ClientCapabilities wire "sampling.context" must be an object, {type} given.')
-                ->isMap('ClientCapabilities wire "sampling.context" must be a string-keyed object.')
+                ->isArray('ClientCapabilities "sampling.context" must be an object, {type} given.')
+                ->isMap('ClientCapabilities "sampling.context" must be a string-keyed object.')
             ;
             $sampling['context'] = $value['context'];
         }
 
         if (\array_key_exists('tools', $value)) {
             Assert::that($value['tools'])
-                ->isArray('ClientCapabilities wire "sampling.tools" must be an object, {type} given.')
-                ->isMap('ClientCapabilities wire "sampling.tools" must be a string-keyed object.')
+                ->isArray('ClientCapabilities "sampling.tools" must be an object, {type} given.')
+                ->isMap('ClientCapabilities "sampling.tools" must be a string-keyed object.')
             ;
             $sampling['tools'] = $value['tools'];
         }
@@ -293,24 +293,24 @@ final readonly class ClientCapabilities implements Arrayable
         }
 
         Assert::that($value)
-            ->isArray('ClientCapabilities wire "tasks" must be an object, {type} given.')
-            ->isMap('ClientCapabilities wire "tasks" must be a string-keyed object.')
+            ->isArray('ClientCapabilities "tasks" must be an object, {type} given.')
+            ->isMap('ClientCapabilities "tasks" must be a string-keyed object.')
         ;
 
         $tasks = [];
 
         if (\array_key_exists('cancel', $value)) {
             Assert::that($value['cancel'])
-                ->isArray('ClientCapabilities wire "tasks.cancel" must be an object, {type} given.')
-                ->isMap('ClientCapabilities wire "tasks.cancel" must be a string-keyed object.')
+                ->isArray('ClientCapabilities "tasks.cancel" must be an object, {type} given.')
+                ->isMap('ClientCapabilities "tasks.cancel" must be a string-keyed object.')
             ;
             $tasks['cancel'] = $value['cancel'];
         }
 
         if (\array_key_exists('list', $value)) {
             Assert::that($value['list'])
-                ->isArray('ClientCapabilities wire "tasks.list" must be an object, {type} given.')
-                ->isMap('ClientCapabilities wire "tasks.list" must be a string-keyed object.')
+                ->isArray('ClientCapabilities "tasks.list" must be an object, {type} given.')
+                ->isMap('ClientCapabilities "tasks.list" must be a string-keyed object.')
             ;
             $tasks['list'] = $value['list'];
         }
@@ -331,24 +331,24 @@ final readonly class ClientCapabilities implements Arrayable
     private static function extractTasksRequests(mixed $value): array
     {
         Assert::that($value)
-            ->isArray('ClientCapabilities wire "tasks.requests" must be an object, {type} given.')
-            ->isMap('ClientCapabilities wire "tasks.requests" must be a string-keyed object.')
+            ->isArray('ClientCapabilities "tasks.requests" must be an object, {type} given.')
+            ->isMap('ClientCapabilities "tasks.requests" must be a string-keyed object.')
         ;
 
         $requests = [];
 
         if (\array_key_exists('elicitation', $value)) {
             Assert::that($value['elicitation'])
-                ->isArray('ClientCapabilities wire "tasks.requests.elicitation" must be an object, {type} given.')
-                ->isMap('ClientCapabilities wire "tasks.requests.elicitation" must be a string-keyed object.')
+                ->isArray('ClientCapabilities "tasks.requests.elicitation" must be an object, {type} given.')
+                ->isMap('ClientCapabilities "tasks.requests.elicitation" must be a string-keyed object.')
             ;
 
             $elicitation = [];
 
             if (\array_key_exists('create', $value['elicitation'])) {
                 Assert::that($value['elicitation']['create'])
-                    ->isArray('ClientCapabilities wire "tasks.requests.elicitation.create" must be an object, {type} given.')
-                    ->isMap('ClientCapabilities wire "tasks.requests.elicitation.create" must be a string-keyed object.')
+                    ->isArray('ClientCapabilities "tasks.requests.elicitation.create" must be an object, {type} given.')
+                    ->isMap('ClientCapabilities "tasks.requests.elicitation.create" must be a string-keyed object.')
                 ;
                 $elicitation['create'] = $value['elicitation']['create'];
             }
@@ -358,16 +358,16 @@ final readonly class ClientCapabilities implements Arrayable
 
         if (\array_key_exists('sampling', $value)) {
             Assert::that($value['sampling'])
-                ->isArray('ClientCapabilities wire "tasks.requests.sampling" must be an object, {type} given.')
-                ->isMap('ClientCapabilities wire "tasks.requests.sampling" must be a string-keyed object.')
+                ->isArray('ClientCapabilities "tasks.requests.sampling" must be an object, {type} given.')
+                ->isMap('ClientCapabilities "tasks.requests.sampling" must be a string-keyed object.')
             ;
 
             $sampling = [];
 
             if (\array_key_exists('createMessage', $value['sampling'])) {
                 Assert::that($value['sampling']['createMessage'])
-                    ->isArray('ClientCapabilities wire "tasks.requests.sampling.createMessage" must be an object, {type} given.')
-                    ->isMap('ClientCapabilities wire "tasks.requests.sampling.createMessage" must be a string-keyed object.')
+                    ->isArray('ClientCapabilities "tasks.requests.sampling.createMessage" must be an object, {type} given.')
+                    ->isMap('ClientCapabilities "tasks.requests.sampling.createMessage" must be a string-keyed object.')
                 ;
                 $sampling['createMessage'] = $value['sampling']['createMessage'];
             }

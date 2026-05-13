@@ -29,11 +29,11 @@ final readonly class SubscribeRequestParams extends ResourceRequestParams
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('uri', 'SubscribeRequestParams wire data missing "uri".');
+        Assert::that($data)->hasOffset('uri', 'SubscribeRequestParams data missing "uri".');
         $uri = $data['uri'];
-        Assert::that($uri)->isString('SubscribeRequestParams wire "uri" must be a string, {type} given.');
+        Assert::that($uri)->isString('SubscribeRequestParams "uri" must be a string, {type} given.');
 
-        $meta = RequestMetaObject::parseFromWire($data, 'Request params');
+        $meta = RequestMetaObject::parseFrom($data, 'Request params');
 
         return new self($uri, $meta);
     }

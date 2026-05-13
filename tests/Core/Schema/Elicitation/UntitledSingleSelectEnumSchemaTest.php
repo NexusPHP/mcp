@@ -113,8 +113,8 @@ final class UntitledSingleSelectEnumSchemaTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -125,46 +125,46 @@ final class UntitledSingleSelectEnumSchemaTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing type' => [
             ['enum' => ['a']],
-            'UntitledSingleSelectEnumSchema wire data missing "type".',
+            'UntitledSingleSelectEnumSchema data missing "type".',
         ];
 
         yield 'wrong type literal' => [
             ['type' => 'number', 'enum' => ['a']],
-            'UntitledSingleSelectEnumSchema wire "type" must be "string", \'number\' given.',
+            'UntitledSingleSelectEnumSchema "type" must be "string", \'number\' given.',
         ];
 
         yield 'missing enum' => [
             ['type' => 'string'],
-            'UntitledSingleSelectEnumSchema wire data missing "enum".',
+            'UntitledSingleSelectEnumSchema data missing "enum".',
         ];
 
         yield 'enum not a list' => [
             ['type' => 'string', 'enum' => ['k' => 'v']],
-            'UntitledSingleSelectEnumSchema wire "enum" must be a list, got non-list array.',
+            'UntitledSingleSelectEnumSchema "enum" must be a list, got non-list array.',
         ];
 
         yield 'enum entry not a string' => [
             ['type' => 'string', 'enum' => [1]],
-            'UntitledSingleSelectEnumSchema wire "enum" entry must be a string, int given.',
+            'UntitledSingleSelectEnumSchema "enum" entry must be a string, int given.',
         ];
 
         yield 'title not a string' => [
             ['type' => 'string', 'enum' => ['a'], 'title' => 1],
-            'UntitledSingleSelectEnumSchema wire "title" must be a string or null, int given.',
+            'UntitledSingleSelectEnumSchema "title" must be a string or null, int given.',
         ];
 
         yield 'description not a string' => [
             ['type' => 'string', 'enum' => ['a'], 'description' => 1],
-            'UntitledSingleSelectEnumSchema wire "description" must be a string or null, int given.',
+            'UntitledSingleSelectEnumSchema "description" must be a string or null, int given.',
         ];
 
         yield 'default not a string' => [
             ['type' => 'string', 'enum' => ['a'], 'default' => 1],
-            'UntitledSingleSelectEnumSchema wire "default" must be a string or null, int given.',
+            'UntitledSingleSelectEnumSchema "default" must be a string or null, int given.',
         ];
     }
 }

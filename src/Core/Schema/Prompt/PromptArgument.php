@@ -57,18 +57,18 @@ final readonly class PromptArgument extends BaseMetadata implements Arrayable
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('name', 'PromptArgument wire data missing "name".');
+        Assert::that($data)->hasOffset('name', 'PromptArgument data missing "name".');
         $name = $data['name'];
-        Assert::that($name)->isString('PromptArgument wire "name" must be a string, {type} given.');
+        Assert::that($name)->isString('PromptArgument "name" must be a string, {type} given.');
 
         $title = $data['title'] ?? null;
-        Assert::that($title)->nullOr()->isString('PromptArgument wire "title" must be a string or null, {type} given.');
+        Assert::that($title)->nullOr()->isString('PromptArgument "title" must be a string or null, {type} given.');
 
         $description = $data['description'] ?? null;
-        Assert::that($description)->nullOr()->isString('PromptArgument wire "description" must be a string or null, {type} given.');
+        Assert::that($description)->nullOr()->isString('PromptArgument "description" must be a string or null, {type} given.');
 
         $required = $data['required'] ?? null;
-        Assert::that($required)->nullOr()->isBool('PromptArgument wire "required" must be a bool or null, {type} given.');
+        Assert::that($required)->nullOr()->isBool('PromptArgument "required" must be a bool or null, {type} given.');
 
         return new self($name, $title, $description, $required);
     }

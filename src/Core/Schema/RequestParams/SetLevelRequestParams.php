@@ -36,11 +36,11 @@ final readonly class SetLevelRequestParams extends RequestParams
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('level', 'SetLevelRequestParams wire data missing "level".');
+        Assert::that($data)->hasOffset('level', 'SetLevelRequestParams data missing "level".');
         $level = $data['level'];
-        Assert::that($level)->isString('SetLevelRequestParams wire "level" must be a string, {type} given.');
+        Assert::that($level)->isString('SetLevelRequestParams "level" must be a string, {type} given.');
 
-        $meta = RequestMetaObject::parseFromWire($data, 'Request params');
+        $meta = RequestMetaObject::parseFrom($data, 'Request params');
 
         return new self(LoggingLevel::from($level), $meta);
     }

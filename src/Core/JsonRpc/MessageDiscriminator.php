@@ -17,17 +17,17 @@ use Nexus\Assert\Assert;
 use Nexus\Assert\ExpectationFailedException;
 
 /**
- * Shared wire-parsing helpers for shapes that discriminate concrete subtypes
- * by a `type` field. Used by `PromptMessage` to dispatch over `ContentBlock`
+ * Shared helpers for JSON shapes that discriminate concrete subtypes by a
+ * `type` field. Used by `PromptMessage` to dispatch over `ContentBlock`
  * concretes and by `CompleteRequestParams` to dispatch between the two
  * `Reference` shapes.
  *
  * @internal
  */
-final class WireDiscriminator
+final class MessageDiscriminator
 {
     /**
-     * Reads and validates the discriminator `type` field from a wire payload.
+     * Reads and validates the discriminator `type` field from a payload.
      * The `$context` prefix scopes both error messages to the calling shape
      * (e.g. `"PromptMessage content"`, `"CompleteRequestParams ref"`).
      *
@@ -36,15 +36,15 @@ final class WireDiscriminator
      */
     public static function readType(array $data, string $context): string
     {
-        Assert::that($data)->hasOffset('type', \sprintf('%s wire data missing "type".', $context));
+        Assert::that($data)->hasOffset('type', \sprintf('%s data missing "type".', $context));
         $type = $data['type'];
-        Assert::that($type)->isString(\sprintf('%s wire "type" must be a string, {type} given.', $context));
+        Assert::that($type)->isString(\sprintf('%s "type" must be a string, {type} given.', $context));
 
         return $type;
     }
 
     /**
-     * Builds the exception for a wire payload whose `type` did not match any
+     * Builds the exception for a payload whose `type` did not match any
      * allowed discriminator. The allowed values appear quoted in the message,
      * e.g. `must be one of "ref/prompt", "ref/resource"`.
      *
@@ -54,7 +54,7 @@ final class WireDiscriminator
     public static function unknownType(string $context, array $allowedTypes, string $given): ExpectationFailedException
     {
         return new ExpectationFailedException(\sprintf(
-            '%s wire "type" must be one of "%s"; "%s" given.',
+            '%s "type" must be one of "%s"; "%s" given.',
             $context,
             implode('", "', $allowedTypes),
             $given,

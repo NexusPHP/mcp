@@ -35,11 +35,11 @@ final readonly class ResourceUpdatedNotificationParams extends NotificationParam
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('uri', 'ResourceUpdatedNotificationParams wire data missing "uri".');
+        Assert::that($data)->hasOffset('uri', 'ResourceUpdatedNotificationParams data missing "uri".');
         $uri = $data['uri'];
-        Assert::that($uri)->isString('ResourceUpdatedNotificationParams wire "uri" must be a string, {type} given.');
+        Assert::that($uri)->isString('ResourceUpdatedNotificationParams "uri" must be a string, {type} given.');
 
-        $meta = MetaObject::parseFromWire($data, 'Notification params');
+        $meta = MetaObject::parseFrom($data, 'Notification params');
 
         return new self($uri, $meta);
     }

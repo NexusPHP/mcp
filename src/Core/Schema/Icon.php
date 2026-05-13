@@ -86,26 +86,26 @@ final readonly class Icon implements Arrayable
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('src', 'Icon wire data missing "src".');
+        Assert::that($data)->hasOffset('src', 'Icon data missing "src".');
 
         $src = $data['src'];
-        Assert::that($src)->isString('Icon wire "src" must be a string, {type} given.');
+        Assert::that($src)->isString('Icon "src" must be a string, {type} given.');
 
         $mimeType = $data['mimeType'] ?? null;
-        Assert::that($mimeType)->nullOr()->isString('Icon wire "mimeType" must be a string or null, {type} given.');
+        Assert::that($mimeType)->nullOr()->isString('Icon "mimeType" must be a string or null, {type} given.');
 
         $sizes = null;
 
         if (isset($data['sizes'])) {
             Assert::that($data['sizes'])
-                ->isList('Icon wire "sizes" must be a list of strings or null, {type} given.')
-                ->values()->isString('Icon wire "sizes" entry must be a string, {type} given.')
+                ->isList('Icon "sizes" must be a list of strings or null, {type} given.')
+                ->values()->isString('Icon "sizes" entry must be a string, {type} given.')
             ;
             $sizes = $data['sizes'];
         }
 
         $theme = $data['theme'] ?? null;
-        Assert::that($theme)->nullOr()->isString('Icon wire "theme" must be a string or null, {type} given.');
+        Assert::that($theme)->nullOr()->isString('Icon "theme" must be a string or null, {type} given.');
 
         return new self($src, $mimeType, $sizes, $theme);
     }

@@ -129,8 +129,8 @@ final class BlobResourceContentsTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -141,31 +141,31 @@ final class BlobResourceContentsTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing uri' => [
             ['blob' => 'aGVsbG8='],
-            'BlobResourceContents wire data missing "uri".',
+            'BlobResourceContents data missing "uri".',
         ];
 
         yield 'uri not a string' => [
             ['uri' => 1, 'blob' => 'aGVsbG8='],
-            'BlobResourceContents wire "uri" must be a string, int given.',
+            'BlobResourceContents "uri" must be a string, int given.',
         ];
 
         yield 'missing blob' => [
             ['uri' => 'file:///x'],
-            'BlobResourceContents wire data missing "blob".',
+            'BlobResourceContents data missing "blob".',
         ];
 
         yield 'blob not a string' => [
             ['uri' => 'file:///x', 'blob' => 1],
-            'BlobResourceContents wire "blob" must be a string, int given.',
+            'BlobResourceContents "blob" must be a string, int given.',
         ];
 
         yield 'mimeType not a string' => [
             ['uri' => 'file:///x', 'blob' => 'aGVsbG8=', 'mimeType' => 1],
-            'BlobResourceContents wire "mimeType" must be a string or null, int given.',
+            'BlobResourceContents "mimeType" must be a string or null, int given.',
         ];
 
         yield '_meta not an object' => [

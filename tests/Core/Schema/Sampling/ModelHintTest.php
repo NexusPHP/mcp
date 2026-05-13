@@ -89,7 +89,7 @@ final class ModelHintTest extends TestCase
     public function testFromArrayRejectsNonStringName(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ModelHint wire "name" must be a string or null, int given.');
+        $this->expectExceptionMessage('ModelHint "name" must be a string or null, int given.');
 
         ModelHint::fromArray(['name' => 42]);
     }

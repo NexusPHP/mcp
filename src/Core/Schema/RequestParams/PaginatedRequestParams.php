@@ -40,11 +40,11 @@ final readonly class PaginatedRequestParams extends RequestParams
 
         if (\array_key_exists('cursor', $data)) {
             $raw = $data['cursor'];
-            Assert::that($raw)->isString('PaginatedRequestParams wire "cursor" must be a string, {type} given.');
+            Assert::that($raw)->isString('PaginatedRequestParams "cursor" must be a string, {type} given.');
             $cursor = new Cursor($raw);
         }
 
-        $meta = RequestMetaObject::parseFromWire($data, 'Request params');
+        $meta = RequestMetaObject::parseFrom($data, 'Request params');
 
         return new self($cursor, $meta);
     }

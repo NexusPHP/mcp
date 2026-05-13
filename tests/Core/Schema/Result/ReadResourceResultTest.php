@@ -200,8 +200,8 @@ final class ReadResourceResultTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -212,31 +212,31 @@ final class ReadResourceResultTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing contents' => [
             [],
-            'ReadResourceResult wire data missing "contents".',
+            'ReadResourceResult data missing "contents".',
         ];
 
         yield 'contents not an array' => [
             ['contents' => 'oops'],
-            'ReadResourceResult wire "contents" must be a list, string given.',
+            'ReadResourceResult "contents" must be a list, string given.',
         ];
 
         yield 'contents entry not an object' => [
             ['contents' => ['oops']],
-            'ReadResourceResult wire contents entry must be an object, string given.',
+            'ReadResourceResult contents entry must be an object, string given.',
         ];
 
         yield 'contents entry list-keyed' => [
             ['contents' => [['x']]],
-            'ReadResourceResult wire contents entry must be a string-keyed object.',
+            'ReadResourceResult contents entry must be a string-keyed object.',
         ];
 
         yield 'contents entry missing discriminator' => [
             ['contents' => [['uri' => 'file:///x']]],
-            'ResourceContents wire data must have either "text" or "blob".',
+            'ResourceContents data must have either "text" or "blob".',
         ];
 
         yield '_meta not an object' => [

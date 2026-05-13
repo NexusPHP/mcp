@@ -69,12 +69,12 @@ final readonly class CallToolResult extends Result implements ServerResult
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('content', 'CallToolResult wire data missing "content".');
+        Assert::that($data)->hasOffset('content', 'CallToolResult data missing "content".');
         Assert::that($data['content'])
-            ->isList('CallToolResult wire "content" must be a list, {type} given.')
+            ->isList('CallToolResult "content" must be a list, {type} given.')
             ->values()
-            ->isArray('CallToolResult wire content entry must be an object, {type} given.')
-            ->isMap('CallToolResult wire content entry must be a string-keyed object.')
+            ->isArray('CallToolResult content entry must be an object, {type} given.')
+            ->isMap('CallToolResult content entry must be a string-keyed object.')
         ;
         $content = array_map(
             static fn(array $block): AudioContent|EmbeddedResource|ImageContent|ResourceLink|TextContent => ContentBlockDispatcher::fromArray($block, 'CallToolResult content'),
@@ -85,16 +85,16 @@ final readonly class CallToolResult extends Result implements ServerResult
 
         if (\array_key_exists('structuredContent', $data)) {
             Assert::that($data['structuredContent'])
-                ->isArray('CallToolResult wire "structuredContent" must be an object, {type} given.')
-                ->isMap('CallToolResult wire "structuredContent" must be a string-keyed object.')
+                ->isArray('CallToolResult "structuredContent" must be an object, {type} given.')
+                ->isMap('CallToolResult "structuredContent" must be a string-keyed object.')
             ;
             $structuredContent = $data['structuredContent'];
         }
 
         $isError = $data['isError'] ?? null;
-        Assert::that($isError)->nullOr()->isBool('CallToolResult wire "isError" must be a bool or null, {type} given.');
+        Assert::that($isError)->nullOr()->isBool('CallToolResult "isError" must be a bool or null, {type} given.');
 
-        $meta = MetaObject::parseFromWire($data, 'Result');
+        $meta = MetaObject::parseFrom($data, 'Result');
 
         return new self($content, $structuredContent, $isError, $meta);
     }

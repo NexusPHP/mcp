@@ -193,8 +193,8 @@ final class ListResourcesResultTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -205,31 +205,31 @@ final class ListResourcesResultTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing resources' => [
             [],
-            'ListResourcesResult wire data missing "resources".',
+            'ListResourcesResult data missing "resources".',
         ];
 
         yield 'resources not an array' => [
             ['resources' => 'oops'],
-            'ListResourcesResult wire "resources" must be a list, string given.',
+            'ListResourcesResult "resources" must be a list, string given.',
         ];
 
         yield 'resource entry not an object' => [
             ['resources' => ['oops']],
-            'ListResourcesResult wire resource entry must be an object, string given.',
+            'ListResourcesResult resource entry must be an object, string given.',
         ];
 
         yield 'resource entry list-keyed' => [
             ['resources' => [['x']]],
-            'ListResourcesResult wire resource entry must be a string-keyed object.',
+            'ListResourcesResult resource entry must be a string-keyed object.',
         ];
 
         yield 'nextCursor not a string' => [
             ['resources' => [], 'nextCursor' => 1],
-            'ListResourcesResult wire "nextCursor" must be a string, int given.',
+            'ListResourcesResult "nextCursor" must be a string, int given.',
         ];
 
         yield '_meta not an object' => [

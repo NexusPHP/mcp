@@ -281,8 +281,8 @@ final class ToolTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -293,66 +293,66 @@ final class ToolTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing name' => [
             [],
-            'Tool wire data missing "name".',
+            'Tool data missing "name".',
         ];
 
         yield 'name not a string' => [
             ['name' => 1],
-            'Tool wire "name" must be a string, int given.',
+            'Tool "name" must be a string, int given.',
         ];
 
         yield 'title not a string' => [
             ['name' => 'read-file', 'title' => 1, 'inputSchema' => ['type' => 'object']],
-            'Tool wire "title" must be a string or null, int given.',
+            'Tool "title" must be a string or null, int given.',
         ];
 
         yield 'description not a string' => [
             ['name' => 'read-file', 'description' => 1, 'inputSchema' => ['type' => 'object']],
-            'Tool wire "description" must be a string or null, int given.',
+            'Tool "description" must be a string or null, int given.',
         ];
 
         yield 'missing inputSchema' => [
             ['name' => 'read-file'],
-            'Tool wire data missing "inputSchema".',
+            'Tool data missing "inputSchema".',
         ];
 
         yield 'inputSchema not an object' => [
             ['name' => 'read-file', 'inputSchema' => 'oops'],
-            'Tool wire "inputSchema" must be an object, string given.',
+            'Tool "inputSchema" must be an object, string given.',
         ];
 
         yield 'inputSchema list-keyed' => [
             ['name' => 'read-file', 'inputSchema' => ['x']],
-            'Tool wire "inputSchema" must be a string-keyed object.',
+            'Tool "inputSchema" must be a string-keyed object.',
         ];
 
         yield 'outputSchema not an object' => [
             ['name' => 'read-file', 'inputSchema' => ['type' => 'object'], 'outputSchema' => 'oops'],
-            'Tool wire "outputSchema" must be an object, string given.',
+            'Tool "outputSchema" must be an object, string given.',
         ];
 
         yield 'annotations not an object' => [
             ['name' => 'read-file', 'inputSchema' => ['type' => 'object'], 'annotations' => 'oops'],
-            'Tool wire "annotations" must be an object, string given.',
+            'Tool "annotations" must be an object, string given.',
         ];
 
         yield 'execution not an object' => [
             ['name' => 'read-file', 'inputSchema' => ['type' => 'object'], 'execution' => 'oops'],
-            'Tool wire "execution" must be an object, string given.',
+            'Tool "execution" must be an object, string given.',
         ];
 
         yield 'icons not an array' => [
             ['name' => 'read-file', 'inputSchema' => ['type' => 'object'], 'icons' => 'oops'],
-            'Tool wire "icons" must be a list, string given.',
+            'Tool "icons" must be a list, string given.',
         ];
 
         yield 'icon entry not an object' => [
             ['name' => 'read-file', 'inputSchema' => ['type' => 'object'], 'icons' => ['oops']],
-            'Tool wire icon entry must be an object, string given.',
+            'Tool icon entry must be an object, string given.',
         ];
 
         yield '_meta not an object' => [

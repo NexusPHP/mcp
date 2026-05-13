@@ -42,14 +42,14 @@ final readonly class CancelledNotificationParams extends NotificationParams
         $requestId = null;
 
         if (\array_key_exists('requestId', $data)) {
-            Assert::that($data['requestId'])->isArrayKey('CancelledNotificationParams wire "requestId" must be int or string, {type} given.');
+            Assert::that($data['requestId'])->isArrayKey('CancelledNotificationParams "requestId" must be int or string, {type} given.');
             $requestId = new RequestId($data['requestId']);
         }
 
         $reason = $data['reason'] ?? null;
-        Assert::that($reason)->nullOr()->isString('CancelledNotificationParams wire "reason" must be a string or null, {type} given.');
+        Assert::that($reason)->nullOr()->isString('CancelledNotificationParams "reason" must be a string or null, {type} given.');
 
-        $meta = MetaObject::parseFromWire($data, 'Notification params');
+        $meta = MetaObject::parseFrom($data, 'Notification params');
 
         return new self($requestId, $reason, $meta);
     }

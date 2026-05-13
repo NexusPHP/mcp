@@ -107,7 +107,7 @@ final class InitializedNotificationTest extends TestCase
     public function testFromArrayRejectsNonObjectParams(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('InitializedNotification wire "params" must be an object, string given.');
+        $this->expectExceptionMessage('InitializedNotification "params" must be an object, string given.');
 
         InitializedNotification::fromArray([
             'jsonrpc' => '2.0',

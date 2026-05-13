@@ -107,23 +107,23 @@ final readonly class CreateMessageRequestParams extends RequestParams
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('maxTokens', 'CreateMessageRequestParams wire data missing "maxTokens".');
+        Assert::that($data)->hasOffset('maxTokens', 'CreateMessageRequestParams data missing "maxTokens".');
         $maxTokens = $data['maxTokens'];
-        Assert::that($maxTokens)->isInt('CreateMessageRequestParams wire "maxTokens" must be an int, {type} given.');
+        Assert::that($maxTokens)->isInt('CreateMessageRequestParams "maxTokens" must be an int, {type} given.');
 
-        Assert::that($data)->hasOffset('messages', 'CreateMessageRequestParams wire data missing "messages".');
+        Assert::that($data)->hasOffset('messages', 'CreateMessageRequestParams data missing "messages".');
         Assert::that($data['messages'])
-            ->isList('CreateMessageRequestParams wire "messages" must be a list, got non-list array.')
+            ->isList('CreateMessageRequestParams "messages" must be a list, got non-list array.')
             ->values()
-            ->isArray('CreateMessageRequestParams wire message entry must be an object, {type} given.')
-            ->isMap('CreateMessageRequestParams wire message entry must be a string-keyed object.')
+            ->isArray('CreateMessageRequestParams message entry must be an object, {type} given.')
+            ->isMap('CreateMessageRequestParams message entry must be a string-keyed object.')
         ;
         $messages = array_map(SamplingMessage::fromArray(...), $data['messages']);
 
         $includeContext = null;
 
         if (\array_key_exists('includeContext', $data)) {
-            Assert::that($data['includeContext'])->isString('CreateMessageRequestParams wire "includeContext" must be a string, {type} given.');
+            Assert::that($data['includeContext'])->isString('CreateMessageRequestParams "includeContext" must be a string, {type} given.');
             $includeContext = IncludeContext::from($data['includeContext']);
         }
 
@@ -131,8 +131,8 @@ final readonly class CreateMessageRequestParams extends RequestParams
 
         if (\array_key_exists('modelPreferences', $data)) {
             Assert::that($data['modelPreferences'])
-                ->isArray('CreateMessageRequestParams wire "modelPreferences" must be an object, {type} given.')
-                ->isMap('CreateMessageRequestParams wire "modelPreferences" must be a string-keyed object.')
+                ->isArray('CreateMessageRequestParams "modelPreferences" must be an object, {type} given.')
+                ->isMap('CreateMessageRequestParams "modelPreferences" must be a string-keyed object.')
             ;
             $modelPreferences = ModelPreferences::fromArray($data['modelPreferences']);
         }
@@ -141,21 +141,21 @@ final readonly class CreateMessageRequestParams extends RequestParams
 
         if (\array_key_exists('stopSequences', $data)) {
             Assert::that($data['stopSequences'])
-                ->isList('CreateMessageRequestParams wire "stopSequences" must be a list, got non-list array.')
-                ->values()->isString('CreateMessageRequestParams wire stopSequences entry must be a string, {type} given.')
+                ->isList('CreateMessageRequestParams "stopSequences" must be a list, got non-list array.')
+                ->values()->isString('CreateMessageRequestParams stopSequences entry must be a string, {type} given.')
             ;
             $stopSequences = $data['stopSequences'];
         }
 
         $systemPrompt = $data['systemPrompt'] ?? null;
-        Assert::that($systemPrompt)->nullOr()->isString('CreateMessageRequestParams wire "systemPrompt" must be a string or null, {type} given.');
+        Assert::that($systemPrompt)->nullOr()->isString('CreateMessageRequestParams "systemPrompt" must be a string or null, {type} given.');
 
         $task = null;
 
         if (\array_key_exists('task', $data)) {
             Assert::that($data['task'])
-                ->isArray('CreateMessageRequestParams wire "task" must be an object, {type} given.')
-                ->isMap('CreateMessageRequestParams wire "task" must be a string-keyed object.')
+                ->isArray('CreateMessageRequestParams "task" must be an object, {type} given.')
+                ->isMap('CreateMessageRequestParams "task" must be a string-keyed object.')
             ;
             $task = TaskMetadata::fromArray($data['task']);
         }
@@ -163,15 +163,15 @@ final readonly class CreateMessageRequestParams extends RequestParams
         $temperature = $data['temperature'] ?? null;
 
         if (null !== $temperature) {
-            $temperature = self::parseNumber($temperature, 'CreateMessageRequestParams wire "temperature" must be a number or null, {type} given.');
+            $temperature = self::parseNumber($temperature, 'CreateMessageRequestParams "temperature" must be a number or null, {type} given.');
         }
 
         $toolChoice = null;
 
         if (\array_key_exists('toolChoice', $data)) {
             Assert::that($data['toolChoice'])
-                ->isArray('CreateMessageRequestParams wire "toolChoice" must be an object, {type} given.')
-                ->isMap('CreateMessageRequestParams wire "toolChoice" must be a string-keyed object.')
+                ->isArray('CreateMessageRequestParams "toolChoice" must be an object, {type} given.')
+                ->isMap('CreateMessageRequestParams "toolChoice" must be a string-keyed object.')
             ;
             $toolChoice = ToolChoice::fromArray($data['toolChoice']);
         }
@@ -180,10 +180,10 @@ final readonly class CreateMessageRequestParams extends RequestParams
 
         if (\array_key_exists('tools', $data)) {
             Assert::that($data['tools'])
-                ->isList('CreateMessageRequestParams wire "tools" must be a list, got non-list array.')
+                ->isList('CreateMessageRequestParams "tools" must be a list, got non-list array.')
                 ->values()
-                ->isArray('CreateMessageRequestParams wire tool entry must be an object, {type} given.')
-                ->isMap('CreateMessageRequestParams wire tool entry must be a string-keyed object.')
+                ->isArray('CreateMessageRequestParams tool entry must be an object, {type} given.')
+                ->isMap('CreateMessageRequestParams tool entry must be a string-keyed object.')
             ;
             $tools = array_map(Tool::fromArray(...), $data['tools']);
         }
@@ -192,13 +192,13 @@ final readonly class CreateMessageRequestParams extends RequestParams
 
         if (\array_key_exists('metadata', $data)) {
             Assert::that($data['metadata'])
-                ->isArray('CreateMessageRequestParams wire "metadata" must be an object, {type} given.')
-                ->isMap('CreateMessageRequestParams wire "metadata" must be a string-keyed object.')
+                ->isArray('CreateMessageRequestParams "metadata" must be an object, {type} given.')
+                ->isMap('CreateMessageRequestParams "metadata" must be a string-keyed object.')
             ;
             $metadata = $data['metadata'];
         }
 
-        $meta = RequestMetaObject::parseFromWire($data, 'Request params');
+        $meta = RequestMetaObject::parseFrom($data, 'Request params');
 
         return new self(
             $maxTokens,

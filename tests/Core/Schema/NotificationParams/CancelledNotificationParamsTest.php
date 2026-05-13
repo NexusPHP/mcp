@@ -211,7 +211,7 @@ final class CancelledNotificationParamsTest extends TestCase
     {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage(\sprintf(
-            'CancelledNotificationParams wire "requestId" must be int or string, %s given.',
+            'CancelledNotificationParams "requestId" must be int or string, %s given.',
             $expectedTypeFragment,
         ));
 
@@ -235,7 +235,7 @@ final class CancelledNotificationParamsTest extends TestCase
     public function testFromArrayRejectsNonStringReason(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('CancelledNotificationParams wire "reason" must be a string or null, int given.');
+        $this->expectExceptionMessage('CancelledNotificationParams "reason" must be a string or null, int given.');
 
         CancelledNotificationParams::fromArray([
             'requestId' => 1,

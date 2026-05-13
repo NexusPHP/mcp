@@ -31,7 +31,7 @@ final readonly class EmptyRequestParams extends RequestParams
     #[\Override]
     public static function fromArray(array $data): static
     {
-        $meta = RequestMetaObject::parseFromWire($data, 'Request params');
+        $meta = RequestMetaObject::parseFrom($data, 'Request params');
 
         return new self($meta);
     }

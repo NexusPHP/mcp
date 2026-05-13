@@ -143,8 +143,8 @@ final class ElicitResultTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(\ValueError::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -155,7 +155,7 @@ final class ElicitResultTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'unknown action' => [
             ['action' => 'maybe'],
@@ -166,8 +166,8 @@ final class ElicitResultTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsAssertInvalidWireDataCases')]
-    public function testFromArrayRejectsAssertInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsAssertInvalidInputCases')]
+    public function testFromArrayRejectsAssertInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -178,36 +178,36 @@ final class ElicitResultTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsAssertInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsAssertInvalidInputCases(): iterable
     {
         yield 'missing action' => [
             [],
-            'ElicitResult wire data missing "action".',
+            'ElicitResult data missing "action".',
         ];
 
         yield 'action not a string' => [
             ['action' => 1],
-            'ElicitResult wire "action" must be a string, int given.',
+            'ElicitResult "action" must be a string, int given.',
         ];
 
         yield 'content not an object' => [
             ['action' => 'accept', 'content' => 'oops'],
-            'ElicitResult wire "content" must be an object, string given.',
+            'ElicitResult "content" must be an object, string given.',
         ];
 
         yield 'content list-keyed' => [
             ['action' => 'accept', 'content' => ['x']],
-            'ElicitResult wire "content" must be a string-keyed object.',
+            'ElicitResult "content" must be a string-keyed object.',
         ];
 
         yield 'content entry nested object' => [
             ['action' => 'accept', 'content' => ['x' => ['k' => 'v']]],
-            'ElicitResult wire content entry x must be a string, int, bool, or list of strings; got non-list array.',
+            'ElicitResult content entry x must be a string, int, bool, or list of strings; got non-list array.',
         ];
 
         yield 'content entry list with non-string' => [
             ['action' => 'accept', 'content' => ['x' => [1]]],
-            'ElicitResult wire content entry x list entries must be strings, int given.',
+            'ElicitResult content entry x list entries must be strings, int given.',
         ];
     }
 }

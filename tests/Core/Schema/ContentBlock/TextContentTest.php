@@ -107,8 +107,8 @@ final class TextContentTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -119,36 +119,36 @@ final class TextContentTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing type' => [
             ['text' => 'hello'],
-            'TextContent wire data missing "type".',
+            'TextContent data missing "type".',
         ];
 
         yield 'wrong type literal' => [
             ['type' => 'image', 'text' => 'hello'],
-            'TextContent wire "type" must be "text", \'image\' given.',
+            'TextContent "type" must be "text", \'image\' given.',
         ];
 
         yield 'missing text' => [
             ['type' => 'text'],
-            'TextContent wire data missing "text".',
+            'TextContent data missing "text".',
         ];
 
         yield 'text not a string' => [
             ['type' => 'text', 'text' => 1],
-            'TextContent wire "text" must be a string, int given.',
+            'TextContent "text" must be a string, int given.',
         ];
 
         yield 'annotations not an object' => [
             ['type' => 'text', 'text' => 'hello', 'annotations' => 'oops'],
-            'TextContent wire "annotations" must be an object, string given.',
+            'TextContent "annotations" must be an object, string given.',
         ];
 
         yield 'annotations list-keyed' => [
             ['type' => 'text', 'text' => 'hello', 'annotations' => ['x']],
-            'TextContent wire "annotations" must be a string-keyed object.',
+            'TextContent "annotations" must be a string-keyed object.',
         ];
 
         yield '_meta not an object' => [

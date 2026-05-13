@@ -44,9 +44,9 @@ final readonly class RelatedTaskMetadata implements Arrayable
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('taskId', 'RelatedTaskMetadata wire data missing "taskId".');
+        Assert::that($data)->hasOffset('taskId', 'RelatedTaskMetadata data missing "taskId".');
         $taskId = $data['taskId'];
-        Assert::that($taskId)->isString('RelatedTaskMetadata wire "taskId" must be a string, {type} given.');
+        Assert::that($taskId)->isString('RelatedTaskMetadata "taskId" must be a string, {type} given.');
 
         return new self($taskId);
     }

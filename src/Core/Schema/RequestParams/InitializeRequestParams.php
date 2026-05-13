@@ -42,23 +42,23 @@ final readonly class InitializeRequestParams extends RequestParams
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('protocolVersion', 'InitializeRequestParams wire data missing "protocolVersion".');
+        Assert::that($data)->hasOffset('protocolVersion', 'InitializeRequestParams data missing "protocolVersion".');
         $protocolVersion = $data['protocolVersion'];
-        Assert::that($protocolVersion)->isString('InitializeRequestParams wire "protocolVersion" must be a string, {type} given.');
+        Assert::that($protocolVersion)->isString('InitializeRequestParams "protocolVersion" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('capabilities', 'InitializeRequestParams wire data missing "capabilities".');
+        Assert::that($data)->hasOffset('capabilities', 'InitializeRequestParams data missing "capabilities".');
         Assert::that($data['capabilities'])
-            ->isArray('InitializeRequestParams wire "capabilities" must be an object, {type} given.')
-            ->isMap('InitializeRequestParams wire "capabilities" must be a string-keyed object.')
+            ->isArray('InitializeRequestParams "capabilities" must be an object, {type} given.')
+            ->isMap('InitializeRequestParams "capabilities" must be a string-keyed object.')
         ;
 
-        Assert::that($data)->hasOffset('clientInfo', 'InitializeRequestParams wire data missing "clientInfo".');
+        Assert::that($data)->hasOffset('clientInfo', 'InitializeRequestParams data missing "clientInfo".');
         Assert::that($data['clientInfo'])
-            ->isArray('InitializeRequestParams wire "clientInfo" must be an object, {type} given.')
-            ->isMap('InitializeRequestParams wire "clientInfo" must be a string-keyed object.')
+            ->isArray('InitializeRequestParams "clientInfo" must be an object, {type} given.')
+            ->isMap('InitializeRequestParams "clientInfo" must be a string-keyed object.')
         ;
 
-        $meta = RequestMetaObject::parseFromWire($data, 'Request params');
+        $meta = RequestMetaObject::parseFrom($data, 'Request params');
 
         return new self(
             new ProtocolVersion($protocolVersion),

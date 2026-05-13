@@ -169,8 +169,8 @@ final class UrlElicitationRequiredErrorTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -181,66 +181,66 @@ final class UrlElicitationRequiredErrorTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'id not an array key' => [
             ['id' => 1.5, 'error' => []],
-            'UrlElicitationRequiredError wire "id" must be int, string, or null; float given.',
+            'UrlElicitationRequiredError "id" must be int, string, or null; float given.',
         ];
 
         yield 'missing error' => [
             [],
-            'UrlElicitationRequiredError wire data missing "error".',
+            'UrlElicitationRequiredError data missing "error".',
         ];
 
         yield 'error not an object' => [
             ['error' => 'oops'],
-            'UrlElicitationRequiredError wire "error" must be an object, string given.',
+            'UrlElicitationRequiredError "error" must be an object, string given.',
         ];
 
         yield 'error list-keyed' => [
             ['error' => ['x']],
-            'UrlElicitationRequiredError wire "error" must be a string-keyed object.',
+            'UrlElicitationRequiredError "error" must be a string-keyed object.',
         ];
 
         yield 'error missing data' => [
             ['error' => ['code' => -32042, 'message' => 'm']],
-            'UrlElicitationRequiredError wire error data missing "data".',
+            'UrlElicitationRequiredError error data missing "data".',
         ];
 
         yield 'error data not an object' => [
             ['error' => ['code' => -32042, 'message' => 'm', 'data' => 'oops']],
-            'UrlElicitationRequiredError wire error "data" must be an object, string given.',
+            'UrlElicitationRequiredError error "data" must be an object, string given.',
         ];
 
         yield 'error data list-keyed' => [
             ['error' => ['code' => -32042, 'message' => 'm', 'data' => ['x']]],
-            'UrlElicitationRequiredError wire error "data" must be a string-keyed object.',
+            'UrlElicitationRequiredError error "data" must be a string-keyed object.',
         ];
 
         yield 'error data missing elicitations' => [
             ['error' => ['code' => -32042, 'message' => 'm', 'data' => []]],
-            'UrlElicitationRequiredError wire error data missing "elicitations".',
+            'UrlElicitationRequiredError error data missing "elicitations".',
         ];
 
         yield 'elicitations not a list' => [
             ['error' => ['code' => -32042, 'message' => 'm', 'data' => ['elicitations' => ['k' => []]]]],
-            'UrlElicitationRequiredError wire "elicitations" must be a list, got non-list array.',
+            'UrlElicitationRequiredError "elicitations" must be a list, got non-list array.',
         ];
 
         yield 'elicitations entry not an object' => [
             ['error' => ['code' => -32042, 'message' => 'm', 'data' => ['elicitations' => ['oops']]]],
-            'UrlElicitationRequiredError wire elicitations entry must be an object, string given.',
+            'UrlElicitationRequiredError elicitations entry must be an object, string given.',
         ];
 
         yield 'elicitations entry list-keyed' => [
             ['error' => ['code' => -32042, 'message' => 'm', 'data' => ['elicitations' => [['x']]]]],
-            'UrlElicitationRequiredError wire elicitations entry must be a string-keyed object.',
+            'UrlElicitationRequiredError elicitations entry must be a string-keyed object.',
         ];
 
         yield 'error message not a string' => [
             ['error' => ['code' => -32042, 'data' => ['elicitations' => []]]],
-            'UrlElicitationRequiredError wire error "message" must be a string, null given.',
+            'UrlElicitationRequiredError error "message" must be a string, null given.',
         ];
     }
 }

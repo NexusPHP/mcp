@@ -77,7 +77,7 @@ final class TaskStatusNotificationTest extends TestCase
     public function testFromArrayRejectsMissingParams(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageMatches('/^TaskStatusNotification wire data missing "params"\.$/');
+        $this->expectExceptionMessageMatches('/^TaskStatusNotification data missing "params"\.$/');
 
         TaskStatusNotification::fromArray([
             'jsonrpc' => '2.0',
@@ -88,7 +88,7 @@ final class TaskStatusNotificationTest extends TestCase
     public function testFromArrayRejectsNonObjectParams(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('TaskStatusNotification wire "params" must be an object, string given.');
+        $this->expectExceptionMessage('TaskStatusNotification "params" must be an object, string given.');
 
         TaskStatusNotification::fromArray([
             'jsonrpc' => '2.0',
@@ -100,7 +100,7 @@ final class TaskStatusNotificationTest extends TestCase
     public function testFromArrayRejectsListKeyedParams(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('TaskStatusNotification wire "params" must be a string-keyed object.');
+        $this->expectExceptionMessage('TaskStatusNotification "params" must be a string-keyed object.');
 
         TaskStatusNotification::fromArray([
             'jsonrpc' => '2.0',

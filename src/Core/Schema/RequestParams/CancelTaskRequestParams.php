@@ -32,11 +32,11 @@ final readonly class CancelTaskRequestParams extends RequestParams
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('taskId', 'CancelTaskRequestParams wire data missing "taskId".');
+        Assert::that($data)->hasOffset('taskId', 'CancelTaskRequestParams data missing "taskId".');
         $taskId = $data['taskId'];
-        Assert::that($taskId)->isString('CancelTaskRequestParams wire "taskId" must be a string, {type} given.');
+        Assert::that($taskId)->isString('CancelTaskRequestParams "taskId" must be a string, {type} given.');
 
-        $meta = RequestMetaObject::parseFromWire($data, 'Request params');
+        $meta = RequestMetaObject::parseFrom($data, 'Request params');
 
         return new self($taskId, $meta);
     }

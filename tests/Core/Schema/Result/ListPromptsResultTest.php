@@ -142,8 +142,8 @@ final class ListPromptsResultTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -154,31 +154,31 @@ final class ListPromptsResultTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing prompts' => [
             [],
-            'ListPromptsResult wire data missing "prompts".',
+            'ListPromptsResult data missing "prompts".',
         ];
 
         yield 'prompts not an array' => [
             ['prompts' => 'oops'],
-            'ListPromptsResult wire "prompts" must be a list, string given.',
+            'ListPromptsResult "prompts" must be a list, string given.',
         ];
 
         yield 'prompt entry not an object' => [
             ['prompts' => ['oops']],
-            'ListPromptsResult wire prompt entry must be an object, string given.',
+            'ListPromptsResult prompt entry must be an object, string given.',
         ];
 
         yield 'prompt entry list-keyed' => [
             ['prompts' => [['x']]],
-            'ListPromptsResult wire prompt entry must be a string-keyed object.',
+            'ListPromptsResult prompt entry must be a string-keyed object.',
         ];
 
         yield 'nextCursor not a string' => [
             ['prompts' => [], 'nextCursor' => 1],
-            'ListPromptsResult wire "nextCursor" must be a string, int given.',
+            'ListPromptsResult "nextCursor" must be a string, int given.',
         ];
 
         yield '_meta not an object' => [

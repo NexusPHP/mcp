@@ -38,7 +38,7 @@ final readonly class MetaObject implements Arrayable
     }
 
     /**
-     * Reads the optional `_meta` slot from a parent wire payload, validating
+     * Reads the optional `_meta` slot from a parent payload, validating
      * its shape. Returns `null` when the key is absent. The `$context` prefix
      * scopes the error message to the calling shape (e.g. `"Result"`,
      * `"Notification params"`).
@@ -46,7 +46,7 @@ final readonly class MetaObject implements Arrayable
      * @param array<string, mixed> $data
      * @param non-empty-string     $context
      */
-    public static function parseFromWire(array $data, string $context): ?self
+    public static function parseFrom(array $data, string $context): ?self
     {
         if (! \array_key_exists('_meta', $data)) {
             return null;

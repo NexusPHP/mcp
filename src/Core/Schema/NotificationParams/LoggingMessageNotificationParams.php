@@ -40,16 +40,16 @@ final readonly class LoggingMessageNotificationParams extends NotificationParams
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('level', 'LoggingMessageNotificationParams wire data missing "level".');
+        Assert::that($data)->hasOffset('level', 'LoggingMessageNotificationParams data missing "level".');
         $level = $data['level'];
-        Assert::that($level)->isString('LoggingMessageNotificationParams wire "level" must be a string, {type} given.');
+        Assert::that($level)->isString('LoggingMessageNotificationParams "level" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('data', 'LoggingMessageNotificationParams wire data missing "data".');
+        Assert::that($data)->hasOffset('data', 'LoggingMessageNotificationParams data missing "data".');
 
         $logger = $data['logger'] ?? null;
-        Assert::that($logger)->nullOr()->isString('LoggingMessageNotificationParams wire "logger" must be a string or null, {type} given.');
+        Assert::that($logger)->nullOr()->isString('LoggingMessageNotificationParams "logger" must be a string or null, {type} given.');
 
-        $meta = MetaObject::parseFromWire($data, 'Notification params');
+        $meta = MetaObject::parseFrom($data, 'Notification params');
 
         return new self(LoggingLevel::from($level), $data['data'], $logger, $meta);
     }

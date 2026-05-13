@@ -66,8 +66,8 @@ final class GetTaskPayloadRequestTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -78,31 +78,31 @@ final class GetTaskPayloadRequestTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing id' => [
             ['jsonrpc' => '2.0', 'method' => 'tasks/result'],
-            'GetTaskPayloadRequest wire data missing "id".',
+            'GetTaskPayloadRequest data missing "id".',
         ];
 
         yield 'id not int or string' => [
             ['jsonrpc' => '2.0', 'id' => [], 'method' => 'tasks/result'],
-            'GetTaskPayloadRequest wire "id" must be int or string, array given.',
+            'GetTaskPayloadRequest "id" must be int or string, array given.',
         ];
 
         yield 'missing params' => [
             ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tasks/result'],
-            'GetTaskPayloadRequest wire data missing "params".',
+            'GetTaskPayloadRequest data missing "params".',
         ];
 
         yield 'params not an object' => [
             ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tasks/result', 'params' => 'bad'],
-            'GetTaskPayloadRequest wire "params" must be an object, string given.',
+            'GetTaskPayloadRequest "params" must be an object, string given.',
         ];
 
         yield 'params list-keyed' => [
             ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tasks/result', 'params' => ['x']],
-            'GetTaskPayloadRequest wire "params" must be a string-keyed object.',
+            'GetTaskPayloadRequest "params" must be a string-keyed object.',
         ];
     }
 }

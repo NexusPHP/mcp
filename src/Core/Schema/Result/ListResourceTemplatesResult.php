@@ -48,12 +48,12 @@ final readonly class ListResourceTemplatesResult extends PaginatedResult impleme
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('resourceTemplates', 'ListResourceTemplatesResult wire data missing "resourceTemplates".');
+        Assert::that($data)->hasOffset('resourceTemplates', 'ListResourceTemplatesResult data missing "resourceTemplates".');
         Assert::that($data['resourceTemplates'])
-            ->isList('ListResourceTemplatesResult wire "resourceTemplates" must be a list, {type} given.')
+            ->isList('ListResourceTemplatesResult "resourceTemplates" must be a list, {type} given.')
             ->values()
-            ->isArray('ListResourceTemplatesResult wire resourceTemplate entry must be an object, {type} given.')
-            ->isMap('ListResourceTemplatesResult wire resourceTemplate entry must be a string-keyed object.')
+            ->isArray('ListResourceTemplatesResult resourceTemplate entry must be an object, {type} given.')
+            ->isMap('ListResourceTemplatesResult resourceTemplate entry must be a string-keyed object.')
         ;
         $resourceTemplates = array_map(ResourceTemplate::fromArray(...), $data['resourceTemplates']);
 
@@ -61,11 +61,11 @@ final readonly class ListResourceTemplatesResult extends PaginatedResult impleme
 
         if (\array_key_exists('nextCursor', $data)) {
             $raw = $data['nextCursor'];
-            Assert::that($raw)->isString('ListResourceTemplatesResult wire "nextCursor" must be a string, {type} given.');
+            Assert::that($raw)->isString('ListResourceTemplatesResult "nextCursor" must be a string, {type} given.');
             $nextCursor = new Cursor($raw);
         }
 
-        $meta = MetaObject::parseFromWire($data, 'Result');
+        $meta = MetaObject::parseFrom($data, 'Result');
 
         return new self($resourceTemplates, $nextCursor, $meta);
     }

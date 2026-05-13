@@ -167,8 +167,8 @@ final class ToolAnnotationsTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -179,31 +179,31 @@ final class ToolAnnotationsTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'title not a string' => [
             ['title' => 1],
-            'ToolAnnotations wire "title" must be a string or null, int given.',
+            'ToolAnnotations "title" must be a string or null, int given.',
         ];
 
         yield 'readOnlyHint not a bool' => [
             ['readOnlyHint' => 'yes'],
-            'ToolAnnotations wire "readOnlyHint" must be a bool or null, string given.',
+            'ToolAnnotations "readOnlyHint" must be a bool or null, string given.',
         ];
 
         yield 'destructiveHint not a bool' => [
             ['destructiveHint' => 'no'],
-            'ToolAnnotations wire "destructiveHint" must be a bool or null, string given.',
+            'ToolAnnotations "destructiveHint" must be a bool or null, string given.',
         ];
 
         yield 'idempotentHint not a bool' => [
             ['idempotentHint' => 1],
-            'ToolAnnotations wire "idempotentHint" must be a bool or null, int given.',
+            'ToolAnnotations "idempotentHint" must be a bool or null, int given.',
         ];
 
         yield 'openWorldHint not a bool' => [
             ['openWorldHint' => 0],
-            'ToolAnnotations wire "openWorldHint" must be a bool or null, int given.',
+            'ToolAnnotations "openWorldHint" must be a bool or null, int given.',
         ];
     }
 }

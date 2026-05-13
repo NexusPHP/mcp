@@ -60,21 +60,21 @@ final readonly class ElicitRequestFormParams extends TaskAugmentedRequestParams 
     public static function fromArray(array $data): static
     {
         $mode = $data['mode'] ?? self::MODE;
-        Assert::that($mode)->isString('ElicitRequestFormParams wire "mode" must be a string, {type} given.');
+        Assert::that($mode)->isString('ElicitRequestFormParams "mode" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('message', 'ElicitRequestFormParams wire data missing "message".');
+        Assert::that($data)->hasOffset('message', 'ElicitRequestFormParams data missing "message".');
         $message = $data['message'];
-        Assert::that($message)->isString('ElicitRequestFormParams wire "message" must be a string, {type} given.');
+        Assert::that($message)->isString('ElicitRequestFormParams "message" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('requestedSchema', 'ElicitRequestFormParams wire data missing "requestedSchema".');
+        Assert::that($data)->hasOffset('requestedSchema', 'ElicitRequestFormParams data missing "requestedSchema".');
         Assert::that($data['requestedSchema'])
-            ->isArray('ElicitRequestFormParams wire "requestedSchema" must be an object, {type} given.')
-            ->isMap('ElicitRequestFormParams wire "requestedSchema" must be a string-keyed object.')
+            ->isArray('ElicitRequestFormParams "requestedSchema" must be an object, {type} given.')
+            ->isMap('ElicitRequestFormParams "requestedSchema" must be a string-keyed object.')
         ;
         $requestedSchema = ElicitRequestedSchema::fromArray($data['requestedSchema']);
 
-        $task = TaskMetadata::parseFromWire($data, 'ElicitRequestFormParams');
-        $meta = RequestMetaObject::parseFromWire($data, 'Request params');
+        $task = TaskMetadata::parseFrom($data, 'ElicitRequestFormParams');
+        $meta = RequestMetaObject::parseFrom($data, 'Request params');
 
         return new self($message, $requestedSchema, $mode, $task, $meta);
     }

@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\Sampling;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\JsonRpc\WireDiscriminator;
+use Nexus\Mcp\Core\JsonRpc\MessageDiscriminator;
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\ContentBlock\AudioContent;
 use Nexus\Mcp\Core\Schema\ContentBlock\ImageContent;
@@ -63,21 +63,21 @@ final readonly class SamplingMessage implements Arrayable
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('role', 'SamplingMessage wire data missing "role".');
+        Assert::that($data)->hasOffset('role', 'SamplingMessage data missing "role".');
         $role = $data['role'];
-        Assert::that($role)->isString('SamplingMessage wire "role" must be a string, {type} given.');
+        Assert::that($role)->isString('SamplingMessage "role" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('content', 'SamplingMessage wire data missing "content".');
-        Assert::that($data['content'])->isArray('SamplingMessage wire "content" must be an object or array, {type} given.');
+        Assert::that($data)->hasOffset('content', 'SamplingMessage data missing "content".');
+        Assert::that($data['content'])->isArray('SamplingMessage "content" must be an object or array, {type} given.');
 
         if ([] === $data['content'] || array_is_list($data['content'])) {
             $content = self::parseContentList($data['content']);
         } else {
-            Assert::that($data['content'])->isMap('SamplingMessage wire "content" must be a string-keyed object.');
+            Assert::that($data['content'])->isMap('SamplingMessage "content" must be a string-keyed object.');
             $content = self::parseContentBlock($data['content']);
         }
 
-        $meta = MetaObject::parseFromWire($data, 'SamplingMessage');
+        $meta = MetaObject::parseFrom($data, 'SamplingMessage');
 
         return new self(Role::from($role), $content, $meta);
     }
@@ -133,8 +133,8 @@ final readonly class SamplingMessage implements Arrayable
     {
         Assert::that($value)
             ->values()
-            ->isArray('SamplingMessage wire content entry must be an object, {type} given.')
-            ->isMap('SamplingMessage wire content entry must be a string-keyed object.')
+            ->isArray('SamplingMessage content entry must be an object, {type} given.')
+            ->isMap('SamplingMessage content entry must be a string-keyed object.')
         ;
 
         return array_map(self::parseContentBlock(...), $value);
@@ -151,7 +151,7 @@ final readonly class SamplingMessage implements Arrayable
      */
     private static function parseContentBlock(array $data): AudioContent|ImageContent|TextContent|ToolResultContent|ToolUseContent
     {
-        $type = WireDiscriminator::readType($data, 'SamplingMessage content');
+        $type = MessageDiscriminator::readType($data, 'SamplingMessage content');
 
         return match ($type) {
             TextContent::TYPE => TextContent::fromArray($data),
@@ -159,7 +159,7 @@ final readonly class SamplingMessage implements Arrayable
             AudioContent::TYPE => AudioContent::fromArray($data),
             ToolUseContent::TYPE => ToolUseContent::fromArray($data),
             ToolResultContent::TYPE => ToolResultContent::fromArray($data),
-            default => throw WireDiscriminator::unknownType(
+            default => throw MessageDiscriminator::unknownType(
                 'SamplingMessage content',
                 [TextContent::TYPE, ImageContent::TYPE, AudioContent::TYPE, ToolUseContent::TYPE, ToolResultContent::TYPE],
                 $type,

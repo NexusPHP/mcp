@@ -36,14 +36,14 @@ final readonly class CreateTaskResult extends Result implements ClientResult, Se
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('task', 'CreateTaskResult wire data missing "task".');
+        Assert::that($data)->hasOffset('task', 'CreateTaskResult data missing "task".');
         Assert::that($data['task'])
-            ->isArray('CreateTaskResult wire "task" must be an object, {type} given.')
-            ->isMap('CreateTaskResult wire "task" must be a string-keyed object.')
+            ->isArray('CreateTaskResult "task" must be an object, {type} given.')
+            ->isMap('CreateTaskResult "task" must be a string-keyed object.')
         ;
 
         $task = Task::fromArray($data['task']);
-        $meta = MetaObject::parseFromWire($data, 'Result');
+        $meta = MetaObject::parseFrom($data, 'Result');
 
         return new self($task, $meta);
     }

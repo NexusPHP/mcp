@@ -228,8 +228,8 @@ final class CompleteRequestParamsTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -240,96 +240,96 @@ final class CompleteRequestParamsTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing ref' => [
             ['argument' => ['name' => 'topic', 'value' => 'auth']],
-            'CompleteRequestParams wire data missing "ref".',
+            'CompleteRequestParams data missing "ref".',
         ];
 
         yield 'ref not an object' => [
             ['ref' => 'oops', 'argument' => ['name' => 'topic', 'value' => 'auth']],
-            'CompleteRequestParams wire "ref" must be an object, string given.',
+            'CompleteRequestParams "ref" must be an object, string given.',
         ];
 
         yield 'ref list-keyed' => [
             ['ref' => ['x'], 'argument' => ['name' => 'topic', 'value' => 'auth']],
-            'CompleteRequestParams wire "ref" must be a string-keyed object.',
+            'CompleteRequestParams "ref" must be a string-keyed object.',
         ];
 
         yield 'ref missing type' => [
             ['ref' => ['name' => 'code-review'], 'argument' => ['name' => 'topic', 'value' => 'auth']],
-            'CompleteRequestParams ref wire data missing "type".',
+            'CompleteRequestParams ref data missing "type".',
         ];
 
         yield 'ref type not a string' => [
             ['ref' => ['type' => 1], 'argument' => ['name' => 'topic', 'value' => 'auth']],
-            'CompleteRequestParams ref wire "type" must be a string, int given.',
+            'CompleteRequestParams ref "type" must be a string, int given.',
         ];
 
         yield 'ref type unknown' => [
             ['ref' => ['type' => 'unknown'], 'argument' => ['name' => 'topic', 'value' => 'auth']],
-            'CompleteRequestParams ref wire "type" must be one of "ref/prompt", "ref/resource"; "unknown" given.',
+            'CompleteRequestParams ref "type" must be one of "ref/prompt", "ref/resource"; "unknown" given.',
         ];
 
         yield 'missing argument' => [
             ['ref' => ['type' => 'ref/prompt', 'name' => 'code-review']],
-            'CompleteRequestParams wire data missing "argument".',
+            'CompleteRequestParams data missing "argument".',
         ];
 
         yield 'argument not an object' => [
             ['ref' => ['type' => 'ref/prompt', 'name' => 'code-review'], 'argument' => 'oops'],
-            'CompleteRequestParams wire "argument" must be an object, string given.',
+            'CompleteRequestParams "argument" must be an object, string given.',
         ];
 
         yield 'argument list-keyed' => [
             ['ref' => ['type' => 'ref/prompt', 'name' => 'code-review'], 'argument' => ['x']],
-            'CompleteRequestParams wire "argument" must be a string-keyed object.',
+            'CompleteRequestParams "argument" must be a string-keyed object.',
         ];
 
         yield 'argument missing name' => [
             ['ref' => ['type' => 'ref/prompt', 'name' => 'code-review'], 'argument' => ['value' => 'auth']],
-            'CompleteRequestParams wire argument missing "name".',
+            'CompleteRequestParams argument missing "name".',
         ];
 
         yield 'argument name not a string' => [
             ['ref' => ['type' => 'ref/prompt', 'name' => 'code-review'], 'argument' => ['name' => 1, 'value' => 'auth']],
-            'CompleteRequestParams wire argument "name" must be a string, int given.',
+            'CompleteRequestParams argument "name" must be a string, int given.',
         ];
 
         yield 'argument missing value' => [
             ['ref' => ['type' => 'ref/prompt', 'name' => 'code-review'], 'argument' => ['name' => 'topic']],
-            'CompleteRequestParams wire argument missing "value".',
+            'CompleteRequestParams argument missing "value".',
         ];
 
         yield 'argument value not a string' => [
             ['ref' => ['type' => 'ref/prompt', 'name' => 'code-review'], 'argument' => ['name' => 'topic', 'value' => 1]],
-            'CompleteRequestParams wire argument "value" must be a string, int given.',
+            'CompleteRequestParams argument "value" must be a string, int given.',
         ];
 
         yield 'context not an object' => [
             ['ref' => ['type' => 'ref/prompt', 'name' => 'code-review'], 'argument' => ['name' => 'topic', 'value' => 'auth'], 'context' => 'oops'],
-            'CompleteRequestParams wire "context" must be an object, string given.',
+            'CompleteRequestParams "context" must be an object, string given.',
         ];
 
         yield 'context list-keyed' => [
             ['ref' => ['type' => 'ref/prompt', 'name' => 'code-review'], 'argument' => ['name' => 'topic', 'value' => 'auth'], 'context' => ['x']],
-            'CompleteRequestParams wire "context" must be a string-keyed object.',
+            'CompleteRequestParams "context" must be a string-keyed object.',
         ];
 
         yield 'context arguments not an object' => [
             ['ref' => ['type' => 'ref/prompt', 'name' => 'code-review'], 'argument' => ['name' => 'topic', 'value' => 'auth'], 'context' => ['arguments' => 'oops']],
-            'CompleteRequestParams wire context "arguments" must be an object, string given.',
+            'CompleteRequestParams context "arguments" must be an object, string given.',
         ];
 
         yield 'context arguments list-keyed' => [
             ['ref' => ['type' => 'ref/prompt', 'name' => 'code-review'], 'argument' => ['name' => 'topic', 'value' => 'auth'], 'context' => ['arguments' => ['v']]],
-            'CompleteRequestParams wire context "arguments" must be a string-keyed object.',
+            'CompleteRequestParams context "arguments" must be a string-keyed object.',
         ];
 
         yield 'context argument value not a string' => [
             ['ref' => ['type' => 'ref/prompt', 'name' => 'code-review'], 'argument' => ['name' => 'topic', 'value' => 'auth'], 'context' => ['arguments' => ['k' => 1]]],
-            'CompleteRequestParams wire context argument value must be a string, int given.',
+            'CompleteRequestParams context argument value must be a string, int given.',
         ];
 
         yield '_meta not an object' => [

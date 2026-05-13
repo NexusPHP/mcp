@@ -85,7 +85,7 @@ final class CreateMessageRequestTest extends TestCase
     public function testFromArrayRejectsMissingId(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('CreateMessageRequest wire data missing "id".');
+        $this->expectExceptionMessage('CreateMessageRequest data missing "id".');
 
         CreateMessageRequest::fromArray(['method' => 'sampling/createMessage', 'params' => ['maxTokens' => 1, 'messages' => []]]);
     }
@@ -93,7 +93,7 @@ final class CreateMessageRequestTest extends TestCase
     public function testFromArrayRejectsNonScalarId(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('CreateMessageRequest wire "id" must be int or string, array given.');
+        $this->expectExceptionMessage('CreateMessageRequest "id" must be int or string, array given.');
 
         CreateMessageRequest::fromArray(['id' => [], 'method' => 'sampling/createMessage', 'params' => ['maxTokens' => 1, 'messages' => []]]);
     }
@@ -101,7 +101,7 @@ final class CreateMessageRequestTest extends TestCase
     public function testFromArrayRejectsMissingParams(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('CreateMessageRequest wire data missing "params".');
+        $this->expectExceptionMessage('CreateMessageRequest data missing "params".');
 
         CreateMessageRequest::fromArray(['id' => 'r-1', 'method' => 'sampling/createMessage']);
     }
@@ -109,7 +109,7 @@ final class CreateMessageRequestTest extends TestCase
     public function testFromArrayRejectsNonObjectParams(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('CreateMessageRequest wire "params" must be an object, string given.');
+        $this->expectExceptionMessage('CreateMessageRequest "params" must be an object, string given.');
 
         CreateMessageRequest::fromArray(['id' => 'r-1', 'method' => 'sampling/createMessage', 'params' => 'oops']);
     }

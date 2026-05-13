@@ -29,11 +29,11 @@ final readonly class UnsubscribeRequestParams extends ResourceRequestParams
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('uri', 'UnsubscribeRequestParams wire data missing "uri".');
+        Assert::that($data)->hasOffset('uri', 'UnsubscribeRequestParams data missing "uri".');
         $uri = $data['uri'];
-        Assert::that($uri)->isString('UnsubscribeRequestParams wire "uri" must be a string, {type} given.');
+        Assert::that($uri)->isString('UnsubscribeRequestParams "uri" must be a string, {type} given.');
 
-        $meta = RequestMetaObject::parseFromWire($data, 'Request params');
+        $meta = RequestMetaObject::parseFrom($data, 'Request params');
 
         return new self($uri, $meta);
     }

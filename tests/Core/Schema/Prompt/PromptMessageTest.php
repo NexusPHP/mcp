@@ -140,8 +140,8 @@ final class PromptMessageTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -152,46 +152,46 @@ final class PromptMessageTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing role' => [
             ['content' => ['type' => 'text', 'text' => 'hi']],
-            'PromptMessage wire data missing "role".',
+            'PromptMessage data missing "role".',
         ];
 
         yield 'role not a string' => [
             ['role' => 1, 'content' => ['type' => 'text', 'text' => 'hi']],
-            'PromptMessage wire "role" must be a string, int given.',
+            'PromptMessage "role" must be a string, int given.',
         ];
 
         yield 'missing content' => [
             ['role' => 'user'],
-            'PromptMessage wire data missing "content".',
+            'PromptMessage data missing "content".',
         ];
 
         yield 'content not an object' => [
             ['role' => 'user', 'content' => 'oops'],
-            'PromptMessage wire "content" must be an object, string given.',
+            'PromptMessage "content" must be an object, string given.',
         ];
 
         yield 'content list-keyed' => [
             ['role' => 'user', 'content' => ['x']],
-            'PromptMessage wire "content" must be a string-keyed object.',
+            'PromptMessage "content" must be a string-keyed object.',
         ];
 
         yield 'content missing type' => [
             ['role' => 'user', 'content' => ['text' => 'hi']],
-            'PromptMessage content wire data missing "type".',
+            'PromptMessage content data missing "type".',
         ];
 
         yield 'content type not a string' => [
             ['role' => 'user', 'content' => ['type' => 1]],
-            'PromptMessage content wire "type" must be a string, int given.',
+            'PromptMessage content "type" must be a string, int given.',
         ];
 
         yield 'content type unknown' => [
             ['role' => 'user', 'content' => ['type' => 'unknown']],
-            'PromptMessage content wire "type" must be one of "text", "image", "audio", "resource_link", "resource"; "unknown" given.',
+            'PromptMessage content "type" must be one of "text", "image", "audio", "resource_link", "resource"; "unknown" given.',
         ];
     }
 }

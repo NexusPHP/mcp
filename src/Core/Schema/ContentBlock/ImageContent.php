@@ -66,29 +66,29 @@ final readonly class ImageContent implements Arrayable, ContentBlock, SamplingMe
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('type', 'ImageContent wire data missing "type".');
+        Assert::that($data)->hasOffset('type', 'ImageContent data missing "type".');
         $type = $data['type'];
-        Assert::that($type)->isIdentical(self::TYPE, \sprintf('ImageContent wire "type" must be "%s", {value} given.', self::TYPE));
+        Assert::that($type)->isIdentical(self::TYPE, \sprintf('ImageContent "type" must be "%s", {value} given.', self::TYPE));
 
-        Assert::that($data)->hasOffset('data', 'ImageContent wire data missing "data".');
+        Assert::that($data)->hasOffset('data', 'ImageContent data missing "data".');
         $payload = $data['data'];
-        Assert::that($payload)->isString('ImageContent wire "data" must be a string, {type} given.');
+        Assert::that($payload)->isString('ImageContent "data" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('mimeType', 'ImageContent wire data missing "mimeType".');
+        Assert::that($data)->hasOffset('mimeType', 'ImageContent data missing "mimeType".');
         $mimeType = $data['mimeType'];
-        Assert::that($mimeType)->isString('ImageContent wire "mimeType" must be a string, {type} given.');
+        Assert::that($mimeType)->isString('ImageContent "mimeType" must be a string, {type} given.');
 
         $annotations = null;
 
         if (\array_key_exists('annotations', $data)) {
             Assert::that($data['annotations'])
-                ->isArray('ImageContent wire "annotations" must be an object, {type} given.')
-                ->isMap('ImageContent wire "annotations" must be a string-keyed object.')
+                ->isArray('ImageContent "annotations" must be an object, {type} given.')
+                ->isMap('ImageContent "annotations" must be a string-keyed object.')
             ;
             $annotations = Annotations::fromArray($data['annotations']);
         }
 
-        $meta = MetaObject::parseFromWire($data, 'ImageContent');
+        $meta = MetaObject::parseFrom($data, 'ImageContent');
 
         return new self($payload, $mimeType, $annotations, $meta);
     }

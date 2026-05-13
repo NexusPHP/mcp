@@ -97,8 +97,8 @@ final class ListResourcesRequestTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -109,26 +109,26 @@ final class ListResourcesRequestTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing id' => [
             ['jsonrpc' => '2.0', 'method' => 'resources/list'],
-            'ListResourcesRequest wire data missing "id".',
+            'ListResourcesRequest data missing "id".',
         ];
 
         yield 'id not int or string' => [
             ['jsonrpc' => '2.0', 'id' => [], 'method' => 'resources/list'],
-            'ListResourcesRequest wire "id" must be int or string, array given.',
+            'ListResourcesRequest "id" must be int or string, array given.',
         ];
 
         yield 'params not an object' => [
             ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'resources/list', 'params' => 'bad'],
-            'ListResourcesRequest wire "params" must be an object, string given.',
+            'ListResourcesRequest "params" must be an object, string given.',
         ];
 
         yield 'params list-keyed' => [
             ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'resources/list', 'params' => ['x']],
-            'ListResourcesRequest wire "params" must be a string-keyed object.',
+            'ListResourcesRequest "params" must be a string-keyed object.',
         ];
     }
 }

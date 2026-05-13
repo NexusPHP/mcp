@@ -42,8 +42,8 @@ final readonly class TestNotification extends JsonRpcNotification
 
         if (\array_key_exists('params', $data)) {
             Assert::that($data['params'])
-                ->isArray('TestNotification wire "params" must be an object, {type} given.')
-                ->isMap('TestNotification wire "params" must be a string-keyed object.')
+                ->isArray('TestNotification "params" must be an object, {type} given.')
+                ->isMap('TestNotification "params" must be a string-keyed object.')
             ;
             $params = EmptyNotificationParams::fromArray($data['params']);
         }

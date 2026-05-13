@@ -127,8 +127,8 @@ final class ListTasksResultTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -139,31 +139,31 @@ final class ListTasksResultTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing tasks' => [
             [],
-            'ListTasksResult wire data missing "tasks".',
+            'ListTasksResult data missing "tasks".',
         ];
 
         yield 'tasks not an array' => [
             ['tasks' => 'oops'],
-            'ListTasksResult wire "tasks" must be a list, string given.',
+            'ListTasksResult "tasks" must be a list, string given.',
         ];
 
         yield 'task entry not an object' => [
             ['tasks' => ['oops']],
-            'ListTasksResult wire task entry must be an object, string given.',
+            'ListTasksResult task entry must be an object, string given.',
         ];
 
         yield 'task entry list-keyed' => [
             ['tasks' => [['x']]],
-            'ListTasksResult wire task entry must be a string-keyed object.',
+            'ListTasksResult task entry must be a string-keyed object.',
         ];
 
         yield 'nextCursor not a string' => [
             ['tasks' => [], 'nextCursor' => 1],
-            'ListTasksResult wire "nextCursor" must be a string, int given.',
+            'ListTasksResult "nextCursor" must be a string, int given.',
         ];
     }
 

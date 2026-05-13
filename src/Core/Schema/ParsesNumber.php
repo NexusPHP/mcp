@@ -17,10 +17,10 @@ use Nexus\Assert\Assert;
 use Nexus\Assert\ExpectationFailedException;
 
 /**
- * Wire-level coercion for spec `"type": "number"` fields. JSON / JavaScript do not
- * distinguish int from float, so a sender may emit `5` or `5.0` interchangeably.
- * The SDK normalizes to PHP `float` internally while the property/constructor type
- * stays strict `float`.
+ * Decode-side coercion for spec `"type": "number"` fields. JSON / JavaScript
+ * do not distinguish int from float, so a sender may emit `5` or `5.0`
+ * interchangeably. The SDK normalizes to PHP `float` internally while the
+ * property/constructor type stays strict `float`.
  *
  * @internal
  */

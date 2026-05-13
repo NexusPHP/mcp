@@ -145,8 +145,8 @@ final class TextResourceContentsTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -157,31 +157,31 @@ final class TextResourceContentsTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing uri' => [
             ['text' => 'hello'],
-            'TextResourceContents wire data missing "uri".',
+            'TextResourceContents data missing "uri".',
         ];
 
         yield 'uri not a string' => [
             ['uri' => 1, 'text' => 'hello'],
-            'TextResourceContents wire "uri" must be a string, int given.',
+            'TextResourceContents "uri" must be a string, int given.',
         ];
 
         yield 'missing text' => [
             ['uri' => 'file:///x'],
-            'TextResourceContents wire data missing "text".',
+            'TextResourceContents data missing "text".',
         ];
 
         yield 'text not a string' => [
             ['uri' => 'file:///x', 'text' => 1],
-            'TextResourceContents wire "text" must be a string, int given.',
+            'TextResourceContents "text" must be a string, int given.',
         ];
 
         yield 'mimeType not a string' => [
             ['uri' => 'file:///x', 'text' => 'hello', 'mimeType' => 1],
-            'TextResourceContents wire "mimeType" must be a string or null, int given.',
+            'TextResourceContents "mimeType" must be a string or null, int given.',
         ];
 
         yield '_meta not an object' => [

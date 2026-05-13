@@ -60,23 +60,23 @@ final readonly class GetPromptResult extends Result implements ServerResult
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('messages', 'GetPromptResult wire data missing "messages".');
-        Assert::that($data['messages'])->isArray('GetPromptResult wire "messages" must be an array, {type} given.');
+        Assert::that($data)->hasOffset('messages', 'GetPromptResult data missing "messages".');
+        Assert::that($data['messages'])->isArray('GetPromptResult "messages" must be an array, {type} given.');
 
         $messages = [];
 
         foreach ($data['messages'] as $entry) {
             Assert::that($entry)
-                ->isArray('GetPromptResult wire message entry must be an object, {type} given.')
-                ->isMap('GetPromptResult wire message entry must be a string-keyed object.')
+                ->isArray('GetPromptResult message entry must be an object, {type} given.')
+                ->isMap('GetPromptResult message entry must be a string-keyed object.')
             ;
             $messages[] = PromptMessage::fromArray($entry);
         }
 
         $description = $data['description'] ?? null;
-        Assert::that($description)->nullOr()->isString('GetPromptResult wire "description" must be a string or null, {type} given.');
+        Assert::that($description)->nullOr()->isString('GetPromptResult "description" must be a string or null, {type} given.');
 
-        $meta = MetaObject::parseFromWire($data, 'Result');
+        $meta = MetaObject::parseFrom($data, 'Result');
 
         return new self($messages, $description, $meta);
     }

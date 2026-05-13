@@ -85,27 +85,27 @@ final readonly class StringSchema implements Arrayable, PrimitiveSchemaDefinitio
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('type', 'StringSchema wire data missing "type".');
+        Assert::that($data)->hasOffset('type', 'StringSchema data missing "type".');
         $type = $data['type'];
-        Assert::that($type)->isIdentical(self::TYPE, \sprintf('StringSchema wire "type" must be "%s", {value} given.', self::TYPE));
+        Assert::that($type)->isIdentical(self::TYPE, \sprintf('StringSchema "type" must be "%s", {value} given.', self::TYPE));
 
         $title = $data['title'] ?? null;
-        Assert::that($title)->nullOr()->isString('StringSchema wire "title" must be a string or null, {type} given.');
+        Assert::that($title)->nullOr()->isString('StringSchema "title" must be a string or null, {type} given.');
 
         $description = $data['description'] ?? null;
-        Assert::that($description)->nullOr()->isString('StringSchema wire "description" must be a string or null, {type} given.');
+        Assert::that($description)->nullOr()->isString('StringSchema "description" must be a string or null, {type} given.');
 
         $minLength = $data['minLength'] ?? null;
-        Assert::that($minLength)->nullOr()->isInt('StringSchema wire "minLength" must be an int or null, {type} given.');
+        Assert::that($minLength)->nullOr()->isInt('StringSchema "minLength" must be an int or null, {type} given.');
 
         $maxLength = $data['maxLength'] ?? null;
-        Assert::that($maxLength)->nullOr()->isInt('StringSchema wire "maxLength" must be an int or null, {type} given.');
+        Assert::that($maxLength)->nullOr()->isInt('StringSchema "maxLength" must be an int or null, {type} given.');
 
         $format = $data['format'] ?? null;
-        Assert::that($format)->nullOr()->isString('StringSchema wire "format" must be a string or null, {type} given.');
+        Assert::that($format)->nullOr()->isString('StringSchema "format" must be a string or null, {type} given.');
 
         $default = $data['default'] ?? null;
-        Assert::that($default)->nullOr()->isString('StringSchema wire "default" must be a string or null, {type} given.');
+        Assert::that($default)->nullOr()->isString('StringSchema "default" must be a string or null, {type} given.');
 
         return new self($title, $description, $minLength, $maxLength, $format, $default);
     }

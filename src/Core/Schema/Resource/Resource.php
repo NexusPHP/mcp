@@ -103,29 +103,29 @@ final readonly class Resource extends BaseMetadata implements Arrayable, Icons
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('name', 'Resource wire data missing "name".');
+        Assert::that($data)->hasOffset('name', 'Resource data missing "name".');
         $name = $data['name'];
-        Assert::that($name)->isString('Resource wire "name" must be a string, {type} given.');
+        Assert::that($name)->isString('Resource "name" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('uri', 'Resource wire data missing "uri".');
+        Assert::that($data)->hasOffset('uri', 'Resource data missing "uri".');
         $uri = $data['uri'];
-        Assert::that($uri)->isString('Resource wire "uri" must be a string, {type} given.');
+        Assert::that($uri)->isString('Resource "uri" must be a string, {type} given.');
 
         $title = $data['title'] ?? null;
-        Assert::that($title)->nullOr()->isString('Resource wire "title" must be a string or null, {type} given.');
+        Assert::that($title)->nullOr()->isString('Resource "title" must be a string or null, {type} given.');
 
         $description = $data['description'] ?? null;
-        Assert::that($description)->nullOr()->isString('Resource wire "description" must be a string or null, {type} given.');
+        Assert::that($description)->nullOr()->isString('Resource "description" must be a string or null, {type} given.');
 
         $mimeType = $data['mimeType'] ?? null;
-        Assert::that($mimeType)->nullOr()->isString('Resource wire "mimeType" must be a string or null, {type} given.');
+        Assert::that($mimeType)->nullOr()->isString('Resource "mimeType" must be a string or null, {type} given.');
 
         $annotations = null;
 
         if (\array_key_exists('annotations', $data)) {
             Assert::that($data['annotations'])
-                ->isArray('Resource wire "annotations" must be an object, {type} given.')
-                ->isMap('Resource wire "annotations" must be a string-keyed object.')
+                ->isArray('Resource "annotations" must be an object, {type} given.')
+                ->isMap('Resource "annotations" must be a string-keyed object.')
             ;
             $annotations = Annotations::fromArray($data['annotations']);
         }
@@ -133,22 +133,22 @@ final readonly class Resource extends BaseMetadata implements Arrayable, Icons
         $size = $data['size'] ?? null;
 
         if (null !== $size) {
-            $size = self::parseNumber($size, 'Resource wire "size" must be a number or null, {type} given.');
+            $size = self::parseNumber($size, 'Resource "size" must be a number or null, {type} given.');
         }
 
         $icons = null;
 
         if (isset($data['icons'])) {
             Assert::that($data['icons'])
-                ->isList('Resource wire "icons" must be a list, {type} given.')
+                ->isList('Resource "icons" must be a list, {type} given.')
                 ->values()
-                ->isArray('Resource wire icon entry must be an object, {type} given.')
-                ->isMap('Resource wire icon entry must be a string-keyed object.')
+                ->isArray('Resource icon entry must be an object, {type} given.')
+                ->isMap('Resource icon entry must be a string-keyed object.')
             ;
             $icons = array_map(Icon::fromArray(...), $data['icons']);
         }
 
-        $meta = MetaObject::parseFromWire($data, 'Resource');
+        $meta = MetaObject::parseFrom($data, 'Resource');
 
         return new self($name, $uri, $title, $description, $mimeType, $annotations, $size, $icons, $meta);
     }

@@ -21,7 +21,7 @@ use Nexus\Mcp\Core\Schema\ContentBlock\ResourceLink;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 
 /**
- * Discriminates a `ContentBlock` wire payload by its `type` field and
+ * Discriminates a `ContentBlock` payload by its `type` field and
  * dispatches to the matching concrete subclass. Used by `PromptMessage` and
  * `CallToolResult` (the two spec shapes carrying `ContentBlock` unions).
  *
@@ -37,7 +37,7 @@ final class ContentBlockDispatcher
      */
     public static function fromArray(array $data, string $context): AudioContent|EmbeddedResource|ImageContent|ResourceLink|TextContent
     {
-        $type = WireDiscriminator::readType($data, $context);
+        $type = MessageDiscriminator::readType($data, $context);
 
         return match ($type) {
             TextContent::TYPE => TextContent::fromArray($data),
@@ -45,7 +45,7 @@ final class ContentBlockDispatcher
             AudioContent::TYPE => AudioContent::fromArray($data),
             ResourceLink::TYPE => ResourceLink::fromArray($data),
             EmbeddedResource::TYPE => EmbeddedResource::fromArray($data),
-            default => throw WireDiscriminator::unknownType(
+            default => throw MessageDiscriminator::unknownType(
                 $context,
                 [TextContent::TYPE, ImageContent::TYPE, AudioContent::TYPE, ResourceLink::TYPE, EmbeddedResource::TYPE],
                 $type,

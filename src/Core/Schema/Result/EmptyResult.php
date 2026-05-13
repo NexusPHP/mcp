@@ -32,7 +32,7 @@ final readonly class EmptyResult extends Result implements ClientResult, ServerR
     #[\Override]
     public static function fromArray(array $data): static
     {
-        $meta = MetaObject::parseFromWire($data, 'Result');
+        $meta = MetaObject::parseFrom($data, 'Result');
 
         return new self($meta);
     }

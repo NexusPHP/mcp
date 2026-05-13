@@ -121,7 +121,7 @@ final class CancelledNotificationTest extends TestCase
     public function testFromArrayRejectsMissingParams(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageMatches('/^CancelledNotification wire data missing "params"\.$/');
+        $this->expectExceptionMessageMatches('/^CancelledNotification data missing "params"\.$/');
 
         CancelledNotification::fromArray([
             'jsonrpc' => '2.0',
@@ -132,7 +132,7 @@ final class CancelledNotificationTest extends TestCase
     public function testFromArrayRejectsNonObjectParams(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('CancelledNotification wire "params" must be an object, string given.');
+        $this->expectExceptionMessage('CancelledNotification "params" must be an object, string given.');
 
         CancelledNotification::fromArray([
             'jsonrpc' => '2.0',
@@ -144,7 +144,7 @@ final class CancelledNotificationTest extends TestCase
     public function testFromArrayRejectsListKeyedParams(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('CancelledNotification wire "params" must be a string-keyed object.');
+        $this->expectExceptionMessage('CancelledNotification "params" must be a string-keyed object.');
 
         CancelledNotification::fromArray([
             'jsonrpc' => '2.0',
@@ -178,14 +178,14 @@ final class CancelledNotificationTest extends TestCase
         self::assertSame('{"jsonrpc":"2.0","method":"notifications/cancelled","params":{}}', json_encode($notification, \JSON_UNESCAPED_SLASHES));
     }
 
-    public function testEmptyParamsRoundTripsThroughWireEnvelope(): void
+    public function testEmptyParamsRoundTripsThroughEnvelope(): void
     {
         $original = new CancelledNotification(new CancelledNotificationParams());
 
-        $wire = json_encode($original);
-        self::assertIsString($wire);
+        $envelope = json_encode($original);
+        self::assertIsString($envelope);
 
-        $decoded = json_decode($wire, true);
+        $decoded = json_decode($envelope, true);
         Assert::that($decoded)
             ->isArray()
             ->isMap()

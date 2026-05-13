@@ -118,8 +118,8 @@ final class ListToolsResultTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -130,31 +130,31 @@ final class ListToolsResultTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing tools' => [
             [],
-            'ListToolsResult wire data missing "tools".',
+            'ListToolsResult data missing "tools".',
         ];
 
         yield 'tools not an array' => [
             ['tools' => 'oops'],
-            'ListToolsResult wire "tools" must be a list, string given.',
+            'ListToolsResult "tools" must be a list, string given.',
         ];
 
         yield 'tool entry not an object' => [
             ['tools' => ['oops']],
-            'ListToolsResult wire tool entry must be an object, string given.',
+            'ListToolsResult tool entry must be an object, string given.',
         ];
 
         yield 'tool entry list-keyed' => [
             ['tools' => [['x']]],
-            'ListToolsResult wire tool entry must be a string-keyed object.',
+            'ListToolsResult tool entry must be a string-keyed object.',
         ];
 
         yield 'nextCursor not a string' => [
             ['tools' => [], 'nextCursor' => 1],
-            'ListToolsResult wire "nextCursor" must be a string, int given.',
+            'ListToolsResult "nextCursor" must be a string, int given.',
         ];
 
         yield '_meta not an object' => [

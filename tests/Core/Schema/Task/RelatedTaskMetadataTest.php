@@ -68,7 +68,7 @@ final class RelatedTaskMetadataTest extends TestCase
     public function testFromArrayRejectsMissingTaskId(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('RelatedTaskMetadata wire data missing "taskId".');
+        $this->expectExceptionMessage('RelatedTaskMetadata data missing "taskId".');
 
         RelatedTaskMetadata::fromArray([]);
     }
@@ -76,7 +76,7 @@ final class RelatedTaskMetadataTest extends TestCase
     public function testFromArrayRejectsNonStringTaskId(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('RelatedTaskMetadata wire "taskId" must be a string, int given.');
+        $this->expectExceptionMessage('RelatedTaskMetadata "taskId" must be a string, int given.');
 
         RelatedTaskMetadata::fromArray(['taskId' => 42]);
     }

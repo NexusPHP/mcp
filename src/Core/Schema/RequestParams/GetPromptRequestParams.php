@@ -61,22 +61,22 @@ final readonly class GetPromptRequestParams extends RequestParams
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('name', 'GetPromptRequestParams wire data missing "name".');
+        Assert::that($data)->hasOffset('name', 'GetPromptRequestParams data missing "name".');
         $name = $data['name'];
-        Assert::that($name)->isString('GetPromptRequestParams wire "name" must be a string, {type} given.');
+        Assert::that($name)->isString('GetPromptRequestParams "name" must be a string, {type} given.');
 
         $arguments = null;
 
         if (\array_key_exists('arguments', $data)) {
             Assert::that($data['arguments'])
-                ->isArray('GetPromptRequestParams wire "arguments" must be an object, {type} given.')
-                ->isMap('GetPromptRequestParams wire "arguments" must be a string-keyed object.')
-                ->values()->isString('GetPromptRequestParams wire argument value must be a string, {type} given.')
+                ->isArray('GetPromptRequestParams "arguments" must be an object, {type} given.')
+                ->isMap('GetPromptRequestParams "arguments" must be a string-keyed object.')
+                ->values()->isString('GetPromptRequestParams argument value must be a string, {type} given.')
             ;
             $arguments = $data['arguments'];
         }
 
-        $meta = RequestMetaObject::parseFromWire($data, 'Request params');
+        $meta = RequestMetaObject::parseFrom($data, 'Request params');
 
         return new self($name, $arguments, $meta);
     }

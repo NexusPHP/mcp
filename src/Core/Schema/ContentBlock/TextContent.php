@@ -49,25 +49,25 @@ final readonly class TextContent implements Arrayable, ContentBlock, SamplingMes
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('type', 'TextContent wire data missing "type".');
+        Assert::that($data)->hasOffset('type', 'TextContent data missing "type".');
         $type = $data['type'];
-        Assert::that($type)->isIdentical(self::TYPE, \sprintf('TextContent wire "type" must be "%s", {value} given.', self::TYPE));
+        Assert::that($type)->isIdentical(self::TYPE, \sprintf('TextContent "type" must be "%s", {value} given.', self::TYPE));
 
-        Assert::that($data)->hasOffset('text', 'TextContent wire data missing "text".');
+        Assert::that($data)->hasOffset('text', 'TextContent data missing "text".');
         $text = $data['text'];
-        Assert::that($text)->isString('TextContent wire "text" must be a string, {type} given.');
+        Assert::that($text)->isString('TextContent "text" must be a string, {type} given.');
 
         $annotations = null;
 
         if (\array_key_exists('annotations', $data)) {
             Assert::that($data['annotations'])
-                ->isArray('TextContent wire "annotations" must be an object, {type} given.')
-                ->isMap('TextContent wire "annotations" must be a string-keyed object.')
+                ->isArray('TextContent "annotations" must be an object, {type} given.')
+                ->isMap('TextContent "annotations" must be a string-keyed object.')
             ;
             $annotations = Annotations::fromArray($data['annotations']);
         }
 
-        $meta = MetaObject::parseFromWire($data, 'TextContent');
+        $meta = MetaObject::parseFrom($data, 'TextContent');
 
         return new self($text, $annotations, $meta);
     }

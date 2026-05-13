@@ -37,8 +37,8 @@ abstract class AbstractRoundTripTestCase extends TestCase
     /**
      * @param array<string, mixed> $entry
      */
-    #[DataProvider('provideFixtureRoundTripsToCanonicalWireShapeCases')]
-    public function testFixtureRoundTripsToCanonicalWireShape(string $dir, array $entry, string $fixturePath): void
+    #[DataProvider('provideFixtureRoundTripsToCanonicalShapeCases')]
+    public function testFixtureRoundTripsToCanonicalShape(string $dir, array $entry, string $fixturePath): void
     {
         $jsonString = file_get_contents($fixturePath);
         self::assertIsString($jsonString, \sprintf('Could not read fixture "%s".', $fixturePath));
@@ -54,7 +54,7 @@ abstract class AbstractRoundTripTestCase extends TestCase
         $reEncoded = json_encode($instance, self::JSON_FLAGS | \JSON_THROW_ON_ERROR);
 
         self::assertSame($jsonString, $reEncoded, \sprintf(
-            'Wire shape for "%s/%s" does not round-trip. Fixture is the source of truth — either the schema class\'s `toArray`/`jsonSerialize` drifted from the spec, or the fixture needs updating.',
+            'Canonical shape for "%s/%s" does not round-trip. Fixture is the source of truth — either the schema class\'s `toArray`/`jsonSerialize` drifted from the spec, or the fixture needs updating.',
             $dir,
             basename($fixturePath, '.json'),
         ));
@@ -63,7 +63,7 @@ abstract class AbstractRoundTripTestCase extends TestCase
     /**
      * @return iterable<string, array{string, array<string, mixed>, string}>
      */
-    public static function provideFixtureRoundTripsToCanonicalWireShapeCases(): iterable
+    public static function provideFixtureRoundTripsToCanonicalShapeCases(): iterable
     {
         $root = static::fixtureRoot();
 

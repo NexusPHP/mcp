@@ -88,31 +88,31 @@ final readonly class Implementation extends BaseMetadata implements Arrayable, I
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('name', 'Implementation wire data missing "name".');
+        Assert::that($data)->hasOffset('name', 'Implementation data missing "name".');
         $name = $data['name'];
-        Assert::that($name)->isString('Implementation wire "name" must be a string, {type} given.');
+        Assert::that($name)->isString('Implementation "name" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('version', 'Implementation wire data missing "version".');
+        Assert::that($data)->hasOffset('version', 'Implementation data missing "version".');
         $version = $data['version'];
-        Assert::that($version)->isString('Implementation wire "version" must be a string, {type} given.');
+        Assert::that($version)->isString('Implementation "version" must be a string, {type} given.');
 
         $title = $data['title'] ?? null;
-        Assert::that($title)->nullOr()->isString('Implementation wire "title" must be a string or null, {type} given.');
+        Assert::that($title)->nullOr()->isString('Implementation "title" must be a string or null, {type} given.');
 
         $description = $data['description'] ?? null;
-        Assert::that($description)->nullOr()->isString('Implementation wire "description" must be a string or null, {type} given.');
+        Assert::that($description)->nullOr()->isString('Implementation "description" must be a string or null, {type} given.');
 
         $websiteUrl = $data['websiteUrl'] ?? null;
-        Assert::that($websiteUrl)->nullOr()->isString('Implementation wire "websiteUrl" must be a string or null, {type} given.');
+        Assert::that($websiteUrl)->nullOr()->isString('Implementation "websiteUrl" must be a string or null, {type} given.');
 
         $icons = null;
 
         if (isset($data['icons'])) {
             Assert::that($data['icons'])
-                ->isList('Implementation wire "icons" must be a list, {type} given.')
+                ->isList('Implementation "icons" must be a list, {type} given.')
                 ->values()
-                ->isArray('Implementation wire icon entry must be an object, {type} given.')
-                ->isMap('Implementation wire icon entry must be a string-keyed object.')
+                ->isArray('Implementation icon entry must be an object, {type} given.')
+                ->isMap('Implementation icon entry must be a string-keyed object.')
             ;
             $icons = array_map(Icon::fromArray(...), $data['icons']);
         }

@@ -39,8 +39,8 @@ final readonly class InitializedNotification extends JsonRpcNotification impleme
 
         if (\array_key_exists('params', $data)) {
             Assert::that($data['params'])
-                ->isArray('InitializedNotification wire "params" must be an object, {type} given.')
-                ->isMap('InitializedNotification wire "params" must be a string-keyed object.')
+                ->isArray('InitializedNotification "params" must be an object, {type} given.')
+                ->isMap('InitializedNotification "params" must be a string-keyed object.')
             ;
             $params = EmptyNotificationParams::fromArray($data['params']);
         }

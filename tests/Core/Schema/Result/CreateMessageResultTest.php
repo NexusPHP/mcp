@@ -175,7 +175,7 @@ final class CreateMessageResultTest extends TestCase
     public function testFromArrayRejectsMissingModel(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('CreateMessageResult wire data missing "model".');
+        $this->expectExceptionMessage('CreateMessageResult data missing "model".');
 
         CreateMessageResult::fromArray(['role' => 'assistant', 'content' => ['text' => 'x', 'type' => 'text']]);
     }
@@ -183,7 +183,7 @@ final class CreateMessageResultTest extends TestCase
     public function testFromArrayRejectsNonStringModel(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('CreateMessageResult wire "model" must be a string, int given.');
+        $this->expectExceptionMessage('CreateMessageResult "model" must be a string, int given.');
 
         CreateMessageResult::fromArray(['model' => 1, 'role' => 'assistant', 'content' => ['text' => 'x', 'type' => 'text']]);
     }
@@ -191,7 +191,7 @@ final class CreateMessageResultTest extends TestCase
     public function testFromArrayRejectsMissingRole(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('CreateMessageResult wire data missing "role".');
+        $this->expectExceptionMessage('CreateMessageResult data missing "role".');
 
         CreateMessageResult::fromArray(['model' => 'x', 'content' => ['text' => 'x', 'type' => 'text']]);
     }
@@ -199,7 +199,7 @@ final class CreateMessageResultTest extends TestCase
     public function testFromArrayRejectsMissingContent(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('CreateMessageResult wire data missing "content".');
+        $this->expectExceptionMessage('CreateMessageResult data missing "content".');
 
         CreateMessageResult::fromArray(['model' => 'x', 'role' => 'assistant']);
     }
@@ -207,7 +207,7 @@ final class CreateMessageResultTest extends TestCase
     public function testFromArrayRejectsNonObjectOrArrayContent(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('CreateMessageResult wire "content" must be an object or array, string given.');
+        $this->expectExceptionMessage('CreateMessageResult "content" must be an object or array, string given.');
 
         CreateMessageResult::fromArray(['model' => 'x', 'role' => 'assistant', 'content' => 'oops']);
     }
@@ -215,7 +215,7 @@ final class CreateMessageResultTest extends TestCase
     public function testFromArrayRejectsUnknownContentType(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('CreateMessageResult content wire "type" must be one of "text", "image", "audio", "tool_use", "tool_result"; "resource_link" given.');
+        $this->expectExceptionMessage('CreateMessageResult content "type" must be one of "text", "image", "audio", "tool_use", "tool_result"; "resource_link" given.');
 
         CreateMessageResult::fromArray(['model' => 'x', 'role' => 'assistant', 'content' => ['type' => 'resource_link', 'uri' => 'file:///x', 'name' => 'doc']]);
     }
@@ -223,7 +223,7 @@ final class CreateMessageResultTest extends TestCase
     public function testFromArrayRejectsNonStringStopReason(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('CreateMessageResult wire "stopReason" must be a string or null, int given.');
+        $this->expectExceptionMessage('CreateMessageResult "stopReason" must be a string or null, int given.');
 
         CreateMessageResult::fromArray(['model' => 'x', 'role' => 'assistant', 'content' => ['text' => 'x', 'type' => 'text'], 'stopReason' => 1]);
     }

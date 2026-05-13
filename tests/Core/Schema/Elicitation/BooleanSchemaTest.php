@@ -108,8 +108,8 @@ final class BooleanSchemaTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -120,31 +120,31 @@ final class BooleanSchemaTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing type' => [
             [],
-            'BooleanSchema wire data missing "type".',
+            'BooleanSchema data missing "type".',
         ];
 
         yield 'wrong type literal' => [
             ['type' => 'string'],
-            'BooleanSchema wire "type" must be "boolean", \'string\' given.',
+            'BooleanSchema "type" must be "boolean", \'string\' given.',
         ];
 
         yield 'title not a string' => [
             ['type' => 'boolean', 'title' => 1],
-            'BooleanSchema wire "title" must be a string or null, int given.',
+            'BooleanSchema "title" must be a string or null, int given.',
         ];
 
         yield 'description not a string' => [
             ['type' => 'boolean', 'description' => 1],
-            'BooleanSchema wire "description" must be a string or null, int given.',
+            'BooleanSchema "description" must be a string or null, int given.',
         ];
 
         yield 'default not a bool' => [
             ['type' => 'boolean', 'default' => 'yes'],
-            'BooleanSchema wire "default" must be a bool or null, string given.',
+            'BooleanSchema "default" must be a bool or null, string given.',
         ];
     }
 }

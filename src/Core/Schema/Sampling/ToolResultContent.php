@@ -75,20 +75,20 @@ final readonly class ToolResultContent implements Arrayable, SamplingMessageCont
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('type', 'ToolResultContent wire data missing "type".');
+        Assert::that($data)->hasOffset('type', 'ToolResultContent data missing "type".');
         $type = $data['type'];
-        Assert::that($type)->isIdentical(self::TYPE, \sprintf('ToolResultContent wire "type" must be "%s", {value} given.', self::TYPE));
+        Assert::that($type)->isIdentical(self::TYPE, \sprintf('ToolResultContent "type" must be "%s", {value} given.', self::TYPE));
 
-        Assert::that($data)->hasOffset('toolUseId', 'ToolResultContent wire data missing "toolUseId".');
+        Assert::that($data)->hasOffset('toolUseId', 'ToolResultContent data missing "toolUseId".');
         $toolUseId = $data['toolUseId'];
-        Assert::that($toolUseId)->isString('ToolResultContent wire "toolUseId" must be a string, {type} given.');
+        Assert::that($toolUseId)->isString('ToolResultContent "toolUseId" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('content', 'ToolResultContent wire data missing "content".');
+        Assert::that($data)->hasOffset('content', 'ToolResultContent data missing "content".');
         Assert::that($data['content'])
-            ->isList('ToolResultContent wire "content" must be a list, {type} given.')
+            ->isList('ToolResultContent "content" must be a list, {type} given.')
             ->values()
-            ->isArray('ToolResultContent wire content entry must be an object, {type} given.')
-            ->isMap('ToolResultContent wire content entry must be a string-keyed object.')
+            ->isArray('ToolResultContent content entry must be an object, {type} given.')
+            ->isMap('ToolResultContent content entry must be a string-keyed object.')
         ;
         $content = array_map(
             static fn(array $entry): AudioContent|EmbeddedResource|ImageContent|ResourceLink|TextContent => ContentBlockDispatcher::fromArray($entry, 'ToolResultContent content'),
@@ -96,19 +96,19 @@ final readonly class ToolResultContent implements Arrayable, SamplingMessageCont
         );
 
         $isError = $data['isError'] ?? null;
-        Assert::that($isError)->nullOr()->isBool('ToolResultContent wire "isError" must be a bool or null, {type} given.');
+        Assert::that($isError)->nullOr()->isBool('ToolResultContent "isError" must be a bool or null, {type} given.');
 
         $structuredContent = null;
 
         if (\array_key_exists('structuredContent', $data)) {
             Assert::that($data['structuredContent'])
-                ->isArray('ToolResultContent wire "structuredContent" must be an object, {type} given.')
-                ->isMap('ToolResultContent wire "structuredContent" must be a string-keyed object.')
+                ->isArray('ToolResultContent "structuredContent" must be an object, {type} given.')
+                ->isMap('ToolResultContent "structuredContent" must be a string-keyed object.')
             ;
             $structuredContent = $data['structuredContent'];
         }
 
-        $meta = MetaObject::parseFromWire($data, 'ToolResultContent');
+        $meta = MetaObject::parseFrom($data, 'ToolResultContent');
 
         return new self($toolUseId, $content, $isError, $structuredContent, $meta);
     }

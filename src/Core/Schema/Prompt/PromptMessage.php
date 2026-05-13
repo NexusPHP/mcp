@@ -47,14 +47,14 @@ final readonly class PromptMessage implements Arrayable
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('role', 'PromptMessage wire data missing "role".');
+        Assert::that($data)->hasOffset('role', 'PromptMessage data missing "role".');
         $role = $data['role'];
-        Assert::that($role)->isString('PromptMessage wire "role" must be a string, {type} given.');
+        Assert::that($role)->isString('PromptMessage "role" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('content', 'PromptMessage wire data missing "content".');
+        Assert::that($data)->hasOffset('content', 'PromptMessage data missing "content".');
         Assert::that($data['content'])
-            ->isArray('PromptMessage wire "content" must be an object, {type} given.')
-            ->isMap('PromptMessage wire "content" must be a string-keyed object.')
+            ->isArray('PromptMessage "content" must be an object, {type} given.')
+            ->isMap('PromptMessage "content" must be a string-keyed object.')
         ;
 
         return new self(Role::from($role), ContentBlockDispatcher::fromArray($data['content'], 'PromptMessage content'));

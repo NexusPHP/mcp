@@ -39,18 +39,18 @@ final readonly class TextResourceContents extends ResourceContents
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('uri', 'TextResourceContents wire data missing "uri".');
+        Assert::that($data)->hasOffset('uri', 'TextResourceContents data missing "uri".');
         $uri = $data['uri'];
-        Assert::that($uri)->isString('TextResourceContents wire "uri" must be a string, {type} given.');
+        Assert::that($uri)->isString('TextResourceContents "uri" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('text', 'TextResourceContents wire data missing "text".');
+        Assert::that($data)->hasOffset('text', 'TextResourceContents data missing "text".');
         $text = $data['text'];
-        Assert::that($text)->isString('TextResourceContents wire "text" must be a string, {type} given.');
+        Assert::that($text)->isString('TextResourceContents "text" must be a string, {type} given.');
 
         $mimeType = $data['mimeType'] ?? null;
-        Assert::that($mimeType)->nullOr()->isString('TextResourceContents wire "mimeType" must be a string or null, {type} given.');
+        Assert::that($mimeType)->nullOr()->isString('TextResourceContents "mimeType" must be a string or null, {type} given.');
 
-        $meta = MetaObject::parseFromWire($data, 'ResourceContents');
+        $meta = MetaObject::parseFrom($data, 'ResourceContents');
 
         return new self($uri, $text, $mimeType, $meta);
     }

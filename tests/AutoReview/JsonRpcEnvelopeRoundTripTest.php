@@ -28,10 +28,10 @@ use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Pins the exact JSON-RPC envelope shape that every concrete request,
- * notification, result response, and error response writes to the wire.
+ * notification, result response, and error response writes to the envelope.
  *
  * Each fixture is a hand-authored, pretty-printed JSON file under
- * `wire-shapes/{Class}/{variant}.json`. The test decodes the fixture,
+ * `envelope-shapes/{Class}/{variant}.json`. The test decodes the fixture,
  * reconstructs the schema instance, re-encodes with `JSON_PRETTY_PRINT`,
  * and asserts the string round-trips byte-for-byte. Companion gates
  * ensure every concrete spec class has at least one fixture and that no
@@ -71,7 +71,7 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
         }
 
         self::assertSame([], $missing, \sprintf(
-            'Concrete Result subclasses without a JsonRpcResultResponse fixture set: %s. Add fixtures under wire-shapes/JsonRpcResultResponse-{ShortName}/ and register in self::registry().',
+            'Concrete Result subclasses without a JsonRpcResultResponse fixture set: %s. Add fixtures under envelope-shapes/JsonRpcResultResponse-{ShortName}/ and register in self::registry().',
             implode(', ', $missing),
         ));
     }
@@ -90,7 +90,7 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
         }
 
         self::assertSame([], $missing, \sprintf(
-            'Concrete Error subclasses without a JsonRpcErrorResponse fixture set: %s. Add fixtures under wire-shapes/JsonRpcErrorResponse-{ShortName}/ and register in self::registry().',
+            'Concrete Error subclasses without a JsonRpcErrorResponse fixture set: %s. Add fixtures under envelope-shapes/JsonRpcErrorResponse-{ShortName}/ and register in self::registry().',
             implode(', ', $missing),
         ));
     }
@@ -98,11 +98,11 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
     #[\Override]
     protected static function fixtureRoot(): string
     {
-        return __DIR__.'/wire-shapes';
+        return __DIR__.'/envelope-shapes';
     }
 
     /**
-     * Wire-shape fixture registry. Each entry binds a fixture directory to
+     * Envelope fixture registry. Each entry binds a fixture directory to
      * a wrapper class and (for parameterized response wrappers) the inner
      * payload class needed to reconstruct the envelope.
      *
@@ -291,7 +291,7 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
         }
 
         self::assertSame([], $missing, \sprintf(
-            'Concrete %s without wire-shape fixtures: %s. Add fixtures under wire-shapes/{ShortName}/ and register in self::registry().',
+            'Concrete %s without envelope fixtures: %s. Add fixtures under envelope-shapes/{ShortName}/ and register in self::registry().',
             $label,
             implode(', ', $missing),
         ));

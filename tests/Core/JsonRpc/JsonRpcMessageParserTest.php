@@ -89,7 +89,7 @@ final class JsonRpcMessageParserTest extends TestCase
             new EmptyRequestParams(new RequestMetaObject(new ProgressToken('tok-1'), ['vendor' => 'x'])),
         );
 
-        $wire = $original->toArray();
+        $envelope = $original->toArray();
 
         self::assertSame(
             [
@@ -98,10 +98,10 @@ final class JsonRpcMessageParserTest extends TestCase
                 'method' => 'ping',
                 'params' => ['_meta' => ['vendor' => 'x', 'progressToken' => 'tok-1']],
             ],
-            $wire,
+            $envelope,
         );
 
-        $parsed = $parser->parse($wire);
+        $parsed = $parser->parse($envelope);
 
         if (! $parsed instanceof PingRequest) {
             self::fail(\sprintf('Expected PingRequest, got %s.', $parsed::class));
@@ -283,7 +283,7 @@ final class JsonRpcMessageParserTest extends TestCase
             self::fail('Expected InvalidRequestException.');
         } catch (InvalidRequestException $e) {
             self::assertSame(1, $e->requestId);
-            self::assertStringContainsString('Wire message must carry a "method"', $e->getMessage());
+            self::assertStringContainsString('JSON-RPC envelope must carry a "method"', $e->getMessage());
         }
     }
 
@@ -292,7 +292,7 @@ final class JsonRpcMessageParserTest extends TestCase
         $parser = new JsonRpcMessageParser();
 
         $this->expectException(InvalidRequestException::class);
-        $this->expectExceptionMessage('Wire "method" must be a non-empty string, int given.');
+        $this->expectExceptionMessage('JSON-RPC envelope "method" must be a non-empty string, int given.');
 
         $parser->parse(['jsonrpc' => '2.0', 'id' => 1, 'method' => 42]);
     }
@@ -302,7 +302,7 @@ final class JsonRpcMessageParserTest extends TestCase
         $parser = new JsonRpcMessageParser();
 
         $this->expectException(InvalidRequestException::class);
-        $this->expectExceptionMessage('Wire "method" must be a non-empty string, string given.');
+        $this->expectExceptionMessage('JSON-RPC envelope "method" must be a non-empty string, string given.');
 
         $parser->parse(['jsonrpc' => '2.0', 'id' => 1, 'method' => '']);
     }
@@ -316,7 +316,7 @@ final class JsonRpcMessageParserTest extends TestCase
             self::fail('Expected InvalidParamsException.');
         } catch (InvalidParamsException $e) {
             self::assertNull($e->requestId, 'A non-scalar id cannot be preserved on the exception.');
-            self::assertStringStartsWith('Invalid "ping" request: PingRequest wire "id" must be int or string', $e->getMessage());
+            self::assertStringStartsWith('Invalid "ping" request: PingRequest "id" must be int or string', $e->getMessage());
         }
     }
 
@@ -343,7 +343,7 @@ final class JsonRpcMessageParserTest extends TestCase
         $parser->parse(['id' => 1, 'method' => 'ping']);
     }
 
-    public function testParseRequiresResultClassWhenWireCarriesResult(): void
+    public function testParseRequiresResultClassWhenSuccessResponse(): void
     {
         $parser = new JsonRpcMessageParser();
 

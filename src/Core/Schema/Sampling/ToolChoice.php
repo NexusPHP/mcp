@@ -40,7 +40,7 @@ final readonly class ToolChoice implements Arrayable
 
         if (\array_key_exists('mode', $data)) {
             $value = $data['mode'];
-            Assert::that($value)->isString('ToolChoice wire "mode" must be a string, {type} given.');
+            Assert::that($value)->isString('ToolChoice "mode" must be a string, {type} given.');
             $mode = ToolChoiceMode::from($value);
         }
 

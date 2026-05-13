@@ -146,7 +146,7 @@ final class SamplingMessageTest extends TestCase
     public function testFromArrayRejectsMissingRole(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('SamplingMessage wire data missing "role".');
+        $this->expectExceptionMessage('SamplingMessage data missing "role".');
 
         SamplingMessage::fromArray(['content' => ['text' => 'x', 'type' => 'text']]);
     }
@@ -154,7 +154,7 @@ final class SamplingMessageTest extends TestCase
     public function testFromArrayRejectsMissingContent(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('SamplingMessage wire data missing "content".');
+        $this->expectExceptionMessage('SamplingMessage data missing "content".');
 
         SamplingMessage::fromArray(['role' => 'user']);
     }
@@ -162,7 +162,7 @@ final class SamplingMessageTest extends TestCase
     public function testFromArrayRejectsNonObjectContent(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('SamplingMessage wire "content" must be an object or array, string given.');
+        $this->expectExceptionMessage('SamplingMessage "content" must be an object or array, string given.');
 
         SamplingMessage::fromArray(['role' => 'user', 'content' => 'oops']);
     }
@@ -170,7 +170,7 @@ final class SamplingMessageTest extends TestCase
     public function testFromArrayRejectsNonObjectContentEntry(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('SamplingMessage wire content entry must be an object, string given.');
+        $this->expectExceptionMessage('SamplingMessage content entry must be an object, string given.');
 
         SamplingMessage::fromArray(['role' => 'user', 'content' => ['oops']]);
     }
@@ -178,7 +178,7 @@ final class SamplingMessageTest extends TestCase
     public function testFromArrayRejectsUnknownContentType(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('SamplingMessage content wire "type" must be one of "text", "image", "audio", "tool_use", "tool_result"; "resource_link" given.');
+        $this->expectExceptionMessage('SamplingMessage content "type" must be one of "text", "image", "audio", "tool_use", "tool_result"; "resource_link" given.');
 
         SamplingMessage::fromArray(['role' => 'user', 'content' => ['type' => 'resource_link', 'uri' => 'file:///x', 'name' => 'doc']]);
     }

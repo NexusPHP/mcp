@@ -43,16 +43,16 @@ final readonly class ListTasksRequest extends PaginatedRequest implements Client
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('id', 'ListTasksRequest wire data missing "id".');
+        Assert::that($data)->hasOffset('id', 'ListTasksRequest data missing "id".');
         $id = $data['id'];
-        Assert::that($id)->isArrayKey('ListTasksRequest wire "id" must be int or string, {type} given.');
+        Assert::that($id)->isArrayKey('ListTasksRequest "id" must be int or string, {type} given.');
 
         $params = new PaginatedRequestParams();
 
         if (\array_key_exists('params', $data)) {
             Assert::that($data['params'])
-                ->isArray('ListTasksRequest wire "params" must be an object, {type} given.')
-                ->isMap('ListTasksRequest wire "params" must be a string-keyed object.')
+                ->isArray('ListTasksRequest "params" must be an object, {type} given.')
+                ->isMap('ListTasksRequest "params" must be a string-keyed object.')
             ;
             $params = PaginatedRequestParams::fromArray($data['params']);
         }

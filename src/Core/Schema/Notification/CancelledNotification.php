@@ -49,10 +49,10 @@ final readonly class CancelledNotification extends JsonRpcNotification implement
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('params', 'CancelledNotification wire data missing "params".');
+        Assert::that($data)->hasOffset('params', 'CancelledNotification data missing "params".');
         Assert::that($data['params'])
-            ->isArray('CancelledNotification wire "params" must be an object, {type} given.')
-            ->isMap('CancelledNotification wire "params" must be a string-keyed object.')
+            ->isArray('CancelledNotification "params" must be an object, {type} given.')
+            ->isMap('CancelledNotification "params" must be a string-keyed object.')
         ;
 
         return new self(CancelledNotificationParams::fromArray($data['params']));

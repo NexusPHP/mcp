@@ -74,31 +74,31 @@ final readonly class Task implements Arrayable
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('taskId', 'Task wire data missing "taskId".');
+        Assert::that($data)->hasOffset('taskId', 'Task data missing "taskId".');
         $taskId = $data['taskId'];
-        Assert::that($taskId)->isString('Task wire "taskId" must be a string, {type} given.');
+        Assert::that($taskId)->isString('Task "taskId" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('status', 'Task wire data missing "status".');
+        Assert::that($data)->hasOffset('status', 'Task data missing "status".');
         $status = $data['status'];
-        Assert::that($status)->isString('Task wire "status" must be a string, {type} given.');
+        Assert::that($status)->isString('Task "status" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('createdAt', 'Task wire data missing "createdAt".');
+        Assert::that($data)->hasOffset('createdAt', 'Task data missing "createdAt".');
         $createdAt = $data['createdAt'];
-        Assert::that($createdAt)->isString('Task wire "createdAt" must be a string, {type} given.');
+        Assert::that($createdAt)->isString('Task "createdAt" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('lastUpdatedAt', 'Task wire data missing "lastUpdatedAt".');
+        Assert::that($data)->hasOffset('lastUpdatedAt', 'Task data missing "lastUpdatedAt".');
         $lastUpdatedAt = $data['lastUpdatedAt'];
-        Assert::that($lastUpdatedAt)->isString('Task wire "lastUpdatedAt" must be a string, {type} given.');
+        Assert::that($lastUpdatedAt)->isString('Task "lastUpdatedAt" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('ttl', 'Task wire data missing "ttl".');
+        Assert::that($data)->hasOffset('ttl', 'Task data missing "ttl".');
         $ttl = $data['ttl'];
-        Assert::that($ttl)->nullOr()->isInt('Task wire "ttl" must be an int or null, {type} given.');
+        Assert::that($ttl)->nullOr()->isInt('Task "ttl" must be an int or null, {type} given.');
 
         $statusMessage = $data['statusMessage'] ?? null;
-        Assert::that($statusMessage)->nullOr()->isString('Task wire "statusMessage" must be a string or null, {type} given.');
+        Assert::that($statusMessage)->nullOr()->isString('Task "statusMessage" must be a string or null, {type} given.');
 
         $pollInterval = $data['pollInterval'] ?? null;
-        Assert::that($pollInterval)->nullOr()->isInt('Task wire "pollInterval" must be an int or null, {type} given.');
+        Assert::that($pollInterval)->nullOr()->isInt('Task "pollInterval" must be an int or null, {type} given.');
 
         return new self($taskId, TaskStatus::from($status), $createdAt, $lastUpdatedAt, $ttl, $statusMessage, $pollInterval);
     }

@@ -48,12 +48,12 @@ final readonly class ListResourcesResult extends PaginatedResult implements Serv
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('resources', 'ListResourcesResult wire data missing "resources".');
+        Assert::that($data)->hasOffset('resources', 'ListResourcesResult data missing "resources".');
         Assert::that($data['resources'])
-            ->isList('ListResourcesResult wire "resources" must be a list, {type} given.')
+            ->isList('ListResourcesResult "resources" must be a list, {type} given.')
             ->values()
-            ->isArray('ListResourcesResult wire resource entry must be an object, {type} given.')
-            ->isMap('ListResourcesResult wire resource entry must be a string-keyed object.')
+            ->isArray('ListResourcesResult resource entry must be an object, {type} given.')
+            ->isMap('ListResourcesResult resource entry must be a string-keyed object.')
         ;
         $resources = array_map(Resource::fromArray(...), $data['resources']);
 
@@ -61,11 +61,11 @@ final readonly class ListResourcesResult extends PaginatedResult implements Serv
 
         if (\array_key_exists('nextCursor', $data)) {
             $raw = $data['nextCursor'];
-            Assert::that($raw)->isString('ListResourcesResult wire "nextCursor" must be a string, {type} given.');
+            Assert::that($raw)->isString('ListResourcesResult "nextCursor" must be a string, {type} given.');
             $nextCursor = new Cursor($raw);
         }
 
-        $meta = MetaObject::parseFromWire($data, 'Result');
+        $meta = MetaObject::parseFrom($data, 'Result');
 
         return new self($resources, $nextCursor, $meta);
     }

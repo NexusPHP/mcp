@@ -48,7 +48,7 @@ final class ResourceContentsTest extends TestCase
     public function testFromRejectsBothTextAndBlob(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ResourceContents wire data must not have both "text" and "blob".');
+        $this->expectExceptionMessage('ResourceContents data must not have both "text" and "blob".');
 
         ResourceContents::from(['uri' => 'file:///x', 'text' => 'hello', 'blob' => 'aGVsbG8=']);
     }
@@ -56,7 +56,7 @@ final class ResourceContentsTest extends TestCase
     public function testFromRejectsMissingDiscriminator(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ResourceContents wire data must have either "text" or "blob".');
+        $this->expectExceptionMessage('ResourceContents data must have either "text" or "blob".');
 
         ResourceContents::from(['uri' => 'file:///x']);
     }

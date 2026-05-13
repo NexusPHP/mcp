@@ -116,7 +116,7 @@ final class ToolResultContentTest extends TestCase
     public function testFromArrayRejectsMissingType(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ToolResultContent wire data missing "type".');
+        $this->expectExceptionMessage('ToolResultContent data missing "type".');
 
         ToolResultContent::fromArray(['toolUseId' => 'x', 'content' => []]);
     }
@@ -124,7 +124,7 @@ final class ToolResultContentTest extends TestCase
     public function testFromArrayRejectsWrongType(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ToolResultContent wire "type" must be "tool_result", \'text\' given.');
+        $this->expectExceptionMessage('ToolResultContent "type" must be "tool_result", \'text\' given.');
 
         ToolResultContent::fromArray(['type' => 'text', 'toolUseId' => 'x', 'content' => []]);
     }
@@ -132,7 +132,7 @@ final class ToolResultContentTest extends TestCase
     public function testFromArrayRejectsMissingToolUseId(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ToolResultContent wire data missing "toolUseId".');
+        $this->expectExceptionMessage('ToolResultContent data missing "toolUseId".');
 
         ToolResultContent::fromArray(['type' => 'tool_result', 'content' => []]);
     }
@@ -140,7 +140,7 @@ final class ToolResultContentTest extends TestCase
     public function testFromArrayRejectsMissingContent(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ToolResultContent wire data missing "content".');
+        $this->expectExceptionMessage('ToolResultContent data missing "content".');
 
         ToolResultContent::fromArray(['type' => 'tool_result', 'toolUseId' => 'x']);
     }
@@ -148,7 +148,7 @@ final class ToolResultContentTest extends TestCase
     public function testFromArrayRejectsNonListContent(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ToolResultContent wire "content" must be a list, string given.');
+        $this->expectExceptionMessage('ToolResultContent "content" must be a list, string given.');
 
         ToolResultContent::fromArray(['type' => 'tool_result', 'toolUseId' => 'x', 'content' => 'oops']);
     }
@@ -156,7 +156,7 @@ final class ToolResultContentTest extends TestCase
     public function testFromArrayRejectsNonObjectContentEntry(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ToolResultContent wire content entry must be an object, string given.');
+        $this->expectExceptionMessage('ToolResultContent content entry must be an object, string given.');
 
         ToolResultContent::fromArray(['type' => 'tool_result', 'toolUseId' => 'x', 'content' => ['oops']]);
     }
@@ -164,7 +164,7 @@ final class ToolResultContentTest extends TestCase
     public function testFromArrayRejectsNonBoolIsError(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ToolResultContent wire "isError" must be a bool or null, string given.');
+        $this->expectExceptionMessage('ToolResultContent "isError" must be a bool or null, string given.');
 
         ToolResultContent::fromArray(['type' => 'tool_result', 'toolUseId' => 'x', 'content' => [], 'isError' => 'oops']);
     }
@@ -172,7 +172,7 @@ final class ToolResultContentTest extends TestCase
     public function testFromArrayRejectsNonObjectStructuredContent(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ToolResultContent wire "structuredContent" must be an object, string given.');
+        $this->expectExceptionMessage('ToolResultContent "structuredContent" must be an object, string given.');
 
         ToolResultContent::fromArray(['type' => 'tool_result', 'toolUseId' => 'x', 'content' => [], 'structuredContent' => 'oops']);
     }
@@ -180,7 +180,7 @@ final class ToolResultContentTest extends TestCase
     public function testFromArrayRejectsListKeyedStructuredContent(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ToolResultContent wire "structuredContent" must be a string-keyed object.');
+        $this->expectExceptionMessage('ToolResultContent "structuredContent" must be a string-keyed object.');
 
         ToolResultContent::fromArray(['type' => 'tool_result', 'toolUseId' => 'x', 'content' => [], 'structuredContent' => ['x']]);
     }

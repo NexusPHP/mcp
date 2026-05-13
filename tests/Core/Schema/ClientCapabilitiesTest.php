@@ -236,8 +236,8 @@ final class ClientCapabilitiesTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -248,116 +248,116 @@ final class ClientCapabilitiesTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'elicitation not an object' => [
             ['elicitation' => 'oops'],
-            'ClientCapabilities wire "elicitation" must be an object, string given.',
+            'ClientCapabilities "elicitation" must be an object, string given.',
         ];
 
         yield 'elicitation list-keyed' => [
             ['elicitation' => ['list-entry']],
-            'ClientCapabilities wire "elicitation" must be a string-keyed object.',
+            'ClientCapabilities "elicitation" must be a string-keyed object.',
         ];
 
         yield 'elicitation.form not an object' => [
             ['elicitation' => ['form' => 'oops']],
-            'ClientCapabilities wire "elicitation.form" must be an object, string given.',
+            'ClientCapabilities "elicitation.form" must be an object, string given.',
         ];
 
         yield 'elicitation.url not an object' => [
             ['elicitation' => ['url' => 1]],
-            'ClientCapabilities wire "elicitation.url" must be an object, int given.',
+            'ClientCapabilities "elicitation.url" must be an object, int given.',
         ];
 
         yield 'experimental not an object' => [
             ['experimental' => 'oops'],
-            'ClientCapabilities wire "experimental" must be an object, string given.',
+            'ClientCapabilities "experimental" must be an object, string given.',
         ];
 
         yield 'experimental list-keyed' => [
             ['experimental' => ['x']],
-            'ClientCapabilities wire "experimental" must be a string-keyed object.',
+            'ClientCapabilities "experimental" must be a string-keyed object.',
         ];
 
         yield 'experimental value not an object' => [
             ['experimental' => ['ext' => 'oops']],
-            'ClientCapabilities wire "experimental.ext" must be an object, string given.',
+            'ClientCapabilities "experimental.ext" must be an object, string given.',
         ];
 
         yield 'experimental value list-keyed' => [
             ['experimental' => ['ext' => ['x']]],
-            'ClientCapabilities wire "experimental.ext" must be a string-keyed object.',
+            'ClientCapabilities "experimental.ext" must be a string-keyed object.',
         ];
 
         yield 'roots not an object' => [
             ['roots' => 'oops'],
-            'ClientCapabilities wire "roots" must be an object, string given.',
+            'ClientCapabilities "roots" must be an object, string given.',
         ];
 
         yield 'roots list-keyed' => [
             ['roots' => ['x']],
-            'ClientCapabilities wire "roots" must be a string-keyed object.',
+            'ClientCapabilities "roots" must be a string-keyed object.',
         ];
 
         yield 'roots.listChanged not a boolean' => [
             ['roots' => ['listChanged' => 'true']],
-            'ClientCapabilities wire "roots.listChanged" must be a boolean, string given.',
+            'ClientCapabilities "roots.listChanged" must be a boolean, string given.',
         ];
 
         yield 'sampling not an object' => [
             ['sampling' => 1],
-            'ClientCapabilities wire "sampling" must be an object, int given.',
+            'ClientCapabilities "sampling" must be an object, int given.',
         ];
 
         yield 'sampling.context not an object' => [
             ['sampling' => ['context' => 'oops']],
-            'ClientCapabilities wire "sampling.context" must be an object, string given.',
+            'ClientCapabilities "sampling.context" must be an object, string given.',
         ];
 
         yield 'sampling.tools not an object' => [
             ['sampling' => ['tools' => 'oops']],
-            'ClientCapabilities wire "sampling.tools" must be an object, string given.',
+            'ClientCapabilities "sampling.tools" must be an object, string given.',
         ];
 
         yield 'tasks not an object' => [
             ['tasks' => 'oops'],
-            'ClientCapabilities wire "tasks" must be an object, string given.',
+            'ClientCapabilities "tasks" must be an object, string given.',
         ];
 
         yield 'tasks.cancel not an object' => [
             ['tasks' => ['cancel' => 'oops']],
-            'ClientCapabilities wire "tasks.cancel" must be an object, string given.',
+            'ClientCapabilities "tasks.cancel" must be an object, string given.',
         ];
 
         yield 'tasks.list not an object' => [
             ['tasks' => ['list' => 'oops']],
-            'ClientCapabilities wire "tasks.list" must be an object, string given.',
+            'ClientCapabilities "tasks.list" must be an object, string given.',
         ];
 
         yield 'tasks.requests not an object' => [
             ['tasks' => ['requests' => 'oops']],
-            'ClientCapabilities wire "tasks.requests" must be an object, string given.',
+            'ClientCapabilities "tasks.requests" must be an object, string given.',
         ];
 
         yield 'tasks.requests.elicitation not an object' => [
             ['tasks' => ['requests' => ['elicitation' => 'oops']]],
-            'ClientCapabilities wire "tasks.requests.elicitation" must be an object, string given.',
+            'ClientCapabilities "tasks.requests.elicitation" must be an object, string given.',
         ];
 
         yield 'tasks.requests.elicitation.create not an object' => [
             ['tasks' => ['requests' => ['elicitation' => ['create' => 'oops']]]],
-            'ClientCapabilities wire "tasks.requests.elicitation.create" must be an object, string given.',
+            'ClientCapabilities "tasks.requests.elicitation.create" must be an object, string given.',
         ];
 
         yield 'tasks.requests.sampling not an object' => [
             ['tasks' => ['requests' => ['sampling' => 'oops']]],
-            'ClientCapabilities wire "tasks.requests.sampling" must be an object, string given.',
+            'ClientCapabilities "tasks.requests.sampling" must be an object, string given.',
         ];
 
         yield 'tasks.requests.sampling.createMessage not an object' => [
             ['tasks' => ['requests' => ['sampling' => ['createMessage' => 'oops']]]],
-            'ClientCapabilities wire "tasks.requests.sampling.createMessage" must be an object, string given.',
+            'ClientCapabilities "tasks.requests.sampling.createMessage" must be an object, string given.',
         ];
     }
 }

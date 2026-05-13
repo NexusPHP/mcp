@@ -15,7 +15,7 @@ namespace Nexus\Mcp\Core\Schema\RequestParams;
 
 use Nexus\Assert\Assert;
 use Nexus\Assert\ExpectationFailedException;
-use Nexus\Mcp\Core\JsonRpc\WireDiscriminator;
+use Nexus\Mcp\Core\JsonRpc\MessageDiscriminator;
 use Nexus\Mcp\Core\Schema\Prompt\PromptReference;
 use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams;
@@ -73,42 +73,42 @@ final readonly class CompleteRequestParams extends RequestParams
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('ref', 'CompleteRequestParams wire data missing "ref".');
+        Assert::that($data)->hasOffset('ref', 'CompleteRequestParams data missing "ref".');
         Assert::that($data['ref'])
-            ->isArray('CompleteRequestParams wire "ref" must be an object, {type} given.')
-            ->isMap('CompleteRequestParams wire "ref" must be a string-keyed object.')
+            ->isArray('CompleteRequestParams "ref" must be an object, {type} given.')
+            ->isMap('CompleteRequestParams "ref" must be a string-keyed object.')
         ;
 
-        Assert::that($data)->hasOffset('argument', 'CompleteRequestParams wire data missing "argument".');
+        Assert::that($data)->hasOffset('argument', 'CompleteRequestParams data missing "argument".');
         Assert::that($data['argument'])
-            ->isArray('CompleteRequestParams wire "argument" must be an object, {type} given.')
-            ->isMap('CompleteRequestParams wire "argument" must be a string-keyed object.')
+            ->isArray('CompleteRequestParams "argument" must be an object, {type} given.')
+            ->isMap('CompleteRequestParams "argument" must be a string-keyed object.')
         ;
-        Assert::that($data['argument'])->hasOffset('name', 'CompleteRequestParams wire argument missing "name".');
-        Assert::that($data['argument']['name'])->isString('CompleteRequestParams wire argument "name" must be a string, {type} given.');
-        Assert::that($data['argument'])->hasOffset('value', 'CompleteRequestParams wire argument missing "value".');
-        Assert::that($data['argument']['value'])->isString('CompleteRequestParams wire argument "value" must be a string, {type} given.');
+        Assert::that($data['argument'])->hasOffset('name', 'CompleteRequestParams argument missing "name".');
+        Assert::that($data['argument']['name'])->isString('CompleteRequestParams argument "name" must be a string, {type} given.');
+        Assert::that($data['argument'])->hasOffset('value', 'CompleteRequestParams argument missing "value".');
+        Assert::that($data['argument']['value'])->isString('CompleteRequestParams argument "value" must be a string, {type} given.');
 
         $context = null;
 
         if (\array_key_exists('context', $data)) {
             Assert::that($data['context'])
-                ->isArray('CompleteRequestParams wire "context" must be an object, {type} given.')
-                ->isMap('CompleteRequestParams wire "context" must be a string-keyed object.')
+                ->isArray('CompleteRequestParams "context" must be an object, {type} given.')
+                ->isMap('CompleteRequestParams "context" must be a string-keyed object.')
             ;
             $context = [];
 
             if (\array_key_exists('arguments', $data['context'])) {
                 Assert::that($data['context']['arguments'])
-                    ->isArray('CompleteRequestParams wire context "arguments" must be an object, {type} given.')
-                    ->isMap('CompleteRequestParams wire context "arguments" must be a string-keyed object.')
-                    ->values()->isString('CompleteRequestParams wire context argument value must be a string, {type} given.')
+                    ->isArray('CompleteRequestParams context "arguments" must be an object, {type} given.')
+                    ->isMap('CompleteRequestParams context "arguments" must be a string-keyed object.')
+                    ->values()->isString('CompleteRequestParams context argument value must be a string, {type} given.')
                 ;
                 $context['arguments'] = $data['context']['arguments'];
             }
         }
 
-        $meta = RequestMetaObject::parseFromWire($data, 'Request params');
+        $meta = RequestMetaObject::parseFrom($data, 'Request params');
 
         return new self(
             self::dispatchRef($data['ref']),
@@ -147,12 +147,12 @@ final readonly class CompleteRequestParams extends RequestParams
      */
     private static function dispatchRef(array $data): PromptReference|ResourceTemplateReference
     {
-        $type = WireDiscriminator::readType($data, 'CompleteRequestParams ref');
+        $type = MessageDiscriminator::readType($data, 'CompleteRequestParams ref');
 
         return match ($type) {
             PromptReference::TYPE => PromptReference::fromArray($data),
             ResourceTemplateReference::TYPE => ResourceTemplateReference::fromArray($data),
-            default => throw WireDiscriminator::unknownType(
+            default => throw MessageDiscriminator::unknownType(
                 'CompleteRequestParams ref',
                 [PromptReference::TYPE, ResourceTemplateReference::TYPE],
                 $type,

@@ -132,8 +132,8 @@ final class LegacyTitledEnumSchemaTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidWireDataCases')]
-    public function testFromArrayRejectsInvalidWireData(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessage($expectedMessage);
@@ -144,56 +144,56 @@ final class LegacyTitledEnumSchemaTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsInvalidWireDataCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing type' => [
             ['enum' => ['a']],
-            'LegacyTitledEnumSchema wire data missing "type".',
+            'LegacyTitledEnumSchema data missing "type".',
         ];
 
         yield 'wrong type literal' => [
             ['type' => 'number', 'enum' => ['a']],
-            'LegacyTitledEnumSchema wire "type" must be "string", \'number\' given.',
+            'LegacyTitledEnumSchema "type" must be "string", \'number\' given.',
         ];
 
         yield 'missing enum' => [
             ['type' => 'string'],
-            'LegacyTitledEnumSchema wire data missing "enum".',
+            'LegacyTitledEnumSchema data missing "enum".',
         ];
 
         yield 'enum not a list' => [
             ['type' => 'string', 'enum' => ['k' => 'v']],
-            'LegacyTitledEnumSchema wire "enum" must be a list, got non-list array.',
+            'LegacyTitledEnumSchema "enum" must be a list, got non-list array.',
         ];
 
         yield 'enum entry not a string' => [
             ['type' => 'string', 'enum' => [1]],
-            'LegacyTitledEnumSchema wire "enum" entry must be a string, int given.',
+            'LegacyTitledEnumSchema "enum" entry must be a string, int given.',
         ];
 
         yield 'title not a string' => [
             ['type' => 'string', 'enum' => ['a'], 'title' => 1],
-            'LegacyTitledEnumSchema wire "title" must be a string or null, int given.',
+            'LegacyTitledEnumSchema "title" must be a string or null, int given.',
         ];
 
         yield 'description not a string' => [
             ['type' => 'string', 'enum' => ['a'], 'description' => 1],
-            'LegacyTitledEnumSchema wire "description" must be a string or null, int given.',
+            'LegacyTitledEnumSchema "description" must be a string or null, int given.',
         ];
 
         yield 'enumNames not a list' => [
             ['type' => 'string', 'enum' => ['a'], 'enumNames' => ['k' => 'v']],
-            'LegacyTitledEnumSchema wire "enumNames" must be a list, got non-list array.',
+            'LegacyTitledEnumSchema "enumNames" must be a list, got non-list array.',
         ];
 
         yield 'enumNames entry not a string' => [
             ['type' => 'string', 'enum' => ['a'], 'enumNames' => [1]],
-            'LegacyTitledEnumSchema wire enumNames entry must be a string, int given.',
+            'LegacyTitledEnumSchema enumNames entry must be a string, int given.',
         ];
 
         yield 'default not a string' => [
             ['type' => 'string', 'enum' => ['a'], 'default' => 1],
-            'LegacyTitledEnumSchema wire "default" must be a string or null, int given.',
+            'LegacyTitledEnumSchema "default" must be a string or null, int given.',
         ];
     }
 }

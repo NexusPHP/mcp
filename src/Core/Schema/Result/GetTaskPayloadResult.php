@@ -39,7 +39,7 @@ final readonly class GetTaskPayloadResult extends Result implements ClientResult
     #[\Override]
     public static function fromArray(array $data): static
     {
-        $meta = MetaObject::parseFromWire($data, 'Result');
+        $meta = MetaObject::parseFrom($data, 'Result');
 
         unset($data['_meta']);
 
