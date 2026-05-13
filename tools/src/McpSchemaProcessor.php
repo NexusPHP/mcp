@@ -41,19 +41,26 @@ final class McpSchemaProcessor
     }
 
     /**
-     * Fetches the latest schema from the remote URL and saves it locally.
+     * Loads the latest schema. Resolution priority:
+     *
+     * - `MCP_FETCH_LATEST_SCHEMA` is truthy: fetch from the remote URL and overwrite the local cache.
+     * - Local cache `latest-schema.json` exists: read from disk.
+     * - Otherwise: fetch from the remote URL and write the local cache (fresh-clone bootstrap).
      *
      * @return array<string, mixed>
      */
     public static function fetchAndSaveLatestSchema(): array
     {
-        $schemaJson = file_get_contents(self::LATEST_SCHEMA_JSON_URL);
+        $forceFetch = filter_var(getenv('MCP_FETCH_LATEST_SCHEMA'), \FILTER_VALIDATE_BOOL);
+        $schemaJson = $forceFetch ? false : @file_get_contents(self::LATEST_SCHEMA_JSON_PATH);
 
         if (false === $schemaJson) {
-            throw new \RuntimeException(\sprintf('Failed to fetch the latest schema from %s', self::LATEST_SCHEMA_JSON_URL));
-        }
+            $schemaJson = file_get_contents(self::LATEST_SCHEMA_JSON_URL);
 
-        if (filter_var(getenv('MCP_FETCH_LATEST_SCHEMA'), \FILTER_VALIDATE_BOOL)) {
+            if (false === $schemaJson) {
+                throw new \RuntimeException(\sprintf('Failed to fetch the latest schema from %s', self::LATEST_SCHEMA_JSON_URL));
+            }
+
             file_put_contents(self::LATEST_SCHEMA_JSON_PATH, $schemaJson);
         }
 
