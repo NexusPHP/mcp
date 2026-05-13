@@ -35,7 +35,7 @@ final class RootTest extends TestCase
 
         self::assertSame('file:///x', $root->uri);
         self::assertNull($root->name);
-        self::assertNull($root->meta);
+        self::assertSame([], $root->meta->toArray());
     }
 
     public function testToArrayMinimal(): void
@@ -95,7 +95,7 @@ final class RootTest extends TestCase
 
         self::assertSame('file:///x', $root->uri);
         self::assertNull($root->name);
-        self::assertNull($root->meta);
+        self::assertSame([], $root->meta->toArray());
     }
 
     public function testFromArrayParsesAllFields(): void
@@ -108,7 +108,6 @@ final class RootTest extends TestCase
 
         self::assertSame('file:///x', $root->uri);
         self::assertSame('project', $root->name);
-        self::assertNotNull($root->meta);
         self::assertSame(['vendor' => 'x'], $root->meta->extras);
     }
 

@@ -24,7 +24,7 @@ use Nexus\Mcp\Core\Schema\NotificationParams;
  */
 final readonly class ResourceUpdatedNotificationParams extends NotificationParams
 {
-    public function __construct(public string $uri, ?MetaObject $meta = null)
+    public function __construct(public string $uri, MetaObject $meta = new MetaObject())
     {
         parent::__construct($meta);
     }

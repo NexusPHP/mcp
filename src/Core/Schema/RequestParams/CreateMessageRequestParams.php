@@ -76,7 +76,7 @@ final readonly class CreateMessageRequestParams extends RequestParams
         public ?ToolChoice $toolChoice = null,
         ?array $tools = null,
         ?array $metadata = null,
-        ?RequestMetaObject $meta = null,
+        RequestMetaObject $meta = new RequestMetaObject(),
     ) {
         Assert::that($maxTokens)->isNaturalInt('CreateMessageRequestParams maxTokens must be a non-negative integer.');
         Assert::that($messages)->values()->isInstanceOf(SamplingMessage::class);

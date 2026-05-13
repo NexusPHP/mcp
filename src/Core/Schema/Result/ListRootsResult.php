@@ -35,7 +35,7 @@ final readonly class ListRootsResult extends Result implements ClientResult
     /**
      * @param list<Root> $roots
      */
-    public function __construct(array $roots, ?MetaObject $meta = null)
+    public function __construct(array $roots, MetaObject $meta = new MetaObject())
     {
         Assert::that($roots)
             ->isList('ListRootsResult roots must be a list, got non-list array.')

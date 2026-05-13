@@ -32,7 +32,7 @@ final readonly class CompleteResult extends Result implements ServerResult
     /**
      * @param array{values: list<string>, total?: int, hasMore?: bool} $completion
      */
-    public function __construct(array $completion, ?MetaObject $meta = null)
+    public function __construct(array $completion, MetaObject $meta = new MetaObject())
     {
         Assert::that($completion['values'])
             ->isList('CompleteResult completion "values" must be a list, got non-list array.')

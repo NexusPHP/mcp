@@ -37,7 +37,7 @@ final class GetTaskResultTest extends TestCase
         $result = new GetTaskResult($task);
 
         self::assertSame($task, $result->task);
-        self::assertNull($result->meta);
+        self::assertSame([], $result->meta->toArray());
     }
 
     public function testToArraySpreadsTaskFields(): void

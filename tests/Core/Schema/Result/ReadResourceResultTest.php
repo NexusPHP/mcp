@@ -38,7 +38,7 @@ final class ReadResourceResultTest extends TestCase
         $result = new ReadResourceResult([]);
 
         self::assertSame([], $result->contents);
-        self::assertNull($result->meta);
+        self::assertSame([], $result->meta->toArray());
     }
 
     public function testToArrayEmitsTextContents(): void
@@ -162,8 +162,6 @@ final class ReadResourceResultTest extends TestCase
             'contents' => [['uri' => 'file:///x', 'text' => 'hi']],
             '_meta' => ['vendor' => 'x'],
         ]);
-
-        self::assertNotNull($result->meta);
         self::assertSame(['vendor' => 'x'], $result->meta->extras);
     }
 

@@ -35,7 +35,7 @@ final class GetTaskPayloadRequestParamsTest extends TestCase
         $params = new GetTaskPayloadRequestParams('task-abc');
 
         self::assertSame('task-abc', $params->taskId);
-        self::assertNull($params->meta);
+        self::assertSame([], $params->meta->toArray());
     }
 
     public function testToArrayMinimal(): void

@@ -33,7 +33,7 @@ final readonly class ListResourcesResult extends PaginatedResult implements Serv
     /**
      * @param list<Resource> $resources
      */
-    public function __construct(array $resources, ?Cursor $nextCursor = null, ?MetaObject $meta = null)
+    public function __construct(array $resources, ?Cursor $nextCursor = null, MetaObject $meta = new MetaObject())
     {
         Assert::that($resources)
             ->isList('ListResourcesResult resources must be a list, got non-list array.')

@@ -36,7 +36,7 @@ final class CompleteResultTest extends TestCase
         $result = new CompleteResult(['values' => ['auth']]);
 
         self::assertSame(['values' => ['auth']], $result->completion);
-        self::assertNull($result->meta);
+        self::assertSame([], $result->meta->toArray());
     }
 
     public function testConstructionAcceptsEmptyValues(): void

@@ -49,17 +49,18 @@ final readonly class RequestMetaObject implements Arrayable
     }
 
     /**
-     * Reads the optional `_meta` slot from a parent payload, validating
-     * its shape. Returns `null` when the key is absent. The `$context` prefix
-     * scopes the error message to the calling shape (e.g. `"Request params"`).
+     * Reads the optional `_meta` slot from a parent payload, validating its
+     * shape. Returns an empty instance when the key is absent. The `$context`
+     * prefix scopes the error message to the calling shape (e.g.
+     * `"Request params"`).
      *
      * @param array<string, mixed> $data
      * @param non-empty-string     $context
      */
-    public static function parseFrom(array $data, string $context): ?self
+    public static function parseFrom(array $data, string $context): self
     {
         if (! \array_key_exists('_meta', $data)) {
-            return null;
+            return new self();
         }
 
         Assert::that($data['_meta'])

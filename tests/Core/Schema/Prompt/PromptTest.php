@@ -42,7 +42,7 @@ final class PromptTest extends TestCase
         self::assertNull($prompt->description);
         self::assertNull($prompt->arguments);
         self::assertNull($prompt->icons);
-        self::assertNull($prompt->meta);
+        self::assertSame([], $prompt->meta->toArray());
     }
 
     public function testToArrayMinimal(): void
@@ -109,7 +109,6 @@ final class PromptTest extends TestCase
         self::assertNotNull($prompt->icons);
         self::assertCount(1, $prompt->icons);
         self::assertSame('https://example.com/icon.png', $prompt->icons[0]->src);
-        self::assertNotNull($prompt->meta);
         self::assertSame(['vendor' => 'x'], $prompt->meta->extras);
     }
 

@@ -38,7 +38,7 @@ final class SubscribeRequestParamsTest extends TestCase
         $params = new SubscribeRequestParams('file:///x');
 
         self::assertSame('file:///x', $params->uri);
-        self::assertNull($params->meta);
+        self::assertSame([], $params->meta->toArray());
     }
 
     public function testToArrayEmitsUriOnly(): void
@@ -76,7 +76,7 @@ final class SubscribeRequestParamsTest extends TestCase
         $params = SubscribeRequestParams::fromArray(['uri' => 'file:///x']);
 
         self::assertSame('file:///x', $params->uri);
-        self::assertNull($params->meta);
+        self::assertSame([], $params->meta->toArray());
     }
 
     public function testFromArrayParsesMeta(): void
@@ -85,8 +85,6 @@ final class SubscribeRequestParamsTest extends TestCase
             'uri' => 'file:///x',
             '_meta' => ['vendor' => 'x'],
         ]);
-
-        self::assertNotNull($params->meta);
         self::assertSame(['vendor' => 'x'], $params->meta->extras);
     }
 

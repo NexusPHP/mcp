@@ -52,7 +52,7 @@ final readonly class ElicitRequestUrlParams extends TaskAugmentedRequestParams i
         string $mode,
         string $url,
         ?TaskMetadata $task = null,
-        ?RequestMetaObject $meta = null,
+        RequestMetaObject $meta = new RequestMetaObject(),
     ) {
         Assert::that($elicitationId)->isNonEmptyString('ElicitRequestUrlParams elicitationId must be a non-empty string.');
         Assert::that($message)->isNonEmptyString('ElicitRequestUrlParams message must be a non-empty string.');

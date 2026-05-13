@@ -37,7 +37,7 @@ final class ListRootsResultTest extends TestCase
         $result = new ListRootsResult([new Root('file:///x')]);
 
         self::assertCount(1, $result->roots);
-        self::assertNull($result->meta);
+        self::assertSame([], $result->meta->toArray());
     }
 
     public function testConstructionAcceptsEmptyRootsList(): void
@@ -113,7 +113,7 @@ final class ListRootsResultTest extends TestCase
         $result = ListRootsResult::fromArray(['roots' => []]);
 
         self::assertSame([], $result->roots);
-        self::assertNull($result->meta);
+        self::assertSame([], $result->meta->toArray());
     }
 
     public function testFromArrayParsesRootsAndMeta(): void
@@ -131,7 +131,6 @@ final class ListRootsResultTest extends TestCase
         self::assertSame('a', $result->roots[0]->name);
         self::assertSame('file:///b', $result->roots[1]->uri);
         self::assertNull($result->roots[1]->name);
-        self::assertNotNull($result->meta);
         self::assertSame(['vendor' => 'x'], $result->meta->extras);
     }
 

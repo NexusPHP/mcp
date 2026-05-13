@@ -35,7 +35,7 @@ final readonly class ReadResourceResult extends Result implements ServerResult
     /**
      * @param list<BlobResourceContents|TextResourceContents> $contents
      */
-    public function __construct(array $contents, ?MetaObject $meta = null)
+    public function __construct(array $contents, MetaObject $meta = new MetaObject())
     {
         Assert::that($contents)
             ->isList('ReadResourceResult contents must be a list, got non-list array.')

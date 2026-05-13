@@ -25,7 +25,7 @@ use Nexus\Mcp\Core\Schema\RequestParams;
  */
 final readonly class SetLevelRequestParams extends RequestParams
 {
-    public function __construct(public LoggingLevel $level, ?RequestMetaObject $meta = null)
+    public function __construct(public LoggingLevel $level, RequestMetaObject $meta = new RequestMetaObject())
     {
         parent::__construct($meta);
     }

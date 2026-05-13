@@ -58,7 +58,7 @@ final class CreateMessageRequestParamsTest extends TestCase
         self::assertNull($params->toolChoice);
         self::assertNull($params->tools);
         self::assertNull($params->metadata);
-        self::assertNull($params->meta);
+        self::assertSame([], $params->meta->toArray());
     }
 
     public function testConstructorRejectsNegativeMaxTokens(): void

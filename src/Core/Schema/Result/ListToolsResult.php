@@ -33,7 +33,7 @@ final readonly class ListToolsResult extends PaginatedResult implements ServerRe
     /**
      * @param list<Tool> $tools
      */
-    public function __construct(array $tools, ?Cursor $nextCursor = null, ?MetaObject $meta = null)
+    public function __construct(array $tools, ?Cursor $nextCursor = null, MetaObject $meta = new MetaObject())
     {
         Assert::that($tools)
             ->isList('ListToolsResult tools must be a list, got non-list array.')

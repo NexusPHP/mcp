@@ -48,7 +48,7 @@ final readonly class SamplingMessage implements Arrayable
     public function __construct(
         public Role $role,
         array|AudioContent|ImageContent|TextContent|ToolResultContent|ToolUseContent $content,
-        public ?MetaObject $meta = null,
+        public MetaObject $meta = new MetaObject(),
     ) {
         if (\is_array($content)) {
             Assert::that($content)->values()->isInstanceOf(SamplingMessageContentBlock::class);
@@ -96,12 +96,10 @@ final readonly class SamplingMessage implements Arrayable
             $data['content'] = $this->content->toArray();
         }
 
-        if (null !== $this->meta) {
-            $meta = $this->meta->toArray();
+        $meta = $this->meta->toArray();
 
-            if ([] !== $meta) {
-                $data['_meta'] = $meta;
-            }
+        if ([] !== $meta) {
+            $data['_meta'] = $meta;
         }
 
         return $data;

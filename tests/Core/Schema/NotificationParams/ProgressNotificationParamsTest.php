@@ -39,7 +39,7 @@ final class ProgressNotificationParamsTest extends TestCase
         self::assertSame(0.5, $params->progress);
         self::assertNull($params->total);
         self::assertNull($params->message);
-        self::assertNull($params->meta);
+        self::assertSame([], $params->meta->toArray());
     }
 
     public function testToArrayMinimal(): void
@@ -174,7 +174,6 @@ final class ProgressNotificationParamsTest extends TestCase
         self::assertSame(5.5, $params->progress);
         self::assertSame(10.0, $params->total);
         self::assertSame('halfway', $params->message);
-        self::assertNotNull($params->meta);
         self::assertSame(['vendor' => 'x'], $params->meta->extras);
     }
 

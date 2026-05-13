@@ -45,7 +45,7 @@ final class ResourceLinkTest extends TestCase
         self::assertNull($link->annotations);
         self::assertNull($link->size);
         self::assertNull($link->icons);
-        self::assertNull($link->meta);
+        self::assertSame([], $link->meta->toArray());
     }
 
     public function testToArrayMinimal(): void
@@ -142,7 +142,6 @@ final class ResourceLinkTest extends TestCase
         self::assertNotNull($link->icons);
         self::assertCount(1, $link->icons);
         self::assertSame('https://example.com/icon.png', $link->icons[0]->src);
-        self::assertNotNull($link->meta);
         self::assertSame(['vendor' => 'x'], $link->meta->extras);
     }
 

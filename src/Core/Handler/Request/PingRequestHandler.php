@@ -28,7 +28,7 @@ use Nexus\Mcp\Core\Schema\Result\EmptyResult;
  */
 final readonly class PingRequestHandler implements RequestHandlerInterface
 {
-    public function __construct(private ?MetaObject $meta = null)
+    public function __construct(private MetaObject $meta = new MetaObject())
     {
     }
 

@@ -35,7 +35,7 @@ final class ToolUseContentTest extends TestCase
         self::assertSame('tu-1', $content->id);
         self::assertSame('get_weather', $content->name);
         self::assertSame(['city' => 'Paris'], $content->input);
-        self::assertNull($content->meta);
+        self::assertSame([], $content->meta->toArray());
     }
 
     public function testConstructorRejectsEmptyId(): void

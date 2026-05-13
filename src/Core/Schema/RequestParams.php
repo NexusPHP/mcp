@@ -22,7 +22,7 @@ namespace Nexus\Mcp\Core\Schema;
  */
 abstract readonly class RequestParams implements Arrayable
 {
-    public function __construct(public ?RequestMetaObject $meta = null)
+    public function __construct(public RequestMetaObject $meta = new RequestMetaObject())
     {
     }
 
@@ -39,10 +39,6 @@ abstract readonly class RequestParams implements Arrayable
     #[\Override]
     public function toArray(): array
     {
-        if (null === $this->meta) {
-            return [];
-        }
-
         $meta = $this->meta->toArray();
 
         return [] === $meta ? [] : ['_meta' => $meta];

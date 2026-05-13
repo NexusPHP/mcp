@@ -31,7 +31,7 @@ final class EmptyNotificationParamsTest extends TestCase
 {
     public function testDefaultsToNullMeta(): void
     {
-        self::assertNull(new EmptyNotificationParams()->meta);
+        self::assertSame([], new EmptyNotificationParams()->meta->toArray());
     }
 
     public function testToArrayIsEmptyWhenNoMeta(): void
@@ -55,14 +55,12 @@ final class EmptyNotificationParamsTest extends TestCase
 
     public function testFromArrayWithoutMetaYieldsNullMeta(): void
     {
-        self::assertNull(EmptyNotificationParams::fromArray([])->meta);
+        self::assertSame([], EmptyNotificationParams::fromArray([])->meta->toArray());
     }
 
     public function testFromArrayParsesMetaAsBaseMeta(): void
     {
         $params = EmptyNotificationParams::fromArray(['_meta' => ['any' => 'value']]);
-
-        self::assertNotNull($params->meta);
         self::assertSame(['any' => 'value'], $params->meta->extras);
     }
 

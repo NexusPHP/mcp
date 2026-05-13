@@ -33,7 +33,7 @@ final readonly class ListResourceTemplatesResult extends PaginatedResult impleme
     /**
      * @param list<ResourceTemplate> $resourceTemplates
      */
-    public function __construct(array $resourceTemplates, ?Cursor $nextCursor = null, ?MetaObject $meta = null)
+    public function __construct(array $resourceTemplates, ?Cursor $nextCursor = null, MetaObject $meta = new MetaObject())
     {
         Assert::that($resourceTemplates)
             ->isList('ListResourceTemplatesResult resourceTemplates must be a list, got non-list array.')

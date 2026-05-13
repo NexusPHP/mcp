@@ -28,7 +28,7 @@ final readonly class GetTaskPayloadResult extends Result implements ClientResult
     /**
      * @param array<string, mixed> $payload
      */
-    public function __construct(public array $payload = [], ?MetaObject $meta = null)
+    public function __construct(public array $payload = [], MetaObject $meta = new MetaObject())
     {
         parent::__construct($meta);
     }

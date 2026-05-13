@@ -33,7 +33,7 @@ final readonly class ListPromptsResult extends PaginatedResult implements Server
     /**
      * @param list<Prompt> $prompts
      */
-    public function __construct(array $prompts, ?Cursor $nextCursor = null, ?MetaObject $meta = null)
+    public function __construct(array $prompts, ?Cursor $nextCursor = null, MetaObject $meta = new MetaObject())
     {
         Assert::that($prompts)
             ->isList('ListPromptsResult prompts must be a list, got non-list array.')

@@ -51,7 +51,7 @@ final readonly class AudioContent implements Arrayable, ContentBlock, SamplingMe
         string $data,
         string $mimeType,
         public ?Annotations $annotations = null,
-        public ?MetaObject $meta = null,
+        public MetaObject $meta = new MetaObject(),
     ) {
         Assert::that($data)->isNonEmptyString('AudioContent data must be a non-empty string.');
         Assert::that($mimeType)->isNonEmptyString('AudioContent mimeType must be a non-empty string.');
@@ -106,12 +106,10 @@ final readonly class AudioContent implements Arrayable, ContentBlock, SamplingMe
             $data['annotations'] = $this->annotations->toArray();
         }
 
-        if (null !== $this->meta) {
-            $meta = $this->meta->toArray();
+        $meta = $this->meta->toArray();
 
-            if ([] !== $meta) {
-                $data['_meta'] = $meta;
-            }
+        if ([] !== $meta) {
+            $data['_meta'] = $meta;
         }
 
         return $data;

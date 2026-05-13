@@ -46,7 +46,7 @@ final class ElicitRequestFormParamsTest extends TestCase
         self::assertSame('Pick an option', $params->message);
         self::assertSame('form', $params->mode);
         self::assertNull($params->task);
-        self::assertNull($params->meta);
+        self::assertSame([], $params->meta->toArray());
     }
 
     public function testConstructionWithCustomModeKeepsForm(): void

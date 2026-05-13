@@ -24,7 +24,7 @@ namespace Nexus\Mcp\Core\Schema;
  */
 abstract readonly class Result implements Arrayable
 {
-    public function __construct(public ?MetaObject $meta = null)
+    public function __construct(public MetaObject $meta = new MetaObject())
     {
     }
 
@@ -41,10 +41,6 @@ abstract readonly class Result implements Arrayable
     #[\Override]
     public function toArray(): array
     {
-        if (null === $this->meta) {
-            return [];
-        }
-
         $meta = $this->meta->toArray();
 
         return [] === $meta ? [] : ['_meta' => $meta];

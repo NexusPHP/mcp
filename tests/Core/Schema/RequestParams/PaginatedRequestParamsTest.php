@@ -37,7 +37,7 @@ final class PaginatedRequestParamsTest extends TestCase
         $params = new PaginatedRequestParams();
 
         self::assertNull($params->cursor);
-        self::assertNull($params->meta);
+        self::assertSame([], $params->meta->toArray());
     }
 
     public function testToArrayMinimal(): void
@@ -89,7 +89,7 @@ final class PaginatedRequestParamsTest extends TestCase
         $params = PaginatedRequestParams::fromArray([]);
 
         self::assertNull($params->cursor);
-        self::assertNull($params->meta);
+        self::assertSame([], $params->meta->toArray());
     }
 
     public function testFromArrayParsesCursor(): void
@@ -103,8 +103,6 @@ final class PaginatedRequestParamsTest extends TestCase
     public function testFromArrayParsesMeta(): void
     {
         $params = PaginatedRequestParams::fromArray(['_meta' => ['vendor' => 'x']]);
-
-        self::assertNotNull($params->meta);
         self::assertSame(['vendor' => 'x'], $params->meta->extras);
     }
 

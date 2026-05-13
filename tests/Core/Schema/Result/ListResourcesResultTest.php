@@ -41,7 +41,7 @@ final class ListResourcesResultTest extends TestCase
 
         self::assertCount(1, $result->resources);
         self::assertNull($result->nextCursor);
-        self::assertNull($result->meta);
+        self::assertSame([], $result->meta->toArray());
     }
 
     public function testConstructionAcceptsEmptyResourcesList(): void
@@ -137,7 +137,7 @@ final class ListResourcesResultTest extends TestCase
 
         self::assertSame([], $result->resources);
         self::assertNull($result->nextCursor);
-        self::assertNull($result->meta);
+        self::assertSame([], $result->meta->toArray());
     }
 
     public function testFromArrayParsesAllFields(): void
@@ -156,7 +156,6 @@ final class ListResourcesResultTest extends TestCase
         self::assertSame('file:///a', $result->resources[0]->uri);
         self::assertNotNull($result->nextCursor);
         self::assertSame('cur-1', $result->nextCursor->cursor);
-        self::assertNotNull($result->meta);
         self::assertSame(['vendor' => 'x'], $result->meta->extras);
     }
 

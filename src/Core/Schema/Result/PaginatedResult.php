@@ -25,7 +25,7 @@ use Nexus\Mcp\Core\Schema\Result;
  */
 abstract readonly class PaginatedResult extends Result
 {
-    public function __construct(public ?Cursor $nextCursor = null, ?MetaObject $meta = null)
+    public function __construct(public ?Cursor $nextCursor = null, MetaObject $meta = new MetaObject())
     {
         parent::__construct($meta);
     }

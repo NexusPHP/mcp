@@ -77,16 +77,15 @@ final class MetaObjectTest extends TestCase
         self::assertSame('{}', json_encode($meta));
     }
 
-    public function testParseFromReturnsNullWhenMetaAbsent(): void
+    public function testParseFromReturnsEmptyWhenMetaAbsent(): void
     {
-        self::assertNull(MetaObject::parseFrom(['name' => 'x'], 'Result'));
+        self::assertSame([], MetaObject::parseFrom(['name' => 'x'], 'Result')->extras);
     }
 
     public function testParseFromReadsAndContextualizes(): void
     {
         $meta = MetaObject::parseFrom(['_meta' => ['vendor' => 'x']], 'Result');
 
-        self::assertNotNull($meta);
         self::assertSame(['vendor' => 'x'], $meta->extras);
     }
 

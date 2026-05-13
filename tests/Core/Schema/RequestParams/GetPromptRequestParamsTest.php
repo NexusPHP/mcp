@@ -38,7 +38,7 @@ final class GetPromptRequestParamsTest extends TestCase
 
         self::assertSame('code-review', $params->name);
         self::assertNull($params->arguments);
-        self::assertNull($params->meta);
+        self::assertSame([], $params->meta->toArray());
     }
 
     public function testConstructionWithAllFields(): void
@@ -102,7 +102,6 @@ final class GetPromptRequestParamsTest extends TestCase
         ]);
 
         self::assertSame(['topic' => 'auth'], $params->arguments);
-        self::assertNotNull($params->meta);
         self::assertSame(['vendor.brand' => 'acme'], $params->meta->extras);
     }
 

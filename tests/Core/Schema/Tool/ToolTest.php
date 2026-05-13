@@ -47,7 +47,7 @@ final class ToolTest extends TestCase
         self::assertNull($tool->annotations);
         self::assertNull($tool->execution);
         self::assertNull($tool->icons);
-        self::assertNull($tool->meta);
+        self::assertSame([], $tool->meta->toArray());
     }
 
     public function testToArrayMinimal(): void
@@ -151,7 +151,6 @@ final class ToolTest extends TestCase
         self::assertSame(TaskSupport::Required, $tool->execution->taskSupport);
         self::assertNotNull($tool->icons);
         self::assertCount(1, $tool->icons);
-        self::assertNotNull($tool->meta);
         self::assertSame(['vendor' => 'x'], $tool->meta->extras);
     }
 

@@ -28,7 +28,7 @@ final readonly class CancelledNotificationParams extends NotificationParams
     public function __construct(
         public ?RequestId $requestId = null,
         public ?string $reason = null,
-        ?MetaObject $meta = null,
+        MetaObject $meta = new MetaObject(),
     ) {
         parent::__construct($meta);
     }

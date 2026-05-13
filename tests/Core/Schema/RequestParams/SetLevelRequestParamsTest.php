@@ -37,7 +37,7 @@ final class SetLevelRequestParamsTest extends TestCase
         $params = new SetLevelRequestParams(LoggingLevel::Warning);
 
         self::assertSame(LoggingLevel::Warning, $params->level);
-        self::assertNull($params->meta);
+        self::assertSame([], $params->meta->toArray());
     }
 
     public function testToArrayEmitsLevelOnly(): void
@@ -75,7 +75,7 @@ final class SetLevelRequestParamsTest extends TestCase
         $params = SetLevelRequestParams::fromArray(['level' => 'critical']);
 
         self::assertSame(LoggingLevel::Critical, $params->level);
-        self::assertNull($params->meta);
+        self::assertSame([], $params->meta->toArray());
     }
 
     public function testFromArrayParsesMeta(): void
@@ -84,8 +84,6 @@ final class SetLevelRequestParamsTest extends TestCase
             'level' => 'alert',
             '_meta' => ['vendor' => 'x'],
         ]);
-
-        self::assertNotNull($params->meta);
         self::assertSame(['vendor' => 'x'], $params->meta->extras);
     }
 

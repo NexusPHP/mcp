@@ -25,7 +25,7 @@ use Nexus\Mcp\Core\Schema\RequestParams;
  */
 final readonly class PaginatedRequestParams extends RequestParams
 {
-    public function __construct(public ?Cursor $cursor = null, ?RequestMetaObject $meta = null)
+    public function __construct(public ?Cursor $cursor = null, RequestMetaObject $meta = new RequestMetaObject())
     {
         parent::__construct($meta);
     }

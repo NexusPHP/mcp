@@ -50,17 +50,17 @@ final class ServerContextTest extends TestCase
         self::assertSame('sess-1', $context->sessionId);
     }
 
-    public function testAcceptsNullMetaAndSessionId(): void
+    public function testAcceptsEmptyMetaAndNullSessionId(): void
     {
         $context = new ServerContext(
             new RequestId('req-1'),
             new NullCancellation(),
-            null,
+            new RequestMetaObject(),
             null,
             new RecordingSender(),
         );
 
-        self::assertNull($context->meta);
+        self::assertSame([], $context->meta->toArray());
         self::assertNull($context->sessionId);
     }
 
@@ -86,29 +86,13 @@ final class ServerContextTest extends TestCase
         self::assertSame($expected->toArray(), $sender->notifications[0]->toArray());
     }
 
-    public function testReportProgressNoOpsWhenMetaIsNull(): void
-    {
-        $sender = new RecordingSender();
-        $context = new ServerContext(
-            new RequestId(1),
-            new NullCancellation(),
-            null,
-            null,
-            $sender,
-        );
-
-        $context->reportProgress(0.5);
-
-        self::assertSame([], $sender->notifications);
-    }
-
     public function testReportProgressNoOpsWhenMetaLacksProgressToken(): void
     {
         $sender = new RecordingSender();
         $context = new ServerContext(
             new RequestId(1),
             new NullCancellation(),
-            new RequestMetaObject(progressToken: null),
+            new RequestMetaObject(),
             null,
             $sender,
         );

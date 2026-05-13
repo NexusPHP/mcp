@@ -31,7 +31,7 @@ final readonly class Root implements Arrayable
     public function __construct(
         public string $uri,
         public ?string $name = null,
-        public ?MetaObject $meta = null,
+        public MetaObject $meta = new MetaObject(),
     ) {
         Assert::that($uri)->startsWith('file://', 'Root URI must start with {needle}, got {value}.');
     }
@@ -63,12 +63,10 @@ final readonly class Root implements Arrayable
             $data['name'] = $this->name;
         }
 
-        if (null !== $this->meta) {
-            $meta = $this->meta->toArray();
+        $meta = $this->meta->toArray();
 
-            if ([] !== $meta) {
-                $data['_meta'] = $meta;
-            }
+        if ([] !== $meta) {
+            $data['_meta'] = $meta;
         }
 
         return $data;

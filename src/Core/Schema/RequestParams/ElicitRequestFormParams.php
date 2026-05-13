@@ -42,7 +42,7 @@ final readonly class ElicitRequestFormParams extends TaskAugmentedRequestParams 
         public ElicitRequestedSchema $requestedSchema,
         string $mode = self::MODE,
         ?TaskMetadata $task = null,
-        ?RequestMetaObject $meta = null,
+        RequestMetaObject $meta = new RequestMetaObject(),
     ) {
         Assert::that($message)->isNonEmptyString('ElicitRequestFormParams message must be a non-empty string.');
         Assert::that($mode)->isIdentical(self::MODE, \sprintf('ElicitRequestFormParams mode must be "%s", {value} given.', self::MODE));

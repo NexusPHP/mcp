@@ -23,7 +23,7 @@ use Nexus\Mcp\Core\Schema\RequestParams;
  */
 final readonly class EmptyRequestParams extends RequestParams
 {
-    public function __construct(?RequestMetaObject $meta = null)
+    public function __construct(RequestMetaObject $meta = new RequestMetaObject())
     {
         parent::__construct($meta);
     }

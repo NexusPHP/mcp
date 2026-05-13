@@ -42,7 +42,7 @@ final readonly class CallToolRequestParams extends TaskAugmentedRequestParams
         string $name,
         ?array $arguments = null,
         ?TaskMetadata $task = null,
-        ?RequestMetaObject $meta = null,
+        RequestMetaObject $meta = new RequestMetaObject(),
     ) {
         IdentifierNameValidator::validate($name, 'CallToolRequestParams');
 

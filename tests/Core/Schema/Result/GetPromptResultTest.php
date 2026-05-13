@@ -40,7 +40,7 @@ final class GetPromptResultTest extends TestCase
 
         self::assertCount(1, $result->messages);
         self::assertNull($result->description);
-        self::assertNull($result->meta);
+        self::assertSame([], $result->meta->toArray());
     }
 
     public function testConstructionAcceptsEmptyMessagesList(): void

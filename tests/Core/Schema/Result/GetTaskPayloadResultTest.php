@@ -34,7 +34,7 @@ final class GetTaskPayloadResultTest extends TestCase
         $result = new GetTaskPayloadResult();
 
         self::assertSame([], $result->payload);
-        self::assertNull($result->meta);
+        self::assertSame([], $result->meta->toArray());
     }
 
     public function testConstructionWithPayload(): void
@@ -99,7 +99,6 @@ final class GetTaskPayloadResultTest extends TestCase
             ['content' => [['type' => 'text', 'text' => 'hello']], 'isError' => false],
             $result->payload,
         );
-        self::assertNotNull($result->meta);
         self::assertSame(['vendor' => 'x'], $result->meta->extras);
     }
 

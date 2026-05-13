@@ -38,7 +38,7 @@ final readonly class GetPromptResult extends Result implements ServerResult
     /**
      * @param list<PromptMessage> $messages
      */
-    public function __construct(array $messages, ?string $description = null, ?MetaObject $meta = null)
+    public function __construct(array $messages, ?string $description = null, MetaObject $meta = new MetaObject())
     {
         Assert::that($messages)->isList('GetPromptResult messages must be a list, got non-list array.');
 

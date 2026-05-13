@@ -31,7 +31,7 @@ final readonly class InitializeRequestParams extends RequestParams
         public ProtocolVersion $protocolVersion,
         public ClientCapabilities $capabilities,
         public Implementation $clientInfo,
-        ?RequestMetaObject $meta = null,
+        RequestMetaObject $meta = new RequestMetaObject(),
     ) {
         parent::__construct($meta);
     }

@@ -51,7 +51,7 @@ final readonly class ToolUseContent implements Arrayable, SamplingMessageContent
         string $id,
         string $name,
         public array $input,
-        public ?MetaObject $meta = null,
+        public MetaObject $meta = new MetaObject(),
     ) {
         Assert::that($id)->isNonEmptyString('ToolUseContent id must be a non-empty string.');
         Assert::that($name)->isNonEmptyString('ToolUseContent name must be a non-empty string.');
@@ -100,12 +100,10 @@ final readonly class ToolUseContent implements Arrayable, SamplingMessageContent
             'type' => self::TYPE,
         ];
 
-        if (null !== $this->meta) {
-            $meta = $this->meta->toArray();
+        $meta = $this->meta->toArray();
 
-            if ([] !== $meta) {
-                $data['_meta'] = $meta;
-            }
+        if ([] !== $meta) {
+            $data['_meta'] = $meta;
         }
 
         return $data;

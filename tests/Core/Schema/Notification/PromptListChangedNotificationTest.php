@@ -37,7 +37,7 @@ final class PromptListChangedNotificationTest extends TestCase
         $notification = new PromptListChangedNotification();
 
         self::assertSame(EmptyNotificationParams::class, $notification->params::class);
-        self::assertNull($notification->params->meta);
+        self::assertSame([], $notification->params->meta->toArray());
     }
 
     public function testToArrayOmitsParamsWhenEmpty(): void
@@ -89,7 +89,7 @@ final class PromptListChangedNotificationTest extends TestCase
         ]);
 
         self::assertSame(EmptyNotificationParams::class, $notification->params::class);
-        self::assertNull($notification->params->meta);
+        self::assertSame([], $notification->params->meta->toArray());
     }
 
     public function testFromArrayParsesParamsMeta(): void
@@ -99,8 +99,6 @@ final class PromptListChangedNotificationTest extends TestCase
             'method' => 'notifications/prompts/list_changed',
             'params' => ['_meta' => ['vendor' => 'x']],
         ]);
-
-        self::assertNotNull($notification->params->meta);
         self::assertSame(['vendor' => 'x'], $notification->params->meta->extras);
     }
 

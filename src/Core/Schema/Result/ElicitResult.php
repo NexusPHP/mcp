@@ -36,7 +36,7 @@ final readonly class ElicitResult extends Result implements ClientResult
     public function __construct(
         public ElicitAction $action,
         ?array $content = null,
-        ?MetaObject $meta = null,
+        MetaObject $meta = new MetaObject(),
     ) {
         if (null !== $content) {
             Assert::that($content)

@@ -37,7 +37,7 @@ final readonly class InitializeResult extends Result implements ServerResult
         public ServerCapabilities $capabilities,
         public Implementation $serverInfo,
         ?string $instructions = null,
-        ?MetaObject $meta = null,
+        MetaObject $meta = new MetaObject(),
     ) {
         Assert::that($instructions)->nullOr()->isNonEmptyString('InitializeResult instructions must be a non-empty string or null.');
 

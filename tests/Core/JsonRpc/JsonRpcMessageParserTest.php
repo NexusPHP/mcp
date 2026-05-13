@@ -64,7 +64,7 @@ final class JsonRpcMessageParserTest extends TestCase
         }
 
         self::assertSame(42, $parsed->id->id);
-        self::assertNull($parsed->params->meta);
+        self::assertSame([], $parsed->params->meta->toArray());
     }
 
     public function testUserRequestsOverrideDefaults(): void
@@ -107,13 +107,7 @@ final class JsonRpcMessageParserTest extends TestCase
             self::fail(\sprintf('Expected PingRequest, got %s.', $parsed::class));
         }
 
-        $meta = $parsed->params->meta;
-
-        if (null === $meta) {
-            self::fail('Expected request meta to be set.');
-        }
-
-        $progressToken = $meta->progressToken;
+        $progressToken = $parsed->params->meta->progressToken;
 
         if (null === $progressToken) {
             self::fail('Expected progressToken to be set.');
@@ -121,7 +115,7 @@ final class JsonRpcMessageParserTest extends TestCase
 
         self::assertSame('req-1', $parsed->id->id);
         self::assertSame('tok-1', $progressToken->token);
-        self::assertSame(['vendor' => 'x'], $meta->extras);
+        self::assertSame(['vendor' => 'x'], $parsed->params->meta->extras);
     }
 
     public function testEmptyResultRoundTrip(): void
@@ -199,10 +193,7 @@ final class JsonRpcMessageParserTest extends TestCase
 
         if (! $parsed instanceof TestNotification) {
             self::fail(\sprintf('Expected TestNotification, got %s.', $parsed::class));
-        }
-
-        self::assertNotNull($parsed->params->meta);
-        self::assertSame(['vendor' => 'x'], $parsed->params->meta->extras);
+        }        self::assertSame(['vendor' => 'x'], $parsed->params->meta->extras);
     }
 
     public function testParseDispatchesNotificationWithoutParams(): void

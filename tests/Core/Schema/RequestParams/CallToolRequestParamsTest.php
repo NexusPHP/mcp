@@ -42,7 +42,7 @@ final class CallToolRequestParamsTest extends TestCase
         self::assertSame('read-file', $params->name);
         self::assertNull($params->arguments);
         self::assertNull($params->task);
-        self::assertNull($params->meta);
+        self::assertSame([], $params->meta->toArray());
     }
 
     public function testConstructionWithAllFields(): void
@@ -127,7 +127,6 @@ final class CallToolRequestParamsTest extends TestCase
         self::assertSame(['path' => 'src/'], $params->arguments);
         self::assertNotNull($params->task);
         self::assertSame(60000, $params->task->ttl);
-        self::assertNotNull($params->meta);
         self::assertSame(['vendor.brand' => 'acme'], $params->meta->extras);
     }
 

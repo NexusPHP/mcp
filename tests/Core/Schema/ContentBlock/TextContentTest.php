@@ -36,7 +36,7 @@ final class TextContentTest extends TestCase
 
         self::assertSame('hello', $content->text);
         self::assertNull($content->annotations);
-        self::assertNull($content->meta);
+        self::assertSame([], $content->meta->toArray());
     }
 
     public function testToArrayMinimal(): void
@@ -87,7 +87,6 @@ final class TextContentTest extends TestCase
         self::assertSame('hello', $content->text);
         self::assertNotNull($content->annotations);
         self::assertSame(0.5, $content->annotations->priority);
-        self::assertNotNull($content->meta);
         self::assertSame(['vendor' => 'x'], $content->meta->extras);
     }
 

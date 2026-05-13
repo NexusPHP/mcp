@@ -62,7 +62,7 @@ final readonly class Prompt extends BaseMetadata implements Arrayable, Icons
         ?string $description = null,
         ?array $arguments = null,
         ?array $icons = null,
-        public ?MetaObject $meta = null,
+        public MetaObject $meta = new MetaObject(),
     ) {
         parent::__construct($name, $title);
 
@@ -154,12 +154,10 @@ final readonly class Prompt extends BaseMetadata implements Arrayable, Icons
             );
         }
 
-        if (null !== $this->meta) {
-            $meta = $this->meta->toArray();
+        $meta = $this->meta->toArray();
 
-            if ([] !== $meta) {
-                $data['_meta'] = $meta;
-            }
+        if ([] !== $meta) {
+            $data['_meta'] = $meta;
         }
 
         return $data;

@@ -32,7 +32,7 @@ final class EmptyRequestParamsTest extends TestCase
 {
     public function testDefaultsToNullMeta(): void
     {
-        self::assertNull(new EmptyRequestParams()->meta);
+        self::assertSame([], new EmptyRequestParams()->meta->toArray());
     }
 
     public function testToArrayIsEmptyWhenNoMeta(): void
@@ -56,14 +56,12 @@ final class EmptyRequestParamsTest extends TestCase
 
     public function testFromArrayWithoutMetaYieldsNullMeta(): void
     {
-        self::assertNull(EmptyRequestParams::fromArray([])->meta);
+        self::assertSame([], EmptyRequestParams::fromArray([])->meta->toArray());
     }
 
     public function testFromArrayParsesMeta(): void
     {
         $params = EmptyRequestParams::fromArray(['_meta' => ['progressToken' => 42]]);
-
-        self::assertNotNull($params->meta);
         self::assertNotNull($params->meta->progressToken);
         self::assertSame(42, $params->meta->progressToken->token);
     }

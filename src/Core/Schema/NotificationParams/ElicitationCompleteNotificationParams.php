@@ -29,7 +29,7 @@ final readonly class ElicitationCompleteNotificationParams extends NotificationP
      */
     public string $elicitationId;
 
-    public function __construct(string $elicitationId, ?MetaObject $meta = null)
+    public function __construct(string $elicitationId, MetaObject $meta = new MetaObject())
     {
         Assert::that($elicitationId)->isNonEmptyString('ElicitationCompleteNotificationParams elicitationId must be a non-empty string.');
 

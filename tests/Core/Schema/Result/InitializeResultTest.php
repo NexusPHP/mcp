@@ -48,7 +48,6 @@ final class InitializeResultTest extends TestCase
         self::assertSame(['listChanged' => true], $result->capabilities->prompts);
         self::assertSame('server', $result->serverInfo->name);
         self::assertSame('Use these tools wisely.', $result->instructions);
-        self::assertNotNull($result->meta);
         self::assertSame(['vendor' => 'x'], $result->meta->extras);
     }
 
@@ -61,7 +60,7 @@ final class InitializeResultTest extends TestCase
         );
 
         self::assertNull($result->instructions);
-        self::assertNull($result->meta);
+        self::assertSame([], $result->meta->toArray());
     }
 
     public function testConstructionRejectsEmptyInstructions(): void

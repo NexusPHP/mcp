@@ -37,7 +37,7 @@ final class ToolResultContentTest extends TestCase
         self::assertCount(1, $content->content);
         self::assertNull($content->isError);
         self::assertNull($content->structuredContent);
-        self::assertNull($content->meta);
+        self::assertSame([], $content->meta->toArray());
     }
 
     public function testConstructorRejectsEmptyToolUseId(): void

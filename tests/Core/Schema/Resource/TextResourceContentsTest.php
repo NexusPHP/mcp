@@ -38,7 +38,7 @@ final class TextResourceContentsTest extends TestCase
         self::assertSame('file:///x', $contents->uri);
         self::assertSame('hello', $contents->text);
         self::assertNull($contents->mimeType);
-        self::assertNull($contents->meta);
+        self::assertSame([], $contents->meta->toArray());
     }
 
     public function testConstructionWithAllFields(): void
@@ -51,7 +51,6 @@ final class TextResourceContentsTest extends TestCase
         );
 
         self::assertSame('text/plain', $contents->mimeType);
-        self::assertNotNull($contents->meta);
         self::assertSame(['vendor' => 'x'], $contents->meta->extras);
     }
 
@@ -126,7 +125,6 @@ final class TextResourceContentsTest extends TestCase
         ]);
 
         self::assertSame('text/plain', $contents->mimeType);
-        self::assertNotNull($contents->meta);
         self::assertSame(['vendor' => 'x'], $contents->meta->extras);
     }
 

@@ -39,7 +39,7 @@ final class LoggingMessageNotificationParamsTest extends TestCase
         self::assertSame(LoggingLevel::Info, $params->level);
         self::assertSame('something happened', $params->data);
         self::assertNull($params->logger);
-        self::assertNull($params->meta);
+        self::assertSame([], $params->meta->toArray());
     }
 
     public function testToArrayWithMinimalFields(): void
@@ -154,7 +154,7 @@ final class LoggingMessageNotificationParamsTest extends TestCase
         self::assertSame(LoggingLevel::Info, $params->level);
         self::assertSame('hello', $params->data);
         self::assertNull($params->logger);
-        self::assertNull($params->meta);
+        self::assertSame([], $params->meta->toArray());
     }
 
     public function testFromArrayParsesLoggerAndMeta(): void
@@ -167,7 +167,6 @@ final class LoggingMessageNotificationParamsTest extends TestCase
         ]);
 
         self::assertSame('app', $params->logger);
-        self::assertNotNull($params->meta);
         self::assertSame(['vendor' => 'x'], $params->meta->extras);
     }
 

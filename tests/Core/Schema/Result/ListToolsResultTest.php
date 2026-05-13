@@ -41,7 +41,7 @@ final class ListToolsResultTest extends TestCase
 
         self::assertSame([], $result->tools);
         self::assertNull($result->nextCursor);
-        self::assertNull($result->meta);
+        self::assertSame([], $result->meta->toArray());
     }
 
     public function testConstructionAcceptsTools(): void

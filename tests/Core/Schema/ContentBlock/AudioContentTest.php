@@ -37,7 +37,7 @@ final class AudioContentTest extends TestCase
         self::assertSame('aGVsbG8=', $content->data);
         self::assertSame('audio/mp3', $content->mimeType);
         self::assertNull($content->annotations);
-        self::assertNull($content->meta);
+        self::assertSame([], $content->meta->toArray());
     }
 
     public function testToArrayMinimal(): void
@@ -92,7 +92,6 @@ final class AudioContentTest extends TestCase
         self::assertSame('audio/mp3', $content->mimeType);
         self::assertNotNull($content->annotations);
         self::assertSame(0.5, $content->annotations->priority);
-        self::assertNotNull($content->meta);
         self::assertSame(['vendor' => 'x'], $content->meta->extras);
     }
 

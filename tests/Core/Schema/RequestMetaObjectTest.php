@@ -113,9 +113,12 @@ final class RequestMetaObjectTest extends TestCase
         self::assertSame('{}', json_encode($meta));
     }
 
-    public function testParseFromReturnsNullWhenMetaAbsent(): void
+    public function testParseFromReturnsEmptyWhenMetaAbsent(): void
     {
-        self::assertNull(RequestMetaObject::parseFrom(['name' => 'x'], 'Request params'));
+        $meta = RequestMetaObject::parseFrom(['name' => 'x'], 'Request params');
+
+        self::assertNull($meta->progressToken);
+        self::assertSame([], $meta->extras);
     }
 
     public function testParseFromReadsAndContextualizes(): void
@@ -125,7 +128,6 @@ final class RequestMetaObjectTest extends TestCase
             'Request params',
         );
 
-        self::assertNotNull($meta);
         self::assertNotNull($meta->progressToken);
         self::assertSame('tok-1', $meta->progressToken->token);
         self::assertSame(['vendor' => 'x'], $meta->extras);

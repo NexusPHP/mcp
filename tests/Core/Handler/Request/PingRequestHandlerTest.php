@@ -18,6 +18,7 @@ use Nexus\Mcp\Core\Handler\Request\PingRequestHandler;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Request\PingRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
@@ -62,7 +63,7 @@ final class PingRequestHandlerTest extends TestCase
         return new ServerContext(
             new RequestId(1),
             new NullCancellation(),
-            null,
+            new RequestMetaObject(),
             null,
             new RecordingSender(),
         );

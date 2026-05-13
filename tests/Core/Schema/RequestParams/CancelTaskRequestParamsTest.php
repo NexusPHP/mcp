@@ -35,7 +35,7 @@ final class CancelTaskRequestParamsTest extends TestCase
         $params = new CancelTaskRequestParams('task-abc');
 
         self::assertSame('task-abc', $params->taskId);
-        self::assertNull($params->meta);
+        self::assertSame([], $params->meta->toArray());
     }
 
     public function testToArrayMinimal(): void

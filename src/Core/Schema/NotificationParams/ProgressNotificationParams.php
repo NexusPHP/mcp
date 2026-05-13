@@ -33,7 +33,7 @@ final readonly class ProgressNotificationParams extends NotificationParams
         public float $progress,
         public ?float $total = null,
         public ?string $message = null,
-        ?MetaObject $meta = null,
+        MetaObject $meta = new MetaObject(),
     ) {
         parent::__construct($meta);
     }

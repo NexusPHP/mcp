@@ -29,7 +29,7 @@ final readonly class LoggingMessageNotificationParams extends NotificationParams
         public LoggingLevel $level,
         public mixed $data,
         public ?string $logger = null,
-        ?MetaObject $meta = null,
+        MetaObject $meta = new MetaObject(),
     ) {
         parent::__construct($meta);
     }

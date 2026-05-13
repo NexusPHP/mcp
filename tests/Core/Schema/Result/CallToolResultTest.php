@@ -41,7 +41,7 @@ final class CallToolResultTest extends TestCase
         self::assertSame([], $result->content);
         self::assertNull($result->structuredContent);
         self::assertNull($result->isError);
-        self::assertNull($result->meta);
+        self::assertSame([], $result->meta->toArray());
     }
 
     public function testConstructionWithAllFields(): void

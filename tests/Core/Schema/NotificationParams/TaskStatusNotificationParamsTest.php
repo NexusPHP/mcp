@@ -37,7 +37,7 @@ final class TaskStatusNotificationParamsTest extends TestCase
         $params = new TaskStatusNotificationParams($task);
 
         self::assertSame($task, $params->task);
-        self::assertNull($params->meta);
+        self::assertSame([], $params->meta->toArray());
     }
 
     public function testToArraySpreadsTaskFields(): void

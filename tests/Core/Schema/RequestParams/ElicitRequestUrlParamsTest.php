@@ -48,7 +48,7 @@ final class ElicitRequestUrlParamsTest extends TestCase
         self::assertSame('url', $params->mode);
         self::assertSame('https://auth.example.com', $params->url);
         self::assertNull($params->task);
-        self::assertNull($params->meta);
+        self::assertSame([], $params->meta->toArray());
     }
 
     public function testToArrayMinimal(): void

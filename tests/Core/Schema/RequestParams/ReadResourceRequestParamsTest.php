@@ -39,7 +39,7 @@ final class ReadResourceRequestParamsTest extends TestCase
         $params = new ReadResourceRequestParams('file:///x');
 
         self::assertSame('file:///x', $params->uri);
-        self::assertNull($params->meta);
+        self::assertSame([], $params->meta->toArray());
     }
 
     public function testConstructionWithMeta(): void
@@ -48,8 +48,6 @@ final class ReadResourceRequestParamsTest extends TestCase
             'file:///x',
             new RequestMetaObject(new ProgressToken('p-1'), ['vendor' => 'x']),
         );
-
-        self::assertNotNull($params->meta);
         self::assertNotNull($params->meta->progressToken);
         self::assertSame('p-1', $params->meta->progressToken->token);
     }
@@ -89,7 +87,7 @@ final class ReadResourceRequestParamsTest extends TestCase
         $params = ReadResourceRequestParams::fromArray(['uri' => 'file:///x']);
 
         self::assertSame('file:///x', $params->uri);
-        self::assertNull($params->meta);
+        self::assertSame([], $params->meta->toArray());
     }
 
     public function testFromArrayParsesMeta(): void
@@ -98,8 +96,6 @@ final class ReadResourceRequestParamsTest extends TestCase
             'uri' => 'file:///x',
             '_meta' => ['progressToken' => 'p-1', 'vendor' => 'x'],
         ]);
-
-        self::assertNotNull($params->meta);
         self::assertNotNull($params->meta->progressToken);
         self::assertSame('p-1', $params->meta->progressToken->token);
     }

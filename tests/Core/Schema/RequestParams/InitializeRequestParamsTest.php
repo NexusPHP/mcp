@@ -45,7 +45,7 @@ final class InitializeRequestParamsTest extends TestCase
         self::assertSame('2025-11-25', $params->protocolVersion->version);
         self::assertSame(['listChanged' => true], $params->capabilities->roots);
         self::assertSame('client', $params->clientInfo->name);
-        self::assertNull($params->meta);
+        self::assertSame([], $params->meta->toArray());
     }
 
     public function testConstructionAcceptsMeta(): void
@@ -56,8 +56,6 @@ final class InitializeRequestParamsTest extends TestCase
             new Implementation('client', '1.0.0'),
             new RequestMetaObject(null, ['vendor' => 'x']),
         );
-
-        self::assertNotNull($params->meta);
         self::assertSame(['vendor' => 'x'], $params->meta->extras);
     }
 
@@ -171,7 +169,7 @@ final class InitializeRequestParamsTest extends TestCase
 
         self::assertSame('2025-11-25', $params->protocolVersion->version);
         self::assertSame('c', $params->clientInfo->name);
-        self::assertNull($params->meta);
+        self::assertSame([], $params->meta->toArray());
     }
 
     /**

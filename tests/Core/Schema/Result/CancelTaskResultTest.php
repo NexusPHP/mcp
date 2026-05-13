@@ -37,7 +37,7 @@ final class CancelTaskResultTest extends TestCase
         $result = new CancelTaskResult($task);
 
         self::assertSame($task, $result->task);
-        self::assertNull($result->meta);
+        self::assertSame([], $result->meta->toArray());
     }
 
     public function testToArraySpreadsTaskFields(): void

@@ -38,7 +38,7 @@ final class BlobResourceContentsTest extends TestCase
         self::assertSame('file:///x', $contents->uri);
         self::assertSame('aGVsbG8=', $contents->blob);
         self::assertNull($contents->mimeType);
-        self::assertNull($contents->meta);
+        self::assertSame([], $contents->meta->toArray());
     }
 
     public function testConstructionWithAllFields(): void
@@ -51,7 +51,6 @@ final class BlobResourceContentsTest extends TestCase
         );
 
         self::assertSame('application/octet-stream', $contents->mimeType);
-        self::assertNotNull($contents->meta);
         self::assertSame(['vendor' => 'x'], $contents->meta->extras);
     }
 
@@ -110,7 +109,6 @@ final class BlobResourceContentsTest extends TestCase
         ]);
 
         self::assertSame('application/octet-stream', $contents->mimeType);
-        self::assertNotNull($contents->meta);
         self::assertSame(['vendor' => 'x'], $contents->meta->extras);
     }
 

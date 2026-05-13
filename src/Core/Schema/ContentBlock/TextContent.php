@@ -39,7 +39,7 @@ final readonly class TextContent implements Arrayable, ContentBlock, SamplingMes
     public function __construct(
         public string $text,
         public ?Annotations $annotations = null,
-        public ?MetaObject $meta = null,
+        public MetaObject $meta = new MetaObject(),
     ) {
     }
 
@@ -84,12 +84,10 @@ final readonly class TextContent implements Arrayable, ContentBlock, SamplingMes
             $data['annotations'] = $this->annotations->toArray();
         }
 
-        if (null !== $this->meta) {
-            $meta = $this->meta->toArray();
+        $meta = $this->meta->toArray();
 
-            if ([] !== $meta) {
-                $data['_meta'] = $meta;
-            }
+        if ([] !== $meta) {
+            $data['_meta'] = $meta;
         }
 
         return $data;

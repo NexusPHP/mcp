@@ -39,7 +39,7 @@ final class CreateTaskResultTest extends TestCase
         $result = new CreateTaskResult($task);
 
         self::assertSame($task, $result->task);
-        self::assertNull($result->meta);
+        self::assertSame([], $result->meta->toArray());
     }
 
     public function testToArrayWrapsTask(): void

@@ -28,7 +28,7 @@ abstract readonly class AbstractContext
     public function __construct(
         public RequestId $requestId,
         public Cancellation $cancellation,
-        public ?RequestMetaObject $meta,
+        public RequestMetaObject $meta,
         public ?string $sessionId,
         protected SenderInterface $sender,
     ) {
@@ -36,7 +36,7 @@ abstract readonly class AbstractContext
 
     public function reportProgress(float $progress, ?float $total = null, ?string $message = null): void
     {
-        $token = $this->meta?->progressToken;
+        $token = $this->meta->progressToken;
 
         if (null === $token) {
             return;

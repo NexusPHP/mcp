@@ -28,7 +28,7 @@ final readonly class BlobResourceContents extends ResourceContents
         string $uri,
         public string $blob,
         ?string $mimeType = null,
-        ?MetaObject $meta = null,
+        MetaObject $meta = new MetaObject(),
     ) {
         parent::__construct($uri, $mimeType, $meta);
     }

@@ -59,7 +59,7 @@ final readonly class CreateMessageResult extends Result implements ClientResult
         public Role $role,
         array|AudioContent|ImageContent|TextContent|ToolResultContent|ToolUseContent $content,
         ?string $stopReason = null,
-        ?MetaObject $meta = null,
+        MetaObject $meta = new MetaObject(),
     ) {
         Assert::that($model)->isNonEmptyString('CreateMessageResult model must be a non-empty string.');
         Assert::that($stopReason)->nullOr()->isNonEmptyString('CreateMessageResult stopReason must be a non-empty string or null.');

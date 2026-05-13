@@ -61,7 +61,7 @@ final readonly class ToolResultContent implements Arrayable, SamplingMessageCont
         public array $content,
         public ?bool $isError = null,
         public ?array $structuredContent = null,
-        public ?MetaObject $meta = null,
+        public MetaObject $meta = new MetaObject(),
     ) {
         Assert::that($toolUseId)->isNonEmptyString('ToolResultContent toolUseId must be a non-empty string.');
         Assert::that($content)->values()->isInstanceOf(Arrayable::class);
@@ -130,12 +130,10 @@ final readonly class ToolResultContent implements Arrayable, SamplingMessageCont
             $data['structuredContent'] = $this->structuredContent;
         }
 
-        if (null !== $this->meta) {
-            $meta = $this->meta->toArray();
+        $meta = $this->meta->toArray();
 
-            if ([] !== $meta) {
-                $data['_meta'] = $meta;
-            }
+        if ([] !== $meta) {
+            $data['_meta'] = $meta;
         }
 
         return $data;

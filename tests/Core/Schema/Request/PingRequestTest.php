@@ -39,7 +39,7 @@ final class PingRequestTest extends TestCase
         $request = new PingRequest(new RequestId(1));
 
         self::assertSame(EmptyRequestParams::class, $request->params::class);
-        self::assertNull($request->params->meta);
+        self::assertSame([], $request->params->meta->toArray());
     }
 
     public function testToArrayOmitsParamsWhenEmpty(): void
@@ -92,8 +92,6 @@ final class PingRequestTest extends TestCase
             'method' => 'ping',
             'params' => ['_meta' => ['progressToken' => 'tok-1']],
         ]);
-
-        self::assertNotNull($request->params->meta);
         self::assertNotNull($request->params->meta->progressToken);
         self::assertSame('tok-1', $request->params->meta->progressToken->token);
     }

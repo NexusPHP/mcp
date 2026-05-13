@@ -38,7 +38,7 @@ final class ElicitResultTest extends TestCase
 
         self::assertSame(ElicitAction::Cancel, $result->action);
         self::assertNull($result->content);
-        self::assertNull($result->meta);
+        self::assertSame([], $result->meta->toArray());
     }
 
     public function testToArrayMinimal(): void
@@ -88,7 +88,6 @@ final class ElicitResultTest extends TestCase
 
         self::assertSame(ElicitAction::Accept, $result->action);
         self::assertSame(['email' => 'a@b.com'], $result->content);
-        self::assertNotNull($result->meta);
         self::assertSame(['vendor' => 'x'], $result->meta->extras);
     }
 

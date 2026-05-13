@@ -36,7 +36,7 @@ final class ElicitationCompleteNotificationParamsTest extends TestCase
         $params = new ElicitationCompleteNotificationParams('elicit-1');
 
         self::assertSame('elicit-1', $params->elicitationId);
-        self::assertNull($params->meta);
+        self::assertSame([], $params->meta->toArray());
     }
 
     public function testToArrayMinimal(): void

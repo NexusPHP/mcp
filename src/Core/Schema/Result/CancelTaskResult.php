@@ -24,7 +24,7 @@ use Nexus\Mcp\Core\Schema\Task\Task;
  */
 final readonly class CancelTaskResult extends Result implements ClientResult, ServerResult
 {
-    public function __construct(public Task $task, ?MetaObject $meta = null)
+    public function __construct(public Task $task, MetaObject $meta = new MetaObject())
     {
         parent::__construct($meta);
     }

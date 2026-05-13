@@ -83,7 +83,7 @@ final readonly class ResourceLink extends BaseMetadata implements Arrayable, Con
         public ?Annotations $annotations = null,
         public ?float $size = null,
         ?array $icons = null,
-        public ?MetaObject $meta = null,
+        public MetaObject $meta = new MetaObject(),
     ) {
         parent::__construct($name, $title);
 
@@ -196,12 +196,10 @@ final readonly class ResourceLink extends BaseMetadata implements Arrayable, Con
             $data['icons'] = array_map(static fn(Icon $icon): array => $icon->toArray(), $this->icons);
         }
 
-        if (null !== $this->meta) {
-            $meta = $this->meta->toArray();
+        $meta = $this->meta->toArray();
 
-            if ([] !== $meta) {
-                $data['_meta'] = $meta;
-            }
+        if ([] !== $meta) {
+            $data['_meta'] = $meta;
         }
 
         return $data;

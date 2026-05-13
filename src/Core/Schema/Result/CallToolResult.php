@@ -49,7 +49,7 @@ final readonly class CallToolResult extends Result implements ServerResult
         array $content,
         ?array $structuredContent = null,
         public ?bool $isError = null,
-        ?MetaObject $meta = null,
+        MetaObject $meta = new MetaObject(),
     ) {
         Assert::that($content)
             ->isList('CallToolResult content must be a list, got non-list array.')

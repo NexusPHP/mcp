@@ -44,7 +44,7 @@ final class ResourceTemplateTest extends TestCase
         self::assertNull($template->mimeType);
         self::assertNull($template->annotations);
         self::assertNull($template->icons);
-        self::assertNull($template->meta);
+        self::assertSame([], $template->meta->toArray());
     }
 
     public function testToArrayMinimal(): void
@@ -133,7 +133,6 @@ final class ResourceTemplateTest extends TestCase
         self::assertNotNull($template->icons);
         self::assertCount(1, $template->icons);
         self::assertSame('https://example.com/icon.png', $template->icons[0]->src);
-        self::assertNotNull($template->meta);
         self::assertSame(['vendor' => 'x'], $template->meta->extras);
     }
 

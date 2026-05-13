@@ -20,6 +20,7 @@ use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\ProtocolVersion;
 use Nexus\Mcp\Core\Schema\Request\InitializeRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams\InitializeRequestParams;
 use Nexus\Mcp\Core\Schema\Result\InitializeResult;
 use Nexus\Mcp\Core\Schema\ServerCapabilities;
@@ -99,7 +100,7 @@ final class InitializeRequestHandlerTest extends TestCase
         return new ServerContext(
             new RequestId(1),
             new NullCancellation(),
-            null,
+            new RequestMetaObject(),
             null,
             new RecordingSender(),
         );

@@ -72,7 +72,7 @@ final readonly class ResourceTemplate extends BaseMetadata implements Arrayable,
         ?string $mimeType = null,
         public ?Annotations $annotations = null,
         ?array $icons = null,
-        public ?MetaObject $meta = null,
+        public MetaObject $meta = new MetaObject(),
     ) {
         parent::__construct($name, $title);
 
@@ -170,12 +170,10 @@ final readonly class ResourceTemplate extends BaseMetadata implements Arrayable,
             $data['icons'] = array_map(static fn(Icon $icon): array => $icon->toArray(), $this->icons);
         }
 
-        if (null !== $this->meta) {
-            $meta = $this->meta->toArray();
+        $meta = $this->meta->toArray();
 
-            if ([] !== $meta) {
-                $data['_meta'] = $meta;
-            }
+        if ([] !== $meta) {
+            $data['_meta'] = $meta;
         }
 
         return $data;

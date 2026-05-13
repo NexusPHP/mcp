@@ -36,7 +36,7 @@ final class ResourceUpdatedNotificationParamsTest extends TestCase
         $params = new ResourceUpdatedNotificationParams('file:///x');
 
         self::assertSame('file:///x', $params->uri);
-        self::assertNull($params->meta);
+        self::assertSame([], $params->meta->toArray());
     }
 
     public function testToArrayEmitsUriOnly(): void
@@ -74,7 +74,7 @@ final class ResourceUpdatedNotificationParamsTest extends TestCase
         $params = ResourceUpdatedNotificationParams::fromArray(['uri' => 'file:///x']);
 
         self::assertSame('file:///x', $params->uri);
-        self::assertNull($params->meta);
+        self::assertSame([], $params->meta->toArray());
     }
 
     public function testFromArrayParsesMeta(): void
@@ -83,8 +83,6 @@ final class ResourceUpdatedNotificationParamsTest extends TestCase
             'uri' => 'file:///x',
             '_meta' => ['vendor' => 'x'],
         ]);
-
-        self::assertNotNull($params->meta);
         self::assertSame(['vendor' => 'x'], $params->meta->extras);
     }
 

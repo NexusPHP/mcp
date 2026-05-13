@@ -31,7 +31,7 @@ final class EmptyResultTest extends TestCase
 {
     public function testDefaultsToNullMeta(): void
     {
-        self::assertNull(new EmptyResult()->meta);
+        self::assertSame([], new EmptyResult()->meta->toArray());
     }
 
     public function testToArrayIsEmptyWhenNoMeta(): void
@@ -48,14 +48,12 @@ final class EmptyResultTest extends TestCase
 
     public function testFromArrayWithoutMetaYieldsNullMeta(): void
     {
-        self::assertNull(EmptyResult::fromArray([])->meta);
+        self::assertSame([], EmptyResult::fromArray([])->meta->toArray());
     }
 
     public function testFromArrayParsesMeta(): void
     {
         $result = EmptyResult::fromArray(['_meta' => ['a' => 1]]);
-
-        self::assertNotNull($result->meta);
         self::assertSame(['a' => 1], $result->meta->extras);
     }
 

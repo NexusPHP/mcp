@@ -46,7 +46,7 @@ final readonly class CompleteRequestParams extends RequestParams
         public PromptReference|ResourceTemplateReference $ref,
         array $argument,
         ?array $context = null,
-        ?RequestMetaObject $meta = null,
+        RequestMetaObject $meta = new RequestMetaObject(),
     ) {
         Assert::that($argument['name'])->isString('CompleteRequestParams argument "name" must be a string, {type} given.');
         Assert::that($argument['value'])->isString('CompleteRequestParams argument "value" must be a string, {type} given.');

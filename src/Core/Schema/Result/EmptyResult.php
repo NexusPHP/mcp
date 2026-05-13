@@ -24,7 +24,7 @@ use Nexus\Mcp\Core\Schema\Result;
  */
 final readonly class EmptyResult extends Result implements ClientResult, ServerResult
 {
-    public function __construct(?MetaObject $meta = null)
+    public function __construct(MetaObject $meta = new MetaObject())
     {
         parent::__construct($meta);
     }

@@ -37,7 +37,7 @@ final class CancelledNotificationParamsTest extends TestCase
 
         self::assertNull($params->requestId);
         self::assertNull($params->reason);
-        self::assertNull($params->meta);
+        self::assertSame([], $params->meta->toArray());
     }
 
     public function testToArrayWhenAllFieldsAreNull(): void
@@ -142,7 +142,7 @@ final class CancelledNotificationParamsTest extends TestCase
         self::assertNotNull($params->requestId);
         self::assertSame(7, $params->requestId->id);
         self::assertNull($params->reason);
-        self::assertNull($params->meta);
+        self::assertSame([], $params->meta->toArray());
     }
 
     public function testFromArrayParsesStringRequestId(): void
@@ -179,8 +179,6 @@ final class CancelledNotificationParamsTest extends TestCase
             'requestId' => 1,
             '_meta' => ['vendor' => 'x'],
         ]);
-
-        self::assertNotNull($params->meta);
         self::assertSame(['vendor' => 'x'], $params->meta->extras);
     }
 
@@ -203,7 +201,7 @@ final class CancelledNotificationParamsTest extends TestCase
 
         self::assertNull($params->requestId);
         self::assertNull($params->reason);
-        self::assertNull($params->meta);
+        self::assertSame([], $params->meta->toArray());
     }
 
     #[DataProvider('provideFromArrayRejectsNonArrayKeyRequestIdCases')]

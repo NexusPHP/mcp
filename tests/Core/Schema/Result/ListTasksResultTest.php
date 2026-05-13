@@ -42,7 +42,7 @@ final class ListTasksResultTest extends TestCase
 
         self::assertSame([], $result->tasks);
         self::assertNull($result->nextCursor);
-        self::assertNull($result->meta);
+        self::assertSame([], $result->meta->toArray());
     }
 
     public function testConstructionAcceptsTasks(): void

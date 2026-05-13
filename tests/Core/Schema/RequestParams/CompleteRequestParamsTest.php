@@ -44,7 +44,7 @@ final class CompleteRequestParamsTest extends TestCase
         self::assertInstanceOf(PromptReference::class, $params->ref);
         self::assertSame(['name' => 'topic', 'value' => 'auth'], $params->argument);
         self::assertNull($params->context);
-        self::assertNull($params->meta);
+        self::assertSame([], $params->meta->toArray());
     }
 
     public function testConstructionWithAllFields(): void

@@ -24,7 +24,7 @@ use Nexus\Mcp\Core\Schema\Task\TaskMetadata;
  */
 abstract readonly class TaskAugmentedRequestParams extends RequestParams
 {
-    public function __construct(public ?TaskMetadata $task = null, ?RequestMetaObject $meta = null)
+    public function __construct(public ?TaskMetadata $task = null, RequestMetaObject $meta = new RequestMetaObject())
     {
         parent::__construct($meta);
     }

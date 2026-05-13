@@ -31,7 +31,7 @@ final readonly class ListTasksResult extends PaginatedResult implements ClientRe
     public function __construct(
         public array $tasks,
         ?Cursor $nextCursor = null,
-        ?MetaObject $meta = null,
+        MetaObject $meta = new MetaObject(),
     ) {
         Assert::that($this->tasks)
             ->isList('ListTasksResult tasks must be a list, got non-list array.')

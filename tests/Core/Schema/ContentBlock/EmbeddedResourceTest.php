@@ -38,7 +38,7 @@ final class EmbeddedResourceTest extends TestCase
 
         self::assertSame('file:///x', $embedded->resource->uri);
         self::assertNull($embedded->annotations);
-        self::assertNull($embedded->meta);
+        self::assertSame([], $embedded->meta->toArray());
     }
 
     public function testConstructionMinimalBlob(): void
@@ -138,7 +138,6 @@ final class EmbeddedResourceTest extends TestCase
 
         self::assertNotNull($embedded->annotations);
         self::assertSame(0.5, $embedded->annotations->priority);
-        self::assertNotNull($embedded->meta);
         self::assertSame(['vendor' => 'x'], $embedded->meta->extras);
     }
 

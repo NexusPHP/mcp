@@ -41,7 +41,7 @@ final class CreateMessageResultTest extends TestCase
         self::assertSame(Role::Assistant, $result->role);
         self::assertInstanceOf(TextContent::class, $result->content);
         self::assertNull($result->stopReason);
-        self::assertNull($result->meta);
+        self::assertSame([], $result->meta->toArray());
     }
 
     public function testConstructorRejectsEmptyModel(): void

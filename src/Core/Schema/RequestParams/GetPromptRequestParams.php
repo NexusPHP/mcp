@@ -38,7 +38,7 @@ final readonly class GetPromptRequestParams extends RequestParams
     /**
      * @param null|array<string, string> $arguments
      */
-    public function __construct(string $name, ?array $arguments = null, ?RequestMetaObject $meta = null)
+    public function __construct(string $name, ?array $arguments = null, RequestMetaObject $meta = new RequestMetaObject())
     {
         IdentifierNameValidator::validate($name, 'GetPromptRequestParams');
 
