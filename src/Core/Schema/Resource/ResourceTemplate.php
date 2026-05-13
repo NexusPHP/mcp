@@ -70,7 +70,7 @@ final readonly class ResourceTemplate extends BaseMetadata implements Arrayable,
         ?string $title = null,
         ?string $description = null,
         ?string $mimeType = null,
-        public ?Annotations $annotations = null,
+        public Annotations $annotations = new Annotations(),
         ?array $icons = null,
         public MetaObject $meta = new MetaObject(),
     ) {
@@ -115,7 +115,7 @@ final readonly class ResourceTemplate extends BaseMetadata implements Arrayable,
         $mimeType = $data['mimeType'] ?? null;
         Assert::that($mimeType)->nullOr()->isString('ResourceTemplate "mimeType" must be a string or null, {type} given.');
 
-        $annotations = null;
+        $annotations = new Annotations();
 
         if (\array_key_exists('annotations', $data)) {
             Assert::that($data['annotations'])
@@ -162,8 +162,10 @@ final readonly class ResourceTemplate extends BaseMetadata implements Arrayable,
             $data['mimeType'] = $this->mimeType;
         }
 
-        if (null !== $this->annotations) {
-            $data['annotations'] = $this->annotations->toArray();
+        $annotations = $this->annotations->toArray();
+
+        if ([] !== $annotations) {
+            $data['annotations'] = $annotations;
         }
 
         if (null !== $this->icons) {

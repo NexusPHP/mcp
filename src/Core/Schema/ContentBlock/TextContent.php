@@ -38,7 +38,7 @@ final readonly class TextContent implements Arrayable, ContentBlock, SamplingMes
 
     public function __construct(
         public string $text,
-        public ?Annotations $annotations = null,
+        public Annotations $annotations = new Annotations(),
         public MetaObject $meta = new MetaObject(),
     ) {
     }
@@ -57,7 +57,7 @@ final readonly class TextContent implements Arrayable, ContentBlock, SamplingMes
         $text = $data['text'];
         Assert::that($text)->isString('TextContent "text" must be a string, {type} given.');
 
-        $annotations = null;
+        $annotations = new Annotations();
 
         if (\array_key_exists('annotations', $data)) {
             Assert::that($data['annotations'])
@@ -80,8 +80,10 @@ final readonly class TextContent implements Arrayable, ContentBlock, SamplingMes
             'type' => self::TYPE,
         ];
 
-        if (null !== $this->annotations) {
-            $data['annotations'] = $this->annotations->toArray();
+        $annotations = $this->annotations->toArray();
+
+        if ([] !== $annotations) {
+            $data['annotations'] = $annotations;
         }
 
         $meta = $this->meta->toArray();

@@ -37,7 +37,7 @@ final class EmbeddedResourceTest extends TestCase
         $embedded = new EmbeddedResource(new TextResourceContents('file:///x', 'hello'));
 
         self::assertSame('file:///x', $embedded->resource->uri);
-        self::assertNull($embedded->annotations);
+        self::assertSame([], $embedded->annotations->toArray());
         self::assertSame([], $embedded->meta->toArray());
     }
 
@@ -97,7 +97,7 @@ final class EmbeddedResourceTest extends TestCase
     {
         $embedded = new EmbeddedResource(
             new TextResourceContents('file:///x', 'hello'),
-            null,
+            new Annotations(),
             new MetaObject(['k' => 'v']),
         );
 
@@ -135,8 +135,6 @@ final class EmbeddedResourceTest extends TestCase
             'annotations' => ['priority' => 0.5],
             '_meta' => ['vendor' => 'x'],
         ]);
-
-        self::assertNotNull($embedded->annotations);
         self::assertSame(0.5, $embedded->annotations->priority);
         self::assertSame(['vendor' => 'x'], $embedded->meta->extras);
     }

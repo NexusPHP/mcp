@@ -68,12 +68,12 @@ final readonly class CreateMessageRequestParams extends RequestParams
         public int $maxTokens,
         array $messages,
         public ?IncludeContext $includeContext = null,
-        public ?ModelPreferences $modelPreferences = null,
+        public ModelPreferences $modelPreferences = new ModelPreferences(),
         ?array $stopSequences = null,
         ?string $systemPrompt = null,
         public ?TaskMetadata $task = null,
         public ?float $temperature = null,
-        public ?ToolChoice $toolChoice = null,
+        public ToolChoice $toolChoice = new ToolChoice(),
         ?array $tools = null,
         ?array $metadata = null,
         RequestMetaObject $meta = new RequestMetaObject(),
@@ -127,7 +127,7 @@ final readonly class CreateMessageRequestParams extends RequestParams
             $includeContext = IncludeContext::from($data['includeContext']);
         }
 
-        $modelPreferences = null;
+        $modelPreferences = new ModelPreferences();
 
         if (\array_key_exists('modelPreferences', $data)) {
             Assert::that($data['modelPreferences'])
@@ -166,7 +166,7 @@ final readonly class CreateMessageRequestParams extends RequestParams
             $temperature = self::parseNumber($temperature, 'CreateMessageRequestParams "temperature" must be a number or null, {type} given.');
         }
 
-        $toolChoice = null;
+        $toolChoice = new ToolChoice();
 
         if (\array_key_exists('toolChoice', $data)) {
             Assert::that($data['toolChoice'])
@@ -229,8 +229,10 @@ final readonly class CreateMessageRequestParams extends RequestParams
             $data['includeContext'] = $this->includeContext->value;
         }
 
-        if (null !== $this->modelPreferences) {
-            $data['modelPreferences'] = $this->modelPreferences->toArray();
+        $modelPreferences = $this->modelPreferences->toArray();
+
+        if ([] !== $modelPreferences) {
+            $data['modelPreferences'] = $modelPreferences;
         }
 
         if (null !== $this->stopSequences) {
@@ -249,8 +251,10 @@ final readonly class CreateMessageRequestParams extends RequestParams
             $data['temperature'] = $this->temperature;
         }
 
-        if (null !== $this->toolChoice) {
-            $data['toolChoice'] = $this->toolChoice->toArray();
+        $toolChoice = $this->toolChoice->toArray();
+
+        if ([] !== $toolChoice) {
+            $data['toolChoice'] = $toolChoice;
         }
 
         if (null !== $this->tools) {
@@ -274,7 +278,7 @@ final readonly class CreateMessageRequestParams extends RequestParams
             $this->messages,
         );
 
-        if (null !== $this->modelPreferences) {
+        if ([] !== $this->modelPreferences->toArray()) {
             $data['modelPreferences'] = $this->modelPreferences->jsonSerialize();
         }
 
@@ -282,7 +286,7 @@ final readonly class CreateMessageRequestParams extends RequestParams
             $data['task'] = $this->task->jsonSerialize();
         }
 
-        if (null !== $this->toolChoice) {
+        if ([] !== $this->toolChoice->toArray()) {
             $data['toolChoice'] = $this->toolChoice->jsonSerialize();
         }
 

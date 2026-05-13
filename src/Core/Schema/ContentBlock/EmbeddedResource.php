@@ -42,7 +42,7 @@ final readonly class EmbeddedResource implements Arrayable, ContentBlock
 
     public function __construct(
         public BlobResourceContents|TextResourceContents $resource,
-        public ?Annotations $annotations = null,
+        public Annotations $annotations = new Annotations(),
         public MetaObject $meta = new MetaObject(),
     ) {
     }
@@ -64,7 +64,7 @@ final readonly class EmbeddedResource implements Arrayable, ContentBlock
         ;
         $resource = ResourceContents::from($data['resource']);
 
-        $annotations = null;
+        $annotations = new Annotations();
 
         if (\array_key_exists('annotations', $data)) {
             Assert::that($data['annotations'])
@@ -87,8 +87,10 @@ final readonly class EmbeddedResource implements Arrayable, ContentBlock
             'type' => self::TYPE,
         ];
 
-        if (null !== $this->annotations) {
-            $data['annotations'] = $this->annotations->toArray();
+        $annotations = $this->annotations->toArray();
+
+        if ([] !== $annotations) {
+            $data['annotations'] = $annotations;
         }
 
         $meta = $this->meta->toArray();

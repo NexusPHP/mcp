@@ -42,7 +42,7 @@ final class ResourceTest extends TestCase
         self::assertNull($resource->title);
         self::assertNull($resource->description);
         self::assertNull($resource->mimeType);
-        self::assertNull($resource->annotations);
+        self::assertSame([], $resource->annotations->toArray());
         self::assertNull($resource->size);
         self::assertNull($resource->icons);
         self::assertSame([], $resource->meta->toArray());
@@ -96,7 +96,7 @@ final class ResourceTest extends TestCase
             'My Resource',
             null,
             'text/plain',
-            null,
+            new Annotations(),
             42.0,
             null,
             new MetaObject(['k' => 'v']),
@@ -130,7 +130,6 @@ final class ResourceTest extends TestCase
         self::assertSame('My Resource', $resource->title);
         self::assertSame('A description.', $resource->description);
         self::assertSame('text/plain', $resource->mimeType);
-        self::assertNotNull($resource->annotations);
         self::assertSame(0.5, $resource->annotations->priority);
         self::assertSame(1024.0, $resource->size);
         self::assertNotNull($resource->icons);
@@ -206,7 +205,7 @@ final class ResourceTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
 
         // @phpstan-ignore argument.type
-        new Resource('my-resource', 'file:///x', null, null, null, null, null, [42]);
+        new Resource('my-resource', 'file:///x', null, null, null, new Annotations(), null, [42]);
     }
 
     /**

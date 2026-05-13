@@ -50,12 +50,12 @@ final class CreateMessageRequestParamsTest extends TestCase
         self::assertSame(100, $params->maxTokens);
         self::assertCount(1, $params->messages);
         self::assertNull($params->includeContext);
-        self::assertNull($params->modelPreferences);
+        self::assertSame([], $params->modelPreferences->toArray());
         self::assertNull($params->stopSequences);
         self::assertNull($params->systemPrompt);
         self::assertNull($params->task);
         self::assertNull($params->temperature);
-        self::assertNull($params->toolChoice);
+        self::assertSame([], $params->toolChoice->toArray());
         self::assertNull($params->tools);
         self::assertNull($params->metadata);
         self::assertSame([], $params->meta->toArray());

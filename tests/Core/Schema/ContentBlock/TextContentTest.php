@@ -35,7 +35,7 @@ final class TextContentTest extends TestCase
         $content = new TextContent('hello');
 
         self::assertSame('hello', $content->text);
-        self::assertNull($content->annotations);
+        self::assertSame([], $content->annotations->toArray());
         self::assertSame([], $content->meta->toArray());
     }
 
@@ -70,7 +70,7 @@ final class TextContentTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $content = new TextContent('hello', null, new MetaObject(['k' => 'v']));
+        $content = new TextContent('hello', new Annotations(), new MetaObject(['k' => 'v']));
 
         self::assertSame($content->toArray(), $content->jsonSerialize());
     }
@@ -85,7 +85,6 @@ final class TextContentTest extends TestCase
         ]);
 
         self::assertSame('hello', $content->text);
-        self::assertNotNull($content->annotations);
         self::assertSame(0.5, $content->annotations->priority);
         self::assertSame(['vendor' => 'x'], $content->meta->extras);
     }

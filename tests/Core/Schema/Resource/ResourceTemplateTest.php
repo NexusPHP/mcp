@@ -42,7 +42,7 @@ final class ResourceTemplateTest extends TestCase
         self::assertNull($template->title);
         self::assertNull($template->description);
         self::assertNull($template->mimeType);
-        self::assertNull($template->annotations);
+        self::assertSame([], $template->annotations->toArray());
         self::assertNull($template->icons);
         self::assertSame([], $template->meta->toArray());
     }
@@ -93,7 +93,7 @@ final class ResourceTemplateTest extends TestCase
             'My Template',
             null,
             'text/plain',
-            null,
+            new Annotations(),
             null,
             new MetaObject(['k' => 'v']),
         );
@@ -128,7 +128,6 @@ final class ResourceTemplateTest extends TestCase
         self::assertSame('My Template', $template->title);
         self::assertSame('A description.', $template->description);
         self::assertSame('text/plain', $template->mimeType);
-        self::assertNotNull($template->annotations);
         self::assertSame(0.5, $template->annotations->priority);
         self::assertNotNull($template->icons);
         self::assertCount(1, $template->icons);
@@ -199,7 +198,7 @@ final class ResourceTemplateTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
 
         // @phpstan-ignore argument.type
-        new ResourceTemplate('my-template', 'file:///tmp/{name}', null, null, null, null, [42]);
+        new ResourceTemplate('my-template', 'file:///tmp/{name}', null, null, null, new Annotations(), [42]);
     }
 
     /**

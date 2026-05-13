@@ -36,7 +36,7 @@ final class AudioContentTest extends TestCase
 
         self::assertSame('aGVsbG8=', $content->data);
         self::assertSame('audio/mp3', $content->mimeType);
-        self::assertNull($content->annotations);
+        self::assertSame([], $content->annotations->toArray());
         self::assertSame([], $content->meta->toArray());
     }
 
@@ -73,7 +73,7 @@ final class AudioContentTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $content = new AudioContent('aGVsbG8=', 'audio/mp3', null, new MetaObject(['k' => 'v']));
+        $content = new AudioContent('aGVsbG8=', 'audio/mp3', new Annotations(), new MetaObject(['k' => 'v']));
 
         self::assertSame($content->toArray(), $content->jsonSerialize());
     }
@@ -90,7 +90,6 @@ final class AudioContentTest extends TestCase
 
         self::assertSame('aGVsbG8=', $content->data);
         self::assertSame('audio/mp3', $content->mimeType);
-        self::assertNotNull($content->annotations);
         self::assertSame(0.5, $content->annotations->priority);
         self::assertSame(['vendor' => 'x'], $content->meta->extras);
     }

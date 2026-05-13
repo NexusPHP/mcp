@@ -73,8 +73,8 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
         ?string $title = null,
         ?string $description = null,
         ?array $outputSchema = null,
-        public ?ToolAnnotations $annotations = null,
-        public ?ToolExecution $execution = null,
+        public ToolAnnotations $annotations = new ToolAnnotations(),
+        public ToolExecution $execution = new ToolExecution(),
         public ?array $icons = null,
         public MetaObject $meta = new MetaObject(),
     ) {
@@ -125,7 +125,7 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
             $outputSchema = $data['outputSchema'];
         }
 
-        $annotations = null;
+        $annotations = new ToolAnnotations();
 
         if (\array_key_exists('annotations', $data)) {
             Assert::that($data['annotations'])
@@ -135,7 +135,7 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
             $annotations = ToolAnnotations::fromArray($data['annotations']);
         }
 
-        $execution = null;
+        $execution = new ToolExecution();
 
         if (\array_key_exists('execution', $data)) {
             Assert::that($data['execution'])
@@ -182,20 +182,16 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
             $data['outputSchema'] = $this->outputSchema;
         }
 
-        if (null !== $this->annotations) {
-            $annotations = $this->annotations->toArray();
+        $annotations = $this->annotations->toArray();
 
-            if ([] !== $annotations) {
-                $data['annotations'] = $annotations;
-            }
+        if ([] !== $annotations) {
+            $data['annotations'] = $annotations;
         }
 
-        if (null !== $this->execution) {
-            $execution = $this->execution->toArray();
+        $execution = $this->execution->toArray();
 
-            if ([] !== $execution) {
-                $data['execution'] = $execution;
-            }
+        if ([] !== $execution) {
+            $data['execution'] = $execution;
         }
 
         if (null !== $this->icons) {

@@ -42,7 +42,7 @@ final class ResourceLinkTest extends TestCase
         self::assertNull($link->title);
         self::assertNull($link->description);
         self::assertNull($link->mimeType);
-        self::assertNull($link->annotations);
+        self::assertSame([], $link->annotations->toArray());
         self::assertNull($link->size);
         self::assertNull($link->icons);
         self::assertSame([], $link->meta->toArray());
@@ -97,7 +97,7 @@ final class ResourceLinkTest extends TestCase
             'My Link',
             null,
             'text/plain',
-            null,
+            new Annotations(),
             42.0,
             null,
             new MetaObject(['k' => 'v']),
@@ -136,7 +136,6 @@ final class ResourceLinkTest extends TestCase
         self::assertSame('My Link', $link->title);
         self::assertSame('A description.', $link->description);
         self::assertSame('text/plain', $link->mimeType);
-        self::assertNotNull($link->annotations);
         self::assertSame(0.5, $link->annotations->priority);
         self::assertSame(1024.0, $link->size);
         self::assertNotNull($link->icons);
@@ -213,7 +212,7 @@ final class ResourceLinkTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
 
         // @phpstan-ignore argument.type
-        new ResourceLink('my-link', 'file:///tmp/x', null, null, null, null, null, [42]);
+        new ResourceLink('my-link', 'file:///tmp/x', null, null, null, new Annotations(), null, [42]);
     }
 
     /**

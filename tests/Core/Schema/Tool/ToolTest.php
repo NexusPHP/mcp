@@ -44,8 +44,8 @@ final class ToolTest extends TestCase
         self::assertNull($tool->description);
         self::assertSame(['type' => 'object'], $tool->inputSchema);
         self::assertNull($tool->outputSchema);
-        self::assertNull($tool->annotations);
-        self::assertNull($tool->execution);
+        self::assertSame([], $tool->annotations->toArray());
+        self::assertSame([], $tool->execution->toArray());
         self::assertNull($tool->icons);
         self::assertSame([], $tool->meta->toArray());
     }
@@ -145,9 +145,7 @@ final class ToolTest extends TestCase
         self::assertSame('Read File', $tool->title);
         self::assertSame('Reads contents.', $tool->description);
         self::assertSame(['type' => 'object'], $tool->outputSchema);
-        self::assertNotNull($tool->annotations);
         self::assertTrue($tool->annotations->readOnlyHint);
-        self::assertNotNull($tool->execution);
         self::assertSame(TaskSupport::Required, $tool->execution->taskSupport);
         self::assertNotNull($tool->icons);
         self::assertCount(1, $tool->icons);

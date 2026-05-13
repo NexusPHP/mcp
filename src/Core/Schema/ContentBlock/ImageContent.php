@@ -50,7 +50,7 @@ final readonly class ImageContent implements Arrayable, ContentBlock, SamplingMe
     public function __construct(
         string $data,
         string $mimeType,
-        public ?Annotations $annotations = null,
+        public Annotations $annotations = new Annotations(),
         public MetaObject $meta = new MetaObject(),
     ) {
         Assert::that($data)->isNonEmptyString('ImageContent data must be a non-empty string.');
@@ -78,7 +78,7 @@ final readonly class ImageContent implements Arrayable, ContentBlock, SamplingMe
         $mimeType = $data['mimeType'];
         Assert::that($mimeType)->isString('ImageContent "mimeType" must be a string, {type} given.');
 
-        $annotations = null;
+        $annotations = new Annotations();
 
         if (\array_key_exists('annotations', $data)) {
             Assert::that($data['annotations'])
@@ -102,8 +102,10 @@ final readonly class ImageContent implements Arrayable, ContentBlock, SamplingMe
             'type' => self::TYPE,
         ];
 
-        if (null !== $this->annotations) {
-            $data['annotations'] = $this->annotations->toArray();
+        $annotations = $this->annotations->toArray();
+
+        if ([] !== $annotations) {
+            $data['annotations'] = $annotations;
         }
 
         $meta = $this->meta->toArray();
