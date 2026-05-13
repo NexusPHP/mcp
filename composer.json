@@ -88,9 +88,9 @@
             "@mutation:check"
         ],
         "test:auto-review": "phpunit --group=auto-review --colors=always --no-coverage",
-        "test:client": "phpunit --group=client-tests --colors=always --coverage-html=build/phpunit/html",
-        "test:core": "phpunit --group=core-tests --colors=always --coverage-html=build/phpunit/html",
-        "test:server": "phpunit --group=server-tests --colors=always --coverage-html=build/phpunit/html",
+        "test:client": "phpunit --group=client-tests --colors=always --no-coverage",
+        "test:core": "phpunit --group=core-tests --colors=always --no-coverage",
+        "test:server": "phpunit --group=server-tests --colors=always --no-coverage",
         "test:stan": "phpunit --group=static-analysis --colors=always --no-coverage",
         "test:unit": "phpunit --group=unit-tests --colors=always --coverage-html=build/phpunit/html"
     },
