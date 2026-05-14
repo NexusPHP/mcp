@@ -242,7 +242,7 @@ final class JsonRpcMessageParserTest extends TestCase
             self::fail('Expected MethodNotFoundException.');
         } catch (MethodNotFoundException $e) {
             self::assertSame('vendor/unknown', $e->method);
-            self::assertSame(9, $e->requestId);
+            self::assertSame(9, $e->requestId?->id);
             self::assertSame(ProtocolErrorCode::MethodNotFound, MethodNotFoundException::errorCode());
             self::assertSame('No class registered for method "vendor/unknown".', $e->getMessage());
         }
@@ -273,7 +273,7 @@ final class JsonRpcMessageParserTest extends TestCase
             $parser->parse(['jsonrpc' => '2.0', 'id' => 1]);
             self::fail('Expected InvalidRequestException.');
         } catch (InvalidRequestException $e) {
-            self::assertSame(1, $e->requestId);
+            self::assertSame(1, $e->requestId?->id);
             self::assertStringContainsString('JSON-RPC envelope must carry a "method"', $e->getMessage());
         }
     }
@@ -319,7 +319,7 @@ final class JsonRpcMessageParserTest extends TestCase
             $parser->parse(['jsonrpc' => '1.0', 'id' => 1, 'method' => 'ping']);
             self::fail('Expected InvalidRequestException.');
         } catch (InvalidRequestException $e) {
-            self::assertSame(1, $e->requestId);
+            self::assertSame(1, $e->requestId?->id);
             self::assertStringContainsString('Invalid JSON-RPC version', $e->getMessage());
         }
     }
@@ -342,7 +342,7 @@ final class JsonRpcMessageParserTest extends TestCase
             $parser->parse(['jsonrpc' => '2.0', 'id' => 'req-1', 'result' => []]);
             self::fail('Expected InvalidRequestException.');
         } catch (InvalidRequestException $e) {
-            self::assertSame('req-1', $e->requestId);
+            self::assertSame('req-1', $e->requestId?->id);
             self::assertStringContainsString('Success response requires the expected Result class', $e->getMessage());
         }
     }
@@ -375,7 +375,7 @@ final class JsonRpcMessageParserTest extends TestCase
             $parser->parse(['jsonrpc' => '2.0', 'id' => 1, 'result' => 'bad'], EmptyResult::class);
             self::fail('Expected InvalidRequestException.');
         } catch (InvalidRequestException $e) {
-            self::assertSame(1, $e->requestId);
+            self::assertSame(1, $e->requestId?->id);
             self::assertStringContainsString('Success response "result" must be an object, string given.', $e->getMessage());
         }
     }
@@ -391,7 +391,7 @@ final class JsonRpcMessageParserTest extends TestCase
             );
             self::fail('Expected InvalidRequestException.');
         } catch (InvalidRequestException $e) {
-            self::assertSame(1, $e->requestId);
+            self::assertSame(1, $e->requestId?->id);
             self::assertMatchesRegularExpression('/^Invalid .+EmptyResult payload: Result "_meta" must be an object/', $e->getMessage());
         }
     }
@@ -405,7 +405,7 @@ final class JsonRpcMessageParserTest extends TestCase
             self::fail('Expected an AbstractJsonRpcProtocolException.');
         } catch (AbstractJsonRpcProtocolException $e) {
             self::assertSame(ProtocolErrorCode::MethodNotFound, $e::errorCode());
-            self::assertSame(1, $e->requestId);
+            self::assertSame(1, $e->requestId?->id);
         }
     }
 }

@@ -16,6 +16,7 @@ namespace Nexus\Mcp\Tests\Core\Exception;
 use Nexus\Mcp\Core\Exception\AbstractJsonRpcProtocolException;
 use Nexus\Mcp\Core\Exception\MethodNotFoundException;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
+use Nexus\Mcp\Core\Schema\RequestId;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
@@ -41,10 +42,10 @@ final class MethodNotFoundExceptionTest extends TestCase
     public function testCarriesProvidedRequestIdAndPrevious(): void
     {
         $previous = new \RuntimeException('inner');
-        $e = new MethodNotFoundException('vendor/whatever', 99, $previous);
+        $e = new MethodNotFoundException('vendor/whatever', new RequestId(99), $previous);
 
         self::assertSame('vendor/whatever', $e->method);
-        self::assertSame(99, $e->requestId);
+        self::assertSame(99, $e->requestId?->id);
         self::assertSame($previous, $e->getPrevious());
     }
 

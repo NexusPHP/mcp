@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Exception;
 
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
+use Nexus\Mcp\Core\Schema\RequestId;
 
 /**
  * Thrown when no class or handler is registered for an inbound `method`.
@@ -22,7 +23,7 @@ final class MethodNotFoundException extends AbstractJsonRpcProtocolException
 {
     public function __construct(
         public readonly string $method,
-        null|int|string $requestId = null,
+        ?RequestId $requestId = null,
         ?\Throwable $previous = null,
     ) {
         parent::__construct(

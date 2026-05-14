@@ -189,10 +189,18 @@ final class JsonRpcMessageParser
     /**
      * @param array<string, mixed> $message
      */
-    private static function extractRequestId(array $message): null|int|string
+    private static function extractRequestId(array $message): ?RequestId
     {
         $id = $message['id'] ?? null;
 
-        return \is_int($id) || \is_string($id) ? $id : null;
+        if (! \is_int($id) && ! \is_string($id)) {
+            return null;
+        }
+
+        try {
+            return new RequestId($id);
+        } catch (\InvalidArgumentException) {
+            return null;
+        }
     }
 }
