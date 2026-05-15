@@ -17,11 +17,6 @@ use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Error;
-use Nexus\Mcp\Core\Schema\Error\InternalError;
-use Nexus\Mcp\Core\Schema\Error\InvalidParamsError;
-use Nexus\Mcp\Core\Schema\Error\InvalidRequestError;
-use Nexus\Mcp\Core\Schema\Error\MethodNotFoundError;
-use Nexus\Mcp\Core\Schema\Error\ParseError;
 use Nexus\Mcp\Core\Schema\Error\UrlElicitationRequiredErrorPayload;
 use Nexus\Mcp\Core\Schema\RequestId;
 
@@ -126,13 +121,16 @@ final readonly class JsonRpcErrorResponse implements Arrayable, JsonRpcResponse
             $narrow['data'] = $extra;
         }
 
-        return match (ProtocolErrorCode::tryFrom($code)) {
-            ProtocolErrorCode::ParseError => ParseError::fromArray($narrow),
-            ProtocolErrorCode::InvalidRequest => InvalidRequestError::fromArray($narrow),
-            ProtocolErrorCode::MethodNotFound => MethodNotFoundError::fromArray($narrow),
-            ProtocolErrorCode::InvalidParams => InvalidParamsError::fromArray($narrow),
-            ProtocolErrorCode::UrlElicitationRequired => UrlElicitationRequiredErrorPayload::fromArray($narrow),
-            default => InternalError::fromArray($narrow),
-        };
+        $resolved = ProtocolErrorCode::tryFrom($code);
+
+        if (ProtocolErrorCode::UrlElicitationRequired === $resolved) {
+            return UrlElicitationRequiredErrorPayload::fromArray($narrow);
+        }
+
+        return Error::forCode(
+            $resolved ?? ProtocolErrorCode::InternalError,
+            $message ?? 'Internal error',
+            $extra,
+        );
     }
 }

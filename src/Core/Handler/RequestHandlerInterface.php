@@ -25,7 +25,7 @@ use Nexus\Mcp\Core\Schema\Result;
  *
  * @template-covariant TMethod of non-empty-string
  * @template-covariant TResult of Result
- * @template TContext of AbstractContext
+ * @template-contravariant TContext of AbstractContext
  */
 interface RequestHandlerInterface
 {

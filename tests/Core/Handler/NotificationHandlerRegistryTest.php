@@ -17,7 +17,6 @@ use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Exception\MethodNotFoundException;
 use Nexus\Mcp\Core\Handler\NotificationHandlerRegistry;
 use Nexus\Mcp\Core\Schema\Notification\InitializedNotification;
-use Nexus\Mcp\Server\Handler\Notification\InitializedNotificationHandler;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingNotificationHandler;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
@@ -34,7 +33,7 @@ final class NotificationHandlerRegistryTest extends TestCase
     public function testHasReportsRegisteredAndUnregisteredMethods(): void
     {
         $registry = new NotificationHandlerRegistry([
-            InitializedNotification::method() => new InitializedNotificationHandler(),
+            InitializedNotification::method() => new RecordingNotificationHandler(),
         ]);
 
         self::assertTrue($registry->has(InitializedNotification::method()));
@@ -43,7 +42,7 @@ final class NotificationHandlerRegistryTest extends TestCase
 
     public function testGetReturnsRegisteredHandler(): void
     {
-        $handler = new InitializedNotificationHandler();
+        $handler = new RecordingNotificationHandler();
         $registry = new NotificationHandlerRegistry([
             InitializedNotification::method() => $handler,
         ]);
@@ -53,15 +52,10 @@ final class NotificationHandlerRegistryTest extends TestCase
 
     public function testGetThrowsMethodNotFoundExceptionForUnregisteredMethod(): void
     {
-        $registry = new NotificationHandlerRegistry([]);
+        $this->expectException(MethodNotFoundException::class);
+        $this->expectExceptionMessage('No registration found for method "vendor/unknown".');
 
-        try {
-            $registry->get('vendor/unknown');
-            self::fail('Expected MethodNotFoundException.');
-        } catch (MethodNotFoundException $e) {
-            self::assertSame('vendor/unknown', $e->method);
-            self::assertSame('No registration found for method "vendor/unknown".', $e->getMessage());
-        }
+        new NotificationHandlerRegistry([])->get('vendor/unknown');
     }
 
     public function testMethodsReturnsRegisteredKeysInInsertionOrder(): void
@@ -87,7 +81,7 @@ final class NotificationHandlerRegistryTest extends TestCase
         $this->expectExceptionMessage('Notification handler registry key must be a non-empty string.');
 
         // @phpstan-ignore argument.type
-        new NotificationHandlerRegistry(['' => new InitializedNotificationHandler()]);
+        new NotificationHandlerRegistry(['' => new RecordingNotificationHandler()]);
     }
 
     public function testConstructorRejectsValueNotImplementingHandlerInterface(): void

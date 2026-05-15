@@ -49,6 +49,11 @@ interface TransportInterface
     /**
      * Closes the connection. The `onClose()` listener fires once after the
      * underlying streams are closed. Subsequent calls are no-ops.
+     *
+     * Implementations MUST guarantee that `onClose()` listeners fire after a
+     * fatal error too, not only after explicit `close()`. `Server::run()`
+     * blocks on the close signal, so a transport that raises errors without
+     * eventually closing would hang the server loop.
      */
     public function close(): void;
 
@@ -61,7 +66,7 @@ interface TransportInterface
     /**
      * Register an inbound-envelope listener.
      *
-     * @param \Closure(array<string, mixed>, ?ReceiveContext): void $listener
+     * @param \Closure(array<string, mixed>): void $listener
      */
     public function onMessage(\Closure $listener): SubscriptionInterface;
 

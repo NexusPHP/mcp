@@ -11,20 +11,22 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Nexus\Mcp\Core\Exception;
+namespace Nexus\Mcp\Server\Exception;
 
+use Nexus\Mcp\Core\Exception\AbstractJsonRpcProtocolException;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\RequestId;
 
 /**
- * Thrown when no class or handler is registered for an inbound `method`.
+ * Thrown when an inbound request other than `initialize` or `ping` arrives
+ * before the client has completed the `initialize` handshake.
  */
-final class MethodNotFoundException extends AbstractJsonRpcProtocolException
+final class ServerNotInitializedException extends AbstractJsonRpcProtocolException
 {
     public function __construct(string $method, ?RequestId $requestId = null, ?\Throwable $previous = null)
     {
         parent::__construct(
-            \sprintf('No registration found for method "%s".', $method),
+            \sprintf('Cannot handle "%s" before the client has sent "notifications/initialized".', $method),
             $requestId,
             $previous,
         );
@@ -33,6 +35,6 @@ final class MethodNotFoundException extends AbstractJsonRpcProtocolException
     #[\Override]
     public static function errorCode(): ProtocolErrorCode
     {
-        return ProtocolErrorCode::MethodNotFound;
+        return ProtocolErrorCode::InvalidRequest;
     }
 }

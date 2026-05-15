@@ -52,15 +52,10 @@ final class RequestHandlerRegistryTest extends TestCase
 
     public function testGetThrowsMethodNotFoundExceptionForUnregisteredMethod(): void
     {
-        $registry = new RequestHandlerRegistry([]);
+        $this->expectException(MethodNotFoundException::class);
+        $this->expectExceptionMessage('No registration found for method "vendor/unknown".');
 
-        try {
-            $registry->get('vendor/unknown');
-            self::fail('Expected MethodNotFoundException.');
-        } catch (MethodNotFoundException $e) {
-            self::assertSame('vendor/unknown', $e->method);
-            self::assertSame('No registration found for method "vendor/unknown".', $e->getMessage());
-        }
+        new RequestHandlerRegistry([])->get('vendor/unknown');
     }
 
     public function testMethodsReturnsRegisteredKeysInInsertionOrder(): void

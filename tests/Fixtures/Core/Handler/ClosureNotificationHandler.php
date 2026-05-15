@@ -11,21 +11,30 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Nexus\Mcp\Server\Handler\Notification;
+namespace Nexus\Mcp\Tests\Fixtures\Core\Handler;
 
 use Nexus\Mcp\Core\Handler\NotificationHandlerInterface;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 
 /**
- * Handles the client's `notifications/initialized` message confirming that the
- * handshake completed.
+ * Adapts a closure into a `NotificationHandlerInterface` for ad-hoc test wiring.
  *
- * @implements NotificationHandlerInterface<'notifications/initialized'>
+ * @internal
+ *
+ * @implements NotificationHandlerInterface<non-empty-string>
  */
-final readonly class InitializedNotificationHandler implements NotificationHandlerInterface
+final readonly class ClosureNotificationHandler implements NotificationHandlerInterface
 {
+    /**
+     * @param \Closure(JsonRpcNotification<non-empty-string>): void $handler
+     */
+    public function __construct(private \Closure $handler)
+    {
+    }
+
     #[\Override]
     public function handle(JsonRpcNotification $notification): void
     {
+        ($this->handler)($notification);
     }
 }

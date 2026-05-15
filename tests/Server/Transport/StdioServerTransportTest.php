@@ -29,7 +29,6 @@ use Nexus\Mcp\Core\Schema\NotificationParams\CancelledNotificationParams;
 use Nexus\Mcp\Core\Schema\Request\PingRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
-use Nexus\Mcp\Core\Transport\ReceiveContext;
 use Nexus\Mcp\Core\Transport\SendContext;
 use Nexus\Mcp\Server\Transport\StdioServerTransport;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
@@ -325,7 +324,7 @@ final class StdioServerTransportTest extends TestCase
         $transport = self::buildTransportReading(['{"jsonrpc":"2.0","id":1,"method":"ping"}'."\n"]);
 
         $errors = [];
-        $transport->onMessage(static function (array $envelope, ?ReceiveContext $context) use ($boom): void {
+        $transport->onMessage(static function (array $envelope) use ($boom): void {
             throw $boom;
         });
         self::captureErrorsInto($transport, $errors);
@@ -334,21 +333,6 @@ final class StdioServerTransportTest extends TestCase
         EventLoop::run();
 
         self::assertSame([$boom], $errors);
-    }
-
-    public function testMessageListenerReceivesNullReceiveContext(): void
-    {
-        $transport = self::buildTransportReading(['{"jsonrpc":"2.0","id":1,"method":"ping"}'."\n"]);
-
-        $captured = null;
-        $transport->onMessage(static function (array $envelope, ?ReceiveContext $context) use (&$captured): void {
-            $captured = ['context-was-null' => null === $context];
-        });
-
-        $transport->start();
-        EventLoop::run();
-
-        self::assertSame(['context-was-null' => true], $captured);
     }
 
     public function testSendBeforeStartThrows(): void
@@ -629,7 +613,7 @@ final class StdioServerTransportTest extends TestCase
         $logger = new ArrayLogger();
         $transport = new StdioServerTransport(new ReadableBuffer(''), new WritableBuffer(), $logger);
 
-        $subscription = $transport->onMessage(static function (array $envelope, ?ReceiveContext $context): void {});
+        $subscription = $transport->onMessage(static function (array $envelope): void {});
         $subscription->dispose();
 
         $registered = $logger->recordsMatching(LogLevel::DEBUG, 'Stdio transport registered a message listener. {count} active.');
@@ -772,10 +756,10 @@ final class StdioServerTransportTest extends TestCase
 
         $first = [];
         $second = [];
-        $transport->onMessage(static function (array $envelope, ?ReceiveContext $context) use (&$first): void {
+        $transport->onMessage(static function (array $envelope) use (&$first): void {
             $first[] = $envelope;
         });
-        $transport->onMessage(static function (array $envelope, ?ReceiveContext $context) use (&$second): void {
+        $transport->onMessage(static function (array $envelope) use (&$second): void {
             $second[] = $envelope;
         });
 
@@ -791,7 +775,7 @@ final class StdioServerTransportTest extends TestCase
         $transport = self::buildTransportReading(['{"jsonrpc":"2.0","id":1,"method":"ping"}'."\n"]);
 
         $fired = false;
-        $subscription = $transport->onMessage(static function (array $envelope, ?ReceiveContext $context) use (&$fired): void {
+        $subscription = $transport->onMessage(static function (array $envelope) use (&$fired): void {
             $fired = true;
         });
         $subscription->dispose();
@@ -840,10 +824,10 @@ final class StdioServerTransportTest extends TestCase
 
         $firstFired = false;
         $secondFired = false;
-        $firstSubscription = $transport->onMessage(static function (array $envelope, ?ReceiveContext $context) use (&$firstFired): void {
+        $firstSubscription = $transport->onMessage(static function (array $envelope) use (&$firstFired): void {
             $firstFired = true;
         });
-        $transport->onMessage(static function (array $envelope, ?ReceiveContext $context) use (&$secondFired): void {
+        $transport->onMessage(static function (array $envelope) use (&$secondFired): void {
             $secondFired = true;
         });
         $firstSubscription->dispose();
@@ -871,7 +855,7 @@ final class StdioServerTransportTest extends TestCase
      */
     private static function captureEnvelopesInto(StdioServerTransport $transport, array &$envelopes): void
     {
-        $transport->onMessage(static function (array $envelope, ?ReceiveContext $context) use (&$envelopes): void {
+        $transport->onMessage(static function (array $envelope) use (&$envelopes): void {
             $envelopes[] = $envelope;
         });
     }

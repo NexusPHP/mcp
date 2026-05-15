@@ -11,12 +11,12 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Nexus\Mcp\Tests\Core\Exception;
+namespace Nexus\Mcp\Tests\Server\Exception;
 
 use Nexus\Mcp\Core\Exception\AbstractJsonRpcProtocolException;
-use Nexus\Mcp\Core\Exception\MethodNotFoundException;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Server\Exception\ServerNotInitializedException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
@@ -24,32 +24,35 @@ use PHPUnit\Framework\TestCase;
 /**
  * @internal
  */
-#[CoversClass(MethodNotFoundException::class)]
+#[CoversClass(ServerNotInitializedException::class)]
 #[CoversClass(AbstractJsonRpcProtocolException::class)]
 #[Group('unit-tests')]
-#[Group('core-tests')]
-final class MethodNotFoundExceptionTest extends TestCase
+#[Group('server-tests')]
+final class ServerNotInitializedExceptionTest extends TestCase
 {
     public function testComposesMessageFromMethod(): void
     {
-        $e = new MethodNotFoundException('vendor/whatever');
+        $e = new ServerNotInitializedException('tools/list');
 
         self::assertNull($e->requestId);
-        self::assertSame('No registration found for method "vendor/whatever".', $e->getMessage());
+        self::assertSame(
+            'Cannot handle "tools/list" before the client has sent "notifications/initialized".',
+            $e->getMessage(),
+        );
     }
 
     public function testCarriesProvidedRequestIdAndPrevious(): void
     {
         $previous = new \RuntimeException('inner');
-        $e = new MethodNotFoundException('vendor/whatever', new RequestId(99), $previous);
+        $e = new ServerNotInitializedException('prompts/get', new RequestId('req-1'), $previous);
 
-        self::assertSame(99, $e->requestId?->id);
+        self::assertSame('req-1', $e->requestId?->id);
         self::assertSame($previous, $e->getPrevious());
-        self::assertStringContainsString('"vendor/whatever"', $e->getMessage());
+        self::assertStringContainsString('"prompts/get"', $e->getMessage());
     }
 
-    public function testReportsMethodNotFoundErrorCode(): void
+    public function testReportsInvalidRequestErrorCode(): void
     {
-        self::assertSame(ProtocolErrorCode::MethodNotFound, MethodNotFoundException::errorCode());
+        self::assertSame(ProtocolErrorCode::InvalidRequest, ServerNotInitializedException::errorCode());
     }
 }

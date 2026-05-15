@@ -241,7 +241,6 @@ final class JsonRpcMessageParserTest extends TestCase
             ]);
             self::fail('Expected MethodNotFoundException.');
         } catch (MethodNotFoundException $e) {
-            self::assertSame('vendor/unknown', $e->method);
             self::assertSame(9, $e->requestId?->id);
             self::assertSame(ProtocolErrorCode::MethodNotFound, MethodNotFoundException::errorCode());
             self::assertSame('No registration found for method "vendor/unknown".', $e->getMessage());
@@ -259,7 +258,6 @@ final class JsonRpcMessageParserTest extends TestCase
             ]);
             self::fail('Expected MethodNotFoundException.');
         } catch (MethodNotFoundException $e) {
-            self::assertSame('notifications/__test_only__', $e->method);
             self::assertNull($e->requestId, 'Notifications carry no id.');
             self::assertSame('No registration found for method "notifications/__test_only__".', $e->getMessage());
         }
