@@ -23,7 +23,6 @@ use Nexus\Mcp\Core\Schema\NotificationParams;
  * @template-covariant TMethod of non-empty-string
  *
  * @extends Notification<TMethod>
- *
  * @implements Arrayable<array{
  *   jsonrpc: '2.0',
  *   method: non-empty-string,

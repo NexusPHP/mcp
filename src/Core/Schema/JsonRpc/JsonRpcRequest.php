@@ -25,7 +25,6 @@ use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
  * @template-covariant TMethod of non-empty-string
  *
  * @extends Request<TMethod>
- *
  * @implements Arrayable<array{
  *   jsonrpc: '2.0',
  *   id: int|non-empty-string,
