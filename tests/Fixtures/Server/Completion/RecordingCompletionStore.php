@@ -1,0 +1,64 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * This file is part of the Nexus MCP SDK package.
+ *
+ * (c) 2026 John Paul E. Balandan, CPA <paulbalandan@gmail.com>
+ *
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
+ */
+
+namespace Nexus\Mcp\Tests\Fixtures\Server\Completion;
+
+use Nexus\Mcp\Core\Schema\Prompt\PromptReference;
+use Nexus\Mcp\Core\Schema\Resource\ResourceTemplateReference;
+use Nexus\Mcp\Core\Schema\Result\CompleteResult;
+use Nexus\Mcp\Server\Completion\CompletionStoreInterface;
+use Nexus\Mcp\Server\ServerContext;
+
+/**
+ * Records every `complete()` invocation in-memory for assertion in tests.
+ *
+ * @internal
+ *
+ * @phpstan-type RecordedCall array{
+ *     ref: PromptReference|ResourceTemplateReference,
+ *     argumentName: string,
+ *     argumentValue: string,
+ *     contextArguments: ?array<string, string>,
+ *     context: ServerContext,
+ * }
+ */
+final class RecordingCompletionStore implements CompletionStoreInterface
+{
+    /**
+     * @var list<RecordedCall>
+     */
+    public private(set) array $calls = [];
+
+    public function __construct(private readonly CompleteResult $result)
+    {
+    }
+
+    #[\Override]
+    public function complete(
+        PromptReference|ResourceTemplateReference $ref,
+        string $argumentName,
+        string $argumentValue,
+        ?array $contextArguments,
+        ServerContext $context,
+    ): CompleteResult {
+        $this->calls[] = [
+            'ref' => $ref,
+            'argumentName' => $argumentName,
+            'argumentValue' => $argumentValue,
+            'contextArguments' => $contextArguments,
+            'context' => $context,
+        ];
+
+        return $this->result;
+    }
+}
