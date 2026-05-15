@@ -14,7 +14,10 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Handler;
 
 use Amp\Cancellation;
+use Nexus\Mcp\Core\Schema\Enum\LoggingLevel;
+use Nexus\Mcp\Core\Schema\Notification\LoggingMessageNotification;
 use Nexus\Mcp\Core\Schema\Notification\ProgressNotification;
+use Nexus\Mcp\Core\Schema\NotificationParams\LoggingMessageNotificationParams;
 use Nexus\Mcp\Core\Schema\NotificationParams\ProgressNotificationParams;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestMetaObject;
@@ -44,6 +47,13 @@ abstract readonly class AbstractContext
 
         $this->sender->sendNotification(new ProgressNotification(
             new ProgressNotificationParams($token, $progress, $total, $message),
+        ));
+    }
+
+    public function log(LoggingLevel $level, mixed $data, ?string $logger = null): void
+    {
+        $this->sender->sendNotification(new LoggingMessageNotification(
+            new LoggingMessageNotificationParams($level, $data, $logger),
         ));
     }
 }

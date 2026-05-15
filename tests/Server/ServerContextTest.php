@@ -15,7 +15,10 @@ namespace Nexus\Mcp\Tests\Server;
 
 use Amp\NullCancellation;
 use Nexus\Mcp\Core\Handler\AbstractContext;
+use Nexus\Mcp\Core\Schema\Enum\LoggingLevel;
+use Nexus\Mcp\Core\Schema\Notification\LoggingMessageNotification;
 use Nexus\Mcp\Core\Schema\Notification\ProgressNotification;
+use Nexus\Mcp\Core\Schema\NotificationParams\LoggingMessageNotificationParams;
 use Nexus\Mcp\Core\Schema\NotificationParams\ProgressNotificationParams;
 use Nexus\Mcp\Core\Schema\ProgressToken;
 use Nexus\Mcp\Core\Schema\RequestId;
@@ -100,5 +103,47 @@ final class ServerContextTest extends TestCase
         $context->reportProgress(0.5);
 
         self::assertSame([], $sender->notifications);
+    }
+
+    public function testLogSendsNotificationAtTheGivenLevel(): void
+    {
+        $sender = new RecordingSender();
+        $context = new ServerContext(
+            new RequestId(1),
+            new NullCancellation(),
+            new RequestMetaObject(),
+            null,
+            $sender,
+        );
+
+        $context->log(LoggingLevel::Warning, ['code' => 'slow', 'duration_ms' => 1200], 'tools/echo');
+
+        $expected = new LoggingMessageNotification(
+            new LoggingMessageNotificationParams(LoggingLevel::Warning, ['code' => 'slow', 'duration_ms' => 1200], 'tools/echo'),
+        );
+
+        self::assertCount(1, $sender->notifications);
+        self::assertSame($expected->toArray(), $sender->notifications[0]->toArray());
+    }
+
+    public function testLogOmitsLoggerWhenNotProvided(): void
+    {
+        $sender = new RecordingSender();
+        $context = new ServerContext(
+            new RequestId(1),
+            new NullCancellation(),
+            new RequestMetaObject(),
+            null,
+            $sender,
+        );
+
+        $context->log(LoggingLevel::Info, 'starting');
+
+        $expected = new LoggingMessageNotification(
+            new LoggingMessageNotificationParams(LoggingLevel::Info, 'starting'),
+        );
+
+        self::assertCount(1, $sender->notifications);
+        self::assertSame($expected->toArray(), $sender->notifications[0]->toArray());
     }
 }
