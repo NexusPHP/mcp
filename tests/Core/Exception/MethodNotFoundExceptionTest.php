@@ -36,7 +36,7 @@ final class MethodNotFoundExceptionTest extends TestCase
 
         self::assertSame('vendor/whatever', $e->method);
         self::assertNull($e->requestId);
-        self::assertSame('No class registered for method "vendor/whatever".', $e->getMessage());
+        self::assertSame('No registration found for method "vendor/whatever".', $e->getMessage());
     }
 
     public function testCarriesProvidedRequestIdAndPrevious(): void

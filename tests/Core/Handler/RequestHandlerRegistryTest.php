@@ -59,7 +59,7 @@ final class RequestHandlerRegistryTest extends TestCase
             self::fail('Expected MethodNotFoundException.');
         } catch (MethodNotFoundException $e) {
             self::assertSame('vendor/unknown', $e->method);
-            self::assertSame('No class registered for method "vendor/unknown".', $e->getMessage());
+            self::assertSame('No registration found for method "vendor/unknown".', $e->getMessage());
         }
     }
 

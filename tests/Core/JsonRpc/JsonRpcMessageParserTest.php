@@ -244,7 +244,7 @@ final class JsonRpcMessageParserTest extends TestCase
             self::assertSame('vendor/unknown', $e->method);
             self::assertSame(9, $e->requestId?->id);
             self::assertSame(ProtocolErrorCode::MethodNotFound, MethodNotFoundException::errorCode());
-            self::assertSame('No class registered for method "vendor/unknown".', $e->getMessage());
+            self::assertSame('No registration found for method "vendor/unknown".', $e->getMessage());
         }
     }
 
@@ -261,7 +261,7 @@ final class JsonRpcMessageParserTest extends TestCase
         } catch (MethodNotFoundException $e) {
             self::assertSame('notifications/__test_only__', $e->method);
             self::assertNull($e->requestId, 'Notifications carry no id.');
-            self::assertSame('No class registered for method "notifications/__test_only__".', $e->getMessage());
+            self::assertSame('No registration found for method "notifications/__test_only__".', $e->getMessage());
         }
     }
 
@@ -406,6 +406,18 @@ final class JsonRpcMessageParserTest extends TestCase
         } catch (AbstractJsonRpcProtocolException $e) {
             self::assertSame(ProtocolErrorCode::MethodNotFound, $e::errorCode());
             self::assertSame(1, $e->requestId?->id);
+        }
+    }
+
+    public function testParseDropsRequestIdWhenEnvelopeIdIsEmptyString(): void
+    {
+        $parser = new JsonRpcMessageParser();
+
+        try {
+            $parser->parse(['jsonrpc' => '2.0', 'id' => '', 'method' => 'unknown/method']);
+            self::fail('Expected a MethodNotFoundException.');
+        } catch (MethodNotFoundException $e) {
+            self::assertNull($e->requestId, 'An empty-string envelope id cannot be wrapped into a RequestId, so the exception carries null.');
         }
     }
 }
