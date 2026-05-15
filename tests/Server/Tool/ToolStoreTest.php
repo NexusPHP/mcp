@@ -22,6 +22,7 @@ use Nexus\Mcp\Core\Schema\Tool\Tool;
 use Nexus\Mcp\Server\Exception\InvalidCursorException;
 use Nexus\Mcp\Server\Exception\ToolNotFoundException;
 use Nexus\Mcp\Server\ServerContext;
+use Nexus\Mcp\Server\Tool\ClosureToolExecutor;
 use Nexus\Mcp\Server\Tool\ToolStore;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -125,19 +126,19 @@ final class ToolStoreTest extends TestCase
         $store = new ToolStore([
             'alpha' => [
                 'tool' => self::makeTool('alpha'),
-                'executor' => static function (?array $arguments, ServerContext $context) use ($alphaResult, &$captured): CallToolResult {
+                'executor' => new ClosureToolExecutor(static function (?array $arguments, ServerContext $context) use ($alphaResult, &$captured): CallToolResult {
                     $captured[] = ['name' => 'alpha', 'arguments' => $arguments, 'sessionId' => $context->sessionId];
 
                     return $alphaResult;
-                },
+                }),
             ],
             'beta' => [
                 'tool' => self::makeTool('beta'),
-                'executor' => static function (?array $arguments, ServerContext $context) use ($betaResult, &$captured): CallToolResult {
+                'executor' => new ClosureToolExecutor(static function (?array $arguments, ServerContext $context) use ($betaResult, &$captured): CallToolResult {
                     $captured[] = ['name' => 'beta', 'arguments' => $arguments, 'sessionId' => $context->sessionId];
 
                     return $betaResult;
-                },
+                }),
             ],
         ]);
 
@@ -165,7 +166,7 @@ final class ToolStoreTest extends TestCase
     }
 
     /**
-     * @return array<non-empty-string, array{tool: Tool, executor: \Closure(?array<string, mixed>, ServerContext): CallToolResult}>
+     * @return array<non-empty-string, array{tool: Tool, executor: ClosureToolExecutor}>
      */
     private static function makeEntries(string ...$names): array
     {
@@ -179,12 +180,11 @@ final class ToolStoreTest extends TestCase
         return $entries;
     }
 
-    /**
-     * @return \Closure(?array<string, mixed>, ServerContext): CallToolResult
-     */
-    private static function makeExecutor(): \Closure
+    private static function makeExecutor(): ClosureToolExecutor
     {
-        return static fn(?array $arguments, ServerContext $context): CallToolResult => new CallToolResult([]);
+        return new ClosureToolExecutor(
+            static fn(?array $arguments, ServerContext $context): CallToolResult => new CallToolResult([]),
+        );
     }
 
     private static function makeContext(): ServerContext

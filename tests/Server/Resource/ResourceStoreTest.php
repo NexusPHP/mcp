@@ -21,6 +21,7 @@ use Nexus\Mcp\Core\Schema\Resource\Resource;
 use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
 use Nexus\Mcp\Server\Exception\InvalidCursorException;
 use Nexus\Mcp\Server\Exception\ResourceNotFoundException;
+use Nexus\Mcp\Server\Resource\ClosureResourceReader;
 use Nexus\Mcp\Server\Resource\ResourceStore;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
@@ -131,19 +132,19 @@ final class ResourceStoreTest extends TestCase
         $store = new ResourceStore([
             'file:///alpha.txt' => [
                 'resource' => new Resource('alpha', 'file:///alpha.txt'),
-                'reader' => static function (string $uri, ServerContext $context) use ($alphaResult, &$captured): ReadResourceResult {
+                'reader' => new ClosureResourceReader(static function (string $uri, ServerContext $context) use ($alphaResult, &$captured): ReadResourceResult {
                     $captured[] = ['key' => 'alpha', 'uri' => $uri, 'sessionId' => $context->sessionId];
 
                     return $alphaResult;
-                },
+                }),
             ],
             'file:///beta.txt' => [
                 'resource' => new Resource('beta', 'file:///beta.txt'),
-                'reader' => static function (string $uri, ServerContext $context) use ($betaResult, &$captured): ReadResourceResult {
+                'reader' => new ClosureResourceReader(static function (string $uri, ServerContext $context) use ($betaResult, &$captured): ReadResourceResult {
                     $captured[] = ['key' => 'beta', 'uri' => $uri, 'sessionId' => $context->sessionId];
 
                     return $betaResult;
-                },
+                }),
             ],
         ]);
 
@@ -168,7 +169,7 @@ final class ResourceStoreTest extends TestCase
     /**
      * @param array{non-empty-string, non-empty-string} ...$pairs
      *
-     * @return array<non-empty-string, array{resource: Resource, reader: \Closure(string, ServerContext): ReadResourceResult}>
+     * @return array<non-empty-string, array{resource: Resource, reader: ClosureResourceReader}>
      */
     private static function makeEntries(array ...$pairs): array
     {
@@ -181,12 +182,11 @@ final class ResourceStoreTest extends TestCase
         return $entries;
     }
 
-    /**
-     * @return \Closure(string, ServerContext): ReadResourceResult
-     */
-    private static function makeReader(): \Closure
+    private static function makeReader(): ClosureResourceReader
     {
-        return static fn(string $uri, ServerContext $context): ReadResourceResult => new ReadResourceResult([]);
+        return new ClosureResourceReader(
+            static fn(string $uri, ServerContext $context): ReadResourceResult => new ReadResourceResult([]),
+        );
     }
 
     private static function makeContext(): ServerContext

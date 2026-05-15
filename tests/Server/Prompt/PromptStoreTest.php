@@ -21,6 +21,7 @@ use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
 use Nexus\Mcp\Server\Exception\InvalidCursorException;
 use Nexus\Mcp\Server\Exception\PromptNotFoundException;
+use Nexus\Mcp\Server\Prompt\ClosurePromptRenderer;
 use Nexus\Mcp\Server\Prompt\PromptStore;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
@@ -125,19 +126,19 @@ final class PromptStoreTest extends TestCase
         $store = new PromptStore([
             'alpha' => [
                 'prompt' => new Prompt('alpha'),
-                'renderer' => static function (?array $arguments, ServerContext $context) use ($alphaResult, &$captured): GetPromptResult {
+                'renderer' => new ClosurePromptRenderer(static function (?array $arguments, ServerContext $context) use ($alphaResult, &$captured): GetPromptResult {
                     $captured[] = ['name' => 'alpha', 'arguments' => $arguments, 'sessionId' => $context->sessionId];
 
                     return $alphaResult;
-                },
+                }),
             ],
             'beta' => [
                 'prompt' => new Prompt('beta'),
-                'renderer' => static function (?array $arguments, ServerContext $context) use ($betaResult, &$captured): GetPromptResult {
+                'renderer' => new ClosurePromptRenderer(static function (?array $arguments, ServerContext $context) use ($betaResult, &$captured): GetPromptResult {
                     $captured[] = ['name' => 'beta', 'arguments' => $arguments, 'sessionId' => $context->sessionId];
 
                     return $betaResult;
-                },
+                }),
             ],
         ]);
 
@@ -160,7 +161,7 @@ final class PromptStoreTest extends TestCase
     }
 
     /**
-     * @return array<non-empty-string, array{prompt: Prompt, renderer: \Closure(?array<string, string>, ServerContext): GetPromptResult}>
+     * @return array<non-empty-string, array{prompt: Prompt, renderer: ClosurePromptRenderer}>
      */
     private static function makeEntries(string ...$names): array
     {
@@ -174,12 +175,11 @@ final class PromptStoreTest extends TestCase
         return $entries;
     }
 
-    /**
-     * @return \Closure(?array<string, string>, ServerContext): GetPromptResult
-     */
-    private static function makeRenderer(): \Closure
+    private static function makeRenderer(): ClosurePromptRenderer
     {
-        return static fn(?array $arguments, ServerContext $context): GetPromptResult => new GetPromptResult([]);
+        return new ClosurePromptRenderer(
+            static fn(?array $arguments, ServerContext $context): GetPromptResult => new GetPromptResult([]),
+        );
     }
 
     private static function makeContext(): ServerContext
