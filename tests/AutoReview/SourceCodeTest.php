@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\AutoReview;
 
+use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -52,6 +53,24 @@ final class SourceCodeTest extends TestCase
         \T_IS_NOT_IDENTICAL,
         \T_IS_EQUAL,
         \T_IS_NOT_EQUAL,
+    ];
+    private const array CONTROL_FLOW_KEYWORD_TOKEN_IDS = [
+        \T_RETURN,
+        \T_WHILE,
+        \T_IF,
+        \T_ELSEIF,
+        \T_FOREACH,
+    ];
+
+    /**
+     * Classes that intentionally provide a public instance method outside their
+     * declared interface contract. The JSON-RPC success-response wrapper has
+     * `toArray()` without implementing `Arrayable` because the envelope carries
+     * no method-name discriminator for results, so it cannot honestly fulfil
+     * the round-trip `fromArray()` half of the contract (per project CLAUDE.md).
+     */
+    private const array INTERFACE_FAITHFULNESS_EXEMPT = [
+        JsonRpcResultResponse::class,
     ];
 
     /**
@@ -140,6 +159,259 @@ final class SourceCodeTest extends TestCase
         }
     }
 
+    #[DataProvider('provideNoAssignmentInControlFlowExpressionCases')]
+    public function testNoAssignmentInControlFlowExpression(string $relativePath, string $absolutePath): void
+    {
+        $source = file_get_contents($absolutePath);
+        self::assertIsString($source, \sprintf('Could not read "%s".', $relativePath));
+
+        $report = array_map(
+            static fn(array $violation): string => \sprintf(
+                '  line %d: assignment inside `%s` expression; split the assignment onto its own statement.',
+                $violation['line'],
+                $violation['keyword'],
+            ),
+            self::findAssignmentInControlFlowViolations($source),
+        );
+
+        self::assertSame([], $report, \sprintf(
+            "%s mixes assignment with a control-flow expression (do not write `return \$x = …;`, `while (\$x = …)`, etc.):\n%s",
+            $relativePath,
+            implode("\n", $report),
+        ));
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function provideNoAssignmentInControlFlowExpressionCases(): iterable
+    {
+        foreach (self::getPhpFiles() as [$relativePath, $absolutePath]) {
+            yield $relativePath => [$relativePath, $absolutePath];
+        }
+    }
+
+    /**
+     * @param class-string $class
+     */
+    #[DataProvider('provideSeeTagComesLastInClassDocblockCases')]
+    public function testSeeTagComesLastInClassDocblock(string $class): void
+    {
+        $reflection = new \ReflectionClass($class);
+        $docComment = $reflection->getDocComment();
+
+        if (! \is_string($docComment)) {
+            $this->expectNotToPerformAssertions();
+
+            return;
+        }
+
+        preg_match_all('/^\s*\*\s*(@\S+)/m', $docComment, $matches);
+        $tags = $matches[1];
+
+        if (! \in_array('@see', $tags, true)) {
+            $this->expectNotToPerformAssertions();
+
+            return;
+        }
+
+        self::assertSame('@see', end($tags), \sprintf(
+            'Class "%s": `@see` must be the last tag in the docblock (after `@implements`/`@extends`/`@template*`/`@phpstan-type`), but the last tag is "%s".',
+            $class,
+            end($tags),
+        ));
+    }
+
+    /**
+     * @return iterable<class-string, array{class-string}>
+     */
+    public static function provideSeeTagComesLastInClassDocblockCases(): iterable
+    {
+        foreach (self::getSourceClasses() as $class) {
+            yield $class => [$class];
+        }
+    }
+
+    /**
+     * @param class-string $class
+     */
+    #[DataProvider('provideClassNamingConventionsCases')]
+    public function testSourceClassDoesNotExposeProperties(string $class): void
+    {
+        $rc = new \ReflectionClass($class);
+
+        if ($rc->isInterface()) {
+            $this->expectNotToPerformAssertions();
+
+            return;
+        }
+
+        $nonReadOnlyPublicProperties = array_filter(
+            $rc->getProperties(\ReflectionProperty::IS_PUBLIC),
+            static fn(\ReflectionProperty $rp): bool => ! $rp->isReadOnly(),
+        );
+        self::assertEmpty($nonReadOnlyPublicProperties, \sprintf(
+            "Class \"%s\" has public properties which are not read-only.\n%s",
+            $class,
+            implode("\n", array_map(
+                static fn(\ReflectionProperty $rp): string => \sprintf('  * $%s', $rp->getName()),
+                $nonReadOnlyPublicProperties,
+            )),
+        ));
+
+        if ($rc->isAbstract()) {
+            // Abstract classes own their protected props as forwarded state for subclasses.
+            return;
+        }
+
+        $declaredProtectedProps = array_map(
+            static fn(\ReflectionProperty $rp): string => $rp->getName(),
+            $rc->getProperties(\ReflectionProperty::IS_PROTECTED),
+        );
+
+        $allowedProtectedProps = [];
+        $parent = $rc->getParentClass();
+
+        while (false !== $parent) {
+            $allowedProtectedProps = [
+                ...$allowedProtectedProps,
+                ...array_map(
+                    static fn(\ReflectionProperty $rp): string => $rp->getName(),
+                    $parent->getProperties(\ReflectionProperty::IS_PROTECTED),
+                ),
+            ];
+            $parent = $parent->getParentClass();
+        }
+
+        $extraProtectedProps = array_diff($declaredProtectedProps, $allowedProtectedProps);
+        sort($extraProtectedProps);
+
+        self::assertEmpty($extraProtectedProps, \sprintf(
+            "Class \"%s\" has protected properties not defined by its parent classes; consider private visibility.\n%s",
+            $class,
+            implode("\n", array_map(
+                static fn(string $name): string => \sprintf('  * $%s', $name),
+                $extraProtectedProps,
+            )),
+        ));
+    }
+
+    /**
+     * @param class-string $class
+     */
+    #[DataProvider('provideSourceClassDoesNotAbuseInterfacesCases')]
+    public function testSourceClassDoesNotAbuseInterfaces(string $class): void
+    {
+        $rc = new \ReflectionClass($class);
+
+        $allowedMethods = ['__construct', '__destruct', '__wakeup'];
+
+        foreach ($rc->getInterfaces() as $interface) {
+            $allowedMethods = [...$allowedMethods, ...self::getInstanceMethodNames($interface)];
+        }
+
+        $parent = $rc->getParentClass();
+
+        while (false !== $parent) {
+            $allowedMethods = [...$allowedMethods, ...self::getInstanceMethodNames($parent)];
+            $parent = $parent->getParentClass();
+        }
+
+        $extraMethods = array_values(array_diff(self::getInstanceMethodNames($rc), array_unique($allowedMethods)));
+        sort($extraMethods);
+
+        self::assertEmpty($extraMethods, \sprintf(
+            "Class \"%s\" has public methods that are not part of its implemented interfaces (or inherited from a parent class).\n%s",
+            $class,
+            implode("\n", array_map(
+                static fn(string $method): string => \sprintf('  * public function %s()', $method),
+                $extraMethods,
+            )),
+        ));
+    }
+
+    /**
+     * @return iterable<class-string, array{class-string}>
+     */
+    public static function provideSourceClassDoesNotAbuseInterfacesCases(): iterable
+    {
+        foreach (self::getSourceClasses() as $class) {
+            $reflection = new \ReflectionClass($class);
+            $docComment = $reflection->getDocComment();
+
+            if (\is_string($docComment) && str_contains($docComment, '@internal')) {
+                continue;
+            }
+
+            if ($reflection->isInterface() || $reflection->isTrait()) {
+                continue;
+            }
+
+            if ([] === $reflection->getInterfaceNames()) {
+                continue;
+            }
+
+            if (\in_array($class, self::INTERFACE_FAITHFULNESS_EXEMPT, true)) {
+                continue;
+            }
+
+            yield $class => [$class];
+        }
+    }
+
+    /**
+     * @param class-string $class
+     */
+    #[DataProvider('provideClassNamingConventionsCases')]
+    public function testSourceClassDoesNotHaveUnnecessaryProtectedMethods(string $class): void
+    {
+        $rc = new \ReflectionClass($class);
+
+        if ($rc->isAbstract() || $rc->isInterface() || $rc->isTrait()) {
+            $this->expectNotToPerformAssertions();
+
+            return;
+        }
+
+        $declaredProtectedMethods = array_map(
+            static fn(\ReflectionMethod $rm): string => $rm->getName(),
+            $rc->getMethods(\ReflectionMethod::IS_PROTECTED),
+        );
+
+        if ([] === $declaredProtectedMethods) {
+            $this->expectNotToPerformAssertions();
+
+            return;
+        }
+
+        $allowedProtectedMethods = [];
+        $parent = $rc->getParentClass();
+
+        while (false !== $parent) {
+            $allowedProtectedMethods = [
+                ...$allowedProtectedMethods,
+                ...array_map(
+                    static fn(\ReflectionMethod $rm): string => $rm->getName(),
+                    $parent->getMethods(\ReflectionMethod::IS_PROTECTED),
+                ),
+            ];
+            $parent = $parent->getParentClass();
+        }
+
+        $unnecessary = array_diff($declaredProtectedMethods, array_unique($allowedProtectedMethods));
+        sort($unnecessary);
+
+        self::assertEmpty($unnecessary, \sprintf(
+            "Class \"%s\" has protected method%s not inherited from a parent class; consider private visibility.\n%s",
+            $class,
+            \count($unnecessary) > 1 ? 's' : '',
+            implode("\n", array_map(
+                static fn(string $name): string => \sprintf('  * protected function %s()', $name),
+                $unnecessary,
+            )),
+        ));
+    }
+
     /**
      * @param class-string $class
      */
@@ -222,6 +494,28 @@ final class SourceCodeTest extends TestCase
         foreach (self::getSourceClasses() as $class) {
             yield $class => [$class];
         }
+    }
+
+    /**
+     * Public instance methods only. Static methods are excluded because PHP
+     * interfaces cannot declare static methods, so a static factory or helper
+     * cannot be expressed via the interface contract being checked.
+     *
+     * @template T of object
+     *
+     * @param \ReflectionClass<T> $rc
+     *
+     * @return list<string>
+     */
+    private static function getInstanceMethodNames(\ReflectionClass $rc): array
+    {
+        return array_values(array_map(
+            static fn(\ReflectionMethod $rm): string => $rm->getName(),
+            array_filter(
+                $rc->getMethods(\ReflectionMethod::IS_PUBLIC),
+                static fn(\ReflectionMethod $rm): bool => ! $rm->isStatic(),
+            ),
+        ));
     }
 
     /**
@@ -444,5 +738,107 @@ final class SourceCodeTest extends TestCase
         }
 
         return $i;
+    }
+
+    /**
+     * Token-walks the source for `return $x = …;` and `KEYWORD ($x = …)` shapes
+     * (`while`, `if`, `elseif`, `foreach`). Distinguishes the bare `=` token from
+     * compound operators (`==`, `===`, `+=`, etc.) which carry their own token IDs.
+     *
+     * @return list<array{line: int, keyword: string}>
+     */
+    private static function findAssignmentInControlFlowViolations(string $source): array
+    {
+        $tokens = token_get_all($source);
+        $violations = [];
+
+        foreach ($tokens as $i => $token) {
+            if (! \is_array($token) || ! \in_array($token[0], self::CONTROL_FLOW_KEYWORD_TOKEN_IDS, true)) {
+                continue;
+            }
+
+            $keyword = $token[1];
+            $line = $token[2];
+
+            if (\T_RETURN === $token[0]) {
+                if (self::scanReturnExpressionForAssignment($tokens, $i + 1)) {
+                    $violations[] = ['line' => $line, 'keyword' => $keyword];
+                }
+
+                continue;
+            }
+
+            $parenStart = self::skipTrivia($tokens, $i + 1);
+
+            if (! isset($tokens[$parenStart]) || '(' !== $tokens[$parenStart]) {
+                continue;
+            }
+
+            if (self::scanParenthesisedExpressionForAssignment($tokens, $parenStart)) {
+                $violations[] = ['line' => $line, 'keyword' => $keyword];
+            }
+        }
+
+        return $violations;
+    }
+
+    /**
+     * @param list<array{int, string, int}|string> $tokens
+     */
+    private static function scanReturnExpressionForAssignment(array $tokens, int $start): bool
+    {
+        $depth = 0;
+
+        for ($i = $start; isset($tokens[$i]); ++$i) {
+            $token = $tokens[$i];
+
+            if (\is_string($token)) {
+                if (0 === $depth && ';' === $token) {
+                    return false;
+                }
+
+                if (0 === $depth && '=' === $token) {
+                    return true;
+                }
+
+                if (\in_array($token, ['(', '[', '{'], true)) {
+                    ++$depth;
+                } elseif (\in_array($token, [')', ']', '}'], true)) {
+                    --$depth;
+                }
+            } elseif (\T_CURLY_OPEN === $token[0] || \T_DOLLAR_OPEN_CURLY_BRACES === $token[0]) {
+                ++$depth;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param list<array{int, string, int}|string> $tokens
+     */
+    private static function scanParenthesisedExpressionForAssignment(array $tokens, int $openParenIndex): bool
+    {
+        $depth = 1;
+
+        for ($i = $openParenIndex + 1; isset($tokens[$i]) && $depth > 0; ++$i) {
+            $token = $tokens[$i];
+
+            if (\is_string($token)) {
+                if ('=' === $token) {
+                    return true;
+                }
+
+                if (\in_array($token, ['(', '[', '{'], true)) {
+                    ++$depth;
+                } elseif (\in_array($token, [')', ']', '}'], true)) {
+                    --$depth;
+                }
+            } elseif (\T_CURLY_OPEN === $token[0] || \T_DOLLAR_OPEN_CURLY_BRACES === $token[0]) {
+                ++$depth;
+            }
+        }
+
+        return false;
     }
 }

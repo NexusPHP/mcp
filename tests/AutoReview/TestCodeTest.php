@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\AutoReview;
 
+use Nexus\Mcp\Core\Transport\ReceiveContext;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -36,9 +37,29 @@ final class TestCodeTest extends TestCase
     ];
 
     /**
+     * Concrete source classes that intentionally have no dedicated test class.
+     * Each entry is justified inline so the gate documents the exemption.
+     */
+    private const array SOURCE_CLASSES_WITHOUT_TESTS = [
+        // Empty placeholder VO. Gains typed slots when streamable HTTP transport
+        // lands and gets a test then.
+        ReceiveContext::class,
+    ];
+
+    /**
      * @var list<class-string<TestCase>>
      */
     private static array $testClasses = [];
+
+    /**
+     * @var list<class-string>
+     */
+    private static array $sourceClasses = [];
+
+    /**
+     * @var array<class-string, list<class-string>>
+     */
+    private static array $coveredClassesByTest = [];
 
     /**
      * @var array<string, array{class-string<TestCase>, non-empty-string}>
@@ -187,6 +208,88 @@ final class TestCodeTest extends TestCase
     }
 
     /**
+     * Verify each concrete source class has either a same-named test class
+     * (e.g. `Foo\Bar` → `Tests\Foo\BarTest`) or is referenced via `#[CoversClass]`
+     * in some test class. Catches source classes that ship with zero tests.
+     *
+     * @param class-string $class
+     */
+    #[DataProvider('provideEachSourceClassHasTestClassCases')]
+    public function testEachSourceClassHasTestClass(string $class): void
+    {
+        $expectedTestClassName = str_replace('Nexus\\Mcp\\', 'Nexus\\Mcp\\Tests\\', $class).'Test';
+
+        if (! class_exists($expectedTestClassName)) {
+            foreach (self::getCoveredClassesByTest() as $testClassName => $coveredClasses) {
+                if (\in_array($class, $coveredClasses, true)) {
+                    $expectedTestClassName = $testClassName;
+
+                    break;
+                }
+            }
+        }
+
+        if (\in_array($class, self::SOURCE_CLASSES_WITHOUT_TESTS, true)) {
+            self::assertFalse(class_exists($expectedTestClassName), \sprintf(
+                'Class "%s" already has tests via "%s"; remove it from %s::SOURCE_CLASSES_WITHOUT_TESTS.',
+                $class,
+                $expectedTestClassName,
+                self::class,
+            ));
+            self::markTestIncomplete(\sprintf('Class "%s" has no tests yet. Please help to add them.', $class));
+        }
+
+        self::assertTrue(class_exists($expectedTestClassName), \sprintf(
+            'Expected test class "%s" for "%s" was not found. Add a test or list the source class in %s::SOURCE_CLASSES_WITHOUT_TESTS with justification.',
+            $expectedTestClassName,
+            $class,
+            self::class,
+        ));
+    }
+
+    /**
+     * @return iterable<class-string, array{class-string}>
+     */
+    public static function provideEachSourceClassHasTestClassCases(): iterable
+    {
+        foreach (self::getSourceClasses() as $class) {
+            $reflection = new \ReflectionClass($class);
+
+            if ($reflection->isAbstract() || $reflection->isInterface() || $reflection->isTrait()) {
+                continue;
+            }
+
+            if ($reflection->isEnum()) {
+                $publicMethods = array_filter(
+                    array_map(
+                        static fn(\ReflectionMethod $rm): string => $rm->getName(),
+                        $reflection->getMethods(\ReflectionMethod::IS_PUBLIC),
+                    ),
+                    static fn(string $name): bool => ! \in_array($name, ['from', 'tryFrom', 'cases'], true),
+                );
+
+                if ([] === $publicMethods) {
+                    continue;
+                }
+            }
+
+            if ($reflection->isSubclassOf(\Throwable::class)) {
+                $declaredHere = array_filter(
+                    $reflection->getMethods(\ReflectionMethod::IS_PUBLIC),
+                    static fn(\ReflectionMethod $rm): bool => $rm->getDeclaringClass()->getName() === $reflection->getName()
+                        && $rm->getName() !== '__construct',
+                );
+
+                if ([] === $declaredHere) {
+                    continue;
+                }
+            }
+
+            yield $class => [$class];
+        }
+    }
+
+    /**
      * @param class-string<TestCase> $testClassName
      */
     #[DataProvider('provideDataProviderMethodCases')]
@@ -263,6 +366,83 @@ final class TestCodeTest extends TestCase
         }
 
         yield from self::$dataProviderMethods;
+    }
+
+    /**
+     * @return list<class-string>
+     */
+    private static function getSourceClasses(): array
+    {
+        if ([] !== self::$sourceClasses) {
+            return self::$sourceClasses;
+        }
+
+        $directory = realpath(__DIR__.'/../../src');
+        \assert(\is_string($directory));
+
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator(
+                $directory,
+                \FilesystemIterator::SKIP_DOTS | \FilesystemIterator::UNIX_PATHS,
+            ),
+            \RecursiveIteratorIterator::CHILD_FIRST,
+        );
+
+        $classes = [];
+
+        foreach ($iterator as $file) {
+            \assert($file instanceof \SplFileInfo);
+
+            if (! $file->isFile() || $file->getExtension() !== 'php') {
+                continue;
+            }
+
+            $relativePath = substr($file->getPathname(), \strlen($directory) + 1, -4);
+            $class = 'Nexus\\Mcp\\'.strtr($relativePath, '/', '\\');
+
+            if (class_exists($class) || interface_exists($class) || enum_exists($class) || trait_exists($class)) {
+                $classes[] = $class;
+            }
+        }
+
+        sort($classes);
+
+        self::$sourceClasses = $classes;
+
+        return self::$sourceClasses;
+    }
+
+    /**
+     * @return array<class-string, list<class-string>>
+     */
+    private static function getCoveredClassesByTest(): array
+    {
+        if ([] !== self::$coveredClassesByTest) {
+            return self::$coveredClassesByTest;
+        }
+
+        $index = [];
+
+        foreach (self::getTestClasses() as $testClassName) {
+            $reflection = new \ReflectionClass($testClassName);
+            $covered = array_map(
+                static function (\ReflectionAttribute $attribute): string {
+                    $covers = $attribute->newInstance();
+                    \assert($covers instanceof CoversClass);
+
+                    return $covers->className();
+                },
+                $reflection->getAttributes(CoversClass::class),
+            );
+
+            if ([] !== $covered) {
+                $index[$testClassName] = array_values($covered);
+            }
+        }
+
+        self::$coveredClassesByTest = $index;
+
+        return self::$coveredClassesByTest;
     }
 
     /**
