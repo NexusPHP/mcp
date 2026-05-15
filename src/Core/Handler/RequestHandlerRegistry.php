@@ -18,7 +18,7 @@ use Nexus\Mcp\Core\Exception\MethodNotFoundException;
 use Nexus\Mcp\Core\Schema\Result;
 
 /**
- * Method name to {@see RequestHandlerInterface} dispatch table.
+ * Method name to `RequestHandlerInterface` dispatch table.
  *
  * @template TContext of AbstractContext
  */

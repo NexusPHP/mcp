@@ -19,7 +19,7 @@ use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\Result;
 
 /**
- * Outbound message pump used by {@see AbstractContext} helpers.
+ * Outbound message pump used by `AbstractContext` helpers.
  */
 interface SenderInterface
 {

@@ -29,11 +29,6 @@ use Nexus\Mcp\Core\Schema\Result;
 /**
  * Parses decoded JSON-RPC envelopes into concrete message objects.
  *
- * The single entry point {@see self::parse()} dispatches structurally:
- * `error` to an error response, `result` to a success response (which requires
- * the caller-supplied {@see Result} subclass since the envelope carries no
- * method name), and `method` to a request or notification by id presence.
- *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/basic
  */
 final class JsonRpcMessageParser
@@ -49,7 +44,7 @@ final class JsonRpcMessageParser
     private readonly array $notifications;
 
     /**
-     * Caller-supplied maps merge over the spec defaults from {@see JsonRpcMethodRegistry}
+     * Caller-supplied maps merge over the spec defaults from `JsonRpcMethodRegistry`
      * with per-key precedence (caller wins). Two semantically distinct uses share the
      * same parameter:
      *
@@ -60,7 +55,7 @@ final class JsonRpcMessageParser
      *
      * No validation distinguishes these cases, so a typo in an override key (e.g.
      * `'initiailze' => ...`) silently registers a dead method instead of overriding.
-     * Verify the key matches a {@see JsonRpcMethodRegistry} entry when overriding.
+     * Verify the key matches a `JsonRpcMethodRegistry` entry when overriding.
      *
      * @param array<non-empty-string, class-string<JsonRpcRequest<non-empty-string>>>      $requests
      * @param array<non-empty-string, class-string<JsonRpcNotification<non-empty-string>>> $notifications

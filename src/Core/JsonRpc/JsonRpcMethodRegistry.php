@@ -19,13 +19,7 @@ use Nexus\Mcp\Core\Schema\Notification;
 use Nexus\Mcp\Core\Schema\Request;
 
 /**
- * Spec-default method → class maps consumed by {@see JsonRpcMessageParser}.
- *
- * The parser merges caller-supplied maps over these defaults with caller-wins
- * precedence. Two uses of that merge share the same path: overriding a spec
- * method (key matches an entry here) or extending the dispatch table with a
- * vendor method (key does not). The registry itself owns no merge logic; see
- * {@see JsonRpcMessageParser::__construct()} for the override/extension contract.
+ * Spec-default method → class maps consumed by `JsonRpcMessageParser`.
  */
 final class JsonRpcMethodRegistry
 {

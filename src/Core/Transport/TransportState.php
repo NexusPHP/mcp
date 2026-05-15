@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Transport;
 
 /**
- * Lifecycle state of a {@see TransportInterface} instance.
+ * Lifecycle state of a `TransportInterface` instance.
  */
 enum TransportState
 {

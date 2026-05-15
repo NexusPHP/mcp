@@ -17,7 +17,7 @@ use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Exception\MethodNotFoundException;
 
 /**
- * Method name to {@see NotificationHandlerInterface} dispatch table.
+ * Method name to `NotificationHandlerInterface` dispatch table.
  */
 final readonly class NotificationHandlerRegistry
 {
