@@ -358,6 +358,36 @@ final class ToolTest extends TestCase
         ];
     }
 
+    public function testDisplayNameReturnsTitleWhenSet(): void
+    {
+        $tool = new Tool(
+            'read-file',
+            ['type' => 'object'],
+            title: 'Read File',
+            annotations: new ToolAnnotations(title: 'Reader'),
+        );
+
+        self::assertSame('Read File', $tool->displayName());
+    }
+
+    public function testDisplayNameFallsBackToAnnotationsTitleWhenTopLevelTitleNull(): void
+    {
+        $tool = new Tool(
+            'read-file',
+            ['type' => 'object'],
+            annotations: new ToolAnnotations(title: 'Reader'),
+        );
+
+        self::assertSame('Reader', $tool->displayName());
+    }
+
+    public function testDisplayNameFallsBackToNameWhenAllOtherFieldsNull(): void
+    {
+        $tool = new Tool('read-file', ['type' => 'object']);
+
+        self::assertSame('read-file', $tool->displayName());
+    }
+
     /**
      * @return array{type: 'object', '$schema'?: non-empty-string, properties?: array<string, array<string, mixed>>, required?: list<string>}
      */

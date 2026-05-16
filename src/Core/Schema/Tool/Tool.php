@@ -93,6 +93,18 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
     }
 
     /**
+     * Inserts `annotations.title` between `title` and `name` per the spec's
+     * Tool-specific fallback rule.
+     *
+     * @return non-empty-string
+     */
+    #[\Override]
+    public function displayName(): string
+    {
+        return $this->title ?? $this->annotations->title ?? $this->name;
+    }
+
+    /**
      * @param array<string, mixed> $data
      */
     #[\Override]

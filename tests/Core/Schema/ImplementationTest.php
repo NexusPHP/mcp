@@ -254,4 +254,18 @@ final class ImplementationTest extends TestCase
 
         Implementation::fromArray(['name' => 'Nexus MCP', 'version' => '1.0.0', 'icons' => ['not-an-object']]);
     }
+
+    public function testDisplayNameReturnsTitleWhenSet(): void
+    {
+        $implementation = new Implementation('nexus-mcp', '1.0.0', 'Nexus MCP Server');
+
+        self::assertSame('Nexus MCP Server', $implementation->displayName());
+    }
+
+    public function testDisplayNameFallsBackToNameWhenTitleNull(): void
+    {
+        $implementation = new Implementation('nexus-mcp', '1.0.0');
+
+        self::assertSame('nexus-mcp', $implementation->displayName());
+    }
 }

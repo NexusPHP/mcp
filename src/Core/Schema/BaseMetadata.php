@@ -42,4 +42,15 @@ abstract readonly class BaseMetadata
         $this->name = $name;
         $this->title = $title;
     }
+
+    /**
+     * Resolves the spec-defined display name: `title` when set, otherwise the
+     * programmatic `name`. Subclasses override to insert additional fallbacks.
+     *
+     * @return non-empty-string
+     */
+    public function displayName(): string
+    {
+        return $this->title ?? $this->name;
+    }
 }
