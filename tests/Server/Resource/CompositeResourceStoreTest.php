@@ -25,7 +25,9 @@ use Nexus\Mcp\Server\Exception\ResourceNotFoundException;
 use Nexus\Mcp\Server\Resource\ClosureResourceReader;
 use Nexus\Mcp\Server\Resource\ClosureTemplatedResourceReader;
 use Nexus\Mcp\Server\Resource\CompositeResourceStore;
+use Nexus\Mcp\Server\Resource\ResourceEntry;
 use Nexus\Mcp\Server\Resource\ResourceStore;
+use Nexus\Mcp\Server\Resource\ResourceTemplateEntry;
 use Nexus\Mcp\Server\Resource\ResourceTemplateStore;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
@@ -48,24 +50,22 @@ final class CompositeResourceStoreTest extends TestCase
 
         $composite = new CompositeResourceStore(
             new ResourceStore([
-                'file:///etc' => [
-                    'resource' => new Resource('etc', 'file:///etc'),
-                    'reader' => new ClosureResourceReader(
-                        static fn(): ReadResourceResult => $expected,
-                    ),
-                ],
+                'file:///etc' => new ResourceEntry(
+                    new Resource('etc', 'file:///etc'),
+                    new ClosureResourceReader(static fn(): ReadResourceResult => $expected),
+                ),
             ]),
             new ResourceTemplateStore([
-                'file:///{path}' => [
-                    'template' => new ResourceTemplate('files', 'file:///{path}'),
-                    'reader' => new ClosureTemplatedResourceReader(
+                'file:///{path}' => new ResourceTemplateEntry(
+                    new ResourceTemplate('files', 'file:///{path}'),
+                    new ClosureTemplatedResourceReader(
                         static function () use (&$templateCalled): ReadResourceResult {
                             $templateCalled = true;
 
                             return new ReadResourceResult([new TextResourceContents('file:///', 'template')]);
                         },
                     ),
-                ],
+                ),
             ]),
         );
 
@@ -80,12 +80,10 @@ final class CompositeResourceStoreTest extends TestCase
         $composite = new CompositeResourceStore(
             new ResourceStore(),
             new ResourceTemplateStore([
-                'file:///{path}' => [
-                    'template' => new ResourceTemplate('files', 'file:///{path}'),
-                    'reader' => new ClosureTemplatedResourceReader(
-                        static fn(): ReadResourceResult => $expected,
-                    ),
-                ],
+                'file:///{path}' => new ResourceTemplateEntry(
+                    new ResourceTemplate('files', 'file:///{path}'),
+                    new ClosureTemplatedResourceReader(static fn(): ReadResourceResult => $expected),
+                ),
             ]),
         );
 
@@ -97,12 +95,12 @@ final class CompositeResourceStoreTest extends TestCase
         $composite = new CompositeResourceStore(
             new ResourceStore(),
             new ResourceTemplateStore([
-                'weather://{city}' => [
-                    'template' => new ResourceTemplate('weather', 'weather://{city}'),
-                    'reader' => new ClosureTemplatedResourceReader(
+                'weather://{city}' => new ResourceTemplateEntry(
+                    new ResourceTemplate('weather', 'weather://{city}'),
+                    new ClosureTemplatedResourceReader(
                         static fn(): never => throw new \LogicException('unreachable'),
                     ),
-                ],
+                ),
             ]),
         );
 
@@ -116,12 +114,12 @@ final class CompositeResourceStoreTest extends TestCase
         $static = new Resource('etc', 'file:///etc');
         $composite = new CompositeResourceStore(
             new ResourceStore([
-                'file:///etc' => [
-                    'resource' => $static,
-                    'reader' => new ClosureResourceReader(
+                'file:///etc' => new ResourceEntry(
+                    $static,
+                    new ClosureResourceReader(
                         static fn(): never => throw new \LogicException('unreachable'),
                     ),
-                ],
+                ),
             ]),
             new ResourceTemplateStore(),
         );
@@ -137,18 +135,18 @@ final class CompositeResourceStoreTest extends TestCase
         $composite = new CompositeResourceStore(
             new ResourceStore(
                 [
-                    'file:///a' => [
-                        'resource' => new Resource('a', 'file:///a'),
-                        'reader' => new ClosureResourceReader(
+                    'file:///a' => new ResourceEntry(
+                        new Resource('a', 'file:///a'),
+                        new ClosureResourceReader(
                             static fn(): never => throw new \LogicException('unreachable'),
                         ),
-                    ],
-                    'file:///b' => [
-                        'resource' => new Resource('b', 'file:///b'),
-                        'reader' => new ClosureResourceReader(
+                    ),
+                    'file:///b' => new ResourceEntry(
+                        new Resource('b', 'file:///b'),
+                        new ClosureResourceReader(
                             static fn(): never => throw new \LogicException('unreachable'),
                         ),
-                    ],
+                    ),
                 ],
                 pageSize: 1,
             ),

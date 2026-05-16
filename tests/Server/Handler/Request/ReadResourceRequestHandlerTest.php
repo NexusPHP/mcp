@@ -23,6 +23,7 @@ use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
 use Nexus\Mcp\Server\Exception\ResourceNotFoundException;
 use Nexus\Mcp\Server\Handler\Request\ReadResourceRequestHandler;
 use Nexus\Mcp\Server\Resource\ClosureResourceReader;
+use Nexus\Mcp\Server\Resource\ResourceEntry;
 use Nexus\Mcp\Server\Resource\ResourceStore;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
@@ -42,14 +43,14 @@ final class ReadResourceRequestHandlerTest extends TestCase
     {
         $captured = ['uri' => '', 'requestId' => 0];
         $store = new ResourceStore([
-            'file:///a' => [
-                'resource' => new Resource('a', 'file:///a'),
-                'reader' => new ClosureResourceReader(static function (string $uri, ServerContext $context) use (&$captured): ReadResourceResult {
+            'file:///a' => new ResourceEntry(
+                new Resource('a', 'file:///a'),
+                new ClosureResourceReader(static function (string $uri, ServerContext $context) use (&$captured): ReadResourceResult {
                     $captured = ['uri' => $uri, 'requestId' => $context->requestId->id];
 
                     return new ReadResourceResult([]);
                 }),
-            ],
+            ),
         ]);
         $handler = new ReadResourceRequestHandler($store);
 
@@ -65,10 +66,10 @@ final class ReadResourceRequestHandlerTest extends TestCase
     {
         $expected = new ReadResourceResult([]);
         $store = new ResourceStore([
-            'file:///a' => [
-                'resource' => new Resource('a', 'file:///a'),
-                'reader' => new ClosureResourceReader(static fn(string $uri, ServerContext $context): ReadResourceResult => $expected),
-            ],
+            'file:///a' => new ResourceEntry(
+                new Resource('a', 'file:///a'),
+                new ClosureResourceReader(static fn(string $uri, ServerContext $context): ReadResourceResult => $expected),
+            ),
         ]);
         $handler = new ReadResourceRequestHandler($store);
 

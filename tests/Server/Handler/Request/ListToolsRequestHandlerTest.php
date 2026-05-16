@@ -24,6 +24,7 @@ use Nexus\Mcp\Core\Schema\Tool\Tool;
 use Nexus\Mcp\Server\Handler\Request\ListToolsRequestHandler;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Server\Tool\ClosureToolExecutor;
+use Nexus\Mcp\Server\Tool\ToolEntry;
 use Nexus\Mcp\Server\Tool\ToolStore;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -41,8 +42,8 @@ final class ListToolsRequestHandlerTest extends TestCase
     public function testReturnsAllRegisteredToolsWhenCursorIsNull(): void
     {
         $store = new ToolStore([
-            'alpha' => ['tool' => new Tool('alpha', ['type' => 'object']), 'executor' => self::executor()],
-            'beta' => ['tool' => new Tool('beta', ['type' => 'object']), 'executor' => self::executor()],
+            'alpha' => new ToolEntry(new Tool('alpha', ['type' => 'object']), self::executor()),
+            'beta' => new ToolEntry(new Tool('beta', ['type' => 'object']), self::executor()),
         ]);
         $handler = new ListToolsRequestHandler($store);
 
@@ -60,9 +61,9 @@ final class ListToolsRequestHandlerTest extends TestCase
     {
         $store = new ToolStore(
             [
-                'a' => ['tool' => new Tool('a', ['type' => 'object']), 'executor' => self::executor()],
-                'b' => ['tool' => new Tool('b', ['type' => 'object']), 'executor' => self::executor()],
-                'c' => ['tool' => new Tool('c', ['type' => 'object']), 'executor' => self::executor()],
+                'a' => new ToolEntry(new Tool('a', ['type' => 'object']), self::executor()),
+                'b' => new ToolEntry(new Tool('b', ['type' => 'object']), self::executor()),
+                'c' => new ToolEntry(new Tool('c', ['type' => 'object']), self::executor()),
             ],
             pageSize: 2,
         );

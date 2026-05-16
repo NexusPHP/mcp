@@ -24,6 +24,7 @@ use Nexus\Mcp\Server\Exception\ToolNotFoundException;
 use Nexus\Mcp\Server\Handler\Request\CallToolRequestHandler;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Server\Tool\ClosureToolExecutor;
+use Nexus\Mcp\Server\Tool\ToolEntry;
 use Nexus\Mcp\Server\Tool\ToolStore;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -42,14 +43,14 @@ final class CallToolRequestHandlerTest extends TestCase
     {
         $captured = ['arguments' => null, 'requestId' => 0];
         $store = new ToolStore([
-            'echo' => [
-                'tool' => new Tool('echo', ['type' => 'object']),
-                'executor' => new ClosureToolExecutor(static function (?array $arguments, ServerContext $context) use (&$captured): CallToolResult {
+            'echo' => new ToolEntry(
+                new Tool('echo', ['type' => 'object']),
+                new ClosureToolExecutor(static function (?array $arguments, ServerContext $context) use (&$captured): CallToolResult {
                     $captured = ['arguments' => $arguments, 'requestId' => $context->requestId->id];
 
                     return new CallToolResult([]);
                 }),
-            ],
+            ),
         ]);
         $handler = new CallToolRequestHandler($store);
 
@@ -65,10 +66,10 @@ final class CallToolRequestHandlerTest extends TestCase
     {
         $expected = new CallToolResult([]);
         $store = new ToolStore([
-            'echo' => [
-                'tool' => new Tool('echo', ['type' => 'object']),
-                'executor' => new ClosureToolExecutor(static fn(?array $arguments, ServerContext $context): CallToolResult => $expected),
-            ],
+            'echo' => new ToolEntry(
+                new Tool('echo', ['type' => 'object']),
+                new ClosureToolExecutor(static fn(?array $arguments, ServerContext $context): CallToolResult => $expected),
+            ),
         ]);
         $handler = new CallToolRequestHandler($store);
 

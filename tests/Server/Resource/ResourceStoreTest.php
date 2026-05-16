@@ -22,6 +22,7 @@ use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
 use Nexus\Mcp\Server\Exception\InvalidCursorException;
 use Nexus\Mcp\Server\Exception\ResourceNotFoundException;
 use Nexus\Mcp\Server\Resource\ClosureResourceReader;
+use Nexus\Mcp\Server\Resource\ResourceEntry;
 use Nexus\Mcp\Server\Resource\ResourceStore;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
@@ -102,7 +103,7 @@ final class ResourceStoreTest extends TestCase
         $this->expectExceptionMessageMatches('/^Resource store entry key must be a non-empty string\.$/');
 
         // @phpstan-ignore argument.type
-        new ResourceStore([1 => ['resource' => new Resource('one', 'file:///one'), 'reader' => self::makeReader()]]);
+        new ResourceStore([1 => new ResourceEntry(new Resource('one', 'file:///one'), self::makeReader())]);
     }
 
     public function testConstructorRejectsEmptyStringEntryKey(): void
@@ -111,7 +112,7 @@ final class ResourceStoreTest extends TestCase
         $this->expectExceptionMessageMatches('/^Resource store entry key must be a non-empty string\.$/');
 
         // @phpstan-ignore argument.type
-        new ResourceStore(['' => ['resource' => new Resource('one', 'file:///one'), 'reader' => self::makeReader()]]);
+        new ResourceStore(['' => new ResourceEntry(new Resource('one', 'file:///one'), self::makeReader())]);
     }
 
     public function testListRejectsCursorThatMatchesNoEntry(): void
@@ -130,22 +131,22 @@ final class ResourceStoreTest extends TestCase
         $betaResult = new ReadResourceResult([]);
         $captured = [];
         $store = new ResourceStore([
-            'file:///alpha.txt' => [
-                'resource' => new Resource('alpha', 'file:///alpha.txt'),
-                'reader' => new ClosureResourceReader(static function (string $uri, ServerContext $context) use ($alphaResult, &$captured): ReadResourceResult {
+            'file:///alpha.txt' => new ResourceEntry(
+                new Resource('alpha', 'file:///alpha.txt'),
+                new ClosureResourceReader(static function (string $uri, ServerContext $context) use ($alphaResult, &$captured): ReadResourceResult {
                     $captured[] = ['key' => 'alpha', 'uri' => $uri, 'sessionId' => $context->sessionId];
 
                     return $alphaResult;
                 }),
-            ],
-            'file:///beta.txt' => [
-                'resource' => new Resource('beta', 'file:///beta.txt'),
-                'reader' => new ClosureResourceReader(static function (string $uri, ServerContext $context) use ($betaResult, &$captured): ReadResourceResult {
+            ),
+            'file:///beta.txt' => new ResourceEntry(
+                new Resource('beta', 'file:///beta.txt'),
+                new ClosureResourceReader(static function (string $uri, ServerContext $context) use ($betaResult, &$captured): ReadResourceResult {
                     $captured[] = ['key' => 'beta', 'uri' => $uri, 'sessionId' => $context->sessionId];
 
                     return $betaResult;
                 }),
-            ],
+            ),
         ]);
 
         self::assertSame($betaResult, $store->read('file:///beta.txt', self::makeContext()));
@@ -169,14 +170,14 @@ final class ResourceStoreTest extends TestCase
     /**
      * @param array{non-empty-string, non-empty-string} ...$pairs
      *
-     * @return array<non-empty-string, array{resource: Resource, reader: ClosureResourceReader}>
+     * @return array<non-empty-string, ResourceEntry>
      */
     private static function makeEntries(array ...$pairs): array
     {
         $entries = [];
 
         foreach ($pairs as [$name, $uri]) {
-            $entries[$uri] = ['resource' => new Resource($name, $uri), 'reader' => self::makeReader()];
+            $entries[$uri] = new ResourceEntry(new Resource($name, $uri), self::makeReader());
         }
 
         return $entries;

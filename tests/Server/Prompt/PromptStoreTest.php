@@ -22,6 +22,7 @@ use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
 use Nexus\Mcp\Server\Exception\InvalidCursorException;
 use Nexus\Mcp\Server\Exception\PromptNotFoundException;
 use Nexus\Mcp\Server\Prompt\ClosurePromptRenderer;
+use Nexus\Mcp\Server\Prompt\PromptEntry;
 use Nexus\Mcp\Server\Prompt\PromptStore;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
@@ -96,7 +97,7 @@ final class PromptStoreTest extends TestCase
         $this->expectExceptionMessageMatches('/^Prompt store entry key must be a non-empty string\.$/');
 
         // @phpstan-ignore argument.type
-        new PromptStore([1 => ['prompt' => new Prompt('one'), 'renderer' => self::makeRenderer()]]);
+        new PromptStore([1 => new PromptEntry(new Prompt('one'), self::makeRenderer())]);
     }
 
     public function testConstructorRejectsEmptyStringEntryKey(): void
@@ -105,7 +106,7 @@ final class PromptStoreTest extends TestCase
         $this->expectExceptionMessageMatches('/^Prompt store entry key must be a non-empty string\.$/');
 
         // @phpstan-ignore argument.type
-        new PromptStore(['' => ['prompt' => new Prompt('one'), 'renderer' => self::makeRenderer()]]);
+        new PromptStore(['' => new PromptEntry(new Prompt('one'), self::makeRenderer())]);
     }
 
     public function testListRejectsCursorThatMatchesNoEntry(): void
@@ -124,22 +125,22 @@ final class PromptStoreTest extends TestCase
         $betaResult = new GetPromptResult([]);
         $captured = [];
         $store = new PromptStore([
-            'alpha' => [
-                'prompt' => new Prompt('alpha'),
-                'renderer' => new ClosurePromptRenderer(static function (?array $arguments, ServerContext $context) use ($alphaResult, &$captured): GetPromptResult {
+            'alpha' => new PromptEntry(
+                new Prompt('alpha'),
+                new ClosurePromptRenderer(static function (?array $arguments, ServerContext $context) use ($alphaResult, &$captured): GetPromptResult {
                     $captured[] = ['name' => 'alpha', 'arguments' => $arguments, 'sessionId' => $context->sessionId];
 
                     return $alphaResult;
                 }),
-            ],
-            'beta' => [
-                'prompt' => new Prompt('beta'),
-                'renderer' => new ClosurePromptRenderer(static function (?array $arguments, ServerContext $context) use ($betaResult, &$captured): GetPromptResult {
+            ),
+            'beta' => new PromptEntry(
+                new Prompt('beta'),
+                new ClosurePromptRenderer(static function (?array $arguments, ServerContext $context) use ($betaResult, &$captured): GetPromptResult {
                     $captured[] = ['name' => 'beta', 'arguments' => $arguments, 'sessionId' => $context->sessionId];
 
                     return $betaResult;
                 }),
-            ],
+            ),
         ]);
 
         self::assertSame($betaResult, $store->get('beta', ['name' => 'World'], self::makeContext()));
@@ -161,7 +162,7 @@ final class PromptStoreTest extends TestCase
     }
 
     /**
-     * @return array<non-empty-string, array{prompt: Prompt, renderer: ClosurePromptRenderer}>
+     * @return array<non-empty-string, PromptEntry>
      */
     private static function makeEntries(string ...$names): array
     {
@@ -169,7 +170,7 @@ final class PromptStoreTest extends TestCase
 
         foreach ($names as $name) {
             \assert('' !== $name);
-            $entries[$name] = ['prompt' => new Prompt($name), 'renderer' => self::makeRenderer()];
+            $entries[$name] = new PromptEntry(new Prompt($name), self::makeRenderer());
         }
 
         return $entries;

@@ -23,6 +23,7 @@ use Nexus\Mcp\Server\Exception\InvalidCursorException;
 use Nexus\Mcp\Server\Exception\ToolNotFoundException;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Server\Tool\ClosureToolExecutor;
+use Nexus\Mcp\Server\Tool\ToolEntry;
 use Nexus\Mcp\Server\Tool\ToolStore;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -96,7 +97,7 @@ final class ToolStoreTest extends TestCase
         $this->expectExceptionMessageMatches('/^Tool store entry key must be a non-empty string\.$/');
 
         // @phpstan-ignore argument.type
-        new ToolStore([1 => ['tool' => self::makeTool('one'), 'executor' => self::makeExecutor()]]);
+        new ToolStore([1 => new ToolEntry(self::makeTool('one'), self::makeExecutor())]);
     }
 
     public function testConstructorRejectsEmptyStringEntryKey(): void
@@ -105,7 +106,7 @@ final class ToolStoreTest extends TestCase
         $this->expectExceptionMessageMatches('/^Tool store entry key must be a non-empty string\.$/');
 
         // @phpstan-ignore argument.type
-        new ToolStore(['' => ['tool' => self::makeTool('one'), 'executor' => self::makeExecutor()]]);
+        new ToolStore(['' => new ToolEntry(self::makeTool('one'), self::makeExecutor())]);
     }
 
     public function testListRejectsCursorThatMatchesNoEntry(): void
@@ -124,22 +125,22 @@ final class ToolStoreTest extends TestCase
         $betaResult = new CallToolResult([]);
         $captured = [];
         $store = new ToolStore([
-            'alpha' => [
-                'tool' => self::makeTool('alpha'),
-                'executor' => new ClosureToolExecutor(static function (?array $arguments, ServerContext $context) use ($alphaResult, &$captured): CallToolResult {
+            'alpha' => new ToolEntry(
+                self::makeTool('alpha'),
+                new ClosureToolExecutor(static function (?array $arguments, ServerContext $context) use ($alphaResult, &$captured): CallToolResult {
                     $captured[] = ['name' => 'alpha', 'arguments' => $arguments, 'sessionId' => $context->sessionId];
 
                     return $alphaResult;
                 }),
-            ],
-            'beta' => [
-                'tool' => self::makeTool('beta'),
-                'executor' => new ClosureToolExecutor(static function (?array $arguments, ServerContext $context) use ($betaResult, &$captured): CallToolResult {
+            ),
+            'beta' => new ToolEntry(
+                self::makeTool('beta'),
+                new ClosureToolExecutor(static function (?array $arguments, ServerContext $context) use ($betaResult, &$captured): CallToolResult {
                     $captured[] = ['name' => 'beta', 'arguments' => $arguments, 'sessionId' => $context->sessionId];
 
                     return $betaResult;
                 }),
-            ],
+            ),
         ]);
 
         self::assertSame($betaResult, $store->call('beta', ['key' => 'value'], self::makeContext()));
@@ -166,7 +167,7 @@ final class ToolStoreTest extends TestCase
     }
 
     /**
-     * @return array<non-empty-string, array{tool: Tool, executor: ClosureToolExecutor}>
+     * @return array<non-empty-string, ToolEntry>
      */
     private static function makeEntries(string ...$names): array
     {
@@ -174,7 +175,7 @@ final class ToolStoreTest extends TestCase
 
         foreach ($names as $name) {
             \assert('' !== $name);
-            $entries[$name] = ['tool' => self::makeTool($name), 'executor' => self::makeExecutor()];
+            $entries[$name] = new ToolEntry(self::makeTool($name), self::makeExecutor());
         }
 
         return $entries;

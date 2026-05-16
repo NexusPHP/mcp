@@ -23,6 +23,7 @@ use Nexus\Mcp\Core\Schema\RequestParams\PaginatedRequestParams;
 use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
 use Nexus\Mcp\Server\Handler\Request\ListPromptsRequestHandler;
 use Nexus\Mcp\Server\Prompt\ClosurePromptRenderer;
+use Nexus\Mcp\Server\Prompt\PromptEntry;
 use Nexus\Mcp\Server\Prompt\PromptStore;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
@@ -41,8 +42,8 @@ final class ListPromptsRequestHandlerTest extends TestCase
     public function testReturnsAllRegisteredPromptsWhenCursorIsNull(): void
     {
         $store = new PromptStore([
-            'alpha' => ['prompt' => new Prompt('alpha'), 'renderer' => self::renderer()],
-            'beta' => ['prompt' => new Prompt('beta'), 'renderer' => self::renderer()],
+            'alpha' => new PromptEntry(new Prompt('alpha'), self::renderer()),
+            'beta' => new PromptEntry(new Prompt('beta'), self::renderer()),
         ]);
         $handler = new ListPromptsRequestHandler($store);
 
@@ -60,9 +61,9 @@ final class ListPromptsRequestHandlerTest extends TestCase
     {
         $store = new PromptStore(
             [
-                'a' => ['prompt' => new Prompt('a'), 'renderer' => self::renderer()],
-                'b' => ['prompt' => new Prompt('b'), 'renderer' => self::renderer()],
-                'c' => ['prompt' => new Prompt('c'), 'renderer' => self::renderer()],
+                'a' => new PromptEntry(new Prompt('a'), self::renderer()),
+                'b' => new PromptEntry(new Prompt('b'), self::renderer()),
+                'c' => new PromptEntry(new Prompt('c'), self::renderer()),
             ],
             pageSize: 2,
         );

@@ -22,8 +22,8 @@ use Nexus\Mcp\Core\Schema\RequestParams\PaginatedRequestParams;
 use Nexus\Mcp\Core\Schema\Resource\ResourceTemplate;
 use Nexus\Mcp\Server\Handler\Request\ListResourceTemplatesRequestHandler;
 use Nexus\Mcp\Server\Resource\ClosureTemplatedResourceReader;
+use Nexus\Mcp\Server\Resource\ResourceTemplateEntry;
 use Nexus\Mcp\Server\Resource\ResourceTemplateStore;
-use Nexus\Mcp\Server\Resource\TemplatedResourceReaderInterface;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -88,16 +88,13 @@ final class ListResourceTemplatesRequestHandlerTest extends TestCase
         );
     }
 
-    /**
-     * @return array{template: ResourceTemplate, reader: TemplatedResourceReaderInterface}
-     */
-    private static function entry(ResourceTemplate $template): array
+    private static function entry(ResourceTemplate $template): ResourceTemplateEntry
     {
-        return [
-            'template' => $template,
-            'reader' => new ClosureTemplatedResourceReader(
+        return new ResourceTemplateEntry(
+            $template,
+            new ClosureTemplatedResourceReader(
                 static fn(): never => throw new \LogicException('unreachable'),
             ),
-        ];
+        );
     }
 }

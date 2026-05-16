@@ -23,8 +23,8 @@ use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
 use Nexus\Mcp\Server\Exception\InvalidCursorException;
 use Nexus\Mcp\Server\Exception\ResourceNotFoundException;
 use Nexus\Mcp\Server\Resource\ClosureTemplatedResourceReader;
+use Nexus\Mcp\Server\Resource\ResourceTemplateEntry;
 use Nexus\Mcp\Server\Resource\ResourceTemplateStore;
-use Nexus\Mcp\Server\Resource\TemplatedResourceReaderInterface;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -126,7 +126,7 @@ final class ResourceTemplateStoreTest extends TestCase
     public function testConstructorRejectsEntryKeyThatDoesNotMatchTemplateUri(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageMatches('/^Resource template store entry key "file:\/\/\/{x}\.one" must match its template URI "file:\/\/\/{y}\.one"\.$/');
+        $this->expectExceptionMessageMatches('/^Resource template store entry key "\'file:\/\/\/{x}\.one\'" must match its template URI "\'file:\/\/\/{y}\.one\'"\.$/');
 
         new ResourceTemplateStore([
             'file:///{x}.one' => self::entry(new ResourceTemplate('one', 'file:///{y}.one')),
@@ -233,17 +233,15 @@ final class ResourceTemplateStoreTest extends TestCase
 
     /**
      * @param null|\Closure(string, array<string, string>, ServerContext): ReadResourceResult $reader
-     *
-     * @return array{template: ResourceTemplate, reader: TemplatedResourceReaderInterface}
      */
-    private static function entry(ResourceTemplate $template, ?\Closure $reader = null): array
+    private static function entry(ResourceTemplate $template, ?\Closure $reader = null): ResourceTemplateEntry
     {
-        return [
-            'template' => $template,
-            'reader' => new ClosureTemplatedResourceReader(
+        return new ResourceTemplateEntry(
+            $template,
+            new ClosureTemplatedResourceReader(
                 $reader ?? static fn(): never => throw new \LogicException('unreachable'),
             ),
-        ];
+        );
     }
 
     private static function makeContext(): ServerContext

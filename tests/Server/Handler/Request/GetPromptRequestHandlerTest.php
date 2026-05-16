@@ -23,6 +23,7 @@ use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
 use Nexus\Mcp\Server\Exception\PromptNotFoundException;
 use Nexus\Mcp\Server\Handler\Request\GetPromptRequestHandler;
 use Nexus\Mcp\Server\Prompt\ClosurePromptRenderer;
+use Nexus\Mcp\Server\Prompt\PromptEntry;
 use Nexus\Mcp\Server\Prompt\PromptStore;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
@@ -42,14 +43,14 @@ final class GetPromptRequestHandlerTest extends TestCase
     {
         $captured = ['arguments' => null, 'requestId' => 0];
         $store = new PromptStore([
-            'greeting' => [
-                'prompt' => new Prompt('greeting'),
-                'renderer' => new ClosurePromptRenderer(static function (?array $arguments, ServerContext $context) use (&$captured): GetPromptResult {
+            'greeting' => new PromptEntry(
+                new Prompt('greeting'),
+                new ClosurePromptRenderer(static function (?array $arguments, ServerContext $context) use (&$captured): GetPromptResult {
                     $captured = ['arguments' => $arguments, 'requestId' => $context->requestId->id];
 
                     return new GetPromptResult([]);
                 }),
-            ],
+            ),
         ]);
         $handler = new GetPromptRequestHandler($store);
 
@@ -65,10 +66,10 @@ final class GetPromptRequestHandlerTest extends TestCase
     {
         $expected = new GetPromptResult([]);
         $store = new PromptStore([
-            'greeting' => [
-                'prompt' => new Prompt('greeting'),
-                'renderer' => new ClosurePromptRenderer(static fn(?array $arguments, ServerContext $context): GetPromptResult => $expected),
-            ],
+            'greeting' => new PromptEntry(
+                new Prompt('greeting'),
+                new ClosurePromptRenderer(static fn(?array $arguments, ServerContext $context): GetPromptResult => $expected),
+            ),
         ]);
         $handler = new GetPromptRequestHandler($store);
 

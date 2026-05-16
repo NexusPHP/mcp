@@ -23,6 +23,7 @@ use Nexus\Mcp\Core\Schema\Resource\Resource;
 use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
 use Nexus\Mcp\Server\Handler\Request\ListResourcesRequestHandler;
 use Nexus\Mcp\Server\Resource\ClosureResourceReader;
+use Nexus\Mcp\Server\Resource\ResourceEntry;
 use Nexus\Mcp\Server\Resource\ResourceStore;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
@@ -41,8 +42,8 @@ final class ListResourcesRequestHandlerTest extends TestCase
     public function testReturnsAllRegisteredResourcesWhenCursorIsNull(): void
     {
         $store = new ResourceStore([
-            'file:///a' => ['resource' => new Resource('a', 'file:///a'), 'reader' => self::reader()],
-            'file:///b' => ['resource' => new Resource('b', 'file:///b'), 'reader' => self::reader()],
+            'file:///a' => new ResourceEntry(new Resource('a', 'file:///a'), self::reader()),
+            'file:///b' => new ResourceEntry(new Resource('b', 'file:///b'), self::reader()),
         ]);
         $handler = new ListResourcesRequestHandler($store);
 
@@ -60,9 +61,9 @@ final class ListResourcesRequestHandlerTest extends TestCase
     {
         $store = new ResourceStore(
             [
-                'file:///a' => ['resource' => new Resource('a', 'file:///a'), 'reader' => self::reader()],
-                'file:///b' => ['resource' => new Resource('b', 'file:///b'), 'reader' => self::reader()],
-                'file:///c' => ['resource' => new Resource('c', 'file:///c'), 'reader' => self::reader()],
+                'file:///a' => new ResourceEntry(new Resource('a', 'file:///a'), self::reader()),
+                'file:///b' => new ResourceEntry(new Resource('b', 'file:///b'), self::reader()),
+                'file:///c' => new ResourceEntry(new Resource('c', 'file:///c'), self::reader()),
             ],
             pageSize: 2,
         );
