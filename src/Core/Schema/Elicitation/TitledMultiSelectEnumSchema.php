@@ -56,7 +56,7 @@ final readonly class TitledMultiSelectEnumSchema implements Arrayable, MultiSele
     public ?array $default;
 
     /**
-     * @param list<EnumOption>  $items   the inner `anyOf` list of `{const, title}` pairs
+     * @param list<EnumOption>  $items   The inner `anyOf` list of `{const, title}` pairs
      * @param null|list<string> $default
      */
     public function __construct(

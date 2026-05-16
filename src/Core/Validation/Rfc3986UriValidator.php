@@ -31,7 +31,7 @@ use Nexus\Assert\ExpectationFailedException;
 final class Rfc3986UriValidator
 {
     /**
-     * @param non-empty-string $context label prefix for the error message (e.g. "Resource", "ResourceContents")
+     * @param non-empty-string $context Label prefix for the error message (e.g. "Resource", "ResourceContents")
      *
      * @throws ExpectationFailedException
      *

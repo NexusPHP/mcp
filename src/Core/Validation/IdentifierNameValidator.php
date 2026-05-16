@@ -30,7 +30,7 @@ use Nexus\Assert\ExpectationFailedException;
 final class IdentifierNameValidator
 {
     /**
-     * @param non-empty-string $context label prefix for the error message (e.g. "Resource", "Tool")
+     * @param non-empty-string $context Label prefix for the error message (e.g. "Resource", "Tool")
      *
      * @throws ExpectationFailedException when `$name` does not match the identifier pattern
      *

@@ -69,8 +69,8 @@ final class JsonRpcMessageParser
     /**
      * @template T of Result = Result
      *
-     * @param array<string, mixed> $message     decoded JSON-RPC envelope
-     * @param null|class-string<T> $resultClass when null, a success response envelope yields an `UnparsedResultEnvelope`
+     * @param array<string, mixed> $message     Decoded JSON-RPC envelope
+     * @param null|class-string<T> $resultClass When null, a success response envelope yields an `UnparsedResultEnvelope`
      *                                          carrying the raw payload. When supplied, it is decoded into `JsonRpcResultResponse<T>`.
      *
      * @return ($resultClass is null

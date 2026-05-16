@@ -31,7 +31,7 @@ final class ContentBlockDispatcher
 {
     /**
      * @param array<string, mixed> $data
-     * @param non-empty-string     $context prefix used in error messages
+     * @param non-empty-string     $context Prefix used in error messages
      *
      * @throws ExpectationFailedException when `type` is missing or unknown
      */

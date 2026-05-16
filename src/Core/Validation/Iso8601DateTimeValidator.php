@@ -24,7 +24,7 @@ namespace Nexus\Mcp\Core\Validation;
 final class Iso8601DateTimeValidator
 {
     /**
-     * @param non-empty-string $context label prefix for the error message (e.g. "Task createdAt")
+     * @param non-empty-string $context Label prefix for the error message (e.g. "Task createdAt")
      *
      * @throws \InvalidArgumentException when `$value` cannot be parsed as a strict ISO 8601 datetime
      */

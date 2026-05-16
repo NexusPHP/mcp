@@ -30,7 +30,7 @@ use Nexus\Assert\ExpectationFailedException;
 final class Rfc6570UriTemplateValidator
 {
     /**
-     * @param non-empty-string $context label prefix for the error message (e.g. "ResourceTemplate", "ResourceTemplateReference")
+     * @param non-empty-string $context Label prefix for the error message (e.g. "ResourceTemplate", "ResourceTemplateReference")
      *
      * @throws ExpectationFailedException
      *

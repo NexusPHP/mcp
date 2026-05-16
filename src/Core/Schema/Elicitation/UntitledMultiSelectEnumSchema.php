@@ -57,7 +57,7 @@ final readonly class UntitledMultiSelectEnumSchema implements Arrayable, MultiSe
     public ?array $default;
 
     /**
-     * @param list<string>      $items   the inner `enum` values
+     * @param list<string>      $items   The inner `enum` values
      * @param null|list<string> $default
      */
     public function __construct(
