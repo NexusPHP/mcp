@@ -1,0 +1,203 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * This file is part of the Nexus MCP SDK package.
+ *
+ * (c) 2026 John Paul E. Balandan, CPA <paulbalandan@gmail.com>
+ *
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
+ */
+
+namespace Nexus\Mcp\Core\Transport;
+
+use Nexus\Assert\Assert;
+use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
+use Nexus\Mcp\Core\Exception\TransportAlreadyStartedException;
+use Nexus\Mcp\Core\Exception\TransportNotStartedException;
+use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcMessage;
+
+/**
+ * In-process JSON-RPC duplex between two `TransportInterface` instances. Each
+ * side's `send()` becomes the other side's inbound message. Pre-start inbound
+ * envelopes queue and drain on `start()`. `close()` cascades to the peer.
+ */
+final class InMemoryTransport implements TransportInterface
+{
+    /**
+     * @var array<int, \Closure(array<string, mixed>): void>
+     */
+    private array $messageListeners = [];
+
+    /**
+     * @var array<int, \Closure(): void>
+     */
+    private array $closeListeners = [];
+
+    /**
+     * Envelopes the peer's `send()` delivered before this side called `start()`. Drained in arrival order on `start()`.
+     *
+     * @var list<array<string, mixed>>
+     */
+    private array $pendingInbound = [];
+
+    private TransportState $state = TransportState::Idle;
+    private ?self $peer = null;
+
+    private function __construct()
+    {
+    }
+
+    /**
+     * Returns two linked transports. Each side's `send()` delivers to the
+     * other side's `onMessage` listeners. Use one for the server, the other
+     * for the client.
+     *
+     * @return array{self, self}
+     */
+    public static function pair(): array
+    {
+        $a = new self();
+        $b = new self();
+        $a->peer = $b;
+        $b->peer = $a;
+
+        return [$a, $b];
+    }
+
+    #[\Override]
+    public function start(): void
+    {
+        match ($this->state) {
+            TransportState::Running => throw new TransportAlreadyStartedException(transport: self::class),
+            TransportState::Closed => throw new TransportAlreadyClosedException(operation: 'start'),
+            TransportState::Idle => null,
+        };
+
+        $this->state = TransportState::Running;
+
+        foreach ($this->pendingInbound as $envelope) {
+            $this->emitMessage($envelope);
+        }
+    }
+
+    /**
+     * `$context`'s fields (`relatedRequestId`, `resumptionToken`, `onResumptionToken`)
+     * are streamable-HTTP concerns with no in-process equivalent. The parameter is
+     * accepted for `TransportInterface` conformance and intentionally dropped.
+     *
+     * @throws \InvalidArgumentException
+     * @throws TransportAlreadyClosedException
+     * @throws TransportNotStartedException
+     */
+    #[\Override]
+    public function send(JsonRpcMessage $message, ?SendContext $context = null): void
+    {
+        match ($this->state) {
+            TransportState::Idle => throw new TransportNotStartedException(operation: 'send'),
+            TransportState::Closed => throw new TransportAlreadyClosedException(operation: 'send'),
+            TransportState::Running => null,
+        };
+
+        Assert::that($this->peer)->isInstanceOf(self::class, 'In-memory transport has no linked peer.');
+        \assert(method_exists($message, 'toArray'), 'In-memory transport requires a JsonRpcMessage exposing toArray().');
+
+        $envelope = $message->toArray();
+        Assert::that($envelope)->isMap('In-memory transport: toArray() must return a string-keyed object.');
+
+        $this->peer->receive($envelope);
+    }
+
+    #[\Override]
+    public function close(): void
+    {
+        if (TransportState::Closed === $this->state) {
+            return;
+        }
+
+        $this->state = TransportState::Closed;
+
+        $peer = $this->peer;
+        $this->peer = null;
+
+        $peer?->close();
+
+        $this->emitClose();
+    }
+
+    #[\Override]
+    public function sessionId(): ?string
+    {
+        return null;
+    }
+
+    #[\Override]
+    public function onMessage(\Closure $listener): SubscriptionInterface
+    {
+        $this->messageListeners[] = $listener;
+        $id = array_key_last($this->messageListeners);
+
+        return new Subscription(function () use ($id): void {
+            unset($this->messageListeners[$id]);
+        });
+    }
+
+    #[\Override]
+    public function onClose(\Closure $listener): SubscriptionInterface
+    {
+        $this->closeListeners[] = $listener;
+        $id = array_key_last($this->closeListeners);
+
+        return new Subscription(function () use ($id): void {
+            unset($this->closeListeners[$id]);
+        });
+    }
+
+    /**
+     * In-memory transport has no I/O failure surface, so registered error
+     * listeners are accepted for contract conformance but never invoked.
+     */
+    #[\Override]
+    public function onError(\Closure $listener): SubscriptionInterface
+    {
+        unset($listener);
+
+        return new Subscription(static function (): void {});
+    }
+
+    /**
+     * Cross-instance hand-off invoked by the peer's `send()`. Queues into
+     * `pendingInbound` while this side is `Idle`, otherwise emits to listeners.
+     *
+     * @param array<string, mixed> $envelope
+     */
+    private function receive(array $envelope): void
+    {
+        if (TransportState::Idle === $this->state) {
+            $this->pendingInbound[] = $envelope;
+
+            return;
+        }
+
+        $this->emitMessage($envelope);
+    }
+
+    /**
+     * @param array<string, mixed> $envelope
+     */
+    private function emitMessage(array $envelope): void
+    {
+        foreach ($this->messageListeners as $listener) {
+            $listener($envelope);
+        }
+    }
+
+    private function emitClose(): void
+    {
+        foreach ($this->closeListeners as $listener) {
+            $listener();
+        }
+    }
+}
