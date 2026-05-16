@@ -155,7 +155,10 @@ final class ServerBuilderTest extends TestCase
     {
         $server = Server::builder()
             ->setServerInfo('demo', '1.0.0')
-            ->addResourceTemplate(new ResourceTemplate('files', 'file:///{path}'))
+            ->addResourceTemplate(
+                new ResourceTemplate('files', 'file:///{path}'),
+                static fn(): never => throw new \LogicException('unreachable'),
+            )
             ->build()
         ;
 
@@ -254,11 +257,54 @@ final class ServerBuilderTest extends TestCase
         self::assertSame('file:///etc/cfg', $result->resources[0]->uri);
     }
 
+    public function testRegisteredResourceAndTemplateBothFlowThroughBuiltServer(): void
+    {
+        $server = Server::builder()
+            ->setServerInfo('demo', '1.0.0')
+            ->addResource(
+                new Resource('cfg', 'file:///etc/cfg'),
+                static fn(string $uri, $ctx): ReadResourceResult => new ReadResourceResult([new TextResourceContents($uri, 'static')]),
+            )
+            ->addResourceTemplate(
+                new ResourceTemplate('files', 'file:///{path}'),
+                static fn(string $uri, array $bindings, $ctx): ReadResourceResult => new ReadResourceResult([new TextResourceContents($uri, 'templated:'.($bindings['path'] ?? 'missing'))]),
+            )
+            ->build()
+        ;
+
+        $listResult = $this->dispatchAfterInitialize($server, 'resources/list');
+        self::assertInstanceOf(ListResourcesResult::class, $listResult);
+        self::assertCount(1, $listResult->resources);
+
+        $staticRead = $this->dispatchAfterInitialize($server, 'resources/read', ['uri' => 'file:///etc/cfg']);
+        self::assertInstanceOf(ReadResourceResult::class, $staticRead);
+        $staticEntry = $staticRead->contents[0] ?? null;
+
+        if (! $staticEntry instanceof TextResourceContents) {
+            self::fail('Expected first static read entry to be TextResourceContents.');
+        }
+
+        self::assertSame('static', $staticEntry->text);
+
+        $templatedRead = $this->dispatchAfterInitialize($server, 'resources/read', ['uri' => 'file:///other']);
+        self::assertInstanceOf(ReadResourceResult::class, $templatedRead);
+        $templatedEntry = $templatedRead->contents[0] ?? null;
+
+        if (! $templatedEntry instanceof TextResourceContents) {
+            self::fail('Expected first templated read entry to be TextResourceContents.');
+        }
+
+        self::assertSame('templated:other', $templatedEntry->text);
+    }
+
     public function testRegisteredResourceTemplateFlowsThroughBuiltServer(): void
     {
         $server = Server::builder()
             ->setServerInfo('demo', '1.0.0')
-            ->addResourceTemplate(new ResourceTemplate('files', 'file:///{path}'))
+            ->addResourceTemplate(
+                new ResourceTemplate('files', 'file:///{path}'),
+                static fn(): never => throw new \LogicException('unreachable'),
+            )
             ->build()
         ;
 
@@ -267,6 +313,19 @@ final class ServerBuilderTest extends TestCase
         self::assertInstanceOf(ListResourceTemplatesResult::class, $result);
         self::assertCount(1, $result->resourceTemplates);
         self::assertSame('file:///{path}', $result->resourceTemplates[0]->uriTemplate);
+    }
+
+    public function testAddResourceTemplateRejectsUnsupportedTemplateAtRegistration(): void
+    {
+        $builder = Server::builder()->setServerInfo('demo', '1.0.0');
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageMatches('/^ResourceTemplate URI template must use only RFC 6570 Level 1 simple-name expressions/');
+
+        $builder->addResourceTemplate(
+            new ResourceTemplate('files', 'file:///{+path}'),
+            static fn(): never => throw new \LogicException('unreachable'),
+        );
     }
 
     public function testCustomRequestHandlerOverridesBuiltinAndIsDispatched(): void

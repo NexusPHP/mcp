@@ -21,7 +21,9 @@ use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams\PaginatedRequestParams;
 use Nexus\Mcp\Core\Schema\Resource\ResourceTemplate;
 use Nexus\Mcp\Server\Handler\Request\ListResourceTemplatesRequestHandler;
+use Nexus\Mcp\Server\Resource\ClosureTemplatedResourceReader;
 use Nexus\Mcp\Server\Resource\ResourceTemplateStore;
+use Nexus\Mcp\Server\Resource\TemplatedResourceReaderInterface;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -39,8 +41,8 @@ final class ListResourceTemplatesRequestHandlerTest extends TestCase
     public function testReturnsAllRegisteredTemplatesWhenCursorIsNull(): void
     {
         $store = new ResourceTemplateStore([
-            'alpha' => new ResourceTemplate('alpha', 'file:///{x}.alpha'),
-            'beta' => new ResourceTemplate('beta', 'file:///{x}.beta'),
+            'file:///{x}.alpha' => self::entry(new ResourceTemplate('alpha', 'file:///{x}.alpha')),
+            'file:///{x}.beta' => self::entry(new ResourceTemplate('beta', 'file:///{x}.beta')),
         ]);
         $handler = new ListResourceTemplatesRequestHandler($store);
 
@@ -58,16 +60,16 @@ final class ListResourceTemplatesRequestHandlerTest extends TestCase
     {
         $store = new ResourceTemplateStore(
             [
-                'a' => new ResourceTemplate('a', 'file:///{x}.a'),
-                'b' => new ResourceTemplate('b', 'file:///{x}.b'),
-                'c' => new ResourceTemplate('c', 'file:///{x}.c'),
+                'file:///{x}.a' => self::entry(new ResourceTemplate('a', 'file:///{x}.a')),
+                'file:///{x}.b' => self::entry(new ResourceTemplate('b', 'file:///{x}.b')),
+                'file:///{x}.c' => self::entry(new ResourceTemplate('c', 'file:///{x}.c')),
             ],
             pageSize: 2,
         );
         $handler = new ListResourceTemplatesRequestHandler($store);
 
         $result = $handler->handle(
-            new ListResourceTemplatesRequest(new RequestId(2), new PaginatedRequestParams(new Cursor('b'))),
+            new ListResourceTemplatesRequest(new RequestId(2), new PaginatedRequestParams(new Cursor('file:///{x}.b'))),
             self::makeContext(),
         );
 
@@ -84,5 +86,18 @@ final class ListResourceTemplatesRequestHandlerTest extends TestCase
             null,
             new RecordingSender(),
         );
+    }
+
+    /**
+     * @return array{template: ResourceTemplate, reader: TemplatedResourceReaderInterface}
+     */
+    private static function entry(ResourceTemplate $template): array
+    {
+        return [
+            'template' => $template,
+            'reader' => new ClosureTemplatedResourceReader(
+                static fn(): never => throw new \LogicException('unreachable'),
+            ),
+        ];
     }
 }
