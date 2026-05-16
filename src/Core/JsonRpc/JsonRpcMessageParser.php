@@ -70,13 +70,16 @@ final class JsonRpcMessageParser
      * @template T of Result = Result
      *
      * @param array<string, mixed> $message     decoded JSON-RPC envelope
-     * @param null|class-string<T> $resultClass required when $message is a success response
+     * @param null|class-string<T> $resultClass when null, a success response envelope yields an `UnparsedResultEnvelope`
+     *                                          carrying the raw payload. When supplied, it is decoded into `JsonRpcResultResponse<T>`.
      *
-     * @return JsonRpcErrorResponse|JsonRpcNotification<non-empty-string>|JsonRpcRequest<non-empty-string>|JsonRpcResultResponse<T>
+     * @return ($resultClass is null
+     *     ? JsonRpcErrorResponse|JsonRpcNotification<non-empty-string>|JsonRpcRequest<non-empty-string>|UnparsedResultEnvelope
+     *     : JsonRpcErrorResponse|JsonRpcNotification<non-empty-string>|JsonRpcRequest<non-empty-string>|JsonRpcResultResponse<T>)
      *
      * @throws AbstractJsonRpcProtocolException
      */
-    public function parse(array $message, ?string $resultClass = null): JsonRpcMessage
+    public function parse(array $message, ?string $resultClass = null): JsonRpcMessage|UnparsedResultEnvelope
     {
         self::assertJsonRpcVersion($message);
 
@@ -93,10 +96,7 @@ final class JsonRpcMessageParser
 
         if (\array_key_exists('result', $message)) {
             if (null === $resultClass) {
-                throw new InvalidRequestException(
-                    'Success response requires the expected Result class; pass it as the second argument to parse().',
-                    self::extractRequestId($message),
-                );
+                return new UnparsedResultEnvelope(self::extractRequestId($message), $message['result']);
             }
 
             try {

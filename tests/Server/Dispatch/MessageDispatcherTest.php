@@ -61,7 +61,10 @@ final class MessageDispatcherTest extends TestCase
         EventLoop::run();
 
         self::assertSame([], $transport->sent);
-        $matches = $logger->recordsMatching(LogLevel::WARNING, 'Received unexpected success response envelope.');
+        $matches = $logger->recordsMatching(
+            LogLevel::WARNING,
+            'Discarding response envelope (server has no outbound-request correlation).',
+        );
         self::assertCount(1, $matches);
         self::assertSame(['envelope' => $envelope], $matches[0]['context']);
     }
@@ -78,7 +81,30 @@ final class MessageDispatcherTest extends TestCase
         EventLoop::run();
 
         self::assertSame([], $transport->sent);
-        $matches = $logger->recordsMatching(LogLevel::WARNING, 'Received unexpected error response envelope.');
+        $matches = $logger->recordsMatching(
+            LogLevel::WARNING,
+            'Discarding response envelope (server has no outbound-request correlation).',
+        );
+        self::assertCount(1, $matches);
+        self::assertSame(['envelope' => $envelope], $matches[0]['context']);
+    }
+
+    public function testMalformedResponseEnvelopeIsDroppedNotAnsweredWithError(): void
+    {
+        $transport = new RecordingTransport();
+        $logger = new ArrayLogger();
+        $dispatcher = self::buildDispatcher(logger: $logger);
+
+        $envelope = ['jsonrpc' => '2.0', 'result' => 'opaque-string'];
+        $dispatcher->dispatch($envelope, $transport);
+
+        EventLoop::run();
+
+        self::assertSame([], $transport->sent, 'A response envelope must not provoke another response, even when malformed.');
+        $matches = $logger->recordsMatching(
+            LogLevel::WARNING,
+            'Discarding response envelope (server has no outbound-request correlation).',
+        );
         self::assertCount(1, $matches);
         self::assertSame(['envelope' => $envelope], $matches[0]['context']);
     }

@@ -18,6 +18,7 @@ use Nexus\Mcp\Core\Exception\InvalidParamsException;
 use Nexus\Mcp\Core\Exception\InvalidRequestException;
 use Nexus\Mcp\Core\Exception\MethodNotFoundException;
 use Nexus\Mcp\Core\JsonRpc\JsonRpcMessageParser;
+use Nexus\Mcp\Core\JsonRpc\UnparsedResultEnvelope;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
@@ -332,17 +333,68 @@ final class JsonRpcMessageParserTest extends TestCase
         $parser->parse(['id' => 1, 'method' => 'ping']);
     }
 
-    public function testParseRequiresResultClassWhenSuccessResponse(): void
+    public function testParseReturnsUnparsedResultEnvelopeWhenResultClassOmitted(): void
     {
         $parser = new JsonRpcMessageParser();
 
-        try {
-            $parser->parse(['jsonrpc' => '2.0', 'id' => 'req-1', 'result' => []]);
-            self::fail('Expected InvalidRequestException.');
-        } catch (InvalidRequestException $e) {
-            self::assertSame('req-1', $e->requestId?->id);
-            self::assertStringContainsString('Success response requires the expected Result class', $e->getMessage());
+        $parsed = $parser->parse(['jsonrpc' => '2.0', 'id' => 'req-1', 'result' => ['answer' => 42]]);
+
+        self::assertInstanceOf(UnparsedResultEnvelope::class, $parsed);
+
+        if (null === $parsed->id) {
+            self::fail('Expected non-null id.');
         }
+
+        self::assertSame('req-1', $parsed->id->id);
+        self::assertSame(['answer' => 42], $parsed->result);
+    }
+
+    public function testParseReturnsUnparsedResultEnvelopeForEmptyResultWhenResultClassOmitted(): void
+    {
+        $parser = new JsonRpcMessageParser();
+
+        $parsed = $parser->parse(['jsonrpc' => '2.0', 'id' => 7, 'result' => []]);
+
+        self::assertInstanceOf(UnparsedResultEnvelope::class, $parsed);
+
+        if (null === $parsed->id) {
+            self::fail('Expected non-null id.');
+        }
+
+        self::assertSame(7, $parsed->id->id);
+        self::assertSame([], $parsed->result);
+    }
+
+    public function testParseToleratesMissingIdOnResultEnvelopeWhenResultClassOmitted(): void
+    {
+        $parser = new JsonRpcMessageParser();
+
+        $parsed = $parser->parse(['jsonrpc' => '2.0', 'result' => ['payload' => 'x']]);
+
+        self::assertInstanceOf(UnparsedResultEnvelope::class, $parsed);
+        self::assertNull($parsed->id);
+        self::assertSame(['payload' => 'x'], $parsed->result);
+    }
+
+    public function testParseToleratesNonScalarIdOnResultEnvelopeWhenResultClassOmitted(): void
+    {
+        $parser = new JsonRpcMessageParser();
+
+        $parsed = $parser->parse(['jsonrpc' => '2.0', 'id' => [], 'result' => []]);
+
+        self::assertInstanceOf(UnparsedResultEnvelope::class, $parsed);
+        self::assertNull($parsed->id);
+    }
+
+    public function testParseToleratesNonMapResultWhenResultClassOmitted(): void
+    {
+        $parser = new JsonRpcMessageParser();
+
+        $parsed = $parser->parse(['jsonrpc' => '2.0', 'id' => 9, 'result' => 'opaque-string']);
+
+        self::assertInstanceOf(UnparsedResultEnvelope::class, $parsed);
+        self::assertSame(9, $parsed->id?->id);
+        self::assertSame('opaque-string', $parsed->result);
     }
 
     public function testParseRejectsResultResponseWithMissingId(): void
