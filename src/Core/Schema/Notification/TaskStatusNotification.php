@@ -50,24 +50,4 @@ final readonly class TaskStatusNotification extends JsonRpcNotification implemen
 
         return new self(TaskStatusNotificationParams::fromArray($data['params']));
     }
-
-    #[\Override]
-    public function toArray(): array
-    {
-        return [
-            'jsonrpc' => self::JSONRPC_VERSION,
-            'method' => static::method(),
-            'params' => $this->params->toArray(),
-        ];
-    }
-
-    #[\Override]
-    public function jsonSerialize(): array
-    {
-        return [
-            'jsonrpc' => self::JSONRPC_VERSION,
-            'method' => static::method(),
-            'params' => $this->params->jsonSerialize(),
-        ];
-    }
 }
