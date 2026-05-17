@@ -181,6 +181,164 @@ final class ServerBuilderTest extends TestCase
         self::assertSame([], $result->capabilities->completions);
     }
 
+    public function testReplacingBothToolsHandlersEnablesToolsCapability(): void
+    {
+        $server = Server::builder()
+            ->setServerInfo('demo', '1.0.0')
+            ->replaceRequestHandler('tools/list', new ClosureRequestHandler(
+                static fn(): EmptyResult => new EmptyResult(),
+            ))
+            ->replaceRequestHandler('tools/call', new ClosureRequestHandler(
+                static fn(): EmptyResult => new EmptyResult(),
+            ))
+            ->build()
+        ;
+
+        $result = $this->initializeResultFor($server);
+
+        self::assertSame([], $result->capabilities->tools);
+    }
+
+    /**
+     * @param non-empty-string $onlyMethod
+     */
+    #[DataProvider('provideReplacingOnlyOneToolHandlerDoesNotAdvertiseToolsCapabilityCases')]
+    public function testReplacingOnlyOneToolHandlerDoesNotAdvertiseToolsCapability(string $onlyMethod): void
+    {
+        $server = Server::builder()
+            ->setServerInfo('demo', '1.0.0')
+            ->replaceRequestHandler($onlyMethod, new ClosureRequestHandler(
+                static fn(): EmptyResult => new EmptyResult(),
+            ))
+            ->build()
+        ;
+
+        $result = $this->initializeResultFor($server);
+
+        self::assertNull($result->capabilities->tools);
+    }
+
+    /**
+     * @return iterable<string, array{non-empty-string}>
+     */
+    public static function provideReplacingOnlyOneToolHandlerDoesNotAdvertiseToolsCapabilityCases(): iterable
+    {
+        yield 'tools/call' => ['tools/call'];
+
+        yield 'tools/list' => ['tools/list'];
+    }
+
+    public function testReplacingBothPromptsHandlersEnablesPromptsCapability(): void
+    {
+        $server = Server::builder()
+            ->setServerInfo('demo', '1.0.0')
+            ->replaceRequestHandler('prompts/list', new ClosureRequestHandler(
+                static fn(): EmptyResult => new EmptyResult(),
+            ))
+            ->replaceRequestHandler('prompts/get', new ClosureRequestHandler(
+                static fn(): EmptyResult => new EmptyResult(),
+            ))
+            ->build()
+        ;
+
+        $result = $this->initializeResultFor($server);
+
+        self::assertSame([], $result->capabilities->prompts);
+    }
+
+    /**
+     * @param non-empty-string $onlyMethod
+     */
+    #[DataProvider('provideReplacingOnlyOnePromptHandlerDoesNotAdvertisePromptsCapabilityCases')]
+    public function testReplacingOnlyOnePromptHandlerDoesNotAdvertisePromptsCapability(string $onlyMethod): void
+    {
+        $server = Server::builder()
+            ->setServerInfo('demo', '1.0.0')
+            ->replaceRequestHandler($onlyMethod, new ClosureRequestHandler(
+                static fn(): EmptyResult => new EmptyResult(),
+            ))
+            ->build()
+        ;
+
+        $result = $this->initializeResultFor($server);
+
+        self::assertNull($result->capabilities->prompts);
+    }
+
+    /**
+     * @return iterable<string, array{non-empty-string}>
+     */
+    public static function provideReplacingOnlyOnePromptHandlerDoesNotAdvertisePromptsCapabilityCases(): iterable
+    {
+        yield 'prompts/get' => ['prompts/get'];
+
+        yield 'prompts/list' => ['prompts/list'];
+    }
+
+    public function testReplacingBothResourceHandlersEnablesResourcesCapability(): void
+    {
+        $server = Server::builder()
+            ->setServerInfo('demo', '1.0.0')
+            ->replaceRequestHandler('resources/list', new ClosureRequestHandler(
+                static fn(): EmptyResult => new EmptyResult(),
+            ))
+            ->replaceRequestHandler('resources/read', new ClosureRequestHandler(
+                static fn(): EmptyResult => new EmptyResult(),
+            ))
+            ->build()
+        ;
+
+        $result = $this->initializeResultFor($server);
+
+        self::assertSame([], $result->capabilities->resources);
+    }
+
+    /**
+     * @param non-empty-string $onlyMethod
+     */
+    #[DataProvider('provideReplacingOnlyOneResourceHandlerDoesNotAdvertiseResourcesCapabilityCases')]
+    public function testReplacingOnlyOneResourceHandlerDoesNotAdvertiseResourcesCapability(string $onlyMethod): void
+    {
+        $server = Server::builder()
+            ->setServerInfo('demo', '1.0.0')
+            ->replaceRequestHandler($onlyMethod, new ClosureRequestHandler(
+                static fn(): EmptyResult => new EmptyResult(),
+            ))
+            ->build()
+        ;
+
+        $result = $this->initializeResultFor($server);
+
+        self::assertNull($result->capabilities->resources);
+    }
+
+    /**
+     * @return iterable<string, array{non-empty-string}>
+     */
+    public static function provideReplacingOnlyOneResourceHandlerDoesNotAdvertiseResourcesCapabilityCases(): iterable
+    {
+        yield 'resources/list' => ['resources/list'];
+
+        yield 'resources/read' => ['resources/read'];
+
+        yield 'resources/templates/list (alone)' => ['resources/templates/list'];
+    }
+
+    public function testReplacingCompletionMethodEnablesCompletionsCapability(): void
+    {
+        $server = Server::builder()
+            ->setServerInfo('demo', '1.0.0')
+            ->replaceRequestHandler('completion/complete', new ClosureRequestHandler(
+                static fn(): EmptyResult => new EmptyResult(),
+            ))
+            ->build()
+        ;
+
+        $result = $this->initializeResultFor($server);
+
+        self::assertSame([], $result->capabilities->completions);
+    }
+
     public function testInstructionsArePropagatedToInitializeResult(): void
     {
         $server = Server::builder()
