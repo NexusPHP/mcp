@@ -19,6 +19,7 @@ use Nexus\Mcp\Core\Schema\Error\InvalidParamsError;
 use Nexus\Mcp\Core\Schema\Error\InvalidRequestError;
 use Nexus\Mcp\Core\Schema\Error\MethodNotFoundError;
 use Nexus\Mcp\Core\Schema\Error\ParseError;
+use Nexus\Mcp\Core\Schema\Error\UnknownProtocolError;
 use Nexus\Mcp\Core\Schema\Error\UrlElicitationRequiredErrorPayload;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\RequestId;
@@ -99,7 +100,7 @@ final class JsonRpcErrorResponseTest extends TestCase
         $response = JsonRpcErrorResponse::fromArray([
             'jsonrpc' => '2.0',
             'id' => null,
-            'error' => ['code' => ProtocolErrorCode::InvalidRequest->value],
+            'error' => ['code' => ProtocolErrorCode::InvalidRequest->value, 'message' => 'Invalid request'],
         ]);
 
         self::assertInstanceOf(InvalidRequestError::class, $response->error);
@@ -110,7 +111,7 @@ final class JsonRpcErrorResponseTest extends TestCase
         $response = JsonRpcErrorResponse::fromArray([
             'jsonrpc' => '2.0',
             'id' => 1,
-            'error' => ['code' => ProtocolErrorCode::MethodNotFound->value],
+            'error' => ['code' => ProtocolErrorCode::MethodNotFound->value, 'message' => 'Method not found'],
         ]);
 
         self::assertInstanceOf(MethodNotFoundError::class, $response->error);
@@ -121,7 +122,7 @@ final class JsonRpcErrorResponseTest extends TestCase
         $response = JsonRpcErrorResponse::fromArray([
             'jsonrpc' => '2.0',
             'id' => 1,
-            'error' => ['code' => ProtocolErrorCode::InvalidParams->value],
+            'error' => ['code' => ProtocolErrorCode::InvalidParams->value, 'message' => 'Invalid params'],
         ]);
 
         self::assertInstanceOf(InvalidParamsError::class, $response->error);
@@ -134,12 +135,13 @@ final class JsonRpcErrorResponseTest extends TestCase
             'id' => 1,
             'error' => [
                 'code' => ProtocolErrorCode::UrlElicitationRequired->value,
-                'message' => 'URL elicitation required',
+                'message' => 'Custom elicitation prompt',
                 'data' => ['elicitations' => []],
             ],
         ]);
 
         self::assertInstanceOf(UrlElicitationRequiredErrorPayload::class, $response->error);
+        self::assertSame('Custom elicitation prompt', $response->error->message);
     }
 
     public function testFromArrayDispatchesInternalError(): void
@@ -154,15 +156,31 @@ final class JsonRpcErrorResponseTest extends TestCase
         self::assertSame('oops', $response->error->message);
     }
 
-    public function testFromArrayFallsBackToInternalErrorForUnknownCode(): void
+    public function testFromArrayPreservesUnknownCodeAsUnknownProtocolError(): void
     {
         $response = JsonRpcErrorResponse::fromArray([
             'jsonrpc' => '2.0',
             'id' => 1,
-            'error' => ['code' => 42],
+            'error' => ['code' => -32099, 'message' => 'Server error', 'data' => ['trace' => 'abc']],
         ]);
 
-        self::assertInstanceOf(InternalError::class, $response->error);
+        self::assertInstanceOf(UnknownProtocolError::class, $response->error);
+        self::assertSame(-32099, $response->error->code);
+        self::assertSame('Server error', $response->error->message);
+        self::assertSame(['trace' => 'abc'], $response->error->data);
+    }
+
+    public function testFromArrayUnknownCodeRoundTrips(): void
+    {
+        $envelope = [
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'error' => ['code' => -32099, 'message' => 'Upstream rejected', 'data' => ['detail' => 'x']],
+        ];
+
+        $rebuilt = JsonRpcErrorResponse::fromArray($envelope)->toArray();
+
+        self::assertSame($envelope, $rebuilt);
     }
 
     public function testFromArrayPropagatesErrorData(): void
@@ -185,7 +203,7 @@ final class JsonRpcErrorResponseTest extends TestCase
         $response = JsonRpcErrorResponse::fromArray([
             'jsonrpc' => '2.0',
             'id' => null,
-            'error' => ['code' => ProtocolErrorCode::ParseError->value],
+            'error' => ['code' => ProtocolErrorCode::ParseError->value, 'message' => 'bad JSON'],
         ]);
 
         self::assertNull($response->id);
@@ -199,6 +217,30 @@ final class JsonRpcErrorResponseTest extends TestCase
         JsonRpcErrorResponse::fromArray([
             'jsonrpc' => '2.0',
             'id' => [],
+            'error' => ['code' => ProtocolErrorCode::InternalError->value, 'message' => 'oops'],
+        ]);
+    }
+
+    public function testFromArrayRejectsMissingErrorCode(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('JSON-RPC error data missing "code".');
+
+        JsonRpcErrorResponse::fromArray([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'error' => ['message' => 'oops'],
+        ]);
+    }
+
+    public function testFromArrayRejectsMissingErrorMessage(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('JSON-RPC error data missing "message".');
+
+        JsonRpcErrorResponse::fromArray([
+            'jsonrpc' => '2.0',
+            'id' => 1,
             'error' => ['code' => ProtocolErrorCode::InternalError->value],
         ]);
     }
@@ -247,7 +289,7 @@ final class JsonRpcErrorResponseTest extends TestCase
         JsonRpcErrorResponse::fromArray([
             'jsonrpc' => '2.0',
             'id' => 1,
-            'error' => ['code' => ProtocolErrorCode::InternalError->value, 'data' => 'bad'],
+            'error' => ['code' => ProtocolErrorCode::InternalError->value, 'message' => 'oops', 'data' => 'bad'],
         ]);
     }
 }

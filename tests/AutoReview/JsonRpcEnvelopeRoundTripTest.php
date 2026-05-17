@@ -224,6 +224,8 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
 
         yield 'JsonRpcErrorResponse-ParseError' => ['wrapper' => JsonRpcErrorResponse::class, 'inner' => null];
 
+        yield 'JsonRpcErrorResponse-UnknownProtocolError' => ['wrapper' => JsonRpcErrorResponse::class, 'inner' => null];
+
         yield 'JsonRpcErrorResponse-UrlElicitationRequiredErrorPayload' => ['wrapper' => JsonRpcErrorResponse::class, 'inner' => null];
     }
 

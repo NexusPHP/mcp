@@ -12,3 +12,9 @@ trim_trailing_whitespace = true
 
 [*.{neon,yml,json}]
 indent_size = 2
+
+# AutoReview JSON fixtures (data/, envelope-shapes/, schema-payload/) are
+# compared byte-for-byte against `json_encode(..., JSON_PRETTY_PRINT)`, which
+# PHP hardcodes to 4-space indent.
+[tests/AutoReview/**.json]
+indent_size = 4

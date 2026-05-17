@@ -29,6 +29,7 @@ use Nexus\Mcp\Core\Schema\Error\InvalidParamsError;
 use Nexus\Mcp\Core\Schema\Error\InvalidRequestError;
 use Nexus\Mcp\Core\Schema\Error\MethodNotFoundError;
 use Nexus\Mcp\Core\Schema\Error\ParseError;
+use Nexus\Mcp\Core\Schema\Error\UnknownProtocolError;
 use Nexus\Mcp\Core\Schema\Error\UrlElicitationRequiredErrorPayload;
 use Nexus\Mcp\Core\Schema\Icons;
 use Nexus\Mcp\Core\Schema\JsonRpc\PaginatedRequest;
@@ -101,6 +102,7 @@ final class SchemaConformanceTest extends TestCase
         InvalidRequestError::class => self::JSON_RPC_ERROR_OBJECT_URL,
         MethodNotFoundError::class => self::JSON_RPC_ERROR_OBJECT_URL,
         ParseError::class => self::JSON_RPC_ERROR_OBJECT_URL,
+        UnknownProtocolError::class => self::JSON_RPC_ERROR_OBJECT_URL,
         UrlElicitationRequiredErrorPayload::class => self::JSON_RPC_ERROR_OBJECT_URL,
         Icons::class => 'https://modelcontextprotocol.io/specification/2025-11-25/basic#icons',
         PaginatedRequest::class => self::TS_SCHEMA_FILE_URL,

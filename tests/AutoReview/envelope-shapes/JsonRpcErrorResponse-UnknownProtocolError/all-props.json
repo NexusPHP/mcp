@@ -1,0 +1,12 @@
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "error": {
+        "code": -32099,
+        "message": "Upstream rejected the request.",
+        "data": {
+            "upstream": "vendor-service",
+            "retry_after_ms": 250
+        }
+    }
+}

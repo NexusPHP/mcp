@@ -17,6 +17,7 @@ use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Error;
+use Nexus\Mcp\Core\Schema\Error\UnknownProtocolError;
 use Nexus\Mcp\Core\Schema\Error\UrlElicitationRequiredErrorPayload;
 use Nexus\Mcp\Core\Schema\RequestId;
 
@@ -95,11 +96,13 @@ final readonly class JsonRpcErrorResponse implements Arrayable, JsonRpcResponse
      */
     private static function errorFromArray(array $data): Error
     {
-        $code = $data['code'] ?? null;
-        Assert::that($code)->isInt('JSON-RPC error "code" must be an integer, {type} given.');
+        Assert::that($data)->hasOffset('code', 'JSON-RPC error data missing "code".');
+        Assert::that($data['code'])->isInt('JSON-RPC error "code" must be an integer, {type} given.');
+        $code = $data['code'];
 
-        $message = $data['message'] ?? null;
-        Assert::that($message)->nullOr()->isString('JSON-RPC error "message" must be a string, {type} given.');
+        Assert::that($data)->hasOffset('message', 'JSON-RPC error data missing "message".');
+        Assert::that($data['message'])->isString('JSON-RPC error "message" must be a string, {type} given.');
+        $message = $data['message'];
 
         $extra = null;
 
@@ -111,11 +114,7 @@ final readonly class JsonRpcErrorResponse implements Arrayable, JsonRpcResponse
             $extra = $data['data'];
         }
 
-        $narrow = [];
-
-        if (null !== $message) {
-            $narrow['message'] = $message;
-        }
+        $narrow = ['message' => $message];
 
         if (null !== $extra) {
             $narrow['data'] = $extra;
@@ -127,10 +126,10 @@ final readonly class JsonRpcErrorResponse implements Arrayable, JsonRpcResponse
             return UrlElicitationRequiredErrorPayload::fromArray($narrow);
         }
 
-        return Error::forCode(
-            $resolved ?? ProtocolErrorCode::InternalError,
-            $message ?? 'Internal error',
-            $extra,
-        );
+        if (null === $resolved) {
+            return new UnknownProtocolError($code, $message, $extra);
+        }
+
+        return Error::forCode($resolved, $message, $extra);
     }
 }
