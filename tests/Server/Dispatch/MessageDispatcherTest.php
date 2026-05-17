@@ -371,7 +371,7 @@ final class MessageDispatcherTest extends TestCase
         self::assertSame(1, $message->id?->id);
     }
 
-    public function testHandlerThrowingNonMcpExceptionLogsAndReturnsInternalError(): void
+    public function testHandlerThrowingNonMcpExceptionLogsAndReturnsGenericInternalError(): void
     {
         $transport = new RecordingTransport();
         $logger = new ArrayLogger();
@@ -379,7 +379,7 @@ final class MessageDispatcherTest extends TestCase
             initialize: true,
             requestHandlers: [
                 'ping' => new ClosureRequestHandler(
-                    static fn() => throw new \RuntimeException('boom'),
+                    static fn() => throw new \RuntimeException('mysql://root:hunter2@db-prod:3306 unreachable'),
                 ),
             ],
             logger: $logger,
@@ -396,11 +396,16 @@ final class MessageDispatcherTest extends TestCase
         $message = $transport->sent[0]['message'];
         self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
         self::assertSame(ProtocolErrorCode::InternalError->value, $message->error->code);
-        self::assertSame('boom', $message->error->message);
+        self::assertSame('Internal error', $message->error->message);
+        self::assertStringNotContainsString('mysql://', $message->error->message);
+        self::assertStringNotContainsString('hunter2', $message->error->message);
+
         $matches = $logger->recordsMatching(LogLevel::ERROR, 'Uncaught request handler exception.');
         self::assertCount(1, $matches);
         self::assertSame('ping', $matches[0]['context']['method'] ?? null);
-        self::assertInstanceOf(\RuntimeException::class, $matches[0]['context']['exception'] ?? null);
+        $logged = $matches[0]['context']['exception'] ?? null;
+        self::assertInstanceOf(\RuntimeException::class, $logged);
+        self::assertSame('mysql://root:hunter2@db-prod:3306 unreachable', $logged->getMessage());
     }
 
     public function testTransportSendFailureIsLoggedRatherThanCrashingTheLoop(): void
