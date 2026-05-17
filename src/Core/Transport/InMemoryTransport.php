@@ -37,6 +37,11 @@ final class InMemoryTransport implements TransportInterface
     private array $closeListeners = [];
 
     /**
+     * @var array<int, \Closure(): void>
+     */
+    private array $drainListeners = [];
+
+    /**
      * Envelopes the peer's `send()` delivered before this side called `start()`. Drained in arrival order on `start()`.
      *
      * @var list<array<string, mixed>>
@@ -117,14 +122,18 @@ final class InMemoryTransport implements TransportInterface
             return;
         }
 
-        $this->state = TransportState::Closed;
+        try {
+            $this->emitDrain();
+        } finally {
+            $this->state = TransportState::Closed;
 
-        $peer = $this->peer;
-        $this->peer = null;
+            $peer = $this->peer;
+            $this->peer = null;
 
-        $peer?->close();
+            $peer?->close();
 
-        $this->emitClose();
+            $this->emitClose();
+        }
     }
 
     #[\Override]
@@ -167,6 +176,17 @@ final class InMemoryTransport implements TransportInterface
         return new Subscription(static function (): void {});
     }
 
+    #[\Override]
+    public function onDrain(\Closure $listener): SubscriptionInterface
+    {
+        $this->drainListeners[] = $listener;
+        $id = array_key_last($this->drainListeners);
+
+        return new Subscription(function () use ($id): void {
+            unset($this->drainListeners[$id]);
+        });
+    }
+
     /**
      * Cross-instance hand-off invoked by the peer's `send()`. Queues into
      * `pendingInbound` while this side is `Idle`, otherwise emits to listeners.
@@ -197,6 +217,13 @@ final class InMemoryTransport implements TransportInterface
     private function emitClose(): void
     {
         foreach ($this->closeListeners as $listener) {
+            $listener();
+        }
+    }
+
+    private function emitDrain(): void
+    {
+        foreach ($this->drainListeners as $listener) {
             $listener();
         }
     }

@@ -83,4 +83,11 @@ interface TransportInterface
      * @param \Closure(\Throwable): void $listener
      */
     public function onError(\Closure $listener): SubscriptionInterface;
+
+    /**
+     * Register a drain listener that fires before `close()`.
+     *
+     * @param \Closure(): void $listener
+     */
+    public function onDrain(\Closure $listener): SubscriptionInterface;
 }

@@ -220,6 +220,63 @@ final class InMemoryTransportTest extends TestCase
         $this->expectNotToPerformAssertions();
     }
 
+    public function testDrainListenerFiresBeforeCloseListenerOnClose(): void
+    {
+        [$a] = InMemoryTransport::pair();
+        $events = [];
+        $a->onDrain(static function () use (&$events): void {
+            $events[] = 'drain';
+        });
+        $a->onClose(static function () use (&$events): void {
+            $events[] = 'close';
+        });
+        $a->start();
+
+        $a->close();
+
+        self::assertSame(['drain', 'close'], $events);
+    }
+
+    public function testDrainListenerThrowAbortsChainButCloseStillFires(): void
+    {
+        [$a] = InMemoryTransport::pair();
+        $secondDrainFired = false;
+        $closed = false;
+        $a->onDrain(static function (): void {
+            throw new \RuntimeException('drain boom');
+        });
+        $a->onDrain(static function () use (&$secondDrainFired): void {
+            $secondDrainFired = true;
+        });
+        $a->onClose(static function () use (&$closed): void {
+            $closed = true;
+        });
+        $a->start();
+
+        try {
+            $a->close();
+        } catch (\RuntimeException) {
+        }
+
+        self::assertFalse($secondDrainFired);
+        self::assertTrue($closed);
+    }
+
+    public function testDisposingDrainSubscriptionStopsDrainEmission(): void
+    {
+        [$a] = InMemoryTransport::pair();
+        $fired = false;
+        $subscription = $a->onDrain(static function () use (&$fired): void {
+            $fired = true;
+        });
+        $subscription->dispose();
+        $a->start();
+
+        $a->close();
+
+        self::assertFalse($fired);
+    }
+
     public function testMultipleListenersFireInRegistrationOrder(): void
     {
         [$server, $client] = InMemoryTransport::pair();

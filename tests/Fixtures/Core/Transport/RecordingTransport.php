@@ -55,6 +55,11 @@ final class RecordingTransport implements TransportInterface
     private array $errorListeners = [];
 
     /**
+     * @var list<\Closure(): void>
+     */
+    private array $drainListeners = [];
+
+    /**
      * @var list<DeferredFuture<mixed>>
      */
     private array $sendWaiters = [];
@@ -105,10 +110,16 @@ final class RecordingTransport implements TransportInterface
             return;
         }
 
-        $this->closed = true;
+        try {
+            foreach ($this->drainListeners as $listener) {
+                $listener();
+            }
+        } finally {
+            $this->closed = true;
 
-        foreach ($this->closeListeners as $listener) {
-            $listener();
+            foreach ($this->closeListeners as $listener) {
+                $listener();
+            }
         }
     }
 
@@ -152,6 +163,19 @@ final class RecordingTransport implements TransportInterface
         return new Subscription(function () use ($listener): void {
             $this->errorListeners = array_values(array_filter(
                 $this->errorListeners,
+                static fn(\Closure $candidate): bool => $candidate !== $listener,
+            ));
+        });
+    }
+
+    #[\Override]
+    public function onDrain(\Closure $listener): SubscriptionInterface
+    {
+        $this->drainListeners[] = $listener;
+
+        return new Subscription(function () use ($listener): void {
+            $this->drainListeners = array_values(array_filter(
+                $this->drainListeners,
                 static fn(\Closure $candidate): bool => $candidate !== $listener,
             ));
         });

@@ -818,6 +818,92 @@ final class StdioServerTransportTest extends TestCase
         self::assertFalse($fired);
     }
 
+    public function testDrainListenerFiresBeforeCloseListenerWhenStreamEofs(): void
+    {
+        $transport = self::buildTransportReading([]);
+        $events = [];
+        $transport->onDrain(static function () use (&$events): void {
+            $events[] = 'drain';
+        });
+        $transport->onClose(static function () use (&$events): void {
+            $events[] = 'close';
+        });
+
+        $transport->start();
+        EventLoop::run();
+
+        self::assertSame(['drain', 'close'], $events);
+    }
+
+    public function testDrainListenerThrowAbortsChainButCloseStillRuns(): void
+    {
+        $transport = self::buildTransportReading([]);
+        $secondDrainFired = false;
+        $closed = false;
+        $transport->onDrain(static function (): void {
+            throw new \RuntimeException('drain listener boom');
+        });
+        $transport->onDrain(static function () use (&$secondDrainFired): void {
+            $secondDrainFired = true;
+        });
+        $transport->onClose(static function () use (&$closed): void {
+            $closed = true;
+        });
+
+        $caught = null;
+        $previousHandler = EventLoop::getErrorHandler();
+        EventLoop::setErrorHandler(static function (\Throwable $e) use (&$caught): void {
+            $caught = $e;
+        });
+
+        try {
+            $transport->start();
+            EventLoop::run();
+        } finally {
+            EventLoop::setErrorHandler($previousHandler);
+        }
+
+        self::assertFalse($secondDrainFired);
+        self::assertTrue($closed);
+        self::assertInstanceOf(\RuntimeException::class, $caught);
+        self::assertSame('drain listener boom', $caught->getMessage());
+    }
+
+    public function testDisposedDrainListenerDoesNotFire(): void
+    {
+        $transport = self::buildTransportReading([]);
+        $fired = false;
+        $subscription = $transport->onDrain(static function () use (&$fired): void {
+            $fired = true;
+        });
+        $subscription->dispose();
+
+        $transport->start();
+        EventLoop::run();
+
+        self::assertFalse($fired);
+    }
+
+    public function testLoggerEmitsDebugOnDrainListenerLifecycle(): void
+    {
+        $logger = new ArrayLogger();
+        $transport = new StdioServerTransport(
+            new ReadableIterableStream(new \ArrayIterator([])),
+            new WritableBuffer(),
+            $logger,
+        );
+
+        $subscription = $transport->onDrain(static function (): void {});
+        $subscription->dispose();
+
+        $registered = $logger->recordsMatching(LogLevel::DEBUG, 'Stdio transport registered a drain listener. {count} active.');
+        $disposed = $logger->recordsMatching(LogLevel::DEBUG, 'Stdio transport disposed a drain listener. {count} active.');
+        self::assertCount(1, $registered);
+        self::assertCount(1, $disposed);
+        self::assertSame(1, $registered[0]['context']['count'] ?? null);
+        self::assertSame(0, $disposed[0]['context']['count'] ?? null);
+    }
+
     public function testDisposingOneListenerLeavesOthers(): void
     {
         $transport = self::buildTransportReading(['{"jsonrpc":"2.0","id":1,"method":"ping"}'."\n"]);

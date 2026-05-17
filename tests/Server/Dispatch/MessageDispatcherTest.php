@@ -741,6 +741,85 @@ final class MessageDispatcherTest extends TestCase
         self::assertInstanceOf(\RuntimeException::class, $matches[0]['context']['exception'] ?? null);
     }
 
+    public function testFlushPendingWithNothingScheduledIsANoOp(): void
+    {
+        $dispatcher = self::buildDispatcher();
+
+        $dispatcher->flushPending();
+
+        $this->expectNotToPerformAssertions();
+    }
+
+    public function testFlushPendingDrainsAnInFlightRequestDispatchBeforeReturning(): void
+    {
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher(
+            initialize: true,
+            requestHandlers: ['ping' => new PingRequestHandler()],
+        );
+
+        $dispatcher->dispatch(
+            ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping'],
+            $transport,
+        );
+
+        $dispatcher->flushPending();
+
+        self::assertCount(1, $transport->sent);
+        $message = $transport->sent[0]['message'];
+        self::assertInstanceOf(JsonRpcResultResponse::class, $message);
+        self::assertSame(1, $message->id->id);
+    }
+
+    public function testInFlightCountTracksDispatchedCoroutinesAndDropsToZeroAfterFlush(): void
+    {
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher(
+            initialize: true,
+            requestHandlers: ['ping' => new PingRequestHandler()],
+        );
+
+        self::assertSame(0, $dispatcher->inFlightCount());
+
+        $dispatcher->dispatch(
+            ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping'],
+            $transport,
+        );
+
+        self::assertSame(1, $dispatcher->inFlightCount());
+
+        $dispatcher->flushPending();
+
+        self::assertSame(0, $dispatcher->inFlightCount());
+    }
+
+    public function testFlushPendingDrainsAnInFlightNotificationDispatchBeforeReturning(): void
+    {
+        $transport = new RecordingTransport();
+        $logger = new ArrayLogger();
+        $dispatcher = self::buildDispatcher(
+            initialize: true,
+            notificationHandlers: [
+                'notifications/cancelled' => new ClosureNotificationHandler(
+                    static fn() => throw new \RuntimeException('handler ran'),
+                ),
+            ],
+            logger: $logger,
+        );
+
+        $dispatcher->dispatch(
+            ['jsonrpc' => '2.0', 'method' => 'notifications/cancelled', 'params' => ['requestId' => 1]],
+            $transport,
+        );
+
+        self::assertSame([], $logger->messagesAtLevel(LogLevel::ERROR));
+
+        $dispatcher->flushPending();
+
+        $matches = $logger->recordsMatching(LogLevel::ERROR, 'Uncaught notification handler exception.');
+        self::assertCount(1, $matches);
+    }
+
     /**
      * @param array<non-empty-string, RequestHandlerInterface<non-empty-string, Result, ServerContext>> $requestHandlers
      * @param array<non-empty-string, NotificationHandlerInterface<non-empty-string>>                   $notificationHandlers

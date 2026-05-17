@@ -13,6 +13,9 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Server;
 
+use Nexus\Mcp\Core\Schema\Request\PingRequest;
+use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Core\Transport\InMemoryTransport;
 use Nexus\Mcp\Server\Server;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
@@ -160,6 +163,39 @@ final class ServerTest extends TestCase
 
         $serverRun->await();
         $this->expectNotToPerformAssertions();
+    }
+
+    /**
+     * Proves `run()` wires a drain listener to `dispatcher->flushPending()`.
+     * `InMemoryTransport` throws `TransportAlreadyClosedException` on
+     * send-after-close, so without the drain step the async dispatch coroutine
+     * would lose the race and the client would never see a response.
+     */
+    public function testRunDrainsInFlightDispatchBeforeTransportFullyCloses(): void
+    {
+        [$serverSide, $clientSide] = InMemoryTransport::pair();
+        $server = self::buildServer();
+
+        $clientReceived = [];
+        $clientSide->onMessage(static function (array $envelope) use (&$clientReceived): void {
+            $clientReceived[] = $envelope;
+        });
+
+        $serverRun = async(static function () use ($server, $serverSide): void {
+            $server->run($serverSide);
+        });
+
+        EventLoop::queue(static function () use ($clientSide, $serverSide): void {
+            $clientSide->start();
+            $clientSide->send(new PingRequest(new RequestId(42)));
+            $serverSide->close();
+        });
+
+        $serverRun->await();
+
+        self::assertCount(1, $clientReceived);
+        self::assertSame(42, $clientReceived[0]['id'] ?? null);
+        self::assertArrayHasKey('result', $clientReceived[0]);
     }
 
     private static function buildServer(): Server
