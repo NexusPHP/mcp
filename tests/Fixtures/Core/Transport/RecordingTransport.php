@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Fixtures\Core\Transport;
 
+use Amp\DeferredFuture;
+use Amp\Future;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcMessage;
 use Nexus\Mcp\Core\Transport\SendContext;
 use Nexus\Mcp\Core\Transport\Subscription;
@@ -52,6 +54,11 @@ final class RecordingTransport implements TransportInterface
      */
     private array $errorListeners = [];
 
+    /**
+     * @var list<DeferredFuture<mixed>>
+     */
+    private array $sendWaiters = [];
+
     public function __construct(private readonly ?string $sessionId = null)
     {
     }
@@ -67,9 +74,28 @@ final class RecordingTransport implements TransportInterface
     {
         $this->sent[] = ['message' => $message, 'context' => $context];
 
+        $waiters = $this->sendWaiters;
+        $this->sendWaiters = [];
+
+        foreach ($waiters as $waiter) {
+            $waiter->complete();
+        }
+
         if (null !== $this->sendError) {
             throw $this->sendError;
         }
+    }
+
+    /**
+     * @return Future<mixed>
+     */
+    public function nextSend(): Future
+    {
+        $deferred = new DeferredFuture();
+
+        $this->sendWaiters[] = $deferred;
+
+        return $deferred->getFuture();
     }
 
     #[\Override]

@@ -405,11 +405,12 @@ final class MessageDispatcherTest extends TestCase
         self::assertSame(['method' => 'notifications/cancelled'], $matches[0]['context']);
     }
 
-    public function testInitializedNotificationFlipsTheGateAndIsDispatchedToHandler(): void
+    public function testInitializedNotificationFlipsTheGateAndIsDispatchedToHandlerWhenInFlight(): void
     {
         $invocations = 0;
         $transport = new RecordingTransport();
         $gate = new InitializationGate();
+        $gate->markInitializeInFlight();
         $dispatcher = self::buildDispatcher(
             gate: $gate,
             notificationHandlers: [
@@ -428,6 +429,159 @@ final class MessageDispatcherTest extends TestCase
 
         self::assertTrue($gate->isInitialized());
         self::assertSame(1, $invocations);
+    }
+
+    public function testInitializedNotificationBeforeInitializeRequestIsDiscardedAndDoesNotFlipGate(): void
+    {
+        $invocations = 0;
+        $transport = new RecordingTransport();
+        $logger = new ArrayLogger();
+        $gate = new InitializationGate();
+        $dispatcher = self::buildDispatcher(
+            gate: $gate,
+            notificationHandlers: [
+                'notifications/initialized' => new ClosureNotificationHandler(
+                    static function () use (&$invocations): void { ++$invocations; },
+                ),
+            ],
+            logger: $logger,
+        );
+
+        $dispatcher->dispatch(
+            ['jsonrpc' => '2.0', 'method' => 'notifications/initialized'],
+            $transport,
+        );
+
+        EventLoop::run();
+
+        self::assertFalse($gate->isInitialized());
+        self::assertSame(0, $invocations);
+        self::assertSame([], $transport->sent);
+        $matches = $logger->recordsMatching(
+            LogLevel::WARNING,
+            'Discarding "notifications/initialized" received outside of an in-flight "initialize" handshake.',
+        );
+        self::assertCount(1, $matches);
+        self::assertSame(['method' => 'notifications/initialized'], $matches[0]['context']);
+    }
+
+    public function testInitializedNotificationAfterFullHandshakeIsDiscardedAndDoesNotFireHandlerAgain(): void
+    {
+        $invocations = 0;
+        $transport = new RecordingTransport();
+        $logger = new ArrayLogger();
+        $gate = new InitializationGate();
+        $gate->markInitializeInFlight();
+        $gate->markInitialized();
+        $dispatcher = self::buildDispatcher(
+            gate: $gate,
+            notificationHandlers: [
+                'notifications/initialized' => new ClosureNotificationHandler(
+                    static function () use (&$invocations): void { ++$invocations; },
+                ),
+            ],
+            logger: $logger,
+        );
+
+        $dispatcher->dispatch(
+            ['jsonrpc' => '2.0', 'method' => 'notifications/initialized'],
+            $transport,
+        );
+
+        EventLoop::run();
+
+        self::assertSame(0, $invocations);
+        self::assertSame([], $transport->sent);
+        $matches = $logger->recordsMatching(
+            LogLevel::WARNING,
+            'Discarding "notifications/initialized" received outside of an in-flight "initialize" handshake.',
+        );
+        self::assertCount(1, $matches);
+    }
+
+    public function testSuccessfulInitializeHandlerFlipsGateToInFlight(): void
+    {
+        $transport = new RecordingTransport();
+        $gate = new InitializationGate();
+        $dispatcher = self::buildDispatcher(
+            gate: $gate,
+            requestHandlers: [
+                'initialize' => new ClosureRequestHandler(
+                    static fn() => new EmptyResult(),
+                ),
+            ],
+        );
+
+        $dispatcher->dispatch(self::initializeEnvelope(), $transport);
+
+        EventLoop::run();
+
+        self::assertFalse($gate->isInitialized(), 'Gate should be in-flight, not initialized, before "notifications/initialized" arrives.');
+        self::assertFalse($gate->allowsRequest('tools/list'), 'Non-init requests must remain rejected during in-flight state.');
+
+        $dispatcher->dispatch(
+            ['jsonrpc' => '2.0', 'method' => 'notifications/initialized'],
+            $transport,
+        );
+
+        EventLoop::run();
+
+        self::assertTrue($gate->isInitialized());
+        self::assertTrue($gate->allowsRequest('tools/list'));
+    }
+
+    public function testFailedInitializeHandlerDoesNotFlipGateToInFlight(): void
+    {
+        $transport = new RecordingTransport();
+        $gate = new InitializationGate();
+        $dispatcher = self::buildDispatcher(
+            gate: $gate,
+            requestHandlers: [
+                'initialize' => new ClosureRequestHandler(
+                    static fn() => throw new \RuntimeException('init blew up'),
+                ),
+            ],
+        );
+
+        $dispatcher->dispatch(self::initializeEnvelope(), $transport);
+
+        EventLoop::run();
+
+        self::assertFalse($gate->isInitialized());
+
+        $dispatcher->dispatch(
+            ['jsonrpc' => '2.0', 'method' => 'notifications/initialized'],
+            $transport,
+        );
+
+        EventLoop::run();
+
+        self::assertFalse($gate->isInitialized(), 'Gate must not promote to initialized when the preceding "initialize" handler failed.');
+    }
+
+    public function testInitializeEnvelopeWithMalformedParamsLeavesGateAwaiting(): void
+    {
+        $transport = new RecordingTransport();
+        $gate = new InitializationGate();
+        $dispatcher = self::buildDispatcher(gate: $gate);
+
+        $dispatcher->dispatch(
+            ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'initialize'],
+            $transport,
+        );
+
+        EventLoop::run();
+
+        self::assertFalse($gate->isInitialized());
+
+        $dispatcher->dispatch(
+            ['jsonrpc' => '2.0', 'method' => 'notifications/initialized'],
+            $transport,
+        );
+
+        EventLoop::run();
+
+        self::assertFalse($gate->isInitialized(), 'Subsequent "notifications/initialized" must still be discarded when no valid "initialize" envelope has been received.');
     }
 
     public function testNotificationWithNoRegisteredHandlerIsSilentlyDropped(): void
@@ -497,6 +651,7 @@ final class MessageDispatcherTest extends TestCase
         $gate ??= new InitializationGate();
 
         if ($initialize) {
+            $gate->markInitializeInFlight();
             $gate->markInitialized();
         }
 
@@ -514,5 +669,22 @@ final class MessageDispatcherTest extends TestCase
     private static function okHandler(): RequestHandlerInterface
     {
         return new ClosureRequestHandler(static fn() => new EmptyResult());
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function initializeEnvelope(): array
+    {
+        return [
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'initialize',
+            'params' => [
+                'protocolVersion' => '2025-11-25',
+                'capabilities' => [],
+                'clientInfo' => ['name' => 'test-client', 'version' => '1.0.0'],
+            ],
+        ];
     }
 }

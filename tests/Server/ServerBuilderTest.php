@@ -364,6 +364,23 @@ final class ServerBuilderTest extends TestCase
             $server->run($transport);
         });
 
+        $initializeSent = $transport->nextSend();
+
+        EventLoop::queue(static function () use ($transport): void {
+            $transport->emitMessage([
+                'jsonrpc' => '2.0',
+                'id' => 1,
+                'method' => 'initialize',
+                'params' => [
+                    'protocolVersion' => '2025-11-25',
+                    'capabilities' => [],
+                    'clientInfo' => ['name' => 'test-client', 'version' => '1.0.0'],
+                ],
+            ]);
+        });
+
+        $initializeSent->await();
+
         EventLoop::queue(static function () use ($transport): void {
             $transport->emitMessage([
                 'jsonrpc' => '2.0',
@@ -472,7 +489,9 @@ final class ServerBuilderTest extends TestCase
             $server->run($transport);
         });
 
-        EventLoop::queue(static function () use ($transport, $method, $params): void {
+        $initializeSent = $transport->nextSend();
+
+        EventLoop::queue(static function () use ($transport): void {
             $transport->emitMessage([
                 'jsonrpc' => '2.0',
                 'id' => 1,
@@ -483,6 +502,11 @@ final class ServerBuilderTest extends TestCase
                     'clientInfo' => ['name' => 'test-client', 'version' => '1.0.0'],
                 ],
             ]);
+        });
+
+        $initializeSent->await();
+
+        EventLoop::queue(static function () use ($transport, $method, $params): void {
             $transport->emitMessage([
                 'jsonrpc' => '2.0',
                 'method' => 'notifications/initialized',

@@ -56,24 +56,61 @@ final class InitializationGateTest extends TestCase
         self::assertFalse($gate->allowsRequest('resources/read'));
     }
 
-    public function testMarkInitializedFlipsTheGate(): void
+    public function testMarkInitializedFromAwaitingStateIsRejected(): void
     {
         $gate = new InitializationGate();
 
+        self::assertFalse($gate->markInitialized());
+        self::assertFalse($gate->isInitialized());
+        self::assertFalse($gate->allowsRequest('tools/list'));
+    }
+
+    public function testMarkInitializeInFlightTransitionsFromAwaiting(): void
+    {
+        $gate = new InitializationGate();
+
+        self::assertTrue($gate->markInitializeInFlight());
+        self::assertFalse($gate->isInitialized(), 'Gate must not be considered initialized until "notifications/initialized" arrives.');
+        self::assertFalse($gate->allowsRequest('tools/list'));
+    }
+
+    public function testMarkInitializeInFlightIsNoOpWhenAlreadyInFlight(): void
+    {
+        $gate = new InitializationGate();
+        $gate->markInitializeInFlight();
+
+        self::assertFalse($gate->markInitializeInFlight());
+    }
+
+    public function testMarkInitializeInFlightIsNoOpAfterFullHandshake(): void
+    {
+        $gate = new InitializationGate();
+        $gate->markInitializeInFlight();
         $gate->markInitialized();
+
+        self::assertFalse($gate->markInitializeInFlight());
+        self::assertTrue($gate->isInitialized());
+    }
+
+    public function testFullHandshakeFlipsTheGate(): void
+    {
+        $gate = new InitializationGate();
+
+        self::assertTrue($gate->markInitializeInFlight());
+        self::assertTrue($gate->markInitialized());
 
         self::assertTrue($gate->isInitialized());
         self::assertTrue($gate->allowsRequest('tools/list'));
         self::assertTrue($gate->allowsRequest('prompts/get'));
     }
 
-    public function testMarkInitializedIsIdempotent(): void
+    public function testMarkInitializedIsNoOpAfterFullHandshake(): void
     {
         $gate = new InitializationGate();
-
+        $gate->markInitializeInFlight();
         $gate->markInitialized();
-        $gate->markInitialized();
 
+        self::assertFalse($gate->markInitialized());
         self::assertTrue($gate->isInitialized());
     }
 }
