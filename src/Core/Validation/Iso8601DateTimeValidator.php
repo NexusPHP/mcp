@@ -52,4 +52,16 @@ final class Iso8601DateTimeValidator
 
         return $parsed;
     }
+
+    /**
+     * Formats `$dateTime` as RFC 3339, emitting `.vvv` subseconds only when non-zero.
+     *
+     * @return non-empty-string
+     */
+    public static function format(\DateTimeImmutable $dateTime): string
+    {
+        return $dateTime->format('u') === '000000'
+            ? $dateTime->format(\DateTimeInterface::RFC3339)
+            : $dateTime->format(\DateTimeInterface::RFC3339_EXTENDED);
+    }
 }

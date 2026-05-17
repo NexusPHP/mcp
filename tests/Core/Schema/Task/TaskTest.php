@@ -153,6 +153,22 @@ final class TaskTest extends TestCase
         self::assertSame('2026-05-10T12:00:30+00:00', $task->lastUpdatedAt->format(\DATE_RFC3339));
     }
 
+    public function testToArrayPreservesSubsecondPrecisionInTimestamps(): void
+    {
+        $task = new Task(
+            'task-abc',
+            TaskStatus::Working,
+            '2026-05-10T12:00:00.123+00:00',
+            '2026-05-10T12:00:30.456+00:00',
+            null,
+        );
+
+        $data = $task->toArray();
+
+        self::assertSame('2026-05-10T12:00:00.123+00:00', $data['createdAt']);
+        self::assertSame('2026-05-10T12:00:30.456+00:00', $data['lastUpdatedAt']);
+    }
+
     public function testToArrayEmitsRequiredFieldsAndNullTtl(): void
     {
         $task = new Task('task-abc', TaskStatus::Working, '2026-05-10T12:00:00+00:00', '2026-05-10T12:00:30+00:00', null);

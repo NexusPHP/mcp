@@ -109,8 +109,8 @@ final readonly class Task implements Arrayable
         $data = [
             'taskId' => $this->taskId,
             'status' => $this->status->value,
-            'createdAt' => $this->createdAt->format(\DATE_RFC3339),
-            'lastUpdatedAt' => $this->lastUpdatedAt->format(\DATE_RFC3339),
+            'createdAt' => Iso8601DateTimeValidator::format($this->createdAt),
+            'lastUpdatedAt' => Iso8601DateTimeValidator::format($this->lastUpdatedAt),
             'ttl' => $this->ttl,
         ];
 

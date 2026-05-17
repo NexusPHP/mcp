@@ -177,7 +177,17 @@ final class AnnotationsTest extends TestCase
         self::assertSame([], $annotations->toArray());
     }
 
-    public function testAnnotationsToArrayNormalizesLastModifiedToAtomFormat(): void
+    public function testAnnotationsToArrayPreservesLastModifiedSubsecondPrecision(): void
+    {
+        $annotations = new Annotations(lastModified: '2026-03-09T12:00:00.500Z');
+
+        self::assertSame(
+            ['lastModified' => '2026-03-09T12:00:00.500+00:00'],
+            $annotations->toArray(),
+        );
+    }
+
+    public function testAnnotationsToArrayOmitsSubsecondsWhenZero(): void
     {
         $annotations = new Annotations(lastModified: '2026-03-09T12:00:00.000Z');
 

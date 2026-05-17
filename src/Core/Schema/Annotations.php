@@ -99,7 +99,7 @@ final readonly class Annotations implements Arrayable
         }
 
         if (null !== $this->lastModified) {
-            $data['lastModified'] = $this->lastModified->format(\DATE_RFC3339);
+            $data['lastModified'] = Iso8601DateTimeValidator::format($this->lastModified);
         }
 
         return $data;

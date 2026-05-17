@@ -86,4 +86,26 @@ final class Iso8601DateTimeValidatorTest extends TestCase
 
         Iso8601DateTimeValidator::parse('not-a-date', 'Custom prefix');
     }
+
+    #[DataProvider('provideFormatRoundTripsCases')]
+    public function testFormatRoundTrips(string $input, string $expectedOutput): void
+    {
+        $parsed = Iso8601DateTimeValidator::parse($input, 'Test field');
+
+        self::assertSame($expectedOutput, Iso8601DateTimeValidator::format($parsed));
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function provideFormatRoundTripsCases(): iterable
+    {
+        yield 'plain RFC3339 stays plain' => ['2026-05-10T12:00:00+00:00', '2026-05-10T12:00:00+00:00'];
+
+        yield 'sub-second precision preserved' => ['2026-05-10T12:00:00.123+00:00', '2026-05-10T12:00:00.123+00:00'];
+
+        yield 'sub-second .000 collapses to plain' => ['2026-05-10T12:00:00.000+00:00', '2026-05-10T12:00:00+00:00'];
+
+        yield 'non-UTC offset preserved' => ['2026-05-10T08:00:00.500-04:00', '2026-05-10T08:00:00.500-04:00'];
+    }
 }
