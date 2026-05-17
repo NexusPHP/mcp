@@ -196,6 +196,22 @@ final class CreateMessageResultTest extends TestCase
         CreateMessageResult::fromArray(['model' => 'x', 'content' => ['text' => 'x', 'type' => 'text']]);
     }
 
+    public function testFromArrayRejectsNonStringRole(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessage('CreateMessageResult "role" must be one of [\'user\', \'assistant\'], 1 given.');
+
+        CreateMessageResult::fromArray(['model' => 'x', 'role' => 1, 'content' => ['text' => 'x', 'type' => 'text']]);
+    }
+
+    public function testFromArrayRejectsUnknownRole(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessage('CreateMessageResult "role" must be one of [\'user\', \'assistant\'], \'observer\' given.');
+
+        CreateMessageResult::fromArray(['model' => 'x', 'role' => 'observer', 'content' => ['text' => 'x', 'type' => 'text']]);
+    }
+
     public function testFromArrayRejectsMissingContent(): void
     {
         $this->expectException(ExpectationFailedException::class);

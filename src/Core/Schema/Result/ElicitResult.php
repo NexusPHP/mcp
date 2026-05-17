@@ -17,6 +17,7 @@ use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Enum\ElicitAction;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Result;
+use Nexus\Mcp\Core\Validation\EnumValueValidator;
 
 /**
  * The client's response to an elicitation request.
@@ -61,8 +62,7 @@ final readonly class ElicitResult extends Result implements ClientResult
     public static function fromArray(array $data): static
     {
         Assert::that($data)->hasOffset('action', 'ElicitResult data missing "action".');
-        $action = $data['action'];
-        Assert::that($action)->isString('ElicitResult "action" must be a string, {type} given.');
+        $action = EnumValueValidator::parse(ElicitAction::class, $data['action'], 'ElicitResult "action"');
 
         $content = null;
 
@@ -82,7 +82,7 @@ final readonly class ElicitResult extends Result implements ClientResult
 
         $meta = MetaObject::parseFrom($data, 'Result');
 
-        return new self(ElicitAction::from($action), $content, $meta);
+        return new self($action, $content, $meta);
     }
 
     #[\Override]

@@ -99,13 +99,6 @@ final class SetLevelRequestParamsTest extends TestCase
         self::assertSame($original->toArray(), $rebuilt->toArray());
     }
 
-    public function testFromArrayRejectsUnknownLevel(): void
-    {
-        $this->expectException(\ValueError::class);
-
-        SetLevelRequestParams::fromArray(['level' => 'verbose']);
-    }
-
     /**
      * @param array<string, mixed> $payload
      */
@@ -130,7 +123,12 @@ final class SetLevelRequestParamsTest extends TestCase
 
         yield 'level not a string' => [
             ['level' => 1],
-            'SetLevelRequestParams "level" must be a string, int given.',
+            'SetLevelRequestParams "level" must be one of [\'debug\', \'info\', \'notice\', \'warning\', \'error\', \'critical\', \'alert\', \'emergency\'], 1 given.',
+        ];
+
+        yield 'unknown level' => [
+            ['level' => 'verbose'],
+            'SetLevelRequestParams "level" must be one of [\'debug\', \'info\', \'notice\', \'warning\', \'error\', \'critical\', \'alert\', \'emergency\'], \'verbose\' given.',
         ];
 
         yield '_meta not an object' => [

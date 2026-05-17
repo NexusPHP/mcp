@@ -17,6 +17,7 @@ use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Enum\LoggingLevel;
 use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams;
+use Nexus\Mcp\Core\Validation\EnumValueValidator;
 
 /**
  * Parameters for a `logging/setLevel` request.
@@ -37,12 +38,11 @@ final readonly class SetLevelRequestParams extends RequestParams
     public static function fromArray(array $data): static
     {
         Assert::that($data)->hasOffset('level', 'SetLevelRequestParams data missing "level".');
-        $level = $data['level'];
-        Assert::that($level)->isString('SetLevelRequestParams "level" must be a string, {type} given.');
+        $level = EnumValueValidator::parse(LoggingLevel::class, $data['level'], 'SetLevelRequestParams "level"');
 
         $meta = RequestMetaObject::parseFrom($data, 'Request params');
 
-        return new self(LoggingLevel::from($level), $meta);
+        return new self($level, $meta);
     }
 
     #[\Override]

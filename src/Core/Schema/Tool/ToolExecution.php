@@ -13,9 +13,9 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Schema\Tool;
 
-use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\Enum\TaskSupport;
+use Nexus\Mcp\Core\Validation\EnumValueValidator;
 
 /**
  * Execution-related properties for a tool.
@@ -39,9 +39,7 @@ final readonly class ToolExecution implements Arrayable
         $taskSupport = null;
 
         if (\array_key_exists('taskSupport', $data)) {
-            $value = $data['taskSupport'];
-            Assert::that($value)->isString('ToolExecution "taskSupport" must be a string, {type} given.');
-            $taskSupport = TaskSupport::from($value);
+            $taskSupport = EnumValueValidator::parse(TaskSupport::class, $data['taskSupport'], 'ToolExecution "taskSupport"');
         }
 
         return new self($taskSupport);

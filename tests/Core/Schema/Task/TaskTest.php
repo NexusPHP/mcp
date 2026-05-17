@@ -250,7 +250,9 @@ final class TaskTest extends TestCase
 
         yield 'missing status' => [['taskId' => 'task-abc'], 'Task data missing "status".'];
 
-        yield 'status not a string' => [[...$valid, 'status' => 42], 'Task "status" must be a string, int given.'];
+        yield 'status not a string' => [[...$valid, 'status' => 42], 'Task "status" must be one of [\'working\', \'input_required\', \'completed\', \'failed\', \'cancelled\'], 42 given.'];
+
+        yield 'unknown status' => [[...$valid, 'status' => 'pending'], 'Task "status" must be one of [\'working\', \'input_required\', \'completed\', \'failed\', \'cancelled\'], \'pending\' given.'];
 
         yield 'missing createdAt' => [['taskId' => 'task-abc', 'status' => 'working'], 'Task data missing "createdAt".'];
 

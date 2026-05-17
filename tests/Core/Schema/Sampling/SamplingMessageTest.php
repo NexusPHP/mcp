@@ -151,6 +151,22 @@ final class SamplingMessageTest extends TestCase
         SamplingMessage::fromArray(['content' => ['text' => 'x', 'type' => 'text']]);
     }
 
+    public function testFromArrayRejectsNonStringRole(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessage('SamplingMessage "role" must be one of [\'user\', \'assistant\'], 1 given.');
+
+        SamplingMessage::fromArray(['role' => 1, 'content' => ['text' => 'x', 'type' => 'text']]);
+    }
+
+    public function testFromArrayRejectsUnknownRole(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessage('SamplingMessage "role" must be one of [\'user\', \'assistant\'], \'observer\' given.');
+
+        SamplingMessage::fromArray(['role' => 'observer', 'content' => ['text' => 'x', 'type' => 'text']]);
+    }
+
     public function testFromArrayRejectsMissingContent(): void
     {
         $this->expectException(ExpectationFailedException::class);

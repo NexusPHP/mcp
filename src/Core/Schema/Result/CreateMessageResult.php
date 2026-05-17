@@ -24,6 +24,7 @@ use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Sampling\SamplingMessage;
 use Nexus\Mcp\Core\Schema\Sampling\ToolResultContent;
 use Nexus\Mcp\Core\Schema\Sampling\ToolUseContent;
+use Nexus\Mcp\Core\Validation\EnumValueValidator;
 
 /**
  * The client's response to a sampling/createMessage request from the server. The client should
@@ -82,8 +83,7 @@ final readonly class CreateMessageResult extends Result implements ClientResult
         Assert::that($model)->isString('CreateMessageResult "model" must be a string, {type} given.');
 
         Assert::that($data)->hasOffset('role', 'CreateMessageResult data missing "role".');
-        $role = $data['role'];
-        Assert::that($role)->isString('CreateMessageResult "role" must be a string, {type} given.');
+        $role = EnumValueValidator::parse(Role::class, $data['role'], 'CreateMessageResult "role"');
 
         Assert::that($data)->hasOffset('content', 'CreateMessageResult data missing "content".');
         Assert::that($data['content'])->isArray('CreateMessageResult "content" must be an object or array, {type} given.');
@@ -100,7 +100,7 @@ final readonly class CreateMessageResult extends Result implements ClientResult
 
         $meta = MetaObject::parseFrom($data, 'Result');
 
-        return new self($model, Role::from($role), $content, $stopReason, $meta);
+        return new self($model, $role, $content, $stopReason, $meta);
     }
 
     #[\Override]

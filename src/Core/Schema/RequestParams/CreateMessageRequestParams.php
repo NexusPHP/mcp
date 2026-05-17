@@ -23,6 +23,7 @@ use Nexus\Mcp\Core\Schema\Sampling\SamplingMessage;
 use Nexus\Mcp\Core\Schema\Sampling\ToolChoice;
 use Nexus\Mcp\Core\Schema\Task\TaskMetadata;
 use Nexus\Mcp\Core\Schema\Tool\Tool;
+use Nexus\Mcp\Core\Validation\EnumValueValidator;
 
 /**
  * Parameters for a `sampling/createMessage` request.
@@ -123,8 +124,7 @@ final readonly class CreateMessageRequestParams extends RequestParams
         $includeContext = null;
 
         if (\array_key_exists('includeContext', $data)) {
-            Assert::that($data['includeContext'])->isString('CreateMessageRequestParams "includeContext" must be a string, {type} given.');
-            $includeContext = IncludeContext::from($data['includeContext']);
+            $includeContext = EnumValueValidator::parse(IncludeContext::class, $data['includeContext'], 'CreateMessageRequestParams "includeContext"');
         }
 
         $modelPreferences = new ModelPreferences();

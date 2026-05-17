@@ -149,9 +149,18 @@ final class AnnotationsTest extends TestCase
 
     public function testAnnotationsFromArrayRejectsInvalidAudienceValue(): void
     {
-        $this->expectException(\ValueError::class);
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessage('Annotations audience entry must be one of [\'user\', \'assistant\'], \'invalid-role\' given.');
 
         Annotations::fromArray(['audience' => ['invalid-role']]);
+    }
+
+    public function testAnnotationsFromArrayRejectsNonStringAudienceEntry(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessage('Annotations audience entry must be one of [\'user\', \'assistant\'], 42 given.');
+
+        Annotations::fromArray(['audience' => [42]]);
     }
 
     public function testAnnotationsFromArrayCoercesIntPriority(): void

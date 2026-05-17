@@ -21,6 +21,7 @@ use Nexus\Mcp\Core\Schema\ContentBlock\ImageContent;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Enum\Role;
 use Nexus\Mcp\Core\Schema\MetaObject;
+use Nexus\Mcp\Core\Validation\EnumValueValidator;
 
 /**
  * Describes a message issued to or received from an LLM API.
@@ -64,8 +65,7 @@ final readonly class SamplingMessage implements Arrayable
     public static function fromArray(array $data): static
     {
         Assert::that($data)->hasOffset('role', 'SamplingMessage data missing "role".');
-        $role = $data['role'];
-        Assert::that($role)->isString('SamplingMessage "role" must be a string, {type} given.');
+        $role = EnumValueValidator::parse(Role::class, $data['role'], 'SamplingMessage "role"');
 
         Assert::that($data)->hasOffset('content', 'SamplingMessage data missing "content".');
         Assert::that($data['content'])->isArray('SamplingMessage "content" must be an object or array, {type} given.');
@@ -79,7 +79,7 @@ final readonly class SamplingMessage implements Arrayable
 
         $meta = MetaObject::parseFrom($data, 'SamplingMessage');
 
-        return new self(Role::from($role), $content, $meta);
+        return new self($role, $content, $meta);
     }
 
     #[\Override]

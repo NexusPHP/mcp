@@ -204,13 +204,6 @@ final class LoggingMessageNotificationParamsTest extends TestCase
         self::assertSame($original->toArray(), $rebuilt->toArray());
     }
 
-    public function testFromArrayRejectsUnknownLevel(): void
-    {
-        $this->expectException(\ValueError::class);
-
-        LoggingMessageNotificationParams::fromArray(['level' => 'verbose', 'data' => 'x']);
-    }
-
     /**
      * @param array<string, mixed> $payload
      */
@@ -235,7 +228,12 @@ final class LoggingMessageNotificationParamsTest extends TestCase
 
         yield 'level not a string' => [
             ['level' => 1, 'data' => 'x'],
-            'LoggingMessageNotificationParams "level" must be a string, int given.',
+            'LoggingMessageNotificationParams "level" must be one of [\'debug\', \'info\', \'notice\', \'warning\', \'error\', \'critical\', \'alert\', \'emergency\'], 1 given.',
+        ];
+
+        yield 'unknown level' => [
+            ['level' => 'verbose', 'data' => 'x'],
+            'LoggingMessageNotificationParams "level" must be one of [\'debug\', \'info\', \'notice\', \'warning\', \'error\', \'critical\', \'alert\', \'emergency\'], \'verbose\' given.',
         ];
 
         yield 'missing data' => [

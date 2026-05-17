@@ -22,6 +22,7 @@ use Nexus\Mcp\Core\Schema\ContentBlock\ImageContent;
 use Nexus\Mcp\Core\Schema\ContentBlock\ResourceLink;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Enum\Role;
+use Nexus\Mcp\Core\Validation\EnumValueValidator;
 
 /**
  * Describes a message returned as part of a prompt.
@@ -48,8 +49,7 @@ final readonly class PromptMessage implements Arrayable
     public static function fromArray(array $data): static
     {
         Assert::that($data)->hasOffset('role', 'PromptMessage data missing "role".');
-        $role = $data['role'];
-        Assert::that($role)->isString('PromptMessage "role" must be a string, {type} given.');
+        $role = EnumValueValidator::parse(Role::class, $data['role'], 'PromptMessage "role"');
 
         Assert::that($data)->hasOffset('content', 'PromptMessage data missing "content".');
         Assert::that($data['content'])
@@ -57,7 +57,7 @@ final readonly class PromptMessage implements Arrayable
             ->isMap('PromptMessage "content" must be a string-keyed object.')
         ;
 
-        return new self(Role::from($role), ContentBlockDispatcher::fromArray($data['content'], 'PromptMessage content'));
+        return new self($role, ContentBlockDispatcher::fromArray($data['content'], 'PromptMessage content'));
     }
 
     #[\Override]

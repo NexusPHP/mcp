@@ -13,9 +13,9 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Schema\Sampling;
 
-use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\Enum\ToolChoiceMode;
+use Nexus\Mcp\Core\Validation\EnumValueValidator;
 
 /**
  * Controls tool selection behavior for sampling requests.
@@ -39,9 +39,7 @@ final readonly class ToolChoice implements Arrayable
         $mode = null;
 
         if (\array_key_exists('mode', $data)) {
-            $value = $data['mode'];
-            Assert::that($value)->isString('ToolChoice "mode" must be a string, {type} given.');
-            $mode = ToolChoiceMode::from($value);
+            $mode = EnumValueValidator::parse(ToolChoiceMode::class, $data['mode'], 'ToolChoice "mode"');
         }
 
         return new self($mode);

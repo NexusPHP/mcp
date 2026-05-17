@@ -142,29 +142,6 @@ final class ElicitResultTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
-    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
-    {
-        $this->expectException(\ValueError::class);
-        $this->expectExceptionMessage($expectedMessage);
-
-        ElicitResult::fromArray($payload);
-    }
-
-    /**
-     * @return iterable<string, array{array<string, mixed>, string}>
-     */
-    public static function provideFromArrayRejectsInvalidInputCases(): iterable
-    {
-        yield 'unknown action' => [
-            ['action' => 'maybe'],
-            '"maybe" is not a valid backing value for enum Nexus\Mcp\Core\Schema\Enum\ElicitAction',
-        ];
-    }
-
-    /**
-     * @param array<string, mixed> $payload
-     */
     #[DataProvider('provideFromArrayRejectsAssertInvalidInputCases')]
     public function testFromArrayRejectsAssertInvalidInput(array $payload, string $expectedMessage): void
     {
@@ -186,7 +163,12 @@ final class ElicitResultTest extends TestCase
 
         yield 'action not a string' => [
             ['action' => 1],
-            'ElicitResult "action" must be a string, int given.',
+            'ElicitResult "action" must be one of [\'accept\', \'decline\', \'cancel\'], 1 given.',
+        ];
+
+        yield 'unknown action' => [
+            ['action' => 'maybe'],
+            'ElicitResult "action" must be one of [\'accept\', \'decline\', \'cancel\'], \'maybe\' given.',
         ];
 
         yield 'content not an object' => [

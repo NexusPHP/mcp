@@ -17,6 +17,7 @@ use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Enum\LoggingLevel;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\NotificationParams;
+use Nexus\Mcp\Core\Validation\EnumValueValidator;
 
 /**
  * Parameters for a `notifications/message` notification.
@@ -41,8 +42,7 @@ final readonly class LoggingMessageNotificationParams extends NotificationParams
     public static function fromArray(array $data): static
     {
         Assert::that($data)->hasOffset('level', 'LoggingMessageNotificationParams data missing "level".');
-        $level = $data['level'];
-        Assert::that($level)->isString('LoggingMessageNotificationParams "level" must be a string, {type} given.');
+        $level = EnumValueValidator::parse(LoggingLevel::class, $data['level'], 'LoggingMessageNotificationParams "level"');
 
         Assert::that($data)->hasOffset('data', 'LoggingMessageNotificationParams data missing "data".');
 
@@ -51,7 +51,7 @@ final readonly class LoggingMessageNotificationParams extends NotificationParams
 
         $meta = MetaObject::parseFrom($data, 'Notification params');
 
-        return new self(LoggingLevel::from($level), $data['data'], $logger, $meta);
+        return new self($level, $data['data'], $logger, $meta);
     }
 
     #[\Override]

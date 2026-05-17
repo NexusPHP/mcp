@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Core\Schema;
 
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Enum\Role;
+use Nexus\Mcp\Core\Validation\EnumValueValidator;
 use Nexus\Mcp\Core\Validation\Iso8601DateTimeValidator;
 
 /**
@@ -65,11 +66,11 @@ final readonly class Annotations implements Arrayable
         $audience = null;
 
         if (isset($data['audience'])) {
-            Assert::that($data['audience'])
-                ->isList('Annotations "audience" must be a list, {type} given.')
-                ->values()->isString('Annotations audience entry must be a string, {type} given.')
-            ;
-            $audience = array_map(static fn(string $role): Role => Role::from($role), $data['audience']);
+            Assert::that($data['audience'])->isList('Annotations "audience" must be a list, {type} given.');
+            $audience = array_map(
+                static fn(mixed $role): Role => EnumValueValidator::parse(Role::class, $role, 'Annotations audience entry'),
+                $data['audience'],
+            );
         }
 
         $priority = $data['priority'] ?? null;

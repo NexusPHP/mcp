@@ -280,7 +280,8 @@ final class CreateMessageRequestParamsTest extends TestCase
 
     public function testFromArrayRejectsUnknownIncludeContext(): void
     {
-        $this->expectException(\ValueError::class);
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessage('CreateMessageRequestParams "includeContext" must be one of [\'allServers\', \'none\', \'thisServer\'], \'unknown\' given.');
 
         CreateMessageRequestParams::fromArray(['maxTokens' => 1, 'messages' => [], 'includeContext' => 'unknown']);
     }
@@ -288,7 +289,7 @@ final class CreateMessageRequestParamsTest extends TestCase
     public function testFromArrayRejectsNonStringIncludeContext(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('CreateMessageRequestParams "includeContext" must be a string, int given.');
+        $this->expectExceptionMessage('CreateMessageRequestParams "includeContext" must be one of [\'allServers\', \'none\', \'thisServer\'], 0 given.');
 
         CreateMessageRequestParams::fromArray(['maxTokens' => 1, 'messages' => [], 'includeContext' => 0]);
     }

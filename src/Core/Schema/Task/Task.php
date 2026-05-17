@@ -16,6 +16,7 @@ namespace Nexus\Mcp\Core\Schema\Task;
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\Enum\TaskStatus;
+use Nexus\Mcp\Core\Validation\EnumValueValidator;
 use Nexus\Mcp\Core\Validation\Iso8601DateTimeValidator;
 
 /**
@@ -79,8 +80,7 @@ final readonly class Task implements Arrayable
         Assert::that($taskId)->isString('Task "taskId" must be a string, {type} given.');
 
         Assert::that($data)->hasOffset('status', 'Task data missing "status".');
-        $status = $data['status'];
-        Assert::that($status)->isString('Task "status" must be a string, {type} given.');
+        $status = EnumValueValidator::parse(TaskStatus::class, $data['status'], 'Task "status"');
 
         Assert::that($data)->hasOffset('createdAt', 'Task data missing "createdAt".');
         $createdAt = $data['createdAt'];
@@ -100,7 +100,7 @@ final readonly class Task implements Arrayable
         $pollInterval = $data['pollInterval'] ?? null;
         Assert::that($pollInterval)->nullOr()->isInt('Task "pollInterval" must be an int or null, {type} given.');
 
-        return new self($taskId, TaskStatus::from($status), $createdAt, $lastUpdatedAt, $ttl, $statusMessage, $pollInterval);
+        return new self($taskId, $status, $createdAt, $lastUpdatedAt, $ttl, $statusMessage, $pollInterval);
     }
 
     #[\Override]

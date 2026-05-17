@@ -161,7 +161,12 @@ final class PromptMessageTest extends TestCase
 
         yield 'role not a string' => [
             ['role' => 1, 'content' => ['type' => 'text', 'text' => 'hi']],
-            'PromptMessage "role" must be a string, int given.',
+            'PromptMessage "role" must be one of [\'user\', \'assistant\'], 1 given.',
+        ];
+
+        yield 'unknown role' => [
+            ['role' => 'observer', 'content' => ['type' => 'text', 'text' => 'hi']],
+            'PromptMessage "role" must be one of [\'user\', \'assistant\'], \'observer\' given.',
         ];
 
         yield 'missing content' => [
