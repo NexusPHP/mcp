@@ -233,6 +233,54 @@ final class MessageDispatcherTest extends TestCase
         self::assertStringContainsString('tools/list', $message->error->message);
     }
 
+    public function testSecondInitializeAfterHandshakeStartedIsRejectedWithAlreadyInitializedError(): void
+    {
+        $transport = new RecordingTransport();
+        $gate = new InitializationGate();
+        $gate->markInitializeInFlight();
+        $dispatcher = self::buildDispatcher(
+            gate: $gate,
+            requestHandlers: [
+                'initialize' => new ClosureRequestHandler(
+                    static fn() => self::fail('Handler must not run for re-initialize attempt.'),
+                ),
+            ],
+        );
+
+        $dispatcher->dispatch(self::initializeEnvelope(), $transport);
+
+        EventLoop::run();
+
+        self::assertCount(1, $transport->sent);
+        $message = $transport->sent[0]['message'];
+        self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
+        self::assertSame(ProtocolErrorCode::InvalidRequest->value, $message->error->code);
+        self::assertStringContainsString('re-initialize', $message->error->message);
+    }
+
+    public function testSecondInitializeAfterFullHandshakeIsRejectedWithAlreadyInitializedError(): void
+    {
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher(
+            initialize: true,
+            requestHandlers: [
+                'initialize' => new ClosureRequestHandler(
+                    static fn() => self::fail('Handler must not run for re-initialize attempt.'),
+                ),
+            ],
+        );
+
+        $dispatcher->dispatch(self::initializeEnvelope(), $transport);
+
+        EventLoop::run();
+
+        self::assertCount(1, $transport->sent);
+        $message = $transport->sent[0]['message'];
+        self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
+        self::assertSame(ProtocolErrorCode::InvalidRequest->value, $message->error->code);
+        self::assertStringContainsString('re-initialize', $message->error->message);
+    }
+
     public function testPingIsAllowedBeforeHandshake(): void
     {
         $transport = new RecordingTransport();

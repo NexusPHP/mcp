@@ -104,6 +104,35 @@ final class InitializationGateTest extends TestCase
         self::assertTrue($gate->allowsRequest('prompts/get'));
     }
 
+    public function testRejectsInitializeOnceHandshakeIsInFlight(): void
+    {
+        $gate = new InitializationGate();
+        $gate->markInitializeInFlight();
+
+        self::assertFalse($gate->allowsRequest('initialize'));
+    }
+
+    public function testRejectsInitializeAfterFullHandshake(): void
+    {
+        $gate = new InitializationGate();
+        $gate->markInitializeInFlight();
+        $gate->markInitialized();
+
+        self::assertFalse($gate->allowsRequest('initialize'));
+    }
+
+    public function testAllowsPingInEveryState(): void
+    {
+        $gate = new InitializationGate();
+        self::assertTrue($gate->allowsRequest('ping'));
+
+        $gate->markInitializeInFlight();
+        self::assertTrue($gate->allowsRequest('ping'));
+
+        $gate->markInitialized();
+        self::assertTrue($gate->allowsRequest('ping'));
+    }
+
     public function testMarkInitializedIsNoOpAfterFullHandshake(): void
     {
         $gate = new InitializationGate();
