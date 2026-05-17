@@ -95,14 +95,18 @@ final class JsonRpcMessageParser
         }
 
         if (\array_key_exists('result', $message)) {
-            if (null === $resultClass) {
-                return new UnparsedResultEnvelope(self::extractRequestId($message), $message['result']);
-            }
-
             try {
                 Assert::that($message)->hasOffset('id', 'Success response must carry an "id".');
                 Assert::that($message['id'])->isArrayKey('Response "id" must be int or string, {type} given.');
+            } catch (\InvalidArgumentException $e) {
+                throw new InvalidRequestException($e->getMessage(), self::extractRequestId($message));
+            }
 
+            if (null === $resultClass) {
+                return new UnparsedResultEnvelope(new RequestId($message['id']), $message['result']);
+            }
+
+            try {
                 Assert::that($message['result'])
                     ->isArray('Success response "result" must be an object, {type} given.')
                     ->isMap('Success response "result" must be a string-keyed object.')

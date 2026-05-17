@@ -365,25 +365,24 @@ final class JsonRpcMessageParserTest extends TestCase
         self::assertSame([], $parsed->result);
     }
 
-    public function testParseToleratesMissingIdOnResultEnvelopeWhenResultClassOmitted(): void
+    public function testParseRejectsMissingIdOnResultEnvelopeEvenWhenResultClassOmitted(): void
     {
         $parser = new JsonRpcMessageParser();
 
-        $parsed = $parser->parse(['jsonrpc' => '2.0', 'result' => ['payload' => 'x']]);
+        $this->expectException(InvalidRequestException::class);
+        $this->expectExceptionMessage('Success response must carry an "id".');
 
-        self::assertInstanceOf(UnparsedResultEnvelope::class, $parsed);
-        self::assertNull($parsed->id);
-        self::assertSame(['payload' => 'x'], $parsed->result);
+        $parser->parse(['jsonrpc' => '2.0', 'result' => ['payload' => 'x']]);
     }
 
-    public function testParseToleratesNonScalarIdOnResultEnvelopeWhenResultClassOmitted(): void
+    public function testParseRejectsNonScalarIdOnResultEnvelopeEvenWhenResultClassOmitted(): void
     {
         $parser = new JsonRpcMessageParser();
 
-        $parsed = $parser->parse(['jsonrpc' => '2.0', 'id' => [], 'result' => []]);
+        $this->expectException(InvalidRequestException::class);
+        $this->expectExceptionMessage('Response "id" must be int or string, array given.');
 
-        self::assertInstanceOf(UnparsedResultEnvelope::class, $parsed);
-        self::assertNull($parsed->id);
+        $parser->parse(['jsonrpc' => '2.0', 'id' => [], 'result' => []]);
     }
 
     public function testParseToleratesNonMapResultWhenResultClassOmitted(): void

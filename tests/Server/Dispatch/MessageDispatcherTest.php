@@ -108,6 +108,7 @@ final class MessageDispatcherTest extends TestCase
         );
         self::assertCount(1, $matches);
         self::assertSame(['envelope' => $envelope], $matches[0]['context']);
+        self::assertSame([], $logger->messagesAtLevel(LogLevel::INFO), 'Response envelopes must not fall through to the notification-drop log.');
     }
 
     public function testParseFailureSendsErrorResponseWithRecoveredId(): void
