@@ -23,6 +23,7 @@ use Nexus\Mcp\Core\Schema\NotificationParams\ProgressNotificationParams;
 use Nexus\Mcp\Core\Schema\ProgressToken;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestMetaObject;
+use Nexus\Mcp\Server\Logging\LoggingLevelGate;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -145,5 +146,65 @@ final class ServerContextTest extends TestCase
 
         self::assertCount(1, $sender->notifications);
         self::assertSame($expected->toArray(), $sender->notifications[0]->toArray());
+    }
+
+    public function testLogDropsMessagesBelowTheStoreThreshold(): void
+    {
+        $sender = new RecordingSender();
+        $context = new ServerContext(
+            new RequestId(1),
+            new NullCancellation(),
+            new RequestMetaObject(),
+            null,
+            $sender,
+            new LoggingLevelGate(LoggingLevel::Warning),
+        );
+
+        $context->log(LoggingLevel::Debug, 'debug message');
+        $context->log(LoggingLevel::Info, 'info message');
+        $context->log(LoggingLevel::Notice, 'notice message');
+
+        self::assertSame([], $sender->notifications);
+    }
+
+    public function testLogEmitsMessagesAtOrAboveTheStoreThreshold(): void
+    {
+        $sender = new RecordingSender();
+        $store = new LoggingLevelGate(LoggingLevel::Warning);
+        $context = new ServerContext(
+            new RequestId(1),
+            new NullCancellation(),
+            new RequestMetaObject(),
+            null,
+            $sender,
+            $store,
+        );
+
+        $context->log(LoggingLevel::Warning, 'on threshold');
+        $context->log(LoggingLevel::Error, 'above threshold');
+
+        self::assertCount(2, $sender->notifications);
+    }
+
+    public function testLogObservesLiveMutationsOfTheStore(): void
+    {
+        $sender = new RecordingSender();
+        $store = new LoggingLevelGate(LoggingLevel::Warning);
+        $context = new ServerContext(
+            new RequestId(1),
+            new NullCancellation(),
+            new RequestMetaObject(),
+            null,
+            $sender,
+            $store,
+        );
+
+        $context->log(LoggingLevel::Debug, 'dropped');
+        self::assertSame([], $sender->notifications);
+
+        $store->setLevel(LoggingLevel::Debug);
+        $context->log(LoggingLevel::Debug, 'emitted');
+
+        self::assertCount(1, $sender->notifications);
     }
 }

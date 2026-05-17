@@ -443,6 +443,8 @@ final class MessageDispatcherTest extends TestCase
             requestHandlers: [
                 'ping' => new ClosureRequestHandler(
                     static function ($req, $ctx) use (&$captured): EmptyResult {
+                        \assert($ctx instanceof ServerContext);
+
                         $captured['sessionId'] = $ctx->sessionId;
                         $ctx->log(LoggingLevel::Info, 'hello');
 
@@ -842,7 +844,7 @@ final class MessageDispatcherTest extends TestCase
             new RequestHandlerRegistry($requestHandlers),
             new NotificationHandlerRegistry($notificationHandlers),
             $gate,
-            $logger ?? new ArrayLogger(),
+            logger: $logger ?? new ArrayLogger(),
         );
     }
 

@@ -167,7 +167,7 @@ final class SourceCodeTest extends TestCase
 
         $report = array_map(
             static fn(array $violation): string => \sprintf(
-                '  line %d: assignment inside `%s` expression; split the assignment onto its own statement.',
+                '  line %d: assignment inside `%s` expression. Split the assignment onto its own statement.',
                 $violation['line'],
                 $violation['keyword'],
             ),
@@ -246,16 +246,18 @@ final class SourceCodeTest extends TestCase
             return;
         }
 
-        $nonReadOnlyPublicProperties = array_filter(
+        $externallyMutablePublicProperties = array_filter(
             $rc->getProperties(\ReflectionProperty::IS_PUBLIC),
-            static fn(\ReflectionProperty $rp): bool => ! $rp->isReadOnly(),
+            static fn(\ReflectionProperty $rp): bool => ! $rp->isReadOnly()
+                && ! $rp->isPrivateSet()
+                && ! $rp->isProtectedSet(),
         );
-        self::assertEmpty($nonReadOnlyPublicProperties, \sprintf(
-            "Class \"%s\" has public properties which are not read-only.\n%s",
+        self::assertEmpty($externallyMutablePublicProperties, \sprintf(
+            "Class \"%s\" has public properties which are externally mutable. Mark them readonly or restrict set with `private(set)`/`protected(set)`.\n%s",
             $class,
             implode("\n", array_map(
                 static fn(\ReflectionProperty $rp): string => \sprintf('  * $%s', $rp->getName()),
-                $nonReadOnlyPublicProperties,
+                $externallyMutablePublicProperties,
             )),
         ));
 
@@ -287,7 +289,7 @@ final class SourceCodeTest extends TestCase
         sort($extraProtectedProps);
 
         self::assertEmpty($extraProtectedProps, \sprintf(
-            "Class \"%s\" has protected properties not defined by its parent classes; consider private visibility.\n%s",
+            "Class \"%s\" has protected properties not defined by its parent classes. Consider private visibility.\n%s",
             $class,
             implode("\n", array_map(
                 static fn(string $name): string => \sprintf('  * $%s', $name),
@@ -402,7 +404,7 @@ final class SourceCodeTest extends TestCase
         sort($unnecessary);
 
         self::assertEmpty($unnecessary, \sprintf(
-            "Class \"%s\" has protected method%s not inherited from a parent class; consider private visibility.\n%s",
+            "Class \"%s\" has protected method%s not inherited from a parent class. Consider private visibility.\n%s",
             $class,
             \count($unnecessary) > 1 ? 's' : '',
             implode("\n", array_map(
@@ -474,13 +476,13 @@ final class SourceCodeTest extends TestCase
         $docComment = $reflection->getDocComment();
         self::assertIsString(
             $docComment,
-            \sprintf('Concrete class "%s" outside src/Core/Schema/ is not final; a docblock is required.', $class),
+            \sprintf('Concrete class "%s" outside src/Core/Schema/ is not final. A docblock is required.', $class),
         );
         self::assertStringContainsString(
             '@no-final',
             $docComment,
             \sprintf(
-                'Concrete class "%s" outside src/Core/Schema/ is not final; its docblock must carry @no-final.',
+                'Concrete class "%s" outside src/Core/Schema/ is not final. Its docblock must carry @no-final.',
                 $class,
             ),
         );
