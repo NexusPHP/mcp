@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Server\Dispatch;
 
+use Nexus\Mcp\Core\Exception\AbstractJsonRpcProtocolException;
 use Nexus\Mcp\Core\Handler\AbstractContext;
 use Nexus\Mcp\Core\Handler\NotificationHandlerInterface;
 use Nexus\Mcp\Core\Handler\NotificationHandlerRegistry;
@@ -125,20 +126,69 @@ final class MessageDispatcherTest extends TestCase
         self::assertSame(ProtocolErrorCode::InvalidRequest->value, $message->error->code);
     }
 
-    public function testParseFailureWithNoRecoverableIdEmitsErrorResponseWithNullId(): void
+    public function testParseFailureForNotificationEnvelopeIsDroppedAndLoggedNotAnsweredWithError(): void
     {
         $transport = new RecordingTransport();
-        $dispatcher = self::buildDispatcher();
+        $logger = new ArrayLogger();
+        $dispatcher = self::buildDispatcher(logger: $logger);
 
-        $dispatcher->dispatch(['jsonrpc' => '1.0'], $transport);
+        $envelope = ['jsonrpc' => '1.0'];
+        $dispatcher->dispatch($envelope, $transport);
 
         EventLoop::run();
 
-        self::assertCount(1, $transport->sent);
-        $message = $transport->sent[0]['message'];
-        self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
-        self::assertNull($message->id);
-        self::assertSame(ProtocolErrorCode::InvalidRequest->value, $message->error->code);
+        self::assertSame([], $transport->sent, 'JSON-RPC 2.0 §4.1 forbids responses to notifications.');
+        $matches = $logger->recordsMatching(
+            LogLevel::INFO,
+            'Dropping malformed notification (JSON-RPC 2.0 §4.1 forbids responses to notifications).',
+        );
+        self::assertCount(1, $matches);
+        self::assertSame($envelope, $matches[0]['context']['envelope'] ?? null);
+        self::assertInstanceOf(AbstractJsonRpcProtocolException::class, $matches[0]['context']['exception'] ?? null);
+    }
+
+    public function testUnknownNotificationMethodIsDroppedAndLoggedNotAnsweredWithError(): void
+    {
+        $transport = new RecordingTransport();
+        $logger = new ArrayLogger();
+        $dispatcher = self::buildDispatcher(initialize: true, logger: $logger);
+
+        $envelope = ['jsonrpc' => '2.0', 'method' => 'notifications/vendor/unknown'];
+        $dispatcher->dispatch($envelope, $transport);
+
+        EventLoop::run();
+
+        self::assertSame([], $transport->sent);
+        $matches = $logger->recordsMatching(
+            LogLevel::INFO,
+            'Dropping malformed notification (JSON-RPC 2.0 §4.1 forbids responses to notifications).',
+        );
+        self::assertCount(1, $matches);
+        self::assertSame($envelope, $matches[0]['context']['envelope'] ?? null);
+    }
+
+    public function testNotificationWithMalformedParamsIsDroppedAndLoggedNotAnsweredWithError(): void
+    {
+        $transport = new RecordingTransport();
+        $logger = new ArrayLogger();
+        $dispatcher = self::buildDispatcher(initialize: true, logger: $logger);
+
+        $envelope = [
+            'jsonrpc' => '2.0',
+            'method' => 'notifications/cancelled',
+            'params' => ['requestId' => null],
+        ];
+        $dispatcher->dispatch($envelope, $transport);
+
+        EventLoop::run();
+
+        self::assertSame([], $transport->sent);
+        $matches = $logger->recordsMatching(
+            LogLevel::INFO,
+            'Dropping malformed notification (JSON-RPC 2.0 §4.1 forbids responses to notifications).',
+        );
+        self::assertCount(1, $matches);
+        self::assertSame($envelope, $matches[0]['context']['envelope'] ?? null);
     }
 
     public function testRequestForUnknownMethodReturnsMethodNotFoundError(): void
