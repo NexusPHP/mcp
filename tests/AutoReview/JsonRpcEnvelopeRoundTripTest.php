@@ -104,9 +104,14 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
     /**
      * Envelope fixture registry. Each entry binds a fixture directory to
      * a wrapper class and (for parameterized response wrappers) the inner
-     * payload class needed to reconstruct the envelope.
+     * payload class needed to reconstruct the envelope. The optional
+     * `encodingPathsDiverge` flag disables the cross-path encoding check
+     * for entries whose `jsonSerialize` substitutes `\stdClass` for an
+     * empty object slot that `toArray` returns as `[]` (directly or via
+     * composition). Result responses inherit this from `Result`, which
+     * applies the substitution at the result level.
      *
-     * @return iterable<string, array{wrapper: class-string, inner: null|class-string<Result>}>
+     * @return iterable<string, array{wrapper: class-string, inner: null|class-string<Result>, encodingPathsDiverge?: bool}>
      */
     #[\Override]
     protected static function registry(): iterable
@@ -116,7 +121,7 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
 
         yield 'ReadResourceRequest' => ['wrapper' => Request\ReadResourceRequest::class, 'inner' => null];
 
-        yield 'InitializeRequest' => ['wrapper' => Request\InitializeRequest::class, 'inner' => null];
+        yield 'InitializeRequest' => ['wrapper' => Request\InitializeRequest::class, 'inner' => null, 'encodingPathsDiverge' => true];
 
         yield 'CompleteRequest' => ['wrapper' => Request\CompleteRequest::class, 'inner' => null];
 
@@ -153,7 +158,7 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
         yield 'ElicitRequest' => ['wrapper' => Request\ElicitRequest::class, 'inner' => null];
 
         // Concrete notifications.
-        yield 'CancelledNotification' => ['wrapper' => Notification\CancelledNotification::class, 'inner' => null];
+        yield 'CancelledNotification' => ['wrapper' => Notification\CancelledNotification::class, 'inner' => null, 'encodingPathsDiverge' => true];
 
         yield 'InitializedNotification' => ['wrapper' => Notification\InitializedNotification::class, 'inner' => null];
 
@@ -176,41 +181,41 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
         yield 'ElicitationCompleteNotification' => ['wrapper' => Notification\ElicitationCompleteNotification::class, 'inner' => null];
 
         // Result responses, parameterized by the inner Result subclass.
-        yield 'JsonRpcResultResponse-CallToolResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => Result\CallToolResult::class];
+        yield 'JsonRpcResultResponse-CallToolResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => Result\CallToolResult::class];
 
-        yield 'JsonRpcResultResponse-CancelTaskResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => Result\CancelTaskResult::class];
+        yield 'JsonRpcResultResponse-CancelTaskResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => Result\CancelTaskResult::class];
 
-        yield 'JsonRpcResultResponse-CompleteResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => Result\CompleteResult::class];
+        yield 'JsonRpcResultResponse-CompleteResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => Result\CompleteResult::class];
 
-        yield 'JsonRpcResultResponse-CreateMessageResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => Result\CreateMessageResult::class];
+        yield 'JsonRpcResultResponse-CreateMessageResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => Result\CreateMessageResult::class];
 
-        yield 'JsonRpcResultResponse-CreateTaskResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => Result\CreateTaskResult::class];
+        yield 'JsonRpcResultResponse-CreateTaskResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => Result\CreateTaskResult::class];
 
-        yield 'JsonRpcResultResponse-EmptyResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => Result\EmptyResult::class];
+        yield 'JsonRpcResultResponse-EmptyResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => Result\EmptyResult::class];
 
-        yield 'JsonRpcResultResponse-GetPromptResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => Result\GetPromptResult::class];
+        yield 'JsonRpcResultResponse-GetPromptResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => Result\GetPromptResult::class];
 
-        yield 'JsonRpcResultResponse-GetTaskResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => Result\GetTaskResult::class];
+        yield 'JsonRpcResultResponse-GetTaskResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => Result\GetTaskResult::class];
 
-        yield 'JsonRpcResultResponse-GetTaskPayloadResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => Result\GetTaskPayloadResult::class];
+        yield 'JsonRpcResultResponse-GetTaskPayloadResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => Result\GetTaskPayloadResult::class];
 
-        yield 'JsonRpcResultResponse-InitializeResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => Result\InitializeResult::class];
+        yield 'JsonRpcResultResponse-InitializeResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => Result\InitializeResult::class];
 
-        yield 'JsonRpcResultResponse-ListPromptsResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => Result\ListPromptsResult::class];
+        yield 'JsonRpcResultResponse-ListPromptsResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => Result\ListPromptsResult::class];
 
-        yield 'JsonRpcResultResponse-ListResourcesResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => Result\ListResourcesResult::class];
+        yield 'JsonRpcResultResponse-ListResourcesResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => Result\ListResourcesResult::class];
 
-        yield 'JsonRpcResultResponse-ListResourceTemplatesResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => Result\ListResourceTemplatesResult::class];
+        yield 'JsonRpcResultResponse-ListResourceTemplatesResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => Result\ListResourceTemplatesResult::class];
 
-        yield 'JsonRpcResultResponse-ListRootsResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => Result\ListRootsResult::class];
+        yield 'JsonRpcResultResponse-ListRootsResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => Result\ListRootsResult::class];
 
-        yield 'JsonRpcResultResponse-ListTasksResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => Result\ListTasksResult::class];
+        yield 'JsonRpcResultResponse-ListTasksResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => Result\ListTasksResult::class];
 
-        yield 'JsonRpcResultResponse-ListToolsResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => Result\ListToolsResult::class];
+        yield 'JsonRpcResultResponse-ListToolsResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => Result\ListToolsResult::class];
 
-        yield 'JsonRpcResultResponse-ReadResourceResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => Result\ReadResourceResult::class];
+        yield 'JsonRpcResultResponse-ReadResourceResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => Result\ReadResourceResult::class];
 
-        yield 'JsonRpcResultResponse-ElicitResult' => ['wrapper' => JsonRpcResultResponse::class, 'inner' => Result\ElicitResult::class];
+        yield 'JsonRpcResultResponse-ElicitResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => Result\ElicitResult::class];
 
         // Error responses, organised per Error subclass even though
         // `JsonRpcErrorResponse::fromArray` self-dispatches on `code`.

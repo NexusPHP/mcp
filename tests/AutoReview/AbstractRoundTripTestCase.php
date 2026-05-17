@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\AutoReview;
 
+use Nexus\Mcp\Core\Schema\Arrayable;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -58,6 +59,18 @@ abstract class AbstractRoundTripTestCase extends TestCase
             $dir,
             basename($fixturePath, '.json'),
         ));
+
+        $encodingPathsDiverge = true === ($entry['encodingPathsDiverge'] ?? false);
+
+        if (! $encodingPathsDiverge) {
+            \assert($instance instanceof Arrayable);
+
+            self::assertSame($reEncoded, json_encode($instance->toArray(), self::JSON_FLAGS | \JSON_THROW_ON_ERROR), \sprintf(
+                'Encoding paths diverge for "%s/%s": `json_encode($instance)` (via `jsonSerialize`) does not match `json_encode($instance->toArray())`. Either fix `toArray()` so the two paths agree, or set "encodingPathsDiverge" => true on the registry entry when `jsonSerialize` intentionally substitutes `\stdClass` for an empty object slot that `toArray` returns as `[]`.',
+                $dir,
+                basename($fixturePath, '.json'),
+            ));
+        }
     }
 
     /**

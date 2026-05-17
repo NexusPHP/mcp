@@ -58,6 +58,27 @@ final class SchemaPayloadRoundTripTest extends AbstractRoundTripTestCase
         'Nexus\\Mcp\\Core\\Schema\\Result\\',
     ];
 
+    /**
+     * Short names of payload classes whose `jsonSerialize` substitutes
+     * `\stdClass` for an empty object slot that `toArray` returns as `[]`,
+     * either directly or via composition through a nested class that does
+     * (e.g. `MetaObject`, `ClientCapabilities`). Listing a class here
+     * disables the cross-path encoding check. The canonical-shape check
+     * against the hand-authored fixture still runs.
+     */
+    private const array ENCODING_PATHS_DIVERGE = [
+        'Annotations' => true,
+        'ClientCapabilities' => true,
+        'MetaObject' => true,
+        'ModelPreferences' => true,
+        'RequestMetaObject' => true,
+        'SamplingMessage' => true,
+        'ServerCapabilities' => true,
+        'TaskMetadata' => true,
+        'ToolAnnotations' => true,
+        'ToolExecution' => true,
+    ];
+
     public function testEveryRegisteredEntryIsArrayable(): void
     {
         $nonArrayable = [];
@@ -86,7 +107,7 @@ final class SchemaPayloadRoundTripTest extends AbstractRoundTripTestCase
      * appears here keyed by short class name, and each must have on-disk
      * fixtures under `schema-payload/{ShortName}/`.
      *
-     * @return iterable<string, array{class: class-string}>
+     * @return iterable<string, array{class: class-string, encodingPathsDiverge?: bool}>
      */
     #[\Override]
     protected static function registry(): iterable
@@ -101,7 +122,13 @@ final class SchemaPayloadRoundTripTest extends AbstractRoundTripTestCase
             }
 
             $shortName = new \ReflectionClass($class)->getShortName();
-            $entries[$shortName] = ['class' => $class];
+            $entry = ['class' => $class];
+
+            if (isset(self::ENCODING_PATHS_DIVERGE[$shortName])) {
+                $entry['encodingPathsDiverge'] = true;
+            }
+
+            $entries[$shortName] = $entry;
         }
 
         ksort($entries);
