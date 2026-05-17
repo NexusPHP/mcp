@@ -39,6 +39,7 @@ use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureRequestHandler;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
 use Nexus\Mcp\Tests\Fixtures\Server\Completion\RecordingCompletionStore;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LogLevel;
@@ -328,12 +329,12 @@ final class ServerBuilderTest extends TestCase
         );
     }
 
-    public function testCustomRequestHandlerOverridesBuiltinAndIsDispatched(): void
+    public function testReplaceRequestHandlerOverridesBuiltinAndIsDispatched(): void
     {
         $invoked = 0;
         $server = Server::builder()
             ->setServerInfo('demo', '1.0.0')
-            ->addRequestHandler('ping', new ClosureRequestHandler(
+            ->replaceRequestHandler('ping', new ClosureRequestHandler(
                 static function () use (&$invoked): EmptyResult {
                     ++$invoked;
 
@@ -348,12 +349,126 @@ final class ServerBuilderTest extends TestCase
         self::assertSame(1, $invoked);
     }
 
+    public function testAddRequestHandlerAcceptsVendorExtensionMethod(): void
+    {
+        $this->expectNotToPerformAssertions();
+
+        Server::builder()
+            ->setServerInfo('demo', '1.0.0')
+            ->addRequestHandler('acme/snapshot', new ClosureRequestHandler(
+                static fn(): EmptyResult => new EmptyResult(),
+            ))
+            ->build()
+        ;
+    }
+
+    /**
+     * @param non-empty-string $method
+     */
+    #[DataProvider('provideAddRequestHandlerRejectsReservedSpecMethodCases')]
+    public function testAddRequestHandlerRejectsReservedSpecMethod(string $method): void
+    {
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage(\sprintf(
+            'Request method "%s" is reserved for the SDK\'s built-in handler. Use replaceRequestHandler() to override it.',
+            $method,
+        ));
+
+        Server::builder()->addRequestHandler($method, new ClosureRequestHandler(
+            static fn(): EmptyResult => new EmptyResult(),
+        ));
+    }
+
+    /**
+     * @return iterable<string, array{non-empty-string}>
+     */
+    public static function provideAddRequestHandlerRejectsReservedSpecMethodCases(): iterable
+    {
+        yield 'completion/complete' => ['completion/complete'];
+
+        yield 'initialize' => ['initialize'];
+
+        yield 'ping' => ['ping'];
+
+        yield 'prompts/get' => ['prompts/get'];
+
+        yield 'prompts/list' => ['prompts/list'];
+
+        yield 'resources/list' => ['resources/list'];
+
+        yield 'resources/read' => ['resources/read'];
+
+        yield 'resources/templates/list' => ['resources/templates/list'];
+
+        yield 'tools/call' => ['tools/call'];
+
+        yield 'tools/list' => ['tools/list'];
+    }
+
+    public function testAddNotificationHandlerAcceptsVendorExtensionMethod(): void
+    {
+        $this->expectNotToPerformAssertions();
+
+        Server::builder()
+            ->setServerInfo('demo', '1.0.0')
+            ->addNotificationHandler('acme/snapshot-done', new ClosureNotificationHandler(
+                static function (): void {},
+            ))
+            ->build()
+        ;
+    }
+
+    /**
+     * @param non-empty-string $method
+     */
+    #[DataProvider('provideAddNotificationHandlerRejectsReservedSpecMethodCases')]
+    public function testAddNotificationHandlerRejectsReservedSpecMethod(string $method): void
+    {
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage(\sprintf(
+            'Notification method "%s" is reserved by the MCP spec. Use replaceNotificationHandler() to attach a handler to it.',
+            $method,
+        ));
+
+        Server::builder()->addNotificationHandler($method, new ClosureNotificationHandler(
+            static function (): void {},
+        ));
+    }
+
+    /**
+     * @return iterable<string, array{non-empty-string}>
+     */
+    public static function provideAddNotificationHandlerRejectsReservedSpecMethodCases(): iterable
+    {
+        yield 'notifications/cancelled' => ['notifications/cancelled'];
+
+        yield 'notifications/elicitation/complete' => ['notifications/elicitation/complete'];
+
+        yield 'notifications/initialized' => ['notifications/initialized'];
+
+        yield 'notifications/message' => ['notifications/message'];
+
+        yield 'notifications/progress' => ['notifications/progress'];
+
+        yield 'notifications/prompts/list_changed' => ['notifications/prompts/list_changed'];
+
+        yield 'notifications/resources/list_changed' => ['notifications/resources/list_changed'];
+
+        yield 'notifications/resources/updated' => ['notifications/resources/updated'];
+
+        yield 'notifications/roots/list_changed' => ['notifications/roots/list_changed'];
+
+        yield 'notifications/tasks/status' => ['notifications/tasks/status'];
+
+        yield 'notifications/tools/list_changed' => ['notifications/tools/list_changed'];
+    }
+
     public function testCustomNotificationHandlerIsDispatched(): void
     {
         $invoked = 0;
         $server = Server::builder()
             ->setServerInfo('demo', '1.0.0')
-            ->addNotificationHandler('notifications/cancelled', new ClosureNotificationHandler(
+            ->replaceNotificationHandler('notifications/cancelled', new ClosureNotificationHandler(
                 static function () use (&$invoked): void { ++$invoked; },
             ))
             ->build()
