@@ -15,11 +15,10 @@ namespace Nexus\Mcp\Tests\Server\Dispatch;
 
 use Nexus\Mcp\Core\Exception\AbstractJsonRpcProtocolException;
 use Nexus\Mcp\Core\Handler\AbstractContext;
+use Nexus\Mcp\Core\Handler\HandlerRegistry;
 use Nexus\Mcp\Core\Handler\NotificationHandlerInterface;
-use Nexus\Mcp\Core\Handler\NotificationHandlerRegistry;
 use Nexus\Mcp\Core\Handler\Request\PingRequestHandler;
 use Nexus\Mcp\Core\Handler\RequestHandlerInterface;
-use Nexus\Mcp\Core\Handler\RequestHandlerRegistry;
 use Nexus\Mcp\Core\Schema\Enum\LoggingLevel;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
@@ -841,8 +840,8 @@ final class MessageDispatcherTest extends TestCase
         }
 
         return new MessageDispatcher(
-            new RequestHandlerRegistry($requestHandlers),
-            new NotificationHandlerRegistry($notificationHandlers),
+            new HandlerRegistry($requestHandlers, RequestHandlerInterface::class, 'Request handler'),
+            new HandlerRegistry($notificationHandlers, NotificationHandlerInterface::class, 'Notification handler'),
             $gate,
             logger: $logger ?? new ArrayLogger(),
         );

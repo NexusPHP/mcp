@@ -15,27 +15,34 @@ namespace Nexus\Mcp\Core\Handler;
 
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Exception\MethodNotFoundException;
-use Nexus\Mcp\Core\Schema\Result;
 
 /**
- * Method name to `RequestHandlerInterface` dispatch table.
+ * Method-name to handler dispatch table, generic over the handler interface.
  *
- * @template TContext of AbstractContext
+ * @template-covariant THandler of object
  */
-final readonly class RequestHandlerRegistry
+final readonly class HandlerRegistry
 {
     /**
-     * @param array<non-empty-string, RequestHandlerInterface<non-empty-string, Result, TContext>> $handlers
+     * @param array<non-empty-string, THandler> $handlers
+     * @param class-string                      $handlerInterface
+     * @param non-empty-string                  $label
      */
-    public function __construct(private array $handlers)
-    {
-        Assert::that($this->handlers)
+    public function __construct(
+        private array $handlers,
+        string $handlerInterface,
+        string $label,
+    ) {
+        Assert::that($handlers)
             ->keys()
-            ->isNonEmptyString('Request handler registry key must be a non-empty string.')
+            ->isNonEmptyString(\sprintf('%s registry key must be a non-empty string.', $label))
         ;
-        Assert::that($this->handlers)
+        Assert::that($handlers)
             ->values()
-            ->isInstanceOf(RequestHandlerInterface::class, 'Request handler registry value must implement RequestHandlerInterface.')
+            ->isInstanceOf(
+                $handlerInterface,
+                \sprintf('%s registry value must implement {class}.', $label),
+            )
         ;
     }
 
@@ -50,11 +57,11 @@ final readonly class RequestHandlerRegistry
     /**
      * @param non-empty-string $method
      *
-     * @return RequestHandlerInterface<non-empty-string, Result, TContext>
+     * @return THandler
      *
      * @throws MethodNotFoundException
      */
-    public function get(string $method): RequestHandlerInterface
+    public function get(string $method): object
     {
         if (! \array_key_exists($method, $this->handlers)) {
             throw new MethodNotFoundException($method);
