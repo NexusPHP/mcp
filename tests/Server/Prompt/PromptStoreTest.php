@@ -19,6 +19,7 @@ use Nexus\Mcp\Core\Schema\Prompt\Prompt;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
+use Nexus\Mcp\Server\AbstractPaginatedStore;
 use Nexus\Mcp\Server\Exception\InvalidCursorException;
 use Nexus\Mcp\Server\Exception\PromptNotFoundException;
 use Nexus\Mcp\Server\Prompt\ClosurePromptRenderer;
@@ -34,6 +35,7 @@ use PHPUnit\Framework\TestCase;
  * @internal
  */
 #[CoversClass(PromptStore::class)]
+#[CoversClass(AbstractPaginatedStore::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
 final class PromptStoreTest extends TestCase

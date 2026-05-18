@@ -20,6 +20,7 @@ use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\Resource\ResourceTemplate;
 use Nexus\Mcp\Core\Schema\Resource\TextResourceContents;
 use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
+use Nexus\Mcp\Server\AbstractPaginatedStore;
 use Nexus\Mcp\Server\Exception\InvalidCursorException;
 use Nexus\Mcp\Server\Exception\ResourceNotFoundException;
 use Nexus\Mcp\Server\Resource\ClosureTemplatedResourceReader;
@@ -35,18 +36,19 @@ use PHPUnit\Framework\TestCase;
  * @internal
  */
 #[CoversClass(ResourceTemplateStore::class)]
+#[CoversClass(AbstractPaginatedStore::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
 final class ResourceTemplateStoreTest extends TestCase
 {
-    public function testListTemplatesReturnsRegisteredTemplates(): void
+    public function testListReturnsRegisteredTemplates(): void
     {
         $store = new ResourceTemplateStore([
             'file:///{name}.txt' => self::entry(new ResourceTemplate('alpha', 'file:///{name}.txt')),
             'file:///{name}.log' => self::entry(new ResourceTemplate('beta', 'file:///{name}.log')),
         ]);
 
-        $result = $store->listTemplates(null);
+        $result = $store->list(null);
 
         self::assertCount(2, $result->resourceTemplates);
         self::assertSame('alpha', $result->resourceTemplates[0]->name);
@@ -54,7 +56,7 @@ final class ResourceTemplateStoreTest extends TestCase
         self::assertNull($result->nextCursor);
     }
 
-    public function testListTemplatesPaginatesWithCursor(): void
+    public function testListPaginatesWithCursor(): void
     {
         $store = new ResourceTemplateStore(
             [
@@ -65,33 +67,33 @@ final class ResourceTemplateStoreTest extends TestCase
             pageSize: 2,
         );
 
-        $first = $store->listTemplates(null);
+        $first = $store->list(null);
         self::assertCount(2, $first->resourceTemplates);
         self::assertNotNull($first->nextCursor);
         self::assertSame('file:///{x}.b', $first->nextCursor->cursor);
 
-        $second = $store->listTemplates($first->nextCursor);
+        $second = $store->list($first->nextCursor);
         self::assertCount(1, $second->resourceTemplates);
         self::assertSame('c', $second->resourceTemplates[0]->name);
         self::assertNull($second->nextCursor);
     }
 
-    public function testListTemplatesAfterLastItemReturnsEmptyPage(): void
+    public function testListAfterLastItemReturnsEmptyPage(): void
     {
         $store = new ResourceTemplateStore(
             ['file:///{x}.only' => self::entry(new ResourceTemplate('only', 'file:///{x}.only'))],
             pageSize: 1,
         );
 
-        $page = $store->listTemplates(new Cursor('file:///{x}.only'));
+        $page = $store->list(new Cursor('file:///{x}.only'));
 
         self::assertSame([], $page->resourceTemplates);
         self::assertNull($page->nextCursor);
     }
 
-    public function testListTemplatesWithEmptyStoreReturnsEmptyPage(): void
+    public function testListWithEmptyStoreReturnsEmptyPage(): void
     {
-        $page = new ResourceTemplateStore()->listTemplates(null);
+        $page = new ResourceTemplateStore()->list(null);
 
         self::assertSame([], $page->resourceTemplates);
         self::assertNull($page->nextCursor);
@@ -153,7 +155,7 @@ final class ResourceTemplateStoreTest extends TestCase
         ]);
     }
 
-    public function testListTemplatesRejectsCursorThatMatchesNoEntry(): void
+    public function testListRejectsCursorThatMatchesNoEntry(): void
     {
         $store = new ResourceTemplateStore([
             'file:///{x}.alpha' => self::entry(new ResourceTemplate('alpha', 'file:///{x}.alpha')),
@@ -162,7 +164,7 @@ final class ResourceTemplateStoreTest extends TestCase
         $this->expectException(InvalidCursorException::class);
         $this->expectExceptionMessageMatches('/^Cursor "missing" does not match any registered entry\.$/');
 
-        $store->listTemplates(new Cursor('missing'));
+        $store->list(new Cursor('missing'));
     }
 
     public function testReadThrowsWhenNoTemplateMatches(): void
