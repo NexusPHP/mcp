@@ -33,7 +33,7 @@ final class ContentBlockDispatcher
      * @param array<string, mixed> $data
      * @param non-empty-string     $context Prefix used in error messages
      *
-     * @throws ExpectationFailedException when `type` is missing or unknown
+     * @throws ExpectationFailedException
      */
     public static function fromArray(array $data, string $context): AudioContent|EmbeddedResource|ImageContent|ResourceLink|TextContent
     {

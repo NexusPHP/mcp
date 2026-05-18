@@ -29,7 +29,7 @@ trait ParsesNumber
     /**
      * @param non-empty-string $message
      *
-     * @throws ExpectationFailedException when `$value` is neither int nor float
+     * @throws ExpectationFailedException
      */
     private static function parseNumber(mixed $value, string $message): float
     {

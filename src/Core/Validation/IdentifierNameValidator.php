@@ -32,9 +32,9 @@ final class IdentifierNameValidator
     /**
      * @param non-empty-string $context Label prefix for the error message (e.g. "Resource", "Tool")
      *
-     * @throws ExpectationFailedException when `$name` does not match the identifier pattern
-     *
      * @phpstan-assert non-empty-string $name
+     *
+     * @throws ExpectationFailedException
      */
     public static function validate(string $name, string $context): void
     {
