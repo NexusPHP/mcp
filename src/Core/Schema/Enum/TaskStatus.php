@@ -20,9 +20,28 @@ namespace Nexus\Mcp\Core\Schema\Enum;
  */
 enum TaskStatus: string
 {
+    /**
+     * Task is executing.
+     */
     case Working = 'working';
+
+    /**
+     * Task is paused awaiting client input.
+     */
     case InputRequired = 'input_required';
+
+    /**
+     * Task finished successfully.
+     */
     case Completed = 'completed';
+
+    /**
+     * Task ended with an error.
+     */
     case Failed = 'failed';
+
+    /**
+     * Task was cancelled before completion.
+     */
     case Cancelled = 'cancelled';
 }

@@ -20,6 +20,13 @@ namespace Nexus\Mcp\Core\Schema\Enum;
  */
 enum Role: string
 {
+    /**
+     * Human author of the message.
+     */
     case User = 'user';
+
+    /**
+     * Model author of the message.
+     */
     case Assistant = 'assistant';
 }

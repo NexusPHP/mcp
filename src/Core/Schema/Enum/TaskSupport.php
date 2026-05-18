@@ -20,7 +20,18 @@ namespace Nexus\Mcp\Core\Schema\Enum;
  */
 enum TaskSupport: string
 {
+    /**
+     * Tool does not support task-augmented execution.
+     */
     case Forbidden = 'forbidden';
+
+    /**
+     * Tool may support task-augmented execution.
+     */
     case Optional = 'optional';
+
+    /**
+     * Tool requires task-augmented execution.
+     */
     case Required = 'required';
 }

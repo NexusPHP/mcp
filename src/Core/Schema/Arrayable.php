@@ -25,9 +25,7 @@ interface Arrayable extends \JsonSerializable
      *
      * @param T $data
      *
-     * @todo When the minimum PHP version is bumped to 8.5, final implementers
-     *       may declare `: self` instead of `: static` per php/php-src#17724.
-     *       Until then, PHP 8.4 strictly enforces `: static` invariance.
+     * @todo See ROADMAP.md (PHP 8.5 language compatibility).
      */
     public static function fromArray(array $data): static;
 

@@ -18,7 +18,18 @@ namespace Nexus\Mcp\Core\Transport;
  */
 enum TransportState
 {
+    /**
+     * Constructed but `start()` has not been called.
+     */
     case Idle;
+
+    /**
+     * `start()` has been called. Sending and receiving is allowed.
+     */
     case Running;
+
+    /**
+     * `close()` has been called. The instance is terminal.
+     */
     case Closed;
 }

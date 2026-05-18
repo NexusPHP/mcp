@@ -23,12 +23,43 @@ namespace Nexus\Mcp\Core\Schema\Enum;
  */
 enum LoggingLevel: string
 {
+    /**
+     * Messages that contain information normally of use only when debugging a program.
+     */
     case Debug = 'debug';
+
+    /**
+     * Informational messages.
+     */
     case Info = 'info';
+
+    /**
+     * Conditions that are not error conditions, but may require special handling.
+     */
     case Notice = 'notice';
+
+    /**
+     * Warning messages.
+     */
     case Warning = 'warning';
+
+    /**
+     * Error conditions.
+     */
     case Error = 'error';
+
+    /**
+     * Critical conditions, such as hard device errors.
+     */
     case Critical = 'critical';
+
+    /**
+     * A condition that should be corrected immediately, such as a corrupted system database.
+     */
     case Alert = 'alert';
+
+    /**
+     * A panic condition. The system is unusable.
+     */
     case Emergency = 'emergency';
 }

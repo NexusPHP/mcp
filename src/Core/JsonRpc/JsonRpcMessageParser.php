@@ -44,21 +44,8 @@ final class JsonRpcMessageParser
     private readonly array $notifications;
 
     /**
-     * Caller-supplied maps merge over the spec defaults from `JsonRpcMethodRegistry`
-     * with per-key precedence (caller wins). Two semantically distinct uses share the
-     * same parameter:
-     *
-     * - **Override** a spec method: pass a key already in the registry (e.g.
-     *   `'initialize' => MyInitializeRequest::class`) to swap the dispatch target.
-     * - **Extend** with a vendor method: pass a key not in the registry (e.g.
-     *   `'myorg/custom-tool' => MyCustomRequest::class`) to add a new dispatch entry.
-     *
-     * No validation distinguishes these cases, so a typo in an override key (e.g.
-     * `'initiailze' => ...`) silently registers a dead method instead of overriding.
-     * Verify the key matches a `JsonRpcMethodRegistry` entry when overriding.
-     *
-     * @param array<non-empty-string, class-string<JsonRpcRequest<non-empty-string>>>      $requests
-     * @param array<non-empty-string, class-string<JsonRpcNotification<non-empty-string>>> $notifications
+     * @param array<non-empty-string, class-string<JsonRpcRequest<non-empty-string>>>      $requests      Merged over `JsonRpcMethodRegistry::requests()` with caller precedence.
+     * @param array<non-empty-string, class-string<JsonRpcNotification<non-empty-string>>> $notifications Merged over `JsonRpcMethodRegistry::notifications()` with caller precedence.
      */
     public function __construct(array $requests = [], array $notifications = [])
     {

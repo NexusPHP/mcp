@@ -21,7 +21,18 @@ namespace Nexus\Mcp\Core\Schema\Enum;
  */
 enum IncludeContext: string
 {
+    /**
+     * Include context from every connected MCP server.
+     */
     case AllServers = 'allServers';
+
+    /**
+     * Send no server-supplied context with the prompt.
+     */
     case None = 'none';
+
+    /**
+     * Include context only from the requesting server.
+     */
     case ThisServer = 'thisServer';
 }

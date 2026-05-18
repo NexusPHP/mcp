@@ -20,10 +20,33 @@ namespace Nexus\Mcp\Core\Schema\Enum;
  */
 enum ProtocolErrorCode: int
 {
+    /**
+     * Invalid JSON was received by the server.
+     */
     case ParseError = -32700;
+
+    /**
+     * The JSON sent is not a valid Request object.
+     */
     case InvalidRequest = -32600;
+
+    /**
+     * The method does not exist or is not available.
+     */
     case MethodNotFound = -32601;
+
+    /**
+     * Invalid method parameter(s).
+     */
     case InvalidParams = -32602;
+
+    /**
+     * Internal JSON-RPC error.
+     */
     case InternalError = -32603;
+
+    /**
+     * Server requires the client to satisfy a URL elicitation before continuing (MCP-specific).
+     */
     case UrlElicitationRequired = -32042;
 }

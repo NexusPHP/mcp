@@ -20,7 +20,18 @@ namespace Nexus\Mcp\Core\Schema\Enum;
  */
 enum ElicitAction: string
 {
+    /**
+     * User submitted the form / confirmed the action.
+     */
     case Accept = 'accept';
+
+    /**
+     * User explicitly declined the action.
+     */
     case Decline = 'decline';
+
+    /**
+     * User dismissed without making an explicit choice.
+     */
     case Cancel = 'cancel';
 }

@@ -20,7 +20,18 @@ namespace Nexus\Mcp\Core\Schema\Enum;
  */
 enum ToolChoiceMode: string
 {
+    /**
+     * Model decides whether to use tools.
+     */
     case Auto = 'auto';
+
+    /**
+     * Model MUST NOT use any tools.
+     */
     case None = 'none';
+
+    /**
+     * Model MUST use at least one tool before completing.
+     */
     case Required = 'required';
 }
