@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Handler;
 
 use Nexus\Assert\ExpectationFailedException;
-use Nexus\Mcp\Core\Exception\MethodNotFoundException;
 use Nexus\Mcp\Core\Handler\HandlerRegistry;
 use Nexus\Mcp\Core\Handler\NotificationHandlerInterface;
 use Nexus\Mcp\Core\Handler\Request\PingRequestHandler;
@@ -34,18 +33,6 @@ use PHPUnit\Framework\TestCase;
 #[Group('core-tests')]
 final class HandlerRegistryTest extends TestCase
 {
-    public function testHasReportsRegisteredAndUnregisteredMethods(): void
-    {
-        $registry = new HandlerRegistry(
-            [PingRequest::method() => new PingRequestHandler()],
-            RequestHandlerInterface::class,
-            'Request handler',
-        );
-
-        self::assertTrue($registry->has(PingRequest::method()));
-        self::assertFalse($registry->has('vendor/unknown'));
-    }
-
     public function testGetReturnsRegisteredHandler(): void
     {
         $handler = new PingRequestHandler();
@@ -58,12 +45,11 @@ final class HandlerRegistryTest extends TestCase
         self::assertSame($handler, $registry->get(PingRequest::method()));
     }
 
-    public function testGetThrowsMethodNotFoundExceptionForUnregisteredMethod(): void
+    public function testGetReturnsNullForUnregisteredMethod(): void
     {
-        $this->expectException(MethodNotFoundException::class);
-        $this->expectExceptionMessage('No registration found for method "vendor/unknown".');
+        $registry = new HandlerRegistry([], RequestHandlerInterface::class, 'Request handler');
 
-        new HandlerRegistry([], RequestHandlerInterface::class, 'Request handler')->get('vendor/unknown');
+        self::assertNull($registry->get('vendor/unknown'));
     }
 
     public function testMethodsReturnsRegisteredKeysInInsertionOrder(): void

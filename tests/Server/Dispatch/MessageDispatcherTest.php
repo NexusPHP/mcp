@@ -210,6 +210,29 @@ final class MessageDispatcherTest extends TestCase
         self::assertSame(ProtocolErrorCode::MethodNotFound->value, $message->error->code);
     }
 
+    public function testRequestForSpecMethodWithNoRegisteredHandlerReturnsMethodNotFoundError(): void
+    {
+        // Parser accepts the method (it is in `JsonRpcMethodRegistry`), but the
+        // dispatcher's handler registry is empty, so the throw expression on the
+        // request path fires `MethodNotFoundException` and rides the same
+        // protocol-error catch-arm to a `MethodNotFound` error response.
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher(initialize: true);
+
+        $dispatcher->dispatch(
+            ['jsonrpc' => '2.0', 'id' => 'req-2', 'method' => 'ping'],
+            $transport,
+        );
+
+        EventLoop::run();
+
+        self::assertCount(1, $transport->sent);
+        $message = $transport->sent[0]['message'];
+        self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
+        self::assertSame('req-2', $message->id?->id);
+        self::assertSame(ProtocolErrorCode::MethodNotFound->value, $message->error->code);
+    }
+
     public function testNonInitRequestBeforeHandshakeIsRejected(): void
     {
         $transport = new RecordingTransport();

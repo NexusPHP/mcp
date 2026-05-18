@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Handler;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\Exception\MethodNotFoundException;
 
 /**
  * Method-name to handler dispatch table, generic over the handler interface.
@@ -48,26 +47,12 @@ final readonly class HandlerRegistry
 
     /**
      * @param non-empty-string $method
-     */
-    public function has(string $method): bool
-    {
-        return \array_key_exists($method, $this->handlers);
-    }
-
-    /**
-     * @param non-empty-string $method
      *
-     * @return THandler
-     *
-     * @throws MethodNotFoundException
+     * @return null|THandler
      */
-    public function get(string $method): object
+    public function get(string $method): ?object
     {
-        if (! \array_key_exists($method, $this->handlers)) {
-            throw new MethodNotFoundException($method);
-        }
-
-        return $this->handlers[$method];
+        return $this->handlers[$method] ?? null;
     }
 
     /**
