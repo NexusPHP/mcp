@@ -3,8 +3,10 @@ locale = "en-gb"
 
 # Keep American spelling for MCP spec class/method names, OAuth/HTTP headers,
 # `JsonSerializable`, the PHP normaliser idiom, composer/phpunit CLI tokens,
-# and the `-or` ending (`behavior`, `flavored` appear in spec-verbatim docblocks).
+# the `-or` ending (`behavior`, `flavored` appear in spec-verbatim docblocks),
+# and the PHP `\Fiber` language concept.
 extend-ignore-words-re = [
     "(?i)^(initializ|serializ|normaliz|optimiz|authoriz|contextualiz)(e|es|ed|er|ation)$",
     "(?i)^(colors|behavior|flavored)$",
+    "(?i)^fibers?$",
 ]

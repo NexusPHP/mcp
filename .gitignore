@@ -12,7 +12,6 @@
 /tools/vendor/
 /vendor/
 
-# Allow committing project-level Claude config + hooks; keep per-user notes ignored.
+# Allow committing project-level Claude config, hooks, and skills.
 !/.claude/
-/.claude/**/*.md
 /.claude/settings.local.json
