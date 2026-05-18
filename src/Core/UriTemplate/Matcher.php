@@ -26,37 +26,50 @@ namespace Nexus\Mcp\Core\UriTemplate;
 final class Matcher
 {
     /**
+     * Compiles a template into a ready-to-use PCRE pattern. Callers in hot paths
+     * should compile once and pass the result to `matchCompiled()` per request.
+     *
      * @param non-empty-string $template A template already passed through `Validator`
      *
-     * @return null|array<string, string>
+     * @return non-empty-string
      */
-    public static function match(string $template, string $uri): ?array
+    public static function compile(string $template): string
     {
         preg_match_all('/\{[A-Za-z_][A-Za-z0-9_]*\}/', $template, $matches, \PREG_OFFSET_CAPTURE);
 
-        $pattern = '\A';
+        $body = '\A';
         $cursor = 0;
         $seen = [];
 
         foreach ($matches[0] as [$expr, $exprStart]) {
             $name = substr($expr, 1, -1);
 
-            $pattern .= preg_quote(substr($template, $cursor, $exprStart - $cursor), '~');
+            $body .= preg_quote(substr($template, $cursor, $exprStart - $cursor), '~');
 
             if (\in_array($name, $seen, true)) {
                 // Repeated name: backreference so it must capture the same text.
-                $pattern .= \sprintf('(?P=%s)', $name);
+                $body .= \sprintf('(?P=%s)', $name);
             } else {
-                $pattern .= \sprintf('(?P<%s>[^/?#]+)', $name);
+                $body .= \sprintf('(?P<%s>[^/?#]+)', $name);
                 $seen[] = $name;
             }
 
             $cursor = $exprStart + \strlen($expr);
         }
 
-        $pattern .= preg_quote(substr($template, $cursor), '~').'\z';
+        $body .= preg_quote(substr($template, $cursor), '~').'\z';
 
-        if (preg_match(\sprintf('~%s~', $pattern), $uri, $captures) !== 1) {
+        return \sprintf('~%s~', $body);
+    }
+
+    /**
+     * @param non-empty-string $pattern A pattern returned by `compile()`
+     *
+     * @return null|array<string, string>
+     */
+    public static function matchCompiled(string $pattern, string $uri): ?array
+    {
+        if (preg_match($pattern, $uri, $captures) !== 1) {
             return null;
         }
 
@@ -69,5 +82,19 @@ final class Matcher
         }
 
         return $bindings;
+    }
+
+    /**
+     * One-shot convenience: compile the template and match in a single call.
+     * Prefer `compile()` + `matchCompiled()` when the same template is matched
+     * repeatedly.
+     *
+     * @param non-empty-string $template A template already passed through `Validator`
+     *
+     * @return null|array<string, string>
+     */
+    public static function match(string $template, string $uri): ?array
+    {
+        return self::matchCompiled(self::compile($template), $uri);
     }
 }
