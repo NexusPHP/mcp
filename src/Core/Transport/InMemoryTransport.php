@@ -27,21 +27,6 @@ use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcMessage;
 final class InMemoryTransport implements TransportInterface
 {
     /**
-     * @var array<int, \Closure(array<string, mixed>): void>
-     */
-    private array $messageListeners = [];
-
-    /**
-     * @var array<int, \Closure(): void>
-     */
-    private array $closeListeners = [];
-
-    /**
-     * @var array<int, \Closure(): void>
-     */
-    private array $drainListeners = [];
-
-    /**
      * Envelopes the peer's `send()` delivered before this side called `start()`. Drained in arrival order on `start()`.
      *
      * @var list<array<string, mixed>>
@@ -50,9 +35,11 @@ final class InMemoryTransport implements TransportInterface
 
     private TransportState $state = TransportState::Idle;
     private ?self $peer = null;
+    private readonly TransportEvents $events;
 
     private function __construct()
     {
+        $this->events = new TransportEvents();
     }
 
     /**
@@ -84,7 +71,7 @@ final class InMemoryTransport implements TransportInterface
         $this->state = TransportState::Running;
 
         foreach ($this->pendingInbound as $envelope) {
-            $this->emitMessage($envelope);
+            $this->events->emitMessage($envelope);
         }
     }
 
@@ -123,7 +110,7 @@ final class InMemoryTransport implements TransportInterface
         }
 
         try {
-            $this->emitDrain();
+            $this->events->emitDrain();
         } finally {
             $this->state = TransportState::Closed;
 
@@ -132,7 +119,7 @@ final class InMemoryTransport implements TransportInterface
 
             $peer?->close();
 
-            $this->emitClose();
+            $this->events->emitClose();
         }
     }
 
@@ -145,23 +132,7 @@ final class InMemoryTransport implements TransportInterface
     #[\Override]
     public function onMessage(\Closure $listener): SubscriptionInterface
     {
-        $this->messageListeners[] = $listener;
-        $id = array_key_last($this->messageListeners);
-
-        return new Subscription(function () use ($id): void {
-            unset($this->messageListeners[$id]);
-        });
-    }
-
-    #[\Override]
-    public function onClose(\Closure $listener): SubscriptionInterface
-    {
-        $this->closeListeners[] = $listener;
-        $id = array_key_last($this->closeListeners);
-
-        return new Subscription(function () use ($id): void {
-            unset($this->closeListeners[$id]);
-        });
+        return $this->events->onMessage($listener);
     }
 
     /**
@@ -171,20 +142,19 @@ final class InMemoryTransport implements TransportInterface
     #[\Override]
     public function onError(\Closure $listener): SubscriptionInterface
     {
-        unset($listener);
-
-        return new Subscription(static function (): void {});
+        return $this->events->onError($listener);
     }
 
     #[\Override]
     public function onDrain(\Closure $listener): SubscriptionInterface
     {
-        $this->drainListeners[] = $listener;
-        $id = array_key_last($this->drainListeners);
+        return $this->events->onDrain($listener);
+    }
 
-        return new Subscription(function () use ($id): void {
-            unset($this->drainListeners[$id]);
-        });
+    #[\Override]
+    public function onClose(\Closure $listener): SubscriptionInterface
+    {
+        return $this->events->onClose($listener);
     }
 
     /**
@@ -201,30 +171,6 @@ final class InMemoryTransport implements TransportInterface
             return;
         }
 
-        $this->emitMessage($envelope);
-    }
-
-    /**
-     * @param array<string, mixed> $envelope
-     */
-    private function emitMessage(array $envelope): void
-    {
-        foreach ($this->messageListeners as $listener) {
-            $listener($envelope);
-        }
-    }
-
-    private function emitClose(): void
-    {
-        foreach ($this->closeListeners as $listener) {
-            $listener();
-        }
-    }
-
-    private function emitDrain(): void
-    {
-        foreach ($this->drainListeners as $listener) {
-            $listener();
-        }
+        $this->events->emitMessage($envelope);
     }
 }

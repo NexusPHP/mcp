@@ -71,13 +71,6 @@ interface TransportInterface
     public function onMessage(\Closure $listener): SubscriptionInterface;
 
     /**
-     * Register a close listener.
-     *
-     * @param \Closure(): void $listener
-     */
-    public function onClose(\Closure $listener): SubscriptionInterface;
-
-    /**
      * Register an error listener.
      *
      * @param \Closure(\Throwable): void $listener
@@ -90,4 +83,11 @@ interface TransportInterface
      * @param \Closure(): void $listener
      */
     public function onDrain(\Closure $listener): SubscriptionInterface;
+
+    /**
+     * Register a close listener.
+     *
+     * @param \Closure(): void $listener
+     */
+    public function onClose(\Closure $listener): SubscriptionInterface;
 }

@@ -19,9 +19,9 @@ interface TransportInterface
     public function sessionId(): ?string;
 
     public function onMessage(\Closure $listener): SubscriptionInterface;
-    public function onClose(\Closure $listener): SubscriptionInterface;
     public function onError(\Closure $listener): SubscriptionInterface;
     public function onDrain(\Closure $listener): SubscriptionInterface;
+    public function onClose(\Closure $listener): SubscriptionInterface;
 }
 ```
 
