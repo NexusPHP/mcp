@@ -58,6 +58,13 @@ interface TransportInterface
     public function close(): void;
 
     /**
+     * Returns a human-friendly transport label for logging and debugging.
+     *
+     * @return non-empty-string
+     */
+    public function label(): string;
+
+    /**
      * Returns the transport-issued session identifier, or null when the
      * transport carries no session (e.g. stdio).
      */

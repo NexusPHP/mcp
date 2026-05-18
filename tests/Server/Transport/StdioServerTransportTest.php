@@ -495,9 +495,13 @@ final class StdioServerTransportTest extends TestCase
         $transport->close();
         $transport->close();
 
-        $matches = $logger->recordsMatching(LogLevel::INFO, 'Stdio transport closing from {priorState}.');
+        $matches = $logger->recordsMatching(LogLevel::INFO, 'Stdio transport closing from {priorState} state.');
         self::assertCount(1, $matches);
         self::assertSame(['priorState' => 'Idle'], $matches[0]['context']);
+
+        $closed = $logger->recordsMatching(LogLevel::INFO, 'Stdio transport closed.');
+        self::assertCount(1, $closed);
+        self::assertSame([], $closed[0]['context']);
     }
 
     public function testLoggerEmitsInfoOnCloseFromRunning(): void
@@ -508,7 +512,7 @@ final class StdioServerTransportTest extends TestCase
         $transport->start();
         EventLoop::run();
 
-        $matches = $logger->recordsMatching(LogLevel::INFO, 'Stdio transport closing from {priorState}.');
+        $matches = $logger->recordsMatching(LogLevel::INFO, 'Stdio transport closing from {priorState} state.');
         self::assertCount(1, $matches);
         self::assertSame(['priorState' => 'Running'], $matches[0]['context']);
     }
@@ -546,7 +550,7 @@ final class StdioServerTransportTest extends TestCase
     {
         yield 'request' => [
             new PingRequest(new RequestId(42)),
-            'Stdio transport failed to send "{method}" request with ID of {id}. Closing.',
+            'Stdio transport failed to send "{method}" request with ID "{id}". Closing.',
             ['method' => 'ping', 'id' => 42],
         ];
 
@@ -558,19 +562,19 @@ final class StdioServerTransportTest extends TestCase
 
         yield 'result response' => [
             new JsonRpcResultResponse(new RequestId(99), new EmptyResult()),
-            'Stdio transport failed to send result response for request ID of {id}. Closing.',
+            'Stdio transport failed to send result response for request ID "{id}". Closing.',
             ['id' => 99],
         ];
 
         yield 'error response with id' => [
             new JsonRpcErrorResponse(new RequestId(5), new InvalidParamsError('bad params')),
-            'Stdio transport failed to send error response for request ID of {id}. Closing.',
+            'Stdio transport failed to send an error response for request ID "{id}". Closing.',
             ['id' => 5],
         ];
 
         yield 'error response with no id' => [
             new JsonRpcErrorResponse(null, new ParseError('unparsable')),
-            'Stdio transport failed to send error response with no correlatable ID. Closing.',
+            'Stdio transport failed to send an error response with no correlatable ID. Closing.',
             [],
         ];
     }
@@ -602,7 +606,7 @@ final class StdioServerTransportTest extends TestCase
         $transport->start();
         EventLoop::run();
 
-        $matches = $logger->recordsMatching(LogLevel::WARNING, 'Stdio transport rejected non-object envelope.');
+        $matches = $logger->recordsMatching(LogLevel::WARNING, 'Stdio transport rejected a non-object envelope.');
         self::assertCount(1, $matches);
         self::assertArrayHasKey('exception', $matches[0]['context']);
         self::assertInstanceOf(\InvalidArgumentException::class, $matches[0]['context']['exception']);
@@ -672,7 +676,7 @@ final class StdioServerTransportTest extends TestCase
         EventLoop::run();
 
         self::assertContains(
-            'Stdio transport dispatching envelope.',
+            'Stdio transport received a JSON-RPC envelope.',
             $logger->messagesAtLevel(LogLevel::DEBUG),
         );
     }
@@ -702,7 +706,7 @@ final class StdioServerTransportTest extends TestCase
     {
         yield 'request' => [
             new PingRequest(new RequestId(42)),
-            'Stdio transport sent "{method}" request with ID of {id}.',
+            'Stdio transport sent "{method}" request with ID "{id}".',
             ['method' => 'ping', 'id' => 42],
         ];
 
@@ -714,19 +718,19 @@ final class StdioServerTransportTest extends TestCase
 
         yield 'result response' => [
             new JsonRpcResultResponse(new RequestId(99), new EmptyResult()),
-            'Stdio transport sent result response for request ID of {id}.',
+            'Stdio transport sent a result response for request ID "{id}".',
             ['id' => 99],
         ];
 
         yield 'error response with id' => [
             new JsonRpcErrorResponse(new RequestId(5), new InvalidParamsError('bad params')),
-            'Stdio transport sent error response for request ID of {id}.',
+            'Stdio transport sent an error response for request ID "{id}".',
             ['id' => 5],
         ];
 
         yield 'error response with no id' => [
             new JsonRpcErrorResponse(null, new ParseError('unparsable')),
-            'Stdio transport sent error response with no correlatable ID.',
+            'Stdio transport sent an error response with no correlatable ID.',
             [],
         ];
     }

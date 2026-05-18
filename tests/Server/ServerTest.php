@@ -129,6 +129,35 @@ final class ServerTest extends TestCase
         self::assertInstanceOf(\RuntimeException::class, $matches[0]['context']['exception'] ?? null);
     }
 
+    public function testRunLogsStartupAndShutdown(): void
+    {
+        $transport = new RecordingTransport();
+        $logger = new ArrayLogger();
+        $server = Server::builder()
+            ->setServerInfo('demo', '1.0.0')
+            ->setLogger($logger)
+            ->build()
+        ;
+
+        $serverRun = async(static function () use ($server, $transport): void {
+            $server->run($transport);
+        });
+
+        EventLoop::queue(static function () use ($transport): void {
+            $transport->close();
+        });
+
+        $serverRun->await();
+
+        $startup = $logger->recordsMatching(LogLevel::INFO, 'Starting MCP server with {transport} server transport.');
+        self::assertCount(1, $startup);
+        self::assertSame(['transport' => 'recording'], $startup[0]['context']);
+
+        $shutdown = $logger->recordsMatching(LogLevel::INFO, 'MCP server stopped.');
+        self::assertCount(1, $shutdown);
+        self::assertSame([], $shutdown[0]['context']);
+    }
+
     public function testTransportCloseIsIdempotent(): void
     {
         $transport = new RecordingTransport();

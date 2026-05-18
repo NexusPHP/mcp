@@ -82,7 +82,7 @@ $logger = new class extends AbstractLogger {
         LogLevel::DEBUG => 7,
     ];
 
-    private string $minLevel = LogLevel::INFO;
+    private string $minLevel = LogLevel::DEBUG;
 
     public function setMinLevel(LoggingLevel $level): void
     {
@@ -92,27 +92,29 @@ $logger = new class extends AbstractLogger {
     #[Override]
     public function log($level, string|Stringable $message, array $context = []): void
     {
-        $levelName = (string) $level;
+        $level = (string) $level;
 
-        if ((self::SEVERITY[$levelName] ?? 7) > (self::SEVERITY[$this->minLevel] ?? 7)) {
+        if (self::SEVERITY[$level] > self::SEVERITY[$this->minLevel]) {
             return;
         }
 
-        $rendered = (string) $message;
+        $replacements = [];
 
         foreach ($context as $key => $value) {
             if (! is_string($key)) {
                 continue;
             }
 
-            $rendered = str_replace(sprintf('{%s}', $key), match (true) {
+            $replacements[sprintf('{%s}', $key)] = match (true) {
                 $value instanceof Throwable => $value::class.': '.$value->getMessage(),
                 is_scalar($value) || $value instanceof Stringable => (string) $value,
                 default => json_encode($value, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES),
-            }, $rendered);
+            };
         }
 
-        fwrite(\STDERR, sprintf("[%s] %s: %s\n", date(\DATE_RFC3339), $levelName, $rendered));
+        $rendered = strtr((string) $message, $replacements);
+
+        fwrite(\STDERR, sprintf("[%s] %s: %s\n", date(\DATE_RFC3339), $level, $rendered));
     }
 };
 
