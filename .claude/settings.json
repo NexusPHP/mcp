@@ -4,6 +4,8 @@
       "Bash(composer cs:check *)",
       "Bash(composer cs:fix *)",
       "Bash(composer lint:docs *)",
+      "Bash(composer lint:links *)",
+      "Bash(composer lint:markdown *)",
       "Bash(composer mutation:check *)",
       "Bash(composer mutation:filter *)",
       "Bash(composer phpstan:check *)",
