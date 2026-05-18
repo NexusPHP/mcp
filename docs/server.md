@@ -151,13 +151,16 @@ For vendor-extension methods (those outside the MCP spec):
 ->addNotificationHandler('acme/heartbeat', new MyHeartbeatHandler())
 ```
 
-Both reject methods reserved by the spec. To override a built-in handler (e.g. to take over
-`logging/setLevel` or `ping`), use the `replace*` variants:
+Both reject spec-reserved methods. To override the SDK's built-in handler for a spec method
+(e.g. to take over `logging/setLevel` or `ping`), use the `replace*` variants:
 
 ```php
 ->replaceRequestHandler('logging/setLevel', new MySetLevelHandler())
 ->replaceNotificationHandler('notifications/initialized', new MyInitializedHandler())
 ```
+
+The `replace*` variants in turn reject non-spec methods, so each tool steers vendor extensions
+and spec overrides to the correct entry point.
 
 See [examples/stdio-server.php](../examples/stdio-server.php) for a worked example of
 `replaceRequestHandler('logging/setLevel', ...)`.

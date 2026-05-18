@@ -636,7 +636,7 @@ final class ServerBuilderTest extends TestCase
     {
         $this->expectException(\LogicException::class);
         $this->expectExceptionMessage(\sprintf(
-            'Request method "%s" is reserved for the SDK\'s built-in handler. Use replaceRequestHandler() to override it.',
+            'Request method "%s" is reserved by the MCP specification. Use replaceRequestHandler() to attach a handler to it.',
             $method,
         ));
 
@@ -652,6 +652,8 @@ final class ServerBuilderTest extends TestCase
     {
         yield 'completion/complete' => ['completion/complete'];
 
+        yield 'elicitation/create' => ['elicitation/create'];
+
         yield 'initialize' => ['initialize'];
 
         yield 'logging/setLevel' => ['logging/setLevel'];
@@ -666,7 +668,23 @@ final class ServerBuilderTest extends TestCase
 
         yield 'resources/read' => ['resources/read'];
 
+        yield 'resources/subscribe' => ['resources/subscribe'];
+
         yield 'resources/templates/list' => ['resources/templates/list'];
+
+        yield 'resources/unsubscribe' => ['resources/unsubscribe'];
+
+        yield 'roots/list' => ['roots/list'];
+
+        yield 'sampling/createMessage' => ['sampling/createMessage'];
+
+        yield 'tasks/cancel' => ['tasks/cancel'];
+
+        yield 'tasks/get' => ['tasks/get'];
+
+        yield 'tasks/list' => ['tasks/list'];
+
+        yield 'tasks/result' => ['tasks/result'];
 
         yield 'tools/call' => ['tools/call'];
 
@@ -694,7 +712,7 @@ final class ServerBuilderTest extends TestCase
     {
         $this->expectException(\LogicException::class);
         $this->expectExceptionMessage(\sprintf(
-            'Notification method "%s" is reserved by the MCP spec. Use replaceNotificationHandler() to attach a handler to it.',
+            'Notification method "%s" is reserved by the MCP specification. Use replaceNotificationHandler() to attach a handler to it.',
             $method,
         ));
 
@@ -729,6 +747,30 @@ final class ServerBuilderTest extends TestCase
         yield 'notifications/tasks/status' => ['notifications/tasks/status'];
 
         yield 'notifications/tools/list_changed' => ['notifications/tools/list_changed'];
+    }
+
+    public function testReplaceRequestHandlerRejectsVendorExtensionMethod(): void
+    {
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage(
+            'Request method "acme/snapshot" is not reserved by the MCP specification. Use addRequestHandler() to register a vendor extension.',
+        );
+
+        Server::builder()->replaceRequestHandler('acme/snapshot', new ClosureRequestHandler(
+            static fn(): EmptyResult => new EmptyResult(),
+        ));
+    }
+
+    public function testReplaceNotificationHandlerRejectsVendorExtensionMethod(): void
+    {
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage(
+            'Notification method "acme/snapshot-done" is not reserved by the MCP specification. Use addNotificationHandler() to register a vendor extension.',
+        );
+
+        Server::builder()->replaceNotificationHandler('acme/snapshot-done', new ClosureNotificationHandler(
+            static function (): void {},
+        ));
     }
 
     public function testCustomNotificationHandlerIsDispatched(): void
