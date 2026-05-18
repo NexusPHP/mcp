@@ -234,7 +234,7 @@ final class ReadResourceResultTest extends TestCase
 
         yield 'contents entry missing discriminator' => [
             ['contents' => [['uri' => 'file:///x']]],
-            'ResourceContents data must have either "text" or "blob".',
+            'ReadResourceResult contents data must have either "text" or "blob".',
         ];
 
         yield '_meta not an object' => [

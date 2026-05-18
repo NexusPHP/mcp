@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\Resource;
 
 use Nexus\Assert\Assert;
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Validation\Rfc3986UriValidator;
@@ -52,34 +51,6 @@ abstract readonly class ResourceContents implements Arrayable
 
         $this->uri = $uri;
         $this->mimeType = $mimeType;
-    }
-
-    /**
-     * Discriminates the payload by the presence of `text` vs `blob` and
-     * dispatches to the matching concrete subclass. Used by consumers like
-     * `ReadResourceResult` and `EmbeddedResource` that carry a structurally
-     * tagged union. The narrowed return type lets IDEs and PHPStan resolve
-     * `text` / `blob` on the result without an explicit `instanceof` check.
-     *
-     * @param array<string, mixed> $data
-     *
-     * @throws ExpectationFailedException when neither (or both) discriminators are present
-     */
-    public static function from(array $data): BlobResourceContents|TextResourceContents
-    {
-        if (\array_key_exists('text', $data) && \array_key_exists('blob', $data)) {
-            throw new ExpectationFailedException('ResourceContents data must not have both "text" and "blob".');
-        }
-
-        if (\array_key_exists('text', $data)) {
-            return TextResourceContents::fromArray($data);
-        }
-
-        if (\array_key_exists('blob', $data)) {
-            return BlobResourceContents::fromArray($data);
-        }
-
-        throw new ExpectationFailedException('ResourceContents data must have either "text" or "blob".');
     }
 
     /**

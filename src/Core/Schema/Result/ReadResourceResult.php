@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\Result;
 
 use Nexus\Assert\Assert;
+use Nexus\Mcp\Core\JsonRpc\ResourceContentsDispatcher;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Resource\BlobResourceContents;
 use Nexus\Mcp\Core\Schema\Resource\ResourceContents;
@@ -60,9 +61,20 @@ final readonly class ReadResourceResult extends Result implements ServerResult
             ->isArray('ReadResourceResult contents entry must be an object, {type} given.')
             ->isMap('ReadResourceResult contents entry must be a string-keyed object.')
         ;
-        $contents = array_map(ResourceContents::from(...), $data['contents']);
+        $contents = array_map(
+            static fn(array $entry): BlobResourceContents|TextResourceContents => ResourceContentsDispatcher::fromArray($entry, 'ReadResourceResult contents'),
+            $data['contents'],
+        );
 
-        $meta = MetaObject::parseFrom($data, 'Result');
+        $meta = new MetaObject();
+
+        if (\array_key_exists('_meta', $data)) {
+            Assert::that($data['_meta'])
+                ->isArray('Result "_meta" must be an object, {type} given.')
+                ->isMap('Result "_meta" must be a string-keyed object.')
+            ;
+            $meta = MetaObject::fromArray($data['_meta']);
+        }
 
         return new self($contents, $meta);
     }

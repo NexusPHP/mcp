@@ -148,7 +148,15 @@ final readonly class Resource extends BaseMetadata implements Arrayable, Icons
             $icons = array_map(Icon::fromArray(...), $data['icons']);
         }
 
-        $meta = MetaObject::parseFrom($data, 'Resource');
+        $meta = new MetaObject();
+
+        if (\array_key_exists('_meta', $data)) {
+            Assert::that($data['_meta'])
+                ->isArray('Resource "_meta" must be an object, {type} given.')
+                ->isMap('Resource "_meta" must be a string-keyed object.')
+            ;
+            $meta = MetaObject::fromArray($data['_meta']);
+        }
 
         return new self($name, $uri, $title, $description, $mimeType, $annotations, $size, $icons, $meta);
     }

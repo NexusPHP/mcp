@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\AutoReview;
 
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
+use Nexus\Mcp\Core\Transport\InMemoryTransport;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -63,13 +64,18 @@ final class SourceCodeTest extends TestCase
     ];
 
     /**
-     * Classes that intentionally provide a public instance method outside their
-     * declared interface contract. The JSON-RPC success-response wrapper has
-     * `toArray()` without implementing `Arrayable` because the envelope carries
-     * no method-name discriminator for results, so it cannot honestly fulfil
-     * the round-trip `fromArray()` half of the contract (per project CLAUDE.md).
+     * Classes that intentionally provide a public method (instance or static)
+     * outside their declared interface contract. Each exemption corresponds to
+     * a design constraint that PHP interfaces cannot express:
+     *
+     * - `JsonRpcResultResponse::toArray()`: the success-response envelope has
+     *   no method-name discriminator for results, so it cannot fulfil the
+     *   round-trip `fromArray()` half of the `Arrayable` contract.
+     * - `InMemoryTransport::pair()`: paired-construction factory with a
+     *   private constructor. Cannot be expressed via `TransportInterface`.
      */
     private const array INTERFACE_FAITHFULNESS_EXEMPT = [
+        InMemoryTransport::class,
         JsonRpcResultResponse::class,
     ];
 
@@ -309,21 +315,21 @@ final class SourceCodeTest extends TestCase
         $allowedMethods = ['__construct', '__destruct', '__wakeup'];
 
         foreach ($rc->getInterfaces() as $interface) {
-            $allowedMethods = [...$allowedMethods, ...self::getInstanceMethodNames($interface)];
+            $allowedMethods = [...$allowedMethods, ...self::getPublicMethodNames($interface)];
         }
 
         $parent = $rc->getParentClass();
 
         while (false !== $parent) {
-            $allowedMethods = [...$allowedMethods, ...self::getInstanceMethodNames($parent)];
+            $allowedMethods = [...$allowedMethods, ...self::getPublicMethodNames($parent)];
             $parent = $parent->getParentClass();
         }
 
-        $extraMethods = array_values(array_diff(self::getInstanceMethodNames($rc), array_unique($allowedMethods)));
+        $extraMethods = array_values(array_diff(self::getPublicMethodNames($rc), array_unique($allowedMethods)));
         sort($extraMethods);
 
         self::assertEmpty($extraMethods, \sprintf(
-            "Class \"%s\" has public methods that are not part of its implemented interfaces (or inherited from a parent class).\n%s",
+            "Class \"%s\" has public methods (instance or static) that are not part of its implemented interfaces (or inherited from a parent class).\n%s",
             $class,
             implode("\n", array_map(
                 static fn(string $method): string => \sprintf('  * public function %s()', $method),
@@ -499,24 +505,17 @@ final class SourceCodeTest extends TestCase
     }
 
     /**
-     * Public instance methods only. Static methods are excluded because PHP
-     * interfaces cannot declare static methods, so a static factory or helper
-     * cannot be expressed via the interface contract being checked.
-     *
      * @template T of object
      *
      * @param \ReflectionClass<T> $rc
      *
      * @return list<string>
      */
-    private static function getInstanceMethodNames(\ReflectionClass $rc): array
+    private static function getPublicMethodNames(\ReflectionClass $rc): array
     {
         return array_values(array_map(
             static fn(\ReflectionMethod $rm): string => $rm->getName(),
-            array_filter(
-                $rc->getMethods(\ReflectionMethod::IS_PUBLIC),
-                static fn(\ReflectionMethod $rm): bool => ! $rm->isStatic(),
-            ),
+            $rc->getMethods(\ReflectionMethod::IS_PUBLIC),
         ));
     }
 

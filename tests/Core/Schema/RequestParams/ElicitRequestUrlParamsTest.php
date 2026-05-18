@@ -219,5 +219,15 @@ final class ElicitRequestUrlParamsTest extends TestCase
             ['elicitationId' => 'id', 'message' => 'm', 'mode' => 'url', 'url' => 1],
             'ElicitRequestUrlParams "url" must be a string, int given.',
         ];
+
+        yield 'task not an object' => [
+            ['elicitationId' => 'id', 'message' => 'm', 'mode' => 'url', 'url' => 'https://example.com', 'task' => 'oops'],
+            'ElicitRequestUrlParams "task" must be an object, string given.',
+        ];
+
+        yield 'task list-keyed' => [
+            ['elicitationId' => 'id', 'message' => 'm', 'mode' => 'url', 'url' => 'https://example.com', 'task' => ['x']],
+            'ElicitRequestUrlParams "task" must be a string-keyed object.',
+        ];
     }
 }

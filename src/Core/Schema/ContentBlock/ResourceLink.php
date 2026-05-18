@@ -158,7 +158,15 @@ final readonly class ResourceLink extends BaseMetadata implements Arrayable, Con
             $icons = array_map(Icon::fromArray(...), $data['icons']);
         }
 
-        $meta = MetaObject::parseFrom($data, 'ResourceLink');
+        $meta = new MetaObject();
+
+        if (\array_key_exists('_meta', $data)) {
+            Assert::that($data['_meta'])
+                ->isArray('ResourceLink "_meta" must be an object, {type} given.')
+                ->isMap('ResourceLink "_meta" must be a string-keyed object.')
+            ;
+            $meta = MetaObject::fromArray($data['_meta']);
+        }
 
         return new self($name, $uri, $title, $description, $mimeType, $annotations, $size, $icons, $meta);
     }

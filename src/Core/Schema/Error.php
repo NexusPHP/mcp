@@ -15,11 +15,6 @@ namespace Nexus\Mcp\Core\Schema;
 
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
-use Nexus\Mcp\Core\Schema\Error\InternalError;
-use Nexus\Mcp\Core\Schema\Error\InvalidParamsError;
-use Nexus\Mcp\Core\Schema\Error\InvalidRequestError;
-use Nexus\Mcp\Core\Schema\Error\MethodNotFoundError;
-use Nexus\Mcp\Core\Schema\Error\ParseError;
 
 /**
  * @implements Arrayable<array{
@@ -51,27 +46,6 @@ abstract readonly class Error implements Arrayable
 
         $this->code = $code instanceof ProtocolErrorCode ? $code->value : $code;
         $this->message = $message;
-    }
-
-    /**
-     * Builds the standard `Error` subclass for the given protocol code.
-     *
-     * @param null|array<string, mixed> $data
-     *
-     * @throws \InvalidArgumentException When `$code` is `UrlElicitationRequired`
-     */
-    public static function forCode(ProtocolErrorCode $code, string $message, ?array $data = null): self
-    {
-        return match ($code) {
-            ProtocolErrorCode::ParseError => new ParseError($message, $data),
-            ProtocolErrorCode::InvalidRequest => new InvalidRequestError($message, $data),
-            ProtocolErrorCode::MethodNotFound => new MethodNotFoundError($message, $data),
-            ProtocolErrorCode::InvalidParams => new InvalidParamsError($message, $data),
-            ProtocolErrorCode::InternalError => new InternalError($message, $data),
-            ProtocolErrorCode::UrlElicitationRequired => throw new \InvalidArgumentException(
-                'Error::forCode() cannot construct UrlElicitationRequiredErrorPayload; instantiate it directly with the required url/urlError payload.',
-            ),
-        };
     }
 
     #[\Override]

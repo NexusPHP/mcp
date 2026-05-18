@@ -14,39 +14,37 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\JsonRpc;
 
 use Nexus\Assert\ExpectationFailedException;
-use Nexus\Mcp\Core\Schema\ContentBlock;
 use Nexus\Mcp\Core\Schema\ContentBlock\AudioContent;
-use Nexus\Mcp\Core\Schema\ContentBlock\EmbeddedResource;
 use Nexus\Mcp\Core\Schema\ContentBlock\ImageContent;
-use Nexus\Mcp\Core\Schema\ContentBlock\ResourceLink;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
+use Nexus\Mcp\Core\Schema\Sampling\SamplingMessageContentBlock;
+use Nexus\Mcp\Core\Schema\Sampling\ToolResultContent;
+use Nexus\Mcp\Core\Schema\Sampling\ToolUseContent;
 
 /**
- * Discriminates a `ContentBlock` payload by its `type` field and
- * dispatches to the matching concrete subclass. Used by `PromptMessage` and
- * `CallToolResult` (the two spec shapes carrying `ContentBlock` unions).
+ * Discriminates a sampling content payload by its `type` field and dispatches to the matching concrete subclass.
  *
  * @internal
  */
-final class ContentBlockDispatcher
+final class SamplingContentDispatcher
 {
-    private const array ALLOWED_CONTENT_BLOCK_TYPES = [
+    private const array ALLOWED_SAMPLING_CONTENT_TYPES = [
         TextContent::TYPE,
         ImageContent::TYPE,
         AudioContent::TYPE,
-        ResourceLink::TYPE,
-        EmbeddedResource::TYPE,
+        ToolUseContent::TYPE,
+        ToolResultContent::TYPE,
     ];
 
     /**
      * @param array<string, mixed> $data
      * @param non-empty-string     $context Prefix used in error messages
      *
-     * @return AudioContent|EmbeddedResource|ImageContent|ResourceLink|TextContent
+     * @return AudioContent|ImageContent|TextContent|ToolResultContent|ToolUseContent
      *
      * @throws ExpectationFailedException
      */
-    public static function fromArray(array $data, string $context): ContentBlock
+    public static function fromArray(array $data, string $context): SamplingMessageContentBlock
     {
         $type = MessageDiscriminator::readType($data, $context);
 
@@ -54,9 +52,9 @@ final class ContentBlockDispatcher
             TextContent::TYPE => TextContent::fromArray($data),
             ImageContent::TYPE => ImageContent::fromArray($data),
             AudioContent::TYPE => AudioContent::fromArray($data),
-            ResourceLink::TYPE => ResourceLink::fromArray($data),
-            EmbeddedResource::TYPE => EmbeddedResource::fromArray($data),
-            default => throw MessageDiscriminator::unknownType($context, self::ALLOWED_CONTENT_BLOCK_TYPES, $type),
+            ToolUseContent::TYPE => ToolUseContent::fromArray($data),
+            ToolResultContent::TYPE => ToolResultContent::fromArray($data),
+            default => throw MessageDiscriminator::unknownType($context, self::ALLOWED_SAMPLING_CONTENT_TYPES, $type),
         };
     }
 }

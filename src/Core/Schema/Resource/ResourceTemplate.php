@@ -137,7 +137,15 @@ final readonly class ResourceTemplate extends BaseMetadata implements Arrayable,
             $icons = array_map(Icon::fromArray(...), $data['icons']);
         }
 
-        $meta = MetaObject::parseFrom($data, 'ResourceTemplate');
+        $meta = new MetaObject();
+
+        if (\array_key_exists('_meta', $data)) {
+            Assert::that($data['_meta'])
+                ->isArray('ResourceTemplate "_meta" must be an object, {type} given.')
+                ->isMap('ResourceTemplate "_meta" must be a string-keyed object.')
+            ;
+            $meta = MetaObject::fromArray($data['_meta']);
+        }
 
         return new self($name, $uriTemplate, $title, $description, $mimeType, $annotations, $icons, $meta);
     }

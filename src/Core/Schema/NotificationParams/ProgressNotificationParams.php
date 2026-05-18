@@ -60,7 +60,15 @@ final readonly class ProgressNotificationParams extends NotificationParams
         $message = $data['message'] ?? null;
         Assert::that($message)->nullOr()->isString('ProgressNotificationParams "message" must be a string or null, {type} given.');
 
-        $meta = MetaObject::parseFrom($data, 'Notification params');
+        $meta = new MetaObject();
+
+        if (\array_key_exists('_meta', $data)) {
+            Assert::that($data['_meta'])
+                ->isArray('Notification params "_meta" must be an object, {type} given.')
+                ->isMap('Notification params "_meta" must be a string-keyed object.')
+            ;
+            $meta = MetaObject::fromArray($data['_meta']);
+        }
 
         return new self(new ProgressToken($progressToken), $progress, $total, $message, $meta);
     }

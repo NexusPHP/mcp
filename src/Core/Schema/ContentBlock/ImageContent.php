@@ -88,7 +88,15 @@ final readonly class ImageContent implements Arrayable, ContentBlock, SamplingMe
             $annotations = Annotations::fromArray($data['annotations']);
         }
 
-        $meta = MetaObject::parseFrom($data, 'ImageContent');
+        $meta = new MetaObject();
+
+        if (\array_key_exists('_meta', $data)) {
+            Assert::that($data['_meta'])
+                ->isArray('ImageContent "_meta" must be an object, {type} given.')
+                ->isMap('ImageContent "_meta" must be a string-keyed object.')
+            ;
+            $meta = MetaObject::fromArray($data['_meta']);
+        }
 
         return new self($payload, $mimeType, $annotations, $meta);
     }

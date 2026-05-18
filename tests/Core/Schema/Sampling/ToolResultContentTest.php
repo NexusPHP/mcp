@@ -184,4 +184,20 @@ final class ToolResultContentTest extends TestCase
 
         ToolResultContent::fromArray(['type' => 'tool_result', 'toolUseId' => 'x', 'content' => [], 'structuredContent' => ['x']]);
     }
+
+    public function testFromArrayRejectsNonObjectMeta(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessage('ToolResultContent "_meta" must be an object, string given.');
+
+        ToolResultContent::fromArray(['type' => 'tool_result', 'toolUseId' => 'x', 'content' => [], '_meta' => 'oops']);
+    }
+
+    public function testFromArrayRejectsListKeyedMeta(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessage('ToolResultContent "_meta" must be a string-keyed object.');
+
+        ToolResultContent::fromArray(['type' => 'tool_result', 'toolUseId' => 'x', 'content' => [], '_meta' => ['x']]);
+    }
 }

@@ -75,8 +75,8 @@ final class JsonRpcMessageParser
                 return JsonRpcErrorResponse::fromArray($message);
             } catch (\InvalidArgumentException $e) {
                 throw new InvalidRequestException(
-                    \sprintf('Invalid error response: %s', $e->getMessage()),
                     self::extractRequestId($message),
+                    \sprintf('Invalid error response: %s', $e->getMessage()),
                 );
             }
         }
@@ -86,7 +86,7 @@ final class JsonRpcMessageParser
                 Assert::that($message)->hasOffset('id', 'Success response must carry an "id".');
                 Assert::that($message['id'])->isArrayKey('Response "id" must be int or string, {type} given.');
             } catch (\InvalidArgumentException $e) {
-                throw new InvalidRequestException($e->getMessage(), self::extractRequestId($message));
+                throw new InvalidRequestException(self::extractRequestId($message), $e->getMessage());
             }
 
             if (null === $resultClass) {
@@ -99,15 +99,15 @@ final class JsonRpcMessageParser
                     ->isMap('Success response "result" must be a string-keyed object.')
                 ;
             } catch (\InvalidArgumentException $e) {
-                throw new InvalidRequestException($e->getMessage(), self::extractRequestId($message));
+                throw new InvalidRequestException(self::extractRequestId($message), $e->getMessage());
             }
 
             try {
                 $typed = $resultClass::fromArray($message['result']);
             } catch (\InvalidArgumentException $e) {
                 throw new InvalidRequestException(
-                    \sprintf('Invalid %s payload: %s', $resultClass, $e->getMessage()),
                     self::extractRequestId($message),
+                    \sprintf('Invalid %s payload: %s', $resultClass, $e->getMessage()),
                 );
             }
 
@@ -118,7 +118,7 @@ final class JsonRpcMessageParser
             Assert::that($message)->hasOffset('method', 'JSON-RPC envelope must carry a "method" (request or notification), an "error" (error response), or a "result" (success response).');
             Assert::that($message['method'])->isNonEmptyString('JSON-RPC envelope "method" must be a non-empty string, {type} given.');
         } catch (\InvalidArgumentException $e) {
-            throw new InvalidRequestException($e->getMessage(), self::extractRequestId($message));
+            throw new InvalidRequestException(self::extractRequestId($message), $e->getMessage());
         }
 
         $method = $message['method'];
@@ -134,8 +134,8 @@ final class JsonRpcMessageParser
                 return $class::fromArray($message);
             } catch (\InvalidArgumentException $e) {
                 throw new InvalidParamsException(
-                    \sprintf('Invalid "%s" request: %s', $method, $e->getMessage()),
                     self::extractRequestId($message),
+                    \sprintf('Invalid "%s" request: %s', $method, $e->getMessage()),
                 );
             }
         }
@@ -149,7 +149,7 @@ final class JsonRpcMessageParser
         try {
             return $class::fromArray($message);
         } catch (\InvalidArgumentException $e) {
-            throw new InvalidParamsException(\sprintf('Invalid "%s" notification: %s', $method, $e->getMessage()));
+            throw new InvalidParamsException(null, \sprintf('Invalid "%s" notification: %s', $method, $e->getMessage()));
         }
     }
 
@@ -162,12 +162,12 @@ final class JsonRpcMessageParser
 
         if (JsonRpcMessage::JSONRPC_VERSION !== $version) {
             throw new InvalidRequestException(
+                self::extractRequestId($message),
                 \sprintf(
                     'Invalid JSON-RPC version: expected "%s", got %s.',
                     JsonRpcMessage::JSONRPC_VERSION,
                     null === $version ? 'null' : var_export($version, true),
                 ),
-                self::extractRequestId($message),
             );
         }
     }

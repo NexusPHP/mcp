@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\ProgressToken;
 use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -111,41 +110,5 @@ final class RequestMetaObjectTest extends TestCase
 
         self::assertInstanceOf(\stdClass::class, $meta->jsonSerialize());
         self::assertSame('{}', json_encode($meta));
-    }
-
-    public function testParseFromReturnsEmptyWhenMetaAbsent(): void
-    {
-        $meta = RequestMetaObject::parseFrom(['name' => 'x'], 'Request params');
-
-        self::assertNull($meta->progressToken);
-        self::assertSame([], $meta->extras);
-    }
-
-    public function testParseFromReadsAndContextualizes(): void
-    {
-        $meta = RequestMetaObject::parseFrom(
-            ['_meta' => ['progressToken' => 'tok-1', 'vendor' => 'x']],
-            'Request params',
-        );
-
-        self::assertNotNull($meta->progressToken);
-        self::assertSame('tok-1', $meta->progressToken->token);
-        self::assertSame(['vendor' => 'x'], $meta->extras);
-    }
-
-    public function testParseFromRejectsNonObjectMeta(): void
-    {
-        $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('Request params "_meta" must be an object, string given.');
-
-        RequestMetaObject::parseFrom(['_meta' => 'oops'], 'Request params');
-    }
-
-    public function testParseFromRejectsListKeyedMeta(): void
-    {
-        $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('Request params "_meta" must be a string-keyed object.');
-
-        RequestMetaObject::parseFrom(['_meta' => ['x']], 'Request params');
     }
 }

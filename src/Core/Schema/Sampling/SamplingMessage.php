@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\Sampling;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\JsonRpc\MessageDiscriminator;
+use Nexus\Mcp\Core\JsonRpc\SamplingContentDispatcher;
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\ContentBlock\AudioContent;
 use Nexus\Mcp\Core\Schema\ContentBlock\ImageContent;
@@ -71,13 +71,29 @@ final readonly class SamplingMessage implements Arrayable
         Assert::that($data['content'])->isArray('SamplingMessage "content" must be an object or array, {type} given.');
 
         if ([] === $data['content'] || array_is_list($data['content'])) {
-            $content = self::parseContentList($data['content']);
+            Assert::that($data['content'])
+                ->values()
+                ->isArray('SamplingMessage content entry must be an object, {type} given.')
+                ->isMap('SamplingMessage content entry must be a string-keyed object.')
+            ;
+            $content = array_map(
+                static fn(array $entry): AudioContent|ImageContent|TextContent|ToolResultContent|ToolUseContent => SamplingContentDispatcher::fromArray($entry, 'SamplingMessage content'),
+                $data['content'],
+            );
         } else {
             Assert::that($data['content'])->isMap('SamplingMessage "content" must be a string-keyed object.');
-            $content = self::parseContentBlock($data['content']);
+            $content = SamplingContentDispatcher::fromArray($data['content'], 'SamplingMessage content');
         }
 
-        $meta = MetaObject::parseFrom($data, 'SamplingMessage');
+        $meta = new MetaObject();
+
+        if (\array_key_exists('_meta', $data)) {
+            Assert::that($data['_meta'])
+                ->isArray('SamplingMessage "_meta" must be an object, {type} given.')
+                ->isMap('SamplingMessage "_meta" must be a string-keyed object.')
+            ;
+            $meta = MetaObject::fromArray($data['_meta']);
+        }
 
         return new self($role, $content, $meta);
     }
@@ -126,48 +142,5 @@ final readonly class SamplingMessage implements Arrayable
         }
 
         return $data;
-    }
-
-    /**
-     * @param list<mixed> $value
-     *
-     * @return list<ContentMember>
-     */
-    private static function parseContentList(array $value): array
-    {
-        Assert::that($value)
-            ->values()
-            ->isArray('SamplingMessage content entry must be an object, {type} given.')
-            ->isMap('SamplingMessage content entry must be a string-keyed object.')
-        ;
-
-        return array_map(self::parseContentBlock(...), $value);
-    }
-
-    /**
-     * Discriminates a single sampling content block by its `type` field. The
-     * sampling union differs from `ContentBlock`: it includes `ToolUseContent`
-     * and `ToolResultContent` instead of `ResourceLink` and `EmbeddedResource`.
-     *
-     * @param array<string, mixed> $data
-     *
-     * @return ContentMember
-     */
-    private static function parseContentBlock(array $data): AudioContent|ImageContent|TextContent|ToolResultContent|ToolUseContent
-    {
-        $type = MessageDiscriminator::readType($data, 'SamplingMessage content');
-
-        return match ($type) {
-            TextContent::TYPE => TextContent::fromArray($data),
-            ImageContent::TYPE => ImageContent::fromArray($data),
-            AudioContent::TYPE => AudioContent::fromArray($data),
-            ToolUseContent::TYPE => ToolUseContent::fromArray($data),
-            ToolResultContent::TYPE => ToolResultContent::fromArray($data),
-            default => throw MessageDiscriminator::unknownType(
-                'SamplingMessage content',
-                [TextContent::TYPE, ImageContent::TYPE, AudioContent::TYPE, ToolUseContent::TYPE, ToolResultContent::TYPE],
-                $type,
-            ),
-        };
     }
 }

@@ -13,25 +13,19 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Exception;
 
-use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\RequestId;
 
 /**
  * Base for every JSON-RPC protocol-level failure raised by the SDK. Concrete
  * subclasses pin a JSON-RPC error category and may carry category-specific context.
  */
-abstract class AbstractJsonRpcProtocolException extends \RuntimeException implements McpExceptionInterface
+abstract class AbstractJsonRpcProtocolException extends \RuntimeException implements JsonRpcProtocolExceptionInterface
 {
     public function __construct(
+        public readonly ?RequestId $requestId,
         string $message,
-        public readonly ?RequestId $requestId = null,
         ?\Throwable $previous = null,
     ) {
         parent::__construct($message, previous: $previous);
     }
-
-    /**
-     * The JSON-RPC error code corresponding to this exception's category.
-     */
-    abstract public static function errorCode(): ProtocolErrorCode;
 }

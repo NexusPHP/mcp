@@ -49,7 +49,15 @@ final readonly class CancelledNotificationParams extends NotificationParams
         $reason = $data['reason'] ?? null;
         Assert::that($reason)->nullOr()->isString('CancelledNotificationParams "reason" must be a string or null, {type} given.');
 
-        $meta = MetaObject::parseFrom($data, 'Notification params');
+        $meta = new MetaObject();
+
+        if (\array_key_exists('_meta', $data)) {
+            Assert::that($data['_meta'])
+                ->isArray('Notification params "_meta" must be an object, {type} given.')
+                ->isMap('Notification params "_meta" must be a string-keyed object.')
+            ;
+            $meta = MetaObject::fromArray($data['_meta']);
+        }
 
         return new self($requestId, $reason, $meta);
     }

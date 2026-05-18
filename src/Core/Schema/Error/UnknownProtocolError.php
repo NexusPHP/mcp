@@ -29,7 +29,7 @@ final readonly class UnknownProtocolError extends Error
     {
         if (ProtocolErrorCode::tryFrom($code) !== null) {
             throw new ExpectationFailedException(
-                'UnknownProtocolError "code" {value} maps to a known ProtocolErrorCode case. Use Error::forCode() or the dedicated subclass instead.',
+                'UnknownProtocolError "code" {value} maps to a known ProtocolErrorCode case. Use ErrorFactory::create() or the dedicated subclass instead.',
                 ['value' => $code],
             );
         }

@@ -89,8 +89,25 @@ final readonly class ElicitRequestUrlParams extends TaskAugmentedRequestParams i
         $url = $data['url'];
         Assert::that($url)->isString('ElicitRequestUrlParams "url" must be a string, {type} given.');
 
-        $task = TaskMetadata::parseFrom($data, 'ElicitRequestUrlParams');
-        $meta = RequestMetaObject::parseFrom($data, 'Request params');
+        $task = null;
+
+        if (\array_key_exists('task', $data)) {
+            Assert::that($data['task'])
+                ->isArray('ElicitRequestUrlParams "task" must be an object, {type} given.')
+                ->isMap('ElicitRequestUrlParams "task" must be a string-keyed object.')
+            ;
+            $task = TaskMetadata::fromArray($data['task']);
+        }
+
+        $meta = new RequestMetaObject();
+
+        if (\array_key_exists('_meta', $data)) {
+            Assert::that($data['_meta'])
+                ->isArray('Request params "_meta" must be an object, {type} given.')
+                ->isMap('Request params "_meta" must be a string-keyed object.')
+            ;
+            $meta = RequestMetaObject::fromArray($data['_meta']);
+        }
 
         return new self($elicitationId, $message, $mode, $url, $task, $meta);
     }

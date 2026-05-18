@@ -199,6 +199,22 @@ final class SamplingMessageTest extends TestCase
         SamplingMessage::fromArray(['role' => 'user', 'content' => ['type' => 'resource_link', 'uri' => 'file:///x', 'name' => 'doc']]);
     }
 
+    public function testFromArrayRejectsNonObjectMeta(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessage('SamplingMessage "_meta" must be an object, string given.');
+
+        SamplingMessage::fromArray(['role' => 'user', 'content' => ['type' => 'text', 'text' => 'hi'], '_meta' => 'oops']);
+    }
+
+    public function testFromArrayRejectsListKeyedMeta(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessage('SamplingMessage "_meta" must be a string-keyed object.');
+
+        SamplingMessage::fromArray(['role' => 'user', 'content' => ['type' => 'text', 'text' => 'hi'], '_meta' => ['x']]);
+    }
+
     public function testJsonSerializeListContentReturnsArrayOfArrays(): void
     {
         $msg = new SamplingMessage(Role::Assistant, [new TextContent('one'), new TextContent('two')]);

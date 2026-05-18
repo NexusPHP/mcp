@@ -49,7 +49,15 @@ final readonly class Root implements Arrayable
         $name = $data['name'] ?? null;
         Assert::that($name)->nullOr()->isString('Root "name" must be a string or null, {type} given.');
 
-        $meta = MetaObject::parseFrom($data, 'Root');
+        $meta = new MetaObject();
+
+        if (\array_key_exists('_meta', $data)) {
+            Assert::that($data['_meta'])
+                ->isArray('Root "_meta" must be an object, {type} given.')
+                ->isMap('Root "_meta" must be a string-keyed object.')
+            ;
+            $meta = MetaObject::fromArray($data['_meta']);
+        }
 
         return new self($uri, $name, $meta);
     }

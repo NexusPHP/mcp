@@ -49,7 +49,7 @@ final class UnknownProtocolErrorTest extends TestCase
     public function testRejectsCodeThatMapsToKnownProtocolErrorCase(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('UnknownProtocolError "code" -32603 maps to a known ProtocolErrorCode case. Use Error::forCode() or the dedicated subclass instead.');
+        $this->expectExceptionMessage('UnknownProtocolError "code" -32603 maps to a known ProtocolErrorCode case. Use ErrorFactory::create() or the dedicated subclass instead.');
 
         new UnknownProtocolError(-32603, 'Internal error');
     }

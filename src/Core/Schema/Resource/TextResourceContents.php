@@ -50,7 +50,15 @@ final readonly class TextResourceContents extends ResourceContents
         $mimeType = $data['mimeType'] ?? null;
         Assert::that($mimeType)->nullOr()->isString('TextResourceContents "mimeType" must be a string or null, {type} given.');
 
-        $meta = MetaObject::parseFrom($data, 'ResourceContents');
+        $meta = new MetaObject();
+
+        if (\array_key_exists('_meta', $data)) {
+            Assert::that($data['_meta'])
+                ->isArray('ResourceContents "_meta" must be an object, {type} given.')
+                ->isMap('ResourceContents "_meta" must be a string-keyed object.')
+            ;
+            $meta = MetaObject::fromArray($data['_meta']);
+        }
 
         return new self($uri, $text, $mimeType, $meta);
     }

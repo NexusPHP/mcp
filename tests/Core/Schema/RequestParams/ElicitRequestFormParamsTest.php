@@ -209,5 +209,15 @@ final class ElicitRequestFormParamsTest extends TestCase
             ['message' => 'm', 'requestedSchema' => ['x']],
             'ElicitRequestFormParams "requestedSchema" must be a string-keyed object.',
         ];
+
+        yield 'task not an object' => [
+            ['message' => 'm', 'requestedSchema' => ['type' => 'object', 'properties' => []], 'task' => 'oops'],
+            'ElicitRequestFormParams "task" must be an object, string given.',
+        ];
+
+        yield 'task list-keyed' => [
+            ['message' => 'm', 'requestedSchema' => ['type' => 'object', 'properties' => []], 'task' => ['x']],
+            'ElicitRequestFormParams "task" must be a string-keyed object.',
+        ];
     }
 }

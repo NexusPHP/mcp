@@ -24,8 +24,8 @@ final class MethodNotFoundException extends AbstractJsonRpcProtocolException
     public function __construct(string $method, ?RequestId $requestId = null, ?\Throwable $previous = null)
     {
         parent::__construct(
-            \sprintf('No registration found for method "%s".', $method),
             $requestId,
+            \sprintf('No registration found for method "%s".', $method),
             $previous,
         );
     }

@@ -94,7 +94,15 @@ final readonly class CallToolResult extends Result implements ServerResult
         $isError = $data['isError'] ?? null;
         Assert::that($isError)->nullOr()->isBool('CallToolResult "isError" must be a bool or null, {type} given.');
 
-        $meta = MetaObject::parseFrom($data, 'Result');
+        $meta = new MetaObject();
+
+        if (\array_key_exists('_meta', $data)) {
+            Assert::that($data['_meta'])
+                ->isArray('Result "_meta" must be an object, {type} given.')
+                ->isMap('Result "_meta" must be a string-keyed object.')
+            ;
+            $meta = MetaObject::fromArray($data['_meta']);
+        }
 
         return new self($content, $structuredContent, $isError, $meta);
     }

@@ -47,9 +47,4 @@ final readonly class ProtocolVersion
 
         $this->version = $version;
     }
-
-    public static function latest(): self
-    {
-        return new self(self::LATEST_VERSION);
-    }
 }

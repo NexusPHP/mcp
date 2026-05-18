@@ -44,7 +44,15 @@ final readonly class PaginatedRequestParams extends RequestParams
             $cursor = new Cursor($raw);
         }
 
-        $meta = RequestMetaObject::parseFrom($data, 'Request params');
+        $meta = new RequestMetaObject();
+
+        if (\array_key_exists('_meta', $data)) {
+            Assert::that($data['_meta'])
+                ->isArray('Request params "_meta" must be an object, {type} given.')
+                ->isMap('Request params "_meta" must be a string-keyed object.')
+            ;
+            $meta = RequestMetaObject::fromArray($data['_meta']);
+        }
 
         return new self($cursor, $meta);
     }

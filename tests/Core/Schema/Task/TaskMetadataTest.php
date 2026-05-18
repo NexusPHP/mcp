@@ -98,33 +98,4 @@ final class TaskMetadataTest extends TestCase
 
         TaskMetadata::fromArray(['ttl' => 'oops']);
     }
-
-    public function testParseFromReturnsNullWhenAbsent(): void
-    {
-        self::assertNull(TaskMetadata::parseFrom(['name' => 'x'], 'CallToolRequestParams'));
-    }
-
-    public function testParseFromReadsAndContextualizes(): void
-    {
-        $task = TaskMetadata::parseFrom(['task' => ['ttl' => 60000]], 'CallToolRequestParams');
-
-        self::assertNotNull($task);
-        self::assertSame(60000, $task->ttl);
-    }
-
-    public function testParseFromRejectsNonObjectTask(): void
-    {
-        $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('CallToolRequestParams "task" must be an object, string given.');
-
-        TaskMetadata::parseFrom(['task' => 'oops'], 'CallToolRequestParams');
-    }
-
-    public function testParseFromRejectsListKeyedTask(): void
-    {
-        $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('CallToolRequestParams "task" must be a string-keyed object.');
-
-        TaskMetadata::parseFrom(['task' => ['x']], 'CallToolRequestParams');
-    }
 }

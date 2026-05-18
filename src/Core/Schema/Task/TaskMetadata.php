@@ -43,28 +43,6 @@ final readonly class TaskMetadata implements Arrayable
         return new self($ttl);
     }
 
-    /**
-     * Reads the optional `task` slot from a parent payload, validating
-     * its shape. Returns `null` when the key is absent. The `$context` prefix
-     * scopes the error message to the calling shape (e.g. `"CallToolRequestParams"`).
-     *
-     * @param array<string, mixed> $data
-     * @param non-empty-string     $context
-     */
-    public static function parseFrom(array $data, string $context): ?self
-    {
-        if (! \array_key_exists('task', $data)) {
-            return null;
-        }
-
-        Assert::that($data['task'])
-            ->isArray(\sprintf('%s "task" must be an object, {type} given.', $context))
-            ->isMap(\sprintf('%s "task" must be a string-keyed object.', $context))
-        ;
-
-        return self::fromArray($data['task']);
-    }
-
     #[\Override]
     public function toArray(): array
     {

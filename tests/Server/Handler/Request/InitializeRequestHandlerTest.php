@@ -51,7 +51,7 @@ final class InitializeRequestHandlerTest extends TestCase
         $result = $handler->handle($request, $context);
 
         $expected = new InitializeResult(
-            ProtocolVersion::latest(),
+            new ProtocolVersion(ProtocolVersion::LATEST_VERSION),
             $capabilities,
             $serverInfo,
             'hello',
@@ -88,7 +88,7 @@ final class InitializeRequestHandlerTest extends TestCase
         return new InitializeRequest(
             new RequestId(1),
             new InitializeRequestParams(
-                ProtocolVersion::latest(),
+                new ProtocolVersion(ProtocolVersion::LATEST_VERSION),
                 new ClientCapabilities(),
                 new Implementation('test-client', '0.0.1'),
             ),

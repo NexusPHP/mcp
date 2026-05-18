@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\ContentBlock;
 
 use Nexus\Assert\Assert;
+use Nexus\Mcp\Core\JsonRpc\ResourceContentsDispatcher;
 use Nexus\Mcp\Core\Schema\Annotations;
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\ContentBlock;
@@ -62,7 +63,7 @@ final readonly class EmbeddedResource implements Arrayable, ContentBlock
             ->isArray('EmbeddedResource "resource" must be an object, {type} given.')
             ->isMap('EmbeddedResource "resource" must be a string-keyed object.')
         ;
-        $resource = ResourceContents::from($data['resource']);
+        $resource = ResourceContentsDispatcher::fromArray($data['resource'], 'EmbeddedResource resource');
 
         $annotations = new Annotations();
 
@@ -74,7 +75,15 @@ final readonly class EmbeddedResource implements Arrayable, ContentBlock
             $annotations = Annotations::fromArray($data['annotations']);
         }
 
-        $meta = MetaObject::parseFrom($data, 'EmbeddedResource');
+        $meta = new MetaObject();
+
+        if (\array_key_exists('_meta', $data)) {
+            Assert::that($data['_meta'])
+                ->isArray('EmbeddedResource "_meta" must be an object, {type} given.')
+                ->isMap('EmbeddedResource "_meta" must be a string-keyed object.')
+            ;
+            $meta = MetaObject::fromArray($data['_meta']);
+        }
 
         return new self($resource, $annotations, $meta);
     }

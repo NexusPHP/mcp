@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\Result;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\JsonRpc\MessageDiscriminator;
+use Nexus\Mcp\Core\JsonRpc\SamplingContentDispatcher;
 use Nexus\Mcp\Core\Schema\ContentBlock\AudioContent;
 use Nexus\Mcp\Core\Schema\ContentBlock\ImageContent;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
@@ -89,16 +89,32 @@ final readonly class CreateMessageResult extends Result implements ClientResult
         Assert::that($data['content'])->isArray('CreateMessageResult "content" must be an object or array, {type} given.');
 
         if ([] === $data['content'] || array_is_list($data['content'])) {
-            $content = self::parseContentList($data['content']);
+            Assert::that($data['content'])
+                ->values()
+                ->isArray('CreateMessageResult content entry must be an object, {type} given.')
+                ->isMap('CreateMessageResult content entry must be a string-keyed object.')
+            ;
+            $content = array_map(
+                static fn(array $entry): AudioContent|ImageContent|TextContent|ToolResultContent|ToolUseContent => SamplingContentDispatcher::fromArray($entry, 'CreateMessageResult content'),
+                $data['content'],
+            );
         } else {
             Assert::that($data['content'])->isMap('CreateMessageResult "content" must be a string-keyed object.');
-            $content = self::parseContentBlock($data['content']);
+            $content = SamplingContentDispatcher::fromArray($data['content'], 'CreateMessageResult content');
         }
 
         $stopReason = $data['stopReason'] ?? null;
         Assert::that($stopReason)->nullOr()->isString('CreateMessageResult "stopReason" must be a string or null, {type} given.');
 
-        $meta = MetaObject::parseFrom($data, 'Result');
+        $meta = new MetaObject();
+
+        if (\array_key_exists('_meta', $data)) {
+            Assert::that($data['_meta'])
+                ->isArray('Result "_meta" must be an object, {type} given.')
+                ->isMap('Result "_meta" must be a string-keyed object.')
+            ;
+            $meta = MetaObject::fromArray($data['_meta']);
+        }
 
         return new self($model, $role, $content, $stopReason, $meta);
     }
@@ -143,48 +159,5 @@ final readonly class CreateMessageResult extends Result implements ClientResult
         }
 
         return $data;
-    }
-
-    /**
-     * @param array<array-key, mixed> $value
-     *
-     * @return list<ContentMember>
-     */
-    private static function parseContentList(array $value): array
-    {
-        $blocks = [];
-
-        foreach ($value as $entry) {
-            Assert::that($entry)
-                ->isArray('CreateMessageResult content entry must be an object, {type} given.')
-                ->isMap('CreateMessageResult content entry must be a string-keyed object.')
-            ;
-            $blocks[] = self::parseContentBlock($entry);
-        }
-
-        return $blocks;
-    }
-
-    /**
-     * @param array<string, mixed> $data
-     *
-     * @return ContentMember
-     */
-    private static function parseContentBlock(array $data): AudioContent|ImageContent|TextContent|ToolResultContent|ToolUseContent
-    {
-        $type = MessageDiscriminator::readType($data, 'CreateMessageResult content');
-
-        return match ($type) {
-            TextContent::TYPE => TextContent::fromArray($data),
-            ImageContent::TYPE => ImageContent::fromArray($data),
-            AudioContent::TYPE => AudioContent::fromArray($data),
-            ToolUseContent::TYPE => ToolUseContent::fromArray($data),
-            ToolResultContent::TYPE => ToolResultContent::fromArray($data),
-            default => throw MessageDiscriminator::unknownType(
-                'CreateMessageResult content',
-                [TextContent::TYPE, ImageContent::TYPE, AudioContent::TYPE, ToolUseContent::TYPE, ToolResultContent::TYPE],
-                $type,
-            ),
-        };
     }
 }

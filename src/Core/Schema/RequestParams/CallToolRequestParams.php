@@ -73,8 +73,25 @@ final readonly class CallToolRequestParams extends TaskAugmentedRequestParams
             $arguments = $data['arguments'];
         }
 
-        $task = TaskMetadata::parseFrom($data, 'CallToolRequestParams');
-        $meta = RequestMetaObject::parseFrom($data, 'Request params');
+        $task = null;
+
+        if (\array_key_exists('task', $data)) {
+            Assert::that($data['task'])
+                ->isArray('CallToolRequestParams "task" must be an object, {type} given.')
+                ->isMap('CallToolRequestParams "task" must be a string-keyed object.')
+            ;
+            $task = TaskMetadata::fromArray($data['task']);
+        }
+
+        $meta = new RequestMetaObject();
+
+        if (\array_key_exists('_meta', $data)) {
+            Assert::that($data['_meta'])
+                ->isArray('Request params "_meta" must be an object, {type} given.')
+                ->isMap('Request params "_meta" must be a string-keyed object.')
+            ;
+            $meta = RequestMetaObject::fromArray($data['_meta']);
+        }
 
         return new self($name, $arguments, $task, $meta);
     }

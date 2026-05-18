@@ -33,7 +33,15 @@ final readonly class UnsubscribeRequestParams extends ResourceRequestParams
         $uri = $data['uri'];
         Assert::that($uri)->isString('UnsubscribeRequestParams "uri" must be a string, {type} given.');
 
-        $meta = RequestMetaObject::parseFrom($data, 'Request params');
+        $meta = new RequestMetaObject();
+
+        if (\array_key_exists('_meta', $data)) {
+            Assert::that($data['_meta'])
+                ->isArray('Request params "_meta" must be an object, {type} given.')
+                ->isMap('Request params "_meta" must be a string-keyed object.')
+            ;
+            $meta = RequestMetaObject::fromArray($data['_meta']);
+        }
 
         return new self($uri, $meta);
     }

@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Schema\Result;
 
+use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Result;
 
@@ -32,7 +33,15 @@ final readonly class EmptyResult extends Result implements ClientResult, ServerR
     #[\Override]
     public static function fromArray(array $data): static
     {
-        $meta = MetaObject::parseFrom($data, 'Result');
+        $meta = new MetaObject();
+
+        if (\array_key_exists('_meta', $data)) {
+            Assert::that($data['_meta'])
+                ->isArray('Result "_meta" must be an object, {type} given.')
+                ->isMap('Result "_meta" must be a string-keyed object.')
+            ;
+            $meta = MetaObject::fromArray($data['_meta']);
+        }
 
         return new self($meta);
     }

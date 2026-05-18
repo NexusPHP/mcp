@@ -108,7 +108,15 @@ final readonly class ToolResultContent implements Arrayable, SamplingMessageCont
             $structuredContent = $data['structuredContent'];
         }
 
-        $meta = MetaObject::parseFrom($data, 'ToolResultContent');
+        $meta = new MetaObject();
+
+        if (\array_key_exists('_meta', $data)) {
+            Assert::that($data['_meta'])
+                ->isArray('ToolResultContent "_meta" must be an object, {type} given.')
+                ->isMap('ToolResultContent "_meta" must be a string-keyed object.')
+            ;
+            $meta = MetaObject::fromArray($data['_meta']);
+        }
 
         return new self($toolUseId, $content, $isError, $structuredContent, $meta);
     }

@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\JsonRpc;
 
 use Nexus\Assert\Assert;
+use Nexus\Mcp\Core\JsonRpc\ErrorFactory;
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Error;
@@ -130,6 +131,6 @@ final readonly class JsonRpcErrorResponse implements Arrayable, JsonRpcResponse
             return new UnknownProtocolError($code, $message, $extra);
         }
 
-        return Error::forCode($resolved, $message, $extra);
+        return ErrorFactory::create($resolved, $message, $extra);
     }
 }

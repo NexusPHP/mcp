@@ -108,7 +108,15 @@ final readonly class CompleteRequestParams extends RequestParams
             }
         }
 
-        $meta = RequestMetaObject::parseFrom($data, 'Request params');
+        $meta = new RequestMetaObject();
+
+        if (\array_key_exists('_meta', $data)) {
+            Assert::that($data['_meta'])
+                ->isArray('Request params "_meta" must be an object, {type} given.')
+                ->isMap('Request params "_meta" must be a string-keyed object.')
+            ;
+            $meta = RequestMetaObject::fromArray($data['_meta']);
+        }
 
         return new self(
             self::dispatchRef($data['ref']),
@@ -143,7 +151,7 @@ final readonly class CompleteRequestParams extends RequestParams
     /**
      * @param array<string, mixed> $data
      *
-     * @throws ExpectationFailedException when `type` is missing or unknown
+     * @throws ExpectationFailedException
      */
     private static function dispatchRef(array $data): PromptReference|ResourceTemplateReference
     {

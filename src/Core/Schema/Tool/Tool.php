@@ -169,7 +169,15 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
             $icons = array_map(Icon::fromArray(...), $data['icons']);
         }
 
-        $meta = MetaObject::parseFrom($data, 'Tool');
+        $meta = new MetaObject();
+
+        if (\array_key_exists('_meta', $data)) {
+            Assert::that($data['_meta'])
+                ->isArray('Tool "_meta" must be an object, {type} given.')
+                ->isMap('Tool "_meta" must be a string-keyed object.')
+            ;
+            $meta = MetaObject::fromArray($data['_meta']);
+        }
 
         return new self($name, $inputSchema, $title, $description, $outputSchema, $annotations, $execution, $icons, $meta);
     }

@@ -243,4 +243,20 @@ final class CreateMessageResultTest extends TestCase
 
         CreateMessageResult::fromArray(['model' => 'x', 'role' => 'assistant', 'content' => ['text' => 'x', 'type' => 'text'], 'stopReason' => 1]);
     }
+
+    public function testFromArrayRejectsNonObjectMeta(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessage('Result "_meta" must be an object, string given.');
+
+        CreateMessageResult::fromArray(['model' => 'x', 'role' => 'assistant', 'content' => ['text' => 'x', 'type' => 'text'], '_meta' => 'oops']);
+    }
+
+    public function testFromArrayRejectsListKeyedMeta(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessage('Result "_meta" must be a string-keyed object.');
+
+        CreateMessageResult::fromArray(['model' => 'x', 'role' => 'assistant', 'content' => ['text' => 'x', 'type' => 'text'], '_meta' => ['x']]);
+    }
 }

@@ -11,8 +11,9 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Nexus\Mcp\Tests\Core\Schema;
+namespace Nexus\Mcp\Tests\Core\JsonRpc;
 
+use Nexus\Mcp\Core\JsonRpc\ErrorFactory;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Error;
 use Nexus\Mcp\Core\Schema\Error\InternalError;
@@ -28,18 +29,18 @@ use PHPUnit\Framework\TestCase;
 /**
  * @internal
  */
-#[CoversClass(Error::class)]
+#[CoversClass(ErrorFactory::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class ErrorTest extends TestCase
+final class ErrorFactoryTest extends TestCase
 {
     /**
      * @param class-string<Error> $expectedClass
      */
-    #[DataProvider('provideForCodeReturnsConcreteSubclassCases')]
-    public function testForCodeReturnsConcreteSubclass(ProtocolErrorCode $code, string $expectedClass): void
+    #[DataProvider('provideCreateReturnsConcreteSubclassCases')]
+    public function testCreateReturnsConcreteSubclass(ProtocolErrorCode $code, string $expectedClass): void
     {
-        $error = Error::forCode($code, 'message text');
+        $error = ErrorFactory::create($code, 'message text');
 
         self::assertInstanceOf($expectedClass, $error);
         self::assertSame($code->value, $error->code);
@@ -49,7 +50,7 @@ final class ErrorTest extends TestCase
     /**
      * @return iterable<string, array{ProtocolErrorCode, class-string<Error>}>
      */
-    public static function provideForCodeReturnsConcreteSubclassCases(): iterable
+    public static function provideCreateReturnsConcreteSubclassCases(): iterable
     {
         yield 'parse error' => [ProtocolErrorCode::ParseError, ParseError::class];
 
@@ -62,25 +63,25 @@ final class ErrorTest extends TestCase
         yield 'internal error' => [ProtocolErrorCode::InternalError, InternalError::class];
     }
 
-    public function testForCodeRejectsUrlElicitationRequired(): void
+    public function testCreateRejectsUrlElicitationRequired(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageMatches('/^Error::forCode\(\) cannot construct UrlElicitationRequiredErrorPayload/');
+        $this->expectExceptionMessageMatches('/^ErrorFactory::create\(\) cannot construct UrlElicitationRequiredErrorPayload\. Instantiate it directly with the required url\/urlError payload\.$/');
 
-        Error::forCode(ProtocolErrorCode::UrlElicitationRequired, 'fallback message');
+        ErrorFactory::create(ProtocolErrorCode::UrlElicitationRequired, 'fallback message');
     }
 
-    public function testForCodePropagatesData(): void
+    public function testCreatePropagatesData(): void
     {
         $data = ['trace_id' => 'abc123'];
-        $error = Error::forCode(ProtocolErrorCode::InternalError, 'oops', $data);
+        $error = ErrorFactory::create(ProtocolErrorCode::InternalError, 'oops', $data);
 
         self::assertSame($data, $error->data);
     }
 
-    public function testForCodeOmitsDataWhenNotProvided(): void
+    public function testCreateOmitsDataWhenNotProvided(): void
     {
-        $error = Error::forCode(ProtocolErrorCode::InternalError, 'oops');
+        $error = ErrorFactory::create(ProtocolErrorCode::InternalError, 'oops');
 
         self::assertNull($error->data);
     }

@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Schema\NotificationParams;
 
+use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\NotificationParams;
 
@@ -26,7 +27,15 @@ final readonly class EmptyNotificationParams extends NotificationParams
     #[\Override]
     public static function fromArray(array $data): static
     {
-        $meta = MetaObject::parseFrom($data, 'Notification params');
+        $meta = new MetaObject();
+
+        if (\array_key_exists('_meta', $data)) {
+            Assert::that($data['_meta'])
+                ->isArray('Notification params "_meta" must be an object, {type} given.')
+                ->isMap('Notification params "_meta" must be a string-keyed object.')
+            ;
+            $meta = MetaObject::fromArray($data['_meta']);
+        }
 
         return new self($meta);
     }

@@ -85,7 +85,15 @@ final readonly class ToolUseContent implements Arrayable, SamplingMessageContent
         ;
         $input = $data['input'];
 
-        $meta = MetaObject::parseFrom($data, 'ToolUseContent');
+        $meta = new MetaObject();
+
+        if (\array_key_exists('_meta', $data)) {
+            Assert::that($data['_meta'])
+                ->isArray('ToolUseContent "_meta" must be an object, {type} given.')
+                ->isMap('ToolUseContent "_meta" must be a string-keyed object.')
+            ;
+            $meta = MetaObject::fromArray($data['_meta']);
+        }
 
         return new self($id, $name, $input, $meta);
     }

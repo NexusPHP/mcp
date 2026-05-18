@@ -349,4 +349,20 @@ final class CreateMessageRequestParamsTest extends TestCase
 
         CreateMessageRequestParams::fromArray(['maxTokens' => 1, 'messages' => [], 'metadata' => 'oops']);
     }
+
+    public function testFromArrayRejectsNonObjectMeta(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessage('Request params "_meta" must be an object, string given.');
+
+        CreateMessageRequestParams::fromArray(['maxTokens' => 1, 'messages' => [], '_meta' => 'oops']);
+    }
+
+    public function testFromArrayRejectsListKeyedMeta(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessage('Request params "_meta" must be a string-keyed object.');
+
+        CreateMessageRequestParams::fromArray(['maxTokens' => 1, 'messages' => [], '_meta' => ['x']]);
+    }
 }

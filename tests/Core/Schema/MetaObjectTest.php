@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
@@ -75,33 +74,5 @@ final class MetaObjectTest extends TestCase
 
         self::assertInstanceOf(\stdClass::class, $meta->jsonSerialize());
         self::assertSame('{}', json_encode($meta));
-    }
-
-    public function testParseFromReturnsEmptyWhenMetaAbsent(): void
-    {
-        self::assertSame([], MetaObject::parseFrom(['name' => 'x'], 'Result')->extras);
-    }
-
-    public function testParseFromReadsAndContextualizes(): void
-    {
-        $meta = MetaObject::parseFrom(['_meta' => ['vendor' => 'x']], 'Result');
-
-        self::assertSame(['vendor' => 'x'], $meta->extras);
-    }
-
-    public function testParseFromRejectsNonObjectMeta(): void
-    {
-        $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('Result "_meta" must be an object, string given.');
-
-        MetaObject::parseFrom(['_meta' => 'oops'], 'Result');
-    }
-
-    public function testParseFromRejectsListKeyedMeta(): void
-    {
-        $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('Notification params "_meta" must be a string-keyed object.');
-
-        MetaObject::parseFrom(['_meta' => ['x']], 'Notification params');
     }
 }

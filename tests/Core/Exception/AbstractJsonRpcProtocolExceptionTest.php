@@ -28,9 +28,9 @@ use PHPUnit\Framework\TestCase;
 #[Group('core-tests')]
 final class AbstractJsonRpcProtocolExceptionTest extends TestCase
 {
-    public function testCarriesMessageAndDefaultsRequestIdToNull(): void
+    public function testCarriesMessageAndDefaultsPreviousToNull(): void
     {
-        $e = new StubProtocolException('boom');
+        $e = new StubProtocolException(null, 'boom');
 
         self::assertSame('boom', $e->getMessage());
         self::assertNull($e->requestId);
@@ -40,7 +40,7 @@ final class AbstractJsonRpcProtocolExceptionTest extends TestCase
     public function testCarriesProvidedRequestIdAndPrevious(): void
     {
         $previous = new \RuntimeException('inner');
-        $e = new StubProtocolException('boom', new RequestId('req-42'), $previous);
+        $e = new StubProtocolException(new RequestId('req-42'), 'boom', $previous);
 
         self::assertSame('boom', $e->getMessage());
         self::assertSame('req-42', $e->requestId?->id);
@@ -49,7 +49,7 @@ final class AbstractJsonRpcProtocolExceptionTest extends TestCase
 
     public function testAcceptsIntegerRequestId(): void
     {
-        $e = new StubProtocolException('boom', new RequestId(7));
+        $e = new StubProtocolException(new RequestId(7), 'boom');
 
         self::assertSame(7, $e->requestId?->id);
     }
