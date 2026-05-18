@@ -10,9 +10,9 @@ Nexus\Mcp\
 ├── Core\               Protocol primitives. Depends on no other Mcp namespace
 │   ├── Schema\         Types only (value objects, enums, interfaces)
 │   ├── JsonRpc\        Envelope parser, method registry
-│   ├── Handler\        RequestHandlerInterface, NotificationHandlerInterface, AbstractContext
+│   ├── Handler\        RequestHandlerInterface, NotificationHandlerInterface, HandlerRegistry, AbstractContext
 │   │   └── Request\    PingRequestHandler
-│   ├── Transport\      TransportInterface, in-memory implementation
+│   ├── Transport\      TransportInterface, TransportEvents, in-memory implementation
 │   ├── Exception\      McpExceptionInterface marker + concrete protocol errors
 │   ├── Validation\     URI templates, RFC 3339, enum-value coercion
 │   └── UriTemplate\    RFC 6570 expansion + matching
@@ -20,6 +20,7 @@ Nexus\Mcp\
 │   ├── ServerBuilder
 │   ├── Server
 │   ├── ServerContext
+│   ├── AbstractPaginatedStore
 │   ├── Dispatch\       MessageDispatcher, InitializationGate, RequestBoundSender
 │   ├── Handler\
 │   │   └── Request\    Built-in request handlers
@@ -102,7 +103,7 @@ Two pieces are worth calling out:
 
 ### `InitializationGate`
 
-Holds a single piece of state: the lifecycle phase (`Uninitialized`, `InitializeInFlight`, `Initialized`).
+Holds a single piece of state: the lifecycle phase (`AwaitingInitialize`, `InitializeInFlight`, `Initialized`).
 Consulted on every request to enforce the spec's "no other method may be invoked before `initialize`
 completes" rule. It also rejects a second `initialize` once one is in flight, and silently drops
 `notifications/initialized` envelopes that arrive outside a valid handshake.
