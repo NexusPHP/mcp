@@ -144,7 +144,7 @@ final readonly class ToolResultContent implements Arrayable, SamplingMessageCont
     {
         $data = $this->toArray();
 
-        if (null !== $this->structuredContent && [] === $this->structuredContent) {
+        if ([] === $this->structuredContent) {
             $data['structuredContent'] = new \stdClass();
         }
 

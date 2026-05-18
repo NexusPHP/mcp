@@ -290,7 +290,7 @@ final readonly class CreateMessageRequestParams extends RequestParams
             $data['toolChoice'] = $this->toolChoice->jsonSerialize();
         }
 
-        if (null !== $this->metadata && [] === $this->metadata) {
+        if ([] === $this->metadata) {
             $data['metadata'] = new \stdClass();
         }
 
