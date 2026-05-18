@@ -108,7 +108,7 @@ final readonly class SamplingMessage implements Arrayable
     #[\Override]
     public function jsonSerialize(): array
     {
-        $data = $this->toArray();
+        $data = ['role' => $this->role->value];
 
         if (\is_array($this->content)) {
             $data['content'] = array_map(
@@ -117,6 +117,12 @@ final readonly class SamplingMessage implements Arrayable
             );
         } else {
             $data['content'] = $this->content->jsonSerialize();
+        }
+
+        $meta = $this->meta->toArray();
+
+        if ([] !== $meta) {
+            $data['_meta'] = $meta;
         }
 
         return $data;

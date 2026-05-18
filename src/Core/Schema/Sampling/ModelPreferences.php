@@ -134,16 +134,27 @@ final readonly class ModelPreferences implements Arrayable
     #[\Override]
     public function jsonSerialize(): array|\stdClass
     {
-        $data = $this->toArray();
-
-        if ([] === $data) {
-            return new \stdClass();
-        }
+        $data = [];
 
         if (null !== $this->hints) {
-            $data['hints'] = array_map(static fn(ModelHint $hint): array|\stdClass => $hint->jsonSerialize(), $this->hints);
+            $data['hints'] = array_map(
+                static fn(ModelHint $hint): array|\stdClass => $hint->jsonSerialize(),
+                $this->hints,
+            );
         }
 
-        return $data;
+        if (null !== $this->costPriority) {
+            $data['costPriority'] = $this->costPriority;
+        }
+
+        if (null !== $this->speedPriority) {
+            $data['speedPriority'] = $this->speedPriority;
+        }
+
+        if (null !== $this->intelligencePriority) {
+            $data['intelligencePriority'] = $this->intelligencePriority;
+        }
+
+        return [] === $data ? new \stdClass() : $data;
     }
 }
