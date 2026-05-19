@@ -171,4 +171,26 @@ final class TransportEventsTest extends TestCase
 
         $this->expectNotToPerformAssertions();
     }
+
+    public function testEmitSnapshotsListenerListSoMidEmitRegistrationsRunOnTheNextEmit(): void
+    {
+        $events = new TransportEvents();
+        $calls = [];
+
+        $events->onMessage(static function (array $envelope) use ($events, &$calls): void {
+            $calls[] = ['first', $envelope];
+            $events->onMessage(static function (array $envelope) use (&$calls): void {
+                $calls[] = ['late-arrival', $envelope];
+            });
+        });
+
+        $events->emitMessage(['method' => 'first-emit']);
+        $events->emitMessage(['method' => 'second-emit']);
+
+        self::assertSame([
+            ['first', ['method' => 'first-emit']],
+            ['first', ['method' => 'second-emit']],
+            ['late-arrival', ['method' => 'second-emit']],
+        ], $calls, 'A listener registered during emit must not fire in the current emit, only in subsequent emits.');
+    }
 }
