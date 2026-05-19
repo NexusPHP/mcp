@@ -184,11 +184,15 @@ final class StdioServerTransportTest extends TestCase
         self::assertSame(1, $closes);
     }
 
-    public function testMalformedJsonIsSilentlySkipped(): void
+    public function testMalformedJsonRespondsWithParseErrorAndContinues(): void
     {
-        $transport = self::buildTransportReading([
-            "{not json}\n".'{"jsonrpc":"2.0","id":1,"method":"ping"}'."\n",
-        ]);
+        $writable = new WritableBuffer();
+        $transport = new StdioServerTransport(
+            new ReadableIterableStream(new \ArrayIterator([
+                "{not json}\n".'{"jsonrpc":"2.0","id":1,"method":"ping"}'."\n",
+            ])),
+            $writable,
+        );
         $envelopes = [];
         $errors = [];
         self::captureEnvelopesInto($transport, $envelopes);
@@ -196,21 +200,31 @@ final class StdioServerTransportTest extends TestCase
 
         $transport->start();
         EventLoop::run();
+        $writable->close();
 
         self::assertSame([], $errors);
         self::assertSame(
             [['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping']],
             $envelopes,
+            'The valid envelope after a malformed line must still reach listeners.',
+        );
+        self::assertSame(
+            '{"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"}}'."\n",
+            $writable->buffer(),
         );
     }
 
     /**
      * @param non-empty-string $payload
      */
-    #[DataProvider('provideNonObjectJsonFiresOnErrorCases')]
-    public function testNonObjectJsonFiresOnError(string $payload): void
+    #[DataProvider('provideNonObjectJsonRespondsWithInvalidRequestAndFiresOnErrorCases')]
+    public function testNonObjectJsonRespondsWithInvalidRequestAndFiresOnError(string $payload): void
     {
-        $transport = self::buildTransportReading([$payload."\n"]);
+        $writable = new WritableBuffer();
+        $transport = new StdioServerTransport(
+            new ReadableIterableStream(new \ArrayIterator([$payload."\n"])),
+            $writable,
+        );
         $envelopes = [];
         $errors = [];
         self::captureEnvelopesInto($transport, $envelopes);
@@ -218,18 +232,25 @@ final class StdioServerTransportTest extends TestCase
 
         $transport->start();
         EventLoop::run();
+        $writable->close();
 
         self::assertSame([], $envelopes);
         self::assertCount(1, $errors);
         self::assertInstanceOf(\InvalidArgumentException::class, $errors[0]);
+        self::assertSame(
+            '{"jsonrpc":"2.0","error":{"code":-32600,"message":"Invalid request"}}'."\n",
+            $writable->buffer(),
+        );
     }
 
     /**
      * @return iterable<string, array{non-empty-string}>
      */
-    public static function provideNonObjectJsonFiresOnErrorCases(): iterable
+    public static function provideNonObjectJsonRespondsWithInvalidRequestAndFiresOnErrorCases(): iterable
     {
         yield 'array' => ['[1,2,3]'];
+
+        yield 'batch (removed in 2025-11-25)' => ['[{"jsonrpc":"2.0","id":1,"method":"ping"}]'];
 
         yield 'scalar' => ['42'];
 
@@ -735,7 +756,7 @@ final class StdioServerTransportTest extends TestCase
         ];
     }
 
-    public function testLoggerEmitsDebugOnMalformedJsonWithExceptionContext(): void
+    public function testLoggerEmitsWarningOnMalformedJsonWithExceptionContext(): void
     {
         $logger = new ArrayLogger();
         $transport = new StdioServerTransport(
@@ -747,7 +768,7 @@ final class StdioServerTransportTest extends TestCase
         $transport->start();
         EventLoop::run();
 
-        $matches = $logger->recordsMatching(LogLevel::DEBUG, 'Stdio transport skipped malformed JSON line.');
+        $matches = $logger->recordsMatching(LogLevel::WARNING, 'Stdio transport rejected malformed JSON line.');
 
         self::assertCount(1, $matches);
         self::assertArrayHasKey('exception', $matches[0]['context']);
