@@ -145,7 +145,7 @@ final class JsonRpcMessageParser
             } catch (\InvalidArgumentException $e) {
                 throw new InvalidParamsException(
                     self::extractRequestId($message),
-                    \sprintf('Invalid "%s" request: %s', $method, $e->getMessage()),
+                    \sprintf('Invalid "%s" request: %s', SafeDisplay::sanitise($method), $e->getMessage()),
                 );
             }
         }
@@ -167,7 +167,10 @@ final class JsonRpcMessageParser
         try {
             return $class::fromArray($message);
         } catch (\InvalidArgumentException $e) {
-            throw new InvalidParamsException(null, \sprintf('Invalid "%s" notification: %s', $method, $e->getMessage()));
+            throw new InvalidParamsException(
+                null,
+                \sprintf('Invalid "%s" notification: %s', SafeDisplay::sanitise($method), $e->getMessage()),
+            );
         }
     }
 

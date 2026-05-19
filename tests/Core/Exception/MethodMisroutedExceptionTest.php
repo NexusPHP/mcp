@@ -65,4 +65,18 @@ final class MethodMisroutedExceptionTest extends TestCase
     {
         self::assertSame(ProtocolErrorCode::InvalidRequest, MethodMisroutedException::errorCode());
     }
+
+    public function testSanitisesAttackerControlledMethodBytesInTheMessage(): void
+    {
+        $e = new MethodMisroutedException(
+            "initialize\x1b[31mEVIL",
+            expectedShape: 'request',
+            receivedShape: 'notification',
+        );
+
+        self::assertSame(
+            'Method "initialize\\x1b[31mEVIL" must be sent as a request, not a notification.',
+            $e->getMessage(),
+        );
+    }
 }

@@ -52,4 +52,14 @@ final class MethodNotFoundExceptionTest extends TestCase
     {
         self::assertSame(ProtocolErrorCode::MethodNotFound, MethodNotFoundException::errorCode());
     }
+
+    public function testSanitisesAttackerControlledMethodBytesInTheMessage(): void
+    {
+        $e = new MethodNotFoundException("tools/list\n[CRIT] fake-log-line");
+
+        self::assertSame(
+            'No registration found for method "tools/list\\x0a[CRIT] fake-log-line".',
+            $e->getMessage(),
+        );
+    }
 }

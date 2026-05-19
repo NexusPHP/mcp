@@ -302,6 +302,26 @@ final class JsonRpcMessageParserTest extends TestCase
         }
     }
 
+    public function testParseSanitisesAttackerMethodBytesInMethodNotFoundMessage(): void
+    {
+        $parser = new JsonRpcMessageParser();
+
+        try {
+            $parser->parse([
+                'jsonrpc' => '2.0',
+                'id' => 1,
+                'method' => "vendor/unknown\n[CRIT] spoofed",
+            ]);
+            self::fail('Expected MethodNotFoundException.');
+        } catch (MethodNotFoundException $e) {
+            self::assertSame(1, $e->requestId?->id);
+            self::assertSame(
+                'No registration found for method "vendor/unknown\\x0a[CRIT] spoofed".',
+                $e->getMessage(),
+            );
+        }
+    }
+
     public function testParseRejectsMissingMethodAsInvalidRequest(): void
     {
         $parser = new JsonRpcMessageParser();

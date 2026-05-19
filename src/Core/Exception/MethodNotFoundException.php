@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Exception;
 
+use Nexus\Mcp\Core\JsonRpc\SafeDisplay;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\RequestId;
 
@@ -25,7 +26,7 @@ final class MethodNotFoundException extends AbstractJsonRpcProtocolException
     {
         parent::__construct(
             $requestId,
-            \sprintf('No registration found for method "%s".', $method),
+            \sprintf('No registration found for method "%s".', SafeDisplay::sanitise($method)),
             $previous,
         );
     }

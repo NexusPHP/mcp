@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Exception;
 
+use Nexus\Mcp\Core\JsonRpc\SafeDisplay;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\RequestId;
 
@@ -38,7 +39,7 @@ final class MethodMisroutedException extends AbstractJsonRpcProtocolException
             $requestId,
             \sprintf(
                 'Method "%s" must be sent as a %s, not a %s.',
-                $method,
+                SafeDisplay::sanitise($method),
                 $expectedShape,
                 $receivedShape,
             ),
