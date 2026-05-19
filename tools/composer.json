@@ -2,9 +2,9 @@
     "type": "project",
     "require": {
         "php": "^8.4",
-        "friendsofphp/php-cs-fixer": "^3.94",
-        "infection/infection": "^0.32.6",
-        "kubawerlos/php-cs-fixer-custom-fixers": "^3.36",
+        "friendsofphp/php-cs-fixer": "^3.95",
+        "infection/infection": "^0.33.1",
+        "kubawerlos/php-cs-fixer-custom-fixers": "^3.37",
         "nexusphp/cs-config": "^3.28"
     },
     "minimum-stability": "dev",
