@@ -172,6 +172,32 @@ final class StdioServerTransportTest extends TestCase
         self::assertSame([], $errors);
     }
 
+    public function testOversizedInboundLineSurfacesAsTransportErrorAndClose(): void
+    {
+        $logger = new ArrayLogger();
+        $transport = new StdioServerTransport(
+            new ReadableIterableStream(new \ArrayIterator([str_repeat('a', 65)])),
+            new WritableBuffer(),
+            $logger,
+            maxLineBytes: 64,
+        );
+        $errors = [];
+        $closes = 0;
+        self::captureErrorsInto($transport, $errors);
+        self::countClosesInto($transport, $closes);
+
+        $transport->start();
+        EventLoop::run();
+
+        self::assertCount(1, $errors);
+        self::assertInstanceOf(\RuntimeException::class, $errors[0]);
+        self::assertSame(1, $closes);
+
+        $matches = $logger->recordsMatching(LogLevel::ERROR, 'Stdio transport read loop failed. Closing.');
+        self::assertCount(1, $matches);
+        self::assertSame($errors[0], $matches[0]['context']['exception'] ?? null);
+    }
+
     public function testEofFiresCloseListenerExactlyOnce(): void
     {
         $transport = self::buildTransportReading([]);
