@@ -127,22 +127,40 @@ Each agent prompt MUST include all of the following (in addition to its frame-sp
     > - If you need to run tests against a different state, create an isolated worktree: `git worktree add /tmp/adversarial-review-<random> <ref>`, run tests inside it, then `git worktree remove /tmp/adversarial-review-<random>`. Never mutate the primary working tree.
     > - Do not run `composer mutation:check`. It takes 7+ minutes. Use `composer mutation:filter` if a finding warrants a targeted check.
 
-6. **Output format.** Demand structure:
+6. **Ground every finding on the current code and tests, not on hypothesis.** Copy verbatim into every subagent prompt:
+
+    > **Ground every finding. Do NOT speculate.**
+    >
+    > Before writing a finding, prove it against the actual code and tests as they stand right now. A finding that boils down to "predicted X would escape" or "if a mutator did Y this assertion wouldn't catch it" is worth zero unless you have actually checked.
+    >
+    > Concretely:
+    >
+    > - For "this branch is unreachable" / "this default arm is dead" claims: read every caller of the function and the relevant test cases. State the call sites you inspected.
+    > - For "this test wouldn't kill mutant X" claims: run `composer mutation:filter` scoped to that file (or `tools/vendor/bin/infection --filter=<File>.php --threads=4`) and report whether X actually escaped, or trace through the test inputs to show the mutant's behaviour is unobservable. Quote the assertion that would (or would not) fail.
+    > - For "API surface drifts from spec" claims: cite the spec line (`latest-schema.json` path or upstream `schema.ts` link).
+    > - For "concurrency race" claims: trace the specific event-loop ordering. State which fiber is in which state at each step.
+    >
+    > If you cannot ground the finding, mark it `severity: low` and prefix the headline with **`UNVERIFIED:`**. The contributor would rather see five grounded findings and one unverified hunch than ten unverified hunches. Treat unverified findings as the **exception**, not the default. The prior session burned hours triaging mutation-noise predictions that did not actually escape; do not repeat that.
+    >
+    > It is fine, even good, to report a frame as "no findings" when the system genuinely holds up under your inspection. Saying "I checked X, Y, Z and they all hold" beats inventing critique to fill quota.
+
+7. **Output format.** Demand structure:
 
     ```text
     **Finding N (severity: critical|high|medium|low):** one-sentence claim
     `file:line` markdown link, explanation, with offending snippet
     Repro / proof: concrete input that surfaces the divergence (envelope, byte sequence, call sequence). If you cannot construct one, downgrade severity by one notch.
+    Grounding: which code paths you read, which tests you ran, which mutation:filter output you inspected. One line.
     Suggested fix: one sentence. Do not write code.
     ```
 
     File and line references MUST use markdown link syntax: `[file.php:42](src/file.php#L42)`.
 
-7. **Per-agent finding cap: 10.** If more are found, list the titles and let the contributor request expansion. Hard cap so triage is not drowned.
+8. **Per-agent finding cap: 10.** If more are found, list the titles and let the contributor request expansion. Hard cap so triage is not drowned.
 
-8. **Honesty instruction.** "If you find nothing in this frame, say so honestly. Do not manufacture critique. A 'no real findings' report is also useful information."
+9. **Honesty instruction.** "If you find nothing in this frame, say so honestly. Do not manufacture critique. A 'no real findings' report is also useful information."
 
-9. **Length cap: 1500 words per agent.**
+10. **Length cap: 1500 words per agent.**
 
 ## Frame templates
 
@@ -187,7 +205,9 @@ Hunt for:
 
 ### A3: Test / mutation gaps
 
-The repo enforces 100% MSI via Infection. **Do not run `composer mutation:check`** (7+ min, banned). Predict survivors by reading source and tests. Suggest `composer mutation:filter` for targeted spot-checks.
+The repo enforces 100% MSI via Infection. **Do not run `composer mutation:check`** (7+ min, banned). Predict survivors by reading source and tests, then **verify** any suspect mutation gap by running `tools/vendor/bin/infection --filter=<File>.php --threads=4` against the relevant file before reporting it as a finding.
+
+This frame has the highest false-positive rate of all four. The prior session closed six "predicted survivor" findings as won't-fix after running scoped mutation on the implicated files and seeing the predicted mutants killed in milliseconds (often by tests the predictor had not read). Pattern-matching for "this branch looks unguarded" without checking is exactly what produces noise. **Run the tool. If the mutant is killed, drop the finding.**
 
 Hunt for the mutator patterns that survive when nothing asserts on them:
 
@@ -202,7 +222,9 @@ Hunt for the mutator patterns that survive when nothing asserts on them:
 - Defensive guards on already-validated input (helper assertion never exercised).
 - Untested error-message wording on dispatch/parser paths.
 
-For each suspect: predict the specific Infection mutator that would survive AND the assertion that would kill it. Per the project convention, error-path tests use `expectExceptionMessageMatches('/^anchored …$/')` with both `^` and `$` anchors.
+For each suspect: predict the specific Infection mutator that would survive AND the assertion that would kill it. Then run scoped mutation testing on that file and report the actual outcome. If the prediction was wrong (mutant killed), drop the finding. If you cannot run mutation testing for some reason, mark the finding `UNVERIFIED` per Step 5 rule 6.
+
+Per the project convention, error-path tests use `expectExceptionMessageMatches('/^anchored …$/')` with both `^` and `$` anchors. Substring-matching `expectExceptionMessage` is acceptable when the wording is generated from a literal and scoped mutation shows the source's string mutators are still killed; do not flag it as a gap on appearance alone.
 
 ### A4: Edge-case / adversarial-peer bug hunt
 
