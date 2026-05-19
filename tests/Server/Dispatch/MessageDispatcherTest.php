@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Server\Dispatch;
 
 use Nexus\Mcp\Core\Exception\AbstractJsonRpcProtocolException;
+use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
 use Nexus\Mcp\Core\Handler\AbstractContext;
 use Nexus\Mcp\Core\Handler\HandlerRegistry;
 use Nexus\Mcp\Core\Handler\NotificationHandlerInterface;
@@ -453,6 +454,108 @@ final class MessageDispatcherTest extends TestCase
         self::assertCount(1, $matches);
         self::assertSame('ping', $matches[0]['context']['method'] ?? null);
         self::assertInstanceOf(\RuntimeException::class, $matches[0]['context']['exception'] ?? null);
+    }
+
+    public function testResultResponseSendFailingWithClosedTransportLogsInfoOnly(): void
+    {
+        $transport = new RecordingTransport();
+        $transport->sendError = new TransportAlreadyClosedException('send');
+        $logger = new ArrayLogger();
+        $dispatcher = self::buildDispatcher(
+            initialize: true,
+            requestHandlers: ['ping' => new PingRequestHandler()],
+            logger: $logger,
+        );
+
+        $dispatcher->dispatch(
+            ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping'],
+            $transport,
+        );
+
+        EventLoop::run();
+
+        self::assertSame([], $logger->messagesAtLevel(LogLevel::ERROR), 'Closed transport must not produce error-level logs.');
+        $matches = $logger->recordsMatching(LogLevel::INFO, 'Skipping response delivery. Transport is closed.');
+        self::assertCount(1, $matches);
+        self::assertSame('ping', $matches[0]['context']['method'] ?? null);
+        self::assertInstanceOf(TransportAlreadyClosedException::class, $matches[0]['context']['exception'] ?? null);
+    }
+
+    public function testHandlerPropagatingTransportClosedSkipsInternalErrorFollowUp(): void
+    {
+        $transport = new RecordingTransport();
+        $logger = new ArrayLogger();
+        $dispatcher = self::buildDispatcher(
+            initialize: true,
+            requestHandlers: [
+                'ping' => new ClosureRequestHandler(
+                    static fn() => throw new TransportAlreadyClosedException('send'),
+                ),
+            ],
+            logger: $logger,
+        );
+
+        $dispatcher->dispatch(
+            ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping'],
+            $transport,
+        );
+
+        EventLoop::run();
+
+        self::assertSame([], $transport->sent, 'A closed transport must not receive an InternalError follow-up.');
+        self::assertSame([], $logger->messagesAtLevel(LogLevel::ERROR));
+        $matches = $logger->recordsMatching(LogLevel::INFO, 'Skipping response delivery. Transport is closed.');
+        self::assertCount(1, $matches);
+        self::assertSame('ping', $matches[0]['context']['method'] ?? null);
+        self::assertInstanceOf(TransportAlreadyClosedException::class, $matches[0]['context']['exception'] ?? null);
+    }
+
+    public function testInitializeHandlerPropagatingTransportClosedRevertsTheGate(): void
+    {
+        $transport = new RecordingTransport();
+        $gate = new InitializationGate();
+        $dispatcher = self::buildDispatcher(
+            gate: $gate,
+            requestHandlers: [
+                'initialize' => new ClosureRequestHandler(
+                    static fn() => throw new TransportAlreadyClosedException('send'),
+                ),
+            ],
+        );
+
+        $dispatcher->dispatch(self::initializeEnvelope(), $transport);
+
+        EventLoop::run();
+
+        self::assertTrue($gate->allowsRequest('initialize'), 'Gate must revert after a closed-transport failure in the initialize handler.');
+    }
+
+    public function testProtocolExceptionWithClosedTransportLogsInfoNotError(): void
+    {
+        $transport = new RecordingTransport();
+        $transport->sendError = new TransportAlreadyClosedException('send');
+        $logger = new ArrayLogger();
+        $dispatcher = self::buildDispatcher(
+            initialize: true,
+            requestHandlers: [
+                'ping' => new ClosureRequestHandler(
+                    static fn() => throw new ResourceNotFoundException('file:///missing'),
+                ),
+            ],
+            logger: $logger,
+        );
+
+        $dispatcher->dispatch(
+            ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping'],
+            $transport,
+        );
+
+        EventLoop::run();
+
+        self::assertSame([], $logger->messagesAtLevel(LogLevel::ERROR));
+        $matches = $logger->recordsMatching(LogLevel::INFO, 'Skipping response delivery. Transport is closed.');
+        self::assertCount(1, $matches);
+        self::assertSame('ping', $matches[0]['context']['method'] ?? null);
     }
 
     public function testRequestHandlerReceivesContextWithSessionIdAndRequestScopedSender(): void
