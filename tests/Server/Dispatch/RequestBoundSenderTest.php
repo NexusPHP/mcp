@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Server\Dispatch;
 
+use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Notification\ProgressNotification;
 use Nexus\Mcp\Core\Schema\NotificationParams\ProgressNotificationParams;
 use Nexus\Mcp\Core\Schema\ProgressToken;
@@ -20,6 +21,7 @@ use Nexus\Mcp\Core\Schema\Request\PingRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 use Nexus\Mcp\Server\Dispatch\RequestBoundSender;
+use Nexus\Mcp\Server\Exception\OutboundRequestsNotSupportedException;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
@@ -52,13 +54,20 @@ final class RequestBoundSenderTest extends TestCase
         self::assertSame($requestId, $context->relatedRequestId);
     }
 
-    public function testSendRequestThrowsBadMethodCallUntilSamplingAndElicitationLand(): void
+    public function testSendRequestThrowsTypedExceptionCarryingTheInboundRequestId(): void
     {
-        $sender = new RequestBoundSender(new RecordingTransport(), new RequestId(1));
+        $inboundId = new RequestId(1);
+        $sender = new RequestBoundSender(new RecordingTransport(), $inboundId);
 
-        $this->expectException(\BadMethodCallException::class);
-        $this->expectExceptionMessageMatches('/^Outbound server-to-client requests are not implemented yet\./');
-
-        $sender->sendRequest(new PingRequest(new RequestId(2), new EmptyRequestParams()));
+        try {
+            $sender->sendRequest(new PingRequest(new RequestId(2), new EmptyRequestParams()));
+        } catch (OutboundRequestsNotSupportedException $e) {
+            self::assertSame($inboundId, $e->requestId);
+            self::assertSame(
+                'Outbound server-to-client requests are not implemented yet.',
+                $e->getMessage(),
+            );
+            self::assertSame(ProtocolErrorCode::InternalError, OutboundRequestsNotSupportedException::errorCode());
+        }
     }
 }

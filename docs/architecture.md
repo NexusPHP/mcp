@@ -8,27 +8,28 @@ that drives every inbound JSON-RPC message, and what the SDK does and does not c
 ```text
 Nexus\Mcp\
 ├── Core\               Protocol primitives. Depends on no other Mcp namespace
-│   ├── Schema\         Types only (value objects, enums, interfaces)
-│   ├── JsonRpc\        Envelope parser, method registry
+│   ├── Exception\      McpExceptionInterface marker + concrete protocol errors
 │   ├── Handler\        RequestHandlerInterface, NotificationHandlerInterface, HandlerRegistry, AbstractContext
 │   │   └── Request\    PingRequestHandler
+│   ├── JsonRpc\        Envelope parser, method registry
+│   ├── Schema\         Types only (value objects, enums, interfaces)
 │   ├── Transport\      TransportInterface, TransportEvents, in-memory implementation
-│   ├── Exception\      McpExceptionInterface marker + concrete protocol errors
-│   ├── Validation\     URI templates, RFC 3339, enum-value coercion
-│   └── UriTemplate\    RFC 6570 expansion + matching
+│   ├── UriTemplate\    RFC 6570 expansion + matching
+│   └── Validation\     URI templates, RFC 3339, enum-value coercion
 ├── Server\             Server-side composition. Depends on Core only
-│   ├── ServerBuilder
-│   ├── Server
-│   ├── ServerContext
 │   ├── AbstractPaginatedStore
+│   ├── Server
+│   ├── ServerBuilder
+│   ├── ServerContext
+│   ├── Completion\     CompletionStore
 │   ├── Dispatch\       MessageDispatcher, InitializationGate, RequestBoundSender
+│   ├── Exception\      Server-side protocol errors
 │   ├── Handler\
 │   │   └── Request\    Built-in request handlers
-│   ├── Tool\           ToolStore + executor adapters
+│   ├── Logging\        LoggingLevelGate
 │   ├── Prompt\         PromptStore + renderer adapters
 │   ├── Resource\       ResourceStore + ResourceTemplateStore + reader adapters
-│   ├── Completion\     CompletionStore
-│   ├── Logging\        LoggingLevelGate
+│   ├── Tool\           ToolStore + executor adapters
 │   └── Transport\      StdioServerTransport
 └── Client\             not yet shipped. Planned for the next phase
 ```
