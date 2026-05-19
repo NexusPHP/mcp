@@ -79,6 +79,10 @@ use Nexus\Mcp\Server\ServerContext;
 The executor can be either a `\Closure` or a class implementing `ToolExecutorInterface`. Registering at
 least one tool advertises the `tools` capability automatically.
 
+Runtime exceptions thrown out of a tool executor are converted into a `CallToolResult` with `isError: true`
+and a single `TextContent` carrying the exception message, so the LLM caller can read the failure and
+self-correct. Protocol-level conditions (`ToolNotFoundException`, etc.) still surface as JSON-RPC errors.
+
 ## Prompts
 
 ```php

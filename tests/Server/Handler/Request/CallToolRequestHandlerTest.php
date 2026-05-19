@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Server\Handler\Request;
 
 use Amp\NullCancellation;
+use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestMetaObject;
@@ -92,6 +93,59 @@ final class CallToolRequestHandlerTest extends TestCase
             new CallToolRequest(new RequestId(1), new CallToolRequestParams('missing')),
             self::makeContext(),
         );
+    }
+
+    public function testRuntimeExecutorFailureIsWrappedIntoErrorResultNotPropagated(): void
+    {
+        $store = new ToolStore([
+            'flaky' => new ToolEntry(
+                new Tool('flaky', ['type' => 'object']),
+                new ClosureToolExecutor(static function (): CallToolResult {
+                    throw new \RuntimeException('db timeout');
+                }),
+            ),
+        ]);
+        $handler = new CallToolRequestHandler($store);
+
+        $result = $handler->handle(
+            new CallToolRequest(new RequestId(1), new CallToolRequestParams('flaky')),
+            self::makeContext(),
+        );
+
+        self::assertTrue($result->isError);
+        self::assertNull($result->structuredContent);
+        self::assertCount(1, $result->content);
+        $block = $result->content[0];
+        self::assertInstanceOf(TextContent::class, $block);
+        self::assertSame('db timeout', $block->text);
+    }
+
+    public function testRuntimeExecutorFailureWrappingCoversNonRuntimeExceptions(): void
+    {
+        $store = new ToolStore([
+            'flaky' => new ToolEntry(
+                new Tool('flaky', ['type' => 'object']),
+                new ClosureToolExecutor(static function (): CallToolResult {
+                    throw new \LogicException('bad branch');
+                }),
+            ),
+        ]);
+        $handler = new CallToolRequestHandler($store);
+
+        $result = $handler->handle(
+            new CallToolRequest(new RequestId(1), new CallToolRequestParams('flaky')),
+            self::makeContext(),
+        );
+
+        self::assertTrue($result->isError);
+        self::assertCount(1, $result->content);
+        $block = $result->content[0];
+
+        if (! $block instanceof TextContent) {
+            self::fail('Wrapped error content must be TextContent.');
+        }
+
+        self::assertSame('bad branch', $block->text);
     }
 
     private static function makeContext(): ServerContext
