@@ -76,12 +76,13 @@ That wrapper therefore has no `fromArray()` and is constructed only via
 ```text
 inbound envelope (array)
    │
+   ├── response shape (`result` or `error` key) → discard with a warning (server has no outbound-request correlation)
+   │
    ▼
-JsonRpcMessageParser::parse()        ← classifies request/notification/response, raises typed protocol exceptions
+JsonRpcMessageParser::parse()        ← classifies request/notification, raises typed protocol exceptions
    │
    ├── parse failed
    │     │
-   │     ├── response shape     → discard with a warning (server has no outbound-request correlation)
    │     ├── misrouted method   → send an `InvalidRequest` error (method known under the other JSON-RPC shape)
    │     ├── notification shape → drop silently per JSON-RPC 2.0 §4.1
    │     └── request shape      → send an error response
@@ -93,12 +94,10 @@ JsonRpcMessageParser::parse()        ← classifies request/notification/respons
          │     ├── spawn async coroutine → resolve handler → emit response or error
          │     └── on initialize success, $gate->markInitializeInFlight()
          │
-         ├── JsonRpcNotification → dispatchNotification()
-         │     ├── initialized notification: $gate->markInitialized()
-         │     ├── other notifications: dropped if uninitialized, dispatched otherwise
-         │     └── spawn async coroutine → call handler (no response)
-         │
-         └── response shape      → discard (server has no outbound-request correlation)
+         └── JsonRpcNotification → dispatchNotification()
+               ├── initialized notification: $gate->markInitialized()
+               ├── other notifications: dropped if uninitialized, dispatched otherwise
+               └── spawn async coroutine → call handler (no response)
 ```
 
 Two pieces are worth calling out:
