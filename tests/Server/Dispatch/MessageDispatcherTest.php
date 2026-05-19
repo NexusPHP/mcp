@@ -397,6 +397,50 @@ final class MessageDispatcherTest extends TestCase
         self::assertSame(1, $message->id->id);
     }
 
+    public function testSecondRequestWithSameInFlightIdIsRejectedSynchronouslyWithInvalidRequest(): void
+    {
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher(
+            initialize: true,
+            requestHandlers: ['ping' => new PingRequestHandler()],
+        );
+
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping'], $transport);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping'], $transport);
+        EventLoop::run();
+
+        self::assertCount(2, $transport->sent);
+
+        self::assertInstanceOf(JsonRpcErrorResponse::class, $transport->sent[0]['message']);
+        self::assertSame(1, $transport->sent[0]['message']->id?->id);
+        self::assertSame(ProtocolErrorCode::InvalidRequest->value, $transport->sent[0]['message']->error->code);
+        self::assertSame(
+            'Request id is already in flight on this session.',
+            $transport->sent[0]['message']->error->message,
+        );
+
+        self::assertInstanceOf(JsonRpcResultResponse::class, $transport->sent[1]['message']);
+        self::assertSame(1, $transport->sent[1]['message']->id->id);
+    }
+
+    public function testIdsAreReleasedAfterTheHandlerCompletesSoSequentialReuseSucceeds(): void
+    {
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher(
+            initialize: true,
+            requestHandlers: ['ping' => new PingRequestHandler()],
+        );
+
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 'x', 'method' => 'ping'], $transport);
+        EventLoop::run();
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 'x', 'method' => 'ping'], $transport);
+        EventLoop::run();
+
+        self::assertCount(2, $transport->sent);
+        self::assertInstanceOf(JsonRpcResultResponse::class, $transport->sent[0]['message']);
+        self::assertInstanceOf(JsonRpcResultResponse::class, $transport->sent[1]['message']);
+    }
+
     public function testErrorResponseUsesExceptionRequestIdWhenSetEvenIfDifferentFromIncomingRequestId(): void
     {
         $transport = new RecordingTransport();
