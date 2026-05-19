@@ -178,7 +178,7 @@ final class ResourceLinkTest extends TestCase
     public function testConstructorRejectsInvalidName(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageMatches('/\AResourceLink name must be 1-128 characters/');
+        $this->expectExceptionMessageMatches('/\Aresource link "name" must be 1-128 characters/');
 
         new ResourceLink('my link', 'file:///tmp/x');
     }
@@ -186,7 +186,7 @@ final class ResourceLinkTest extends TestCase
     public function testConstructorRejectsUriViolatingRfc3986(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageMatches('/\AResourceLink URI must be a valid RFC 3986/');
+        $this->expectExceptionMessageMatches('/\Aresource link "uri" must be a valid RFC 3986/');
 
         new ResourceLink('my-link', 'not-a-uri');
     }
@@ -194,7 +194,7 @@ final class ResourceLinkTest extends TestCase
     public function testConstructorRejectsEmptyDescription(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ResourceLink description must be a non-empty string or null.');
+        $this->expectExceptionMessage('resource link "description" must be a non-empty string or null.');
 
         new ResourceLink('my-link', 'file:///tmp/x', null, '');
     }
@@ -202,7 +202,7 @@ final class ResourceLinkTest extends TestCase
     public function testConstructorRejectsEmptyMimeType(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ResourceLink mimeType must be a non-empty string or null.');
+        $this->expectExceptionMessage('resource link "mimeType" must be a non-empty string or null.');
 
         new ResourceLink('my-link', 'file:///tmp/x', null, null, '');
     }
@@ -234,87 +234,87 @@ final class ResourceLinkTest extends TestCase
     {
         yield 'missing type' => [
             ['name' => 'my-link', 'uri' => 'file:///tmp/x'],
-            'ResourceLink data missing "type".',
+            'resource link missing the required "type" key.',
         ];
 
         yield 'wrong type literal' => [
             ['type' => 'resource', 'name' => 'my-link', 'uri' => 'file:///tmp/x'],
-            'ResourceLink "type" must be "resource_link", \'resource\' given.',
+            'resource link "type" must be \'resource_link\', \'resource\' given.',
         ];
 
         yield 'missing name' => [
             ['type' => 'resource_link', 'uri' => 'file:///tmp/x'],
-            'ResourceLink data missing "name".',
+            'resource link missing the required "name" key.',
         ];
 
         yield 'name not a string' => [
             ['type' => 'resource_link', 'name' => 1, 'uri' => 'file:///tmp/x'],
-            'ResourceLink "name" must be a string, int given.',
+            'resource link "name" must be a string, int given.',
         ];
 
         yield 'missing uri' => [
             ['type' => 'resource_link', 'name' => 'my-link'],
-            'ResourceLink data missing "uri".',
+            'resource link missing the required "uri" key.',
         ];
 
         yield 'uri not a string' => [
             ['type' => 'resource_link', 'name' => 'my-link', 'uri' => 1],
-            'ResourceLink "uri" must be a string, int given.',
+            'resource link "uri" must be a string, int given.',
         ];
 
         yield 'title not a string' => [
             ['type' => 'resource_link', 'name' => 'my-link', 'uri' => 'file:///tmp/x', 'title' => 1],
-            'ResourceLink "title" must be a string or null, int given.',
+            'resource link "title" must be a string or null, int given.',
         ];
 
         yield 'description not a string' => [
             ['type' => 'resource_link', 'name' => 'my-link', 'uri' => 'file:///tmp/x', 'description' => 1],
-            'ResourceLink "description" must be a string or null, int given.',
+            'resource link "description" must be a string or null, int given.',
         ];
 
         yield 'mimeType not a string' => [
             ['type' => 'resource_link', 'name' => 'my-link', 'uri' => 'file:///tmp/x', 'mimeType' => 1],
-            'ResourceLink "mimeType" must be a string or null, int given.',
+            'resource link "mimeType" must be a string or null, int given.',
         ];
 
         yield 'annotations not an object' => [
             ['type' => 'resource_link', 'name' => 'my-link', 'uri' => 'file:///tmp/x', 'annotations' => 'oops'],
-            'ResourceLink "annotations" must be an object, string given.',
+            'resource link "annotations" must be an object, string given.',
         ];
 
         yield 'annotations list-keyed' => [
             ['type' => 'resource_link', 'name' => 'my-link', 'uri' => 'file:///tmp/x', 'annotations' => ['x']],
-            'ResourceLink "annotations" must be a string-keyed object.',
+            'resource link "annotations" must be a string-keyed object.',
         ];
 
         yield 'size not a number' => [
             ['type' => 'resource_link', 'name' => 'my-link', 'uri' => 'file:///tmp/x', 'size' => 'oops'],
-            'ResourceLink "size" must be a number or null, string given.',
+            'resource link "size" must be a number or null, string given.',
         ];
 
         yield 'icons not an array' => [
             ['type' => 'resource_link', 'name' => 'my-link', 'uri' => 'file:///tmp/x', 'icons' => 'oops'],
-            'ResourceLink "icons" must be a list, string given.',
+            'resource link "icons" must be a list, string given.',
         ];
 
         yield 'icon entry not an object' => [
             ['type' => 'resource_link', 'name' => 'my-link', 'uri' => 'file:///tmp/x', 'icons' => ['oops']],
-            'ResourceLink icon entry must be an object, string given.',
+            'each resource link "icon" must be an object, string given.',
         ];
 
         yield 'icon entry list-keyed' => [
             ['type' => 'resource_link', 'name' => 'my-link', 'uri' => 'file:///tmp/x', 'icons' => [['x']]],
-            'ResourceLink icon entry must be a string-keyed object.',
+            'each resource link "icon" must be a string-keyed object.',
         ];
 
         yield '_meta not an object' => [
             ['type' => 'resource_link', 'name' => 'my-link', 'uri' => 'file:///tmp/x', '_meta' => 'oops'],
-            'ResourceLink "_meta" must be an object, string given.',
+            'resource link "_meta" must be an object, string given.',
         ];
 
         yield '_meta list-keyed' => [
             ['type' => 'resource_link', 'name' => 'my-link', 'uri' => 'file:///tmp/x', '_meta' => ['x']],
-            'ResourceLink "_meta" must be a string-keyed object.',
+            'resource link "_meta" must be a string-keyed object.',
         ];
     }
 }

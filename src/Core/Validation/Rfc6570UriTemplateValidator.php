@@ -39,14 +39,14 @@ final class Rfc6570UriTemplateValidator
     public static function validate(string $uriTemplate, string $context): void
     {
         Assert::that($uriTemplate)
-            ->isNonEmptyString(\sprintf('%s URI template must be a non-empty string.', $context))
+            ->isNonEmptyString(\sprintf('%s must be a non-empty string.', $context))
             ->matchesRegularExpression(
                 '/\A[\x21-\x7E]+\z/',
-                \sprintf('%s URI template must contain only ASCII printable characters (no whitespace or control characters), got {value}.', $context),
+                \sprintf('%s must contain only ASCII printable characters (no whitespace or control characters), got {value}.', $context),
             )
             ->matchesRegularExpression(
                 '/\A[A-Za-z][A-Za-z0-9+.\-]*:[^{}]*(?:\{[^{}]+\}[^{}]*)*\z/',
-                \sprintf('%s URI template must be a valid RFC 6570 URI template, got {value}.', $context),
+                \sprintf('%s must be a valid RFC 6570 URI template, got {value}.', $context),
             )
         ;
     }

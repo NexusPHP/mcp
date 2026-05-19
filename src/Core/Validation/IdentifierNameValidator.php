@@ -40,7 +40,7 @@ final class IdentifierNameValidator
     {
         Assert::that($name)->matchesRegularExpression(
             '/\A[A-Za-z0-9_.-]{1,128}\z/',
-            \sprintf('%s name must be 1-128 characters of A-Z, a-z, 0-9, ".", "-", or "_", got {value}.', $context),
+            \sprintf('%s must be 1-128 characters of A-Z, a-z, 0-9, ".", "-", or "_", got {value}.', $context),
         );
     }
 }

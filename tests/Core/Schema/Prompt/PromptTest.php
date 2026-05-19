@@ -131,7 +131,7 @@ final class PromptTest extends TestCase
     public function testConstructorRejectsInvalidName(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageMatches('/\APrompt name must be 1-128 characters/');
+        $this->expectExceptionMessageMatches('/\Aprompt "name" must be 1-128 characters/');
 
         new Prompt('bad name');
     }
@@ -139,7 +139,7 @@ final class PromptTest extends TestCase
     public function testConstructorRejectsEmptyDescription(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('Prompt description must be a non-empty string or null.');
+        $this->expectExceptionMessage('prompt "description" must be a non-empty string or null.');
 
         new Prompt('code-review', null, '');
     }
@@ -179,62 +179,62 @@ final class PromptTest extends TestCase
     {
         yield 'missing name' => [
             [],
-            'Prompt data missing "name".',
+            'prompt missing the required "name" key.',
         ];
 
         yield 'name not a string' => [
             ['name' => 1],
-            'Prompt "name" must be a string, int given.',
+            'prompt "name" must be a string, int given.',
         ];
 
         yield 'title not a string' => [
             ['name' => 'code-review', 'title' => 1],
-            'Prompt "title" must be a string or null, int given.',
+            'prompt "title" must be a string or null, int given.',
         ];
 
         yield 'description not a string' => [
             ['name' => 'code-review', 'description' => 1],
-            'Prompt "description" must be a string or null, int given.',
+            'prompt "description" must be a string or null, int given.',
         ];
 
         yield 'arguments not an array' => [
             ['name' => 'code-review', 'arguments' => 'oops'],
-            'Prompt "arguments" must be a list, string given.',
+            'prompt "arguments" must be a list, string given.',
         ];
 
         yield 'argument entry not an object' => [
             ['name' => 'code-review', 'arguments' => ['oops']],
-            'Prompt argument entry must be an object, string given.',
+            'each prompt "arguments" must be an object, string given.',
         ];
 
         yield 'argument entry list-keyed' => [
             ['name' => 'code-review', 'arguments' => [['x']]],
-            'Prompt argument entry must be a string-keyed object.',
+            'each prompt "arguments" must be a string-keyed object.',
         ];
 
         yield 'icons not an array' => [
             ['name' => 'code-review', 'icons' => 'oops'],
-            'Prompt "icons" must be a list, string given.',
+            'prompt "icons" must be a list, string given.',
         ];
 
         yield 'icon entry not an object' => [
             ['name' => 'code-review', 'icons' => ['oops']],
-            'Prompt icon entry must be an object, string given.',
+            'each prompt "icons" must be an object, string given.',
         ];
 
         yield 'icon entry list-keyed' => [
             ['name' => 'code-review', 'icons' => [['x']]],
-            'Prompt icon entry must be a string-keyed object.',
+            'each prompt "icons" must be a string-keyed object.',
         ];
 
         yield '_meta not an object' => [
             ['name' => 'code-review', '_meta' => 'oops'],
-            'Prompt "_meta" must be an object, string given.',
+            'prompt "_meta" must be an object, string given.',
         ];
 
         yield '_meta list-keyed' => [
             ['name' => 'code-review', '_meta' => ['x']],
-            'Prompt "_meta" must be a string-keyed object.',
+            'prompt "_meta" must be a string-keyed object.',
         ];
     }
 }

@@ -29,16 +29,16 @@ final readonly class UnsubscribeRequestParams extends ResourceRequestParams
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('uri', 'UnsubscribeRequestParams data missing "uri".');
+        Assert::that($data)->hasOffset('uri', 'missing the required "uri" key.');
         $uri = $data['uri'];
-        Assert::that($uri)->isString('UnsubscribeRequestParams "uri" must be a string, {type} given.');
+        Assert::that($uri)->isString('"params.uri" must be a string, {type} given.');
 
         $meta = new RequestMetaObject();
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
-                ->isArray('Request params "_meta" must be an object, {type} given.')
-                ->isMap('Request params "_meta" must be a string-keyed object.')
+                ->isArray('"params._meta" must be an object, {type} given.')
+                ->isMap('"params._meta" must be a string-keyed object.')
             ;
             $meta = RequestMetaObject::fromArray($data['_meta']);
         }

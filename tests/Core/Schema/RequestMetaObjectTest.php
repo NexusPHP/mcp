@@ -85,7 +85,7 @@ final class RequestMetaObjectTest extends TestCase
     public function testFromArrayRejectsNonIntOrStringProgressToken(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Progress token must be an int or string, array given.');
+        $this->expectExceptionMessage('"_meta.progressToken" must be an int or string, array given.');
 
         RequestMetaObject::fromArray(['progressToken' => []]);
     }

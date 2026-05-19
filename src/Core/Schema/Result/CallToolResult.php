@@ -52,12 +52,12 @@ final readonly class CallToolResult extends Result implements ServerResult
         MetaObject $meta = new MetaObject(),
     ) {
         Assert::that($content)
-            ->isList('CallToolResult content must be a list, got non-list array.')
+            ->isList('"result.content" must be a list, non-list array given.')
             ->values()->isInstanceOf(ContentBlock::class)
         ;
 
         if (null !== $structuredContent) {
-            Assert::that($structuredContent)->isMap('CallToolResult structuredContent must be a string-keyed map.');
+            Assert::that($structuredContent)->isMap('"result.structuredContent" must be a string-keyed map.');
         }
 
         $this->content = $content;
@@ -69,12 +69,12 @@ final readonly class CallToolResult extends Result implements ServerResult
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('content', 'CallToolResult data missing "content".');
+        Assert::that($data)->hasOffset('content', '"result" missing the required "content" key.');
         Assert::that($data['content'])
-            ->isList('CallToolResult "content" must be a list, {type} given.')
+            ->isList('"result.content" must be a list, {type} given.')
             ->values()
-            ->isArray('CallToolResult content entry must be an object, {type} given.')
-            ->isMap('CallToolResult content entry must be a string-keyed object.')
+            ->isArray('each "result.content" must be an object, {type} given.')
+            ->isMap('each "result.content" must be a string-keyed object.')
         ;
         $content = array_map(
             static fn(array $block): AudioContent|EmbeddedResource|ImageContent|ResourceLink|TextContent => ContentBlockDispatcher::fromArray($block, 'CallToolResult content'),
@@ -85,21 +85,21 @@ final readonly class CallToolResult extends Result implements ServerResult
 
         if (\array_key_exists('structuredContent', $data)) {
             Assert::that($data['structuredContent'])
-                ->isArray('CallToolResult "structuredContent" must be an object, {type} given.')
-                ->isMap('CallToolResult "structuredContent" must be a string-keyed object.')
+                ->isArray('"result.structuredContent" must be an object, {type} given.')
+                ->isMap('"result.structuredContent" must be a string-keyed object.')
             ;
             $structuredContent = $data['structuredContent'];
         }
 
         $isError = $data['isError'] ?? null;
-        Assert::that($isError)->nullOr()->isBool('CallToolResult "isError" must be a bool or null, {type} given.');
+        Assert::that($isError)->nullOr()->isBool('"result.isError" must be a bool or null, {type} given.');
 
         $meta = new MetaObject();
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
-                ->isArray('Result "_meta" must be an object, {type} given.')
-                ->isMap('Result "_meta" must be a string-keyed object.')
+                ->isArray('"result._meta" must be an object, {type} given.')
+                ->isMap('"result._meta" must be a string-keyed object.')
             ;
             $meta = MetaObject::fromArray($data['_meta']);
         }

@@ -62,15 +62,15 @@ final readonly class StringSchema implements Arrayable, PrimitiveSchemaDefinitio
         ?string $format = null,
         public ?string $default = null,
     ) {
-        Assert::that($title)->nullOr()->isNonEmptyString('StringSchema title must be a non-empty string or null.');
-        Assert::that($description)->nullOr()->isNonEmptyString('StringSchema description must be a non-empty string or null.');
-        Assert::that($minLength)->nullOr()->isNaturalInt('StringSchema minLength must be a non-negative integer or null.');
-        Assert::that($maxLength)->nullOr()->isNaturalInt('StringSchema maxLength must be a non-negative integer or null.');
+        Assert::that($title)->nullOr()->isNonEmptyString('string schema "title" must be a non-empty string or null.');
+        Assert::that($description)->nullOr()->isNonEmptyString('string schema "description" must be a non-empty string or null.');
+        Assert::that($minLength)->nullOr()->isNaturalInt('string schema "minLength" must be a non-negative integer or null.');
+        Assert::that($maxLength)->nullOr()->isNaturalInt('string schema "maxLength" must be a non-negative integer or null.');
         Assert::that($format)
             ->nullOr()
             ->isOneOf(
                 [self::FORMAT_DATE, self::FORMAT_DATE_TIME, self::FORMAT_EMAIL, self::FORMAT_URI],
-                'StringSchema format must be one of "date", "date-time", "email", "uri".',
+                'string schema "format" must be one of "date", "date-time", "email", "uri".',
             )
         ;
 
@@ -85,27 +85,27 @@ final readonly class StringSchema implements Arrayable, PrimitiveSchemaDefinitio
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('type', 'StringSchema data missing "type".');
+        Assert::that($data)->hasOffset('type', 'string schema missing the required "type" key.');
         $type = $data['type'];
-        Assert::that($type)->isIdentical(self::TYPE, \sprintf('StringSchema "type" must be "%s", {value} given.', self::TYPE));
+        Assert::that($type)->isIdentical(self::TYPE, 'string schema "type" must be {other}, {value} given.');
 
         $title = $data['title'] ?? null;
-        Assert::that($title)->nullOr()->isString('StringSchema "title" must be a string or null, {type} given.');
+        Assert::that($title)->nullOr()->isString('string schema "title" must be a string or null, {type} given.');
 
         $description = $data['description'] ?? null;
-        Assert::that($description)->nullOr()->isString('StringSchema "description" must be a string or null, {type} given.');
+        Assert::that($description)->nullOr()->isString('string schema "description" must be a string or null, {type} given.');
 
         $minLength = $data['minLength'] ?? null;
-        Assert::that($minLength)->nullOr()->isInt('StringSchema "minLength" must be an int or null, {type} given.');
+        Assert::that($minLength)->nullOr()->isInt('string schema "minLength" must be an int or null, {type} given.');
 
         $maxLength = $data['maxLength'] ?? null;
-        Assert::that($maxLength)->nullOr()->isInt('StringSchema "maxLength" must be an int or null, {type} given.');
+        Assert::that($maxLength)->nullOr()->isInt('string schema "maxLength" must be an int or null, {type} given.');
 
         $format = $data['format'] ?? null;
-        Assert::that($format)->nullOr()->isString('StringSchema "format" must be a string or null, {type} given.');
+        Assert::that($format)->nullOr()->isString('string schema "format" must be a string or null, {type} given.');
 
         $default = $data['default'] ?? null;
-        Assert::that($default)->nullOr()->isString('StringSchema "default" must be a string or null, {type} given.');
+        Assert::that($default)->nullOr()->isString('string schema "default" must be a string or null, {type} given.');
 
         return new self($title, $description, $minLength, $maxLength, $format, $default);
     }

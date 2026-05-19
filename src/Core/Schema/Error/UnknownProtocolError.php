@@ -29,8 +29,8 @@ final readonly class UnknownProtocolError extends Error
     {
         if (ProtocolErrorCode::tryFrom($code) !== null) {
             throw new ExpectationFailedException(
-                'UnknownProtocolError "code" {value} maps to a known ProtocolErrorCode case. Use ErrorFactory::create() or the dedicated subclass instead.',
-                ['value' => $code],
+                'code {value} maps to a known protocol error code.',
+                ['value' => var_export($code, true)],
             );
         }
 
@@ -43,11 +43,11 @@ final readonly class UnknownProtocolError extends Error
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('code', 'UnknownProtocolError data missing "code".');
-        Assert::that($data['code'])->isInt('UnknownProtocolError "code" must be an integer, {type} given.');
+        Assert::that($data)->hasOffset('code', 'missing the required "code" key.');
+        Assert::that($data['code'])->isInt('"code" must be an integer, {type} given.');
 
-        Assert::that($data)->hasOffset('message', 'UnknownProtocolError data missing "message".');
-        Assert::that($data['message'])->isString('UnknownProtocolError "message" must be a string, {type} given.');
+        Assert::that($data)->hasOffset('message', 'missing the required "message" key.');
+        Assert::that($data['message'])->isString('"message" must be a string, {type} given.');
 
         return new self($data['code'], $data['message'], $data['data'] ?? null);
     }

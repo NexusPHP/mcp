@@ -39,23 +39,23 @@ final readonly class BlobResourceContents extends ResourceContents
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('uri', 'BlobResourceContents data missing "uri".');
+        Assert::that($data)->hasOffset('uri', 'blob resource contents missing the required "uri" key.');
         $uri = $data['uri'];
-        Assert::that($uri)->isString('BlobResourceContents "uri" must be a string, {type} given.');
+        Assert::that($uri)->isString('blob resource contents "uri" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('blob', 'BlobResourceContents data missing "blob".');
+        Assert::that($data)->hasOffset('blob', 'blob resource contents missing the required "blob" key.');
         $blob = $data['blob'];
-        Assert::that($blob)->isString('BlobResourceContents "blob" must be a string, {type} given.');
+        Assert::that($blob)->isString('blob resource contents "blob" must be a string, {type} given.');
 
         $mimeType = $data['mimeType'] ?? null;
-        Assert::that($mimeType)->nullOr()->isString('BlobResourceContents "mimeType" must be a string or null, {type} given.');
+        Assert::that($mimeType)->nullOr()->isString('blob resource contents "mimeType" must be a string or null, {type} given.');
 
         $meta = new MetaObject();
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
-                ->isArray('ResourceContents "_meta" must be an object, {type} given.')
-                ->isMap('ResourceContents "_meta" must be a string-keyed object.')
+                ->isArray('blob resource contents "_meta" must be an object, {type} given.')
+                ->isMap('blob resource contents "_meta" must be a string-keyed object.')
             ;
             $meta = MetaObject::fromArray($data['_meta']);
         }

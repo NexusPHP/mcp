@@ -53,8 +53,8 @@ final readonly class AudioContent implements Arrayable, ContentBlock, SamplingMe
         public Annotations $annotations = new Annotations(),
         public MetaObject $meta = new MetaObject(),
     ) {
-        Assert::that($data)->isNonEmptyString('AudioContent data must be a non-empty string.');
-        Assert::that($mimeType)->isNonEmptyString('AudioContent mimeType must be a non-empty string.');
+        Assert::that($data)->isNonEmptyString('audio content "data" must be a non-empty string.');
+        Assert::that($mimeType)->isNonEmptyString('audio content "mimeType" must be a non-empty string.');
 
         $this->data = $data;
         $this->mimeType = $mimeType;
@@ -66,24 +66,24 @@ final readonly class AudioContent implements Arrayable, ContentBlock, SamplingMe
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('type', 'AudioContent data missing "type".');
+        Assert::that($data)->hasOffset('type', 'audio content missing the required "type" key.');
         $type = $data['type'];
-        Assert::that($type)->isIdentical(self::TYPE, \sprintf('AudioContent "type" must be "%s", {value} given.', self::TYPE));
+        Assert::that($type)->isIdentical(self::TYPE, 'audio content "type" must be {other}, {value} given.');
 
-        Assert::that($data)->hasOffset('data', 'AudioContent data missing "data".');
+        Assert::that($data)->hasOffset('data', 'audio content missing the required "data" key.');
         $payload = $data['data'];
-        Assert::that($payload)->isString('AudioContent "data" must be a string, {type} given.');
+        Assert::that($payload)->isString('audio content "data" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('mimeType', 'AudioContent data missing "mimeType".');
+        Assert::that($data)->hasOffset('mimeType', 'audio content missing the required "mimeType" key.');
         $mimeType = $data['mimeType'];
-        Assert::that($mimeType)->isString('AudioContent "mimeType" must be a string, {type} given.');
+        Assert::that($mimeType)->isString('audio content "mimeType" must be a string, {type} given.');
 
         $annotations = new Annotations();
 
         if (\array_key_exists('annotations', $data)) {
             Assert::that($data['annotations'])
-                ->isArray('AudioContent "annotations" must be an object, {type} given.')
-                ->isMap('AudioContent "annotations" must be a string-keyed object.')
+                ->isArray('audio content "annotations" must be an object, {type} given.')
+                ->isMap('audio content "annotations" must be a string-keyed object.')
             ;
             $annotations = Annotations::fromArray($data['annotations']);
         }
@@ -92,8 +92,8 @@ final readonly class AudioContent implements Arrayable, ContentBlock, SamplingMe
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
-                ->isArray('AudioContent "_meta" must be an object, {type} given.')
-                ->isMap('AudioContent "_meta" must be a string-keyed object.')
+                ->isArray('audio content "_meta" must be an object, {type} given.')
+                ->isMap('audio content "_meta" must be a string-keyed object.')
             ;
             $meta = MetaObject::fromArray($data['_meta']);
         }

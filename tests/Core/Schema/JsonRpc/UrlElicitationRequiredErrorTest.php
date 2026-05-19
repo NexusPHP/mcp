@@ -136,7 +136,7 @@ final class UrlElicitationRequiredErrorTest extends TestCase
     public function testConstructorRejectsWrongErrorCode(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('UrlElicitationRequiredError inner error code must be -32042, -32600 given.');
+        $this->expectExceptionMessage('"error" code must be -32042, -32600 given.');
 
         new UrlElicitationRequiredError(
             new RequestId('r-1'),
@@ -149,7 +149,7 @@ final class UrlElicitationRequiredErrorTest extends TestCase
     public function testConstructorRejectsNonListElicitations(mixed $elicitations): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('UrlElicitationRequiredError elicitations must be a list, got non-list array.');
+        $this->expectExceptionMessage('"elicitations" must be a list, non-list array given.');
 
         new UrlElicitationRequiredError(
             null,
@@ -185,62 +185,62 @@ final class UrlElicitationRequiredErrorTest extends TestCase
     {
         yield 'id not an array key' => [
             ['id' => 1.5, 'error' => []],
-            'UrlElicitationRequiredError "id" must be int, string, or null; float given.',
+            '"id" must be int, string, or null; float given.',
         ];
 
         yield 'missing error' => [
             [],
-            'UrlElicitationRequiredError data missing "error".',
+            'missing the required "error" key.',
         ];
 
         yield 'error not an object' => [
             ['error' => 'oops'],
-            'UrlElicitationRequiredError "error" must be an object, string given.',
+            '"error" must be an object, string given.',
         ];
 
         yield 'error list-keyed' => [
             ['error' => ['x']],
-            'UrlElicitationRequiredError "error" must be a string-keyed object.',
+            '"error" must be a string-keyed object.',
         ];
 
         yield 'error missing data' => [
             ['error' => ['code' => -32042, 'message' => 'm']],
-            'UrlElicitationRequiredError error data missing "data".',
+            'missing the required "data" key.',
         ];
 
         yield 'error data not an object' => [
             ['error' => ['code' => -32042, 'message' => 'm', 'data' => 'oops']],
-            'UrlElicitationRequiredError error "data" must be an object, string given.',
+            '"error.data" must be an object, string given.',
         ];
 
         yield 'error data list-keyed' => [
             ['error' => ['code' => -32042, 'message' => 'm', 'data' => ['x']]],
-            'UrlElicitationRequiredError error "data" must be a string-keyed object.',
+            '"error.data" must be a string-keyed object.',
         ];
 
         yield 'error data missing elicitations' => [
             ['error' => ['code' => -32042, 'message' => 'm', 'data' => []]],
-            'UrlElicitationRequiredError error data missing "elicitations".',
+            'missing the required "elicitations" key.',
         ];
 
         yield 'elicitations not a list' => [
             ['error' => ['code' => -32042, 'message' => 'm', 'data' => ['elicitations' => ['k' => []]]]],
-            'UrlElicitationRequiredError "elicitations" must be a list, got non-list array.',
+            '"error.data.elicitations" must be a list, non-list array given.',
         ];
 
         yield 'elicitations entry not an object' => [
             ['error' => ['code' => -32042, 'message' => 'm', 'data' => ['elicitations' => ['oops']]]],
-            'UrlElicitationRequiredError elicitations entry must be an object, string given.',
+            'each "error.data.elicitations" must be an object, string given.',
         ];
 
         yield 'elicitations entry list-keyed' => [
             ['error' => ['code' => -32042, 'message' => 'm', 'data' => ['elicitations' => [['x']]]]],
-            'UrlElicitationRequiredError elicitations entry must be a string-keyed object.',
+            'each "error.data.elicitations" must be a string-keyed object.',
         ];
 
         yield 'error message not a string' => [
             ['error' => ['code' => -32042, 'data' => ['elicitations' => []]]],
-            'UrlElicitationRequiredError error "message" must be a string, null given.',
+            '"error.message" must be a string, null given.',
         ];
     }
 }

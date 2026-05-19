@@ -146,7 +146,7 @@ final class ElicitRequestFormParamsTest extends TestCase
     public function testConstructorRejectsEmptyMessage(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ElicitRequestFormParams message must be a non-empty string.');
+        $this->expectExceptionMessage('"params.message" must be a non-empty string.');
 
         new ElicitRequestFormParams('', new ElicitRequestedSchema(['x' => new StringSchema()]));
     }
@@ -154,7 +154,7 @@ final class ElicitRequestFormParamsTest extends TestCase
     public function testConstructorRejectsWrongMode(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ElicitRequestFormParams mode must be "form", \'url\' given.');
+        $this->expectExceptionMessage('"params.mode" must be \'form\', \'url\' given.');
 
         new ElicitRequestFormParams(
             'Pick',
@@ -182,42 +182,42 @@ final class ElicitRequestFormParamsTest extends TestCase
     {
         yield 'mode not a string' => [
             ['mode' => 1, 'message' => 'm', 'requestedSchema' => ['type' => 'object', 'properties' => []]],
-            'ElicitRequestFormParams "mode" must be a string, int given.',
+            '"params.mode" must be a string, int given.',
         ];
 
         yield 'missing message' => [
             ['requestedSchema' => ['type' => 'object', 'properties' => []]],
-            'ElicitRequestFormParams data missing "message".',
+            'missing the required "message" key.',
         ];
 
         yield 'message not a string' => [
             ['message' => 1, 'requestedSchema' => ['type' => 'object', 'properties' => []]],
-            'ElicitRequestFormParams "message" must be a string, int given.',
+            '"params.message" must be a string, int given.',
         ];
 
         yield 'missing requestedSchema' => [
             ['message' => 'm'],
-            'ElicitRequestFormParams data missing "requestedSchema".',
+            'missing the required "requestedSchema" key.',
         ];
 
         yield 'requestedSchema not an object' => [
             ['message' => 'm', 'requestedSchema' => 'oops'],
-            'ElicitRequestFormParams "requestedSchema" must be an object, string given.',
+            '"params.requestedSchema" must be an object, string given.',
         ];
 
         yield 'requestedSchema list-keyed' => [
             ['message' => 'm', 'requestedSchema' => ['x']],
-            'ElicitRequestFormParams "requestedSchema" must be a string-keyed object.',
+            '"params.requestedSchema" must be a string-keyed object.',
         ];
 
         yield 'task not an object' => [
             ['message' => 'm', 'requestedSchema' => ['type' => 'object', 'properties' => []], 'task' => 'oops'],
-            'ElicitRequestFormParams "task" must be an object, string given.',
+            '"params.task" must be an object, string given.',
         ];
 
         yield 'task list-keyed' => [
             ['message' => 'm', 'requestedSchema' => ['type' => 'object', 'properties' => []], 'task' => ['x']],
-            'ElicitRequestFormParams "task" must be a string-keyed object.',
+            '"params.task" must be a string-keyed object.',
         ];
     }
 }

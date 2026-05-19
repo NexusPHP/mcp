@@ -109,22 +109,22 @@ final class ListToolsRequestTest extends TestCase
     {
         yield 'missing id' => [
             ['jsonrpc' => '2.0', 'method' => 'tools/list'],
-            'ListToolsRequest data missing "id".',
+            'missing the required "id" key.',
         ];
 
         yield 'id not int or string' => [
             ['jsonrpc' => '2.0', 'id' => [], 'method' => 'tools/list'],
-            'ListToolsRequest "id" must be int or string, array given.',
+            '"id" must be int or string, array given.',
         ];
 
         yield 'params not an object' => [
             ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/list', 'params' => 'bad'],
-            'ListToolsRequest "params" must be an object, string given.',
+            '"params" must be an object, string given.',
         ];
 
         yield 'params list-keyed' => [
             ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/list', 'params' => ['x']],
-            'ListToolsRequest "params" must be a string-keyed object.',
+            '"params" must be a string-keyed object.',
         ];
     }
 }

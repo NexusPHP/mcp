@@ -39,7 +39,7 @@ final readonly class ReadResourceResult extends Result implements ServerResult
     public function __construct(array $contents, MetaObject $meta = new MetaObject())
     {
         Assert::that($contents)
-            ->isList('ReadResourceResult contents must be a list, got non-list array.')
+            ->isList('"result.contents" must be a list, non-list array given.')
             ->values()->isInstanceOf(ResourceContents::class)
         ;
 
@@ -54,12 +54,12 @@ final readonly class ReadResourceResult extends Result implements ServerResult
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('contents', 'ReadResourceResult data missing "contents".');
+        Assert::that($data)->hasOffset('contents', '"result" missing the required "contents" key.');
         Assert::that($data['contents'])
-            ->isList('ReadResourceResult "contents" must be a list, {type} given.')
+            ->isList('"result.contents" must be a list, {type} given.')
             ->values()
-            ->isArray('ReadResourceResult contents entry must be an object, {type} given.')
-            ->isMap('ReadResourceResult contents entry must be a string-keyed object.')
+            ->isArray('each "result.contents" must be an object, {type} given.')
+            ->isMap('each "result.contents" must be a string-keyed object.')
         ;
         $contents = array_map(
             static fn(array $entry): BlobResourceContents|TextResourceContents => ResourceContentsDispatcher::fromArray($entry, 'ReadResourceResult contents'),
@@ -70,8 +70,8 @@ final readonly class ReadResourceResult extends Result implements ServerResult
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
-                ->isArray('Result "_meta" must be an object, {type} given.')
-                ->isMap('Result "_meta" must be a string-keyed object.')
+                ->isArray('"result._meta" must be an object, {type} given.')
+                ->isMap('"result._meta" must be a string-keyed object.')
             ;
             $meta = MetaObject::fromArray($data['_meta']);
         }

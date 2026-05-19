@@ -36,7 +36,7 @@ final class Rfc6570UriTemplateValidatorTest extends TestCase
     {
         $this->expectNotToPerformAssertions();
 
-        Rfc6570UriTemplateValidator::validate($uriTemplate, 'ResourceTemplate');
+        Rfc6570UriTemplateValidator::validate($uriTemplate, 'resource template "uriTemplate"');
     }
 
     /**
@@ -88,30 +88,30 @@ final class Rfc6570UriTemplateValidatorTest extends TestCase
      */
     public static function provideRejectsInvalidUriTemplateCases(): iterable
     {
-        yield 'empty string' => ['', 'ResourceTemplate', '/\AResourceTemplate URI template must be a non-empty string\./'];
+        yield 'empty string' => ['', 'resource template "uriTemplate"', '/\Aresource template "uriTemplate" must be a non-empty string\./'];
 
-        yield 'no scheme' => ['my-template/{name}', 'ResourceTemplate', '/\AResourceTemplate URI template must be a valid RFC 6570/'];
+        yield 'no scheme' => ['my-template/{name}', 'resource template "uriTemplate"', '/\Aresource template "uriTemplate" must be a valid RFC 6570/'];
 
-        yield 'scheme starts with digit' => ['1http://example.com/{x}', 'ResourceTemplate', '/\AResourceTemplate URI template must be a valid RFC 6570/'];
+        yield 'scheme starts with digit' => ['1http://example.com/{x}', 'resource template "uriTemplate"', '/\Aresource template "uriTemplate" must be a valid RFC 6570/'];
 
-        yield 'embedded space' => ['file:///path/{name with space}', 'ResourceTemplate', '/\AResourceTemplate URI template must contain only ASCII printable/'];
+        yield 'embedded space' => ['file:///path/{name with space}', 'resource template "uriTemplate"', '/\Aresource template "uriTemplate" must contain only ASCII printable/'];
 
-        yield 'tab character' => ["file:///x\t{y}", 'ResourceTemplate', '/\AResourceTemplate URI template must contain only ASCII printable/'];
+        yield 'tab character' => ["file:///x\t{y}", 'resource template "uriTemplate"', '/\Aresource template "uriTemplate" must contain only ASCII printable/'];
 
-        yield 'newline' => ["file:///x\n{y}", 'ResourceTemplate', '/\AResourceTemplate URI template must contain only ASCII printable/'];
+        yield 'newline' => ["file:///x\n{y}", 'resource template "uriTemplate"', '/\Aresource template "uriTemplate" must contain only ASCII printable/'];
 
-        yield 'null byte' => ["file:///x\0{y}", 'ResourceTemplate', '/\AResourceTemplate URI template must contain only ASCII printable/'];
+        yield 'null byte' => ["file:///x\0{y}", 'resource template "uriTemplate"', '/\Aresource template "uriTemplate" must contain only ASCII printable/'];
 
-        yield 'non-ASCII path' => ['file:///résumé/{x}', 'ResourceTemplate', '/\AResourceTemplate URI template must contain only ASCII printable/'];
+        yield 'non-ASCII path' => ['file:///résumé/{x}', 'resource template "uriTemplate"', '/\Aresource template "uriTemplate" must contain only ASCII printable/'];
 
-        yield 'unbalanced opening brace' => ['file:///tmp/{name', 'ResourceTemplate', '/\AResourceTemplate URI template must be a valid RFC 6570/'];
+        yield 'unbalanced opening brace' => ['file:///tmp/{name', 'resource template "uriTemplate"', '/\Aresource template "uriTemplate" must be a valid RFC 6570/'];
 
-        yield 'unbalanced closing brace' => ['file:///tmp/name}', 'ResourceTemplate', '/\AResourceTemplate URI template must be a valid RFC 6570/'];
+        yield 'unbalanced closing brace' => ['file:///tmp/name}', 'resource template "uriTemplate"', '/\Aresource template "uriTemplate" must be a valid RFC 6570/'];
 
-        yield 'empty expression' => ['file:///tmp/{}', 'ResourceTemplate', '/\AResourceTemplate URI template must be a valid RFC 6570/'];
+        yield 'empty expression' => ['file:///tmp/{}', 'resource template "uriTemplate"', '/\Aresource template "uriTemplate" must be a valid RFC 6570/'];
 
-        yield 'nested braces' => ['file:///tmp/{{x}}', 'ResourceTemplate', '/\AResourceTemplate URI template must be a valid RFC 6570/'];
+        yield 'nested braces' => ['file:///tmp/{{x}}', 'resource template "uriTemplate"', '/\Aresource template "uriTemplate" must be a valid RFC 6570/'];
 
-        yield 'context prefix interpolated' => ['no-scheme', 'ResourceTemplateReference', '/\AResourceTemplateReference URI template must be a valid RFC 6570/'];
+        yield 'context prefix interpolated' => ['no-scheme', 'resource template reference "uri"', '/\Aresource template reference "uri" must be a valid RFC 6570/'];
     }
 }

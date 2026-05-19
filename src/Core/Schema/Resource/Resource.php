@@ -81,11 +81,11 @@ final readonly class Resource extends BaseMetadata implements Arrayable, Icons
     ) {
         parent::__construct($name, $title);
 
-        IdentifierNameValidator::validate($name, 'Resource');
-        Rfc3986UriValidator::validate($uri, 'Resource');
+        IdentifierNameValidator::validate($name, 'resource "name"');
+        Rfc3986UriValidator::validate($uri, 'resource "uri"');
 
-        Assert::that($description)->nullOr()->isNonEmptyString('Resource description must be a non-empty string or null.');
-        Assert::that($mimeType)->nullOr()->isNonEmptyString('Resource mimeType must be a non-empty string or null.');
+        Assert::that($description)->nullOr()->isNonEmptyString('resource "description" must be a non-empty string or null.');
+        Assert::that($mimeType)->nullOr()->isNonEmptyString('resource "mimeType" must be a non-empty string or null.');
 
         if (null !== $icons) {
             Assert::that($icons)->values()->isInstanceOf(Icon::class);
@@ -103,29 +103,29 @@ final readonly class Resource extends BaseMetadata implements Arrayable, Icons
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('name', 'Resource data missing "name".');
+        Assert::that($data)->hasOffset('name', 'resource missing the required "name" key.');
         $name = $data['name'];
-        Assert::that($name)->isString('Resource "name" must be a string, {type} given.');
+        Assert::that($name)->isString('resource "name" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('uri', 'Resource data missing "uri".');
+        Assert::that($data)->hasOffset('uri', 'resource missing the required "uri" key.');
         $uri = $data['uri'];
-        Assert::that($uri)->isString('Resource "uri" must be a string, {type} given.');
+        Assert::that($uri)->isString('resource "uri" must be a string, {type} given.');
 
         $title = $data['title'] ?? null;
-        Assert::that($title)->nullOr()->isString('Resource "title" must be a string or null, {type} given.');
+        Assert::that($title)->nullOr()->isString('resource "title" must be a string or null, {type} given.');
 
         $description = $data['description'] ?? null;
-        Assert::that($description)->nullOr()->isString('Resource "description" must be a string or null, {type} given.');
+        Assert::that($description)->nullOr()->isString('resource "description" must be a string or null, {type} given.');
 
         $mimeType = $data['mimeType'] ?? null;
-        Assert::that($mimeType)->nullOr()->isString('Resource "mimeType" must be a string or null, {type} given.');
+        Assert::that($mimeType)->nullOr()->isString('resource "mimeType" must be a string or null, {type} given.');
 
         $annotations = new Annotations();
 
         if (\array_key_exists('annotations', $data)) {
             Assert::that($data['annotations'])
-                ->isArray('Resource "annotations" must be an object, {type} given.')
-                ->isMap('Resource "annotations" must be a string-keyed object.')
+                ->isArray('resource "annotations" must be an object, {type} given.')
+                ->isMap('resource "annotations" must be a string-keyed object.')
             ;
             $annotations = Annotations::fromArray($data['annotations']);
         }
@@ -133,17 +133,17 @@ final readonly class Resource extends BaseMetadata implements Arrayable, Icons
         $size = $data['size'] ?? null;
 
         if (null !== $size) {
-            $size = self::parseNumber($size, 'Resource "size" must be a number or null, {type} given.');
+            $size = self::parseNumber($size, 'resource "size" must be a number or null, {type} given.');
         }
 
         $icons = null;
 
         if (isset($data['icons'])) {
             Assert::that($data['icons'])
-                ->isList('Resource "icons" must be a list, {type} given.')
+                ->isList('resource "icons" must be a list, {type} given.')
                 ->values()
-                ->isArray('Resource icon entry must be an object, {type} given.')
-                ->isMap('Resource icon entry must be a string-keyed object.')
+                ->isArray('each resource "icon" must be an object, {type} given.')
+                ->isMap('each resource "icon" must be a string-keyed object.')
             ;
             $icons = array_map(Icon::fromArray(...), $data['icons']);
         }
@@ -152,8 +152,8 @@ final readonly class Resource extends BaseMetadata implements Arrayable, Icons
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
-                ->isArray('Resource "_meta" must be an object, {type} given.')
-                ->isMap('Resource "_meta" must be a string-keyed object.')
+                ->isArray('resource "_meta" must be an object, {type} given.')
+                ->isMap('resource "_meta" must be a string-keyed object.')
             ;
             $meta = MetaObject::fromArray($data['_meta']);
         }

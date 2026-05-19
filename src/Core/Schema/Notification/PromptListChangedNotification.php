@@ -41,8 +41,8 @@ final readonly class PromptListChangedNotification extends JsonRpcNotification i
 
         if (\array_key_exists('params', $data)) {
             Assert::that($data['params'])
-                ->isArray('PromptListChangedNotification "params" must be an object, {type} given.')
-                ->isMap('PromptListChangedNotification "params" must be a string-keyed object.')
+                ->isArray('"params" must be an object, {type} given.')
+                ->isMap('"params" must be a string-keyed object.')
             ;
             $params = EmptyNotificationParams::fromArray($data['params']);
         }

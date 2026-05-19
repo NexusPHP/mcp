@@ -156,7 +156,7 @@ final class ResourceTemplateTest extends TestCase
     public function testConstructorRejectsInvalidName(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageMatches('/\AResourceTemplate name must be 1-128 characters/');
+        $this->expectExceptionMessageMatches('/\Aresource template "name" must be 1-128 characters/');
 
         new ResourceTemplate('my template', 'file:///tmp/{name}');
     }
@@ -164,7 +164,7 @@ final class ResourceTemplateTest extends TestCase
     public function testConstructorRejectsEmptyUriTemplate(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ResourceTemplate URI template must be a non-empty string.');
+        $this->expectExceptionMessage('resource template "uriTemplate" must be a non-empty string.');
 
         new ResourceTemplate('my-template', '');
     }
@@ -172,7 +172,7 @@ final class ResourceTemplateTest extends TestCase
     public function testConstructorRejectsInvalidUriTemplate(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageMatches('/\AResourceTemplate URI template must be a valid RFC 6570/');
+        $this->expectExceptionMessageMatches('/\Aresource template "uriTemplate" must be a valid RFC 6570/');
 
         new ResourceTemplate('my-template', 'not-a-template');
     }
@@ -180,7 +180,7 @@ final class ResourceTemplateTest extends TestCase
     public function testConstructorRejectsEmptyDescription(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ResourceTemplate description must be a non-empty string or null.');
+        $this->expectExceptionMessage('resource template "description" must be a non-empty string or null.');
 
         new ResourceTemplate('my-template', 'file:///tmp/{name}', null, '');
     }
@@ -188,7 +188,7 @@ final class ResourceTemplateTest extends TestCase
     public function testConstructorRejectsEmptyMimeType(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ResourceTemplate mimeType must be a non-empty string or null.');
+        $this->expectExceptionMessage('resource template "mimeType" must be a non-empty string or null.');
 
         new ResourceTemplate('my-template', 'file:///tmp/{name}', null, null, '');
     }
@@ -220,72 +220,72 @@ final class ResourceTemplateTest extends TestCase
     {
         yield 'missing name' => [
             ['uriTemplate' => 'file:///tmp/{name}'],
-            'ResourceTemplate data missing "name".',
+            'resource template missing the required "name" key.',
         ];
 
         yield 'missing uriTemplate' => [
             ['name' => 'my-template'],
-            'ResourceTemplate data missing "uriTemplate".',
+            'resource template missing the required "uriTemplate" key.',
         ];
 
         yield 'name not a string' => [
             ['name' => 1, 'uriTemplate' => 'file:///tmp/{name}'],
-            'ResourceTemplate "name" must be a string, int given.',
+            'resource template "name" must be a string, int given.',
         ];
 
         yield 'uriTemplate not a string' => [
             ['name' => 'my-template', 'uriTemplate' => 1],
-            'ResourceTemplate "uriTemplate" must be a string, int given.',
+            'resource template "uriTemplate" must be a string, int given.',
         ];
 
         yield 'title not a string' => [
             ['name' => 'my-template', 'uriTemplate' => 'file:///tmp/{name}', 'title' => 1],
-            'ResourceTemplate "title" must be a string or null, int given.',
+            'resource template "title" must be a string or null, int given.',
         ];
 
         yield 'description not a string' => [
             ['name' => 'my-template', 'uriTemplate' => 'file:///tmp/{name}', 'description' => 1],
-            'ResourceTemplate "description" must be a string or null, int given.',
+            'resource template "description" must be a string or null, int given.',
         ];
 
         yield 'mimeType not a string' => [
             ['name' => 'my-template', 'uriTemplate' => 'file:///tmp/{name}', 'mimeType' => 1],
-            'ResourceTemplate "mimeType" must be a string or null, int given.',
+            'resource template "mimeType" must be a string or null, int given.',
         ];
 
         yield 'annotations not an object' => [
             ['name' => 'my-template', 'uriTemplate' => 'file:///tmp/{name}', 'annotations' => 'oops'],
-            'ResourceTemplate "annotations" must be an object, string given.',
+            'resource template "annotations" must be an object, string given.',
         ];
 
         yield 'annotations list-keyed' => [
             ['name' => 'my-template', 'uriTemplate' => 'file:///tmp/{name}', 'annotations' => ['x']],
-            'ResourceTemplate "annotations" must be a string-keyed object.',
+            'resource template "annotations" must be a string-keyed object.',
         ];
 
         yield 'icons not an array' => [
             ['name' => 'my-template', 'uriTemplate' => 'file:///tmp/{name}', 'icons' => 'oops'],
-            'ResourceTemplate "icons" must be a list, string given.',
+            'resource template "icons" must be a list, string given.',
         ];
 
         yield 'icon entry not an object' => [
             ['name' => 'my-template', 'uriTemplate' => 'file:///tmp/{name}', 'icons' => ['oops']],
-            'ResourceTemplate icon entry must be an object, string given.',
+            'each resource template "icons" must be an object, string given.',
         ];
 
         yield 'icon entry list-keyed' => [
             ['name' => 'my-template', 'uriTemplate' => 'file:///tmp/{name}', 'icons' => [['x']]],
-            'ResourceTemplate icon entry must be a string-keyed object.',
+            'each resource template "icons" must be a string-keyed object.',
         ];
 
         yield '_meta not an object' => [
             ['name' => 'my-template', 'uriTemplate' => 'file:///tmp/{name}', '_meta' => 'oops'],
-            'ResourceTemplate "_meta" must be an object, string given.',
+            'resource template "_meta" must be an object, string given.',
         ];
 
         yield '_meta list-keyed' => [
             ['name' => 'my-template', 'uriTemplate' => 'file:///tmp/{name}', '_meta' => ['x']],
-            'ResourceTemplate "_meta" must be a string-keyed object.',
+            'resource template "_meta" must be a string-keyed object.',
         ];
     }
 }

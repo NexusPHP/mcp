@@ -39,7 +39,7 @@ final readonly class InitializeResult extends Result implements ServerResult
         ?string $instructions = null,
         MetaObject $meta = new MetaObject(),
     ) {
-        Assert::that($instructions)->nullOr()->isNonEmptyString('InitializeResult instructions must be a non-empty string or null.');
+        Assert::that($instructions)->nullOr()->isNonEmptyString('"result.instructions" must be a non-empty string or null.');
 
         $this->instructions = $instructions;
 
@@ -49,31 +49,31 @@ final readonly class InitializeResult extends Result implements ServerResult
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('protocolVersion', 'InitializeResult data missing "protocolVersion".');
+        Assert::that($data)->hasOffset('protocolVersion', '"result" missing the required "protocolVersion" key.');
         $protocolVersion = $data['protocolVersion'];
-        Assert::that($protocolVersion)->isString('InitializeResult "protocolVersion" must be a string, {type} given.');
+        Assert::that($protocolVersion)->isString('"result.protocolVersion" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('capabilities', 'InitializeResult data missing "capabilities".');
+        Assert::that($data)->hasOffset('capabilities', '"result" missing the required "capabilities" key.');
         Assert::that($data['capabilities'])
-            ->isArray('InitializeResult "capabilities" must be an object, {type} given.')
-            ->isMap('InitializeResult "capabilities" must be a string-keyed object.')
+            ->isArray('"result.capabilities" must be an object, {type} given.')
+            ->isMap('"result.capabilities" must be a string-keyed object.')
         ;
 
-        Assert::that($data)->hasOffset('serverInfo', 'InitializeResult data missing "serverInfo".');
+        Assert::that($data)->hasOffset('serverInfo', '"result" missing the required "serverInfo" key.');
         Assert::that($data['serverInfo'])
-            ->isArray('InitializeResult "serverInfo" must be an object, {type} given.')
-            ->isMap('InitializeResult "serverInfo" must be a string-keyed object.')
+            ->isArray('"result.serverInfo" must be an object, {type} given.')
+            ->isMap('"result.serverInfo" must be a string-keyed object.')
         ;
 
         $instructions = $data['instructions'] ?? null;
-        Assert::that($instructions)->nullOr()->isString('InitializeResult "instructions" must be a string or null, {type} given.');
+        Assert::that($instructions)->nullOr()->isString('"result.instructions" must be a string or null, {type} given.');
 
         $meta = new MetaObject();
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
-                ->isArray('Result "_meta" must be an object, {type} given.')
-                ->isMap('Result "_meta" must be a string-keyed object.')
+                ->isArray('"result._meta" must be an object, {type} given.')
+                ->isMap('"result._meta" must be a string-keyed object.')
             ;
             $meta = MetaObject::fromArray($data['_meta']);
         }

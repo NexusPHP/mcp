@@ -29,7 +29,7 @@ final readonly class Cursor
 
     public function __construct(string $cursor)
     {
-        Assert::that($cursor)->isNonEmptyString('Cursor must be a non-empty string.');
+        Assert::that($cursor)->isNonEmptyString('"cursor" must be a non-empty string.');
 
         $this->cursor = $cursor;
     }

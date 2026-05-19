@@ -181,7 +181,7 @@ final class ReadResourceResultTest extends TestCase
     public function testConstructorRejectsNonListContents(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ReadResourceResult contents must be a list, got non-list array.');
+        $this->expectExceptionMessage('"result.contents" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
         new ReadResourceResult([5 => new TextResourceContents('file:///x', 'hi')]);
@@ -214,22 +214,22 @@ final class ReadResourceResultTest extends TestCase
     {
         yield 'missing contents' => [
             [],
-            'ReadResourceResult data missing "contents".',
+            '"result" missing the required "contents" key.',
         ];
 
         yield 'contents not an array' => [
             ['contents' => 'oops'],
-            'ReadResourceResult "contents" must be a list, string given.',
+            '"result.contents" must be a list, string given.',
         ];
 
         yield 'contents entry not an object' => [
             ['contents' => ['oops']],
-            'ReadResourceResult contents entry must be an object, string given.',
+            'each "result.contents" must be an object, string given.',
         ];
 
         yield 'contents entry list-keyed' => [
             ['contents' => [['x']]],
-            'ReadResourceResult contents entry must be a string-keyed object.',
+            'each "result.contents" must be a string-keyed object.',
         ];
 
         yield 'contents entry missing discriminator' => [
@@ -239,12 +239,12 @@ final class ReadResourceResultTest extends TestCase
 
         yield '_meta not an object' => [
             ['contents' => [], '_meta' => 'oops'],
-            'Result "_meta" must be an object, string given.',
+            '"result._meta" must be an object, string given.',
         ];
 
         yield '_meta list-keyed' => [
             ['contents' => [], '_meta' => ['x']],
-            'Result "_meta" must be a string-keyed object.',
+            '"result._meta" must be a string-keyed object.',
         ];
     }
 }

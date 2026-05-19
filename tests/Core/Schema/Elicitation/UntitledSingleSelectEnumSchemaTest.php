@@ -80,7 +80,7 @@ final class UntitledSingleSelectEnumSchemaTest extends TestCase
     public function testConstructorRejectsNonListEnum(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('UntitledSingleSelectEnumSchema enum must be a list, got non-list array.');
+        $this->expectExceptionMessage('untitled single select enum schema "enum" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
         new UntitledSingleSelectEnumSchema(['k' => 'v']);
@@ -89,7 +89,7 @@ final class UntitledSingleSelectEnumSchemaTest extends TestCase
     public function testConstructorRejectsEmptyEnumEntry(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('UntitledSingleSelectEnumSchema enum entry must be a non-empty string.');
+        $this->expectExceptionMessage('each untitled single select enum schema "enum" must be a non-empty string.');
 
         new UntitledSingleSelectEnumSchema(['']);
     }
@@ -97,7 +97,7 @@ final class UntitledSingleSelectEnumSchemaTest extends TestCase
     public function testConstructorRejectsEmptyTitle(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('UntitledSingleSelectEnumSchema title must be a non-empty string or null.');
+        $this->expectExceptionMessage('untitled single select enum schema "title" must be a non-empty string or null.');
 
         new UntitledSingleSelectEnumSchema(['a'], '');
     }
@@ -105,7 +105,7 @@ final class UntitledSingleSelectEnumSchemaTest extends TestCase
     public function testConstructorRejectsEmptyDescription(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('UntitledSingleSelectEnumSchema description must be a non-empty string or null.');
+        $this->expectExceptionMessage('untitled single select enum schema "description" must be a non-empty string or null.');
 
         new UntitledSingleSelectEnumSchema(['a'], null, '');
     }
@@ -129,42 +129,42 @@ final class UntitledSingleSelectEnumSchemaTest extends TestCase
     {
         yield 'missing type' => [
             ['enum' => ['a']],
-            'UntitledSingleSelectEnumSchema data missing "type".',
+            'untitled single select enum schema missing the required "type" key.',
         ];
 
         yield 'wrong type literal' => [
             ['type' => 'number', 'enum' => ['a']],
-            'UntitledSingleSelectEnumSchema "type" must be "string", \'number\' given.',
+            'untitled single select enum schema "type" must be \'string\', \'number\' given.',
         ];
 
         yield 'missing enum' => [
             ['type' => 'string'],
-            'UntitledSingleSelectEnumSchema data missing "enum".',
+            'untitled single select enum schema missing the required "enum" key.',
         ];
 
         yield 'enum not a list' => [
             ['type' => 'string', 'enum' => ['k' => 'v']],
-            'UntitledSingleSelectEnumSchema "enum" must be a list, got non-list array.',
+            'untitled single select enum schema "enum" must be a list, non-list array given.',
         ];
 
         yield 'enum entry not a string' => [
             ['type' => 'string', 'enum' => [1]],
-            'UntitledSingleSelectEnumSchema "enum" entry must be a string, int given.',
+            'each untitled single select enum schema "enum" must be a string, int given.',
         ];
 
         yield 'title not a string' => [
             ['type' => 'string', 'enum' => ['a'], 'title' => 1],
-            'UntitledSingleSelectEnumSchema "title" must be a string or null, int given.',
+            'untitled single select enum schema "title" must be a string or null, int given.',
         ];
 
         yield 'description not a string' => [
             ['type' => 'string', 'enum' => ['a'], 'description' => 1],
-            'UntitledSingleSelectEnumSchema "description" must be a string or null, int given.',
+            'untitled single select enum schema "description" must be a string or null, int given.',
         ];
 
         yield 'default not a string' => [
             ['type' => 'string', 'enum' => ['a'], 'default' => 1],
-            'UntitledSingleSelectEnumSchema "default" must be a string or null, int given.',
+            'untitled single select enum schema "default" must be a string or null, int given.',
         ];
     }
 }

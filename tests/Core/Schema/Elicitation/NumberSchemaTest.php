@@ -105,7 +105,7 @@ final class NumberSchemaTest extends TestCase
     public function testConstructorRejectsUnknownType(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('NumberSchema type must be one of "number", "integer".');
+        $this->expectExceptionMessage('number schema "type" must be one of [\'number\', \'integer\'].');
 
         new NumberSchema('string');
     }
@@ -113,7 +113,7 @@ final class NumberSchemaTest extends TestCase
     public function testConstructorRejectsEmptyTitle(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('NumberSchema title must be a non-empty string or null.');
+        $this->expectExceptionMessage('number schema "title" must be a non-empty string or null.');
 
         new NumberSchema('number', '');
     }
@@ -121,7 +121,7 @@ final class NumberSchemaTest extends TestCase
     public function testConstructorRejectsEmptyDescription(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('NumberSchema description must be a non-empty string or null.');
+        $this->expectExceptionMessage('number schema "description" must be a non-empty string or null.');
 
         new NumberSchema('number', null, '');
     }
@@ -145,42 +145,42 @@ final class NumberSchemaTest extends TestCase
     {
         yield 'missing type' => [
             [],
-            'NumberSchema data missing "type".',
+            'number schema missing the required "type" key.',
         ];
 
         yield 'type not a string' => [
             ['type' => 1],
-            'NumberSchema "type" must be a string, int given.',
+            'number schema "type" must be a string, int given.',
         ];
 
         yield 'unknown type' => [
             ['type' => 'string'],
-            'NumberSchema type must be one of "number", "integer".',
+            'number schema "type" must be one of [\'number\', \'integer\'].',
         ];
 
         yield 'title not a string' => [
             ['type' => 'number', 'title' => 1],
-            'NumberSchema "title" must be a string or null, int given.',
+            'number schema "title" must be a string or null, int given.',
         ];
 
         yield 'description not a string' => [
             ['type' => 'number', 'description' => 1],
-            'NumberSchema "description" must be a string or null, int given.',
+            'number schema "description" must be a string or null, int given.',
         ];
 
         yield 'minimum not an int' => [
             ['type' => 'number', 'minimum' => 'x'],
-            'NumberSchema "minimum" must be an int or null, string given.',
+            'number schema "minimum" must be an int or null, string given.',
         ];
 
         yield 'maximum not an int' => [
             ['type' => 'number', 'maximum' => 'x'],
-            'NumberSchema "maximum" must be an int or null, string given.',
+            'number schema "maximum" must be an int or null, string given.',
         ];
 
         yield 'default not an int' => [
             ['type' => 'number', 'default' => 'x'],
-            'NumberSchema "default" must be an int or null, string given.',
+            'number schema "default" must be an int or null, string given.',
         ];
     }
 }

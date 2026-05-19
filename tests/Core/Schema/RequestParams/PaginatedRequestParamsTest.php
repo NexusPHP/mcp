@@ -137,17 +137,17 @@ final class PaginatedRequestParamsTest extends TestCase
     {
         yield 'cursor not a string' => [
             ['cursor' => 1],
-            'PaginatedRequestParams "cursor" must be a string, int given.',
+            '"params.cursor" must be a string, int given.',
         ];
 
         yield '_meta not an object' => [
             ['_meta' => 'oops'],
-            'Request params "_meta" must be an object, string given.',
+            '"params._meta" must be an object, string given.',
         ];
 
         yield '_meta list-keyed' => [
             ['_meta' => ['x']],
-            'Request params "_meta" must be a string-keyed object.',
+            '"params._meta" must be a string-keyed object.',
         ];
     }
 }

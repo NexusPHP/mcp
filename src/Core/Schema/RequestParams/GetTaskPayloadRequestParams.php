@@ -32,16 +32,16 @@ final readonly class GetTaskPayloadRequestParams extends RequestParams
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('taskId', 'GetTaskPayloadRequestParams data missing "taskId".');
+        Assert::that($data)->hasOffset('taskId', 'missing the required "taskId" key.');
         $taskId = $data['taskId'];
-        Assert::that($taskId)->isString('GetTaskPayloadRequestParams "taskId" must be a string, {type} given.');
+        Assert::that($taskId)->isString('"params.taskId" must be a string, {type} given.');
 
         $meta = new RequestMetaObject();
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
-                ->isArray('Request params "_meta" must be an object, {type} given.')
-                ->isMap('Request params "_meta" must be a string-keyed object.')
+                ->isArray('"params._meta" must be an object, {type} given.')
+                ->isMap('"params._meta" must be a string-keyed object.')
             ;
             $meta = RequestMetaObject::fromArray($data['_meta']);
         }

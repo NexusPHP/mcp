@@ -33,7 +33,7 @@ final readonly class Root implements Arrayable
         public ?string $name = null,
         public MetaObject $meta = new MetaObject(),
     ) {
-        Assert::that($uri)->startsWith('file://', 'Root URI must start with {needle}, got {value}.');
+        Assert::that($uri)->startsWith('file://', 'root "uri" must start with {needle}, got {value}.');
     }
 
     /**
@@ -42,19 +42,19 @@ final readonly class Root implements Arrayable
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('uri', 'Root data missing "uri".');
+        Assert::that($data)->hasOffset('uri', 'root missing the required "uri" key.');
         $uri = $data['uri'];
-        Assert::that($uri)->isString('Root "uri" must be a string, {type} given.');
+        Assert::that($uri)->isString('root "uri" must be a string, {type} given.');
 
         $name = $data['name'] ?? null;
-        Assert::that($name)->nullOr()->isString('Root "name" must be a string or null, {type} given.');
+        Assert::that($name)->nullOr()->isString('root "name" must be a string or null, {type} given.');
 
         $meta = new MetaObject();
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
-                ->isArray('Root "_meta" must be an object, {type} given.')
-                ->isMap('Root "_meta" must be a string-keyed object.')
+                ->isArray('root "_meta" must be an object, {type} given.')
+                ->isMap('root "_meta" must be a string-keyed object.')
             ;
             $meta = MetaObject::fromArray($data['_meta']);
         }

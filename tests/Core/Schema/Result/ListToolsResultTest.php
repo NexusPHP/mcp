@@ -101,7 +101,7 @@ final class ListToolsResultTest extends TestCase
     public function testConstructorRejectsNonListTools(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ListToolsResult tools must be a list, got non-list array.');
+        $this->expectExceptionMessage('"result.tools" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
         new ListToolsResult([5 => new Tool('read-file', ['type' => 'object'])]);
@@ -134,32 +134,32 @@ final class ListToolsResultTest extends TestCase
     {
         yield 'missing tools' => [
             [],
-            'ListToolsResult data missing "tools".',
+            '"result" missing the required "tools" key.',
         ];
 
         yield 'tools not an array' => [
             ['tools' => 'oops'],
-            'ListToolsResult "tools" must be a list, string given.',
+            '"result.tools" must be a list, string given.',
         ];
 
         yield 'tool entry not an object' => [
             ['tools' => ['oops']],
-            'ListToolsResult tool entry must be an object, string given.',
+            'each "result.tool" must be an object, string given.',
         ];
 
         yield 'tool entry list-keyed' => [
             ['tools' => [['x']]],
-            'ListToolsResult tool entry must be a string-keyed object.',
+            'each "result.tool" must be a string-keyed object.',
         ];
 
         yield 'nextCursor not a string' => [
             ['tools' => [], 'nextCursor' => 1],
-            'ListToolsResult "nextCursor" must be a string, int given.',
+            '"result.nextCursor" must be a string, int given.',
         ];
 
         yield '_meta not an object' => [
             ['tools' => [], '_meta' => 'oops'],
-            'Result "_meta" must be an object, string given.',
+            '"result._meta" must be an object, string given.',
         ];
     }
 }

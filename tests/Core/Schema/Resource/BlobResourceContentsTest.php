@@ -143,37 +143,37 @@ final class BlobResourceContentsTest extends TestCase
     {
         yield 'missing uri' => [
             ['blob' => 'aGVsbG8='],
-            'BlobResourceContents data missing "uri".',
+            'blob resource contents missing the required "uri" key.',
         ];
 
         yield 'uri not a string' => [
             ['uri' => 1, 'blob' => 'aGVsbG8='],
-            'BlobResourceContents "uri" must be a string, int given.',
+            'blob resource contents "uri" must be a string, int given.',
         ];
 
         yield 'missing blob' => [
             ['uri' => 'file:///x'],
-            'BlobResourceContents data missing "blob".',
+            'blob resource contents missing the required "blob" key.',
         ];
 
         yield 'blob not a string' => [
             ['uri' => 'file:///x', 'blob' => 1],
-            'BlobResourceContents "blob" must be a string, int given.',
+            'blob resource contents "blob" must be a string, int given.',
         ];
 
         yield 'mimeType not a string' => [
             ['uri' => 'file:///x', 'blob' => 'aGVsbG8=', 'mimeType' => 1],
-            'BlobResourceContents "mimeType" must be a string or null, int given.',
+            'blob resource contents "mimeType" must be a string or null, int given.',
         ];
 
         yield '_meta not an object' => [
             ['uri' => 'file:///x', 'blob' => 'aGVsbG8=', '_meta' => 'oops'],
-            'ResourceContents "_meta" must be an object, string given.',
+            'resource contents "_meta" must be an object, string given.',
         ];
 
         yield '_meta list-keyed' => [
             ['uri' => 'file:///x', 'blob' => 'aGVsbG8=', '_meta' => ['x']],
-            'ResourceContents "_meta" must be a string-keyed object.',
+            'resource contents "_meta" must be a string-keyed object.',
         ];
     }
 }

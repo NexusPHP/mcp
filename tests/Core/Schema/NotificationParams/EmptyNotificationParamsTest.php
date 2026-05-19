@@ -67,7 +67,7 @@ final class EmptyNotificationParamsTest extends TestCase
     public function testFromArrayRejectsNonObjectMeta(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Notification params "_meta" must be an object, int given.');
+        $this->expectExceptionMessage('"params._meta" must be an object, int given.');
 
         EmptyNotificationParams::fromArray(['_meta' => 1]);
     }

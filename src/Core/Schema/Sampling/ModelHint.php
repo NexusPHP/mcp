@@ -35,7 +35,7 @@ final readonly class ModelHint implements Arrayable
 
     public function __construct(?string $name = null)
     {
-        Assert::that($name)->nullOr()->isNonEmptyString('ModelHint name must be a non-empty string or null.');
+        Assert::that($name)->nullOr()->isNonEmptyString('"hints.name" must be a non-empty string or null.');
 
         $this->name = $name;
     }
@@ -47,7 +47,7 @@ final readonly class ModelHint implements Arrayable
     public static function fromArray(array $data): static
     {
         $name = $data['name'] ?? null;
-        Assert::that($name)->nullOr()->isString('ModelHint "name" must be a string or null, {type} given.');
+        Assert::that($name)->nullOr()->isString('"hints.name" must be a string or null, {type} given.');
 
         return new self($name);
     }

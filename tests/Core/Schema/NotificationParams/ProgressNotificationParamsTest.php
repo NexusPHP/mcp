@@ -211,47 +211,47 @@ final class ProgressNotificationParamsTest extends TestCase
     {
         yield 'missing progressToken' => [
             ['progress' => 0.5],
-            'ProgressNotificationParams data missing "progressToken".',
+            'missing the required "progressToken" key.',
         ];
 
         yield 'progressToken not int or string' => [
             ['progressToken' => [], 'progress' => 0.5],
-            'ProgressNotificationParams "progressToken" must be int or string, array given.',
+            '"params.progressToken" must be int or string, array given.',
         ];
 
         yield 'missing progress' => [
             ['progressToken' => 'p-1'],
-            'ProgressNotificationParams data missing "progress".',
+            'missing the required "progress" key.',
         ];
 
         yield 'progress is string' => [
             ['progressToken' => 'p-1', 'progress' => 'oops'],
-            'ProgressNotificationParams "progress" must be a number, string given.',
+            '"params.progress" must be a number, string given.',
         ];
 
         yield 'progress is bool' => [
             ['progressToken' => 'p-1', 'progress' => true],
-            'ProgressNotificationParams "progress" must be a number, bool given.',
+            '"params.progress" must be a number, bool given.',
         ];
 
         yield 'total is string' => [
             ['progressToken' => 'p-1', 'progress' => 0.5, 'total' => 'oops'],
-            'ProgressNotificationParams "total" must be a number or null, string given.',
+            '"params.total" must be a number or null, string given.',
         ];
 
         yield 'message not a string' => [
             ['progressToken' => 'p-1', 'progress' => 0.5, 'message' => 1],
-            'ProgressNotificationParams "message" must be a string or null, int given.',
+            '"params.message" must be a string or null, int given.',
         ];
 
         yield '_meta not an object' => [
             ['progressToken' => 'p-1', 'progress' => 0.5, '_meta' => 'oops'],
-            'Notification params "_meta" must be an object, string given.',
+            '"params._meta" must be an object, string given.',
         ];
 
         yield '_meta list-keyed' => [
             ['progressToken' => 'p-1', 'progress' => 0.5, '_meta' => ['x']],
-            'Notification params "_meta" must be a string-keyed object.',
+            '"params._meta" must be a string-keyed object.',
         ];
     }
 

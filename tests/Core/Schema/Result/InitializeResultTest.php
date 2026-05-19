@@ -66,7 +66,7 @@ final class InitializeResultTest extends TestCase
     public function testConstructionRejectsEmptyInstructions(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('InitializeResult instructions must be a non-empty string or null.');
+        $this->expectExceptionMessage('"result.instructions" must be a non-empty string or null.');
 
         new InitializeResult(
             new ProtocolVersion('2025-11-25'),
@@ -184,42 +184,42 @@ final class InitializeResultTest extends TestCase
     {
         yield 'missing protocolVersion' => [
             ['capabilities' => [], 'serverInfo' => ['name' => 's', 'version' => '1']],
-            'InitializeResult data missing "protocolVersion".',
+            '"result" missing the required "protocolVersion" key.',
         ];
 
         yield 'protocolVersion not a string' => [
             ['protocolVersion' => 1, 'capabilities' => [], 'serverInfo' => ['name' => 's', 'version' => '1']],
-            'InitializeResult "protocolVersion" must be a string, int given.',
+            '"result.protocolVersion" must be a string, int given.',
         ];
 
         yield 'missing capabilities' => [
             ['protocolVersion' => '2025-11-25', 'serverInfo' => ['name' => 's', 'version' => '1']],
-            'InitializeResult data missing "capabilities".',
+            '"result" missing the required "capabilities" key.',
         ];
 
         yield 'capabilities not an object' => [
             ['protocolVersion' => '2025-11-25', 'capabilities' => 'oops', 'serverInfo' => ['name' => 's', 'version' => '1']],
-            'InitializeResult "capabilities" must be an object, string given.',
+            '"result.capabilities" must be an object, string given.',
         ];
 
         yield 'missing serverInfo' => [
             ['protocolVersion' => '2025-11-25', 'capabilities' => []],
-            'InitializeResult data missing "serverInfo".',
+            '"result" missing the required "serverInfo" key.',
         ];
 
         yield 'serverInfo not an object' => [
             ['protocolVersion' => '2025-11-25', 'capabilities' => [], 'serverInfo' => 'oops'],
-            'InitializeResult "serverInfo" must be an object, string given.',
+            '"result.serverInfo" must be an object, string given.',
         ];
 
         yield 'instructions not a string' => [
             ['protocolVersion' => '2025-11-25', 'capabilities' => [], 'serverInfo' => ['name' => 's', 'version' => '1'], 'instructions' => 1],
-            'InitializeResult "instructions" must be a string or null, int given.',
+            '"result.instructions" must be a string or null, int given.',
         ];
 
         yield '_meta not an object' => [
             ['protocolVersion' => '2025-11-25', 'capabilities' => [], 'serverInfo' => ['name' => 's', 'version' => '1'], '_meta' => 'oops'],
-            'Result "_meta" must be an object, string given.',
+            '"result._meta" must be an object, string given.',
         ];
     }
 }

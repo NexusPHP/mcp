@@ -80,7 +80,7 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
     ) {
         parent::__construct($name, $title);
 
-        IdentifierNameValidator::validate($name, 'Tool');
+        IdentifierNameValidator::validate($name, 'tool "name"');
         Assert::that($description)->nullOr()->isNonEmptyString('Tool description must be a non-empty string or null.');
 
         if (null !== $this->icons) {
@@ -88,8 +88,8 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
         }
 
         $this->description = $description;
-        $this->inputSchema = self::projectSchemaEnvelope($inputSchema, 'Tool inputSchema');
-        $this->outputSchema = null === $outputSchema ? null : self::projectSchemaEnvelope($outputSchema, 'Tool outputSchema');
+        $this->inputSchema = self::projectSchemaEnvelope($inputSchema, 'tool "inputSchema"');
+        $this->outputSchema = null === $outputSchema ? null : self::projectSchemaEnvelope($outputSchema, 'tool "outputSchema"');
     }
 
     /**
@@ -247,7 +247,7 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
     private static function projectSchemaEnvelope(array $schema, string $context): array
     {
         Assert::that($schema)->hasOffset('type', \sprintf('%s missing "type".', $context));
-        Assert::that($schema['type'])->isIdentical('object', \sprintf('%s "type" must be "object", {value} given.', $context));
+        Assert::that($schema['type'])->isIdentical('object', \sprintf('%s "type" must be {other}, {value} given.', $context));
 
         $out = ['type' => 'object'];
 

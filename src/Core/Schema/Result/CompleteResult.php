@@ -35,19 +35,19 @@ final readonly class CompleteResult extends Result implements ServerResult
     public function __construct(array $completion, MetaObject $meta = new MetaObject())
     {
         Assert::that($completion['values'])
-            ->isList('CompleteResult completion "values" must be a list, got non-list array.')
-            ->values()->isString('CompleteResult completion values must all be strings, {type} given.')
+            ->isList('"result.completion.values" must be a list, non-list array given.')
+            ->values()->isString('each "result.completion.values" must be a string, {type} given.')
         ;
 
         $normalized = ['values' => $completion['values']];
 
         if (\array_key_exists('total', $completion)) {
-            Assert::that($completion['total'])->isInt('CompleteResult completion "total" must be an int, {type} given.');
+            Assert::that($completion['total'])->isInt('"result.completion.total" must be an int, {type} given.');
             $normalized['total'] = $completion['total'];
         }
 
         if (\array_key_exists('hasMore', $completion)) {
-            Assert::that($completion['hasMore'])->isBool('CompleteResult completion "hasMore" must be a bool, {type} given.');
+            Assert::that($completion['hasMore'])->isBool('"result.completion.hasMore" must be a bool, {type} given.');
             $normalized['hasMore'] = $completion['hasMore'];
         }
 
@@ -62,27 +62,27 @@ final readonly class CompleteResult extends Result implements ServerResult
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('completion', 'CompleteResult data missing "completion".');
+        Assert::that($data)->hasOffset('completion', '"result" missing the required "completion" key.');
         Assert::that($data['completion'])
-            ->isArray('CompleteResult "completion" must be an object, {type} given.')
-            ->isMap('CompleteResult "completion" must be a string-keyed object.')
+            ->isArray('"result.completion" must be an object, {type} given.')
+            ->isMap('"result.completion" must be a string-keyed object.')
         ;
 
-        Assert::that($data['completion'])->hasOffset('values', 'CompleteResult completion missing "values".');
+        Assert::that($data['completion'])->hasOffset('values', '"result" missing the required "completion.values" key.');
         Assert::that($data['completion']['values'])
-            ->isList('CompleteResult completion "values" must be a list, {type} given.')
-            ->values()->isString('CompleteResult completion value must be a string, {type} given.')
+            ->isList('"result.completion.values" must be a list, {type} given.')
+            ->values()->isString('each "result.completion.values" must be a string, {type} given.')
         ;
 
         $completion = ['values' => $data['completion']['values']];
 
         if (\array_key_exists('total', $data['completion'])) {
-            Assert::that($data['completion']['total'])->isInt('CompleteResult completion "total" must be an int, {type} given.');
+            Assert::that($data['completion']['total'])->isInt('"result.completion.total" must be an int, {type} given.');
             $completion['total'] = $data['completion']['total'];
         }
 
         if (\array_key_exists('hasMore', $data['completion'])) {
-            Assert::that($data['completion']['hasMore'])->isBool('CompleteResult completion "hasMore" must be a bool, {type} given.');
+            Assert::that($data['completion']['hasMore'])->isBool('"result.completion.hasMore" must be a bool, {type} given.');
             $completion['hasMore'] = $data['completion']['hasMore'];
         }
 
@@ -90,8 +90,8 @@ final readonly class CompleteResult extends Result implements ServerResult
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
-                ->isArray('Result "_meta" must be an object, {type} given.')
-                ->isMap('Result "_meta" must be a string-keyed object.')
+                ->isArray('"result._meta" must be an object, {type} given.')
+                ->isMap('"result._meta" must be a string-keyed object.')
             ;
             $meta = MetaObject::fromArray($data['_meta']);
         }

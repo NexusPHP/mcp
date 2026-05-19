@@ -55,24 +55,30 @@ final readonly class Icon implements Arrayable
     public function __construct(string $src, ?string $mimeType = null, ?array $sizes = null, ?string $theme = null)
     {
         Assert::that($src)
-            ->isNonEmptyString('Icon src must be a non-empty string.')
-            ->matchesRegularExpression('/\A(?:https?:\/\/\S+|data:[^;]+;base64,[A-Za-z0-9+\/]+={0,2})\z/', 'Icon src must be a valid HTTP/HTTPS URL or a data URI with base64-encoded data.')
+            ->isNonEmptyString('"icons.src" must be a non-empty string.')
+            ->matchesRegularExpression(
+                '/\A(?:https?:\/\/\S+|data:[^;]+;base64,[A-Za-z0-9+\/]+={0,2})\z/',
+                '"icons.src" must be a valid HTTP/HTTPS URL or a data URI with base64-encoded data.',
+            )
         ;
         Assert::that($mimeType)
             ->nullOr()
-            ->isNonEmptyString('Icon mimeType must be a non-empty string or null.')
-            ->matchesRegularExpression('/\A[a-zA-Z][a-zA-Z!#$&^_.+-]*\/[a-zA-Z0-9][a-zA-Z0-9!#$&^_.+-]*\z/', 'Icon mimeType must be a valid MIME type in the format "type/subtype".')
+            ->isNonEmptyString('"icons.mimeType" must be a non-empty string or null.')
+            ->matchesRegularExpression(
+                '/\A[a-zA-Z][a-zA-Z!#$&^_.+-]*\/[a-zA-Z0-9][a-zA-Z0-9!#$&^_.+-]*\z/',
+                '"icons.mimeType" must be a valid MIME type in the format "type/subtype".',
+            )
         ;
 
         if (null !== $sizes) {
             Assert::that($sizes)
                 ->values()
-                ->isNonEmptyString('Icon size must be a non-empty string.')
-                ->matchesRegularExpression('/\A(\d+x\d+|any)\z/', 'Icon size must be in the format "WIDTHxHEIGHT" or "any".')
+                ->isNonEmptyString('each "icons.sizes" must be a non-empty string.')
+                ->matchesRegularExpression('/\A(\d+x\d+|any)\z/', 'each "icons.sizes" must be in the format "WIDTHxHEIGHT" or "any".')
             ;
         }
 
-        Assert::that($theme)->nullOr()->isOneOf(['light', 'dark'], 'Icon theme must be one of "light", "dark".');
+        Assert::that($theme)->nullOr()->isOneOf(['light', 'dark'], '"icons.theme" must be one of "light", "dark".');
 
         $this->src = $src;
         $this->mimeType = $mimeType;
@@ -86,26 +92,26 @@ final readonly class Icon implements Arrayable
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('src', 'Icon data missing "src".');
+        Assert::that($data)->hasOffset('src', '"icons" missing the required "src" key.');
 
         $src = $data['src'];
-        Assert::that($src)->isString('Icon "src" must be a string, {type} given.');
+        Assert::that($src)->isString('"icons.src" must be a string, {type} given.');
 
         $mimeType = $data['mimeType'] ?? null;
-        Assert::that($mimeType)->nullOr()->isString('Icon "mimeType" must be a string or null, {type} given.');
+        Assert::that($mimeType)->nullOr()->isString('"icons.mimeType" must be a string or null, {type} given.');
 
         $sizes = null;
 
         if (isset($data['sizes'])) {
             Assert::that($data['sizes'])
-                ->isList('Icon "sizes" must be a list of strings or null, {type} given.')
-                ->values()->isString('Icon "sizes" entry must be a string, {type} given.')
+                ->isList('"icons.sizes" must be a list of strings or null, {type} given.')
+                ->values()->isString('each "icons.sizes" must be a string, {type} given.')
             ;
             $sizes = $data['sizes'];
         }
 
         $theme = $data['theme'] ?? null;
-        Assert::that($theme)->nullOr()->isString('Icon "theme" must be a string or null, {type} given.');
+        Assert::that($theme)->nullOr()->isString('"icons.theme" must be a string or null, {type} given.');
 
         return new self($src, $mimeType, $sizes, $theme);
     }

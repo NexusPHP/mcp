@@ -57,7 +57,7 @@ final class TextResourceContentsTest extends TestCase
     public function testConstructorRejectsUriViolatingRfc3986(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageMatches('/\AResourceContents URI must be a valid RFC 3986/');
+        $this->expectExceptionMessageMatches('/\Aresource contents "uri" must be a valid RFC 3986/');
 
         new TextResourceContents('not-a-uri', 'hello');
     }
@@ -65,7 +65,7 @@ final class TextResourceContentsTest extends TestCase
     public function testConstructorRejectsEmptyMimeType(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ResourceContents mimeType must be a non-empty string or null.');
+        $this->expectExceptionMessage('resource contents "mimeType" must be a non-empty string or null.');
 
         new TextResourceContents('file:///x', 'hello', '');
     }
@@ -159,37 +159,37 @@ final class TextResourceContentsTest extends TestCase
     {
         yield 'missing uri' => [
             ['text' => 'hello'],
-            'TextResourceContents data missing "uri".',
+            'text resource contents missing the required "uri" key.',
         ];
 
         yield 'uri not a string' => [
             ['uri' => 1, 'text' => 'hello'],
-            'TextResourceContents "uri" must be a string, int given.',
+            'text resource contents "uri" must be a string, int given.',
         ];
 
         yield 'missing text' => [
             ['uri' => 'file:///x'],
-            'TextResourceContents data missing "text".',
+            'text resource contents missing the required "text" key.',
         ];
 
         yield 'text not a string' => [
             ['uri' => 'file:///x', 'text' => 1],
-            'TextResourceContents "text" must be a string, int given.',
+            'text resource contents "text" must be a string, int given.',
         ];
 
         yield 'mimeType not a string' => [
             ['uri' => 'file:///x', 'text' => 'hello', 'mimeType' => 1],
-            'TextResourceContents "mimeType" must be a string or null, int given.',
+            'text resource contents "mimeType" must be a string or null, int given.',
         ];
 
         yield '_meta not an object' => [
             ['uri' => 'file:///x', 'text' => 'hello', '_meta' => 'oops'],
-            'ResourceContents "_meta" must be an object, string given.',
+            'resource contents "_meta" must be an object, string given.',
         ];
 
         yield '_meta list-keyed' => [
             ['uri' => 'file:///x', 'text' => 'hello', '_meta' => ['x']],
-            'ResourceContents "_meta" must be a string-keyed object.',
+            'resource contents "_meta" must be a string-keyed object.',
         ];
     }
 }

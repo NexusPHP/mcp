@@ -58,9 +58,9 @@ final readonly class NumberSchema implements Arrayable, PrimitiveSchemaDefinitio
         public ?int $maximum = null,
         public ?int $default = null,
     ) {
-        Assert::that($type)->isOneOf([self::TYPE, self::TYPE_INTEGER], 'NumberSchema type must be one of "number", "integer".');
-        Assert::that($title)->nullOr()->isNonEmptyString('NumberSchema title must be a non-empty string or null.');
-        Assert::that($description)->nullOr()->isNonEmptyString('NumberSchema description must be a non-empty string or null.');
+        Assert::that($type)->isOneOf([self::TYPE, self::TYPE_INTEGER], 'number schema "type" must be one of {choices}.');
+        Assert::that($title)->nullOr()->isNonEmptyString('number schema "title" must be a non-empty string or null.');
+        Assert::that($description)->nullOr()->isNonEmptyString('number schema "description" must be a non-empty string or null.');
 
         $this->type = $type;
         $this->title = $title;
@@ -73,24 +73,24 @@ final readonly class NumberSchema implements Arrayable, PrimitiveSchemaDefinitio
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('type', 'NumberSchema data missing "type".');
+        Assert::that($data)->hasOffset('type', 'number schema missing the required "type" key.');
         $type = $data['type'];
-        Assert::that($type)->isString('NumberSchema "type" must be a string, {type} given.');
+        Assert::that($type)->isString('number schema "type" must be a string, {type} given.');
 
         $title = $data['title'] ?? null;
-        Assert::that($title)->nullOr()->isString('NumberSchema "title" must be a string or null, {type} given.');
+        Assert::that($title)->nullOr()->isString('number schema "title" must be a string or null, {type} given.');
 
         $description = $data['description'] ?? null;
-        Assert::that($description)->nullOr()->isString('NumberSchema "description" must be a string or null, {type} given.');
+        Assert::that($description)->nullOr()->isString('number schema "description" must be a string or null, {type} given.');
 
         $minimum = $data['minimum'] ?? null;
-        Assert::that($minimum)->nullOr()->isInt('NumberSchema "minimum" must be an int or null, {type} given.');
+        Assert::that($minimum)->nullOr()->isInt('number schema "minimum" must be an int or null, {type} given.');
 
         $maximum = $data['maximum'] ?? null;
-        Assert::that($maximum)->nullOr()->isInt('NumberSchema "maximum" must be an int or null, {type} given.');
+        Assert::that($maximum)->nullOr()->isInt('number schema "maximum" must be an int or null, {type} given.');
 
         $default = $data['default'] ?? null;
-        Assert::that($default)->nullOr()->isInt('NumberSchema "default" must be an int or null, {type} given.');
+        Assert::that($default)->nullOr()->isInt('number schema "default" must be an int or null, {type} given.');
 
         return new self($type, $title, $description, $minimum, $maximum, $default);
     }

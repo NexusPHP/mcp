@@ -74,7 +74,7 @@ final class ResourceTemplateReferenceTest extends TestCase
     public function testConstructorRejectsInvalidUriTemplate(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageMatches('/\AResourceTemplateReference URI template must be a valid RFC 6570/');
+        $this->expectExceptionMessageMatches('/\Aresource template reference "uri" must be a valid RFC 6570/');
 
         new ResourceTemplateReference('not-a-uri');
     }
@@ -82,7 +82,7 @@ final class ResourceTemplateReferenceTest extends TestCase
     public function testConstructorRejectsEmptyUri(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ResourceTemplateReference URI template must be a non-empty string.');
+        $this->expectExceptionMessage('resource template reference "uri" must be a non-empty string.');
 
         new ResourceTemplateReference('');
     }
@@ -106,22 +106,22 @@ final class ResourceTemplateReferenceTest extends TestCase
     {
         yield 'missing type' => [
             ['uri' => 'file:///tmp/{name}'],
-            'ResourceTemplateReference data missing "type".',
+            'resource template reference missing the required "type" key.',
         ];
 
         yield 'wrong type literal' => [
             ['type' => 'ref/prompt', 'uri' => 'file:///tmp/{name}'],
-            'ResourceTemplateReference "type" must be "ref/resource", \'ref/prompt\' given.',
+            'resource template reference "type" must be \'ref/resource\', \'ref/prompt\' given.',
         ];
 
         yield 'missing uri' => [
             ['type' => 'ref/resource'],
-            'ResourceTemplateReference data missing "uri".',
+            'resource template reference missing the required "uri" key.',
         ];
 
         yield 'uri not a string' => [
             ['type' => 'ref/resource', 'uri' => 1],
-            'ResourceTemplateReference "uri" must be a string, int given.',
+            'resource template reference "uri" must be a string, int given.',
         ];
     }
 }

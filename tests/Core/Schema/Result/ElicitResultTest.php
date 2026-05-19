@@ -107,7 +107,7 @@ final class ElicitResultTest extends TestCase
     public function testConstructorRejectsListKeyedContent(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ElicitResult content must be a string-keyed map.');
+        $this->expectExceptionMessage('"result.content" must be a string-keyed map.');
 
         // @phpstan-ignore argument.type
         new ElicitResult(ElicitAction::Accept, ['a']);
@@ -116,7 +116,7 @@ final class ElicitResultTest extends TestCase
     public function testConstructorRejectsEmptyContentKey(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ElicitResult content key must be a non-empty string.');
+        $this->expectExceptionMessage('each "result.content" key must be a non-empty string.');
 
         new ElicitResult(ElicitAction::Accept, ['' => 'v']);
     }
@@ -124,7 +124,7 @@ final class ElicitResultTest extends TestCase
     public function testConstructorRejectsNonScalarContentValue(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ElicitResult x must be a string, int, bool, or list of strings; got non-list array.');
+        $this->expectExceptionMessage('"result" "x" must be a string, int, bool, or list of strings, non-list array given.');
 
         // @phpstan-ignore argument.type
         new ElicitResult(ElicitAction::Accept, ['x' => ['k' => 'v']]);
@@ -133,7 +133,7 @@ final class ElicitResultTest extends TestCase
     public function testConstructorRejectsListWithNonStringEntries(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ElicitResult x list entries must be strings, int given.');
+        $this->expectExceptionMessage('each "result" "x" list entries must be strings, int given.');
 
         // @phpstan-ignore argument.type
         new ElicitResult(ElicitAction::Accept, ['x' => [1, 2]]);
@@ -158,37 +158,37 @@ final class ElicitResultTest extends TestCase
     {
         yield 'missing action' => [
             [],
-            'ElicitResult data missing "action".',
+            '"result" missing the required "action" key.',
         ];
 
         yield 'action not a string' => [
             ['action' => 1],
-            'ElicitResult "action" must be one of [\'accept\', \'decline\', \'cancel\'], 1 given.',
+            '"result.action" must be one of [\'accept\', \'decline\', \'cancel\'], 1 given.',
         ];
 
         yield 'unknown action' => [
             ['action' => 'maybe'],
-            'ElicitResult "action" must be one of [\'accept\', \'decline\', \'cancel\'], \'maybe\' given.',
+            '"result.action" must be one of [\'accept\', \'decline\', \'cancel\'], \'maybe\' given.',
         ];
 
         yield 'content not an object' => [
             ['action' => 'accept', 'content' => 'oops'],
-            'ElicitResult "content" must be an object, string given.',
+            '"result.content" must be an object, string given.',
         ];
 
         yield 'content list-keyed' => [
             ['action' => 'accept', 'content' => ['x']],
-            'ElicitResult "content" must be a string-keyed object.',
+            '"result.content" must be a string-keyed object.',
         ];
 
         yield 'content entry nested object' => [
             ['action' => 'accept', 'content' => ['x' => ['k' => 'v']]],
-            'ElicitResult content entry x must be a string, int, bool, or list of strings; got non-list array.',
+            '"result" "content entry x" must be a string, int, bool, or list of strings, non-list array given.',
         ];
 
         yield 'content entry list with non-string' => [
             ['action' => 'accept', 'content' => ['x' => [1]]],
-            'ElicitResult content entry x list entries must be strings, int given.',
+            'each "result" "content entry x" list entries must be strings, int given.',
         ];
     }
 }

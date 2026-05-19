@@ -147,7 +147,7 @@ final class CallToolRequestParamsTest extends TestCase
     public function testConstructorRejectsInvalidName(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageMatches('/\ACallToolRequestParams name must be 1-128 characters/');
+        $this->expectExceptionMessageMatches('/\A"params.name" must be 1-128 characters/');
 
         new CallToolRequestParams('bad name');
     }
@@ -155,7 +155,7 @@ final class CallToolRequestParamsTest extends TestCase
     public function testConstructorRejectsListKeyedArguments(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('CallToolRequestParams arguments must be a string-keyed map.');
+        $this->expectExceptionMessage('"params.arguments" must be a string-keyed map.');
 
         // @phpstan-ignore argument.type
         new CallToolRequestParams('read-file', ['v1', 'v2']);
@@ -180,37 +180,37 @@ final class CallToolRequestParamsTest extends TestCase
     {
         yield 'missing name' => [
             [],
-            'CallToolRequestParams data missing "name".',
+            'missing the required "name" key.',
         ];
 
         yield 'name not a string' => [
             ['name' => 1],
-            'CallToolRequestParams "name" must be a string, int given.',
+            '"params.name" must be a string, int given.',
         ];
 
         yield 'arguments not an object' => [
             ['name' => 'read-file', 'arguments' => 'oops'],
-            'CallToolRequestParams "arguments" must be an object, string given.',
+            '"params.arguments" must be an object, string given.',
         ];
 
         yield 'arguments list-keyed' => [
             ['name' => 'read-file', 'arguments' => ['v']],
-            'CallToolRequestParams "arguments" must be a string-keyed object.',
+            '"params.arguments" must be a string-keyed object.',
         ];
 
         yield 'task not an object' => [
             ['name' => 'read-file', 'task' => 'oops'],
-            'CallToolRequestParams "task" must be an object, string given.',
+            '"params.task" must be an object, string given.',
         ];
 
         yield 'task list-keyed' => [
             ['name' => 'read-file', 'task' => ['x']],
-            'CallToolRequestParams "task" must be a string-keyed object.',
+            '"params.task" must be a string-keyed object.',
         ];
 
         yield '_meta not an object' => [
             ['name' => 'read-file', '_meta' => 'oops'],
-            'Request params "_meta" must be an object, string given.',
+            '"params._meta" must be an object, string given.',
         ];
     }
 }

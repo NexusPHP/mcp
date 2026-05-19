@@ -39,7 +39,7 @@ final readonly class ToolChoice implements Arrayable
         $mode = null;
 
         if (\array_key_exists('mode', $data)) {
-            $mode = EnumValueValidator::parse(ToolChoiceMode::class, $data['mode'], 'ToolChoice "mode"');
+            $mode = EnumValueValidator::parse(ToolChoiceMode::class, $data['mode'], '"toolChoice.mode"');
         }
 
         return new self($mode);

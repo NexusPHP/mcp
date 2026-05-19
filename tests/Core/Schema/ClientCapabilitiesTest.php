@@ -252,112 +252,112 @@ final class ClientCapabilitiesTest extends TestCase
     {
         yield 'elicitation not an object' => [
             ['elicitation' => 'oops'],
-            'ClientCapabilities "elicitation" must be an object, string given.',
+            '"capabilities.elicitation" must be an object, string given.',
         ];
 
         yield 'elicitation list-keyed' => [
             ['elicitation' => ['list-entry']],
-            'ClientCapabilities "elicitation" must be a string-keyed object.',
+            '"capabilities.elicitation" must be a string-keyed object.',
         ];
 
         yield 'elicitation.form not an object' => [
             ['elicitation' => ['form' => 'oops']],
-            'ClientCapabilities "elicitation.form" must be an object, string given.',
+            '"capabilities.elicitation.form" must be an object, string given.',
         ];
 
         yield 'elicitation.url not an object' => [
             ['elicitation' => ['url' => 1]],
-            'ClientCapabilities "elicitation.url" must be an object, int given.',
+            '"capabilities.elicitation.url" must be an object, int given.',
         ];
 
         yield 'experimental not an object' => [
             ['experimental' => 'oops'],
-            'ClientCapabilities "experimental" must be an object, string given.',
+            '"capabilities.experimental" must be an object, string given.',
         ];
 
         yield 'experimental list-keyed' => [
             ['experimental' => ['x']],
-            'ClientCapabilities "experimental" must be a string-keyed object.',
+            '"capabilities.experimental" must be a string-keyed object.',
         ];
 
         yield 'experimental value not an object' => [
             ['experimental' => ['ext' => 'oops']],
-            'ClientCapabilities "experimental.ext" must be an object, string given.',
+            '"capabilities.experimental.ext" must be an object, string given.',
         ];
 
         yield 'experimental value list-keyed' => [
             ['experimental' => ['ext' => ['x']]],
-            'ClientCapabilities "experimental.ext" must be a string-keyed object.',
+            '"capabilities.experimental.ext" must be a string-keyed object.',
         ];
 
         yield 'roots not an object' => [
             ['roots' => 'oops'],
-            'ClientCapabilities "roots" must be an object, string given.',
+            '"capabilities.roots" must be an object, string given.',
         ];
 
         yield 'roots list-keyed' => [
             ['roots' => ['x']],
-            'ClientCapabilities "roots" must be a string-keyed object.',
+            '"capabilities.roots" must be a string-keyed object.',
         ];
 
         yield 'roots.listChanged not a boolean' => [
             ['roots' => ['listChanged' => 'true']],
-            'ClientCapabilities "roots.listChanged" must be a boolean, string given.',
+            '"capabilities.roots.listChanged" must be a boolean, string given.',
         ];
 
         yield 'sampling not an object' => [
             ['sampling' => 1],
-            'ClientCapabilities "sampling" must be an object, int given.',
+            '"capabilities.sampling" must be an object, int given.',
         ];
 
         yield 'sampling.context not an object' => [
             ['sampling' => ['context' => 'oops']],
-            'ClientCapabilities "sampling.context" must be an object, string given.',
+            '"capabilities.sampling.context" must be an object, string given.',
         ];
 
         yield 'sampling.tools not an object' => [
             ['sampling' => ['tools' => 'oops']],
-            'ClientCapabilities "sampling.tools" must be an object, string given.',
+            '"capabilities.sampling.tools" must be an object, string given.',
         ];
 
         yield 'tasks not an object' => [
             ['tasks' => 'oops'],
-            'ClientCapabilities "tasks" must be an object, string given.',
+            '"capabilities.tasks" must be an object, string given.',
         ];
 
         yield 'tasks.cancel not an object' => [
             ['tasks' => ['cancel' => 'oops']],
-            'ClientCapabilities "tasks.cancel" must be an object, string given.',
+            '"capabilities.tasks.cancel" must be an object, string given.',
         ];
 
         yield 'tasks.list not an object' => [
             ['tasks' => ['list' => 'oops']],
-            'ClientCapabilities "tasks.list" must be an object, string given.',
+            '"capabilities.tasks.list" must be an object, string given.',
         ];
 
         yield 'tasks.requests not an object' => [
             ['tasks' => ['requests' => 'oops']],
-            'ClientCapabilities "tasks.requests" must be an object, string given.',
+            '"capabilities.tasks.requests" must be an object, string given.',
         ];
 
         yield 'tasks.requests.elicitation not an object' => [
             ['tasks' => ['requests' => ['elicitation' => 'oops']]],
-            'ClientCapabilities "tasks.requests.elicitation" must be an object, string given.',
+            '"capabilities.tasks.requests.elicitation" must be an object, string given.',
         ];
 
         yield 'tasks.requests.elicitation.create not an object' => [
             ['tasks' => ['requests' => ['elicitation' => ['create' => 'oops']]]],
-            'ClientCapabilities "tasks.requests.elicitation.create" must be an object, string given.',
+            '"capabilities.tasks.requests.elicitation.create" must be an object, string given.',
         ];
 
         yield 'tasks.requests.sampling not an object' => [
             ['tasks' => ['requests' => ['sampling' => 'oops']]],
-            'ClientCapabilities "tasks.requests.sampling" must be an object, string given.',
+            '"capabilities.tasks.requests.sampling" must be an object, string given.',
         ];
 
         yield 'tasks.requests.sampling.createMessage not an object' => [
             ['tasks' => ['requests' => ['sampling' => ['createMessage' => 'oops']]]],
-            'ClientCapabilities "tasks.requests.sampling.createMessage" must be an object, string given.',
+            '"capabilities.tasks.requests.sampling.createMessage" must be an object, string given.',
         ];
     }
 }

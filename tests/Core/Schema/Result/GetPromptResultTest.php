@@ -120,7 +120,7 @@ final class GetPromptResultTest extends TestCase
     public function testConstructorRejectsNonListMessages(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('GetPromptResult messages must be a list, got non-list array.');
+        $this->expectExceptionMessage('"result.messages" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
         new GetPromptResult([5 => new PromptMessage(Role::User, new TextContent('x'))]);
@@ -137,7 +137,7 @@ final class GetPromptResultTest extends TestCase
     public function testConstructorRejectsEmptyDescription(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('GetPromptResult description must be a non-empty string or null.');
+        $this->expectExceptionMessage('"result.description" must be a non-empty string or null.');
 
         new GetPromptResult([], '');
     }
@@ -161,37 +161,37 @@ final class GetPromptResultTest extends TestCase
     {
         yield 'missing messages' => [
             [],
-            'GetPromptResult data missing "messages".',
+            '"result" missing the required "messages" key.',
         ];
 
         yield 'messages not an array' => [
             ['messages' => 'oops'],
-            'GetPromptResult "messages" must be an array, string given.',
+            '"result.messages" must be an array, string given.',
         ];
 
         yield 'message entry not an object' => [
             ['messages' => ['oops']],
-            'GetPromptResult message entry must be an object, string given.',
+            '"result.message" must be an object, string given.',
         ];
 
         yield 'message entry list-keyed' => [
             ['messages' => [['x']]],
-            'GetPromptResult message entry must be a string-keyed object.',
+            '"result.message" must be a string-keyed object.',
         ];
 
         yield 'description not a string' => [
             ['messages' => [], 'description' => 1],
-            'GetPromptResult "description" must be a string or null, int given.',
+            '"result.description" must be a string or null, int given.',
         ];
 
         yield '_meta not an object' => [
             ['messages' => [], '_meta' => 'oops'],
-            'Result "_meta" must be an object, string given.',
+            '"result._meta" must be an object, string given.',
         ];
 
         yield '_meta list-keyed' => [
             ['messages' => [], '_meta' => ['x']],
-            'Result "_meta" must be a string-keyed object.',
+            '"result._meta" must be a string-keyed object.',
         ];
     }
 }

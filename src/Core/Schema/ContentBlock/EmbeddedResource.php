@@ -54,14 +54,14 @@ final readonly class EmbeddedResource implements Arrayable, ContentBlock
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('type', 'EmbeddedResource data missing "type".');
+        Assert::that($data)->hasOffset('type', 'embedded resource missing the required "type" key.');
         $type = $data['type'];
-        Assert::that($type)->isIdentical(self::TYPE, \sprintf('EmbeddedResource "type" must be "%s", {value} given.', self::TYPE));
+        Assert::that($type)->isIdentical(self::TYPE, 'embedded resource "type" must be {other}, {value} given.');
 
-        Assert::that($data)->hasOffset('resource', 'EmbeddedResource data missing "resource".');
+        Assert::that($data)->hasOffset('resource', 'embedded resource missing the required "resource" key.');
         Assert::that($data['resource'])
-            ->isArray('EmbeddedResource "resource" must be an object, {type} given.')
-            ->isMap('EmbeddedResource "resource" must be a string-keyed object.')
+            ->isArray('embedded resource "resource" must be an object, {type} given.')
+            ->isMap('embedded resource "resource" must be a string-keyed object.')
         ;
         $resource = ResourceContentsDispatcher::fromArray($data['resource'], 'EmbeddedResource resource');
 
@@ -69,8 +69,8 @@ final readonly class EmbeddedResource implements Arrayable, ContentBlock
 
         if (\array_key_exists('annotations', $data)) {
             Assert::that($data['annotations'])
-                ->isArray('EmbeddedResource "annotations" must be an object, {type} given.')
-                ->isMap('EmbeddedResource "annotations" must be a string-keyed object.')
+                ->isArray('embedded resource "annotations" must be an object, {type} given.')
+                ->isMap('embedded resource "annotations" must be a string-keyed object.')
             ;
             $annotations = Annotations::fromArray($data['annotations']);
         }
@@ -79,8 +79,8 @@ final readonly class EmbeddedResource implements Arrayable, ContentBlock
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
-                ->isArray('EmbeddedResource "_meta" must be an object, {type} given.')
-                ->isMap('EmbeddedResource "_meta" must be a string-keyed object.')
+                ->isArray('embedded resource "_meta" must be an object, {type} given.')
+                ->isMap('embedded resource "_meta" must be a string-keyed object.')
             ;
             $meta = MetaObject::fromArray($data['_meta']);
         }

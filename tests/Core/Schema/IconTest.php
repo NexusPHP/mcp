@@ -88,15 +88,15 @@ final class IconTest extends TestCase
      */
     public static function provideIconSrcValidationCases(): iterable
     {
-        yield 'empty string' => ['', 'Icon src must be a non-empty string.'];
+        yield 'empty string' => ['', '"icons.src" must be a non-empty string.'];
 
-        yield 'invalid protocol' => ['ftp://example.com/icon.png', 'Icon src must be a valid HTTP/HTTPS URL or a data URI with base64-encoded data.'];
+        yield 'invalid protocol' => ['ftp://example.com/icon.png', '"icons.src" must be a valid HTTP/HTTPS URL or a data URI with base64-encoded data.'];
 
-        yield 'relative path' => ['/path/to/icon.png', 'Icon src must be a valid HTTP/HTTPS URL or a data URI with base64-encoded data.'];
+        yield 'relative path' => ['/path/to/icon.png', '"icons.src" must be a valid HTTP/HTTPS URL or a data URI with base64-encoded data.'];
 
-        yield 'data URI without base64' => ['data:image/png,notbase64', 'Icon src must be a valid HTTP/HTTPS URL or a data URI with base64-encoded data.'];
+        yield 'data URI without base64' => ['data:image/png,notbase64', '"icons.src" must be a valid HTTP/HTTPS URL or a data URI with base64-encoded data.'];
 
-        yield 'data URI without semicolon' => ['data:image/pngbase64,abc', 'Icon src must be a valid HTTP/HTTPS URL or a data URI with base64-encoded data.'];
+        yield 'data URI without semicolon' => ['data:image/pngbase64,abc', '"icons.src" must be a valid HTTP/HTTPS URL or a data URI with base64-encoded data.'];
     }
 
     #[DataProvider('provideIconAcceptsValidMimeTypesCases')]
@@ -143,13 +143,13 @@ final class IconTest extends TestCase
      */
     public static function provideIconRejectsInvalidMimeTypesCases(): iterable
     {
-        yield 'empty string' => ['', 'Icon mimeType must be a non-empty string or null.'];
+        yield 'empty string' => ['', '"icons.mimeType" must be a non-empty string or null.'];
 
-        yield 'missing subtype' => ['image', 'Icon mimeType must be a valid MIME type in the format "type/subtype".'];
+        yield 'missing subtype' => ['image', '"icons.mimeType" must be a valid MIME type in the format "type/subtype".'];
 
-        yield 'missing type' => ['/png', 'Icon mimeType must be a valid MIME type in the format "type/subtype".'];
+        yield 'missing type' => ['/png', '"icons.mimeType" must be a valid MIME type in the format "type/subtype".'];
 
-        yield 'type with number' => ['image2/png', 'Icon mimeType must be a valid MIME type in the format "type/subtype".'];
+        yield 'type with number' => ['image2/png', '"icons.mimeType" must be a valid MIME type in the format "type/subtype".'];
     }
 
     /**
@@ -194,13 +194,13 @@ final class IconTest extends TestCase
      */
     public static function provideIconRejectsInvalidSizesCases(): iterable
     {
-        yield 'empty string' => [[''], 'Icon size must be a non-empty string.'];
+        yield 'empty string' => [[''], 'each "icons.sizes" must be a non-empty string.'];
 
-        yield 'invalid format' => [['32'], 'Icon size must be in the format "WIDTHxHEIGHT" or "any".'];
+        yield 'invalid format' => [['32'], 'each "icons.sizes" must be in the format "WIDTHxHEIGHT" or "any".'];
 
-        yield 'wrong separator' => [['32*32'], 'Icon size must be in the format "WIDTHxHEIGHT" or "any".'];
+        yield 'wrong separator' => [['32*32'], 'each "icons.sizes" must be in the format "WIDTHxHEIGHT" or "any".'];
 
-        yield 'non-numeric dimensions' => [['widthxheight'], 'Icon size must be in the format "WIDTHxHEIGHT" or "any".'];
+        yield 'non-numeric dimensions' => [['widthxheight'], 'each "icons.sizes" must be in the format "WIDTHxHEIGHT" or "any".'];
     }
 
     #[DataProvider('provideIconAcceptsValidThemesCases')]
@@ -224,7 +224,7 @@ final class IconTest extends TestCase
     public function testIconRejectsInvalidTheme(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Icon theme must be one of "light", "dark".');
+        $this->expectExceptionMessage('"icons.theme" must be one of "light", "dark".');
 
         new Icon('https://example.com/icon.png', null, null, 'invalid');
     }
@@ -315,32 +315,32 @@ final class IconTest extends TestCase
     {
         yield 'missing src' => [
             [],
-            'Icon data missing "src".',
+            '"icons" missing the required "src" key.',
         ];
 
         yield 'src not a string' => [
             ['src' => 1],
-            'Icon "src" must be a string, int given.',
+            '"icons.src" must be a string, int given.',
         ];
 
         yield 'mimeType not a string' => [
             ['src' => 'https://example.com/icon.png', 'mimeType' => 1],
-            'Icon "mimeType" must be a string or null, int given.',
+            '"icons.mimeType" must be a string or null, int given.',
         ];
 
         yield 'sizes not an array' => [
             ['src' => 'https://example.com/icon.png', 'sizes' => 'oops'],
-            'Icon "sizes" must be a list of strings or null, string given.',
+            '"icons.sizes" must be a list of strings or null, string given.',
         ];
 
         yield 'sizes entry not a string' => [
             ['src' => 'https://example.com/icon.png', 'sizes' => [1]],
-            'Icon "sizes" entry must be a string, int given.',
+            'each "icons.sizes" must be a string, int given.',
         ];
 
         yield 'theme not a string' => [
             ['src' => 'https://example.com/icon.png', 'theme' => 1],
-            'Icon "theme" must be a string or null, int given.',
+            '"icons.theme" must be a string or null, int given.',
         ];
     }
 }

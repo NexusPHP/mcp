@@ -99,7 +99,7 @@ final class PingRequestTest extends TestCase
     public function testFromArrayRejectsMissingId(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('PingRequest data missing "id".');
+        $this->expectExceptionMessage('missing the required "id" key.');
 
         PingRequest::fromArray(['jsonrpc' => '2.0', 'method' => 'ping']);
     }
@@ -107,7 +107,7 @@ final class PingRequestTest extends TestCase
     public function testFromArrayRejectsBadIdType(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('PingRequest "id" must be int or string, array given.');
+        $this->expectExceptionMessage('"id" must be int or string, array given.');
 
         PingRequest::fromArray(['jsonrpc' => '2.0', 'id' => [], 'method' => 'ping']);
     }
@@ -115,7 +115,7 @@ final class PingRequestTest extends TestCase
     public function testFromArrayRejectsNonObjectParams(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('PingRequest "params" must be an object, string given.');
+        $this->expectExceptionMessage('"params" must be an object, string given.');
 
         PingRequest::fromArray(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping', 'params' => 'bad']);
     }

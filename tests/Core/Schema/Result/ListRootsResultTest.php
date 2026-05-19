@@ -50,7 +50,7 @@ final class ListRootsResultTest extends TestCase
     public function testConstructorRejectsNonListRoots(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ListRootsResult roots must be a list, got non-list array.');
+        $this->expectExceptionMessage('"result.roots" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
         new ListRootsResult([5 => new Root('file:///x')]);
@@ -165,32 +165,32 @@ final class ListRootsResultTest extends TestCase
     {
         yield 'missing roots' => [
             [],
-            'ListRootsResult data missing "roots".',
+            '"result" missing the required "roots" key.',
         ];
 
         yield 'roots not an array' => [
             ['roots' => 'oops'],
-            'ListRootsResult "roots" must be a list, string given.',
+            '"result.roots" must be a list, string given.',
         ];
 
         yield 'root entry not an object' => [
             ['roots' => ['oops']],
-            'ListRootsResult root entry must be an object, string given.',
+            'each "result.root" must be an object, string given.',
         ];
 
         yield 'root entry list-keyed' => [
             ['roots' => [['x']]],
-            'ListRootsResult root entry must be a string-keyed object.',
+            'each "result.root" must be a string-keyed object.',
         ];
 
         yield '_meta not an object' => [
             ['roots' => [], '_meta' => 'oops'],
-            'Result "_meta" must be an object, string given.',
+            '"result._meta" must be an object, string given.',
         ];
 
         yield '_meta list-keyed' => [
             ['roots' => [], '_meta' => ['x']],
-            'Result "_meta" must be a string-keyed object.',
+            '"result._meta" must be a string-keyed object.',
         ];
     }
 }

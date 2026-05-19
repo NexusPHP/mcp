@@ -175,7 +175,7 @@ final class ListResourceTemplatesResultTest extends TestCase
     public function testConstructorRejectsNonList(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ListResourceTemplatesResult resourceTemplates must be a list, got non-list array.');
+        $this->expectExceptionMessage('"result.resourceTemplates" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
         new ListResourceTemplatesResult([5 => new ResourceTemplate('a', 'file:///{a}')]);
@@ -208,37 +208,37 @@ final class ListResourceTemplatesResultTest extends TestCase
     {
         yield 'missing resourceTemplates' => [
             [],
-            'ListResourceTemplatesResult data missing "resourceTemplates".',
+            '"result" missing the required "resourceTemplates" key.',
         ];
 
         yield 'resourceTemplates not an array' => [
             ['resourceTemplates' => 'oops'],
-            'ListResourceTemplatesResult "resourceTemplates" must be a list, string given.',
+            '"result.resourceTemplates" must be a list, string given.',
         ];
 
         yield 'entry not an object' => [
             ['resourceTemplates' => ['oops']],
-            'ListResourceTemplatesResult resourceTemplate entry must be an object, string given.',
+            'each "result.resourceTemplate" must be an object, string given.',
         ];
 
         yield 'entry list-keyed' => [
             ['resourceTemplates' => [['x']]],
-            'ListResourceTemplatesResult resourceTemplate entry must be a string-keyed object.',
+            'each "result.resourceTemplate" must be a string-keyed object.',
         ];
 
         yield 'nextCursor not a string' => [
             ['resourceTemplates' => [], 'nextCursor' => 1],
-            'ListResourceTemplatesResult "nextCursor" must be a string, int given.',
+            '"result.nextCursor" must be a string, int given.',
         ];
 
         yield '_meta not an object' => [
             ['resourceTemplates' => [], '_meta' => 'oops'],
-            'Result "_meta" must be an object, string given.',
+            '"result._meta" must be an object, string given.',
         ];
 
         yield '_meta list-keyed' => [
             ['resourceTemplates' => [], '_meta' => ['x']],
-            'Result "_meta" must be a string-keyed object.',
+            '"result._meta" must be a string-keyed object.',
         ];
     }
 }

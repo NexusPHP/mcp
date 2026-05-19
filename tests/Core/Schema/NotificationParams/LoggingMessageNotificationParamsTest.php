@@ -223,37 +223,37 @@ final class LoggingMessageNotificationParamsTest extends TestCase
     {
         yield 'missing level' => [
             ['data' => 'x'],
-            'LoggingMessageNotificationParams data missing "level".',
+            'missing the required "level" key.',
         ];
 
         yield 'level not a string' => [
             ['level' => 1, 'data' => 'x'],
-            'LoggingMessageNotificationParams "level" must be one of [\'debug\', \'info\', \'notice\', \'warning\', \'error\', \'critical\', \'alert\', \'emergency\'], 1 given.',
+            '"params.level" must be one of [\'debug\', \'info\', \'notice\', \'warning\', \'error\', \'critical\', \'alert\', \'emergency\'], 1 given.',
         ];
 
         yield 'unknown level' => [
             ['level' => 'verbose', 'data' => 'x'],
-            'LoggingMessageNotificationParams "level" must be one of [\'debug\', \'info\', \'notice\', \'warning\', \'error\', \'critical\', \'alert\', \'emergency\'], \'verbose\' given.',
+            '"params.level" must be one of [\'debug\', \'info\', \'notice\', \'warning\', \'error\', \'critical\', \'alert\', \'emergency\'], \'verbose\' given.',
         ];
 
         yield 'missing data' => [
             ['level' => 'info'],
-            'LoggingMessageNotificationParams data missing "data".',
+            'missing the required "data" key.',
         ];
 
         yield 'logger not a string' => [
             ['level' => 'info', 'data' => 'x', 'logger' => 1],
-            'LoggingMessageNotificationParams "logger" must be a string or null, int given.',
+            '"params.logger" must be a string or null, int given.',
         ];
 
         yield '_meta not an object' => [
             ['level' => 'info', 'data' => 'x', '_meta' => 'oops'],
-            'Notification params "_meta" must be an object, string given.',
+            '"params._meta" must be an object, string given.',
         ];
 
         yield '_meta list-keyed' => [
             ['level' => 'info', 'data' => 'x', '_meta' => ['x']],
-            'Notification params "_meta" must be a string-keyed object.',
+            '"params._meta" must be a string-keyed object.',
         ];
     }
 }

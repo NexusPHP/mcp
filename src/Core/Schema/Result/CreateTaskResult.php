@@ -36,10 +36,10 @@ final readonly class CreateTaskResult extends Result implements ClientResult, Se
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('task', 'CreateTaskResult data missing "task".');
+        Assert::that($data)->hasOffset('task', '"result" missing the required "task" key.');
         Assert::that($data['task'])
-            ->isArray('CreateTaskResult "task" must be an object, {type} given.')
-            ->isMap('CreateTaskResult "task" must be a string-keyed object.')
+            ->isArray('"result.task" must be an object, {type} given.')
+            ->isMap('"result.task" must be a string-keyed object.')
         ;
 
         $task = Task::fromArray($data['task']);
@@ -48,8 +48,8 @@ final readonly class CreateTaskResult extends Result implements ClientResult, Se
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
-                ->isArray('Result "_meta" must be an object, {type} given.')
-                ->isMap('Result "_meta" must be a string-keyed object.')
+                ->isArray('"result._meta" must be an object, {type} given.')
+                ->isMap('"result._meta" must be a string-keyed object.')
             ;
             $meta = MetaObject::fromArray($data['_meta']);
         }

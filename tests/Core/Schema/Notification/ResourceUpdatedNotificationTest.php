@@ -93,17 +93,17 @@ final class ResourceUpdatedNotificationTest extends TestCase
     {
         yield 'missing params' => [
             ['jsonrpc' => '2.0', 'method' => 'notifications/resources/updated'],
-            'ResourceUpdatedNotification data missing "params".',
+            'missing the required "params" key.',
         ];
 
         yield 'params not an object' => [
             ['jsonrpc' => '2.0', 'method' => 'notifications/resources/updated', 'params' => 'bad'],
-            'ResourceUpdatedNotification "params" must be an object, string given.',
+            '"params" must be an object, string given.',
         ];
 
         yield 'params list-keyed' => [
             ['jsonrpc' => '2.0', 'method' => 'notifications/resources/updated', 'params' => ['x']],
-            'ResourceUpdatedNotification "params" must be a string-keyed object.',
+            '"params" must be a string-keyed object.',
         ];
     }
 }

@@ -109,7 +109,7 @@ final class TitledMultiSelectEnumSchemaTest extends TestCase
     public function testConstructorRejectsNonListItems(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('TitledMultiSelectEnumSchema items must be a list, got non-list array.');
+        $this->expectExceptionMessage('titled multi-select enum schema "items" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
         new TitledMultiSelectEnumSchema(['k' => new EnumOption('a', 'A')]);
@@ -126,7 +126,7 @@ final class TitledMultiSelectEnumSchemaTest extends TestCase
     public function testConstructorRejectsEmptyTitle(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('TitledMultiSelectEnumSchema title must be a non-empty string or null.');
+        $this->expectExceptionMessage('titled multi-select enum schema "title" must be a non-empty string or null.');
 
         new TitledMultiSelectEnumSchema([new EnumOption('r', 'Read')], '');
     }
@@ -134,7 +134,7 @@ final class TitledMultiSelectEnumSchemaTest extends TestCase
     public function testConstructorRejectsEmptyDescription(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('TitledMultiSelectEnumSchema description must be a non-empty string or null.');
+        $this->expectExceptionMessage('titled multi-select enum schema "description" must be a non-empty string or null.');
 
         new TitledMultiSelectEnumSchema([new EnumOption('r', 'Read')], null, '');
     }
@@ -142,7 +142,7 @@ final class TitledMultiSelectEnumSchemaTest extends TestCase
     public function testConstructorRejectsNegativeMinItems(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('TitledMultiSelectEnumSchema minItems must be a non-negative integer or null.');
+        $this->expectExceptionMessage('titled multi-select enum schema "minItems" must be a non-negative integer or null.');
 
         new TitledMultiSelectEnumSchema([new EnumOption('r', 'Read')], null, null, -1);
     }
@@ -150,7 +150,7 @@ final class TitledMultiSelectEnumSchemaTest extends TestCase
     public function testConstructorRejectsNegativeMaxItems(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('TitledMultiSelectEnumSchema maxItems must be a non-negative integer or null.');
+        $this->expectExceptionMessage('titled multi-select enum schema "maxItems" must be a non-negative integer or null.');
 
         new TitledMultiSelectEnumSchema([new EnumOption('r', 'Read')], null, null, null, -1);
     }
@@ -158,7 +158,7 @@ final class TitledMultiSelectEnumSchemaTest extends TestCase
     public function testConstructorRejectsNonListDefault(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('TitledMultiSelectEnumSchema default must be a list, got non-list array.');
+        $this->expectExceptionMessage('titled multi-select enum schema "default" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
         new TitledMultiSelectEnumSchema([new EnumOption('r', 'Read')], null, null, null, null, ['k' => 'v']);
@@ -183,77 +183,77 @@ final class TitledMultiSelectEnumSchemaTest extends TestCase
     {
         yield 'missing type' => [
             ['items' => ['anyOf' => []]],
-            'TitledMultiSelectEnumSchema data missing "type".',
+            'titled multi-select enum schema missing the required "type" key.',
         ];
 
         yield 'wrong type literal' => [
             ['type' => 'string', 'items' => ['anyOf' => []]],
-            'TitledMultiSelectEnumSchema "type" must be "array", \'string\' given.',
+            'titled multi-select enum schema "type" must be \'array\', \'string\' given.',
         ];
 
         yield 'missing items' => [
             ['type' => 'array'],
-            'TitledMultiSelectEnumSchema data missing "items".',
+            'titled multi-select enum schema missing the required "items" key.',
         ];
 
         yield 'items not an object' => [
             ['type' => 'array', 'items' => 'oops'],
-            'TitledMultiSelectEnumSchema "items" must be an object, string given.',
+            'titled multi-select enum schema "items" must be an object, string given.',
         ];
 
         yield 'items list-keyed' => [
             ['type' => 'array', 'items' => ['x']],
-            'TitledMultiSelectEnumSchema "items" must be a string-keyed object.',
+            'titled multi-select enum schema "items" must be a string-keyed object.',
         ];
 
         yield 'items.anyOf missing' => [
             ['type' => 'array', 'items' => []],
-            'TitledMultiSelectEnumSchema items.anyOf must be a list, null given.',
+            'titled multi-select enum schema "items.anyOf" must be a list, null given.',
         ];
 
         yield 'items.anyOf not a list' => [
             ['type' => 'array', 'items' => ['anyOf' => ['k' => []]]],
-            'TitledMultiSelectEnumSchema items.anyOf must be a list, got non-list array.',
+            'titled multi-select enum schema "items.anyOf" must be a list, non-list array given.',
         ];
 
         yield 'items.anyOf entry not an object' => [
             ['type' => 'array', 'items' => ['anyOf' => ['oops']]],
-            'TitledMultiSelectEnumSchema items.anyOf entry must be an object, string given.',
+            'each titled multi-select enum schema "items.anyOf" must be an object, string given.',
         ];
 
         yield 'items.anyOf entry list-keyed' => [
             ['type' => 'array', 'items' => ['anyOf' => [['x']]]],
-            'TitledMultiSelectEnumSchema items.anyOf entry must be a string-keyed object.',
+            'each titled multi-select enum schema "items.anyOf" must be a string-keyed object.',
         ];
 
         yield 'title not a string' => [
             ['type' => 'array', 'items' => ['anyOf' => []], 'title' => 1],
-            'TitledMultiSelectEnumSchema "title" must be a string or null, int given.',
+            'titled multi-select enum schema "title" must be a string or null, int given.',
         ];
 
         yield 'description not a string' => [
             ['type' => 'array', 'items' => ['anyOf' => []], 'description' => 1],
-            'TitledMultiSelectEnumSchema "description" must be a string or null, int given.',
+            'titled multi-select enum schema "description" must be a string or null, int given.',
         ];
 
         yield 'minItems not an int' => [
             ['type' => 'array', 'items' => ['anyOf' => []], 'minItems' => 'x'],
-            'TitledMultiSelectEnumSchema "minItems" must be an int or null, string given.',
+            'titled multi-select enum schema "minItems" must be an int or null, string given.',
         ];
 
         yield 'maxItems not an int' => [
             ['type' => 'array', 'items' => ['anyOf' => []], 'maxItems' => 'x'],
-            'TitledMultiSelectEnumSchema "maxItems" must be an int or null, string given.',
+            'titled multi-select enum schema "maxItems" must be an int or null, string given.',
         ];
 
         yield 'default not a list' => [
             ['type' => 'array', 'items' => ['anyOf' => []], 'default' => ['k' => 'v']],
-            'TitledMultiSelectEnumSchema "default" must be a list, got non-list array.',
+            'titled multi-select enum schema "default" must be a list, non-list array given.',
         ];
 
         yield 'default entry not a string' => [
             ['type' => 'array', 'items' => ['anyOf' => []], 'default' => [1]],
-            'TitledMultiSelectEnumSchema default entry must be a string, int given.',
+            'each titled multi-select enum schema "default" must be a string, int given.',
         ];
     }
 }

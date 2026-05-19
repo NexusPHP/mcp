@@ -156,47 +156,47 @@ final class PromptMessageTest extends TestCase
     {
         yield 'missing role' => [
             ['content' => ['type' => 'text', 'text' => 'hi']],
-            'PromptMessage data missing "role".',
+            'prompt message missing the required "role" key.',
         ];
 
         yield 'role not a string' => [
             ['role' => 1, 'content' => ['type' => 'text', 'text' => 'hi']],
-            'PromptMessage "role" must be one of [\'user\', \'assistant\'], 1 given.',
+            'prompt message "role" must be one of [\'user\', \'assistant\'], 1 given.',
         ];
 
         yield 'unknown role' => [
             ['role' => 'observer', 'content' => ['type' => 'text', 'text' => 'hi']],
-            'PromptMessage "role" must be one of [\'user\', \'assistant\'], \'observer\' given.',
+            'prompt message "role" must be one of [\'user\', \'assistant\'], \'observer\' given.',
         ];
 
         yield 'missing content' => [
             ['role' => 'user'],
-            'PromptMessage data missing "content".',
+            'prompt message missing the required "content" key.',
         ];
 
         yield 'content not an object' => [
             ['role' => 'user', 'content' => 'oops'],
-            'PromptMessage "content" must be an object, string given.',
+            'prompt message "content" must be an object, string given.',
         ];
 
         yield 'content list-keyed' => [
             ['role' => 'user', 'content' => ['x']],
-            'PromptMessage "content" must be a string-keyed object.',
+            'prompt message "content" must be a string-keyed object.',
         ];
 
         yield 'content missing type' => [
             ['role' => 'user', 'content' => ['text' => 'hi']],
-            'PromptMessage content data missing "type".',
+            'prompt message "content" data missing "type".',
         ];
 
         yield 'content type not a string' => [
             ['role' => 'user', 'content' => ['type' => 1]],
-            'PromptMessage content "type" must be a string, int given.',
+            'prompt message "content" "type" must be a string, int given.',
         ];
 
         yield 'content type unknown' => [
             ['role' => 'user', 'content' => ['type' => 'unknown']],
-            'PromptMessage content "type" must be one of "text", "image", "audio", "resource_link", "resource"; "unknown" given.',
+            'prompt message "content" "type" must be one of "text", "image", "audio", "resource_link", "resource", \'unknown\' given.',
         ];
     }
 }

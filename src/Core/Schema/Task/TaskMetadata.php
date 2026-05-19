@@ -38,7 +38,7 @@ final readonly class TaskMetadata implements Arrayable
     public static function fromArray(array $data): static
     {
         $ttl = $data['ttl'] ?? null;
-        Assert::that($ttl)->nullOr()->isInt('TaskMetadata "ttl" must be an int or null, {type} given.');
+        Assert::that($ttl)->nullOr()->isInt('task metadata "ttl" must be an int or null, {type} given.');
 
         return new self($ttl);
     }

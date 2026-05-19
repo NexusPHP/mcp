@@ -171,47 +171,47 @@ final class EmbeddedResourceTest extends TestCase
     {
         yield 'missing type' => [
             ['resource' => ['uri' => 'file:///x', 'text' => 'hello']],
-            'EmbeddedResource data missing "type".',
+            'embedded resource missing the required "type" key.',
         ];
 
         yield 'wrong type literal' => [
             ['type' => 'text', 'resource' => ['uri' => 'file:///x', 'text' => 'hello']],
-            'EmbeddedResource "type" must be "resource", \'text\' given.',
+            'embedded resource "type" must be \'resource\', \'text\' given.',
         ];
 
         yield 'missing resource' => [
             ['type' => 'resource'],
-            'EmbeddedResource data missing "resource".',
+            'embedded resource missing the required "resource" key.',
         ];
 
         yield 'resource not an object' => [
             ['type' => 'resource', 'resource' => 'oops'],
-            'EmbeddedResource "resource" must be an object, string given.',
+            'embedded resource "resource" must be an object, string given.',
         ];
 
         yield 'resource list-keyed' => [
             ['type' => 'resource', 'resource' => ['x']],
-            'EmbeddedResource "resource" must be a string-keyed object.',
+            'embedded resource "resource" must be a string-keyed object.',
         ];
 
         yield 'annotations not an object' => [
             ['type' => 'resource', 'resource' => ['uri' => 'file:///x', 'text' => 'hello'], 'annotations' => 'oops'],
-            'EmbeddedResource "annotations" must be an object, string given.',
+            'embedded resource "annotations" must be an object, string given.',
         ];
 
         yield 'annotations list-keyed' => [
             ['type' => 'resource', 'resource' => ['uri' => 'file:///x', 'text' => 'hello'], 'annotations' => ['x']],
-            'EmbeddedResource "annotations" must be a string-keyed object.',
+            'embedded resource "annotations" must be a string-keyed object.',
         ];
 
         yield '_meta not an object' => [
             ['type' => 'resource', 'resource' => ['uri' => 'file:///x', 'text' => 'hello'], '_meta' => 'oops'],
-            'EmbeddedResource "_meta" must be an object, string given.',
+            'embedded resource "_meta" must be an object, string given.',
         ];
 
         yield '_meta list-keyed' => [
             ['type' => 'resource', 'resource' => ['uri' => 'file:///x', 'text' => 'hello'], '_meta' => ['x']],
-            'EmbeddedResource "_meta" must be a string-keyed object.',
+            'embedded resource "_meta" must be a string-keyed object.',
         ];
     }
 }

@@ -97,20 +97,20 @@ final readonly class JsonRpcErrorResponse implements Arrayable, JsonRpcResponse
      */
     private static function errorFromArray(array $data): Error
     {
-        Assert::that($data)->hasOffset('code', 'JSON-RPC error data missing "code".');
-        Assert::that($data['code'])->isInt('JSON-RPC error "code" must be an integer, {type} given.');
+        Assert::that($data)->hasOffset('code', 'error response missing the required "code" key.');
+        Assert::that($data['code'])->isInt('error response "code" must be an integer, {type} given.');
         $code = $data['code'];
 
-        Assert::that($data)->hasOffset('message', 'JSON-RPC error data missing "message".');
-        Assert::that($data['message'])->isString('JSON-RPC error "message" must be a string, {type} given.');
+        Assert::that($data)->hasOffset('message', 'error response missing the required "message" key.');
+        Assert::that($data['message'])->isString('error response "message" must be a string, {type} given.');
         $message = $data['message'];
 
         $extra = null;
 
         if (\array_key_exists('data', $data)) {
             Assert::that($data['data'])
-                ->isArray('JSON-RPC error "data" must be an object, {type} given.')
-                ->isMap('JSON-RPC error "data" must be a string-keyed object.')
+                ->isArray('error response "data" must be an object, {type} given.')
+                ->isMap('error response "data" must be a string-keyed object.')
             ;
             $extra = $data['data'];
         }

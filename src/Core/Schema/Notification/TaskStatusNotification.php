@@ -42,10 +42,10 @@ final readonly class TaskStatusNotification extends JsonRpcNotification implemen
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('params', 'TaskStatusNotification data missing "params".');
+        Assert::that($data)->hasOffset('params', 'missing the required "params" key.');
         Assert::that($data['params'])
-            ->isArray('TaskStatusNotification "params" must be an object, {type} given.')
-            ->isMap('TaskStatusNotification "params" must be a string-keyed object.')
+            ->isArray('"params" must be an object, {type} given.')
+            ->isMap('"params" must be a string-keyed object.')
         ;
 
         return new self(TaskStatusNotificationParams::fromArray($data['params']));

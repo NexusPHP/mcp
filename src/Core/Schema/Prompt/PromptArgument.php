@@ -45,8 +45,8 @@ final readonly class PromptArgument extends BaseMetadata implements Arrayable
     ) {
         parent::__construct($name, $title);
 
-        IdentifierNameValidator::validate($name, 'PromptArgument');
-        Assert::that($description)->nullOr()->isNonEmptyString('PromptArgument description must be a non-empty string or null.');
+        IdentifierNameValidator::validate($name, '"arguments.name"');
+        Assert::that($description)->nullOr()->isNonEmptyString('"arguments.description" must be a non-empty string or null.');
 
         $this->description = $description;
     }
@@ -57,18 +57,18 @@ final readonly class PromptArgument extends BaseMetadata implements Arrayable
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('name', 'PromptArgument data missing "name".');
+        Assert::that($data)->hasOffset('name', '"arguments" missing the required "name" key.');
         $name = $data['name'];
-        Assert::that($name)->isString('PromptArgument "name" must be a string, {type} given.');
+        Assert::that($name)->isString('"arguments.name" must be a string, {type} given.');
 
         $title = $data['title'] ?? null;
-        Assert::that($title)->nullOr()->isString('PromptArgument "title" must be a string or null, {type} given.');
+        Assert::that($title)->nullOr()->isString('"arguments.title" must be a string or null, {type} given.');
 
         $description = $data['description'] ?? null;
-        Assert::that($description)->nullOr()->isString('PromptArgument "description" must be a string or null, {type} given.');
+        Assert::that($description)->nullOr()->isString('"arguments.description" must be a string or null, {type} given.');
 
         $required = $data['required'] ?? null;
-        Assert::that($required)->nullOr()->isBool('PromptArgument "required" must be a bool or null, {type} given.');
+        Assert::that($required)->nullOr()->isBool('"arguments.required" must be a bool or null, {type} given.');
 
         return new self($name, $title, $description, $required);
     }

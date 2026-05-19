@@ -47,8 +47,8 @@ final readonly class BooleanSchema implements Arrayable, PrimitiveSchemaDefiniti
         ?string $description = null,
         public ?bool $default = null,
     ) {
-        Assert::that($title)->nullOr()->isNonEmptyString('BooleanSchema title must be a non-empty string or null.');
-        Assert::that($description)->nullOr()->isNonEmptyString('BooleanSchema description must be a non-empty string or null.');
+        Assert::that($title)->nullOr()->isNonEmptyString('boolean schema "title" must be a non-empty string or null.');
+        Assert::that($description)->nullOr()->isNonEmptyString('boolean schema "description" must be a non-empty string or null.');
 
         $this->title = $title;
         $this->description = $description;
@@ -60,18 +60,18 @@ final readonly class BooleanSchema implements Arrayable, PrimitiveSchemaDefiniti
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('type', 'BooleanSchema data missing "type".');
+        Assert::that($data)->hasOffset('type', 'boolean schema missing the required "type" key.');
         $type = $data['type'];
-        Assert::that($type)->isIdentical(self::TYPE, \sprintf('BooleanSchema "type" must be "%s", {value} given.', self::TYPE));
+        Assert::that($type)->isIdentical(self::TYPE, 'boolean schema "type" must be {other}, {value} given.');
 
         $title = $data['title'] ?? null;
-        Assert::that($title)->nullOr()->isString('BooleanSchema "title" must be a string or null, {type} given.');
+        Assert::that($title)->nullOr()->isString('boolean schema "title" must be a string or null, {type} given.');
 
         $description = $data['description'] ?? null;
-        Assert::that($description)->nullOr()->isString('BooleanSchema "description" must be a string or null, {type} given.');
+        Assert::that($description)->nullOr()->isString('boolean schema "description" must be a string or null, {type} given.');
 
         $default = $data['default'] ?? null;
-        Assert::that($default)->nullOr()->isBool('BooleanSchema "default" must be a bool or null, {type} given.');
+        Assert::that($default)->nullOr()->isBool('boolean schema "default" must be a bool or null, {type} given.');
 
         return new self($title, $description, $default);
     }

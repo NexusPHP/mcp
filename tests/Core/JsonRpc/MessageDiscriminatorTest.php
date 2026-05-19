@@ -29,7 +29,7 @@ final class MessageDiscriminatorTest extends TestCase
 {
     public function testReadTypeReturnsTypeValue(): void
     {
-        $type = MessageDiscriminator::readType(['type' => 'text', 'text' => 'hello'], 'PromptMessage content');
+        $type = MessageDiscriminator::readType(['type' => 'text', 'text' => 'hello'], 'prompt message "content"');
 
         self::assertSame('text', $type);
     }
@@ -37,29 +37,29 @@ final class MessageDiscriminatorTest extends TestCase
     public function testReadTypeRejectsMissingType(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('PromptMessage content data missing "type".');
+        $this->expectExceptionMessage('prompt message "content" data missing "type".');
 
-        MessageDiscriminator::readType(['text' => 'hello'], 'PromptMessage content');
+        MessageDiscriminator::readType(['text' => 'hello'], 'prompt message "content"');
     }
 
     public function testReadTypeRejectsNonStringType(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('CompleteRequestParams ref "type" must be a string, int given.');
+        $this->expectExceptionMessage('"params.ref" "type" must be a string, int given.');
 
-        MessageDiscriminator::readType(['type' => 1], 'CompleteRequestParams ref');
+        MessageDiscriminator::readType(['type' => 1], '"params.ref"');
     }
 
     public function testUnknownTypeFormatsExceptionWithAllowedValues(): void
     {
         $exception = MessageDiscriminator::unknownType(
-            'CompleteRequestParams ref',
+            '"params.ref"',
             ['ref/prompt', 'ref/resource'],
             'unknown',
         );
 
         self::assertSame(
-            'CompleteRequestParams ref "type" must be one of "ref/prompt", "ref/resource"; "unknown" given.',
+            '"params.ref" "type" must be one of "ref/prompt", "ref/resource", \'unknown\' given.',
             $exception->getMessage(),
         );
     }
@@ -69,7 +69,7 @@ final class MessageDiscriminatorTest extends TestCase
         $exception = MessageDiscriminator::unknownType('Foo', ['only'], 'other');
 
         self::assertSame(
-            'Foo "type" must be one of "only"; "other" given.',
+            'Foo "type" must be one of "only", \'other\' given.',
             $exception->getMessage(),
         );
     }

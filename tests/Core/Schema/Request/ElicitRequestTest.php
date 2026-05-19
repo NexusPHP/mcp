@@ -187,32 +187,32 @@ final class ElicitRequestTest extends TestCase
     {
         yield 'missing id' => [
             ['params' => []],
-            'ElicitRequest data missing "id".',
+            'missing the required "id" key.',
         ];
 
         yield 'id not int or string' => [
             ['id' => 1.5, 'params' => []],
-            'ElicitRequest "id" must be int or string, float given.',
+            '"id" must be int or string, float given.',
         ];
 
         yield 'missing params' => [
             ['id' => 'r'],
-            'ElicitRequest data missing "params".',
+            'missing the required "params" key.',
         ];
 
         yield 'params not an object' => [
             ['id' => 'r', 'params' => 'oops'],
-            'ElicitRequest "params" must be an object, string given.',
+            '"params" must be an object, string given.',
         ];
 
         yield 'params list-keyed' => [
             ['id' => 'r', 'params' => ['x']],
-            'ElicitRequest "params" must be a string-keyed object.',
+            '"params" must be a string-keyed object.',
         ];
 
         yield 'params mode not a string' => [
             ['id' => 'r', 'params' => ['mode' => 1]],
-            'ElicitRequest params "mode" must be a string, int given.',
+            '"params.mode" must be a string, int given.',
         ];
     }
 }

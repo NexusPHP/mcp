@@ -126,7 +126,7 @@ final class ElicitRequestUrlParamsTest extends TestCase
     public function testConstructorRejectsEmptyElicitationId(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ElicitRequestUrlParams elicitationId must be a non-empty string.');
+        $this->expectExceptionMessage('"params.elicitationId" must be a non-empty string.');
 
         new ElicitRequestUrlParams('', 'm', 'url', 'https://example.com');
     }
@@ -134,7 +134,7 @@ final class ElicitRequestUrlParamsTest extends TestCase
     public function testConstructorRejectsEmptyMessage(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ElicitRequestUrlParams message must be a non-empty string.');
+        $this->expectExceptionMessage('"params.message" must be a non-empty string.');
 
         new ElicitRequestUrlParams('id', '', 'url', 'https://example.com');
     }
@@ -142,7 +142,7 @@ final class ElicitRequestUrlParamsTest extends TestCase
     public function testConstructorRejectsEmptyUrl(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ElicitRequestUrlParams url must be a non-empty string.');
+        $this->expectExceptionMessage('"params.url" must be a non-empty string.');
 
         new ElicitRequestUrlParams('id', 'm', 'url', '');
     }
@@ -150,7 +150,7 @@ final class ElicitRequestUrlParamsTest extends TestCase
     public function testConstructorRejectsInvalidUrl(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ElicitRequestUrlParams url must be a valid URL.');
+        $this->expectExceptionMessage('"params.url" must be a valid URL.');
 
         new ElicitRequestUrlParams('id', 'm', 'url', 'not a url');
     }
@@ -158,7 +158,7 @@ final class ElicitRequestUrlParamsTest extends TestCase
     public function testConstructorRejectsWrongMode(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ElicitRequestUrlParams mode must be "url", \'form\' given.');
+        $this->expectExceptionMessage('"params.mode" must be \'url\', \'form\' given.');
 
         new ElicitRequestUrlParams('id', 'm', 'form', 'https://example.com');
     }
@@ -182,52 +182,52 @@ final class ElicitRequestUrlParamsTest extends TestCase
     {
         yield 'missing elicitationId' => [
             ['message' => 'm', 'mode' => 'url', 'url' => 'https://example.com'],
-            'ElicitRequestUrlParams data missing "elicitationId".',
+            'missing the required "elicitationId" key.',
         ];
 
         yield 'elicitationId not a string' => [
             ['elicitationId' => 1, 'message' => 'm', 'mode' => 'url', 'url' => 'https://example.com'],
-            'ElicitRequestUrlParams "elicitationId" must be a string, int given.',
+            '"params.elicitationId" must be a string, int given.',
         ];
 
         yield 'missing message' => [
             ['elicitationId' => 'id', 'mode' => 'url', 'url' => 'https://example.com'],
-            'ElicitRequestUrlParams data missing "message".',
+            'missing the required "message" key.',
         ];
 
         yield 'message not a string' => [
             ['elicitationId' => 'id', 'message' => 1, 'mode' => 'url', 'url' => 'https://example.com'],
-            'ElicitRequestUrlParams "message" must be a string, int given.',
+            '"params.message" must be a string, int given.',
         ];
 
         yield 'missing mode' => [
             ['elicitationId' => 'id', 'message' => 'm', 'url' => 'https://example.com'],
-            'ElicitRequestUrlParams data missing "mode".',
+            'missing the required "mode" key.',
         ];
 
         yield 'mode not a string' => [
             ['elicitationId' => 'id', 'message' => 'm', 'mode' => 1, 'url' => 'https://example.com'],
-            'ElicitRequestUrlParams "mode" must be a string, int given.',
+            '"params.mode" must be a string, int given.',
         ];
 
         yield 'missing url' => [
             ['elicitationId' => 'id', 'message' => 'm', 'mode' => 'url'],
-            'ElicitRequestUrlParams data missing "url".',
+            'missing the required "url" key.',
         ];
 
         yield 'url not a string' => [
             ['elicitationId' => 'id', 'message' => 'm', 'mode' => 'url', 'url' => 1],
-            'ElicitRequestUrlParams "url" must be a string, int given.',
+            '"params.url" must be a string, int given.',
         ];
 
         yield 'task not an object' => [
             ['elicitationId' => 'id', 'message' => 'm', 'mode' => 'url', 'url' => 'https://example.com', 'task' => 'oops'],
-            'ElicitRequestUrlParams "task" must be an object, string given.',
+            '"params.task" must be an object, string given.',
         ];
 
         yield 'task list-keyed' => [
             ['elicitationId' => 'id', 'message' => 'm', 'mode' => 'url', 'url' => 'https://example.com', 'task' => ['x']],
-            'ElicitRequestUrlParams "task" must be a string-keyed object.',
+            '"params.task" must be a string-keyed object.',
         ];
     }
 }

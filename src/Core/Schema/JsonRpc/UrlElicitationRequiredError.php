@@ -54,10 +54,10 @@ final readonly class UrlElicitationRequiredError implements Arrayable
     ) {
         Assert::that($error->code)->isIdentical(
             ProtocolErrorCode::UrlElicitationRequired->value,
-            \sprintf('UrlElicitationRequiredError inner error code must be %d, {value} given.', ProtocolErrorCode::UrlElicitationRequired->value),
+            '"error" code must be {other}, {value} given.',
         );
         Assert::that($elicitations)
-            ->isList('UrlElicitationRequiredError elicitations must be a list, got non-list array.')
+            ->isList('"elicitations" must be a list, non-list array given.')
             ->values()->isInstanceOf(ElicitRequestUrlParams::class)
         ;
 
@@ -71,35 +71,35 @@ final readonly class UrlElicitationRequiredError implements Arrayable
     public static function fromArray(array $data): static
     {
         $id = $data['id'] ?? null;
-        Assert::that($id)->nullOr()->isArrayKey('UrlElicitationRequiredError "id" must be int, string, or null; {type} given.');
+        Assert::that($id)->nullOr()->isArrayKey('"id" must be int, string, or null; {type} given.');
 
-        Assert::that($data)->hasOffset('error', 'UrlElicitationRequiredError data missing "error".');
+        Assert::that($data)->hasOffset('error', 'missing the required "error" key.');
         Assert::that($data['error'])
-            ->isArray('UrlElicitationRequiredError "error" must be an object, {type} given.')
-            ->isMap('UrlElicitationRequiredError "error" must be a string-keyed object.')
+            ->isArray('"error" must be an object, {type} given.')
+            ->isMap('"error" must be a string-keyed object.')
         ;
 
-        $errorData = $data['error'];
+        $error = $data['error'];
 
-        Assert::that($errorData)->hasOffset('data', 'UrlElicitationRequiredError error data missing "data".');
-        Assert::that($errorData['data'])
-            ->isArray('UrlElicitationRequiredError error "data" must be an object, {type} given.')
-            ->isMap('UrlElicitationRequiredError error "data" must be a string-keyed object.')
+        Assert::that($error)->hasOffset('data', 'missing the required "data" key.');
+        Assert::that($error['data'])
+            ->isArray('"error.data" must be an object, {type} given.')
+            ->isMap('"error.data" must be a string-keyed object.')
         ;
 
-        $payload = $errorData['data'];
+        $payload = $error['data'];
 
-        Assert::that($payload)->hasOffset('elicitations', 'UrlElicitationRequiredError error data missing "elicitations".');
+        Assert::that($payload)->hasOffset('elicitations', 'missing the required "elicitations" key.');
         Assert::that($payload['elicitations'])
-            ->isList('UrlElicitationRequiredError "elicitations" must be a list, got non-list array.')
+            ->isList('"error.data.elicitations" must be a list, non-list array given.')
             ->values()
-            ->isArray('UrlElicitationRequiredError elicitations entry must be an object, {type} given.')
-            ->isMap('UrlElicitationRequiredError elicitations entry must be a string-keyed object.')
+            ->isArray('each "error.data.elicitations" must be an object, {type} given.')
+            ->isMap('each "error.data.elicitations" must be a string-keyed object.')
         ;
         $elicitations = array_map(ElicitRequestUrlParams::fromArray(...), $payload['elicitations']);
 
-        $message = $errorData['message'] ?? null;
-        Assert::that($message)->isString('UrlElicitationRequiredError error "message" must be a string, {type} given.');
+        $message = $error['message'] ?? null;
+        Assert::that($message)->isString('"error.message" must be a string, {type} given.');
 
         $error = new UrlElicitationRequiredErrorPayload($message, $payload);
 

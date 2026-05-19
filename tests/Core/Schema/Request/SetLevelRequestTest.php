@@ -91,27 +91,27 @@ final class SetLevelRequestTest extends TestCase
 
         yield 'missing id' => [
             ['jsonrpc' => '2.0', 'method' => 'logging/setLevel', 'params' => $validParams],
-            'SetLevelRequest data missing "id".',
+            'missing the required "id" key.',
         ];
 
         yield 'id not int or string' => [
             ['jsonrpc' => '2.0', 'id' => [], 'method' => 'logging/setLevel', 'params' => $validParams],
-            'SetLevelRequest "id" must be int or string, array given.',
+            '"id" must be int or string, array given.',
         ];
 
         yield 'missing params' => [
             ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'logging/setLevel'],
-            'SetLevelRequest data missing "params".',
+            'missing the required "params" key.',
         ];
 
         yield 'params not an object' => [
             ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'logging/setLevel', 'params' => 'bad'],
-            'SetLevelRequest "params" must be an object, string given.',
+            '"params" must be an object, string given.',
         ];
 
         yield 'params list-keyed' => [
             ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'logging/setLevel', 'params' => ['x']],
-            'SetLevelRequest "params" must be a string-keyed object.',
+            '"params" must be a string-keyed object.',
         ];
     }
 }

@@ -140,6 +140,103 @@ to a race with the close listeners.
   reshape significantly in the upcoming 2026-06-30 RC and are deferred to that migration rather than built
   twice.
 
+## Diagnostic message conventions
+
+Every `Assert::that(...)` chain and bare `ExpectationFailedException` in `Core/Schema/` follows a fixed
+shape so consumers can parse messages programmatically and non-PHP clients can recognise the structure.
+
+### Field labels
+
+Each message identifies its target with the JSON field name in double quotes, optionally scoped by a
+parent key:
+
+- **Top-level request, result, and notification fields** use a dotted path from the JSON-RPC envelope
+  key:
+
+  ```text
+  '"params.name" must be a string, {type} given.'
+  '"result.completion.values" must be a list, non-list array given.'
+  '"params._meta" must be an object, {type} given.'
+  ```
+
+- **Schema classes with a single canonical wrapping field** use that field as the label:
+
+  | Class                                                                                          | Label                  |
+  |------------------------------------------------------------------------------------------------|------------------------|
+  | `ServerCapabilities`, `ClientCapabilities`                                                     | `"capabilities"`       |
+  | `Annotations`, `ToolAnnotations`                                                               | `"annotations"`        |
+  | `Icon` (array item under `icons`)                                                              | `"icons"`              |
+  | `PromptArgument` (array item under `arguments`)                                                | `"arguments"`          |
+  | `ModelPreferences`                                                                             | `"modelPreferences"`   |
+  | `ModelHint` (array item under `hints`)                                                         | `"hints"`              |
+  | `ToolChoice`                                                                                   | `"toolChoice"`         |
+  | `ToolUseContent`, `ToolResultContent` (shared)                                                 | `"content"`            |
+  | `MetaObject`, `RequestMetaObject`                                                              | `"_meta"`              |
+  | `RequestId`                                                                                    | `"id"`                 |
+  | `ProtocolVersion`                                                                              | `"protocolVersion"`    |
+  | `Cursor`                                                                                       | `"cursor"`             |
+  | `ElicitRequestedSchema`                                                                        | `"requestedSchema"`    |
+  | `EnumOption` (array item under `oneOf`)                                                        | `"oneOf"`              |
+
+- **Multi-context classes** (e.g. `Implementation`, referenced under both `serverInfo` and `clientInfo`)
+  drop the prefix entirely; messages start with the field name directly:
+
+  ```text
+  '"name" must be a string, {type} given.'
+  ```
+
+- **Classes without a fixed wrapping field** use the lowercased space-separated form of their class
+  name as the prefix: `text content`, `image content`, `embedded resource`, `resource link`,
+  `boolean schema`, `number schema`, `tool`, `prompt`, `resource template`, `prompt message`,
+  `sampling message`, `error response`, et cetera.
+
+- **`*Request` and `*Notification` classes have no label.** Their messages start with the field name
+  directly:
+
+  ```text
+  '"id" must be int or string, {type} given.'
+  'missing the required "params" key.'
+  ```
+
+### Rules
+
+1. JSON field names are double-quoted (`"name"`, `"capabilities.tasks.cancel"`).
+2. `Assert::that(...)->values()` and `->keys()` chains prepend `each` to the message.
+3. Type mismatches use the PHP idiom `<type> given.` (`int given.`, `array given.`).
+4. Required-key checks read `'missing the required "X" key.'` with no parent scope.
+5. Value mismatches against a constant use Assert's lazy `{value}` and `{other}` template tokens
+   instead of `\sprintf`, so the comparand renders via `var_export` at exception-render time.
+6. Bare `new ExpectationFailedException($template, $context)` constructions pre-`var_export` value
+   tokens in the context array to match Assert's auto-rendering. Example from
+   `MessageDiscriminator::unknownType`:
+
+   ```php
+   return new ExpectationFailedException(
+       '{context} "type" must be one of "{allowed}", {value} given.',
+       [
+           'context' => $context,
+           'allowed' => implode('", "', $allowedTypes),
+           'value' => var_export($given, true),
+       ],
+   );
+   ```
+
+### Reusable validators
+
+`Core/Validation/` exposes four field-format validators. Each takes the value plus a `$context` label
+that becomes the message prefix:
+
+| Validator                                                  | Purpose                                  |
+|------------------------------------------------------------|------------------------------------------|
+| `IdentifierNameValidator::validate($name, $context)`       | 1-128 chars from `[A-Za-z0-9._-]`        |
+| `Rfc3986UriValidator::validate($uri, $context)`            | RFC 3986 absolute URI                    |
+| `Rfc6570UriTemplateValidator::validate($uri, $context)`    | RFC 6570 URI Template                    |
+| `Iso8601DateTimeValidator::parse($value, $context)`        | ISO 8601 datetime parse                  |
+
+The validator templates have no hardcoded field noun. Callers pass the full label they want in the
+emitted message (e.g. `'"params.name"'`, `'tool "name"'`, `'resource link "uri"'`,
+`'resource template "uriTemplate"'`).
+
 ## Static analysis and runtime validation
 
 - **PHPStan level 10 + strict rules** across `src/`, `tests/`, and `tools/`. Type-inference lock-in tests

@@ -40,13 +40,13 @@ final readonly class GetPromptResult extends Result implements ServerResult
      */
     public function __construct(array $messages, ?string $description = null, MetaObject $meta = new MetaObject())
     {
-        Assert::that($messages)->isList('GetPromptResult messages must be a list, got non-list array.');
+        Assert::that($messages)->isList('"result.messages" must be a list, non-list array given.');
 
         foreach ($messages as $message) {
             Assert::that($message)->isInstanceOf(PromptMessage::class);
         }
 
-        Assert::that($description)->nullOr()->isNonEmptyString('GetPromptResult description must be a non-empty string or null.');
+        Assert::that($description)->nullOr()->isNonEmptyString('"result.description" must be a non-empty string or null.');
 
         $this->messages = $messages;
         $this->description = $description;
@@ -60,28 +60,28 @@ final readonly class GetPromptResult extends Result implements ServerResult
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('messages', 'GetPromptResult data missing "messages".');
-        Assert::that($data['messages'])->isArray('GetPromptResult "messages" must be an array, {type} given.');
+        Assert::that($data)->hasOffset('messages', '"result" missing the required "messages" key.');
+        Assert::that($data['messages'])->isArray('"result.messages" must be an array, {type} given.');
 
         $messages = [];
 
         foreach ($data['messages'] as $entry) {
             Assert::that($entry)
-                ->isArray('GetPromptResult message entry must be an object, {type} given.')
-                ->isMap('GetPromptResult message entry must be a string-keyed object.')
+                ->isArray('"result.message" must be an object, {type} given.')
+                ->isMap('"result.message" must be a string-keyed object.')
             ;
             $messages[] = PromptMessage::fromArray($entry);
         }
 
         $description = $data['description'] ?? null;
-        Assert::that($description)->nullOr()->isString('GetPromptResult "description" must be a string or null, {type} given.');
+        Assert::that($description)->nullOr()->isString('"result.description" must be a string or null, {type} given.');
 
         $meta = new MetaObject();
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
-                ->isArray('Result "_meta" must be an object, {type} given.')
-                ->isMap('Result "_meta" must be a string-keyed object.')
+                ->isArray('"result._meta" must be an object, {type} given.')
+                ->isMap('"result._meta" must be a string-keyed object.')
             ;
             $meta = MetaObject::fromArray($data['_meta']);
         }

@@ -53,11 +53,13 @@ final class MessageDiscriminator
      */
     public static function unknownType(string $context, array $allowedTypes, string $given): ExpectationFailedException
     {
-        return new ExpectationFailedException(\sprintf(
-            '%s "type" must be one of "%s"; "%s" given.',
-            $context,
-            implode('", "', $allowedTypes),
-            $given,
-        ));
+        return new ExpectationFailedException(
+            '{context} "type" must be one of "{allowed}", {value} given.',
+            [
+                'context' => $context,
+                'allowed' => implode('", "', $allowedTypes),
+                'value' => var_export($given, true),
+            ],
+        );
     }
 }

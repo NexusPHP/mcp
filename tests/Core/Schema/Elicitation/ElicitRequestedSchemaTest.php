@@ -186,7 +186,7 @@ final class ElicitRequestedSchemaTest extends TestCase
     public function testConstructorRejectsListKeyedProperties(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ElicitRequestedSchema properties must be a string-keyed map.');
+        $this->expectExceptionMessage('"requestedSchema.properties" must be a string-keyed map.');
 
         // @phpstan-ignore argument.type
         new ElicitRequestedSchema([new StringSchema()]);
@@ -195,7 +195,7 @@ final class ElicitRequestedSchemaTest extends TestCase
     public function testConstructorRejectsEmptyPropertyName(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ElicitRequestedSchema property name must be a non-empty string.');
+        $this->expectExceptionMessage('each "requestedSchema.properties" key must be a non-empty string.');
 
         new ElicitRequestedSchema(['' => new StringSchema()]);
     }
@@ -211,7 +211,7 @@ final class ElicitRequestedSchemaTest extends TestCase
     public function testConstructorRejectsNonListRequired(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ElicitRequestedSchema required must be a list, got non-list array.');
+        $this->expectExceptionMessage('"requestedSchema.required" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
         new ElicitRequestedSchema(['x' => new StringSchema()], ['k' => 'v']);
@@ -220,7 +220,7 @@ final class ElicitRequestedSchemaTest extends TestCase
     public function testConstructorRejectsEmptyRequiredEntry(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ElicitRequestedSchema required entry must be a non-empty string.');
+        $this->expectExceptionMessage('each "requestedSchema.required" must be a non-empty string.');
 
         new ElicitRequestedSchema(['x' => new StringSchema()], ['']);
     }
@@ -228,7 +228,7 @@ final class ElicitRequestedSchemaTest extends TestCase
     public function testConstructorRejectsEmptySchema(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ElicitRequestedSchema $schema must be a non-empty string or null.');
+        $this->expectExceptionMessage('"requestedSchema.$schema" must be a non-empty string or null.');
 
         new ElicitRequestedSchema(['x' => new StringSchema()], null, '');
     }
@@ -252,57 +252,57 @@ final class ElicitRequestedSchemaTest extends TestCase
     {
         yield 'missing type' => [
             ['properties' => []],
-            'ElicitRequestedSchema data missing "type".',
+            '"requestedSchema" missing the required "type" key.',
         ];
 
         yield 'wrong type literal' => [
             ['type' => 'array', 'properties' => []],
-            'ElicitRequestedSchema "type" must be "object", \'array\' given.',
+            '"requestedSchema.type" must be \'object\', \'array\' given.',
         ];
 
         yield 'missing properties' => [
             ['type' => 'object'],
-            'ElicitRequestedSchema data missing "properties".',
+            '"requestedSchema" missing the required "properties" key.',
         ];
 
         yield 'properties not an object' => [
             ['type' => 'object', 'properties' => 'oops'],
-            'ElicitRequestedSchema "properties" must be an object, string given.',
+            '"requestedSchema.properties" must be an object, string given.',
         ];
 
         yield 'properties list-keyed' => [
             ['type' => 'object', 'properties' => ['oops']],
-            'ElicitRequestedSchema "properties" must be a string-keyed object.',
+            '"requestedSchema.properties" must be a string-keyed object.',
         ];
 
         yield 'property entry not an object' => [
             ['type' => 'object', 'properties' => ['x' => 'oops']],
-            'ElicitRequestedSchema properties entry must be an object, string given.',
+            '"requestedSchema.properties" must be an object, string given.',
         ];
 
         yield 'property entry missing type' => [
             ['type' => 'object', 'properties' => ['x' => []]],
-            'ElicitRequestedSchema primitive schema entry must carry a "type" string, null given.',
+            '"requestedSchema.primitiveSchema" must carry a "type" string, null given.',
         ];
 
         yield 'property entry unknown type' => [
             ['type' => 'object', 'properties' => ['x' => ['type' => 'object']]],
-            'ElicitRequestedSchema primitive schema entry has unknown "type" "object".',
+            '"requestedSchema.primitiveSchema" has unknown "type" \'object\'.',
         ];
 
         yield 'required not a list' => [
             ['type' => 'object', 'properties' => [], 'required' => ['k' => 'v']],
-            'ElicitRequestedSchema "required" must be a list, got non-list array.',
+            '"requestedSchema.required" must be a list, non-list array given.',
         ];
 
         yield 'required entry not a string' => [
             ['type' => 'object', 'properties' => [], 'required' => [1]],
-            'ElicitRequestedSchema required entry must be a string, int given.',
+            'each "requestedSchema.required" must be a string, int given.',
         ];
 
         yield '$schema not a string' => [
             ['type' => 'object', 'properties' => [], '$schema' => 1],
-            'ElicitRequestedSchema "$schema" must be a string or null, int given.',
+            '"requestedSchema.$schema" must be a string or null, int given.',
         ];
     }
 }

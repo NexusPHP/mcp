@@ -31,7 +31,7 @@ final readonly class ElicitationCompleteNotificationParams extends NotificationP
 
     public function __construct(string $elicitationId, MetaObject $meta = new MetaObject())
     {
-        Assert::that($elicitationId)->isNonEmptyString('ElicitationCompleteNotificationParams elicitationId must be a non-empty string.');
+        Assert::that($elicitationId)->isNonEmptyString('"params.elicitationId" must be a non-empty string.');
 
         $this->elicitationId = $elicitationId;
 
@@ -44,16 +44,16 @@ final readonly class ElicitationCompleteNotificationParams extends NotificationP
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('elicitationId', 'ElicitationCompleteNotificationParams data missing "elicitationId".');
+        Assert::that($data)->hasOffset('elicitationId', 'missing the required "elicitationId" key.');
         $elicitationId = $data['elicitationId'];
-        Assert::that($elicitationId)->isString('ElicitationCompleteNotificationParams "elicitationId" must be a string, {type} given.');
+        Assert::that($elicitationId)->isString('"params.elicitationId" must be a string, {type} given.');
 
         $meta = new MetaObject();
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
-                ->isArray('Notification params "_meta" must be an object, {type} given.')
-                ->isMap('Notification params "_meta" must be a string-keyed object.')
+                ->isArray('"params._meta" must be an object, {type} given.')
+                ->isMap('"params._meta" must be a string-keyed object.')
             ;
             $meta = MetaObject::fromArray($data['_meta']);
         }

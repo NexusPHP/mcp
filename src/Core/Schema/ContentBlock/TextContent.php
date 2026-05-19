@@ -49,20 +49,20 @@ final readonly class TextContent implements Arrayable, ContentBlock, SamplingMes
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('type', 'TextContent data missing "type".');
+        Assert::that($data)->hasOffset('type', 'text content missing the required "type" key.');
         $type = $data['type'];
-        Assert::that($type)->isIdentical(self::TYPE, \sprintf('TextContent "type" must be "%s", {value} given.', self::TYPE));
+        Assert::that($type)->isIdentical(self::TYPE, 'text content "type" must be {other}, {value} given.');
 
-        Assert::that($data)->hasOffset('text', 'TextContent data missing "text".');
+        Assert::that($data)->hasOffset('text', 'text content missing the required "text" key.');
         $text = $data['text'];
-        Assert::that($text)->isString('TextContent "text" must be a string, {type} given.');
+        Assert::that($text)->isString('text content "text" must be a string, {type} given.');
 
         $annotations = new Annotations();
 
         if (\array_key_exists('annotations', $data)) {
             Assert::that($data['annotations'])
-                ->isArray('TextContent "annotations" must be an object, {type} given.')
-                ->isMap('TextContent "annotations" must be a string-keyed object.')
+                ->isArray('text content "annotations" must be an object, {type} given.')
+                ->isMap('text content "annotations" must be a string-keyed object.')
             ;
             $annotations = Annotations::fromArray($data['annotations']);
         }
@@ -71,8 +71,8 @@ final readonly class TextContent implements Arrayable, ContentBlock, SamplingMes
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
-                ->isArray('TextContent "_meta" must be an object, {type} given.')
-                ->isMap('TextContent "_meta" must be a string-keyed object.')
+                ->isArray('text content "_meta" must be an object, {type} given.')
+                ->isMap('text content "_meta" must be a string-keyed object.')
             ;
             $meta = MetaObject::fromArray($data['_meta']);
         }

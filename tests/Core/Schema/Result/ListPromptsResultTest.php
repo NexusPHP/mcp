@@ -124,7 +124,7 @@ final class ListPromptsResultTest extends TestCase
     public function testConstructorRejectsNonListPrompts(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ListPromptsResult prompts must be a list, got non-list array.');
+        $this->expectExceptionMessage('"result.prompts" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
         new ListPromptsResult([5 => new Prompt('a')]);
@@ -157,37 +157,37 @@ final class ListPromptsResultTest extends TestCase
     {
         yield 'missing prompts' => [
             [],
-            'ListPromptsResult data missing "prompts".',
+            '"result" missing the required "prompts" key.',
         ];
 
         yield 'prompts not an array' => [
             ['prompts' => 'oops'],
-            'ListPromptsResult "prompts" must be a list, string given.',
+            '"result.prompts" must be a list, string given.',
         ];
 
         yield 'prompt entry not an object' => [
             ['prompts' => ['oops']],
-            'ListPromptsResult prompt entry must be an object, string given.',
+            'each "result.prompt" must be an object, string given.',
         ];
 
         yield 'prompt entry list-keyed' => [
             ['prompts' => [['x']]],
-            'ListPromptsResult prompt entry must be a string-keyed object.',
+            'each "result.prompt" must be a string-keyed object.',
         ];
 
         yield 'nextCursor not a string' => [
             ['prompts' => [], 'nextCursor' => 1],
-            'ListPromptsResult "nextCursor" must be a string, int given.',
+            '"result.nextCursor" must be a string, int given.',
         ];
 
         yield '_meta not an object' => [
             ['prompts' => [], '_meta' => 'oops'],
-            'Result "_meta" must be an object, string given.',
+            '"result._meta" must be an object, string given.',
         ];
 
         yield '_meta list-keyed' => [
             ['prompts' => [], '_meta' => ['x']],
-            'Result "_meta" must be a string-keyed object.',
+            '"result._meta" must be a string-keyed object.',
         ];
     }
 }

@@ -38,7 +38,7 @@ final readonly class ListRootsResult extends Result implements ClientResult
     public function __construct(array $roots, MetaObject $meta = new MetaObject())
     {
         Assert::that($roots)
-            ->isList('ListRootsResult roots must be a list, got non-list array.')
+            ->isList('"result.roots" must be a list, non-list array given.')
             ->values()->isInstanceOf(Root::class)
         ;
 
@@ -50,12 +50,12 @@ final readonly class ListRootsResult extends Result implements ClientResult
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('roots', 'ListRootsResult data missing "roots".');
+        Assert::that($data)->hasOffset('roots', '"result" missing the required "roots" key.');
         Assert::that($data['roots'])
-            ->isList('ListRootsResult "roots" must be a list, {type} given.')
+            ->isList('"result.roots" must be a list, {type} given.')
             ->values()
-            ->isArray('ListRootsResult root entry must be an object, {type} given.')
-            ->isMap('ListRootsResult root entry must be a string-keyed object.')
+            ->isArray('each "result.root" must be an object, {type} given.')
+            ->isMap('each "result.root" must be a string-keyed object.')
         ;
         $roots = array_map(Root::fromArray(...), $data['roots']);
 
@@ -63,8 +63,8 @@ final readonly class ListRootsResult extends Result implements ClientResult
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
-                ->isArray('Result "_meta" must be an object, {type} given.')
-                ->isMap('Result "_meta" must be a string-keyed object.')
+                ->isArray('"result._meta" must be an object, {type} given.')
+                ->isMap('"result._meta" must be a string-keyed object.')
             ;
             $meta = MetaObject::fromArray($data['_meta']);
         }

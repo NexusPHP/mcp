@@ -40,7 +40,7 @@ final class ContentBlockDispatcherTest extends TestCase
     #[DataProvider('provideFromArrayDispatchesByTypeCases')]
     public function testFromArrayDispatchesByType(array $payload, string $expectedClass): void
     {
-        self::assertInstanceOf($expectedClass, ContentBlockDispatcher::fromArray($payload, 'PromptMessage content'));
+        self::assertInstanceOf($expectedClass, ContentBlockDispatcher::fromArray($payload, 'prompt message "content"'));
     }
 
     /**
@@ -65,9 +65,9 @@ final class ContentBlockDispatcherTest extends TestCase
     public function testFromArrayRejectsUnknownType(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('PromptMessage content "type" must be one of "text", "image", "audio", "resource_link", "resource"; "unknown" given.');
+        $this->expectExceptionMessage('prompt message "content" "type" must be one of "text", "image", "audio", "resource_link", "resource", \'unknown\' given.');
 
-        ContentBlockDispatcher::fromArray(['type' => 'unknown'], 'PromptMessage content');
+        ContentBlockDispatcher::fromArray(['type' => 'unknown'], 'prompt message "content"');
     }
 
     public function testFromArrayPropagatesContextToReadType(): void

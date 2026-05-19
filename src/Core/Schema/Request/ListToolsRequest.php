@@ -43,16 +43,16 @@ final readonly class ListToolsRequest extends PaginatedRequest implements Client
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('id', 'ListToolsRequest data missing "id".');
+        Assert::that($data)->hasOffset('id', 'missing the required "id" key.');
         $id = $data['id'];
-        Assert::that($id)->isArrayKey('ListToolsRequest "id" must be int or string, {type} given.');
+        Assert::that($id)->isArrayKey('"id" must be int or string, {type} given.');
 
         $params = new PaginatedRequestParams();
 
         if (\array_key_exists('params', $data)) {
             Assert::that($data['params'])
-                ->isArray('ListToolsRequest "params" must be an object, {type} given.')
-                ->isMap('ListToolsRequest "params" must be a string-keyed object.')
+                ->isArray('"params" must be an object, {type} given.')
+                ->isMap('"params" must be a string-keyed object.')
             ;
             $params = PaginatedRequestParams::fromArray($data['params']);
         }

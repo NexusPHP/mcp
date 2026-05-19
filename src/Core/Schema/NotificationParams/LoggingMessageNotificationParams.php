@@ -41,20 +41,20 @@ final readonly class LoggingMessageNotificationParams extends NotificationParams
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('level', 'LoggingMessageNotificationParams data missing "level".');
-        $level = EnumValueValidator::parse(LoggingLevel::class, $data['level'], 'LoggingMessageNotificationParams "level"');
+        Assert::that($data)->hasOffset('level', 'missing the required "level" key.');
+        $level = EnumValueValidator::parse(LoggingLevel::class, $data['level'], '"params.level"');
 
-        Assert::that($data)->hasOffset('data', 'LoggingMessageNotificationParams data missing "data".');
+        Assert::that($data)->hasOffset('data', 'missing the required "data" key.');
 
         $logger = $data['logger'] ?? null;
-        Assert::that($logger)->nullOr()->isString('LoggingMessageNotificationParams "logger" must be a string or null, {type} given.');
+        Assert::that($logger)->nullOr()->isString('"params.logger" must be a string or null, {type} given.');
 
         $meta = new MetaObject();
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
-                ->isArray('Notification params "_meta" must be an object, {type} given.')
-                ->isMap('Notification params "_meta" must be a string-keyed object.')
+                ->isArray('"params._meta" must be an object, {type} given.')
+                ->isMap('"params._meta" must be a string-keyed object.')
             ;
             $meta = MetaObject::fromArray($data['_meta']);
         }

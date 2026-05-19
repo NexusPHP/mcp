@@ -41,8 +41,8 @@ final readonly class ElicitResult extends Result implements ClientResult
     ) {
         if (null !== $content) {
             Assert::that($content)
-                ->isMap('ElicitResult content must be a string-keyed map.')
-                ->keys()->isNonEmptyString('ElicitResult content key must be a non-empty string.')
+                ->isMap('"result.content" must be a string-keyed map.')
+                ->keys()->isNonEmptyString('each "result.content" key must be a non-empty string.')
             ;
 
             foreach ($content as $key => $value) {
@@ -61,15 +61,15 @@ final readonly class ElicitResult extends Result implements ClientResult
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('action', 'ElicitResult data missing "action".');
-        $action = EnumValueValidator::parse(ElicitAction::class, $data['action'], 'ElicitResult "action"');
+        Assert::that($data)->hasOffset('action', '"result" missing the required "action" key.');
+        $action = EnumValueValidator::parse(ElicitAction::class, $data['action'], '"result.action"');
 
         $content = null;
 
         if (\array_key_exists('content', $data)) {
             Assert::that($data['content'])
-                ->isArray('ElicitResult "content" must be an object, {type} given.')
-                ->isMap('ElicitResult "content" must be a string-keyed object.')
+                ->isArray('"result.content" must be an object, {type} given.')
+                ->isMap('"result.content" must be a string-keyed object.')
             ;
 
             foreach ($data['content'] as $key => $value) {
@@ -84,8 +84,8 @@ final readonly class ElicitResult extends Result implements ClientResult
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
-                ->isArray('Result "_meta" must be an object, {type} given.')
-                ->isMap('Result "_meta" must be a string-keyed object.')
+                ->isArray('"result._meta" must be an object, {type} given.')
+                ->isMap('"result._meta" must be a string-keyed object.')
             ;
             $meta = MetaObject::fromArray($data['_meta']);
         }
@@ -121,8 +121,8 @@ final readonly class ElicitResult extends Result implements ClientResult
         }
 
         Assert::that($value)
-            ->isList(\sprintf('ElicitResult %s must be a string, int, bool, or list of strings; got non-list array.', $context))
-            ->values()->isString(\sprintf('ElicitResult %s list entries must be strings, {type} given.', $context))
+            ->isList(\sprintf('"result" "%s" must be a string, int, bool, or list of strings, non-list array given.', $context))
+            ->values()->isString(\sprintf('each "result" "%s" list entries must be strings, {type} given.', $context))
         ;
     }
 }

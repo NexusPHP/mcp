@@ -39,7 +39,7 @@ final readonly class RequestMetaObject implements Arrayable
 
         if (\array_key_exists('progressToken', $data)) {
             $raw = $data['progressToken'];
-            Assert::that($raw)->isArrayKey('Progress token must be an int or string, {type} given.');
+            Assert::that($raw)->isArrayKey('"_meta.progressToken" must be an int or string, {type} given.');
 
             $progressToken = new ProgressToken($raw);
             unset($data['progressToken']);

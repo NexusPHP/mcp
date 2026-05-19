@@ -62,8 +62,8 @@ final readonly class CreateMessageResult extends Result implements ClientResult
         ?string $stopReason = null,
         MetaObject $meta = new MetaObject(),
     ) {
-        Assert::that($model)->isNonEmptyString('CreateMessageResult model must be a non-empty string.');
-        Assert::that($stopReason)->nullOr()->isNonEmptyString('CreateMessageResult stopReason must be a non-empty string or null.');
+        Assert::that($model)->isNonEmptyString('"result.model" must be a non-empty string.');
+        Assert::that($stopReason)->nullOr()->isNonEmptyString('"result.stopReason" must be a non-empty string or null.');
 
         $this->model = $model;
         $this->content = $content;
@@ -78,40 +78,40 @@ final readonly class CreateMessageResult extends Result implements ClientResult
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('model', 'CreateMessageResult data missing "model".');
+        Assert::that($data)->hasOffset('model', '"result" missing the required "model" key.');
         $model = $data['model'];
-        Assert::that($model)->isString('CreateMessageResult "model" must be a string, {type} given.');
+        Assert::that($model)->isString('"result.model" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('role', 'CreateMessageResult data missing "role".');
-        $role = EnumValueValidator::parse(Role::class, $data['role'], 'CreateMessageResult "role"');
+        Assert::that($data)->hasOffset('role', '"result" missing the required "role" key.');
+        $role = EnumValueValidator::parse(Role::class, $data['role'], '"result.role"');
 
-        Assert::that($data)->hasOffset('content', 'CreateMessageResult data missing "content".');
-        Assert::that($data['content'])->isArray('CreateMessageResult "content" must be an object or array, {type} given.');
+        Assert::that($data)->hasOffset('content', '"result" missing the required "content" key.');
+        Assert::that($data['content'])->isArray('"result.content" must be an object or array, {type} given.');
 
         if ([] === $data['content'] || array_is_list($data['content'])) {
             Assert::that($data['content'])
                 ->values()
-                ->isArray('CreateMessageResult content entry must be an object, {type} given.')
-                ->isMap('CreateMessageResult content entry must be a string-keyed object.')
+                ->isArray('each "result.content" must be an object, {type} given.')
+                ->isMap('each "result.content" must be a string-keyed object.')
             ;
             $content = array_map(
-                static fn(array $entry): AudioContent|ImageContent|TextContent|ToolResultContent|ToolUseContent => SamplingContentDispatcher::fromArray($entry, 'CreateMessageResult content'),
+                static fn(array $entry): AudioContent|ImageContent|TextContent|ToolResultContent|ToolUseContent => SamplingContentDispatcher::fromArray($entry, '"result" content'),
                 $data['content'],
             );
         } else {
-            Assert::that($data['content'])->isMap('CreateMessageResult "content" must be a string-keyed object.');
-            $content = SamplingContentDispatcher::fromArray($data['content'], 'CreateMessageResult content');
+            Assert::that($data['content'])->isMap('"result.content" must be a string-keyed object.');
+            $content = SamplingContentDispatcher::fromArray($data['content'], '"result" content');
         }
 
         $stopReason = $data['stopReason'] ?? null;
-        Assert::that($stopReason)->nullOr()->isString('CreateMessageResult "stopReason" must be a string or null, {type} given.');
+        Assert::that($stopReason)->nullOr()->isString('"result.stopReason" must be a string or null, {type} given.');
 
         $meta = new MetaObject();
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
-                ->isArray('Result "_meta" must be an object, {type} given.')
-                ->isMap('Result "_meta" must be a string-keyed object.')
+                ->isArray('"result._meta" must be an object, {type} given.')
+                ->isMap('"result._meta" must be a string-keyed object.')
             ;
             $meta = MetaObject::fromArray($data['_meta']);
         }

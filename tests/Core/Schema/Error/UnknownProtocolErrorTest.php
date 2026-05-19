@@ -41,7 +41,7 @@ final class UnknownProtocolErrorTest extends TestCase
     public function testRejectsEmptyMessage(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Error message must be a non-empty string.');
+        $this->expectExceptionMessage('error "message" must be a non-empty string.');
 
         new UnknownProtocolError(-32099, '');
     }
@@ -49,7 +49,7 @@ final class UnknownProtocolErrorTest extends TestCase
     public function testRejectsCodeThatMapsToKnownProtocolErrorCase(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('UnknownProtocolError "code" -32603 maps to a known ProtocolErrorCode case. Use ErrorFactory::create() or the dedicated subclass instead.');
+        $this->expectExceptionMessage('code -32603 maps to a known protocol error code.');
 
         new UnknownProtocolError(-32603, 'Internal error');
     }
@@ -85,7 +85,7 @@ final class UnknownProtocolErrorTest extends TestCase
     public function testFromArrayRejectsMissingMessage(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('UnknownProtocolError data missing "message".');
+        $this->expectExceptionMessage('missing the required "message" key.');
 
         // @phpstan-ignore argument.type
         UnknownProtocolError::fromArray(['code' => 42]);
@@ -94,7 +94,7 @@ final class UnknownProtocolErrorTest extends TestCase
     public function testFromArrayRejectsNonStringMessage(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('UnknownProtocolError "message" must be a string, int given.');
+        $this->expectExceptionMessage('"message" must be a string, int given.');
 
         // @phpstan-ignore argument.type
         UnknownProtocolError::fromArray(['code' => 42, 'message' => 1]);
@@ -103,7 +103,7 @@ final class UnknownProtocolErrorTest extends TestCase
     public function testFromArrayRejectsMissingCode(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('UnknownProtocolError data missing "code".');
+        $this->expectExceptionMessage('missing the required "code" key.');
 
         // @phpstan-ignore argument.type
         UnknownProtocolError::fromArray([]);
@@ -112,7 +112,7 @@ final class UnknownProtocolErrorTest extends TestCase
     public function testFromArrayRejectsNonIntCode(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('UnknownProtocolError "code" must be an integer, string given.');
+        $this->expectExceptionMessage('"code" must be an integer, string given.');
 
         // @phpstan-ignore argument.type
         UnknownProtocolError::fromArray(['code' => 'oops']);

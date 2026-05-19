@@ -121,42 +121,42 @@ final class TextContentTest extends TestCase
     {
         yield 'missing type' => [
             ['text' => 'hello'],
-            'TextContent data missing "type".',
+            'text content missing the required "type" key.',
         ];
 
         yield 'wrong type literal' => [
             ['type' => 'image', 'text' => 'hello'],
-            'TextContent "type" must be "text", \'image\' given.',
+            'text content "type" must be \'text\', \'image\' given.',
         ];
 
         yield 'missing text' => [
             ['type' => 'text'],
-            'TextContent data missing "text".',
+            'text content missing the required "text" key.',
         ];
 
         yield 'text not a string' => [
             ['type' => 'text', 'text' => 1],
-            'TextContent "text" must be a string, int given.',
+            'text content "text" must be a string, int given.',
         ];
 
         yield 'annotations not an object' => [
             ['type' => 'text', 'text' => 'hello', 'annotations' => 'oops'],
-            'TextContent "annotations" must be an object, string given.',
+            'text content "annotations" must be an object, string given.',
         ];
 
         yield 'annotations list-keyed' => [
             ['type' => 'text', 'text' => 'hello', 'annotations' => ['x']],
-            'TextContent "annotations" must be a string-keyed object.',
+            'text content "annotations" must be a string-keyed object.',
         ];
 
         yield '_meta not an object' => [
             ['type' => 'text', 'text' => 'hello', '_meta' => 'oops'],
-            'TextContent "_meta" must be an object, string given.',
+            'text content "_meta" must be an object, string given.',
         ];
 
         yield '_meta list-keyed' => [
             ['type' => 'text', 'text' => 'hello', '_meta' => ['x']],
-            'TextContent "_meta" must be a string-keyed object.',
+            'text content "_meta" must be a string-keyed object.',
         ];
     }
 }

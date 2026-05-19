@@ -33,7 +33,7 @@ final class ResourceContentsDispatcherTest extends TestCase
     {
         $contents = ResourceContentsDispatcher::fromArray(
             ['uri' => 'file:///x', 'text' => 'hello'],
-            'EmbeddedResource resource',
+            'embedded resource resource',
         );
 
         self::assertInstanceOf(TextResourceContents::class, $contents);
@@ -44,7 +44,7 @@ final class ResourceContentsDispatcherTest extends TestCase
     {
         $contents = ResourceContentsDispatcher::fromArray(
             ['uri' => 'file:///x', 'blob' => 'aGVsbG8='],
-            'EmbeddedResource resource',
+            'embedded resource resource',
         );
 
         self::assertInstanceOf(BlobResourceContents::class, $contents);
@@ -54,11 +54,11 @@ final class ResourceContentsDispatcherTest extends TestCase
     public function testFromArrayRejectsBothTextAndBlob(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('EmbeddedResource resource data must not have both "text" and "blob".');
+        $this->expectExceptionMessage('embedded resource resource data must not have both "text" and "blob".');
 
         ResourceContentsDispatcher::fromArray(
             ['uri' => 'file:///x', 'text' => 'hello', 'blob' => 'aGVsbG8='],
-            'EmbeddedResource resource',
+            'embedded resource resource',
         );
     }
 

@@ -126,17 +126,17 @@ final class LoggingMessageNotificationTest extends TestCase
     {
         yield 'missing params' => [
             ['jsonrpc' => '2.0', 'method' => 'notifications/message'],
-            'LoggingMessageNotification data missing "params".',
+            'missing the required "params" key.',
         ];
 
         yield 'params not an object' => [
             ['jsonrpc' => '2.0', 'method' => 'notifications/message', 'params' => 'bad'],
-            'LoggingMessageNotification "params" must be an object, string given.',
+            '"params" must be an object, string given.',
         ];
 
         yield 'params list-keyed' => [
             ['jsonrpc' => '2.0', 'method' => 'notifications/message', 'params' => ['x']],
-            'LoggingMessageNotification "params" must be a string-keyed object.',
+            '"params" must be a string-keyed object.',
         ];
     }
 }

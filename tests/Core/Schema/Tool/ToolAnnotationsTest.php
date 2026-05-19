@@ -59,7 +59,7 @@ final class ToolAnnotationsTest extends TestCase
     public function testConstructorRejectsEmptyTitle(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ToolAnnotations title must be a non-empty string or null.');
+        $this->expectExceptionMessage('"annotations.title" must be a non-empty string or null.');
 
         new ToolAnnotations(title: '');
     }
@@ -67,7 +67,7 @@ final class ToolAnnotationsTest extends TestCase
     public function testConstructorRejectsDestructiveHintWhenReadOnly(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ToolAnnotations "destructiveHint" must be null when "readOnlyHint" is true; the spec defines it only when readOnlyHint == false.');
+        $this->expectExceptionMessage('"annotations.destructiveHint" must be null when "readOnlyHint" is true; the spec defines it only when readOnlyHint == false.');
 
         new ToolAnnotations(readOnlyHint: true, destructiveHint: false);
     }
@@ -75,7 +75,7 @@ final class ToolAnnotationsTest extends TestCase
     public function testConstructorRejectsIdempotentHintWhenReadOnly(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ToolAnnotations "idempotentHint" must be null when "readOnlyHint" is true; the spec defines it only when readOnlyHint == false.');
+        $this->expectExceptionMessage('"annotations.idempotentHint" must be null when "readOnlyHint" is true; the spec defines it only when readOnlyHint == false.');
 
         new ToolAnnotations(readOnlyHint: true, idempotentHint: true);
     }
@@ -183,27 +183,27 @@ final class ToolAnnotationsTest extends TestCase
     {
         yield 'title not a string' => [
             ['title' => 1],
-            'ToolAnnotations "title" must be a string or null, int given.',
+            '"annotations.title" must be a string or null, int given.',
         ];
 
         yield 'readOnlyHint not a bool' => [
             ['readOnlyHint' => 'yes'],
-            'ToolAnnotations "readOnlyHint" must be a bool or null, string given.',
+            '"annotations.readOnlyHint" must be a bool or null, string given.',
         ];
 
         yield 'destructiveHint not a bool' => [
             ['destructiveHint' => 'no'],
-            'ToolAnnotations "destructiveHint" must be a bool or null, string given.',
+            '"annotations.destructiveHint" must be a bool or null, string given.',
         ];
 
         yield 'idempotentHint not a bool' => [
             ['idempotentHint' => 1],
-            'ToolAnnotations "idempotentHint" must be a bool or null, int given.',
+            '"annotations.idempotentHint" must be a bool or null, int given.',
         ];
 
         yield 'openWorldHint not a bool' => [
             ['openWorldHint' => 0],
-            'ToolAnnotations "openWorldHint" must be a bool or null, int given.',
+            '"annotations.openWorldHint" must be a bool or null, int given.',
         ];
     }
 }

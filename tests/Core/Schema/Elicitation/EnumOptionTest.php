@@ -62,7 +62,7 @@ final class EnumOptionTest extends TestCase
     public function testConstructorRejectsEmptyConst(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('EnumOption const must be a non-empty string.');
+        $this->expectExceptionMessage('"oneOf.const" must be a non-empty string.');
 
         new EnumOption('', 'Title');
     }
@@ -70,7 +70,7 @@ final class EnumOptionTest extends TestCase
     public function testConstructorRejectsEmptyTitle(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('EnumOption title must be a non-empty string.');
+        $this->expectExceptionMessage('"oneOf.title" must be a non-empty string.');
 
         new EnumOption('value', '');
     }
@@ -94,22 +94,22 @@ final class EnumOptionTest extends TestCase
     {
         yield 'missing const' => [
             ['title' => 'x'],
-            'EnumOption data missing "const".',
+            '"oneOf" missing the required "const" key.',
         ];
 
         yield 'const not a string' => [
             ['const' => 1, 'title' => 'x'],
-            'EnumOption "const" must be a string, int given.',
+            '"oneOf.const" must be a string, int given.',
         ];
 
         yield 'missing title' => [
             ['const' => 'x'],
-            'EnumOption data missing "title".',
+            '"oneOf" missing the required "title" key.',
         ];
 
         yield 'title not a string' => [
             ['const' => 'x', 'title' => 1],
-            'EnumOption "title" must be a string, int given.',
+            '"oneOf.title" must be a string, int given.',
         ];
     }
 }

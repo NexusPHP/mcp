@@ -90,7 +90,7 @@ final class UntitledMultiSelectEnumSchemaTest extends TestCase
     public function testConstructorRejectsNonListItems(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('UntitledMultiSelectEnumSchema items must be a list, got non-list array.');
+        $this->expectExceptionMessage('untitled multi-select enum schema "items" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
         new UntitledMultiSelectEnumSchema(['k' => 'v']);
@@ -99,7 +99,7 @@ final class UntitledMultiSelectEnumSchemaTest extends TestCase
     public function testConstructorRejectsEmptyItemsEntry(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('UntitledMultiSelectEnumSchema items entry must be a non-empty string.');
+        $this->expectExceptionMessage('each untitled multi-select enum schema "items" must be a non-empty string.');
 
         new UntitledMultiSelectEnumSchema(['']);
     }
@@ -107,7 +107,7 @@ final class UntitledMultiSelectEnumSchemaTest extends TestCase
     public function testConstructorRejectsEmptyTitle(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('UntitledMultiSelectEnumSchema title must be a non-empty string or null.');
+        $this->expectExceptionMessage('untitled multi-select enum schema "title" must be a non-empty string or null.');
 
         new UntitledMultiSelectEnumSchema(['a'], '');
     }
@@ -115,7 +115,7 @@ final class UntitledMultiSelectEnumSchemaTest extends TestCase
     public function testConstructorRejectsEmptyDescription(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('UntitledMultiSelectEnumSchema description must be a non-empty string or null.');
+        $this->expectExceptionMessage('untitled multi-select enum schema "description" must be a non-empty string or null.');
 
         new UntitledMultiSelectEnumSchema(['a'], null, '');
     }
@@ -123,7 +123,7 @@ final class UntitledMultiSelectEnumSchemaTest extends TestCase
     public function testConstructorRejectsNegativeMinItems(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('UntitledMultiSelectEnumSchema minItems must be a non-negative integer or null.');
+        $this->expectExceptionMessage('untitled multi-select enum schema "minItems" must be a non-negative integer or null.');
 
         new UntitledMultiSelectEnumSchema(['a'], null, null, -1);
     }
@@ -131,7 +131,7 @@ final class UntitledMultiSelectEnumSchemaTest extends TestCase
     public function testConstructorRejectsNegativeMaxItems(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('UntitledMultiSelectEnumSchema maxItems must be a non-negative integer or null.');
+        $this->expectExceptionMessage('untitled multi-select enum schema "maxItems" must be a non-negative integer or null.');
 
         new UntitledMultiSelectEnumSchema(['a'], null, null, null, -1);
     }
@@ -139,7 +139,7 @@ final class UntitledMultiSelectEnumSchemaTest extends TestCase
     public function testConstructorRejectsNonListDefault(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('UntitledMultiSelectEnumSchema default must be a list, got non-list array.');
+        $this->expectExceptionMessage('untitled multi-select enum schema "default" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
         new UntitledMultiSelectEnumSchema(['a'], null, null, null, null, ['k' => 'v']);
@@ -164,77 +164,77 @@ final class UntitledMultiSelectEnumSchemaTest extends TestCase
     {
         yield 'missing type' => [
             ['items' => []],
-            'UntitledMultiSelectEnumSchema data missing "type".',
+            'untitled multi-select enum schema missing the required "type" key.',
         ];
 
         yield 'wrong type literal' => [
             ['type' => 'string', 'items' => []],
-            'UntitledMultiSelectEnumSchema "type" must be "array", \'string\' given.',
+            'untitled multi-select enum schema "type" must be \'array\', \'string\' given.',
         ];
 
         yield 'missing items' => [
             ['type' => 'array'],
-            'UntitledMultiSelectEnumSchema data missing "items".',
+            'untitled multi-select enum schema missing the required "items" key.',
         ];
 
         yield 'items not an object' => [
             ['type' => 'array', 'items' => 'oops'],
-            'UntitledMultiSelectEnumSchema "items" must be an object, string given.',
+            'untitled multi-select enum schema "items" must be an object, string given.',
         ];
 
         yield 'items list-keyed' => [
             ['type' => 'array', 'items' => ['x']],
-            'UntitledMultiSelectEnumSchema "items" must be a string-keyed object.',
+            'untitled multi-select enum schema "items" must be a string-keyed object.',
         ];
 
         yield 'items.type wrong literal' => [
             ['type' => 'array', 'items' => ['type' => 'number', 'enum' => ['a']]],
-            'UntitledMultiSelectEnumSchema items.type must be "string", \'number\' given.',
+            'untitled multi-select enum schema "items.type" must be \'string\', \'number\' given.',
         ];
 
         yield 'items.enum missing' => [
             ['type' => 'array', 'items' => ['type' => 'string']],
-            'UntitledMultiSelectEnumSchema items.enum must be a list, null given.',
+            'untitled multi-select enum schema "items.enum" must be a list, null given.',
         ];
 
         yield 'items.enum not a list' => [
             ['type' => 'array', 'items' => ['type' => 'string', 'enum' => ['k' => 'v']]],
-            'UntitledMultiSelectEnumSchema items.enum must be a list, got non-list array.',
+            'untitled multi-select enum schema "items.enum" must be a list, non-list array given.',
         ];
 
         yield 'items.enum entry not a string' => [
             ['type' => 'array', 'items' => ['type' => 'string', 'enum' => [1]]],
-            'UntitledMultiSelectEnumSchema items.enum entry must be a string, int given.',
+            'each untitled multi-select enum schema "items.enum" must be a string, int given.',
         ];
 
         yield 'title not a string' => [
             ['type' => 'array', 'items' => ['type' => 'string', 'enum' => ['a']], 'title' => 1],
-            'UntitledMultiSelectEnumSchema "title" must be a string or null, int given.',
+            'untitled multi-select enum schema "title" must be a string or null, int given.',
         ];
 
         yield 'description not a string' => [
             ['type' => 'array', 'items' => ['type' => 'string', 'enum' => ['a']], 'description' => 1],
-            'UntitledMultiSelectEnumSchema "description" must be a string or null, int given.',
+            'untitled multi-select enum schema "description" must be a string or null, int given.',
         ];
 
         yield 'minItems not an int' => [
             ['type' => 'array', 'items' => ['type' => 'string', 'enum' => ['a']], 'minItems' => 'x'],
-            'UntitledMultiSelectEnumSchema "minItems" must be an int or null, string given.',
+            'untitled multi-select enum schema "minItems" must be an int or null, string given.',
         ];
 
         yield 'maxItems not an int' => [
             ['type' => 'array', 'items' => ['type' => 'string', 'enum' => ['a']], 'maxItems' => 'x'],
-            'UntitledMultiSelectEnumSchema "maxItems" must be an int or null, string given.',
+            'untitled multi-select enum schema "maxItems" must be an int or null, string given.',
         ];
 
         yield 'default not a list' => [
             ['type' => 'array', 'items' => ['type' => 'string', 'enum' => ['a']], 'default' => ['k' => 'v']],
-            'UntitledMultiSelectEnumSchema "default" must be a list, got non-list array.',
+            'untitled multi-select enum schema "default" must be a list, non-list array given.',
         ];
 
         yield 'default entry not a string' => [
             ['type' => 'array', 'items' => ['type' => 'string', 'enum' => ['a']], 'default' => [1]],
-            'UntitledMultiSelectEnumSchema default entry must be a string, int given.',
+            'each untitled multi-select enum schema "default" must be a string, int given.',
         ];
     }
 }

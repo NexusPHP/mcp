@@ -36,7 +36,7 @@ final class Rfc3986UriValidatorTest extends TestCase
     {
         $this->expectNotToPerformAssertions();
 
-        Rfc3986UriValidator::validate($uri, 'Resource');
+        Rfc3986UriValidator::validate($uri, 'resource "uri"');
     }
 
     /**
@@ -84,24 +84,24 @@ final class Rfc3986UriValidatorTest extends TestCase
      */
     public static function provideRejectsInvalidUriCases(): iterable
     {
-        yield 'empty string' => ['', 'Resource', '/\AResource URI must be a non-empty string\./'];
+        yield 'empty string' => ['', 'resource "uri"', '/\Aresource "uri" must be a non-empty string\./'];
 
-        yield 'no scheme' => ['my-resource', 'Resource', '/\AResource URI must be a valid RFC 3986/'];
+        yield 'no scheme' => ['my-resource', 'resource "uri"', '/\Aresource "uri" must be a valid RFC 3986/'];
 
-        yield 'scheme starts with digit' => ['1http://example.com', 'Resource', '/\AResource URI must be a valid RFC 3986/'];
+        yield 'scheme starts with digit' => ['1http://example.com', 'resource "uri"', '/\Aresource "uri" must be a valid RFC 3986/'];
 
-        yield 'embedded space' => ['file:///path with space', 'Resource', '/\AResource URI must contain only ASCII printable/'];
+        yield 'embedded space' => ['file:///path with space', 'resource "uri"', '/\Aresource "uri" must contain only ASCII printable/'];
 
-        yield 'tab character' => ["file:///x\ty", 'Resource', '/\AResource URI must contain only ASCII printable/'];
+        yield 'tab character' => ["file:///x\ty", 'resource "uri"', '/\Aresource "uri" must contain only ASCII printable/'];
 
-        yield 'newline' => ["file:///x\n", 'Resource', '/\AResource URI must contain only ASCII printable/'];
+        yield 'newline' => ["file:///x\n", 'resource "uri"', '/\Aresource "uri" must contain only ASCII printable/'];
 
-        yield 'null byte' => ["file:///x\0", 'Resource', '/\AResource URI must contain only ASCII printable/'];
+        yield 'null byte' => ["file:///x\0", 'resource "uri"', '/\Aresource "uri" must contain only ASCII printable/'];
 
-        yield 'non-ASCII path' => ['file:///résumé', 'Resource', '/\AResource URI must contain only ASCII printable/'];
+        yield 'non-ASCII path' => ['file:///résumé', 'resource "uri"', '/\Aresource "uri" must contain only ASCII printable/'];
 
-        yield 'just a colon' => [':rest', 'Resource', '/\AResource URI must be a valid RFC 3986/'];
+        yield 'just a colon' => [':rest', 'resource "uri"', '/\Aresource "uri" must be a valid RFC 3986/'];
 
-        yield 'context prefix interpolated' => ['not-a-uri', 'ResourceContents', '/\AResourceContents URI must be a valid RFC 3986/'];
+        yield 'context prefix interpolated' => ['not-a-uri', 'resource contents "uri"', '/\Aresource contents "uri" must be a valid RFC 3986/'];
     }
 }

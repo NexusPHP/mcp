@@ -141,7 +141,7 @@ final class CallToolResultTest extends TestCase
     public function testConstructorRejectsNonListContent(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('CallToolResult content must be a list, got non-list array.');
+        $this->expectExceptionMessage('"result.content" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
         new CallToolResult([5 => new TextContent('x')]);
@@ -158,7 +158,7 @@ final class CallToolResultTest extends TestCase
     public function testConstructorRejectsListKeyedStructuredContent(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('CallToolResult structuredContent must be a string-keyed map.');
+        $this->expectExceptionMessage('"result.structuredContent" must be a string-keyed map.');
 
         // @phpstan-ignore argument.type
         new CallToolResult([], ['v1', 'v2']);
@@ -183,22 +183,22 @@ final class CallToolResultTest extends TestCase
     {
         yield 'missing content' => [
             [],
-            'CallToolResult data missing "content".',
+            '"result" missing the required "content" key.',
         ];
 
         yield 'content not an array' => [
             ['content' => 'oops'],
-            'CallToolResult "content" must be a list, string given.',
+            '"result.content" must be a list, string given.',
         ];
 
         yield 'content entry not an object' => [
             ['content' => ['oops']],
-            'CallToolResult content entry must be an object, string given.',
+            'each "result.content" must be an object, string given.',
         ];
 
         yield 'content entry list-keyed' => [
             ['content' => [['x']]],
-            'CallToolResult content entry must be a string-keyed object.',
+            'each "result.content" must be a string-keyed object.',
         ];
 
         yield 'content entry missing type' => [
@@ -208,27 +208,27 @@ final class CallToolResultTest extends TestCase
 
         yield 'content entry unknown type' => [
             ['content' => [['type' => 'unknown']]],
-            'CallToolResult content "type" must be one of "text", "image", "audio", "resource_link", "resource"; "unknown" given.',
+            'CallToolResult content "type" must be one of "text", "image", "audio", "resource_link", "resource", \'unknown\' given.',
         ];
 
         yield 'structuredContent not an object' => [
             ['content' => [], 'structuredContent' => 'oops'],
-            'CallToolResult "structuredContent" must be an object, string given.',
+            '"result.structuredContent" must be an object, string given.',
         ];
 
         yield 'structuredContent list-keyed' => [
             ['content' => [], 'structuredContent' => ['x']],
-            'CallToolResult "structuredContent" must be a string-keyed object.',
+            '"result.structuredContent" must be a string-keyed object.',
         ];
 
         yield 'isError not a bool' => [
             ['content' => [], 'isError' => 'oops'],
-            'CallToolResult "isError" must be a bool or null, string given.',
+            '"result.isError" must be a bool or null, string given.',
         ];
 
         yield '_meta not an object' => [
             ['content' => [], '_meta' => 'oops'],
-            'Result "_meta" must be an object, string given.',
+            '"result._meta" must be an object, string given.',
         ];
     }
 }

@@ -109,22 +109,22 @@ final class ListTasksRequestTest extends TestCase
     {
         yield 'missing id' => [
             ['jsonrpc' => '2.0', 'method' => 'tasks/list'],
-            'ListTasksRequest data missing "id".',
+            'missing the required "id" key.',
         ];
 
         yield 'id not int or string' => [
             ['jsonrpc' => '2.0', 'id' => [], 'method' => 'tasks/list'],
-            'ListTasksRequest "id" must be int or string, array given.',
+            '"id" must be int or string, array given.',
         ];
 
         yield 'params not an object' => [
             ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tasks/list', 'params' => 'bad'],
-            'ListTasksRequest "params" must be an object, string given.',
+            '"params" must be an object, string given.',
         ];
 
         yield 'params list-keyed' => [
             ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tasks/list', 'params' => ['x']],
-            'ListTasksRequest "params" must be a string-keyed object.',
+            '"params" must be a string-keyed object.',
         ];
     }
 }

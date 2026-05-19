@@ -118,27 +118,27 @@ final class SetLevelRequestParamsTest extends TestCase
     {
         yield 'missing level' => [
             [],
-            'SetLevelRequestParams data missing "level".',
+            'missing the required "level" key.',
         ];
 
         yield 'level not a string' => [
             ['level' => 1],
-            'SetLevelRequestParams "level" must be one of [\'debug\', \'info\', \'notice\', \'warning\', \'error\', \'critical\', \'alert\', \'emergency\'], 1 given.',
+            '"params.level" must be one of [\'debug\', \'info\', \'notice\', \'warning\', \'error\', \'critical\', \'alert\', \'emergency\'], 1 given.',
         ];
 
         yield 'unknown level' => [
             ['level' => 'verbose'],
-            'SetLevelRequestParams "level" must be one of [\'debug\', \'info\', \'notice\', \'warning\', \'error\', \'critical\', \'alert\', \'emergency\'], \'verbose\' given.',
+            '"params.level" must be one of [\'debug\', \'info\', \'notice\', \'warning\', \'error\', \'critical\', \'alert\', \'emergency\'], \'verbose\' given.',
         ];
 
         yield '_meta not an object' => [
             ['level' => 'info', '_meta' => 'oops'],
-            'Request params "_meta" must be an object, string given.',
+            '"params._meta" must be an object, string given.',
         ];
 
         yield '_meta list-keyed' => [
             ['level' => 'info', '_meta' => ['x']],
-            'Request params "_meta" must be a string-keyed object.',
+            '"params._meta" must be a string-keyed object.',
         ];
     }
 }

@@ -66,8 +66,8 @@ final readonly class Prompt extends BaseMetadata implements Arrayable, Icons
     ) {
         parent::__construct($name, $title);
 
-        IdentifierNameValidator::validate($name, 'Prompt');
-        Assert::that($description)->nullOr()->isNonEmptyString('Prompt description must be a non-empty string or null.');
+        IdentifierNameValidator::validate($name, 'prompt "name"');
+        Assert::that($description)->nullOr()->isNonEmptyString('prompt "description" must be a non-empty string or null.');
 
         if (null !== $arguments) {
             Assert::that($arguments)->values()->isInstanceOf(PromptArgument::class);
@@ -88,24 +88,24 @@ final readonly class Prompt extends BaseMetadata implements Arrayable, Icons
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('name', 'Prompt data missing "name".');
+        Assert::that($data)->hasOffset('name', 'prompt missing the required "name" key.');
         $name = $data['name'];
-        Assert::that($name)->isString('Prompt "name" must be a string, {type} given.');
+        Assert::that($name)->isString('prompt "name" must be a string, {type} given.');
 
         $title = $data['title'] ?? null;
-        Assert::that($title)->nullOr()->isString('Prompt "title" must be a string or null, {type} given.');
+        Assert::that($title)->nullOr()->isString('prompt "title" must be a string or null, {type} given.');
 
         $description = $data['description'] ?? null;
-        Assert::that($description)->nullOr()->isString('Prompt "description" must be a string or null, {type} given.');
+        Assert::that($description)->nullOr()->isString('prompt "description" must be a string or null, {type} given.');
 
         $arguments = null;
 
         if (isset($data['arguments'])) {
             Assert::that($data['arguments'])
-                ->isList('Prompt "arguments" must be a list, {type} given.')
+                ->isList('prompt "arguments" must be a list, {type} given.')
                 ->values()
-                ->isArray('Prompt argument entry must be an object, {type} given.')
-                ->isMap('Prompt argument entry must be a string-keyed object.')
+                ->isArray('each prompt "arguments" must be an object, {type} given.')
+                ->isMap('each prompt "arguments" must be a string-keyed object.')
             ;
             $arguments = array_map(PromptArgument::fromArray(...), $data['arguments']);
         }
@@ -114,10 +114,10 @@ final readonly class Prompt extends BaseMetadata implements Arrayable, Icons
 
         if (isset($data['icons'])) {
             Assert::that($data['icons'])
-                ->isList('Prompt "icons" must be a list, {type} given.')
+                ->isList('prompt "icons" must be a list, {type} given.')
                 ->values()
-                ->isArray('Prompt icon entry must be an object, {type} given.')
-                ->isMap('Prompt icon entry must be a string-keyed object.')
+                ->isArray('each prompt "icons" must be an object, {type} given.')
+                ->isMap('each prompt "icons" must be a string-keyed object.')
             ;
             $icons = array_map(Icon::fromArray(...), $data['icons']);
         }
@@ -126,8 +126,8 @@ final readonly class Prompt extends BaseMetadata implements Arrayable, Icons
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
-                ->isArray('Prompt "_meta" must be an object, {type} given.')
-                ->isMap('Prompt "_meta" must be a string-keyed object.')
+                ->isArray('prompt "_meta" must be an object, {type} given.')
+                ->isMap('prompt "_meta" must be a string-keyed object.')
             ;
             $meta = MetaObject::fromArray($data['_meta']);
         }

@@ -53,8 +53,8 @@ final readonly class ImageContent implements Arrayable, ContentBlock, SamplingMe
         public Annotations $annotations = new Annotations(),
         public MetaObject $meta = new MetaObject(),
     ) {
-        Assert::that($data)->isNonEmptyString('ImageContent data must be a non-empty string.');
-        Assert::that($mimeType)->isNonEmptyString('ImageContent mimeType must be a non-empty string.');
+        Assert::that($data)->isNonEmptyString('image content "data" must be a non-empty string.');
+        Assert::that($mimeType)->isNonEmptyString('image content "mimeType" must be a non-empty string.');
 
         $this->data = $data;
         $this->mimeType = $mimeType;
@@ -66,24 +66,24 @@ final readonly class ImageContent implements Arrayable, ContentBlock, SamplingMe
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('type', 'ImageContent data missing "type".');
+        Assert::that($data)->hasOffset('type', 'image content missing the required "type" key.');
         $type = $data['type'];
-        Assert::that($type)->isIdentical(self::TYPE, \sprintf('ImageContent "type" must be "%s", {value} given.', self::TYPE));
+        Assert::that($type)->isIdentical(self::TYPE, 'image content "type" must be {other}, {value} given.');
 
-        Assert::that($data)->hasOffset('data', 'ImageContent data missing "data".');
+        Assert::that($data)->hasOffset('data', 'image content missing the required "data" key.');
         $payload = $data['data'];
-        Assert::that($payload)->isString('ImageContent "data" must be a string, {type} given.');
+        Assert::that($payload)->isString('image content "data" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('mimeType', 'ImageContent data missing "mimeType".');
+        Assert::that($data)->hasOffset('mimeType', 'image content missing the required "mimeType" key.');
         $mimeType = $data['mimeType'];
-        Assert::that($mimeType)->isString('ImageContent "mimeType" must be a string, {type} given.');
+        Assert::that($mimeType)->isString('image content "mimeType" must be a string, {type} given.');
 
         $annotations = new Annotations();
 
         if (\array_key_exists('annotations', $data)) {
             Assert::that($data['annotations'])
-                ->isArray('ImageContent "annotations" must be an object, {type} given.')
-                ->isMap('ImageContent "annotations" must be a string-keyed object.')
+                ->isArray('image content "annotations" must be an object, {type} given.')
+                ->isMap('image content "annotations" must be a string-keyed object.')
             ;
             $annotations = Annotations::fromArray($data['annotations']);
         }
@@ -92,8 +92,8 @@ final readonly class ImageContent implements Arrayable, ContentBlock, SamplingMe
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
-                ->isArray('ImageContent "_meta" must be an object, {type} given.')
-                ->isMap('ImageContent "_meta" must be a string-keyed object.')
+                ->isArray('image content "_meta" must be an object, {type} given.')
+                ->isMap('image content "_meta" must be a string-keyed object.')
             ;
             $meta = MetaObject::fromArray($data['_meta']);
         }

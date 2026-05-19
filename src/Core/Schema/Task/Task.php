@@ -58,14 +58,14 @@ final readonly class Task implements Arrayable
         ?string $statusMessage = null,
         public ?int $pollInterval = null,
     ) {
-        Assert::that($taskId)->isNonEmptyString('Task taskId must be a non-empty string.');
-        Assert::that($statusMessage)->nullOr()->isNonEmptyString('Task statusMessage must be a non-empty string or null.');
-        Assert::that($ttl)->nullOr()->isNaturalInt('Task ttl must be a non-negative integer or null.');
-        Assert::that($pollInterval)->nullOr()->isNaturalInt('Task pollInterval must be a non-negative integer or null.');
+        Assert::that($taskId)->isNonEmptyString('task "taskId" must be a non-empty string.');
+        Assert::that($statusMessage)->nullOr()->isNonEmptyString('task "statusMessage" must be a non-empty string or null.');
+        Assert::that($ttl)->nullOr()->isNaturalInt('task "ttl" must be a non-negative integer or null.');
+        Assert::that($pollInterval)->nullOr()->isNaturalInt('task "pollInterval" must be a non-negative integer or null.');
 
         $this->taskId = $taskId;
-        $this->createdAt = Iso8601DateTimeValidator::parse($createdAt, 'Task createdAt');
-        $this->lastUpdatedAt = Iso8601DateTimeValidator::parse($lastUpdatedAt, 'Task lastUpdatedAt');
+        $this->createdAt = Iso8601DateTimeValidator::parse($createdAt, 'task "createdAt"');
+        $this->lastUpdatedAt = Iso8601DateTimeValidator::parse($lastUpdatedAt, 'task "lastUpdatedAt"');
         $this->statusMessage = $statusMessage;
     }
 
@@ -75,30 +75,30 @@ final readonly class Task implements Arrayable
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('taskId', 'Task data missing "taskId".');
+        Assert::that($data)->hasOffset('taskId', 'task missing the required "taskId" key.');
         $taskId = $data['taskId'];
-        Assert::that($taskId)->isString('Task "taskId" must be a string, {type} given.');
+        Assert::that($taskId)->isString('task "taskId" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('status', 'Task data missing "status".');
-        $status = EnumValueValidator::parse(TaskStatus::class, $data['status'], 'Task "status"');
+        Assert::that($data)->hasOffset('status', 'task missing the required "status" key.');
+        $status = EnumValueValidator::parse(TaskStatus::class, $data['status'], 'task "status"');
 
-        Assert::that($data)->hasOffset('createdAt', 'Task data missing "createdAt".');
+        Assert::that($data)->hasOffset('createdAt', 'task missing the required "createdAt" key.');
         $createdAt = $data['createdAt'];
-        Assert::that($createdAt)->isString('Task "createdAt" must be a string, {type} given.');
+        Assert::that($createdAt)->isString('task "createdAt" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('lastUpdatedAt', 'Task data missing "lastUpdatedAt".');
+        Assert::that($data)->hasOffset('lastUpdatedAt', 'task missing the required "lastUpdatedAt" key.');
         $lastUpdatedAt = $data['lastUpdatedAt'];
-        Assert::that($lastUpdatedAt)->isString('Task "lastUpdatedAt" must be a string, {type} given.');
+        Assert::that($lastUpdatedAt)->isString('task "lastUpdatedAt" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('ttl', 'Task data missing "ttl".');
+        Assert::that($data)->hasOffset('ttl', 'task missing the required "ttl" key.');
         $ttl = $data['ttl'];
-        Assert::that($ttl)->nullOr()->isInt('Task "ttl" must be an int or null, {type} given.');
+        Assert::that($ttl)->nullOr()->isInt('task "ttl" must be an int or null, {type} given.');
 
         $statusMessage = $data['statusMessage'] ?? null;
-        Assert::that($statusMessage)->nullOr()->isString('Task "statusMessage" must be a string or null, {type} given.');
+        Assert::that($statusMessage)->nullOr()->isString('task "statusMessage" must be a string or null, {type} given.');
 
         $pollInterval = $data['pollInterval'] ?? null;
-        Assert::that($pollInterval)->nullOr()->isInt('Task "pollInterval" must be an int or null, {type} given.');
+        Assert::that($pollInterval)->nullOr()->isInt('task "pollInterval" must be an int or null, {type} given.');
 
         return new self($taskId, $status, $createdAt, $lastUpdatedAt, $ttl, $statusMessage, $pollInterval);
     }

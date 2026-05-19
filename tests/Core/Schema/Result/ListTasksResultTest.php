@@ -110,7 +110,7 @@ final class ListTasksResultTest extends TestCase
     public function testConstructorRejectsNonListTasks(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ListTasksResult tasks must be a list, got non-list array.');
+        $this->expectExceptionMessage('"result.tasks" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
         new ListTasksResult([5 => self::task()]);
@@ -143,27 +143,27 @@ final class ListTasksResultTest extends TestCase
     {
         yield 'missing tasks' => [
             [],
-            'ListTasksResult data missing "tasks".',
+            '"result" missing the required "tasks" key.',
         ];
 
         yield 'tasks not an array' => [
             ['tasks' => 'oops'],
-            'ListTasksResult "tasks" must be a list, string given.',
+            '"result.tasks" must be a list, string given.',
         ];
 
         yield 'task entry not an object' => [
             ['tasks' => ['oops']],
-            'ListTasksResult task entry must be an object, string given.',
+            'each "result.task" must be an object, string given.',
         ];
 
         yield 'task entry list-keyed' => [
             ['tasks' => [['x']]],
-            'ListTasksResult task entry must be a string-keyed object.',
+            'each "result.task" must be a string-keyed object.',
         ];
 
         yield 'nextCursor not a string' => [
             ['tasks' => [], 'nextCursor' => 1],
-            'ListTasksResult "nextCursor" must be a string, int given.',
+            '"result.nextCursor" must be a string, int given.',
         ];
     }
 

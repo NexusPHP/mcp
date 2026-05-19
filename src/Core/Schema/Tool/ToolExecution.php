@@ -39,7 +39,7 @@ final readonly class ToolExecution implements Arrayable
         $taskSupport = null;
 
         if (\array_key_exists('taskSupport', $data)) {
-            $taskSupport = EnumValueValidator::parse(TaskSupport::class, $data['taskSupport'], 'ToolExecution "taskSupport"');
+            $taskSupport = EnumValueValidator::parse(TaskSupport::class, $data['taskSupport'], 'tool execution "taskSupport"');
         }
 
         return new self($taskSupport);

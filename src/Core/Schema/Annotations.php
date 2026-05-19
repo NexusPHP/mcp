@@ -45,13 +45,16 @@ final readonly class Annotations implements Arrayable
         ?string $lastModified = null,
     ) {
         if (null !== $this->audience) {
-            Assert::that($this->audience)->values()->isInstanceOf(Role::class);
+            Assert::that($this->audience)
+                ->values()
+                ->isInstanceOf(Role::class, 'each "annotations.audience" must be a valid role, {type} given.')
+            ;
         }
 
-        Assert::that($this->priority)->nullOr()->isBetween(0.0, 1.0, message: 'Priority must be between 0.0 and 1.0.');
+        Assert::that($this->priority)->nullOr()->isBetween(0.0, 1.0, message: '"annotations.priority" must be between 0.0 and 1.0.');
 
         if (null !== $lastModified) {
-            $lastModified = Iso8601DateTimeValidator::parse($lastModified, 'Last modified');
+            $lastModified = Iso8601DateTimeValidator::parse($lastModified, '"annotations.lastModified"');
         }
 
         $this->lastModified = $lastModified;
@@ -66,9 +69,9 @@ final readonly class Annotations implements Arrayable
         $audience = null;
 
         if (isset($data['audience'])) {
-            Assert::that($data['audience'])->isList('Annotations "audience" must be a list, {type} given.');
+            Assert::that($data['audience'])->isList('"annotations.audience" must be a list, {type} given.');
             $audience = array_map(
-                static fn(mixed $role): Role => EnumValueValidator::parse(Role::class, $role, 'Annotations audience entry'),
+                static fn(mixed $role): Role => EnumValueValidator::parse(Role::class, $role, 'each "annotations.audience"'),
                 $data['audience'],
             );
         }
@@ -76,11 +79,11 @@ final readonly class Annotations implements Arrayable
         $priority = $data['priority'] ?? null;
 
         if (null !== $priority) {
-            $priority = self::parseNumber($priority, 'Annotations "priority" must be a number or null, {type} given.');
+            $priority = self::parseNumber($priority, '"annotations.priority" must be a number or null, {type} given.');
         }
 
         $lastModified = $data['lastModified'] ?? null;
-        Assert::that($lastModified)->nullOr()->isString('Annotations "lastModified" must be a string or null, {type} given.');
+        Assert::that($lastModified)->nullOr()->isString('"annotations.lastModified" must be a string or null, {type} given.');
 
         return new self($audience, $priority, $lastModified);
     }

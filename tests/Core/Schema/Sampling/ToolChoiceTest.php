@@ -80,7 +80,7 @@ final class ToolChoiceTest extends TestCase
     public function testFromArrayRejectsNonStringMode(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ToolChoice "mode" must be one of [\'auto\', \'none\', \'required\'], 7 given.');
+        $this->expectExceptionMessage('"toolChoice.mode" must be one of [\'auto\', \'none\', \'required\'], 7 given.');
 
         ToolChoice::fromArray(['mode' => 7]);
     }
@@ -88,7 +88,7 @@ final class ToolChoiceTest extends TestCase
     public function testFromArrayRejectsUnknownMode(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ToolChoice "mode" must be one of [\'auto\', \'none\', \'required\'], \'unknown\' given.');
+        $this->expectExceptionMessage('"toolChoice.mode" must be one of [\'auto\', \'none\', \'required\'], \'unknown\' given.');
 
         ToolChoice::fromArray(['mode' => 'unknown']);
     }

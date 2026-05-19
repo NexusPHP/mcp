@@ -60,7 +60,7 @@ final class ProtocolVersionTest extends TestCase
     public function testEmptyVersionIsRejected(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('Protocol version must be a non-empty string.');
+        $this->expectExceptionMessage('"protocolVersion" must be a non-empty string.');
 
         new ProtocolVersion('');
     }
@@ -69,7 +69,7 @@ final class ProtocolVersionTest extends TestCase
     public function testMalformedVersionIsRejected(string $version): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('Protocol version must be in the format "YYYY-MM-DD".');
+        $this->expectExceptionMessage('"protocolVersion" must be in the format "YYYY-MM-DD".');
 
         new ProtocolVersion($version);
     }

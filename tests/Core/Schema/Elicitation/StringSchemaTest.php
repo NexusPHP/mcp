@@ -101,7 +101,7 @@ final class StringSchemaTest extends TestCase
     public function testConstructorRejectsEmptyTitle(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('StringSchema title must be a non-empty string or null.');
+        $this->expectExceptionMessage('string schema "title" must be a non-empty string or null.');
 
         new StringSchema('');
     }
@@ -109,7 +109,7 @@ final class StringSchemaTest extends TestCase
     public function testConstructorRejectsEmptyDescription(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('StringSchema description must be a non-empty string or null.');
+        $this->expectExceptionMessage('string schema "description" must be a non-empty string or null.');
 
         new StringSchema(null, '');
     }
@@ -117,7 +117,7 @@ final class StringSchemaTest extends TestCase
     public function testConstructorRejectsNegativeMinLength(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('StringSchema minLength must be a non-negative integer or null.');
+        $this->expectExceptionMessage('string schema "minLength" must be a non-negative integer or null.');
 
         new StringSchema(null, null, -1);
     }
@@ -125,7 +125,7 @@ final class StringSchemaTest extends TestCase
     public function testConstructorRejectsNegativeMaxLength(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('StringSchema maxLength must be a non-negative integer or null.');
+        $this->expectExceptionMessage('string schema "maxLength" must be a non-negative integer or null.');
 
         new StringSchema(null, null, null, -1);
     }
@@ -133,7 +133,7 @@ final class StringSchemaTest extends TestCase
     public function testConstructorRejectsUnknownFormat(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('StringSchema format must be one of "date", "date-time", "email", "uri".');
+        $this->expectExceptionMessage('string schema "format" must be one of "date", "date-time", "email", "uri".');
 
         new StringSchema(null, null, null, null, 'phone');
     }
@@ -179,47 +179,47 @@ final class StringSchemaTest extends TestCase
     {
         yield 'missing type' => [
             [],
-            'StringSchema data missing "type".',
+            'string schema missing the required "type" key.',
         ];
 
         yield 'wrong type literal' => [
             ['type' => 'number'],
-            'StringSchema "type" must be "string", \'number\' given.',
+            'string schema "type" must be \'string\', \'number\' given.',
         ];
 
         yield 'title not a string' => [
             ['type' => 'string', 'title' => 1],
-            'StringSchema "title" must be a string or null, int given.',
+            'string schema "title" must be a string or null, int given.',
         ];
 
         yield 'description not a string' => [
             ['type' => 'string', 'description' => 1],
-            'StringSchema "description" must be a string or null, int given.',
+            'string schema "description" must be a string or null, int given.',
         ];
 
         yield 'minLength not an int' => [
             ['type' => 'string', 'minLength' => 'x'],
-            'StringSchema "minLength" must be an int or null, string given.',
+            'string schema "minLength" must be an int or null, string given.',
         ];
 
         yield 'maxLength not an int' => [
             ['type' => 'string', 'maxLength' => 'x'],
-            'StringSchema "maxLength" must be an int or null, string given.',
+            'string schema "maxLength" must be an int or null, string given.',
         ];
 
         yield 'format not a string' => [
             ['type' => 'string', 'format' => 1],
-            'StringSchema "format" must be a string or null, int given.',
+            'string schema "format" must be a string or null, int given.',
         ];
 
         yield 'format unknown' => [
             ['type' => 'string', 'format' => 'phone'],
-            'StringSchema format must be one of "date", "date-time", "email", "uri".',
+            'string schema "format" must be one of "date", "date-time", "email", "uri".',
         ];
 
         yield 'default not a string' => [
             ['type' => 'string', 'default' => 1],
-            'StringSchema "default" must be a string or null, int given.',
+            'string schema "default" must be a string or null, int given.',
         ];
     }
 }

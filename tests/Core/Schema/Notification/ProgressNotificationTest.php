@@ -129,17 +129,17 @@ final class ProgressNotificationTest extends TestCase
     {
         yield 'missing params' => [
             ['jsonrpc' => '2.0', 'method' => 'notifications/progress'],
-            'ProgressNotification data missing "params".',
+            'missing the required "params" key.',
         ];
 
         yield 'params not an object' => [
             ['jsonrpc' => '2.0', 'method' => 'notifications/progress', 'params' => 'bad'],
-            'ProgressNotification "params" must be an object, string given.',
+            '"params" must be an object, string given.',
         ];
 
         yield 'params list-keyed' => [
             ['jsonrpc' => '2.0', 'method' => 'notifications/progress', 'params' => ['x']],
-            'ProgressNotification "params" must be a string-keyed object.',
+            '"params" must be a string-keyed object.',
         ];
     }
 }

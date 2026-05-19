@@ -40,7 +40,7 @@ final class SamplingContentDispatcherTest extends TestCase
     #[DataProvider('provideFromArrayDispatchesByTypeCases')]
     public function testFromArrayDispatchesByType(array $payload, string $expectedClass): void
     {
-        self::assertInstanceOf($expectedClass, SamplingContentDispatcher::fromArray($payload, 'SamplingMessage content'));
+        self::assertInstanceOf($expectedClass, SamplingContentDispatcher::fromArray($payload, 'sampling message content'));
     }
 
     /**
@@ -68,16 +68,16 @@ final class SamplingContentDispatcherTest extends TestCase
     public function testFromArrayRejectsUnknownType(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('SamplingMessage content "type" must be one of "text", "image", "audio", "tool_use", "tool_result"; "resource_link" given.');
+        $this->expectExceptionMessage('sampling message content "type" must be one of "text", "image", "audio", "tool_use", "tool_result", \'resource_link\' given.');
 
-        SamplingContentDispatcher::fromArray(['type' => 'resource_link'], 'SamplingMessage content');
+        SamplingContentDispatcher::fromArray(['type' => 'resource_link'], 'sampling message content');
     }
 
     public function testFromArrayPropagatesContextToReadType(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('CreateMessageResult content data missing "type".');
+        $this->expectExceptionMessage('"result" content data missing "type".');
 
-        SamplingContentDispatcher::fromArray(['text' => 'oops'], 'CreateMessageResult content');
+        SamplingContentDispatcher::fromArray(['text' => 'oops'], '"result" content');
     }
 }

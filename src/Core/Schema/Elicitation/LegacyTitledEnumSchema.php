@@ -67,16 +67,16 @@ final readonly class LegacyTitledEnumSchema implements Arrayable, EnumSchema
         public ?string $default = null,
     ) {
         Assert::that($enum)
-            ->isList('LegacyTitledEnumSchema enum must be a list, got non-list array.')
-            ->values()->isNonEmptyString('LegacyTitledEnumSchema enum entry must be a non-empty string.')
+            ->isList('legacy titled enum schema "enum" must be a list, non-list array given.')
+            ->values()->isNonEmptyString('each legacy titled enum schema "enum" must be a non-empty string.')
         ;
-        Assert::that($title)->nullOr()->isNonEmptyString('LegacyTitledEnumSchema title must be a non-empty string or null.');
-        Assert::that($description)->nullOr()->isNonEmptyString('LegacyTitledEnumSchema description must be a non-empty string or null.');
+        Assert::that($title)->nullOr()->isNonEmptyString('legacy titled enum schema "title" must be a non-empty string or null.');
+        Assert::that($description)->nullOr()->isNonEmptyString('legacy titled enum schema "description" must be a non-empty string or null.');
 
         if (null !== $enumNames) {
             Assert::that($enumNames)
-                ->isList('LegacyTitledEnumSchema enumNames must be a list, got non-list array.')
-                ->values()->isNonEmptyString('LegacyTitledEnumSchema enumNames entry must be a non-empty string.')
+                ->isList('legacy titled enum schema "enumNames" must be a list, non-list array given.')
+                ->values()->isNonEmptyString('each legacy titled enum schema "enumNames" must be a non-empty string.')
             ;
         }
 
@@ -92,35 +92,35 @@ final readonly class LegacyTitledEnumSchema implements Arrayable, EnumSchema
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('type', 'LegacyTitledEnumSchema data missing "type".');
+        Assert::that($data)->hasOffset('type', 'legacy titled enum schema missing the required "type" key.');
         $type = $data['type'];
-        Assert::that($type)->isIdentical(self::TYPE, \sprintf('LegacyTitledEnumSchema "type" must be "%s", {value} given.', self::TYPE));
+        Assert::that($type)->isIdentical(self::TYPE, 'legacy titled enum schema "type" must be {other}, {value} given.');
 
-        Assert::that($data)->hasOffset('enum', 'LegacyTitledEnumSchema data missing "enum".');
+        Assert::that($data)->hasOffset('enum', 'legacy titled enum schema missing the required "enum" key.');
         Assert::that($data['enum'])
-            ->isList('LegacyTitledEnumSchema "enum" must be a list, got non-list array.')
-            ->values()->isString('LegacyTitledEnumSchema "enum" entry must be a string, {type} given.')
+            ->isList('legacy titled enum schema "enum" must be a list, non-list array given.')
+            ->values()->isString('each legacy titled enum schema "enum" must be a string, {type} given.')
         ;
         $enum = $data['enum'];
 
         $title = $data['title'] ?? null;
-        Assert::that($title)->nullOr()->isString('LegacyTitledEnumSchema "title" must be a string or null, {type} given.');
+        Assert::that($title)->nullOr()->isString('legacy titled enum schema "title" must be a string or null, {type} given.');
 
         $description = $data['description'] ?? null;
-        Assert::that($description)->nullOr()->isString('LegacyTitledEnumSchema "description" must be a string or null, {type} given.');
+        Assert::that($description)->nullOr()->isString('legacy titled enum schema "description" must be a string or null, {type} given.');
 
         $enumNames = null;
 
         if (isset($data['enumNames'])) {
             Assert::that($data['enumNames'])
-                ->isList('LegacyTitledEnumSchema "enumNames" must be a list, got non-list array.')
-                ->values()->isString('LegacyTitledEnumSchema enumNames entry must be a string, {type} given.')
+                ->isList('legacy titled enum schema "enumNames" must be a list, non-list array given.')
+                ->values()->isString('each legacy titled enum schema "enumNames" must be a string, {type} given.')
             ;
             $enumNames = $data['enumNames'];
         }
 
         $default = $data['default'] ?? null;
-        Assert::that($default)->nullOr()->isString('LegacyTitledEnumSchema "default" must be a string or null, {type} given.');
+        Assert::that($default)->nullOr()->isString('legacy titled enum schema "default" must be a string or null, {type} given.');
 
         return new self($enum, $title, $description, $enumNames, $default);
     }

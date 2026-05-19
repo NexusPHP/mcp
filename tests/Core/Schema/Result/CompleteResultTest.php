@@ -107,7 +107,7 @@ final class CompleteResultTest extends TestCase
     public function testConstructorRejectsNonListValues(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('CompleteResult completion "values" must be a list, got non-list array.');
+        $this->expectExceptionMessage('"result.completion.values" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
         new CompleteResult(['values' => [5 => 'auth']]);
@@ -116,7 +116,7 @@ final class CompleteResultTest extends TestCase
     public function testConstructorRejectsNonStringValueElement(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('CompleteResult completion values must all be strings, int given.');
+        $this->expectExceptionMessage('each "result.completion.values" must be a string, int given.');
 
         // @phpstan-ignore argument.type
         new CompleteResult(['values' => [1]]);
@@ -125,7 +125,7 @@ final class CompleteResultTest extends TestCase
     public function testConstructorRejectsNonIntTotal(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('CompleteResult completion "total" must be an int, string given.');
+        $this->expectExceptionMessage('"result.completion.total" must be an int, string given.');
 
         // @phpstan-ignore argument.type
         new CompleteResult(['values' => [], 'total' => 'oops']);
@@ -134,7 +134,7 @@ final class CompleteResultTest extends TestCase
     public function testConstructorRejectsNonBoolHasMore(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('CompleteResult completion "hasMore" must be a bool, string given.');
+        $this->expectExceptionMessage('"result.completion.hasMore" must be a bool, string given.');
 
         // @phpstan-ignore argument.type
         new CompleteResult(['values' => [], 'hasMore' => 'oops']);
@@ -159,57 +159,57 @@ final class CompleteResultTest extends TestCase
     {
         yield 'missing completion' => [
             [],
-            'CompleteResult data missing "completion".',
+            '"result" missing the required "completion" key.',
         ];
 
         yield 'completion not an object' => [
             ['completion' => 'oops'],
-            'CompleteResult "completion" must be an object, string given.',
+            '"result.completion" must be an object, string given.',
         ];
 
         yield 'completion list-keyed' => [
             ['completion' => ['x']],
-            'CompleteResult "completion" must be a string-keyed object.',
+            '"result.completion" must be a string-keyed object.',
         ];
 
         yield 'completion missing values' => [
             ['completion' => []],
-            'CompleteResult completion missing "values".',
+            '"result" missing the required "completion.values" key.',
         ];
 
         yield 'completion values not an array' => [
             ['completion' => ['values' => 'oops']],
-            'CompleteResult completion "values" must be a list, string given.',
+            '"result.completion.values" must be a list, string given.',
         ];
 
         yield 'completion values not a list' => [
             ['completion' => ['values' => [5 => 'auth']]],
-            'CompleteResult completion "values" must be a list, array given.',
+            '"result.completion.values" must be a list, array given.',
         ];
 
         yield 'completion value not a string' => [
             ['completion' => ['values' => [1]]],
-            'CompleteResult completion value must be a string, int given.',
+            'each "result.completion.values" must be a string, int given.',
         ];
 
         yield 'completion total not an int' => [
             ['completion' => ['values' => [], 'total' => 'oops']],
-            'CompleteResult completion "total" must be an int, string given.',
+            '"result.completion.total" must be an int, string given.',
         ];
 
         yield 'completion hasMore not a bool' => [
             ['completion' => ['values' => [], 'hasMore' => 'oops']],
-            'CompleteResult completion "hasMore" must be a bool, string given.',
+            '"result.completion.hasMore" must be a bool, string given.',
         ];
 
         yield '_meta not an object' => [
             ['completion' => ['values' => []], '_meta' => 'oops'],
-            'Result "_meta" must be an object, string given.',
+            '"result._meta" must be an object, string given.',
         ];
 
         yield '_meta list-keyed' => [
             ['completion' => ['values' => []], '_meta' => ['x']],
-            'Result "_meta" must be a string-keyed object.',
+            '"result._meta" must be a string-keyed object.',
         ];
     }
 }

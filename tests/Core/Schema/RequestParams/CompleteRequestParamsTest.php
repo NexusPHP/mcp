@@ -178,7 +178,7 @@ final class CompleteRequestParamsTest extends TestCase
     public function testConstructorRejectsNonStringArgumentName(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('CompleteRequestParams argument "name" must be a string, int given.');
+        $this->expectExceptionMessage('"params.argument.name" must be a string, int given.');
 
         new CompleteRequestParams(
             new PromptReference('code-review'),
@@ -190,7 +190,7 @@ final class CompleteRequestParamsTest extends TestCase
     public function testConstructorRejectsNonStringArgumentValue(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('CompleteRequestParams argument "value" must be a string, int given.');
+        $this->expectExceptionMessage('"params.argument.value" must be a string, int given.');
 
         new CompleteRequestParams(
             new PromptReference('code-review'),
@@ -202,7 +202,7 @@ final class CompleteRequestParamsTest extends TestCase
     public function testConstructorRejectsNonMapContextArguments(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('CompleteRequestParams context "arguments" must be a string-keyed object.');
+        $this->expectExceptionMessage('"params.context.arguments" must be a string-keyed object.');
 
         new CompleteRequestParams(
             new PromptReference('code-review'),
@@ -215,7 +215,7 @@ final class CompleteRequestParamsTest extends TestCase
     public function testConstructorRejectsNonStringContextArgumentValue(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('CompleteRequestParams context argument value must be a string, int given.');
+        $this->expectExceptionMessage('each "params.context.arguments" must be a string, int given.');
 
         new CompleteRequestParams(
             new PromptReference('code-review'),
@@ -244,97 +244,97 @@ final class CompleteRequestParamsTest extends TestCase
     {
         yield 'missing ref' => [
             ['argument' => ['name' => 'topic', 'value' => 'auth']],
-            'CompleteRequestParams data missing "ref".',
+            'missing the required "ref" key.',
         ];
 
         yield 'ref not an object' => [
             ['ref' => 'oops', 'argument' => ['name' => 'topic', 'value' => 'auth']],
-            'CompleteRequestParams "ref" must be an object, string given.',
+            '"params.ref" must be an object, string given.',
         ];
 
         yield 'ref list-keyed' => [
             ['ref' => ['x'], 'argument' => ['name' => 'topic', 'value' => 'auth']],
-            'CompleteRequestParams "ref" must be a string-keyed object.',
+            '"params.ref" must be a string-keyed object.',
         ];
 
         yield 'ref missing type' => [
             ['ref' => ['name' => 'code-review'], 'argument' => ['name' => 'topic', 'value' => 'auth']],
-            'CompleteRequestParams ref data missing "type".',
+            '"params.ref" data missing "type".',
         ];
 
         yield 'ref type not a string' => [
             ['ref' => ['type' => 1], 'argument' => ['name' => 'topic', 'value' => 'auth']],
-            'CompleteRequestParams ref "type" must be a string, int given.',
+            '"params.ref" "type" must be a string, int given.',
         ];
 
         yield 'ref type unknown' => [
             ['ref' => ['type' => 'unknown'], 'argument' => ['name' => 'topic', 'value' => 'auth']],
-            'CompleteRequestParams ref "type" must be one of "ref/prompt", "ref/resource"; "unknown" given.',
+            '"params.ref" "type" must be one of "ref/prompt", "ref/resource", \'unknown\' given.',
         ];
 
         yield 'missing argument' => [
             ['ref' => ['type' => 'ref/prompt', 'name' => 'code-review']],
-            'CompleteRequestParams data missing "argument".',
+            'missing the required "argument" key.',
         ];
 
         yield 'argument not an object' => [
             ['ref' => ['type' => 'ref/prompt', 'name' => 'code-review'], 'argument' => 'oops'],
-            'CompleteRequestParams "argument" must be an object, string given.',
+            '"params.argument" must be an object, string given.',
         ];
 
         yield 'argument list-keyed' => [
             ['ref' => ['type' => 'ref/prompt', 'name' => 'code-review'], 'argument' => ['x']],
-            'CompleteRequestParams "argument" must be a string-keyed object.',
+            '"params.argument" must be a string-keyed object.',
         ];
 
         yield 'argument missing name' => [
             ['ref' => ['type' => 'ref/prompt', 'name' => 'code-review'], 'argument' => ['value' => 'auth']],
-            'CompleteRequestParams argument missing "name".',
+            'missing the required "argument.name" key.',
         ];
 
         yield 'argument name not a string' => [
             ['ref' => ['type' => 'ref/prompt', 'name' => 'code-review'], 'argument' => ['name' => 1, 'value' => 'auth']],
-            'CompleteRequestParams argument "name" must be a string, int given.',
+            '"params.argument.name" must be a string, int given.',
         ];
 
         yield 'argument missing value' => [
             ['ref' => ['type' => 'ref/prompt', 'name' => 'code-review'], 'argument' => ['name' => 'topic']],
-            'CompleteRequestParams argument missing "value".',
+            'missing the required "argument.value" key.',
         ];
 
         yield 'argument value not a string' => [
             ['ref' => ['type' => 'ref/prompt', 'name' => 'code-review'], 'argument' => ['name' => 'topic', 'value' => 1]],
-            'CompleteRequestParams argument "value" must be a string, int given.',
+            '"params.argument.value" must be a string, int given.',
         ];
 
         yield 'context not an object' => [
             ['ref' => ['type' => 'ref/prompt', 'name' => 'code-review'], 'argument' => ['name' => 'topic', 'value' => 'auth'], 'context' => 'oops'],
-            'CompleteRequestParams "context" must be an object, string given.',
+            '"params.context" must be an object, string given.',
         ];
 
         yield 'context list-keyed' => [
             ['ref' => ['type' => 'ref/prompt', 'name' => 'code-review'], 'argument' => ['name' => 'topic', 'value' => 'auth'], 'context' => ['x']],
-            'CompleteRequestParams "context" must be a string-keyed object.',
+            '"params.context" must be a string-keyed object.',
         ];
 
         yield 'context arguments not an object' => [
             ['ref' => ['type' => 'ref/prompt', 'name' => 'code-review'], 'argument' => ['name' => 'topic', 'value' => 'auth'], 'context' => ['arguments' => 'oops']],
-            'CompleteRequestParams context "arguments" must be an object, string given.',
+            '"params.context.arguments" must be an object, string given.',
         ];
 
         yield 'context arguments list-keyed' => [
             ['ref' => ['type' => 'ref/prompt', 'name' => 'code-review'], 'argument' => ['name' => 'topic', 'value' => 'auth'], 'context' => ['arguments' => ['v']]],
-            'CompleteRequestParams context "arguments" must be a string-keyed object.',
+            '"params.context.arguments" must be a string-keyed object.',
         ];
 
         yield 'context argument value not a string' => [
             ['ref' => ['type' => 'ref/prompt', 'name' => 'code-review'], 'argument' => ['name' => 'topic', 'value' => 'auth'], 'context' => ['arguments' => ['k' => 1]]],
-            'CompleteRequestParams context argument value must be a string, int given.',
+            'each "params.context.arguments" must be a string, int given.',
         ];
 
         yield '_meta not an object' => [
             ['ref' => ['type' => 'ref/prompt', 'name' => 'code-review'], 'argument' => ['name' => 'topic', 'value' => 'auth'], '_meta' => 'oops'],
-            'Request params "_meta" must be an object, string given.',
+            '"params._meta" must be an object, string given.',
         ];
     }
 }

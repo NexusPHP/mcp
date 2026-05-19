@@ -139,39 +139,39 @@ final class RootTest extends TestCase
     {
         yield 'missing uri' => [
             [],
-            'Root data missing "uri".',
+            'root missing the required "uri" key.',
         ];
 
         yield 'uri not a string' => [
             ['uri' => 1],
-            'Root "uri" must be a string, int given.',
+            'root "uri" must be a string, int given.',
         ];
 
         yield 'uri does not start with file://' => [
             ['uri' => 'https://example.com'],
-            'Root URI must start with \'file://\', got \'https://example.com\'.',
+            'root "uri" must start with \'file://\', got \'https://example.com\'.',
         ];
 
         yield 'name not a string' => [
             ['uri' => 'file:///x', 'name' => 1],
-            'Root "name" must be a string or null, int given.',
+            'root "name" must be a string or null, int given.',
         ];
 
         yield '_meta not an object' => [
             ['uri' => 'file:///x', '_meta' => 'oops'],
-            'Root "_meta" must be an object, string given.',
+            'root "_meta" must be an object, string given.',
         ];
 
         yield '_meta list-keyed' => [
             ['uri' => 'file:///x', '_meta' => ['x']],
-            'Root "_meta" must be a string-keyed object.',
+            'root "_meta" must be a string-keyed object.',
         ];
     }
 
     public function testConstructorRejectsNonFileUri(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('Root URI must start with \'file://\', got \'https://example.com\'.');
+        $this->expectExceptionMessage('root "uri" must start with \'file://\', got \'https://example.com\'.');
 
         new Root('https://example.com');
     }

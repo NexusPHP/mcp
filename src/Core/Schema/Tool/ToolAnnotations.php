@@ -50,13 +50,13 @@ final readonly class ToolAnnotations implements Arrayable
         public ?bool $idempotentHint = null,
         public ?bool $openWorldHint = null,
     ) {
-        Assert::that($title)->nullOr()->isNonEmptyString('ToolAnnotations title must be a non-empty string or null.');
+        Assert::that($title)->nullOr()->isNonEmptyString('"annotations.title" must be a non-empty string or null.');
 
         $this->title = $title;
 
         if (true === $this->readOnlyHint) {
-            Assert::that($this->destructiveHint)->isNull('ToolAnnotations "destructiveHint" must be null when "readOnlyHint" is true; the spec defines it only when readOnlyHint == false.');
-            Assert::that($this->idempotentHint)->isNull('ToolAnnotations "idempotentHint" must be null when "readOnlyHint" is true; the spec defines it only when readOnlyHint == false.');
+            Assert::that($this->destructiveHint)->isNull('"annotations.destructiveHint" must be null when "readOnlyHint" is true; the spec defines it only when readOnlyHint == false.');
+            Assert::that($this->idempotentHint)->isNull('"annotations.idempotentHint" must be null when "readOnlyHint" is true; the spec defines it only when readOnlyHint == false.');
         }
     }
 
@@ -67,19 +67,19 @@ final readonly class ToolAnnotations implements Arrayable
     public static function fromArray(array $data): static
     {
         $title = $data['title'] ?? null;
-        Assert::that($title)->nullOr()->isString('ToolAnnotations "title" must be a string or null, {type} given.');
+        Assert::that($title)->nullOr()->isString('"annotations.title" must be a string or null, {type} given.');
 
         $readOnlyHint = $data['readOnlyHint'] ?? null;
-        Assert::that($readOnlyHint)->nullOr()->isBool('ToolAnnotations "readOnlyHint" must be a bool or null, {type} given.');
+        Assert::that($readOnlyHint)->nullOr()->isBool('"annotations.readOnlyHint" must be a bool or null, {type} given.');
 
         $destructiveHint = $data['destructiveHint'] ?? null;
-        Assert::that($destructiveHint)->nullOr()->isBool('ToolAnnotations "destructiveHint" must be a bool or null, {type} given.');
+        Assert::that($destructiveHint)->nullOr()->isBool('"annotations.destructiveHint" must be a bool or null, {type} given.');
 
         $idempotentHint = $data['idempotentHint'] ?? null;
-        Assert::that($idempotentHint)->nullOr()->isBool('ToolAnnotations "idempotentHint" must be a bool or null, {type} given.');
+        Assert::that($idempotentHint)->nullOr()->isBool('"annotations.idempotentHint" must be a bool or null, {type} given.');
 
         $openWorldHint = $data['openWorldHint'] ?? null;
-        Assert::that($openWorldHint)->nullOr()->isBool('ToolAnnotations "openWorldHint" must be a bool or null, {type} given.');
+        Assert::that($openWorldHint)->nullOr()->isBool('"annotations.openWorldHint" must be a bool or null, {type} given.');
 
         return new self($title, $readOnlyHint, $destructiveHint, $idempotentHint, $openWorldHint);
     }

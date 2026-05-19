@@ -36,7 +36,7 @@ final readonly class ListToolsResult extends PaginatedResult implements ServerRe
     public function __construct(array $tools, ?Cursor $nextCursor = null, MetaObject $meta = new MetaObject())
     {
         Assert::that($tools)
-            ->isList('ListToolsResult tools must be a list, got non-list array.')
+            ->isList('"result.tools" must be a list, non-list array given.')
             ->values()->isInstanceOf(Tool::class)
         ;
 
@@ -48,12 +48,12 @@ final readonly class ListToolsResult extends PaginatedResult implements ServerRe
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('tools', 'ListToolsResult data missing "tools".');
+        Assert::that($data)->hasOffset('tools', '"result" missing the required "tools" key.');
         Assert::that($data['tools'])
-            ->isList('ListToolsResult "tools" must be a list, {type} given.')
+            ->isList('"result.tools" must be a list, {type} given.')
             ->values()
-            ->isArray('ListToolsResult tool entry must be an object, {type} given.')
-            ->isMap('ListToolsResult tool entry must be a string-keyed object.')
+            ->isArray('each "result.tool" must be an object, {type} given.')
+            ->isMap('each "result.tool" must be a string-keyed object.')
         ;
         $tools = array_map(Tool::fromArray(...), $data['tools']);
 
@@ -61,7 +61,7 @@ final readonly class ListToolsResult extends PaginatedResult implements ServerRe
 
         if (\array_key_exists('nextCursor', $data)) {
             $raw = $data['nextCursor'];
-            Assert::that($raw)->isString('ListToolsResult "nextCursor" must be a string, {type} given.');
+            Assert::that($raw)->isString('"result.nextCursor" must be a string, {type} given.');
             $nextCursor = new Cursor($raw);
         }
 
@@ -69,8 +69,8 @@ final readonly class ListToolsResult extends PaginatedResult implements ServerRe
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
-                ->isArray('Result "_meta" must be an object, {type} given.')
-                ->isMap('Result "_meta" must be a string-keyed object.')
+                ->isArray('"result._meta" must be an object, {type} given.')
+                ->isMap('"result._meta" must be a string-keyed object.')
             ;
             $meta = MetaObject::fromArray($data['_meta']);
         }

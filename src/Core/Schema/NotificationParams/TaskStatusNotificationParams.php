@@ -41,8 +41,8 @@ final readonly class TaskStatusNotificationParams extends NotificationParams
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
-                ->isArray('Notification params "_meta" must be an object, {type} given.')
-                ->isMap('Notification params "_meta" must be a string-keyed object.')
+                ->isArray('"params._meta" must be an object, {type} given.')
+                ->isMap('"params._meta" must be a string-keyed object.')
             ;
             $meta = MetaObject::fromArray($data['_meta']);
         }

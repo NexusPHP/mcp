@@ -99,7 +99,7 @@ final class TitledSingleSelectEnumSchemaTest extends TestCase
     public function testConstructorRejectsNonListOneOf(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('TitledSingleSelectEnumSchema oneOf must be a list, got non-list array.');
+        $this->expectExceptionMessage('titled single select enum schema "oneOf" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
         new TitledSingleSelectEnumSchema(['k' => new EnumOption('a', 'A')]);
@@ -116,7 +116,7 @@ final class TitledSingleSelectEnumSchemaTest extends TestCase
     public function testConstructorRejectsEmptyTitle(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('TitledSingleSelectEnumSchema title must be a non-empty string or null.');
+        $this->expectExceptionMessage('titled single select enum schema "title" must be a non-empty string or null.');
 
         new TitledSingleSelectEnumSchema([new EnumOption('a', 'A')], '');
     }
@@ -124,7 +124,7 @@ final class TitledSingleSelectEnumSchemaTest extends TestCase
     public function testConstructorRejectsEmptyDescription(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('TitledSingleSelectEnumSchema description must be a non-empty string or null.');
+        $this->expectExceptionMessage('titled single select enum schema "description" must be a non-empty string or null.');
 
         new TitledSingleSelectEnumSchema([new EnumOption('a', 'A')], null, '');
     }
@@ -148,47 +148,47 @@ final class TitledSingleSelectEnumSchemaTest extends TestCase
     {
         yield 'missing type' => [
             ['oneOf' => []],
-            'TitledSingleSelectEnumSchema data missing "type".',
+            'titled single select enum schema missing the required "type" key.',
         ];
 
         yield 'wrong type literal' => [
             ['type' => 'number', 'oneOf' => []],
-            'TitledSingleSelectEnumSchema "type" must be "string", \'number\' given.',
+            'titled single select enum schema "type" must be \'string\', \'number\' given.',
         ];
 
         yield 'missing oneOf' => [
             ['type' => 'string'],
-            'TitledSingleSelectEnumSchema data missing "oneOf".',
+            'titled single select enum schema missing the required "oneOf" key.',
         ];
 
         yield 'oneOf not a list' => [
             ['type' => 'string', 'oneOf' => ['k' => []]],
-            'TitledSingleSelectEnumSchema "oneOf" must be a list, got non-list array.',
+            'titled single select enum schema "oneOf" must be a list, non-list array given.',
         ];
 
         yield 'oneOf entry not an object' => [
             ['type' => 'string', 'oneOf' => ['oops']],
-            'TitledSingleSelectEnumSchema oneOf entry must be an object, string given.',
+            'each titled single select enum schema "oneOf" must be an object, string given.',
         ];
 
         yield 'oneOf entry list-keyed' => [
             ['type' => 'string', 'oneOf' => [['x']]],
-            'TitledSingleSelectEnumSchema oneOf entry must be a string-keyed object.',
+            'each titled single select enum schema "oneOf" must be a string-keyed object.',
         ];
 
         yield 'title not a string' => [
             ['type' => 'string', 'oneOf' => [], 'title' => 1],
-            'TitledSingleSelectEnumSchema "title" must be a string or null, int given.',
+            'titled single select enum schema "title" must be a string or null, int given.',
         ];
 
         yield 'description not a string' => [
             ['type' => 'string', 'oneOf' => [], 'description' => 1],
-            'TitledSingleSelectEnumSchema "description" must be a string or null, int given.',
+            'titled single select enum schema "description" must be a string or null, int given.',
         ];
 
         yield 'default not a string' => [
             ['type' => 'string', 'oneOf' => [], 'default' => 1],
-            'TitledSingleSelectEnumSchema "default" must be a string or null, int given.',
+            'titled single select enum schema "default" must be a string or null, int given.',
         ];
     }
 }

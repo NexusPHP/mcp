@@ -75,17 +75,17 @@ final class ModelPreferencesTest extends TestCase
      */
     public static function provideConstructorRejectsOutOfRangeFieldCases(): iterable
     {
-        yield 'costPriority below 0' => ['costPriority', -0.1, 'ModelPreferences "costPriority" must be between 0.0 and 1.0.'];
+        yield 'costPriority below 0' => ['costPriority', -0.1, '"modelPreferences.costPriority" must be between 0.0 and 1.0.'];
 
-        yield 'costPriority above 1' => ['costPriority', 1.1, 'ModelPreferences "costPriority" must be between 0.0 and 1.0.'];
+        yield 'costPriority above 1' => ['costPriority', 1.1, '"modelPreferences.costPriority" must be between 0.0 and 1.0.'];
 
-        yield 'speedPriority below 0' => ['speedPriority', -0.1, 'ModelPreferences "speedPriority" must be between 0.0 and 1.0.'];
+        yield 'speedPriority below 0' => ['speedPriority', -0.1, '"modelPreferences.speedPriority" must be between 0.0 and 1.0.'];
 
-        yield 'speedPriority above 1' => ['speedPriority', 1.1, 'ModelPreferences "speedPriority" must be between 0.0 and 1.0.'];
+        yield 'speedPriority above 1' => ['speedPriority', 1.1, '"modelPreferences.speedPriority" must be between 0.0 and 1.0.'];
 
-        yield 'intelligencePriority below 0' => ['intelligencePriority', -0.1, 'ModelPreferences "intelligencePriority" must be between 0.0 and 1.0.'];
+        yield 'intelligencePriority below 0' => ['intelligencePriority', -0.1, '"modelPreferences.intelligencePriority" must be between 0.0 and 1.0.'];
 
-        yield 'intelligencePriority above 1' => ['intelligencePriority', 1.1, 'ModelPreferences "intelligencePriority" must be between 0.0 and 1.0.'];
+        yield 'intelligencePriority above 1' => ['intelligencePriority', 1.1, '"modelPreferences.intelligencePriority" must be between 0.0 and 1.0.'];
     }
 
     public function testConstructorAcceptsBoundaryValues(): void
@@ -168,7 +168,7 @@ final class ModelPreferencesTest extends TestCase
     public function testFromArrayRejectsNonListHints(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ModelPreferences "hints" must be a list, string given.');
+        $this->expectExceptionMessage('"modelPreferences.hints" must be a list, string given.');
 
         ModelPreferences::fromArray(['hints' => 'oops']);
     }
@@ -176,7 +176,7 @@ final class ModelPreferencesTest extends TestCase
     public function testFromArrayRejectsNonObjectHintEntry(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ModelPreferences hint entry must be an object, string given.');
+        $this->expectExceptionMessage('each "modelPreferences.hints" must be an object, string given.');
 
         ModelPreferences::fromArray(['hints' => ['oops']]);
     }
@@ -184,7 +184,7 @@ final class ModelPreferencesTest extends TestCase
     public function testFromArrayRejectsListHintEntry(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ModelPreferences hint entry must be a string-keyed object.');
+        $this->expectExceptionMessage('each "modelPreferences.hints" must be a string-keyed object.');
 
         ModelPreferences::fromArray(['hints' => [['x']]]);
     }
@@ -192,7 +192,7 @@ final class ModelPreferencesTest extends TestCase
     public function testFromArrayRejectsNonNumericPriority(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ModelPreferences "speedPriority" must be a number or null, string given.');
+        $this->expectExceptionMessage('"modelPreferences.speedPriority" must be a number or null, string given.');
 
         ModelPreferences::fromArray(['speedPriority' => 'oops']);
     }

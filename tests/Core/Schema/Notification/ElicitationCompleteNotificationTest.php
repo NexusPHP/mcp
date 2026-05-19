@@ -93,17 +93,17 @@ final class ElicitationCompleteNotificationTest extends TestCase
     {
         yield 'missing params' => [
             [],
-            'ElicitationCompleteNotification data missing "params".',
+            'missing the required "params" key.',
         ];
 
         yield 'params not an object' => [
             ['params' => 'oops'],
-            'ElicitationCompleteNotification "params" must be an object, string given.',
+            '"params" must be an object, string given.',
         ];
 
         yield 'params list-keyed' => [
             ['params' => ['x']],
-            'ElicitationCompleteNotification "params" must be a string-keyed object.',
+            '"params" must be a string-keyed object.',
         ];
     }
 }

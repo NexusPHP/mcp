@@ -58,7 +58,7 @@ final class AnnotationsTest extends TestCase
     public function testAnnotationsRejectsOutOfRangePriority(float $priority): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Priority must be between 0.0 and 1.0.');
+        $this->expectExceptionMessage('"annotations.priority" must be between 0.0 and 1.0.');
 
         new Annotations(priority: $priority);
     }
@@ -110,19 +110,19 @@ final class AnnotationsTest extends TestCase
      */
     public static function provideAnnotationsRejectsInvalidLastModifiedCases(): iterable
     {
-        yield 'invalid text' => ['not-a-date', 'Last modified must be a valid ISO 8601 datetime.'];
+        yield 'invalid text' => ['not-a-date', '"annotations.lastModified" must be a valid ISO 8601 datetime.'];
 
-        yield 'missing timezone' => ['2026-03-09T12:00:00', 'Last modified must be a valid ISO 8601 datetime.'];
+        yield 'missing timezone' => ['2026-03-09T12:00:00', '"annotations.lastModified" must be a valid ISO 8601 datetime.'];
 
         yield 'overflowed date and time' => ['2026-13-45T25:99:99+00:00', 'The parsed date was invalid.'];
 
-        yield 'space separator' => ['2026-03-09 12:00:00+00:00', 'Last modified must be a valid ISO 8601 datetime.'];
+        yield 'space separator' => ['2026-03-09 12:00:00+00:00', '"annotations.lastModified" must be a valid ISO 8601 datetime.'];
 
-        yield 'prefixed garbage' => ['foo2026-03-09T12:00:00+00:00', 'Last modified must be a valid ISO 8601 datetime.'];
+        yield 'prefixed garbage' => ['foo2026-03-09T12:00:00+00:00', '"annotations.lastModified" must be a valid ISO 8601 datetime.'];
 
-        yield 'suffixed garbage' => ['2026-03-09T12:00:00+00:00bar', 'Last modified must be a valid ISO 8601 datetime.'];
+        yield 'suffixed garbage' => ['2026-03-09T12:00:00+00:00bar', '"annotations.lastModified" must be a valid ISO 8601 datetime.'];
 
-        yield 'null byte in value' => ["2026-03-09T12:00:00+00:00\0", 'Last modified must not contain NULL bytes.'];
+        yield 'null byte in value' => ["2026-03-09T12:00:00+00:00\0", '"annotations.lastModified" must not contain NULL bytes.'];
     }
 
     public function testAnnotationsFromArrayParsesLastModified(): void
@@ -150,7 +150,7 @@ final class AnnotationsTest extends TestCase
     public function testAnnotationsFromArrayRejectsInvalidAudienceValue(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('Annotations audience entry must be one of [\'user\', \'assistant\'], \'invalid-role\' given.');
+        $this->expectExceptionMessage('each "annotations.audience" must be one of [\'user\', \'assistant\'], \'invalid-role\' given.');
 
         Annotations::fromArray(['audience' => ['invalid-role']]);
     }
@@ -158,7 +158,7 @@ final class AnnotationsTest extends TestCase
     public function testAnnotationsFromArrayRejectsNonStringAudienceEntry(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('Annotations audience entry must be one of [\'user\', \'assistant\'], 42 given.');
+        $this->expectExceptionMessage('each "annotations.audience" must be one of [\'user\', \'assistant\'], 42 given.');
 
         Annotations::fromArray(['audience' => [42]]);
     }

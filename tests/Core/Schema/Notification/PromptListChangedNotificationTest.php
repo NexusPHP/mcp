@@ -105,7 +105,7 @@ final class PromptListChangedNotificationTest extends TestCase
     public function testFromArrayRejectsNonObjectParams(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('PromptListChangedNotification "params" must be an object, string given.');
+        $this->expectExceptionMessage('"params" must be an object, string given.');
 
         PromptListChangedNotification::fromArray([
             'jsonrpc' => '2.0',

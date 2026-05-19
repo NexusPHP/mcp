@@ -108,7 +108,7 @@ final class PromptReferenceTest extends TestCase
     public function testConstructorRejectsInvalidName(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageMatches('/\APromptReference name must be 1-128 characters/');
+        $this->expectExceptionMessageMatches('/\Aprompt reference "name" must be 1-128 characters/');
 
         new PromptReference('my prompt');
     }
@@ -132,27 +132,27 @@ final class PromptReferenceTest extends TestCase
     {
         yield 'missing type' => [
             ['name' => 'my-prompt'],
-            'PromptReference data missing "type".',
+            'prompt reference missing the required "type" key.',
         ];
 
         yield 'wrong type literal' => [
             ['type' => 'ref/resource', 'name' => 'my-prompt'],
-            'PromptReference "type" must be "ref/prompt", \'ref/resource\' given.',
+            'prompt reference "type" must be \'ref/prompt\', \'ref/resource\' given.',
         ];
 
         yield 'missing name' => [
             ['type' => 'ref/prompt'],
-            'PromptReference data missing "name".',
+            'prompt reference missing the required "name" key.',
         ];
 
         yield 'name not a string' => [
             ['type' => 'ref/prompt', 'name' => 1],
-            'PromptReference "name" must be a string, int given.',
+            'prompt reference "name" must be a string, int given.',
         ];
 
         yield 'title not a string' => [
             ['type' => 'ref/prompt', 'name' => 'my-prompt', 'title' => 1],
-            'PromptReference "title" must be a string or null, int given.',
+            'prompt reference "title" must be a string or null, int given.',
         ];
     }
 }

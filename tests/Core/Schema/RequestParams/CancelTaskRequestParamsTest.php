@@ -74,7 +74,7 @@ final class CancelTaskRequestParamsTest extends TestCase
     public function testFromArrayRejectsMissingTaskId(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('CancelTaskRequestParams data missing "taskId".');
+        $this->expectExceptionMessage('missing the required "taskId" key.');
 
         CancelTaskRequestParams::fromArray([]);
     }
@@ -82,7 +82,7 @@ final class CancelTaskRequestParamsTest extends TestCase
     public function testFromArrayRejectsNonStringTaskId(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('CancelTaskRequestParams "taskId" must be a string, int given.');
+        $this->expectExceptionMessage('"params.taskId" must be a string, int given.');
 
         CancelTaskRequestParams::fromArray(['taskId' => 42]);
     }

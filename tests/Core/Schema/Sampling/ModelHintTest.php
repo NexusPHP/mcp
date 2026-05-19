@@ -44,7 +44,7 @@ final class ModelHintTest extends TestCase
     public function testConstructorRejectsEmptyName(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ModelHint name must be a non-empty string or null.');
+        $this->expectExceptionMessage('"hints.name" must be a non-empty string or null.');
 
         new ModelHint('');
     }
@@ -89,7 +89,7 @@ final class ModelHintTest extends TestCase
     public function testFromArrayRejectsNonStringName(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ModelHint "name" must be a string or null, int given.');
+        $this->expectExceptionMessage('"hints.name" must be a string or null, int given.');
 
         ModelHint::fromArray(['name' => 42]);
     }

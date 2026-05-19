@@ -41,16 +41,16 @@ final readonly class ListRootsRequest extends JsonRpcRequest implements ServerRe
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('id', 'ListRootsRequest data missing "id".');
+        Assert::that($data)->hasOffset('id', 'missing the required "id" key.');
         $id = $data['id'];
-        Assert::that($id)->isArrayKey('ListRootsRequest "id" must be int or string, {type} given.');
+        Assert::that($id)->isArrayKey('"id" must be int or string, {type} given.');
 
         $params = new EmptyRequestParams();
 
         if (\array_key_exists('params', $data)) {
             Assert::that($data['params'])
-                ->isArray('ListRootsRequest "params" must be an object, {type} given.')
-                ->isMap('ListRootsRequest "params" must be a string-keyed object.')
+                ->isArray('"params" must be an object, {type} given.')
+                ->isMap('"params" must be a string-keyed object.')
             ;
             $params = EmptyRequestParams::fromArray($data['params']);
         }

@@ -119,22 +119,22 @@ final class SubscribeRequestParamsTest extends TestCase
     {
         yield 'missing uri' => [
             [],
-            'SubscribeRequestParams data missing "uri".',
+            'missing the required "uri" key.',
         ];
 
         yield 'uri not a string' => [
             ['uri' => 1],
-            'SubscribeRequestParams "uri" must be a string, int given.',
+            '"params.uri" must be a string, int given.',
         ];
 
         yield '_meta not an object' => [
             ['uri' => 'file:///x', '_meta' => 'oops'],
-            'Request params "_meta" must be an object, string given.',
+            '"params._meta" must be an object, string given.',
         ];
 
         yield '_meta list-keyed' => [
             ['uri' => 'file:///x', '_meta' => ['x']],
-            'Request params "_meta" must be a string-keyed object.',
+            '"params._meta" must be a string-keyed object.',
         ];
     }
 }

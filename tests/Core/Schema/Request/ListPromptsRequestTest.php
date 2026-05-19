@@ -113,22 +113,22 @@ final class ListPromptsRequestTest extends TestCase
     {
         yield 'missing id' => [
             ['jsonrpc' => '2.0', 'method' => 'prompts/list'],
-            'ListPromptsRequest data missing "id".',
+            'missing the required "id" key.',
         ];
 
         yield 'id not int or string' => [
             ['jsonrpc' => '2.0', 'id' => [], 'method' => 'prompts/list'],
-            'ListPromptsRequest "id" must be int or string, array given.',
+            '"id" must be int or string, array given.',
         ];
 
         yield 'params not an object' => [
             ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'prompts/list', 'params' => 'bad'],
-            'ListPromptsRequest "params" must be an object, string given.',
+            '"params" must be an object, string given.',
         ];
 
         yield 'params list-keyed' => [
             ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'prompts/list', 'params' => ['x']],
-            'ListPromptsRequest "params" must be a string-keyed object.',
+            '"params" must be a string-keyed object.',
         ];
     }
 }

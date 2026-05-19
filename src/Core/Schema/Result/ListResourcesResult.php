@@ -36,7 +36,7 @@ final readonly class ListResourcesResult extends PaginatedResult implements Serv
     public function __construct(array $resources, ?Cursor $nextCursor = null, MetaObject $meta = new MetaObject())
     {
         Assert::that($resources)
-            ->isList('ListResourcesResult resources must be a list, got non-list array.')
+            ->isList('"result.resources" must be a list, non-list array given.')
             ->values()->isInstanceOf(Resource::class)
         ;
 
@@ -48,12 +48,12 @@ final readonly class ListResourcesResult extends PaginatedResult implements Serv
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('resources', 'ListResourcesResult data missing "resources".');
+        Assert::that($data)->hasOffset('resources', '"result" missing the required "resources" key.');
         Assert::that($data['resources'])
-            ->isList('ListResourcesResult "resources" must be a list, {type} given.')
+            ->isList('"result.resources" must be a list, {type} given.')
             ->values()
-            ->isArray('ListResourcesResult resource entry must be an object, {type} given.')
-            ->isMap('ListResourcesResult resource entry must be a string-keyed object.')
+            ->isArray('each "result.resource" must be an object, {type} given.')
+            ->isMap('each "result.resource" must be a string-keyed object.')
         ;
         $resources = array_map(Resource::fromArray(...), $data['resources']);
 
@@ -61,7 +61,7 @@ final readonly class ListResourcesResult extends PaginatedResult implements Serv
 
         if (\array_key_exists('nextCursor', $data)) {
             $raw = $data['nextCursor'];
-            Assert::that($raw)->isString('ListResourcesResult "nextCursor" must be a string, {type} given.');
+            Assert::that($raw)->isString('"result.nextCursor" must be a string, {type} given.');
             $nextCursor = new Cursor($raw);
         }
 
@@ -69,8 +69,8 @@ final readonly class ListResourcesResult extends PaginatedResult implements Serv
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
-                ->isArray('Result "_meta" must be an object, {type} given.')
-                ->isMap('Result "_meta" must be a string-keyed object.')
+                ->isArray('"result._meta" must be an object, {type} given.')
+                ->isMap('"result._meta" must be a string-keyed object.')
             ;
             $meta = MetaObject::fromArray($data['_meta']);
         }

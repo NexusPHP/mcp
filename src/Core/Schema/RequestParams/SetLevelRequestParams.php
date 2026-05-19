@@ -37,15 +37,15 @@ final readonly class SetLevelRequestParams extends RequestParams
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('level', 'SetLevelRequestParams data missing "level".');
-        $level = EnumValueValidator::parse(LoggingLevel::class, $data['level'], 'SetLevelRequestParams "level"');
+        Assert::that($data)->hasOffset('level', 'missing the required "level" key.');
+        $level = EnumValueValidator::parse(LoggingLevel::class, $data['level'], '"params.level"');
 
         $meta = new RequestMetaObject();
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
-                ->isArray('Request params "_meta" must be an object, {type} given.')
-                ->isMap('Request params "_meta" must be a string-keyed object.')
+                ->isArray('"params._meta" must be an object, {type} given.')
+                ->isMap('"params._meta" must be a string-keyed object.')
             ;
             $meta = RequestMetaObject::fromArray($data['_meta']);
         }

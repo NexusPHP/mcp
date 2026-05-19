@@ -44,8 +44,8 @@ final readonly class ElicitRequestFormParams extends TaskAugmentedRequestParams 
         ?TaskMetadata $task = null,
         RequestMetaObject $meta = new RequestMetaObject(),
     ) {
-        Assert::that($message)->isNonEmptyString('ElicitRequestFormParams message must be a non-empty string.');
-        Assert::that($mode)->isIdentical(self::MODE, \sprintf('ElicitRequestFormParams mode must be "%s", {value} given.', self::MODE));
+        Assert::that($message)->isNonEmptyString('"params.message" must be a non-empty string.');
+        Assert::that($mode)->isIdentical(self::MODE, '"params.mode" must be {other}, {value} given.');
 
         $this->message = $message;
         $this->mode = $mode;
@@ -60,16 +60,16 @@ final readonly class ElicitRequestFormParams extends TaskAugmentedRequestParams 
     public static function fromArray(array $data): static
     {
         $mode = $data['mode'] ?? self::MODE;
-        Assert::that($mode)->isString('ElicitRequestFormParams "mode" must be a string, {type} given.');
+        Assert::that($mode)->isString('"params.mode" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('message', 'ElicitRequestFormParams data missing "message".');
+        Assert::that($data)->hasOffset('message', 'missing the required "message" key.');
         $message = $data['message'];
-        Assert::that($message)->isString('ElicitRequestFormParams "message" must be a string, {type} given.');
+        Assert::that($message)->isString('"params.message" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('requestedSchema', 'ElicitRequestFormParams data missing "requestedSchema".');
+        Assert::that($data)->hasOffset('requestedSchema', 'missing the required "requestedSchema" key.');
         Assert::that($data['requestedSchema'])
-            ->isArray('ElicitRequestFormParams "requestedSchema" must be an object, {type} given.')
-            ->isMap('ElicitRequestFormParams "requestedSchema" must be a string-keyed object.')
+            ->isArray('"params.requestedSchema" must be an object, {type} given.')
+            ->isMap('"params.requestedSchema" must be a string-keyed object.')
         ;
         $requestedSchema = ElicitRequestedSchema::fromArray($data['requestedSchema']);
 
@@ -77,8 +77,8 @@ final readonly class ElicitRequestFormParams extends TaskAugmentedRequestParams 
 
         if (\array_key_exists('task', $data)) {
             Assert::that($data['task'])
-                ->isArray('ElicitRequestFormParams "task" must be an object, {type} given.')
-                ->isMap('ElicitRequestFormParams "task" must be a string-keyed object.')
+                ->isArray('"params.task" must be an object, {type} given.')
+                ->isMap('"params.task" must be a string-keyed object.')
             ;
             $task = TaskMetadata::fromArray($data['task']);
         }
@@ -87,8 +87,8 @@ final readonly class ElicitRequestFormParams extends TaskAugmentedRequestParams 
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
-                ->isArray('Request params "_meta" must be an object, {type} given.')
-                ->isMap('Request params "_meta" must be a string-keyed object.')
+                ->isArray('"params._meta" must be an object, {type} given.')
+                ->isMap('"params._meta" must be a string-keyed object.')
             ;
             $meta = RequestMetaObject::fromArray($data['_meta']);
         }

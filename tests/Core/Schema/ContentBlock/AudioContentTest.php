@@ -111,7 +111,7 @@ final class AudioContentTest extends TestCase
     public function testConstructorRejectsEmptyData(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('AudioContent data must be a non-empty string.');
+        $this->expectExceptionMessage('audio content "data" must be a non-empty string.');
 
         new AudioContent('', 'audio/mp3');
     }
@@ -119,7 +119,7 @@ final class AudioContentTest extends TestCase
     public function testConstructorRejectsEmptyMimeType(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('AudioContent mimeType must be a non-empty string.');
+        $this->expectExceptionMessage('audio content "mimeType" must be a non-empty string.');
 
         new AudioContent('aGVsbG8=', '');
     }
@@ -143,52 +143,52 @@ final class AudioContentTest extends TestCase
     {
         yield 'missing type' => [
             ['data' => 'aGVsbG8=', 'mimeType' => 'audio/mp3'],
-            'AudioContent data missing "type".',
+            'audio content missing the required "type" key.',
         ];
 
         yield 'wrong type literal' => [
             ['type' => 'image', 'data' => 'aGVsbG8=', 'mimeType' => 'audio/mp3'],
-            'AudioContent "type" must be "audio", \'image\' given.',
+            'audio content "type" must be \'audio\', \'image\' given.',
         ];
 
         yield 'missing data' => [
             ['type' => 'audio', 'mimeType' => 'audio/mp3'],
-            'AudioContent data missing "data".',
+            'audio content missing the required "data" key.',
         ];
 
         yield 'data not a string' => [
             ['type' => 'audio', 'data' => 1, 'mimeType' => 'audio/mp3'],
-            'AudioContent "data" must be a string, int given.',
+            'audio content "data" must be a string, int given.',
         ];
 
         yield 'missing mimeType' => [
             ['type' => 'audio', 'data' => 'aGVsbG8='],
-            'AudioContent data missing "mimeType".',
+            'audio content missing the required "mimeType" key.',
         ];
 
         yield 'mimeType not a string' => [
             ['type' => 'audio', 'data' => 'aGVsbG8=', 'mimeType' => 1],
-            'AudioContent "mimeType" must be a string, int given.',
+            'audio content "mimeType" must be a string, int given.',
         ];
 
         yield 'annotations not an object' => [
             ['type' => 'audio', 'data' => 'aGVsbG8=', 'mimeType' => 'audio/mp3', 'annotations' => 'oops'],
-            'AudioContent "annotations" must be an object, string given.',
+            'audio content "annotations" must be an object, string given.',
         ];
 
         yield 'annotations list-keyed' => [
             ['type' => 'audio', 'data' => 'aGVsbG8=', 'mimeType' => 'audio/mp3', 'annotations' => ['x']],
-            'AudioContent "annotations" must be a string-keyed object.',
+            'audio content "annotations" must be a string-keyed object.',
         ];
 
         yield '_meta not an object' => [
             ['type' => 'audio', 'data' => 'aGVsbG8=', 'mimeType' => 'audio/mp3', '_meta' => 'oops'],
-            'AudioContent "_meta" must be an object, string given.',
+            'audio content "_meta" must be an object, string given.',
         ];
 
         yield '_meta list-keyed' => [
             ['type' => 'audio', 'data' => 'aGVsbG8=', 'mimeType' => 'audio/mp3', '_meta' => ['x']],
-            'AudioContent "_meta" must be a string-keyed object.',
+            'audio content "_meta" must be a string-keyed object.',
         ];
     }
 }

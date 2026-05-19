@@ -54,10 +54,10 @@ final readonly class ElicitRequestUrlParams extends TaskAugmentedRequestParams i
         ?TaskMetadata $task = null,
         RequestMetaObject $meta = new RequestMetaObject(),
     ) {
-        Assert::that($elicitationId)->isNonEmptyString('ElicitRequestUrlParams elicitationId must be a non-empty string.');
-        Assert::that($message)->isNonEmptyString('ElicitRequestUrlParams message must be a non-empty string.');
-        Assert::that($url)->isNonEmptyString('ElicitRequestUrlParams url must be a non-empty string.')->isUrl('ElicitRequestUrlParams url must be a valid URL.');
-        Assert::that($mode)->isIdentical(self::MODE, \sprintf('ElicitRequestUrlParams mode must be "%s", {value} given.', self::MODE));
+        Assert::that($elicitationId)->isNonEmptyString('"params.elicitationId" must be a non-empty string.');
+        Assert::that($message)->isNonEmptyString('"params.message" must be a non-empty string.');
+        Assert::that($url)->isNonEmptyString('"params.url" must be a non-empty string.')->isUrl('"params.url" must be a valid URL.');
+        Assert::that($mode)->isIdentical(self::MODE, '"params.mode" must be {other}, {value} given.');
 
         $this->elicitationId = $elicitationId;
         $this->message = $message;
@@ -73,28 +73,28 @@ final readonly class ElicitRequestUrlParams extends TaskAugmentedRequestParams i
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('elicitationId', 'ElicitRequestUrlParams data missing "elicitationId".');
+        Assert::that($data)->hasOffset('elicitationId', 'missing the required "elicitationId" key.');
         $elicitationId = $data['elicitationId'];
-        Assert::that($elicitationId)->isString('ElicitRequestUrlParams "elicitationId" must be a string, {type} given.');
+        Assert::that($elicitationId)->isString('"params.elicitationId" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('message', 'ElicitRequestUrlParams data missing "message".');
+        Assert::that($data)->hasOffset('message', 'missing the required "message" key.');
         $message = $data['message'];
-        Assert::that($message)->isString('ElicitRequestUrlParams "message" must be a string, {type} given.');
+        Assert::that($message)->isString('"params.message" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('mode', 'ElicitRequestUrlParams data missing "mode".');
+        Assert::that($data)->hasOffset('mode', 'missing the required "mode" key.');
         $mode = $data['mode'];
-        Assert::that($mode)->isString('ElicitRequestUrlParams "mode" must be a string, {type} given.');
+        Assert::that($mode)->isString('"params.mode" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('url', 'ElicitRequestUrlParams data missing "url".');
+        Assert::that($data)->hasOffset('url', 'missing the required "url" key.');
         $url = $data['url'];
-        Assert::that($url)->isString('ElicitRequestUrlParams "url" must be a string, {type} given.');
+        Assert::that($url)->isString('"params.url" must be a string, {type} given.');
 
         $task = null;
 
         if (\array_key_exists('task', $data)) {
             Assert::that($data['task'])
-                ->isArray('ElicitRequestUrlParams "task" must be an object, {type} given.')
-                ->isMap('ElicitRequestUrlParams "task" must be a string-keyed object.')
+                ->isArray('"params.task" must be an object, {type} given.')
+                ->isMap('"params.task" must be a string-keyed object.')
             ;
             $task = TaskMetadata::fromArray($data['task']);
         }
@@ -103,8 +103,8 @@ final readonly class ElicitRequestUrlParams extends TaskAugmentedRequestParams i
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
-                ->isArray('Request params "_meta" must be an object, {type} given.')
-                ->isMap('Request params "_meta" must be a string-keyed object.')
+                ->isArray('"params._meta" must be an object, {type} given.')
+                ->isMap('"params._meta" must be a string-keyed object.')
             ;
             $meta = RequestMetaObject::fromArray($data['_meta']);
         }

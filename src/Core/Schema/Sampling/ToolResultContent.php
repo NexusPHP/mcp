@@ -63,7 +63,7 @@ final readonly class ToolResultContent implements Arrayable, SamplingMessageCont
         public ?array $structuredContent = null,
         public MetaObject $meta = new MetaObject(),
     ) {
-        Assert::that($toolUseId)->isNonEmptyString('ToolResultContent toolUseId must be a non-empty string.');
+        Assert::that($toolUseId)->isNonEmptyString('"content.toolUseId" must be a non-empty string.');
         Assert::that($content)->values()->isInstanceOf(Arrayable::class);
 
         $this->toolUseId = $toolUseId;
@@ -75,20 +75,20 @@ final readonly class ToolResultContent implements Arrayable, SamplingMessageCont
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('type', 'ToolResultContent data missing "type".');
+        Assert::that($data)->hasOffset('type', '"content" missing the required "type" key.');
         $type = $data['type'];
-        Assert::that($type)->isIdentical(self::TYPE, \sprintf('ToolResultContent "type" must be "%s", {value} given.', self::TYPE));
+        Assert::that($type)->isIdentical(self::TYPE, '"content.type" must be {other}, {value} given.');
 
-        Assert::that($data)->hasOffset('toolUseId', 'ToolResultContent data missing "toolUseId".');
+        Assert::that($data)->hasOffset('toolUseId', '"content" missing the required "toolUseId" key.');
         $toolUseId = $data['toolUseId'];
-        Assert::that($toolUseId)->isString('ToolResultContent "toolUseId" must be a string, {type} given.');
+        Assert::that($toolUseId)->isString('"content.toolUseId" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('content', 'ToolResultContent data missing "content".');
+        Assert::that($data)->hasOffset('content', '"content" missing the required "content" key.');
         Assert::that($data['content'])
-            ->isList('ToolResultContent "content" must be a list, {type} given.')
+            ->isList('"content.content" must be a list, {type} given.')
             ->values()
-            ->isArray('ToolResultContent content entry must be an object, {type} given.')
-            ->isMap('ToolResultContent content entry must be a string-keyed object.')
+            ->isArray('each "content.content" must be an object, {type} given.')
+            ->isMap('each "content.content" must be a string-keyed object.')
         ;
         $content = array_map(
             static fn(array $entry): AudioContent|EmbeddedResource|ImageContent|ResourceLink|TextContent => ContentBlockDispatcher::fromArray($entry, 'ToolResultContent content'),
@@ -96,14 +96,14 @@ final readonly class ToolResultContent implements Arrayable, SamplingMessageCont
         );
 
         $isError = $data['isError'] ?? null;
-        Assert::that($isError)->nullOr()->isBool('ToolResultContent "isError" must be a bool or null, {type} given.');
+        Assert::that($isError)->nullOr()->isBool('"content.isError" must be a bool or null, {type} given.');
 
         $structuredContent = null;
 
         if (\array_key_exists('structuredContent', $data)) {
             Assert::that($data['structuredContent'])
-                ->isArray('ToolResultContent "structuredContent" must be an object, {type} given.')
-                ->isMap('ToolResultContent "structuredContent" must be a string-keyed object.')
+                ->isArray('"content.structuredContent" must be an object, {type} given.')
+                ->isMap('"content.structuredContent" must be a string-keyed object.')
             ;
             $structuredContent = $data['structuredContent'];
         }
@@ -112,8 +112,8 @@ final readonly class ToolResultContent implements Arrayable, SamplingMessageCont
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
-                ->isArray('ToolResultContent "_meta" must be an object, {type} given.')
-                ->isMap('ToolResultContent "_meta" must be a string-keyed object.')
+                ->isArray('"content._meta" must be an object, {type} given.')
+                ->isMap('"content._meta" must be a string-keyed object.')
             ;
             $meta = MetaObject::fromArray($data['_meta']);
         }

@@ -261,107 +261,107 @@ final class ServerCapabilitiesTest extends TestCase
     {
         yield 'completions not an object' => [
             ['completions' => 'oops'],
-            'ServerCapabilities "completions" must be an object, string given.',
+            '"capabilities.completions" must be an object, string given.',
         ];
 
         yield 'completions list-keyed' => [
             ['completions' => ['x']],
-            'ServerCapabilities "completions" must be a string-keyed object.',
+            '"capabilities.completions" must be a string-keyed object.',
         ];
 
         yield 'experimental not an object' => [
             ['experimental' => 'oops'],
-            'ServerCapabilities "experimental" must be an object, string given.',
+            '"capabilities.experimental" must be an object, string given.',
         ];
 
         yield 'experimental list-keyed' => [
             ['experimental' => ['x']],
-            'ServerCapabilities "experimental" must be a string-keyed object.',
+            '"capabilities.experimental" must be a string-keyed object.',
         ];
 
         yield 'experimental value not an object' => [
             ['experimental' => ['ext' => 'oops']],
-            'ServerCapabilities "experimental.ext" must be an object, string given.',
+            '"capabilities.experimental.ext" must be an object, string given.',
         ];
 
         yield 'experimental value list-keyed' => [
             ['experimental' => ['ext' => ['x']]],
-            'ServerCapabilities "experimental.ext" must be a string-keyed object.',
+            '"capabilities.experimental.ext" must be a string-keyed object.',
         ];
 
         yield 'logging not an object' => [
             ['logging' => 1],
-            'ServerCapabilities "logging" must be an object, int given.',
+            '"capabilities.logging" must be an object, int given.',
         ];
 
         yield 'prompts not an object' => [
             ['prompts' => 'oops'],
-            'ServerCapabilities "prompts" must be an object, string given.',
+            '"capabilities.prompts" must be an object, string given.',
         ];
 
         yield 'prompts list-keyed' => [
             ['prompts' => ['x']],
-            'ServerCapabilities "prompts" must be a string-keyed object.',
+            '"capabilities.prompts" must be a string-keyed object.',
         ];
 
         yield 'prompts.listChanged not a boolean' => [
             ['prompts' => ['listChanged' => 'true']],
-            'ServerCapabilities "prompts.listChanged" must be a boolean, string given.',
+            '"capabilities.prompts.listChanged" must be a boolean, string given.',
         ];
 
         yield 'resources not an object' => [
             ['resources' => 'oops'],
-            'ServerCapabilities "resources" must be an object, string given.',
+            '"capabilities.resources" must be an object, string given.',
         ];
 
         yield 'resources.listChanged not a boolean' => [
             ['resources' => ['listChanged' => 1]],
-            'ServerCapabilities "resources.listChanged" must be a boolean, int given.',
+            '"capabilities.resources.listChanged" must be a boolean, int given.',
         ];
 
         yield 'resources.subscribe not a boolean' => [
             ['resources' => ['subscribe' => 'yes']],
-            'ServerCapabilities "resources.subscribe" must be a boolean, string given.',
+            '"capabilities.resources.subscribe" must be a boolean, string given.',
         ];
 
         yield 'tasks not an object' => [
             ['tasks' => 'oops'],
-            'ServerCapabilities "tasks" must be an object, string given.',
+            '"capabilities.tasks" must be an object, string given.',
         ];
 
         yield 'tasks.cancel not an object' => [
             ['tasks' => ['cancel' => 'oops']],
-            'ServerCapabilities "tasks.cancel" must be an object, string given.',
+            '"capabilities.tasks.cancel" must be an object, string given.',
         ];
 
         yield 'tasks.list not an object' => [
             ['tasks' => ['list' => 'oops']],
-            'ServerCapabilities "tasks.list" must be an object, string given.',
+            '"capabilities.tasks.list" must be an object, string given.',
         ];
 
         yield 'tasks.requests not an object' => [
             ['tasks' => ['requests' => 'oops']],
-            'ServerCapabilities "tasks.requests" must be an object, string given.',
+            '"capabilities.tasks.requests" must be an object, string given.',
         ];
 
         yield 'tasks.requests.tools not an object' => [
             ['tasks' => ['requests' => ['tools' => 'oops']]],
-            'ServerCapabilities "tasks.requests.tools" must be an object, string given.',
+            '"capabilities.tasks.requests.tools" must be an object, string given.',
         ];
 
         yield 'tasks.requests.tools.call not an object' => [
             ['tasks' => ['requests' => ['tools' => ['call' => 'oops']]]],
-            'ServerCapabilities "tasks.requests.tools.call" must be an object, string given.',
+            '"capabilities.tasks.requests.tools.call" must be an object, string given.',
         ];
 
         yield 'tools not an object' => [
             ['tools' => 'oops'],
-            'ServerCapabilities "tools" must be an object, string given.',
+            '"capabilities.tools" must be an object, string given.',
         ];
 
         yield 'tools.listChanged not a boolean' => [
             ['tools' => ['listChanged' => 'true']],
-            'ServerCapabilities "tools.listChanged" must be a boolean, string given.',
+            '"capabilities.tools.listChanged" must be a boolean, string given.',
         ];
     }
 }

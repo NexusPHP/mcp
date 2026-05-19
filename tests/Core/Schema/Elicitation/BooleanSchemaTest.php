@@ -92,7 +92,7 @@ final class BooleanSchemaTest extends TestCase
     public function testConstructorRejectsEmptyTitle(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('BooleanSchema title must be a non-empty string or null.');
+        $this->expectExceptionMessage('boolean schema "title" must be a non-empty string or null.');
 
         new BooleanSchema('');
     }
@@ -100,7 +100,7 @@ final class BooleanSchemaTest extends TestCase
     public function testConstructorRejectsEmptyDescription(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('BooleanSchema description must be a non-empty string or null.');
+        $this->expectExceptionMessage('boolean schema "description" must be a non-empty string or null.');
 
         new BooleanSchema(null, '');
     }
@@ -124,27 +124,27 @@ final class BooleanSchemaTest extends TestCase
     {
         yield 'missing type' => [
             [],
-            'BooleanSchema data missing "type".',
+            'boolean schema missing the required "type" key.',
         ];
 
         yield 'wrong type literal' => [
             ['type' => 'string'],
-            'BooleanSchema "type" must be "boolean", \'string\' given.',
+            'boolean schema "type" must be \'boolean\', \'string\' given.',
         ];
 
         yield 'title not a string' => [
             ['type' => 'boolean', 'title' => 1],
-            'BooleanSchema "title" must be a string or null, int given.',
+            'boolean schema "title" must be a string or null, int given.',
         ];
 
         yield 'description not a string' => [
             ['type' => 'boolean', 'description' => 1],
-            'BooleanSchema "description" must be a string or null, int given.',
+            'boolean schema "description" must be a string or null, int given.',
         ];
 
         yield 'default not a bool' => [
             ['type' => 'boolean', 'default' => 'yes'],
-            'BooleanSchema "default" must be a bool or null, string given.',
+            'boolean schema "default" must be a bool or null, string given.',
         ];
     }
 }

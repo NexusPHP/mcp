@@ -121,7 +121,7 @@ final class CancelledNotificationTest extends TestCase
     public function testFromArrayRejectsMissingParams(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageMatches('/^CancelledNotification data missing "params"\.$/');
+        $this->expectExceptionMessageMatches('/^missing the required "params" key\.$/');
 
         CancelledNotification::fromArray([
             'jsonrpc' => '2.0',
@@ -132,7 +132,7 @@ final class CancelledNotificationTest extends TestCase
     public function testFromArrayRejectsNonObjectParams(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('CancelledNotification "params" must be an object, string given.');
+        $this->expectExceptionMessage('"params" must be an object, string given.');
 
         CancelledNotification::fromArray([
             'jsonrpc' => '2.0',
@@ -144,7 +144,7 @@ final class CancelledNotificationTest extends TestCase
     public function testFromArrayRejectsListKeyedParams(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('CancelledNotification "params" must be a string-keyed object.');
+        $this->expectExceptionMessage('"params" must be a string-keyed object.');
 
         CancelledNotification::fromArray([
             'jsonrpc' => '2.0',

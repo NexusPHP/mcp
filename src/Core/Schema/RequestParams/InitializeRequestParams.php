@@ -42,28 +42,28 @@ final readonly class InitializeRequestParams extends RequestParams
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('protocolVersion', 'InitializeRequestParams data missing "protocolVersion".');
+        Assert::that($data)->hasOffset('protocolVersion', 'missing the required "protocolVersion" key.');
         $protocolVersion = $data['protocolVersion'];
-        Assert::that($protocolVersion)->isString('InitializeRequestParams "protocolVersion" must be a string, {type} given.');
+        Assert::that($protocolVersion)->isString('"params.protocolVersion" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('capabilities', 'InitializeRequestParams data missing "capabilities".');
+        Assert::that($data)->hasOffset('capabilities', 'missing the required "capabilities" key.');
         Assert::that($data['capabilities'])
-            ->isArray('InitializeRequestParams "capabilities" must be an object, {type} given.')
-            ->isMap('InitializeRequestParams "capabilities" must be a string-keyed object.')
+            ->isArray('"params.capabilities" must be an object, {type} given.')
+            ->isMap('"params.capabilities" must be a string-keyed object.')
         ;
 
-        Assert::that($data)->hasOffset('clientInfo', 'InitializeRequestParams data missing "clientInfo".');
+        Assert::that($data)->hasOffset('clientInfo', 'missing the required "clientInfo" key.');
         Assert::that($data['clientInfo'])
-            ->isArray('InitializeRequestParams "clientInfo" must be an object, {type} given.')
-            ->isMap('InitializeRequestParams "clientInfo" must be a string-keyed object.')
+            ->isArray('"params.clientInfo" must be an object, {type} given.')
+            ->isMap('"params.clientInfo" must be a string-keyed object.')
         ;
 
         $meta = new RequestMetaObject();
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
-                ->isArray('Request params "_meta" must be an object, {type} given.')
-                ->isMap('Request params "_meta" must be a string-keyed object.')
+                ->isArray('"params._meta" must be an object, {type} given.')
+                ->isMap('"params._meta" must be a string-keyed object.')
             ;
             $meta = RequestMetaObject::fromArray($data['_meta']);
         }

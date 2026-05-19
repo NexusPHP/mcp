@@ -35,7 +35,7 @@ final class CursorTest extends TestCase
     public function testCursorRejectsEmptyString(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('Cursor must be a non-empty string.');
+        $this->expectExceptionMessage('"cursor" must be a non-empty string.');
 
         new Cursor('');
     }

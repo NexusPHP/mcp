@@ -40,12 +40,12 @@ final readonly class GetPromptRequestParams extends RequestParams
      */
     public function __construct(string $name, ?array $arguments = null, RequestMetaObject $meta = new RequestMetaObject())
     {
-        IdentifierNameValidator::validate($name, 'GetPromptRequestParams');
+        IdentifierNameValidator::validate($name, '"params.name"');
 
         if (null !== $arguments) {
             Assert::that($arguments)
-                ->isMap('GetPromptRequestParams arguments must be a string-keyed map.')
-                ->values()->isString('GetPromptRequestParams arguments values must all be strings, {type} given.')
+                ->isMap('"params.arguments" must be a string-keyed map.')
+                ->values()->isString('"params.arguments" values must all be strings, {type} given.')
             ;
         }
 
@@ -61,17 +61,17 @@ final readonly class GetPromptRequestParams extends RequestParams
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('name', 'GetPromptRequestParams data missing "name".');
+        Assert::that($data)->hasOffset('name', 'missing the required "name" key.');
         $name = $data['name'];
-        Assert::that($name)->isString('GetPromptRequestParams "name" must be a string, {type} given.');
+        Assert::that($name)->isString('"params.name" must be a string, {type} given.');
 
         $arguments = null;
 
         if (\array_key_exists('arguments', $data)) {
             Assert::that($data['arguments'])
-                ->isArray('GetPromptRequestParams "arguments" must be an object, {type} given.')
-                ->isMap('GetPromptRequestParams "arguments" must be a string-keyed object.')
-                ->values()->isString('GetPromptRequestParams argument value must be a string, {type} given.')
+                ->isArray('"params.arguments" must be an object, {type} given.')
+                ->isMap('"params.arguments" must be a string-keyed object.')
+                ->values()->isString('"params.arguments" value must be a string, {type} given.')
             ;
             $arguments = $data['arguments'];
         }
@@ -80,8 +80,8 @@ final readonly class GetPromptRequestParams extends RequestParams
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
-                ->isArray('Request params "_meta" must be an object, {type} given.')
-                ->isMap('Request params "_meta" must be a string-keyed object.')
+                ->isArray('"params._meta" must be an object, {type} given.')
+                ->isMap('"params._meta" must be a string-keyed object.')
             ;
             $meta = RequestMetaObject::fromArray($data['_meta']);
         }

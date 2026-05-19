@@ -36,7 +36,7 @@ final class IdentifierNameValidatorTest extends TestCase
     {
         $this->expectNotToPerformAssertions();
 
-        IdentifierNameValidator::validate($name, 'Resource');
+        IdentifierNameValidator::validate($name, 'resource "name"');
     }
 
     /**
@@ -64,9 +64,9 @@ final class IdentifierNameValidatorTest extends TestCase
     public function testRejectsInvalidName(string $name): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageMatches('/\AResource name must be 1-128 characters/');
+        $this->expectExceptionMessageMatches('/\Aresource "name" must be 1-128 characters/');
 
-        IdentifierNameValidator::validate($name, 'Resource');
+        IdentifierNameValidator::validate($name, 'resource "name"');
     }
 
     /**
@@ -116,8 +116,8 @@ final class IdentifierNameValidatorTest extends TestCase
      */
     public static function provideContextPrefixAppearsInErrorMessageCases(): iterable
     {
-        yield 'Tool prefix' => ['bad name', 'Tool', '/\ATool name must be 1-128 characters/'];
+        yield 'tool prefix' => ['bad name', 'tool "name"', '/\Atool "name" must be 1-128 characters/'];
 
-        yield 'Prompt prefix' => ['bad name', 'Prompt', '/\APrompt name must be 1-128 characters/'];
+        yield 'prompt prefix' => ['bad name', 'prompt "name"', '/\Aprompt "name" must be 1-128 characters/'];
     }
 }

@@ -37,8 +37,8 @@ final readonly class EnumOption implements Arrayable
 
     public function __construct(string $const, string $title)
     {
-        Assert::that($const)->isNonEmptyString('EnumOption const must be a non-empty string.');
-        Assert::that($title)->isNonEmptyString('EnumOption title must be a non-empty string.');
+        Assert::that($const)->isNonEmptyString('"oneOf.const" must be a non-empty string.');
+        Assert::that($title)->isNonEmptyString('"oneOf.title" must be a non-empty string.');
 
         $this->const = $const;
         $this->title = $title;
@@ -50,13 +50,13 @@ final readonly class EnumOption implements Arrayable
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('const', 'EnumOption data missing "const".');
+        Assert::that($data)->hasOffset('const', '"oneOf" missing the required "const" key.');
         $const = $data['const'];
-        Assert::that($const)->isString('EnumOption "const" must be a string, {type} given.');
+        Assert::that($const)->isString('"oneOf.const" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('title', 'EnumOption data missing "title".');
+        Assert::that($data)->hasOffset('title', '"oneOf" missing the required "title" key.');
         $title = $data['title'];
-        Assert::that($title)->isString('EnumOption "title" must be a string, {type} given.');
+        Assert::that($title)->isString('"oneOf.title" must be a string, {type} given.');
 
         return new self($const, $title);
     }

@@ -68,18 +68,18 @@ final readonly class TitledMultiSelectEnumSchema implements Arrayable, MultiSele
         ?array $default = null,
     ) {
         Assert::that($items)
-            ->isList('TitledMultiSelectEnumSchema items must be a list, got non-list array.')
-            ->values()->isInstanceOf(EnumOption::class)
+            ->isList('titled multi-select enum schema "items" must be a list, non-list array given.')
+            ->values()->isInstanceOf(EnumOption::class, 'each titled multi-select enum schema "items" must be an enum option, {type} given.')
         ;
-        Assert::that($title)->nullOr()->isNonEmptyString('TitledMultiSelectEnumSchema title must be a non-empty string or null.');
-        Assert::that($description)->nullOr()->isNonEmptyString('TitledMultiSelectEnumSchema description must be a non-empty string or null.');
-        Assert::that($minItems)->nullOr()->isNaturalInt('TitledMultiSelectEnumSchema minItems must be a non-negative integer or null.');
-        Assert::that($maxItems)->nullOr()->isNaturalInt('TitledMultiSelectEnumSchema maxItems must be a non-negative integer or null.');
+        Assert::that($title)->nullOr()->isNonEmptyString('titled multi-select enum schema "title" must be a non-empty string or null.');
+        Assert::that($description)->nullOr()->isNonEmptyString('titled multi-select enum schema "description" must be a non-empty string or null.');
+        Assert::that($minItems)->nullOr()->isNaturalInt('titled multi-select enum schema "minItems" must be a non-negative integer or null.');
+        Assert::that($maxItems)->nullOr()->isNaturalInt('titled multi-select enum schema "maxItems" must be a non-negative integer or null.');
 
         if (null !== $default) {
             Assert::that($default)
-                ->isList('TitledMultiSelectEnumSchema default must be a list, got non-list array.')
-                ->values()->isString('TitledMultiSelectEnumSchema default entry must be a string.')
+                ->isList('titled multi-select enum schema "default" must be a list, non-list array given.')
+                ->values()->isString('each titled multi-select enum schema "default" must be a string.')
             ;
         }
 
@@ -95,44 +95,44 @@ final readonly class TitledMultiSelectEnumSchema implements Arrayable, MultiSele
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('type', 'TitledMultiSelectEnumSchema data missing "type".');
+        Assert::that($data)->hasOffset('type', 'titled multi-select enum schema missing the required "type" key.');
         $type = $data['type'];
-        Assert::that($type)->isIdentical(self::TYPE, \sprintf('TitledMultiSelectEnumSchema "type" must be "%s", {value} given.', self::TYPE));
+        Assert::that($type)->isIdentical(self::TYPE, 'titled multi-select enum schema "type" must be {other}, {value} given.');
 
-        Assert::that($data)->hasOffset('items', 'TitledMultiSelectEnumSchema data missing "items".');
+        Assert::that($data)->hasOffset('items', 'titled multi-select enum schema missing the required "items" key.');
         Assert::that($data['items'])
-            ->isArray('TitledMultiSelectEnumSchema "items" must be an object, {type} given.')
-            ->isMap('TitledMultiSelectEnumSchema "items" must be a string-keyed object.')
+            ->isArray('titled multi-select enum schema "items" must be an object, {type} given.')
+            ->isMap('titled multi-select enum schema "items" must be a string-keyed object.')
         ;
 
         $anyOf = $data['items']['anyOf'] ?? null;
         Assert::that($anyOf)
-            ->isArray('TitledMultiSelectEnumSchema items.anyOf must be a list, {type} given.')
-            ->isList('TitledMultiSelectEnumSchema items.anyOf must be a list, got non-list array.')
+            ->isArray('titled multi-select enum schema "items.anyOf" must be a list, {type} given.')
+            ->isList('titled multi-select enum schema "items.anyOf" must be a list, non-list array given.')
             ->values()
-            ->isArray('TitledMultiSelectEnumSchema items.anyOf entry must be an object, {type} given.')
-            ->isMap('TitledMultiSelectEnumSchema items.anyOf entry must be a string-keyed object.')
+            ->isArray('each titled multi-select enum schema "items.anyOf" must be an object, {type} given.')
+            ->isMap('each titled multi-select enum schema "items.anyOf" must be a string-keyed object.')
         ;
         $items = array_map(EnumOption::fromArray(...), $anyOf);
 
         $title = $data['title'] ?? null;
-        Assert::that($title)->nullOr()->isString('TitledMultiSelectEnumSchema "title" must be a string or null, {type} given.');
+        Assert::that($title)->nullOr()->isString('titled multi-select enum schema "title" must be a string or null, {type} given.');
 
         $description = $data['description'] ?? null;
-        Assert::that($description)->nullOr()->isString('TitledMultiSelectEnumSchema "description" must be a string or null, {type} given.');
+        Assert::that($description)->nullOr()->isString('titled multi-select enum schema "description" must be a string or null, {type} given.');
 
         $minItems = $data['minItems'] ?? null;
-        Assert::that($minItems)->nullOr()->isInt('TitledMultiSelectEnumSchema "minItems" must be an int or null, {type} given.');
+        Assert::that($minItems)->nullOr()->isInt('titled multi-select enum schema "minItems" must be an int or null, {type} given.');
 
         $maxItems = $data['maxItems'] ?? null;
-        Assert::that($maxItems)->nullOr()->isInt('TitledMultiSelectEnumSchema "maxItems" must be an int or null, {type} given.');
+        Assert::that($maxItems)->nullOr()->isInt('titled multi-select enum schema "maxItems" must be an int or null, {type} given.');
 
         $default = null;
 
         if (isset($data['default'])) {
             Assert::that($data['default'])
-                ->isList('TitledMultiSelectEnumSchema "default" must be a list, got non-list array.')
-                ->values()->isString('TitledMultiSelectEnumSchema default entry must be a string, {type} given.')
+                ->isList('titled multi-select enum schema "default" must be a list, non-list array given.')
+                ->values()->isString('each titled multi-select enum schema "default" must be a string, {type} given.')
             ;
             $default = $data['default'];
         }

@@ -53,8 +53,8 @@ final readonly class ToolUseContent implements Arrayable, SamplingMessageContent
         public array $input,
         public MetaObject $meta = new MetaObject(),
     ) {
-        Assert::that($id)->isNonEmptyString('ToolUseContent id must be a non-empty string.');
-        Assert::that($name)->isNonEmptyString('ToolUseContent name must be a non-empty string.');
+        Assert::that($id)->isNonEmptyString('"content.id" must be a non-empty string.');
+        Assert::that($name)->isNonEmptyString('"content.name" must be a non-empty string.');
 
         $this->id = $id;
         $this->name = $name;
@@ -66,22 +66,22 @@ final readonly class ToolUseContent implements Arrayable, SamplingMessageContent
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('type', 'ToolUseContent data missing "type".');
+        Assert::that($data)->hasOffset('type', '"content" missing the required "type" key.');
         $type = $data['type'];
-        Assert::that($type)->isIdentical(self::TYPE, \sprintf('ToolUseContent "type" must be "%s", {value} given.', self::TYPE));
+        Assert::that($type)->isIdentical(self::TYPE, '"content.type" must be {other}, {value} given.');
 
-        Assert::that($data)->hasOffset('id', 'ToolUseContent data missing "id".');
+        Assert::that($data)->hasOffset('id', '"content" missing the required "id" key.');
         $id = $data['id'];
-        Assert::that($id)->isString('ToolUseContent "id" must be a string, {type} given.');
+        Assert::that($id)->isString('"content.id" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('name', 'ToolUseContent data missing "name".');
+        Assert::that($data)->hasOffset('name', '"content" missing the required "name" key.');
         $name = $data['name'];
-        Assert::that($name)->isString('ToolUseContent "name" must be a string, {type} given.');
+        Assert::that($name)->isString('"content.name" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('input', 'ToolUseContent data missing "input".');
+        Assert::that($data)->hasOffset('input', '"content" missing the required "input" key.');
         Assert::that($data['input'])
-            ->isArray('ToolUseContent "input" must be an object, {type} given.')
-            ->isMap('ToolUseContent "input" must be a string-keyed object.')
+            ->isArray('"content.input" must be an object, {type} given.')
+            ->isMap('"content.input" must be a string-keyed object.')
         ;
         $input = $data['input'];
 
@@ -89,8 +89,8 @@ final readonly class ToolUseContent implements Arrayable, SamplingMessageContent
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
-                ->isArray('ToolUseContent "_meta" must be an object, {type} given.')
-                ->isMap('ToolUseContent "_meta" must be a string-keyed object.')
+                ->isArray('"content._meta" must be an object, {type} given.')
+                ->isMap('"content._meta" must be a string-keyed object.')
             ;
             $meta = MetaObject::fromArray($data['_meta']);
         }

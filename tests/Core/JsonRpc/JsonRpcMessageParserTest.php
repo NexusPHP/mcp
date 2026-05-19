@@ -306,7 +306,7 @@ final class JsonRpcMessageParserTest extends TestCase
             self::fail('Expected InvalidParamsException.');
         } catch (InvalidParamsException $e) {
             self::assertNull($e->requestId, 'A non-scalar id cannot be preserved on the exception.');
-            self::assertStringStartsWith('Invalid "ping" request: PingRequest "id" must be int or string', $e->getMessage());
+            self::assertStringStartsWith('Invalid "ping" request: "id" must be int or string', $e->getMessage());
         }
     }
 
@@ -441,7 +441,7 @@ final class JsonRpcMessageParserTest extends TestCase
             self::fail('Expected InvalidRequestException.');
         } catch (InvalidRequestException $e) {
             self::assertSame(1, $e->requestId?->id);
-            self::assertMatchesRegularExpression('/^Invalid .+EmptyResult payload: Result "_meta" must be an object/', $e->getMessage());
+            self::assertMatchesRegularExpression('/^Invalid .+EmptyResult payload: "result._meta" must be an object/', $e->getMessage());
         }
     }
 

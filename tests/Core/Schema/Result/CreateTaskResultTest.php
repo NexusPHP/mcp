@@ -114,17 +114,17 @@ final class CreateTaskResultTest extends TestCase
     {
         yield 'missing task' => [
             [],
-            'CreateTaskResult data missing "task".',
+            '"result" missing the required "task" key.',
         ];
 
         yield 'task not an object' => [
             ['task' => 'oops'],
-            'CreateTaskResult "task" must be an object, string given.',
+            '"result.task" must be an object, string given.',
         ];
 
         yield 'task list-keyed' => [
             ['task' => ['x']],
-            'CreateTaskResult "task" must be a string-keyed object.',
+            '"result.task" must be a string-keyed object.',
         ];
     }
 

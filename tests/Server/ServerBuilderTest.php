@@ -75,7 +75,7 @@ final class ServerBuilderTest extends TestCase
     public function testSetServerInfoRejectsEmptyVersion(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Implementation version must be a non-empty string.');
+        $this->expectExceptionMessage('"version" must be a non-empty string.');
 
         Server::builder()->setServerInfo('demo', '');
     }

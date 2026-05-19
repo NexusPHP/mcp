@@ -174,7 +174,7 @@ final class ToolTest extends TestCase
     public function testConstructorRejectsInvalidName(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageMatches('/\ATool name must be 1-128 characters/');
+        $this->expectExceptionMessageMatches('/\Atool "name" must be 1-128 characters/');
 
         new Tool('bad name', ['type' => 'object']);
     }
@@ -228,49 +228,49 @@ final class ToolTest extends TestCase
     {
         yield 'missing type' => [
             [],
-            'Tool inputSchema missing "type".',
+            'tool "inputSchema" missing "type".',
         ];
 
         yield 'type not "object"' => [
             ['type' => 'array'],
-            'Tool inputSchema "type" must be "object", \'array\' given.',
+            'tool "inputSchema" "type" must be \'object\', \'array\' given.',
         ];
 
         yield '$schema not non-empty string' => [
             ['type' => 'object', '$schema' => ''],
-            'Tool inputSchema "$schema" must be a non-empty string, string given.',
+            'tool "inputSchema" "$schema" must be a non-empty string, string given.',
         ];
 
         yield 'properties not an object' => [
             ['type' => 'object', 'properties' => 'oops'],
-            'Tool inputSchema "properties" must be an object, string given.',
+            'tool "inputSchema" "properties" must be an object, string given.',
         ];
 
         yield 'properties list-keyed' => [
             ['type' => 'object', 'properties' => ['x']],
-            'Tool inputSchema "properties" must be a string-keyed object.',
+            'tool "inputSchema" "properties" must be a string-keyed object.',
         ];
 
         yield 'property entry not an object' => [
             ['type' => 'object', 'properties' => ['name' => 'oops']],
-            'Tool inputSchema property entry must be an object, string given.',
+            'tool "inputSchema" property entry must be an object, string given.',
         ];
 
         yield 'required not a list' => [
             ['type' => 'object', 'required' => 'oops'],
-            'Tool inputSchema "required" must be a list, got non-list array.',
+            'tool "inputSchema" "required" must be a list, got non-list array.',
         ];
 
         yield 'required entry not a string' => [
             ['type' => 'object', 'required' => [1]],
-            'Tool inputSchema "required" entries must be strings, int given.',
+            'tool "inputSchema" "required" entries must be strings, int given.',
         ];
     }
 
     public function testConstructorRejectsInvalidOutputSchema(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('Tool outputSchema "type" must be "object", \'array\' given.');
+        $this->expectExceptionMessage('tool "outputSchema" "type" must be \'object\', \'array\' given.');
 
         new Tool('read-file', ['type' => 'object'], outputSchema: ['type' => 'array']);
     }

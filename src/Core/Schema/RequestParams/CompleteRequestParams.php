@@ -48,14 +48,14 @@ final readonly class CompleteRequestParams extends RequestParams
         ?array $context = null,
         RequestMetaObject $meta = new RequestMetaObject(),
     ) {
-        Assert::that($argument['name'])->isString('CompleteRequestParams argument "name" must be a string, {type} given.');
-        Assert::that($argument['value'])->isString('CompleteRequestParams argument "value" must be a string, {type} given.');
+        Assert::that($argument['name'])->isString('"params.argument.name" must be a string, {type} given.');
+        Assert::that($argument['value'])->isString('"params.argument.value" must be a string, {type} given.');
 
         if (null !== $context && \array_key_exists('arguments', $context)) {
             Assert::that($context['arguments'])
-                ->isArray('CompleteRequestParams context "arguments" must be an object, {type} given.')
-                ->isMap('CompleteRequestParams context "arguments" must be a string-keyed object.')
-                ->values()->isString('CompleteRequestParams context argument value must be a string, {type} given.')
+                ->isArray('"params.context.arguments" must be an object, {type} given.')
+                ->isMap('"params.context.arguments" must be a string-keyed object.')
+                ->values()->isString('each "params.context.arguments" must be a string, {type} given.')
             ;
         }
 
@@ -73,36 +73,36 @@ final readonly class CompleteRequestParams extends RequestParams
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('ref', 'CompleteRequestParams data missing "ref".');
+        Assert::that($data)->hasOffset('ref', 'missing the required "ref" key.');
         Assert::that($data['ref'])
-            ->isArray('CompleteRequestParams "ref" must be an object, {type} given.')
-            ->isMap('CompleteRequestParams "ref" must be a string-keyed object.')
+            ->isArray('"params.ref" must be an object, {type} given.')
+            ->isMap('"params.ref" must be a string-keyed object.')
         ;
 
-        Assert::that($data)->hasOffset('argument', 'CompleteRequestParams data missing "argument".');
+        Assert::that($data)->hasOffset('argument', 'missing the required "argument" key.');
         Assert::that($data['argument'])
-            ->isArray('CompleteRequestParams "argument" must be an object, {type} given.')
-            ->isMap('CompleteRequestParams "argument" must be a string-keyed object.')
+            ->isArray('"params.argument" must be an object, {type} given.')
+            ->isMap('"params.argument" must be a string-keyed object.')
         ;
-        Assert::that($data['argument'])->hasOffset('name', 'CompleteRequestParams argument missing "name".');
-        Assert::that($data['argument']['name'])->isString('CompleteRequestParams argument "name" must be a string, {type} given.');
-        Assert::that($data['argument'])->hasOffset('value', 'CompleteRequestParams argument missing "value".');
-        Assert::that($data['argument']['value'])->isString('CompleteRequestParams argument "value" must be a string, {type} given.');
+        Assert::that($data['argument'])->hasOffset('name', 'missing the required "argument.name" key.');
+        Assert::that($data['argument']['name'])->isString('"params.argument.name" must be a string, {type} given.');
+        Assert::that($data['argument'])->hasOffset('value', 'missing the required "argument.value" key.');
+        Assert::that($data['argument']['value'])->isString('"params.argument.value" must be a string, {type} given.');
 
         $context = null;
 
         if (\array_key_exists('context', $data)) {
             Assert::that($data['context'])
-                ->isArray('CompleteRequestParams "context" must be an object, {type} given.')
-                ->isMap('CompleteRequestParams "context" must be a string-keyed object.')
+                ->isArray('"params.context" must be an object, {type} given.')
+                ->isMap('"params.context" must be a string-keyed object.')
             ;
             $context = [];
 
             if (\array_key_exists('arguments', $data['context'])) {
                 Assert::that($data['context']['arguments'])
-                    ->isArray('CompleteRequestParams context "arguments" must be an object, {type} given.')
-                    ->isMap('CompleteRequestParams context "arguments" must be a string-keyed object.')
-                    ->values()->isString('CompleteRequestParams context argument value must be a string, {type} given.')
+                    ->isArray('"params.context.arguments" must be an object, {type} given.')
+                    ->isMap('"params.context.arguments" must be a string-keyed object.')
+                    ->values()->isString('each "params.context.arguments" must be a string, {type} given.')
                 ;
                 $context['arguments'] = $data['context']['arguments'];
             }
@@ -112,8 +112,8 @@ final readonly class CompleteRequestParams extends RequestParams
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
-                ->isArray('Request params "_meta" must be an object, {type} given.')
-                ->isMap('Request params "_meta" must be a string-keyed object.')
+                ->isArray('"params._meta" must be an object, {type} given.')
+                ->isMap('"params._meta" must be a string-keyed object.')
             ;
             $meta = RequestMetaObject::fromArray($data['_meta']);
         }
@@ -155,13 +155,13 @@ final readonly class CompleteRequestParams extends RequestParams
      */
     private static function dispatchRef(array $data): PromptReference|ResourceTemplateReference
     {
-        $type = MessageDiscriminator::readType($data, 'CompleteRequestParams ref');
+        $type = MessageDiscriminator::readType($data, '"params.ref"');
 
         return match ($type) {
             PromptReference::TYPE => PromptReference::fromArray($data),
             ResourceTemplateReference::TYPE => ResourceTemplateReference::fromArray($data),
             default => throw MessageDiscriminator::unknownType(
-                'CompleteRequestParams ref',
+                '"params.ref"',
                 [PromptReference::TYPE, ResourceTemplateReference::TYPE],
                 $type,
             ),

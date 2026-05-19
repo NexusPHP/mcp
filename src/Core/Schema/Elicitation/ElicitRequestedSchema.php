@@ -55,19 +55,19 @@ final readonly class ElicitRequestedSchema implements Arrayable
     public function __construct(array $properties, ?array $required = null, ?string $schema = null)
     {
         Assert::that($properties)
-            ->isMap('ElicitRequestedSchema properties must be a string-keyed map.')
-            ->keys()->isNonEmptyString('ElicitRequestedSchema property name must be a non-empty string.')
+            ->isMap('"requestedSchema.properties" must be a string-keyed map.')
+            ->keys()->isNonEmptyString('each "requestedSchema.properties" key must be a non-empty string.')
         ;
         Assert::that($properties)->values()->isInstanceOf(PrimitiveSchemaDefinition::class);
 
         if (null !== $required) {
             Assert::that($required)
-                ->isList('ElicitRequestedSchema required must be a list, got non-list array.')
-                ->values()->isNonEmptyString('ElicitRequestedSchema required entry must be a non-empty string.')
+                ->isList('"requestedSchema.required" must be a list, non-list array given.')
+                ->values()->isNonEmptyString('each "requestedSchema.required" must be a non-empty string.')
             ;
         }
 
-        Assert::that($schema)->nullOr()->isNonEmptyString('ElicitRequestedSchema $schema must be a non-empty string or null.');
+        Assert::that($schema)->nullOr()->isNonEmptyString('"requestedSchema.$schema" must be a non-empty string or null.');
 
         $this->properties = $properties;
         $this->required = $required;
@@ -80,22 +80,22 @@ final readonly class ElicitRequestedSchema implements Arrayable
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('type', 'ElicitRequestedSchema data missing "type".');
+        Assert::that($data)->hasOffset('type', '"requestedSchema" missing the required "type" key.');
         $type = $data['type'];
-        Assert::that($type)->isIdentical(self::TYPE, \sprintf('ElicitRequestedSchema "type" must be "%s", {value} given.', self::TYPE));
+        Assert::that($type)->isIdentical(self::TYPE, '"requestedSchema.type" must be {other}, {value} given.');
 
-        Assert::that($data)->hasOffset('properties', 'ElicitRequestedSchema data missing "properties".');
+        Assert::that($data)->hasOffset('properties', '"requestedSchema" missing the required "properties" key.');
         Assert::that($data['properties'])
-            ->isArray('ElicitRequestedSchema "properties" must be an object, {type} given.')
-            ->isMap('ElicitRequestedSchema "properties" must be a string-keyed object.')
+            ->isArray('"requestedSchema.properties" must be an object, {type} given.')
+            ->isMap('"requestedSchema.properties" must be a string-keyed object.')
         ;
 
         $properties = [];
 
         foreach ($data['properties'] as $name => $shape) {
             Assert::that($shape)
-                ->isArray('ElicitRequestedSchema properties entry must be an object, {type} given.')
-                ->isMap('ElicitRequestedSchema properties entry must be a string-keyed object.')
+                ->isArray('"requestedSchema.properties" must be an object, {type} given.')
+                ->isMap('"requestedSchema.properties" must be a string-keyed object.')
             ;
 
             $properties[$name] = self::parsePrimitiveSchema($shape);
@@ -105,14 +105,14 @@ final readonly class ElicitRequestedSchema implements Arrayable
 
         if (isset($data['required'])) {
             Assert::that($data['required'])
-                ->isList('ElicitRequestedSchema "required" must be a list, got non-list array.')
-                ->values()->isString('ElicitRequestedSchema required entry must be a string, {type} given.')
+                ->isList('"requestedSchema.required" must be a list, non-list array given.')
+                ->values()->isString('each "requestedSchema.required" must be a string, {type} given.')
             ;
             $required = $data['required'];
         }
 
         $schema = $data['$schema'] ?? null;
-        Assert::that($schema)->nullOr()->isString('ElicitRequestedSchema "$schema" must be a string or null, {type} given.');
+        Assert::that($schema)->nullOr()->isString('"requestedSchema.$schema" must be a string or null, {type} given.');
 
         return new self($properties, $required, $schema);
     }
@@ -151,14 +151,17 @@ final readonly class ElicitRequestedSchema implements Arrayable
     private static function parsePrimitiveSchema(array $data): PrimitiveSchemaDefinition
     {
         $type = $data['type'] ?? null;
-        Assert::that($type)->isString('ElicitRequestedSchema primitive schema entry must carry a "type" string, {type} given.');
+        Assert::that($type)->isString('"requestedSchema.primitiveSchema" must carry a "type" string, {type} given.');
 
         return match (true) {
             BooleanSchema::TYPE === $type => BooleanSchema::fromArray($data),
             NumberSchema::TYPE === $type, NumberSchema::TYPE_INTEGER === $type => NumberSchema::fromArray($data),
             UntitledMultiSelectEnumSchema::TYPE === $type => self::parseArraySchema($data),
             StringSchema::TYPE === $type => self::parseStringSchema($data),
-            default => throw new ExpectationFailedException(\sprintf('ElicitRequestedSchema primitive schema entry has unknown "type" %s.', json_encode($type, \JSON_THROW_ON_ERROR))),
+            default => throw new ExpectationFailedException(
+                '"requestedSchema.primitiveSchema" has unknown "type" {value}.',
+                ['value' => var_export($type, true)],
+            ),
         };
     }
 
@@ -182,8 +185,8 @@ final readonly class ElicitRequestedSchema implements Arrayable
     {
         $items = $data['items'] ?? null;
         Assert::that($items)
-            ->isArray('ElicitRequestedSchema multi-select items must be an object, {type} given.')
-            ->isMap('ElicitRequestedSchema multi-select items must be a string-keyed object.')
+            ->isArray('"requestedSchema.items" must be an object, {type} given.')
+            ->isMap('"requestedSchema" multi-select "items" must be a string-keyed object.')
         ;
 
         return isset($items['anyOf'])

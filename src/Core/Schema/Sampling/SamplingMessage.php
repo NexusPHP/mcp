@@ -64,33 +64,33 @@ final readonly class SamplingMessage implements Arrayable
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('role', 'SamplingMessage data missing "role".');
-        $role = EnumValueValidator::parse(Role::class, $data['role'], 'SamplingMessage "role"');
+        Assert::that($data)->hasOffset('role', 'sampling message missing the required "role" key.');
+        $role = EnumValueValidator::parse(Role::class, $data['role'], 'sampling message "role"');
 
-        Assert::that($data)->hasOffset('content', 'SamplingMessage data missing "content".');
-        Assert::that($data['content'])->isArray('SamplingMessage "content" must be an object or array, {type} given.');
+        Assert::that($data)->hasOffset('content', 'sampling message missing the required "content" key.');
+        Assert::that($data['content'])->isArray('sampling message "content" must be an object or array, {type} given.');
 
         if ([] === $data['content'] || array_is_list($data['content'])) {
             Assert::that($data['content'])
                 ->values()
-                ->isArray('SamplingMessage content entry must be an object, {type} given.')
-                ->isMap('SamplingMessage content entry must be a string-keyed object.')
+                ->isArray('each sampling message "content" must be an object, {type} given.')
+                ->isMap('each sampling message "content" must be a string-keyed object.')
             ;
             $content = array_map(
-                static fn(array $entry): AudioContent|ImageContent|TextContent|ToolResultContent|ToolUseContent => SamplingContentDispatcher::fromArray($entry, 'SamplingMessage content'),
+                static fn(array $entry): AudioContent|ImageContent|TextContent|ToolResultContent|ToolUseContent => SamplingContentDispatcher::fromArray($entry, 'sampling message "content"'),
                 $data['content'],
             );
         } else {
-            Assert::that($data['content'])->isMap('SamplingMessage "content" must be a string-keyed object.');
-            $content = SamplingContentDispatcher::fromArray($data['content'], 'SamplingMessage content');
+            Assert::that($data['content'])->isMap('sampling message "content" must be a string-keyed object.');
+            $content = SamplingContentDispatcher::fromArray($data['content'], 'sampling message "content"');
         }
 
         $meta = new MetaObject();
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
-                ->isArray('SamplingMessage "_meta" must be an object, {type} given.')
-                ->isMap('SamplingMessage "_meta" must be a string-keyed object.')
+                ->isArray('sampling message "_meta" must be an object, {type} given.')
+                ->isMap('sampling message "_meta" must be a string-keyed object.')
             ;
             $meta = MetaObject::fromArray($data['_meta']);
         }

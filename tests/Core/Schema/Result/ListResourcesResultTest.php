@@ -175,7 +175,7 @@ final class ListResourcesResultTest extends TestCase
     public function testConstructorRejectsNonListResources(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ListResourcesResult resources must be a list, got non-list array.');
+        $this->expectExceptionMessage('"result.resources" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
         new ListResourcesResult([5 => new Resource('a', 'file:///a')]);
@@ -208,37 +208,37 @@ final class ListResourcesResultTest extends TestCase
     {
         yield 'missing resources' => [
             [],
-            'ListResourcesResult data missing "resources".',
+            '"result" missing the required "resources" key.',
         ];
 
         yield 'resources not an array' => [
             ['resources' => 'oops'],
-            'ListResourcesResult "resources" must be a list, string given.',
+            '"result.resources" must be a list, string given.',
         ];
 
         yield 'resource entry not an object' => [
             ['resources' => ['oops']],
-            'ListResourcesResult resource entry must be an object, string given.',
+            'each "result.resource" must be an object, string given.',
         ];
 
         yield 'resource entry list-keyed' => [
             ['resources' => [['x']]],
-            'ListResourcesResult resource entry must be a string-keyed object.',
+            'each "result.resource" must be a string-keyed object.',
         ];
 
         yield 'nextCursor not a string' => [
             ['resources' => [], 'nextCursor' => 1],
-            'ListResourcesResult "nextCursor" must be a string, int given.',
+            '"result.nextCursor" must be a string, int given.',
         ];
 
         yield '_meta not an object' => [
             ['resources' => [], '_meta' => 'oops'],
-            'Result "_meta" must be an object, string given.',
+            '"result._meta" must be an object, string given.',
         ];
 
         yield '_meta list-keyed' => [
             ['resources' => [], '_meta' => ['x']],
-            'Result "_meta" must be a string-keyed object.',
+            '"result._meta" must be a string-keyed object.',
         ];
     }
 }

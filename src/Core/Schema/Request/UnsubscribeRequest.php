@@ -44,14 +44,14 @@ final readonly class UnsubscribeRequest extends JsonRpcRequest implements Client
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('id', 'UnsubscribeRequest data missing "id".');
+        Assert::that($data)->hasOffset('id', 'missing the required "id" key.');
         $id = $data['id'];
-        Assert::that($id)->isArrayKey('UnsubscribeRequest "id" must be int or string, {type} given.');
+        Assert::that($id)->isArrayKey('"id" must be int or string, {type} given.');
 
-        Assert::that($data)->hasOffset('params', 'UnsubscribeRequest data missing "params".');
+        Assert::that($data)->hasOffset('params', 'missing the required "params" key.');
         Assert::that($data['params'])
-            ->isArray('UnsubscribeRequest "params" must be an object, {type} given.')
-            ->isMap('UnsubscribeRequest "params" must be a string-keyed object.')
+            ->isArray('"params" must be an object, {type} given.')
+            ->isMap('"params" must be a string-keyed object.')
         ;
 
         return new self(

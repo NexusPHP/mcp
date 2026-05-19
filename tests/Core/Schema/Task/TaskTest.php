@@ -62,7 +62,7 @@ final class TaskTest extends TestCase
     public function testConstructorRejectsEmptyTaskId(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('Task taskId must be a non-empty string.');
+        $this->expectExceptionMessage('task "taskId" must be a non-empty string.');
 
         new Task('', TaskStatus::Working, '2026-05-10T12:00:00+00:00', '2026-05-10T12:00:00+00:00', null);
     }
@@ -70,7 +70,7 @@ final class TaskTest extends TestCase
     public function testConstructorRejectsEmptyStatusMessage(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('Task statusMessage must be a non-empty string or null.');
+        $this->expectExceptionMessage('task "statusMessage" must be a non-empty string or null.');
 
         new Task('task-abc', TaskStatus::Working, '2026-05-10T12:00:00+00:00', '2026-05-10T12:00:00+00:00', null, '');
     }
@@ -85,7 +85,7 @@ final class TaskTest extends TestCase
     public function testConstructorRejectsNegativeTtl(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Task ttl must be a non-negative integer or null.');
+        $this->expectExceptionMessage('task "ttl" must be a non-negative integer or null.');
 
         new Task('task-abc', TaskStatus::Working, '2026-05-10T12:00:00+00:00', '2026-05-10T12:00:00+00:00', -1);
     }
@@ -100,7 +100,7 @@ final class TaskTest extends TestCase
     public function testConstructorRejectsNegativePollInterval(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Task pollInterval must be a non-negative integer or null.');
+        $this->expectExceptionMessage('task "pollInterval" must be a non-negative integer or null.');
 
         new Task('task-abc', TaskStatus::Working, '2026-05-10T12:00:00+00:00', '2026-05-10T12:00:00+00:00', null, null, -1);
     }
@@ -126,15 +126,15 @@ final class TaskTest extends TestCase
      */
     public static function provideConstructorRejectsInvalidTimestampCases(): iterable
     {
-        yield 'createdAt with NUL byte' => ['createdAt', "2026-05-10T12:00:00\0+00:00", 'Task createdAt must not contain NULL bytes.'];
+        yield 'createdAt with NUL byte' => ['createdAt', "2026-05-10T12:00:00\0+00:00", 'task "createdAt" must not contain NULL bytes.'];
 
-        yield 'createdAt invalid format' => ['createdAt', 'not-a-date', 'Task createdAt must be a valid ISO 8601 datetime.'];
+        yield 'createdAt invalid format' => ['createdAt', 'not-a-date', 'task "createdAt" must be a valid ISO 8601 datetime.'];
 
         yield 'createdAt overflow triggers warnings' => ['createdAt', '2026-13-45T25:99:99+00:00', 'The parsed date was invalid.'];
 
-        yield 'lastUpdatedAt with NUL byte' => ['lastUpdatedAt', "2026-05-10T12:00:00\0+00:00", 'Task lastUpdatedAt must not contain NULL bytes.'];
+        yield 'lastUpdatedAt with NUL byte' => ['lastUpdatedAt', "2026-05-10T12:00:00\0+00:00", 'task "lastUpdatedAt" must not contain NULL bytes.'];
 
-        yield 'lastUpdatedAt invalid format' => ['lastUpdatedAt', 'not-a-date', 'Task lastUpdatedAt must be a valid ISO 8601 datetime.'];
+        yield 'lastUpdatedAt invalid format' => ['lastUpdatedAt', 'not-a-date', 'task "lastUpdatedAt" must be a valid ISO 8601 datetime.'];
 
         yield 'lastUpdatedAt overflow triggers warnings' => ['lastUpdatedAt', '2026-13-45T25:99:99+00:00', 'The parsed date was invalid.'];
     }
@@ -260,37 +260,37 @@ final class TaskTest extends TestCase
             'ttl' => null,
         ];
 
-        yield 'missing taskId' => [['status' => 'working'], 'Task data missing "taskId".'];
+        yield 'missing taskId' => [['status' => 'working'], 'task missing the required "taskId" key.'];
 
-        yield 'taskId not a string' => [[...$valid, 'taskId' => 42], 'Task "taskId" must be a string, int given.'];
+        yield 'taskId not a string' => [[...$valid, 'taskId' => 42], 'task "taskId" must be a string, int given.'];
 
-        yield 'missing status' => [['taskId' => 'task-abc'], 'Task data missing "status".'];
+        yield 'missing status' => [['taskId' => 'task-abc'], 'task missing the required "status" key.'];
 
-        yield 'status not a string' => [[...$valid, 'status' => 42], 'Task "status" must be one of [\'working\', \'input_required\', \'completed\', \'failed\', \'cancelled\'], 42 given.'];
+        yield 'status not a string' => [[...$valid, 'status' => 42], 'task "status" must be one of [\'working\', \'input_required\', \'completed\', \'failed\', \'cancelled\'], 42 given.'];
 
-        yield 'unknown status' => [[...$valid, 'status' => 'pending'], 'Task "status" must be one of [\'working\', \'input_required\', \'completed\', \'failed\', \'cancelled\'], \'pending\' given.'];
+        yield 'unknown status' => [[...$valid, 'status' => 'pending'], 'task "status" must be one of [\'working\', \'input_required\', \'completed\', \'failed\', \'cancelled\'], \'pending\' given.'];
 
-        yield 'missing createdAt' => [['taskId' => 'task-abc', 'status' => 'working'], 'Task data missing "createdAt".'];
+        yield 'missing createdAt' => [['taskId' => 'task-abc', 'status' => 'working'], 'task missing the required "createdAt" key.'];
 
-        yield 'createdAt not a string' => [[...$valid, 'createdAt' => 42], 'Task "createdAt" must be a string, int given.'];
+        yield 'createdAt not a string' => [[...$valid, 'createdAt' => 42], 'task "createdAt" must be a string, int given.'];
 
         yield 'missing lastUpdatedAt' => [
             ['taskId' => 'task-abc', 'status' => 'working', 'createdAt' => '2026-05-10T12:00:00+00:00'],
-            'Task data missing "lastUpdatedAt".',
+            'task missing the required "lastUpdatedAt" key.',
         ];
 
-        yield 'lastUpdatedAt not a string' => [[...$valid, 'lastUpdatedAt' => 42], 'Task "lastUpdatedAt" must be a string, int given.'];
+        yield 'lastUpdatedAt not a string' => [[...$valid, 'lastUpdatedAt' => 42], 'task "lastUpdatedAt" must be a string, int given.'];
 
         yield 'missing ttl' => [
             ['taskId' => 'task-abc', 'status' => 'working', 'createdAt' => '2026-05-10T12:00:00+00:00', 'lastUpdatedAt' => '2026-05-10T12:00:30+00:00'],
-            'Task data missing "ttl".',
+            'task missing the required "ttl" key.',
         ];
 
-        yield 'ttl wrong type' => [[...$valid, 'ttl' => 'oops'], 'Task "ttl" must be an int or null, string given.'];
+        yield 'ttl wrong type' => [[...$valid, 'ttl' => 'oops'], 'task "ttl" must be an int or null, string given.'];
 
-        yield 'statusMessage wrong type' => [[...$valid, 'statusMessage' => 42], 'Task "statusMessage" must be a string or null, int given.'];
+        yield 'statusMessage wrong type' => [[...$valid, 'statusMessage' => 42], 'task "statusMessage" must be a string or null, int given.'];
 
-        yield 'pollInterval wrong type' => [[...$valid, 'pollInterval' => 'oops'], 'Task "pollInterval" must be an int or null, string given.'];
+        yield 'pollInterval wrong type' => [[...$valid, 'pollInterval' => 'oops'], 'task "pollInterval" must be an int or null, string given.'];
     }
 
     public function testFromArrayParsesAllOptionalFields(): void

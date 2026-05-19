@@ -191,47 +191,47 @@ final class InitializeRequestParamsTest extends TestCase
     {
         yield 'missing protocolVersion' => [
             ['capabilities' => [], 'clientInfo' => ['name' => 'c', 'version' => '1']],
-            'InitializeRequestParams data missing "protocolVersion".',
+            'missing the required "protocolVersion" key.',
         ];
 
         yield 'protocolVersion not a string' => [
             ['protocolVersion' => 1, 'capabilities' => [], 'clientInfo' => ['name' => 'c', 'version' => '1']],
-            'InitializeRequestParams "protocolVersion" must be a string, int given.',
+            '"params.protocolVersion" must be a string, int given.',
         ];
 
         yield 'missing capabilities' => [
             ['protocolVersion' => '2025-11-25', 'clientInfo' => ['name' => 'c', 'version' => '1']],
-            'InitializeRequestParams data missing "capabilities".',
+            'missing the required "capabilities" key.',
         ];
 
         yield 'capabilities not an object' => [
             ['protocolVersion' => '2025-11-25', 'capabilities' => 'oops', 'clientInfo' => ['name' => 'c', 'version' => '1']],
-            'InitializeRequestParams "capabilities" must be an object, string given.',
+            '"params.capabilities" must be an object, string given.',
         ];
 
         yield 'capabilities list-keyed' => [
             ['protocolVersion' => '2025-11-25', 'capabilities' => ['x'], 'clientInfo' => ['name' => 'c', 'version' => '1']],
-            'InitializeRequestParams "capabilities" must be a string-keyed object.',
+            '"params.capabilities" must be a string-keyed object.',
         ];
 
         yield 'missing clientInfo' => [
             ['protocolVersion' => '2025-11-25', 'capabilities' => []],
-            'InitializeRequestParams data missing "clientInfo".',
+            'missing the required "clientInfo" key.',
         ];
 
         yield 'clientInfo not an object' => [
             ['protocolVersion' => '2025-11-25', 'capabilities' => [], 'clientInfo' => 'oops'],
-            'InitializeRequestParams "clientInfo" must be an object, string given.',
+            '"params.clientInfo" must be an object, string given.',
         ];
 
         yield 'clientInfo list-keyed' => [
             ['protocolVersion' => '2025-11-25', 'capabilities' => [], 'clientInfo' => ['x']],
-            'InitializeRequestParams "clientInfo" must be a string-keyed object.',
+            '"params.clientInfo" must be a string-keyed object.',
         ];
 
         yield '_meta not an object' => [
             ['protocolVersion' => '2025-11-25', 'capabilities' => [], 'clientInfo' => ['name' => 'c', 'version' => '1'], '_meta' => 'oops'],
-            'Request params "_meta" must be an object, string given.',
+            '"params._meta" must be an object, string given.',
         ];
     }
 }

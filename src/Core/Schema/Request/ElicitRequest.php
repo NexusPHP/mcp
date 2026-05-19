@@ -44,18 +44,17 @@ final readonly class ElicitRequest extends JsonRpcRequest implements ServerReque
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('id', 'ElicitRequest data missing "id".');
+        Assert::that($data)->hasOffset('id', 'missing the required "id" key.');
         $id = $data['id'];
-        Assert::that($id)->isArrayKey('ElicitRequest "id" must be int or string, {type} given.');
+        Assert::that($id)->isArrayKey('"id" must be int or string, {type} given.');
 
-        Assert::that($data)->hasOffset('params', 'ElicitRequest data missing "params".');
+        Assert::that($data)->hasOffset('params', 'missing the required "params" key.');
         Assert::that($data['params'])
-            ->isArray('ElicitRequest "params" must be an object, {type} given.')
-            ->isMap('ElicitRequest "params" must be a string-keyed object.')
+            ->isArray('"params" must be an object, {type} given.')
+            ->isMap('"params" must be a string-keyed object.')
         ;
 
         $mode = $data['params']['mode'] ?? ElicitRequestFormParams::MODE;
-        Assert::that($mode)->isString('ElicitRequest params "mode" must be a string, {type} given.');
 
         $params = ElicitRequestUrlParams::MODE === $mode
             ? ElicitRequestUrlParams::fromArray($data['params'])

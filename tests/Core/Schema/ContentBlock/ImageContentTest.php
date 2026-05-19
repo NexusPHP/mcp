@@ -111,7 +111,7 @@ final class ImageContentTest extends TestCase
     public function testConstructorRejectsEmptyData(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ImageContent data must be a non-empty string.');
+        $this->expectExceptionMessage('image content "data" must be a non-empty string.');
 
         new ImageContent('', 'image/png');
     }
@@ -119,7 +119,7 @@ final class ImageContentTest extends TestCase
     public function testConstructorRejectsEmptyMimeType(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ImageContent mimeType must be a non-empty string.');
+        $this->expectExceptionMessage('image content "mimeType" must be a non-empty string.');
 
         new ImageContent('aGVsbG8=', '');
     }
@@ -143,52 +143,52 @@ final class ImageContentTest extends TestCase
     {
         yield 'missing type' => [
             ['data' => 'aGVsbG8=', 'mimeType' => 'image/png'],
-            'ImageContent data missing "type".',
+            'image content missing the required "type" key.',
         ];
 
         yield 'wrong type literal' => [
             ['type' => 'audio', 'data' => 'aGVsbG8=', 'mimeType' => 'image/png'],
-            'ImageContent "type" must be "image", \'audio\' given.',
+            'image content "type" must be \'image\', \'audio\' given.',
         ];
 
         yield 'missing data' => [
             ['type' => 'image', 'mimeType' => 'image/png'],
-            'ImageContent data missing "data".',
+            'image content missing the required "data" key.',
         ];
 
         yield 'data not a string' => [
             ['type' => 'image', 'data' => 1, 'mimeType' => 'image/png'],
-            'ImageContent "data" must be a string, int given.',
+            'image content "data" must be a string, int given.',
         ];
 
         yield 'missing mimeType' => [
             ['type' => 'image', 'data' => 'aGVsbG8='],
-            'ImageContent data missing "mimeType".',
+            'image content missing the required "mimeType" key.',
         ];
 
         yield 'mimeType not a string' => [
             ['type' => 'image', 'data' => 'aGVsbG8=', 'mimeType' => 1],
-            'ImageContent "mimeType" must be a string, int given.',
+            'image content "mimeType" must be a string, int given.',
         ];
 
         yield 'annotations not an object' => [
             ['type' => 'image', 'data' => 'aGVsbG8=', 'mimeType' => 'image/png', 'annotations' => 'oops'],
-            'ImageContent "annotations" must be an object, string given.',
+            'image content "annotations" must be an object, string given.',
         ];
 
         yield 'annotations list-keyed' => [
             ['type' => 'image', 'data' => 'aGVsbG8=', 'mimeType' => 'image/png', 'annotations' => ['x']],
-            'ImageContent "annotations" must be a string-keyed object.',
+            'image content "annotations" must be a string-keyed object.',
         ];
 
         yield '_meta not an object' => [
             ['type' => 'image', 'data' => 'aGVsbG8=', 'mimeType' => 'image/png', '_meta' => 'oops'],
-            'ImageContent "_meta" must be an object, string given.',
+            'image content "_meta" must be an object, string given.',
         ];
 
         yield '_meta list-keyed' => [
             ['type' => 'image', 'data' => 'aGVsbG8=', 'mimeType' => 'image/png', '_meta' => ['x']],
-            'ImageContent "_meta" must be a string-keyed object.',
+            'image content "_meta" must be a string-keyed object.',
         ];
     }
 }

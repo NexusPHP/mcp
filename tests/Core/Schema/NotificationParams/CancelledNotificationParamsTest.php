@@ -209,7 +209,7 @@ final class CancelledNotificationParamsTest extends TestCase
     {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage(\sprintf(
-            'CancelledNotificationParams "requestId" must be int or string, %s given.',
+            '"params.requestId" must be int or string, %s given.',
             $expectedTypeFragment,
         ));
 
@@ -233,7 +233,7 @@ final class CancelledNotificationParamsTest extends TestCase
     public function testFromArrayRejectsNonStringReason(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('CancelledNotificationParams "reason" must be a string or null, int given.');
+        $this->expectExceptionMessage('"params.reason" must be a string or null, int given.');
 
         CancelledNotificationParams::fromArray([
             'requestId' => 1,
@@ -244,7 +244,7 @@ final class CancelledNotificationParamsTest extends TestCase
     public function testFromArrayRejectsNonArrayMeta(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Notification params "_meta" must be an object, int given.');
+        $this->expectExceptionMessage('"params._meta" must be an object, int given.');
 
         CancelledNotificationParams::fromArray([
             'requestId' => 1,
@@ -255,7 +255,7 @@ final class CancelledNotificationParamsTest extends TestCase
     public function testFromArrayRejectsListKeyedMeta(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Notification params "_meta" must be a string-keyed object.');
+        $this->expectExceptionMessage('"params._meta" must be a string-keyed object.');
 
         CancelledNotificationParams::fromArray([
             'requestId' => 1,

@@ -112,7 +112,7 @@ final class PromptArgumentTest extends TestCase
     public function testConstructorRejectsInvalidName(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageMatches('/\APromptArgument name must be 1-128 characters/');
+        $this->expectExceptionMessageMatches('/\A"arguments.name" must be 1-128 characters/');
 
         new PromptArgument('bad name');
     }
@@ -120,7 +120,7 @@ final class PromptArgumentTest extends TestCase
     public function testConstructorRejectsEmptyDescription(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('PromptArgument description must be a non-empty string or null.');
+        $this->expectExceptionMessage('"arguments.description" must be a non-empty string or null.');
 
         new PromptArgument('topic', null, '');
     }
@@ -144,27 +144,27 @@ final class PromptArgumentTest extends TestCase
     {
         yield 'missing name' => [
             [],
-            'PromptArgument data missing "name".',
+            '"arguments" missing the required "name" key.',
         ];
 
         yield 'name not a string' => [
             ['name' => 1],
-            'PromptArgument "name" must be a string, int given.',
+            '"arguments.name" must be a string, int given.',
         ];
 
         yield 'title not a string' => [
             ['name' => 'topic', 'title' => 1],
-            'PromptArgument "title" must be a string or null, int given.',
+            '"arguments.title" must be a string or null, int given.',
         ];
 
         yield 'description not a string' => [
             ['name' => 'topic', 'description' => 1],
-            'PromptArgument "description" must be a string or null, int given.',
+            '"arguments.description" must be a string or null, int given.',
         ];
 
         yield 'required not a bool' => [
             ['name' => 'topic', 'required' => 'yes'],
-            'PromptArgument "required" must be a bool or null, string given.',
+            '"arguments.required" must be a bool or null, string given.',
         ];
     }
 }

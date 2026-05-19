@@ -113,22 +113,22 @@ final class ListResourceTemplatesRequestTest extends TestCase
     {
         yield 'missing id' => [
             ['jsonrpc' => '2.0', 'method' => 'resources/templates/list'],
-            'ListResourceTemplatesRequest data missing "id".',
+            'missing the required "id" key.',
         ];
 
         yield 'id not int or string' => [
             ['jsonrpc' => '2.0', 'id' => [], 'method' => 'resources/templates/list'],
-            'ListResourceTemplatesRequest "id" must be int or string, array given.',
+            '"id" must be int or string, array given.',
         ];
 
         yield 'params not an object' => [
             ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'resources/templates/list', 'params' => 'bad'],
-            'ListResourceTemplatesRequest "params" must be an object, string given.',
+            '"params" must be an object, string given.',
         ];
 
         yield 'params list-keyed' => [
             ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'resources/templates/list', 'params' => ['x']],
-            'ListResourceTemplatesRequest "params" must be a string-keyed object.',
+            '"params" must be a string-keyed object.',
         ];
     }
 }

@@ -75,7 +75,7 @@ final class ElicitationCompleteNotificationParamsTest extends TestCase
     public function testConstructorRejectsEmptyElicitationId(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ElicitationCompleteNotificationParams elicitationId must be a non-empty string.');
+        $this->expectExceptionMessage('"params.elicitationId" must be a non-empty string.');
 
         new ElicitationCompleteNotificationParams('');
     }
@@ -99,12 +99,12 @@ final class ElicitationCompleteNotificationParamsTest extends TestCase
     {
         yield 'missing elicitationId' => [
             [],
-            'ElicitationCompleteNotificationParams data missing "elicitationId".',
+            'missing the required "elicitationId" key.',
         ];
 
         yield 'elicitationId not a string' => [
             ['elicitationId' => 1],
-            'ElicitationCompleteNotificationParams "elicitationId" must be a string, int given.',
+            '"params.elicitationId" must be a string, int given.',
         ];
     }
 }

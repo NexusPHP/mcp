@@ -38,7 +38,7 @@ final readonly class ResourceTemplateReference implements Arrayable
 
     public function __construct(string $uri)
     {
-        Rfc6570UriTemplateValidator::validate($uri, 'ResourceTemplateReference');
+        Rfc6570UriTemplateValidator::validate($uri, 'resource template reference "uri"');
 
         $this->uri = $uri;
     }
@@ -49,13 +49,13 @@ final readonly class ResourceTemplateReference implements Arrayable
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('type', 'ResourceTemplateReference data missing "type".');
+        Assert::that($data)->hasOffset('type', 'resource template reference missing the required "type" key.');
         $type = $data['type'];
-        Assert::that($type)->isIdentical(self::TYPE, \sprintf('ResourceTemplateReference "type" must be "%s", {value} given.', self::TYPE));
+        Assert::that($type)->isIdentical(self::TYPE, 'resource template reference "type" must be {other}, {value} given.');
 
-        Assert::that($data)->hasOffset('uri', 'ResourceTemplateReference data missing "uri".');
+        Assert::that($data)->hasOffset('uri', 'resource template reference missing the required "uri" key.');
         $uri = $data['uri'];
-        Assert::that($uri)->isString('ResourceTemplateReference "uri" must be a string, {type} given.');
+        Assert::that($uri)->isString('resource template reference "uri" must be a string, {type} given.');
 
         return new self($uri);
     }

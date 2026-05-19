@@ -33,7 +33,7 @@ final readonly class RelatedTaskMetadata implements Arrayable
 
     public function __construct(string $taskId)
     {
-        Assert::that($taskId)->isNonEmptyString('RelatedTaskMetadata taskId must be a non-empty string.');
+        Assert::that($taskId)->isNonEmptyString('related task metadata "taskId" must be a non-empty string.');
 
         $this->taskId = $taskId;
     }
@@ -44,9 +44,9 @@ final readonly class RelatedTaskMetadata implements Arrayable
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('taskId', 'RelatedTaskMetadata data missing "taskId".');
+        Assert::that($data)->hasOffset('taskId', 'related task metadata missing the required "taskId" key.');
         $taskId = $data['taskId'];
-        Assert::that($taskId)->isString('RelatedTaskMetadata "taskId" must be a string, {type} given.');
+        Assert::that($taskId)->isString('related task metadata "taskId" must be a string, {type} given.');
 
         return new self($taskId);
     }

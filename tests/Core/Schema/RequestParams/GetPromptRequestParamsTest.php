@@ -121,7 +121,7 @@ final class GetPromptRequestParamsTest extends TestCase
     public function testConstructorRejectsInvalidName(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageMatches('/\AGetPromptRequestParams name must be 1-128 characters/');
+        $this->expectExceptionMessageMatches('/\A"params.name" must be 1-128 characters/');
 
         new GetPromptRequestParams('bad name');
     }
@@ -129,7 +129,7 @@ final class GetPromptRequestParamsTest extends TestCase
     public function testConstructorRejectsListKeyedArguments(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('GetPromptRequestParams arguments must be a string-keyed map.');
+        $this->expectExceptionMessage('"params.arguments" must be a string-keyed map.');
 
         // @phpstan-ignore argument.type
         new GetPromptRequestParams('topic', ['v1', 'v2']);
@@ -138,7 +138,7 @@ final class GetPromptRequestParamsTest extends TestCase
     public function testConstructorRejectsNonStringArgumentValue(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('GetPromptRequestParams arguments values must all be strings, int given.');
+        $this->expectExceptionMessage('"params.arguments" values must all be strings, int given.');
 
         // @phpstan-ignore argument.type
         new GetPromptRequestParams('topic', ['k' => 1]);
@@ -163,37 +163,37 @@ final class GetPromptRequestParamsTest extends TestCase
     {
         yield 'missing name' => [
             [],
-            'GetPromptRequestParams data missing "name".',
+            'missing the required "name" key.',
         ];
 
         yield 'name not a string' => [
             ['name' => 1],
-            'GetPromptRequestParams "name" must be a string, int given.',
+            '"params.name" must be a string, int given.',
         ];
 
         yield 'arguments not an object' => [
             ['name' => 'topic', 'arguments' => 'oops'],
-            'GetPromptRequestParams "arguments" must be an object, string given.',
+            '"params.arguments" must be an object, string given.',
         ];
 
         yield 'arguments list-keyed' => [
             ['name' => 'topic', 'arguments' => ['v']],
-            'GetPromptRequestParams "arguments" must be a string-keyed object.',
+            '"params.arguments" must be a string-keyed object.',
         ];
 
         yield 'argument value not a string' => [
             ['name' => 'topic', 'arguments' => ['k' => 1]],
-            'GetPromptRequestParams argument value must be a string, int given.',
+            '"params.arguments" value must be a string, int given.',
         ];
 
         yield '_meta not an object' => [
             ['name' => 'topic', '_meta' => 'oops'],
-            'Request params "_meta" must be an object, string given.',
+            '"params._meta" must be an object, string given.',
         ];
 
         yield '_meta list-keyed' => [
             ['name' => 'topic', '_meta' => ['v']],
-            'Request params "_meta" must be a string-keyed object.',
+            '"params._meta" must be a string-keyed object.',
         ];
     }
 }

@@ -44,28 +44,28 @@ final readonly class ProgressNotificationParams extends NotificationParams
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('progressToken', 'ProgressNotificationParams data missing "progressToken".');
+        Assert::that($data)->hasOffset('progressToken', 'missing the required "progressToken" key.');
         $progressToken = $data['progressToken'];
-        Assert::that($progressToken)->isArrayKey('ProgressNotificationParams "progressToken" must be int or string, {type} given.');
+        Assert::that($progressToken)->isArrayKey('"params.progressToken" must be int or string, {type} given.');
 
-        Assert::that($data)->hasOffset('progress', 'ProgressNotificationParams data missing "progress".');
-        $progress = self::parseNumber($data['progress'], 'ProgressNotificationParams "progress" must be a number, {type} given.');
+        Assert::that($data)->hasOffset('progress', 'missing the required "progress" key.');
+        $progress = self::parseNumber($data['progress'], '"params.progress" must be a number, {type} given.');
 
         $total = $data['total'] ?? null;
 
         if (null !== $total) {
-            $total = self::parseNumber($total, 'ProgressNotificationParams "total" must be a number or null, {type} given.');
+            $total = self::parseNumber($total, '"params.total" must be a number or null, {type} given.');
         }
 
         $message = $data['message'] ?? null;
-        Assert::that($message)->nullOr()->isString('ProgressNotificationParams "message" must be a string or null, {type} given.');
+        Assert::that($message)->nullOr()->isString('"params.message" must be a string or null, {type} given.');
 
         $meta = new MetaObject();
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
-                ->isArray('Notification params "_meta" must be an object, {type} given.')
-                ->isMap('Notification params "_meta" must be a string-keyed object.')
+                ->isArray('"params._meta" must be an object, {type} given.')
+                ->isMap('"params._meta" must be a string-keyed object.')
             ;
             $meta = MetaObject::fromArray($data['_meta']);
         }
