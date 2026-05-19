@@ -80,9 +80,10 @@ JsonRpcMessageParser::parse()        ← classifies request/notification/respons
    │
    ├── parse failed
    │     │
-   │     ├── response shape    → discard with a warning (server has no outbound-request correlation)
+   │     ├── response shape     → discard with a warning (server has no outbound-request correlation)
+   │     ├── misrouted method   → send an `InvalidRequest` error (method known under the other JSON-RPC shape)
    │     ├── notification shape → drop silently per JSON-RPC 2.0 §4.1
-   │     └── request shape     → send an error response
+   │     └── request shape      → send an error response
    │
    └── parse succeeded
          │

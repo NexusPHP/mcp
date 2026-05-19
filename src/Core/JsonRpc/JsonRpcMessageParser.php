@@ -17,6 +17,7 @@ use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Exception\AbstractJsonRpcProtocolException;
 use Nexus\Mcp\Core\Exception\InvalidParamsException;
 use Nexus\Mcp\Core\Exception\InvalidRequestException;
+use Nexus\Mcp\Core\Exception\MethodMisroutedException;
 use Nexus\Mcp\Core\Exception\MethodNotFoundException;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcMessage;
@@ -127,6 +128,15 @@ final class JsonRpcMessageParser
             $class = $this->requests[$method] ?? null;
 
             if (null === $class) {
+                if (\array_key_exists($method, $this->notifications)) {
+                    throw new MethodMisroutedException(
+                        $method,
+                        expectedShape: 'notification',
+                        receivedShape: 'request',
+                        requestId: self::extractRequestId($message),
+                    );
+                }
+
                 throw new MethodNotFoundException($method, self::extractRequestId($message));
             }
 
@@ -143,6 +153,14 @@ final class JsonRpcMessageParser
         $class = $this->notifications[$method] ?? null;
 
         if (null === $class) {
+            if (\array_key_exists($method, $this->requests)) {
+                throw new MethodMisroutedException(
+                    $method,
+                    expectedShape: 'request',
+                    receivedShape: 'notification',
+                );
+            }
+
             throw new MethodNotFoundException($method);
         }
 

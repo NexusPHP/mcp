@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Server\Dispatch;
 
 use Nexus\Mcp\Core\Exception\AbstractJsonRpcProtocolException;
+use Nexus\Mcp\Core\Exception\MethodMisroutedException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
 use Nexus\Mcp\Core\Handler\AbstractContext;
 use Nexus\Mcp\Core\Handler\HandlerRegistry;
@@ -146,6 +147,58 @@ final class MessageDispatcherTest extends TestCase
         self::assertCount(1, $matches);
         self::assertSame($envelope, $matches[0]['context']['envelope'] ?? null);
         self::assertInstanceOf(AbstractJsonRpcProtocolException::class, $matches[0]['context']['exception'] ?? null);
+    }
+
+    public function testRequestMethodSentAsNotificationLogsWarnAndSendsInvalidRequest(): void
+    {
+        $transport = new RecordingTransport();
+        $logger = new ArrayLogger();
+        $dispatcher = self::buildDispatcher(logger: $logger);
+
+        $envelope = ['jsonrpc' => '2.0', 'method' => 'initialize'];
+        $dispatcher->dispatch($envelope, $transport);
+
+        EventLoop::run();
+
+        self::assertCount(1, $transport->sent);
+        $message = $transport->sent[0]['message'];
+        self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
+        self::assertNull($message->id, 'Misrouted notification envelope carried no id.');
+        self::assertSame(ProtocolErrorCode::InvalidRequest->value, $message->error->code);
+        self::assertStringContainsString('"initialize"', $message->error->message);
+
+        $matches = $logger->recordsMatching(
+            LogLevel::WARNING,
+            'Rejecting envelope whose method was sent under the wrong JSON-RPC shape.',
+        );
+        self::assertCount(1, $matches);
+        self::assertSame($envelope, $matches[0]['context']['envelope'] ?? null);
+        self::assertInstanceOf(MethodMisroutedException::class, $matches[0]['context']['exception'] ?? null);
+    }
+
+    public function testNotificationMethodSentAsRequestLogsWarnAndSendsInvalidRequest(): void
+    {
+        $transport = new RecordingTransport();
+        $logger = new ArrayLogger();
+        $dispatcher = self::buildDispatcher(initialize: true, logger: $logger);
+
+        $envelope = ['jsonrpc' => '2.0', 'id' => 7, 'method' => 'notifications/initialized'];
+        $dispatcher->dispatch($envelope, $transport);
+
+        EventLoop::run();
+
+        self::assertCount(1, $transport->sent);
+        $message = $transport->sent[0]['message'];
+        self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
+        self::assertSame(7, $message->id?->id);
+        self::assertSame(ProtocolErrorCode::InvalidRequest->value, $message->error->code);
+        self::assertStringContainsString('"notifications/initialized"', $message->error->message);
+
+        $matches = $logger->recordsMatching(
+            LogLevel::WARNING,
+            'Rejecting envelope whose method was sent under the wrong JSON-RPC shape.',
+        );
+        self::assertCount(1, $matches);
     }
 
     public function testUnknownNotificationMethodIsDroppedAndLoggedNotAnsweredWithError(): void

@@ -16,6 +16,7 @@ namespace Nexus\Mcp\Tests\Core\JsonRpc;
 use Nexus\Mcp\Core\Exception\AbstractJsonRpcProtocolException;
 use Nexus\Mcp\Core\Exception\InvalidParamsException;
 use Nexus\Mcp\Core\Exception\InvalidRequestException;
+use Nexus\Mcp\Core\Exception\MethodMisroutedException;
 use Nexus\Mcp\Core\Exception\MethodNotFoundException;
 use Nexus\Mcp\Core\JsonRpc\JsonRpcMessageParser;
 use Nexus\Mcp\Core\JsonRpc\UnparsedResultEnvelope;
@@ -261,6 +262,43 @@ final class JsonRpcMessageParserTest extends TestCase
         } catch (MethodNotFoundException $e) {
             self::assertNull($e->requestId, 'Notifications carry no id.');
             self::assertSame('No registration found for method "notifications/__test_only__".', $e->getMessage());
+        }
+    }
+
+    public function testParseRejectsRequestMethodSentAsNotificationAsMisrouted(): void
+    {
+        $parser = new JsonRpcMessageParser();
+
+        try {
+            $parser->parse([
+                'jsonrpc' => '2.0',
+                'method' => 'initialize',
+            ]);
+            self::fail('Expected MethodMisroutedException.');
+        } catch (MethodMisroutedException $e) {
+            self::assertNull($e->requestId, 'Notification envelopes carry no id.');
+            self::assertSame(ProtocolErrorCode::InvalidRequest, MethodMisroutedException::errorCode());
+            self::assertSame('Method "initialize" must be sent as a request, not a notification.', $e->getMessage());
+        }
+    }
+
+    public function testParseRejectsNotificationMethodSentAsRequestAsMisrouted(): void
+    {
+        $parser = new JsonRpcMessageParser();
+
+        try {
+            $parser->parse([
+                'jsonrpc' => '2.0',
+                'id' => 7,
+                'method' => 'notifications/initialized',
+            ]);
+            self::fail('Expected MethodMisroutedException.');
+        } catch (MethodMisroutedException $e) {
+            self::assertSame(7, $e->requestId?->id);
+            self::assertSame(
+                'Method "notifications/initialized" must be sent as a notification, not a request.',
+                $e->getMessage(),
+            );
         }
     }
 
