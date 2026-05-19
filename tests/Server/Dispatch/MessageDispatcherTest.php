@@ -687,6 +687,153 @@ final class MessageDispatcherTest extends TestCase
         self::assertFalse($gate->isInitialized(), 'Gate must not promote to initialized when the preceding "initialize" handler failed.');
     }
 
+    public function testInitializeFollowedByInitializedInSameTickCompletesHandshake(): void
+    {
+        $transport = new RecordingTransport();
+        $gate = new InitializationGate();
+        $notificationFired = 0;
+        $dispatcher = self::buildDispatcher(
+            gate: $gate,
+            requestHandlers: [
+                'initialize' => new ClosureRequestHandler(
+                    static fn() => new EmptyResult(),
+                ),
+            ],
+            notificationHandlers: [
+                'notifications/initialized' => new ClosureNotificationHandler(
+                    static function () use (&$notificationFired): void { ++$notificationFired; },
+                ),
+            ],
+        );
+
+        $dispatcher->dispatch(self::initializeEnvelope(), $transport);
+        $dispatcher->dispatch(
+            ['jsonrpc' => '2.0', 'method' => 'notifications/initialized'],
+            $transport,
+        );
+
+        EventLoop::run();
+
+        self::assertTrue($gate->isInitialized());
+        self::assertSame(1, $notificationFired);
+        self::assertCount(1, $transport->sent);
+        self::assertInstanceOf(JsonRpcResultResponse::class, $transport->sent[0]['message']);
+    }
+
+    public function testConcurrentInitializeEnvelopesInSameTickRejectSecondAsReinitialize(): void
+    {
+        $transport = new RecordingTransport();
+        $gate = new InitializationGate();
+        $handlerInvocations = 0;
+        $dispatcher = self::buildDispatcher(
+            gate: $gate,
+            requestHandlers: [
+                'initialize' => new ClosureRequestHandler(
+                    static function () use (&$handlerInvocations): EmptyResult {
+                        ++$handlerInvocations;
+
+                        return new EmptyResult();
+                    },
+                ),
+            ],
+        );
+
+        $dispatcher->dispatch(self::initializeEnvelope(), $transport);
+        $dispatcher->dispatch(self::initializeEnvelope(), $transport);
+
+        EventLoop::run();
+
+        self::assertSame(1, $handlerInvocations, 'Second initialize must be rejected before the handler runs.');
+        self::assertCount(2, $transport->sent);
+        self::assertInstanceOf(JsonRpcErrorResponse::class, $transport->sent[0]['message']);
+        self::assertSame(ProtocolErrorCode::InvalidRequest->value, $transport->sent[0]['message']->error->code);
+        self::assertStringContainsString('re-initialize', $transport->sent[0]['message']->error->message);
+        self::assertInstanceOf(JsonRpcResultResponse::class, $transport->sent[1]['message']);
+    }
+
+    public function testFailedInitializeHandlerRevertsGateAllowingAFreshInitializeAttempt(): void
+    {
+        $transport = new RecordingTransport();
+        $gate = new InitializationGate();
+        $attempt = 0;
+        $dispatcher = self::buildDispatcher(
+            gate: $gate,
+            requestHandlers: [
+                'initialize' => new ClosureRequestHandler(
+                    static function () use (&$attempt): EmptyResult {
+                        if (1 === ++$attempt) {
+                            throw new \RuntimeException('first attempt fails');
+                        }
+
+                        return new EmptyResult();
+                    },
+                ),
+            ],
+        );
+
+        $dispatcher->dispatch(self::initializeEnvelope(), $transport);
+
+        EventLoop::run();
+
+        self::assertTrue($gate->allowsRequest('initialize'), 'Gate must revert to AwaitingInitialize after a failed handler.');
+
+        $dispatcher->dispatch(self::initializeEnvelope(), $transport);
+
+        EventLoop::run();
+
+        self::assertSame(2, $attempt);
+        self::assertCount(2, $transport->sent);
+        self::assertInstanceOf(JsonRpcErrorResponse::class, $transport->sent[0]['message']);
+        self::assertSame(ProtocolErrorCode::InternalError->value, $transport->sent[0]['message']->error->code);
+        self::assertInstanceOf(JsonRpcResultResponse::class, $transport->sent[1]['message']);
+    }
+
+    public function testInitializeHandlerThrowingProtocolExceptionRevertsTheGate(): void
+    {
+        $transport = new RecordingTransport();
+        $gate = new InitializationGate();
+        $dispatcher = self::buildDispatcher(
+            gate: $gate,
+            requestHandlers: [
+                'initialize' => new ClosureRequestHandler(
+                    static fn() => throw new ResourceNotFoundException('file:///x'),
+                ),
+            ],
+        );
+
+        $dispatcher->dispatch(self::initializeEnvelope(), $transport);
+
+        EventLoop::run();
+
+        self::assertTrue($gate->allowsRequest('initialize'), 'Gate must revert after a protocol-exception failure in the initialize handler.');
+        self::assertCount(1, $transport->sent);
+        self::assertInstanceOf(JsonRpcErrorResponse::class, $transport->sent[0]['message']);
+        self::assertSame(ProtocolErrorCode::InvalidParams->value, $transport->sent[0]['message']->error->code);
+    }
+
+    public function testGateRejectionWithFailingTransportLogsRatherThanThrowing(): void
+    {
+        $transport = new RecordingTransport();
+        $transport->sendError = new \RuntimeException('write failed');
+        $logger = new ArrayLogger();
+        $dispatcher = self::buildDispatcher(
+            requestHandlers: ['tools/list' => self::okHandler()],
+            logger: $logger,
+        );
+
+        $dispatcher->dispatch(
+            ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/list'],
+            $transport,
+        );
+
+        EventLoop::run();
+
+        $matches = $logger->recordsMatching(LogLevel::ERROR, 'Failed to deliver response to transport.');
+        self::assertCount(1, $matches);
+        self::assertSame('tools/list', $matches[0]['context']['method'] ?? null);
+        self::assertInstanceOf(\RuntimeException::class, $matches[0]['context']['exception'] ?? null);
+    }
+
     public function testInitializeEnvelopeWithMalformedParamsLeavesGateAwaiting(): void
     {
         $transport = new RecordingTransport();

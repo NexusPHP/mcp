@@ -142,4 +142,32 @@ final class InitializationGateTest extends TestCase
         self::assertFalse($gate->markInitialized());
         self::assertTrue($gate->isInitialized());
     }
+
+    public function testRevertInitializeInFlightFromInFlightStateRestoresAwaiting(): void
+    {
+        $gate = new InitializationGate();
+        $gate->markInitializeInFlight();
+
+        self::assertTrue($gate->revertInitializeInFlight());
+        self::assertFalse($gate->isInitialized());
+        self::assertTrue($gate->allowsRequest('initialize'), 'Gate must accept a retry initialize after revert.');
+    }
+
+    public function testRevertInitializeInFlightIsNoOpFromAwaitingState(): void
+    {
+        $gate = new InitializationGate();
+
+        self::assertFalse($gate->revertInitializeInFlight());
+        self::assertTrue($gate->allowsRequest('initialize'));
+    }
+
+    public function testRevertInitializeInFlightIsNoOpAfterFullHandshake(): void
+    {
+        $gate = new InitializationGate();
+        $gate->markInitializeInFlight();
+        $gate->markInitialized();
+
+        self::assertFalse($gate->revertInitializeInFlight());
+        self::assertTrue($gate->isInitialized());
+    }
 }
