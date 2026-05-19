@@ -527,4 +527,16 @@ final class JsonRpcMessageParserTest extends TestCase
             self::assertNull($e->requestId, 'An empty-string envelope id cannot be wrapped into a RequestId, so the exception carries null.');
         }
     }
+
+    public function testParseDropsRequestIdWhenVersionMismatchIsRaisedAndEnvelopeIdIsEmptyString(): void
+    {
+        $parser = new JsonRpcMessageParser();
+
+        try {
+            $parser->parse(['jsonrpc' => '1.0', 'id' => '', 'method' => 'ping']);
+            self::fail('Expected an InvalidRequestException.');
+        } catch (InvalidRequestException $e) {
+            self::assertNull($e->requestId, 'An empty-string envelope id cannot be wrapped into a RequestId, so the exception carries null.');
+        }
+    }
 }
