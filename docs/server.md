@@ -1,8 +1,7 @@
 # Server API
 
-The `Server` class wires a `MessageDispatcher` to a `TransportInterface` and blocks the caller until the
-transport closes. Build one with the fluent `ServerBuilder` and run it against any transport
-implementation.
+The `Server` class runs against a `TransportInterface` and blocks the caller until the transport closes.
+Build one with the fluent `ServerBuilder` and run it against any transport implementation.
 
 ```php
 use Nexus\Mcp\Server\Server;
@@ -200,8 +199,8 @@ Every handler closure receives a `ServerContext` as its last argument.
 ## Lifecycle
 
 1. **`build()`** validates the configuration (e.g. server info must be set) and returns a `Server` instance.
-2. **`run($transport)`** wires the listener chain on the transport, starts it, and blocks on a
-   `DeferredFuture` until the transport closes.
+2. **`run($transport)`** wires the listener chain on the transport, starts it, and blocks until the
+   transport closes.
 3. While running, the dispatcher classifies each inbound envelope:
    - `initialize` request: routed before initialization completes. Subsequent calls are rejected with
      `InvalidRequest`.

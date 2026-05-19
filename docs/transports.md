@@ -52,6 +52,7 @@ $transport = new StdioServerTransport(
     stdin: $stream,          // optional ReadableStream; default: new ReadableResourceStream(\STDIN)
     stdout: $writableStream, // optional WritableStream; default: new WritableResourceStream(\STDOUT)
     logger: $psrLogger,      // optional; default: new NullLogger
+    maxLineBytes: 4_194_304, // optional cap on a single inbound line; default 4 MiB
 );
 ```
 
@@ -63,9 +64,13 @@ streams to the event loop.
 Behaviour:
 
 - **Framing**: line-framed JSON-RPC. One envelope per line on STDIN. One per line on STDOUT.
-- **Read loop**: spawned by `start()`. Each line is parsed as JSON. Lines that fail to decode are logged
-  at `debug` and skipped. Lines that decode but are not JSON objects are logged at `warning` and skipped.
-  Valid envelopes are emitted to `onMessage` listeners.
+- **Line cap**: each inbound line is capped at `$maxLineBytes` (default 4 MiB). A line that exceeds the
+  cap before its `\n` arrives raises a read error and unwinds the loop, so a peer cannot exhaust memory
+  with an unterminated stream.
+- **Read loop**: spawned by `start()`. Each line is parsed as JSON. Lines that fail to decode are answered
+  with a `-32700 ParseError` response. Lines that decode but are not JSON objects (including JSON-RPC
+  batches, which the SDK does not accept) are answered with a `-32600 InvalidRequest` response. Valid
+  envelopes are emitted to `onMessage` listeners.
 - **Output**: every `send()` writes a single line ending in `\n`. The underlying `WritableResourceStream`
   is flushed per write.
 - **EOF**: when STDIN closes, the read loop unwinds. Its `finally` fires `onDrain` listeners (so the
