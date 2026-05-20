@@ -83,9 +83,11 @@ JsonRpcMessageParser::parse()        ← classifies request/notification, raises
    │
    ├── parse failed
    │     │
-   │     ├── misrouted method   → send an `InvalidRequest` error (method known under the other JSON-RPC shape)
-   │     ├── notification shape → drop silently per JSON-RPC 2.0 §4.1
-   │     └── request shape      → send an error response
+   │     ├── misrouted method                      → behaviour follows the method's intended shape, not the envelope's:
+   │     │       ├── request method sent without id     → `InvalidRequest` error with `id: null` per §5
+   │     │       └── notification method sent with id   → drop silently per §4.1 (WARN-log only)
+   │     ├── parse error on notification shape          → drop silently per §4.1
+   │     └── parse error on request shape               → send an `InvalidRequest` error response
    │
    └── parse succeeded
          │
