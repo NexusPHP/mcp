@@ -730,12 +730,13 @@ final class MessageDispatcherTest extends TestCase
         self::assertSame(['method' => 'notifications/cancelled'], $matches[0]['context']);
     }
 
-    public function testInitializedNotificationFlipsTheGateAndIsDispatchedToHandlerWhenInFlight(): void
+    public function testInitializedNotificationFlipsTheGateAndIsDispatchedToHandlerWhenCompleted(): void
     {
         $invocations = 0;
         $transport = new RecordingTransport();
         $gate = new InitializationGate();
         $gate->markInitializeInFlight();
+        $gate->markInitializeCompleted();
         $dispatcher = self::buildDispatcher(
             gate: $gate,
             notificationHandlers: [
@@ -784,7 +785,7 @@ final class MessageDispatcherTest extends TestCase
         self::assertSame([], $transport->sent);
         $matches = $logger->recordsMatching(
             LogLevel::WARNING,
-            'Discarding "notifications/initialized" received outside of an in-flight "initialize" handshake.',
+            'Discarding "notifications/initialized" received in an unexpected initialize handshake state.',
         );
         self::assertCount(1, $matches);
         self::assertSame(['method' => 'notifications/initialized'], $matches[0]['context']);
@@ -797,6 +798,7 @@ final class MessageDispatcherTest extends TestCase
         $logger = new ArrayLogger();
         $gate = new InitializationGate();
         $gate->markInitializeInFlight();
+        $gate->markInitializeCompleted();
         $gate->markInitialized();
         $dispatcher = self::buildDispatcher(
             gate: $gate,
@@ -819,7 +821,7 @@ final class MessageDispatcherTest extends TestCase
         self::assertSame([], $transport->sent);
         $matches = $logger->recordsMatching(
             LogLevel::WARNING,
-            'Discarding "notifications/initialized" received outside of an in-flight "initialize" handshake.',
+            'Discarding "notifications/initialized" received in an unexpected initialize handshake state.',
         );
         self::assertCount(1, $matches);
     }
@@ -884,9 +886,10 @@ final class MessageDispatcherTest extends TestCase
         self::assertFalse($gate->isInitialized(), 'Gate must not promote to initialized when the preceding "initialize" handler failed.');
     }
 
-    public function testInitializeFollowedByInitializedInSameTickCompletesHandshake(): void
+    public function testInitializedNotificationArrivingBeforeInitializeHandlerCompletesIsDroppedToCloseTheRace(): void
     {
         $transport = new RecordingTransport();
+        $logger = new ArrayLogger();
         $gate = new InitializationGate();
         $notificationFired = 0;
         $dispatcher = self::buildDispatcher(
@@ -901,6 +904,7 @@ final class MessageDispatcherTest extends TestCase
                     static function () use (&$notificationFired): void { ++$notificationFired; },
                 ),
             ],
+            logger: $logger,
         );
 
         $dispatcher->dispatch(self::initializeEnvelope(), $transport);
@@ -911,10 +915,60 @@ final class MessageDispatcherTest extends TestCase
 
         EventLoop::run();
 
-        self::assertTrue($gate->isInitialized());
-        self::assertSame(1, $notificationFired);
+        self::assertFalse(
+            $gate->isInitialized(),
+            'A same-tick "notifications/initialized" must not flip the gate. It arrived before the handler ran.',
+        );
+        self::assertFalse(
+            $gate->allowsRequest('initialize'),
+            'Gate stays in InitializeCompleted after handler success, so a second "initialize" is still rejected.',
+        );
+        self::assertFalse($gate->allowsRequest('tools/list'));
+        self::assertSame(0, $notificationFired);
         self::assertCount(1, $transport->sent);
         self::assertInstanceOf(JsonRpcResultResponse::class, $transport->sent[0]['message']);
+
+        $matches = $logger->recordsMatching(
+            LogLevel::WARNING,
+            'Discarding "notifications/initialized" received in an unexpected initialize handshake state.',
+        );
+        self::assertCount(1, $matches);
+    }
+
+    public function testFailingInitializeHandlerRacedByEarlyInitializedNotificationStillRevertsToAwaitingInitialize(): void
+    {
+        $transport = new RecordingTransport();
+        $logger = new ArrayLogger();
+        $gate = new InitializationGate();
+        $dispatcher = self::buildDispatcher(
+            gate: $gate,
+            requestHandlers: [
+                'initialize' => new ClosureRequestHandler(
+                    static fn() => throw new \RuntimeException('init blew up'),
+                ),
+            ],
+            notificationHandlers: [
+                'notifications/initialized' => new ClosureNotificationHandler(
+                    static fn() => self::fail('Notification handler must not run when notification was dropped.'),
+                ),
+            ],
+            logger: $logger,
+        );
+
+        $dispatcher->dispatch(self::initializeEnvelope(), $transport);
+        $dispatcher->dispatch(
+            ['jsonrpc' => '2.0', 'method' => 'notifications/initialized'],
+            $transport,
+        );
+
+        EventLoop::run();
+
+        self::assertFalse($gate->isInitialized());
+        self::assertTrue(
+            $gate->allowsRequest('initialize'),
+            'After the handler throws, the gate must revert to AwaitingInitialize so a retry "initialize" is accepted.',
+        );
+        self::assertFalse($gate->allowsRequest('tools/list'), 'Non-init requests stay rejected until a fresh handshake succeeds.');
     }
 
     public function testConcurrentInitializeEnvelopesInSameTickRejectSecondAsReinitialize(): void
@@ -1203,6 +1257,7 @@ final class MessageDispatcherTest extends TestCase
 
         if ($initialize) {
             $gate->markInitializeInFlight();
+            $gate->markInitializeCompleted();
             $gate->markInitialized();
         }
 

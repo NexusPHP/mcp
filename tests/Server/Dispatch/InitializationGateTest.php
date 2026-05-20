@@ -86,6 +86,7 @@ final class InitializationGateTest extends TestCase
     {
         $gate = new InitializationGate();
         $gate->markInitializeInFlight();
+        $gate->markInitializeCompleted();
         $gate->markInitialized();
 
         self::assertFalse($gate->markInitializeInFlight());
@@ -97,11 +98,51 @@ final class InitializationGateTest extends TestCase
         $gate = new InitializationGate();
 
         self::assertTrue($gate->markInitializeInFlight());
+        self::assertTrue($gate->markInitializeCompleted());
         self::assertTrue($gate->markInitialized());
 
         self::assertTrue($gate->isInitialized());
         self::assertTrue($gate->allowsRequest('tools/list'));
         self::assertTrue($gate->allowsRequest('prompts/get'));
+    }
+
+    public function testMarkInitializeCompletedTransitionsFromInFlight(): void
+    {
+        $gate = new InitializationGate();
+        $gate->markInitializeInFlight();
+
+        self::assertTrue($gate->markInitializeCompleted());
+        self::assertFalse($gate->isInitialized(), 'Completed state still requires "notifications/initialized" before the gate flips.');
+        self::assertFalse($gate->allowsRequest('tools/list'));
+    }
+
+    public function testMarkInitializeCompletedIsNoOpFromAwaiting(): void
+    {
+        $gate = new InitializationGate();
+
+        self::assertFalse($gate->markInitializeCompleted());
+    }
+
+    public function testMarkInitializeCompletedIsNoOpAfterFullHandshake(): void
+    {
+        $gate = new InitializationGate();
+        $gate->markInitializeInFlight();
+        $gate->markInitializeCompleted();
+        $gate->markInitialized();
+
+        self::assertFalse($gate->markInitializeCompleted());
+    }
+
+    public function testMarkInitializedFromInFlightIsRejectedToCloseTheSameTickRace(): void
+    {
+        $gate = new InitializationGate();
+        $gate->markInitializeInFlight();
+
+        self::assertFalse(
+            $gate->markInitialized(),
+            'A "notifications/initialized" arriving before the initialize handler completes must be dropped, not flip the gate.',
+        );
+        self::assertFalse($gate->isInitialized());
     }
 
     public function testRejectsInitializeOnceHandshakeIsInFlight(): void
@@ -112,10 +153,20 @@ final class InitializationGateTest extends TestCase
         self::assertFalse($gate->allowsRequest('initialize'));
     }
 
+    public function testRejectsInitializeAfterHandlerCompletedButBeforeNotification(): void
+    {
+        $gate = new InitializationGate();
+        $gate->markInitializeInFlight();
+        $gate->markInitializeCompleted();
+
+        self::assertFalse($gate->allowsRequest('initialize'));
+    }
+
     public function testRejectsInitializeAfterFullHandshake(): void
     {
         $gate = new InitializationGate();
         $gate->markInitializeInFlight();
+        $gate->markInitializeCompleted();
         $gate->markInitialized();
 
         self::assertFalse($gate->allowsRequest('initialize'));
@@ -129,6 +180,9 @@ final class InitializationGateTest extends TestCase
         $gate->markInitializeInFlight();
         self::assertTrue($gate->allowsRequest('ping'));
 
+        $gate->markInitializeCompleted();
+        self::assertTrue($gate->allowsRequest('ping'));
+
         $gate->markInitialized();
         self::assertTrue($gate->allowsRequest('ping'));
     }
@@ -137,6 +191,7 @@ final class InitializationGateTest extends TestCase
     {
         $gate = new InitializationGate();
         $gate->markInitializeInFlight();
+        $gate->markInitializeCompleted();
         $gate->markInitialized();
 
         self::assertFalse($gate->markInitialized());
@@ -161,10 +216,23 @@ final class InitializationGateTest extends TestCase
         self::assertTrue($gate->allowsRequest('initialize'));
     }
 
+    public function testRevertInitializeInFlightIsNoOpFromCompletedState(): void
+    {
+        $gate = new InitializationGate();
+        $gate->markInitializeInFlight();
+        $gate->markInitializeCompleted();
+
+        self::assertFalse(
+            $gate->revertInitializeInFlight(),
+            'Once the handler has completed, revert is no longer applicable.',
+        );
+    }
+
     public function testRevertInitializeInFlightIsNoOpAfterFullHandshake(): void
     {
         $gate = new InitializationGate();
         $gate->markInitializeInFlight();
+        $gate->markInitializeCompleted();
         $gate->markInitialized();
 
         self::assertFalse($gate->revertInitializeInFlight());

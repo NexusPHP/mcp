@@ -93,8 +93,9 @@ JsonRpcMessageParser::parse()        ← classifies request/notification, raises
          │
          ├── JsonRpcRequest      → dispatchRequest()
          │     ├── $gate->allowsRequest($method)?
+         │     ├── sync (pre-coroutine): on initialize, $gate->markInitializeInFlight()
          │     ├── spawn async coroutine → resolve handler → emit response or error
-         │     └── on initialize success, $gate->markInitializeInFlight()
+         │     └── on initialize success in coroutine, $gate->markInitializeCompleted()
          │
          └── JsonRpcNotification → dispatchNotification()
                ├── initialized notification: $gate->markInitialized()
@@ -106,7 +107,12 @@ Two pieces are worth calling out:
 
 ### `InitializationGate`
 
-Holds a single piece of state: the lifecycle phase (`AwaitingInitialize`, `InitializeInFlight`, `Initialized`).
+Holds a single piece of state: the lifecycle phase (`AwaitingInitialize`, `InitializeInFlight`,
+`InitializeCompleted`, `Initialized`). `InitializeInFlight` is set synchronously when the `initialize`
+request is accepted (before the handler runs). `InitializeCompleted` is set from inside the request
+coroutine once the handler returns successfully. `markInitialized()` requires `InitializeCompleted`, so a
+`notifications/initialized` arriving on the same read-loop tick as the `initialize` request is dropped
+rather than racing the handler.
 Consulted on every request to enforce the spec's "no other method may be invoked before `initialize`
 completes" rule. It also rejects a second `initialize` once one is in flight, and silently drops
 `notifications/initialized` envelopes that arrive outside a valid handshake.
