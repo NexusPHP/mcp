@@ -27,10 +27,12 @@ use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Server\Tool\ClosureToolExecutor;
 use Nexus\Mcp\Server\Tool\ToolEntry;
 use Nexus\Mcp\Server\Tool\ToolStore;
+use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LogLevel;
 
 /**
  * @internal
@@ -95,17 +97,19 @@ final class CallToolRequestHandlerTest extends TestCase
         );
     }
 
-    public function testRuntimeExecutorFailureIsWrappedIntoErrorResultNotPropagated(): void
+    public function testRuntimeExecutorFailureIsWrappedIntoGenericErrorResultAndLoggedServerSide(): void
     {
+        $exception = new \RuntimeException('db timeout at /opt/app/vendor/foo/bar/Loader.php:217');
         $store = new ToolStore([
             'flaky' => new ToolEntry(
                 new Tool('flaky', ['type' => 'object']),
-                new ClosureToolExecutor(static function (): CallToolResult {
-                    throw new \RuntimeException('db timeout');
+                new ClosureToolExecutor(static function () use ($exception): CallToolResult {
+                    throw $exception;
                 }),
             ),
         ]);
-        $handler = new CallToolRequestHandler($store);
+        $logger = new ArrayLogger();
+        $handler = new CallToolRequestHandler($store, $logger);
 
         $result = $handler->handle(
             new CallToolRequest(new RequestId(1), new CallToolRequestParams('flaky')),
@@ -117,20 +121,34 @@ final class CallToolRequestHandlerTest extends TestCase
         self::assertCount(1, $result->content);
         $block = $result->content[0];
         self::assertInstanceOf(TextContent::class, $block);
-        self::assertSame('db timeout', $block->text);
+        self::assertSame(
+            'Tool execution failed.',
+            $block->text,
+            'Peer-facing message must not echo raw throwable text that may carry paths, vendor structure, or secrets.',
+        );
+
+        $matches = $logger->recordsMatching(
+            LogLevel::ERROR,
+            'Uncaught tool executor exception. Returning generic error to peer.',
+        );
+        self::assertCount(1, $matches);
+        self::assertSame('flaky', $matches[0]['context']['tool'] ?? null);
+        self::assertSame($exception, $matches[0]['context']['exception'] ?? null);
     }
 
-    public function testRuntimeExecutorFailureWrappingCoversNonRuntimeExceptions(): void
+    public function testNonRuntimeExceptionFromExecutorAlsoYieldsGenericErrorAndIsLogged(): void
     {
+        $exception = new \LogicException('bad branch');
         $store = new ToolStore([
             'flaky' => new ToolEntry(
                 new Tool('flaky', ['type' => 'object']),
-                new ClosureToolExecutor(static function (): CallToolResult {
-                    throw new \LogicException('bad branch');
+                new ClosureToolExecutor(static function () use ($exception): CallToolResult {
+                    throw $exception;
                 }),
             ),
         ]);
-        $handler = new CallToolRequestHandler($store);
+        $logger = new ArrayLogger();
+        $handler = new CallToolRequestHandler($store, $logger);
 
         $result = $handler->handle(
             new CallToolRequest(new RequestId(1), new CallToolRequestParams('flaky')),
@@ -145,7 +163,14 @@ final class CallToolRequestHandlerTest extends TestCase
             self::fail('Wrapped error content must be TextContent.');
         }
 
-        self::assertSame('bad branch', $block->text);
+        self::assertSame('Tool execution failed.', $block->text);
+
+        $matches = $logger->recordsMatching(
+            LogLevel::ERROR,
+            'Uncaught tool executor exception. Returning generic error to peer.',
+        );
+        self::assertCount(1, $matches);
+        self::assertSame($exception, $matches[0]['context']['exception'] ?? null);
     }
 
     private static function makeContext(): ServerContext

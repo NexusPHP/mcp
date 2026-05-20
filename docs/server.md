@@ -79,8 +79,10 @@ The executor can be either a `\Closure` or a class implementing `ToolExecutorInt
 least one tool advertises the `tools` capability automatically.
 
 Runtime exceptions thrown out of a tool executor are converted into a `CallToolResult` with `isError: true`
-and a single `TextContent` carrying the exception message, so the LLM caller can read the failure and
-self-correct. Protocol-level conditions (`ToolNotFoundException`, etc.) still surface as JSON-RPC errors.
+and a single `TextContent` carrying `"Tool execution failed."`. The underlying throwable is logged at `error`
+level on the PSR-3 logger configured via `ServerBuilder::setLogger()`. To surface error detail to the LLM,
+return `new CallToolResult(content: [...], isError: true)` from the executor instead of throwing.
+Protocol-level conditions (`ToolNotFoundException`, etc.) still surface as JSON-RPC errors.
 
 ## Prompts
 
