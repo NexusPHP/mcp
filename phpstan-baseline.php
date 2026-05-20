@@ -7,5 +7,11 @@ $ignoreErrors[] = [
 	'count' => 1,
 	'path' => __DIR__ . '/src/Core/Transport/LineReader.php',
 ];
+$ignoreErrors[] = [
+	'rawMessage' => 'Strict comparison using === between Nexus\\Mcp\\Core\\Transport\\TransportState::Closed and Nexus\\Mcp\\Core\\Transport\\TransportState::Running will always evaluate to false.',
+	'identifier' => 'identical.alwaysFalse',
+	'count' => 1,
+	'path' => __DIR__ . '/src/Server/Transport/StdioServerTransport.php',
+];
 
 return ['parameters' => ['ignoreErrors' => $ignoreErrors]];

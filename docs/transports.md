@@ -76,7 +76,10 @@ Behaviour:
 - **EOF**: when STDIN closes, the read loop unwinds. Its `finally` fires `onDrain` listeners (so the
   dispatcher can await its pending coroutines) and then calls `close()`.
 - **Close**: idempotent. Fires `onDrain` then `onClose`, transitions to the `Closed` state. Subsequent
-  `send()` or `start()` calls throw `TransportAlreadyClosedException`.
+  `send()` or `start()` calls throw `TransportAlreadyClosedException`. If a concurrent close (e.g. EOF on
+  the read loop) lands while a `send()` is suspended in the byte-stream `write()`, the resulting stream
+  failure is wrapped into `TransportAlreadyClosedException` (with the original throwable preserved as
+  `getPrevious()`) so callers can demote uniformly.
 - **STDOUT discipline**: MCP servers MUST NOT write anything to STDOUT outside the JSON-RPC stream. Send
   all diagnostic logs to STDERR via the PSR-3 logger you pass in.
 

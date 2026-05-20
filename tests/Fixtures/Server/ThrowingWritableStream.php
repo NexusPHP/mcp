@@ -24,13 +24,20 @@ final class ThrowingWritableStream implements WritableStream
 {
     private bool $closed = false;
 
-    public function __construct(private readonly \Throwable $error)
+    /**
+     * @param null|\Closure(): void $beforeThrow
+     */
+    public function __construct(private readonly \Throwable $error, private readonly ?\Closure $beforeThrow = null)
     {
     }
 
     #[\Override]
     public function write(string $bytes): void
     {
+        if (null !== $this->beforeThrow) {
+            ($this->beforeThrow)();
+        }
+
         throw $this->error;
     }
 

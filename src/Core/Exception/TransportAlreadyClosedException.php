@@ -21,8 +21,8 @@ final class TransportAlreadyClosedException extends \LogicException implements M
     /**
      * @param non-empty-string $operation
      */
-    public function __construct(string $operation)
+    public function __construct(string $operation, ?\Throwable $previous = null)
     {
-        parent::__construct(\sprintf('Cannot %s on a closed transport.', $operation));
+        parent::__construct(\sprintf('Cannot %s on a closed transport.', $operation), previous: $previous);
     }
 }

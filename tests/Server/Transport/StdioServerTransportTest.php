@@ -49,6 +49,8 @@ use Revolt\EventLoop;
 #[Group('server-tests')]
 final class StdioServerTransportTest extends TestCase
 {
+    private ?StdioServerTransport $transportUnderConcurrentClose = null;
+
     public function testStartAfterStartThrows(): void
     {
         $transport = new StdioServerTransport(new ReadableBuffer(''), new WritableBuffer());
@@ -365,6 +367,46 @@ final class StdioServerTransportTest extends TestCase
         self::assertSame(1, $closes);
     }
 
+    public function testSendDuringConcurrentCloseWrapsByteStreamFailureInTransportAlreadyClosedException(): void
+    {
+        $boom = new \RuntimeException('stdout was concurrently closed');
+        $readable = new ReadableIterableStream(new \ArrayIterator([]));
+        $writable = new ThrowingWritableStream(
+            $boom,
+            beforeThrow: function (): void {
+                // Simulate a different fiber closing the transport while write() is suspended.
+                $sut = $this->transportUnderConcurrentClose;
+
+                if (! $sut instanceof StdioServerTransport) {
+                    throw new \LogicException('Transport reference must be wired before this callback fires.');
+                }
+
+                $sut->close();
+            },
+        );
+        $this->transportUnderConcurrentClose = new StdioServerTransport($readable, $writable);
+
+        $this->transportUnderConcurrentClose->start();
+
+        try {
+            $this->transportUnderConcurrentClose->send(new PingRequest(new RequestId(1)));
+            self::fail('Expected send() to throw on the concurrent close.');
+        } catch (TransportAlreadyClosedException $caught) {
+            self::assertSame(
+                'Cannot send on a closed transport.',
+                $caught->getMessage(),
+                'Concurrent-close failures must surface as TransportAlreadyClosedException so the dispatcher demotes uniformly.',
+            );
+            self::assertSame(
+                $boom,
+                $caught->getPrevious(),
+                'The original byte-stream failure must be preserved as the previous exception for audit purposes.',
+            );
+        }
+
+        EventLoop::run();
+    }
+
     public function testMessageListenerThrowFiresErrorListener(): void
     {
         $boom = new \RuntimeException('listener exploded');
@@ -401,10 +443,16 @@ final class StdioServerTransportTest extends TestCase
 
         EventLoop::run();
 
-        $this->expectException(TransportAlreadyClosedException::class);
-        $this->expectExceptionMessage('Cannot send on a closed transport.');
-
-        $transport->send(new PingRequest(new RequestId(1)));
+        try {
+            $transport->send(new PingRequest(new RequestId(1)));
+            self::fail('Expected send() to throw on a closed transport.');
+        } catch (TransportAlreadyClosedException $caught) {
+            self::assertSame('Cannot send on a closed transport.', $caught->getMessage());
+            self::assertNull(
+                $caught->getPrevious(),
+                'Pre-flight rejection has no underlying byte-stream cause. Only the concurrent-close wrap path carries a previous.',
+            );
+        }
     }
 
     public function testCloseBeforeStartFiresCloseListener(): void
