@@ -18,16 +18,31 @@ use Nexus\Mcp\Client\ClientBuilder;
 use Nexus\Mcp\Core\Exception\RemoteCallFailedException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
 use Nexus\Mcp\Core\Schema\ClientCapabilities;
+use Nexus\Mcp\Core\Schema\Cursor;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\Notification\InitializedNotification;
+use Nexus\Mcp\Core\Schema\Prompt\PromptReference;
 use Nexus\Mcp\Core\Schema\ProtocolVersion;
+use Nexus\Mcp\Core\Schema\Request\CompleteRequest;
+use Nexus\Mcp\Core\Schema\Request\GetPromptRequest;
 use Nexus\Mcp\Core\Schema\Request\InitializeRequest;
+use Nexus\Mcp\Core\Schema\Request\ListPromptsRequest;
+use Nexus\Mcp\Core\Schema\Request\ListResourcesRequest;
+use Nexus\Mcp\Core\Schema\Request\ListResourceTemplatesRequest;
 use Nexus\Mcp\Core\Schema\Request\ListToolsRequest;
 use Nexus\Mcp\Core\Schema\Request\PingRequest;
+use Nexus\Mcp\Core\Schema\Request\ReadResourceRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
+use Nexus\Mcp\Core\Schema\Result\CompleteResult;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
+use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
 use Nexus\Mcp\Core\Schema\Result\InitializeResult;
+use Nexus\Mcp\Core\Schema\Result\ListPromptsResult;
+use Nexus\Mcp\Core\Schema\Result\ListResourcesResult;
+use Nexus\Mcp\Core\Schema\Result\ListResourceTemplatesResult;
+use Nexus\Mcp\Core\Schema\Result\ListToolsResult;
+use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureNotificationHandler;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
@@ -427,5 +442,257 @@ final class ClientTest extends TestCase
 
         $matches = $logger->recordsMatching(LogLevel::ERROR, 'Uncaught notification handler exception.');
         self::assertCount(1, $matches);
+    }
+
+    public function testGetServerInfoReturnsNullBeforeHandshake(): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+
+        self::assertNull($client->getServerInfo());
+    }
+
+    public function testGetServerInfoReturnsImplementationCachedFromHandshake(): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+        self::handshake($client, $transport, 'srv', '9.9');
+
+        $serverInfo = $client->getServerInfo();
+        self::assertNotNull($serverInfo);
+        self::assertSame('srv', $serverInfo->name);
+        self::assertSame('9.9', $serverInfo->version);
+    }
+
+    public function testListToolsSendsRequestAndUnwrapsResult(): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+        self::handshake($client, $transport);
+
+        $deferred = async(static fn() => $client->listTools());
+        $transport->nextSend()->await();
+
+        self::assertCount(3, $transport->sent);
+        $request = $transport->sent[2]['message'];
+        self::assertInstanceOf(ListToolsRequest::class, $request);
+        self::assertNull($request->params->cursor);
+
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => $request->id->id,
+            'result' => ['tools' => []],
+        ]);
+
+        $result = $deferred->await();
+        self::assertInstanceOf(ListToolsResult::class, $result);
+        self::assertSame([], $result->tools);
+    }
+
+    public function testListToolsForwardsCursorIntoParams(): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+        self::handshake($client, $transport);
+
+        $cursor = new Cursor('page-2');
+        $deferred = async(static fn() => $client->listTools($cursor));
+        $transport->nextSend()->await();
+
+        self::assertCount(3, $transport->sent);
+        $request = $transport->sent[2]['message'];
+        self::assertInstanceOf(ListToolsRequest::class, $request);
+        self::assertSame($cursor, $request->params->cursor);
+
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => $request->id->id,
+            'result' => ['tools' => []],
+        ]);
+        $deferred->await();
+    }
+
+    public function testListResourcesSendsRequestAndUnwrapsResult(): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+        self::handshake($client, $transport);
+
+        $deferred = async(static fn() => $client->listResources());
+        $transport->nextSend()->await();
+
+        self::assertCount(3, $transport->sent);
+        $request = $transport->sent[2]['message'];
+        self::assertInstanceOf(ListResourcesRequest::class, $request);
+
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => $request->id->id,
+            'result' => ['resources' => []],
+        ]);
+
+        $result = $deferred->await();
+        self::assertInstanceOf(ListResourcesResult::class, $result);
+        self::assertSame([], $result->resources);
+    }
+
+    public function testListResourceTemplatesSendsRequestAndUnwrapsResult(): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+        self::handshake($client, $transport);
+
+        $deferred = async(static fn() => $client->listResourceTemplates());
+        $transport->nextSend()->await();
+
+        self::assertCount(3, $transport->sent);
+        $request = $transport->sent[2]['message'];
+        self::assertInstanceOf(ListResourceTemplatesRequest::class, $request);
+
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => $request->id->id,
+            'result' => ['resourceTemplates' => []],
+        ]);
+
+        $result = $deferred->await();
+        self::assertInstanceOf(ListResourceTemplatesResult::class, $result);
+        self::assertSame([], $result->resourceTemplates);
+    }
+
+    public function testListPromptsSendsRequestAndUnwrapsResult(): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+        self::handshake($client, $transport);
+
+        $deferred = async(static fn() => $client->listPrompts());
+        $transport->nextSend()->await();
+
+        self::assertCount(3, $transport->sent);
+        $request = $transport->sent[2]['message'];
+        self::assertInstanceOf(ListPromptsRequest::class, $request);
+
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => $request->id->id,
+            'result' => ['prompts' => []],
+        ]);
+
+        $result = $deferred->await();
+        self::assertInstanceOf(ListPromptsResult::class, $result);
+        self::assertSame([], $result->prompts);
+    }
+
+    public function testReadResourceSendsRequestAndUnwrapsResult(): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+        self::handshake($client, $transport);
+
+        $deferred = async(static fn() => $client->readResource('example://greeting'));
+        $transport->nextSend()->await();
+
+        self::assertCount(3, $transport->sent);
+        $request = $transport->sent[2]['message'];
+        self::assertInstanceOf(ReadResourceRequest::class, $request);
+        self::assertSame('example://greeting', $request->params->uri);
+
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => $request->id->id,
+            'result' => ['contents' => []],
+        ]);
+
+        $result = $deferred->await();
+        self::assertInstanceOf(ReadResourceResult::class, $result);
+        self::assertSame([], $result->contents);
+    }
+
+    public function testGetPromptForwardsNameAndArgumentsAndUnwrapsResult(): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+        self::handshake($client, $transport);
+
+        $deferred = async(static fn() => $client->getPrompt('walkthrough', ['audience' => 'reviewers']));
+        $transport->nextSend()->await();
+
+        self::assertCount(3, $transport->sent);
+        $request = $transport->sent[2]['message'];
+        self::assertInstanceOf(GetPromptRequest::class, $request);
+        self::assertSame('walkthrough', $request->params->name);
+        self::assertSame(['audience' => 'reviewers'], $request->params->arguments);
+
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => $request->id->id,
+            'result' => ['messages' => []],
+        ]);
+
+        $result = $deferred->await();
+        self::assertInstanceOf(GetPromptResult::class, $result);
+        self::assertSame([], $result->messages);
+    }
+
+    public function testCompleteForwardsRefAndArgumentAndUnwrapsResult(): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+        self::handshake($client, $transport);
+
+        $ref = new PromptReference('walkthrough');
+        $argument = ['name' => 'audience', 'value' => 'rev'];
+        $deferred = async(static fn() => $client->complete($ref, $argument));
+        $transport->nextSend()->await();
+
+        self::assertCount(3, $transport->sent);
+        $request = $transport->sent[2]['message'];
+        self::assertInstanceOf(CompleteRequest::class, $request);
+        self::assertSame($ref, $request->params->ref);
+        self::assertSame($argument, $request->params->argument);
+        self::assertNull($request->params->context);
+
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => $request->id->id,
+            'result' => ['completion' => ['values' => ['reviewers', 'reviewing']]],
+        ]);
+
+        $result = $deferred->await();
+        self::assertInstanceOf(CompleteResult::class, $result);
+        self::assertSame(['values' => ['reviewers', 'reviewing']], $result->completion);
+    }
+
+    private static function handshake(
+        Client $client,
+        RecordingTransport $transport,
+        string $serverName = 'srv',
+        string $serverVersion = '1',
+    ): void {
+        $deferred = async(static fn() => $client->initialize());
+        $transport->nextSend()->await();
+        self::assertCount(1, $transport->sent);
+        $request = $transport->sent[0]['message'];
+        self::assertInstanceOf(InitializeRequest::class, $request);
+
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => $request->id->id,
+            'result' => [
+                'protocolVersion' => ProtocolVersion::LATEST_VERSION,
+                'capabilities' => [],
+                'serverInfo' => ['name' => $serverName, 'version' => $serverVersion],
+            ],
+        ]);
+        $deferred->await();
     }
 }

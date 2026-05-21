@@ -2,6 +2,12 @@
 
 $ignoreErrors = [];
 $ignoreErrors[] = [
+	'rawMessage' => 'Property Nexus\\Mcp\\Core\\Dispatch\\PendingOutboundRequests::$map (array<non-empty-string, array{deferred: Amp\\DeferredFuture<Nexus\\Mcp\\Core\\Schema\\JsonRpc\\JsonRpcResultResponse<Nexus\\Mcp\\Core\\Schema\\Result>>, result: class-string<Nexus\\Mcp\\Core\\Schema\\Result>}>) does not accept non-empty-array<non-empty-string, array{deferred: Amp\\DeferredFuture<Nexus\\Mcp\\Core\\Schema\\JsonRpc\\JsonRpcResultResponse<Nexus\\Mcp\\Core\\Schema\\Result>>|Amp\\DeferredFuture<Nexus\\Mcp\\Core\\Schema\\JsonRpc\\JsonRpcResultResponse<T of Nexus\\Mcp\\Core\\Schema\\Result>>, result: class-string<Nexus\\Mcp\\Core\\Schema\\Result>}>.',
+	'identifier' => 'assign.propertyType',
+	'count' => 1,
+	'path' => __DIR__ . '/src/Core/Dispatch/PendingOutboundRequests.php',
+];
+$ignoreErrors[] = [
 	'rawMessage' => 'Strict comparison using === between Nexus\\Mcp\\Core\\Transport\\TransportState::Closed and Nexus\\Mcp\\Core\\Transport\\TransportState::Running will always evaluate to false.',
 	'identifier' => 'identical.alwaysFalse',
 	'count' => 1,

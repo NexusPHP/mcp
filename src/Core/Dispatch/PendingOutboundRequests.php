@@ -39,9 +39,11 @@ final class PendingOutboundRequests implements \Countable
      * Registers an outbound request id and returns the future that resolves
      * once `resolve()` or `reject()` is called for the same id.
      *
-     * @param class-string<Result> $result
+     * @template T of Result
      *
-     * @return Future<JsonRpcResultResponse<Result>>
+     * @param class-string<T> $result
+     *
+     * @return Future<JsonRpcResultResponse<T>>
      *
      * @throws \LogicException
      */
@@ -56,7 +58,7 @@ final class PendingOutboundRequests implements \Countable
             ));
         }
 
-        /** @var DeferredFuture<JsonRpcResultResponse<Result>> $deferred */
+        /** @var DeferredFuture<JsonRpcResultResponse<T>> $deferred */
         $deferred = new DeferredFuture();
         $this->map[$key] = ['deferred' => $deferred, 'result' => $result];
 
