@@ -7,36 +7,29 @@ that drives every inbound JSON-RPC message, and what the SDK does and does not c
 
 ```text
 Nexus\Mcp\
-├── Core\               Protocol primitives. Depends on no other Mcp namespace
-│   ├── Dispatch\       MessageDispatcherInterface, PendingInboundRequests, PendingOutboundRequests, RequestBoundSender
-│   ├── Exception\      McpExceptionInterface marker + concrete protocol errors
-│   ├── Handler\        RequestHandlerInterface, NotificationHandlerInterface, HandlerRegistry, AbstractContext
-│   │   └── Request\    PingRequestHandler
-│   ├── JsonRpc\        Envelope parser, method registry
-│   ├── Schema\         Types only (value objects, enums, interfaces)
-│   ├── Transport\      TransportInterface, TransportEvents, in-memory implementation
-│   ├── UriTemplate\    RFC 6570 expansion + matching
+├── Core\               Protocol primitives shared by both peers. Depends on no other Mcp namespace
+│   ├── Dispatch\       Shared dispatch contract, in-flight correlation primitives, handshake state enum
+│   ├── Exception\      McpExceptionInterface marker plus concrete protocol error types
+│   ├── Handler\        Handler interfaces, the method-to-handler registry, and the abstract context base
+│   │   └── Request\    Built-in request handlers shared by both peers
+│   ├── JsonRpc\        Envelope parser, method registry, parser-state value objects
+│   ├── Schema\         Types only (value objects, enums, interfaces). No behaviour
+│   ├── Transport\      Transport contract, lifecycle event keys, in-memory paired transports for tests
+│   ├── UriTemplate\    RFC 6570 expansion plus matching
 │   └── Validation\     URI templates, RFC 3339, enum-value coercion
 ├── Server\             Server-side composition. Depends on Core only
-│   ├── AbstractPaginatedStore
-│   ├── Server
-│   ├── ServerBuilder
-│   ├── ServerContext
-│   ├── Completion\     CompletionStore
-│   ├── Dispatch\       ServerMessageDispatcher, InitializationGate
+│   ├── Completion\     Completion store contract
+│   ├── Dispatch\       Server-side per-envelope inbound pipeline plus the inbound handshake gate
 │   ├── Exception\      Server-side protocol errors
 │   ├── Handler\
-│   │   └── Request\    Built-in request handlers
-│   ├── Logging\        LoggingLevelGate
-│   ├── Prompt\         PromptStore + renderer adapters
-│   ├── Resource\       ResourceStore + ResourceTemplateStore + reader adapters
-│   ├── Tool\           ToolStore + executor adapters
-│   └── Transport\      StdioServerTransport
+│   │   └── Request\    Built-in server request handlers
+│   ├── Logging\        Logging-level gate consulted before emitting `notifications/message`
+│   ├── Prompt\         Prompt store plus renderer adapters
+│   ├── Resource\       Static and templated resource stores plus reader adapters
+│   ├── Tool\           Tool store plus executor adapters
+│   └── Transport\      Server-side transport implementations
 └── Client\             Client-side composition. Depends on Core only
-    ├── Client
-    ├── ClientBuilder
-    ├── ClientContext
-    └── Dispatch\       ClientMessageDispatcher
+    └── Dispatch\       Client-side per-envelope inbound pipeline plus the outbound handshake gate
 ```
 
 ### Layering rules
@@ -110,9 +103,9 @@ JsonRpcMessageParser::parse()        ← classifies request/notification, raises
                └── spawn async coroutine → call handler (no response)
 ```
 
-Two pieces are worth calling out:
+Three pieces are worth calling out:
 
-### `InitializationGate`
+### `ServerInitializationGate`
 
 Holds the lifecycle phase (`AwaitingInitialize`, `InitializeInFlight`, `InitializeCompleted`,
 `Initialized`) plus a one-bit `pendingInitializedNotification` flag. `InitializeInFlight` is set
@@ -128,9 +121,20 @@ completes" rule. It also rejects a second `initialize` once one is in flight, an
 `notifications/initialized` envelopes that arrive outside a valid handshake (either no handshake yet,
 or one already completed, or a duplicate during the buffered window).
 
+### `ClientInitializationGate`
+
+Symmetric to the server gate but simpler. The client *initiates* the handshake, so there is no race
+window between the request completing and the notification arriving. Three states only
+(`AwaitingInitialize`, `InitializeInFlight`, `Initialized`); no `InitializeCompleted` intermediate, no
+buffered-notification flag. `Client::initialize()` flips it `InitializeInFlight` synchronously before
+the request goes out, then to `Initialized` once both the result is awaited and the
+`notifications/initialized` is sent. Any throw mid-flight reverts to `AwaitingInitialize` so a retry
+starts fresh. `Client::sendRequest()` consults the gate and rejects non-handshake non-`ping` methods
+before initialization completes.
+
 ### `LoggingLevelGate`
 
-Same shape as `InitializationGate`: a single mutable `LoggingLevel`, mutated by the `logging/setLevel`
+Same shape as `ServerInitializationGate`: a single mutable `LoggingLevel`, mutated by the `logging/setLevel`
 handler, consulted by `ServerContext::log()` before emitting any `notifications/message`. The SDK ships a
 default `SetLevelRequestHandler` so the always-advertised `logging` capability is actually honoured. See
 [examples/stdio-server.php](../examples/stdio-server.php) for an example that bridges the client-controlled

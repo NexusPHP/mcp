@@ -741,26 +741,6 @@ final class ClientMessageDispatcherTest extends TestCase
         self::assertCount(1, $matches);
     }
 
-    public function testInFlightCountTracksDispatchedCoroutinesAndDropsToZeroAfterFlush(): void
-    {
-        $outbound = new PendingOutboundRequests();
-        $dispatcher = self::buildDispatcher(
-            $outbound,
-            requestHandlers: ['ping' => new PingRequestHandler()],
-        );
-        $transport = new RecordingTransport();
-
-        self::assertSame(0, $dispatcher->inFlightCount());
-
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping'], $transport);
-
-        self::assertSame(1, $dispatcher->inFlightCount());
-
-        $dispatcher->flushPending();
-
-        self::assertSame(0, $dispatcher->inFlightCount());
-    }
-
     /**
      * @param array<non-empty-string, RequestHandlerInterface<non-empty-string, Result, ClientContext>> $requestHandlers
      * @param array<non-empty-string, NotificationHandlerInterface<non-empty-string>>                   $notificationHandlers

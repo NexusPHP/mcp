@@ -59,7 +59,7 @@ final class ServerBuilderTest extends TestCase
     public function testBuildFailsWithoutServerInfo(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Server info must be set before build() via setServerInfo().');
+        $this->expectExceptionMessage('Server information must be set before build() via setServerInfo().');
 
         Server::builder()->build();
     }

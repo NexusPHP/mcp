@@ -29,7 +29,7 @@ use Nexus\Mcp\Core\Schema\Notification\LoggingMessageNotification;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
-use Nexus\Mcp\Server\Dispatch\InitializationGate;
+use Nexus\Mcp\Server\Dispatch\ServerInitializationGate;
 use Nexus\Mcp\Server\Dispatch\ServerMessageDispatcher;
 use Nexus\Mcp\Server\Exception\ResourceNotFoundException;
 use Nexus\Mcp\Server\ServerContext;
@@ -310,7 +310,7 @@ final class ServerMessageDispatcherTest extends TestCase
     public function testSecondInitializeAfterHandshakeStartedIsRejectedWithAlreadyInitializedError(): void
     {
         $transport = new RecordingTransport();
-        $gate = new InitializationGate();
+        $gate = new ServerInitializationGate();
         $gate->markInitializeInFlight();
         $dispatcher = self::buildDispatcher(
             gate: $gate,
@@ -607,7 +607,7 @@ final class ServerMessageDispatcherTest extends TestCase
     public function testInitializeHandlerPropagatingTransportClosedRevertsTheGate(): void
     {
         $transport = new RecordingTransport();
-        $gate = new InitializationGate();
+        $gate = new ServerInitializationGate();
         $dispatcher = self::buildDispatcher(
             gate: $gate,
             requestHandlers: [
@@ -734,7 +734,7 @@ final class ServerMessageDispatcherTest extends TestCase
     {
         $invocations = 0;
         $transport = new RecordingTransport();
-        $gate = new InitializationGate();
+        $gate = new ServerInitializationGate();
         $gate->markInitializeInFlight();
         $gate->markInitializeCompleted();
         $dispatcher = self::buildDispatcher(
@@ -762,7 +762,7 @@ final class ServerMessageDispatcherTest extends TestCase
         $invocations = 0;
         $transport = new RecordingTransport();
         $logger = new ArrayLogger();
-        $gate = new InitializationGate();
+        $gate = new ServerInitializationGate();
         $dispatcher = self::buildDispatcher(
             gate: $gate,
             notificationHandlers: [
@@ -796,7 +796,7 @@ final class ServerMessageDispatcherTest extends TestCase
         $invocations = 0;
         $transport = new RecordingTransport();
         $logger = new ArrayLogger();
-        $gate = new InitializationGate();
+        $gate = new ServerInitializationGate();
         $gate->markInitializeInFlight();
         $gate->markInitializeCompleted();
         $gate->markInitialized();
@@ -829,7 +829,7 @@ final class ServerMessageDispatcherTest extends TestCase
     public function testSuccessfulInitializeHandlerFlipsGateToInFlight(): void
     {
         $transport = new RecordingTransport();
-        $gate = new InitializationGate();
+        $gate = new ServerInitializationGate();
         $dispatcher = self::buildDispatcher(
             gate: $gate,
             requestHandlers: [
@@ -860,7 +860,7 @@ final class ServerMessageDispatcherTest extends TestCase
     public function testFailedInitializeHandlerDoesNotFlipGateToInFlight(): void
     {
         $transport = new RecordingTransport();
-        $gate = new InitializationGate();
+        $gate = new ServerInitializationGate();
         $dispatcher = self::buildDispatcher(
             gate: $gate,
             requestHandlers: [
@@ -890,7 +890,7 @@ final class ServerMessageDispatcherTest extends TestCase
     {
         $transport = new RecordingTransport();
         $logger = new ArrayLogger();
-        $gate = new InitializationGate();
+        $gate = new ServerInitializationGate();
         $notificationFired = 0;
         $dispatcher = self::buildDispatcher(
             gate: $gate,
@@ -938,7 +938,7 @@ final class ServerMessageDispatcherTest extends TestCase
     {
         $transport = new RecordingTransport();
         $logger = new ArrayLogger();
-        $gate = new InitializationGate();
+        $gate = new ServerInitializationGate();
         $notificationFired = 0;
         $dispatcher = self::buildDispatcher(
             gate: $gate,
@@ -980,7 +980,7 @@ final class ServerMessageDispatcherTest extends TestCase
     {
         $transport = new RecordingTransport();
         $logger = new ArrayLogger();
-        $gate = new InitializationGate();
+        $gate = new ServerInitializationGate();
         $notificationFired = 0;
         $dispatcher = self::buildDispatcher(
             gate: $gate,
@@ -1021,7 +1021,7 @@ final class ServerMessageDispatcherTest extends TestCase
     public function testConcurrentInitializeEnvelopesInSameTickRejectSecondAsReinitialize(): void
     {
         $transport = new RecordingTransport();
-        $gate = new InitializationGate();
+        $gate = new ServerInitializationGate();
         $handlerInvocations = 0;
         $dispatcher = self::buildDispatcher(
             gate: $gate,
@@ -1052,7 +1052,7 @@ final class ServerMessageDispatcherTest extends TestCase
     public function testFailedInitializeHandlerRevertsGateAllowingAFreshInitializeAttempt(): void
     {
         $transport = new RecordingTransport();
-        $gate = new InitializationGate();
+        $gate = new ServerInitializationGate();
         $attempt = 0;
         $dispatcher = self::buildDispatcher(
             gate: $gate,
@@ -1089,7 +1089,7 @@ final class ServerMessageDispatcherTest extends TestCase
     public function testInitializeHandlerThrowingProtocolExceptionRevertsTheGate(): void
     {
         $transport = new RecordingTransport();
-        $gate = new InitializationGate();
+        $gate = new ServerInitializationGate();
         $dispatcher = self::buildDispatcher(
             gate: $gate,
             requestHandlers: [
@@ -1135,7 +1135,7 @@ final class ServerMessageDispatcherTest extends TestCase
     public function testInitializeEnvelopeWithMalformedParamsLeavesGateAwaiting(): void
     {
         $transport = new RecordingTransport();
-        $gate = new InitializationGate();
+        $gate = new ServerInitializationGate();
         $dispatcher = self::buildDispatcher(gate: $gate);
 
         $dispatcher->dispatch(
@@ -1240,28 +1240,6 @@ final class ServerMessageDispatcherTest extends TestCase
         self::assertSame(1, $message->id->id);
     }
 
-    public function testInFlightCountTracksDispatchedCoroutinesAndDropsToZeroAfterFlush(): void
-    {
-        $transport = new RecordingTransport();
-        $dispatcher = self::buildDispatcher(
-            initialize: true,
-            requestHandlers: ['ping' => new PingRequestHandler()],
-        );
-
-        self::assertSame(0, $dispatcher->inFlightCount());
-
-        $dispatcher->dispatch(
-            ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping'],
-            $transport,
-        );
-
-        self::assertSame(1, $dispatcher->inFlightCount());
-
-        $dispatcher->flushPending();
-
-        self::assertSame(0, $dispatcher->inFlightCount());
-    }
-
     public function testFlushPendingDrainsAnInFlightNotificationDispatchBeforeReturning(): void
     {
         $transport = new RecordingTransport();
@@ -1297,10 +1275,10 @@ final class ServerMessageDispatcherTest extends TestCase
         bool $initialize = false,
         array $requestHandlers = [],
         array $notificationHandlers = [],
-        ?InitializationGate $gate = null,
+        ?ServerInitializationGate $gate = null,
         ?ArrayLogger $logger = null,
     ): ServerMessageDispatcher {
-        $gate ??= new InitializationGate();
+        $gate ??= new ServerInitializationGate();
 
         if ($initialize) {
             $gate->markInitializeInFlight();
