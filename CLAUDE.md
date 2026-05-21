@@ -33,37 +33,7 @@ Both enforce **100% MSI, 100% Code Coverage, 100% Covered Code MSI** per [infect
 
 ## Doc linters
 
-Three linters bundled into `composer test:all` and `test:with-untracked`, with different scopes:
-
-- **typos** scans the whole repo (PHP code, configs, docs). Catches misspellings in identifiers, strings, comments, and markdown alike.
-- **markdownlint** and **lychee** only inspect `.md` files (excluding `.claude/`, `build/`, `tools/vendor/`, `vendor/` per [.markdownlint-cli2.yaml](.markdownlint-cli2.yaml) and [lychee.toml](lychee.toml)).
-
-Run individually:
-
-```bash
-composer lint:typos      # spell-check (crate-ci/typos), whole repo
-composer lint:markdown   # markdownlint-cli2; reads .markdownlint-cli2.yaml
-composer lint:links      # lychee link check; reads lychee.toml
-composer lint:docs       # all three
-```
-
-The native binaries (`typos`, `markdownlint-cli2`, `lychee`) auto-install via Homebrew after `composer update` on macOS. CI runs the same checks in [.github/workflows/typos.yml](.github/workflows/typos.yml) and [.github/workflows/markdown.yml](.github/workflows/markdown.yml).
-
-Tuning false positives:
-
-- **typos**: add project-specific identifiers under `[default.extend-words]` in a repo-root `_typos.toml`.
-- **markdownlint**: relax rules under `config:` in [.markdownlint-cli2.yaml](.markdownlint-cli2.yaml). MD013 (line length), MD034 (bare URLs), MD060 (table style) are already off; MD024 narrowed to siblings-only.
-- **lychee**: extend `exclude_path` or add an `exclude` list (URL regexes) in [lychee.toml](lychee.toml).
-
-For auto-fixing, use the dedicated composer scripts (lychee has no autofixer):
-
-```bash
-composer lint:typos:fix       # typos --write-changes
-composer lint:markdown:fix    # markdownlint-cli2 --fix
-composer lint:fix             # both
-```
-
-Review the diff before staging; `typos --write-changes` rewrites identifiers in source files too, not just docs.
+`composer lint:docs` bundles three linters: **typos** (whole-repo spell check), **markdownlint**, and **lychee** (the last two scoped to `.md` files). Configs: `_typos.toml`, `.markdownlint-cli2.yaml`, `lychee.toml`. Auto-fix via `composer lint:fix` (typos + markdownlint; lychee has no fixer). Native binaries auto-install via Homebrew after `composer update`. Note: `composer lint:typos:fix` rewrites identifiers in source files too, not just docs. Review the diff before staging.
 
 ## Conventions worth internalising
 
@@ -76,9 +46,8 @@ Review the diff before staging; `typos --write-changes` rewrites identifiers in 
 
 ### PHPDoc style
 
-Prefer **native phpdoc tags over `@phpstan-*` variants** across the entire codebase, not just on return types. Use `@return`, `@param`, `@var`, `@implements`, `@extends`, `@throws`, `@template`, etc. Reach for a `@phpstan-*` tag only when there is no native equivalent (e.g. `@phpstan-assert`, `@phpstan-consistent-constructor`, `@phpstan-type`, `@phpstan-import-type`, `@phpstan-ignore`). Mixing variants where both exist fragments the docblocks and makes them harder for other static analysers (Psalm, Phan, IDE tooling) to consume.
-
-Keep class and method docblocks **concise and behavior-focused**. A class docblock describes what the class *is/does* in 1–2 sentences plus structural tags (`@internal`, `@template`, `@implements`, `@see` to spec); it does not narrate why the class exists in its current form. Decision history belongs in commits/PRs; code reads as though it was always this way. The same rule applies to inline comments in data files and fixtures: no "this verifies that we fixed X" headers.
+- **Prefer native phpdoc tags over `@phpstan-*` variants** across the codebase. Use `@return`, `@param`, `@var`, `@implements`, `@extends`, `@throws`, `@template`, etc. Reach for `@phpstan-*` only when there is no native equivalent (`@phpstan-assert`, `@phpstan-consistent-constructor`, `@phpstan-type`, `@phpstan-import-type`, `@phpstan-ignore`).
+- **Class and method docblocks stay concise and behavior-focused.** Describe what the class *is/does* in 1–2 sentences plus structural tags. Do not narrate why the class exists in its current form. Decision history belongs in commits and PRs. The same rule applies to inline comments in data files and fixtures: no "this verifies that we fixed X" headers.
 
 ### `@internal`, `@final`, `@no-final`
 
@@ -90,6 +59,14 @@ Keep class and method docblocks **concise and behavior-focused**. A class docblo
 
 - PHP class names map to spec defs via a basename-normalizer in the schema processor under `tools/`. If a new class's name diverges from the spec's, extend the normalizer rather than renaming the class.
 - `$ref` aliases (where one spec def points to another shape) are inlined at load time so aliased schemas expose the full shape for conformance testing.
+
+### Server-side composition
+
+- **Registration lives on `ServerBuilder`, not on `Server`.** Tools, prompts, resources, request and notification handlers, loggers, and request-id factories all register via fluent `ServerBuilder::add*` / `set*` methods before `build()`. After `Server::run(TransportInterface)` is called, no further registration is possible. Don't add convenience setters like `Server::addTool()`. The immutable-after-build shape is intentional.
+- **Built-in request handlers depend on exactly one per-feature store** (`ToolStore`, `PromptStore`, `ResourceStore`, etc.), constructor-injected. There is no umbrella registry. When adding a new feature, mirror the per-feature-store shape rather than reaching for a combined `Capability\Registry`.
+- **Dispatch is method-name → handler at registration time** (TS-SDK style), not the official PHP-SDK's polymorphic `supports($method)` walk. This is what motivates the phantom `@template-covariant TMethod` on `RequestHandlerInterface` / `NotificationHandlerInterface` (see [Per-method request/notification/result classes](#per-method-requestnotificationresult-classes)).
+- **No attribute-driven discovery yet.** `#[AsTool]` / `#[AsResource]` / reflection scanners / `symfony/finder` / PSR-14 event dispatch are explicit non-features. Adding any of them is a milestone of its own and changes the public surface; it doesn't fit incidentally.
+- **`ServerBuilder::addRequestHandler(method, handler)` is the power-user escape hatch.** It looks redundant next to the typed per-feature builders, but it's the seam consumers reach for to register handlers for spec methods that have no typed builder. Preserve it.
 
 ### Per-method request/notification/result classes
 
@@ -117,6 +94,12 @@ When the spec defines two structurally similar shapes that differ only in option
 - **Conditional keys** (`if (\array_key_exists('_meta', $data))`): leave as native PHP; Assert has no "optional key" shape.
 - Expectations used in this repo: `isMap`, `hasOffset`, `isArrayKey` (narrows to `int|string`), `isNonEmptyString`, `isInt`, `isString`, and `nullOr()->isX()` for nullable inputs.
 
+### String composition and logging
+
+- **Prefer `\sprintf('%s …', $value)` over concat (`$value.' …'`)** when composing strings with dynamic pieces. The codebase uses `\sprintf` ubiquitously for exception messages, Assert templates, and string-building helpers. Match that style instead of reaching for concat. Simple two-piece literals like `$prefix.': '.$line` are still fine.
+- **Logger messages are the exception.** Pass a literal PSR-3 template (`'{label} transport sent {kind}.'`) as the message and the dynamic values via the context array (`['label' => $this->label, 'kind' => self::describe($message)]`). Do not pre-render with `sprintf`. Aggregators index `label`/`kind`/etc. as structured fields, and tests match against the raw template via `ArrayLogger::recordsMatching('{label} transport sent {kind}.')` plus a context-equality assertion.
+- The `{type}` and `{value}` tokens in `nexusphp/assert` messages are interpolated by the library at throw time, not by `sprintf`. Leave them as-is inside a `sprintf` template when injecting a class const or computed prefix: `\sprintf('%s command must be a list, {type} given.', self::LABEL)`.
+
 ## Static analysis and CS gotchas
 
 These all bit me at least once; note them up-front so you don't relearn:
@@ -128,7 +111,7 @@ These all bit me at least once; note them up-front so you don't relearn:
 - **`@phpstan-consistent-constructor`** is required on non-final classes that use `new static(...)` in static factory methods.
 - **Use the native `: never` return type** on methods that unconditionally throw, even when the interface signature declares a concrete return type. `never` is a bottom type, so narrowing any return type to `never` is LSP-safe. Prefer the native type over `@phpstan-return never`; resort to the phpdoc only when you cannot change the PHP signature (e.g. the method is inherited from a third-party interface that forbids narrowing via some tooling constraint).
 - **`final public function __construct`** is contagious. Don't add it unless you are sure subclasses will never need to declare their own constructor.
-- **`@phpstan-sealed` declares the closed set of subtypes** for an interface or abstract base. Format: `@phpstan-sealed Foo|Bar|Baz` on the parent's docblock. PHPStan narrows through the union: after eliminating N−1 cases via `instanceof` (e.g. in `match (true)`), the Nth case is implied — use `default =>` to let PHPStan narrow structurally instead of writing a redundant final `instanceof` arm that PHPStan flags as `instanceof.alwaysTrue`. If a new subtype is declared without being added to the seal list, PHPStan raises `interface.disallowedSubtype`. Use this when a marker interface has a known-fixed implementation set per the spec (e.g. `JsonRpcMessage` is closed to request / notification / response per JSON-RPC 2.0) — it kills "unreachable default arm" Infection mutants that would otherwise survive.
+- **`@phpstan-sealed Foo|Bar|Baz`** on a parent's docblock closes the subtype set. PHPStan narrows through the union: after `instanceof` eliminates N−1 cases in a `match (true)`, use `default =>` for the Nth (writing a redundant `instanceof` arm trips `instanceof.alwaysTrue`). Declaring a new subtype without adding it to the seal list trips `interface.disallowedSubtype`. Use for marker interfaces with a spec-fixed implementation set (e.g. `JsonRpcMessage` closed to request / notification / response). Kills "unreachable default arm" Infection mutants.
 
 ## Test patterns
 
@@ -138,11 +121,11 @@ These all bit me at least once; note them up-front so you don't relearn:
 - For happy-path void functions that merely need to "not throw," use `$this->expectNotToPerformAssertions()` rather than `self::assertTrue(true)`; the latter is flagged by PHPStan.
 - **PHPStan + PHPUnit stubs narrow `assertInstanceOf`, but intelephense does not.** For nested access after an instance check, use the `if (! $x instanceof Y) { self::fail(...); }` pattern; both tools narrow through it. Native `assert($x instanceof Y)` is also flagged by PHPStan as redundant after the PHPUnit assertion, so avoid it.
 - **`assertSame` vs `assertEquals` for value objects**: `assertSame` compares identity (fails for distinct but structurally equal objects). For round-trip tests, compare `$original->toArray()` to `$reconstructed->toArray()`; the CS fixer `php_unit_strict` rule will convert `assertEquals` to `assertSame` and break object comparisons otherwise.
-- **Cross-path encoding check on round-trip fixtures**: `AbstractRoundTripTestCase` runs `assertSame(json_encode($instance), json_encode($instance->toArray()))` after the fixture-shape assertion, so any drift between the `jsonSerialize` path (what the transport emits) and the `toArray` path (round-trip representation) fails fast. Classes whose `jsonSerialize` substitutes `\stdClass` for an empty object slot must opt out by setting `'encodingPathsDiverge' => true` on their registry entry in `JsonRpcEnvelopeRoundTripTest` or `SchemaPayloadRoundTripTest`. Composition counts. If an envelope's payload contains a class that performs the substitution at any nesting level (e.g. `InitializeRequest` contains `ClientCapabilities`), the envelope inherits the flag.
+- **Cross-path encoding check on round-trip fixtures**: `AbstractRoundTripTestCase` asserts `json_encode($instance) === json_encode($instance->toArray())` so the `jsonSerialize` and `toArray` paths can't drift. Classes whose `jsonSerialize` substitutes `\stdClass` for an empty object slot must opt out by setting `'encodingPathsDiverge' => true` on their registry entry in `JsonRpcEnvelopeRoundTripTest` / `SchemaPayloadRoundTripTest`. Composition counts: an envelope whose payload contains such a class at any nesting level inherits the flag.
 - **Positional string assertions**: for messages produced by concat, use `expectExceptionMessageMatches('/^prefix …/')` with a `^`-anchored regex so that concat-swap and operand-removal mutants are killed. A plain `expectExceptionMessage` does substring matching and misses them.
 - **Data providers for invalid-input tests**: to drive a value into a narrower chain (e.g. `Assert::that($x)->isMap()`) whose type-specifying extension fails at the type level for a bad input, accept the value via `mixed $value` from a data provider. PHPStan will not narrow `mixed` and won't flag the test.
 - **Type-inference tests (`tests/AutoReview/data/*.php`) target production classes only**: the real spec classes in `src/` and their generics. Do not pad data files with assertions against test fixtures (`tests/Fixtures/...`); fixtures change for scaffolding reasons unrelated to the SDK's public contract. If a generic surface has no concrete production class yet, skip the data file rather than substituting a fixture.
-- **`@phpstan-ignore` in tests is a narrow exception**, not a general escape hatch. Valid only when the test is deliberately feeding malformed / out-of-contract input to exercise a runtime guard that PHPStan would reject statically before the runtime code ever runs. Any other PHPStan complaint in a test gets fixed structurally the same way as in `src/`. Before adding an ignore, ask: "Is PHPStan refusing the input precisely *because* the input is invalid, and is the test's purpose to verify runtime rejection of that invalid input?" If the answer is no, fix the code. The `mixed $value` data-provider pattern above is usually the better alternative.
+- **`@phpstan-ignore` in tests is a narrow exception**, not a general escape hatch. Valid only when the test deliberately feeds malformed / out-of-contract input to exercise a runtime guard that PHPStan would reject statically before the runtime code ever runs. Otherwise fix the code structurally; the `mixed $value` data-provider pattern above is usually the better alternative.
 
 ## Mutation testing tips
 
@@ -151,11 +134,11 @@ When `mutation:check` reports surviving mutants, categorise before writing tests
 - **Real gaps**: a code path has no covering test. Add one.
 - **Equivalent mutants**: two code forms that truly do the same thing. Refactor the source to eliminate the duplication (e.g. an explicit match arm that is identical to `default`). Do not add a test that asserts equivalence.
 - **Cosmetic constants**: defaulted exception codes (the `0` in `new RuntimeException($msg, 0, $e)`) generate mutation noise without matching real bugs. Use named args (`previous: $e`) or drop the defaulted arguments entirely so there is no literal to mutate.
-- **Investigate the code before adjusting tooling.** A mutant that escapes or times out is the framework telling you that some piece of code has no observable effect any test asserts on. The fix lives in the source or the tests, not in `infection.json5`. Two patterns recur:
-  - *Reachable behavior, no test exercises it* → add the test. Common with defensive validation (`Assert::that(...)->isX(...)`, guard clauses, error-message branches) where the happy path is well-covered but the failure path was never asserted on.
-  - *Structurally unreachable code* → remove it. Common with defensive paranoia inside helpers that callers can only feed valid input through (e.g. an `Assert::isMap` inside a recursive walker fed by a schema-typed `toArray()`). Adjust types at the helper boundary so static analysis still narrows: usually means widening the helper's input type (`array<string, mixed>` → `array<array-key, mixed>`) and doing the strict-typing work at the outermost call site.
+- **Investigate the code before adjusting tooling.** A surviving or timed-out mutant means some code has no observable effect any test asserts on. Two patterns recur:
+  - *Reachable but unexercised behavior* → add a test. Common with defensive validation where the happy path is covered but the failure path isn't.
+  - *Structurally unreachable code* → remove it. Common with defensive `Assert::isMap` calls inside helpers fed by schema-typed input; widen the helper's input type (`array<string, mixed>` → `array<array-key, mixed>`) and do strict typing at the outermost call site.
 
-  Bumping `infection.json5`'s `timeout` is a last resort, only justified after you've confirmed the slow mutants don't represent dead/untested code.
+  Bumping `infection.json5`'s `timeout` is a last resort, only justified after confirming the slow mutants don't represent dead/untested code.
 
 ## Committing
 
