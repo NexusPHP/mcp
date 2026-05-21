@@ -8,7 +8,7 @@ that drives every inbound JSON-RPC message, and what the SDK does and does not c
 ```text
 Nexus\Mcp\
 ├── Core\               Protocol primitives. Depends on no other Mcp namespace
-│   ├── Dispatch\       MessageDispatcherInterface
+│   ├── Dispatch\       MessageDispatcherInterface, PendingInboundRequests, PendingOutboundRequests
 │   ├── Exception\      McpExceptionInterface marker + concrete protocol errors
 │   ├── Handler\        RequestHandlerInterface, NotificationHandlerInterface, HandlerRegistry, AbstractContext
 │   │   └── Request\    PingRequestHandler

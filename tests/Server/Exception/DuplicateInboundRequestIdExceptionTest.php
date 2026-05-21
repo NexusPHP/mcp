@@ -16,7 +16,7 @@ namespace Nexus\Mcp\Tests\Server\Exception;
 use Nexus\Mcp\Core\Exception\AbstractJsonRpcProtocolException;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\RequestId;
-use Nexus\Mcp\Server\Exception\DuplicateInFlightRequestIdException;
+use Nexus\Mcp\Server\Exception\DuplicateInboundRequestIdException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
@@ -24,19 +24,19 @@ use PHPUnit\Framework\TestCase;
 /**
  * @internal
  */
-#[CoversClass(DuplicateInFlightRequestIdException::class)]
+#[CoversClass(DuplicateInboundRequestIdException::class)]
 #[CoversClass(AbstractJsonRpcProtocolException::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class DuplicateInFlightRequestIdExceptionTest extends TestCase
+final class DuplicateInboundRequestIdExceptionTest extends TestCase
 {
     public function testComposesFixedMessage(): void
     {
-        $e = new DuplicateInFlightRequestIdException(new RequestId(42));
+        $e = new DuplicateInboundRequestIdException(new RequestId(42));
 
         self::assertSame(42, $e->requestId?->id);
         self::assertSame(
-            'Request id is already in flight on this session.',
+            'Inbound request id is already pending on this session.',
             $e->getMessage(),
         );
     }
@@ -44,7 +44,7 @@ final class DuplicateInFlightRequestIdExceptionTest extends TestCase
     public function testCarriesProvidedRequestIdAndPrevious(): void
     {
         $previous = new \RuntimeException('inner');
-        $e = new DuplicateInFlightRequestIdException(new RequestId('abc'), $previous);
+        $e = new DuplicateInboundRequestIdException(new RequestId('abc'), $previous);
 
         self::assertSame('abc', $e->requestId?->id);
         self::assertSame($previous, $e->getPrevious());
@@ -52,6 +52,6 @@ final class DuplicateInFlightRequestIdExceptionTest extends TestCase
 
     public function testReportsInvalidRequestErrorCode(): void
     {
-        self::assertSame(ProtocolErrorCode::InvalidRequest, DuplicateInFlightRequestIdException::errorCode());
+        self::assertSame(ProtocolErrorCode::InvalidRequest, DuplicateInboundRequestIdException::errorCode());
     }
 }

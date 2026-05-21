@@ -11,10 +11,10 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Nexus\Mcp\Tests\Server\Dispatch;
+namespace Nexus\Mcp\Tests\Core\Dispatch;
 
+use Nexus\Mcp\Core\Dispatch\PendingInboundRequests;
 use Nexus\Mcp\Core\Schema\RequestId;
-use Nexus\Mcp\Server\Dispatch\InFlightRequests;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
@@ -22,14 +22,14 @@ use PHPUnit\Framework\TestCase;
 /**
  * @internal
  */
-#[CoversClass(InFlightRequests::class)]
+#[CoversClass(PendingInboundRequests::class)]
 #[Group('unit-tests')]
-#[Group('server-tests')]
-final class InFlightRequestsTest extends TestCase
+#[Group('core-tests')]
+final class PendingInboundRequestsTest extends TestCase
 {
     public function testFirstClaimSucceedsAndRegistersTheId(): void
     {
-        $set = new InFlightRequests();
+        $set = new PendingInboundRequests();
         $id = new RequestId(1);
 
         self::assertTrue($set->claim($id));
@@ -39,7 +39,7 @@ final class InFlightRequestsTest extends TestCase
 
     public function testDuplicateClaimFailsWithoutMutatingTheSet(): void
     {
-        $set = new InFlightRequests();
+        $set = new PendingInboundRequests();
         $id = new RequestId(1);
 
         self::assertTrue($set->claim($id));
@@ -49,7 +49,7 @@ final class InFlightRequestsTest extends TestCase
 
     public function testDuplicateStringClaimFailsWithoutMutatingTheSet(): void
     {
-        $set = new InFlightRequests();
+        $set = new PendingInboundRequests();
         $id = new RequestId('correlation-token');
 
         self::assertTrue($set->claim($id));
@@ -59,7 +59,7 @@ final class InFlightRequestsTest extends TestCase
 
     public function testClaimComparesByEnvelopeIdValueNotInstanceIdentity(): void
     {
-        $set = new InFlightRequests();
+        $set = new PendingInboundRequests();
 
         self::assertTrue($set->claim(new RequestId(7)));
         self::assertFalse($set->claim(new RequestId(7)), 'Distinct RequestId instances with the same envelope id must collide.');
@@ -67,7 +67,7 @@ final class InFlightRequestsTest extends TestCase
 
     public function testIntAndStringIdsAreDistinct(): void
     {
-        $set = new InFlightRequests();
+        $set = new PendingInboundRequests();
 
         self::assertTrue($set->claim(new RequestId(1)));
         self::assertTrue($set->claim(new RequestId('1')), 'String "1" and int 1 are distinct envelope ids per JSON-RPC.');
@@ -76,7 +76,7 @@ final class InFlightRequestsTest extends TestCase
 
     public function testDistinctIdsOfTheSameTypeAreTrackedIndependently(): void
     {
-        $set = new InFlightRequests();
+        $set = new PendingInboundRequests();
 
         self::assertTrue($set->claim(new RequestId(1)));
         self::assertTrue($set->claim(new RequestId(2)));
@@ -87,7 +87,7 @@ final class InFlightRequestsTest extends TestCase
 
     public function testReleasingAStringIdLeavesUnrelatedIntIdInPlace(): void
     {
-        $set = new InFlightRequests();
+        $set = new PendingInboundRequests();
         $intId = new RequestId(1);
         $stringId = new RequestId('1');
 
@@ -101,7 +101,7 @@ final class InFlightRequestsTest extends TestCase
 
     public function testReleaseAllowsReclaiming(): void
     {
-        $set = new InFlightRequests();
+        $set = new PendingInboundRequests();
         $id = new RequestId(1);
 
         $set->claim($id);
@@ -114,7 +114,7 @@ final class InFlightRequestsTest extends TestCase
 
     public function testReleaseOfUnknownIdIsNoOp(): void
     {
-        $set = new InFlightRequests();
+        $set = new PendingInboundRequests();
 
         $set->release(new RequestId('never-claimed'));
 
@@ -123,7 +123,7 @@ final class InFlightRequestsTest extends TestCase
 
     public function testKeyProducesStableKeys(): void
     {
-        $set = new InFlightRequests();
+        $set = new PendingInboundRequests();
 
         self::assertSame('"id":1', $set->key(new RequestId(1)));
         self::assertSame('"id":\'1\'', $set->key(new RequestId('1')));

@@ -46,7 +46,7 @@ stdio-only on both sides, with the HTTP transport and the server-initiated reque
 against the current spec means rebuilding them after the migration reshapes both.
 
 - [x] Extract `MessageDispatcherInterface` from the current server-only `MessageDispatcher`.
-- [ ] Add the `PendingOutboundRequests` correlation primitive under `Core/Dispatch/`, keyed by `RequestId`.
+- [x] Add the `PendingOutboundRequests` correlation primitive under `Core/Dispatch/`, keyed by `RequestId`.
 - [ ] Ship `Nexus\Mcp\Client\` with `ClientBuilder`, client-side stores, and the shared dispatch kernel.
 - [ ] Cover the symmetric handshake (`initialize` / `notifications/initialized`) from the client side.
 - [ ] `Nexus\Mcp\Client\Transport\StdioClientTransport` (subprocess launcher).

@@ -412,7 +412,7 @@ final class ServerMessageDispatcherTest extends TestCase
         self::assertSame(1, $transport->sent[0]['message']->id?->id);
         self::assertSame(ProtocolErrorCode::InvalidRequest->value, $transport->sent[0]['message']->error->code);
         self::assertSame(
-            'Request id is already in flight on this session.',
+            'Inbound request id is already pending on this session.',
             $transport->sent[0]['message']->error->message,
         );
 

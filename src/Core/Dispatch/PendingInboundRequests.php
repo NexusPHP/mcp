@@ -11,7 +11,7 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Nexus\Mcp\Server\Dispatch;
+namespace Nexus\Mcp\Core\Dispatch;
 
 use Nexus\Mcp\Core\Schema\RequestId;
 
@@ -19,8 +19,10 @@ use Nexus\Mcp\Core\Schema\RequestId;
  * Tracks the set of inbound JSON-RPC request ids whose handler coroutines are still running.
  *
  * @internal
+ *
+ * @see PendingOutboundRequests
  */
-final class InFlightRequests implements \Countable
+final class PendingInboundRequests implements \Countable
 {
     /**
      * @var array<non-empty-string, true>
