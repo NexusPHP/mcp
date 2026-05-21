@@ -57,7 +57,9 @@ final class LineDuplexTest extends TestCase
         $duplex->start(new ReadableBuffer(''), new WritableBuffer());
         EventLoop::run();
 
-        self::assertContains('demo transport started.', $logger->messagesAtLevel(LogLevel::INFO));
+        $matches = $logger->recordsMatching(LogLevel::INFO, '{label} transport started.');
+        self::assertCount(1, $matches);
+        self::assertSame(['label' => 'demo'], $matches[0]['context']);
     }
 
     public function testStartAfterRunningThrowsHostTransportAlreadyStarted(): void
@@ -114,8 +116,9 @@ final class LineDuplexTest extends TestCase
         $duplex->close();
         $duplex->close();
 
-        $matches = $logger->recordsMatching(LogLevel::INFO, 'demo transport closed.');
+        $matches = $logger->recordsMatching(LogLevel::INFO, '{label} transport closed.');
         self::assertCount(1, $matches);
+        self::assertSame(['label' => 'demo'], $matches[0]['context']);
     }
 
     public function testOnBeforeCloseFiresExactlyOnceDuringClose(): void
@@ -143,13 +146,13 @@ final class LineDuplexTest extends TestCase
         $duplex->close();
         $duplex->close();
 
-        $matches = $logger->recordsMatching(LogLevel::INFO, 'demo transport closing from {priorState} state.');
+        $matches = $logger->recordsMatching(LogLevel::INFO, '{label} transport closing from {priorState} state.');
         self::assertCount(1, $matches);
-        self::assertSame(['priorState' => 'Idle'], $matches[0]['context']);
+        self::assertSame(['label' => 'demo', 'priorState' => 'Idle'], $matches[0]['context']);
 
-        $closed = $logger->recordsMatching(LogLevel::INFO, 'demo transport closed.');
+        $closed = $logger->recordsMatching(LogLevel::INFO, '{label} transport closed.');
         self::assertCount(1, $closed);
-        self::assertSame([], $closed[0]['context']);
+        self::assertSame(['label' => 'demo'], $closed[0]['context']);
     }
 
     public function testLoggerEmitsInfoOnCloseFromRunningWithRunningPriorState(): void
@@ -160,9 +163,9 @@ final class LineDuplexTest extends TestCase
         $duplex->start(new ReadableBuffer(''), new WritableBuffer());
         EventLoop::run();
 
-        $matches = $logger->recordsMatching(LogLevel::INFO, 'demo transport closing from {priorState} state.');
+        $matches = $logger->recordsMatching(LogLevel::INFO, '{label} transport closing from {priorState} state.');
         self::assertCount(1, $matches);
-        self::assertSame(['priorState' => 'Running'], $matches[0]['context']);
+        self::assertSame(['label' => 'demo', 'priorState' => 'Running'], $matches[0]['context']);
     }
 
     public function testCloseEmitsCloseListenersExactlyOnce(): void
@@ -389,9 +392,9 @@ final class LineDuplexTest extends TestCase
         $duplex->send($message);
         EventLoop::run();
 
-        $matches = $logger->recordsMatching(LogLevel::DEBUG, 'demo transport sent {kind}.');
+        $matches = $logger->recordsMatching(LogLevel::DEBUG, '{label} transport sent {kind}.');
         self::assertCount(1, $matches);
-        self::assertSame(['kind' => $expectedKind], $matches[0]['context']);
+        self::assertSame(['label' => 'demo', 'kind' => $expectedKind], $matches[0]['context']);
     }
 
     /**
@@ -463,9 +466,9 @@ final class LineDuplexTest extends TestCase
 
         EventLoop::run();
 
-        $matches = $logger->recordsMatching(LogLevel::ERROR, 'demo transport failed to send {kind}. Closing.');
+        $matches = $logger->recordsMatching(LogLevel::ERROR, '{label} transport failed to send {kind}. Closing.');
         self::assertCount(1, $matches);
-        self::assertSame(['kind' => $expectedKind, 'exception' => $boom], $matches[0]['context']);
+        self::assertSame(['label' => 'demo', 'kind' => $expectedKind, 'exception' => $boom], $matches[0]['context']);
     }
 
     /**
@@ -554,10 +557,13 @@ final class LineDuplexTest extends TestCase
 
         $matches = $logger->recordsMatching(
             LogLevel::DEBUG,
-            'demo transport skipped sending {kind}. Transport was concurrently closed.',
+            '{label} transport skipped sending {kind}. Transport was concurrently closed.',
         );
         self::assertCount(1, $matches);
-        self::assertSame(['kind' => $expectedKind, 'exception' => $boom], $matches[0]['context']);
+        self::assertSame(
+            ['label' => 'demo', 'kind' => $expectedKind, 'exception' => $boom],
+            $matches[0]['context'],
+        );
     }
 
     /**
@@ -594,9 +600,9 @@ final class LineDuplexTest extends TestCase
         $duplex->start(new ThrowingReadableStream($boom), new WritableBuffer());
         EventLoop::run();
 
-        $matches = $logger->recordsMatching(LogLevel::ERROR, 'demo transport read loop failed. Closing.');
+        $matches = $logger->recordsMatching(LogLevel::ERROR, '{label} transport read loop failed. Closing.');
         self::assertCount(1, $matches);
-        self::assertSame(['exception' => $boom], $matches[0]['context']);
+        self::assertSame(['label' => 'demo', 'exception' => $boom], $matches[0]['context']);
         self::assertSame([$boom], $errors);
     }
 
@@ -611,10 +617,10 @@ final class LineDuplexTest extends TestCase
         );
         EventLoop::run();
 
-        $matches = $logger->recordsMatching(LogLevel::WARNING, 'demo transport rejected malformed JSON line.');
+        $matches = $logger->recordsMatching(LogLevel::WARNING, '{label} transport rejected malformed JSON line.');
         self::assertCount(1, $matches);
-        self::assertArrayHasKey('exception', $matches[0]['context']);
-        self::assertInstanceOf(\JsonException::class, $matches[0]['context']['exception']);
+        self::assertSame('demo', $matches[0]['context']['label'] ?? null);
+        self::assertInstanceOf(\JsonException::class, $matches[0]['context']['exception'] ?? null);
     }
 
     public function testLoggerEmitsWarningWithExceptionContextOnNonObjectEnvelope(): void
@@ -628,10 +634,10 @@ final class LineDuplexTest extends TestCase
         );
         EventLoop::run();
 
-        $matches = $logger->recordsMatching(LogLevel::WARNING, 'demo transport rejected a non-object envelope.');
+        $matches = $logger->recordsMatching(LogLevel::WARNING, '{label} transport rejected a non-object envelope.');
         self::assertCount(1, $matches);
-        self::assertArrayHasKey('exception', $matches[0]['context']);
-        self::assertInstanceOf(\InvalidArgumentException::class, $matches[0]['context']['exception']);
+        self::assertSame('demo', $matches[0]['context']['label'] ?? null);
+        self::assertInstanceOf(\InvalidArgumentException::class, $matches[0]['context']['exception'] ?? null);
     }
 
     public function testLoggerEmitsDebugOnDispatchedEnvelope(): void
@@ -645,10 +651,9 @@ final class LineDuplexTest extends TestCase
         );
         EventLoop::run();
 
-        self::assertContains(
-            'demo transport received a JSON-RPC envelope.',
-            $logger->messagesAtLevel(LogLevel::DEBUG),
-        );
+        $matches = $logger->recordsMatching(LogLevel::DEBUG, '{label} transport received a JSON-RPC envelope.');
+        self::assertNotEmpty($matches);
+        self::assertSame(['label' => 'demo'], $matches[0]['context']);
     }
 
     public function testDispatchedEnvelopeFiresMessageListener(): void
@@ -698,81 +703,56 @@ final class LineDuplexTest extends TestCase
         );
         EventLoop::run();
 
-        $matches = $logger->recordsMatching(LogLevel::WARNING, 'demo transport side-channel loop failed.');
+        $matches = $logger->recordsMatching(LogLevel::WARNING, '{label} transport side-channel loop failed.');
         self::assertCount(1, $matches);
-        self::assertSame(['exception' => $boom], $matches[0]['context']);
+        self::assertSame(['label' => 'demo', 'exception' => $boom], $matches[0]['context']);
     }
 
-    public function testOnMessageRegistrationLogsDebugWithCorrectVerbArticleAndCount(): void
+    /**
+     * @param 'close'|'drain'|'error'|'message' $kind
+     * @param 'a'|'an'                          $article
+     */
+    #[DataProvider('provideListenerRegistrationLogsDebugWithCorrectVerbArticleAndCountCases')]
+    public function testListenerRegistrationLogsDebugWithCorrectVerbArticleAndCount(string $kind, string $article): void
     {
         $logger = new ArrayLogger();
         $duplex = self::buildDuplex(logger: $logger);
 
-        $subscription = $duplex->onMessage(static function (): void {});
-
-        $registered = $logger->recordsMatching(LogLevel::DEBUG, 'demo transport registered a message listener. {count} active.');
-        self::assertCount(1, $registered);
-        self::assertSame(['count' => 1], $registered[0]['context']);
-
+        $subscription = match ($kind) {
+            'message' => $duplex->onMessage(static function (): void {}),
+            'error' => $duplex->onError(static function (): void {}),
+            'drain' => $duplex->onDrain(static function (): void {}),
+            'close' => $duplex->onClose(static function (): void {}),
+        };
         $subscription->dispose();
 
-        $disposed = $logger->recordsMatching(LogLevel::DEBUG, 'demo transport disposed a message listener. {count} active.');
-        self::assertCount(1, $disposed);
-        self::assertSame(['count' => 0], $disposed[0]['context']);
+        $records = $logger->recordsMatching(
+            LogLevel::DEBUG,
+            '{label} transport {verb} {article} {kind} listener. {count} active.',
+        );
+        self::assertCount(2, $records);
+        self::assertSame(
+            ['label' => 'demo', 'verb' => 'registered', 'article' => $article, 'kind' => $kind, 'count' => 1],
+            $records[0]['context'],
+        );
+        self::assertSame(
+            ['label' => 'demo', 'verb' => 'disposed', 'article' => $article, 'kind' => $kind, 'count' => 0],
+            $records[1]['context'],
+        );
     }
 
-    public function testOnDrainRegistrationLogsDebugWithCorrectVerbArticleAndCount(): void
+    /**
+     * @return iterable<string, array{'close'|'drain'|'error'|'message', 'a'|'an'}>
+     */
+    public static function provideListenerRegistrationLogsDebugWithCorrectVerbArticleAndCountCases(): iterable
     {
-        $logger = new ArrayLogger();
-        $duplex = self::buildDuplex(logger: $logger);
+        yield 'message' => ['message', 'a'];
 
-        $subscription = $duplex->onDrain(static function (): void {});
+        yield 'drain' => ['drain', 'a'];
 
-        $registered = $logger->recordsMatching(LogLevel::DEBUG, 'demo transport registered a drain listener. {count} active.');
-        self::assertCount(1, $registered);
-        self::assertSame(['count' => 1], $registered[0]['context']);
+        yield 'close' => ['close', 'a'];
 
-        $subscription->dispose();
-
-        $disposed = $logger->recordsMatching(LogLevel::DEBUG, 'demo transport disposed a drain listener. {count} active.');
-        self::assertCount(1, $disposed);
-        self::assertSame(['count' => 0], $disposed[0]['context']);
-    }
-
-    public function testOnCloseRegistrationLogsDebugWithCorrectVerbArticleAndCount(): void
-    {
-        $logger = new ArrayLogger();
-        $duplex = self::buildDuplex(logger: $logger);
-
-        $subscription = $duplex->onClose(static function (): void {});
-
-        $registered = $logger->recordsMatching(LogLevel::DEBUG, 'demo transport registered a close listener. {count} active.');
-        self::assertCount(1, $registered);
-        self::assertSame(['count' => 1], $registered[0]['context']);
-
-        $subscription->dispose();
-
-        $disposed = $logger->recordsMatching(LogLevel::DEBUG, 'demo transport disposed a close listener. {count} active.');
-        self::assertCount(1, $disposed);
-        self::assertSame(['count' => 0], $disposed[0]['context']);
-    }
-
-    public function testOnErrorRegistrationUsesTheAnArticle(): void
-    {
-        $logger = new ArrayLogger();
-        $duplex = self::buildDuplex(logger: $logger);
-
-        $subscription = $duplex->onError(static function (): void {});
-
-        $registered = $logger->recordsMatching(LogLevel::DEBUG, 'demo transport registered an error listener. {count} active.');
-        self::assertCount(1, $registered);
-        self::assertSame(['count' => 1], $registered[0]['context']);
-
-        $subscription->dispose();
-
-        $disposed = $logger->recordsMatching(LogLevel::DEBUG, 'demo transport disposed an error listener. {count} active.');
-        self::assertCount(1, $disposed);
-        self::assertSame(['count' => 0], $disposed[0]['context']);
+        yield 'error' => ['error', 'an'];
     }
 
     /**

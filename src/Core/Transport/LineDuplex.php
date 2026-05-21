@@ -66,8 +66,8 @@ final class LineDuplex
                 };
                 $article = 'error' === $kind ? 'an' : 'a';
                 $this->logger->debug(
-                    \sprintf('%s transport %s %s %s listener. {count} active.', $this->label, $verb, $article, $kind),
-                    ['count' => $count],
+                    '{label} transport {verb} {article} {kind} listener. {count} active.',
+                    ['label' => $this->label, 'verb' => $verb, 'article' => $article, 'kind' => $kind, 'count' => $count],
                 );
             },
         );
@@ -88,7 +88,7 @@ final class LineDuplex
         $this->state = TransportState::Running;
         $this->readable = $readable;
         $this->writable = $writable;
-        $this->logger->info(\sprintf('%s transport started.', $this->label));
+        $this->logger->info('{label} transport started.', ['label' => $this->label]);
 
         EventLoop::queue($this->readLoop(...));
     }
@@ -109,22 +109,22 @@ final class LineDuplex
         try {
             $this->writable->write(json_encode($message, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE)."\n");
             $this->logger->debug(
-                \sprintf('%s transport sent {kind}.', $this->label),
-                ['kind' => self::describe($message)],
+                '{label} transport sent {kind}.',
+                ['label' => $this->label, 'kind' => self::describe($message)],
             );
         } catch (\Throwable $e) {
             if (TransportState::Closed === $this->state) {
                 $this->logger->debug(
-                    \sprintf('%s transport skipped sending {kind}. Transport was concurrently closed.', $this->label),
-                    ['kind' => self::describe($message), 'exception' => $e],
+                    '{label} transport skipped sending {kind}. Transport was concurrently closed.',
+                    ['label' => $this->label, 'kind' => self::describe($message), 'exception' => $e],
                 );
 
                 throw new TransportAlreadyClosedException(operation: 'send', previous: $e);
             }
 
             $this->logger->error(
-                \sprintf('%s transport failed to send {kind}. Closing.', $this->label),
-                ['kind' => self::describe($message), 'exception' => $e],
+                '{label} transport failed to send {kind}. Closing.',
+                ['label' => $this->label, 'kind' => self::describe($message), 'exception' => $e],
             );
             $this->close();
 
@@ -139,8 +139,8 @@ final class LineDuplex
         }
 
         $this->logger->info(
-            \sprintf('%s transport closing from {priorState} state.', $this->label),
-            ['priorState' => $this->state->name],
+            '{label} transport closing from {priorState} state.',
+            ['label' => $this->label, 'priorState' => $this->state->name],
         );
         $this->state = TransportState::Closed;
 
@@ -149,7 +149,7 @@ final class LineDuplex
         }
 
         $this->events->emitClose();
-        $this->logger->info(\sprintf('%s transport closed.', $this->label));
+        $this->logger->info('{label} transport closed.', ['label' => $this->label]);
     }
 
     /**
@@ -165,7 +165,10 @@ final class LineDuplex
                     $onLine($line);
                 }
             } catch (\Throwable $e) {
-                $this->logger->warning(\sprintf('%s transport side-channel loop failed.', $this->label), ['exception' => $e]);
+                $this->logger->warning(
+                    '{label} transport side-channel loop failed.',
+                    ['label' => $this->label, 'exception' => $e],
+                );
             }
         });
     }
@@ -211,7 +214,10 @@ final class LineDuplex
                 $this->processLine($line);
             }
         } catch (\Throwable $e) {
-            $this->logger->error(\sprintf('%s transport read loop failed. Closing.', $this->label), ['exception' => $e]);
+            $this->logger->error(
+                '{label} transport read loop failed. Closing.',
+                ['label' => $this->label, 'exception' => $e],
+            );
             $this->events->emitError($e);
         } finally {
             try {
@@ -228,8 +234,8 @@ final class LineDuplex
             $decodedJson = json_decode($line, associative: true, flags: \JSON_THROW_ON_ERROR);
         } catch (\JsonException $e) {
             $this->logger->warning(
-                \sprintf('%s transport rejected malformed JSON line.', $this->label),
-                ['exception' => $e],
+                '{label} transport rejected malformed JSON line.',
+                ['label' => $this->label, 'exception' => $e],
             );
             $this->reportParseFailure(new JsonRpcErrorResponse(null, new ParseError()));
 
@@ -240,8 +246,8 @@ final class LineDuplex
             Assert::that($decodedJson)->isMap('JSON-RPC envelope must be a JSON object, {type} given.');
         } catch (\InvalidArgumentException $e) {
             $this->logger->warning(
-                \sprintf('%s transport rejected a non-object envelope.', $this->label),
-                ['exception' => $e],
+                '{label} transport rejected a non-object envelope.',
+                ['label' => $this->label, 'exception' => $e],
             );
             $this->events->emitError($e);
             $this->reportParseFailure(new JsonRpcErrorResponse(null, new InvalidRequestError()));
@@ -250,7 +256,10 @@ final class LineDuplex
         }
 
         try {
-            $this->logger->debug(\sprintf('%s transport received a JSON-RPC envelope.', $this->label));
+            $this->logger->debug(
+                '{label} transport received a JSON-RPC envelope.',
+                ['label' => $this->label],
+            );
             $this->events->emitMessage($decodedJson);
         } catch (\Throwable $e) {
             $this->events->emitError($e);

@@ -266,7 +266,7 @@ final class StdioServerTransportTest extends TestCase
     }
 
     #[DataProvider('provideLoggerLabelIsWiredAsStdioServerCases')]
-    public function testLoggerLabelIsWiredAsStdioServer(string $level, string $message): void
+    public function testLoggerLabelIsWiredAsStdioServer(string $level, string $template): void
     {
         $logger = new ArrayLogger();
         $transport = new StdioServerTransport(new ReadableBuffer(''), new WritableBuffer(), $logger);
@@ -274,7 +274,9 @@ final class StdioServerTransportTest extends TestCase
         $transport->start();
         EventLoop::run();
 
-        self::assertContains($message, $logger->messagesAtLevel($level));
+        $matches = $logger->recordsMatching($level, $template);
+        self::assertNotEmpty($matches);
+        self::assertSame('Stdio server', $matches[0]['context']['label'] ?? null);
     }
 
     /**
@@ -282,9 +284,9 @@ final class StdioServerTransportTest extends TestCase
      */
     public static function provideLoggerLabelIsWiredAsStdioServerCases(): iterable
     {
-        yield 'start' => [LogLevel::INFO, 'Stdio server transport started.'];
+        yield 'start' => [LogLevel::INFO, '{label} transport started.'];
 
-        yield 'close' => [LogLevel::INFO, 'Stdio server transport closed.'];
+        yield 'close' => [LogLevel::INFO, '{label} transport closed.'];
     }
 
     /**

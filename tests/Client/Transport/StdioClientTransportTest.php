@@ -138,8 +138,9 @@ final class StdioClientTransportTest extends TestCase
         $transport->close();
 
         self::assertSame('notifications/initialized', $envelope['method'] ?? null);
-        $matches = $logger->recordsMatching(LogLevel::DEBUG, 'Stdio client transport sent {kind}.');
+        $matches = $logger->recordsMatching(LogLevel::DEBUG, '{label} transport sent {kind}.');
         self::assertNotEmpty($matches);
+        self::assertSame('Stdio client', $matches[0]['context']['label'] ?? null);
         self::assertSame('"notifications/initialized" notification', $matches[0]['context']['kind'] ?? null);
     }
 
@@ -194,8 +195,9 @@ final class StdioClientTransportTest extends TestCase
         $transport->start();
         $transport->close();
 
-        $matches = $logger->recordsMatching(LogLevel::INFO, 'Stdio client transport closed.');
+        $matches = $logger->recordsMatching(LogLevel::INFO, '{label} transport closed.');
         self::assertCount(1, $matches);
+        self::assertSame(['label' => 'Stdio client'], $matches[0]['context']);
     }
 
     private static function buildTransport(?ArrayLogger $logger = null): StdioClientTransport
