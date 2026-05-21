@@ -18,13 +18,14 @@ use Nexus\Mcp\Core\Schema\RequestId;
 /**
  * Parser-state shape returned by `JsonRpcMessageParser::parse()` for a JSON-RPC
  * success response envelope when no expected `Result` class was supplied.
- * Carries the request id (when recoverable from the envelope) and the raw
- * `result` payload so consumers without an outbound-request correlation table
- * can log or discard the envelope without the parser raising an error.
+ *
+ * Carries the request id and the raw `result` payload so consumers without an
+ * outbound-request correlation table can log or discard the envelope without
+ * the parser raising an error.
  */
 final readonly class UnparsedResultEnvelope
 {
-    public function __construct(public ?RequestId $id, public mixed $result)
+    public function __construct(public RequestId $id, public mixed $result)
     {
     }
 }

@@ -11,8 +11,10 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Nexus\Mcp\Tests\Server\Dispatch;
+namespace Nexus\Mcp\Tests\Core\Dispatch;
 
+use Nexus\Mcp\Core\Dispatch\RequestBoundSender;
+use Nexus\Mcp\Core\Exception\OutboundRequestsNotSupportedException;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Notification\ProgressNotification;
 use Nexus\Mcp\Core\Schema\NotificationParams\ProgressNotificationParams;
@@ -20,8 +22,6 @@ use Nexus\Mcp\Core\Schema\ProgressToken;
 use Nexus\Mcp\Core\Schema\Request\PingRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
-use Nexus\Mcp\Server\Dispatch\RequestBoundSender;
-use Nexus\Mcp\Server\Exception\OutboundRequestsNotSupportedException;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
@@ -32,7 +32,7 @@ use PHPUnit\Framework\TestCase;
  */
 #[CoversClass(RequestBoundSender::class)]
 #[Group('unit-tests')]
-#[Group('server-tests')]
+#[Group('core-tests')]
 final class RequestBoundSenderTest extends TestCase
 {
     public function testSendNotificationDelegatesToTransportWithRelatedRequestIdContext(): void

@@ -11,12 +11,12 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Nexus\Mcp\Tests\Server\Exception;
+namespace Nexus\Mcp\Tests\Core\Exception;
 
 use Nexus\Mcp\Core\Exception\AbstractJsonRpcProtocolException;
+use Nexus\Mcp\Core\Exception\DuplicateInboundRequestIdException;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\RequestId;
-use Nexus\Mcp\Server\Exception\DuplicateInboundRequestIdException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
@@ -27,7 +27,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(DuplicateInboundRequestIdException::class)]
 #[CoversClass(AbstractJsonRpcProtocolException::class)]
 #[Group('unit-tests')]
-#[Group('server-tests')]
+#[Group('core-tests')]
 final class DuplicateInboundRequestIdExceptionTest extends TestCase
 {
     public function testComposesFixedMessage(): void

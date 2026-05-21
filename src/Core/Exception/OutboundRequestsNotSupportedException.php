@@ -11,23 +11,23 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Nexus\Mcp\Server\Exception;
+namespace Nexus\Mcp\Core\Exception;
 
-use Nexus\Mcp\Core\Exception\AbstractJsonRpcProtocolException;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\RequestId;
 
 /**
- * Thrown when an inbound request reuses an id whose handler coroutine is still
- * running on the same session.
+ * Thrown when an inbound-request handler invokes the `SenderInterface::sendRequest()`
+ * stub before the corresponding outbound-request machinery has been implemented
+ * for the dispatching side.
  */
-final class DuplicateInboundRequestIdException extends AbstractJsonRpcProtocolException
+final class OutboundRequestsNotSupportedException extends AbstractJsonRpcProtocolException
 {
-    public function __construct(RequestId $requestId, ?\Throwable $previous = null)
+    public function __construct(?RequestId $requestId = null, ?\Throwable $previous = null)
     {
         parent::__construct(
             $requestId,
-            'Inbound request id is already pending on this session.',
+            'Outbound server-to-client requests are not implemented yet.',
             $previous,
         );
     }
@@ -35,6 +35,6 @@ final class DuplicateInboundRequestIdException extends AbstractJsonRpcProtocolEx
     #[\Override]
     public static function errorCode(): ProtocolErrorCode
     {
-        return ProtocolErrorCode::InvalidRequest;
+        return ProtocolErrorCode::InternalError;
     }
 }

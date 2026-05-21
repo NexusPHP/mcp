@@ -36,14 +36,6 @@ final class UnparsedResultEnvelopeTest extends TestCase
         self::assertSame(['answer' => 42], $envelope->result);
     }
 
-    public function testIdMayBeNullForUnrecoverableEnvelope(): void
-    {
-        $envelope = new UnparsedResultEnvelope(null, ['opaque' => true]);
-
-        self::assertNull($envelope->id);
-        self::assertSame(['opaque' => true], $envelope->result);
-    }
-
     public function testResultPreservesNonMapPayload(): void
     {
         $envelope = new UnparsedResultEnvelope(new RequestId(7), 'opaque-string');

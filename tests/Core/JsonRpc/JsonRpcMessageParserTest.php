@@ -398,11 +398,6 @@ final class JsonRpcMessageParserTest extends TestCase
         $parsed = $parser->parse(['jsonrpc' => '2.0', 'id' => 'req-1', 'result' => ['answer' => 42]]);
 
         self::assertInstanceOf(UnparsedResultEnvelope::class, $parsed);
-
-        if (null === $parsed->id) {
-            self::fail('Expected non-null id.');
-        }
-
         self::assertSame('req-1', $parsed->id->id);
         self::assertSame(['answer' => 42], $parsed->result);
     }
@@ -414,11 +409,6 @@ final class JsonRpcMessageParserTest extends TestCase
         $parsed = $parser->parse(['jsonrpc' => '2.0', 'id' => 7, 'result' => []]);
 
         self::assertInstanceOf(UnparsedResultEnvelope::class, $parsed);
-
-        if (null === $parsed->id) {
-            self::fail('Expected non-null id.');
-        }
-
         self::assertSame(7, $parsed->id->id);
         self::assertSame([], $parsed->result);
     }
@@ -450,7 +440,7 @@ final class JsonRpcMessageParserTest extends TestCase
         $parsed = $parser->parse(['jsonrpc' => '2.0', 'id' => 9, 'result' => 'opaque-string']);
 
         self::assertInstanceOf(UnparsedResultEnvelope::class, $parsed);
-        self::assertSame(9, $parsed->id?->id);
+        self::assertSame(9, $parsed->id->id);
         self::assertSame('opaque-string', $parsed->result);
     }
 

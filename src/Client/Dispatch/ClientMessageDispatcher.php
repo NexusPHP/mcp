@@ -11,39 +11,38 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Nexus\Mcp\Server\Dispatch;
+namespace Nexus\Mcp\Client\Dispatch;
 
 use Amp\Cancellation;
 use Amp\Future;
 use Amp\NullCancellation;
+use Nexus\Assert\Assert;
+use Nexus\Mcp\Client\ClientContext;
 use Nexus\Mcp\Core\Dispatch\MessageDispatcherInterface;
 use Nexus\Mcp\Core\Dispatch\PendingInboundRequests;
+use Nexus\Mcp\Core\Dispatch\PendingOutboundRequests;
 use Nexus\Mcp\Core\Dispatch\RequestBoundSender;
 use Nexus\Mcp\Core\Exception\AbstractJsonRpcProtocolException;
 use Nexus\Mcp\Core\Exception\DuplicateInboundRequestIdException;
 use Nexus\Mcp\Core\Exception\MethodMisroutedException;
 use Nexus\Mcp\Core\Exception\MethodNotFoundException;
+use Nexus\Mcp\Core\Exception\RemoteCallFailedException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
 use Nexus\Mcp\Core\Handler\HandlerRegistry;
 use Nexus\Mcp\Core\Handler\NotificationHandlerInterface;
 use Nexus\Mcp\Core\Handler\RequestHandlerInterface;
 use Nexus\Mcp\Core\JsonRpc\ErrorFactory;
 use Nexus\Mcp\Core\JsonRpc\JsonRpcMessageParser;
+use Nexus\Mcp\Core\JsonRpc\UnparsedResultEnvelope;
 use Nexus\Mcp\Core\Schema\Error\InternalError;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcMessage;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
-use Nexus\Mcp\Core\Schema\Notification\InitializedNotification;
-use Nexus\Mcp\Core\Schema\Request\InitializeRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Transport\TransportInterface;
-use Nexus\Mcp\Server\Exception\ServerAlreadyInitializedException;
-use Nexus\Mcp\Server\Exception\ServerNotInitializedException;
-use Nexus\Mcp\Server\Logging\LoggingLevelGate;
-use Nexus\Mcp\Server\ServerContext;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
@@ -51,10 +50,14 @@ use function Amp\async;
 use function Amp\Future\awaitAll;
 
 /**
- * Server-side per-envelope inbound dispatch. Parses, classifies, gates, resolves a handler,
- * spawns a coroutine to run it, and sends the response (or error) on the transport.
+ * Client-side per-envelope inbound dispatch. Parses, classifies, and routes:
+ * success/error response envelopes to `PendingOutboundRequests` for correlation,
+ * peer-initiated requests to registered handlers, and notifications to their
+ * handlers.
+ *
+ * @internal
  */
-final readonly class ServerMessageDispatcher implements MessageDispatcherInterface
+final readonly class ClientMessageDispatcher implements MessageDispatcherInterface
 {
     /**
      * @var \SplObjectStorage<Future<mixed>, null>
@@ -64,14 +67,13 @@ final readonly class ServerMessageDispatcher implements MessageDispatcherInterfa
     private PendingInboundRequests $inboundRequests;
 
     /**
-     * @param HandlerRegistry<RequestHandlerInterface<non-empty-string, Result, ServerContext>> $requestHandlers
+     * @param HandlerRegistry<RequestHandlerInterface<non-empty-string, Result, ClientContext>> $requestHandlers
      * @param HandlerRegistry<NotificationHandlerInterface<non-empty-string>>                   $notificationHandlers
      */
     public function __construct(
         private HandlerRegistry $requestHandlers,
         private HandlerRegistry $notificationHandlers,
-        private InitializationGate $initializationGate,
-        private LoggingLevelGate $loggingLevelGate = new LoggingLevelGate(),
+        private PendingOutboundRequests $outboundRequests,
         private LoggerInterface $logger = new NullLogger(),
         private JsonRpcMessageParser $parser = new JsonRpcMessageParser(),
         private Cancellation $cancellation = new NullCancellation(),
@@ -87,12 +89,9 @@ final readonly class ServerMessageDispatcher implements MessageDispatcherInterfa
     }
 
     /**
-     * Test-observability helper. Exists so the cleanup-in-finally arm of
-     * `track()` has a mutation kill site that no production caller needs.
+     * @return int<0, max>
      *
      * @internal
-     *
-     * @return int<0, max>
      */
     public function inFlightCount(): int
     {
@@ -106,11 +105,17 @@ final readonly class ServerMessageDispatcher implements MessageDispatcherInterfa
     public function dispatch(array $envelope, TransportInterface $transport): void
     {
         if (\array_key_exists('result', $envelope) || \array_key_exists('error', $envelope)) {
-            $this->discardResponseEnvelope($envelope);
-
-            return;
+            $this->dispatchResponseEnvelope($envelope);
+        } else {
+            $this->dispatchInboundEnvelope($envelope, $transport);
         }
+    }
 
+    /**
+     * @param array<string, mixed> $envelope
+     */
+    private function dispatchInboundEnvelope(array $envelope, TransportInterface $transport): void
+    {
         $isNotification = ! \array_key_exists('id', $envelope);
 
         try {
@@ -122,13 +127,9 @@ final readonly class ServerMessageDispatcher implements MessageDispatcherInterfa
             );
 
             if (! $isNotification) {
-                // Envelope carried an id but the method is a notification method.
-                // JSON-RPC 2.0 §4.1 forbids responses to notifications. Drop silently.
                 return;
             }
 
-            // Envelope omitted the id but the method is a request method.
-            // §5 null-id fallback. Respond so the peer can fix the malformed request.
             $this->sendResponse($transport, self::toErrorResponse($e, null), 'misrouted');
 
             return;
@@ -157,12 +158,74 @@ final readonly class ServerMessageDispatcher implements MessageDispatcherInterfa
     /**
      * @param array<string, mixed> $envelope
      */
-    private function discardResponseEnvelope(array $envelope): void
+    private function dispatchResponseEnvelope(array $envelope): void
     {
-        $this->logger->warning(
-            'Discarding response envelope (server has no outbound-request correlation).',
-            ['envelope' => $envelope],
-        );
+        try {
+            $peeked = $this->parser->parse($envelope);
+        } catch (\Throwable $e) {
+            $this->logger->warning(
+                'Discarding malformed response envelope from peer.',
+                ['envelope' => $envelope, 'exception' => $e],
+            );
+
+            return;
+        }
+
+        if ($peeked instanceof JsonRpcErrorResponse) {
+            $this->dispatchErrorResponse($peeked);
+        } elseif ($peeked instanceof UnparsedResultEnvelope) {
+            $this->dispatchSuccessResponse($envelope, $peeked);
+        }
+    }
+
+    private function dispatchErrorResponse(JsonRpcErrorResponse $response): void
+    {
+        if (null === $response->id) {
+            $this->logger->warning(
+                'Discarding error response with null id. No correlation to an outbound request is possible.',
+                ['error' => $response->error->message],
+            );
+
+            return;
+        }
+
+        $exception = new RemoteCallFailedException($response->error);
+
+        if (! $this->outboundRequests->reject($response->id, $exception)) {
+            $this->logger->warning(
+                'Discarding orphan error response for unknown request id.',
+                ['id' => $response->id->id, 'error' => $response->error->message],
+            );
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $envelope
+     */
+    private function dispatchSuccessResponse(array $envelope, UnparsedResultEnvelope $peeked): void
+    {
+        $resultClass = $this->outboundRequests->resultClassFor($peeked->id);
+
+        if (null === $resultClass) {
+            $this->logger->warning(
+                'Discarding orphan success response for unknown request id.',
+                ['id' => $peeked->id->id],
+            );
+
+            return;
+        }
+
+        try {
+            $response = $this->parser->parse($envelope, $resultClass);
+        } catch (\Throwable $e) {
+            $this->outboundRequests->reject($peeked->id, $e);
+
+            return;
+        }
+
+        Assert::that($response)->isInstanceOf(JsonRpcResultResponse::class);
+
+        $this->outboundRequests->resolve($peeked->id, $response);
     }
 
     /**
@@ -171,18 +234,6 @@ final readonly class ServerMessageDispatcher implements MessageDispatcherInterfa
     private function dispatchRequest(JsonRpcRequest $request, TransportInterface $transport): void
     {
         $method = $request::method();
-        $isInitializeRequest = InitializeRequest::method() === $method;
-
-        // Gate is mutated sync so a same-tick `notifications/initialized` sees `InitializeInFlight`.
-        if (! $this->initializationGate->allowsRequest($method)) {
-            $exception = $isInitializeRequest
-                ? new ServerAlreadyInitializedException($request->id)
-                : new ServerNotInitializedException($method, $request->id);
-
-            $this->sendResponse($transport, self::toErrorResponse($exception, $request->id), $method);
-
-            return;
-        }
 
         if (! $this->inboundRequests->claim($request->id)) {
             $exception = new DuplicateInboundRequestIdException($request->id);
@@ -191,20 +242,15 @@ final readonly class ServerMessageDispatcher implements MessageDispatcherInterfa
             return;
         }
 
-        if ($isInitializeRequest) {
-            $this->initializationGate->markInitializeInFlight();
-        }
-
-        $this->track(async(function () use ($request, $transport, $method, $isInitializeRequest): void {
+        $this->track(async(function () use ($request, $transport, $method): void {
             try {
                 $sender = new RequestBoundSender($transport, $request->id);
-                $context = new ServerContext(
+                $context = new ClientContext(
                     $request->id,
                     $this->cancellation,
                     $request->params->meta,
                     $transport->sessionId(),
                     $sender,
-                    $this->loggingLevelGate,
                 );
 
                 try {
@@ -212,26 +258,14 @@ final readonly class ServerMessageDispatcher implements MessageDispatcherInterfa
                         ?? throw new MethodNotFoundException($method, $request->id);
                     $result = $handler->handle($request, $context);
                 } catch (TransportAlreadyClosedException $e) {
-                    if ($isInitializeRequest) {
-                        $this->initializationGate->revertInitializeInFlight();
-                    }
-
                     $this->logSkippedDelivery($method, $e);
 
                     return;
                 } catch (AbstractJsonRpcProtocolException $e) {
-                    if ($isInitializeRequest) {
-                        $this->initializationGate->revertInitializeInFlight();
-                    }
-
                     $this->sendResponse($transport, self::toErrorResponse($e, $request->id), $method);
 
                     return;
                 } catch (\Throwable $e) {
-                    if ($isInitializeRequest) {
-                        $this->initializationGate->revertInitializeInFlight();
-                    }
-
                     $this->logger->error(
                         'Uncaught request handler exception.',
                         ['method' => $method, 'exception' => $e],
@@ -244,10 +278,6 @@ final readonly class ServerMessageDispatcher implements MessageDispatcherInterfa
                     return;
                 }
 
-                if ($isInitializeRequest) {
-                    $this->initializationGate->markInitializeCompleted();
-                }
-
                 $this->sendResponse($transport, new JsonRpcResultResponse($request->id, $result), $method);
             } finally {
                 $this->inboundRequests->release($request->id);
@@ -256,8 +286,29 @@ final readonly class ServerMessageDispatcher implements MessageDispatcherInterfa
     }
 
     /**
-     * Sends a response and demotes the predictable "peer hung up" failure to an info log.
+     * @param JsonRpcNotification<non-empty-string> $notification
      */
+    private function dispatchNotification(JsonRpcNotification $notification): void
+    {
+        $method = $notification::method();
+        $handler = $this->notificationHandlers->get($method);
+
+        if (null === $handler) {
+            return;
+        }
+
+        $this->track(async(function () use ($handler, $notification, $method): void {
+            try {
+                $handler->handle($notification);
+            } catch (\Throwable $e) {
+                $this->logger->error(
+                    'Uncaught notification handler exception.',
+                    ['method' => $method, 'exception' => $e],
+                );
+            }
+        }));
+    }
+
     private function sendResponse(TransportInterface $transport, JsonRpcMessage $message, string $method): void
     {
         try {
@@ -278,52 +329,6 @@ final readonly class ServerMessageDispatcher implements MessageDispatcherInterfa
             'Skipping response delivery. Transport is closed.',
             ['method' => $method, 'exception' => $exception],
         );
-    }
-
-    /**
-     * @param JsonRpcNotification<non-empty-string> $notification
-     */
-    private function dispatchNotification(JsonRpcNotification $notification): void
-    {
-        $method = $notification::method();
-
-        if (InitializedNotification::method() === $method) {
-            if (! $this->initializationGate->markInitialized()) {
-                $this->logger->warning(
-                    'Discarding "notifications/initialized" received in an unexpected initialize handshake state.',
-                    ['method' => $method],
-                );
-
-                return;
-            }
-        } elseif (! $this->initializationGate->isInitialized()) {
-            // Other notifications must wait for a complete handshake. The initialized arm above
-            // intentionally falls through even when buffered (gate may still be InitializeInFlight).
-            $this->logger->info(
-                'Dropping notification before client has completed initialize.',
-                ['method' => $method],
-            );
-
-            return;
-        }
-
-        $handler = $this->notificationHandlers->get($method);
-
-        if (null === $handler) {
-            return;
-        }
-
-        $this->track(async(function () use ($handler, $notification, $method): void {
-            try {
-                $handler->handle($notification);
-            } catch (\Throwable $e) {
-                // Notifications carry no response per JSON-RPC 2.0 §4.1. Failure is logged only.
-                $this->logger->error(
-                    'Uncaught notification handler exception.',
-                    ['method' => $method, 'exception' => $e],
-                );
-            }
-        }));
     }
 
     /**

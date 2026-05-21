@@ -11,8 +11,9 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Nexus\Mcp\Server\Dispatch;
+namespace Nexus\Mcp\Core\Dispatch;
 
+use Nexus\Mcp\Core\Exception\OutboundRequestsNotSupportedException;
 use Nexus\Mcp\Core\Handler\SenderInterface;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
@@ -20,7 +21,6 @@ use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Transport\SendContext;
 use Nexus\Mcp\Core\Transport\TransportInterface;
-use Nexus\Mcp\Server\Exception\OutboundRequestsNotSupportedException;
 
 /**
  * `SenderInterface` implementation scoped to a single inbound request. Tags

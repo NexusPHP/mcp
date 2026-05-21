@@ -8,7 +8,7 @@ that drives every inbound JSON-RPC message, and what the SDK does and does not c
 ```text
 Nexus\Mcp\
 ├── Core\               Protocol primitives. Depends on no other Mcp namespace
-│   ├── Dispatch\       MessageDispatcherInterface, PendingInboundRequests, PendingOutboundRequests
+│   ├── Dispatch\       MessageDispatcherInterface, PendingInboundRequests, PendingOutboundRequests, RequestBoundSender
 │   ├── Exception\      McpExceptionInterface marker + concrete protocol errors
 │   ├── Handler\        RequestHandlerInterface, NotificationHandlerInterface, HandlerRegistry, AbstractContext
 │   │   └── Request\    PingRequestHandler
@@ -23,7 +23,7 @@ Nexus\Mcp\
 │   ├── ServerBuilder
 │   ├── ServerContext
 │   ├── Completion\     CompletionStore
-│   ├── Dispatch\       ServerMessageDispatcher, InitializationGate, RequestBoundSender
+│   ├── Dispatch\       ServerMessageDispatcher, InitializationGate
 │   ├── Exception\      Server-side protocol errors
 │   ├── Handler\
 │   │   └── Request\    Built-in request handlers
@@ -32,7 +32,11 @@ Nexus\Mcp\
 │   ├── Resource\       ResourceStore + ResourceTemplateStore + reader adapters
 │   ├── Tool\           ToolStore + executor adapters
 │   └── Transport\      StdioServerTransport
-└── Client\             not yet shipped. Planned for the next phase
+└── Client\             Client-side composition. Depends on Core only
+    ├── Client
+    ├── ClientBuilder
+    ├── ClientContext
+    └── Dispatch\       ClientMessageDispatcher
 ```
 
 ### Layering rules
