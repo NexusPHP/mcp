@@ -934,6 +934,48 @@ final class MessageDispatcherTest extends TestCase
         );
     }
 
+    public function testDuplicateInitializedNotificationDuringInFlightLogsWarnAndDoesNotFireHandlerTwice(): void
+    {
+        $transport = new RecordingTransport();
+        $logger = new ArrayLogger();
+        $gate = new InitializationGate();
+        $notificationFired = 0;
+        $dispatcher = self::buildDispatcher(
+            gate: $gate,
+            requestHandlers: [
+                'initialize' => new ClosureRequestHandler(
+                    static fn() => new EmptyResult(),
+                ),
+            ],
+            notificationHandlers: [
+                'notifications/initialized' => new ClosureNotificationHandler(
+                    static function () use (&$notificationFired): void { ++$notificationFired; },
+                ),
+            ],
+            logger: $logger,
+        );
+
+        $dispatcher->dispatch(self::initializeEnvelope(), $transport);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'method' => 'notifications/initialized'], $transport);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'method' => 'notifications/initialized'], $transport);
+
+        EventLoop::run();
+
+        self::assertTrue($gate->isInitialized(), 'First buffered notification still flips the gate when the handler completes.');
+        self::assertSame(
+            1,
+            $notificationFired,
+            'A duplicate "notifications/initialized" arriving while the first one is buffered must not fire the user handler twice.',
+        );
+
+        $matches = $logger->recordsMatching(
+            LogLevel::WARNING,
+            'Discarding "notifications/initialized" received in an unexpected initialize handshake state.',
+        );
+        self::assertCount(1, $matches, 'The duplicate notification must produce exactly one discard WARN.');
+        self::assertSame(['method' => 'notifications/initialized'], $matches[0]['context']);
+    }
+
     public function testFailingInitializeHandlerRacedByEarlyInitializedNotificationStillRevertsToAwaitingInitialize(): void
     {
         $transport = new RecordingTransport();
