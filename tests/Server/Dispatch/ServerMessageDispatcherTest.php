@@ -30,7 +30,7 @@ use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Server\Dispatch\InitializationGate;
-use Nexus\Mcp\Server\Dispatch\MessageDispatcher;
+use Nexus\Mcp\Server\Dispatch\ServerMessageDispatcher;
 use Nexus\Mcp\Server\Exception\ResourceNotFoundException;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
@@ -46,10 +46,10 @@ use Revolt\EventLoop;
 /**
  * @internal
  */
-#[CoversClass(MessageDispatcher::class)]
+#[CoversClass(ServerMessageDispatcher::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class MessageDispatcherTest extends TestCase
+final class ServerMessageDispatcherTest extends TestCase
 {
     public function testInboundResultResponseEnvelopeIsLoggedAndDropped(): void
     {
@@ -1299,7 +1299,7 @@ final class MessageDispatcherTest extends TestCase
         array $notificationHandlers = [],
         ?InitializationGate $gate = null,
         ?ArrayLogger $logger = null,
-    ): MessageDispatcher {
+    ): ServerMessageDispatcher {
         $gate ??= new InitializationGate();
 
         if ($initialize) {
@@ -1308,7 +1308,7 @@ final class MessageDispatcherTest extends TestCase
             $gate->markInitialized();
         }
 
-        return new MessageDispatcher(
+        return new ServerMessageDispatcher(
             new HandlerRegistry($requestHandlers, RequestHandlerInterface::class, 'Request handler'),
             new HandlerRegistry($notificationHandlers, NotificationHandlerInterface::class, 'Notification handler'),
             $gate,

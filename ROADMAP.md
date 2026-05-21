@@ -32,20 +32,21 @@ composition surface (`ClientBuilder`, the client-side stores) is new.
 
 Two protocol primitives land alongside the client namespace because both sides need them. The first is
 a shared `MessageDispatcherInterface` extracted from the current server-only `MessageDispatcher`, so the
-client and server can be written against the same contract from the first commit. The second is an
-outbound-request correlation table on the transport, keyed by `RequestId`. The client uses it for every
-request it issues; the server will use it for server-initiated request methods once those land
-post-2026-06-30 (see below). Today `RequestBoundSender::sendRequest()` is a stub that throws, because
-the routing primitive does not exist yet and adding it under the server alone would force a rewrite
-when the client lands.
+client and server can be written against the same contract from the first commit. The second is a
+`PendingOutboundRequests` service under `Core/Dispatch/` that correlates inbound responses to awaiting
+senders by `RequestId`. It is a sibling of the dispatcher, not a slot on the transport contract; the
+transport stays a dumb pipe. The client uses it for every request it issues. The server will use it for
+server-initiated request methods once those land post-2026-06-30 (see below). Today
+`RequestBoundSender::sendRequest()` is a stub that throws, because the routing primitive does not exist
+yet and adding it under the server alone would force a rewrite when the client lands.
 
 The scope is deliberately bounded to pieces unaffected by the 2026-06-30 spec migration: scope is
 stdio-only on both sides, with the HTTP transport and the server-initiated request methods
 (`sampling/createMessage`, `elicitation/create`) deferred to the migration bundle. Building those
 against the current spec means rebuilding them after the migration reshapes both.
 
-- [ ] Extract `MessageDispatcherInterface` from the current server-only `MessageDispatcher`.
-- [ ] Add the outbound-request correlation table to the transport contract (keyed by `RequestId`).
+- [x] Extract `MessageDispatcherInterface` from the current server-only `MessageDispatcher`.
+- [ ] Add the `PendingOutboundRequests` correlation primitive under `Core/Dispatch/`, keyed by `RequestId`.
 - [ ] Ship `Nexus\Mcp\Client\` with `ClientBuilder`, client-side stores, and the shared dispatch kernel.
 - [ ] Cover the symmetric handshake (`initialize` / `notifications/initialized`) from the client side.
 - [ ] `Nexus\Mcp\Client\Transport\StdioClientTransport` (subprocess launcher).

@@ -325,11 +325,19 @@ final class SourceCodeTest extends TestCase
             $parent = $parent->getParentClass();
         }
 
+        foreach ($rc->getMethods(\ReflectionMethod::IS_PUBLIC) as $rm) {
+            $docComment = $rm->getDocComment();
+
+            if (\is_string($docComment) && str_contains($docComment, '@internal')) {
+                $allowedMethods[] = $rm->getName();
+            }
+        }
+
         $extraMethods = array_values(array_diff(self::getPublicMethodNames($rc), array_unique($allowedMethods)));
         sort($extraMethods);
 
         self::assertEmpty($extraMethods, \sprintf(
-            "Class \"%s\" has public methods (instance or static) that are not part of its implemented interfaces (or inherited from a parent class).\n%s",
+            "Class \"%s\" has public methods (instance or static) that are not on an implemented interface, inherited from a parent class, or marked @internal.\n%s",
             $class,
             implode("\n", array_map(
                 static fn(string $method): string => \sprintf('  * public function %s()', $method),

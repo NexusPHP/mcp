@@ -8,6 +8,7 @@ that drives every inbound JSON-RPC message, and what the SDK does and does not c
 ```text
 Nexus\Mcp\
 ├── Core\               Protocol primitives. Depends on no other Mcp namespace
+│   ├── Dispatch\       MessageDispatcherInterface
 │   ├── Exception\      McpExceptionInterface marker + concrete protocol errors
 │   ├── Handler\        RequestHandlerInterface, NotificationHandlerInterface, HandlerRegistry, AbstractContext
 │   │   └── Request\    PingRequestHandler
@@ -22,7 +23,7 @@ Nexus\Mcp\
 │   ├── ServerBuilder
 │   ├── ServerContext
 │   ├── Completion\     CompletionStore
-│   ├── Dispatch\       MessageDispatcher, InitializationGate, RequestBoundSender
+│   ├── Dispatch\       ServerMessageDispatcher, InitializationGate, RequestBoundSender
 │   ├── Exception\      Server-side protocol errors
 │   ├── Handler\
 │   │   └── Request\    Built-in request handlers
@@ -71,7 +72,9 @@ That wrapper therefore has no `fromArray()` and is constructed only via
 
 ## The dispatch kernel
 
-[`MessageDispatcher`](../src/Server/Dispatch/MessageDispatcher.php) is the per-envelope inbound pipeline.
+[`ServerMessageDispatcher`](../src/Server/Dispatch/ServerMessageDispatcher.php) implements the shared
+[`MessageDispatcherInterface`](../src/Core/Dispatch/MessageDispatcherInterface.php) for the server side. It
+is the per-envelope inbound pipeline.
 
 ```text
 inbound envelope (array)
