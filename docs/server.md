@@ -84,6 +84,13 @@ level on the PSR-3 logger configured via `ServerBuilder::setLogger()`. To surfac
 return `new CallToolResult(content: [...], isError: true)` from the executor instead of throwing.
 Protocol-level conditions (`ToolNotFoundException`, etc.) still surface as JSON-RPC errors.
 
+> [!WARNING]
+> The generic-text wrap above only covers the `\Throwable` arm. Messages thrown via
+> `AbstractJsonRpcProtocolException` subclasses (`InvalidParamsException` and similar) are surfaced
+> **verbatim** in the JSON-RPC `error.message` field. Keep those strings free of paths, credentials,
+> connection strings, and any other sensitive data. The recommended pattern for surfacing tool errors is
+> `return new CallToolResult(content: [...], isError: true)`, not throwing a protocol exception.
+
 ## Prompts
 
 ```php
