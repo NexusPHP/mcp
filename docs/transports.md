@@ -79,7 +79,9 @@ Behaviour:
   `send()` or `start()` calls throw `TransportAlreadyClosedException`. If a concurrent close (e.g. EOF on
   the read loop) lands while a `send()` is suspended in the byte-stream `write()`, the resulting stream
   failure is wrapped into `TransportAlreadyClosedException` (with the original throwable preserved as
-  `getPrevious()`) so callers can demote uniformly.
+  `getPrevious()`) so callers can demote uniformly. The transport also emits a per-message-shape DEBUG
+  log on that path carrying the request id, method, and the underlying throwable, so operators retain a
+  granular audit trail even though the dispatcher reports the symptom at INFO.
 - **STDOUT discipline**: MCP servers MUST NOT write anything to STDOUT outside the JSON-RPC stream. Send
   all diagnostic logs to STDERR via the PSR-3 logger you pass in.
 

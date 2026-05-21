@@ -371,10 +371,10 @@ final class StdioServerTransportTest extends TestCase
     {
         $boom = new \RuntimeException('stdout was concurrently closed');
         $readable = new ReadableIterableStream(new \ArrayIterator([]));
+        $logger = new ArrayLogger();
         $writable = new ThrowingWritableStream(
             $boom,
             beforeThrow: function (): void {
-                // Simulate a different fiber closing the transport while write() is suspended.
                 $sut = $this->transportUnderConcurrentClose;
 
                 if (! $sut instanceof StdioServerTransport) {
@@ -384,7 +384,7 @@ final class StdioServerTransportTest extends TestCase
                 $sut->close();
             },
         );
-        $this->transportUnderConcurrentClose = new StdioServerTransport($readable, $writable);
+        $this->transportUnderConcurrentClose = new StdioServerTransport($readable, $writable, $logger);
 
         $this->transportUnderConcurrentClose->start();
 
@@ -405,6 +405,85 @@ final class StdioServerTransportTest extends TestCase
         }
 
         EventLoop::run();
+
+        self::assertCount(
+            0,
+            $logger->messagesAtLevel(LogLevel::ERROR),
+            'Concurrent-close must not log at ERROR. That severity is reserved for genuine send failures (state still Running on entry to catch).',
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $expectedContext
+     */
+    #[DataProvider('provideLoggerEmitsDebugOnConcurrentCloseSkippedSendCases')]
+    public function testLoggerEmitsDebugOnConcurrentCloseSkippedSend(JsonRpcMessage $message, string $template, array $expectedContext): void
+    {
+        $boom = new \RuntimeException('stdout was concurrently closed');
+        $readable = new ReadableIterableStream(new \ArrayIterator([]));
+        $logger = new ArrayLogger();
+        $writable = new ThrowingWritableStream(
+            $boom,
+            beforeThrow: function (): void {
+                $sut = $this->transportUnderConcurrentClose;
+
+                if (! $sut instanceof StdioServerTransport) {
+                    throw new \LogicException('Transport reference must be wired before this callback fires.');
+                }
+
+                $sut->close();
+            },
+        );
+        $this->transportUnderConcurrentClose = new StdioServerTransport($readable, $writable, $logger);
+
+        $this->transportUnderConcurrentClose->start();
+
+        try {
+            $this->transportUnderConcurrentClose->send($message);
+        } catch (TransportAlreadyClosedException) {
+        }
+
+        EventLoop::run();
+
+        $matches = $logger->recordsMatching(LogLevel::DEBUG, $template);
+        self::assertCount(1, $matches);
+        self::assertSame(['exception' => $boom] + $expectedContext, $matches[0]['context']);
+    }
+
+    /**
+     * @return iterable<string, array{JsonRpcMessage, string, array<string, mixed>}>
+     */
+    public static function provideLoggerEmitsDebugOnConcurrentCloseSkippedSendCases(): iterable
+    {
+        yield 'request' => [
+            new PingRequest(new RequestId(42)),
+            'Stdio transport skipped sending "{method}" request with ID "{id}". Transport was concurrently closed.',
+            ['method' => 'ping', 'id' => 42],
+        ];
+
+        yield 'notification' => [
+            new CancelledNotification(new CancelledNotificationParams(new RequestId(7))),
+            'Stdio transport skipped sending "{method}" notification. Transport was concurrently closed.',
+            ['method' => 'notifications/cancelled'],
+        ];
+
+        yield 'result response' => [
+            new JsonRpcResultResponse(new RequestId(99), new EmptyResult()),
+            'Stdio transport skipped sending result response for request ID "{id}". Transport was concurrently closed.',
+            ['id' => 99],
+        ];
+
+        yield 'error response with id' => [
+            new JsonRpcErrorResponse(new RequestId(5), new InvalidParamsError('bad params')),
+            'Stdio transport skipped sending an error response for request ID "{id}". Transport was concurrently closed.',
+            ['id' => 5],
+        ];
+
+        yield 'error response with no id' => [
+            new JsonRpcErrorResponse(null, new ParseError('unparsable')),
+            'Stdio transport skipped sending an error response with no correlatable ID. Transport was concurrently closed.',
+            [],
+        ];
     }
 
     public function testMessageListenerThrowFiresErrorListener(): void
