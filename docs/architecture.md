@@ -14,7 +14,7 @@ Nexus\Mcp\
 │   │   └── Request\    Built-in request handlers shared by both peers
 │   ├── JsonRpc\        Envelope parser, method registry, parser-state value objects
 │   ├── Schema\         Types only (value objects, enums, interfaces). No behaviour
-│   ├── Transport\      Transport contract, lifecycle event keys, in-memory paired transports for tests
+│   ├── Transport\      Transport contract, lifecycle event keys, shared line-framed duplex, in-memory paired transports for tests
 │   ├── UriTemplate\    RFC 6570 expansion plus matching
 │   └── Validation\     URI templates, RFC 3339, enum-value coercion
 ├── Server\             Server-side composition. Depends on Core only
@@ -29,7 +29,8 @@ Nexus\Mcp\
 │   ├── Tool\           Tool store plus executor adapters
 │   └── Transport\      Server-side transport implementations
 └── Client\             Client-side composition. Depends on Core only
-    └── Dispatch\       Client-side per-envelope inbound pipeline plus the outbound handshake gate
+    ├── Dispatch\       Client-side per-envelope inbound pipeline plus the outbound handshake gate
+    └── Transport\      Client-side transport implementations
 ```
 
 ### Layering rules

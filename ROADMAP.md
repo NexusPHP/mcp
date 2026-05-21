@@ -49,7 +49,7 @@ against the current spec means rebuilding them after the migration reshapes both
 - [x] Add the `PendingOutboundRequests` correlation primitive under `Core/Dispatch/`, keyed by `RequestId`.
 - [x] Ship `Nexus\Mcp\Client\` with `ClientBuilder`, client-side stores, and the shared dispatch kernel.
 - [x] Cover the symmetric handshake (`initialize` / `notifications/initialized`) from the client side.
-- [ ] `Nexus\Mcp\Client\Transport\StdioClientTransport` (subprocess launcher).
+- [x] `Nexus\Mcp\Client\Transport\StdioClientTransport` (subprocess launcher).
 - [ ] End-to-end stdio client / server example.
 
 ## v0.1.0

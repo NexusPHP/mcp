@@ -149,7 +149,7 @@ final class ServerTest extends TestCase
 
         $serverRun->await();
 
-        $startup = $logger->recordsMatching(LogLevel::INFO, 'Starting MCP server with {transport} server transport.');
+        $startup = $logger->recordsMatching(LogLevel::INFO, 'Starting MCP server with {transport} transport.');
         self::assertCount(1, $startup);
         self::assertSame(['transport' => 'recording'], $startup[0]['context']);
 

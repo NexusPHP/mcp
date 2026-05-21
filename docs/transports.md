@@ -30,8 +30,8 @@ The four `on*` methods are listener registration. The `Server` wires listeners f
 `onError` (log), `onDrain` (await in-flight coroutines), and `onClose` (resolve the run-future) once,
 before calling `start()`.
 
-`label()` returns a short human-friendly identifier (e.g. `'stdio'`, `'in-memory'`) for log and debug
-output. It is not a stable machine identifier.
+`label()` returns a short human-friendly identifier (e.g. `'Stdio server'`, `'Stdio client'`, `'in-memory'`)
+for log and debug output. It is not a stable machine identifier.
 
 `sessionId()` returns the transport's session identifier when there is one. Stdio servers run one process
 per session, so the stdio transport returns `null`. Streamable HTTP will populate this once the transport
@@ -97,6 +97,39 @@ $reader = new BufferedReader(/* … */);
 $writer = new WritableBuffer();
 $transport = new StdioServerTransport(stdin: $reader, stdout: $writer);
 ```
+
+## `StdioClientTransport`
+
+```php
+use Nexus\Mcp\Client\Transport\StdioClientTransport;
+use Psr\Log\NullLogger;
+
+$transport = new StdioClientTransport(
+    command: ['php', 'examples/stdio-server.php'],  // argv. No shell interpretation
+    workingDirectory: null,                          // optional cwd; defaults to current
+    env: [],                                         // optional env vars; empty inherits parent
+    logger: $psrLogger,                              // optional; default: NullLogger
+    maxLineBytes: 4_194_304,                         // optional cap; default 4 MiB
+);
+```
+
+Launches an MCP server as a subprocess and exchanges line-framed JSON-RPC envelopes over its
+STDIN/STDOUT. Subprocess STDERR is forwarded line-by-line through the supplied PSR-3 logger at INFO
+level.
+
+Behaviour:
+
+- **Launch**: `start()` invokes `Amp\Process\Process::start(...)` with the supplied command. The first
+  array element is the executable; the rest are arguments. There is no shell interpretation; pass arguments
+  separately to avoid quoting bugs.
+- **Framing**: same line-framed JSON-RPC as the server transport. Outbound writes go to the subprocess's
+  stdin; inbound lines come from its stdout.
+- **STDERR**: a second pump runs in parallel and forwards every stderr line to the logger as
+  `info('Subprocess stderr: {line}', ['line' => $line])`. Errors during the stderr pump log a warning but
+  do not affect transport state.
+- **Close**: closes the subprocess's stdin (signalling EOF), then sends `SIGKILL` if the subprocess is
+  still running. `SIGTERM` would be preferable but `amphp/process` runs subprocesses behind a shell
+  wrapper that ignores `SIGTERM`, so `SIGKILL` is the only signal guaranteed to terminate the child.
 
 ## `InMemoryTransport` (test only)
 

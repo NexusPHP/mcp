@@ -63,7 +63,7 @@ final class ClientTest extends TestCase
         $client->connect($transport);
 
         self::assertTrue($transport->started);
-        $matches = $logger->recordsMatching(LogLevel::INFO, 'Starting MCP client with {transport} client transport.');
+        $matches = $logger->recordsMatching(LogLevel::INFO, 'Starting MCP client with {transport} transport.');
         self::assertCount(1, $matches);
         self::assertSame(['transport' => 'recording'], $matches[0]['context']);
     }

@@ -11,37 +11,44 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Nexus\Mcp\Tests\Fixtures\Server;
+namespace Nexus\Mcp\Tests\Fixtures\Core\Transport;
 
-use Amp\ByteStream\ReadableStream;
-use Amp\ByteStream\ReadableStreamIteratorAggregate;
-use Amp\Cancellation;
+use Amp\ByteStream\WritableStream;
 
 /**
- * Readable stream that throws on every `read()` call.
+ * Writable stream that throws on every `write()` call.
  *
  * @internal
- *
- * @implements \IteratorAggregate<int, string>
  */
-final class ThrowingReadableStream implements \IteratorAggregate, ReadableStream
+final class ThrowingWritableStream implements WritableStream
 {
-    use ReadableStreamIteratorAggregate;
-
     private bool $closed = false;
 
-    public function __construct(private readonly \Throwable $error)
+    /**
+     * @param null|\Closure(): void $beforeThrow
+     */
+    public function __construct(private readonly \Throwable $error, private readonly ?\Closure $beforeThrow = null)
     {
     }
 
     #[\Override]
-    public function read(?Cancellation $cancellation = null): ?string
+    public function write(string $bytes): void
     {
+        if (null !== $this->beforeThrow) {
+            ($this->beforeThrow)();
+        }
+
         throw $this->error;
     }
 
     #[\Override]
-    public function isReadable(): bool
+    public function end(): void
+    {
+        $this->closed = true;
+    }
+
+    #[\Override]
+    public function isWritable(): bool
     {
         return ! $this->closed;
     }
