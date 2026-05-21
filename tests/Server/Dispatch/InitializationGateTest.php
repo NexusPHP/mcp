@@ -133,15 +133,53 @@ final class InitializationGateTest extends TestCase
         self::assertFalse($gate->markInitializeCompleted());
     }
 
-    public function testMarkInitializedFromInFlightIsRejectedToCloseTheSameTickRace(): void
+    public function testMarkInitializedFromInFlightBuffersTheNotificationUntilTheHandlerCompletes(): void
     {
         $gate = new InitializationGate();
         $gate->markInitializeInFlight();
 
+        self::assertTrue(
+            $gate->markInitialized(),
+            'A same-tick "notifications/initialized" must be buffered (accepted, not dropped) so a spec-allowed pipelining client is not wedged.',
+        );
+        self::assertFalse($gate->isInitialized(), 'Gate stays in-flight until the handler completes.');
+        self::assertFalse($gate->allowsRequest('tools/list'), 'Feature requests must remain blocked while the handler is still running.');
+    }
+
+    public function testBufferedNotificationConsumedByMarkInitializeCompletedFlipsStraightToInitialized(): void
+    {
+        $gate = new InitializationGate();
+        $gate->markInitializeInFlight();
+        $gate->markInitialized();
+
+        self::assertTrue($gate->markInitializeCompleted());
+        self::assertTrue(
+            $gate->isInitialized(),
+            'When the buffer holds a pending "notifications/initialized", the handler-completion transition skips InitializeCompleted and lands on Initialized directly.',
+        );
+    }
+
+    public function testSecondInitializedNotificationDuringInFlightIsRejectedAsDuplicate(): void
+    {
+        $gate = new InitializationGate();
+        $gate->markInitializeInFlight();
+        $gate->markInitialized();
+
         self::assertFalse(
             $gate->markInitialized(),
-            'A "notifications/initialized" arriving before the initialize handler completes must be dropped, not flip the gate.',
+            'A duplicate "notifications/initialized" must not silently re-buffer. Two calls land one WARN log.',
         );
+    }
+
+    public function testRevertInitializeInFlightClearsTheBufferedNotificationFlag(): void
+    {
+        $gate = new InitializationGate();
+        $gate->markInitializeInFlight();
+        $gate->markInitialized();
+        $gate->revertInitializeInFlight();
+
+        self::assertTrue($gate->markInitializeInFlight(), 'Retry handshake must succeed after revert.');
+        self::assertTrue($gate->markInitializeCompleted(), 'Retry handler completion must land on InitializeCompleted, not Initialized. The prior buffered notification was cleared.');
         self::assertFalse($gate->isInitialized());
     }
 

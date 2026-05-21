@@ -107,15 +107,19 @@ Two pieces are worth calling out:
 
 ### `InitializationGate`
 
-Holds a single piece of state: the lifecycle phase (`AwaitingInitialize`, `InitializeInFlight`,
-`InitializeCompleted`, `Initialized`). `InitializeInFlight` is set synchronously when the `initialize`
-request is accepted (before the handler runs). `InitializeCompleted` is set from inside the request
-coroutine once the handler returns successfully. `markInitialized()` requires `InitializeCompleted`, so a
-`notifications/initialized` arriving on the same read-loop tick as the `initialize` request is dropped
-rather than racing the handler.
+Holds the lifecycle phase (`AwaitingInitialize`, `InitializeInFlight`, `InitializeCompleted`,
+`Initialized`) plus a one-bit `pendingInitializedNotification` flag. `InitializeInFlight` is set
+synchronously when the `initialize` request is accepted (before the handler runs). When the handler
+returns successfully, the coroutine calls `markInitializeCompleted()`, which folds the buffered
+notification flag into the transition: if `notifications/initialized` arrived while the handler was
+still running, the gate jumps `InitializeInFlight` -> `Initialized` directly; otherwise it transitions
+to `InitializeCompleted` to wait for the notification. `markInitialized()` accepts both an in-flight
+arrival (buffers it) and a post-completion arrival (flips to `Initialized`); the buffer flag is cleared
+on `revertInitializeInFlight()` so a retry handshake starts fresh.
 Consulted on every request to enforce the spec's "no other method may be invoked before `initialize`
 completes" rule. It also rejects a second `initialize` once one is in flight, and silently drops
-`notifications/initialized` envelopes that arrive outside a valid handshake.
+`notifications/initialized` envelopes that arrive outside a valid handshake (either no handshake yet,
+or one already completed, or a duplicate during the buffered window).
 
 ### `LoggingLevelGate`
 
