@@ -25,7 +25,7 @@ on:
       - phpstan-baseline.php
 
 env:
-  PHP_VERSION_DEFAULT: '8.4'
+  DEFAULT_PHP_VERSION: '8.4'
 
 permissions:
   contents: read
@@ -50,7 +50,7 @@ jobs:
       - name: Set up PHP
         uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # 2.37.1
         with:
-          php-version: ${{ env.PHP_VERSION_DEFAULT }}
+          php-version: ${{ env.DEFAULT_PHP_VERSION }}
           coverage: xdebug
 
       - name: Get Composer cache directory
@@ -61,21 +61,24 @@ jobs:
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: composer-${{ env.PHP_VERSION_DEFAULT }}-${{ hashFiles('**/composer.lock') }}
+          key: composer-${{ env.DEFAULT_PHP_VERSION }}-${{ hashFiles('**/composer.lock') }}
           restore-keys: |
-            composer-${{ env.PHP_VERSION_DEFAULT }}-
+            composer-${{ env.DEFAULT_PHP_VERSION }}-
             composer-
 
       - name: Install dependencies
-        run: composer update --ansi --no-interaction
-
-      - name: Run Composer security audit
-        run: composer audit --ansi
+        run: |
+          composer update --ansi
+          composer audit --ansi
 
       - name: Run mutation testing on full codebase (push)
         if: github.event_name == 'push'
         run: composer mutation:check
+        env:
+          INFECTION_DASHBOARD_API_KEY: ${{ secrets.INFECTION_DASHBOARD_API_KEY }}
 
       - name: Run mutation testing on changed files (pull request)
         if: github.event_name == 'pull_request'
         run: composer mutation:filter
+        env:
+          INFECTION_DASHBOARD_API_KEY: ${{ secrets.INFECTION_DASHBOARD_API_KEY }}
