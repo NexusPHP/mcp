@@ -54,13 +54,6 @@ final class StdioClientTransportTest extends TestCase
         self::assertNull($transport->sessionId());
     }
 
-    public function testLabelIsStdioClient(): void
-    {
-        $transport = self::buildTransport();
-
-        self::assertSame('Stdio client', $transport->label());
-    }
-
     public function testSendBeforeStartThrows(): void
     {
         $transport = self::buildTransport();

@@ -63,13 +63,6 @@ final class StdioServerTransportTest extends TestCase
         self::assertNull($transport->sessionId());
     }
 
-    public function testLabelIsStdioServer(): void
-    {
-        $transport = new StdioServerTransport(new ReadableBuffer(''), new WritableBuffer());
-
-        self::assertSame('Stdio server', $transport->label());
-    }
-
     public function testEmitsDecodedEnvelope(): void
     {
         $transport = self::buildTransportReading(['{"jsonrpc":"2.0","id":1,"method":"ping"}'."\n"]);

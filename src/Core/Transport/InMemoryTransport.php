@@ -130,12 +130,6 @@ final class InMemoryTransport implements TransportInterface
     }
 
     #[\Override]
-    public function label(): string
-    {
-        return 'in-memory';
-    }
-
-    #[\Override]
     public function onMessage(\Closure $listener): SubscriptionInterface
     {
         return $this->events->onMessage($listener);

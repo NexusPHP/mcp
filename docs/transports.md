@@ -16,7 +16,6 @@ interface TransportInterface
     public function start(): void;
     public function send(JsonRpcMessage $message, ?SendContext $context = null): void;
     public function close(): void;
-    public function label(): string;
     public function sessionId(): ?string;
 
     public function onMessage(\Closure $listener): SubscriptionInterface;
@@ -26,12 +25,9 @@ interface TransportInterface
 }
 ```
 
-The four `on*` methods are listener registration. The `Server` wires listeners for `onMessage` (dispatch),
+The four `on*` methods are listener registration. The `Server` registers listeners for `onMessage` (dispatch),
 `onError` (log), `onDrain` (await in-flight coroutines), and `onClose` (resolve the run-future) once,
 before calling `start()`.
-
-`label()` returns a short human-friendly identifier (e.g. `'Stdio server'`, `'Stdio client'`, `'in-memory'`)
-for log and debug output. It is not a stable machine identifier.
 
 `sessionId()` returns the transport's session identifier when there is one. Stdio servers run one process
 per session, so the stdio transport returns `null`. Streamable HTTP will populate this once the transport

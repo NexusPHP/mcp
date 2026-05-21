@@ -130,12 +130,6 @@ final class RecordingTransport implements TransportInterface
     }
 
     #[\Override]
-    public function label(): string
-    {
-        return 'recording';
-    }
-
-    #[\Override]
     public function onMessage(\Closure $listener): SubscriptionInterface
     {
         $this->messageListeners[] = $listener;
