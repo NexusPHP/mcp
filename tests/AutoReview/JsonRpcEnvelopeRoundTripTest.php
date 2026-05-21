@@ -61,12 +61,12 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
     {
         $missing = [];
 
-        foreach (self::concreteSubclasses(Result::class) as $resultClass) {
-            $shortName = new \ReflectionClass($resultClass)->getShortName();
+        foreach (self::concreteSubclasses(Result::class) as $result) {
+            $shortName = new \ReflectionClass($result)->getShortName();
             $expectedDir = 'JsonRpcResultResponse-'.$shortName;
 
             if (! is_dir(self::fixtureRoot().'/'.$expectedDir)) {
-                $missing[] = $resultClass;
+                $missing[] = $result;
             }
         }
 

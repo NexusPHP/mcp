@@ -57,17 +57,17 @@ final class JsonRpcMessageParser
     /**
      * @template T of Result = Result
      *
-     * @param array<string, mixed> $message     Decoded JSON-RPC envelope
-     * @param null|class-string<T> $resultClass When null, a success response envelope yields an `UnparsedResultEnvelope`
-     *                                          carrying the raw payload. When supplied, it is decoded into `JsonRpcResultResponse<T>`.
+     * @param array<string, mixed> $message Decoded JSON-RPC envelope
+     * @param null|class-string<T> $result  When null, a success response envelope yields an `UnparsedResultEnvelope`
+     *                                      carrying the raw payload. When supplied, it is decoded into `JsonRpcResultResponse<T>`.
      *
-     * @return ($resultClass is null
+     * @return ($result is null
      *     ? JsonRpcErrorResponse|JsonRpcNotification<non-empty-string>|JsonRpcRequest<non-empty-string>|UnparsedResultEnvelope
      *     : JsonRpcErrorResponse|JsonRpcNotification<non-empty-string>|JsonRpcRequest<non-empty-string>|JsonRpcResultResponse<T>)
      *
      * @throws AbstractJsonRpcProtocolException
      */
-    public function parse(array $message, ?string $resultClass = null): JsonRpcMessage|UnparsedResultEnvelope
+    public function parse(array $message, ?string $result = null): JsonRpcMessage|UnparsedResultEnvelope
     {
         self::assertJsonRpcVersion($message);
 
@@ -90,7 +90,7 @@ final class JsonRpcMessageParser
                 throw new InvalidRequestException(self::extractRequestId($message), $e->getMessage());
             }
 
-            if (null === $resultClass) {
+            if (null === $result) {
                 return new UnparsedResultEnvelope(new RequestId($message['id']), $message['result']);
             }
 
@@ -104,11 +104,11 @@ final class JsonRpcMessageParser
             }
 
             try {
-                $typed = $resultClass::fromArray($message['result']);
+                $typed = $result::fromArray($message['result']);
             } catch (\InvalidArgumentException $e) {
                 throw new InvalidRequestException(
                     self::extractRequestId($message),
-                    \sprintf('Invalid %s payload: %s', $resultClass, $e->getMessage()),
+                    \sprintf('Invalid %s payload: %s', $result, $e->getMessage()),
                 );
             }
 
