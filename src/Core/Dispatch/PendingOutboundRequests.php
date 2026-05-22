@@ -49,7 +49,7 @@ final class PendingOutboundRequests implements \Countable
      */
     public function register(RequestId $id, string $result): Future
     {
-        $key = $this->key($id);
+        $key = self::key($id);
 
         if (\array_key_exists($key, $this->map)) {
             throw new \LogicException(\sprintf(
@@ -73,7 +73,7 @@ final class PendingOutboundRequests implements \Countable
      */
     public function resultClassFor(RequestId $id): ?string
     {
-        $key = $this->key($id);
+        $key = self::key($id);
 
         if (! \array_key_exists($key, $this->map)) {
             return null;
@@ -90,7 +90,7 @@ final class PendingOutboundRequests implements \Countable
      */
     public function resolve(RequestId $id, JsonRpcResultResponse $response): bool
     {
-        $key = $this->key($id);
+        $key = self::key($id);
 
         if (! \array_key_exists($key, $this->map)) {
             return false;
@@ -109,7 +109,7 @@ final class PendingOutboundRequests implements \Countable
      */
     public function reject(RequestId $id, \Throwable $error): bool
     {
-        $key = $this->key($id);
+        $key = self::key($id);
 
         if (! \array_key_exists($key, $this->map)) {
             return false;
@@ -135,17 +135,17 @@ final class PendingOutboundRequests implements \Countable
         }
     }
 
-    /**
-     * @return non-empty-string
-     */
-    public function key(RequestId $id): string
-    {
-        return \sprintf('"id":%s', var_export($id->id, true));
-    }
-
     #[\Override]
     public function count(): int
     {
         return \count($this->map);
+    }
+
+    /**
+     * @return non-empty-string
+     */
+    private static function key(RequestId $id): string
+    {
+        return \sprintf('"id":%s', var_export($id->id, true));
     }
 }

@@ -120,15 +120,4 @@ final class PendingInboundRequestsTest extends TestCase
 
         self::assertCount(0, $set);
     }
-
-    public function testKeyProducesStableKeys(): void
-    {
-        $set = new PendingInboundRequests();
-
-        self::assertSame('"id":1', $set->key(new RequestId(1)));
-        self::assertSame('"id":\'1\'', $set->key(new RequestId('1')));
-        self::assertSame('"id":\'correlation-token\'', $set->key(new RequestId('correlation-token')));
-        self::assertSame('"id":\'a\\\'b\'', $set->key(new RequestId('a\'b')));
-        self::assertSame('"id":\'a\\\\b\'', $set->key(new RequestId('a\\b')));
-    }
 }

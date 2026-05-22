@@ -215,15 +215,6 @@ final class PendingOutboundRequestsTest extends TestCase
         self::assertCount(1, $pending);
     }
 
-    public function testKeyProducesStableKeys(): void
-    {
-        $pending = new PendingOutboundRequests();
-
-        self::assertSame('"id":1', $pending->key(new RequestId(1)));
-        self::assertSame('"id":\'1\'', $pending->key(new RequestId('1')));
-        self::assertSame('"id":\'corr-token\'', $pending->key(new RequestId('corr-token')));
-    }
-
     public function testResultClassForReturnsTheRegisteredClass(): void
     {
         $pending = new PendingOutboundRequests();
