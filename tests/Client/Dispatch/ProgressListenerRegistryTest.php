@@ -55,6 +55,19 @@ final class ProgressListenerRegistryTest extends TestCase
         self::assertSame($listener, $registry->get(new ProgressToken(7)));
     }
 
+    public function testIntAndNumericStringTokensDoNotCollide(): void
+    {
+        $registry = new ProgressListenerRegistry();
+        $intListener = static function (float $progress, ?float $total, ?string $message): void {};
+        $stringListener = static function (float $progress, ?float $total, ?string $message): void {};
+
+        $registry->register(new ProgressToken(7), $intListener);
+        $registry->register(new ProgressToken('7'), $stringListener);
+
+        self::assertSame($intListener, $registry->get(new ProgressToken(7)));
+        self::assertSame($stringListener, $registry->get(new ProgressToken('7')));
+    }
+
     public function testUnregisterRemovesTheListener(): void
     {
         $registry = new ProgressListenerRegistry();
