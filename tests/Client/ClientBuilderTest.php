@@ -15,7 +15,9 @@ namespace Nexus\Mcp\Tests\Client;
 
 use Nexus\Mcp\Client\ClientBuilder;
 use Nexus\Mcp\Core\Schema\ProtocolVersion;
+use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
 use Nexus\Mcp\Core\Schema\Request\InitializeRequest;
+use Nexus\Mcp\Core\Schema\Request\ListToolsRequest;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureNotificationHandler;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureRequestHandler;
@@ -69,6 +71,15 @@ final class ClientBuilderTest extends TestCase
         self::assertSame($builder, $returned);
     }
 
+    public function testSetProgressTokenFactoryIsFluent(): void
+    {
+        $builder = new ClientBuilder();
+
+        $returned = $builder->setProgressTokenFactory(static fn(): string => 'tok');
+
+        self::assertSame($builder, $returned);
+    }
+
     public function testAddRequestHandlerIsFluent(): void
     {
         $builder = new ClientBuilder();
@@ -114,6 +125,18 @@ final class ClientBuilderTest extends TestCase
             ],
         ]);
         $deferred->await();
+
+        // A second factory-minted id must increment, not reset to 1. Guards against an
+        // arrow-function factory whose by-value counter capture never persists.
+        $list = async(static fn() => $client->listTools());
+        $transport->nextSend()->await();
+        self::assertCount(3, $transport->sent);
+        $listRequest = $transport->sent[2]['message'];
+        self::assertInstanceOf(ListToolsRequest::class, $listRequest);
+        self::assertSame(2, $listRequest->id->id, 'The factory must increment across calls.');
+
+        $transport->emitMessage(['jsonrpc' => '2.0', 'id' => $listRequest->id->id, 'result' => ['tools' => []]]);
+        $list->await();
     }
 
     public function testBuildPropagatesTheCustomRequestIdFactoryToTheClient(): void
@@ -146,5 +169,49 @@ final class ClientBuilderTest extends TestCase
             ],
         ]);
         $deferred->await();
+    }
+
+    public function testBuildDefaultsToIncrementingProgressTokenFactoryWhenNoneIsSet(): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+
+        $handshake = async(static fn() => $client->initialize());
+        $transport->nextSend()->await();
+        self::assertCount(1, $transport->sent);
+        $initRequest = $transport->sent[0]['message'];
+        self::assertInstanceOf(InitializeRequest::class, $initRequest);
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => $initRequest->id->id,
+            'result' => [
+                'protocolVersion' => ProtocolVersion::LATEST_VERSION,
+                'capabilities' => [],
+                'serverInfo' => ['name' => 'srv', 'version' => '1'],
+            ],
+        ]);
+        $handshake->await();
+
+        $onProgress = static function (float $progress, ?float $total, ?string $message): void {};
+
+        $first = async(static fn() => $client->callTool('a', null, $onProgress));
+        $transport->nextSend()->await();
+        self::assertCount(3, $transport->sent);
+        $firstRequest = $transport->sent[2]['message'];
+        self::assertInstanceOf(CallToolRequest::class, $firstRequest);
+        $transport->emitMessage(['jsonrpc' => '2.0', 'id' => $firstRequest->id->id, 'result' => ['content' => []]]);
+        $first->await();
+
+        $second = async(static fn() => $client->callTool('b', null, $onProgress));
+        $transport->nextSend()->await();
+        self::assertCount(4, $transport->sent);
+        $secondRequest = $transport->sent[3]['message'];
+        self::assertInstanceOf(CallToolRequest::class, $secondRequest);
+        $transport->emitMessage(['jsonrpc' => '2.0', 'id' => $secondRequest->id->id, 'result' => ['content' => []]]);
+        $second->await();
+
+        self::assertSame('progress-1', $firstRequest->params->meta->progressToken?->token);
+        self::assertSame('progress-2', $secondRequest->params->meta->progressToken?->token);
     }
 }

@@ -19,10 +19,13 @@ use Nexus\Mcp\Core\Exception\RemoteCallFailedException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
 use Nexus\Mcp\Core\Schema\ClientCapabilities;
 use Nexus\Mcp\Core\Schema\Cursor;
+use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\Notification\InitializedNotification;
+use Nexus\Mcp\Core\Schema\Notification\ProgressNotification;
 use Nexus\Mcp\Core\Schema\Prompt\PromptReference;
 use Nexus\Mcp\Core\Schema\ProtocolVersion;
+use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
 use Nexus\Mcp\Core\Schema\Request\CompleteRequest;
 use Nexus\Mcp\Core\Schema\Request\GetPromptRequest;
 use Nexus\Mcp\Core\Schema\Request\InitializeRequest;
@@ -34,6 +37,7 @@ use Nexus\Mcp\Core\Schema\Request\PingRequest;
 use Nexus\Mcp\Core\Schema\Request\ReadResourceRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
+use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Core\Schema\Result\CompleteResult;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
@@ -52,6 +56,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LogLevel;
 
 use function Amp\async;
+use function Amp\delay;
 
 /**
  * @internal
@@ -670,6 +675,178 @@ final class ClientTest extends TestCase
         $result = $deferred->await();
         self::assertInstanceOf(CompleteResult::class, $result);
         self::assertSame(['values' => ['reviewers', 'reviewing']], $result->completion);
+    }
+
+    public function testCallToolWithoutProgressSendsRequestAndUnwrapsResult(): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+        self::handshake($client, $transport);
+
+        $deferred = async(static fn() => $client->callTool('greet', ['name' => 'Paul']));
+        $transport->nextSend()->await();
+
+        self::assertCount(3, $transport->sent);
+        $request = $transport->sent[2]['message'];
+        self::assertInstanceOf(CallToolRequest::class, $request);
+        self::assertSame('greet', $request->params->name);
+        self::assertSame(['name' => 'Paul'], $request->params->arguments);
+        self::assertNull($request->params->meta->progressToken, 'No progressToken without onProgress.');
+
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => $request->id->id,
+            'result' => ['content' => []],
+        ]);
+
+        $result = $deferred->await();
+        self::assertInstanceOf(CallToolResult::class, $result);
+        self::assertSame([], $result->content);
+    }
+
+    public function testCallToolWithProgressMintsTokenIntoMetaAndStreamsToCallback(): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+        self::handshake($client, $transport);
+
+        /** @var list<array{float, ?float, ?string}> $received */
+        $received = [];
+        $onProgress = static function (float $progress, ?float $total, ?string $message) use (&$received): void {
+            $received[] = [$progress, $total, $message];
+        };
+        $deferred = async(static fn() => $client->callTool('count_down', ['count' => 2], $onProgress));
+        $transport->nextSend()->await();
+
+        self::assertCount(3, $transport->sent);
+        $request = $transport->sent[2]['message'];
+        self::assertInstanceOf(CallToolRequest::class, $request);
+        $progressToken = $request->params->meta->progressToken;
+        self::assertNotNull($progressToken);
+
+        // Server streams progress against the minted token while the call is in flight.
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'method' => 'notifications/progress',
+            'params' => [
+                'progressToken' => $progressToken->token,
+                'progress' => 1.0,
+                'total' => 2.0,
+                'message' => '1 remaining',
+            ],
+        ]);
+
+        // Let the tracked notification coroutine run before the result disposes the listener.
+        delay(0.01);
+        self::assertSame([[1.0, 2.0, '1 remaining']], $received);
+
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => $request->id->id,
+            'result' => ['content' => []],
+        ]);
+
+        $result = $deferred->await();
+        self::assertInstanceOf(CallToolResult::class, $result);
+    }
+
+    public function testCallToolDisposesProgressListenerAfterTheResponse(): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+        self::handshake($client, $transport);
+
+        /** @var list<array{float, ?float, ?string}> $received */
+        $received = [];
+        $onProgress = static function (float $progress, ?float $total, ?string $message) use (&$received): void {
+            $received[] = [$progress, $total, $message];
+        };
+        $deferred = async(static fn() => $client->callTool('count_down', ['count' => 1], $onProgress));
+        $transport->nextSend()->await();
+
+        self::assertCount(3, $transport->sent);
+        $request = $transport->sent[2]['message'];
+        self::assertInstanceOf(CallToolRequest::class, $request);
+        $progressToken = $request->params->meta->progressToken;
+        self::assertNotNull($progressToken);
+
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => $request->id->id,
+            'result' => ['content' => []],
+        ]);
+        $deferred->await();
+
+        // A late progress notification for the same token must no longer reach the callback.
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'method' => 'notifications/progress',
+            'params' => ['progressToken' => $progressToken->token, 'progress' => 1.0],
+        ]);
+        $transport->close();
+
+        self::assertSame([], $received);
+    }
+
+    public function testCallToolUsesTheInjectedProgressTokenFactory(): void
+    {
+        $client = new ClientBuilder()
+            ->setClientInfo('demo', '1.0.0')
+            ->setProgressTokenFactory(static fn(): string => 'custom-token')
+            ->build()
+        ;
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+        self::handshake($client, $transport);
+
+        $onProgress = static function (float $progress, ?float $total, ?string $message): void {};
+        $deferred = async(static fn() => $client->callTool('greet', null, $onProgress));
+        $transport->nextSend()->await();
+
+        self::assertCount(3, $transport->sent);
+        $request = $transport->sent[2]['message'];
+        self::assertInstanceOf(CallToolRequest::class, $request);
+        self::assertSame('custom-token', $request->params->meta->progressToken?->token);
+
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => $request->id->id,
+            'result' => ['content' => []],
+        ]);
+        $deferred->await();
+    }
+
+    public function testBuildTimeProgressHandlerReceivesNotificationsWithNoPerCallListener(): void
+    {
+        /** @var list<int|string> $delivered */
+        $delivered = [];
+        $client = new ClientBuilder()
+            ->setClientInfo('demo', '1.0.0')
+            ->addNotificationHandler(
+                ProgressNotification::method(),
+                new ClosureNotificationHandler(static function (JsonRpcNotification $n) use (&$delivered): void {
+                    self::assertInstanceOf(ProgressNotification::class, $n);
+                    $delivered[] = $n->params->progressToken->token;
+                }),
+            )
+            ->build()
+        ;
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+        self::handshake($client, $transport);
+
+        // No callTool in flight, so the token matches no per-call listener and falls through.
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'method' => 'notifications/progress',
+            'params' => ['progressToken' => 'unsolicited', 'progress' => 0.5],
+        ]);
+        $transport->close();
+
+        self::assertSame(['unsolicited'], $delivered);
     }
 
     private static function handshake(

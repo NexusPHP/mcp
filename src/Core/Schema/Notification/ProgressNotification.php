@@ -20,6 +20,8 @@ use Nexus\Mcp\Core\Schema\NotificationParams\ProgressNotificationParams;
 /**
  * An out-of-band notification used to inform the receiver of a progress update for a long-running request.
  *
+ * @property-read ProgressNotificationParams $params
+ *
  * @extends JsonRpcNotification<'notifications/progress'>
  *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#progressnotification
