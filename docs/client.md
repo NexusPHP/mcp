@@ -121,6 +121,7 @@ optional `Cursor` for pagination.
 | `complete(PromptReference\|ResourceTemplateReference $ref, array $argument, ?array $context = null)` | `completion/complete` | `CompleteResult` |
 | `callTool(string $name, ?array $arguments = null, ?\Closure $onProgress = null)` | `tools/call` | `CallToolResult` |
 | `ping()` | `ping` | `void` |
+| `setLoggingLevel(LoggingLevel $level)` | `logging/setLevel` | `void` |
 
 ```php
 $tools = $client->listTools();
@@ -128,10 +129,11 @@ $result = $client->callTool('greet', ['name' => 'Paul']);
 $about = $client->readResource('example://about');
 $prompt = $client->getPrompt('walkthrough', ['audience' => 'a junior developer']);
 $client->ping();
+$client->setLoggingLevel(LoggingLevel::Info);
 ```
 
-`ping()` returns `void` (a liveness check) and is the only typed request permitted before `initialize()`
-completes. It returns normally when the peer answers and throws on failure.
+`ping()` and `setLoggingLevel()` return `void`. `ping()` is the only typed request permitted before `initialize()`
+completes, returning normally when the peer answers and throwing on failure.
 
 ### Streaming progress from `callTool`
 
@@ -172,14 +174,13 @@ For spec methods without a convenience wrapper, or to send a pre-built request, 
 the request and the expected `Result` class. It returns the `JsonRpcResultResponse<T>` wrapper.
 
 ```php
-use Nexus\Mcp\Core\Schema\Enum\LoggingLevel;
-use Nexus\Mcp\Core\Schema\Request\SetLevelRequest;
+use Nexus\Mcp\Core\Schema\Request\SubscribeRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
-use Nexus\Mcp\Core\Schema\RequestParams\SetLevelRequestParams;
+use Nexus\Mcp\Core\Schema\RequestParams\SubscribeRequestParams;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 
 $response = $client->sendRequest(
-    new SetLevelRequest(new RequestId(1), new SetLevelRequestParams(LoggingLevel::Info)),
+    new SubscribeRequest(new RequestId(1), new SubscribeRequestParams('example://resource')),
     EmptyResult::class,
 );
 ```

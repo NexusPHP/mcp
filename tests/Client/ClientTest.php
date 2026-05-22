@@ -20,6 +20,7 @@ use Nexus\Mcp\Core\Exception\RemoteCallFailedException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
 use Nexus\Mcp\Core\Schema\ClientCapabilities;
 use Nexus\Mcp\Core\Schema\Cursor;
+use Nexus\Mcp\Core\Schema\Enum\LoggingLevel;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\Notification\InitializedNotification;
@@ -36,6 +37,7 @@ use Nexus\Mcp\Core\Schema\Request\ListResourceTemplatesRequest;
 use Nexus\Mcp\Core\Schema\Request\ListToolsRequest;
 use Nexus\Mcp\Core\Schema\Request\PingRequest;
 use Nexus\Mcp\Core\Schema\Request\ReadResourceRequest;
+use Nexus\Mcp\Core\Schema\Request\SetLevelRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
@@ -423,6 +425,46 @@ final class ClientTest extends TestCase
         self::assertCount(3, $transport->sent);
         self::assertInstanceOf(ListToolsRequest::class, $transport->sent[2]['message']);
         $followUp->ignore();
+    }
+
+    public function testSetLoggingLevelSendsSetLevelRequestWithTheGivenLevel(): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+
+        $handshake = async(static fn() => $client->initialize());
+        $transport->nextSend()->await();
+        self::assertCount(1, $transport->sent);
+        $initializeRequest = $transport->sent[0]['message'];
+        self::assertInstanceOf(InitializeRequest::class, $initializeRequest);
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => $initializeRequest->id->id,
+            'result' => [
+                'protocolVersion' => ProtocolVersion::LATEST_VERSION,
+                'capabilities' => [],
+                'serverInfo' => ['name' => 'srv', 'version' => '1'],
+            ],
+        ]);
+        $handshake->await();
+
+        $deferred = async(static function () use ($client): void {
+            $client->setLoggingLevel(LoggingLevel::Warning);
+        });
+        $transport->nextSend()->await();
+
+        self::assertCount(3, $transport->sent);
+        $sent = $transport->sent[2]['message'];
+
+        if (! $sent instanceof SetLevelRequest) {
+            self::fail(\sprintf('Expected SetLevelRequest, got %s.', $sent::class));
+        }
+
+        self::assertSame(LoggingLevel::Warning, $sent->params->level);
+
+        $transport->emitMessage(['jsonrpc' => '2.0', 'id' => $sent->id->id, 'result' => []]);
+        $deferred->await();
     }
 
     public function testSendRequestBeforeHandshakeRejectsArbitraryMethods(): void
