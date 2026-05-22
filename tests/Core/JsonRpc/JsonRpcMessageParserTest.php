@@ -56,9 +56,9 @@ final class JsonRpcMessageParserTest extends TestCase
 
     public function testPingRequestRoundTripUsesDefaultRegistration(): void
     {
-        $parser = new JsonRpcMessageParser();
-
         $original = new PingRequest(new RequestId(42));
+
+        $parser = new JsonRpcMessageParser();
         $parsed = $parser->parse($original->toArray());
 
         if (! $parsed instanceof PingRequest) {
@@ -72,7 +72,6 @@ final class JsonRpcMessageParserTest extends TestCase
     public function testUserRequestsOverrideDefaults(): void
     {
         $parser = new JsonRpcMessageParser(requests: ['ping' => TestPingOverride::class]);
-
         $parsed = $parser->parse([
             'jsonrpc' => '2.0',
             'id' => 7,
@@ -84,8 +83,6 @@ final class JsonRpcMessageParserTest extends TestCase
 
     public function testPingRequestWithProgressTokenRoundTrip(): void
     {
-        $parser = new JsonRpcMessageParser();
-
         $original = new PingRequest(
             new RequestId('req-1'),
             new EmptyRequestParams(new RequestMetaObject(new ProgressToken('tok-1'), ['vendor' => 'x'])),
@@ -103,6 +100,7 @@ final class JsonRpcMessageParserTest extends TestCase
             $envelope,
         );
 
+        $parser = new JsonRpcMessageParser();
         $parsed = $parser->parse($envelope);
 
         if (! $parsed instanceof PingRequest) {
@@ -122,8 +120,6 @@ final class JsonRpcMessageParserTest extends TestCase
 
     public function testEmptyResultRoundTrip(): void
     {
-        $parser = new JsonRpcMessageParser();
-
         $response = new JsonRpcResultResponse(new RequestId(42), new EmptyResult());
 
         self::assertSame(
@@ -131,6 +127,7 @@ final class JsonRpcMessageParserTest extends TestCase
             $response->toArray(),
         );
 
+        $parser = new JsonRpcMessageParser();
         $parsed = $parser->parse($response->toArray(), EmptyResult::class);
 
         if (! $parsed instanceof JsonRpcResultResponse) {
@@ -144,7 +141,6 @@ final class JsonRpcMessageParserTest extends TestCase
     public function testParseReturnsErrorResponseWhenErrorKeyPresent(): void
     {
         $parser = new JsonRpcMessageParser();
-
         $parsed = $parser->parse([
             'jsonrpc' => '2.0',
             'id' => 1,
@@ -159,9 +155,8 @@ final class JsonRpcMessageParserTest extends TestCase
 
     public function testParseWrapsErrorResponseFailureAsInvalidRequest(): void
     {
-        $parser = new JsonRpcMessageParser();
-
         try {
+            $parser = new JsonRpcMessageParser();
             $parser->parse(['jsonrpc' => '2.0', 'id' => [], 'error' => ['code' => 1]]);
             self::fail('Expected InvalidRequestException.');
         } catch (InvalidRequestException $e) {
@@ -174,7 +169,6 @@ final class JsonRpcMessageParserTest extends TestCase
     public function testParseDispatchesDefaultNotificationFromRegistry(): void
     {
         $parser = new JsonRpcMessageParser();
-
         $parsed = $parser->parse([
             'jsonrpc' => '2.0',
             'method' => 'notifications/initialized',
@@ -186,7 +180,6 @@ final class JsonRpcMessageParserTest extends TestCase
     public function testParseDispatchesNotificationWithParams(): void
     {
         $parser = new JsonRpcMessageParser(notifications: ['tests/test-notification' => TestNotification::class]);
-
         $parsed = $parser->parse([
             'jsonrpc' => '2.0',
             'method' => 'tests/test-notification',
@@ -201,7 +194,6 @@ final class JsonRpcMessageParserTest extends TestCase
     public function testParseDispatchesNotificationWithoutParams(): void
     {
         $parser = new JsonRpcMessageParser(notifications: ['tests/test-notification' => TestNotification::class]);
-
         $parsed = $parser->parse([
             'jsonrpc' => '2.0',
             'method' => 'tests/test-notification',
@@ -212,9 +204,8 @@ final class JsonRpcMessageParserTest extends TestCase
 
     public function testParseWrapsNotificationFromArrayFailureAsInvalidParams(): void
     {
-        $parser = new JsonRpcMessageParser(notifications: ['tests/test-notification' => TestNotification::class]);
-
         try {
+            $parser = new JsonRpcMessageParser(notifications: ['tests/test-notification' => TestNotification::class]);
             $parser->parse([
                 'jsonrpc' => '2.0',
                 'method' => 'tests/test-notification',
@@ -233,9 +224,8 @@ final class JsonRpcMessageParserTest extends TestCase
 
     public function testParseRejectsUnknownRequestMethodAsMethodNotFound(): void
     {
-        $parser = new JsonRpcMessageParser();
-
         try {
+            $parser = new JsonRpcMessageParser();
             $parser->parse([
                 'jsonrpc' => '2.0',
                 'id' => 9,
@@ -251,9 +241,8 @@ final class JsonRpcMessageParserTest extends TestCase
 
     public function testParseRejectsUnknownNotificationMethodAsMethodNotFound(): void
     {
-        $parser = new JsonRpcMessageParser();
-
         try {
+            $parser = new JsonRpcMessageParser();
             $parser->parse([
                 'jsonrpc' => '2.0',
                 'method' => 'notifications/__test_only__',
@@ -267,9 +256,8 @@ final class JsonRpcMessageParserTest extends TestCase
 
     public function testParseRejectsRequestMethodSentAsNotificationAsMisrouted(): void
     {
-        $parser = new JsonRpcMessageParser();
-
         try {
+            $parser = new JsonRpcMessageParser();
             $parser->parse([
                 'jsonrpc' => '2.0',
                 'method' => 'initialize',
@@ -284,9 +272,8 @@ final class JsonRpcMessageParserTest extends TestCase
 
     public function testParseRejectsNotificationMethodSentAsRequestAsMisrouted(): void
     {
-        $parser = new JsonRpcMessageParser();
-
         try {
+            $parser = new JsonRpcMessageParser();
             $parser->parse([
                 'jsonrpc' => '2.0',
                 'id' => 7,
@@ -304,9 +291,8 @@ final class JsonRpcMessageParserTest extends TestCase
 
     public function testParseSanitisesAttackerMethodBytesInMethodNotFoundMessage(): void
     {
-        $parser = new JsonRpcMessageParser();
-
         try {
+            $parser = new JsonRpcMessageParser();
             $parser->parse([
                 'jsonrpc' => '2.0',
                 'id' => 1,
@@ -324,9 +310,8 @@ final class JsonRpcMessageParserTest extends TestCase
 
     public function testParseRejectsMissingMethodAsInvalidRequest(): void
     {
-        $parser = new JsonRpcMessageParser();
-
         try {
+            $parser = new JsonRpcMessageParser();
             $parser->parse(['jsonrpc' => '2.0', 'id' => 1]);
             self::fail('Expected InvalidRequestException.');
         } catch (InvalidRequestException $e) {
@@ -337,29 +322,47 @@ final class JsonRpcMessageParserTest extends TestCase
 
     public function testParseRejectsNonStringMethod(): void
     {
-        $parser = new JsonRpcMessageParser();
-
         $this->expectException(InvalidRequestException::class);
         $this->expectExceptionMessage('JSON-RPC envelope "method" must be a non-empty string, int given.');
 
+        $parser = new JsonRpcMessageParser();
         $parser->parse(['jsonrpc' => '2.0', 'id' => 1, 'method' => 42]);
     }
 
     public function testParseRejectsEmptyStringMethod(): void
     {
-        $parser = new JsonRpcMessageParser();
-
         $this->expectException(InvalidRequestException::class);
         $this->expectExceptionMessage('JSON-RPC envelope "method" must be a non-empty string, string given.');
 
+        $parser = new JsonRpcMessageParser();
         $parser->parse(['jsonrpc' => '2.0', 'id' => 1, 'method' => '']);
+    }
+
+    public function testParseRejectsEmptyStringIdInSuccessEnvelopeAsInvalidRequest(): void
+    {
+        try {
+            $parser = new JsonRpcMessageParser();
+            $parser->parse(['jsonrpc' => '2.0', 'id' => '', 'result' => ['answer' => 42]]);
+            self::fail('Expected InvalidRequestException.');
+        } catch (InvalidRequestException $e) {
+            self::assertNull($e->requestId, 'An empty-string id cannot be preserved on the exception.');
+            self::assertSame('"id" must be a non-empty string.', $e->getMessage());
+        }
+    }
+
+    public function testParseRejectsEmptyStringIdWithTypedResultAsInvalidRequest(): void
+    {
+        $this->expectException(InvalidRequestException::class);
+        $this->expectExceptionMessage('"id" must be a non-empty string.');
+
+        $parser = new JsonRpcMessageParser();
+        $parser->parse(['jsonrpc' => '2.0', 'id' => '', 'result' => []], EmptyResult::class);
     }
 
     public function testParseWrapsRequestFromArrayFailureAsInvalidParams(): void
     {
-        $parser = new JsonRpcMessageParser();
-
         try {
+            $parser = new JsonRpcMessageParser();
             $parser->parse(['jsonrpc' => '2.0', 'id' => ['bad'], 'method' => 'ping']);
             self::fail('Expected InvalidParamsException.');
         } catch (InvalidParamsException $e) {
@@ -370,9 +373,8 @@ final class JsonRpcMessageParserTest extends TestCase
 
     public function testParseRejectsWrongVersionPreservesId(): void
     {
-        $parser = new JsonRpcMessageParser();
-
         try {
+            $parser = new JsonRpcMessageParser();
             $parser->parse(['jsonrpc' => '1.0', 'id' => 1, 'method' => 'ping']);
             self::fail('Expected InvalidRequestException.');
         } catch (InvalidRequestException $e) {
@@ -383,18 +385,16 @@ final class JsonRpcMessageParserTest extends TestCase
 
     public function testParseRejectsMissingVersion(): void
     {
-        $parser = new JsonRpcMessageParser();
-
         $this->expectException(InvalidRequestException::class);
         $this->expectExceptionMessage('Invalid JSON-RPC version: expected "2.0", got null.');
 
+        $parser = new JsonRpcMessageParser();
         $parser->parse(['id' => 1, 'method' => 'ping']);
     }
 
     public function testParseReturnsUnparsedResultEnvelopeWhenResultClassOmitted(): void
     {
         $parser = new JsonRpcMessageParser();
-
         $parsed = $parser->parse(['jsonrpc' => '2.0', 'id' => 'req-1', 'result' => ['answer' => 42]]);
 
         self::assertInstanceOf(UnparsedResultEnvelope::class, $parsed);
@@ -405,7 +405,6 @@ final class JsonRpcMessageParserTest extends TestCase
     public function testParseReturnsUnparsedResultEnvelopeForEmptyResultWhenResultClassOmitted(): void
     {
         $parser = new JsonRpcMessageParser();
-
         $parsed = $parser->parse(['jsonrpc' => '2.0', 'id' => 7, 'result' => []]);
 
         self::assertInstanceOf(UnparsedResultEnvelope::class, $parsed);
@@ -415,28 +414,25 @@ final class JsonRpcMessageParserTest extends TestCase
 
     public function testParseRejectsMissingIdOnResultEnvelopeEvenWhenResultClassOmitted(): void
     {
-        $parser = new JsonRpcMessageParser();
-
         $this->expectException(InvalidRequestException::class);
         $this->expectExceptionMessage('Success response must carry an "id".');
 
+        $parser = new JsonRpcMessageParser();
         $parser->parse(['jsonrpc' => '2.0', 'result' => ['payload' => 'x']]);
     }
 
     public function testParseRejectsNonScalarIdOnResultEnvelopeEvenWhenResultClassOmitted(): void
     {
-        $parser = new JsonRpcMessageParser();
-
         $this->expectException(InvalidRequestException::class);
         $this->expectExceptionMessage('Response "id" must be int or string, array given.');
 
+        $parser = new JsonRpcMessageParser();
         $parser->parse(['jsonrpc' => '2.0', 'id' => [], 'result' => []]);
     }
 
     public function testParseToleratesNonMapResultWhenResultClassOmitted(): void
     {
         $parser = new JsonRpcMessageParser();
-
         $parsed = $parser->parse(['jsonrpc' => '2.0', 'id' => 9, 'result' => 'opaque-string']);
 
         self::assertInstanceOf(UnparsedResultEnvelope::class, $parsed);
@@ -446,29 +442,26 @@ final class JsonRpcMessageParserTest extends TestCase
 
     public function testParseRejectsResultResponseWithMissingId(): void
     {
-        $parser = new JsonRpcMessageParser();
-
         $this->expectException(InvalidRequestException::class);
         $this->expectExceptionMessage('Success response must carry an "id".');
 
+        $parser = new JsonRpcMessageParser();
         $parser->parse(['jsonrpc' => '2.0', 'result' => []], EmptyResult::class);
     }
 
     public function testParseRejectsResultResponseWithBadIdType(): void
     {
-        $parser = new JsonRpcMessageParser();
-
         $this->expectException(InvalidRequestException::class);
         $this->expectExceptionMessage('Response "id" must be int or string, array given.');
 
+        $parser = new JsonRpcMessageParser();
         $parser->parse(['jsonrpc' => '2.0', 'id' => [], 'result' => []], EmptyResult::class);
     }
 
     public function testParseRejectsResultResponseWithNonObjectResult(): void
     {
-        $parser = new JsonRpcMessageParser();
-
         try {
+            $parser = new JsonRpcMessageParser();
             $parser->parse(['jsonrpc' => '2.0', 'id' => 1, 'result' => 'bad'], EmptyResult::class);
             self::fail('Expected InvalidRequestException.');
         } catch (InvalidRequestException $e) {
@@ -479,9 +472,8 @@ final class JsonRpcMessageParserTest extends TestCase
 
     public function testParseWrapsResultResponseFromArrayFailure(): void
     {
-        $parser = new JsonRpcMessageParser();
-
         try {
+            $parser = new JsonRpcMessageParser();
             $parser->parse(
                 ['jsonrpc' => '2.0', 'id' => 1, 'result' => ['_meta' => 'bad']],
                 EmptyResult::class,
@@ -495,9 +487,8 @@ final class JsonRpcMessageParserTest extends TestCase
 
     public function testEveryParserFailureIsProtocolException(): void
     {
-        $parser = new JsonRpcMessageParser();
-
         try {
+            $parser = new JsonRpcMessageParser();
             $parser->parse(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'unknown/method']);
             self::fail('Expected an AbstractJsonRpcProtocolException.');
         } catch (AbstractJsonRpcProtocolException $e) {
@@ -508,9 +499,8 @@ final class JsonRpcMessageParserTest extends TestCase
 
     public function testParseDropsRequestIdWhenEnvelopeIdIsEmptyString(): void
     {
-        $parser = new JsonRpcMessageParser();
-
         try {
+            $parser = new JsonRpcMessageParser();
             $parser->parse(['jsonrpc' => '2.0', 'id' => '', 'method' => 'unknown/method']);
             self::fail('Expected a MethodNotFoundException.');
         } catch (MethodNotFoundException $e) {
@@ -520,9 +510,8 @@ final class JsonRpcMessageParserTest extends TestCase
 
     public function testParseDropsRequestIdWhenVersionMismatchIsRaisedAndEnvelopeIdIsEmptyString(): void
     {
-        $parser = new JsonRpcMessageParser();
-
         try {
+            $parser = new JsonRpcMessageParser();
             $parser->parse(['jsonrpc' => '1.0', 'id' => '', 'method' => 'ping']);
             self::fail('Expected an InvalidRequestException.');
         } catch (InvalidRequestException $e) {

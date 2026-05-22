@@ -86,12 +86,13 @@ final class JsonRpcMessageParser
             try {
                 Assert::that($message)->hasOffset('id', 'Success response must carry an "id".');
                 Assert::that($message['id'])->isArrayKey('Response "id" must be int or string, {type} given.');
+                $id = new RequestId($message['id']);
             } catch (\InvalidArgumentException $e) {
                 throw new InvalidRequestException(self::extractRequestId($message), $e->getMessage());
             }
 
             if (null === $result) {
-                return new UnparsedResultEnvelope(new RequestId($message['id']), $message['result']);
+                return new UnparsedResultEnvelope($id, $message['result']);
             }
 
             try {
@@ -112,7 +113,7 @@ final class JsonRpcMessageParser
                 );
             }
 
-            return new JsonRpcResultResponse(new RequestId($message['id']), $typed);
+            return new JsonRpcResultResponse($id, $typed);
         }
 
         try {
