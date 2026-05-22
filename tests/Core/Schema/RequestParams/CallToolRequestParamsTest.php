@@ -99,6 +99,14 @@ final class CallToolRequestParamsTest extends TestCase
         self::assertSame(['name' => 'read-file'], $params->toArray());
     }
 
+    public function testToArrayOmitsEmptyArguments(): void
+    {
+        $params = new CallToolRequestParams('read-file', []);
+
+        self::assertSame(['name' => 'read-file'], $params->toArray());
+        self::assertSame('{"name":"read-file"}', json_encode($params, \JSON_THROW_ON_ERROR));
+    }
+
     public function testJsonSerializeMatchesToArray(): void
     {
         $params = new CallToolRequestParams('read-file', ['path' => 'src/']);

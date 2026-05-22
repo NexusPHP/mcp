@@ -67,6 +67,14 @@ final class GetPromptRequestParamsTest extends TestCase
         );
     }
 
+    public function testToArrayOmitsEmptyArguments(): void
+    {
+        $params = new GetPromptRequestParams('code-review', []);
+
+        self::assertSame(['name' => 'code-review'], $params->toArray());
+        self::assertSame('{"name":"code-review"}', json_encode($params, \JSON_THROW_ON_ERROR));
+    }
+
     public function testToArrayWithMeta(): void
     {
         $meta = new RequestMetaObject(null, ['vendor.brand' => 'acme']);

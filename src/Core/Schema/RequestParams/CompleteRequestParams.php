@@ -135,7 +135,7 @@ final readonly class CompleteRequestParams extends RequestParams
             'argument' => $this->argument,
         ];
 
-        if (null !== $this->context) {
+        if ([] !== ($this->context['arguments'] ?? [])) {
             $data['context'] = $this->context;
         }
 

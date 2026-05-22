@@ -109,6 +109,28 @@ final class CompleteRequestParamsTest extends TestCase
         );
     }
 
+    public function testToArrayOmitsEmptyContext(): void
+    {
+        $params = new CompleteRequestParams(
+            new PromptReference('code-review'),
+            ['name' => 'topic', 'value' => 'auth'],
+            [],
+        );
+
+        self::assertArrayNotHasKey('context', $params->toArray());
+    }
+
+    public function testToArrayOmitsContextWhoseArgumentsAreEmpty(): void
+    {
+        $params = new CompleteRequestParams(
+            new PromptReference('code-review'),
+            ['name' => 'topic', 'value' => 'auth'],
+            ['arguments' => []],
+        );
+
+        self::assertArrayNotHasKey('context', $params->toArray());
+    }
+
     public function testJsonSerializeMatchesToArray(): void
     {
         $params = new CompleteRequestParams(

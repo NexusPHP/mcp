@@ -94,7 +94,7 @@ final readonly class GetPromptRequestParams extends RequestParams
     {
         $data = ['name' => $this->name];
 
-        if (null !== $this->arguments) {
+        if ([] !== ($this->arguments ?? [])) {
             $data['arguments'] = $this->arguments;
         }
 
