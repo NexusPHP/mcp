@@ -104,7 +104,7 @@ When the spec defines two structurally similar shapes that differ only in option
 
 These all bit me at least once; note them up-front so you don't relearn:
 
-- **Do not use inline `@var`** to narrow types. The CS fixer rule `phpdoc_no_incorrect_var_annotation` will remove it, or `phpdoc_to_comment` will convert it to `// @var …` which PHPStan ignores. Use an `Assert::that(...)->isX()` chain (see [Runtime validation](#runtime-validation-use-nexusphpassert)) for a narrowing that the CS fixer leaves alone.
+- **Inline `@var` survives only when it narrows to a valid subtype of the inferred type** (e.g. a union down to one member) and sits directly on an assignment. The CS fixer strips it two ways otherwise: `phpdoc_no_incorrect_var_annotation` removes a `@var` whose type contradicts inference, and `phpdoc_to_comment` rewrites a standalone (non-assignment) docblock to `// @var …` which PHPStan ignores. When `@var` won't hold, or you want a runtime guard at an input boundary, use an `Assert::that(...)->isX()` chain instead (see [Runtime validation](#runtime-validation-use-nexusphpassert)).
 - **`is_array()` narrows to `array<mixed, mixed>`**, not `array<string, mixed>`.
 - **`@return static` on a method whose PHP return type is `: static`** is flagged as superfluous and stripped. Document the parameter, let the return type speak for itself.
 - **Widening `@param` on interface methods violates LSP contravariance when concrete implementations narrow the type.** If you loosen an `Arrayable` implementation's input to `array<string, mixed>`, every sibling class must match or PHPStan flags it. Prefer keeping the generic `@param T` and using `Assert::that($value)->isMap(...)` at the call boundary.

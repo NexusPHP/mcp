@@ -93,13 +93,12 @@ final class InMemoryTransport implements TransportInterface
             TransportState::Running => null,
         };
 
-        Assert::that($this->peer)->isInstanceOf(self::class, 'In-memory transport has no linked peer.');
         \assert(method_exists($message, 'toArray'), 'In-memory transport requires a JsonRpcMessage exposing toArray().');
 
         $envelope = $message->toArray();
         Assert::that($envelope)->isMap('In-memory transport: toArray() must return a string-keyed object.');
 
-        $this->peer->receive($envelope);
+        $this->peer?->receive($envelope);
     }
 
     #[\Override]
