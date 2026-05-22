@@ -22,9 +22,9 @@ real servers need:
   covered code MSI.
 
 The client-side namespace (`Nexus\Mcp\Client`) now ships the handshake plus typed requests for the same
-surface (`tools/call` with streaming progress, the list/read/get/complete methods); see
-[docs/client.md](docs/client.md). The shared protocol kernel under `Nexus\Mcp\Core` is the common
-dependency for both sides. The end-to-end stdio example is the last open item before v0.1.0.
+surface (`tools/call` with streaming progress, the list/read/get/complete methods), an end-to-end stdio
+example, and [docs/client.md](docs/client.md). The shared protocol kernel under `Nexus\Mcp\Core` is the
+common dependency for both sides. With the symmetric surface in place, v0.1.0 is the next milestone.
 
 ## Near-term: client-side composition
 
@@ -53,7 +53,7 @@ against the current spec means rebuilding them after the migration reshapes both
 - [x] Cover the symmetric handshake (`initialize` / `notifications/initialized`) from the client side.
 - [x] `Nexus\Mcp\Client\Transport\StdioClientTransport` (subprocess launcher).
 - [x] Typed convenience methods on `Client` (list/read/get/complete, `callTool` with streaming progress).
-- [ ] End-to-end stdio client / server example.
+- [x] End-to-end stdio client / server example.
 
 ## v0.1.0
 
