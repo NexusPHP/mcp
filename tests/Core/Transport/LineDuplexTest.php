@@ -432,7 +432,11 @@ final class LineDuplexTest extends TestCase
 
     public function testParseFailureIsSilentWhenNoOnParseFailureClosureIsConfigured(): void
     {
+        $errors = [];
         $duplex = self::buildDuplex();
+        $duplex->onError(static function (\Throwable $e) use (&$errors): void {
+            $errors[] = $e;
+        });
 
         $duplex->start(
             new ReadableIterableStream(new \ArrayIterator(["{not json}\n"])),
@@ -440,13 +444,14 @@ final class LineDuplexTest extends TestCase
         );
         EventLoop::run();
 
-        $this->expectNotToPerformAssertions();
+        self::assertSame([], $errors, 'A parse failure with no onParseFailure closure must not invoke a null callback.');
     }
 
     public function testNonObjectEnvelopeFiresErrorListenerAndReportsParseFailure(): void
     {
         $errors = [];
         $reported = [];
+        $messages = [];
         $duplex = self::buildDuplex(
             onParseFailure: static function (JsonRpcErrorResponse $response) use (&$reported): void {
                 $reported[] = $response;
@@ -454,6 +459,9 @@ final class LineDuplexTest extends TestCase
         );
         $duplex->onError(static function (\Throwable $e) use (&$errors): void {
             $errors[] = $e;
+        });
+        $duplex->onMessage(static function (array $envelope) use (&$messages): void {
+            $messages[] = $envelope;
         });
         $duplex->start(
             new ReadableIterableStream(new \ArrayIterator(["[1,2,3]\n"])),
@@ -464,6 +472,7 @@ final class LineDuplexTest extends TestCase
         self::assertCount(1, $errors);
         self::assertInstanceOf(\InvalidArgumentException::class, $errors[0]);
         self::assertCount(1, $reported);
+        self::assertSame([], $messages, 'A non-object envelope must not reach the message listeners.');
     }
 
     public function testMessageListenerThrowFiresErrorListener(): void
