@@ -14,10 +14,12 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Client;
 
 use Nexus\Mcp\Client\ClientBuilder;
+use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\ProtocolVersion;
 use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
 use Nexus\Mcp\Core\Schema\Request\InitializeRequest;
 use Nexus\Mcp\Core\Schema\Request\ListToolsRequest;
+use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureNotificationHandler;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureRequestHandler;
@@ -99,6 +101,43 @@ final class ClientBuilderTest extends TestCase
         );
 
         self::assertSame($builder, $returned);
+    }
+
+    public function testBuildSeedsADefaultPingHandlerSoServerInitiatedPingsAreAnswered(): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+
+        $transport->emitMessage(['jsonrpc' => '2.0', 'id' => 5, 'method' => 'ping']);
+        $transport->nextSend()->await();
+
+        self::assertCount(1, $transport->sent);
+        $response = $transport->sent[0]['message'];
+        self::assertInstanceOf(JsonRpcResultResponse::class, $response);
+        self::assertSame(5, $response->id->id);
+        self::assertInstanceOf(EmptyResult::class, $response->result);
+    }
+
+    public function testBuildLetsACustomPingHandlerOverrideTheDefault(): void
+    {
+        $marker = new EmptyResult();
+
+        $client = new ClientBuilder()
+            ->setClientInfo('demo', '1.0.0')
+            ->addRequestHandler('ping', new ClosureRequestHandler(static fn(): EmptyResult => $marker))
+            ->build()
+        ;
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+
+        $transport->emitMessage(['jsonrpc' => '2.0', 'id' => 7, 'method' => 'ping']);
+        $transport->nextSend()->await();
+
+        self::assertCount(1, $transport->sent);
+        $response = $transport->sent[0]['message'];
+        self::assertInstanceOf(JsonRpcResultResponse::class, $response);
+        self::assertSame($marker, $response->result);
     }
 
     public function testBuildDefaultsToIncrementingIntegerRequestIdFactoryWhenNoneIsSet(): void
