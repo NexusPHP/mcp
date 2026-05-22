@@ -120,13 +120,18 @@ optional `Cursor` for pagination.
 | `getPrompt(string $name, ?array $arguments = null)` | `prompts/get` | `GetPromptResult` |
 | `complete(PromptReference\|ResourceTemplateReference $ref, array $argument, ?array $context = null)` | `completion/complete` | `CompleteResult` |
 | `callTool(string $name, ?array $arguments = null, ?\Closure $onProgress = null)` | `tools/call` | `CallToolResult` |
+| `ping()` | `ping` | `void` |
 
 ```php
 $tools = $client->listTools();
 $result = $client->callTool('greet', ['name' => 'Paul']);
 $about = $client->readResource('example://about');
 $prompt = $client->getPrompt('walkthrough', ['audience' => 'a junior developer']);
+$client->ping();
 ```
+
+`ping()` returns `void` (a liveness check) and is the only typed request permitted before `initialize()`
+completes. It returns normally when the peer answers and throws on failure.
 
 ### Streaming progress from `callTool`
 
@@ -167,19 +172,20 @@ For spec methods without a convenience wrapper, or to send a pre-built request, 
 the request and the expected `Result` class. It returns the `JsonRpcResultResponse<T>` wrapper.
 
 ```php
-use Nexus\Mcp\Core\Schema\Request\PingRequest;
+use Nexus\Mcp\Core\Schema\Enum\LoggingLevel;
+use Nexus\Mcp\Core\Schema\Request\SetLevelRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
-use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
+use Nexus\Mcp\Core\Schema\RequestParams\SetLevelRequestParams;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 
 $response = $client->sendRequest(
-    new PingRequest(new RequestId(1), new EmptyRequestParams()),
+    new SetLevelRequest(new RequestId(1), new SetLevelRequestParams(LoggingLevel::Info)),
     EmptyResult::class,
 );
 ```
 
-You supply the `RequestId` yourself here; the auto-incrementing factory backs the typed methods above.
-`ping` is permitted before the handshake. All other methods are gated until `initialize()` completes.
+You supply the `RequestId` yourself here. The auto-incrementing factory backs the typed methods above, and
+the same handshake gate applies: any method other than `ping` is rejected until `initialize()` completes.
 
 ## Lifecycle
 

@@ -452,6 +452,29 @@ final class ClientTest extends TestCase
         $deferred->ignore();
     }
 
+    public function testPingSendsAPingRequestAndResolvesOnAcknowledgement(): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+
+        // No handshake first: ping() is permitted before initialize().
+        $deferred = async(static function () use ($client): void {
+            $client->ping();
+        });
+        $transport->nextSend()->await();
+
+        self::assertCount(1, $transport->sent);
+        $sent = $transport->sent[0]['message'];
+        self::assertInstanceOf(PingRequest::class, $sent);
+        self::assertInstanceOf(EmptyRequestParams::class, $sent->params);
+        self::assertSame(1, $sent->id->id, 'ping() mints its id from the request-id factory.');
+
+        $transport->emitMessage(['jsonrpc' => '2.0', 'id' => 1, 'result' => []]);
+
+        $deferred->await();
+    }
+
     public function testInitializedNotificationCarriesNoParams(): void
     {
         $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
