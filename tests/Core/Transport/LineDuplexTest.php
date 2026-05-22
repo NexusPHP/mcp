@@ -258,6 +258,30 @@ final class LineDuplexTest extends TestCase
         self::assertSame(['tail'], $lines);
     }
 
+    public function testSideChannelOnLineCallingCloseDoesNotSelfDeadlock(): void
+    {
+        $pipe = new Pipe(8192);
+        $sink = $pipe->getSink();
+        $sink->write("first\n");
+        $sink->close();
+
+        $closed = false;
+        $duplex = self::buildDuplex();
+        $duplex->onClose(static function () use (&$closed): void {
+            $closed = true;
+        });
+        $duplex->forwardLines(
+            $pipe->getSource(),
+            static function (string $line) use ($duplex): void {
+                $duplex->close();
+            },
+        );
+
+        EventLoop::run();
+
+        self::assertTrue($closed, 'close() from inside a side-channel onLine must return, not await its own fiber.');
+    }
+
     public function testCloseStillReturnsWhenSideChannelFailureLoggerThrows(): void
     {
         $previousHandler = EventLoop::getErrorHandler();

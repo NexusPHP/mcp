@@ -54,9 +54,14 @@ final class LineDuplex
     private ?DeferredFuture $readLoopCompletion = null;
 
     /**
-     * @var list<DeferredFuture<null>>
+     * @var list<DeferredFuture<mixed>>
      */
     private array $sideChannelCompletions = [];
+
+    /**
+     * @var array<int, ?\Fiber<mixed, mixed, mixed, mixed>>
+     */
+    private array $sideChannelFibers = [];
 
     /**
      * @param class-string                                $hostTransport
@@ -181,6 +186,7 @@ final class LineDuplex
         $this->sideChannelCompletions[] = $completion;
 
         EventLoop::queue(function () use ($source, $onLine, $completion): void {
+            $this->sideChannelFibers[spl_object_id($completion)] = \Fiber::getCurrent();
             $reader = new LineReader($source, $this->maxLineBytes);
 
             try {
@@ -237,15 +243,20 @@ final class LineDuplex
      */
     private function drainBackgroundLoops(): void
     {
-        // Reaching this from the read-loop fiber itself (its own EOF/error
-        // teardown, or a synchronous send failure while dispatching) means
-        // awaiting its completion would suspend the fiber on itself.
-        if (\Fiber::getCurrent() !== $this->readLoopFiber) {
+        $current = \Fiber::getCurrent();
+
+        // A backgrounded fiber that triggers close() mid-run (the read loop on
+        // EOF/error or a synchronous send failure, or a side-channel onLine
+        // calling close()) must not await its own completion: only that fiber
+        // fulfils it, once it returns.
+        if ($current !== $this->readLoopFiber) {
             $this->readLoopCompletion?->getFuture()->await();
         }
 
         foreach ($this->sideChannelCompletions as $completion) {
-            $completion->getFuture()->await();
+            if (null === $current || ($this->sideChannelFibers[spl_object_id($completion)] ?? null) !== $current) {
+                $completion->getFuture()->await();
+            }
         }
     }
 
