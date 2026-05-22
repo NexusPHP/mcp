@@ -347,6 +347,7 @@ final class ClientMessageDispatcherTest extends TestCase
         self::assertSame([], $transport->sent);
         $matches = $logger->recordsMatching(LogLevel::ERROR, 'Uncaught notification handler exception.');
         self::assertCount(1, $matches);
+        self::assertSame('notifications/cancelled', $matches[0]['context']['method'] ?? null);
     }
 
     public function testDuplicateInboundRequestIdIsRejectedSynchronouslyWithInvalidRequest(): void
