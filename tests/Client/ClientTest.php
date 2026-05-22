@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Tests\Client;
 
 use Nexus\Mcp\Client\Client;
 use Nexus\Mcp\Client\ClientBuilder;
+use Nexus\Mcp\Client\Exception\UnsupportedProtocolVersionException;
 use Nexus\Mcp\Core\Exception\RemoteCallFailedException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
 use Nexus\Mcp\Core\Schema\ClientCapabilities;
@@ -97,6 +98,29 @@ final class ClientTest extends TestCase
         $this->expectExceptionMessageMatches('/already connected/');
 
         $client->connect(new RecordingTransport());
+    }
+
+    public function testDisconnectClosesTheTransportAndAllowsReconnecting(): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $first = new RecordingTransport();
+        $client->connect($first);
+
+        $client->disconnect();
+        self::assertTrue($first->closed, 'disconnect() must close the attached transport.');
+
+        $second = new RecordingTransport();
+        $client->connect($second);
+        self::assertTrue($second->started, 'disconnect() must detach the transport so a fresh connect() can run.');
+    }
+
+    public function testDisconnectIsANoOpWhenNotConnected(): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+
+        $client->disconnect();
+
+        $this->expectNotToPerformAssertions();
     }
 
     public function testSendRequestBeforeConnectThrowsLogicException(): void
@@ -247,6 +271,44 @@ final class ClientTest extends TestCase
         ]);
 
         $deferred->await();
+    }
+
+    public function testInitializeThrowsAndWithholdsInitializedWhenServerVersionIsUnsupported(): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+
+        $deferred = async(static fn() => $client->initialize());
+        $transport->nextSend()->await();
+        self::assertCount(1, $transport->sent);
+        $sentRequest = $transport->sent[0]['message'];
+        self::assertInstanceOf(InitializeRequest::class, $sentRequest);
+
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => $sentRequest->id->id,
+            'result' => [
+                'protocolVersion' => '2025-06-18',
+                'capabilities' => [],
+                'serverInfo' => ['name' => 'srv', 'version' => '1'],
+            ],
+        ]);
+
+        try {
+            $deferred->await();
+            self::fail('Expected the unsupported negotiated version to abort the handshake.');
+        } catch (UnsupportedProtocolVersionException $e) {
+            self::assertStringContainsString('2025-06-18', $e->getMessage());
+            self::assertSame('2025-06-18', $e->negotiated->version);
+        }
+
+        self::assertCount(
+            1,
+            $transport->sent,
+            'The client must not send notifications/initialized after rejecting the version.',
+        );
+        self::assertTrue($transport->closed, 'The client must disconnect on an unsupported negotiated version.');
     }
 
     public function testInitializeRejectsReentryWhileInFlight(): void

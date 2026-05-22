@@ -103,7 +103,7 @@ try {
         fwrite(\STDOUT, sprintf("- %s: %s\n", $prompt->name, $prompt->description ?? '(no description)'));
     }
 } finally {
-    $transport->close();
+    $client->disconnect();
 }
 
 function renderText(CallToolResult $result): string

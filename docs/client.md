@@ -71,10 +71,16 @@ $client->connect($transport);
 $result = $client->initialize();
 ```
 
-`initialize()` sends the `initialize` request, awaits the result, then sends `notifications/initialized`. It
-accepts an optional `ClientCapabilities` and `ProtocolVersion`; both default to an empty capability set and
-the latest supported protocol version. It returns the `InitializeResult` and may be called only once per
-client. Any non-`ping` request issued before the handshake completes is rejected with a `LogicException`.
+`initialize()` sends the `initialize` request, awaits the result, validates the protocol version the server
+settled on, then sends `notifications/initialized`. It accepts an optional `ClientCapabilities` and
+`ProtocolVersion`; both default to an empty capability set and the latest supported protocol version. It
+returns the `InitializeResult` and may be called only once per client. Any non-`ping` request issued before
+the handshake completes is rejected with a `LogicException`.
+
+Version negotiation follows the spec: the server's response carries the protocol version it chose. Because
+the SDK ships against a single revision with no back-compat layer, the client supports exactly that revision.
+If the server settles on any other version, `initialize()` withholds `notifications/initialized`, closes the
+transport (the spec's "disconnect" on an unsupported version), and throws `UnsupportedProtocolVersionException`.
 
 ```php
 use Nexus\Mcp\Core\Schema\ClientCapabilities;
@@ -88,6 +94,15 @@ After the handshake, `getServerInfo()` returns the server's `Implementation` blo
 ```php
 $info = $client->getServerInfo();
 echo $info?->name, ' ', $info?->version;
+```
+
+`connect()` attaches and starts the transport; `disconnect()` is its inverse: it closes the transport and
+detaches it (a no-op when not connected), so the client can `connect()` to a new transport afterwards.
+Re-running `initialize()` over a reconnection is only possible after a handshake that did not complete; a
+client that already finished `initialize()` stays initialized.
+
+```php
+$client->disconnect();
 ```
 
 ## Typed requests
