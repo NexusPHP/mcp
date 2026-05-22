@@ -232,4 +232,5 @@ breaking changes:
 
 - **[Getting started](getting-started.md)**: minimal server with stdio.
 - **[Server API](server.md)**: builder reference, request/notification handlers, capability advertisement.
+- **[Client API](client.md)**: client builder + typed request reference.
 - **[Architecture](architecture.md)**: dispatch kernel internals.

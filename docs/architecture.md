@@ -159,11 +159,11 @@ to a race with the close listeners.
   canonical description, every `@see` link resolves to a real anchor in the spec docs, and every round-trip
   fixture matches the canonical envelope shape.
 - What we have today: server-side covering tools, prompts, resources (static + templated), completions,
-  logging, ping. Stdio transport.
-- What we do not have yet: client side, streamable HTTP transport, sampling / elicitation, tasks, OAuth,
-  MCP Apps. These land across subsequent phases. Tasks, sampling, elicitation, and MCP Apps in particular
-  reshape significantly in the upcoming 2026-06-30 RC and are deferred to that migration rather than built
-  twice.
+  logging, ping. Client-side covering the handshake plus typed requests for the same surface
+  (`tools/call` with streaming progress, the list/read/get/complete methods). Stdio transport on both sides.
+- What we do not have yet: streamable HTTP transport, sampling / elicitation, tasks, OAuth, MCP Apps. These
+  land across subsequent phases. Tasks, sampling, elicitation, and MCP Apps in particular reshape
+  significantly in the upcoming 2026-06-30 RC and are deferred to that migration rather than built twice.
 
 ## Diagnostic message conventions
 
@@ -277,4 +277,5 @@ emitted message (e.g. `'"params.name"'`, `'tool "name"'`, `'resource link "uri"'
 
 - **[Getting started](getting-started.md)**: minimal server.
 - **[Server API](server.md)**: builder reference.
+- **[Client API](client.md)**: client builder + typed request reference.
 - **[Transports](transports.md)**: stdio contract. HTTP planning.

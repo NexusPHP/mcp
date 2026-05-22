@@ -21,8 +21,10 @@ real servers need:
 - [x] Static analysis floor: PHPStan level 10 + strict rules. Infection at 100% MSI, 100% MCC, 100%
   covered code MSI.
 
-The client-side namespace (`Nexus\Mcp\Client`) is not yet published. The shared protocol kernel under
-`Nexus\Mcp\Core` is already laid out as the common dependency for both sides.
+The client-side namespace (`Nexus\Mcp\Client`) now ships the handshake plus typed requests for the same
+surface (`tools/call` with streaming progress, the list/read/get/complete methods); see
+[docs/client.md](docs/client.md). The shared protocol kernel under `Nexus\Mcp\Core` is the common
+dependency for both sides. The end-to-end stdio example is the last open item before v0.1.0.
 
 ## Near-term: client-side composition
 
@@ -50,6 +52,7 @@ against the current spec means rebuilding them after the migration reshapes both
 - [x] Ship `Nexus\Mcp\Client\` with `ClientBuilder`, client-side stores, and the shared dispatch kernel.
 - [x] Cover the symmetric handshake (`initialize` / `notifications/initialized`) from the client side.
 - [x] `Nexus\Mcp\Client\Transport\StdioClientTransport` (subprocess launcher).
+- [x] Typed convenience methods on `Client` (list/read/get/complete, `callTool` with streaming progress).
 - [ ] End-to-end stdio client / server example.
 
 ## v0.1.0
@@ -182,8 +185,7 @@ move on that revision.
 
 - [x] `Nexus\Mcp\Server\Transport\StdioServerTransport`.
 - [x] `Nexus\Mcp\Core\Transport\InMemoryTransport` (test-only paired transports).
-- [ ] `Nexus\Mcp\Client\Transport\StdioClientTransport` (subprocess launcher; lands with the client
-  namespace).
+- [x] `Nexus\Mcp\Client\Transport\StdioClientTransport` (subprocess launcher).
 - [ ] Streamable HTTP server transport (lands with the 2026-06-30 migration).
 - [ ] Streamable HTTP client transport.
 
@@ -211,5 +213,6 @@ Expect at least one major release per PHP minor that drops EOL versions.
 
 - **[Getting started](docs/getting-started.md)**: install + minimal server.
 - **[Server API](docs/server.md)**: builder reference.
+- **[Client API](docs/client.md)**: client builder + typed request reference.
 - **[Transports](docs/transports.md)**: stdio contract + HTTP planning.
 - **[Architecture](docs/architecture.md)**: dispatch kernel, layering, spec compliance.

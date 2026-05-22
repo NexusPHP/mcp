@@ -112,6 +112,8 @@ target STDERR. See [examples/stdio-server.php](../examples/stdio-server.php) for
 
 - **[Server API](server.md)**: full `ServerBuilder` reference covering tools, prompts, resources,
   completions, custom request handlers, and the request/notification lifecycle.
+- **[Client API](client.md)**: `ClientBuilder` + `Client` reference covering the handshake, the typed
+  request methods, and streaming progress from `callTool`.
 - **[Transports](transports.md)**: what `StdioServerTransport` does and doesn't guarantee. What's coming
   for streamable HTTP.
 - **[Architecture](architecture.md)**: namespacing, layering rules, dispatch kernel, spec-compliance notes.

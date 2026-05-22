@@ -223,5 +223,6 @@ Every handler closure receives a `ServerContext` as its last argument.
 ## See also
 
 - **[Getting started](getting-started.md)**: install + minimal server.
+- **[Client API](client.md)**: the symmetric client-side reference.
 - **[Transports](transports.md)**: `StdioServerTransport` contract.
 - **[Architecture](architecture.md)**: dispatch kernel, layering, spec compliance.

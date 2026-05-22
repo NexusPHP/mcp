@@ -1,0 +1,183 @@
+# Client API
+
+The `Client` class drives the client side of an MCP session over a `TransportInterface`. Build one with the
+fluent `ClientBuilder`, connect it to a transport, run the handshake, then issue typed requests.
+
+```php
+use Nexus\Mcp\Client\Client;
+use Nexus\Mcp\Client\Transport\StdioClientTransport;
+
+$client = Client::builder()
+    ->setClientInfo(name: 'my-client', version: '1.0.0')
+    ->build()
+;
+
+$transport = new StdioClientTransport(command: [\PHP_BINARY, 'server.php']);
+$client->connect($transport);
+$client->initialize();
+
+foreach ($client->listTools()->tools as $tool) {
+    echo $tool->name, "\n";
+}
+
+$transport->close();
+```
+
+`connect()` is non-blocking: it attaches the listener chain and starts the transport. There is no
+`Client::close()`; shut the session down by closing the transport, which cancels any pending requests with
+a `TransportAlreadyClosedException`.
+
+## Client info
+
+Required before `build()`. Sent to the server during `initialize`.
+
+```php
+->setClientInfo(
+    name: 'my-client',
+    version: '1.0.0',
+    title: 'My Friendly Client',
+    description: 'A short description sent to the server during initialize.',
+    websiteUrl: 'https://example.com',
+)
+```
+
+## Logger
+
+Optional. Defaults to `Psr\Log\NullLogger`. Transport errors and uncaught notification-handler exceptions
+are logged here.
+
+```php
+->setLogger($psrLogger)
+```
+
+## Request-id and progress-token factories
+
+Optional. Both default to a monotonically-incrementing factory (`1`, `2`, … for request ids;
+`progress-1`, `progress-2`, … for progress tokens). Override either when you need a different id scheme,
+for example UUIDs.
+
+```php
+->setRequestIdFactory(static fn(): string => Uuid::v4()->toRfc4122())
+->setProgressTokenFactory(static fn(): string => Uuid::v4()->toRfc4122())
+```
+
+Each factory is a `\Closure(): (int|non-empty-string)` and must return a value unique among concurrently
+in-flight requests.
+
+## Connecting and the handshake
+
+```php
+$client->connect($transport);
+$result = $client->initialize();
+```
+
+`initialize()` sends the `initialize` request, awaits the result, then sends `notifications/initialized`. It
+accepts an optional `ClientCapabilities` and `ProtocolVersion`; both default to an empty capability set and
+the latest supported protocol version. It returns the `InitializeResult` and may be called only once per
+client. Any non-`ping` request issued before the handshake completes is rejected with a `LogicException`.
+
+```php
+use Nexus\Mcp\Core\Schema\ClientCapabilities;
+
+$result = $client->initialize(new ClientCapabilities(sampling: []));
+```
+
+After the handshake, `getServerInfo()` returns the server's `Implementation` block (name, version, title,
+…). It returns `null` before the handshake completes.
+
+```php
+$info = $client->getServerInfo();
+echo $info?->name, ' ', $info?->version;
+```
+
+## Typed requests
+
+Each method mints a request id, sends the request, and awaits the typed result. The list methods accept an
+optional `Cursor` for pagination.
+
+| Method | JSON-RPC method | Returns |
+| --- | --- | --- |
+| `listTools(?Cursor $cursor = null)` | `tools/list` | `ListToolsResult` |
+| `listResources(?Cursor $cursor = null)` | `resources/list` | `ListResourcesResult` |
+| `listResourceTemplates(?Cursor $cursor = null)` | `resources/templates/list` | `ListResourceTemplatesResult` |
+| `listPrompts(?Cursor $cursor = null)` | `prompts/list` | `ListPromptsResult` |
+| `readResource(string $uri)` | `resources/read` | `ReadResourceResult` |
+| `getPrompt(string $name, ?array $arguments = null)` | `prompts/get` | `GetPromptResult` |
+| `complete(PromptReference\|ResourceTemplateReference $ref, array $argument, ?array $context = null)` | `completion/complete` | `CompleteResult` |
+| `callTool(string $name, ?array $arguments = null, ?\Closure $onProgress = null)` | `tools/call` | `CallToolResult` |
+
+```php
+$tools = $client->listTools();
+$result = $client->callTool('greet', ['name' => 'Paul']);
+$about = $client->readResource('example://about');
+$prompt = $client->getPrompt('walkthrough', ['audience' => 'a junior developer']);
+```
+
+### Streaming progress from `callTool`
+
+Pass an `onProgress` callback to receive the server's `notifications/progress` for that one call. The SDK
+mints a fresh `progressToken` into the request's `_meta`, routes matching notifications to your callback for
+the duration of the call, and disposes the listener once the response resolves.
+
+```php
+$result = $client->callTool(
+    name: 'count_down',
+    arguments: ['count' => 5],
+    onProgress: static function (float $progress, ?float $total, ?string $message): void {
+        printf("  %g%s%s\n", $progress, null !== $total ? "/{$total}" : '', null !== $message ? " {$message}" : '');
+    },
+);
+```
+
+The callback signature is `\Closure(float $progress, ?float $total, ?string $message): void`.
+
+## Notification handlers
+
+Register handlers for server-to-client notifications at build time. A handler implements
+`NotificationHandlerInterface`; the dispatch table is keyed by method name.
+
+```php
+use Nexus\Mcp\Core\Schema\Notification\LoggingMessageNotification;
+
+->addNotificationHandler(LoggingMessageNotification::method(), $myLoggingHandler)
+```
+
+A build-time `notifications/progress` handler receives every progress notification whose token is **not**
+claimed by an in-flight `callTool(onProgress:)`. The two coexist: per-call `onProgress` takes its own token,
+and the build-time handler sees the rest.
+
+## The escape hatch: `sendRequest()`
+
+For spec methods without a convenience wrapper, or to send a pre-built request, call `sendRequest()` with
+the request and the expected `Result` class. It returns the `JsonRpcResultResponse<T>` wrapper.
+
+```php
+use Nexus\Mcp\Core\Schema\Request\PingRequest;
+use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
+use Nexus\Mcp\Core\Schema\Result\EmptyResult;
+
+$response = $client->sendRequest(
+    new PingRequest(new RequestId(1), new EmptyRequestParams()),
+    EmptyResult::class,
+);
+```
+
+You supply the `RequestId` yourself here; the auto-incrementing factory backs the typed methods above.
+`ping` is permitted before the handshake. All other methods are gated until `initialize()` completes.
+
+## Lifecycle
+
+1. **`build()`** validates the configuration (client info must be set) and returns a `Client`.
+2. **`connect($transport)`** attaches the listener chain, starts the transport, and returns immediately.
+3. **`initialize()`** runs the handshake. Exactly once.
+4. **Typed requests** correlate inbound responses to awaiting callers by `RequestId`.
+5. **Shutdown** is `($transport)->close()`. Pending requests are cancelled with
+   `TransportAlreadyClosedException`; in-flight notification handlers drain before the close listeners fire.
+
+## See also
+
+- **[Getting started](getting-started.md)**: install + minimal server.
+- **[Server API](server.md)**: the symmetric builder reference.
+- **[Transports](transports.md)**: `StdioClientTransport` (subprocess launcher) and the in-memory paired transport.
+- **[Architecture](architecture.md)**: dispatch kernel, layering, spec compliance.
