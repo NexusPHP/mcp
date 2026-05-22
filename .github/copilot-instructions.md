@@ -45,6 +45,7 @@ composer test:server # only server tests
 # Static analysis
 composer phpstan:check    # runs PHPStan across all packages
 composer phpstan:baseline # regenerates the PHPStan baseline; only use when a confirmed false positive/negative requires suppression; never add baseline entries to silence real errors
+composer test:stan        # PHPStan type-inference lock-in assertions (the static-analysis PHPUnit group, data under tests/AutoReview/data/)
 
 # Mutation testing (checks for code quality via mutation detection)
 composer mutation:check      # runs Infection on whole codebase
@@ -55,6 +56,16 @@ composer cs:check
 
 # Code style (fix)
 composer cs:fix
+
+# Documentation linters (typos whole-repo + markdownlint + lychee link check, the last two scoped to .md)
+composer lint:docs
+composer lint:fix         # auto-fix typos + markdownlint (lychee has no fixer)
+
+# Regenerate the schema snapshots (latest-schema.json + sorted-schema.json)
+composer schema:generate
+
+# Regenerate the spec @see anchor snapshot consumed by the auto-review test
+composer spec:snapshot-anchors
 ```
 
 ### Key Tools

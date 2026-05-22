@@ -1,6 +1,6 @@
 # Claude Code Instructions
 
-This file primes Claude sessions for the Nexus MCP SDK repo. For the general project overview, architecture, and command list, read [.github/copilot-instructions.md](.github/copilot-instructions.md); it is the canonical description of the repo and should not be duplicated here. This file only captures Claude-specific workflow guidance and gotchas learned while working in this codebase.
+Read [.github/copilot-instructions.md](.github/copilot-instructions.md) first for the general project overview, architecture, and command list. It is the canonical description of the repo, and nothing documented there is repeated here. This file holds the codebase's long-standing design decisions plus Claude-specific workflow guidance.
 
 ## Before making changes
 
@@ -12,28 +12,28 @@ This file primes Claude sessions for the Nexus MCP SDK repo. For the general pro
 
 For spec-driven work, do **NOT** introduce types, params, or response shapes that are not in the official spec. Ask before adding extension types. When in doubt, cite the section of `latest-schema.json` (or the upstream [modelcontextprotocol/modelcontextprotocol](https://github.com/modelcontextprotocol/modelcontextprotocol) schema.ts) that justifies the type. PHP-only scaffolding classes (parsers, guards, exceptions) are allowed, but any class meant to represent a JSON-RPC envelope or schema payload must correspond to a spec def.
 
+**`latest-schema.ts` is canonical for shape and inheritance.** The JSON schema (`latest-schema.json`) inlines `$ref` aliases, so abstract intermediate bases (`ResourceRequestParams`, `PaginatedRequestParams`, `TaskAugmentedRequestParams`) look like flat property bags in JSON and are easy to miss. Before adding a concrete `*Request` / `*Notification` / `*RequestParams` / `*NotificationParams` / `*Result` class, grep `latest-schema.ts` for the spec name and mirror its `extends` clause exactly. When the TS shows an abstract intermediate, introduce the corresponding abstract PHP base before the leaf classes. For Client/Server marker membership (`ClientRequest`, `ServerRequest`, `ClientNotification`, `ServerNotification`), read the TS unions at the bottom of `latest-schema.ts`. A class implements every marker whose union it appears in (some appear in both, e.g. `PingRequest`, `CancelledNotification`, `ProgressNotification`).
+
+**Strict spec compliance beats SDK convenience.** When a choice trades spec strictness for SDK-side simplicity (simpler tests, fewer code paths, easier ergonomics), pick the strict semantic and push the cost onto the SDK's own surrounding code (test helpers, fixtures, callers), never onto the envelope contract. Spec-covered edge cases (failed handshake, malformed envelopes, out-of-order notifications) are not optional. Surface the tradeoff to the user before deciding rather than quietly taking the easier path.
+
+**MCP narrows JSON-RPC 2.0 in places. Follow MCP.** MCP 2025-11-25 narrows `RequestId` to `int | non-empty-string` (no null), so a `JsonRpcErrorResponse` built with a null id omits the `id` key entirely from `toArray()` rather than emitting `"id": null`. This looks like a JSON-RPC 2.0 violation (the JSON-RPC spec mandates a null id on parse and invalid-request errors) but is deliberate MCP conformance, pinned by a test. Do not "fix" it. Error-response tests for malformed input must assert the absent-id encoding (`{"jsonrpc":"2.0","error":{...}}`). The removal of batching is another such narrowing.
+
 ## Workflow gates
 
-Every change must survive these checks before being considered done:
+Every change must survive the full gate suite before it is done (`composer test:all`, or `composer test:with-untracked` mid-development when changes are unstaged or untracked, which swaps the full-tree mutation step for the diff-based one). For fast iteration, the single-concern scripts are enough (`composer test:core` / `test:client` / `test:server` / `test:auto-review` / `test:stan`).
 
-```bash
-composer test:all              # cs + phpstan + doc lints + auto-review + static-analysis + unit + full-tree mutation
-# OR (mid-development, with unstaged/untracked changes):
-composer test:with-untracked   # same suite, but mutation step is diff-based via `mutation:filter`
-```
+Mutation testing:
 
-For fast iteration while coding, the single-concern scripts work: `composer test:core`, `composer test:auto-review`, `composer test:stan` (PHPStan type-inference lock-in assertions under `tests/AutoReview/data/`, run as the `static-analysis` PHPUnit group).
+- **Default during iteration: skip mutation.** A code change needs only `cs:check` + `phpstan:check` + the relevant test suite. Mutation is not part of the inner loop.
+- **`composer mutation:filter`** (diff-based against `origin/1.x`, picks up untracked files) is the preferred run when one is actually needed. **`composer mutation:check`** is full-tree and takes 7+ minutes, so reserve it for pre-merge verification, `infection.json5` changes, or suspected cross-file interactions. The bottleneck is per-mutant forked PHPUnit, so do not propose PCOV or `infection.json5` perf tweaks.
+- Both enforce **100% MSI, 100% Code Coverage, 100% Covered Code MSI** ([infection.json5](infection.json5)). Escaped mutants fail the build, so improve the tests rather than adding ignores.
+- One file in isolation: `composer mutation:check -- --filter="path/to/File.php"` (the `--` passes args through to Infection).
 
-Mutation testing has two modes:
-
-- `composer mutation:filter`: diff-based against `origin/1.x`. Picks up committed, staged, modified-but-unstaged, and untracked files (the script transiently marks untracked files as `--intent-to-add` so `git diff` sees them, clearing on exit). Prefer this during iteration.
-- `composer mutation:check`: full tree. Reserve for pre-merge final verification, `infection.json5` changes, or when you suspect cross-file mutation interactions.
-
-Both enforce **100% MSI, 100% Code Coverage, 100% Covered Code MSI** per [infection.json5](infection.json5). Escaped mutants fail the build; do not add ignores, improve the tests instead.
+Docs sync: after any change that renames, deletes, moves, or adds a top-level building block (class, trait, enum, namespace, interface, public method, file location), grep `docs/`, `ROADMAP.md`, and the project memories for the old symbol and update them, then run `composer lint:docs` (lychee catches dead file links). Skip only for purely internal changes (private body, test-only, comment-only).
 
 ## Doc linters
 
-`composer lint:docs` bundles three linters: **typos** (whole-repo spell check), **markdownlint**, and **lychee** (the last two scoped to `.md` files). Configs: `_typos.toml`, `.markdownlint-cli2.yaml`, `lychee.toml`. Auto-fix via `composer lint:fix` (typos + markdownlint; lychee has no fixer). Native binaries auto-install via Homebrew after `composer update`. Note: `composer lint:typos:fix` rewrites identifiers in source files too, not just docs. Review the diff before staging.
+`composer lint:docs` bundles typos (whole-repo), markdownlint, and lychee. Auto-fix with `composer lint:fix` (lychee has no fixer). Gotcha: `composer lint:typos:fix` rewrites identifiers in source files too, not just docs, so review the diff before staging.
 
 ## Conventions worth internalising
 
@@ -48,6 +48,7 @@ Both enforce **100% MSI, 100% Code Coverage, 100% Covered Code MSI** per [infect
 
 - **Prefer native phpdoc tags over `@phpstan-*` variants** across the codebase. Use `@return`, `@param`, `@var`, `@implements`, `@extends`, `@throws`, `@template`, etc. Reach for `@phpstan-*` only when there is no native equivalent (`@phpstan-assert`, `@phpstan-consistent-constructor`, `@phpstan-type`, `@phpstan-import-type`, `@phpstan-ignore`).
 - **Class and method docblocks stay concise and behavior-focused.** Describe what the class *is/does* in 1–2 sentences plus structural tags. Do not narrate why the class exists in its current form. Decision history belongs in commits and PRs. The same rule applies to inline comments in data files and fixtures: no "this verifies that we fixed X" headers.
+- **When a concrete request narrows its `$params` to a subtype of `RequestParams`** (e.g. `ListResourcesRequest` taking `PaginatedRequestParams`), PHP keeps the inherited property typed as the parent at runtime and intelephense flags `$req->params->cursor` as undefined. Add a class-level `@property-read PaginatedRequestParams $params` to the subclass docblock, placed between the description and `@extends`. Use `@property-read`, not `@property` (the CS preset's alias rule is overridden locally to keep the distinction). Only the concrete leaf classes that narrow need it.
 
 ### `@internal`, `@final`, `@no-final`
 
@@ -59,6 +60,25 @@ Both enforce **100% MSI, 100% Code Coverage, 100% Covered Code MSI** per [infect
 
 - PHP class names map to spec defs via a basename-normalizer in the schema processor under `tools/`. If a new class's name diverges from the spec's, extend the normalizer rather than renaming the class.
 - `$ref` aliases (where one spec def points to another shape) are inlined at load time so aliased schemas expose the full shape for conformance testing.
+- Spec `"type": "number"` maps to PHP `float`. The conformance test enforces this (`SchemaConformanceTest::normaliseJsonType`), so the constructor parameter and property are typed `float`. Decoding in `fromArray` is permissive: it accepts both JSON ints and floats and coerces ints via the shared `Nexus\Mcp\Core\Schema\ParsesNumber` trait (`self::parseNumber($value, $message)`). Phrase the error message as "must be a number", and exercise both int and float inputs in the happy-path data provider.
+
+### Schema stability (HIGH PRIORITY)
+
+Schema classes under `src/Core/Schema/` are stable value objects locked to the MCP spec shape. Internal micro-DRY (helper extraction, trait lifting, `@phpstan-sealed` annotations, interface property hooks, abstract base lifting) is not worth the added abstraction unless it fixes a real envelope-encoding bug. The duplication is byte-identical except for class-name prefixes, the schema tracks the spec exactly and rarely changes, and each extraction adds a layer the reader must follow.
+
+- Before proposing a schema-class refactor, ask whether it fixes an encoding bug or only adds abstraction. If abstraction-only, skip it and document why rather than landing it.
+- Dead-code removal in schema classes is allowed, but only after verifying that no test, no direct-encode path, and no PHPStan-narrowing role exercises the "dead" branch (see [Load-bearing patterns](#load-bearing-patterns)).
+- Trait extraction for shared schema fields also loses constructor property promotion and forces class-name plumbing into error messages, an ergonomic regression even where the rule would otherwise permit it.
+- The rule does not block non-schema cleanups under `Server/`, `Client/`, and core classes outside `Core/Schema/`. Those are normal-cadence refactors.
+
+### Empty-object encoding: Pattern A vs Pattern B
+
+`json_encode([])` emits `[]`, but the MCP spec requires `{}` for object-typed positions. The fix depends on whether "empty" carries meaning:
+
+- **Pattern A (empty has meaning): substitute `\stdClass` to emit `{}`.** Applied at the leaf inside `jsonSerialize()`. Live examples: `ClientCapabilities`, `ServerCapabilities`, `MetaObject`, `RequestMetaObject`, `Annotations`, `Result`, and notifications or responses whose params or result are required on the envelope (e.g. `CancelledNotification`). Capabilities classes use a dual-loop walker because they nest empties: the top-level loop stays in `jsonSerialize()` (preserving the strict `array<string, mixed>` return), and the recursive helper takes `array<array-key, mixed>` so the `is_array($value)` narrowing needs no runtime `Assert::isMap`.
+- **Pattern B (empty is meaningless): omit the slot at the parent's `toArray()`.** Used by `RequestParams::toArray` and `NotificationParams::toArray` (empty `_meta`) and `Error::toArray` (empty `data`). Open-object slots whose contents have no further schema (`Error::data`, `MetaObject::extras`) are always Pattern B at the slot itself: an empty list there is legitimately a list and stays `[]`.
+
+The `Arrayable::jsonSerialize(): array<string, mixed>|\stdClass` return type is widened to formalise Pattern A. `toArray()` keeps the strict `array<string, mixed>` binding for round-trip purity. When you build a new schema class with object-typed slots, decide per slot. Semantic distinction between empty and absent picks Pattern A (add a `json_encode` substring test asserting `"slot":{}`). Equivalence picks Pattern B (add a test asserting the slot is omitted).
 
 ### Server-side composition
 
@@ -67,6 +87,7 @@ Both enforce **100% MSI, 100% Code Coverage, 100% Covered Code MSI** per [infect
 - **Dispatch is method-name → handler at registration time** (TS-SDK style), not the official PHP-SDK's polymorphic `supports($method)` walk. This is what motivates the phantom `@template-covariant TMethod` on `RequestHandlerInterface` / `NotificationHandlerInterface` (see [Per-method request/notification/result classes](#per-method-requestnotificationresult-classes)).
 - **No attribute-driven discovery yet.** `#[AsTool]` / `#[AsResource]` / reflection scanners / `symfony/finder` / PSR-14 event dispatch are explicit non-features. Adding any of them is a milestone of its own and changes the public surface; it doesn't fit incidentally.
 - **`ServerBuilder::addRequestHandler(method, handler)` is the power-user escape hatch.** It looks redundant next to the typed per-feature builders, but it's the seam consumers reach for to register handlers for spec methods that have no typed builder. Preserve it.
+- **`ServerInterface` / `ClientInterface` and their builder interfaces are explicit non-extractions, on both sides.** A one-method `ServerInterface` (`run(TransportInterface): void`) is feasible but skipped: there is no foreseeable second implementation, `Client` is not a `Server`, and decorator use cases are speculative. A `ClientInterface` would instead be wide (one typed method per MCP capability), which only sharpens the same objection: a large surface forced into lockstep with a second implementation that no consumer needs. The builder interfaces (`ServerBuilderInterface` / `ClientBuilderInterface`, each the fluent surface plus `build()`) are actively unwise: the wide surface forces lockstep, `: self` in an interface upcasts away the concrete type, and the `build(): Server` / `build(): Client` return couples each to its concrete-class decision. Do not re-derive any of them.
 
 ### Per-method request/notification/result classes
 
@@ -76,6 +97,7 @@ The spec defines methods as named JSON-RPC operations. Each gets a concrete requ
 - Pin the literal at the type level. Bases declare `@template-covariant TMethod of non-empty-string`; concrete subclasses must bind it via `@extends Base<'method-name'>`. Without that binding, `method()` widens to `non-empty-string` and the type-inference tests under `tests/AutoReview/data/` will fail.
 - When adding a new spec-defined request/notification class, register it in the method registry under `Core/JsonRpc/` so callers get it automatically. User-supplied maps passed to the parser merge over the defaults per-key; callers need only specify overrides or non-default method classes.
 - For methods with no typed params, reuse the shared `EmptyRequestParams`/`EmptyNotificationParams` (under `Core/Schema/RequestParams/` and `Core/Schema/NotificationParams/`). Only add a new subclass of the abstract `RequestParams`/`NotificationParams` base when the method carries typed fields beyond `_meta`. Same rule for `Result` subclasses: use `EmptyResult` unless the method carries a typed payload.
+- The dispatch registries are method-name to handler tables (`array<non-empty-string, RequestHandlerInterface<...>>`), TS-SDK style, not the official PHP-SDK's polymorphic `supports($method)` walk. `TMethod` is a phantom template: it pins the literal for storage (covariant subtype assignability into the heterogeneous registry slot) but does not appear in `handle()`'s parameter, which stays at the wide `JsonRpcRequest<non-empty-string>`. Narrowing `handle()` to `JsonRpcRequest<TMethod>` cannot be done without breaking dispatch (PHPStan's call-site variance projection collapses the parameter to `JsonRpcRequest<never>`). Do not strip the phantom template or refactor the registries to a `supports()` list.
 
 ### `Arrayable` and the success-response exception
 
@@ -87,6 +109,7 @@ When the spec defines two structurally similar shapes that differ only in option
 
 [`nexusphp/assert`](https://github.com/NexusPHP/assert) is a production dependency. Reach for it in constructors and `fromArray()` methods instead of inline `is_int`/`is_string`/`sprintf` + `new \InvalidArgumentException(...)`. Its PHPStan type-specifying extension is auto-registered via `phpstan/extension-installer`, so the narrowing lands without extra config.
 
+- **Before adding any narrowing, try removing it.** Modern PHPStan tracks types through array mutations and conditional returns, so a narrowing line that PHPStan accepts as absent was redundant. A useful signal: if Infection's `MethodCallRemoval` strips an `Assert::that()->isX()` call with no test failing, it was a structural no-op and should go. When narrowing is genuinely needed at an input boundary, use `Assert::that()` (always active, integrates with the type-specifying extension). Reserve native `\assert()` for structurally-guaranteed branches that only exist to satisfy PHPStan, and never rely on it for runtime validation: `zend.assertions=-1` strips it in production, CI runs that way, so mutating an `\assert()` condition has no observable effect and the mutant escapes.
 - `Assert::ExpectationFailedException` extends `\InvalidArgumentException`, so existing `catch (\InvalidArgumentException $e)` wrap-and-rethrow patterns keep working.
 - Messages are templates interpolated via `strtr`: `{value}` (value-exported) and `{type}` (produced by `get_debug_type()`). Example: `'JSON-RPC envelope "method" must be a non-empty string, {type} given.'`.
 - **String-keyed arrays**: `Assert::that($x)->isArray('… {type} given.')->isMap('… string-keyed object.')`. The two-step chain preserves distinct messages for "not an array" vs. "int-keyed array". A single `isMap` call collapses both into one message.
@@ -100,6 +123,18 @@ When the spec defines two structurally similar shapes that differ only in option
 - **Logger messages are the exception.** Pass a literal PSR-3 template (`'{label} transport sent {kind}.'`) as the message and the dynamic values via the context array (`['label' => $this->label, 'kind' => self::describe($message)]`). Do not pre-render with `sprintf`. Aggregators index `label`/`kind`/etc. as structured fields, and tests match against the raw template via `ArrayLogger::recordsMatching('{label} transport sent {kind}.')` plus a context-equality assertion.
 - The `{type}` and `{value}` tokens in `nexusphp/assert` messages are interpolated by the library at throw time, not by `sprintf`. Leave them as-is inside a `sprintf` template when injecting a class const or computed prefix: `\sprintf('%s command must be a list, {type} given.', self::LABEL)`.
 
+## Transport architecture
+
+`Nexus\Mcp\Core\Transport\TransportInterface` is contract-only, a sibling of `Core/JsonRpc/`. The design is shaped around streamable HTTP (the constraining transport) so stdio falls out as the simple case.
+
+- **The transport is a dumb pipe.** The protocol layer (Server/Client) owns parsing and correlation. Interface methods: `start()`, `send(JsonRpcMessage, ?SendContext)`, `close()`, `sessionId(): ?string`, and the `onMessage` / `onClose` / `onError` / `onDrain` listener setters (each call appends to the chain rather than replacing it). No `Future` or `Promise` types leak to consumers.
+- **`onMessage` receives `array<string, mixed> $envelope`, not a parsed `JsonRpcMessage`.** The transport stops at JSON-decode plus a map-shape check. Parsing to nominal types belongs to the protocol layer, which owns the parser and the pending-request map and so can build spec-coded `ParseError` / `InvalidRequest` / `MethodNotFound` / `InvalidParams` responses with the recovered request id.
+- **`SendContext` is a value object on `send()`** carrying per-send routing and replay metadata (`relatedRequestId`, resumption tokens). `ReceiveContext` is its inbound counterpart, an empty placeholder until streamable HTTP adds `request` and `authInfo` slots.
+- **Substrate is Revolt + AMPHP v3.** Fibers make the sync-looking signatures honest, and the same machinery serves stdio and the streamable-HTTP SSE writer. Property hooks are avoided on the interface because intelephense does not parse them yet, so auto-composing setter methods achieve the same behavior while staying IDE-friendly.
+- **Streamable HTTP uses PSR-15.** The HTTP transport exposes `handleRequest(ServerRequestInterface): ResponseInterface`. The SDK does not ship its own HTTP server. The HTTP-only deps are `psr/http-message`, `psr/http-server-handler`, `psr/http-factory`.
+- **Session routing is TS-style.** The HTTP transport is instantiated per session, and the consumer's router resolves `Mcp-Session-Id` to the right transport. Concrete transports may add transport-specific methods (e.g. `handleRequest`) beyond the interface.
+- **Two-layer split: transport plus (Server, Client), with no abstract `Protocol` base.** Correlation and dispatch are shared via composition, not a trait. Protocol-version setters live on a separate `ProtocolVersionAwareInterface` capability interface (stdio does not implement it, the HTTP transport will), gated by `instanceof` at the negotiate step.
+
 ## Static analysis and CS gotchas
 
 These all bit me at least once; note them up-front so you don't relearn:
@@ -112,6 +147,7 @@ These all bit me at least once; note them up-front so you don't relearn:
 - **Use the native `: never` return type** on methods that unconditionally throw, even when the interface signature declares a concrete return type. `never` is a bottom type, so narrowing any return type to `never` is LSP-safe. Prefer the native type over `@phpstan-return never`; resort to the phpdoc only when you cannot change the PHP signature (e.g. the method is inherited from a third-party interface that forbids narrowing via some tooling constraint).
 - **`final public function __construct`** is contagious. Don't add it unless you are sure subclasses will never need to declare their own constructor.
 - **`@phpstan-sealed Foo|Bar|Baz`** on a parent's docblock closes the subtype set. PHPStan narrows through the union: after `instanceof` eliminates N−1 cases in a `match (true)`, use `default =>` for the Nth (writing a redundant `instanceof` arm trips `instanceof.alwaysTrue`). Declaring a new subtype without adding it to the seal list trips `interface.disallowedSubtype`. Use for marker interfaces with a spec-fixed implementation set (e.g. `JsonRpcMessage` closed to request / notification / response). Kills "unreachable default arm" Infection mutants.
+- **PHPStan false positives go to the baseline, not to an inline ignore or an `Assert` workaround.** When PHPStan flags something provably safe at runtime (e.g. `[$a, $b] = explode($d, $s, 2)` after a `str_contains($s, $d)` guard), run `composer phpstan:baseline` and keep the audited entry. The baseline is the central, diff-friendly record of "PHPStan disagrees with us here". Do not add an `Assert::that()` chain to silence it (that tool is for runtime input validation at trust boundaries, not for narrowing already-guaranteed values), and avoid scattered inline `@phpstan-ignore`. This repo enables `reportPossiblyNonexistentGeneralArrayOffset` and `reportPossiblyNonexistentConstantArrayOffset`, which are not exposed on the phpstan.org/try playground, so offset-access false positives must be filed upstream directly, naming those flags.
 
 ## Test patterns
 
@@ -139,6 +175,17 @@ When `mutation:check` reports surviving mutants, categorise before writing tests
   - *Structurally unreachable code* → remove it. Common with defensive `Assert::isMap` calls inside helpers fed by schema-typed input; widen the helper's input type (`array<string, mixed>` → `array<array-key, mixed>`) and do strict typing at the outermost call site.
 
   Bumping `infection.json5`'s `timeout` is a last resort, only justified after confirming the slow mutants don't represent dead/untested code.
+
+## Load-bearing patterns
+
+These patterns look dead or redundant but are load-bearing. Do not propose them for removal. Before proposing removal of anything that looks similar, verify by writing a failing test or checking PHPStan / auto-review behavior first, not by local reading.
+
+1. **`CancelledNotification::jsonSerialize` empty-object substitution.** The PHP constructor permits `new CancelledNotificationParams()` with no `requestId` (the spec mandates it, the type allows null). Without the `\stdClass` substitution the envelope drops the `params` key and fails `fromArray`'s `hasOffset('params')` guard. Three tests pin it.
+2. **`EnumValueValidator::parse` try/catch on `\TypeError`.** With `strict_types=1`, passing a numeric string to an int-backed enum's `tryFrom` throws `TypeError`, and the catch converts it to a meaningful `ExpectationFailedException`. The outer `is_string || is_int` guard does not prevent this.
+3. **`Annotations::jsonSerialize` empty-object substitution.** `json_encode(new Annotations())` standalone emits `[]` instead of `{}` without it, even though all parent consumers filter the slot when empty.
+4. **`InMemoryTransport` per-envelope `isMap` assertion.** `JsonRpcMessage::toArray()` has no declared signature on the interface (reached via a soft `\assert(method_exists(...))`), so PHPStan types the envelope as `mixed`. The `isMap` chain narrows it so the downstream `receive()` call typechecks.
+5. **`NullLogger` short-circuit pattern.** Do not add an `if ($logger instanceof NullLogger)` early-return guard at log call sites. `NullLogger::debug()` is the no-op, so call `$logger->debug(...)` unconditionally.
+6. **`JsonRpcMethodRegistry::requests()` and `notifications()` map ordering.** Sorted by the evaluated method literal (`completion/complete`, `elicitation/create`, `initialize`, ...), not class-name alphabetical, and enforced by a test.
 
 ## Committing
 
