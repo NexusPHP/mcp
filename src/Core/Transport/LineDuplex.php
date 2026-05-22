@@ -204,6 +204,11 @@ final class LineDuplex
                 );
             } finally {
                 $completion->complete();
+                unset($this->sideChannelFibers[spl_object_id($completion)]);
+                $this->sideChannelCompletions = array_values(array_filter(
+                    $this->sideChannelCompletions,
+                    static fn(DeferredFuture $candidate): bool => $candidate !== $completion,
+                ));
             }
         });
     }

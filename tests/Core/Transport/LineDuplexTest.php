@@ -847,6 +847,24 @@ final class LineDuplexTest extends TestCase
         self::assertSame(['label' => 'demo', 'exception' => $boom], $matches[0]['context']);
     }
 
+    public function testForwardLinesPrunesItsBookkeepingOnceTheLoopEnds(): void
+    {
+        $duplex = self::buildDuplex();
+        $duplex->forwardLines(new ReadableBuffer("line\n"), static function (): void {});
+
+        EventLoop::run();
+
+        // One-off use of reflection: pruning the side-channel bookkeeping is a
+        // memory-leak fix with no behavioral observable (awaiting an already
+        // completed future is a no-op), so there is nothing on the public surface
+        // to assert. This is not a precedent for testing private state generally.
+        $completions = new \ReflectionProperty(LineDuplex::class, 'sideChannelCompletions')->getValue($duplex);
+        $fibers = new \ReflectionProperty(LineDuplex::class, 'sideChannelFibers')->getValue($duplex);
+
+        self::assertSame([], $completions, 'A finished side channel must be removed from the completion list.');
+        self::assertSame([], $fibers, 'A finished side channel must be removed from the fiber map.');
+    }
+
     /**
      * @param 'close'|'drain'|'error'|'message' $kind
      * @param 'a'|'an'                          $article
