@@ -258,6 +258,34 @@ final class LineDuplexTest extends TestCase
         self::assertSame(['tail'], $lines);
     }
 
+    public function testCloseDrainsAParkedReadLoopWithoutAnOnBeforeClose(): void
+    {
+        $pipe = new Pipe(8192);
+        $events = [];
+        $errors = [];
+        $duplex = self::buildDuplex();
+        $duplex->onError(static function (\Throwable $e) use (&$errors): void {
+            $errors[] = $e;
+        });
+        $duplex->onDrain(static function () use (&$events): void {
+            $events[] = 'drain';
+        });
+        $duplex->onClose(static function () use (&$events): void {
+            $events[] = 'close';
+        });
+
+        $duplex->start($pipe->getSource(), new WritableBuffer());
+
+        // Let the read loop park on the still-open source. With no onBeforeClose,
+        // only close() closing the readable itself can force the EOF the drain needs.
+        delay(0.01);
+
+        $duplex->close();
+
+        self::assertSame(['drain', 'close'], $events);
+        self::assertSame([], $errors, 'Closing the readable should EOF the read loop cleanly, not error.');
+    }
+
     public function testSideChannelOnLineCallingCloseDoesNotSelfDeadlock(): void
     {
         $pipe = new Pipe(8192);

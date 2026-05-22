@@ -171,6 +171,10 @@ final class LineDuplex
             ($this->onBeforeClose)();
         }
 
+        // Force EOF on a parked read so the drain below cannot hang waiting for
+        // the read loop when no onBeforeClose tore the stream down.
+        $this->readable->close();
+
         $this->drainBackgroundLoops();
 
         $this->events->emitClose();
@@ -270,11 +274,15 @@ final class LineDuplex
                 $this->processLine($line);
             }
         } catch (\Throwable $e) {
-            $this->logger->error(
-                '{label} transport read loop failed. Closing.',
-                ['label' => $this->label, 'exception' => $e],
-            );
-            $this->events->emitError($e);
+            // A read failure after close() has flipped the state is the expected
+            // result of tearing the stream down, not a transport error to report.
+            if (TransportState::Closed !== $this->state) {
+                $this->logger->error(
+                    '{label} transport read loop failed. Closing.',
+                    ['label' => $this->label, 'exception' => $e],
+                );
+                $this->events->emitError($e);
+            }
         } finally {
             $this->readLoopCompletion?->complete();
 
