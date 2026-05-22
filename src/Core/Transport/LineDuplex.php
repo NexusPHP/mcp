@@ -17,6 +17,7 @@ use Amp\ByteStream\ReadableBuffer;
 use Amp\ByteStream\ReadableStream;
 use Amp\ByteStream\WritableBuffer;
 use Amp\ByteStream\WritableStream;
+use Amp\DeferredFuture;
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyStartedException;
@@ -41,6 +42,21 @@ final class LineDuplex
     private readonly TransportEvents $events;
     private ReadableStream $readable;
     private WritableStream $writable;
+
+    /**
+     * @var null|\Fiber<mixed, mixed, mixed, mixed>
+     */
+    private ?\Fiber $readLoopFiber = null;
+
+    /**
+     * @var null|DeferredFuture<null>
+     */
+    private ?DeferredFuture $readLoopCompletion = null;
+
+    /**
+     * @var list<DeferredFuture<null>>
+     */
+    private array $sideChannelCompletions = [];
 
     /**
      * @param class-string                                $hostTransport
@@ -89,6 +105,8 @@ final class LineDuplex
         $this->readable = $readable;
         $this->writable = $writable;
         $this->logger->info('{label} transport started.', ['label' => $this->label]);
+
+        $this->readLoopCompletion = new DeferredFuture();
 
         EventLoop::queue($this->readLoop(...));
     }
@@ -148,6 +166,8 @@ final class LineDuplex
             ($this->onBeforeClose)();
         }
 
+        $this->drainBackgroundLoops();
+
         $this->events->emitClose();
         $this->logger->info('{label} transport closed.', ['label' => $this->label]);
     }
@@ -157,7 +177,10 @@ final class LineDuplex
      */
     public function forwardLines(ReadableStream $source, \Closure $onLine): void
     {
-        EventLoop::queue(function () use ($source, $onLine): void {
+        $completion = new DeferredFuture();
+        $this->sideChannelCompletions[] = $completion;
+
+        EventLoop::queue(function () use ($source, $onLine, $completion): void {
             $reader = new LineReader($source, $this->maxLineBytes);
 
             try {
@@ -169,6 +192,8 @@ final class LineDuplex
                     '{label} transport side-channel loop failed.',
                     ['label' => $this->label, 'exception' => $e],
                 );
+            } finally {
+                $completion->complete();
             }
         });
     }
@@ -205,8 +230,28 @@ final class LineDuplex
         return $this->events->onClose($listener);
     }
 
+    /**
+     * Blocks until the backgrounded read loop and side-channel loops have run to
+     * completion, so a force-close cannot leave a fiber suspended on a stream
+     * read once the host process tears the event loop down.
+     */
+    private function drainBackgroundLoops(): void
+    {
+        // Reaching this from the read-loop fiber itself (its own EOF/error
+        // teardown, or a synchronous send failure while dispatching) means
+        // awaiting its completion would suspend the fiber on itself.
+        if (\Fiber::getCurrent() !== $this->readLoopFiber) {
+            $this->readLoopCompletion?->getFuture()->await();
+        }
+
+        foreach ($this->sideChannelCompletions as $completion) {
+            $completion->getFuture()->await();
+        }
+    }
+
     private function readLoop(): void
     {
+        $this->readLoopFiber = \Fiber::getCurrent();
         $reader = new LineReader($this->readable, $this->maxLineBytes);
 
         try {
@@ -220,6 +265,8 @@ final class LineDuplex
             );
             $this->events->emitError($e);
         } finally {
+            $this->readLoopCompletion?->complete();
+
             try {
                 $this->events->emitDrain();
             } finally {

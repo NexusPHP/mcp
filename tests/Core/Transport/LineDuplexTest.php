@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Transport;
 
+use Amp\ByteStream\Pipe;
 use Amp\ByteStream\ReadableBuffer;
 use Amp\ByteStream\ReadableIterableStream;
 use Amp\ByteStream\WritableBuffer;
@@ -35,9 +36,12 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Psr\Log\NullLogger;
 use Revolt\EventLoop;
+
+use function Amp\delay;
 
 /**
  * @internal
@@ -199,6 +203,89 @@ final class LineDuplexTest extends TestCase
         EventLoop::run();
 
         self::assertSame(['drain', 'close'], $events);
+    }
+
+    public function testCloseFromMainFiberDrainsSuspendedReadLoopBeforeReturning(): void
+    {
+        $pipe = new Pipe(8192);
+        $sink = $pipe->getSink();
+        $events = [];
+        $duplex = self::buildDuplex(
+            onBeforeClose: static function () use ($sink): void {
+                $sink->close();
+            },
+        );
+        $duplex->onDrain(static function () use (&$events): void {
+            $events[] = 'drain';
+        });
+        $duplex->onClose(static function () use (&$events): void {
+            $events[] = 'close';
+        });
+
+        $duplex->start($pipe->getSource(), new WritableBuffer());
+
+        // Let the read loop start and park on its still-open source read.
+        delay(0.01);
+
+        // close() must run the parked read loop to completion (firing drain)
+        // before it emits close, so no fiber is left suspended on the read.
+        $duplex->close();
+
+        self::assertSame(['drain', 'close'], $events);
+    }
+
+    public function testCloseDrainsRegisteredSideChannelLoopBeforeReturning(): void
+    {
+        $pipe = new Pipe(8192);
+        $sink = $pipe->getSink();
+        $lines = [];
+        $duplex = self::buildDuplex(
+            onBeforeClose: static function () use ($sink): void {
+                $sink->write("tail\n");
+                $sink->close();
+            },
+        );
+        $duplex->forwardLines(
+            $pipe->getSource(),
+            static function (string $line) use (&$lines): void {
+                $lines[] = $line;
+            },
+        );
+
+        // No start(), so only the side-channel drain can pump the loop here.
+        $duplex->close();
+
+        self::assertSame(['tail'], $lines);
+    }
+
+    public function testCloseStillReturnsWhenSideChannelFailureLoggerThrows(): void
+    {
+        $previousHandler = EventLoop::getErrorHandler();
+        EventLoop::setErrorHandler(static function (): void {});
+
+        try {
+            $logger = new class extends NullLogger {
+                #[\Override]
+                public function warning(string|\Stringable $message, array $context = []): void
+                {
+                    throw new \RuntimeException('logger boom during side-channel warning');
+                }
+            };
+            $duplex = self::buildDuplex(logger: $logger);
+            $duplex->forwardLines(
+                new ThrowingReadableStream(new \RuntimeException('side-channel boom')),
+                static function (): void {},
+            );
+
+            // The side-channel loop fails, then its failure logger throws too.
+            // close() must still return: the completion fires in the `finally`,
+            // so the drain await is not left hanging on it.
+            $duplex->close();
+
+            $this->expectNotToPerformAssertions();
+        } finally {
+            EventLoop::setErrorHandler($previousHandler);
+        }
     }
 
     public function testCloseFiresEvenWhenDrainListenerThrows(): void
@@ -760,7 +847,7 @@ final class LineDuplexTest extends TestCase
      * @param null|\Closure(): void                     $onBeforeClose
      */
     private static function buildDuplex(
-        ?ArrayLogger $logger = null,
+        ?LoggerInterface $logger = null,
         ?\Closure $onParseFailure = null,
         ?\Closure $onBeforeClose = null,
     ): LineDuplex {
