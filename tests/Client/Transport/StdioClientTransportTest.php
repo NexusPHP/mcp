@@ -38,6 +38,7 @@ use Psr\Log\LogLevel;
 final class StdioClientTransportTest extends TestCase
 {
     private const string ECHO_SERVER = __DIR__.'/../../Fixtures/Client/Transport/echo-server.php';
+    private const string STDERR_NOISE = __DIR__.'/../../Fixtures/Client/Transport/stderr-noise.php';
 
     public function testEmptyCommandThrows(): void
     {
@@ -148,33 +149,32 @@ final class StdioClientTransportTest extends TestCase
     {
         /** @var DeferredFuture<string> $stderrCaptured */
         $stderrCaptured = new DeferredFuture();
-        $logger = new class ($stderrCaptured) extends AbstractLogger {
-            /**
-             * @param DeferredFuture<string> $stderrCaptured
-             */
-            public function __construct(private readonly DeferredFuture $stderrCaptured)
-            {
-            }
-
-            #[\Override]
-            public function log(mixed $level, string|\Stringable $message, array $context = []): void
-            {
-                if (
-                    'Subprocess stderr: {line}' === (string) $message
-                    && ! $this->stderrCaptured->isComplete()
-                    && \is_string($context['line'] ?? null)
-                ) {
-                    $this->stderrCaptured->complete($context['line']);
-                }
-            }
-        };
-        $transport = new StdioClientTransport([\PHP_BINARY, self::ECHO_SERVER], logger: $logger);
+        $transport = new StdioClientTransport(
+            [\PHP_BINARY, self::ECHO_SERVER],
+            logger: self::stderrCapturingLogger($stderrCaptured),
+        );
 
         $transport->start();
         $line = $stderrCaptured->getFuture()->await();
         $transport->close();
 
         self::assertSame('echo-server fixture ready', $line);
+    }
+
+    public function testSubprocessStderrIsSanitisedBeforeLogging(): void
+    {
+        /** @var DeferredFuture<string> $stderrCaptured */
+        $stderrCaptured = new DeferredFuture();
+        $transport = new StdioClientTransport(
+            [\PHP_BINARY, self::STDERR_NOISE],
+            logger: self::stderrCapturingLogger($stderrCaptured),
+        );
+
+        $transport->start();
+        $line = $stderrCaptured->getFuture()->await();
+        $transport->close();
+
+        self::assertSame('noise\\x07\\x1b[31m', $line);
     }
 
     public function testSendAfterCloseThrowsTransportAlreadyClosed(): void
@@ -206,5 +206,32 @@ final class StdioClientTransportTest extends TestCase
             [\PHP_BINARY, self::ECHO_SERVER],
             logger: $logger ?? new ArrayLogger(),
         );
+    }
+
+    /**
+     * @param DeferredFuture<string> $captured
+     */
+    private static function stderrCapturingLogger(DeferredFuture $captured): AbstractLogger
+    {
+        return new class ($captured) extends AbstractLogger {
+            /**
+             * @param DeferredFuture<string> $captured
+             */
+            public function __construct(private readonly DeferredFuture $captured)
+            {
+            }
+
+            #[\Override]
+            public function log(mixed $level, string|\Stringable $message, array $context = []): void
+            {
+                if (
+                    'Subprocess stderr: {line}' === (string) $message
+                    && ! $this->captured->isComplete()
+                    && \is_string($context['line'] ?? null)
+                ) {
+                    $this->captured->complete($context['line']);
+                }
+            }
+        };
     }
 }

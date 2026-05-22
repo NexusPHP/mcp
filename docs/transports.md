@@ -121,8 +121,9 @@ Behaviour:
 - **Framing**: same line-framed JSON-RPC as the server transport. Outbound writes go to the subprocess's
   stdin; inbound lines come from its stdout.
 - **STDERR**: a second pump runs in parallel and forwards every stderr line to the logger as
-  `info('Subprocess stderr: {line}', ['line' => $line])`. Errors during the stderr pump log a warning but
-  do not affect transport state.
+  `info('Subprocess stderr: {line}', ['line' => $line])`. Each line is sanitised first (non-printable bytes
+  escaped to `\xNN`, capped at 80 bytes) so a hostile subprocess cannot smuggle control sequences into the
+  logs. Errors during the stderr pump log a warning but do not affect transport state.
 - **Close**: closes the subprocess's stdin (signalling EOF), then sends `SIGKILL` if the subprocess is
   still running. `SIGTERM` would be preferable but `amphp/process` runs subprocesses behind a shell
   wrapper that ignores `SIGTERM`, so `SIGKILL` is the only signal guaranteed to terminate the child.
