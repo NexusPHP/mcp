@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Dispatch;
 
 use Nexus\Mcp\Core\Dispatch\PendingOutboundRequests;
+use Nexus\Mcp\Core\Exception\DuplicateOutboundRequestIdException;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
@@ -38,12 +39,12 @@ final class PendingOutboundRequestsTest extends TestCase
         self::assertCount(1, $pending);
     }
 
-    public function testDuplicateRegisterThrowsLogicException(): void
+    public function testDuplicateRegisterThrowsDuplicateOutboundRequestIdException(): void
     {
         $pending = new PendingOutboundRequests();
         $pending->register(new RequestId(1), EmptyResult::class);
 
-        $this->expectException(\LogicException::class);
+        $this->expectException(DuplicateOutboundRequestIdException::class);
         $this->expectExceptionMessageMatches('/^Outbound request id 1 is already pending\./');
 
         $pending->register(new RequestId(1), EmptyResult::class);
@@ -56,7 +57,7 @@ final class PendingOutboundRequestsTest extends TestCase
 
         try {
             $pending->register(new RequestId(1), EmptyResult::class);
-        } catch (\LogicException) {
+        } catch (DuplicateOutboundRequestIdException) {
             // expected
         }
 
@@ -68,7 +69,7 @@ final class PendingOutboundRequestsTest extends TestCase
         $pending = new PendingOutboundRequests();
         $pending->register(new RequestId('corr-token'), EmptyResult::class);
 
-        $this->expectException(\LogicException::class);
+        $this->expectException(DuplicateOutboundRequestIdException::class);
         $this->expectExceptionMessageMatches('/^Outbound request id \'corr-token\' is already pending\\./');
 
         $pending->register(new RequestId('corr-token'), EmptyResult::class);

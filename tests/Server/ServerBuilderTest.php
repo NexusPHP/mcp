@@ -33,6 +33,8 @@ use Nexus\Mcp\Core\Schema\Result\ListResourceTemplatesResult;
 use Nexus\Mcp\Core\Schema\Result\ListToolsResult;
 use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
 use Nexus\Mcp\Core\Schema\Tool\Tool;
+use Nexus\Mcp\Server\Exception\ReservedMethodException;
+use Nexus\Mcp\Server\Exception\UnreservedMethodException;
 use Nexus\Mcp\Server\Server;
 use Nexus\Mcp\Server\ServerBuilder;
 use Nexus\Mcp\Server\ServerContext;
@@ -667,7 +669,7 @@ final class ServerBuilderTest extends TestCase
     #[DataProvider('provideAddRequestHandlerRejectsReservedSpecMethodCases')]
     public function testAddRequestHandlerRejectsReservedSpecMethod(string $method): void
     {
-        $this->expectException(\LogicException::class);
+        $this->expectException(ReservedMethodException::class);
         $this->expectExceptionMessage(\sprintf(
             'Request method "%s" is reserved by the MCP specification. Use replaceRequestHandler() to attach a handler to it.',
             $method,
@@ -743,7 +745,7 @@ final class ServerBuilderTest extends TestCase
     #[DataProvider('provideAddNotificationHandlerRejectsReservedSpecMethodCases')]
     public function testAddNotificationHandlerRejectsReservedSpecMethod(string $method): void
     {
-        $this->expectException(\LogicException::class);
+        $this->expectException(ReservedMethodException::class);
         $this->expectExceptionMessage(\sprintf(
             'Notification method "%s" is reserved by the MCP specification. Use replaceNotificationHandler() to attach a handler to it.',
             $method,
@@ -784,7 +786,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testReplaceRequestHandlerRejectsVendorExtensionMethod(): void
     {
-        $this->expectException(\LogicException::class);
+        $this->expectException(UnreservedMethodException::class);
         $this->expectExceptionMessage(
             'Request method "acme/snapshot" is not reserved by the MCP specification. Use addRequestHandler() to register a vendor extension.',
         );
@@ -796,7 +798,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testReplaceNotificationHandlerRejectsVendorExtensionMethod(): void
     {
-        $this->expectException(\LogicException::class);
+        $this->expectException(UnreservedMethodException::class);
         $this->expectExceptionMessage(
             'Notification method "acme/snapshot-done" is not reserved by the MCP specification. Use addNotificationHandler() to register a vendor extension.',
         );
