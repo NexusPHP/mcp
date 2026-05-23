@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Tests\Server\Handler\Request;
 
 use Amp\NullCancellation;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestMetaObject;
@@ -82,6 +83,99 @@ final class CallToolRequestHandlerTest extends TestCase
         );
 
         self::assertSame($expected, $result);
+    }
+
+    public function testMirrorsStructuredContentIntoTextBlockWhenContentEmpty(): void
+    {
+        $structured = ['path' => 'docs/intro', 'lines' => 42];
+        $store = new ToolStore([
+            'report' => new ToolEntry(
+                new Tool('report', ['type' => 'object']),
+                new ClosureToolExecutor(static fn(?array $arguments, ServerContext $context): CallToolResult => new CallToolResult(
+                    content: [],
+                    structuredContent: $structured,
+                    isError: false,
+                    meta: new MetaObject(['vendor' => 'x']),
+                )),
+            ),
+        ]);
+        $handler = new CallToolRequestHandler($store);
+
+        $result = $handler->handle(
+            new CallToolRequest(new RequestId(1), new CallToolRequestParams('report')),
+            self::makeContext(),
+        );
+
+        self::assertCount(1, $result->content);
+        $block = $result->content[0];
+
+        if (! $block instanceof TextContent) {
+            self::fail('Mirrored content must be TextContent.');
+        }
+
+        self::assertSame('{"path":"docs/intro","lines":42}', $block->text);
+        self::assertSame($structured, $result->structuredContent);
+        self::assertFalse($result->isError);
+        self::assertSame(['vendor' => 'x'], $result->meta->toArray());
+    }
+
+    public function testDoesNotMirrorWhenContentAlreadyPresent(): void
+    {
+        $expected = new CallToolResult(
+            content: [new TextContent('explicit')],
+            structuredContent: ['lines' => 42],
+        );
+        $store = new ToolStore([
+            'report' => new ToolEntry(
+                new Tool('report', ['type' => 'object']),
+                new ClosureToolExecutor(static fn(?array $arguments, ServerContext $context): CallToolResult => $expected),
+            ),
+        ]);
+        $handler = new CallToolRequestHandler($store);
+
+        $result = $handler->handle(
+            new CallToolRequest(new RequestId(1), new CallToolRequestParams('report')),
+            self::makeContext(),
+        );
+
+        self::assertSame($expected, $result);
+    }
+
+    public function testWrapsUnserialisableStructuredContentIntoGenericError(): void
+    {
+        $store = new ToolStore([
+            'report' => new ToolEntry(
+                new Tool('report', ['type' => 'object']),
+                new ClosureToolExecutor(static fn(?array $arguments, ServerContext $context): CallToolResult => new CallToolResult(
+                    content: [],
+                    structuredContent: ['value' => \NAN],
+                )),
+            ),
+        ]);
+        $logger = new ArrayLogger();
+        $handler = new CallToolRequestHandler($store, $logger);
+
+        $result = $handler->handle(
+            new CallToolRequest(new RequestId(1), new CallToolRequestParams('report')),
+            self::makeContext(),
+        );
+
+        self::assertTrue($result->isError);
+        self::assertCount(1, $result->content);
+        $block = $result->content[0];
+
+        if (! $block instanceof TextContent) {
+            self::fail('Wrapped error content must be TextContent.');
+        }
+
+        self::assertSame('Tool execution failed.', $block->text);
+        self::assertCount(
+            1,
+            $logger->recordsMatching(
+                LogLevel::ERROR,
+                'Uncaught tool executor exception. Returning generic error to peer.',
+            ),
+        );
     }
 
     public function testPropagatesToolNotFoundFromStore(): void

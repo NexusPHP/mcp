@@ -69,7 +69,7 @@ MCP spec.
 - [x] Client-side composition merged.
 - [x] Project documentation and community health files in place (README, CONTRIBUTING,
   CODE_OF_CONDUCT, SECURITY, CHANGELOG).
-- [ ] Mirror structured tool results into a text content block (the spec's backwards-compatibility
+- [x] Mirror structured tool results into a text content block (the spec's backwards-compatibility
   SHOULD for `structuredContent`).
 - [ ] Settle runtime validation of tool results against a declared output schema: add a JSON Schema
   dependency for a durable fix, or document the gap and revisit at the 2026-07-28 migration.

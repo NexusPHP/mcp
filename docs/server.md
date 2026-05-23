@@ -91,6 +91,22 @@ Protocol-level conditions (`ToolNotFoundException`, etc.) still surface as JSON-
 > connection strings, and any other sensitive data. The recommended pattern for surfacing tool errors is
 > `return new CallToolResult(content: [...], isError: true)`, not throwing a protocol exception.
 
+### Structured content
+
+A tool may return a `structuredContent` object instead of, or alongside, its `content` blocks:
+
+```php
+return new CallToolResult(
+    content: [],
+    structuredContent: ['temperature' => 22.5, 'unit' => 'celsius'],
+);
+```
+
+For backwards compatibility, the spec recommends that a tool returning `structuredContent` also return
+the serialised JSON in a `TextContent` block. When the executor leaves `content` empty, the handler adds
+that block for you. Provide your own `content` to keep control of the text representation. A non-empty
+`content` list is passed through untouched.
+
 ## Prompts
 
 ```php
