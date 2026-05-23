@@ -20,16 +20,20 @@ Nexus\Mcp\
 ├── Server\             Server-side composition. Depends on Core only
 │   ├── Completion\     Completion store contract
 │   ├── Dispatch\       Server-side per-envelope inbound pipeline plus the inbound handshake gate
-│   ├── Exception\      Server-side protocol errors
+│   ├── Exception\      Server-side error types
 │   ├── Handler\
 │   │   └── Request\    Built-in server request handlers
 │   ├── Logging\        Logging-level gate consulted before emitting `notifications/message`
 │   ├── Prompt\         Prompt store plus renderer adapters
 │   ├── Resource\       Static and templated resource stores plus reader adapters
 │   ├── Tool\           Tool store plus executor adapters
-│   └── Transport\      Server-side transport implementations
+│   ├── Transport\      Server-side transport implementations
+│   └── Validation\      Pluggable JSON Schema validator contract plus the opis-backed default
 └── Client\             Client-side composition. Depends on Core only
     ├── Dispatch\       Client-side per-envelope inbound pipeline plus the outbound handshake gate
+    ├── Exception\      Client-side local-misuse errors (not connected, already initialised, unsupported version)
+    ├── Handler\
+    │   └── Notification\  Built-in client notification handlers (progress routing, logging message)
     └── Transport\      Client-side transport implementations
 ```
 
@@ -42,7 +46,7 @@ Nexus\Mcp\
   namespace root with concrete subclasses in same-named subfolders (`Schema/Result.php` +
   `Schema/Result/EmptyResult.php`, `Schema/Request.php` + `Schema/Request/PingRequest.php`, etc.).
 - **`Server` depends on `Core` only.** No back-references from `Core` into `Server`.
-- **`Client` will depend on `Core` only.** `Server` and `Client` are symmetric peers, neither depending on the
+- **`Client` depends on `Core` only.** `Server` and `Client` are symmetric peers, neither depending on the
   other.
 
 ## The `Arrayable` contract
@@ -70,14 +74,17 @@ That wrapper therefore has no `fromArray()` and is constructed only via
 
 ## The dispatch kernel
 
-[`ServerMessageDispatcher`](../src/Server/Dispatch/ServerMessageDispatcher.php) implements the shared
-[`MessageDispatcherInterface`](../src/Core/Dispatch/MessageDispatcherInterface.php) for the server side. It
-is the per-envelope inbound pipeline.
+Both peers run a per-envelope inbound pipeline behind the shared
+[`MessageDispatcherInterface`](../src/Core/Dispatch/MessageDispatcherInterface.php):
+[`ServerMessageDispatcher`](../src/Server/Dispatch/ServerMessageDispatcher.php) on the server,
+[`ClientMessageDispatcher`](../src/Client/Dispatch/ClientMessageDispatcher.php) on the client. The two
+share the same shape; the structural difference is which direction owns response correlation.
 
 ```text
 inbound envelope (array)
    │
-   ├── response shape (`result` or `error` key) → discard with a warning (server has no outbound-request correlation)
+   ├── response shape (`result` or `error` key) → server: discard with a warning (it issues no outbound requests)
+   │       → client: correlate to the matching pending outbound request (resolve / reject)
    │
    ▼
 JsonRpcMessageParser::parse()        ← classifies request/notification, raises typed protocol exceptions
@@ -104,7 +111,16 @@ JsonRpcMessageParser::parse()        ← classifies request/notification, raises
                └── spawn async coroutine → call handler (no response)
 ```
 
-Three pieces are worth calling out:
+The diagram traces the server. The client shares the request and notification arms but diverges in two
+places. First, the response-shape fork above: where the server discards a `result`/`error` envelope, the
+client correlates it to the pending outbound request it is awaiting, resolving on success or rejecting on
+error, and warns on an unknown ("orphan") id. Second, inbound requests and notifications are not
+init-gated on the client; it gates its own *outbound* sends in `Client::sendRequest()` instead, so the
+`$gate->...` steps above are absent and the client simply runs the handler and replies. The client is
+thus both a responder (it answers peer `ping`, routes `notifications/progress` to per-call listeners, and
+surfaces `notifications/message`) and a requester (it awaits the responses to the calls it makes).
+
+A few pieces are worth calling out:
 
 ### `ServerInitializationGate`
 
@@ -143,11 +159,10 @@ level to the operator's PSR-3 logger.
 
 ### Coroutine draining
 
-Each `dispatchRequest()` and `dispatchNotification()` call spawns an `Amp\async` coroutine and tracks the
-resulting `Future` in a `SplObjectStorage`. When the transport fires its `onDrain` listeners (before close),
-the dispatcher awaits every pending future so in-flight responses are flushed before the transport actually
-closes. Without this, a tool that finishes computing right as the transport closes would lose its response
-to a race with the close listeners.
+Each dispatched request and notification runs in its own `Amp\async` coroutine, tracked by the dispatcher.
+When the transport fires its `onDrain` listeners (before close), the dispatcher awaits every still-running
+coroutine so in-flight responses flush before the transport actually closes. Without this, a handler that
+finishes right as the transport closes would lose its response to a race with the close listeners.
 
 ## Spec compliance
 
@@ -161,6 +176,9 @@ to a race with the close listeners.
 - What we have today: server-side covering tools, prompts, resources (static + templated), completions,
   logging, ping. Client-side covering the handshake plus typed requests for the same surface
   (`tools/call` with streaming progress, the list/read/get/complete methods). Stdio transport on both sides.
+  Tool call arguments and results are validated against the tool's declared `inputSchema` / `outputSchema`
+  (pluggable via `SchemaValidatorInterface`), and a `structuredContent`-only result is mirrored into a
+  `TextContent` block for backwards compatibility.
 - What we do not have yet: streamable HTTP transport, sampling / elicitation, tasks, OAuth, MCP Apps. These
   land across subsequent phases. Tasks, sampling, elicitation, and MCP Apps in particular reshape
   significantly in the upcoming 2026-07-28 RC and are deferred to that migration rather than built twice.
