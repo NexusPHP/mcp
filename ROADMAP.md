@@ -76,6 +76,20 @@ MCP spec.
 - [x] CHANGELOG documents the v0.1.0 surface vs the pre-release iteration.
 - [x] Tag and publish v0.1.0.
 
+## Before the next spec revision (0.x interim)
+
+The 0.x line continues against MCP spec 2025-11-25 while the next revision is finalised upstream. Work in
+this window is scoped to changes that survive that revision unchanged; anything the revision reshapes is
+sequenced into the migration below instead.
+
+- [ ] Attribute-based registration (Tier 1): `#[AsTool]`, `#[AsResource]`, `#[AsPrompt]`, and
+  `#[AsResourceTemplate]` on methods, discovered into the builder. (Class-level backends come after the
+  migration.)
+- [ ] Generate a tool's input schema from its PHP signature and docblock.
+- [ ] Namespace-boundary and package-structure tests guarding the eventual component split.
+- [ ] A third runnable example plus a shared example bootstrap.
+- [ ] Expanded documentation: more guides and a design-rationale page.
+
 ## MCP 2026-07-28 migration
 
 The next MCP spec revision, dated **2026-07-28**, reshapes the protocol significantly. Its release
