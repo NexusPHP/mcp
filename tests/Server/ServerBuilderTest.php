@@ -36,6 +36,7 @@ use Nexus\Mcp\Core\Schema\Tool\Tool;
 use Nexus\Mcp\Server\Server;
 use Nexus\Mcp\Server\ServerBuilder;
 use Nexus\Mcp\Server\ServerContext;
+use Nexus\Mcp\Server\Validation\SchemaValidatorInterface;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureNotificationHandler;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureRequestHandler;
@@ -381,6 +382,38 @@ final class ServerBuilderTest extends TestCase
         self::assertInstanceOf(ListToolsResult::class, $result);
         self::assertCount(1, $result->tools);
         self::assertSame('echo', $result->tools[0]->name);
+    }
+
+    public function testCustomSchemaValidatorReplacesTheDefault(): void
+    {
+        $alwaysValid = new class implements SchemaValidatorInterface {
+            #[\Override]
+            public function validate(mixed $data, array $schema): array
+            {
+                return [];
+            }
+        };
+
+        $server = Server::builder()
+            ->setServerInfo('demo', '1.0.0')
+            ->setSchemaValidator($alwaysValid)
+            ->addTool(
+                new Tool('report', ['type' => 'object'], outputSchema: [
+                    'type' => 'object',
+                    'properties' => ['n' => ['type' => 'integer']],
+                    'required' => ['n'],
+                ]),
+                static fn(?array $args, $ctx): CallToolResult => new CallToolResult([], ['n' => 'not-an-int']),
+            )
+            ->build()
+        ;
+
+        $result = $this->dispatchAfterInitialize($server, 'tools/call', ['name' => 'report']);
+
+        // The default opis validator would reject the non-integer n and yield a generic error result.
+        self::assertInstanceOf(CallToolResult::class, $result);
+        self::assertNull($result->isError);
+        self::assertSame(['n' => 'not-an-int'], $result->structuredContent);
     }
 
     public function testRegisteredPromptFlowsThroughBuiltServer(): void

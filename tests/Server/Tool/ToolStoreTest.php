@@ -14,6 +14,8 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Server\Tool;
 
 use Amp\NullCancellation;
+use Nexus\Mcp\Core\Exception\InvalidParamsException;
+use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Cursor;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestMetaObject;
@@ -22,6 +24,7 @@ use Nexus\Mcp\Core\Schema\Tool\Tool;
 use Nexus\Mcp\Server\AbstractPaginatedStore;
 use Nexus\Mcp\Server\Exception\InvalidCursorException;
 use Nexus\Mcp\Server\Exception\ToolNotFoundException;
+use Nexus\Mcp\Server\Exception\ToolOutputValidationException;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Server\Tool\ClosureToolExecutor;
 use Nexus\Mcp\Server\Tool\ToolEntry;
@@ -163,9 +166,110 @@ final class ToolStoreTest extends TestCase
         $store->call('missing', null, self::makeContext());
     }
 
+    public function testCallThrowsInvalidParamsWhenArgumentsViolateInputSchema(): void
+    {
+        $store = new ToolStore([
+            'search' => new ToolEntry(
+                new Tool('search', [
+                    'type' => 'object',
+                    'properties' => ['q' => ['type' => 'string']],
+                    'required' => ['q'],
+                ]),
+                self::makeExecutor(),
+            ),
+        ]);
+
+        $this->expectException(InvalidParamsException::class);
+        $this->expectExceptionMessageMatches('/^Invalid arguments for tool "search": /');
+
+        $store->call('search', ['q' => 123], self::makeContext());
+    }
+
+    public function testCallAcceptsEmptyArrayArgumentsAsEmptyObject(): void
+    {
+        $result = new CallToolResult([]);
+        $store = new ToolStore([
+            'noop' => new ToolEntry(self::makeTool('noop'), self::makeExecutorReturning($result)),
+        ]);
+
+        self::assertSame($result, $store->call('noop', [], self::makeContext()));
+    }
+
+    public function testCallReturnsResultWhenStructuredContentConformsToOutputSchema(): void
+    {
+        $result = new CallToolResult([], ['n' => 42]);
+        $store = new ToolStore([
+            'report' => new ToolEntry(self::makeToolWithOutputSchema('report'), self::makeExecutorReturning($result)),
+        ]);
+
+        self::assertSame($result, $store->call('report', null, self::makeContext()));
+    }
+
+    public function testCallThrowsToolOutputValidationWhenStructuredContentViolatesOutputSchema(): void
+    {
+        $store = new ToolStore([
+            'report' => new ToolEntry(
+                self::makeToolWithOutputSchema('report'),
+                self::makeExecutorReturning(new CallToolResult([], ['n' => 'oops'])),
+            ),
+        ]);
+
+        $this->expectException(ToolOutputValidationException::class);
+        $this->expectExceptionMessageMatches('/^Tool "report" returned structuredContent that does not conform to its outputSchema: /');
+
+        $store->call('report', null, self::makeContext());
+    }
+
+    public function testCallSkipsOutputValidationWhenResultHasNoStructuredContent(): void
+    {
+        $result = new CallToolResult([new TextContent('hi')]);
+        $store = new ToolStore([
+            'report' => new ToolEntry(self::makeToolWithOutputSchema('report'), self::makeExecutorReturning($result)),
+        ]);
+
+        self::assertSame($result, $store->call('report', null, self::makeContext()));
+    }
+
+    public function testCallSkipsOutputValidationForErrorResults(): void
+    {
+        $result = new CallToolResult([new TextContent('boom')], ['n' => 'oops'], isError: true);
+        $store = new ToolStore([
+            'report' => new ToolEntry(self::makeToolWithOutputSchema('report'), self::makeExecutorReturning($result)),
+        ]);
+
+        self::assertSame($result, $store->call('report', null, self::makeContext()));
+    }
+
+    public function testCallAcceptsEmptyStructuredContentAsEmptyObject(): void
+    {
+        $result = new CallToolResult([], []);
+        $store = new ToolStore([
+            'report' => new ToolEntry(
+                new Tool('report', ['type' => 'object'], outputSchema: ['type' => 'object']),
+                self::makeExecutorReturning($result),
+            ),
+        ]);
+
+        self::assertSame($result, $store->call('report', null, self::makeContext()));
+    }
+
     private static function makeTool(string $name): Tool
     {
         return new Tool($name, ['type' => 'object']);
+    }
+
+    private static function makeToolWithOutputSchema(string $name): Tool
+    {
+        return new Tool($name, ['type' => 'object'], outputSchema: [
+            'type' => 'object',
+            'properties' => ['n' => ['type' => 'integer']],
+            'required' => ['n'],
+        ]);
+    }
+
+    private static function makeExecutorReturning(CallToolResult $result): ClosureToolExecutor
+    {
+        return new ClosureToolExecutor(static fn(?array $arguments, ServerContext $context): CallToolResult => $result);
     }
 
     /**

@@ -71,8 +71,8 @@ MCP spec.
   CODE_OF_CONDUCT, SECURITY, CHANGELOG).
 - [x] Mirror structured tool results into a text content block (the spec's backwards-compatibility
   SHOULD for `structuredContent`).
-- [ ] Settle runtime validation of tool results against a declared output schema: add a JSON Schema
-  dependency for a durable fix, or document the gap and revisit at the 2026-07-28 migration.
+- [x] Validate tool-call arguments and results against their JSON Schemas (opis/json-schema by
+  default, pluggable via `ServerBuilder::setSchemaValidator()`).
 - [ ] CHANGELOG documents the v0.1.0 surface vs the pre-release iteration.
 - [ ] Tag and publish v0.1.0.
 

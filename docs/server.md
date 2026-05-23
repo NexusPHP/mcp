@@ -107,6 +107,30 @@ the serialised JSON in a `TextContent` block. When the executor leaves `content`
 that block for you. Provide your own `content` to keep control of the text representation. A non-empty
 `content` list is passed through untouched.
 
+### Schema validation
+
+A tool call is validated against the tool's schemas on the way in and on the way out:
+
+- The call `arguments` are validated against the tool's `inputSchema`. A non-conforming payload fails the
+  call with a JSON-RPC `InvalidParams` error before the executor runs.
+- When a (non-error) result carries `structuredContent` and the tool declares an `outputSchema`, the
+  result is validated against that schema. A non-conforming result is logged server-side and surfaced to
+  the client as a generic error result, so malformed structured data is never sent.
+
+Validation is backed by [opis/json-schema](https://github.com/opis/json-schema) (JSON Schema draft
+2020-12) by default. Supply your own engine by implementing `SchemaValidatorInterface` and registering it
+with `ServerBuilder::setSchemaValidator()`.
+
+```php
+use Nexus\Mcp\Server\Validation\SchemaValidatorInterface;
+
+$server = Server::builder()
+    ->setSchemaValidator($myValidator) // any SchemaValidatorInterface
+    // ...
+    ->build()
+;
+```
+
 ## Prompts
 
 ```php

@@ -24,6 +24,7 @@
         "amphp/byte-stream": "^2.1",
         "amphp/process": "^2.0",
         "nexusphp/assert": "^1.1",
+        "opis/json-schema": "^2.6",
         "psr/log": "^3.0",
         "revolt/event-loop": "^1.0"
     },

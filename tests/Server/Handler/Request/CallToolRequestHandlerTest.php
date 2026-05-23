@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Server\Handler\Request;
 
 use Amp\NullCancellation;
+use Nexus\Mcp\Core\Exception\InvalidParamsException;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
@@ -176,6 +177,67 @@ final class CallToolRequestHandlerTest extends TestCase
                 'Uncaught tool executor exception. Returning generic error to peer.',
             ),
         );
+    }
+
+    public function testInvalidArgumentsPropagateAsInvalidParamsException(): void
+    {
+        $store = new ToolStore([
+            'search' => new ToolEntry(
+                new Tool('search', [
+                    'type' => 'object',
+                    'properties' => ['q' => ['type' => 'string']],
+                    'required' => ['q'],
+                ]),
+                new ClosureToolExecutor(static fn(?array $arguments, ServerContext $context): CallToolResult => new CallToolResult([])),
+            ),
+        ]);
+        $handler = new CallToolRequestHandler($store);
+
+        $this->expectException(InvalidParamsException::class);
+        $this->expectExceptionMessageMatches('/^Invalid arguments for tool "search": /');
+
+        $handler->handle(
+            new CallToolRequest(new RequestId(1), new CallToolRequestParams('search', ['q' => 123])),
+            self::makeContext(),
+        );
+    }
+
+    public function testOutputSchemaViolationYieldsGenericErrorResultAndIsLogged(): void
+    {
+        $store = new ToolStore([
+            'report' => new ToolEntry(
+                new Tool('report', ['type' => 'object'], outputSchema: [
+                    'type' => 'object',
+                    'properties' => ['n' => ['type' => 'integer']],
+                    'required' => ['n'],
+                ]),
+                new ClosureToolExecutor(static fn(?array $arguments, ServerContext $context): CallToolResult => new CallToolResult([], ['n' => 'oops'])),
+            ),
+        ]);
+        $logger = new ArrayLogger();
+        $handler = new CallToolRequestHandler($store, $logger);
+
+        $result = $handler->handle(
+            new CallToolRequest(new RequestId(1), new CallToolRequestParams('report')),
+            self::makeContext(),
+        );
+
+        self::assertTrue($result->isError);
+        self::assertCount(1, $result->content);
+        $block = $result->content[0];
+
+        if (! $block instanceof TextContent) {
+            self::fail('Wrapped error content must be TextContent.');
+        }
+
+        self::assertSame('Tool execution failed.', $block->text);
+
+        $matches = $logger->recordsMatching(
+            LogLevel::ERROR,
+            'Tool returned structuredContent that does not conform to its outputSchema.',
+        );
+        self::assertCount(1, $matches);
+        self::assertSame('report', $matches[0]['context']['tool'] ?? null);
     }
 
     public function testPropagatesToolNotFoundFromStore(): void
