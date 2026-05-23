@@ -6,3 +6,8 @@ exclude_path = [
     "tools/vendor",
     "vendor",
 ]
+
+# Release tag URLs only resolve once the tag is pushed.
+exclude = [
+    'https://github\.com/NexusPHP/mcp-sdk/releases/tag/',
+]

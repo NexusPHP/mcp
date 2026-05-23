@@ -73,7 +73,7 @@ MCP spec.
   SHOULD for `structuredContent`).
 - [x] Validate tool-call arguments and results against their JSON Schemas (opis/json-schema by
   default, pluggable via `ServerBuilder::setSchemaValidator()`).
-- [ ] CHANGELOG documents the v0.1.0 surface vs the pre-release iteration.
+- [x] CHANGELOG documents the v0.1.0 surface vs the pre-release iteration.
 - [ ] Tag and publish v0.1.0.
 
 ## MCP 2026-07-28 migration

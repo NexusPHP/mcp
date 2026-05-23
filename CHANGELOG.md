@@ -6,7 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html) from `1.0.0` onward. While
 in `0.x`, minor releases may include breaking changes.
 
-## [Unreleased]
+## [Unreleased](https://github.com/NexusPHP/mcp-sdk/commits/1.x)
+
+## [v0.1.0](https://github.com/NexusPHP/mcp-sdk/releases/tag/v0.1.0) - 2026-05-23
 
 ### Added
 
@@ -16,7 +18,12 @@ in `0.x`, minor releases may include breaking changes.
   methods (`listTools`, `listResources`, `listResourceTemplates`, `listPrompts`, `readResource`,
   `getPrompt`, `complete`, `callTool` with streaming progress, `ping`, `setLoggingLevel`), and the
   `sendRequest` escape hatch.
+- Tool I/O JSON Schema validation: `tools/call` arguments are checked against the tool's `inputSchema`
+  and a result's `structuredContent` against its `outputSchema`, backed by `opis/json-schema` and
+  pluggable via `SchemaValidatorInterface` / `ServerBuilder::setSchemaValidator()`.
+- A tool returning `structuredContent` with no content blocks gets a serialised-JSON `TextContent`
+  mirror for backwards compatibility.
 - Stdio transport for both server and client, plus an in-memory paired transport for tests.
 - JSON-RPC 2.0 envelope and MCP schema types under `Nexus\Mcp\Core`.
-
-[Unreleased]: https://github.com/NexusPHP/mcp-sdk/commits/1.x
+- Every SDK exception implements `McpExceptionInterface`, so consumers can catch all SDK errors in one
+  block.
