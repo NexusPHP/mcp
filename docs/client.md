@@ -74,8 +74,9 @@ $result = $client->initialize();
 `initialize()` sends the `initialize` request, awaits the result, validates the protocol version the server
 settled on, then sends `notifications/initialized`. It accepts an optional `ClientCapabilities` and
 `ProtocolVersion`; both default to an empty capability set and the latest supported protocol version. It
-returns the `InitializeResult` and may be called only once per client. Any non-`ping` request issued before
-the handshake completes is rejected with a `LogicException`.
+returns the `InitializeResult` and may be called only once per client. A second `initialize()` throws
+`ClientAlreadyInitializedException`, and any non-`ping` request issued before the handshake completes is
+rejected with `ClientNotInitializedException`.
 
 Version negotiation follows the spec: the server's response carries the protocol version it chose. Because
 the SDK ships against a single revision with no back-compat layer, the client supports exactly that revision.
@@ -98,6 +99,8 @@ echo $info?->name, ' ', $info?->version;
 
 `connect()` attaches and starts the transport; `disconnect()` is its inverse: it closes the transport and
 detaches it (a no-op when not connected), so the client can `connect()` to a new transport afterwards.
+Calling `connect()` twice throws `ClientAlreadyConnectedException`, and using the client before `connect()`
+throws `ClientNotConnectedException`.
 Re-running `initialize()` over a reconnection is only possible after a handshake that did not complete; a
 client that already finished `initialize()` stays initialized.
 

@@ -15,6 +15,10 @@ namespace Nexus\Mcp\Tests\Client;
 
 use Nexus\Mcp\Client\Client;
 use Nexus\Mcp\Client\ClientBuilder;
+use Nexus\Mcp\Client\Exception\ClientAlreadyConnectedException;
+use Nexus\Mcp\Client\Exception\ClientAlreadyInitializedException;
+use Nexus\Mcp\Client\Exception\ClientNotConnectedException;
+use Nexus\Mcp\Client\Exception\ClientNotInitializedException;
 use Nexus\Mcp\Client\Exception\UnsupportedProtocolVersionException;
 use Nexus\Mcp\Core\Exception\RemoteCallFailedException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
@@ -91,12 +95,12 @@ final class ClientTest extends TestCase
         self::assertSame([], $matches[0]['context']);
     }
 
-    public function testConnectTwiceThrowsLogicException(): void
+    public function testConnectTwiceThrowsClientAlreadyConnectedException(): void
     {
         $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
         $client->connect(new RecordingTransport());
 
-        $this->expectException(\LogicException::class);
+        $this->expectException(ClientAlreadyConnectedException::class);
         $this->expectExceptionMessageMatches('/already connected/');
 
         $client->connect(new RecordingTransport());
@@ -125,12 +129,12 @@ final class ClientTest extends TestCase
         $this->expectNotToPerformAssertions();
     }
 
-    public function testSendRequestBeforeConnectThrowsLogicException(): void
+    public function testSendRequestBeforeConnectThrowsClientNotConnectedException(): void
     {
         $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
         $request = new PingRequest(new RequestId(1), new EmptyRequestParams());
 
-        $this->expectException(\LogicException::class);
+        $this->expectException(ClientNotConnectedException::class);
         $this->expectExceptionMessageMatches('/not connected/');
 
         $client->sendRequest($request, EmptyResult::class);
@@ -196,11 +200,11 @@ final class ClientTest extends TestCase
         self::assertSame($error, $matches[0]['context']['exception'] ?? null);
     }
 
-    public function testInitializeBeforeConnectThrowsLogicException(): void
+    public function testInitializeBeforeConnectThrowsClientNotConnectedException(): void
     {
         $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
 
-        $this->expectException(\LogicException::class);
+        $this->expectException(ClientNotConnectedException::class);
         $this->expectExceptionMessageMatches('/not connected/');
 
         $client->initialize();
@@ -324,8 +328,8 @@ final class ClientTest extends TestCase
 
         try {
             $client->initialize();
-            self::fail('Expected LogicException for re-entry while a handshake was in flight.');
-        } catch (\LogicException $e) {
+            self::fail('Expected ClientAlreadyInitializedException for re-entry while a handshake was in flight.');
+        } catch (ClientAlreadyInitializedException $e) {
             self::assertStringContainsString('already started or completed', $e->getMessage());
         }
 
@@ -355,7 +359,7 @@ final class ClientTest extends TestCase
         ]);
         $deferred->await();
 
-        $this->expectException(\LogicException::class);
+        $this->expectException(ClientAlreadyInitializedException::class);
         $this->expectExceptionMessageMatches('/already started or completed/');
 
         $client->initialize();
@@ -473,7 +477,7 @@ final class ClientTest extends TestCase
         $transport = new RecordingTransport();
         $client->connect($transport);
 
-        $this->expectException(\LogicException::class);
+        $this->expectException(ClientNotInitializedException::class);
         $this->expectExceptionMessageMatches('/cannot be sent before the client handshake completes/');
 
         $client->sendRequest(new ListToolsRequest(new RequestId(99)), EmptyResult::class);
