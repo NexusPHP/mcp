@@ -33,16 +33,17 @@ the same dispatch kernel, the same handler registry shape, and the same transpor
 composition surface (`ClientBuilder`, the client-side stores) is new.
 
 Two protocol primitives land alongside the client namespace because both sides need them. The first is
-a shared `MessageDispatcherInterface` extracted from the current server-only `MessageDispatcher`, so the
-client and server can be written against the same contract from the first commit. The second is a
+a shared `MessageDispatcherInterface` extracted from the original server-only `MessageDispatcher` (now
+`ServerMessageDispatcher`), so the client and server are written against the same contract. The second is a
 `PendingOutboundRequests` service under `Core/Dispatch/` that correlates inbound responses to awaiting
 senders by `RequestId`. It is a sibling of the dispatcher, not a slot on the transport contract; the
 transport stays a dumb pipe. The client uses it for every request it issues. The server will use it for
-server-initiated request methods once those land post-2026-06-30 (see below). Today
-`RequestBoundSender::sendRequest()` is a stub that throws, because the routing primitive does not exist
-yet and adding it under the server alone would force a rewrite when the client lands.
+server-initiated request methods once those land post-2026-07-28 (see below). Today
+`RequestBoundSender::sendRequest()` is a stub that throws `OutboundRequestsNotSupportedException`.
+Server-initiated requests are deferred to the 2026-07-28 migration, with no in-tree consumer until
+elicitation lands.
 
-The scope is deliberately bounded to pieces unaffected by the 2026-06-30 spec migration: scope is
+The scope is deliberately bounded to pieces unaffected by the 2026-07-28 spec migration: scope is
 stdio-only on both sides, with the HTTP transport and the server-initiated request methods
 (`sampling/createMessage`, `elicitation/create`) deferred to the migration bundle. Building those
 against the current spec means rebuilding them after the migration reshapes both.
@@ -65,14 +66,15 @@ Releases before v0.1.0 may break BC freely. Releases from v0.1.0 through v0.x.0 
 "breaking changes allowed in minor versions" policy until v1.0.0, which is gated on a stable upstream
 MCP spec.
 
-- [ ] Client-side composition merged.
+- [x] Client-side composition merged.
 - [ ] CHANGELOG documents the v0.1.0 surface vs the pre-release iteration.
 - [ ] Tag and publish v0.1.0.
 
-## MCP 2026-06-30 migration
+## MCP 2026-07-28 migration
 
-The next MCP spec revision (currently in RC as **2026-06-30**) reshapes the protocol significantly. The
-SDK tracks 2025-11-25 only until the RC stabilises, then migrates as a single coordinated bundle.
+The next MCP spec revision, dated **2026-07-28**, reshapes the protocol significantly. Its release
+candidate is locked (2026-05-21) with the final spec due 2026-07-28. The SDK tracks 2025-11-25 until the final 2026-07-28 spec is published upstream (the dated
+`schema/2026-07-28/` revision, not the release candidate), then migrates as a single coordinated bundle.
 
 **No backward-compatibility layer with 2025-11-25.** The migration ships as the v1.0.0 major version
 bump, and major versions are the SDK's contract for breaking changes. v0.x consumers have already
@@ -107,15 +109,17 @@ that need to ask the client for input mid-request (elicitation, sampling, roots)
 generic `JsonRpcResultResponse<TResult>` splits into 18 per-method response envelopes.
 
 - [ ] Add `resultType` enum + discriminator to the success-response parser.
-- [ ] Add `InputRequest` union (`ElicitRequest`, `CreateMessageRequest`, `ListRootsRequest`) and the
-  `tasks/input_response` method.
+- [ ] Add the `InputRequest` union (`ElicitRequest`, `CreateMessageRequest`, `ListRootsRequest`),
+  `InputRequiredResult` (`inputRequests` + opaque `requestState`), and `InputResponseRequestParams`
+  (`inputResponses` + `requestState`). The client retries by re-issuing the original request, so there
+  is no `tasks/input_response` method.
 - [ ] Generate 18 per-method `*ResultResponse` envelope classes.
 - [ ] Delete `UrlElicitationRequiredError` (-32042) entirely; the success-result-based mechanism
   replaces it.
 
 ### Deprecation cleanup
 
-The 2026-06-30 spec marks Roots, Sampling, and Logging as `@deprecated`. The SDK does not implement a
+The 2026-07-28 spec marks Roots, Sampling, and Logging as `@deprecated`. The SDK does not implement a
 compatibility window: these are deleted from core at the migration cut.
 
 - [ ] Delete Roots (`roots/list`, `notifications/roots/list_changed`, `Root`, the capability slot).
@@ -180,13 +184,13 @@ The `TransportInterface` is already shaped to accommodate streamable HTTP withou
 slot for transport-specific routing fields (`relatedRequestId`, resumption tokens), and `onDrain` is
 symmetric with `onClose` so streaming responses can flush before the connection closes.
 
-Streamable HTTP lands with the 2026-06-30 migration since the spec's session-management semantics also
+Streamable HTTP lands with the 2026-07-28 migration since the spec's session-management semantics also
 move on that revision.
 
 - [x] `Nexus\Mcp\Server\Transport\StdioServerTransport`.
 - [x] `Nexus\Mcp\Core\Transport\InMemoryTransport` (test-only paired transports).
 - [x] `Nexus\Mcp\Client\Transport\StdioClientTransport` (subprocess launcher).
-- [ ] Streamable HTTP server transport (lands with the 2026-06-30 migration).
+- [ ] Streamable HTTP server transport (lands with the 2026-07-28 migration).
 - [ ] Streamable HTTP client transport.
 
 ## Language compatibility

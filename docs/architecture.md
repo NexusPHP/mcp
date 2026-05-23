@@ -163,7 +163,7 @@ to a race with the close listeners.
   (`tools/call` with streaming progress, the list/read/get/complete methods). Stdio transport on both sides.
 - What we do not have yet: streamable HTTP transport, sampling / elicitation, tasks, OAuth, MCP Apps. These
   land across subsequent phases. Tasks, sampling, elicitation, and MCP Apps in particular reshape
-  significantly in the upcoming 2026-06-30 RC and are deferred to that migration rather than built twice.
+  significantly in the upcoming 2026-07-28 RC and are deferred to that migration rather than built twice.
 
 ## Diagnostic message conventions
 
