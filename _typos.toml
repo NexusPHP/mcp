@@ -10,3 +10,7 @@ extend-ignore-words-re = [
     "(?i)^(colors|behavior(al)?|flavored)$",
     "(?i)^fibers?$",
 ]
+
+[files]
+# Contributor Covenant is a verbatim third-party document in American English.
+extend-exclude = ["CODE_OF_CONDUCT.md"]

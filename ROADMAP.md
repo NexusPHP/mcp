@@ -67,6 +67,12 @@ Releases before v0.1.0 may break BC freely. Releases from v0.1.0 through v0.x.0 
 MCP spec.
 
 - [x] Client-side composition merged.
+- [x] Project documentation and community health files in place (README, CONTRIBUTING,
+  CODE_OF_CONDUCT, SECURITY, CHANGELOG).
+- [ ] Mirror structured tool results into a text content block (the spec's backwards-compatibility
+  SHOULD for `structuredContent`).
+- [ ] Settle runtime validation of tool results against a declared output schema: add a JSON Schema
+  dependency for a durable fix, or document the gap and revisit at the 2026-07-28 migration.
 - [ ] CHANGELOG documents the v0.1.0 surface vs the pre-release iteration.
 - [ ] Tag and publish v0.1.0.
 

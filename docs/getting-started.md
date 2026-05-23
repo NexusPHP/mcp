@@ -11,9 +11,9 @@
 composer require nexusphp/mcp-sdk
 ```
 
-The SDK targets MCP spec **2025-11-25** and pulls in `amphp/amp` for the async event loop, `psr/log` for
-the logger interface, and `nexusphp/assert` for runtime value validation. No further setup is needed to
-build a server.
+The SDK targets MCP spec **2025-11-25** and runs on [AMPHP](https://amphp.org) and
+[Revolt](https://revolt.run), so its synchronous-looking API is fiber-driven. No further setup is needed
+to build a server.
 
 ## Your first MCP server
 
