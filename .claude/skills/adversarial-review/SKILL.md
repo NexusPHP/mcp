@@ -85,8 +85,9 @@ Map the names verbatim into per-agent prompts where the agent is expected to ver
 - `composer test:auto-review`: AutoReview group (cross-cutting invariants)
 - `composer test:stan`: PHPStan type-inference lock-in (the `static-analysis` PHPUnit group)
 - `composer phpstan:check`: standalone PHPStan run
-- `composer mutation:filter`: diff-based Infection (preferred during iteration)
-- `composer mutation:check`: full-tree Infection (avoid; 7+ minutes; never run from inside a review)
+- `composer mutation:filter`: diff-based Infection (picks up untracked files). In a steady-state review of a clean tree the diff is empty, so this tests nothing. Use the scoped form below instead.
+- `composer mutation:check`: bare full-tree Infection (avoid this form, 7+ minutes, never run full-tree from inside a review).
+- `composer mutation:check -- --filter="src/Path/To/File.php"`: scoped single-file Infection, and the only authoritative verifier. Fast (about 30s for one file) and, crucially, it runs with `--static-analysis-tool=phpstan`, so it matches the gate. See the SA-flag lesson in the A3 frame. Comma-separate paths to batch a few suspects.
 - `composer schema:generate`: regenerate `latest-schema.json` and `sorted-schema.json`
 
 ## Step 4: choose frames
@@ -125,7 +126,7 @@ Each agent prompt MUST include all of the following (in addition to its frame-sp
     > - Do not modify, create, or delete files in the working tree.
     > - For inspection, use only `git diff`, `git show`, `git log`, `git cat-file`, `git blame`.
     > - If you need to run tests against a different state, create an isolated worktree: `git worktree add /tmp/adversarial-review-<random> <ref>`, run tests inside it, then `git worktree remove /tmp/adversarial-review-<random>`. Never mutate the primary working tree.
-    > - Do not run `composer mutation:check`. It takes 7+ minutes. Use `composer mutation:filter` if a finding warrants a targeted check.
+    > - Do not run the bare full-tree `composer mutation:check` (7+ minutes). For a targeted check use the scoped, static-analysis-enabled form: `composer mutation:check -- --filter="src/Path/To/File.php"` (comma-separate paths to batch a few). Do NOT verify with a raw `tools/vendor/bin/infection --filter=...` lacking `--static-analysis-tool=phpstan`: the SA flag lives in the composer script, not `infection.json5`, so the raw binary misreports every SA-killed mutant as a false escape. An Infection summary line reading `caught by Static Analysis` is a KILL, not an escape.
 
 6. **Ground every finding on the current code and tests, not on hypothesis.** Copy verbatim into every subagent prompt:
 
@@ -136,7 +137,7 @@ Each agent prompt MUST include all of the following (in addition to its frame-sp
     > Concretely:
     >
     > - For "this branch is unreachable" / "this default arm is dead" claims: read every caller of the function and the relevant test cases. State the call sites you inspected.
-    > - For "this test wouldn't kill mutant X" claims: run `composer mutation:filter` scoped to that file (or `tools/vendor/bin/infection --filter=<File>.php --threads=4`) and report whether X actually escaped, or trace through the test inputs to show the mutant's behaviour is unobservable. Quote the assertion that would (or would not) fail.
+    > - For "this test wouldn't kill mutant X" claims: run the scoped, static-analysis-enabled command `composer mutation:check -- --filter="src/Path/To/File.php"` (see the A3 SA-flag lesson) and report whether X actually escaped, or trace through the test inputs to show the mutant's behaviour is unobservable. Do NOT use a raw `tools/vendor/bin/infection --filter=...` without `--static-analysis-tool=phpstan`, which misreports SA-killed mutants as escapes. A line reading `caught by Static Analysis` is a kill. Quote the assertion (or the SA kill) that settles it.
     > - For "API surface drifts from spec" claims: cite the spec line (`latest-schema.json` path or upstream `schema.ts` link).
     > - For "concurrency race" claims: trace the specific event-loop ordering. State which fiber is in which state at each step.
     >
@@ -205,7 +206,9 @@ Hunt for:
 
 ### A3: Test / mutation gaps
 
-The repo enforces 100% MSI via Infection. **Do not run `composer mutation:check`** (7+ min, banned). Predict survivors by reading source and tests, then **verify** any suspect mutation gap by running `tools/vendor/bin/infection --filter=<File>.php --threads=4` against the relevant file before reporting it as a finding.
+The repo enforces 100% MSI via Infection. **Do not run the bare full-tree `composer mutation:check`** (7+ min). Predict survivors by reading source and tests, then **verify** any suspect mutation gap with the scoped, static-analysis-enabled command before reporting it: `composer mutation:check -- --filter="src/Path/To/File.php"` (about 30s for one file). Comma-separate a few paths to batch them.
+
+**SA-flag lesson (a real prior mistake, do NOT repeat it).** The repo's gate runs `infection --with-uncovered --static-analysis-tool=phpstan`, so a large share of mutants are killed by PHPStan rather than by a test assertion. That `--static-analysis-tool=phpstan` flag lives in the composer script, NOT in `infection.json5`, so a raw `tools/vendor/bin/infection --filter=<File>.php` invocation silently runs without static analysis and reports every SA-killed mutant as a false escape. A previous run of this skill did exactly that: it reported four "escaped" mutants and an alarming "the released tree is not at 100% MSI" claim, all of which were this artefact. Re-running through `composer mutation:check -- --filter=...` showed every one `caught by Static Analysis`, MSI 100%. Always verify through the composer scoped form (or, only if you must use the raw binary, add `--static-analysis-tool=phpstan`). Treat a `caught by Static Analysis` line as a KILL.
 
 This frame has the highest false-positive rate of all four. The prior session closed six "predicted survivor" findings as won't-fix after running scoped mutation on the implicated files and seeing the predicted mutants killed in milliseconds (often by tests the predictor had not read). Pattern-matching for "this branch looks unguarded" without checking is exactly what produces noise. **Run the tool. If the mutant is killed, drop the finding.**
 
@@ -249,7 +252,7 @@ Hunt for:
 
 ## Step 6: triage, then report
 
-When all agents return, **do not just relay raw output**. Consolidate into a single artefact (default: `ADVERSARIAL_REVIEW.md` at repo root) with:
+When all agents return, **do not just relay raw output**. You MUST consolidate into `ADVERSARIAL_REVIEW.md` at the repo root, and you MUST draft that file before reporting to the contributor in chat, so the findings survive a context loss or compaction. This is mandatory, not optional, even for a clean review with few findings. The file contains:
 
 1. Brief context block (agents spawned, scope, date).
 2. Findings grouped by **severity** (Critical / High / Medium / Low), de-duplicated across agents. When the same root cause surfaces from multiple frames, merge with a `[A1, A2]` tag.
@@ -279,7 +282,7 @@ The repo ships three project-scoped `PostToolUse` hooks under `.claude/hooks/`, 
 - `no-em-dash.sh`: blocks em-dashes (U+2014) in authored text. Use periods, colons, parens, or recast.
 - `no-prose-semicolon.sh`: flags semicolons used as prose connectors in PHPDoc, line comments, and quoted string literals. Use a period if the semicolon is prose. Leave it alone if it is intentional (regex, SQL, CSS, shell, env-var lists).
 
-All three skip paths matching `.claude/*` so editing this skill or settings does not self-trip. The consolidated `ADVERSARIAL_REVIEW.md` lives at the repo root and WILL trip them if drafted carelessly. If a hook blocks an artefact emission, read the hook output, adjust the text, and re-emit. Do not work around hooks.
+Do not assume these skip `.claude/` paths. The no-prose-semicolon hook was observed firing while editing this skill itself, so author skill text by the same rules the hooks enforce: no em-dashes, no prose semicolons, and none of the blocked vocabulary. The consolidated `ADVERSARIAL_REVIEW.md` lives at the repo root and WILL trip them if drafted carelessly. If a hook blocks an artefact emission, read the hook output, adjust the text, and re-emit. Do not work around hooks.
 
 ## When this skill is appropriate
 
