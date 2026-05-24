@@ -100,21 +100,11 @@ final class CreateMessageRequestParamsTest extends TestCase
         new CreateMessageRequestParams(maxTokens: 1, messages: [], stopSequences: [42]); // @phpstan-ignore argument.type
     }
 
-    public function testConstructorRejectsOutOfRangeTemperature(): void
+    public function testConstructorAcceptsAnyTemperature(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('"params.temperature" must be between 0.0 and 2.0.');
+        $params = new CreateMessageRequestParams(maxTokens: 1, messages: [], temperature: 2.5);
 
-        new CreateMessageRequestParams(maxTokens: 1, messages: [], temperature: 3.0);
-    }
-
-    public function testConstructorAcceptsTemperatureBoundaries(): void
-    {
-        $low = new CreateMessageRequestParams(maxTokens: 1, messages: [], temperature: 0.0);
-        $high = new CreateMessageRequestParams(maxTokens: 1, messages: [], temperature: 2.0);
-
-        self::assertSame(0.0, $low->temperature);
-        self::assertSame(2.0, $high->temperature);
+        self::assertSame(2.5, $params->temperature);
     }
 
     public function testConstructorRejectsNonToolEntry(): void

@@ -87,8 +87,6 @@ final readonly class CreateMessageRequestParams extends RequestParams
             Assert::that($stopSequences)->values()->isString('each "params.stopSequences" entries must be strings, {type} given.');
         }
 
-        Assert::that($temperature)->nullOr()->isBetween(0.0, 2.0, message: '"params.temperature" must be between 0.0 and 2.0.');
-
         if (null !== $tools) {
             Assert::that($tools)->values()->isInstanceOf(Tool::class);
         }
