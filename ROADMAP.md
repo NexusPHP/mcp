@@ -86,8 +86,10 @@ sequenced into the migration below instead.
   `#[AsResourceTemplate]` on methods, discovered into the builder. (Class-level backends come after the
   migration.)
 - [ ] Generate a tool's input schema from its PHP signature and docblock.
-- [ ] Namespace-boundary and package-structure tests guarding the eventual component split.
-- [ ] A third runnable example plus a shared example bootstrap.
+- [x] Architecture-boundary enforcement (StructArmed) and dependency-declaration checks
+  (composer-dependency-analyser) guarding the eventual component split.
+- [x] More runnable examples (in-memory, completions plus templates, capability-aware client) on a shared
+  `examples/bootstrap.php`.
 - [ ] Expanded documentation: more guides and a design-rationale page.
 
 ## MCP 2026-07-28 migration
