@@ -12,6 +12,8 @@ in `0.x`, minor releases may include breaking changes.
 
 - Sampling requests (`sampling/createMessage`) no longer reject a `temperature` value outside `0.0` to
   `2.0`. The MCP schema sets no bound on the field, so the previous range rejected spec-valid input.
+- A request envelope with a malformed `id` (wrong type or empty string) now returns a `-32600` Invalid
+  Request error instead of `-32602` Invalid Params, matching JSON-RPC 2.0.
 
 ### Removed
 

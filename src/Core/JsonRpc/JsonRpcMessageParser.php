@@ -85,7 +85,7 @@ final class JsonRpcMessageParser
         if (\array_key_exists('result', $message)) {
             try {
                 Assert::that($message)->hasOffset('id', 'Success response must carry an "id".');
-                Assert::that($message['id'])->isArrayKey('Response "id" must be int or string, {type} given.');
+                Assert::that($message['id'])->isArrayKey('Response "id" must be an int or string, {type} given.');
                 $id = new RequestId($message['id']);
             } catch (\InvalidArgumentException $e) {
                 throw new InvalidRequestException(self::extractRequestId($message), $e->getMessage());
@@ -126,6 +126,13 @@ final class JsonRpcMessageParser
         $method = $message['method'];
 
         if (\array_key_exists('id', $message)) {
+            try {
+                Assert::that($message['id'])->isArrayKey('Request "id" must be an int or string, {type} given.');
+                $id = new RequestId($message['id']);
+            } catch (\InvalidArgumentException $e) {
+                throw new InvalidRequestException(null, $e->getMessage());
+            }
+
             $class = $this->requests[$method] ?? null;
 
             if (null === $class) {
@@ -134,18 +141,18 @@ final class JsonRpcMessageParser
                         $method,
                         expectedShape: 'notification',
                         receivedShape: 'request',
-                        requestId: self::extractRequestId($message),
+                        requestId: $id,
                     );
                 }
 
-                throw new MethodNotFoundException($method, self::extractRequestId($message));
+                throw new MethodNotFoundException($method, $id);
             }
 
             try {
                 return $class::fromArray($message);
             } catch (\InvalidArgumentException $e) {
                 throw new InvalidParamsException(
-                    self::extractRequestId($message),
+                    $id,
                     \sprintf('Invalid "%s" request: %s', SafeDisplay::sanitise($method), $e->getMessage()),
                 );
             }
