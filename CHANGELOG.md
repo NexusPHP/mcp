@@ -8,6 +8,14 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp-sdk/commits/1.x)
 
+### Added
+
+- `Client::getServerCapabilities()` returns the `ServerCapabilities` negotiated during the handshake, or
+  `null` before it completes.
+- The client now gates typed requests on the server's advertised capabilities: calling a method whose
+  capability the server did not advertise (e.g. `tools/list` without a `tools` capability) throws
+  `ServerCapabilityNotSupportedException` before the request reaches the transport. `ping` is never gated.
+
 ## [v0.2.0](https://github.com/NexusPHP/mcp-sdk/compare/v0.1.0...v0.2.0) - 2026-05-24
 
 ### Fixed

@@ -19,6 +19,7 @@ use Nexus\Mcp\Client\Exception\ClientAlreadyConnectedException;
 use Nexus\Mcp\Client\Exception\ClientAlreadyInitializedException;
 use Nexus\Mcp\Client\Exception\ClientNotConnectedException;
 use Nexus\Mcp\Client\Exception\ClientNotInitializedException;
+use Nexus\Mcp\Client\Exception\ServerCapabilityNotSupportedException;
 use Nexus\Mcp\Client\Exception\UnsupportedProtocolVersionException;
 use Nexus\Mcp\Core\Exception\RemoteCallFailedException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
@@ -54,10 +55,12 @@ use Nexus\Mcp\Core\Schema\Result\ListResourcesResult;
 use Nexus\Mcp\Core\Schema\Result\ListResourceTemplatesResult;
 use Nexus\Mcp\Core\Schema\Result\ListToolsResult;
 use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
+use Nexus\Mcp\Core\Schema\ServerCapabilities;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureNotificationHandler;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LogLevel;
@@ -413,7 +416,7 @@ final class ClientTest extends TestCase
             'id' => $initializeRequest->id->id,
             'result' => [
                 'protocolVersion' => ProtocolVersion::LATEST_VERSION,
-                'capabilities' => [],
+                'capabilities' => ['tools' => []],
                 'serverInfo' => ['name' => 'srv', 'version' => '1'],
             ],
         ]);
@@ -447,7 +450,7 @@ final class ClientTest extends TestCase
             'id' => $initializeRequest->id->id,
             'result' => [
                 'protocolVersion' => ProtocolVersion::LATEST_VERSION,
-                'capabilities' => [],
+                'capabilities' => ['logging' => []],
                 'serverInfo' => ['name' => 'srv', 'version' => '1'],
             ],
         ]);
@@ -598,6 +601,103 @@ final class ClientTest extends TestCase
         self::assertNotNull($serverInfo);
         self::assertSame('srv', $serverInfo->name);
         self::assertSame('9.9', $serverInfo->version);
+    }
+
+    public function testGetServerCapabilitiesReturnsNullBeforeHandshake(): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+
+        self::assertNull($client->getServerCapabilities());
+    }
+
+    public function testGetServerCapabilitiesReturnsCapabilitiesCachedFromHandshake(): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+        self::handshake($client, $transport, capabilities: ['tools' => []]);
+
+        $capabilities = $client->getServerCapabilities();
+        self::assertInstanceOf(ServerCapabilities::class, $capabilities);
+        self::assertSame([], $capabilities->tools);
+        self::assertNull($capabilities->resources);
+    }
+
+    /**
+     * @param \Closure(Client): mixed $call
+     */
+    #[DataProvider('provideTypedCallThrowsWhenServerLacksTheCapabilityCases')]
+    public function testTypedCallThrowsWhenServerLacksTheCapability(string $method, \Closure $call): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+        self::handshake($client, $transport, capabilities: []);
+
+        $this->expectException(ServerCapabilityNotSupportedException::class);
+        $this->expectExceptionMessage(\sprintf(
+            'Request method "%s" requires a server capability that was not advertised during initialize.',
+            $method,
+        ));
+
+        $call($client);
+    }
+
+    /**
+     * @return iterable<string, array{0: string, 1: \Closure(Client): mixed}>
+     */
+    public static function provideTypedCallThrowsWhenServerLacksTheCapabilityCases(): iterable
+    {
+        yield 'tools/list' => ['tools/list', static fn(Client $client) => $client->listTools()];
+
+        yield 'tools/call' => ['tools/call', static fn(Client $client) => $client->callTool('greet')];
+
+        yield 'resources/list' => ['resources/list', static fn(Client $client) => $client->listResources()];
+
+        yield 'resources/templates/list' => [
+            'resources/templates/list',
+            static fn(Client $client) => $client->listResourceTemplates(),
+        ];
+
+        yield 'resources/read' => ['resources/read', static fn(Client $client) => $client->readResource('example://x')];
+
+        yield 'prompts/list' => ['prompts/list', static fn(Client $client) => $client->listPrompts()];
+
+        yield 'prompts/get' => ['prompts/get', static fn(Client $client) => $client->getPrompt('walkthrough')];
+
+        yield 'completion/complete' => [
+            'completion/complete',
+            static fn(Client $client) => $client->complete(
+                new PromptReference('walkthrough'),
+                ['name' => 'audience', 'value' => 'rev'],
+            ),
+        ];
+
+        yield 'logging/setLevel' => [
+            'logging/setLevel',
+            static fn(Client $client) => $client->setLoggingLevel(LoggingLevel::Warning),
+        ];
+    }
+
+    public function testPingAfterHandshakeIsAllowedRegardlessOfServerCapabilities(): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+        self::handshake($client, $transport, capabilities: []);
+
+        $deferred = async(static fn() => $client->ping());
+        $transport->nextSend()->await();
+
+        self::assertCount(3, $transport->sent);
+        $sent = $transport->sent[2]['message'];
+
+        if (! $sent instanceof PingRequest) {
+            self::fail(\sprintf('Expected PingRequest, got %s.', $sent::class));
+        }
+
+        $transport->emitMessage(['jsonrpc' => '2.0', 'id' => $sent->id->id, 'result' => []]);
+        $deferred->await();
     }
 
     public function testListToolsSendsRequestAndUnwrapsResult(): void
@@ -980,11 +1080,21 @@ final class ClientTest extends TestCase
         self::assertSame(['unsolicited'], $delivered);
     }
 
+    /**
+     * @param array<string, mixed> $capabilities
+     */
     private static function handshake(
         Client $client,
         RecordingTransport $transport,
         string $serverName = 'srv',
         string $serverVersion = '1',
+        array $capabilities = [
+            'completions' => [],
+            'logging' => [],
+            'prompts' => [],
+            'resources' => [],
+            'tools' => [],
+        ],
     ): void {
         $deferred = async(static fn() => $client->initialize());
         $transport->nextSend()->await();
@@ -997,7 +1107,7 @@ final class ClientTest extends TestCase
             'id' => $request->id->id,
             'result' => [
                 'protocolVersion' => ProtocolVersion::LATEST_VERSION,
-                'capabilities' => [],
+                'capabilities' => $capabilities,
                 'serverInfo' => ['name' => $serverName, 'version' => $serverVersion],
             ],
         ]);

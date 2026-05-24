@@ -159,7 +159,7 @@ final class ClientBuilderTest extends TestCase
             'id' => 1,
             'result' => [
                 'protocolVersion' => ProtocolVersion::LATEST_VERSION,
-                'capabilities' => [],
+                'capabilities' => ['tools' => []],
                 'serverInfo' => ['name' => 'srv', 'version' => '1'],
             ],
         ]);
@@ -226,7 +226,7 @@ final class ClientBuilderTest extends TestCase
             'id' => $initRequest->id->id,
             'result' => [
                 'protocolVersion' => ProtocolVersion::LATEST_VERSION,
-                'capabilities' => [],
+                'capabilities' => ['tools' => []],
                 'serverInfo' => ['name' => 'srv', 'version' => '1'],
             ],
         ]);

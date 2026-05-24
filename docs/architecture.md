@@ -31,7 +31,7 @@ Nexus\Mcp\
 │   └── Validation\      Pluggable JSON Schema validator contract plus the opis-backed default
 └── Client\             Client-side composition. Depends on Core only
     ├── Dispatch\       Client-side per-envelope inbound pipeline plus the outbound handshake gate
-    ├── Exception\      Client-side local-misuse errors (not connected, already initialised, unsupported version)
+    ├── Exception\      Client-side local-misuse errors (not connected, already initialised, unsupported version, unadvertised server capability)
     ├── Handler\
     │   └── Notification\  Built-in client notification handlers (progress routing, logging message)
     └── Transport\      Client-side transport implementations

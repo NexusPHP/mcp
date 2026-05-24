@@ -97,6 +97,16 @@ $info = $client->getServerInfo();
 echo $info?->name, ' ', $info?->version;
 ```
 
+`getServerCapabilities()` returns the server's negotiated `ServerCapabilities`, or `null` before the
+handshake. Use it to check what the server supports before issuing a typed request (see
+[Typed requests](#typed-requests)).
+
+```php
+if (null !== $client->getServerCapabilities()?->tools) {
+    $tools = $client->listTools();
+}
+```
+
 `connect()` attaches and starts the transport; `disconnect()` is its inverse: it closes the transport and
 detaches it (a no-op when not connected), so the client can `connect()` to a new transport afterwards.
 Calling `connect()` twice throws `ClientAlreadyConnectedException`, and using the client before `connect()`
@@ -137,6 +147,12 @@ $client->setLoggingLevel(LoggingLevel::Info);
 
 `ping()` and `setLoggingLevel()` return `void`. `ping()` is the only typed request permitted before `initialize()`
 completes, returning normally when the peer answers and throwing on failure.
+
+Every typed request other than `ping` requires the server to have advertised the matching capability during
+the handshake: `tools/*` needs `tools`, `resources/*` needs `resources`, `prompts/*` needs `prompts`,
+`completion/complete` needs `completions`, and `logging/setLevel` needs `logging`. Calling one the server did
+not advertise throws `ServerCapabilityNotSupportedException` before anything reaches the transport. Check
+`getServerCapabilities()` first when you need to branch on what the server supports.
 
 ### Streaming progress from `callTool`
 
@@ -189,7 +205,10 @@ $response = $client->sendRequest(
 ```
 
 You supply the `RequestId` yourself here. The auto-incrementing factory backs the typed methods above, and
-the same handshake gate applies: any method other than `ping` is rejected until `initialize()` completes.
+the same gates apply: any method other than `ping` is rejected until `initialize()` completes. The capability
+gate covers exactly the methods behind the typed requests above, so a `tools/list` against a server without
+`tools` throws `ServerCapabilityNotSupportedException` (see [Typed requests](#typed-requests)). Any other
+method, including the `resources/subscribe` shown here, passes through ungated.
 
 ## Lifecycle
 
