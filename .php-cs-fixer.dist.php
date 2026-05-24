@@ -27,6 +27,7 @@ $finder = Finder::create()
     ])
     ->append([
         __FILE__,
+        __DIR__.'/composer-dependency-analyser.php',
         __DIR__.'/structarmed.php',
         __DIR__.'/tools/generate-schema',
         __DIR__.'/tools/snapshot-spec-anchors',

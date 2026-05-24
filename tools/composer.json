@@ -6,7 +6,8 @@
         "friendsofphp/php-cs-fixer": "^3.95",
         "infection/infection": "^0.33.1",
         "kubawerlos/php-cs-fixer-custom-fixers": "^3.37",
-        "nexusphp/cs-config": "^3.28"
+        "nexusphp/cs-config": "^3.28",
+        "shipmonk/composer-dependency-analyser": "^1.8"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,

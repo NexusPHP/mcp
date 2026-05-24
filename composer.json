@@ -29,6 +29,8 @@
         "revolt/event-loop": "^1.0"
     },
     "require-dev": {
+        "ext-mbstring": "*",
+        "ext-tokenizer": "*",
         "nexusphp/tachycardia": "^2.4",
         "phpstan/extension-installer": "^1.4",
         "phpstan/phpstan": "^2.1",
@@ -74,6 +76,7 @@
         "arch:check": "tools/vendor/bin/structarmed analyse src",
         "cs:check": "tools/vendor/bin/php-cs-fixer check --verbose --diff",
         "cs:fix": "tools/vendor/bin/php-cs-fixer fix --verbose --diff",
+        "deps:check": "tools/vendor/bin/composer-dependency-analyser",
         "lint:docs": [
             "@lint:typos",
             "@lint:markdown",
@@ -104,6 +107,7 @@
             "@cs:check",
             "@phpstan:check",
             "@arch:check",
+            "@deps:check",
             "@lint:docs",
             "@test:auto-review",
             "@test:stan",
@@ -120,6 +124,7 @@
             "@cs:check",
             "@phpstan:check",
             "@arch:check",
+            "@deps:check",
             "@lint:docs",
             "@test:auto-review",
             "@test:stan",
@@ -131,6 +136,7 @@
         "arch:check": "Checks architecture layer boundaries with StructArmed",
         "cs:check": "Checks for coding style violations",
         "cs:fix": "Fixes any coding style violations",
+        "deps:check": "Analyses composer dependency declarations with shipmonk",
         "lint:docs": "Runs all documentation linters (typos, markdown, links)",
         "lint:fix": "Runs all auto-fixable doc linters (typos, markdown)",
         "lint:links": "Runs lychee link check across markdown files",

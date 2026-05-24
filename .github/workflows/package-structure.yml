@@ -7,7 +7,9 @@ on:
     paths:
       - .github/workflows/package-structure.yml
       - src/**
+      - tests/**
       - structarmed.php
+      - composer-dependency-analyser.php
       - composer.json
       - tools/composer.json
   pull_request:
@@ -16,7 +18,9 @@ on:
     paths:
       - .github/workflows/package-structure.yml
       - src/**
+      - tests/**
       - structarmed.php
+      - composer-dependency-analyser.php
       - composer.json
       - tools/composer.json
 
@@ -32,7 +36,7 @@ concurrency:
 
 jobs:
   package-structure:
-    name: Check layer boundaries
+    name: Check package structure
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -66,3 +70,6 @@ jobs:
 
       - name: Run architecture boundary checks
         run: composer arch:check
+
+      - name: Run dependency analysis
+        run: composer deps:check

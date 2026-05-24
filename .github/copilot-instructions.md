@@ -50,6 +50,9 @@ composer test:stan        # PHPStan type-inference lock-in assertions (the stati
 # Architecture boundaries (Server and Client must not depend on each other, both may depend on Core)
 composer arch:check
 
+# Dependency declarations (shadow/unused composer deps via shipmonk/composer-dependency-analyser)
+composer deps:check
+
 # Mutation testing (checks for code quality via mutation detection)
 composer mutation:check      # runs Infection on whole codebase
 composer mutation:filter     # runs Infection on diff vs origin/1.x; includes untracked files via intent-to-add
