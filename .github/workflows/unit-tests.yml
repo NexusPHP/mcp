@@ -87,7 +87,7 @@ jobs:
             composer-
 
       - name: Install dependencies
-        run: composer update --ansi --no-interaction
+        run: composer update --ansi
 
       - name: Run Composer security audit
         run: composer audit --ansi
