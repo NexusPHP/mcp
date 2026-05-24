@@ -16,6 +16,12 @@ in `0.x`, minor releases may include breaking changes.
   capability the server did not advertise (e.g. `tools/list` without a `tools` capability) throws
   `ServerCapabilityNotSupportedException` before the request reaches the transport. `ping` is never gated.
 
+### Fixed
+
+- Closing a `StdioClientTransport` whose subprocess is still running no longer fatals on PHP builds
+  without the `pcntl` extension (such as Windows). The transport now terminates the subprocess via
+  `Process::kill()` instead of the `SIGKILL` constant.
+
 ### Changed
 
 - `StdioClientTransport` now prunes the spawned subprocess environment by default instead of inheriting the
