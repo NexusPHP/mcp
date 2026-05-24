@@ -61,19 +61,13 @@ final class CreateMessageRequestParamsTest extends TestCase
         self::assertSame([], $params->meta->toArray());
     }
 
-    public function testConstructorRejectsNegativeMaxTokens(): void
+    public function testConstructorAcceptsAnyIntMaxTokens(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('"params.maxTokens" must be a non-negative integer.');
+        $negative = new CreateMessageRequestParams(maxTokens: -1, messages: []);
+        $zero = new CreateMessageRequestParams(maxTokens: 0, messages: []);
 
-        new CreateMessageRequestParams(maxTokens: -1, messages: []);
-    }
-
-    public function testConstructorAcceptsZeroMaxTokens(): void
-    {
-        $params = new CreateMessageRequestParams(maxTokens: 0, messages: []);
-
-        self::assertSame(0, $params->maxTokens);
+        self::assertSame(-1, $negative->maxTokens);
+        self::assertSame(0, $zero->maxTokens);
     }
 
     public function testConstructorRejectsNonSamplingMessageEntry(): void

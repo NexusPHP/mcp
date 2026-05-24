@@ -79,7 +79,6 @@ final readonly class CreateMessageRequestParams extends RequestParams
         ?array $metadata = null,
         RequestMetaObject $meta = new RequestMetaObject(),
     ) {
-        Assert::that($maxTokens)->isNaturalInt('"params.maxTokens" must be a non-negative integer.');
         Assert::that($messages)->values()->isInstanceOf(SamplingMessage::class);
         Assert::that($systemPrompt)->nullOr()->isNonEmptyString('"params.systemPrompt" must be a non-empty string or null.');
 
