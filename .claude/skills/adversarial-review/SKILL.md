@@ -41,33 +41,9 @@ Skim:
 
 Identify three to five **design intentions that should NOT be flagged** as bugs and add them to the pre-seed block below for each subagent. Common categories: deferred initiatives (cancellation registry, Streamable HTTP, task layer), narrowing patterns that PHPStan requires (per-call `Assert::isMap` assertions where the interface declares no signature), encoding paths that deliberately diverge between `toArray()` and `jsonSerialize()` for empty-object slots.
 
-## Step 3: durable repo-wide constraints (inline pre-seed)
+## Step 3: durable repo-wide constraints (shared pre-seed)
 
-The block below is repo-wide review-time conventions. **Include it verbatim in every subagent prompt** so all four frames respect the same boundaries regardless of which contributor invokes the skill. These constraints are inlined here (rather than referenced via memory paths or external docs) so the skill is self-contained for any contributor.
-
-> ## Already-decided review-time constraints (do NOT re-litigate)
->
-> **Schema-stability rule.** Schema classes under `src/Core/Schema/**` are stable value objects locked to the MCP spec shape. Internal micro-DRY refactors (helper extraction, trait lifting, sealed annotations, interface property hooks, abstract base lifting) are out of scope **unless they fix a real envelope-encoding bug**. The duplication is byte-identical except for class-name prefixes, the schema tracks the spec exactly and rarely changes, and each abstraction adds a layer the reader must follow. Dead-code removal in schema classes is allowed, but only after verifying no test, no direct-encode path, and no PHPStan-narrowing role exercises the "dead" branch.
->
-> **Load-bearing patterns that look dead but are not.** Do NOT propose removal of any of these:
->
-> 1. **`CancelledNotification::jsonSerialize` empty-object substitution.** The override substitutes `\stdClass` for empty `params`. Looks dead because the spec mandates `requestId`. Load-bearing: the PHP constructor permits `new CancelledNotificationParams()` with no `requestId`. Without the `{}` substitution the JSON envelope drops the `params` key entirely and breaks the round-trip `fromArray` guard. Three tests pin this.
->
-> 2. **`EnumValueValidator::parse` try/catch on `\TypeError`.** Looks dead because the outer `is_string || is_int` guard prevents wrong scalar types. Load-bearing: with `strict_types=1`, passing a numeric string to an int-backed enum's `tryFrom` throws `TypeError`. The catch converts it to a meaningful `ExpectationFailedException`. Removing the catch leaks raw `TypeError`.
->
-> 3. **`Annotations::jsonSerialize` empty-object substitution.** Looks dead because all parent consumers filter the slot when empty. Load-bearing for the direct-encode case: `json_encode(new Annotations())` standalone would emit `[]` instead of `{}` without the substitution.
->
-> 4. **`InMemoryTransport` per-envelope `isMap` assertion.** Looks structurally redundant at runtime since `toArray()` returns a string-keyed map by contract. Load-bearing for PHPStan narrowing: `JsonRpcMessage::toArray()` has no declared signature on the interface (reached via soft `assert(method_exists(...))`), so PHPStan types the envelope as `mixed`. The `isMap` chain narrows it to `array<string, mixed>` so downstream `$peer->receive($envelope)` typechecks.
->
-> 5. **`NullLogger` short-circuit pattern.** Do NOT propose `if ($logger instanceof NullLogger) return;` in transport / dispatch log call-sites. `NullLogger::debug()` IS the no-op. An `instanceof NullLogger` check at the call site costs about the same as the no-op method dispatch. Callers should call `$logger->debug(...)` unconditionally and pay no branching cost.
->
-> 6. **`JsonRpcMethodRegistry::requests()` and `notifications()` map ordering.** Looks accidental compared to class-name alphabetical. Actually sorted by the evaluated method literal (`completion/complete`, `elicitation/create`, `initialize`, ...) and enforced by `JsonRpcMethodRegistryTest::testRequestsAreSortedByEvaluatedMethodKey`. The PHPDoc on both accessors documents this.
->
-> **Deferred initiatives** (flag races / gaps that will matter once these land, but do not flag their absence):
->
-> - Cancellation registry. In-flight handlers cannot be cancelled today. Port is mechanical once consumers exist.
-> - Streamable HTTP transport. Blocked on the 2026-06-30 RC pin along with the task-layer rebuild.
-> - Server-initiated request paths (sampling, elicitation). `RequestBoundSender::sendRequest` throws `\BadMethodCallException` until wired.
+The repo-wide review-time conventions live in a shared file, [`review-preseed.md`](../review-preseed.md), so this skill and `/simplify` runs stay in lockstep instead of each carrying its own copy. Read it and **include its "Already-decided" and "Verified-correct" blocks verbatim in every subagent prompt** so all four frames respect the same boundaries regardless of which contributor invokes the skill. The file is committed to the repo, so the skill stays self-contained for any contributor. When a review settles that something is correct-as-is or deferred, add it to that file so the next review skips it.
 
 If the contributor has additional do-not-critique context from the conversation (specific renames, intentional duplication, behavior covered in conversation), append those under "Session-specific do-not-critique" so the agent sees both.
 
@@ -113,7 +89,7 @@ Each agent prompt MUST include all of the following (in addition to its frame-sp
 
 2. **Concrete file list / scope.** New files in one bucket, modified in another. For steady-state review, list the directories and any files of unusual interest.
 
-3. **The verbatim pre-seed block from Step 3.** Plus any session-specific do-not-critique items harvested in Step 2.
+3. **The verbatim "Already-decided" and "Verified-correct" blocks from the shared pre-seed file (Step 3).** Plus any session-specific do-not-critique items harvested in Step 2.
 
 4. **Frame-specific failure-mode checklist.** Concrete, not abstract. Frame templates below.
 
