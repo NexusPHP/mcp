@@ -33,7 +33,6 @@ final class PendingInboundRequestsTest extends TestCase
         $id = new RequestId(1);
 
         self::assertTrue($set->claim($id));
-        self::assertTrue($set->contains($id));
         self::assertCount(1, $set);
     }
 
@@ -95,8 +94,9 @@ final class PendingInboundRequestsTest extends TestCase
         $set->claim($stringId);
         $set->release($stringId);
 
-        self::assertTrue($set->contains($intId), 'Releasing a string id must not touch a same-spelt int id.');
-        self::assertFalse($set->contains($stringId));
+        self::assertCount(1, $set);
+        self::assertFalse($set->claim($intId), 'Releasing a string id must not touch a same-spelt int id.');
+        self::assertTrue($set->claim($stringId), 'The released string id is gone, so it is reclaimable.');
     }
 
     public function testReleaseAllowsReclaiming(): void
@@ -107,7 +107,6 @@ final class PendingInboundRequestsTest extends TestCase
         $set->claim($id);
         $set->release($id);
 
-        self::assertFalse($set->contains($id));
         self::assertCount(0, $set);
         self::assertTrue($set->claim($id), 'A released id must be reclaimable.');
     }

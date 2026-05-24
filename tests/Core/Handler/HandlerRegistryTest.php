@@ -52,27 +52,6 @@ final class HandlerRegistryTest extends TestCase
         self::assertNull($registry->get('vendor/unknown'));
     }
 
-    public function testMethodsReturnsRegisteredKeysInInsertionOrder(): void
-    {
-        $registry = new HandlerRegistry(
-            [
-                'b/method' => new PingRequestHandler(),
-                'a/method' => new PingRequestHandler(),
-            ],
-            RequestHandlerInterface::class,
-            'Request handler',
-        );
-
-        self::assertSame(['b/method', 'a/method'], $registry->methods());
-    }
-
-    public function testMethodsReturnsEmptyListForEmptyRegistry(): void
-    {
-        $registry = new HandlerRegistry([], RequestHandlerInterface::class, 'Request handler');
-
-        self::assertSame([], $registry->methods());
-    }
-
     public function testConstructorRejectsEmptyStringKey(): void
     {
         $this->expectException(ExpectationFailedException::class);

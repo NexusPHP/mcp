@@ -47,11 +47,6 @@ final class PendingInboundRequests implements \Countable
         unset($this->map[self::key($id)]);
     }
 
-    public function contains(RequestId $id): bool
-    {
-        return \array_key_exists(self::key($id), $this->map);
-    }
-
     #[\Override]
     public function count(): int
     {

@@ -54,12 +54,4 @@ final readonly class HandlerRegistry
     {
         return $this->handlers[$method] ?? null;
     }
-
-    /**
-     * @return list<non-empty-string>
-     */
-    public function methods(): array
-    {
-        return array_keys($this->handlers);
-    }
 }

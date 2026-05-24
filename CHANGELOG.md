@@ -13,6 +13,10 @@ in `0.x`, minor releases may include breaking changes.
 - Sampling requests (`sampling/createMessage`) no longer reject a `temperature` value outside `0.0` to
   `2.0`. The MCP schema sets no bound on the field, so the previous range rejected spec-valid input.
 
+### Removed
+
+- `HandlerRegistry::methods()`, an unused accessor returning the registered method names.
+
 ## [v0.1.0](https://github.com/NexusPHP/mcp-sdk/releases/tag/v0.1.0) - 2026-05-23
 
 ### Added
