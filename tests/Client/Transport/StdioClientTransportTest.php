@@ -24,6 +24,7 @@ use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\AbstractLogger;
@@ -39,6 +40,7 @@ final class StdioClientTransportTest extends TestCase
 {
     private const string ECHO_SERVER = __DIR__.'/../../Fixtures/Client/Transport/echo-server.php';
     private const string STDERR_NOISE = __DIR__.'/../../Fixtures/Client/Transport/stderr-noise.php';
+    private const string ENV_REPORTER = __DIR__.'/../../Fixtures/Client/Transport/env-reporter.php';
 
     public function testEmptyCommandThrows(): void
     {
@@ -200,12 +202,123 @@ final class StdioClientTransportTest extends TestCase
         self::assertSame(['label' => 'Stdio client'], $matches[0]['context']);
     }
 
+    #[DataProvider('provideDefaultEnvironmentKeepsEachInheritedNameCases')]
+    public function testDefaultEnvironmentKeepsEachInheritedName(string $name): void
+    {
+        $environment = StdioClientTransport::defaultEnvironment([$name => 'value', 'NOT_ALLOWED' => 'secret']);
+
+        self::assertSame([$name => 'value'], $environment);
+    }
+
+    /**
+     * @return iterable<string, array{0: string}>
+     */
+    public static function provideDefaultEnvironmentKeepsEachInheritedNameCases(): iterable
+    {
+        $names = [
+            'APPDATA',
+            'HOME',
+            'HOMEDRIVE',
+            'HOMEPATH',
+            'LOCALAPPDATA',
+            'LOGNAME',
+            'PATH',
+            'PROCESSOR_ARCHITECTURE',
+            'SHELL',
+            'SYSTEMDRIVE',
+            'SYSTEMROOT',
+            'TEMP',
+            'TERM',
+            'USER',
+            'USERNAME',
+            'USERPROFILE',
+        ];
+
+        foreach ($names as $name) {
+            yield $name => [$name];
+        }
+    }
+
+    public function testDefaultEnvironmentSkipsExportedShellFunctionValues(): void
+    {
+        $environment = StdioClientTransport::defaultEnvironment([
+            'PATH' => '() { :; }; echo pwned',
+            'HOME' => '/home/me',
+        ]);
+
+        self::assertSame(['HOME' => '/home/me'], $environment);
+    }
+
+    public function testDefaultEnvironmentPrunesParentSecretsFromTheSubprocess(): void
+    {
+        putenv('MCP_PARENT_SECRET=topsecret');
+
+        try {
+            $childEnv = self::reportedEnvironment(new StdioClientTransport([\PHP_BINARY, self::ENV_REPORTER]));
+
+            self::assertArrayHasKey('PATH', $childEnv, 'PATH is allowlisted and inherited.');
+            self::assertArrayNotHasKey('MCP_PARENT_SECRET', $childEnv);
+        } finally {
+            putenv('MCP_PARENT_SECRET');
+        }
+    }
+
+    public function testEmptyEnvironmentInheritsTheFullParentEnvironment(): void
+    {
+        putenv('MCP_PARENT_SECRET=topsecret');
+
+        try {
+            $childEnv = self::reportedEnvironment(new StdioClientTransport([\PHP_BINARY, self::ENV_REPORTER], env: []));
+
+            self::assertSame('topsecret', $childEnv['MCP_PARENT_SECRET'] ?? null);
+        } finally {
+            putenv('MCP_PARENT_SECRET');
+        }
+    }
+
+    public function testExplicitEnvironmentIsPassedVerbatim(): void
+    {
+        $transport = new StdioClientTransport(
+            [\PHP_BINARY, self::ENV_REPORTER],
+            env: ['MCP_CUSTOM' => 'yes', 'PATH' => (string) getenv('PATH')],
+        );
+        $childEnv = self::reportedEnvironment($transport);
+
+        self::assertSame('yes', $childEnv['MCP_CUSTOM'] ?? null);
+        self::assertArrayNotHasKey('HOME', $childEnv, 'A non-empty env is passed verbatim, not merged with the parent.');
+    }
+
     private static function buildTransport(?ArrayLogger $logger = null): StdioClientTransport
     {
         return new StdioClientTransport(
             [\PHP_BINARY, self::ECHO_SERVER],
             logger: $logger ?? new ArrayLogger(),
         );
+    }
+
+    /**
+     * @return array<array-key, mixed>
+     */
+    private static function reportedEnvironment(StdioClientTransport $transport): array
+    {
+        /** @var DeferredFuture<array<string, mixed>> $received */
+        $received = new DeferredFuture();
+        $transport->onMessage(static function (array $envelope) use ($received): void {
+            if (! $received->isComplete()) {
+                $received->complete($envelope);
+            }
+        });
+
+        $transport->start();
+        $envelope = $received->getFuture()->await();
+        $transport->close();
+
+        $params = $envelope['params'] ?? null;
+        self::assertIsArray($params);
+        $environment = $params['env'] ?? null;
+        self::assertIsArray($environment);
+
+        return $environment;
     }
 
     /**

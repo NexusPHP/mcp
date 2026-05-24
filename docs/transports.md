@@ -103,7 +103,7 @@ use Psr\Log\NullLogger;
 $transport = new StdioClientTransport(
     command: ['php', 'examples/stdio-server.php'],  // argv. No shell interpretation
     workingDirectory: null,                          // optional cwd; defaults to current
-    env: [],                                         // optional env vars; empty inherits parent
+    env: null,                                       // optional; null prunes to a safe allowlist
     logger: $psrLogger,                              // optional; default: NullLogger
     maxLineBytes: 4_194_304,                         // optional cap; default 4 MiB
 );
@@ -118,6 +118,10 @@ Behaviour:
 - **Launch**: `start()` invokes `Amp\Process\Process::start(...)` with the supplied command. The first
   array element is the executable; the rest are arguments. There is no shell interpretation; pass arguments
   separately to avoid quoting bugs.
+- **Environment**: `env: null` (the default) passes a pruned allowlist of safe names (`PATH`, `HOME`,
+  `TERM`, …) drawn from the parent, dropping everything else (such as secrets) and skipping exported
+  shell-function values. An empty array (`env: []`) inherits the full parent environment; a non-empty array
+  is passed verbatim.
 - **Framing**: same line-framed JSON-RPC as the server transport. Outbound writes go to the subprocess's
   stdin; inbound lines come from its stdout.
 - **STDERR**: a second pump runs in parallel and forwards every stderr line to the logger as
