@@ -185,6 +185,23 @@ final class ToolStoreTest extends TestCase
         $store->call('search', ['q' => 123], self::makeContext());
     }
 
+    public function testCallAcceptsArgumentsSatisfyingRequiredInputSchema(): void
+    {
+        $result = new CallToolResult([]);
+        $store = new ToolStore([
+            'search' => new ToolEntry(
+                new Tool('search', [
+                    'type' => 'object',
+                    'properties' => ['q' => ['type' => 'string']],
+                    'required' => ['q'],
+                ]),
+                self::makeExecutorReturning($result),
+            ),
+        ]);
+
+        self::assertSame($result, $store->call('search', ['q' => 'hello'], self::makeContext()));
+    }
+
     public function testCallAcceptsEmptyArrayArgumentsAsEmptyObject(): void
     {
         $result = new CallToolResult([]);
