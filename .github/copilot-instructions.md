@@ -47,6 +47,9 @@ composer phpstan:check    # runs PHPStan across all packages
 composer phpstan:baseline # regenerates the PHPStan baseline; only use when a confirmed false positive/negative requires suppression; never add baseline entries to silence real errors
 composer test:stan        # PHPStan type-inference lock-in assertions (the static-analysis PHPUnit group, data under tests/AutoReview/data/)
 
+# Architecture boundaries (Server and Client must not depend on each other, both may depend on Core)
+composer arch:check
+
 # Mutation testing (checks for code quality via mutation detection)
 composer mutation:check      # runs Infection on whole codebase
 composer mutation:filter     # runs Infection on diff vs origin/1.x; includes untracked files via intent-to-add

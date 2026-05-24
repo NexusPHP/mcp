@@ -71,6 +71,7 @@
         "post-autoload-dump": [
             "@composer update --working-dir=tools"
         ],
+        "arch:check": "tools/vendor/bin/structarmed analyse src",
         "cs:check": "tools/vendor/bin/php-cs-fixer check --verbose --diff",
         "cs:fix": "tools/vendor/bin/php-cs-fixer fix --verbose --diff",
         "lint:docs": [
@@ -102,6 +103,7 @@
         "test:all": [
             "@cs:check",
             "@phpstan:check",
+            "@arch:check",
             "@lint:docs",
             "@test:auto-review",
             "@test:stan",
@@ -117,6 +119,7 @@
         "test:with-untracked": [
             "@cs:check",
             "@phpstan:check",
+            "@arch:check",
             "@lint:docs",
             "@test:auto-review",
             "@test:stan",
@@ -125,6 +128,7 @@
         ]
     },
     "scripts-descriptions": {
+        "arch:check": "Checks architecture layer boundaries with StructArmed",
         "cs:check": "Checks for coding style violations",
         "cs:fix": "Fixes any coding style violations",
         "lint:docs": "Runs all documentation linters (typos, markdown, links)",

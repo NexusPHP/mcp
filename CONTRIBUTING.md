@@ -39,6 +39,7 @@ For faster inner loops, the single-concern scripts are usually enough:
 ```bash
 composer cs:check        # code style
 composer phpstan:check   # static analysis (PHPStan level 10)
+composer arch:check      # layer boundaries (Server and Client stay independent, both build on Core)
 composer test:unit       # or test:client / test:core / test:server
 composer lint:docs       # typos, markdownlint, link check
 ```
