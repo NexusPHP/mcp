@@ -50,7 +50,9 @@ final class PendingCoroutines implements \Countable
 
     public function flushPending(): void
     {
-        awaitAll($this->pending);
+        while (\count($this->pending) > 0) {
+            awaitAll(iterator_to_array($this->pending));
+        }
     }
 
     /**

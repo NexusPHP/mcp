@@ -19,6 +19,9 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
+use function Amp\async;
+use function Amp\delay;
+
 /**
  * @internal
  */
@@ -68,6 +71,27 @@ final class PendingCoroutinesTest extends TestCase
 
         $coroutines->flushPending();
 
+        self::assertCount(0, $coroutines);
+    }
+
+    public function testFlushPendingAwaitsFuturesTrackedDuringTheFlush(): void
+    {
+        $coroutines = new PendingCoroutines();
+        $trackedDuringFlush = false;
+
+        // Suspend A so it is still pending when flushPending snapshots the set.
+        // A then tracks B from inside its own body, mid-flush.
+        $futureA = async(static function () use ($coroutines, &$trackedDuringFlush): void {
+            delay(0);
+            $coroutines->track(async(static function () use (&$trackedDuringFlush): void {
+                $trackedDuringFlush = true;
+            }));
+        });
+        $coroutines->track($futureA);
+
+        $coroutines->flushPending();
+
+        self::assertTrue($trackedDuringFlush, 'A coroutine tracked during the flush must still be awaited.');
         self::assertCount(0, $coroutines);
     }
 
