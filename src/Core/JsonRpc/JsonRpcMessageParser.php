@@ -88,7 +88,7 @@ final class JsonRpcMessageParser
                 Assert::that($message['id'])->isArrayKey('Response "id" must be an int or string, {type} given.');
                 $id = new RequestId($message['id']);
             } catch (\InvalidArgumentException $e) {
-                throw new InvalidRequestException(self::extractRequestId($message), $e->getMessage());
+                throw new InvalidRequestException(null, $e->getMessage());
             }
 
             if (null === $result) {
@@ -101,16 +101,13 @@ final class JsonRpcMessageParser
                     ->isMap('Success response "result" must be a string-keyed object.')
                 ;
             } catch (\InvalidArgumentException $e) {
-                throw new InvalidRequestException(self::extractRequestId($message), $e->getMessage());
+                throw new InvalidRequestException($id, $e->getMessage());
             }
 
             try {
                 $typed = $result::fromArray($message['result']);
             } catch (\InvalidArgumentException $e) {
-                throw new InvalidRequestException(
-                    self::extractRequestId($message),
-                    \sprintf('Invalid %s payload: %s', $result, $e->getMessage()),
-                );
+                throw new InvalidRequestException($id, \sprintf('Invalid %s payload: %s', $result, $e->getMessage()));
             }
 
             return new JsonRpcResultResponse($id, $typed);
