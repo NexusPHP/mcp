@@ -1,6 +1,7 @@
 # Nexus MCP SDK
 
 [![PHP](https://img.shields.io/badge/php-%E2%89%A5%208.4-777bb4?logo=php&logoColor=white)](https://www.php.net)
+[![Latest Stable Version](https://img.shields.io/packagist/v/nexusphp/mcp-sdk)](https://packagist.org/packages/nexusphp/mcp-sdk)
 [![Unit Tests](https://github.com/NexusPHP/mcp-sdk/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/NexusPHP/mcp-sdk/actions/workflows/unit-tests.yml)
 [![Static analysis](https://github.com/NexusPHP/mcp-sdk/actions/workflows/static-analysis.yml/badge.svg)](https://github.com/NexusPHP/mcp-sdk/actions/workflows/static-analysis.yml)
 [![Code style](https://github.com/NexusPHP/mcp-sdk/actions/workflows/code-style.yml/badge.svg)](https://github.com/NexusPHP/mcp-sdk/actions/workflows/code-style.yml)
@@ -8,7 +9,7 @@
 [![License](https://img.shields.io/github/license/NexusPHP/mcp-sdk)](LICENSE)
 
 > [!IMPORTANT]
-> Pre-1.0 and unreleased. Through `0.x` the project ships the single umbrella package
+> Pre-v1.0.0. Through `0.x` the project ships the single umbrella package
 > `nexusphp/mcp-sdk`, and minor releases may carry breaking changes until `1.0.0`. The stdio transport
 > is implemented. Streamable HTTP lands with the 2026-07-28 migration.
 
