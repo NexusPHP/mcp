@@ -31,7 +31,7 @@ declare(strict_types=1);
  *     }
  */
 
-require __DIR__.'/../vendor/autoload.php';
+require __DIR__.'/bootstrap.php';
 
 use Nexus\Mcp\Core\Handler\AbstractContext;
 use Nexus\Mcp\Core\Handler\RequestHandlerInterface;
@@ -53,70 +53,10 @@ use Nexus\Mcp\Core\Schema\Tool\Tool;
 use Nexus\Mcp\Server\Server;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Server\Transport\StdioServerTransport;
-use Psr\Log\AbstractLogger;
-use Psr\Log\LogLevel;
 
 use function Amp\delay;
 
-/**
- * MCP servers MUST NOT write to STDOUT outside of the JSON-RPC stream.
- * STDERR is the conventional channel for diagnostic logs. MCP clients
- * (e.g. Inspector) typically surface this stream as a "debug log" pane
- * regardless of the entry's level, so this logger filters by a minimum
- * severity before writing. The threshold starts at `info` and follows
- * whatever the client requests via `logging/setLevel` (wired below).
- */
-$logger = new class extends AbstractLogger {
-    /**
-     * RFC 5424 severity index (0 = most severe, 7 = least), keyed by PSR-3
-     * level name.
-     */
-    private const array SEVERITY = [
-        LogLevel::EMERGENCY => 0,
-        LogLevel::ALERT => 1,
-        LogLevel::CRITICAL => 2,
-        LogLevel::ERROR => 3,
-        LogLevel::WARNING => 4,
-        LogLevel::NOTICE => 5,
-        LogLevel::INFO => 6,
-        LogLevel::DEBUG => 7,
-    ];
-
-    private string $minLevel = LogLevel::DEBUG;
-
-    public function setMinLevel(LoggingLevel $level): void
-    {
-        $this->minLevel = $level->value;
-    }
-
-    #[Override]
-    public function log($level, string|Stringable $message, array $context = []): void
-    {
-        $level = (string) $level;
-
-        if (self::SEVERITY[$level] > self::SEVERITY[$this->minLevel]) {
-            return;
-        }
-
-        $replacements = [];
-
-        foreach ($context as $key => $value) {
-            if (! is_string($key)) {
-                continue;
-            }
-
-            $replacements[sprintf('{%s}', $key)] = match (true) {
-                $value instanceof Throwable => $value::class.': '.$value->getMessage(),
-                is_scalar($value) || $value instanceof Stringable => (string) $value,
-                default => json_encode($value, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES),
-            };
-        }
-
-        $rendered = strtr((string) $message, $replacements);
-
-        fwrite(\STDERR, sprintf("[%s] %s: %s\n", date(\DATE_RFC3339), $level, $rendered));
-    }
-};
+$logger = new ExampleLogger();
 
 $server = Server::builder()
     ->setLogger($logger)

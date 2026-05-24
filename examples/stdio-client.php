@@ -24,7 +24,7 @@ declare(strict_types=1);
  *     php examples/stdio-client.php
  */
 
-require __DIR__.'/../vendor/autoload.php';
+require __DIR__.'/bootstrap.php';
 
 use Nexus\Mcp\Client\Client;
 use Nexus\Mcp\Client\Handler\Notification\LoggingMessageNotificationHandler;

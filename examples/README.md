@@ -1,14 +1,19 @@
 # Examples
 
 Runnable demo servers and clients for the Nexus MCP SDK. Each example is a
-single self-contained PHP script; run it with `php` directly, through
+runnable PHP script; run it with `php` directly, through
 [MCP Inspector](https://github.com/modelcontextprotocol/inspector), or spawn it
-from an MCP-aware client like Claude Desktop / Cursor.
+from an MCP-aware client like Claude Desktop / Cursor. Shared setup (the Composer
+autoloader, an uncaught-exception handler, and `ExampleLogger`) lives in
+[bootstrap.php](bootstrap.php).
 
 | Example | Description | File |
 | --- | --- | --- |
 | `stdio-server` | Stdio MCP server with two interactive tools (`multi_greet`, `count_down`), one resource, one prompt, and a custom `logging/setLevel` handler that bridges the client-controlled log level to the server's PSR-3 logger. | [stdio-server.php](stdio-server.php) |
 | `stdio-client` | Stdio MCP client that spawns `stdio-server` as a subprocess and drives it through the typed `Client` API: handshake, `listTools`, `callTool` (with streaming `onProgress`), `readResource`, `listPrompts`. Renders the server's log notifications via a registered handler. | [stdio-client.php](stdio-client.php) |
+| `in-memory` | Runs a server and client in a single process over `InMemoryTransport::pair()`, with no subprocess. The pattern for embedding a server in a host application or exercising one in tests. | [in-memory.php](in-memory.php) |
+| `completions-and-templates` | RFC 6570 templated resources (`users://{userId}`) and `completion/complete` for both a template argument and a prompt argument, server and client in one process. | [completions-and-templates.php](completions-and-templates.php) |
+| `capability-aware-client` | Spawns `stdio-server`, prints the negotiated `ServerCapabilities`, and shows `ServerCapabilityNotSupportedException` raised when calling an unadvertised capability (`completion/complete`). | [capability-aware-client.php](capability-aware-client.php) |
 
 ## Running an example
 
@@ -61,10 +66,33 @@ callback while the call is in flight, and the server's log notifications stream
 through the registered `notifications/message` handler. No external client is
 needed; the script is both the driver and its own output.
 
+### In-process examples (no subprocess)
+
+```bash
+php examples/in-memory.php
+php examples/completions-and-templates.php
+```
+
+Both run a server and a client in a single process over `InMemoryTransport::pair()`,
+with the server in a background coroutine. `in-memory` is the minimal embedding
+pattern. `completions-and-templates` adds RFC 6570 templated resources and
+`completion/complete`.
+
+### Capability-aware client
+
+```bash
+php examples/capability-aware-client.php
+```
+
+Spawns `stdio-server`, prints the negotiated `ServerCapabilities`, then attempts an
+unadvertised capability so you can see the client gate it with
+`ServerCapabilityNotSupportedException` before anything reaches the transport.
+
 ## Logs go to STDERR
 
-MCP clients reserve STDOUT for the JSON-RPC stream. The example writes all
+MCP clients reserve STDOUT for the JSON-RPC stream. The examples write all
 diagnostic logs to STDERR via PSR-3. Inspector surfaces this stream under its
-**Debug Log** pane regardless of level. The example's logger filters by a
-minimum severity before writing, defaulting to `info` and updating live in
-response to `logging/setLevel` calls from the client.
+**Debug Log** pane regardless of level. `ExampleLogger` (in
+[bootstrap.php](bootstrap.php)) filters by a minimum severity before writing,
+defaulting to `info`, dropping to `debug` when the `DEBUG` environment variable is
+set, and updating live in response to `logging/setLevel` calls from the client.
