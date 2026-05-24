@@ -8,6 +8,8 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp-sdk/commits/1.x)
 
+## [v0.2.0](https://github.com/NexusPHP/mcp-sdk/compare/v0.1.0...v0.2.0) - 2026-05-24
+
 ### Fixed
 
 - Sampling requests (`sampling/createMessage`) no longer reject a `temperature` value outside `0.0` to
@@ -16,6 +18,8 @@ in `0.x`, minor releases may include breaking changes.
   sets no minimum on the field.
 - A request envelope with a malformed `id` (wrong type or empty string) now returns a `-32600` Invalid
   Request error instead of `-32602` Invalid Params, matching JSON-RPC 2.0.
+- Shutdown now drains handler coroutines spawned while an earlier batch of in-flight work is
+  still being awaited, instead of returning before they complete.
 
 ### Removed
 

@@ -7,7 +7,8 @@ exclude_path = [
     "vendor",
 ]
 
-# Release tag URLs only resolve once the tag is pushed.
+# Release-tag and version-compare URLs only resolve once the tag is pushed.
 exclude = [
     'https://github\.com/NexusPHP/mcp-sdk/releases/tag/',
+    'https://github\.com/NexusPHP/mcp-sdk/compare/',
 ]
