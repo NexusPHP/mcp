@@ -54,7 +54,10 @@ final class SourceCodeTest extends TestCase
         \T_IS_NOT_IDENTICAL,
         \T_IS_EQUAL,
         \T_IS_NOT_EQUAL,
+        \T_IS_SMALLER_OR_EQUAL,
+        \T_IS_GREATER_OR_EQUAL,
     ];
+    private const array COMPARISON_OPERATOR_STRINGS = ['<', '>'];
     private const array CONTROL_FLOW_KEYWORD_TOKEN_IDS = [
         \T_RETURN,
         \T_WHILE,
@@ -149,7 +152,7 @@ final class SourceCodeTest extends TestCase
         );
 
         self::assertSame([], $report, \sprintf(
-            "%s contains function-call yoda comparisons (`yoda_style` does not auto-fix these — write `func() === \$x` not `\$x === func()`):\n%s",
+            "%s contains function-call yoda comparisons that `yoda_style` does not auto-fix. Put the function call on the left of the comparison:\n%s",
             $relativePath,
             implode("\n", $report),
         ));
@@ -650,10 +653,12 @@ final class SourceCodeTest extends TestCase
     }
 
     /**
-     * Token-walks the source looking for `<literal> [!=]==? <call-chain>(...)` —
-     * a comparison where a literal/keyword sits on the left and a function or
-     * method call sits on the right. The `yoda_style` fixer (with
-     * `always_move_variable: true`) leaves these alone, so we gate manually.
+     * Token-walks the source looking for `<literal> <comparison> <call-chain>(...)`,
+     * a comparison where a literal or keyword sits on the left and a function or
+     * method call sits on the right. Covers equality, identity, and the relational
+     * operators (`<`, `>`, `<=`, `>=`). The `yoda_style` fixer (with
+     * `always_move_variable: true`) leaves function-call operands alone, so this
+     * gate enforces them manually.
      *
      * @return list<array{line: int, literal: string, operator: string}>
      */
@@ -669,7 +674,7 @@ final class SourceCodeTest extends TestCase
 
             $j = self::skipTrivia($tokens, $i + 1);
 
-            if (! isset($tokens[$j]) || ! self::tokenIs($tokens[$j], self::COMPARISON_TOKEN_IDS)) {
+            if (! isset($tokens[$j]) || ! self::isComparisonOperator($tokens[$j])) {
                 continue;
             }
 
@@ -713,6 +718,18 @@ final class SourceCodeTest extends TestCase
     private static function tokenIs(array|string $token, array $ids): bool
     {
         return \is_array($token) && \in_array($token[0], $ids, true);
+    }
+
+    /**
+     * @param array{int, string, int}|string $token
+     */
+    private static function isComparisonOperator(array|string $token): bool
+    {
+        if (\is_string($token)) {
+            return \in_array($token, self::COMPARISON_OPERATOR_STRINGS, true);
+        }
+
+        return \in_array($token[0], self::COMPARISON_TOKEN_IDS, true);
     }
 
     /**

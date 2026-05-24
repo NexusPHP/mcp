@@ -40,6 +40,12 @@ $overrides = [
         ],
     ],
     'single_line_empty_body' => false,
+    'yoda_style' => [
+        'always_move_variable' => true,
+        'equal' => true,
+        'identical' => true,
+        'less_and_greater' => false,
+    ],
 ];
 
 $options = [
