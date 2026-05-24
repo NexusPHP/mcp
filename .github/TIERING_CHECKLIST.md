@@ -4,7 +4,7 @@ Based on [SEP-1730: SDKs Tiering System](https://github.com/modelcontextprotocol
 
 **Target Tier**: Tier 2 (only Tier 3 is claimable pre-1.0, per "How tiering works" below)
 
-**Last Updated**: 2026-05-23
+**Last Updated**: 2026-05-25
 
 ---
 
@@ -69,11 +69,11 @@ The tiering system covers **both official and community-driven SDKs**, so `nexus
   - Coverage: Core server features, core client features
   - Evidence/Notes: README.md plus docs/getting-started.md, docs/server.md, docs/client.md, docs/transports.md, docs/architecture.md
 
-- [ ] **Published Dependency Update Policy**
+- [x] **Published Dependency Update Policy**
   - Reference: Document in repository (e.g., DEPENDENCY_POLICY.md)
-  - Location: .github/dependabot.yml (automation only)
+  - Location: DEPENDENCY_POLICY.md (plus .github/dependabot.yml automation)
   - Covers: Security patches, minor updates, major updates
-  - Evidence/Notes: dependabot configured, but no published policy document yet
+  - Evidence/Notes: DEPENDENCY_POLICY.md published 2026-05-25 (PHP version matrix, security timeline, minor/major/EOL policy)
 
 ### Commitment & Roadmap
 
@@ -126,9 +126,9 @@ The tiering system covers **both official and community-driven SDKs**, so `nexus
 
 - [ ] **Stable Release & Versioning Clearly Documented**
   - Reference: Published versioning policy
-  - Location/File: ROADMAP.md (0.x pre-stable, 1.0 post-migration)
+  - Location/File: VERSIONING.md (versioning scheme, breaking-change policy), ROADMAP.md (release sequencing)
   - Documents: Semantic versioning, release schedule, breaking changes policy
-  - Evidence/Notes: versioning policy documented in ROADMAP.md, but no stable release yet
+  - Evidence/Notes: versioning policy now published in VERSIONING.md (SemVer scheme, pre-1.0 caveat, breaking-change definition, deprecation path, spec-revision tracking). Stable 1.0 release still pending
 
 - [x] **Published Roadmap**
   - Reference: SEP-1730 Tier 1 requirement
@@ -147,21 +147,21 @@ The tiering system covers **both official and community-driven SDKs**, so `nexus
     - [x] Prompt handling (docs/server.md)
     - [ ] OAuth/Authentication flows (not implemented yet)
     - [x] Transport configuration (docs/transports.md)
-    - [ ] Error handling
-    - [ ] Best practices
+    - [x] Error handling (docs/error-handling.md)
+    - [x] Best practices (docs/best-practices.md)
   - Documentation Location: docs/
-  - Evidence/Notes: core covered. Auth, error-handling, and best-practices guides pending
+  - Evidence/Notes: core, error-handling, best-practices, and a design-rationale page all published. Auth pending (not implemented)
 
-- [ ] **Published Dependency Update Policy**
+- [x] **Published Dependency Update Policy**
   - Reference: SEP-1730 requirement
-  - Location/File: _________________________
+  - Location/File: DEPENDENCY_POLICY.md
   - Covers:
-    - [ ] Security patch timeline
-    - [ ] Minor version update policy
-    - [ ] Major version update policy
-    - [ ] End-of-life policy for old versions
-    - [ ] PHP version support matrix
-  - Evidence/Notes: _________________________
+    - [x] Security patch timeline
+    - [x] Minor version update policy
+    - [x] Major version update policy
+    - [x] End-of-life policy for old versions
+    - [x] PHP version support matrix
+  - Evidence/Notes: DEPENDENCY_POLICY.md (published 2026-05-25)
 
 ### Quality Standards (internal gates, not SEP-1730 requirements)
 
@@ -288,6 +288,6 @@ The tiering system covers **both official and community-driven SDKs**, so `nexus
 | Tier | Items Complete | Total Items | Status |
 |------|---|---|---|
 | Tier 3 | 1 | 1 | Met (claimable now) |
-| Tier 2 | 2 | 8 | In progress |
-| Tier 1 | 10 | 26 | In progress |
-| **TOTAL** | **13** | **35** | **Tier 3 met, Tier 2 gated on v1.0.0** |
+| Tier 2 | 3 | 8 | In progress |
+| Tier 1 | 11 | 26 | In progress |
+| **TOTAL** | **15** | **35** | **Tier 3 met, Tier 2 gated on v1.0.0** |

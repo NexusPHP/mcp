@@ -90,7 +90,8 @@ sequenced into the migration below instead.
   (composer-dependency-analyser) guarding the eventual component split.
 - [x] More runnable examples (in-memory, completions plus templates, capability-aware client) on a shared
   `examples/bootstrap.php`.
-- [ ] Expanded documentation: more guides and a design-rationale page.
+- [x] Expanded documentation: error-handling and best-practices guides, a design-rationale page, and a
+  dependency-update policy (closing the SDK-tiering documentation gaps).
 
 ## MCP 2026-07-28 migration
 

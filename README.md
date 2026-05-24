@@ -92,7 +92,10 @@ See [Getting started](docs/getting-started.md) for the client side and a full wa
 - [Client API](docs/client.md): `ClientBuilder` and `Client` reference (handshake, typed requests,
   streaming progress).
 - [Transports](docs/transports.md): the stdio transport and the in-memory paired transport.
+- [Error handling](docs/error-handling.md): the exception model and JSON-RPC error codes.
+- [Best practices](docs/best-practices.md): conventions the SDK is shaped to reward.
 - [Architecture](docs/architecture.md): layering, dispatch kernel, spec-compliance notes.
+- [Design rationale](docs/design-rationale.md): why the SDK is shaped this way.
 - [Examples](examples/): runnable demo server and client.
 
 ## Development

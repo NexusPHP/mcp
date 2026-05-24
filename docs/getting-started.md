@@ -116,5 +116,8 @@ target STDERR. See [examples/stdio-server.php](../examples/stdio-server.php) for
   request methods, and streaming progress from `callTool`.
 - **[Transports](transports.md)**: what `StdioServerTransport` does and doesn't guarantee. What's coming
   for streamable HTTP.
+- **[Error handling](error-handling.md)**: the exception model, JSON-RPC error codes, and which calls throw what.
+- **[Best practices](best-practices.md)**: conventions for servers and clients.
 - **[Architecture](architecture.md)**: namespacing, layering rules, dispatch kernel, spec-compliance notes.
+- **[Design rationale](design-rationale.md)**: the choices behind the SDK.
 - **[examples/](../examples/)**: runnable demo servers.
