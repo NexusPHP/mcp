@@ -42,7 +42,7 @@ final readonly class CancelledNotificationParams extends NotificationParams
         $requestId = null;
 
         if (\array_key_exists('requestId', $data)) {
-            Assert::that($data['requestId'])->isArrayKey('"params.requestId" must be int or string, {type} given.');
+            Assert::that($data['requestId'])->isArrayKey('"params.requestId" must be an int or string, {type} given.');
             $requestId = new RequestId($data['requestId']);
         }
 

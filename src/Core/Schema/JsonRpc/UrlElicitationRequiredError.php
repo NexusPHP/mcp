@@ -71,7 +71,7 @@ final readonly class UrlElicitationRequiredError implements Arrayable
     public static function fromArray(array $data): static
     {
         $id = $data['id'] ?? null;
-        Assert::that($id)->nullOr()->isArrayKey('"id" must be int, string, or null; {type} given.');
+        Assert::that($id)->nullOr()->isArrayKey('"id" must be an int, string, or null; {type} given.');
 
         Assert::that($data)->hasOffset('error', 'missing the required "error" key.');
         Assert::that($data['error'])

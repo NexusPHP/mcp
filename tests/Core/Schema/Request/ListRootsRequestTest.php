@@ -93,7 +93,7 @@ final class ListRootsRequestTest extends TestCase
 
         yield 'id not int or string' => [
             ['jsonrpc' => '2.0', 'id' => [], 'method' => 'roots/list'],
-            '"id" must be int or string, array given.',
+            '"id" must be an int or string, array given.',
         ];
 
         yield 'params not an object' => [

@@ -209,7 +209,7 @@ final class CancelledNotificationParamsTest extends TestCase
     {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage(\sprintf(
-            '"params.requestId" must be int or string, %s given.',
+            '"params.requestId" must be an int or string, %s given.',
             $expectedTypeFragment,
         ));
 

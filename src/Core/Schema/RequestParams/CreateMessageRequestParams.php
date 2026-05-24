@@ -84,7 +84,7 @@ final readonly class CreateMessageRequestParams extends RequestParams
         Assert::that($systemPrompt)->nullOr()->isNonEmptyString('"params.systemPrompt" must be a non-empty string or null.');
 
         if (null !== $stopSequences) {
-            Assert::that($stopSequences)->values()->isString('each "params.stopSequences" entries must be strings, {type} given.');
+            Assert::that($stopSequences)->values()->isString('each "params.stopSequences" entry must be a string, {type} given.');
         }
 
         if (null !== $tools) {

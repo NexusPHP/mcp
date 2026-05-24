@@ -42,7 +42,7 @@ final readonly class TestPingOverride extends JsonRpcRequest
 
         if (! \is_int($id) && ! \is_string($id)) {
             throw new \InvalidArgumentException(\sprintf(
-                'TestPingOverride "id" must be int or string, %s given.',
+                'TestPingOverride "id" must be an int or string, %s given.',
                 get_debug_type($id),
             ));
         }

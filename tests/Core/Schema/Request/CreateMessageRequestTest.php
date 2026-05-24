@@ -93,7 +93,7 @@ final class CreateMessageRequestTest extends TestCase
     public function testFromArrayRejectsNonScalarId(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"id" must be int or string, array given.');
+        $this->expectExceptionMessage('"id" must be an int or string, array given.');
 
         CreateMessageRequest::fromArray(['id' => [], 'method' => 'sampling/createMessage', 'params' => ['maxTokens' => 1, 'messages' => []]]);
     }

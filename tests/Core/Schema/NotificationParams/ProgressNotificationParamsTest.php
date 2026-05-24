@@ -216,7 +216,7 @@ final class ProgressNotificationParamsTest extends TestCase
 
         yield 'progressToken not int or string' => [
             ['progressToken' => [], 'progress' => 0.5],
-            '"params.progressToken" must be int or string, array given.',
+            '"params.progressToken" must be an int or string, array given.',
         ];
 
         yield 'missing progress' => [

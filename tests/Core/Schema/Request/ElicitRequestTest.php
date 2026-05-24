@@ -192,7 +192,7 @@ final class ElicitRequestTest extends TestCase
 
         yield 'id not int or string' => [
             ['id' => 1.5, 'params' => []],
-            '"id" must be int or string, float given.',
+            '"id" must be an int or string, float given.',
         ];
 
         yield 'missing params' => [

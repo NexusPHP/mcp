@@ -107,7 +107,7 @@ final class PingRequestTest extends TestCase
     public function testFromArrayRejectsBadIdType(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('"id" must be int or string, array given.');
+        $this->expectExceptionMessage('"id" must be an int or string, array given.');
 
         PingRequest::fromArray(['jsonrpc' => '2.0', 'id' => [], 'method' => 'ping']);
     }

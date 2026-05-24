@@ -133,7 +133,7 @@ final class ElicitResultTest extends TestCase
     public function testConstructorRejectsListWithNonStringEntries(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('each "result" "x" list entries must be strings, int given.');
+        $this->expectExceptionMessage('each "result" "x" list entry must be a string, int given.');
 
         // @phpstan-ignore argument.type
         new ElicitResult(ElicitAction::Accept, ['x' => [1, 2]]);
@@ -188,7 +188,7 @@ final class ElicitResultTest extends TestCase
 
         yield 'content entry list with non-string' => [
             ['action' => 'accept', 'content' => ['x' => [1]]],
-            'each "result" "content entry x" list entries must be strings, int given.',
+            'each "result" "content entry x" list entry must be a string, int given.',
         ];
     }
 }

@@ -270,7 +270,7 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
         if (\array_key_exists('required', $schema)) {
             Assert::that($schema['required'])
                 ->isList(\sprintf('%s "required" must be a list, got non-list array.', $context))
-                ->values()->isString(\sprintf('%s "required" entries must be strings, {type} given.', $context))
+                ->values()->isString(\sprintf('%s "required" entry must be a string, {type} given.', $context))
             ;
             $out['required'] = $schema['required'];
         }

@@ -45,7 +45,7 @@ final readonly class GetTaskRequest extends JsonRpcRequest implements ClientRequ
     {
         Assert::that($data)->hasOffset('id', 'missing the required "id" key.');
         $id = $data['id'];
-        Assert::that($id)->isArrayKey('"id" must be int or string, {type} given.');
+        Assert::that($id)->isArrayKey('"id" must be an int or string, {type} given.');
 
         Assert::that($data)->hasOffset('params', 'missing the required "params" key.');
         Assert::that($data['params'])

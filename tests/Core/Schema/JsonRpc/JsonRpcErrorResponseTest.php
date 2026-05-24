@@ -212,7 +212,7 @@ final class JsonRpcErrorResponseTest extends TestCase
     public function testFromArrayRejectsBadIdType(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('JSON-RPC error response id must be int, string, or null; array given.');
+        $this->expectExceptionMessage('JSON-RPC error response id must be an int, string, or null; array given.');
 
         JsonRpcErrorResponse::fromArray([
             'jsonrpc' => '2.0',

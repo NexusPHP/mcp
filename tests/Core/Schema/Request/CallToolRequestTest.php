@@ -90,7 +90,7 @@ final class CallToolRequestTest extends TestCase
 
         yield 'id not int or string' => [
             ['jsonrpc' => '2.0', 'id' => [], 'method' => 'tools/call'],
-            '"id" must be int or string, array given.',
+            '"id" must be an int or string, array given.',
         ];
 
         yield 'missing params' => [

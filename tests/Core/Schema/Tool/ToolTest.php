@@ -263,7 +263,7 @@ final class ToolTest extends TestCase
 
         yield 'required entry not a string' => [
             ['type' => 'object', 'required' => [1]],
-            'tool "inputSchema" "required" entries must be strings, int given.',
+            'tool "inputSchema" "required" entry must be a string, int given.',
         ];
     }
 

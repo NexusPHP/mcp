@@ -237,14 +237,15 @@ parent key:
   directly:
 
   ```text
-  '"id" must be int or string, {type} given.'
+  '"id" must be an int or string, {type} given.'
   'missing the required "params" key.'
   ```
 
 ### Rules
 
 1. JSON field names are double-quoted (`"name"`, `"capabilities.tasks.cancel"`).
-2. `Assert::that(...)->values()` and `->keys()` chains prepend `each` to the message.
+2. `Assert::that(...)->values()` and `->keys()` chains prepend `each` to the message, kept singular to
+   agree with it (`each "params.stopSequences" entry must be a string`, not `entries must be strings`).
 3. Type mismatches use the PHP idiom `<type> given.` (`int given.`, `array given.`).
 4. Required-key checks read `'missing the required "X" key.'` with no parent scope.
 5. Value mismatches against a constant use Assert's lazy `{value}` and `{other}` template tokens

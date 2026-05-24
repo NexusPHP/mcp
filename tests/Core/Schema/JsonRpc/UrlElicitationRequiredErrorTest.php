@@ -185,7 +185,7 @@ final class UrlElicitationRequiredErrorTest extends TestCase
     {
         yield 'id not an array key' => [
             ['id' => 1.5, 'error' => []],
-            '"id" must be int, string, or null; float given.',
+            '"id" must be an int, string, or null; float given.',
         ];
 
         yield 'missing error' => [

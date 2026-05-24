@@ -122,7 +122,7 @@ final readonly class ElicitResult extends Result implements ClientResult
 
         Assert::that($value)
             ->isList(\sprintf('"result" "%s" must be a string, int, bool, or list of strings, non-list array given.', $context))
-            ->values()->isString(\sprintf('each "result" "%s" list entries must be strings, {type} given.', $context))
+            ->values()->isString(\sprintf('each "result" "%s" list entry must be a string, {type} given.', $context))
         ;
     }
 }

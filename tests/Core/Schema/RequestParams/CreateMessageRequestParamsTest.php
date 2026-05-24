@@ -95,7 +95,7 @@ final class CreateMessageRequestParamsTest extends TestCase
     public function testConstructorRejectsNonStringStopSequencesEntry(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('each "params.stopSequences" entries must be strings, int given.');
+        $this->expectExceptionMessage('each "params.stopSequences" entry must be a string, int given.');
 
         new CreateMessageRequestParams(maxTokens: 1, messages: [], stopSequences: [42]); // @phpstan-ignore argument.type
     }
