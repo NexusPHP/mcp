@@ -29,60 +29,60 @@ final class MatcherTest extends TestCase
 {
     public function testMatchesSingleVariableAtEnd(): void
     {
-        self::assertSame(['path' => 'etc'], Matcher::match('file:///{path}', 'file:///etc'));
+        self::assertSame(['path' => 'etc'], self::match('file:///{path}', 'file:///etc'));
     }
 
     public function testMatchesMultipleDistinctVariables(): void
     {
         self::assertSame(
             ['city' => 'paris', 'day' => 'today'],
-            Matcher::match('weather://{city}/{day}', 'weather://paris/today'),
+            self::match('weather://{city}/{day}', 'weather://paris/today'),
         );
     }
 
     public function testCapturedValueIsPercentDecoded(): void
     {
-        self::assertSame(['path' => 'hello world'], Matcher::match('file:///{path}', 'file:///hello%20world'));
+        self::assertSame(['path' => 'hello world'], self::match('file:///{path}', 'file:///hello%20world'));
     }
 
     public function testRepeatedVariableNameEnforcesIdenticalCaptures(): void
     {
-        self::assertSame(['x' => 'foo'], Matcher::match('mirror://{x}/{x}', 'mirror://foo/foo'));
-        self::assertNull(Matcher::match('mirror://{x}/{x}', 'mirror://foo/bar'));
+        self::assertSame(['x' => 'foo'], self::match('mirror://{x}/{x}', 'mirror://foo/foo'));
+        self::assertNull(self::match('mirror://{x}/{x}', 'mirror://foo/bar'));
     }
 
     public function testTemplateWithoutVariablesMatchesExactly(): void
     {
-        self::assertSame([], Matcher::match('file:///etc', 'file:///etc'));
-        self::assertNull(Matcher::match('file:///etc', 'file:///bin'));
+        self::assertSame([], self::match('file:///etc', 'file:///etc'));
+        self::assertNull(self::match('file:///etc', 'file:///bin'));
     }
 
     public function testCapturedSegmentDoesNotCrossSlashes(): void
     {
-        self::assertNull(Matcher::match('file:///{path}', 'file:///etc/cfg'));
+        self::assertNull(self::match('file:///{path}', 'file:///etc/cfg'));
     }
 
     public function testCapturedSegmentDoesNotCrossQueryOrFragment(): void
     {
-        self::assertNull(Matcher::match('file:///{path}', 'file:///etc?q=1'));
-        self::assertNull(Matcher::match('file:///{path}', 'file:///etc#frag'));
+        self::assertNull(self::match('file:///{path}', 'file:///etc?q=1'));
+        self::assertNull(self::match('file:///{path}', 'file:///etc#frag'));
     }
 
     public function testDifferentLiteralPrefixDoesNotMatch(): void
     {
-        self::assertNull(Matcher::match('file:///{path}', 'http://example.com/etc'));
+        self::assertNull(self::match('file:///{path}', 'http://example.com/etc'));
     }
 
     public function testLevel2PlusExpressionsAreNotSupported(): void
     {
-        self::assertNull(Matcher::match('file:///{+path}', 'file:///etc/cfg'));
-        self::assertNull(Matcher::match('weather://{?city}', 'weather://?city=paris'));
-        self::assertNull(Matcher::match('file:///{/segments*}', 'file:///a/b/c'));
+        self::assertNull(self::match('file:///{+path}', 'file:///etc/cfg'));
+        self::assertNull(self::match('weather://{?city}', 'weather://?city=paris'));
+        self::assertNull(self::match('file:///{/segments*}', 'file:///a/b/c'));
     }
 
     public function testCommaSeparatedExpressionsAreNotSupported(): void
     {
-        self::assertNull(Matcher::match('weather://{city,day}', 'weather://paris,today'));
+        self::assertNull(self::match('weather://{city,day}', 'weather://paris,today'));
     }
 
     /**
@@ -92,7 +92,7 @@ final class MatcherTest extends TestCase
     #[DataProvider('provideRegexSpecialCharactersInLiteralAreEscapedCases')]
     public function testRegexSpecialCharactersInLiteralAreEscaped(string $template, string $uri, ?array $expected): void
     {
-        self::assertSame($expected, Matcher::match($template, $uri));
+        self::assertSame($expected, self::match($template, $uri));
     }
 
     /**
@@ -109,5 +109,15 @@ final class MatcherTest extends TestCase
         yield 'trailing literal with regex-special char' => ['weather://{city}.json', 'weather://paris.json', ['city' => 'paris']];
 
         yield 'trailing dot does not match arbitrary char' => ['weather://{city}.json', 'weather://parisXjson', null];
+    }
+
+    /**
+     * @param non-empty-string $template
+     *
+     * @return null|array<string, string>
+     */
+    private static function match(string $template, string $uri): ?array
+    {
+        return Matcher::matchCompiled(Matcher::compile($template), $uri);
     }
 }

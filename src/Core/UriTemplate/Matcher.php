@@ -83,18 +83,4 @@ final class Matcher
 
         return $bindings;
     }
-
-    /**
-     * One-shot convenience: compile the template and match in a single call.
-     * Prefer `compile()` + `matchCompiled()` when the same template is matched
-     * repeatedly.
-     *
-     * @param non-empty-string $template A template already passed through `Validator`
-     *
-     * @return null|array<string, string>
-     */
-    public static function match(string $template, string $uri): ?array
-    {
-        return self::matchCompiled(self::compile($template), $uri);
-    }
 }
