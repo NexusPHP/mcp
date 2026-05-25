@@ -35,7 +35,7 @@ final readonly class GetTaskRequest extends JsonRpcRequest implements ClientRequ
     }
 
     #[\Override]
-    public static function method(): string
+    public static function getMethod(): string
     {
         return 'tasks/get';
     }

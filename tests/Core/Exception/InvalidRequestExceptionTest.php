@@ -31,6 +31,6 @@ final class InvalidRequestExceptionTest extends TestCase
 {
     public function testReportsInvalidRequestErrorCode(): void
     {
-        self::assertSame(ProtocolErrorCode::InvalidRequest, InvalidRequestException::errorCode());
+        self::assertSame(ProtocolErrorCode::InvalidRequest, InvalidRequestException::getErrorCode());
     }
 }

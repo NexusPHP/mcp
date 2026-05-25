@@ -49,7 +49,7 @@ abstract readonly class BaseMetadata
      *
      * @return non-empty-string
      */
-    public function displayName(): string
+    public function getDisplayName(): string
     {
         return $this->title ?? $this->name;
     }

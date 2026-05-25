@@ -36,7 +36,7 @@ final readonly class UnsubscribeRequest extends JsonRpcRequest implements Client
     }
 
     #[\Override]
-    public static function method(): string
+    public static function getMethod(): string
     {
         return 'resources/unsubscribe';
     }

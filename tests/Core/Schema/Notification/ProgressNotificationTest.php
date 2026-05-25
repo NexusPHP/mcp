@@ -37,7 +37,7 @@ final class ProgressNotificationTest extends TestCase
 {
     public function testMethodIsNotificationsProgress(): void
     {
-        self::assertSame('notifications/progress', ProgressNotification::method());
+        self::assertSame('notifications/progress', ProgressNotification::getMethod());
     }
 
     public function testToArrayBuildsEnvelope(): void

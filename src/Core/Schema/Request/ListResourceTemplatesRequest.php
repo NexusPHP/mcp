@@ -35,7 +35,7 @@ final readonly class ListResourceTemplatesRequest extends PaginatedRequest imple
     }
 
     #[\Override]
-    public static function method(): string
+    public static function getMethod(): string
     {
         return 'resources/templates/list';
     }

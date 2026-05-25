@@ -50,7 +50,7 @@ use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
 use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
 use Nexus\Mcp\Core\Schema\Tool\Tool;
-use Nexus\Mcp\Server\Server;
+use Nexus\Mcp\Server\ServerBuilder;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Server\Transport\StdioServerTransport;
 
@@ -58,7 +58,7 @@ use function Amp\delay;
 
 $logger = new ExampleLogger();
 
-$server = Server::builder()
+$server = new ServerBuilder()
     ->setLogger($logger)
     ->setServerInfo(
         name: 'nexus-stdio-example',
@@ -169,7 +169,7 @@ $server = Server::builder()
         },
     )
     ->replaceRequestHandler(
-        SetLevelRequest::method(),
+        SetLevelRequest::getMethod(),
         new class ($logger) implements RequestHandlerInterface {
             public function __construct(private object $logger)
             {

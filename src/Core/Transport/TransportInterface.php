@@ -61,7 +61,7 @@ interface TransportInterface
      * Returns the transport-issued session identifier, or null when the
      * transport carries no session (e.g. stdio).
      */
-    public function sessionId(): ?string;
+    public function getSessionId(): ?string;
 
     /**
      * Register an inbound-envelope listener.

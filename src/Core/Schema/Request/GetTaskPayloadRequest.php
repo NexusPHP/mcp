@@ -35,7 +35,7 @@ final readonly class GetTaskPayloadRequest extends JsonRpcRequest implements Cli
     }
 
     #[\Override]
-    public static function method(): string
+    public static function getMethod(): string
     {
         return 'tasks/result';
     }

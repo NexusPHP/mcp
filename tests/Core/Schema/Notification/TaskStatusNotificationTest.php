@@ -35,7 +35,7 @@ final class TaskStatusNotificationTest extends TestCase
 {
     public function testMethodIsNotificationsTasksStatus(): void
     {
-        self::assertSame('notifications/tasks/status', TaskStatusNotification::method());
+        self::assertSame('notifications/tasks/status', TaskStatusNotification::getMethod());
     }
 
     public function testToArray(): void

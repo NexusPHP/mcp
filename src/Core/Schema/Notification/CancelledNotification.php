@@ -41,7 +41,7 @@ final readonly class CancelledNotification extends JsonRpcNotification implement
     }
 
     #[\Override]
-    public static function method(): string
+    public static function getMethod(): string
     {
         return 'notifications/cancelled';
     }
@@ -65,7 +65,7 @@ final readonly class CancelledNotification extends JsonRpcNotification implement
 
         return [
             'jsonrpc' => self::JSONRPC_VERSION,
-            'method' => static::method(),
+            'method' => static::getMethod(),
             'params' => [] === $params ? new \stdClass() : $params,
         ];
     }

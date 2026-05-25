@@ -34,22 +34,22 @@ final class InMemoryTransportTest extends TestCase
 {
     public function testPairProducesTwoDistinctTransports(): void
     {
-        [$a, $b] = InMemoryTransport::pair();
+        [$a, $b] = InMemoryTransport::createPair();
 
         self::assertNotSame($a, $b);
     }
 
     public function testSessionIdIsAlwaysNull(): void
     {
-        [$a, $b] = InMemoryTransport::pair();
+        [$a, $b] = InMemoryTransport::createPair();
 
-        self::assertNull($a->sessionId());
-        self::assertNull($b->sessionId());
+        self::assertNull($a->getSessionId());
+        self::assertNull($b->getSessionId());
     }
 
     public function testSendAfterBothStartedDeliversImmediately(): void
     {
-        [$server, $client] = InMemoryTransport::pair();
+        [$server, $client] = InMemoryTransport::createPair();
         $received = [];
         $server->onMessage(static function (array $envelope) use (&$received): void {
             $received[] = $envelope;
@@ -65,7 +65,7 @@ final class InMemoryTransportTest extends TestCase
 
     public function testInboundEnvelopesArrivingBeforeStartDrainOnStart(): void
     {
-        [$server, $client] = InMemoryTransport::pair();
+        [$server, $client] = InMemoryTransport::createPair();
         $received = new \ArrayObject();
         $server->onMessage(static function (array $envelope) use ($received): void {
             $received->append($envelope);
@@ -89,7 +89,7 @@ final class InMemoryTransportTest extends TestCase
 
     public function testSendBeforeStartThrowsTransportNotStarted(): void
     {
-        [$a] = InMemoryTransport::pair();
+        [$a] = InMemoryTransport::createPair();
 
         $this->expectException(TransportNotStartedException::class);
 
@@ -98,7 +98,7 @@ final class InMemoryTransportTest extends TestCase
 
     public function testStartTwiceThrowsTransportAlreadyStarted(): void
     {
-        [$a] = InMemoryTransport::pair();
+        [$a] = InMemoryTransport::createPair();
         $a->start();
 
         $this->expectException(TransportAlreadyStartedException::class);
@@ -108,7 +108,7 @@ final class InMemoryTransportTest extends TestCase
 
     public function testStartAfterCloseThrowsTransportAlreadyClosed(): void
     {
-        [$a] = InMemoryTransport::pair();
+        [$a] = InMemoryTransport::createPair();
         $a->close();
 
         $this->expectException(TransportAlreadyClosedException::class);
@@ -118,7 +118,7 @@ final class InMemoryTransportTest extends TestCase
 
     public function testSendAfterCloseThrowsTransportAlreadyClosed(): void
     {
-        [$a] = InMemoryTransport::pair();
+        [$a] = InMemoryTransport::createPair();
         $a->start();
         $a->close();
 
@@ -129,7 +129,7 @@ final class InMemoryTransportTest extends TestCase
 
     public function testCloseCascadesToPeerAndFiresCloseListenersOnBothSides(): void
     {
-        [$a, $b] = InMemoryTransport::pair();
+        [$a, $b] = InMemoryTransport::createPair();
         $aClosed = false;
         $bClosed = false;
         $a->onClose(static function () use (&$aClosed): void {
@@ -149,7 +149,7 @@ final class InMemoryTransportTest extends TestCase
 
     public function testCloseIsIdempotent(): void
     {
-        [$a] = InMemoryTransport::pair();
+        [$a] = InMemoryTransport::createPair();
         $closeCount = 0;
         $a->onClose(static function () use (&$closeCount): void {
             ++$closeCount;
@@ -165,7 +165,7 @@ final class InMemoryTransportTest extends TestCase
 
     public function testCloseCascadeTransitionsPeerToClosedSoPeerSendFails(): void
     {
-        [$server, $client] = InMemoryTransport::pair();
+        [$server, $client] = InMemoryTransport::createPair();
         $server->start();
         $client->start();
 
@@ -178,7 +178,7 @@ final class InMemoryTransportTest extends TestCase
 
     public function testDisposingMessageSubscriptionStopsDelivery(): void
     {
-        [$server, $client] = InMemoryTransport::pair();
+        [$server, $client] = InMemoryTransport::createPair();
         $received = [];
         $subscription = $server->onMessage(static function (array $envelope) use (&$received): void {
             $received[] = $envelope;
@@ -197,7 +197,7 @@ final class InMemoryTransportTest extends TestCase
 
     public function testDisposingCloseSubscriptionStopsCloseNotification(): void
     {
-        [$a] = InMemoryTransport::pair();
+        [$a] = InMemoryTransport::createPair();
         $closed = false;
         $subscription = $a->onClose(static function () use (&$closed): void {
             $closed = true;
@@ -212,7 +212,7 @@ final class InMemoryTransportTest extends TestCase
 
     public function testOnErrorReturnsSubscriptionEvenThoughNoErrorsAreEverFired(): void
     {
-        [$a] = InMemoryTransport::pair();
+        [$a] = InMemoryTransport::createPair();
 
         $subscription = $a->onError(static fn(\Throwable $e) => null);
         $subscription->dispose();
@@ -222,7 +222,7 @@ final class InMemoryTransportTest extends TestCase
 
     public function testDrainListenerFiresBeforeCloseListenerOnClose(): void
     {
-        [$a] = InMemoryTransport::pair();
+        [$a] = InMemoryTransport::createPair();
         $events = [];
         $a->onDrain(static function () use (&$events): void {
             $events[] = 'drain';
@@ -239,7 +239,7 @@ final class InMemoryTransportTest extends TestCase
 
     public function testDrainListenerThrowAbortsChainButCloseStillFires(): void
     {
-        [$a] = InMemoryTransport::pair();
+        [$a] = InMemoryTransport::createPair();
         $secondDrainFired = false;
         $closed = false;
         $a->onDrain(static function (): void {
@@ -264,7 +264,7 @@ final class InMemoryTransportTest extends TestCase
 
     public function testDisposingDrainSubscriptionStopsDrainEmission(): void
     {
-        [$a] = InMemoryTransport::pair();
+        [$a] = InMemoryTransport::createPair();
         $fired = false;
         $subscription = $a->onDrain(static function () use (&$fired): void {
             $fired = true;
@@ -279,7 +279,7 @@ final class InMemoryTransportTest extends TestCase
 
     public function testMultipleListenersFireInRegistrationOrder(): void
     {
-        [$server, $client] = InMemoryTransport::pair();
+        [$server, $client] = InMemoryTransport::createPair();
         $order = [];
         $server->onMessage(static function () use (&$order): void {
             $order[] = 'first';

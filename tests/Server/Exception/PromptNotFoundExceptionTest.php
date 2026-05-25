@@ -51,6 +51,6 @@ final class PromptNotFoundExceptionTest extends TestCase
 
     public function testReportsInvalidParamsErrorCode(): void
     {
-        self::assertSame(ProtocolErrorCode::InvalidParams, PromptNotFoundException::errorCode());
+        self::assertSame(ProtocolErrorCode::InvalidParams, PromptNotFoundException::getErrorCode());
     }
 }

@@ -36,7 +36,7 @@ final class CallToolRequestTest extends TestCase
 {
     public function testMethodIsToolsCall(): void
     {
-        self::assertSame('tools/call', CallToolRequest::method());
+        self::assertSame('tools/call', CallToolRequest::getMethod());
     }
 
     public function testToArray(): void

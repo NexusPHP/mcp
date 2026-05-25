@@ -39,7 +39,7 @@ final class ListPromptsRequestTest extends TestCase
 {
     public function testMethodIsPromptsList(): void
     {
-        self::assertSame('prompts/list', ListPromptsRequest::method());
+        self::assertSame('prompts/list', ListPromptsRequest::getMethod());
     }
 
     public function testToArrayOmitsParamsWhenEmpty(): void

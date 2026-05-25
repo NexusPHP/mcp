@@ -54,7 +54,7 @@ final class StdioClientTransportTest extends TestCase
     {
         $transport = self::buildTransport();
 
-        self::assertNull($transport->sessionId());
+        self::assertNull($transport->getSessionId());
     }
 
     public function testSendBeforeStartThrows(): void
@@ -205,7 +205,7 @@ final class StdioClientTransportTest extends TestCase
     #[DataProvider('provideDefaultEnvironmentKeepsEachInheritedNameCases')]
     public function testDefaultEnvironmentKeepsEachInheritedName(string $name): void
     {
-        $environment = StdioClientTransport::defaultEnvironment([$name => 'value', 'NOT_ALLOWED' => 'secret']);
+        $environment = StdioClientTransport::buildDefaultEnvironment([$name => 'value', 'NOT_ALLOWED' => 'secret']);
 
         self::assertSame([$name => 'value'], $environment);
     }
@@ -241,7 +241,7 @@ final class StdioClientTransportTest extends TestCase
 
     public function testDefaultEnvironmentSkipsExportedShellFunctionValues(): void
     {
-        $environment = StdioClientTransport::defaultEnvironment([
+        $environment = StdioClientTransport::buildDefaultEnvironment([
             'PATH' => '() { :; }; echo pwned',
             'HOME' => '/home/me',
         ]);

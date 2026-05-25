@@ -36,7 +36,7 @@ final readonly class ElicitRequest extends JsonRpcRequest implements ServerReque
     }
 
     #[\Override]
-    public static function method(): string
+    public static function getMethod(): string
     {
         return 'elicitation/create';
     }

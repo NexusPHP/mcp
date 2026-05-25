@@ -35,7 +35,7 @@ final readonly class LoggingMessageNotification extends JsonRpcNotification impl
     }
 
     #[\Override]
-    public static function method(): string
+    public static function getMethod(): string
     {
         return 'notifications/message';
     }

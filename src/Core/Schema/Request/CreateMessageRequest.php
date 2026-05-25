@@ -37,7 +37,7 @@ final readonly class CreateMessageRequest extends JsonRpcRequest implements Serv
     }
 
     #[\Override]
-    public static function method(): string
+    public static function getMethod(): string
     {
         return 'sampling/createMessage';
     }

@@ -36,7 +36,7 @@ final class SubscribeRequestTest extends TestCase
 {
     public function testMethodIsResourcesSubscribe(): void
     {
-        self::assertSame('resources/subscribe', SubscribeRequest::method());
+        self::assertSame('resources/subscribe', SubscribeRequest::getMethod());
     }
 
     public function testToArrayBuildsEnvelope(): void

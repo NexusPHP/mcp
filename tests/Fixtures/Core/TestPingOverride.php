@@ -30,7 +30,7 @@ final readonly class TestPingOverride extends JsonRpcRequest
     }
 
     #[\Override]
-    public static function method(): string
+    public static function getMethod(): string
     {
         return 'ping';
     }

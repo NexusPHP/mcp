@@ -26,7 +26,7 @@ declare(strict_types=1);
 
 require __DIR__.'/bootstrap.php';
 
-use Nexus\Mcp\Client\Client;
+use Nexus\Mcp\Client\ClientBuilder;
 use Nexus\Mcp\Client\Handler\Notification\LoggingMessageNotificationHandler;
 use Nexus\Mcp\Client\Transport\StdioClientTransport;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
@@ -35,11 +35,11 @@ use Nexus\Mcp\Core\Schema\Resource\TextResourceContents;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Psr\Log\NullLogger;
 
-$client = Client::builder()
+$client = new ClientBuilder()
     ->setLogger(new NullLogger())
     ->setClientInfo(name: 'nexus-stdio-example-client', version: '0.1.0')
     ->addNotificationHandler(
-        LoggingMessageNotification::method(),
+        LoggingMessageNotification::getMethod(),
         new LoggingMessageNotificationHandler(static function (LoggingMessageNotification $notification): void {
             $payload = $notification->params;
             $data = $payload->data;

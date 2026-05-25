@@ -33,7 +33,7 @@ final class OutboundRequestsNotSupportedException extends AbstractJsonRpcProtoco
     }
 
     #[\Override]
-    public static function errorCode(): ProtocolErrorCode
+    public static function getErrorCode(): ProtocolErrorCode
     {
         return ProtocolErrorCode::InternalError;
     }

@@ -37,12 +37,12 @@ final class HandlerRegistryTest extends TestCase
     {
         $handler = new PingRequestHandler();
         $registry = new HandlerRegistry(
-            [PingRequest::method() => $handler],
+            [PingRequest::getMethod() => $handler],
             RequestHandlerInterface::class,
             'Request handler',
         );
 
-        self::assertSame($handler, $registry->get(PingRequest::method()));
+        self::assertSame($handler, $registry->get(PingRequest::getMethod()));
     }
 
     public function testGetReturnsNullForUnregisteredMethod(): void
@@ -71,7 +71,7 @@ final class HandlerRegistryTest extends TestCase
         $this->expectExceptionMessageMatches('/^Request handler registry value must implement .+RequestHandlerInterface\'\\.$/');
 
         new HandlerRegistry(
-            [PingRequest::method() => new \stdClass()],
+            [PingRequest::getMethod() => new \stdClass()],
             RequestHandlerInterface::class,
             'Request handler',
         );
@@ -96,7 +96,7 @@ final class HandlerRegistryTest extends TestCase
         $this->expectExceptionMessageMatches('/^Notification handler registry value must implement .+NotificationHandlerInterface\'\\.$/');
 
         new HandlerRegistry(
-            [InitializedNotification::method() => new \stdClass()],
+            [InitializedNotification::getMethod() => new \stdClass()],
             NotificationHandlerInterface::class,
             'Notification handler',
         );

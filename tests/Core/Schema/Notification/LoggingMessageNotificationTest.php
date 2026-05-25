@@ -37,7 +37,7 @@ final class LoggingMessageNotificationTest extends TestCase
 {
     public function testMethodIsNotificationsMessage(): void
     {
-        self::assertSame('notifications/message', LoggingMessageNotification::method());
+        self::assertSame('notifications/message', LoggingMessageNotification::getMethod());
     }
 
     public function testToArrayBuildsEnvelope(): void

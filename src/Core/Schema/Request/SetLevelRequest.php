@@ -35,7 +35,7 @@ final readonly class SetLevelRequest extends JsonRpcRequest implements ClientReq
     }
 
     #[\Override]
-    public static function method(): string
+    public static function getMethod(): string
     {
         return 'logging/setLevel';
     }

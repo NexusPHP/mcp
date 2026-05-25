@@ -33,7 +33,7 @@ use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 final readonly class ListRootsRequest extends JsonRpcRequest implements ServerRequest
 {
     #[\Override]
-    public static function method(): string
+    public static function getMethod(): string
     {
         return 'roots/list';
     }

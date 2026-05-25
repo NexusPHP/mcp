@@ -61,7 +61,7 @@ final readonly class JsonRpcErrorResponse implements Arrayable, JsonRpcResponse
 
         return new self(
             null === $id ? null : new RequestId($id),
-            self::errorFromArray($data['error']),
+            self::parseError($data['error']),
         );
     }
 
@@ -95,7 +95,7 @@ final readonly class JsonRpcErrorResponse implements Arrayable, JsonRpcResponse
     /**
      * @param array<string, mixed> $data
      */
-    private static function errorFromArray(array $data): Error
+    private static function parseError(array $data): Error
     {
         Assert::that($data)->hasOffset('code', 'error response missing the required "code" key.');
         Assert::that($data['code'])->isInt('error response "code" must be an integer, {type} given.');

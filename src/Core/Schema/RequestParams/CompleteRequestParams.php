@@ -160,7 +160,7 @@ final readonly class CompleteRequestParams extends RequestParams
         return match ($type) {
             PromptReference::TYPE => PromptReference::fromArray($data),
             ResourceTemplateReference::TYPE => ResourceTemplateReference::fromArray($data),
-            default => throw MessageDiscriminator::unknownType(
+            default => throw MessageDiscriminator::buildUnknownTypeError(
                 '"params.ref"',
                 [PromptReference::TYPE, ResourceTemplateReference::TYPE],
                 $type,

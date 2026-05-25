@@ -25,14 +25,14 @@ use Nexus\Mcp\Core\Schema\Notification\ToolListChangedNotification;
 
 use function PHPStan\Testing\assertType;
 
-assertType('\'notifications/cancelled\'', CancelledNotification::method());
-assertType('\'notifications/elicitation/complete\'', ElicitationCompleteNotification::method());
-assertType('\'notifications/initialized\'', InitializedNotification::method());
-assertType('\'notifications/message\'', LoggingMessageNotification::method());
-assertType('\'notifications/progress\'', ProgressNotification::method());
-assertType('\'notifications/prompts/list_changed\'', PromptListChangedNotification::method());
-assertType('\'notifications/resources/list_changed\'', ResourceListChangedNotification::method());
-assertType('\'notifications/resources/updated\'', ResourceUpdatedNotification::method());
-assertType('\'notifications/roots/list_changed\'', RootsListChangedNotification::method());
-assertType('\'notifications/tasks/status\'', TaskStatusNotification::method());
-assertType('\'notifications/tools/list_changed\'', ToolListChangedNotification::method());
+assertType('\'notifications/cancelled\'', CancelledNotification::getMethod());
+assertType('\'notifications/elicitation/complete\'', ElicitationCompleteNotification::getMethod());
+assertType('\'notifications/initialized\'', InitializedNotification::getMethod());
+assertType('\'notifications/message\'', LoggingMessageNotification::getMethod());
+assertType('\'notifications/progress\'', ProgressNotification::getMethod());
+assertType('\'notifications/prompts/list_changed\'', PromptListChangedNotification::getMethod());
+assertType('\'notifications/resources/list_changed\'', ResourceListChangedNotification::getMethod());
+assertType('\'notifications/resources/updated\'', ResourceUpdatedNotification::getMethod());
+assertType('\'notifications/roots/list_changed\'', RootsListChangedNotification::getMethod());
+assertType('\'notifications/tasks/status\'', TaskStatusNotification::getMethod());
+assertType('\'notifications/tools/list_changed\'', ToolListChangedNotification::getMethod());

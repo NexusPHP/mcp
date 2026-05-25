@@ -35,7 +35,7 @@ final class ResourceUpdatedNotificationTest extends TestCase
 {
     public function testMethodIsResourcesUpdated(): void
     {
-        self::assertSame('notifications/resources/updated', ResourceUpdatedNotification::method());
+        self::assertSame('notifications/resources/updated', ResourceUpdatedNotification::getMethod());
     }
 
     public function testToArrayBuildsEnvelope(): void

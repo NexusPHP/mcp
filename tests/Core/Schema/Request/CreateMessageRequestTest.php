@@ -38,7 +38,7 @@ final class CreateMessageRequestTest extends TestCase
 {
     public function testMethodIsSamplingCreateMessage(): void
     {
-        self::assertSame('sampling/createMessage', CreateMessageRequest::method());
+        self::assertSame('sampling/createMessage', CreateMessageRequest::getMethod());
     }
 
     public function testToArray(): void

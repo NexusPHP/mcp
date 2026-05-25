@@ -79,7 +79,7 @@ final class ResponseSenderTest extends TestCase
     {
         $exception = new MethodNotFoundException('vendor/x', new RequestId(7));
 
-        $response = ResponseSender::toErrorResponse($exception, new RequestId(99));
+        $response = ResponseSender::buildErrorResponse($exception, new RequestId(99));
 
         self::assertSame(7, $response->id?->id);
         self::assertSame(ProtocolErrorCode::MethodNotFound->value, $response->error->code);
@@ -88,7 +88,7 @@ final class ResponseSenderTest extends TestCase
 
     public function testToErrorResponseFallsBackWhenExceptionHasNoRequestId(): void
     {
-        $response = ResponseSender::toErrorResponse(new MethodNotFoundException('vendor/x'), new RequestId(99));
+        $response = ResponseSender::buildErrorResponse(new MethodNotFoundException('vendor/x'), new RequestId(99));
 
         self::assertSame(99, $response->id?->id);
     }

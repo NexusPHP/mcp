@@ -29,7 +29,7 @@ use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 final readonly class PingRequest extends JsonRpcRequest implements ClientRequest, ServerRequest
 {
     #[\Override]
-    public static function method(): string
+    public static function getMethod(): string
     {
         return 'ping';
     }

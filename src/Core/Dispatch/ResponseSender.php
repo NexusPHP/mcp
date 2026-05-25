@@ -56,13 +56,13 @@ final readonly class ResponseSender
         );
     }
 
-    public static function toErrorResponse(
+    public static function buildErrorResponse(
         AbstractJsonRpcProtocolException $exception,
         ?RequestId $fallbackId,
     ): JsonRpcErrorResponse {
         return new JsonRpcErrorResponse(
             $exception->requestId ?? $fallbackId,
-            ErrorFactory::create($exception::errorCode(), $exception->getMessage()),
+            ErrorFactory::create($exception::getErrorCode(), $exception->getMessage()),
         );
     }
 }

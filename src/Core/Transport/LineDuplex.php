@@ -194,7 +194,7 @@ final class LineDuplex
             $reader = new LineReader($source, $this->maxLineBytes);
 
             try {
-                foreach ($reader->lines() as $line) {
+                foreach ($reader->getLines() as $line) {
                     $onLine($line);
                 }
             } catch (\Throwable $e) {
@@ -275,7 +275,7 @@ final class LineDuplex
         $reader = new LineReader($this->readable, $this->maxLineBytes);
 
         try {
-            foreach ($reader->lines() as $line) {
+            foreach ($reader->getLines() as $line) {
                 $this->processLine($line);
             }
         } catch (\Throwable $e) {
@@ -349,8 +349,8 @@ final class LineDuplex
     private static function describe(JsonRpcMessage $message): string
     {
         return match (true) {
-            $message instanceof JsonRpcRequest => \sprintf('"%s" request with id "%s"', $message::method(), $message->id->id),
-            $message instanceof JsonRpcNotification => \sprintf('"%s" notification', $message::method()),
+            $message instanceof JsonRpcRequest => \sprintf('"%s" request with id "%s"', $message::getMethod(), $message->id->id),
+            $message instanceof JsonRpcNotification => \sprintf('"%s" notification', $message::getMethod()),
             default => 'a response envelope',
         };
     }

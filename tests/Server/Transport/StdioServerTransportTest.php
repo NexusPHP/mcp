@@ -60,7 +60,7 @@ final class StdioServerTransportTest extends TestCase
     {
         $transport = new StdioServerTransport(new ReadableBuffer(''), new WritableBuffer());
 
-        self::assertNull($transport->sessionId());
+        self::assertNull($transport->getSessionId());
     }
 
     public function testEmitsDecodedEnvelope(): void

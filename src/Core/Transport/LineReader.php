@@ -36,7 +36,7 @@ final readonly class LineReader
      *
      * @throws \RuntimeException
      */
-    public function lines(): iterable
+    public function getLines(): iterable
     {
         $buffer = '';
 

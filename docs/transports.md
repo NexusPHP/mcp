@@ -2,7 +2,7 @@
 
 A transport is the bytes-in / bytes-out layer between an MCP server and its client. The SDK ships one
 production transport today (`StdioServerTransport`) plus an in-memory pair for tests
-(`InMemoryTransport::pair()`).
+(`InMemoryTransport::createPair()`).
 
 ## The contract
 
@@ -16,7 +16,7 @@ interface TransportInterface
     public function start(): void;
     public function send(JsonRpcMessage $message, ?SendContext $context = null): void;
     public function close(): void;
-    public function sessionId(): ?string;
+    public function getSessionId(): ?string;
 
     public function onMessage(\Closure $listener): SubscriptionInterface;
     public function onError(\Closure $listener): SubscriptionInterface;
@@ -29,7 +29,7 @@ The four `on*` methods are listener registration. The `Server` registers listene
 `onError` (log), `onDrain` (await in-flight coroutines), and `onClose` (resolve the run-future) once,
 before calling `start()`.
 
-`sessionId()` returns the transport's session identifier when there is one. Stdio servers run one process
+`getSessionId()` returns the transport's session identifier when there is one. Stdio servers run one process
 per session, so the stdio transport returns `null`. Streamable HTTP will populate this once the transport
 lands.
 
@@ -140,7 +140,7 @@ end-to-end server tests without spawning a subprocess.
 ```php
 use Nexus\Mcp\Core\Transport\InMemoryTransport;
 
-[$serverSide, $clientSide] = InMemoryTransport::pair();
+[$serverSide, $clientSide] = InMemoryTransport::createPair();
 ```
 
 ### Pre-`start()` inbound queueing
@@ -158,9 +158,9 @@ use Nexus\Mcp\Core\Schema\Request\InitializeRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\InitializeRequestParams;
 use Nexus\Mcp\Core\Transport\InMemoryTransport;
-use Nexus\Mcp\Server\Server;
+use Nexus\Mcp\Server\ServerBuilder;
 
-[$serverSide, $clientSide] = InMemoryTransport::pair();
+[$serverSide, $clientSide] = InMemoryTransport::createPair();
 
 // Capture every server response delivered to the client side.
 $received = [];
@@ -179,7 +179,7 @@ $clientSide->send(new InitializedNotification(new EmptyNotificationParams()));
 
 // Run the server. `Server::run()` calls `$serverSide->start()`, which drains the queue
 // in arrival order into the dispatcher's onMessage listener.
-$server = Server::builder()->setServerInfo(name: 'test', version: '0.1.0')->build();
+$server = new ServerBuilder()->setServerInfo(name: 'test', version: '0.1.0')->build();
 $serverRun = \Amp\async(static fn() => $server->run($serverSide));
 
 // Close to let run() return. close() cascades to the peer.
@@ -219,9 +219,9 @@ eagerly rather than as silently dropped envelopes:
 | `start()` | Called twice | `TransportAlreadyStartedException` |
 | `start()` | Called after `close()` | `TransportAlreadyClosedException` |
 
-### `sessionId()` and `onError`
+### `getSessionId()` and `onError`
 
-`sessionId()` returns `null` (no session concept in-process). `onError` accepts listeners for
+`getSessionId()` returns `null` (no session concept in-process). `onError` accepts listeners for
 `TransportInterface` conformance but never fires (there is no I/O failure surface for an in-process pair).
 
 ## Streamable HTTP
@@ -229,7 +229,7 @@ eagerly rather than as silently dropped envelopes:
 Not yet shipped. The transport-interface surface above is intentionally shaped to accommodate it without
 breaking changes:
 
-- `sessionId()` is already optional.
+- `getSessionId()` is already optional.
 - `SendContext` exists as the slot for HTTP-specific fields.
 - `onDrain` is symmetric with `onClose` so streaming responses can be flushed cleanly.
 

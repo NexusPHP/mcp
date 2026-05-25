@@ -54,7 +54,7 @@ final class SamplingContentDispatcher
             AudioContent::TYPE => AudioContent::fromArray($data),
             ToolUseContent::TYPE => ToolUseContent::fromArray($data),
             ToolResultContent::TYPE => ToolResultContent::fromArray($data),
-            default => throw MessageDiscriminator::unknownType($context, self::ALLOWED_SAMPLING_CONTENT_TYPES, $type),
+            default => throw MessageDiscriminator::buildUnknownTypeError($context, self::ALLOWED_SAMPLING_CONTENT_TYPES, $type),
         };
     }
 }

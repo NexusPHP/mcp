@@ -34,7 +34,7 @@ final readonly class ProgressNotification extends JsonRpcNotification implements
     }
 
     #[\Override]
-    public static function method(): string
+    public static function getMethod(): string
     {
         return 'notifications/progress';
     }

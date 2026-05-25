@@ -19,7 +19,7 @@ use Nexus\Mcp\Core\Schema\Result;
 /**
  * Handles a single inbound JSON-RPC request and returns the typed result.
  *
- * `TMethod` binds the literal returned by `static::method()` on the matching
+ * `TMethod` binds the literal returned by `static::getMethod()` on the matching
  * request class so the registry can store handlers heterogeneously. It does
  * not narrow `handle()`'s parameter, which stays at the wide envelope type.
  *

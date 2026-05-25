@@ -31,6 +31,6 @@ final class InvalidParamsExceptionTest extends TestCase
 {
     public function testReportsInvalidParamsErrorCode(): void
     {
-        self::assertSame(ProtocolErrorCode::InvalidParams, InvalidParamsException::errorCode());
+        self::assertSame(ProtocolErrorCode::InvalidParams, InvalidParamsException::getErrorCode());
     }
 }

@@ -52,6 +52,6 @@ final class ServerAlreadyInitializedExceptionTest extends TestCase
 
     public function testReportsInvalidRequestErrorCode(): void
     {
-        self::assertSame(ProtocolErrorCode::InvalidRequest, ServerAlreadyInitializedException::errorCode());
+        self::assertSame(ProtocolErrorCode::InvalidRequest, ServerAlreadyInitializedException::getErrorCode());
     }
 }

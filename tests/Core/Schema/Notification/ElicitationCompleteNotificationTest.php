@@ -35,7 +35,7 @@ final class ElicitationCompleteNotificationTest extends TestCase
 {
     public function testMethod(): void
     {
-        self::assertSame('notifications/elicitation/complete', ElicitationCompleteNotification::method());
+        self::assertSame('notifications/elicitation/complete', ElicitationCompleteNotification::getMethod());
     }
 
     public function testToArray(): void

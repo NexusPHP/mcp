@@ -59,7 +59,7 @@ final class TypeInferenceTest extends TypeInferenceTestCase
     }
 
     /**
-     * Asserts the data file contains a `ShortName::method()` reference for
+     * Asserts the data file contains a `ShortName::getMethod()` reference for
      * every concrete subclass of the given base. The literal-string return
      * type pinned by these assertions is the load-bearing contract. Without
      * an entry per class, a regression to a wider `non-empty-string` would
@@ -77,13 +77,13 @@ final class TypeInferenceTest extends TypeInferenceTestCase
         foreach (self::concreteSubclasses($base) as $class) {
             $shortName = new \ReflectionClass($class)->getShortName();
 
-            if (! str_contains($contents, $shortName.'::method()')) {
+            if (! str_contains($contents, $shortName.'::getMethod()')) {
                 $missing[] = $class;
             }
         }
 
         self::assertSame([], $missing, \sprintf(
-            'Concrete subclasses of %s without a method() type assertion in %s: %s. Add an `assertType(\'\\\'method-name\\\'\', %s::method())` line.',
+            'Concrete subclasses of %s without a method() type assertion in %s: %s. Add an `assertType(\'\\\'method-name\\\'\', %s::getMethod())` line.',
             $base,
             basename($dataFile),
             implode(', ', $missing),

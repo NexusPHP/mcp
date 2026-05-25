@@ -39,7 +39,7 @@ final class ListResourcesRequestTest extends TestCase
 {
     public function testMethodIsResourcesList(): void
     {
-        self::assertSame('resources/list', ListResourcesRequest::method());
+        self::assertSame('resources/list', ListResourcesRequest::getMethod());
     }
 
     public function testToArrayOmitsParamsWhenEmpty(): void

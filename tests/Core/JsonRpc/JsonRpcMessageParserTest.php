@@ -161,7 +161,7 @@ final class JsonRpcMessageParserTest extends TestCase
             self::fail('Expected InvalidRequestException.');
         } catch (InvalidRequestException $e) {
             self::assertNull($e->requestId, 'A non-scalar id cannot be preserved on the exception.');
-            self::assertSame(ProtocolErrorCode::InvalidRequest, InvalidRequestException::errorCode());
+            self::assertSame(ProtocolErrorCode::InvalidRequest, InvalidRequestException::getErrorCode());
             self::assertMatchesRegularExpression('/^Invalid error response: .+/', $e->getMessage());
         }
     }
@@ -214,7 +214,7 @@ final class JsonRpcMessageParserTest extends TestCase
             self::fail('Expected InvalidParamsException.');
         } catch (InvalidParamsException $e) {
             self::assertNull($e->requestId, 'Notifications carry no id.');
-            self::assertSame(ProtocolErrorCode::InvalidParams, InvalidParamsException::errorCode());
+            self::assertSame(ProtocolErrorCode::InvalidParams, InvalidParamsException::getErrorCode());
             self::assertMatchesRegularExpression(
                 '#^Invalid "tests/test-notification" notification: .+#',
                 $e->getMessage(),
@@ -234,7 +234,7 @@ final class JsonRpcMessageParserTest extends TestCase
             self::fail('Expected MethodNotFoundException.');
         } catch (MethodNotFoundException $e) {
             self::assertSame(9, $e->requestId?->id);
-            self::assertSame(ProtocolErrorCode::MethodNotFound, MethodNotFoundException::errorCode());
+            self::assertSame(ProtocolErrorCode::MethodNotFound, MethodNotFoundException::getErrorCode());
             self::assertSame('No registration found for method "vendor/unknown".', $e->getMessage());
         }
     }
@@ -265,7 +265,7 @@ final class JsonRpcMessageParserTest extends TestCase
             self::fail('Expected MethodMisroutedException.');
         } catch (MethodMisroutedException $e) {
             self::assertNull($e->requestId, 'Notification envelopes carry no id.');
-            self::assertSame(ProtocolErrorCode::InvalidRequest, MethodMisroutedException::errorCode());
+            self::assertSame(ProtocolErrorCode::InvalidRequest, MethodMisroutedException::getErrorCode());
             self::assertSame('Method "initialize" must be sent as a request, not a notification.', $e->getMessage());
         }
     }
@@ -367,7 +367,7 @@ final class JsonRpcMessageParserTest extends TestCase
             self::fail('Expected InvalidRequestException.');
         } catch (InvalidRequestException $e) {
             self::assertNull($e->requestId, 'A non-scalar id cannot be preserved on the exception.');
-            self::assertSame(ProtocolErrorCode::InvalidRequest, InvalidRequestException::errorCode());
+            self::assertSame(ProtocolErrorCode::InvalidRequest, InvalidRequestException::getErrorCode());
             self::assertSame('Request "id" must be an int or string, array given.', $e->getMessage());
         }
     }
@@ -380,7 +380,7 @@ final class JsonRpcMessageParserTest extends TestCase
             self::fail('Expected InvalidParamsException.');
         } catch (InvalidParamsException $e) {
             self::assertSame(1, $e->requestId?->id);
-            self::assertSame(ProtocolErrorCode::InvalidParams, InvalidParamsException::errorCode());
+            self::assertSame(ProtocolErrorCode::InvalidParams, InvalidParamsException::getErrorCode());
             self::assertSame('Invalid "ping" request: "params" must be an object, string given.', $e->getMessage());
         }
     }
@@ -506,7 +506,7 @@ final class JsonRpcMessageParserTest extends TestCase
             $parser->parse(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'unknown/method']);
             self::fail('Expected an AbstractJsonRpcProtocolException.');
         } catch (AbstractJsonRpcProtocolException $e) {
-            self::assertSame(ProtocolErrorCode::MethodNotFound, $e::errorCode());
+            self::assertSame(ProtocolErrorCode::MethodNotFound, $e::getErrorCode());
             self::assertSame(1, $e->requestId?->id);
         }
     }

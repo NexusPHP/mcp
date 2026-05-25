@@ -35,7 +35,7 @@ final readonly class ReadResourceRequest extends JsonRpcRequest implements Clien
     }
 
     #[\Override]
-    public static function method(): string
+    public static function getMethod(): string
     {
         return 'resources/read';
     }

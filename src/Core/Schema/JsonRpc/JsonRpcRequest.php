@@ -53,7 +53,7 @@ abstract readonly class JsonRpcRequest extends Request implements Arrayable, Jso
         $envelope = [
             'jsonrpc' => self::JSONRPC_VERSION,
             'id' => $this->id->id,
-            'method' => static::method(),
+            'method' => static::getMethod(),
         ];
 
         $params = $this->params->toArray();
@@ -71,7 +71,7 @@ abstract readonly class JsonRpcRequest extends Request implements Arrayable, Jso
         $envelope = [
             'jsonrpc' => self::JSONRPC_VERSION,
             'id' => $this->id->id,
-            'method' => static::method(),
+            'method' => static::getMethod(),
         ];
 
         $params = $this->params->jsonSerialize();

@@ -41,7 +41,7 @@ response rather than letting it escape:
 
 - Exceptions implementing
   [`JsonRpcProtocolExceptionInterface`](../src/Core/Exception/JsonRpcProtocolExceptionInterface.php) pin a
-  code via `errorCode()`. `InvalidParamsException` maps to -32602, `MethodNotFoundException` to -32601, and
+  code via `getErrorCode()`. `InvalidParamsException` maps to -32602, `MethodNotFoundException` to -32601, and
   the not-found exceptions (`ToolNotFoundException`, `PromptNotFoundException`, `ResourceNotFoundException`,
   `InvalidCursorException`) map to -32602 (the named entity is treated as an invalid parameter).
 - Any other `\Throwable` from a handler becomes a generic -32603 `InternalError`, so a handler bug never

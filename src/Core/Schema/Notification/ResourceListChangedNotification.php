@@ -29,7 +29,7 @@ use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
 final readonly class ResourceListChangedNotification extends JsonRpcNotification implements ServerNotification
 {
     #[\Override]
-    public static function method(): string
+    public static function getMethod(): string
     {
         return 'notifications/resources/list_changed';
     }

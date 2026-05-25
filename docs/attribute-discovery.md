@@ -10,7 +10,7 @@ the two compose freely.
 use Nexus\Mcp\Server\Attribute\AsResource;
 use Nexus\Mcp\Server\Attribute\AsServer;
 use Nexus\Mcp\Server\Attribute\AsTool;
-use Nexus\Mcp\Server\Server;
+use Nexus\Mcp\Server\ServerBuilder;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Server\Transport\StdioServerTransport;
 
@@ -33,7 +33,7 @@ final class MyServer
     }
 }
 
-$server = Server::builder()->register(new MyServer())->build();
+$server = new ServerBuilder()->register(new MyServer())->build();
 $server->run(new StdioServerTransport());
 ```
 

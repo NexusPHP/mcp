@@ -49,7 +49,7 @@ final class InMemoryTransport implements TransportInterface
      *
      * @return array{self, self}
      */
-    public static function pair(): array
+    public static function createPair(): array
     {
         $a = new self();
         $b = new self();
@@ -123,7 +123,7 @@ final class InMemoryTransport implements TransportInterface
     }
 
     #[\Override]
-    public function sessionId(): ?string
+    public function getSessionId(): ?string
     {
         return null;
     }

@@ -34,7 +34,7 @@ final readonly class ResourceUpdatedNotification extends JsonRpcNotification imp
     }
 
     #[\Override]
-    public static function method(): string
+    public static function getMethod(): string
     {
         return 'notifications/resources/updated';
     }

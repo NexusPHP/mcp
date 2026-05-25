@@ -35,7 +35,7 @@ use Nexus\Mcp\Server\Attribute\AsResource;
 use Nexus\Mcp\Server\Attribute\AsResourceTemplate;
 use Nexus\Mcp\Server\Attribute\AsServer;
 use Nexus\Mcp\Server\Attribute\AsTool;
-use Nexus\Mcp\Server\Server;
+use Nexus\Mcp\Server\ServerBuilder;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Server\Transport\StdioServerTransport;
 
@@ -90,7 +90,7 @@ final class Concierge
 
 $logger = new ExampleLogger();
 
-$server = Server::builder()
+$server = new ServerBuilder()
     ->setLogger($logger)
     ->register(new Concierge())
     ->build()

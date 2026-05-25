@@ -35,7 +35,7 @@ final readonly class ListResourcesRequest extends PaginatedRequest implements Cl
     }
 
     #[\Override]
-    public static function method(): string
+    public static function getMethod(): string
     {
         return 'resources/list';
     }

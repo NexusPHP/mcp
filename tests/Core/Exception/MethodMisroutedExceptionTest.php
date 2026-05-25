@@ -63,7 +63,7 @@ final class MethodMisroutedExceptionTest extends TestCase
 
     public function testReportsInvalidRequestErrorCode(): void
     {
-        self::assertSame(ProtocolErrorCode::InvalidRequest, MethodMisroutedException::errorCode());
+        self::assertSame(ProtocolErrorCode::InvalidRequest, MethodMisroutedException::getErrorCode());
     }
 
     public function testSanitisesAttackerControlledMethodBytesInTheMessage(): void

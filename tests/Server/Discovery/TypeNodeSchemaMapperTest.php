@@ -436,7 +436,7 @@ final class TypeNodeSchemaMapperTest extends TestCase
     {
         self::assertSame(
             ['type' => ['null', 'string']],
-            $this->mapper->nullable(['type' => 'string']),
+            $this->mapper->makeNullable(['type' => 'string']),
         );
     }
 
@@ -444,7 +444,7 @@ final class TypeNodeSchemaMapperTest extends TestCase
     {
         self::assertSame(
             ['type' => ['null', 'integer', 'string']],
-            $this->mapper->nullable(['type' => ['integer', 'string']]),
+            $this->mapper->makeNullable(['type' => ['integer', 'string']]),
         );
     }
 
@@ -452,7 +452,7 @@ final class TypeNodeSchemaMapperTest extends TestCase
     {
         self::assertSame(
             ['type' => ['null', 'string'], 'enum' => ['a', null]],
-            $this->mapper->nullable(['type' => 'string', 'enum' => ['a']]),
+            $this->mapper->makeNullable(['type' => 'string', 'enum' => ['a']]),
         );
     }
 
@@ -460,7 +460,7 @@ final class TypeNodeSchemaMapperTest extends TestCase
     {
         self::assertSame(
             ['minimum' => 1, 'maximum' => 9],
-            $this->mapper->nullable(['minimum' => 1, 'maximum' => 9]),
+            $this->mapper->makeNullable(['minimum' => 1, 'maximum' => 9]),
         );
     }
 

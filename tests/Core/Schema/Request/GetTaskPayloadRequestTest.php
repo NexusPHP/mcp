@@ -36,7 +36,7 @@ final class GetTaskPayloadRequestTest extends TestCase
 {
     public function testMethodIsTasksResult(): void
     {
-        self::assertSame('tasks/result', GetTaskPayloadRequest::method());
+        self::assertSame('tasks/result', GetTaskPayloadRequest::getMethod());
     }
 
     public function testToArray(): void

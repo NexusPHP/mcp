@@ -53,6 +53,6 @@ final class ServerNotInitializedExceptionTest extends TestCase
 
     public function testReportsInvalidRequestErrorCode(): void
     {
-        self::assertSame(ProtocolErrorCode::InvalidRequest, ServerNotInitializedException::errorCode());
+        self::assertSame(ProtocolErrorCode::InvalidRequest, ServerNotInitializedException::getErrorCode());
     }
 }

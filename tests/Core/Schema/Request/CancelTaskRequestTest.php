@@ -36,7 +36,7 @@ final class CancelTaskRequestTest extends TestCase
 {
     public function testMethodIsTasksCancel(): void
     {
-        self::assertSame('tasks/cancel', CancelTaskRequest::method());
+        self::assertSame('tasks/cancel', CancelTaskRequest::getMethod());
     }
 
     public function testToArray(): void

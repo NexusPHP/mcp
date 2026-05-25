@@ -50,7 +50,7 @@ final class MethodNotFoundExceptionTest extends TestCase
 
     public function testReportsMethodNotFoundErrorCode(): void
     {
-        self::assertSame(ProtocolErrorCode::MethodNotFound, MethodNotFoundException::errorCode());
+        self::assertSame(ProtocolErrorCode::MethodNotFound, MethodNotFoundException::getErrorCode());
     }
 
     public function testSanitisesAttackerControlledMethodBytesInTheMessage(): void

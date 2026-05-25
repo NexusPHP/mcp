@@ -51,6 +51,6 @@ final class ResourceNotFoundExceptionTest extends TestCase
 
     public function testReportsInvalidParamsErrorCode(): void
     {
-        self::assertSame(ProtocolErrorCode::InvalidParams, ResourceNotFoundException::errorCode());
+        self::assertSame(ProtocolErrorCode::InvalidParams, ResourceNotFoundException::getErrorCode());
     }
 }

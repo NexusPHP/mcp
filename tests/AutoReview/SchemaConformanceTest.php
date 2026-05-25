@@ -72,7 +72,7 @@ final class SchemaConformanceTest extends TestCase
      */
     private const array SPEC_KEY_TO_NON_PROPERTY_REPRESENTATION = [
         'jsonrpc' => ['kind' => 'constant', 'name' => 'JSONRPC_VERSION'],
-        'method' => ['kind' => 'static-method', 'name' => 'method'],
+        'method' => ['kind' => 'static-method', 'name' => 'getMethod'],
         'type' => ['kind' => 'constant', 'name' => 'TYPE'],
     ];
 

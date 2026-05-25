@@ -51,7 +51,7 @@ final class MessageDiscriminator
      * @param non-empty-string                 $context
      * @param non-empty-list<non-empty-string> $allowedTypes
      */
-    public static function unknownType(string $context, array $allowedTypes, string $given): ExpectationFailedException
+    public static function buildUnknownTypeError(string $context, array $allowedTypes, string $given): ExpectationFailedException
     {
         return new ExpectationFailedException(
             '{context} "type" must be one of "{allowed}", {value} given.',

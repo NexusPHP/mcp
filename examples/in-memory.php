@@ -12,7 +12,7 @@ declare(strict_types=1);
  */
 
 /*
- * Runs a server and a client in a single process over `InMemoryTransport::pair()`,
+ * Runs a server and a client in a single process over `InMemoryTransport::createPair()`,
  * with no subprocess. The server runs in a background coroutine while the client
  * drives it through the typed surface. This is the pattern for embedding an MCP
  * server inside a host application or exercising one in tests.
@@ -24,20 +24,20 @@ declare(strict_types=1);
 
 require __DIR__.'/bootstrap.php';
 
-use Nexus\Mcp\Client\Client;
+use Nexus\Mcp\Client\ClientBuilder;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Core\Schema\Tool\Tool;
 use Nexus\Mcp\Core\Transport\InMemoryTransport;
-use Nexus\Mcp\Server\Server;
+use Nexus\Mcp\Server\ServerBuilder;
 use Nexus\Mcp\Server\ServerContext;
 use Psr\Log\NullLogger;
 
 use function Amp\async;
 
-[$serverSide, $clientSide] = InMemoryTransport::pair();
+[$serverSide, $clientSide] = InMemoryTransport::createPair();
 
-$server = Server::builder()
+$server = new ServerBuilder()
     ->setLogger(new ExampleLogger())
     ->setServerInfo(name: 'nexus-in-memory-example', version: '0.1.0')
     ->addTool(
@@ -65,7 +65,7 @@ $server = Server::builder()
     ->build()
 ;
 
-$client = Client::builder()
+$client = new ClientBuilder()
     ->setLogger(new NullLogger())
     ->setClientInfo(name: 'nexus-in-memory-example-client', version: '0.1.0')
     ->build()

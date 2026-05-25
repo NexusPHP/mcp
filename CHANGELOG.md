@@ -30,6 +30,15 @@ in `0.x`, minor releases may include breaking changes.
 ### Changed
 
 - Mutation testing no longer times out while covering the shutdown coroutine drain.
+- Public accessors now follow a verb-first naming scheme: `Request`/`Notification::getMethod()` (was
+  `method()`), the protocol exceptions' `getErrorCode()` (was `errorCode()`),
+  `TransportInterface::getSessionId()` (was `sessionId()`), `BaseMetadata`/`Tool::getDisplayName()` (was
+  `displayName()`), and `InMemoryTransport::createPair()` (was `pair()`).
+
+### Removed
+
+- The static `Server::builder()` / `Client::builder()` factories. Construct the builders directly with
+  `new ServerBuilder()` / `new ClientBuilder()`.
 
 ## [v0.3.0](https://github.com/NexusPHP/mcp-sdk/compare/v0.2.0...v0.3.0) - 2026-05-25
 

@@ -33,7 +33,7 @@ final readonly class ElicitationCompleteNotification extends JsonRpcNotification
     }
 
     #[\Override]
-    public static function method(): string
+    public static function getMethod(): string
     {
         return 'notifications/elicitation/complete';
     }

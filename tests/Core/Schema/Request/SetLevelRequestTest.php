@@ -37,7 +37,7 @@ final class SetLevelRequestTest extends TestCase
 {
     public function testMethodIsLoggingSetLevel(): void
     {
-        self::assertSame('logging/setLevel', SetLevelRequest::method());
+        self::assertSame('logging/setLevel', SetLevelRequest::getMethod());
     }
 
     public function testToArrayBuildsEnvelope(): void

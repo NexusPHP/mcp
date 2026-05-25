@@ -36,7 +36,7 @@ final class GetPromptRequestTest extends TestCase
 {
     public function testMethodIsPromptsGet(): void
     {
-        self::assertSame('prompts/get', GetPromptRequest::method());
+        self::assertSame('prompts/get', GetPromptRequest::getMethod());
     }
 
     public function testToArray(): void

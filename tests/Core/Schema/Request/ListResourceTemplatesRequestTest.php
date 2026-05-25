@@ -39,7 +39,7 @@ final class ListResourceTemplatesRequestTest extends TestCase
 {
     public function testMethodIsResourcesTemplatesList(): void
     {
-        self::assertSame('resources/templates/list', ListResourceTemplatesRequest::method());
+        self::assertSame('resources/templates/list', ListResourceTemplatesRequest::getMethod());
     }
 
     public function testToArrayOmitsParamsWhenEmpty(): void

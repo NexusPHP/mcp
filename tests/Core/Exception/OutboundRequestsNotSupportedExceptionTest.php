@@ -52,6 +52,6 @@ final class OutboundRequestsNotSupportedExceptionTest extends TestCase
 
     public function testReportsInternalErrorErrorCode(): void
     {
-        self::assertSame(ProtocolErrorCode::InternalError, OutboundRequestsNotSupportedException::errorCode());
+        self::assertSame(ProtocolErrorCode::InternalError, OutboundRequestsNotSupportedException::getErrorCode());
     }
 }

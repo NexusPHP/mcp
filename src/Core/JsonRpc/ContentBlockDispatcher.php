@@ -56,7 +56,7 @@ final class ContentBlockDispatcher
             AudioContent::TYPE => AudioContent::fromArray($data),
             ResourceLink::TYPE => ResourceLink::fromArray($data),
             EmbeddedResource::TYPE => EmbeddedResource::fromArray($data),
-            default => throw MessageDiscriminator::unknownType($context, self::ALLOWED_CONTENT_BLOCK_TYPES, $type),
+            default => throw MessageDiscriminator::buildUnknownTypeError($context, self::ALLOWED_CONTENT_BLOCK_TYPES, $type),
         };
     }
 }

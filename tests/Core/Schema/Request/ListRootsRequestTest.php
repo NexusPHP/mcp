@@ -36,7 +36,7 @@ final class ListRootsRequestTest extends TestCase
 {
     public function testMethodIsRootsList(): void
     {
-        self::assertSame('roots/list', ListRootsRequest::method());
+        self::assertSame('roots/list', ListRootsRequest::getMethod());
     }
 
     public function testToArrayOmitsParamsWhenEmpty(): void

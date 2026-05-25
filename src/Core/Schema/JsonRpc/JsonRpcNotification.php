@@ -44,7 +44,7 @@ abstract readonly class JsonRpcNotification extends Notification implements Arra
     {
         $envelope = [
             'jsonrpc' => self::JSONRPC_VERSION,
-            'method' => static::method(),
+            'method' => static::getMethod(),
         ];
 
         $params = $this->params->toArray();
@@ -61,7 +61,7 @@ abstract readonly class JsonRpcNotification extends Notification implements Arra
     {
         $envelope = [
             'jsonrpc' => self::JSONRPC_VERSION,
-            'method' => static::method(),
+            'method' => static::getMethod(),
         ];
 
         $params = $this->params->jsonSerialize();

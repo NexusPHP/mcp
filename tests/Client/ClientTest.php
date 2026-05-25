@@ -76,14 +76,6 @@ use function Amp\delay;
 #[Group('client-tests')]
 final class ClientTest extends TestCase
 {
-    public function testBuilderEntryPointReturnsFreshInstance(): void
-    {
-        $a = Client::builder();
-        $b = Client::builder();
-
-        self::assertNotSame($a, $b);
-    }
-
     public function testConnectStartsTheTransportAndLogs(): void
     {
         $logger = new ArrayLogger();
@@ -550,7 +542,7 @@ final class ClientTest extends TestCase
         self::assertCount(2, $transport->sent);
         $notification = $transport->sent[1]['message'];
         self::assertInstanceOf(InitializedNotification::class, $notification);
-        self::assertSame('notifications/initialized', $notification::method());
+        self::assertSame('notifications/initialized', $notification::getMethod());
     }
 
     public function testDrainFiresFlushPendingOnTheDispatcher(): void
@@ -1057,7 +1049,7 @@ final class ClientTest extends TestCase
         $client = new ClientBuilder()
             ->setClientInfo('demo', '1.0.0')
             ->addNotificationHandler(
-                ProgressNotification::method(),
+                ProgressNotification::getMethod(),
                 new ClosureNotificationHandler(static function (JsonRpcNotification $n) use (&$delivered): void {
                     self::assertInstanceOf(ProgressNotification::class, $n);
                     $delivered[] = $n->params->progressToken->token;

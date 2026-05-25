@@ -36,7 +36,7 @@ final class ReadResourceRequestTest extends TestCase
 {
     public function testMethodIsResourcesRead(): void
     {
-        self::assertSame('resources/read', ReadResourceRequest::method());
+        self::assertSame('resources/read', ReadResourceRequest::getMethod());
     }
 
     public function testToArrayBuildsEnvelope(): void

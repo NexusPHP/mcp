@@ -36,7 +36,7 @@ final class CancelledNotificationTest extends TestCase
 {
     public function testMethodIsNotificationsCancelled(): void
     {
-        self::assertSame('notifications/cancelled', CancelledNotification::method());
+        self::assertSame('notifications/cancelled', CancelledNotification::getMethod());
     }
 
     public function testToArrayWithMinimalParams(): void

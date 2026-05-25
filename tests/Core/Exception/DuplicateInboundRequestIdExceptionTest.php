@@ -52,6 +52,6 @@ final class DuplicateInboundRequestIdExceptionTest extends TestCase
 
     public function testReportsInvalidRequestErrorCode(): void
     {
-        self::assertSame(ProtocolErrorCode::InvalidRequest, DuplicateInboundRequestIdException::errorCode());
+        self::assertSame(ProtocolErrorCode::InvalidRequest, DuplicateInboundRequestIdException::getErrorCode());
     }
 }

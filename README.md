@@ -48,11 +48,11 @@ require __DIR__.'/vendor/autoload.php';
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Core\Schema\Tool\Tool;
-use Nexus\Mcp\Server\Server;
+use Nexus\Mcp\Server\ServerBuilder;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Server\Transport\StdioServerTransport;
 
-$server = Server::builder()
+$server = new ServerBuilder()
     ->setServerInfo(name: 'hello', version: '0.1.0')
     ->addTool(
         tool: new Tool(

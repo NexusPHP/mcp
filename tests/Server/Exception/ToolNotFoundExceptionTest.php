@@ -51,6 +51,6 @@ final class ToolNotFoundExceptionTest extends TestCase
 
     public function testReportsInvalidParamsErrorCode(): void
     {
-        self::assertSame(ProtocolErrorCode::InvalidParams, ToolNotFoundException::errorCode());
+        self::assertSame(ProtocolErrorCode::InvalidParams, ToolNotFoundException::getErrorCode());
     }
 }

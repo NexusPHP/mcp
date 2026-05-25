@@ -23,5 +23,5 @@ interface JsonRpcProtocolExceptionInterface extends McpExceptionInterface
     /**
      * The JSON-RPC error code corresponding to this exception's category.
      */
-    public static function errorCode(): ProtocolErrorCode;
+    public static function getErrorCode(): ProtocolErrorCode;
 }

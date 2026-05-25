@@ -46,7 +46,7 @@ final class DocBlockTypeResolverTest extends TestCase
 
     public function testParamTagsKeyedByNameWithoutDollar(): void
     {
-        $tags = $this->resolver->paramTags(new \ReflectionMethod(SampleToolHandlers::class, 'collections'));
+        $tags = $this->resolver->parseParamTags(new \ReflectionMethod(SampleToolHandlers::class, 'collections'));
 
         self::assertSame(['tags', 'owner'], array_keys($tags));
         self::assertArrayHasKey('tags', $tags);
@@ -55,7 +55,7 @@ final class DocBlockTypeResolverTest extends TestCase
 
     public function testParamTagDescriptionIsCaptured(): void
     {
-        $tags = $this->resolver->paramTags(new \ReflectionMethod(SampleToolHandlers::class, 'described'));
+        $tags = $this->resolver->parseParamTags(new \ReflectionMethod(SampleToolHandlers::class, 'described'));
 
         self::assertArrayHasKey('label', $tags);
         self::assertSame('A friendly label.', $tags['label']->description);
@@ -63,6 +63,6 @@ final class DocBlockTypeResolverTest extends TestCase
 
     public function testMethodWithoutDocCommentYieldsNoTags(): void
     {
-        self::assertSame([], $this->resolver->paramTags(new \ReflectionMethod(SampleToolHandlers::class, 'scalars')));
+        self::assertSame([], $this->resolver->parseParamTags(new \ReflectionMethod(SampleToolHandlers::class, 'scalars')));
     }
 }

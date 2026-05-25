@@ -35,7 +35,7 @@ final readonly class ListPromptsRequest extends PaginatedRequest implements Clie
     }
 
     #[\Override]
-    public static function method(): string
+    public static function getMethod(): string
     {
         return 'prompts/list';
     }

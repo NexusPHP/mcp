@@ -29,5 +29,5 @@ abstract readonly class Request
     /**
      * @return TMethod
      */
-    abstract public static function method(): string;
+    abstract public static function getMethod(): string;
 }

@@ -259,13 +259,13 @@ final class ImplementationTest extends TestCase
     {
         $implementation = new Implementation('nexus-mcp', '1.0.0', 'Nexus MCP Server');
 
-        self::assertSame('Nexus MCP Server', $implementation->displayName());
+        self::assertSame('Nexus MCP Server', $implementation->getDisplayName());
     }
 
     public function testDisplayNameFallsBackToNameWhenTitleNull(): void
     {
         $implementation = new Implementation('nexus-mcp', '1.0.0');
 
-        self::assertSame('nexus-mcp', $implementation->displayName());
+        self::assertSame('nexus-mcp', $implementation->getDisplayName());
     }
 }

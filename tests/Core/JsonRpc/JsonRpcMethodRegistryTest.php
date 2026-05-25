@@ -34,8 +34,8 @@ final class JsonRpcMethodRegistryTest extends TestCase
         self::assertNotEmpty($registry);
 
         foreach ($registry as $method => $class) {
-            self::assertSame($method, $class::method(), \sprintf(
-                'Registry key "%s" must match %s::method().',
+            self::assertSame($method, $class::getMethod(), \sprintf(
+                'Registry key "%s" must match %s::getMethod().',
                 $method,
                 $class,
             ));
@@ -48,8 +48,8 @@ final class JsonRpcMethodRegistryTest extends TestCase
         self::assertNotEmpty($registry);
 
         foreach ($registry as $method => $class) {
-            self::assertSame($method, $class::method(), \sprintf(
-                'Registry key "%s" must match %s::method().',
+            self::assertSame($method, $class::getMethod(), \sprintf(
+                'Registry key "%s" must match %s::getMethod().',
                 $method,
                 $class,
             ));
@@ -71,7 +71,7 @@ final class JsonRpcMethodRegistryTest extends TestCase
         $registry = JsonRpcMethodRegistry::requests();
 
         foreach (self::concreteSubclassesUnder(__DIR__.'/../../../src/Core/Schema/Request', 'Nexus\\Mcp\\Core\\Schema\\Request', JsonRpcRequest::class) as $class) {
-            $method = $class::method();
+            $method = $class::getMethod();
             self::assertArrayHasKey($method, $registry, \sprintf('Concrete request class "%s" (method "%s") must be registered.', $class, $method));
             self::assertSame($class, $registry[$method], \sprintf('Method "%s" must map to "%s".', $method, $class));
         }
@@ -82,7 +82,7 @@ final class JsonRpcMethodRegistryTest extends TestCase
         $registry = JsonRpcMethodRegistry::notifications();
 
         foreach (self::concreteSubclassesUnder(__DIR__.'/../../../src/Core/Schema/Notification', 'Nexus\\Mcp\\Core\\Schema\\Notification', JsonRpcNotification::class) as $class) {
-            $method = $class::method();
+            $method = $class::getMethod();
             self::assertArrayHasKey($method, $registry, \sprintf('Concrete notification class "%s" (method "%s") must be registered.', $class, $method));
             self::assertSame($class, $registry[$method], \sprintf('Method "%s" must map to "%s".', $method, $class));
         }

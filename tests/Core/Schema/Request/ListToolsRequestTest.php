@@ -39,7 +39,7 @@ final class ListToolsRequestTest extends TestCase
 {
     public function testMethodIsToolsList(): void
     {
-        self::assertSame('tools/list', ListToolsRequest::method());
+        self::assertSame('tools/list', ListToolsRequest::getMethod());
     }
 
     public function testToArrayMinimal(): void

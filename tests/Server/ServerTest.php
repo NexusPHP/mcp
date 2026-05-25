@@ -17,6 +17,7 @@ use Nexus\Mcp\Core\Schema\Request\PingRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Transport\InMemoryTransport;
 use Nexus\Mcp\Server\Server;
+use Nexus\Mcp\Server\ServerBuilder;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -35,14 +36,6 @@ use function Amp\async;
 #[Group('server-tests')]
 final class ServerTest extends TestCase
 {
-    public function testBuilderEntryPointReturnsFreshInstance(): void
-    {
-        $a = Server::builder();
-        $b = Server::builder();
-
-        self::assertNotSame($a, $b);
-    }
-
     public function testRunStartsTheTransport(): void
     {
         $transport = new RecordingTransport();
@@ -107,7 +100,7 @@ final class ServerTest extends TestCase
     {
         $transport = new RecordingTransport();
         $logger = new ArrayLogger();
-        $server = Server::builder()
+        $server = new ServerBuilder()
             ->setServerInfo('demo', '1.0.0')
             ->setLogger($logger)
             ->build()
@@ -133,7 +126,7 @@ final class ServerTest extends TestCase
     {
         $transport = new RecordingTransport();
         $logger = new ArrayLogger();
-        $server = Server::builder()
+        $server = new ServerBuilder()
             ->setServerInfo('demo', '1.0.0')
             ->setLogger($logger)
             ->build()
@@ -202,7 +195,7 @@ final class ServerTest extends TestCase
      */
     public function testRunDrainsInFlightDispatchBeforeTransportFullyCloses(): void
     {
-        [$serverSide, $clientSide] = InMemoryTransport::pair();
+        [$serverSide, $clientSide] = InMemoryTransport::createPair();
         $server = self::buildServer();
 
         $clientReceived = [];
@@ -229,6 +222,6 @@ final class ServerTest extends TestCase
 
     private static function buildServer(): Server
     {
-        return Server::builder()->setServerInfo('demo', '1.0.0')->build();
+        return new ServerBuilder()->setServerInfo('demo', '1.0.0')->build();
     }
 }

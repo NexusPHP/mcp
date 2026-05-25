@@ -25,13 +25,13 @@ declare(strict_types=1);
 
 require __DIR__.'/bootstrap.php';
 
-use Nexus\Mcp\Client\Client;
+use Nexus\Mcp\Client\ClientBuilder;
 use Nexus\Mcp\Client\Exception\ServerCapabilityNotSupportedException;
 use Nexus\Mcp\Client\Transport\StdioClientTransport;
 use Nexus\Mcp\Core\Schema\Prompt\PromptReference;
 use Psr\Log\NullLogger;
 
-$client = Client::builder()
+$client = new ClientBuilder()
     ->setLogger(new NullLogger())
     ->setClientInfo(name: 'nexus-capability-example-client', version: '0.1.0')
     ->build()

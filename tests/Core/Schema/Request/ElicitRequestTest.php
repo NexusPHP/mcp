@@ -39,7 +39,7 @@ final class ElicitRequestTest extends TestCase
 {
     public function testMethodIsElicitationCreate(): void
     {
-        self::assertSame('elicitation/create', ElicitRequest::method());
+        self::assertSame('elicitation/create', ElicitRequest::getMethod());
     }
 
     public function testToArrayWithFormParams(): void

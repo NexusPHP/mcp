@@ -99,7 +99,7 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
      * @return non-empty-string
      */
     #[\Override]
-    public function displayName(): string
+    public function getDisplayName(): string
     {
         return $this->title ?? $this->annotations->title ?? $this->name;
     }

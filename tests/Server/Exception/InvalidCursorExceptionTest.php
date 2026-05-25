@@ -49,6 +49,6 @@ final class InvalidCursorExceptionTest extends TestCase
 
     public function testReportsInvalidParamsErrorCode(): void
     {
-        self::assertSame(ProtocolErrorCode::InvalidParams, InvalidCursorException::errorCode());
+        self::assertSame(ProtocolErrorCode::InvalidParams, InvalidCursorException::getErrorCode());
     }
 }

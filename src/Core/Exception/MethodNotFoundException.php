@@ -32,7 +32,7 @@ final class MethodNotFoundException extends AbstractJsonRpcProtocolException
     }
 
     #[\Override]
-    public static function errorCode(): ProtocolErrorCode
+    public static function getErrorCode(): ProtocolErrorCode
     {
         return ProtocolErrorCode::MethodNotFound;
     }

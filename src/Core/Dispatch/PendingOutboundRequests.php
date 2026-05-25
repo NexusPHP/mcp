@@ -50,7 +50,7 @@ final class PendingOutboundRequests implements \Countable
      */
     public function register(RequestId $id, string $result): Future
     {
-        $key = self::key($id);
+        $key = self::buildKey($id);
 
         if (\array_key_exists($key, $this->map)) {
             throw new DuplicateOutboundRequestIdException($id);
@@ -69,9 +69,9 @@ final class PendingOutboundRequests implements \Countable
      *
      * @return null|class-string<Result>
      */
-    public function resultClassFor(RequestId $id): ?string
+    public function resolveResultClass(RequestId $id): ?string
     {
-        $key = self::key($id);
+        $key = self::buildKey($id);
 
         if (! \array_key_exists($key, $this->map)) {
             return null;
@@ -88,7 +88,7 @@ final class PendingOutboundRequests implements \Countable
      */
     public function resolve(RequestId $id, JsonRpcResultResponse $response): bool
     {
-        $key = self::key($id);
+        $key = self::buildKey($id);
 
         if (! \array_key_exists($key, $this->map)) {
             return false;
@@ -107,7 +107,7 @@ final class PendingOutboundRequests implements \Countable
      */
     public function reject(RequestId $id, \Throwable $error): bool
     {
-        $key = self::key($id);
+        $key = self::buildKey($id);
 
         if (! \array_key_exists($key, $this->map)) {
             return false;
@@ -142,7 +142,7 @@ final class PendingOutboundRequests implements \Countable
     /**
      * @return non-empty-string
      */
-    private static function key(RequestId $id): string
+    private static function buildKey(RequestId $id): string
     {
         return \sprintf('"id":%s', var_export($id->id, true));
     }

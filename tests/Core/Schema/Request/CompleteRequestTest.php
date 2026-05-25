@@ -37,7 +37,7 @@ final class CompleteRequestTest extends TestCase
 {
     public function testMethodIsCompletionComplete(): void
     {
-        self::assertSame('completion/complete', CompleteRequest::method());
+        self::assertSame('completion/complete', CompleteRequest::getMethod());
     }
 
     public function testToArray(): void

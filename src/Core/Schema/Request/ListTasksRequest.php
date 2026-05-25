@@ -35,7 +35,7 @@ final readonly class ListTasksRequest extends PaginatedRequest implements Client
     }
 
     #[\Override]
-    public static function method(): string
+    public static function getMethod(): string
     {
         return 'tasks/list';
     }

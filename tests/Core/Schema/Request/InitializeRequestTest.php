@@ -39,7 +39,7 @@ final class InitializeRequestTest extends TestCase
 {
     public function testMethodIsInitialize(): void
     {
-        self::assertSame('initialize', InitializeRequest::method());
+        self::assertSame('initialize', InitializeRequest::getMethod());
     }
 
     public function testToArrayBuildsEnvelope(): void

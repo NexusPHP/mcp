@@ -35,7 +35,7 @@ final readonly class GetPromptRequest extends JsonRpcRequest implements ClientRe
     }
 
     #[\Override]
-    public static function method(): string
+    public static function getMethod(): string
     {
         return 'prompts/get';
     }

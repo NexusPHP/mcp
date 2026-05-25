@@ -52,7 +52,7 @@ final class MessageDiscriminatorTest extends TestCase
 
     public function testUnknownTypeFormatsExceptionWithAllowedValues(): void
     {
-        $exception = MessageDiscriminator::unknownType(
+        $exception = MessageDiscriminator::buildUnknownTypeError(
             '"params.ref"',
             ['ref/prompt', 'ref/resource'],
             'unknown',
@@ -66,7 +66,7 @@ final class MessageDiscriminatorTest extends TestCase
 
     public function testUnknownTypeWithSingleAllowedValue(): void
     {
-        $exception = MessageDiscriminator::unknownType('Foo', ['only'], 'other');
+        $exception = MessageDiscriminator::buildUnknownTypeError('Foo', ['only'], 'other');
 
         self::assertSame(
             'Foo "type" must be one of "only", \'other\' given.',

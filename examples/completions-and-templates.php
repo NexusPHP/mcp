@@ -15,7 +15,7 @@ declare(strict_types=1);
  * Demonstrates two server features the other examples skip: RFC 6570 templated
  * resources (`users://{userId}`) and argument completion (`completion/complete`)
  * for both a resource template and a prompt. Server and client run in one
- * process over `InMemoryTransport::pair()`.
+ * process over `InMemoryTransport::createPair()`.
  *
  * Run with:
  *
@@ -24,7 +24,7 @@ declare(strict_types=1);
 
 require __DIR__.'/bootstrap.php';
 
-use Nexus\Mcp\Client\Client;
+use Nexus\Mcp\Client\ClientBuilder;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Enum\Role;
 use Nexus\Mcp\Core\Schema\Prompt\Prompt;
@@ -39,7 +39,7 @@ use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
 use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
 use Nexus\Mcp\Core\Transport\InMemoryTransport;
 use Nexus\Mcp\Server\Completion\CompletionStore;
-use Nexus\Mcp\Server\Server;
+use Nexus\Mcp\Server\ServerBuilder;
 use Nexus\Mcp\Server\ServerContext;
 use Psr\Log\NullLogger;
 
@@ -55,9 +55,9 @@ $prefixCompletion = static fn(array $candidates): Closure => static function (st
     return new CompleteResult(['values' => $matched]);
 };
 
-[$serverSide, $clientSide] = InMemoryTransport::pair();
+[$serverSide, $clientSide] = InMemoryTransport::createPair();
 
-$server = Server::builder()
+$server = new ServerBuilder()
     ->setLogger(new ExampleLogger())
     ->setServerInfo(name: 'nexus-completions-example', version: '0.1.0')
     ->addResourceTemplate(
@@ -110,7 +110,7 @@ $server = Server::builder()
     ->build()
 ;
 
-$client = Client::builder()
+$client = new ClientBuilder()
     ->setLogger(new NullLogger())
     ->setClientInfo(name: 'nexus-completions-example-client', version: '0.1.0')
     ->build()

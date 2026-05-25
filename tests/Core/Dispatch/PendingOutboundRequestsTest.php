@@ -221,14 +221,14 @@ final class PendingOutboundRequestsTest extends TestCase
         $pending = new PendingOutboundRequests();
         $pending->register(new RequestId(1), EmptyResult::class);
 
-        self::assertSame(EmptyResult::class, $pending->resultClassFor(new RequestId(1)));
+        self::assertSame(EmptyResult::class, $pending->resolveResultClass(new RequestId(1)));
     }
 
     public function testResultClassForOnUnknownIdReturnsNull(): void
     {
         $pending = new PendingOutboundRequests();
 
-        self::assertNull($pending->resultClassFor(new RequestId('never-registered')));
+        self::assertNull($pending->resolveResultClass(new RequestId('never-registered')));
     }
 
     public function testResultClassForReturnsNullAfterResolve(): void
@@ -238,7 +238,7 @@ final class PendingOutboundRequestsTest extends TestCase
 
         $pending->resolve(new RequestId(1), new JsonRpcResultResponse(new RequestId(1), new EmptyResult()));
 
-        self::assertNull($pending->resultClassFor(new RequestId(1)), 'A resolved entry leaves no class lookup behind.');
+        self::assertNull($pending->resolveResultClass(new RequestId(1)), 'A resolved entry leaves no class lookup behind.');
     }
 
     public function testResultClassForReturnsNullAfterReject(): void
@@ -248,7 +248,7 @@ final class PendingOutboundRequestsTest extends TestCase
 
         $pending->reject(new RequestId(1), new \RuntimeException('boom'));
 
-        self::assertNull($pending->resultClassFor(new RequestId(1)), 'A rejected entry leaves no class lookup behind.');
+        self::assertNull($pending->resolveResultClass(new RequestId(1)), 'A rejected entry leaves no class lookup behind.');
     }
 
     public function testResultClassForReturnsNullAfterCancelAll(): void
@@ -259,7 +259,7 @@ final class PendingOutboundRequestsTest extends TestCase
 
         $pending->cancelAll(new \RuntimeException('transport closed'));
 
-        self::assertNull($pending->resultClassFor(new RequestId(1)));
-        self::assertNull($pending->resultClassFor(new RequestId(2)));
+        self::assertNull($pending->resolveResultClass(new RequestId(1)));
+        self::assertNull($pending->resolveResultClass(new RequestId(2)));
     }
 }

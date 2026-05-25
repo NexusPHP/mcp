@@ -4,10 +4,10 @@ The `Server` class runs against a `TransportInterface` and blocks the caller unt
 Build one with the fluent `ServerBuilder` and run it against any transport implementation.
 
 ```php
-use Nexus\Mcp\Server\Server;
+use Nexus\Mcp\Server\ServerBuilder;
 use Nexus\Mcp\Server\Transport\StdioServerTransport;
 
-$server = Server::builder()
+$server = new ServerBuilder()
     ->setServerInfo(name: 'my-server', version: '1.0.0')
     // ... register features ...
     ->build()
@@ -124,7 +124,7 @@ with `ServerBuilder::setSchemaValidator()`.
 ```php
 use Nexus\Mcp\Server\Validation\SchemaValidatorInterface;
 
-$server = Server::builder()
+$server = new ServerBuilder()
     ->setSchemaValidator($myValidator) // any SchemaValidatorInterface
     // ...
     ->build()

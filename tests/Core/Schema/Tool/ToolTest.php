@@ -367,7 +367,7 @@ final class ToolTest extends TestCase
             annotations: new ToolAnnotations(title: 'Reader'),
         );
 
-        self::assertSame('Read File', $tool->displayName());
+        self::assertSame('Read File', $tool->getDisplayName());
     }
 
     public function testDisplayNameFallsBackToAnnotationsTitleWhenTopLevelTitleNull(): void
@@ -378,14 +378,14 @@ final class ToolTest extends TestCase
             annotations: new ToolAnnotations(title: 'Reader'),
         );
 
-        self::assertSame('Reader', $tool->displayName());
+        self::assertSame('Reader', $tool->getDisplayName());
     }
 
     public function testDisplayNameFallsBackToNameWhenAllOtherFieldsNull(): void
     {
         $tool = new Tool('read-file', ['type' => 'object']);
 
-        self::assertSame('read-file', $tool->displayName());
+        self::assertSame('read-file', $tool->getDisplayName());
     }
 
     /**

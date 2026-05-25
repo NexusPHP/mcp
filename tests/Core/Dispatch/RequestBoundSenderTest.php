@@ -67,7 +67,7 @@ final class RequestBoundSenderTest extends TestCase
                 'Outbound server-to-client requests are not implemented yet.',
                 $e->getMessage(),
             );
-            self::assertSame(ProtocolErrorCode::InternalError, OutboundRequestsNotSupportedException::errorCode());
+            self::assertSame(ProtocolErrorCode::InternalError, OutboundRequestsNotSupportedException::getErrorCode());
         }
     }
 }

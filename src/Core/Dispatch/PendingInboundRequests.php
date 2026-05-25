@@ -31,7 +31,7 @@ final class PendingInboundRequests implements \Countable
 
     public function claim(RequestId $id): bool
     {
-        $key = self::key($id);
+        $key = self::buildKey($id);
 
         if (\array_key_exists($key, $this->map)) {
             return false;
@@ -44,7 +44,7 @@ final class PendingInboundRequests implements \Countable
 
     public function release(RequestId $id): void
     {
-        unset($this->map[self::key($id)]);
+        unset($this->map[self::buildKey($id)]);
     }
 
     #[\Override]
@@ -56,7 +56,7 @@ final class PendingInboundRequests implements \Countable
     /**
      * @return non-empty-string
      */
-    private static function key(RequestId $id): string
+    private static function buildKey(RequestId $id): string
     {
         return \sprintf('"id":%s', var_export($id->id, true));
     }

@@ -74,7 +74,7 @@ final class SourceCodeTest extends TestCase
      * - `JsonRpcResultResponse::toArray()`: the success-response envelope has
      *   no method-name discriminator for results, so it cannot fulfil the
      *   round-trip `fromArray()` half of the `Arrayable` contract.
-     * - `InMemoryTransport::pair()`: paired-construction factory with a
+     * - `InMemoryTransport::createPair()`: paired-construction factory with a
      *   private constructor. Cannot be expressed via `TransportInterface`.
      */
     private const array INTERFACE_FAITHFULNESS_EXEMPT = [

@@ -36,7 +36,7 @@ final class UnsubscribeRequestTest extends TestCase
 {
     public function testMethodIsResourcesUnsubscribe(): void
     {
-        self::assertSame('resources/unsubscribe', UnsubscribeRequest::method());
+        self::assertSame('resources/unsubscribe', UnsubscribeRequest::getMethod());
     }
 
     public function testToArrayBuildsEnvelope(): void

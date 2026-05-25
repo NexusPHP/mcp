@@ -40,7 +40,7 @@ final class LineReaderTest extends TestCase
     {
         $reader = new LineReader(new ReadableBuffer("alpha\nbeta\ngamma\n"));
 
-        self::assertSame(['alpha', 'beta', 'gamma'], iterator_to_array($reader->lines(), false));
+        self::assertSame(['alpha', 'beta', 'gamma'], iterator_to_array($reader->getLines(), false));
     }
 
     public function testYieldsLinesSplitAcrossChunks(): void
@@ -53,42 +53,42 @@ final class LineReaderTest extends TestCase
             "a\n",
         ])));
 
-        self::assertSame(['alpha', 'beta', 'gamma'], iterator_to_array($reader->lines(), false));
+        self::assertSame(['alpha', 'beta', 'gamma'], iterator_to_array($reader->getLines(), false));
     }
 
     public function testStripsTrailingCarriageReturnSoCrlfYieldsSameAsLf(): void
     {
         $reader = new LineReader(new ReadableBuffer("alpha\r\nbeta\r\n"));
 
-        self::assertSame(['alpha', 'beta'], iterator_to_array($reader->lines(), false));
+        self::assertSame(['alpha', 'beta'], iterator_to_array($reader->getLines(), false));
     }
 
     public function testSkipsBlankLines(): void
     {
         $reader = new LineReader(new ReadableBuffer("\n\nalpha\n\n\nbeta\n\n"));
 
-        self::assertSame(['alpha', 'beta'], iterator_to_array($reader->lines(), false));
+        self::assertSame(['alpha', 'beta'], iterator_to_array($reader->getLines(), false));
     }
 
     public function testYieldsTrailingPartialLineAtEofWhenNonEmpty(): void
     {
         $reader = new LineReader(new ReadableBuffer("alpha\nbeta"));
 
-        self::assertSame(['alpha', 'beta'], iterator_to_array($reader->lines(), false));
+        self::assertSame(['alpha', 'beta'], iterator_to_array($reader->getLines(), false));
     }
 
     public function testStripsTrailingCarriageReturnOnPartialLineAtEof(): void
     {
         $reader = new LineReader(new ReadableBuffer("alpha\nbeta\r"));
 
-        self::assertSame(['alpha', 'beta'], iterator_to_array($reader->lines(), false));
+        self::assertSame(['alpha', 'beta'], iterator_to_array($reader->getLines(), false));
     }
 
     public function testEmptyStreamYieldsNothing(): void
     {
         $reader = new LineReader(new ReadableBuffer(''));
 
-        self::assertSame([], iterator_to_array($reader->lines(), false));
+        self::assertSame([], iterator_to_array($reader->getLines(), false));
     }
 
     public function testAcceptsLineAtExactlyTheConfiguredCap(): void
@@ -96,7 +96,7 @@ final class LineReaderTest extends TestCase
         $line = str_repeat('a', 64);
         $reader = new LineReader(new ReadableBuffer($line."\n"), maxLineBytes: 64);
 
-        self::assertSame([$line], iterator_to_array($reader->lines(), false));
+        self::assertSame([$line], iterator_to_array($reader->getLines(), false));
     }
 
     public function testThrowsWhenPendingBufferExceedsCapBeforeDelimiter(): void
@@ -109,7 +109,7 @@ final class LineReaderTest extends TestCase
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessageMatches('/^Line exceeded the 64-byte cap before a delimiter was found\.$/');
 
-        iterator_to_array($reader->lines(), false);
+        iterator_to_array($reader->getLines(), false);
     }
 
     public function testThrowsWhenCompletedLineExceedsCap(): void
@@ -122,7 +122,7 @@ final class LineReaderTest extends TestCase
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessageMatches('/^Line exceeded the 64-byte cap before a delimiter was found\.$/');
 
-        iterator_to_array($reader->lines(), false);
+        iterator_to_array($reader->getLines(), false);
     }
 
     public function testThrowsWhenTrailingPartialLineAtEofExceedsCap(): void
@@ -136,6 +136,6 @@ final class LineReaderTest extends TestCase
 
         $this->expectException(\RuntimeException::class);
 
-        iterator_to_array($reader->lines(), false);
+        iterator_to_array($reader->getLines(), false);
     }
 }

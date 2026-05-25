@@ -34,7 +34,7 @@ final readonly class TaskStatusNotification extends JsonRpcNotification implemen
     }
 
     #[\Override]
-    public static function method(): string
+    public static function getMethod(): string
     {
         return 'notifications/tasks/status';
     }

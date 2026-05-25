@@ -35,7 +35,7 @@ final readonly class CompleteRequest extends JsonRpcRequest implements ClientReq
     }
 
     #[\Override]
-    public static function method(): string
+    public static function getMethod(): string
     {
         return 'completion/complete';
     }

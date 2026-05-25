@@ -35,7 +35,7 @@ final readonly class CancelTaskRequest extends JsonRpcRequest implements ClientR
     }
 
     #[\Override]
-    public static function method(): string
+    public static function getMethod(): string
     {
         return 'tasks/cancel';
     }

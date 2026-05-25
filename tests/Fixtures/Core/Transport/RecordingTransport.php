@@ -124,7 +124,7 @@ final class RecordingTransport implements TransportInterface
     }
 
     #[\Override]
-    public function sessionId(): ?string
+    public function getSessionId(): ?string
     {
         return $this->sessionId;
     }

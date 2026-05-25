@@ -4,10 +4,10 @@ The `Client` class drives the client side of an MCP session over a `TransportInt
 fluent `ClientBuilder`, connect it to a transport, run the handshake, then issue typed requests.
 
 ```php
-use Nexus\Mcp\Client\Client;
+use Nexus\Mcp\Client\ClientBuilder;
 use Nexus\Mcp\Client\Transport\StdioClientTransport;
 
-$client = Client::builder()
+$client = new ClientBuilder()
     ->setClientInfo(name: 'my-client', version: '1.0.0')
     ->build()
 ;
@@ -180,7 +180,7 @@ Register handlers for server-to-client notifications at build time. A handler im
 ```php
 use Nexus\Mcp\Core\Schema\Notification\LoggingMessageNotification;
 
-->addNotificationHandler(LoggingMessageNotification::method(), $myLoggingHandler)
+->addNotificationHandler(LoggingMessageNotification::getMethod(), $myLoggingHandler)
 ```
 
 A build-time `notifications/progress` handler receives every progress notification whose token is **not**
