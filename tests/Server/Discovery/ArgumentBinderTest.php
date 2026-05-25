@@ -120,6 +120,37 @@ final class ArgumentBinderTest extends TestCase
         self::assertSame(['Ada', $context, 1], $this->bind('mixedOrder', ['name' => 'Ada'], $context));
     }
 
+    public function testSpreadsAVariadicListIntoThePack(): void
+    {
+        self::assertSame(['a', 'b', 'c'], $this->bind('variadicStrings', ['tags' => ['a', 'b', 'c']]));
+    }
+
+    public function testAbsentVariadicBindsToAnEmptyPack(): void
+    {
+        self::assertSame([], $this->bind('variadicStrings', []));
+    }
+
+    public function testHydratesEachVariadicElement(): void
+    {
+        self::assertSame(
+            [BackedStringEnum::A, BackedStringEnum::B],
+            $this->bind('variadicEnums', ['colors' => ['a', 'b']]),
+        );
+    }
+
+    public function testVariadicElementsFollowLeadingArguments(): void
+    {
+        self::assertSame(['p', 'x', 'y'], $this->bind('variadicWithLeading', ['prefix' => 'p', 'rest' => ['x', 'y']]));
+    }
+
+    public function testRejectsANonListVariadicValue(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessage('The "tags" argument must be a list, string given.');
+
+        $this->bind('variadicStrings', ['tags' => 'solo']);
+    }
+
     public function testRejectsUnknownBackedEnumValue(): void
     {
         $this->expectException(ExpectationFailedException::class);

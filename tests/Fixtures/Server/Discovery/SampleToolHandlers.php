@@ -93,6 +93,22 @@ final class SampleToolHandlers
     {
     }
 
+    public function variadicStrings(string ...$tags): void
+    {
+    }
+
+    /**
+     * @param string ...$labels A label to apply.
+     */
+    public function variadicDescribed(string ...$labels): void
+    {
+    }
+
+    // @phpstan-ignore missingType.parameter
+    public function variadicUntyped(...$values): void
+    {
+    }
+
     public function contextNotLast(ServerContext $context, string $value): void
     {
     }

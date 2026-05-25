@@ -78,6 +78,21 @@ final class ReflectedHandlers
         return \sprintf('%s/%s/%d', $name, $context->sessionId ?? 'none', $age);
     }
 
+    public function variadicStrings(string ...$tags): string
+    {
+        return implode(',', $tags);
+    }
+
+    public function variadicEnums(BackedStringEnum ...$colors): string
+    {
+        return implode(',', array_map(static fn(BackedStringEnum $color): string => $color->value, $colors));
+    }
+
+    public function variadicWithLeading(string $prefix, string ...$rest): string
+    {
+        return $prefix.implode('', $rest);
+    }
+
     public function toolResult(): CallToolResult
     {
         return new CallToolResult([new TextContent('done')], isError: true);

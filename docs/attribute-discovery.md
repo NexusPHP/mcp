@@ -66,6 +66,11 @@ parameter without a default value is marked required.
 A `ServerContext` parameter is injected and left out of the schema. All other arguments are bound to
 parameters by name, and backed or pure enum parameters are hydrated from the argument value.
 
+A variadic tool parameter (`T ...$x`) maps to an array input (`{"type": "array", "items": <T>}`), is never
+required, and the supplied list is spread back into the call. Variadic parameters are accepted only on tools,
+since prompts and resources receive flat string values. A variadic on a prompt, resource, or resource
+template throws `UnsupportedVariadicParameterException`.
+
 ```php
 use Nexus\Mcp\Server\Attribute\AsTool;
 use Nexus\Mcp\Server\Attribute\InputSchema;
@@ -110,7 +115,8 @@ attributes are rejected.
 - Only public methods are scanned.
 - Tool arguments are typed by the validated `inputSchema`, but prompt arguments and resource URI variables
   arrive as strings, so non-string scalar parameters are only meaningful on tools.
-- Variadic parameters are not supported.
+- Variadic parameters are accepted only on tools; on prompts and resources they throw
+  `UnsupportedVariadicParameterException`.
 - There is no filesystem auto-discovery and no class-level handler backend; `register()` takes explicit
   source objects.
 

@@ -19,6 +19,8 @@ in `0.x`, minor releases may include breaking changes.
 - `#[AsServer]` supplies the server identity and instructions. An explicit `setServerInfo()` /
   `setInstructions()` call wins per field and the attribute fills only the gaps, regardless of call order.
   More than one `#[AsServer]` across registered sources throws `DuplicateServerMetadataException`.
+- A variadic parameter on an `#[AsTool]` method maps to an array input and is spread back into the call. The
+  same parameter on a prompt, resource, or resource template throws `UnsupportedVariadicParameterException`.
 
 ### Changed
 

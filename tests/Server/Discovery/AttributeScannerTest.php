@@ -16,7 +16,12 @@ namespace Nexus\Mcp\Tests\Server\Discovery;
 use Nexus\Mcp\Core\Schema\Enum\TaskSupport;
 use Nexus\Mcp\Core\Schema\Prompt\Prompt;
 use Nexus\Mcp\Core\Schema\Prompt\PromptArgument;
+use Nexus\Mcp\Server\Attribute\AsPrompt;
+use Nexus\Mcp\Server\Attribute\AsResource;
+use Nexus\Mcp\Server\Attribute\AsResourceTemplate;
+use Nexus\Mcp\Server\Attribute\AsTool;
 use Nexus\Mcp\Server\Discovery\AttributeScanner;
+use Nexus\Mcp\Server\Exception\UnsupportedVariadicParameterException;
 use Nexus\Mcp\Server\Prompt\PromptEntry;
 use Nexus\Mcp\Server\Prompt\ReflectedPromptRenderer;
 use Nexus\Mcp\Server\Resource\ReflectedResourceReader;
@@ -192,6 +197,66 @@ final class AttributeScannerTest extends TestCase
         }
 
         self::assertNotContains('hidden', $toolNames);
+    }
+
+    public function testVariadicToolParameterIsAccepted(): void
+    {
+        $source = new class {
+            #[AsTool(description: 'Joins parts.')]
+            public function join(string ...$parts): string
+            {
+                return implode('', $parts);
+            }
+        };
+        $entries = iterator_to_array(new AttributeScanner()->scan($source), false);
+
+        self::assertCount(1, $entries);
+        self::assertInstanceOf(ToolEntry::class, $entries[0]);
+    }
+
+    public function testVariadicPromptParameterIsRejected(): void
+    {
+        $this->expectException(UnsupportedVariadicParameterException::class);
+        $this->expectExceptionMessageMatches('/^\S+\:\:brief\(\) declares a variadic parameter "\$topics"\./');
+
+        $source = new class {
+            #[AsPrompt(description: 'A prompt.')]
+            public function brief(string ...$topics): string
+            {
+                return implode(', ', $topics);
+            }
+        };
+        iterator_to_array(new AttributeScanner()->scan($source), false);
+    }
+
+    public function testVariadicResourceParameterIsRejected(): void
+    {
+        $this->expectException(UnsupportedVariadicParameterException::class);
+        $this->expectExceptionMessageMatches('/^\S+\:\:notes\(\) declares a variadic parameter "\$ids"\./');
+
+        $source = new class {
+            #[AsResource(uri: 'mem://notes')]
+            public function notes(string ...$ids): string
+            {
+                return implode(',', $ids);
+            }
+        };
+        iterator_to_array(new AttributeScanner()->scan($source), false);
+    }
+
+    public function testVariadicResourceTemplateParameterIsRejected(): void
+    {
+        $this->expectException(UnsupportedVariadicParameterException::class);
+        $this->expectExceptionMessageMatches('/^\S+\:\:note\(\) declares a variadic parameter "\$ids"\./');
+
+        $source = new class {
+            #[AsResourceTemplate(uriTemplate: 'mem://notes/{id}')]
+            public function note(string ...$ids): string
+            {
+                return implode(',', $ids);
+            }
+        };
+        iterator_to_array(new AttributeScanner()->scan($source), false);
     }
 
     /**

@@ -103,6 +103,35 @@ final class InputSchemaGeneratorTest extends TestCase
         ], self::generate('collections'));
     }
 
+    public function testVariadicParameterBecomesAnArray(): void
+    {
+        self::assertSame([
+            'type' => 'object',
+            '$schema' => self::DIALECT,
+            'properties' => ['tags' => ['type' => 'array', 'items' => ['type' => 'string']]],
+        ], self::generate('variadicStrings'));
+    }
+
+    public function testVariadicParameterCarriesItsDocblockDescription(): void
+    {
+        self::assertSame([
+            'type' => 'object',
+            '$schema' => self::DIALECT,
+            'properties' => [
+                'labels' => ['type' => 'array', 'items' => ['type' => 'string'], 'description' => 'A label to apply.'],
+            ],
+        ], self::generate('variadicDescribed'));
+    }
+
+    public function testUntypedVariadicParameterIsAnUntypedArray(): void
+    {
+        self::assertSame([
+            'type' => 'object',
+            '$schema' => self::DIALECT,
+            'properties' => ['values' => ['type' => 'array']],
+        ], self::generate('variadicUntyped'));
+    }
+
     public function testLiteralUnionParameterBecomesEnum(): void
     {
         self::assertSame([
