@@ -82,10 +82,11 @@ The 0.x line continues against MCP spec 2025-11-25 while the next revision is fi
 this window is scoped to changes that survive that revision unchanged; anything the revision reshapes is
 sequenced into the migration below instead.
 
-- [ ] Attribute-based registration (Tier 1): `#[AsTool]`, `#[AsResource]`, `#[AsPrompt]`, and
-  `#[AsResourceTemplate]` on methods, registered explicitly via `ServerBuilder::register()` (no filesystem
-  auto-discovery). Class-level backends come after the migration.
-- [ ] Generate a tool's input schema (JSON Schema 2020-12) from its PHP signature and docblock.
+- [x] Attribute-based registration (Tier 1): `#[AsTool]`, `#[AsResource]`, `#[AsPrompt]`, and
+  `#[AsResourceTemplate]` on methods, plus a class-level `#[AsServer]` for identity, registered explicitly
+  via `ServerBuilder::register()` (no filesystem auto-discovery). Class-level handler backends come after
+  the migration.
+- [x] Generate a tool's input schema (JSON Schema 2020-12) from its PHP signature and docblock.
 - [x] Architecture-boundary enforcement (StructArmed) and dependency-declaration checks
   (composer-dependency-analyser) guarding the eventual component split.
 - [x] More runnable examples (in-memory, completions plus templates, capability-aware client) on a shared

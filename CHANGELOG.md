@@ -8,6 +8,18 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp-sdk/commits/1.x)
 
+### Added
+
+- Attribute-based registration. Mark methods with `#[AsTool]`, `#[AsPrompt]`, `#[AsResource]`, or
+  `#[AsResourceTemplate]`, and a class with `#[AsServer]`, then register the object via
+  `ServerBuilder::register(object ...$sources)`. A tool's `inputSchema` and a prompt's `arguments` are
+  inferred from the method signature and `@param` docblocks (overridable per parameter with
+  `#[InputSchema]`); a `ServerContext` parameter is injected; and a plain return value (string, content
+  block, or schema object) is adapted to the matching result.
+- `#[AsServer]` supplies the server identity and instructions. An explicit `setServerInfo()` /
+  `setInstructions()` call wins per field and the attribute fills only the gaps, regardless of call order.
+  More than one `#[AsServer]` across registered sources throws `DuplicateServerMetadataException`.
+
 ### Changed
 
 - Mutation testing no longer times out while covering the shutdown coroutine drain.

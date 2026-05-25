@@ -1,0 +1,121 @@
+# Attribute discovery
+
+Attribute discovery is a higher-level alternative to the manual `addTool()` / `addPrompt()` /
+`addResource()` / `addResourceTemplate()` / `setServerInfo()` calls described in the
+[Server API](server.md). Mark methods on a plain object with attributes, then hand the object to
+`ServerBuilder::register()`. The explicit builder methods remain the substrate; this is sugar over them, so
+the two compose freely.
+
+```php
+use Nexus\Mcp\Server\Attribute\AsResource;
+use Nexus\Mcp\Server\Attribute\AsServer;
+use Nexus\Mcp\Server\Attribute\AsTool;
+use Nexus\Mcp\Server\Server;
+use Nexus\Mcp\Server\ServerContext;
+use Nexus\Mcp\Server\Transport\StdioServerTransport;
+
+#[AsServer(name: 'my-server', version: '1.0.0', instructions: 'Use the tools wisely.')]
+final class MyServer
+{
+    /**
+     * @param string $city The city to look up.
+     */
+    #[AsTool(description: 'Returns the weather for a city.')]
+    public function weather(string $city, ServerContext $context): string
+    {
+        return "It is sunny in {$city}.";
+    }
+
+    #[AsResource(uri: 'config://app', mimeType: 'application/json')]
+    public function appConfig(string $uri): string
+    {
+        return file_get_contents('/etc/app.json');
+    }
+}
+
+$server = Server::builder()->register(new MyServer())->build();
+$server->run(new StdioServerTransport());
+```
+
+`register()` takes any number of source objects and returns the builder, so it chains with the manual
+`add*` / `set*` methods.
+
+## What the attributes map to
+
+| Attribute | Target | Becomes |
+| --- | --- | --- |
+| `#[AsTool]` | method | a tool, with `inputSchema` inferred from the signature |
+| `#[AsPrompt]` | method | a prompt, with `arguments` inferred from the signature |
+| `#[AsResource]` | method | a static resource (requires `uri`) |
+| `#[AsResourceTemplate]` | method | an RFC 6570 templated resource (requires `uriTemplate`) |
+| `#[AsServer]` | class | the server identity and instructions |
+
+Each method attribute carries the same optional metadata as its schema class (`title`, `description`,
+`icons`, `annotations`, `meta`, ...). When `name` is omitted it falls back to the method name.
+
+## Input schemas and arguments
+
+For a tool, the `inputSchema` is generated from the parameter types and `@param` docblock lines: native and
+docblock types map to JSON Schema, `@param` text becomes the property description, and constraints such as
+`non-empty-string` or `int<1, 5>` are carried through. Override or extend the result per parameter (or for
+the whole method) with `#[InputSchema(...)]`.
+
+For a prompt, each parameter becomes a prompt argument: its `@param` line supplies the description, and a
+parameter without a default value is marked required.
+
+A `ServerContext` parameter is injected and left out of the schema. All other arguments are bound to
+parameters by name, and backed or pure enum parameters are hydrated from the argument value.
+
+```php
+use Nexus\Mcp\Server\Attribute\AsTool;
+use Nexus\Mcp\Server\Attribute\InputSchema;
+
+/**
+ * @param string $unit The temperature unit.
+ */
+#[AsTool(description: 'Forecasts the weather.')]
+public function forecast(
+    #[InputSchema(enum: ['celsius', 'fahrenheit'])]
+    string $unit,
+    int $days,
+): string {
+    // ...
+}
+```
+
+## Return values
+
+A handler may return the full result object (`CallToolResult`, `GetPromptResult`, `ReadResourceResult`) or
+a shorthand the SDK adapts:
+
+| Handler | Shorthand returns |
+| --- | --- |
+| tool | a `string` (wrapped as `TextContent`), a content block, a list of content blocks, or an array (treated as `structuredContent`) |
+| prompt | a `string` (wrapped as a `User` `TextContent` message), a `PromptMessage`, or a list of `PromptMessage` |
+| resource | a `string` (wrapped as `TextResourceContents` bound to the URI), a `ResourceContents`, or a list of `ResourceContents` |
+
+## Server identity precedence
+
+When both `#[AsServer]` and an explicit `setServerInfo()` / `setInstructions()` are present, the explicit
+call wins per field and the attribute fills only the gaps it left, regardless of call order. So
+`setServerInfo(name: 'x', version: '1.0.0')` alongside an `#[AsServer]` that also carries a `title` and
+`description` keeps your name and version while picking up the title and description from the attribute.
+
+At most one registered source may declare `#[AsServer]`; a second one throws
+`DuplicateServerMetadataException`. The setters keep their normal last-call-wins behaviour; only conflicting
+attributes are rejected.
+
+## Limitations
+
+- Only public methods are scanned.
+- Tool arguments are typed by the validated `inputSchema`, but prompt arguments and resource URI variables
+  arrive as strings, so non-string scalar parameters are only meaningful on tools.
+- Variadic parameters are not supported.
+- There is no filesystem auto-discovery and no class-level handler backend; `register()` takes explicit
+  source objects.
+
+## See also
+
+- **[examples/attribute-discovery.php](../examples/attribute-discovery.php)**: a runnable server built this way.
+- **[Server API](server.md)**: the manual `add*` / `set*` registration these attributes build on.
+- **[Design rationale](design-rationale.md)**: why explicit composition is the substrate and attribute discovery is layered on top.

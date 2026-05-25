@@ -89,6 +89,8 @@ See [Getting started](docs/getting-started.md) for the client side and a full wa
 - [Getting started](docs/getting-started.md): install plus a minimal server and client.
 - [Server API](docs/server.md): `ServerBuilder` reference (tools, prompts, resources, completions,
   handlers).
+- [Attribute discovery](docs/attribute-discovery.md): declare features with `#[AsTool]`, `#[AsServer]`, and
+  friends, registered via `ServerBuilder::register()`.
 - [Client API](docs/client.md): `ClientBuilder` and `Client` reference (handshake, typed requests,
   streaming progress).
 - [Transports](docs/transports.md): the stdio transport and the in-memory paired transport.

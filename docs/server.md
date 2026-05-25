@@ -217,6 +217,13 @@ and spec overrides to the correct entry point.
 See [examples/stdio-server.php](../examples/stdio-server.php) for a worked example of
 `replaceRequestHandler('logging/setLevel', ...)`.
 
+## Attribute discovery
+
+Tools, prompts, resources, and the server identity can also be declared with attributes (`#[AsTool]`,
+`#[AsPrompt]`, `#[AsResource]`, `#[AsResourceTemplate]`, `#[AsServer]`) on a plain object and registered in
+one call with `ServerBuilder::register()`. See [Attribute discovery](attribute-discovery.md) for the full
+reference.
+
 ## Capability advertisement
 
 `ServerCapabilities` is derived automatically from what you registered.
@@ -263,6 +270,7 @@ Every handler closure receives a `ServerContext` as its last argument.
 ## See also
 
 - **[Getting started](getting-started.md)**: install + minimal server.
+- **[Attribute discovery](attribute-discovery.md)**: declare features with `#[AsTool]` and friends.
 - **[Client API](client.md)**: the symmetric client-side reference.
 - **[Transports](transports.md)**: `StdioServerTransport` contract.
 - **[Architecture](architecture.md)**: dispatch kernel, layering, spec compliance.
