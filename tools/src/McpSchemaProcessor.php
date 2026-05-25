@@ -95,7 +95,6 @@ final class McpSchemaProcessor
     {
         $processedSchema = [];
         $internalSchema = [];
-        $unprocessedSchema = [];
 
         $iterator = new \RecursiveIteratorIterator(
             new \RecursiveDirectoryIterator(
