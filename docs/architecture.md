@@ -78,7 +78,7 @@ Both peers run a per-envelope inbound pipeline behind the shared
 [`MessageDispatcherInterface`](../src/Core/Dispatch/MessageDispatcherInterface.php):
 [`ServerMessageDispatcher`](../src/Server/Dispatch/ServerMessageDispatcher.php) on the server,
 [`ClientMessageDispatcher`](../src/Client/Dispatch/ClientMessageDispatcher.php) on the client. The two
-share the same shape; the structural difference is which direction owns response correlation.
+share the same shape. The structural difference is which direction owns response correlation.
 
 ```text
 inbound envelope (array)
@@ -115,7 +115,7 @@ The diagram traces the server. The client shares the request and notification ar
 places. First, the response-shape fork above: where the server discards a `result`/`error` envelope, the
 client correlates it to the pending outbound request it is awaiting, resolving on success or rejecting on
 error, and warns on an unknown ("orphan") id. Second, inbound requests and notifications are not
-init-gated on the client; it gates its own *outbound* sends in `Client::sendRequest()` instead, so the
+init-gated on the client. It gates its own *outbound* sends in `Client::sendRequest()` instead, so the
 `$gate->...` steps above are absent and the client simply runs the handler and replies. The client is
 thus both a responder (it answers peer `ping`, routes `notifications/progress` to per-call listeners, and
 surfaces `notifications/message`) and a requester (it awaits the responses to the calls it makes).
@@ -129,9 +129,9 @@ Holds the lifecycle phase (`AwaitingInitialize`, `InitializeInFlight`, `Initiali
 synchronously when the `initialize` request is accepted (before the handler runs). When the handler
 returns successfully, the coroutine calls `markInitializeCompleted()`, which folds the buffered
 notification flag into the transition: if `notifications/initialized` arrived while the handler was
-still running, the gate jumps `InitializeInFlight` -> `Initialized` directly; otherwise it transitions
+still running, the gate jumps `InitializeInFlight` -> `Initialized` directly. Otherwise it transitions
 to `InitializeCompleted` to wait for the notification. `markInitialized()` accepts both an in-flight
-arrival (buffers it) and a post-completion arrival (flips to `Initialized`); the buffer flag is cleared
+arrival (buffers it) and a post-completion arrival (flips to `Initialized`). The buffer flag is cleared
 on `revertInitializeInFlight()` so a retry handshake starts fresh.
 Consulted on every request to enforce the spec's "no other method may be invoked before `initialize`
 completes" rule. It also rejects a second `initialize` once one is in flight, and silently drops
@@ -142,7 +142,7 @@ or one already completed, or a duplicate during the buffered window).
 
 Symmetric to the server gate but simpler. The client *initiates* the handshake, so there is no race
 window between the request completing and the notification arriving. Three states only
-(`AwaitingInitialize`, `InitializeInFlight`, `Initialized`); no `InitializeCompleted` intermediate, no
+(`AwaitingInitialize`, `InitializeInFlight`, `Initialized`): no `InitializeCompleted` intermediate, no
 buffered-notification flag. `Client::initialize()` flips it `InitializeInFlight` synchronously before
 the request goes out, then to `Initialized` once both the result is awaited and the
 `notifications/initialized` is sent. Any throw mid-flight reverts to `AwaitingInitialize` so a retry
@@ -222,7 +222,7 @@ parent key:
   | `EnumOption` (array item under `oneOf`)                                                        | `"oneOf"`              |
 
 - **Multi-context classes** (e.g. `Implementation`, referenced under both `serverInfo` and `clientInfo`)
-  drop the prefix entirely; messages start with the field name directly:
+  drop the prefix entirely. Messages start with the field name directly:
 
   ```text
   '"name" must be a string, {type} given.'

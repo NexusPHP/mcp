@@ -24,7 +24,7 @@ $transport->close();
 ```
 
 `connect()` is non-blocking: it attaches the listener chain and starts the transport. There is no
-`Client::close()`; shut the session down by closing the transport, which cancels any pending requests with
+`Client::close()`. Shut the session down by closing the transport, which cancels any pending requests with
 a `TransportAlreadyClosedException`.
 
 ## Client info
@@ -73,7 +73,7 @@ $result = $client->initialize();
 
 `initialize()` sends the `initialize` request, awaits the result, validates the protocol version the server
 settled on, then sends `notifications/initialized`. It accepts an optional `ClientCapabilities` and
-`ProtocolVersion`; both default to an empty capability set and the latest supported protocol version. It
+`ProtocolVersion`. Both default to an empty capability set and the latest supported protocol version. It
 returns the `InitializeResult` and may be called only once per client. A second `initialize()` throws
 `ClientAlreadyInitializedException`, and any non-`ping` request issued before the handshake completes is
 rejected with `ClientNotInitializedException`.
@@ -107,11 +107,11 @@ if (null !== $client->getServerCapabilities()?->tools) {
 }
 ```
 
-`connect()` attaches and starts the transport; `disconnect()` is its inverse: it closes the transport and
+`connect()` attaches and starts the transport. `disconnect()` is its inverse: it closes the transport and
 detaches it (a no-op when not connected), so the client can `connect()` to a new transport afterwards.
 Calling `connect()` twice throws `ClientAlreadyConnectedException`, and using the client before `connect()`
 throws `ClientNotConnectedException`.
-Re-running `initialize()` over a reconnection is only possible after a handshake that did not complete; a
+Re-running `initialize()` over a reconnection is only possible after a handshake that did not complete. A
 client that already finished `initialize()` stays initialized.
 
 ```php
@@ -175,7 +175,7 @@ The callback signature is `\Closure(float $progress, ?float $total, ?string $mes
 ## Notification handlers
 
 Register handlers for server-to-client notifications at build time. A handler implements
-`NotificationHandlerInterface`; the dispatch table is keyed by method name.
+`NotificationHandlerInterface`. The dispatch table is keyed by method name.
 
 ```php
 use Nexus\Mcp\Core\Schema\Notification\LoggingMessageNotification;
@@ -217,7 +217,7 @@ method, including the `resources/subscribe` shown here, passes through ungated.
 3. **`initialize()`** runs the handshake. Exactly once.
 4. **Typed requests** correlate inbound responses to awaiting callers by `RequestId`.
 5. **Shutdown** is `($transport)->close()`. Pending requests are cancelled with
-   `TransportAlreadyClosedException`; in-flight notification handlers drain before the close listeners fire.
+   `TransportAlreadyClosedException`. In-flight notification handlers drain before the close listeners fire.
 
 ## See also
 

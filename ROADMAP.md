@@ -29,14 +29,14 @@ common dependency for both sides. With the symmetric surface in place, v0.1.0 is
 ## Near-term: client-side composition
 
 The next minor cycle ships the `Client` namespace as a symmetric peer of `Server`. The two sides share
-the same dispatch kernel, the same handler registry shape, and the same transport contract; only the
+the same dispatch kernel, the same handler registry shape, and the same transport contract. Only the
 composition surface (`ClientBuilder`, the client-side stores) is new.
 
 Two protocol primitives land alongside the client namespace because both sides need them. The first is
 a shared `MessageDispatcherInterface` extracted from the original server-only `MessageDispatcher` (now
 `ServerMessageDispatcher`), so the client and server are written against the same contract. The second is a
 `PendingOutboundRequests` service under `Core/Dispatch/` that correlates inbound responses to awaiting
-senders by `RequestId`. It is a sibling of the dispatcher, not a slot on the transport contract; the
+senders by `RequestId`. It is a sibling of the dispatcher, not a slot on the transport contract. The
 transport stays a dumb pipe. The client uses it for every request it issues. The server will use it for
 server-initiated request methods once those land post-2026-07-28 (see below). Today
 `RequestBoundSender::sendRequest()` is a stub that throws `OutboundRequestsNotSupportedException`.
@@ -79,7 +79,7 @@ MCP spec.
 ## Before the next spec revision (0.x interim)
 
 The 0.x line continues against MCP spec 2025-11-25 while the next revision is finalised upstream. Work in
-this window is scoped to changes that survive that revision unchanged; anything the revision reshapes is
+this window is scoped to changes that survive that revision unchanged. Anything the revision reshapes is
 sequenced into the migration below instead.
 
 - [x] Attribute-based registration (Tier 1): `#[AsTool]`, `#[AsResource]`, `#[AsPrompt]`, and
@@ -138,7 +138,7 @@ generic `JsonRpcResultResponse<TResult>` splits into 18 per-method response enve
   (`inputResponses` + `requestState`). The client retries by re-issuing the original request, so there
   is no `tasks/input_response` method.
 - [ ] Generate 18 per-method `*ResultResponse` envelope classes.
-- [ ] Delete `UrlElicitationRequiredError` (-32042) entirely; the success-result-based mechanism
+- [ ] Delete `UrlElicitationRequiredError` (-32042) entirely. The success-result-based mechanism
   replaces it.
 
 ### Tool schema relaxation (SEP-2106)
@@ -183,12 +183,12 @@ defines how downstream SDKs register opt-in extensions and how `ServerCapabiliti
   `ServerCapabilities.extensions` slot.
 - [ ] Move task classes to `Nexus\Mcp\Extension\Tasks\*` and prune the deleted methods (`tasks/list`,
   `tasks/result`, `tasks/create`).
-- [ ] Add `tasks/update`; route `CreateTaskResult` through the `resultType: "task"` discriminator.
+- [ ] Add `tasks/update` and route `CreateTaskResult` through the `resultType: "task"` discriminator.
 
 ### MCP Apps
 
 The first official non-tasks extension. Defines a `ui://` URI scheme and a sandboxed iframe interaction
-model. Optional; built on top of the extensions framework above.
+model. Optional, built on top of the extensions framework above.
 
 - [ ] Implement when a downstream consumer asks for it. Not on the critical path.
 

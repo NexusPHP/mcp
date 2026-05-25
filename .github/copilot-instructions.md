@@ -86,7 +86,7 @@ composer spec:snapshot-anchors
 ### Core Package
 
 The `Core/` subdirectory owns all MCP protocol types. These are modeled as immutable readonly classes or enums under `Nexus\Mcp\Core\`.
-No server or client logic belongs here; only types, interfaces, and JSON-RPC primitives.
+No server or client logic belongs here: only types, interfaces, and JSON-RPC primitives.
 It can also provide abstract classes or traits for shared logic, but it should not have any concrete implementations of protocol handling.
 All protocol envelope contracts (request/response/notification payload schemas) must be defined in `Core` even if one side typically originates them.
 
@@ -125,8 +125,8 @@ Conformance tests live in `tests/AutoReview/`, which is also the home for all ot
 - Strict types declared in every file: `declare(strict_types=1);`
 - Namespace root: `Nexus\Mcp\` with subnamespaces for `Core`, `Server`, and `Client` (e.g., `Nexus\Mcp\Core\`, `Nexus\Mcp\Server\`, `Nexus\Mcp\Client\`)
 - Readonly classes for value objects and protocol types
-- No public mutable properties; use constructor promotion with `readonly`
-- PHPStan at max level; all code must pass without `@phpstan-ignore`. Test code can use `@phpstan-ignore` if necessary, but production code should not.
+- No public mutable properties. Use constructor promotion with `readonly`
+- PHPStan at max level. All code must pass without `@phpstan-ignore`. Test code can use `@phpstan-ignore` if necessary, but production code should not.
 - Code style should use the `Nexus84` preset from Nexus CS Config. Use that library to construct the config for PHP-CS-Fixer.
 - Classes should be final by default unless they are designed for extension (e.g., abstract classes or interfaces).
 - Properties, parameters, and return types should be fully typed. Use `mixed` only when absolutely necessary, and prefer union types or generics (via docblocks) to express complex types.

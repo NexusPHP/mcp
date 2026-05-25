@@ -864,7 +864,7 @@ final class LineDuplexTest extends TestCase
         EventLoop::run();
 
         // One-off use of reflection: pruning the side-channel bookkeeping is a
-        // memory-leak fix with no behavioral observable (awaiting an already
+        // memory-leak fix with no behavioural observable (awaiting an already
         // completed future is a no-op), so there is nothing on the public surface
         // to assert. This is not a precedent for testing private state generally.
         $completions = new \ReflectionProperty(LineDuplex::class, 'sideChannelCompletions')->getValue($duplex);

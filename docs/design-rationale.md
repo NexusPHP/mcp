@@ -27,7 +27,7 @@ against that bar.
 Servers and clients are assembled through fluent builders (`ServerBuilder`, `ClientBuilder`) with typed
 registration methods. Dispatch is a method-name to handler table resolved at registration time, not a
 polymorphic `supports()` walk or a runtime reflection scan. There is no service locator and no static
-access to shared services; dependencies are constructor-injected. The trade is a little more typing at
+access to shared services. Dependencies are constructor-injected. The trade is a little more typing at
 setup for a surface that an IDE and a static analyser can both follow end to end.
 
 Attribute-based discovery (`#[AsTool]` and friends) is a deliberate, sequenced addition rather than a
@@ -46,7 +46,7 @@ gain HTTP without a breaking change. See [docs/transports.md](transports.md).
 
 When a choice trades protocol strictness for SDK-side ease, the SDK takes the strict reading and pushes
 the cost onto its own surrounding code, never onto the message contract. Schema classes are value objects
-locked to the MCP shape; internal micro-DRY is declined where it would add an abstraction layer over
+locked to the MCP shape. Internal micro-DRY is declined where it would add an abstraction layer over
 byte-identical, spec-fixed structures. Spec-covered edge cases (failed handshake, malformed envelopes,
 out-of-order notifications) are treated as required, not optional.
 

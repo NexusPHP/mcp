@@ -14,7 +14,7 @@ in `0.x`, minor releases may include breaking changes.
   `#[AsResourceTemplate]`, and a class with `#[AsServer]`, then register the object via
   `ServerBuilder::register(object ...$sources)`. A tool's `inputSchema` and a prompt's `arguments` are
   inferred from the method signature and `@param` docblocks (overridable per parameter with
-  `#[InputSchema]`); a `ServerContext` parameter is injected; and a plain return value (string, content
+  `#[InputSchema]`). A `ServerContext` parameter is injected, and a plain return value (string, content
   block, or schema object) is adapted to the matching result.
 - `#[AsServer]` supplies the server identity and instructions. An explicit `setServerInfo()` /
   `setInstructions()` call wins per field and the attribute fills only the gaps, regardless of call order.
@@ -52,8 +52,8 @@ in `0.x`, minor releases may include breaking changes.
 - `StdioClientTransport` now prunes the spawned subprocess environment by default instead of inheriting the
   full parent environment. The `env` constructor argument changed from `array $env = []` to
   `?array $env = null`: `null` (default) passes a safe allowlist (`PATH`, `HOME`, `TERM`, …) drawn from the
-  parent and skips exported shell-function values; an empty array still inherits the full parent
-  environment; a non-empty array is passed verbatim.
+  parent and skips exported shell-function values. An empty array still inherits the full parent
+  environment. A non-empty array is passed verbatim.
 
 ## [v0.2.0](https://github.com/NexusPHP/mcp-sdk/compare/v0.1.0...v0.2.0) - 2026-05-24
 

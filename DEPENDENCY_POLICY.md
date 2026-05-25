@@ -13,7 +13,7 @@ constants, readonly classes, constructor property promotion, asymmetric visibili
 | PHP version | Status |
 | --- | --- |
 | 8.4 | Supported (current minimum) |
-| 8.5 | Planned; the floor moves to 8.5 in a future release, after which `Arrayable::fromArray()` relaxes from `: static` to `: self` |
+| 8.5 | Planned. The floor moves to 8.5 in a future release, after which `Arrayable::fromArray()` relaxes from `: static` to `: self` |
 | 8.3 and earlier | Not supported |
 
 The floor tracks the [PHP supported-versions calendar](https://www.php.net/supported-versions.php) at the
@@ -32,7 +32,7 @@ Production dependencies are kept deliberately small and are declared with caret 
 - **HTTP (added with the Streamable HTTP transport):** `psr/http-message`, `psr/http-factory`,
   `psr/http-server-handler`.
 
-`composer.lock` is intentionally not committed; run `composer update` on setup. Development tooling
+`composer.lock` is intentionally not committed. Run `composer update` on setup. Development tooling
 (PHP-CS-Fixer, Infection, StructArmed, composer-dependency-analyser) lives in a separate `tools/`
 project so it never enters the SDK's own dependency graph. Shadow and unused dependencies are caught in
 CI by `composer deps:check` (shipmonk/composer-dependency-analyser).
@@ -49,7 +49,7 @@ CI by `composer deps:check` (shipmonk/composer-dependency-analyser).
 
 ## End-of-life
 
-While in `0.x`, only the latest minor receives fixes; there are no long-term-support branches before
+While in `0.x`, only the latest minor receives fixes. There are no long-term-support branches before
 1.0. From 1.0 onward, the supported-release window is defined alongside the 1.0 release. An SDK release
 stops receiving updates once a newer release supersedes it under these rules.
 

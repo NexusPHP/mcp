@@ -3,7 +3,7 @@
 Attribute discovery is a higher-level alternative to the manual `addTool()` / `addPrompt()` /
 `addResource()` / `addResourceTemplate()` / `setServerInfo()` calls described in the
 [Server API](server.md). Mark methods on a plain object with attributes, then hand the object to
-`ServerBuilder::register()`. The explicit builder methods remain the substrate; this is sugar over them, so
+`ServerBuilder::register()`. The explicit builder methods remain the substrate. This is sugar over them, so
 the two compose freely.
 
 ```php
@@ -38,7 +38,7 @@ $server->run(new StdioServerTransport());
 ```
 
 `register()` takes any number of source objects and returns the builder, so it chains with the manual
-`add*` / `set*` methods. Each source must carry at least one discoverable attribute; a source with no
+`add*` / `set*` methods. Each source must carry at least one discoverable attribute. A source with no
 `#[AsServer]` and no attribute-marked method throws `MissingDiscoveryAttributeException`, which catches
 typo'd attribute names and objects passed in by mistake.
 
@@ -127,8 +127,8 @@ call wins per field and the attribute fills only the gaps it left, regardless of
 `setServerInfo(name: 'x', version: '1.0.0')` alongside an `#[AsServer]` that also carries a `title` and
 `description` keeps your name and version while picking up the title and description from the attribute.
 
-At most one registered source may declare `#[AsServer]`; a second one throws
-`DuplicateServerMetadataException`. The setters keep their normal last-call-wins behaviour; only conflicting
+At most one registered source may declare `#[AsServer]`. A second one throws
+`DuplicateServerMetadataException`. The setters keep their normal last-call-wins behaviour. Only conflicting
 attributes are rejected.
 
 ## Limitations
@@ -136,11 +136,11 @@ attributes are rejected.
 - Only public methods are scanned.
 - Tool arguments are typed by the validated `inputSchema`, but prompt arguments and resource URI variables
   arrive as strings, so non-string scalar parameters are only meaningful on tools.
-- Variadic parameters are accepted only on tools; on prompts and resources they throw
+- Variadic parameters are accepted only on tools. On prompts and resources they throw
   `UnsupportedVariadicParameterException`.
 - Object (DTO) expansion is one level deep and tool-only. A constructor parameter typed as another class, a
   list of objects, an interface, or an abstract class is not expanded and throws.
-- There is no filesystem auto-discovery and no class-level handler backend; `register()` takes explicit
+- There is no filesystem auto-discovery and no class-level handler backend. `register()` takes explicit
   source objects.
 
 ## See also

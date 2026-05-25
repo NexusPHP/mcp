@@ -18,7 +18,7 @@ use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
- * Pins the shape of standalone schema payload types — value objects
+ * Pins the shape of standalone schema payload types: value objects
  * that appear inside JSON-RPC envelopes but also have meaningful identity
  * on their own. Each fixture is a hand-authored, pretty-printed JSON file
  * under `schema-payload/{Class}/{variant}.json`. The test decodes the

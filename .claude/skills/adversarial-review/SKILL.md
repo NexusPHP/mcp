@@ -1,7 +1,7 @@
 ---
 name: adversarial-review
 description: Project-local adversarial review for the Nexus MCP SDK. Spawns four parallel red-team subagents (spec faithfulness, concurrency, mutation gaps, edge-case bug hunt) and pre-seeds each with the repo's durable review conventions so they skip already-decided ground. Use after a non-trivial design landing, before merging hard-to-reverse changes, or when reviewing a phase/subsystem at steady state. Skip for mechanical refactors, formatting, dependency bumps.
-argument-hint: "[optional scope, e.g. 'server runtime', 'transport layer', PR number; defaults to uncommitted working-tree changes]"
+argument-hint: "[optional scope, e.g. 'server runtime', 'transport layer', or a PR number. Defaults to uncommitted working-tree changes]"
 ---
 
 # Adversarial review (mcp-sdk project-local)
@@ -45,7 +45,7 @@ Identify three to five **design intentions that should NOT be flagged** as bugs 
 
 The repo-wide review-time conventions live in a shared file, [`review-preseed.md`](../review-preseed.md), so this skill and `/simplify` runs stay in lockstep instead of each carrying its own copy. Read it and **include its "Already-decided" and "Verified-correct" blocks verbatim in every subagent prompt** so all four frames respect the same boundaries regardless of which contributor invokes the skill. The file is committed to the repo, so the skill stays self-contained for any contributor. When a review settles that something is correct-as-is or deferred, add it to that file so the next review skips it.
 
-If the contributor has additional do-not-critique context from the conversation (specific renames, intentional duplication, behavior covered in conversation), append those under "Session-specific do-not-critique" so the agent sees both.
+If the contributor has additional do-not-critique context from the conversation (specific renames, intentional duplication, behaviour covered in conversation), append those under "Session-specific do-not-critique" so the agent sees both.
 
 **Harvest the actual composer script names.** Do not invent by analogy.
 
@@ -117,7 +117,7 @@ Each agent prompt MUST include all of the following (in addition to its frame-sp
     > - For "API surface drifts from spec" claims: cite the spec line (`latest-schema.json` path or upstream `schema.ts` link).
     > - For "concurrency race" claims: trace the specific event-loop ordering. State which fiber is in which state at each step.
     >
-    > If you cannot ground the finding, mark it `severity: low` and prefix the headline with **`UNVERIFIED:`**. The contributor would rather see five grounded findings and one unverified hunch than ten unverified hunches. Treat unverified findings as the **exception**, not the default. The prior session burned hours triaging mutation-noise predictions that did not actually escape; do not repeat that.
+    > If you cannot ground the finding, mark it `severity: low` and prefix the headline with **`UNVERIFIED:`**. The contributor would rather see five grounded findings and one unverified hunch than ten unverified hunches. Treat unverified findings as the **exception**, not the default. The prior session burned hours triaging mutation-noise predictions that did not actually escape. Do not repeat that.
     >
     > It is fine, even good, to report a frame as "no findings" when the system genuinely holds up under your inspection. Saying "I checked X, Y, Z and they all hold" beats inventing critique to fill quota.
 
@@ -160,7 +160,7 @@ Hunt for:
 - Capability-advertising honesty (advertised then handler wired, in both directions).
 - Initialize handshake (protocolVersion negotiation, capability echo).
 - JSON-RPC envelope shape on the protocol layer (id is string|int|null, method is string, params is object|array|omitted, result/error mutually exclusive, `jsonrpc: "2.0"` required).
-- Batch handling (spec 2025-11-25 REMOVED batches; receiver MUST reject).
+- Batch handling (spec 2025-11-25 REMOVED batches, so the receiver MUST reject).
 - Stdio framing (newline-delimited JSON, no embedded newlines, exactly one envelope per line, CRLF/BOM/empty-line handling).
 
 ### A2: Concurrency / runtime correctness
@@ -203,7 +203,7 @@ Hunt for the mutator patterns that survive when nothing asserts on them:
 
 For each suspect: predict the specific Infection mutator that would survive AND the assertion that would kill it. Then run scoped mutation testing on that file and report the actual outcome. If the prediction was wrong (mutant killed), drop the finding. If you cannot run mutation testing for some reason, mark the finding `UNVERIFIED` per Step 5 rule 6.
 
-Per the project convention, error-path tests use `expectExceptionMessageMatches('/^anchored …$/')` with both `^` and `$` anchors. Substring-matching `expectExceptionMessage` is acceptable when the wording is generated from a literal and scoped mutation shows the source's string mutators are still killed; do not flag it as a gap on appearance alone.
+Per the project convention, error-path tests use `expectExceptionMessageMatches('/^anchored …$/')` with both `^` and `$` anchors. Substring-matching `expectExceptionMessage` is acceptable when the wording is generated from a literal and scoped mutation shows the source's string mutators are still killed. Do not flag it as a gap on appearance alone.
 
 ### A4: Edge-case / adversarial-peer bug hunt
 
@@ -213,7 +213,7 @@ Hunt for:
 
 - Parser DoS (single envelope O(n²)+ to parse).
 - Memory exhaustion (unbounded single envelope, unbounded in-flight, unbounded log buffers).
-- Type confusion at the parser boundary (`id: true`, `id: 1.5`, `id: {}`, `id: []`; correct rejection with `-32600` and `id: null`).
+- Type confusion at the parser boundary (`id: true`, `id: 1.5`, `id: {}`, `id: []`, with correct rejection via `-32600` and `id: null`).
 - Reused request ids (concurrent dispatch with same id, peer-side response misattribution).
 - id collisions across types (`id: 1` vs `id: "1"`).
 - Notification-dressed-as-request and vice versa.
@@ -277,6 +277,6 @@ Do not assume these skip `.claude/` paths. The no-prose-semicolon hook was obser
 
 ## Notes on prompt strength
 
-Stronger framing produces stronger critique. *"Be sceptical"* is okay; *"Assume this subsystem has at least three real bugs in each frame and find them"* is better at flushing out concerns the agent would otherwise dismiss as nitpicks. Match framing to confidence that real findings exist. Overshoot if anything.
+Stronger framing produces stronger critique. *"Be sceptical"* is okay. *"Assume this subsystem has at least three real bugs in each frame and find them"* is better at flushing out concerns the agent would otherwise dismiss as nitpicks. Match framing to confidence that real findings exist. Overshoot if anything.
 
 The four-agent shape works precisely because each frame is narrow. Do not stack multiple frames into one agent ("security + performance + API design" all at once produces surface-level critique across the board). If a frame is not applicable to the scope, drop it. Do not merge it into another.

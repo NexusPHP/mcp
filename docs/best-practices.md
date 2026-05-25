@@ -18,7 +18,7 @@ client's `logging/setLevel` requests.
 
 **Signal tool failures with `isError`, not exceptions.** A tool that fails for a domain reason (bad input
 the schema allowed, an upstream timeout) should return a `CallToolResult` with `isError: true` and a
-descriptive content block. Reserve thrown exceptions for protocol-level faults; the dispatcher turns an
+descriptive content block. Reserve thrown exceptions for protocol-level faults. The dispatcher turns an
 uncaught handler throwable into a generic `-32603` so internal details never leak. See
 [error handling](error-handling.md).
 
@@ -27,7 +27,7 @@ uncaught handler throwable into a generic `-32603` so internal details never lea
 results after, so your handler can assume well-formed input.
 
 **Register everything before `run()`.** Tools, prompts, resources, handlers, and the logger all register
-on the builder; the built `Server` is immutable. There is no runtime registration, so compose fully, then
+on the builder. The built `Server` is immutable. There is no runtime registration, so compose fully, then
 call `Server::run()`.
 
 ## Client
@@ -57,8 +57,8 @@ sending. See [examples/capability-aware-client.php](../examples/capability-aware
 to surface the server's log notifications.
 
 **Mind that requests currently have no timeout.** A request to a hung or slow server blocks the calling
-fiber until the transport closes. Per-request timeouts are a planned addition (see [ROADMAP.md](../ROADMAP.md));
-until then, close the transport to unblock a stuck call.
+fiber until the transport closes. Per-request timeouts are a planned addition (see [ROADMAP.md](../ROADMAP.md)).
+Until then, close the transport to unblock a stuck call.
 
 ## Both sides
 

@@ -592,7 +592,7 @@ final class SchemaConformanceTest extends TestCase
 
                 if (\array_key_exists($basename, self::getSpecUnions())) {
                     // Candidate is itself a spec union (e.g. `JSONRPCResponse`
-                    // sitting under the broader `JSONRPCMessage`); license
+                    // sitting under the broader `JSONRPCMessage`). License
                     // it via its own union's members rather than the parent.
                     continue;
                 }
@@ -1080,7 +1080,7 @@ final class SchemaConformanceTest extends TestCase
             }
 
             if (! \is_string($name) || ! isset(self::$sortedSchema['processed_schema'][$name])) {
-                // Union whose PHP marker hasn't been built yet; skip until it lands.
+                // Union whose PHP marker hasn't been built yet. Skip until it lands.
                 continue;
             }
 

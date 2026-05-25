@@ -143,7 +143,7 @@ final class SourceCodeTest extends TestCase
 
         $report = array_map(
             static fn(array $violation): string => \sprintf(
-                '  line %d: `%s %s ...(...)` — function call must be on the LEFT of the comparison operator.',
+                '  line %d: `%s %s ...(...)`. Function call must be on the LEFT of the comparison operator.',
                 $violation['line'],
                 $violation['literal'],
                 $violation['operator'],

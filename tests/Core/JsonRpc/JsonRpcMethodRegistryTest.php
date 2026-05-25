@@ -91,8 +91,8 @@ final class JsonRpcMethodRegistryTest extends TestCase
     /**
      * Verifies the registry's iteration order matches `sort()` on its keys.
      * The order itself is human-meaningful (entries are easier to find when
-     * grouped by method-name prefix), so a regression — e.g. appending a
-     * new entry at the bottom instead of at its sorted position — should
+     * grouped by method-name prefix), so a regression (e.g. appending a
+     * new entry at the bottom instead of at its sorted position) should
      * fail the build rather than silently drift.
      *
      * @param array<non-empty-string, class-string> $registry

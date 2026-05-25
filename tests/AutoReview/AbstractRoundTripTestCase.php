@@ -55,7 +55,7 @@ abstract class AbstractRoundTripTestCase extends TestCase
         $reEncoded = json_encode($instance, self::JSON_FLAGS | \JSON_THROW_ON_ERROR);
 
         self::assertSame($jsonString, $reEncoded, \sprintf(
-            'Canonical shape for "%s/%s" does not round-trip. Fixture is the source of truth — either the schema class\'s `toArray`/`jsonSerialize` drifted from the spec, or the fixture needs updating.',
+            'Canonical shape for "%s/%s" does not round-trip. Fixture is the source of truth: either the schema class\'s `toArray`/`jsonSerialize` drifted from the spec, or the fixture needs updating.',
             $dir,
             basename($fixturePath, '.json'),
         ));

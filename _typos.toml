@@ -1,13 +1,17 @@
 [default]
 locale = "en-gb"
 
-# Keep American spelling for MCP spec class/method names, OAuth/HTTP headers,
-# `JsonSerializable`, the PHP normaliser idiom, composer/phpunit CLI tokens,
-# the American `-or` spellings, and the PHP `\Fiber` language concept.
 extend-ignore-words-re = [
     "(?i)^(initializ|serializ|normaliz|optimiz|authoriz|contextualiz)(e|es|ed|er|ation)$",
-    "(?i)^(colors?|behavior(al|s)?|flavor(ed)?)$",
+    "(?i)^(colors?|flavor(ed)?)$",
     "(?i)^fibers?$",
+]
+
+# Spec-verbatim MCP schema descriptions are American English and are pinned by
+# the conformance test, so the American spelling stays only inside these phrases.
+extend-ignore-re = [
+    "Controls tool selection behavior for sampling requests\\.",
+    "tool behavior \\(including descriptive properties",
 ]
 
 [files]

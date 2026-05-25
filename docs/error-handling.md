@@ -19,7 +19,7 @@ try {
 Exceptions live in three namespaces, all under the same marker: `Nexus\Mcp\Core\Exception\*` (protocol and
 transport), `Nexus\Mcp\Server\Exception\*` (server-side handler and lifecycle), and
 `Nexus\Mcp\Client\Exception\*` (client-side lifecycle and capability gating). Implementation-detail
-exceptions are tagged `@internal`; PHPStan flags external use of them.
+exceptions are tagged `@internal`. PHPStan flags external use of them.
 
 ## JSON-RPC error codes
 
