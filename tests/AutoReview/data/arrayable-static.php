@@ -20,12 +20,12 @@ use Nexus\Mcp\Core\Schema\Error\ParseError;
 use Nexus\Mcp\Core\Schema\Icon;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\MetaObject;
-use Nexus\Mcp\Core\Schema\Notification;
+use Nexus\Mcp\Core\Schema\Notification\InitializedNotification;
 use Nexus\Mcp\Core\Schema\NotificationParams;
-use Nexus\Mcp\Core\Schema\Request;
+use Nexus\Mcp\Core\Schema\Request\PingRequest;
 use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams;
-use Nexus\Mcp\Core\Schema\Result;
+use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 
 use function PHPStan\Testing\assertType;
 
@@ -34,7 +34,7 @@ assertType(Annotations::class, Annotations::fromArray([]));
 assertType(MetaObject::class, MetaObject::fromArray([]));
 assertType(RequestMetaObject::class, RequestMetaObject::fromArray([]));
 
-assertType(Result\EmptyResult::class, Result\EmptyResult::fromArray([]));
+assertType(EmptyResult::class, EmptyResult::fromArray([]));
 
 assertType(ParseError::class, ParseError::fromArray([]));
 assertType(InvalidRequestError::class, InvalidRequestError::fromArray([]));
@@ -46,6 +46,6 @@ assertType(JsonRpcErrorResponse::class, JsonRpcErrorResponse::fromArray([]));
 assertType(RequestParams::class, RequestParams::fromArray([]));
 assertType(NotificationParams::class, NotificationParams::fromArray([]));
 
-assertType(Request\PingRequest::class, Request\PingRequest::fromArray(['id' => 1]));
+assertType(PingRequest::class, PingRequest::fromArray(['id' => 1]));
 
-assertType(Notification\InitializedNotification::class, Notification\InitializedNotification::fromArray([]));
+assertType(InitializedNotification::class, InitializedNotification::fromArray([]));

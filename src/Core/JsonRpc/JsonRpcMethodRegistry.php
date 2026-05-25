@@ -15,8 +15,37 @@ namespace Nexus\Mcp\Core\JsonRpc;
 
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
-use Nexus\Mcp\Core\Schema\Notification;
-use Nexus\Mcp\Core\Schema\Request;
+use Nexus\Mcp\Core\Schema\Notification\CancelledNotification;
+use Nexus\Mcp\Core\Schema\Notification\ElicitationCompleteNotification;
+use Nexus\Mcp\Core\Schema\Notification\InitializedNotification;
+use Nexus\Mcp\Core\Schema\Notification\LoggingMessageNotification;
+use Nexus\Mcp\Core\Schema\Notification\ProgressNotification;
+use Nexus\Mcp\Core\Schema\Notification\PromptListChangedNotification;
+use Nexus\Mcp\Core\Schema\Notification\ResourceListChangedNotification;
+use Nexus\Mcp\Core\Schema\Notification\ResourceUpdatedNotification;
+use Nexus\Mcp\Core\Schema\Notification\RootsListChangedNotification;
+use Nexus\Mcp\Core\Schema\Notification\TaskStatusNotification;
+use Nexus\Mcp\Core\Schema\Notification\ToolListChangedNotification;
+use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
+use Nexus\Mcp\Core\Schema\Request\CancelTaskRequest;
+use Nexus\Mcp\Core\Schema\Request\CompleteRequest;
+use Nexus\Mcp\Core\Schema\Request\CreateMessageRequest;
+use Nexus\Mcp\Core\Schema\Request\ElicitRequest;
+use Nexus\Mcp\Core\Schema\Request\GetPromptRequest;
+use Nexus\Mcp\Core\Schema\Request\GetTaskPayloadRequest;
+use Nexus\Mcp\Core\Schema\Request\GetTaskRequest;
+use Nexus\Mcp\Core\Schema\Request\InitializeRequest;
+use Nexus\Mcp\Core\Schema\Request\ListPromptsRequest;
+use Nexus\Mcp\Core\Schema\Request\ListResourcesRequest;
+use Nexus\Mcp\Core\Schema\Request\ListResourceTemplatesRequest;
+use Nexus\Mcp\Core\Schema\Request\ListRootsRequest;
+use Nexus\Mcp\Core\Schema\Request\ListTasksRequest;
+use Nexus\Mcp\Core\Schema\Request\ListToolsRequest;
+use Nexus\Mcp\Core\Schema\Request\PingRequest;
+use Nexus\Mcp\Core\Schema\Request\ReadResourceRequest;
+use Nexus\Mcp\Core\Schema\Request\SetLevelRequest;
+use Nexus\Mcp\Core\Schema\Request\SubscribeRequest;
+use Nexus\Mcp\Core\Schema\Request\UnsubscribeRequest;
 
 /**
  * Spec-default method → class maps consumed by `JsonRpcMessageParser`.
@@ -31,26 +60,26 @@ final class JsonRpcMethodRegistry
     public static function requests(): array
     {
         return [
-            Request\CompleteRequest::getMethod() => Request\CompleteRequest::class,
-            Request\ElicitRequest::getMethod() => Request\ElicitRequest::class,
-            Request\InitializeRequest::getMethod() => Request\InitializeRequest::class,
-            Request\SetLevelRequest::getMethod() => Request\SetLevelRequest::class,
-            Request\PingRequest::getMethod() => Request\PingRequest::class,
-            Request\GetPromptRequest::getMethod() => Request\GetPromptRequest::class,
-            Request\ListPromptsRequest::getMethod() => Request\ListPromptsRequest::class,
-            Request\ListResourcesRequest::getMethod() => Request\ListResourcesRequest::class,
-            Request\ReadResourceRequest::getMethod() => Request\ReadResourceRequest::class,
-            Request\SubscribeRequest::getMethod() => Request\SubscribeRequest::class,
-            Request\ListResourceTemplatesRequest::getMethod() => Request\ListResourceTemplatesRequest::class,
-            Request\UnsubscribeRequest::getMethod() => Request\UnsubscribeRequest::class,
-            Request\ListRootsRequest::getMethod() => Request\ListRootsRequest::class,
-            Request\CreateMessageRequest::getMethod() => Request\CreateMessageRequest::class,
-            Request\CancelTaskRequest::getMethod() => Request\CancelTaskRequest::class,
-            Request\GetTaskRequest::getMethod() => Request\GetTaskRequest::class,
-            Request\ListTasksRequest::getMethod() => Request\ListTasksRequest::class,
-            Request\GetTaskPayloadRequest::getMethod() => Request\GetTaskPayloadRequest::class,
-            Request\CallToolRequest::getMethod() => Request\CallToolRequest::class,
-            Request\ListToolsRequest::getMethod() => Request\ListToolsRequest::class,
+            CompleteRequest::getMethod() => CompleteRequest::class,
+            ElicitRequest::getMethod() => ElicitRequest::class,
+            InitializeRequest::getMethod() => InitializeRequest::class,
+            SetLevelRequest::getMethod() => SetLevelRequest::class,
+            PingRequest::getMethod() => PingRequest::class,
+            GetPromptRequest::getMethod() => GetPromptRequest::class,
+            ListPromptsRequest::getMethod() => ListPromptsRequest::class,
+            ListResourcesRequest::getMethod() => ListResourcesRequest::class,
+            ReadResourceRequest::getMethod() => ReadResourceRequest::class,
+            SubscribeRequest::getMethod() => SubscribeRequest::class,
+            ListResourceTemplatesRequest::getMethod() => ListResourceTemplatesRequest::class,
+            UnsubscribeRequest::getMethod() => UnsubscribeRequest::class,
+            ListRootsRequest::getMethod() => ListRootsRequest::class,
+            CreateMessageRequest::getMethod() => CreateMessageRequest::class,
+            CancelTaskRequest::getMethod() => CancelTaskRequest::class,
+            GetTaskRequest::getMethod() => GetTaskRequest::class,
+            ListTasksRequest::getMethod() => ListTasksRequest::class,
+            GetTaskPayloadRequest::getMethod() => GetTaskPayloadRequest::class,
+            CallToolRequest::getMethod() => CallToolRequest::class,
+            ListToolsRequest::getMethod() => ListToolsRequest::class,
         ];
     }
 
@@ -62,17 +91,17 @@ final class JsonRpcMethodRegistry
     public static function notifications(): array
     {
         return [
-            Notification\CancelledNotification::getMethod() => Notification\CancelledNotification::class,
-            Notification\ElicitationCompleteNotification::getMethod() => Notification\ElicitationCompleteNotification::class,
-            Notification\InitializedNotification::getMethod() => Notification\InitializedNotification::class,
-            Notification\LoggingMessageNotification::getMethod() => Notification\LoggingMessageNotification::class,
-            Notification\ProgressNotification::getMethod() => Notification\ProgressNotification::class,
-            Notification\PromptListChangedNotification::getMethod() => Notification\PromptListChangedNotification::class,
-            Notification\ResourceListChangedNotification::getMethod() => Notification\ResourceListChangedNotification::class,
-            Notification\ResourceUpdatedNotification::getMethod() => Notification\ResourceUpdatedNotification::class,
-            Notification\RootsListChangedNotification::getMethod() => Notification\RootsListChangedNotification::class,
-            Notification\TaskStatusNotification::getMethod() => Notification\TaskStatusNotification::class,
-            Notification\ToolListChangedNotification::getMethod() => Notification\ToolListChangedNotification::class,
+            CancelledNotification::getMethod() => CancelledNotification::class,
+            ElicitationCompleteNotification::getMethod() => ElicitationCompleteNotification::class,
+            InitializedNotification::getMethod() => InitializedNotification::class,
+            LoggingMessageNotification::getMethod() => LoggingMessageNotification::class,
+            ProgressNotification::getMethod() => ProgressNotification::class,
+            PromptListChangedNotification::getMethod() => PromptListChangedNotification::class,
+            ResourceListChangedNotification::getMethod() => ResourceListChangedNotification::class,
+            ResourceUpdatedNotification::getMethod() => ResourceUpdatedNotification::class,
+            RootsListChangedNotification::getMethod() => RootsListChangedNotification::class,
+            TaskStatusNotification::getMethod() => TaskStatusNotification::class,
+            ToolListChangedNotification::getMethod() => ToolListChangedNotification::class,
         ];
     }
 }

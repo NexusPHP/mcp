@@ -36,11 +36,15 @@ use Nexus\Mcp\Core\Schema\JsonRpc\PaginatedRequest;
 use Nexus\Mcp\Core\Schema\JsonRpc\UrlElicitationRequiredError;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Notification;
+use Nexus\Mcp\Core\Schema\Notification\ClientNotification;
+use Nexus\Mcp\Core\Schema\Notification\ServerNotification;
 use Nexus\Mcp\Core\Schema\NotificationParams;
 use Nexus\Mcp\Core\Schema\NotificationParams\ElicitationCompleteNotificationParams;
 use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
 use Nexus\Mcp\Core\Schema\ProtocolVersion;
 use Nexus\Mcp\Core\Schema\Request;
+use Nexus\Mcp\Core\Schema\Request\ClientRequest;
+use Nexus\Mcp\Core\Schema\Request\ServerRequest;
 use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\CancelTaskRequestParams;
@@ -52,6 +56,9 @@ use Nexus\Mcp\Core\Schema\RequestParams\ResourceRequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\TaskAugmentedRequestParams;
 use Nexus\Mcp\Core\Schema\Resource\ResourceContents;
 use Nexus\Mcp\Core\Schema\Result;
+use Nexus\Mcp\Core\Schema\Result\ClientResult;
+use Nexus\Mcp\Core\Schema\Result\PaginatedResult;
+use Nexus\Mcp\Core\Schema\Result\ServerResult;
 use Nexus\Mcp\Tools\McpAnchorSnapshot;
 use Nexus\Mcp\Tools\McpSchemaProcessor;
 use PHPUnit\Framework\Attributes\CoversNothing;
@@ -112,8 +119,8 @@ final class SchemaConformanceTest extends TestCase
         NotificationParams::class => self::TS_SCHEMA_FILE_URL,
         ElicitationCompleteNotificationParams::class => self::TS_SCHEMA_FILE_URL,
         EmptyNotificationParams::class => self::TS_SCHEMA_FILE_URL,
-        Notification\ClientNotification::class => self::TS_SCHEMA_FILE_URL,
-        Notification\ServerNotification::class => self::TS_SCHEMA_FILE_URL,
+        ClientNotification::class => self::TS_SCHEMA_FILE_URL,
+        ServerNotification::class => self::TS_SCHEMA_FILE_URL,
         ProtocolVersion::class => 'https://modelcontextprotocol.io/specification/2025-11-25/basic/lifecycle#version-negotiation',
         Request::class => self::TS_SCHEMA_FILE_URL,
         RequestMetaObject::class => 'https://modelcontextprotocol.io/specification/2025-11-25/basic#_meta',
@@ -125,12 +132,12 @@ final class SchemaConformanceTest extends TestCase
         PaginatedRequestParams::class => self::TS_SCHEMA_FILE_URL,
         ResourceRequestParams::class => self::TS_SCHEMA_FILE_URL,
         TaskAugmentedRequestParams::class => self::TS_SCHEMA_FILE_URL,
-        Request\ClientRequest::class => self::TS_SCHEMA_FILE_URL,
-        Request\ServerRequest::class => self::TS_SCHEMA_FILE_URL,
+        ClientRequest::class => self::TS_SCHEMA_FILE_URL,
+        ServerRequest::class => self::TS_SCHEMA_FILE_URL,
         ResourceContents::class => self::TS_SCHEMA_FILE_URL,
-        Result\ClientResult::class => self::TS_SCHEMA_FILE_URL,
-        Result\PaginatedResult::class => self::TS_SCHEMA_FILE_URL,
-        Result\ServerResult::class => self::TS_SCHEMA_FILE_URL,
+        ClientResult::class => self::TS_SCHEMA_FILE_URL,
+        PaginatedResult::class => self::TS_SCHEMA_FILE_URL,
+        ServerResult::class => self::TS_SCHEMA_FILE_URL,
     ];
 
     /**
