@@ -33,6 +33,7 @@ use Nexus\Mcp\Core\Schema\Result\ListResourceTemplatesResult;
 use Nexus\Mcp\Core\Schema\Result\ListToolsResult;
 use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
 use Nexus\Mcp\Core\Schema\Tool\Tool;
+use Nexus\Mcp\Server\Attribute\AsTool;
 use Nexus\Mcp\Server\Exception\ReservedMethodException;
 use Nexus\Mcp\Server\Exception\UnreservedMethodException;
 use Nexus\Mcp\Server\Server;
@@ -44,6 +45,7 @@ use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureNotificationHandler;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureRequestHandler;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
 use Nexus\Mcp\Tests\Fixtures\Server\Completion\RecordingCompletionStore;
+use Nexus\Mcp\Tests\Fixtures\Server\Discovery\DiscoverableServer;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -512,6 +514,81 @@ final class ServerBuilderTest extends TestCase
         self::assertSame('file:///{path}', $result->resourceTemplates[0]->uriTemplate);
     }
 
+    public function testRegisterDiscoversAttributeMarkedDefinitions(): void
+    {
+        $server = Server::builder()
+            ->setServerInfo('demo', '1.0.0')
+            ->register(new DiscoverableServer())
+            ->build()
+        ;
+
+        $tools = $this->dispatchAfterInitialize($server, 'tools/list');
+        self::assertInstanceOf(ListToolsResult::class, $tools);
+        self::assertSame(['add', 'greet_user'], self::sorted(array_map(static fn(Tool $tool): string => $tool->name, $tools->tools)));
+
+        $prompts = $this->dispatchAfterInitialize($server, 'prompts/list');
+        self::assertInstanceOf(ListPromptsResult::class, $prompts);
+        self::assertSame(['compose', 'labelled', 'outline', 'ping_prompt'], self::sorted(array_map(static fn(Prompt $prompt): string => $prompt->name, $prompts->prompts)));
+
+        $resources = $this->dispatchAfterInitialize($server, 'resources/list');
+        self::assertInstanceOf(ListResourcesResult::class, $resources);
+        self::assertSame(['app_config', 'defaults'], self::sorted(array_map(static fn(Resource $resource): string => $resource->name, $resources->resources)));
+
+        $templates = $this->dispatchAfterInitialize($server, 'resources/templates/list');
+        self::assertInstanceOf(ListResourceTemplatesResult::class, $templates);
+        self::assertSame(['fileTemplate', 'user_profile'], self::sorted(array_map(static fn(ResourceTemplate $template): string => $template->name, $templates->resourceTemplates)));
+    }
+
+    public function testRegisterWiresAnExecutableTool(): void
+    {
+        $server = Server::builder()
+            ->setServerInfo('demo', '1.0.0')
+            ->register(new DiscoverableServer())
+            ->build()
+        ;
+
+        $result = $this->dispatchAfterInitialize($server, 'tools/call', ['name' => 'add', 'arguments' => ['a' => 2, 'b' => 3]]);
+
+        self::assertInstanceOf(CallToolResult::class, $result);
+
+        $block = $result->content[0] ?? null;
+
+        if (! $block instanceof TextContent) {
+            self::fail('Expected a TextContent block.');
+        }
+
+        self::assertSame('5', $block->text);
+    }
+
+    public function testRegisterMergesMultipleSources(): void
+    {
+        $extra = new class {
+            #[AsTool(description: 'Pings.')]
+            public function ping(): string
+            {
+                return 'pong';
+            }
+        };
+
+        $server = Server::builder()
+            ->setServerInfo('demo', '1.0.0')
+            ->register(new DiscoverableServer(), $extra)
+            ->build()
+        ;
+
+        $tools = $this->dispatchAfterInitialize($server, 'tools/list');
+
+        self::assertInstanceOf(ListToolsResult::class, $tools);
+        self::assertSame(['add', 'greet_user', 'ping'], self::sorted(array_map(static fn(Tool $tool): string => $tool->name, $tools->tools)));
+    }
+
+    public function testRegisterReturnsTheBuilderForChaining(): void
+    {
+        $builder = Server::builder();
+
+        self::assertSame($builder, $builder->register(new DiscoverableServer()));
+    }
+
     public function testAddResourceTemplateRejectsUnsupportedTemplateAtRegistration(): void
     {
         $builder = Server::builder()->setServerInfo('demo', '1.0.0');
@@ -899,6 +976,18 @@ final class ServerBuilderTest extends TestCase
 
         self::assertInstanceOf(CompleteResult::class, $result);
         self::assertSame(['x'], $result->completion['values']);
+    }
+
+    /**
+     * @param list<string> $names
+     *
+     * @return list<string>
+     */
+    private static function sorted(array $names): array
+    {
+        sort($names);
+
+        return $names;
     }
 
     /**
