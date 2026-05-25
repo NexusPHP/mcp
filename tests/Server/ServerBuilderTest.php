@@ -38,6 +38,7 @@ use Nexus\Mcp\Core\Schema\Tool\Tool;
 use Nexus\Mcp\Server\Attribute\AsServer;
 use Nexus\Mcp\Server\Attribute\AsTool;
 use Nexus\Mcp\Server\Exception\DuplicateServerMetadataException;
+use Nexus\Mcp\Server\Exception\MissingDiscoveryAttributeException;
 use Nexus\Mcp\Server\Exception\ReservedMethodException;
 use Nexus\Mcp\Server\Exception\UnreservedMethodException;
 use Nexus\Mcp\Server\Server;
@@ -692,6 +693,19 @@ final class ServerBuilderTest extends TestCase
         $this->expectException(DuplicateServerMetadataException::class);
 
         Server::builder()->register(new SelfDescribingServer(), $second);
+    }
+
+    public function testRegisterRejectsASourceWithoutDiscoverableAttributes(): void
+    {
+        $this->expectException(MissingDiscoveryAttributeException::class);
+
+        $source = new class {
+            public function notAttributed(): string
+            {
+                return 'ignored';
+            }
+        };
+        Server::builder()->register($source);
     }
 
     public function testExplicitInstructionsTakePrecedenceOverAttribute(): void

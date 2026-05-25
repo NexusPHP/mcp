@@ -38,7 +38,9 @@ $server->run(new StdioServerTransport());
 ```
 
 `register()` takes any number of source objects and returns the builder, so it chains with the manual
-`add*` / `set*` methods.
+`add*` / `set*` methods. Each source must carry at least one discoverable attribute; a source with no
+`#[AsServer]` and no attribute-marked method throws `MissingDiscoveryAttributeException`, which catches
+typo'd attribute names and objects passed in by mistake.
 
 ## What the attributes map to
 

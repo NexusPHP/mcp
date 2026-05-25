@@ -21,6 +21,8 @@ in `0.x`, minor releases may include breaking changes.
   More than one `#[AsServer]` across registered sources throws `DuplicateServerMetadataException`.
 - A variadic parameter on an `#[AsTool]` method maps to an array input and is spread back into the call. The
   same parameter on a prompt, resource, or resource template throws `UnsupportedVariadicParameterException`.
+- `ServerBuilder::register()` rejects a source that carries no `#[AsServer]` and no attribute-marked method
+  with `MissingDiscoveryAttributeException`, catching typo'd attribute names and objects passed in by mistake.
 
 ### Changed
 
