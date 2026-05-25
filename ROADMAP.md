@@ -83,9 +83,9 @@ this window is scoped to changes that survive that revision unchanged; anything 
 sequenced into the migration below instead.
 
 - [ ] Attribute-based registration (Tier 1): `#[AsTool]`, `#[AsResource]`, `#[AsPrompt]`, and
-  `#[AsResourceTemplate]` on methods, discovered into the builder. (Class-level backends come after the
-  migration.)
-- [ ] Generate a tool's input schema from its PHP signature and docblock.
+  `#[AsResourceTemplate]` on methods, registered explicitly via `ServerBuilder::register()` (no filesystem
+  auto-discovery). Class-level backends come after the migration.
+- [ ] Generate a tool's input schema (JSON Schema 2020-12) from its PHP signature and docblock.
 - [x] Architecture-boundary enforcement (StructArmed) and dependency-declaration checks
   (composer-dependency-analyser) guarding the eventual component split.
 - [x] More runnable examples (in-memory, completions plus templates, capability-aware client) on a shared
