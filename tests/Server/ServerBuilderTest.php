@@ -15,6 +15,8 @@ namespace Nexus\Mcp\Tests\Server;
 
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Enum\LoggingLevel;
+use Nexus\Mcp\Core\Schema\Icon;
+use Nexus\Mcp\Core\Schema\Implementation;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\Notification\LoggingMessageNotification;
 use Nexus\Mcp\Core\Schema\Prompt\Prompt;
@@ -33,7 +35,9 @@ use Nexus\Mcp\Core\Schema\Result\ListResourceTemplatesResult;
 use Nexus\Mcp\Core\Schema\Result\ListToolsResult;
 use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
 use Nexus\Mcp\Core\Schema\Tool\Tool;
+use Nexus\Mcp\Server\Attribute\AsServer;
 use Nexus\Mcp\Server\Attribute\AsTool;
+use Nexus\Mcp\Server\Exception\DuplicateServerMetadataException;
 use Nexus\Mcp\Server\Exception\ReservedMethodException;
 use Nexus\Mcp\Server\Exception\UnreservedMethodException;
 use Nexus\Mcp\Server\Server;
@@ -46,6 +50,7 @@ use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureRequestHandler;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
 use Nexus\Mcp\Tests\Fixtures\Server\Completion\RecordingCompletionStore;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\DiscoverableServer;
+use Nexus\Mcp\Tests\Fixtures\Server\Discovery\SelfDescribingServer;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -64,7 +69,7 @@ final class ServerBuilderTest extends TestCase
     public function testBuildFailsWithoutServerInfo(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Server information must be set before build() via setServerInfo().');
+        $this->expectExceptionMessage('Server information must be set before build() via setServerInfo() or a class-level #[AsServer].');
 
         Server::builder()->build();
     }
@@ -589,6 +594,119 @@ final class ServerBuilderTest extends TestCase
         self::assertSame($builder, $builder->register(new DiscoverableServer()));
     }
 
+    public function testRegisterAppliesServerMetadataFromAttribute(): void
+    {
+        $server = Server::builder()
+            ->register(new SelfDescribingServer())
+            ->build()
+        ;
+
+        $result = $this->initializeResultFor($server);
+
+        self::assertSame('described-server', $result->serverInfo->name);
+        self::assertSame('2.3.4', $result->serverInfo->version);
+        self::assertSame('Described Server', $result->serverInfo->title);
+        self::assertSame('A server described entirely by attributes.', $result->serverInfo->description);
+        self::assertSame('https://nexus.test', $result->serverInfo->websiteUrl);
+        self::assertSame('Call the tools politely.', $result->instructions);
+        self::assertSame([], $result->capabilities->tools);
+    }
+
+    public function testExplicitServerInfoFieldsWinAndAttributeFillsGaps(): void
+    {
+        $server = Server::builder()
+            ->setServerInfo('explicit-server', '9.9.9')
+            ->register(new SelfDescribingServer())
+            ->build()
+        ;
+
+        $result = $this->initializeResultFor($server);
+        $info = $result->serverInfo;
+
+        self::assertSame('explicit-server', $info->name);
+        self::assertSame('9.9.9', $info->version);
+        self::assertSame('Described Server', $info->title);
+        self::assertSame('A server described entirely by attributes.', $info->description);
+        self::assertSame('https://nexus.test', $info->websiteUrl);
+        self::assertSame('https://nexus.test/icon.svg', self::firstIcon($info)->src);
+    }
+
+    public function testExplicitServerInfoFieldsTakePrecedencePerField(): void
+    {
+        $server = Server::builder()
+            ->setServerInfo('explicit-server', '9.9.9', 'Explicit Title', 'Explicit description.', 'https://explicit.test', [new Icon('https://explicit.test/icon.svg')])
+            ->register(new SelfDescribingServer())
+            ->build()
+        ;
+
+        $result = $this->initializeResultFor($server);
+        $info = $result->serverInfo;
+
+        self::assertSame('Explicit Title', $info->title);
+        self::assertSame('Explicit description.', $info->description);
+        self::assertSame('https://explicit.test', $info->websiteUrl);
+        self::assertSame('https://explicit.test/icon.svg', self::firstIcon($info)->src);
+    }
+
+    public function testAttributeWithoutInstructionsLeavesThemNull(): void
+    {
+        $source = new #[AsServer(name: 'minimal', version: '1.0.0')] class {};
+
+        $result = $this->initializeResultFor(Server::builder()->register($source)->build());
+
+        self::assertNull($result->instructions);
+        self::assertSame('minimal', $result->serverInfo->name);
+    }
+
+    public function testRegisterRejectsEmptyInstructionsFromAttribute(): void
+    {
+        $source = new #[AsServer(name: 'x', version: '1.0.0', instructions: '')] class {};
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Server instructions must be a non-empty string or null.');
+
+        Server::builder()->register($source)->build();
+    }
+
+    public function testLaterAttributelessSourceDoesNotClearServerMetadata(): void
+    {
+        $extra = new class {
+            #[AsTool(description: 'Pings.')]
+            public function ping(): string
+            {
+                return 'pong';
+            }
+        };
+
+        $result = $this->initializeResultFor(
+            Server::builder()->register(new SelfDescribingServer(), $extra)->build(),
+        );
+
+        self::assertSame('described-server', $result->serverInfo->name);
+    }
+
+    public function testMultipleServerAttributesAcrossSourcesThrow(): void
+    {
+        $second = new #[AsServer(name: 'second-server', version: '5.0.0')] class {};
+
+        $this->expectException(DuplicateServerMetadataException::class);
+
+        Server::builder()->register(new SelfDescribingServer(), $second);
+    }
+
+    public function testExplicitInstructionsTakePrecedenceOverAttribute(): void
+    {
+        $server = Server::builder()
+            ->setInstructions('Explicit instructions win.')
+            ->register(new SelfDescribingServer())
+            ->build()
+        ;
+
+        $result = $this->initializeResultFor($server);
+
+        self::assertSame('Explicit instructions win.', $result->instructions);
+    }
+
     public function testAddResourceTemplateRejectsUnsupportedTemplateAtRegistration(): void
     {
         $builder = Server::builder()->setServerInfo('demo', '1.0.0');
@@ -988,6 +1106,17 @@ final class ServerBuilderTest extends TestCase
         sort($names);
 
         return $names;
+    }
+
+    private static function firstIcon(Implementation $info): Icon
+    {
+        $icon = ($info->icons ?? [])[0] ?? null;
+
+        if (! $icon instanceof Icon) {
+            self::fail('Expected an icon.');
+        }
+
+        return $icon;
     }
 
     /**

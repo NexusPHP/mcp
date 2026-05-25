@@ -15,7 +15,8 @@ declare(strict_types=1);
  * An MCP server assembled from attribute-marked methods instead of explicit
  * `addTool()` / `addPrompt()` / `addResource()` calls.
  *
- * `ServerBuilder::register()` reflects each source object: parameter types and
+ * `ServerBuilder::register()` reflects each source object: the class-level
+ * `#[AsServer]` supplies the server identity and instructions, parameter types and
  * `@param` lines become the tool `inputSchema` and the prompt arguments, a
  * `ServerContext` parameter is injected rather than exposed to the client, and a
  * plain return value (string, content block, or schema object) is adapted to the
@@ -32,11 +33,18 @@ use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
 use Nexus\Mcp\Server\Attribute\AsPrompt;
 use Nexus\Mcp\Server\Attribute\AsResource;
 use Nexus\Mcp\Server\Attribute\AsResourceTemplate;
+use Nexus\Mcp\Server\Attribute\AsServer;
 use Nexus\Mcp\Server\Attribute\AsTool;
 use Nexus\Mcp\Server\Server;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Server\Transport\StdioServerTransport;
 
+#[AsServer(
+    name: 'nexus-attribute-example',
+    version: '0.1.0',
+    description: 'A Nexus MCP SDK server assembled through attribute discovery.',
+    instructions: 'Ask for the weather, request a haiku, or read the about resource.',
+)]
 final class Concierge
 {
     /**
@@ -84,11 +92,6 @@ $logger = new ExampleLogger();
 
 $server = Server::builder()
     ->setLogger($logger)
-    ->setServerInfo(
-        name: 'nexus-attribute-example',
-        version: '0.1.0',
-        description: 'A Nexus MCP SDK server assembled through attribute discovery.',
-    )
     ->register(new Concierge())
     ->build()
 ;
