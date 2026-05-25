@@ -73,6 +73,25 @@ required, and the supplied list is spread back into the call. Variadic parameter
 since prompts and resources receive flat string values. A variadic on a prompt, resource, or resource
 template throws `UnsupportedVariadicParameterException`.
 
+A tool parameter typed as an instantiable class is expanded into an object schema built from that class's
+constructor parameters, and the handler receives a constructed instance. Expansion goes one level: a
+constructor parameter that is itself a class (a nested object), along with interfaces, abstract classes, and
+built-in classes such as `\DateTimeImmutable`, is not expanded and throws `SchemaGenerationException` at
+registration.
+
+```php
+final readonly class Coordinate
+{
+    public function __construct(public float $latitude, public float $longitude) {}
+}
+
+#[AsTool(description: 'Stores a pin.')]
+public function pin(Coordinate $at): string
+{
+    return "{$at->latitude},{$at->longitude}";
+}
+```
+
 ```php
 use Nexus\Mcp\Server\Attribute\AsTool;
 use Nexus\Mcp\Server\Attribute\InputSchema;
@@ -119,6 +138,8 @@ attributes are rejected.
   arrive as strings, so non-string scalar parameters are only meaningful on tools.
 - Variadic parameters are accepted only on tools; on prompts and resources they throw
   `UnsupportedVariadicParameterException`.
+- Object (DTO) expansion is one level deep and tool-only. A constructor parameter typed as another class, a
+  list of objects, an interface, or an abstract class is not expanded and throws.
 - There is no filesystem auto-discovery and no class-level handler backend; `register()` takes explicit
   source objects.
 

@@ -15,8 +15,13 @@ namespace Nexus\Mcp\Tests\Server\Discovery;
 
 use Nexus\Mcp\Server\Discovery\InputSchemaGenerator;
 use Nexus\Mcp\Server\Exception\SchemaGenerationException;
+use Nexus\Mcp\Tests\Fixtures\Server\Discovery\AbstractShape;
+use Nexus\Mcp\Tests\Fixtures\Server\Discovery\BackedStringEnum;
+use Nexus\Mcp\Tests\Fixtures\Server\Discovery\Coordinate;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\SampleToolHandlers;
+use Nexus\Mcp\Tests\Fixtures\Server\Discovery\ShapeInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
@@ -253,6 +258,82 @@ final class InputSchemaGeneratorTest extends TestCase
             'properties' => ['token' => ['type' => 'string', 'const' => 'fixed']],
             'required' => ['token'],
         ], self::generate('definitionWithDocblock'));
+    }
+
+    public function testClassParameterExpandsToAnObject(): void
+    {
+        self::assertSame([
+            'type' => 'object',
+            '$schema' => self::DIALECT,
+            'properties' => [
+                'point' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'latitude' => ['type' => 'number'],
+                        'longitude' => ['type' => 'number'],
+                        'label' => ['type' => 'string', 'enum' => ['a', 'b'], 'default' => 'a'],
+                    ],
+                    'required' => ['latitude', 'longitude'],
+                ],
+            ],
+            'required' => ['point'],
+        ], self::generate('geoPoint'));
+    }
+
+    public function testClassWithoutConstructorExpandsToAnEmptyObject(): void
+    {
+        self::assertSame([
+            'type' => 'object',
+            '$schema' => self::DIALECT,
+            'properties' => ['thing' => ['type' => 'object']],
+            'required' => ['thing'],
+        ], self::generate('noConstructorObject'));
+    }
+
+    public function testNestedClassParameterThrows(): void
+    {
+        $this->expectException(SchemaGenerationException::class);
+        $this->expectExceptionMessageMatches('/parameter "\$at".+Place::__construct/');
+
+        self::generate('nestedObject');
+    }
+
+    public function testAbstractClassParameterThrows(): void
+    {
+        $this->expectException(SchemaGenerationException::class);
+
+        self::generate('abstractObject');
+    }
+
+    public function testInterfaceParameterThrows(): void
+    {
+        $this->expectException(SchemaGenerationException::class);
+
+        self::generate('interfaceObject');
+    }
+
+    #[DataProvider('provideIsExpandableCases')]
+    public function testIsExpandable(string $class, bool $expected): void
+    {
+        self::assertSame($expected, InputSchemaGenerator::isExpandable($class));
+    }
+
+    /**
+     * @return iterable<string, array{string, bool}>
+     */
+    public static function provideIsExpandableCases(): iterable
+    {
+        yield 'instantiable userland class' => [Coordinate::class, true];
+
+        yield 'abstract class' => [AbstractShape::class, false];
+
+        yield 'interface' => [ShapeInterface::class, false];
+
+        yield 'enum' => [BackedStringEnum::class, false];
+
+        yield 'internal class' => [\stdClass::class, false];
+
+        yield 'unknown class' => ['Nexus\\Mcp\\Does\\Not\\Exist', false];
     }
 
     /**

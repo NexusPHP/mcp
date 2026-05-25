@@ -93,6 +93,16 @@ final class ReflectedHandlers
         return $prefix.implode('', $rest);
     }
 
+    public function withCoordinate(Coordinate $point): string
+    {
+        return \sprintf('%s,%s,%s', $point->latitude, $point->longitude, $point->label->value);
+    }
+
+    public function withEmpty(EmptyDto $thing): string
+    {
+        return $thing::class;
+    }
+
     public function toolResult(): CallToolResult
     {
         return new CallToolResult([new TextContent('done')], isError: true);

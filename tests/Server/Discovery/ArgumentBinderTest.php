@@ -22,6 +22,8 @@ use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\BackedIntEnum;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\BackedStringEnum;
+use Nexus\Mcp\Tests\Fixtures\Server\Discovery\Coordinate;
+use Nexus\Mcp\Tests\Fixtures\Server\Discovery\EmptyDto;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\PureEnum;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\ReflectedHandlers;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -149,6 +151,55 @@ final class ArgumentBinderTest extends TestCase
         $this->expectExceptionMessage('The "tags" argument must be a list, string given.');
 
         $this->bind('variadicStrings', ['tags' => 'solo']);
+    }
+
+    public function testConstructsADtoFromAMap(): void
+    {
+        $bound = $this->bind('withCoordinate', ['point' => ['latitude' => 1.5, 'longitude' => 2.5, 'label' => 'b']]);
+        $point = $bound[0] ?? null;
+
+        if (! $point instanceof Coordinate) {
+            self::fail('Expected a Coordinate instance.');
+        }
+
+        self::assertSame(1.5, $point->latitude);
+        self::assertSame(2.5, $point->longitude);
+        self::assertSame(BackedStringEnum::B, $point->label);
+    }
+
+    public function testDtoMembersFallBackToConstructorDefaults(): void
+    {
+        $bound = $this->bind('withCoordinate', ['point' => ['latitude' => 1.0, 'longitude' => 2.0]]);
+        $point = $bound[0] ?? null;
+
+        if (! $point instanceof Coordinate) {
+            self::fail('Expected a Coordinate instance.');
+        }
+
+        self::assertSame(BackedStringEnum::A, $point->label);
+    }
+
+    public function testConstructsADtoWithoutAConstructor(): void
+    {
+        $bound = $this->bind('withEmpty', ['thing' => []]);
+
+        self::assertInstanceOf(EmptyDto::class, $bound[0] ?? null);
+    }
+
+    public function testRejectsANonObjectDtoValue(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageMatches('/must be constructed from an object/');
+
+        $this->bind('withCoordinate', ['point' => 'scalar']);
+    }
+
+    public function testDtoRejectsAMissingRequiredMember(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessage('The "longitude" argument is required.');
+
+        $this->bind('withCoordinate', ['point' => ['latitude' => 1.0]]);
     }
 
     public function testRejectsUnknownBackedEnumValue(): void

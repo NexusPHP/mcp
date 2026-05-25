@@ -109,6 +109,26 @@ final class SampleToolHandlers
     {
     }
 
+    public function geoPoint(Coordinate $point): void
+    {
+    }
+
+    public function nestedObject(Place $place): void
+    {
+    }
+
+    public function noConstructorObject(EmptyDto $thing): void
+    {
+    }
+
+    public function abstractObject(AbstractShape $shape): void
+    {
+    }
+
+    public function interfaceObject(ShapeInterface $shape): void
+    {
+    }
+
     public function contextNotLast(ServerContext $context, string $value): void
     {
     }

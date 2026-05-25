@@ -23,6 +23,9 @@ in `0.x`, minor releases may include breaking changes.
   same parameter on a prompt, resource, or resource template throws `UnsupportedVariadicParameterException`.
 - `ServerBuilder::register()` rejects a source that carries no `#[AsServer]` and no attribute-marked method
   with `MissingDiscoveryAttributeException`, catching typo'd attribute names and objects passed in by mistake.
+- An `#[AsTool]` parameter typed as an instantiable class is expanded into an object input schema built from
+  the class constructor, and the handler receives a constructed instance. Expansion is one level deep: a
+  nested object, a list of objects, an interface, or an abstract class is not expanded and throws.
 
 ### Changed
 
