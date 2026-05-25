@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Server;
 
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
+use Nexus\Mcp\Core\Schema\Cursor;
 use Nexus\Mcp\Core\Schema\Enum\LoggingLevel;
 use Nexus\Mcp\Core\Schema\Icon;
 use Nexus\Mcp\Core\Schema\Implementation;
@@ -41,9 +42,13 @@ use Nexus\Mcp\Server\Exception\DuplicateServerMetadataException;
 use Nexus\Mcp\Server\Exception\MissingDiscoveryAttributeException;
 use Nexus\Mcp\Server\Exception\ReservedMethodException;
 use Nexus\Mcp\Server\Exception\UnreservedMethodException;
+use Nexus\Mcp\Server\Prompt\PromptStoreInterface;
+use Nexus\Mcp\Server\Resource\ResourceStoreInterface;
+use Nexus\Mcp\Server\Resource\ResourceTemplateStoreInterface;
 use Nexus\Mcp\Server\Server;
 use Nexus\Mcp\Server\ServerBuilder;
 use Nexus\Mcp\Server\ServerContext;
+use Nexus\Mcp\Server\Tool\ToolStoreInterface;
 use Nexus\Mcp\Server\Validation\SchemaValidatorInterface;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureNotificationHandler;
@@ -510,6 +515,29 @@ final class ServerBuilderTest extends TestCase
         self::assertInstanceOf(ListResourceTemplatesResult::class, $result);
         self::assertCount(1, $result->resourceTemplates);
         self::assertSame('file:///{path}', $result->resourceTemplates[0]->uriTemplate);
+    }
+
+    public function testTemplateOnlyServerStillServesResourceRead(): void
+    {
+        $server = new ServerBuilder()
+            ->setServerInfo('demo', '1.0.0')
+            ->addResourceTemplate(
+                new ResourceTemplate('files', 'file:///{path}'),
+                static fn(string $uri, array $bindings, $ctx): ReadResourceResult => new ReadResourceResult([new TextResourceContents($uri, 'templated:'.($bindings['path'] ?? 'missing'))]),
+            )
+            ->build()
+        ;
+
+        $result = $this->dispatchAfterInitialize($server, 'resources/read', ['uri' => 'file:///etc']);
+
+        self::assertInstanceOf(ReadResourceResult::class, $result);
+        $entry = $result->contents[0] ?? null;
+
+        if (! $entry instanceof TextResourceContents) {
+            self::fail('Expected a TextResourceContents entry.');
+        }
+
+        self::assertSame('templated:etc', $entry->text);
     }
 
     public function testRegisterDiscoversAttributeMarkedDefinitions(): void
@@ -1100,6 +1128,196 @@ final class ServerBuilderTest extends TestCase
 
         self::assertInstanceOf(CompleteResult::class, $result);
         self::assertSame(['x'], $result->completion['values']);
+    }
+
+    public function testCustomToolStoreReplacesEntriesAndAdvertisesCapability(): void
+    {
+        $store = new class implements ToolStoreInterface {
+            #[\Override]
+            public function list(?Cursor $cursor): ListToolsResult
+            {
+                return new ListToolsResult([new Tool('custom_tool', ['type' => 'object'])]);
+            }
+
+            #[\Override]
+            public function call(string $name, ?array $arguments, ServerContext $context): CallToolResult
+            {
+                return new CallToolResult([new TextContent('custom')]);
+            }
+        };
+
+        $capabilities = $this->initializeResultFor(
+            new ServerBuilder()->setServerInfo('demo', '1.0.0')->setToolStore($store)->build(),
+        )->capabilities;
+        self::assertSame([], $capabilities->tools);
+
+        $storeOnly = $this->dispatchAfterInitialize(
+            new ServerBuilder()->setServerInfo('demo', '1.0.0')->setToolStore($store)->build(),
+            'tools/list',
+        );
+        self::assertInstanceOf(ListToolsResult::class, $storeOnly);
+        self::assertSame(['custom_tool'], array_map(static fn(Tool $tool): string => $tool->name, $storeOnly->tools));
+
+        $withEntry = $this->dispatchAfterInitialize(
+            new ServerBuilder()
+                ->setServerInfo('demo', '1.0.0')
+                ->addTool(
+                    new Tool('entry_tool', ['type' => 'object']),
+                    static fn(?array $args, $ctx): CallToolResult => new CallToolResult([]),
+                )
+                ->setToolStore($store)
+                ->build(),
+            'tools/list',
+        );
+        self::assertInstanceOf(ListToolsResult::class, $withEntry);
+        self::assertSame(['custom_tool'], array_map(static fn(Tool $tool): string => $tool->name, $withEntry->tools));
+    }
+
+    public function testCustomPromptStoreReplacesEntriesAndAdvertisesCapability(): void
+    {
+        $store = new class implements PromptStoreInterface {
+            #[\Override]
+            public function list(?Cursor $cursor): ListPromptsResult
+            {
+                return new ListPromptsResult([new Prompt('custom_prompt')]);
+            }
+
+            #[\Override]
+            public function get(string $name, ?array $arguments, ServerContext $context): GetPromptResult
+            {
+                return new GetPromptResult([]);
+            }
+        };
+
+        $capabilities = $this->initializeResultFor(
+            new ServerBuilder()->setServerInfo('demo', '1.0.0')->setPromptStore($store)->build(),
+        )->capabilities;
+        self::assertSame([], $capabilities->prompts);
+
+        $storeOnly = $this->dispatchAfterInitialize(
+            new ServerBuilder()->setServerInfo('demo', '1.0.0')->setPromptStore($store)->build(),
+            'prompts/list',
+        );
+        self::assertInstanceOf(ListPromptsResult::class, $storeOnly);
+        self::assertSame(['custom_prompt'], array_map(static fn(Prompt $prompt): string => $prompt->name, $storeOnly->prompts));
+
+        $withEntry = $this->dispatchAfterInitialize(
+            new ServerBuilder()
+                ->setServerInfo('demo', '1.0.0')
+                ->addPrompt(
+                    new Prompt('entry_prompt'),
+                    static fn(?array $args, $ctx): GetPromptResult => new GetPromptResult([]),
+                )
+                ->setPromptStore($store)
+                ->build(),
+            'prompts/list',
+        );
+        self::assertInstanceOf(ListPromptsResult::class, $withEntry);
+        self::assertSame(['custom_prompt'], array_map(static fn(Prompt $prompt): string => $prompt->name, $withEntry->prompts));
+    }
+
+    public function testCustomResourceStoreReplacesEntriesAndAdvertisesCapability(): void
+    {
+        $store = new class implements ResourceStoreInterface {
+            #[\Override]
+            public function list(?Cursor $cursor): ListResourcesResult
+            {
+                return new ListResourcesResult([new Resource('custom', 'mem://custom')]);
+            }
+
+            #[\Override]
+            public function read(string $uri, ServerContext $context): ReadResourceResult
+            {
+                return new ReadResourceResult([new TextResourceContents($uri, 'custom-body')]);
+            }
+        };
+
+        $capabilities = $this->initializeResultFor(
+            new ServerBuilder()->setServerInfo('demo', '1.0.0')->setResourceStore($store)->build(),
+        )->capabilities;
+        self::assertSame([], $capabilities->resources);
+
+        $storeOnly = $this->dispatchAfterInitialize(
+            new ServerBuilder()->setServerInfo('demo', '1.0.0')->setResourceStore($store)->build(),
+            'resources/list',
+        );
+        self::assertInstanceOf(ListResourcesResult::class, $storeOnly);
+        self::assertSame(['mem://custom'], array_map(static fn(Resource $resource): string => $resource->uri, $storeOnly->resources));
+
+        $withEntry = $this->dispatchAfterInitialize(
+            new ServerBuilder()
+                ->setServerInfo('demo', '1.0.0')
+                ->addResource(
+                    new Resource('entry', 'mem://entry'),
+                    static fn(string $uri, $ctx): ReadResourceResult => new ReadResourceResult([]),
+                )
+                ->setResourceStore($store)
+                ->build(),
+            'resources/list',
+        );
+        self::assertInstanceOf(ListResourcesResult::class, $withEntry);
+        self::assertSame(['mem://custom'], array_map(static fn(Resource $resource): string => $resource->uri, $withEntry->resources));
+
+        $alongsideTemplates = $this->dispatchAfterInitialize(
+            new ServerBuilder()
+                ->setServerInfo('demo', '1.0.0')
+                ->addResource(
+                    new Resource('entry', 'mem://entry'),
+                    static fn(string $uri, $ctx): ReadResourceResult => new ReadResourceResult([]),
+                )
+                ->addResourceTemplate(
+                    new ResourceTemplate('files', 'mem://files/{id}'),
+                    static fn(string $uri, array $bindings, $ctx): ReadResourceResult => new ReadResourceResult([]),
+                )
+                ->setResourceStore($store)
+                ->build(),
+            'resources/list',
+        );
+        self::assertInstanceOf(ListResourcesResult::class, $alongsideTemplates);
+        self::assertSame(['mem://custom'], array_map(static fn(Resource $resource): string => $resource->uri, $alongsideTemplates->resources));
+    }
+
+    public function testCustomResourceTemplateStoreReplacesEntriesAndAdvertisesCapability(): void
+    {
+        $store = new class implements ResourceTemplateStoreInterface {
+            #[\Override]
+            public function list(?Cursor $cursor): ListResourceTemplatesResult
+            {
+                return new ListResourceTemplatesResult([new ResourceTemplate('custom', 'mem://{id}')]);
+            }
+
+            #[\Override]
+            public function read(string $uri, ServerContext $context): ReadResourceResult
+            {
+                return new ReadResourceResult([new TextResourceContents($uri, 'custom-body')]);
+            }
+        };
+
+        $capabilities = $this->initializeResultFor(
+            new ServerBuilder()->setServerInfo('demo', '1.0.0')->setResourceTemplateStore($store)->build(),
+        )->capabilities;
+        self::assertSame([], $capabilities->resources);
+
+        $storeOnly = $this->dispatchAfterInitialize(
+            new ServerBuilder()->setServerInfo('demo', '1.0.0')->setResourceTemplateStore($store)->build(),
+            'resources/templates/list',
+        );
+        self::assertInstanceOf(ListResourceTemplatesResult::class, $storeOnly);
+        self::assertSame(['mem://{id}'], array_map(static fn(ResourceTemplate $template): string => $template->uriTemplate, $storeOnly->resourceTemplates));
+
+        $withEntry = $this->dispatchAfterInitialize(
+            new ServerBuilder()
+                ->setServerInfo('demo', '1.0.0')
+                ->addResourceTemplate(
+                    new ResourceTemplate('entry', 'mem://entry/{id}'),
+                    static fn(string $uri, array $bindings, $ctx): ReadResourceResult => new ReadResourceResult([]),
+                )
+                ->setResourceTemplateStore($store)
+                ->build(),
+            'resources/templates/list',
+        );
+        self::assertInstanceOf(ListResourceTemplatesResult::class, $withEntry);
+        self::assertSame(['mem://{id}'], array_map(static fn(ResourceTemplate $template): string => $template->uriTemplate, $withEntry->resourceTemplates));
     }
 
     /**

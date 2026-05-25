@@ -26,6 +26,10 @@ in `0.x`, minor releases may include breaking changes.
 - An `#[AsTool]` parameter typed as an instantiable class is expanded into an object input schema built from
   the class constructor, and the handler receives a constructed instance. Expansion is one level deep: a
   nested object, a list of objects, an interface, or an abstract class is not expanded and throws.
+- `ServerBuilder::setToolStore()`, `setPromptStore()`, `setResourceStore()`, and `setResourceTemplateStore()`
+  swap in a custom store implementation, replacing the in-memory one built from the matching `addTool()` /
+  `addPrompt()` / `addResource()` / `addResourceTemplate()` entries. These mirror the existing
+  `setCompletionStore()`.
 
 ### Changed
 

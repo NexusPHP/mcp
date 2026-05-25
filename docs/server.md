@@ -185,14 +185,32 @@ use Nexus\Mcp\Core\Schema\Resource\ResourceTemplate;
 `$vars` carries the resolved template variables (`['userId' => '123']` for `users://123`). The reader can
 be a `\Closure` or a `ResourceReaderInterface` / `TemplatedResourceReaderInterface`.
 
-## Completions
+## Custom stores
+
+Completions are served entirely by a store you provide:
 
 ```php
 ->setCompletionStore(new MyCompletionStore())
 ```
 
 The store implements `CompletionStoreInterface` and is consulted on `completion/complete` requests.
-Registering a store advertises the `completions` capability.
+Registering it advertises the `completions` capability.
+
+The in-memory stores that back tools, prompts, resources, and resource templates can likewise be swapped for
+a custom implementation. A setter replaces the store the builder would otherwise assemble from the matching
+`add*()` entries, so registering a store also lights up that feature's capability.
+
+```php
+->setToolStore(new MyToolStore())                         // ToolStoreInterface
+->setPromptStore(new MyPromptStore())                     // PromptStoreInterface
+->setResourceStore(new MyResourceStore())                 // ResourceStoreInterface
+->setResourceTemplateStore(new MyResourceTemplateStore()) // ResourceTemplateStoreInterface
+```
+
+Each store implements the read surface its built-in handlers depend on (`list()` plus `call()` / `get()` /
+`read()`). When a custom store and the matching `add*()` entries are both supplied, the custom store wins
+and those entries are ignored. A custom resource store still composes with a resource template store (custom
+or entry-built) for `resources/read`.
 
 ## Custom request and notification handlers
 
@@ -230,9 +248,9 @@ reference.
 
 | Capability slot | Lit up by |
 | --- | --- |
-| `tools` | At least one `addTool(...)`, or both `tools/list` and `tools/call` `replaceRequestHandler(...)`. |
-| `prompts` | At least one `addPrompt(...)`, or both `prompts/list` and `prompts/get` `replaceRequestHandler(...)`. |
-| `resources` | At least one `addResource(...)` or `addResourceTemplate(...)`, or both `resources/list` and `resources/read` `replaceRequestHandler(...)`. |
+| `tools` | At least one `addTool(...)`, `setToolStore(...)`, or both `tools/list` and `tools/call` `replaceRequestHandler(...)`. |
+| `prompts` | At least one `addPrompt(...)`, `setPromptStore(...)`, or both `prompts/list` and `prompts/get` `replaceRequestHandler(...)`. |
+| `resources` | At least one `addResource(...)` / `addResourceTemplate(...)`, `setResourceStore(...)` / `setResourceTemplateStore(...)`, or both `resources/list` and `resources/read` `replaceRequestHandler(...)`. |
 | `completions` | `setCompletionStore(...)`, or `completion/complete` `replaceRequestHandler(...)`. |
 | `logging` | Always advertised. The SDK ships a default `logging/setLevel` handler so the capability is always honoured. |
 
