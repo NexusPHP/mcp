@@ -8,6 +8,10 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp-sdk/commits/1.x)
 
+### Changed
+
+- Mutation testing no longer times out while covering the shutdown coroutine drain.
+
 ## [v0.3.0](https://github.com/NexusPHP/mcp-sdk/compare/v0.2.0...v0.3.0) - 2026-05-25
 
 ### Added
