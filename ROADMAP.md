@@ -231,8 +231,7 @@ The SDK currently targets **PHP 8.4** minimum and uses the language features tha
 that version (typed class constants, readonly classes, constructor property promotion, asymmetric
 visibility, property hooks, `#[\Override]`).
 
-PHP 8.5 brings covariant `static` return types for factory methods
-([php/php-src#17724](https://github.com/php/php-src/pull/17724)). Once the minimum PHP version is raised
+PHP 8.5 brings covariant `static` return types for factory methods. Once the minimum PHP version is raised
 to 8.5, the `Arrayable::fromArray()` contract will relax from `: static` to `: self` so final
 implementations may narrow their return types. Until then, PHP 8.4 strictly enforces `: static`
 invariance and the contract stays as it is.
