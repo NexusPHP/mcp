@@ -28,6 +28,7 @@ Production dependencies are kept deliberately small and are declared with caret 
 
 - **Async substrate:** `revolt/event-loop`, `amphp/amp`, `amphp/byte-stream`, `amphp/process`.
 - **Validation and contracts:** `nexusphp/assert`, `opis/json-schema`, `psr/log`.
+- **Attribute discovery:** `phpstan/phpdoc-parser` (derives tool input schemas from method signatures and docblocks).
 - **HTTP (added with the Streamable HTTP transport):** `psr/http-message`, `psr/http-factory`,
   `psr/http-server-handler`.
 

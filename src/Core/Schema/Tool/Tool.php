@@ -239,6 +239,8 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
      * (`array<string, mixed>`) per spec, so the projection narrows their inner
      * shape only as far as `array<string, mixed>`.
      *
+     * @todo See ROADMAP.md (tool schema relaxation, SEP-2106).
+     *
      * @param array<string, mixed> $schema
      * @param non-empty-string     $context
      *

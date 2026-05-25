@@ -3,11 +3,10 @@ locale = "en-gb"
 
 # Keep American spelling for MCP spec class/method names, OAuth/HTTP headers,
 # `JsonSerializable`, the PHP normaliser idiom, composer/phpunit CLI tokens,
-# the American `-or` spellings (`behavior`, `behavioral`, `flavored`),
-# and the PHP `\Fiber` language concept.
+# the American `-or` spellings, and the PHP `\Fiber` language concept.
 extend-ignore-words-re = [
     "(?i)^(initializ|serializ|normaliz|optimiz|authoriz|contextualiz)(e|es|ed|er|ation)$",
-    "(?i)^(colors|behavior(al)?|flavored)$",
+    "(?i)^(colors?|behavior(al|s)?|flavor(ed)?)$",
     "(?i)^fibers?$",
 ]
 

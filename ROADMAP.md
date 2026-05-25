@@ -140,6 +140,14 @@ generic `JsonRpcResultResponse<TResult>` splits into 18 per-method response enve
 - [ ] Delete `UrlElicitationRequiredError` (-32042) entirely; the success-result-based mechanism
   replaces it.
 
+### Tool schema relaxation (SEP-2106)
+
+`Tool.inputSchema` and `outputSchema` accept full JSON Schema 2020-12 through an open
+`[key: string]: unknown` slot. Today's `Tool::projectSchemaEnvelope()` keeps only `type`, `$schema`,
+`properties`, and `required`. The migration relaxes it to pass arbitrary top-level keywords through.
+
+- [ ] Relax `Tool::projectSchemaEnvelope()` to preserve all top-level JSON Schema 2020-12 keywords.
+
 ### Deprecation cleanup
 
 The 2026-07-28 spec marks Roots, Sampling, and Logging as `@deprecated`. The SDK does not implement a
