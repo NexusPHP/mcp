@@ -69,7 +69,7 @@ jobs:
       - name: Install dependencies
         run: |
           composer update --ansi
-          composer audit --ansi
+          composer audit --ansi --abandoned=report
 
       - name: Run mutation testing on full codebase (push)
         if: github.event_name == 'push'

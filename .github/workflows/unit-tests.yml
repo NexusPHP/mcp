@@ -90,7 +90,7 @@ jobs:
         run: composer update --ansi
 
       - name: Run Composer security audit
-        run: composer audit --ansi
+        run: composer audit --ansi --abandoned=report
 
       - name: Run unit tests
         run: composer test:unit

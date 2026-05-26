@@ -41,7 +41,7 @@ CI by `composer deps:check` (shipmonk/composer-dependency-analyser).
 
 - **Security patches.** Security fixes in a dependency are picked up as soon as they are released and
   shipped in the next patch (or minor, while in `0.x`). Report vulnerabilities in the SDK itself through
-  [SECURITY.md](SECURITY.md). `composer audit` runs in CI to surface advisories.
+  [SECURITY.md](SECURITY.md). `composer audit --abandoned=report` runs in CI to surface advisories.
 - **Minor and patch updates.** Routine dependency updates are batched through Dependabot
   ([.github/dependabot.yml](.github/dependabot.yml)) and merged once the full gate suite passes.
 - **Major updates.** Major bumps of a runtime dependency are evaluated for breaking changes, land in an
