@@ -29,7 +29,7 @@ final readonly class MethodNotFoundError extends Error
     }
 
     /**
-     * @param array{message?: string, data?: array<string, mixed>} $data
+     * @param array{code?: int, message?: string, data?: array<string, mixed>} $data
      */
     #[\Override]
     public static function fromArray(array $data): static

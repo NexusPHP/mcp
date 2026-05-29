@@ -25,6 +25,7 @@ use Nexus\Mcp\Core\Validation\Rfc3986UriValidator;
  *   uri: non-empty-string,
  *   mimeType?: non-empty-string,
  *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
+ *   ...<string, mixed>
  * }>
  *
  * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2025-11-25/schema.ts
