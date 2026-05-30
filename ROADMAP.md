@@ -7,98 +7,57 @@ already ships.
 
 ## Current capabilities
 
-The SDK targets MCP spec **2025-11-25**. Server-side composition is shipped and covers the surface most
-real servers need:
+The SDK targets MCP spec **2025-11-25** and is published on Packagist (latest **v0.3.0**, pre-stable). It
+ships a symmetric server and client over stdio, sharing one protocol kernel under `Nexus\Mcp\Core`.
 
-- [x] Tools (`tools/list`, `tools/call`).
+Protocol surface (both sides):
+
+- [x] Tools (`tools/list`, `tools/call`, with streaming progress on the client).
 - [x] Prompts (`prompts/list`, `prompts/get`).
 - [x] Resources, static and RFC 6570 templated (`resources/list`, `resources/templates/list`,
   `resources/read`).
 - [x] Completions (`completion/complete`).
 - [x] Logging (`notifications/message` + `logging/setLevel`).
 - [x] Ping.
-- [x] Stdio transport for one-process-per-session deployments.
-- [x] Static analysis floor: PHPStan level 10 + strict rules. Infection at 100% MSI, 100% MCC, 100%
-  covered code MSI.
+- [x] The `initialize` / `notifications/initialized` handshake.
 
-The client-side namespace (`Nexus\Mcp\Client`) now ships the handshake plus typed requests for the same
-surface (`tools/call` with streaming progress, the list/read/get/complete methods), an end-to-end stdio
-example, and [docs/client.md](docs/client.md). The shared protocol kernel under `Nexus\Mcp\Core` is the
-common dependency for both sides. With the symmetric surface in place, v0.1.0 is the next milestone.
+Composition and transport:
 
-## Near-term: client-side composition
+- [x] Server composition (`ServerBuilder`) and client composition (`ClientBuilder`) over a shared
+  dispatch kernel (`MessageDispatcherInterface`), handler-registry shape, and transport contract.
+  `PendingOutboundRequests` correlates inbound responses to awaiting senders by `RequestId`.
+- [x] Stdio transport on both sides (`StdioServerTransport`, `StdioClientTransport`) plus an in-memory
+  transport for tests, with an end-to-end stdio client / server example.
+- [x] Attribute-based registration: `#[AsTool]` / `#[AsResource]` / `#[AsPrompt]` /
+  `#[AsResourceTemplate]` on methods plus class-level `#[AsServer]`, registered via
+  `ServerBuilder::register()`. Tool input schemas (JSON Schema 2020-12) are generated from PHP
+  signatures and docblocks.
+- [x] Tool-call argument and result validation against their JSON Schemas (opis/json-schema by default,
+  pluggable via `ServerBuilder::setSchemaValidator()`), and structured tool results mirrored into a text
+  content block.
 
-The next minor cycle ships the `Client` namespace as a symmetric peer of `Server`. The two sides share
-the same dispatch kernel, the same handler registry shape, and the same transport contract. Only the
-composition surface (`ClientBuilder`, the client-side stores) is new.
+Quality and project gates:
 
-Two protocol primitives land alongside the client namespace because both sides need them. The first is
-a shared `MessageDispatcherInterface` extracted from the original server-only `MessageDispatcher` (now
-`ServerMessageDispatcher`), so the client and server are written against the same contract. The second is a
-`PendingOutboundRequests` service under `Core/Dispatch/` that correlates inbound responses to awaiting
-senders by `RequestId`. It is a sibling of the dispatcher, not a slot on the transport contract. The
-transport stays a dumb pipe. The client uses it for every request it issues. The server will use it for
-server-initiated request methods once those land post-2026-07-28 (see below). Today
-`RequestBoundSender::sendRequest()` is a stub that throws `OutboundRequestsNotSupportedException`.
-Server-initiated requests are deferred to the 2026-07-28 migration, with no in-tree consumer until
-elicitation lands.
-
-The scope is deliberately bounded to pieces unaffected by the 2026-07-28 spec migration: scope is
-stdio-only on both sides, with the HTTP transport and the server-initiated request methods
-(`sampling/createMessage`, `elicitation/create`) deferred to the migration bundle. Building those
-against the current spec means rebuilding them after the migration reshapes both.
-
-- [x] Extract `MessageDispatcherInterface` from the current server-only `MessageDispatcher`.
-- [x] Add the `PendingOutboundRequests` correlation primitive under `Core/Dispatch/`, keyed by `RequestId`.
-- [x] Ship `Nexus\Mcp\Client\` with `ClientBuilder`, client-side stores, and the shared dispatch kernel.
-- [x] Cover the symmetric handshake (`initialize` / `notifications/initialized`) from the client side.
-- [x] `Nexus\Mcp\Client\Transport\StdioClientTransport` (subprocess launcher).
-- [x] Typed convenience methods on `Client` (list/read/get/complete, `callTool` with streaming progress).
-- [x] End-to-end stdio client / server example.
-
-## v0.1.0
-
-Once the client namespace ships and the SDK exposes a symmetric server / client surface, the package
-tags **v0.1.0**. That is the first release that downstream consumers can pin against with confidence
-that the protocol-level public API is stable for a full MCP spec revision.
-
-Releases before v0.1.0 may break BC freely. Releases from v0.1.0 through v0.x.0 follow the same
-"breaking changes allowed in minor versions" policy until v1.0.0, which is gated on a stable upstream
-MCP spec.
-
-- [x] Client-side composition merged.
-- [x] Project documentation and community health files in place (README, CONTRIBUTING,
-  CODE_OF_CONDUCT, SECURITY, CHANGELOG).
-- [x] Mirror structured tool results into a text content block (the spec's backwards-compatibility
-  SHOULD for `structuredContent`).
-- [x] Validate tool-call arguments and results against their JSON Schemas (opis/json-schema by
-  default, pluggable via `ServerBuilder::setSchemaValidator()`).
-- [x] CHANGELOG documents the v0.1.0 surface vs the pre-release iteration.
-- [x] Tag and publish v0.1.0.
-
-## Before the next spec revision (0.x interim)
-
-The 0.x line continues against MCP spec 2025-11-25 while the next revision is finalised upstream. Work in
-this window is scoped to changes that survive that revision unchanged. Anything the revision reshapes is
-sequenced into the migration below instead.
-
-- [x] Attribute-based registration (Tier 1): `#[AsTool]`, `#[AsResource]`, `#[AsPrompt]`, and
-  `#[AsResourceTemplate]` on methods, plus a class-level `#[AsServer]` for identity, registered explicitly
-  via `ServerBuilder::register()` (no filesystem auto-discovery). Class-level handler backends come after
-  the migration.
-- [x] Generate a tool's input schema (JSON Schema 2020-12) from its PHP signature and docblock.
+- [x] PHPStan level 10 + strict rules. Infection at 100% MSI, 100% MCC, 100% covered-code MSI.
 - [x] Architecture-boundary enforcement (StructArmed) and dependency-declaration checks
   (composer-dependency-analyser) guarding the eventual component split.
-- [x] More runnable examples (in-memory, completions plus templates, capability-aware client) on a shared
-  `examples/bootstrap.php`.
-- [x] Expanded documentation: error-handling and best-practices guides, a design-rationale page, and a
-  dependency-update policy (closing the SDK-tiering documentation gaps).
+- [x] Documentation (getting-started, server, client, transports, architecture, error-handling,
+  best-practices, design-rationale, attribute-discovery) plus README and community-health files
+  (CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, CHANGELOG, VERSIONING, DEPENDENCY_POLICY).
+
+Server-initiated requests (`elicitation/create`) and the HTTP transport are not implemented yet. They
+land with the 2026-07-28 migration below, where `RequestBoundSender::sendRequest()` (a stub today) is
+implemented.
 
 ## MCP 2026-07-28 migration
 
 The next MCP spec revision, dated **2026-07-28**, reshapes the protocol significantly. Its release
-candidate is locked (2026-05-21) with the final spec due 2026-07-28. The SDK tracks 2025-11-25 until the final 2026-07-28 spec is published upstream (the dated
-`schema/2026-07-28/` revision, not the release candidate), then migrates as a single coordinated bundle.
+candidate is published (the `2026-07-28-RC` tag, 2026-05-29, content frozen 2026-05-21) and the final
+spec is due 2026-07-28. The SDK builds this migration against the frozen release candidate
+(`schema/draft/`), re-syncing field-level fix-ups as they land. The work is staged foundation-first: the
+schema and protocol layer, then the Streamable HTTP transport that carries it, then the extension
+framework. The **v1.0.0 release is reserved for the final dated `2026-07-28` spec**, so the SDK does not
+ship a stable major against a draft that can still shift.
 
 **No backward-compatibility layer with 2025-11-25.** The migration ships as the v1.0.0 major version
 bump, and major versions are the SDK's contract for breaking changes. v0.x consumers have already
@@ -128,15 +87,16 @@ subscription primitive that replaces today's `resources/subscribe` / `unsubscrib
 ### Multi round-trip requests (MRTR)
 
 Every result envelope gains a `resultType` discriminator (`"complete"` vs `"input_required"`). Servers
-that need to ask the client for input mid-request (elicitation, sampling, roots) return an
-`InputRequiredResult` instead of throwing the current `UrlElicitationRequiredError`. The single
+that need to ask the client for input mid-request (elicitation) return an `InputRequiredResult` instead
+of throwing the current `UrlElicitationRequiredError`. The single
 generic `JsonRpcResultResponse<TResult>` splits into 18 per-method response envelopes.
 
 - [ ] Add `resultType` enum + discriminator to the success-response parser.
-- [ ] Add the `InputRequest` union (`ElicitRequest`, `CreateMessageRequest`, `ListRootsRequest`),
-  `InputRequiredResult` (`inputRequests` + opaque `requestState`), and `InputResponseRequestParams`
-  (`inputResponses` + `requestState`). The client retries by re-issuing the original request, so there
-  is no `tasks/input_response` method.
+- [ ] Add the `InputRequest` union with only its `ElicitRequest` member (the spec also defines
+  `CreateMessageRequest` and `ListRootsRequest`, but sampling and roots are deleted, so the SDK does not
+  implement them), `InputRequiredResult` (`inputRequests` + opaque `requestState`), and
+  `InputResponseRequestParams` (`inputResponses` + `requestState`). The client retries by re-issuing the
+  original request, so there is no `tasks/input_response` method.
 - [ ] Generate 18 per-method `*ResultResponse` envelope classes.
 - [ ] Delete `UrlElicitationRequiredError` (-32042) entirely. The success-result-based mechanism
   replaces it.
@@ -147,7 +107,30 @@ generic `JsonRpcResultResponse<TResult>` splits into 18 per-method response enve
 `[key: string]: unknown` slot. Today's `Tool::projectSchemaEnvelope()` keeps only `type`, `$schema`,
 `properties`, and `required`. The migration relaxes it to pass arbitrary top-level keywords through.
 
+This step also resolves two attribute-discovery findings blocked on it:
+
+- `#[InputSchema(definition: ...)]` is documented as a full schema override but is currently truncated
+  to `type`/`$schema`/`properties`/`required` by `projectSchemaEnvelope`, so any other root construct
+  (`additionalProperties`, `$defs`, `allOf`, conditionals) is dropped from the advertised schema. The
+  doc-accuracy slice (narrowing the attribute's PHPDoc so it stops claiming a full override) lands
+  pre-migration. Preserving the full definition is this SEP-2106 work.
+- Once `definition` can carry arbitrary schemas (including a nested-DTO constructor),
+  `ArgumentBinder::construct` must raise a clean SDK exception instead of leaking a raw `\TypeError`
+  when a constructor parameter is itself an expandable class.
+
 - [ ] Relax `Tool::projectSchemaEnvelope()` to preserve all top-level JSON Schema 2020-12 keywords.
+- [ ] Preserve `#[InputSchema(definition: ...)]` verbatim once the schema root accepts arbitrary keywords.
+- [ ] Raise a clean SDK exception (not `\TypeError`) for an unconstructable nested-DTO constructor
+  parameter reached via the `definition` bypass.
+
+### Deterministic tool ordering
+
+The revision adds a SHOULD that servers return `tools/list` in a deterministic order (the same ordering
+across requests when the tool set is unchanged) so clients can cache the list and improve LLM
+prompt-cache hit rates. The SDK already satisfies this by construction: the tool store preserves
+registration order. The migration verifies the property rather than adding new work.
+
+- [ ] Verify deterministic `tools/list` ordering holds after the migration.
 
 ### Deprecation cleanup
 
@@ -158,9 +141,8 @@ compatibility window: these are deleted from core at the migration cut.
 - [ ] Delete Logging (`logging/setLevel`, `notifications/message`, `LoggingLevel`, the capability
   slot, `SetLevelRequestHandler`, `LoggingLevelGate`, and the `log()` helper on `ServerContext`).
 - [ ] Delete Sampling from core (`sampling/createMessage`, `CreateMessageRequest`,
-  `CreateMessageResult`, `SamplingMessage`, the capability slot).
-- [ ] Keep the door open for an optional `Nexus\Mcp\Extension\Sampling\*` namespace if a downstream
-  consumer needs it. Not built speculatively.
+  `CreateMessageResult`, `SamplingMessage`, the capability slot). Sampling is not shipped, not even as an
+  optional extension.
 
 ### TTL on list results
 
@@ -173,34 +155,64 @@ mechanism. Today's stores need a way to surface TTL on their list outputs.
   `ListResourceTemplatesResult`, `ReadResourceResult`.
 - [ ] Plumb `?int $ttlMs` + `?string $cacheScope` through the per-feature stores.
 
-### Extensions framework + Tasks
-
-The Tasks layer relocates out of core into an extension namespace
-(`Nexus\Mcp\Extension\Tasks\*`). The general-purpose extensions framework formalised at the same time
-defines how downstream SDKs register opt-in extensions and how `ServerCapabilities` surfaces them.
-
-- [ ] Design `ServerBuilder::enableExtension(...)` (or similar) and the
-  `ServerCapabilities.extensions` slot.
-- [ ] Move task classes to `Nexus\Mcp\Extension\Tasks\*` and prune the deleted methods (`tasks/list`,
-  `tasks/result`, `tasks/create`).
-- [ ] Add `tasks/update` and route `CreateTaskResult` through the `resultType: "task"` discriminator.
-
-### MCP Apps
-
-The first official non-tasks extension. Defines a `ui://` URI scheme and a sandboxed iframe interaction
-model. Optional, built on top of the extensions framework above.
-
-- [ ] Implement when a downstream consumer asks for it. Not on the critical path.
-
 ### Streamable HTTP transport
 
 The HTTP transport reshapes around the sessionless / stateless protocol changes, gains two required
-headers (`Mcp-Method`, `Mcp-Name`) with anti-spoofing cross-checks against body content, drops
-GET-based SSE entirely, and removes resumable streams. Building the transport pre-migration means
-building against a shape the spec is about to invalidate.
+headers (`Mcp-Method`, `Mcp-Name`) with anti-spoofing cross-checks against body content, adds the
+`x-mcp-header` mechanism for custom headers sourced from tool parameters, drops GET-based SSE entirely,
+and removes resumable streams. It is built against the release candidate's stateless shape, after the
+schema and protocol layer it carries.
 
-- [ ] Streamable HTTP server transport.
+- [ ] Streamable HTTP server transport (including `Mcp-Method` / `Mcp-Name` cross-checks and
+  `x-mcp-header` support).
 - [ ] Streamable HTTP client transport.
+
+### Authorization (OAuth 2.1)
+
+Authorization is a committed part of the v1.0.0 surface. The MCP client must perform the OAuth 2.1 flow
+to obtain tokens for protected MCP servers, and the conformance suite scores client-mode heavily on it
+(the majority of scored client scenarios are OAuth, so client-mode conformance is not reachable without
+it). It depends on the HTTP client transport above and is built after it.
+
+Client (required for client-mode conformance):
+
+- [ ] Discovery: Protected Resource Metadata via the `WWW-Authenticate` `resource_metadata` URL, then
+  Authorization Server metadata (RFC 8414 and OpenID `.well-known`), including the RFC 8414 path suffix.
+- [ ] Registration: Dynamic Client Registration with `application_type`, Client ID Metadata Document
+  (CIMD), and a pre-registered-credentials fallback when there is no registration endpoint.
+- [ ] PKCE (S256) on the authorization request.
+- [ ] Token-endpoint auth: `client_secret_basic`, `client_secret_post`, and `none` (public client).
+- [ ] Scope handling: select from `WWW-Authenticate` / `scopes_supported` / omit, step-up on a 403
+  insufficient_scope with scope accumulation, and a retry cap.
+- [ ] Resource Indicators (RFC 8707): send and validate the `resource` parameter.
+- [ ] Issuer validation (RFC 9207): validate the authorization-response `iss` and the AS-metadata issuer.
+- [ ] Refresh: request `offline_access` and use the refresh-token grant when supported.
+- [ ] Authorization-server migration: re-register on AS change without credential reuse.
+
+Server (resource server, not conformance-scored but part of the auth spec):
+
+- [ ] 401 challenge with `WWW-Authenticate` carrying the `resource_metadata` URL.
+- [ ] Serve a Protected Resource Metadata document.
+- [ ] Bearer-token validation bound to this resource.
+
+The OAuth-related official extensions (client-credentials and enterprise-managed authorization) are
+covered in the "Official extensions" block below, built on this subsystem.
+
+### Official extensions
+
+The SDK fully supports the official MCP extensions. They are built as the final block of the migration,
+after the transport and authorization above, and each ships disabled by default with explicit opt-in per
+the extensions framework (SEP-2133).
+
+- [ ] Extensions framework primitive: `ServerBuilder::enableExtension(...)` (or similar) plus the
+  `extensions` capability slot (the slot itself lands with the schema layer).
+- [ ] Tasks (`io.modelcontextprotocol/tasks`): relocate the task layer to `Nexus\Mcp\Extension\Tasks\*`,
+  prune `tasks/list` / `tasks/result` / `tasks/create`, add `tasks/update`, and route the
+  `resultType: "task"` variant through the result discriminator.
+- [ ] MCP Apps (SEP-1865): the `ui://` URI scheme, `text/html;profile=mcp-app`, and the sandboxed
+  iframe interaction model.
+- [ ] OAuth client-credentials (`io.modelcontextprotocol/oauth-client-credentials`) and
+  enterprise-managed authorization (SEP-990), built on the authorization subsystem above.
 
 ### OpenTelemetry trace context
 
