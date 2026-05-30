@@ -63,7 +63,10 @@ docblock types map to JSON Schema, `@param` text becomes the property descriptio
 the whole method) with `#[InputSchema(...)]`.
 
 For a prompt, each parameter becomes a prompt argument: its `@param` line supplies the description, and a
-parameter without a default value is marked required.
+parameter without a default value is marked required. Prompt arguments and resource URI variables are bound
+from strings, so a prompt, resource, or resource-template parameter must accept one: `string`, a string-backed
+or pure enum, or an untyped parameter. Other types (non-string scalars, int-backed enums, classes,
+intersection types) throw `UnsupportedParameterTypeException` at registration.
 
 A `ServerContext` parameter is injected and left out of the schema. All other arguments are bound to
 parameters by name, and backed or pure enum parameters are hydrated from the argument value.
@@ -135,7 +138,8 @@ attributes are rejected.
 
 - Only public methods are scanned.
 - Tool arguments are typed by the validated `inputSchema`, but prompt arguments and resource URI variables
-  arrive as strings, so non-string scalar parameters are only meaningful on tools.
+  arrive as strings. A prompt, resource, or resource-template parameter that a string cannot satisfy throws
+  `UnsupportedParameterTypeException` at registration.
 - Variadic parameters are accepted only on tools. On prompts and resources they throw
   `UnsupportedVariadicParameterException`.
 - Object (DTO) expansion is one level deep and tool-only. A constructor parameter typed as another class, a

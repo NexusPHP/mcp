@@ -21,6 +21,7 @@ use Nexus\Mcp\Server\Attribute\AsResource;
 use Nexus\Mcp\Server\Attribute\AsResourceTemplate;
 use Nexus\Mcp\Server\Attribute\AsTool;
 use Nexus\Mcp\Server\Discovery\AttributeScanner;
+use Nexus\Mcp\Server\Exception\UnsupportedParameterTypeException;
 use Nexus\Mcp\Server\Exception\UnsupportedVariadicParameterException;
 use Nexus\Mcp\Server\Prompt\PromptEntry;
 use Nexus\Mcp\Server\Prompt\ReflectedPromptRenderer;
@@ -30,8 +31,12 @@ use Nexus\Mcp\Server\Resource\ResourceEntry;
 use Nexus\Mcp\Server\Resource\ResourceTemplateEntry;
 use Nexus\Mcp\Server\Tool\ReflectedToolExecutor;
 use Nexus\Mcp\Server\Tool\ToolEntry;
+use Nexus\Mcp\Tests\Fixtures\Server\Discovery\BackedIntEnum;
+use Nexus\Mcp\Tests\Fixtures\Server\Discovery\BackedStringEnum;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\DiscoverableServer;
+use Nexus\Mcp\Tests\Fixtures\Server\Discovery\PureEnum;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
@@ -43,6 +48,8 @@ use PHPUnit\Framework\TestCase;
 #[Group('server-tests')]
 final class AttributeScannerTest extends TestCase
 {
+    private const string REJECTION_PATTERN = '/^\S+\:\:rank\(\) declares parameter "\$level" of unsupported type "%s"\. It is bound from a string value\./';
+
     public function testToolFallsBackToTheMethodName(): void
     {
         $tool = self::toolEntry('add')->tool;
@@ -254,6 +261,162 @@ final class AttributeScannerTest extends TestCase
             public function note(string ...$ids): string
             {
                 return implode(',', $ids);
+            }
+        };
+        iterator_to_array(new AttributeScanner()->scan($source), false);
+    }
+
+    #[DataProvider('provideSupportedPromptParameterTypeIsAcceptedCases')]
+    public function testSupportedPromptParameterTypeIsAccepted(object $source): void
+    {
+        $entries = iterator_to_array(new AttributeScanner()->scan($source), false);
+
+        self::assertCount(1, $entries);
+        self::assertInstanceOf(PromptEntry::class, $entries[0]);
+        self::assertSame('level', $entries[0]->prompt->arguments[0]->name ?? null);
+    }
+
+    /**
+     * @return iterable<string, array{object}>
+     */
+    public static function provideSupportedPromptParameterTypeIsAcceptedCases(): iterable
+    {
+        yield 'string' => [new class {
+            #[AsPrompt(description: 'A prompt.')]
+            public function rank(string $level): string
+            {
+                return $level;
+            }
+        }];
+
+        yield 'mixed' => [new class {
+            #[AsPrompt(description: 'A prompt.')]
+            public function rank(mixed $level): string
+            {
+                return \is_string($level) ? $level : '';
+            }
+        }];
+
+        yield 'pure enum' => [new class {
+            #[AsPrompt(description: 'A prompt.')]
+            public function rank(PureEnum $level): string
+            {
+                return $level->name;
+            }
+        }];
+
+        yield 'string-backed enum' => [new class {
+            #[AsPrompt(description: 'A prompt.')]
+            public function rank(BackedStringEnum $level): string
+            {
+                return $level->value;
+            }
+        }];
+
+        yield 'union with string' => [new class {
+            #[AsPrompt(description: 'A prompt.')]
+            public function rank(int|string $level): string
+            {
+                return (string) $level;
+            }
+        }];
+    }
+
+    #[DataProvider('provideUnsupportedPromptParameterTypeIsRejectedCases')]
+    public function testUnsupportedPromptParameterTypeIsRejected(object $source, string $pattern): void
+    {
+        $this->expectException(UnsupportedParameterTypeException::class);
+        $this->expectExceptionMessageMatches($pattern);
+
+        iterator_to_array(new AttributeScanner()->scan($source), false);
+    }
+
+    /**
+     * @return iterable<string, array{object, string}>
+     */
+    public static function provideUnsupportedPromptParameterTypeIsRejectedCases(): iterable
+    {
+        yield 'int scalar' => [
+            new class {
+                #[AsPrompt(description: 'A prompt.')]
+                public function rank(int $level): string
+                {
+                    return (string) $level;
+                }
+            },
+            \sprintf(self::REJECTION_PATTERN, preg_quote('int', '/')),
+        ];
+
+        yield 'int-backed enum' => [
+            new class {
+                #[AsPrompt(description: 'A prompt.')]
+                public function rank(BackedIntEnum $level): string
+                {
+                    return (string) $level->value;
+                }
+            },
+            \sprintf(self::REJECTION_PATTERN, preg_quote(BackedIntEnum::class, '/')),
+        ];
+
+        yield 'non-enum class' => [
+            new class {
+                #[AsPrompt(description: 'A prompt.')]
+                public function rank(\DateTimeImmutable $level): string
+                {
+                    return $level->format('c');
+                }
+            },
+            \sprintf(self::REJECTION_PATTERN, preg_quote(\DateTimeImmutable::class, '/')),
+        ];
+
+        yield 'intersection' => [
+            new class {
+                #[AsPrompt(description: 'A prompt.')]
+                public function rank(\Countable&\Stringable $level): string
+                {
+                    return (string) $level;
+                }
+            },
+            \sprintf(self::REJECTION_PATTERN, preg_quote(\Countable::class.'&'.\Stringable::class, '/')),
+        ];
+
+        yield 'union without string' => [
+            new class {
+                #[AsPrompt(description: 'A prompt.')]
+                public function rank(float|int $level): string
+                {
+                    return (string) $level;
+                }
+            },
+            \sprintf(self::REJECTION_PATTERN, preg_quote('int|float', '/')),
+        ];
+    }
+
+    public function testUnsupportedResourceParameterTypeIsRejected(): void
+    {
+        $this->expectException(UnsupportedParameterTypeException::class);
+        $this->expectExceptionMessageMatches('/^\S+\:\:config\(\) declares parameter "\$uri" of unsupported type "int"\. It is bound from a string value\./');
+
+        $source = new class {
+            #[AsResource(uri: 'mem://config')]
+            public function config(int $uri): string
+            {
+                return (string) $uri;
+            }
+        };
+        iterator_to_array(new AttributeScanner()->scan($source), false);
+    }
+
+    public function testUnsupportedResourceTemplateParameterTypeIsRejected(): void
+    {
+        $this->expectException(UnsupportedParameterTypeException::class);
+        $this->expectExceptionMessageMatches('/^\S+\:\:profile\(\) declares parameter "\$id" of unsupported type "int"\. It is bound from a string value\./');
+
+        $source = new class {
+            #[AsResourceTemplate(uriTemplate: 'users://{id}')]
+            public function profile(string $uri, int $id): string
+            {
+                return $uri.$id;
             }
         };
         iterator_to_array(new AttributeScanner()->scan($source), false);
