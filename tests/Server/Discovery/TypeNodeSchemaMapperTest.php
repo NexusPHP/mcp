@@ -467,10 +467,10 @@ final class TypeNodeSchemaMapperTest extends TestCase
     /**
      * @param null|non-empty-string $expected
      */
-    #[DataProvider('provideChooseCoreCases')]
-    public function testChooseCore(?TypeNode $native, ?TypeNode $doc, ?string $expected): void
+    #[DataProvider('provideResolveTypeNodeCases')]
+    public function testResolveTypeNode(?TypeNode $native, ?TypeNode $doc, ?string $expected): void
     {
-        $result = $this->mapper->chooseCore($native, $doc);
+        $result = $this->mapper->resolveTypeNode($native, $doc);
 
         self::assertSame($expected, null === $result ? null : (string) $result);
     }
@@ -478,7 +478,7 @@ final class TypeNodeSchemaMapperTest extends TestCase
     /**
      * @return iterable<string, array{null|TypeNode, null|TypeNode, null|non-empty-string}>
      */
-    public static function provideChooseCoreCases(): iterable
+    public static function provideResolveTypeNodeCases(): iterable
     {
         $resolver = new DocBlockTypeResolver();
 
@@ -615,10 +615,10 @@ final class TypeNodeSchemaMapperTest extends TestCase
         ];
     }
 
-    public function testChooseCoreKeepsAllNullUnion(): void
+    public function testResolveTypeNodeKeepsAllNullUnion(): void
     {
         $union = new UnionTypeNode([new IdentifierTypeNode('null'), new IdentifierTypeNode('null')]);
 
-        self::assertSame($union, $this->mapper->chooseCore($union, null));
+        self::assertSame($union, $this->mapper->resolveTypeNode($union, null));
     }
 }
