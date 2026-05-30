@@ -80,6 +80,13 @@ final class SampleToolHandlers
     {
     }
 
+    /**
+     * @param array<string, \DateTimeImmutable> $items
+     */
+    public function unmappableArrayDoc(array $items): void
+    {
+    }
+
     // @phpstan-ignore missingType.parameter
     public function untyped($anything): void
     {

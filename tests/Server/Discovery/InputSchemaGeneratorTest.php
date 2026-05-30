@@ -208,6 +208,16 @@ final class InputSchemaGeneratorTest extends TestCase
         self::generate('unsupported');
     }
 
+    public function testBareArrayWithUnmappableDocblockFallsBackToArray(): void
+    {
+        self::assertSame([
+            'type' => 'object',
+            '$schema' => self::DIALECT,
+            'properties' => ['items' => ['type' => 'array']],
+            'required' => ['items'],
+        ], self::generate('unmappableArrayDoc'));
+    }
+
     public function testUntypedParameterYieldsEmptySchema(): void
     {
         self::assertSame([

@@ -548,6 +548,18 @@ final class TypeNodeSchemaMapperTest extends TestCase
             'array',
         ];
 
+        yield 'unmappable element docblock does not refine bare array' => [
+            $resolver->parseNativeType('array'),
+            $resolver->parseNativeType(\sprintf('array<string, %s>', \DateTimeImmutable::class)),
+            'array',
+        ];
+
+        yield 'unmappable generic docblock does not refine bare iterable' => [
+            $resolver->parseNativeType('iterable'),
+            $resolver->parseNativeType(\sprintf('Generator<int, %s>', \DateTimeImmutable::class)),
+            'iterable',
+        ];
+
         yield 'docblock literal union refines native scalar' => [
             $resolver->parseNativeType('string'),
             $resolver->parseNativeType('\'a\'|\'b\''),
