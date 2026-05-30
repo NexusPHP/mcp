@@ -8,6 +8,8 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp-sdk/commits/1.x)
 
+## [v0.4.0](https://github.com/NexusPHP/mcp-sdk/compare/v0.3.0...v0.4.0) - 2026-05-30
+
 ### Added
 
 - Attribute-based registration. Mark methods with `#[AsTool]`, `#[AsPrompt]`, `#[AsResource]`, or
