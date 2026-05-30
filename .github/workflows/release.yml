@@ -16,11 +16,56 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Create release
+      - name: Extract release notes from changelog
+        id: notes
+        env:
+          TAG: ${{ github.ref_name }}
         run: |
-          gh release create "${{ github.ref_name }}" \
-            --title "${{ github.ref_name }}" \
+          # Capture this tag's section, then join hard-wrapped lines into one line per bullet.
+          body="$(awk -v tag="$TAG" '
+            index($0, "## [" tag "]") == 1     { capture = 1; next }
+            capture && index($0, "## [") == 1  { exit }
+            capture                            { print }
+          ' CHANGELOG.md | awk '
+            function flush() { if (started) { print line; started = 0 } }
+            /^[[:space:]]+[^[:space:]]/ { sub(/^[[:space:]]+/, " "); line = line $0; next }
+            { flush(); line = $0; started = 1 }
+            END { flush() }
+          ' | sed '/./,$!d')"
+
+          if [ -z "$(printf '%s' "$body" | tr -d '[:space:]')" ]; then
+            echo 'found=false' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          url="$(grep -m1 -F "## [$TAG]" CHANGELOG.md | sed -nE 's/^[^(]*\(([^)]+)\).*/\1/p')"
+          {
+            printf "## What's Changed\n\n"
+            printf '%s\n' "$body"
+            if [ -n "$url" ]; then
+              printf '\n**Full Changelog**: %s\n' "$url"
+            fi
+          } > release-notes.md
+          echo 'found=true' >> "$GITHUB_OUTPUT"
+
+      - name: Create release from changelog
+        if: steps.notes.outputs.found == 'true'
+        env:
+          TAG: ${{ github.ref_name }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_ACTIONS_TOKEN }}
+        run: |
+          gh release create "$TAG" \
+            --title "$TAG" \
+            --draft \
+            --notes-file release-notes.md
+
+      - name: Create release with generated notes
+        if: steps.notes.outputs.found == 'false'
+        env:
+          TAG: ${{ github.ref_name }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_ACTIONS_TOKEN }}
+        run: |
+          gh release create "$TAG" \
+            --title "$TAG" \
             --draft \
             --generate-notes
-        env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_ACTIONS_TOKEN }}
