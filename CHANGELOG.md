@@ -18,6 +18,10 @@ in `0.x`, minor releases may include breaking changes.
 - The `#[InputSchema]` attribute's `definition` parameter no longer claims to be a full schema override in
   its PHPDoc. Only the `type`, `$schema`, `properties`, and `required` keys of a supplied `definition` reach
   the advertised tool `inputSchema`, which the annotation now documents.
+- A discovered tool that returns an array the adapter cannot map (a non-empty list whose items are not all
+  content blocks, or an integer-keyed array that is not valid structured content) now throws
+  `UnsupportedReturnValueException` naming the handler method, instead of a bare `ExpectationFailedException`,
+  matching every other unsupported-return path.
 
 ## [v0.4.0](https://github.com/NexusPHP/mcp-sdk/compare/v0.3.0...v0.4.0) - 2026-05-30
 

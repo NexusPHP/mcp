@@ -164,6 +164,14 @@ final class ReflectedHandlers
         return [];
     }
 
+    /**
+     * @return array<int, string>
+     */
+    public function toolIntKeyedArray(): array
+    {
+        return [1 => 'x'];
+    }
+
     public function promptResult(): GetPromptResult
     {
         return new GetPromptResult([new PromptMessage(Role::Assistant, new TextContent('seed'))], 'a description');

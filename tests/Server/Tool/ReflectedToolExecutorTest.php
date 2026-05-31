@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Server\Tool;
 
 use Amp\NullCancellation;
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\ContentBlock\ImageContent;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\RequestId;
@@ -95,11 +94,20 @@ final class ReflectedToolExecutorTest extends TestCase
         self::assertSame([], $result->structuredContent);
     }
 
-    public function testRejectsListReturnedAsStructuredContent(): void
+    public function testRejectsNonContentBlockList(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(UnsupportedReturnValueException::class);
+        $this->expectExceptionMessage(ReflectedHandlers::class.'::toolList() must return a '.CallToolResult::class.', a string, content blocks, or an array, array given.');
 
         self::execute('toolList');
+    }
+
+    public function testRejectsIntegerKeyedArray(): void
+    {
+        $this->expectException(UnsupportedReturnValueException::class);
+        $this->expectExceptionMessage(ReflectedHandlers::class.'::toolIntKeyedArray() must return a '.CallToolResult::class.', a string, content blocks, or an array, array given.');
+
+        self::execute('toolIntKeyedArray');
     }
 
     public function testThrowsOnUnsupportedReturn(): void
