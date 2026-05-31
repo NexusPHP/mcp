@@ -13,6 +13,12 @@ in `0.x`, minor releases may include breaking changes.
 - An online [API reference](https://nexusphp.github.io/mcp-sdk/) for the public `Nexus\Mcp\` API, generated
   from the source with ApiGen and published to GitHub Pages on every push to `1.x`.
 
+### Fixed
+
+- The `#[InputSchema]` attribute's `definition` parameter no longer claims to be a full schema override in
+  its PHPDoc. Only the `type`, `$schema`, `properties`, and `required` keys of a supplied `definition` reach
+  the advertised tool `inputSchema`, which the annotation now documents.
+
 ## [v0.4.0](https://github.com/NexusPHP/mcp-sdk/compare/v0.3.0...v0.4.0) - 2026-05-30
 
 ### Added
