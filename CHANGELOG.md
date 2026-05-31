@@ -8,6 +8,11 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp-sdk/commits/1.x)
 
+### Added
+
+- An online [API reference](https://nexusphp.github.io/mcp-sdk/) for the public `Nexus\Mcp\` API, generated
+  from the source with ApiGen and published to GitHub Pages on every push to `1.x`.
+
 ## [v0.4.0](https://github.com/NexusPHP/mcp-sdk/compare/v0.3.0...v0.4.0) - 2026-05-30
 
 ### Added

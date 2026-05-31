@@ -1,0 +1,80 @@
+name: Deploy API Documentation
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 1.x
+    paths:
+      - .github/workflows/deploy-api.yml
+      - api/**
+      - src/**
+
+permissions: {}
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build API documentation
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    if: github.repository == 'NexusPHP/mcp-sdk'
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # 2.37.1
+        with:
+          php-version: '8.4'
+          coverage: none
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install dependencies
+        run: |
+          composer update --ansi
+          composer update --ansi --working-dir=api
+
+      - name: Audit dependencies
+        run: |
+          composer audit --ansi --abandoned=report
+          composer audit --ansi --working-dir=api --abandoned=report
+
+      - name: Setup Pages
+        id: pages
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+
+      - name: Generate API documentation
+        run: api/vendor/bin/apigen src --ansi --output api/docs --config api/apigen.neon
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: api/docs
+
+  deploy:
+    name: Deploy API documentation
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0

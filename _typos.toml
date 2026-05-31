@@ -16,4 +16,6 @@ extend-ignore-re = [
 
 [files]
 # Contributor Covenant is a verbatim third-party document in American English.
-extend-exclude = ["CODE_OF_CONDUCT.md"]
+# The ApiGen glue carries upstream American spellings (the `analyzer.filter`
+# service name and the `ApiGen\Analyzer` base class) that cannot be changed.
+extend-exclude = ["CODE_OF_CONDUCT.md", "api/apigen.neon", "api/src"]

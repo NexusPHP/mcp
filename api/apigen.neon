@@ -1,0 +1,13 @@
+parameters:
+  title: Nexus MCP SDK
+
+services:
+  analyzer.filter:
+    factory: Nexus\Mcp\Api\AnalyserFilter
+    arguments:
+      excludeProtected: %excludeProtected%
+      excludePrivate: %excludePrivate%
+      excludeTagged: %excludeTagged%
+
+  renderer.filter:
+    factory: Nexus\Mcp\Api\RendererFilter

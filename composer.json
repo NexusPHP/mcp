@@ -74,6 +74,10 @@
         "post-autoload-dump": [
             "@composer update --working-dir=tools"
         ],
+        "api:docs": [
+            "@composer update --working-dir=api",
+            "api/vendor/bin/apigen src --output=api/docs --config=api/apigen.neon"
+        ],
         "arch:check": "tools/vendor/bin/structarmed analyse src",
         "cs:check": "tools/vendor/bin/php-cs-fixer check --verbose --diff",
         "cs:fix": "tools/vendor/bin/php-cs-fixer fix --verbose --diff",
@@ -134,6 +138,7 @@
         ]
     },
     "scripts-descriptions": {
+        "api:docs": "Generates the public API reference with ApiGen",
         "arch:check": "Checks architecture layer boundaries with StructArmed",
         "cs:check": "Checks for coding style violations",
         "cs:fix": "Fixes any coding style violations",

@@ -98,6 +98,8 @@ See [Getting started](docs/getting-started.md) for the client side and a full wa
 - [Best practices](docs/best-practices.md): conventions the SDK is shaped to reward.
 - [Architecture](docs/architecture.md): layering, dispatch kernel, spec-compliance notes.
 - [Design rationale](docs/design-rationale.md): why the SDK is shaped this way.
+- [API reference](https://nexusphp.github.io/mcp-sdk/): the generated class-level reference for the public
+  `Nexus\Mcp\` API, published to GitHub Pages.
 - [Examples](examples/): runnable demo server and client.
 
 ## Development

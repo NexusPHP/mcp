@@ -1,0 +1,13 @@
+{
+    "description": "ApiGen tooling for generating the Nexus MCP SDK API reference",
+    "license": "MIT",
+    "require": {
+        "php": "^8.4",
+        "apigen/apigen": "dev-master#aa151a961053d20e46d2c7da65cbb03c130d12ff"
+    },
+    "autoload": {
+        "psr-4": {
+            "Nexus\\Mcp\\Api\\": "src/"
+        }
+    }
+}
