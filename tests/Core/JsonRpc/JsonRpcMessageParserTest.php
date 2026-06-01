@@ -406,6 +406,21 @@ final class JsonRpcMessageParserTest extends TestCase
         $parser->parse(['id' => 1, 'method' => 'ping']);
     }
 
+    public function testParseEscapesControlCharactersInWrongVersionMessage(): void
+    {
+        try {
+            $parser = new JsonRpcMessageParser();
+            $parser->parse(['jsonrpc' => "1.0\ninjected", 'id' => 1, 'method' => 'ping']);
+            self::fail('Expected InvalidRequestException.');
+        } catch (InvalidRequestException $e) {
+            self::assertSame(
+                'Invalid JSON-RPC version: expected "2.0", got \'1.0\x0ainjected\'.',
+                $e->getMessage(),
+            );
+            self::assertStringNotContainsString("\n", $e->getMessage());
+        }
+    }
+
     public function testParseReturnsUnparsedResultEnvelopeWhenResultClassOmitted(): void
     {
         $parser = new JsonRpcMessageParser();

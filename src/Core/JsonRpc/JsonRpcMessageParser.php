@@ -192,7 +192,7 @@ final class JsonRpcMessageParser
                 \sprintf(
                     'Invalid JSON-RPC version: expected "%s", got %s.',
                     JsonRpcMessage::JSONRPC_VERSION,
-                    null === $version ? 'null' : var_export($version, true),
+                    null === $version ? 'null' : SafeDisplay::sanitise(var_export($version, true)),
                 ),
             );
         }

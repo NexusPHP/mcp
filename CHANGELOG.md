@@ -26,6 +26,10 @@ in `0.x`, minor releases may include breaking changes.
   no longer fails to decode. The spec types `Error.data` as `unknown`, so `Error::$data` and the response
   parser now accept any JSON value instead of rejecting a non-object. Previously the client discarded such a
   response without rejecting the correlated request, leaving the caller's `await()` unresolved.
+- A peer-supplied `jsonrpc` version value carrying control characters is now escaped (non-printable bytes
+  rendered as `\xNN`) in the version-mismatch error message instead of being emitted raw, consistent with how
+  the method-name fields are already rendered. This stops a peer from forging newlines in plain-text sinks
+  that record the rejection.
 
 ## [v0.4.0](https://github.com/NexusPHP/mcp-sdk/compare/v0.3.0...v0.4.0) - 2026-05-30
 
