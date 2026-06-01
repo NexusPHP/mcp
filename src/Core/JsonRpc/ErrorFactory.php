@@ -29,11 +29,9 @@ use Nexus\Mcp\Core\Schema\Error\ParseError;
 final class ErrorFactory
 {
     /**
-     * @param null|array<string, mixed> $data
-     *
      * @throws \InvalidArgumentException
      */
-    public static function create(ProtocolErrorCode $code, string $message, ?array $data = null): Error
+    public static function create(ProtocolErrorCode $code, string $message, mixed $data = null): Error
     {
         return match ($code) {
             ProtocolErrorCode::ParseError => new ParseError($message, $data),

@@ -25,7 +25,7 @@ use Nexus\Mcp\Core\Schema\Error;
  */
 final readonly class UnknownProtocolError extends Error
 {
-    public function __construct(int $code, string $message, ?array $data = null)
+    public function __construct(int $code, string $message, mixed $data = null)
     {
         if (ProtocolErrorCode::tryFrom($code) !== null) {
             throw new ExpectationFailedException(
@@ -38,7 +38,7 @@ final readonly class UnknownProtocolError extends Error
     }
 
     /**
-     * @param array{code: int, message: string, data?: array<string, mixed>} $data
+     * @param array{code: int, message: string, data?: mixed} $data
      */
     #[\Override]
     public static function fromArray(array $data): static

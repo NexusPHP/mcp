@@ -91,6 +91,30 @@ final class ClientMessageDispatcherTest extends TestCase
         }
     }
 
+    public function testErrorResponseWithNonObjectDataRejectsTheRegisteredFuture(): void
+    {
+        $outbound = new PendingOutboundRequests();
+        $future = $outbound->register(new RequestId(1), EmptyResult::class);
+        $dispatcher = self::buildDispatcher($outbound);
+        $transport = new RecordingTransport();
+
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'error' => ['code' => ProtocolErrorCode::InternalError->value, 'message' => 'boom', 'data' => [1, 2, 3]],
+        ], $transport);
+
+        EventLoop::run();
+
+        try {
+            $future->await();
+            self::fail('Future should have been rejected.');
+        } catch (RemoteCallFailedException $e) {
+            self::assertSame('boom', $e->getMessage());
+            self::assertSame(ProtocolErrorCode::InternalError->value, $e->getCode());
+        }
+    }
+
     public function testOrphanSuccessResponseIsLoggedAndDropped(): void
     {
         $outbound = new PendingOutboundRequests();

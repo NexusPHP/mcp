@@ -105,16 +105,7 @@ final readonly class JsonRpcErrorResponse implements Arrayable, JsonRpcResponse
         Assert::that($data['message'])->isString('error response "message" must be a string, {type} given.');
         $message = $data['message'];
 
-        $extra = null;
-
-        if (\array_key_exists('data', $data)) {
-            Assert::that($data['data'])
-                ->isArray('error response "data" must be an object, {type} given.')
-                ->isMap('error response "data" must be a string-keyed object.')
-            ;
-            $extra = $data['data'];
-        }
-
+        $extra = $data['data'] ?? null;
         $narrow = ['message' => $message];
 
         if (null !== $extra) {

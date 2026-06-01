@@ -23,16 +23,13 @@ use Nexus\Mcp\Core\Schema\Error;
  */
 final readonly class ParseError extends Error
 {
-    /**
-     * @param null|array<string, mixed> $data
-     */
-    public function __construct(string $message = 'Parse error', ?array $data = null)
+    public function __construct(string $message = 'Parse error', mixed $data = null)
     {
         parent::__construct(ProtocolErrorCode::ParseError, $message, $data);
     }
 
     /**
-     * @param array{code?: int, message?: string, data?: array<string, mixed>} $data
+     * @param array{code?: int, message?: string, data?: mixed} $data
      */
     #[\Override]
     public static function fromArray(array $data): static

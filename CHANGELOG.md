@@ -22,6 +22,10 @@ in `0.x`, minor releases may include breaking changes.
   content blocks, or an integer-keyed array that is not valid structured content) now throws
   `UnsupportedReturnValueException` naming the handler method, instead of a bare `ExpectationFailedException`,
   matching every other unsupported-return path.
+- A JSON-RPC error response whose `error.data` is a non-object JSON value (string, number, list, or boolean)
+  no longer fails to decode. The spec types `Error.data` as `unknown`, so `Error::$data` and the response
+  parser now accept any JSON value instead of rejecting a non-object. Previously the client discarded such a
+  response without rejecting the correlated request, leaving the caller's `await()` unresolved.
 
 ## [v0.4.0](https://github.com/NexusPHP/mcp-sdk/compare/v0.3.0...v0.4.0) - 2026-05-30
 

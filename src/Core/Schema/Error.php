@@ -20,7 +20,7 @@ use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
  * @implements Arrayable<array{
  *   code: int,
  *   message: non-empty-string,
- *   data?: array<string, mixed>
+ *   data?: mixed
  * }>
  *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#error
@@ -34,13 +34,10 @@ abstract readonly class Error implements Arrayable
      */
     public string $message;
 
-    /**
-     * @param null|array<string, mixed> $data
-     */
     public function __construct(
         int|ProtocolErrorCode $code,
         string $message,
-        public ?array $data = null,
+        public mixed $data = null,
     ) {
         Assert::that($message)->isNonEmptyString('error "message" must be a non-empty string.');
 

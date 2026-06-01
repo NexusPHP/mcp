@@ -23,13 +23,13 @@ use Nexus\Mcp\Core\Schema\Error;
  */
 final readonly class InvalidParamsError extends Error
 {
-    public function __construct(string $message = 'Invalid params', ?array $data = null)
+    public function __construct(string $message = 'Invalid params', mixed $data = null)
     {
         parent::__construct(ProtocolErrorCode::InvalidParams, $message, $data);
     }
 
     /**
-     * @param array{code?: int, message?: string, data?: array<string, mixed>} $data
+     * @param array{code?: int, message?: string, data?: mixed} $data
      */
     #[\Override]
     public static function fromArray(array $data): static

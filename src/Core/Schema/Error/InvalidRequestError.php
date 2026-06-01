@@ -23,13 +23,13 @@ use Nexus\Mcp\Core\Schema\Error;
  */
 final readonly class InvalidRequestError extends Error
 {
-    public function __construct(string $message = 'Invalid request', ?array $data = null)
+    public function __construct(string $message = 'Invalid request', mixed $data = null)
     {
         parent::__construct(ProtocolErrorCode::InvalidRequest, $message, $data);
     }
 
     /**
-     * @param array{code?: int, message?: string, data?: array<string, mixed>} $data
+     * @param array{code?: int, message?: string, data?: mixed} $data
      */
     #[\Override]
     public static function fromArray(array $data): static

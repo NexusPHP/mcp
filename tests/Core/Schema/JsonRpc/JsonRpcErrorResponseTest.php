@@ -24,6 +24,7 @@ use Nexus\Mcp\Core\Schema\Error\UrlElicitationRequiredErrorPayload;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\RequestId;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
@@ -142,6 +143,7 @@ final class JsonRpcErrorResponseTest extends TestCase
 
         self::assertInstanceOf(UrlElicitationRequiredErrorPayload::class, $response->error);
         self::assertSame('Custom elicitation prompt', $response->error->message);
+        self::assertSame(['elicitations' => []], $response->error->data);
     }
 
     public function testFromArrayDispatchesInternalError(): void
@@ -281,15 +283,34 @@ final class JsonRpcErrorResponseTest extends TestCase
         ]);
     }
 
-    public function testFromArrayRejectsNonObjectData(): void
+    #[DataProvider('provideFromArrayAcceptsNonObjectDataCases')]
+    public function testFromArrayAcceptsNonObjectData(mixed $data): void
     {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('error response "data" must be an object, string given.');
-
-        JsonRpcErrorResponse::fromArray([
+        $envelope = [
             'jsonrpc' => '2.0',
             'id' => 1,
-            'error' => ['code' => ProtocolErrorCode::InternalError->value, 'message' => 'oops', 'data' => 'bad'],
-        ]);
+            'error' => ['code' => ProtocolErrorCode::InternalError->value, 'message' => 'oops', 'data' => $data],
+        ];
+
+        $response = JsonRpcErrorResponse::fromArray($envelope);
+
+        self::assertSame($data, $response->error->data);
+        self::assertSame($envelope, $response->toArray());
+    }
+
+    /**
+     * @return iterable<string, array{mixed}>
+     */
+    public static function provideFromArrayAcceptsNonObjectDataCases(): iterable
+    {
+        yield 'string' => ['bad'];
+
+        yield 'integer' => [42];
+
+        yield 'float' => [1.5];
+
+        yield 'boolean' => [true];
+
+        yield 'list' => [[1, 2, 3]];
     }
 }
