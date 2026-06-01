@@ -175,15 +175,23 @@ mechanism. Today's stores need a way to surface TTL on their list outputs.
 
 ### Streamable HTTP transport
 
-The HTTP transport reshapes around the sessionless / stateless protocol changes, gains two required
-headers (`Mcp-Method`, `Mcp-Name`) with anti-spoofing cross-checks against body content, adds the
-`x-mcp-header` mechanism for custom headers sourced from tool parameters, drops GET-based SSE entirely,
-and removes resumable streams. It is built against the release candidate's stateless shape, after the
-schema and protocol layer it carries.
+The HTTP transport reshapes around the sessionless / stateless protocol changes, gains a required
+request-metadata header layer (`MCP-Protocol-Version`, `Mcp-Method`, `Mcp-Name`) with anti-spoofing
+cross-checks against body content, adds the `x-mcp-header` mechanism for custom headers sourced from tool
+parameters, drops GET-based SSE entirely, and removes resumable streams. It is built against the release
+candidate's stateless shape, after the schema and protocol layer it carries.
 
-- [ ] Streamable HTTP server transport (including `Mcp-Method` / `Mcp-Name` cross-checks and
-  `x-mcp-header` support).
+- [ ] Streamable HTTP server transport (POST-only MCP endpoint, per-request SSE streams, `Origin`
+  validation, `X-Accel-Buffering: no` on SSE).
 - [ ] Streamable HTTP client transport.
+- [ ] Request-metadata header layer: emit and validate `MCP-Protocol-Version`, `Mcp-Method`, and
+  `Mcp-Name`, rejecting any header-vs-body mismatch (or missing/malformed required header) as
+  `-32001 HeaderMismatch` on HTTP 400. Integers compare numerically, not as strings.
+- [ ] `x-mcp-header` to `Mcp-Param-{Name}` mirroring (client side is mandatory): mirror designated
+  tool-parameter values (primitive types only, `number` banned, any nesting depth) into headers with the
+  `=?base64?…?=` value-encoding for non-ASCII / whitespace / sentinel values, and reject (exclude from
+  `tools/list`) any tool whose `x-mcp-header` violates the field-name / uniqueness / type constraints.
+- [ ] Server-side `Mcp-Param-{Name}` validation against the body, emitting `-32001` on mismatch.
 
 ### Authorization (OAuth 2.1)
 
