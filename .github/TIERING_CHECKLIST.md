@@ -63,7 +63,7 @@ The tiering system covers **both official and community-driven SDKs**, so `nexus
 - [ ] **At Least One Stable Release**
   - Reference: Published release with stable API
   - Evidence/Notes: no stable release yet. 0.x is pre-stable (breaking changes allowed in minors). A stable release means v1.0.0, which lands with the 2026-07-28 migration
-  - Release Tag: none stable. Pre-stable v0.1.0 / v0.2.0 / v0.3.0 are published on Packagist
+  - Release Tag: none stable. Pre-stable v0.1.0 to v0.5.0 are published on Packagist
 
 ### Documentation
 
@@ -221,8 +221,8 @@ The tiering system covers **both official and community-driven SDKs**, so `nexus
 - [x] **Version Number Consistency**
   - All packages released at same version
   - Location of version definition: git tag (composer.json has no version field, umbrella-only during 0.x)
-  - Current Version: v0.3.0
-  - Evidence/Notes: umbrella package only until 1.0 (per ROADMAP.md), so the single version is trivially consistent. Component packages split at 1.0
+  - Current Version: v0.5.0
+  - Evidence/Notes: umbrella package only until 1.0 (per ROADMAP.md), so the single version is trivially consistent. Component packages split at v1.0
 
 ### Metadata & Discoverability
 
@@ -230,7 +230,7 @@ The tiering system covers **both official and community-driven SDKs**, so `nexus
   - Reference: Composer registry
   - Package Name: `nexusphp/mcp-sdk`
   - Link: https://packagist.org/packages/nexusphp/mcp-sdk
-  - Evidence/Notes: published. Latest v0.3.0 (also v0.2.0, v0.1.0). Umbrella package only during 0.x. Component packages split at 1.0
+  - Evidence/Notes: published. Latest v0.5.0. Umbrella package only during 0.x. Component packages split at v1.0
 
 - [x] **GitHub Repository Properly Configured**
   - Repository URL: https://github.com/NexusPHP/mcp-sdk

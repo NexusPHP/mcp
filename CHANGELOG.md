@@ -8,6 +8,8 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp-sdk/commits/1.x)
 
+## [v0.5.0](https://github.com/NexusPHP/mcp-sdk/compare/v0.4.0...v0.5.0) - 2026-06-01
+
 ### Added
 
 - An online [API reference](https://nexusphp.github.io/mcp-sdk/) for the public `Nexus\Mcp\` API, generated

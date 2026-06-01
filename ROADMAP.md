@@ -7,7 +7,7 @@ already ships.
 
 ## Current capabilities
 
-The SDK targets MCP spec **2025-11-25** and is published on Packagist (latest **v0.3.0**, pre-stable). It
+The SDK targets MCP spec **2025-11-25** and is published on Packagist (latest **v0.5.0**, pre-stable). It
 ships a symmetric server and client over stdio, sharing one protocol kernel under `Nexus\Mcp\Core`.
 
 Protocol surface (both sides):
