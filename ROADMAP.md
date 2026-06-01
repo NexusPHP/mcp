@@ -84,6 +84,24 @@ subscription primitive that replaces today's `resources/subscribe` / `unsubscrib
 - [ ] Delete `resources/subscribe` / `resources/unsubscribe` (none of these are implemented today, so
   this is a non-action verified by the migration).
 
+### Stdio client restart on unexpected server exit
+
+The lifecycle "Unexpected Termination" rule: when the stdio server process exits unexpectedly, the client
+SHOULD restart it, retry the now-lost in-flight requests against the fresh process, and re-establish any
+active `subscriptions/listen` streams. The client already surfaces the loss (a subprocess exit closes the
+transport and `PendingOutboundRequests::cancelAll` rejects every in-flight request) and already supports
+manual reconnect, but it does not restart the process or replay subscriptions. Supervision stays out of the
+dumb-pipe transport and lands as a `SupervisedTransport` decorator that owns the subprocess command, tells
+an unexpected crash from an intentional close via the captured exit code, and respawns. The
+subscription-replay step depends on `subscriptions/listen` above, so this builds after it.
+
+- [ ] Capture the subprocess exit code (`Process::join()`) so an unexpected exit is distinguishable from an
+  intentional close.
+- [ ] `SupervisedTransport` decorator that respawns the subprocess on unexpected exit and re-emits the
+  listener chain to an unchanged `Client`.
+- [ ] Re-establish active `subscriptions/listen` streams after restart.
+- [ ] Optional opt-in retry of the lost in-flight requests against the fresh process.
+
 ### Multi round-trip requests (MRTR)
 
 Every result envelope gains a `resultType` discriminator (`"complete"` vs `"input_required"`). Servers
