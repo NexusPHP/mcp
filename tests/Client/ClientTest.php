@@ -180,6 +180,59 @@ final class ClientTest extends TestCase
         }
     }
 
+    public function testSendRequestForgetsTheRegistrationWhenTheTransportSendThrows(): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $transport = new RecordingTransport();
+        $transport->sendError = new TransportAlreadyClosedException(operation: 'send-request');
+        $client->connect($transport);
+
+        $request = new PingRequest(new RequestId(1), new EmptyRequestParams());
+
+        try {
+            $client->sendRequest($request, EmptyResult::class);
+            self::fail('Expected the transport send failure to propagate.');
+        } catch (TransportAlreadyClosedException) {
+        }
+
+        // Re-sending the same id surfaces the send failure again only if the
+        // failed registration was freed. A leak would raise a duplicate-id error.
+        try {
+            $client->sendRequest($request, EmptyResult::class);
+            self::fail('Expected the transport send failure to propagate.');
+        } catch (TransportAlreadyClosedException $e) {
+            self::assertStringContainsString('send-request', $e->getMessage());
+        }
+    }
+
+    public function testInitializeForgetsTheRegistrationWhenTheTransportSendThrows(): void
+    {
+        $client = new ClientBuilder()
+            ->setClientInfo('demo', '1.0.0')
+            ->setRequestIdFactory(static fn(): int => 1)
+            ->build()
+        ;
+        $transport = new RecordingTransport();
+        $transport->sendError = new TransportAlreadyClosedException(operation: 'send-request');
+        $client->connect($transport);
+
+        try {
+            $client->initialize();
+            self::fail('Expected the transport send failure to propagate.');
+        } catch (TransportAlreadyClosedException) {
+        }
+
+        // The second initialize reuses the same minted id. It surfaces the send
+        // failure again only if the in-flight gate was reverted and the failed
+        // registration was freed (otherwise a duplicate-id or already-initialized error).
+        try {
+            $client->initialize();
+            self::fail('Expected the transport send failure to propagate.');
+        } catch (TransportAlreadyClosedException $e) {
+            self::assertStringContainsString('send-request', $e->getMessage());
+        }
+    }
+
     public function testTransportErrorIsLoggedViaTheRegisteredErrorListener(): void
     {
         $logger = new ArrayLogger();

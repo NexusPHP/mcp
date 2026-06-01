@@ -160,6 +160,25 @@ final class PendingOutboundRequestsTest extends TestCase
         self::assertCount(1, $pending, 'Orphan reject must leave registered entries alone.');
     }
 
+    public function testForgetRemovesTheEntryWithoutCompletingItsFuture(): void
+    {
+        $pending = new PendingOutboundRequests();
+        $future = $pending->register(new RequestId(3), EmptyResult::class);
+
+        self::assertTrue($pending->forget(new RequestId(3)));
+        self::assertCount(0, $pending);
+        self::assertFalse($future->isComplete());
+    }
+
+    public function testForgetOnUnknownIdReturnsFalseAndDoesNotMutateOtherEntries(): void
+    {
+        $pending = new PendingOutboundRequests();
+        $pending->register(new RequestId(1), EmptyResult::class);
+
+        self::assertFalse($pending->forget(new RequestId(999)));
+        self::assertCount(1, $pending, 'Orphan forget must leave registered entries alone.');
+    }
+
     public function testCancelAllFailsEveryPendingFutureWithTheGivenError(): void
     {
         $pending = new PendingOutboundRequests();

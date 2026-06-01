@@ -121,6 +121,23 @@ final class PendingOutboundRequests implements \Countable
     }
 
     /**
+     * Removes the entry for `$id` without completing its future. Returns false
+     * if no entry was registered for that id.
+     */
+    public function forget(RequestId $id): bool
+    {
+        $key = self::buildKey($id);
+
+        if (! \array_key_exists($key, $this->map)) {
+            return false;
+        }
+
+        unset($this->map[$key]);
+
+        return true;
+    }
+
+    /**
      * Fails every pending future with the given error and empties the map.
      */
     public function cancelAll(\Throwable $error): void

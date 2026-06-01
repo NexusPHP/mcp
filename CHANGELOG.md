@@ -30,6 +30,10 @@ in `0.x`, minor releases may include breaking changes.
   rendered as `\xNN`) in the version-mismatch error message instead of being emitted raw, consistent with how
   the method-name fields are already rendered. This stops a peer from forging newlines in plain-text sinks
   that record the rejection.
+- A failed transport send during `Client::sendRequest()` or `Client::initialize()` no longer leaves the
+  correlated request registered. Previously, if `send()` threw after the request was registered (for example,
+  writing to an already-closed transport), the pending-request entry was never freed, slowly growing the
+  correlation map. The client now releases the registration before propagating the send failure.
 
 ## [v0.4.0](https://github.com/NexusPHP/mcp-sdk/compare/v0.3.0...v0.4.0) - 2026-05-30
 
