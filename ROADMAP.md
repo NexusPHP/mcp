@@ -75,10 +75,13 @@ The `initialize` / `notifications/initialized` handshake and the per-session HTT
 header both disappear. Each request becomes self-describing via required per-request `_meta` fields
 (`protocolVersion`, `clientInfo`, `clientCapabilities`). New methods replace the removed handshake:
 `server/discover` for capability discovery and `subscriptions/listen` for the new mailbox-style
-subscription primitive that replaces today's `resources/subscribe` / `unsubscribe`.
+subscription primitive that replaces today's `resources/subscribe` / `unsubscribe`. The `ping` keepalive
+utility (SEP-2575, changelog item 5) is removed from the protocol entirely.
 
 - [ ] Delete `initialize` request + `notifications/initialized`, reshape lifecycle around per-request
   `_meta`.
+- [ ] Delete `ping` (`PingRequest`, `PingRequestHandler`, the method-registry entry, and the
+  initialization gate's `ping` allowance). The RC removes the method along with the session it kept alive.
 - [ ] Implement `server/discover` request method.
 - [ ] Implement `subscriptions/listen` request method + `SubscriptionsAcknowledgedNotification`.
 - [ ] Delete `resources/subscribe` / `resources/unsubscribe` (none of these are implemented today, so
@@ -110,11 +113,10 @@ of throwing the current `UrlElicitationRequiredError`. The single
 generic `JsonRpcResultResponse<TResult>` splits into 18 per-method response envelopes.
 
 - [ ] Add `resultType` enum + discriminator to the success-response parser.
-- [ ] Add the `InputRequest` union with only its `ElicitRequest` member (the spec also defines
-  `CreateMessageRequest` and `ListRootsRequest`, but sampling and roots are deleted, so the SDK does not
-  implement them), `InputRequiredResult` (`inputRequests` + opaque `requestState`), and
-  `InputResponseRequestParams` (`inputResponses` + `requestState`). The client retries by re-issuing the
-  original request, so there is no `tasks/input_response` method.
+- [ ] Add `InputRequiredResult` (`inputRequests` + opaque `requestState`) and
+  `InputResponseRequestParams` (`inputResponses` + `requestState`), keyed off the `InputRequest` marker
+  (renamed from `ServerRequest` under Deprecation cleanup). The client retries by re-issuing the original
+  request, so there is no `tasks/input_response` method.
 - [ ] Generate 18 per-method `*ResultResponse` envelope classes.
 - [ ] Delete `UrlElicitationRequiredError` (-32042) entirely. The success-result-based mechanism
   replaces it.
@@ -150,17 +152,47 @@ registration order. The migration verifies the property rather than adding new w
 
 - [ ] Verify deterministic `tools/list` ordering holds after the migration.
 
+### Optional-string field validation consistency
+
+Optional `?: string` spec fields are modelled two ways. Some narrow to `non-empty-string` and reject `""`
+at the constructor (`Implementation.description` / `title` / `websiteUrl`). Others keep a plain `?string`
+and accept `""` (`DiscoverResult.instructions`). The spec types each as `?: string`, so an empty string is
+legal on all of them, and the decode boundary should treat them alike. Settle on one rule: either reject
+`""` everywhere (empty equals absent) or accept it everywhere as a plain `?string`.
+
+- [ ] Choose a single optional-string validation rule and align the affected schema classes
+  (`Implementation`, `DiscoverResult`, and any peers) on it.
+
 ### Deprecation cleanup
 
-The 2026-07-28 spec marks Roots, Sampling, and Logging as `@deprecated`. The SDK does not implement a
-compatibility window: these are deleted from core at the migration cut.
+The 2026-07-28 spec deprecates Roots, Sampling, and Logging (SEP-2577), and SEP-2575 additionally removes
+`logging/setLevel` outright (log level moves to the per-request `_meta` `io.modelcontextprotocol/logLevel`
+field). The SDK implements no compatibility window and deletes all three from core at the migration cut.
+
+**Deleting these features is explicitly allowed, including the parts still present in the schema.** The
+`notifications/message` notification and the `sampling/*` and `roots/*` defs
+remain in `schema.json` through their deprecation window, but a def staying in the schema does not oblige
+an SDK to implement it. The RC changelog's Deprecated section states these features "remain part of the
+specification but ... new implementations should not adopt them," and SEP-2577 repeats "new
+implementations should not add support for them" (suggesting `stderr` or OpenTelemetry over Logging,
+provider APIs over Sampling, and tool parameters or resource URIs over Roots). The SEP-2596 minimum
+12-month grace window protects existing implementations that already shipped these features, not a
+greenfield SDK with zero published tags. Omitting them is conformant. This is settled, not an open
+spec-divergence question.
 
 - [ ] Delete Roots (`roots/list`, `notifications/roots/list_changed`, `Root`, the capability slot).
-- [ ] Delete Logging (`logging/setLevel`, `notifications/message`, `LoggingLevel`, the capability
-  slot, `SetLevelRequestHandler`, `LoggingLevelGate`, and the `log()` helper on `ServerContext`).
+- [ ] Delete the residual server-side Logging emission path: `notifications/message`
+  (`LoggingMessageNotification`), the `logging` capability slot, `LoggingLevelGate`, and the `log()`
+  helper on `ServerContext`. Retain the `LoggingLevel` enum and `RequestMetaObject.logLevel` as a
+  round-trip-only mirror of the still-present (deprecated) `_meta.io.modelcontextprotocol/logLevel`
+  field. The client intentionally never populates it: `stampMeta` leaves `logLevel` null, since adopting
+  the deprecated client opt-in is out of scope.
 - [ ] Delete Sampling from core (`sampling/createMessage`, `CreateMessageRequest`,
   `CreateMessageResult`, `SamplingMessage`, the capability slot). Sampling is not shipped, not even as an
   optional extension.
+- [ ] Rename the `ServerRequest` marker interface to `InputRequest`, matching the union the 2026-07-28
+  spec renamed. After Roots and Sampling are deleted above, only `ElicitRequest` implements it. Touches
+  the marker, its implementers, the conformance `@see` map, and tests. `ClientRequest` is unchanged.
 
 ### TTL on list results
 
@@ -170,8 +202,9 @@ mechanism. Today's stores need a way to surface TTL on their list outputs.
 
 - [ ] Add `CacheableResult` interface under `Core/Schema/`.
 - [ ] Implement on `ListToolsResult`, `ListPromptsResult`, `ListResourcesResult`,
-  `ListResourceTemplatesResult`, `ReadResourceResult`.
-- [ ] Plumb `?int $ttlMs` + `?string $cacheScope` through the per-feature stores.
+  `ListResourceTemplatesResult`, `ReadResourceResult`, and `DiscoverResult`.
+- [ ] Plumb `?int $ttlMs` + `?string $cacheScope` through the per-feature stores and the
+  `server/discover` handler.
 
 ### Streamable HTTP transport
 
@@ -246,6 +279,20 @@ W3C Trace Context keys (`traceparent`, `tracestate`, `baggage`) become an explic
 to the DNS-prefix `_meta` convention. The runtime `_meta` validator needs to permit them unprefixed.
 
 - [ ] Allow `traceparent` / `tracestate` / `baggage` unprefixed in `RequestMetaObject` validation.
+
+### Spec-reference retargeting
+
+The schema generator tracks the release candidate: `McpSchemaProcessor` fetches the RC draft schema
+(`schema/draft/` at the `2026-07-28-RC` tag) into the local `latest-schema.json` / `latest-schema.ts`
+references. The `@see` tags across `src/` (162 files) and the `SchemaConformanceTest` anchor constants
+still point at the `2025-11-25` docs pages, because the dated `2026-07-28` spec pages are not published
+yet. They retarget once the final spec ships.
+
+- [ ] Repoint the `@see` URLs in `src/` from `specification/2025-11-25/...` (and the
+  `schema/2025-11-25/schema.ts` blob link) to the dated `2026-07-28` pages once published.
+- [ ] Update `SchemaConformanceTest`'s `SCHEMA_ANCHOR_BASE_URL`, `JSON_RPC_ERROR_OBJECT_URL` siblings,
+  and `TS_SCHEMA_FILE_URL` to the dated spec, then re-run `composer spec:snapshot-anchors` to refresh the
+  anchor snapshot.
 
 ## Transports
 
