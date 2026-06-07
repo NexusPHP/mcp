@@ -111,7 +111,7 @@ final class ImageContentTest extends TestCase
     public function testConstructorRejectsEmptyData(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('image content "data" must be a non-empty string.');
+        $this->expectExceptionMessageIs('image content "data" must be a non-empty string.');
 
         new ImageContent('', 'image/png');
     }
@@ -119,7 +119,7 @@ final class ImageContentTest extends TestCase
     public function testConstructorRejectsEmptyMimeType(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('image content "mimeType" must be a non-empty string.');
+        $this->expectExceptionMessageIs('image content "mimeType" must be a non-empty string.');
 
         new ImageContent('aGVsbG8=', '');
     }
@@ -131,7 +131,7 @@ final class ImageContentTest extends TestCase
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIs($expectedMessage);
 
         ImageContent::fromArray($payload);
     }

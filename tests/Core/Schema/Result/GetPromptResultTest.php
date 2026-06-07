@@ -120,7 +120,7 @@ final class GetPromptResultTest extends TestCase
     public function testConstructorRejectsNonListMessages(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"result.messages" must be a list, non-list array given.');
+        $this->expectExceptionMessageIs('"result.messages" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
         new GetPromptResult([5 => new PromptMessage(Role::User, new TextContent('x'))]);
@@ -137,7 +137,7 @@ final class GetPromptResultTest extends TestCase
     public function testConstructorRejectsEmptyDescription(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"result.description" must be a non-empty string or null.');
+        $this->expectExceptionMessageIs('"result.description" must be a non-empty string or null.');
 
         new GetPromptResult([], '');
     }
@@ -149,7 +149,7 @@ final class GetPromptResultTest extends TestCase
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIs($expectedMessage);
 
         GetPromptResult::fromArray($payload);
     }

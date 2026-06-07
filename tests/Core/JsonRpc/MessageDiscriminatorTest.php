@@ -37,7 +37,7 @@ final class MessageDiscriminatorTest extends TestCase
     public function testReadTypeRejectsMissingType(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('prompt message "content" data missing "type".');
+        $this->expectExceptionMessageIs('prompt message "content" data missing "type".');
 
         MessageDiscriminator::readType(['text' => 'hello'], 'prompt message "content"');
     }
@@ -45,7 +45,7 @@ final class MessageDiscriminatorTest extends TestCase
     public function testReadTypeRejectsNonStringType(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"params.ref" "type" must be a string, int given.');
+        $this->expectExceptionMessageIs('"params.ref" "type" must be a string, int given.');
 
         MessageDiscriminator::readType(['type' => 1], '"params.ref"');
     }

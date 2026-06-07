@@ -48,7 +48,7 @@ final class StdioServerTransportTest extends TestCase
 
         try {
             $this->expectException(TransportAlreadyStartedException::class);
-            $this->expectExceptionMessage(\sprintf('%s has already been started.', StdioServerTransport::class));
+            $this->expectExceptionMessageIs(\sprintf('%s has already been started.', StdioServerTransport::class));
 
             $transport->start();
         } finally {
@@ -212,7 +212,7 @@ final class StdioServerTransportTest extends TestCase
         $transport = new StdioServerTransport(new ReadableBuffer(''), new WritableBuffer());
 
         $this->expectException(TransportNotStartedException::class);
-        $this->expectExceptionMessage('Cannot send before start() has been called.');
+        $this->expectExceptionMessageIs('Cannot send before start() has been called.');
 
         $transport->send(new PingRequest(new RequestId(1)));
     }
@@ -245,7 +245,7 @@ final class StdioServerTransportTest extends TestCase
         $transport->close();
 
         $this->expectException(TransportAlreadyClosedException::class);
-        $this->expectExceptionMessage('Cannot start on a closed transport.');
+        $this->expectExceptionMessageIs('Cannot start on a closed transport.');
 
         $transport->start();
     }

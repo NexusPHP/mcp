@@ -94,7 +94,7 @@ final class ReflectedResourceResultTest extends TestCase
     public function testThrowsOnUnsupportedReturn(): void
     {
         $this->expectException(UnsupportedReturnValueException::class);
-        $this->expectExceptionMessage(ReflectedHandlers::class.'::resourceResult() must return a '.ReadResourceResult::class.', a string, or resource contents, int given.');
+        $this->expectExceptionMessageIs(ReflectedHandlers::class.'::resourceResult() must return a '.ReadResourceResult::class.', a string, or resource contents, int given.');
 
         self::adapt(7);
     }

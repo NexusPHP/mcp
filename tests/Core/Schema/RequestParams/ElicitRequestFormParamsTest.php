@@ -146,7 +146,7 @@ final class ElicitRequestFormParamsTest extends TestCase
     public function testConstructorRejectsEmptyMessage(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"params.message" must be a non-empty string.');
+        $this->expectExceptionMessageIs('"params.message" must be a non-empty string.');
 
         new ElicitRequestFormParams('', new ElicitRequestedSchema(['x' => new StringSchema()]));
     }
@@ -154,7 +154,7 @@ final class ElicitRequestFormParamsTest extends TestCase
     public function testConstructorRejectsWrongMode(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"params.mode" must be \'form\', \'url\' given.');
+        $this->expectExceptionMessageIs('"params.mode" must be \'form\', \'url\' given.');
 
         new ElicitRequestFormParams(
             'Pick',
@@ -170,7 +170,7 @@ final class ElicitRequestFormParamsTest extends TestCase
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIs($expectedMessage);
 
         ElicitRequestFormParams::fromArray($payload);
     }

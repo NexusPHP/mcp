@@ -101,7 +101,7 @@ final class ListToolsResultTest extends TestCase
     public function testConstructorRejectsNonListTools(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"result.tools" must be a list, non-list array given.');
+        $this->expectExceptionMessageIs('"result.tools" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
         new ListToolsResult([5 => new Tool('read-file', ['type' => 'object'])]);
@@ -122,7 +122,7 @@ final class ListToolsResultTest extends TestCase
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIs($expectedMessage);
 
         ListToolsResult::fromArray($payload);
     }

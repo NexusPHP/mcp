@@ -45,7 +45,7 @@ final class StdioClientTransportTest extends TestCase
     public function testEmptyCommandThrows(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Stdio client command must not be empty.');
+        $this->expectExceptionMessageIs('Stdio client command must not be empty.');
 
         new StdioClientTransport([]);
     }
@@ -73,7 +73,7 @@ final class StdioClientTransportTest extends TestCase
 
         try {
             $this->expectException(TransportAlreadyStartedException::class);
-            $this->expectExceptionMessage(\sprintf('%s has already been started.', StdioClientTransport::class));
+            $this->expectExceptionMessageIs(\sprintf('%s has already been started.', StdioClientTransport::class));
 
             $transport->start();
         } finally {

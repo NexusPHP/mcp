@@ -200,7 +200,7 @@ final class CompleteRequestParamsTest extends TestCase
     public function testConstructorRejectsNonStringArgumentName(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"params.argument.name" must be a string, int given.');
+        $this->expectExceptionMessageIs('"params.argument.name" must be a string, int given.');
 
         new CompleteRequestParams(
             new PromptReference('code-review'),
@@ -212,7 +212,7 @@ final class CompleteRequestParamsTest extends TestCase
     public function testConstructorRejectsNonStringArgumentValue(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"params.argument.value" must be a string, int given.');
+        $this->expectExceptionMessageIs('"params.argument.value" must be a string, int given.');
 
         new CompleteRequestParams(
             new PromptReference('code-review'),
@@ -224,7 +224,7 @@ final class CompleteRequestParamsTest extends TestCase
     public function testConstructorRejectsNonMapContextArguments(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"params.context.arguments" must be a string-keyed object.');
+        $this->expectExceptionMessageIs('"params.context.arguments" must be a string-keyed object.');
 
         new CompleteRequestParams(
             new PromptReference('code-review'),
@@ -237,7 +237,7 @@ final class CompleteRequestParamsTest extends TestCase
     public function testConstructorRejectsNonStringContextArgumentValue(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('each "params.context.arguments" must be a string, int given.');
+        $this->expectExceptionMessageIs('each "params.context.arguments" must be a string, int given.');
 
         new CompleteRequestParams(
             new PromptReference('code-review'),
@@ -254,7 +254,7 @@ final class CompleteRequestParamsTest extends TestCase
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIs($expectedMessage);
 
         CompleteRequestParams::fromArray($payload);
     }

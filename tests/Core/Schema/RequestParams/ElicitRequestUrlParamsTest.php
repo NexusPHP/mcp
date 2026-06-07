@@ -126,7 +126,7 @@ final class ElicitRequestUrlParamsTest extends TestCase
     public function testConstructorRejectsEmptyElicitationId(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"params.elicitationId" must be a non-empty string.');
+        $this->expectExceptionMessageIs('"params.elicitationId" must be a non-empty string.');
 
         new ElicitRequestUrlParams('', 'm', 'url', 'https://example.com');
     }
@@ -134,7 +134,7 @@ final class ElicitRequestUrlParamsTest extends TestCase
     public function testConstructorRejectsEmptyMessage(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"params.message" must be a non-empty string.');
+        $this->expectExceptionMessageIs('"params.message" must be a non-empty string.');
 
         new ElicitRequestUrlParams('id', '', 'url', 'https://example.com');
     }
@@ -142,7 +142,7 @@ final class ElicitRequestUrlParamsTest extends TestCase
     public function testConstructorRejectsEmptyUrl(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"params.url" must be a non-empty string.');
+        $this->expectExceptionMessageIs('"params.url" must be a non-empty string.');
 
         new ElicitRequestUrlParams('id', 'm', 'url', '');
     }
@@ -150,7 +150,7 @@ final class ElicitRequestUrlParamsTest extends TestCase
     public function testConstructorRejectsInvalidUrl(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"params.url" must be a valid URL.');
+        $this->expectExceptionMessageIs('"params.url" must be a valid URL.');
 
         new ElicitRequestUrlParams('id', 'm', 'url', 'not a url');
     }
@@ -158,7 +158,7 @@ final class ElicitRequestUrlParamsTest extends TestCase
     public function testConstructorRejectsWrongMode(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"params.mode" must be \'url\', \'form\' given.');
+        $this->expectExceptionMessageIs('"params.mode" must be \'url\', \'form\' given.');
 
         new ElicitRequestUrlParams('id', 'm', 'form', 'https://example.com');
     }
@@ -170,7 +170,7 @@ final class ElicitRequestUrlParamsTest extends TestCase
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIs($expectedMessage);
 
         ElicitRequestUrlParams::fromArray($payload);
     }

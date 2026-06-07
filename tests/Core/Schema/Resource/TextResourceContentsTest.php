@@ -65,7 +65,7 @@ final class TextResourceContentsTest extends TestCase
     public function testConstructorRejectsEmptyMimeType(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('resource contents "mimeType" must be a non-empty string or null.');
+        $this->expectExceptionMessageIs('resource contents "mimeType" must be a non-empty string or null.');
 
         new TextResourceContents('file:///x', 'hello', '');
     }
@@ -147,7 +147,7 @@ final class TextResourceContentsTest extends TestCase
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIs($expectedMessage);
 
         TextResourceContents::fromArray($payload);
     }
@@ -184,12 +184,12 @@ final class TextResourceContentsTest extends TestCase
 
         yield '_meta not an object' => [
             ['uri' => 'file:///x', 'text' => 'hello', '_meta' => 'oops'],
-            'resource contents "_meta" must be an object, string given.',
+            'text resource contents "_meta" must be an object, string given.',
         ];
 
         yield '_meta list-keyed' => [
             ['uri' => 'file:///x', 'text' => 'hello', '_meta' => ['x']],
-            'resource contents "_meta" must be a string-keyed object.',
+            'text resource contents "_meta" must be a string-keyed object.',
         ];
     }
 }

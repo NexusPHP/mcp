@@ -52,7 +52,7 @@ final class ModelPreferencesTest extends TestCase
     public function testConstructorRejectsNonHintEntry(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('Value "\'not-a-hint\'" in iterable is expected to be an instance of \'Nexus\\\\Mcp\\\\Core\\\\Schema\\\\Sampling\\\\ModelHint\' but got string instead.');
+        $this->expectExceptionMessageIs('Value "\'not-a-hint\'" in iterable is expected to be an instance of \'Nexus\\\\Mcp\\\\Core\\\\Schema\\\\Sampling\\\\ModelHint\' but got string instead.');
 
         new ModelPreferences(['not-a-hint']); // @phpstan-ignore argument.type
     }
@@ -61,7 +61,7 @@ final class ModelPreferencesTest extends TestCase
     public function testConstructorRejectsOutOfRangeField(string $field, float $value, string $expectedMessage): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIs($expectedMessage);
 
         new ModelPreferences(
             costPriority: 'costPriority' === $field ? $value : null,
@@ -168,7 +168,7 @@ final class ModelPreferencesTest extends TestCase
     public function testFromArrayRejectsNonListHints(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"modelPreferences.hints" must be a list, string given.');
+        $this->expectExceptionMessageIs('"modelPreferences.hints" must be a list, string given.');
 
         ModelPreferences::fromArray(['hints' => 'oops']);
     }
@@ -176,7 +176,7 @@ final class ModelPreferencesTest extends TestCase
     public function testFromArrayRejectsNonObjectHintEntry(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('each "modelPreferences.hints" must be an object, string given.');
+        $this->expectExceptionMessageIs('each "modelPreferences.hints" must be an object, string given.');
 
         ModelPreferences::fromArray(['hints' => ['oops']]);
     }
@@ -184,7 +184,7 @@ final class ModelPreferencesTest extends TestCase
     public function testFromArrayRejectsListHintEntry(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('each "modelPreferences.hints" must be a string-keyed object.');
+        $this->expectExceptionMessageIs('each "modelPreferences.hints" must be a string-keyed object.');
 
         ModelPreferences::fromArray(['hints' => [['x']]]);
     }
@@ -192,7 +192,7 @@ final class ModelPreferencesTest extends TestCase
     public function testFromArrayRejectsNonNumericPriority(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"modelPreferences.speedPriority" must be a number or null, string given.');
+        $this->expectExceptionMessageIs('"modelPreferences.speedPriority" must be a number or null, string given.');
 
         ModelPreferences::fromArray(['speedPriority' => 'oops']);
     }

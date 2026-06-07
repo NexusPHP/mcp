@@ -186,7 +186,7 @@ final class ElicitRequestedSchemaTest extends TestCase
     public function testConstructorRejectsListKeyedProperties(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"requestedSchema.properties" must be a string-keyed map.');
+        $this->expectExceptionMessageIs('"requestedSchema.properties" must be a string-keyed map.');
 
         // @phpstan-ignore argument.type
         new ElicitRequestedSchema([new StringSchema()]);
@@ -195,7 +195,7 @@ final class ElicitRequestedSchemaTest extends TestCase
     public function testConstructorRejectsEmptyPropertyName(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('each "requestedSchema.properties" key must be a non-empty string.');
+        $this->expectExceptionMessageIs('each "requestedSchema.properties" key must be a non-empty string.');
 
         new ElicitRequestedSchema(['' => new StringSchema()]);
     }
@@ -211,7 +211,7 @@ final class ElicitRequestedSchemaTest extends TestCase
     public function testConstructorRejectsNonListRequired(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"requestedSchema.required" must be a list, non-list array given.');
+        $this->expectExceptionMessageIs('"requestedSchema.required" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
         new ElicitRequestedSchema(['x' => new StringSchema()], ['k' => 'v']);
@@ -220,7 +220,7 @@ final class ElicitRequestedSchemaTest extends TestCase
     public function testConstructorRejectsEmptyRequiredEntry(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('each "requestedSchema.required" must be a non-empty string.');
+        $this->expectExceptionMessageIs('each "requestedSchema.required" must be a non-empty string.');
 
         new ElicitRequestedSchema(['x' => new StringSchema()], ['']);
     }
@@ -228,7 +228,7 @@ final class ElicitRequestedSchemaTest extends TestCase
     public function testConstructorRejectsEmptySchema(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"requestedSchema.$schema" must be a non-empty string or null.');
+        $this->expectExceptionMessageIs('"requestedSchema.$schema" must be a non-empty string or null.');
 
         new ElicitRequestedSchema(['x' => new StringSchema()], null, '');
     }
@@ -240,7 +240,7 @@ final class ElicitRequestedSchemaTest extends TestCase
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIs($expectedMessage);
 
         ElicitRequestedSchema::fromArray($payload);
     }

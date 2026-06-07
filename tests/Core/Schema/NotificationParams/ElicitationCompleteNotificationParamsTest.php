@@ -75,7 +75,7 @@ final class ElicitationCompleteNotificationParamsTest extends TestCase
     public function testConstructorRejectsEmptyElicitationId(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"params.elicitationId" must be a non-empty string.');
+        $this->expectExceptionMessageIs('"params.elicitationId" must be a non-empty string.');
 
         new ElicitationCompleteNotificationParams('');
     }
@@ -87,7 +87,7 @@ final class ElicitationCompleteNotificationParamsTest extends TestCase
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIs($expectedMessage);
 
         ElicitationCompleteNotificationParams::fromArray($payload);
     }

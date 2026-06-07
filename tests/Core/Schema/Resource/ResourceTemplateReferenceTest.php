@@ -82,7 +82,7 @@ final class ResourceTemplateReferenceTest extends TestCase
     public function testConstructorRejectsEmptyUri(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('resource template reference "uri" must be a non-empty string.');
+        $this->expectExceptionMessageIs('resource template reference "uri" must be a non-empty string.');
 
         new ResourceTemplateReference('');
     }
@@ -94,7 +94,7 @@ final class ResourceTemplateReferenceTest extends TestCase
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIs($expectedMessage);
 
         ResourceTemplateReference::fromArray($payload);
     }

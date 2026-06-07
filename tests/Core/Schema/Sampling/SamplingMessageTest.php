@@ -50,7 +50,7 @@ final class SamplingMessageTest extends TestCase
     public function testConstructorRejectsNonContentBlockEntry(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('Value "\'not-a-block\'" in iterable is expected to be an instance of \'Nexus\\\\Mcp\\\\Core\\\\Schema\\\\Sampling\\\\SamplingMessageContentBlock\' but got string instead.');
+        $this->expectExceptionMessageIs('Value "\'not-a-block\'" in iterable is expected to be an instance of \'Nexus\\\\Mcp\\\\Core\\\\Schema\\\\Sampling\\\\SamplingMessageContentBlock\' but got string instead.');
 
         new SamplingMessage(Role::User, ['not-a-block']); // @phpstan-ignore argument.type
     }
@@ -146,7 +146,7 @@ final class SamplingMessageTest extends TestCase
     public function testFromArrayRejectsMissingRole(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('sampling message missing the required "role" key.');
+        $this->expectExceptionMessageIs('sampling message missing the required "role" key.');
 
         SamplingMessage::fromArray(['content' => ['text' => 'x', 'type' => 'text']]);
     }
@@ -154,7 +154,7 @@ final class SamplingMessageTest extends TestCase
     public function testFromArrayRejectsNonStringRole(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('sampling message "role" must be one of [\'user\', \'assistant\'], 1 given.');
+        $this->expectExceptionMessageIs('sampling message "role" must be one of [\'user\', \'assistant\'], 1 given.');
 
         SamplingMessage::fromArray(['role' => 1, 'content' => ['text' => 'x', 'type' => 'text']]);
     }
@@ -162,7 +162,7 @@ final class SamplingMessageTest extends TestCase
     public function testFromArrayRejectsUnknownRole(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('sampling message "role" must be one of [\'user\', \'assistant\'], \'observer\' given.');
+        $this->expectExceptionMessageIs('sampling message "role" must be one of [\'user\', \'assistant\'], \'observer\' given.');
 
         SamplingMessage::fromArray(['role' => 'observer', 'content' => ['text' => 'x', 'type' => 'text']]);
     }
@@ -170,7 +170,7 @@ final class SamplingMessageTest extends TestCase
     public function testFromArrayRejectsMissingContent(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('sampling message missing the required "content" key.');
+        $this->expectExceptionMessageIs('sampling message missing the required "content" key.');
 
         SamplingMessage::fromArray(['role' => 'user']);
     }
@@ -178,7 +178,7 @@ final class SamplingMessageTest extends TestCase
     public function testFromArrayRejectsNonObjectContent(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('sampling message "content" must be an object or array, string given.');
+        $this->expectExceptionMessageIs('sampling message "content" must be an object or array, string given.');
 
         SamplingMessage::fromArray(['role' => 'user', 'content' => 'oops']);
     }
@@ -186,7 +186,7 @@ final class SamplingMessageTest extends TestCase
     public function testFromArrayRejectsNonObjectContentEntry(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('each sampling message "content" must be an object, string given.');
+        $this->expectExceptionMessageIs('each sampling message "content" must be an object, string given.');
 
         SamplingMessage::fromArray(['role' => 'user', 'content' => ['oops']]);
     }
@@ -194,7 +194,7 @@ final class SamplingMessageTest extends TestCase
     public function testFromArrayRejectsUnknownContentType(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('sampling message "content" "type" must be one of "text", "image", "audio", "tool_use", "tool_result", \'resource_link\' given.');
+        $this->expectExceptionMessageIs('sampling message "content" "type" must be one of "text", "image", "audio", "tool_use", "tool_result", \'resource_link\' given.');
 
         SamplingMessage::fromArray(['role' => 'user', 'content' => ['type' => 'resource_link', 'uri' => 'file:///x', 'name' => 'doc']]);
     }
@@ -202,7 +202,7 @@ final class SamplingMessageTest extends TestCase
     public function testFromArrayRejectsNonObjectMeta(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('sampling message "_meta" must be an object, string given.');
+        $this->expectExceptionMessageIs('sampling message "_meta" must be an object, string given.');
 
         SamplingMessage::fromArray(['role' => 'user', 'content' => ['type' => 'text', 'text' => 'hi'], '_meta' => 'oops']);
     }
@@ -210,7 +210,7 @@ final class SamplingMessageTest extends TestCase
     public function testFromArrayRejectsListKeyedMeta(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('sampling message "_meta" must be a string-keyed object.');
+        $this->expectExceptionMessageIs('sampling message "_meta" must be a string-keyed object.');
 
         SamplingMessage::fromArray(['role' => 'user', 'content' => ['type' => 'text', 'text' => 'hi'], '_meta' => ['x']]);
     }

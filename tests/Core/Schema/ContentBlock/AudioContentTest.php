@@ -111,7 +111,7 @@ final class AudioContentTest extends TestCase
     public function testConstructorRejectsEmptyData(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('audio content "data" must be a non-empty string.');
+        $this->expectExceptionMessageIs('audio content "data" must be a non-empty string.');
 
         new AudioContent('', 'audio/mp3');
     }
@@ -119,7 +119,7 @@ final class AudioContentTest extends TestCase
     public function testConstructorRejectsEmptyMimeType(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('audio content "mimeType" must be a non-empty string.');
+        $this->expectExceptionMessageIs('audio content "mimeType" must be a non-empty string.');
 
         new AudioContent('aGVsbG8=', '');
     }
@@ -131,7 +131,7 @@ final class AudioContentTest extends TestCase
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIs($expectedMessage);
 
         AudioContent::fromArray($payload);
     }

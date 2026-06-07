@@ -92,7 +92,7 @@ final class BooleanSchemaTest extends TestCase
     public function testConstructorRejectsEmptyTitle(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('boolean schema "title" must be a non-empty string or null.');
+        $this->expectExceptionMessageIs('boolean schema "title" must be a non-empty string or null.');
 
         new BooleanSchema('');
     }
@@ -100,7 +100,7 @@ final class BooleanSchemaTest extends TestCase
     public function testConstructorRejectsEmptyDescription(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('boolean schema "description" must be a non-empty string or null.');
+        $this->expectExceptionMessageIs('boolean schema "description" must be a non-empty string or null.');
 
         new BooleanSchema(null, '');
     }
@@ -112,7 +112,7 @@ final class BooleanSchemaTest extends TestCase
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIs($expectedMessage);
 
         BooleanSchema::fromArray($payload);
     }

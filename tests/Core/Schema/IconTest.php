@@ -78,7 +78,7 @@ final class IconTest extends TestCase
     public function testIconSrcValidation(string $src, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIs($expectedMessage);
 
         new Icon($src);
     }
@@ -133,7 +133,7 @@ final class IconTest extends TestCase
     public function testIconRejectsInvalidMimeTypes(string $mimeType, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIs($expectedMessage);
 
         new Icon('https://example.com/icon.png', $mimeType);
     }
@@ -184,7 +184,7 @@ final class IconTest extends TestCase
     public function testIconRejectsInvalidSizes(array $sizes, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIs($expectedMessage);
 
         new Icon('https://example.com/icon.png', null, $sizes);
     }
@@ -224,7 +224,7 @@ final class IconTest extends TestCase
     public function testIconRejectsInvalidTheme(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('"icons.theme" must be one of "light", "dark".');
+        $this->expectExceptionMessageIs('"icons.theme" must be one of "light", "dark".');
 
         new Icon('https://example.com/icon.png', null, null, 'invalid');
     }
@@ -303,7 +303,7 @@ final class IconTest extends TestCase
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIs($expectedMessage);
 
         Icon::fromArray($payload);
     }

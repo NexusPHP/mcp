@@ -99,7 +99,7 @@ final class TitledSingleSelectEnumSchemaTest extends TestCase
     public function testConstructorRejectsNonListOneOf(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('titled single select enum schema "oneOf" must be a list, non-list array given.');
+        $this->expectExceptionMessageIs('titled single select enum schema "oneOf" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
         new TitledSingleSelectEnumSchema(['k' => new EnumOption('a', 'A')]);
@@ -116,7 +116,7 @@ final class TitledSingleSelectEnumSchemaTest extends TestCase
     public function testConstructorRejectsEmptyTitle(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('titled single select enum schema "title" must be a non-empty string or null.');
+        $this->expectExceptionMessageIs('titled single select enum schema "title" must be a non-empty string or null.');
 
         new TitledSingleSelectEnumSchema([new EnumOption('a', 'A')], '');
     }
@@ -124,7 +124,7 @@ final class TitledSingleSelectEnumSchemaTest extends TestCase
     public function testConstructorRejectsEmptyDescription(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('titled single select enum schema "description" must be a non-empty string or null.');
+        $this->expectExceptionMessageIs('titled single select enum schema "description" must be a non-empty string or null.');
 
         new TitledSingleSelectEnumSchema([new EnumOption('a', 'A')], null, '');
     }
@@ -136,7 +136,7 @@ final class TitledSingleSelectEnumSchemaTest extends TestCase
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIs($expectedMessage);
 
         TitledSingleSelectEnumSchema::fromArray($payload);
     }

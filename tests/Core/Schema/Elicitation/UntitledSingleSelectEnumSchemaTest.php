@@ -80,7 +80,7 @@ final class UntitledSingleSelectEnumSchemaTest extends TestCase
     public function testConstructorRejectsNonListEnum(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('untitled single select enum schema "enum" must be a list, non-list array given.');
+        $this->expectExceptionMessageIs('untitled single select enum schema "enum" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
         new UntitledSingleSelectEnumSchema(['k' => 'v']);
@@ -89,7 +89,7 @@ final class UntitledSingleSelectEnumSchemaTest extends TestCase
     public function testConstructorRejectsEmptyEnumEntry(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('each untitled single select enum schema "enum" must be a non-empty string.');
+        $this->expectExceptionMessageIs('each untitled single select enum schema "enum" must be a non-empty string.');
 
         new UntitledSingleSelectEnumSchema(['']);
     }
@@ -97,7 +97,7 @@ final class UntitledSingleSelectEnumSchemaTest extends TestCase
     public function testConstructorRejectsEmptyTitle(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('untitled single select enum schema "title" must be a non-empty string or null.');
+        $this->expectExceptionMessageIs('untitled single select enum schema "title" must be a non-empty string or null.');
 
         new UntitledSingleSelectEnumSchema(['a'], '');
     }
@@ -105,7 +105,7 @@ final class UntitledSingleSelectEnumSchemaTest extends TestCase
     public function testConstructorRejectsEmptyDescription(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('untitled single select enum schema "description" must be a non-empty string or null.');
+        $this->expectExceptionMessageIs('untitled single select enum schema "description" must be a non-empty string or null.');
 
         new UntitledSingleSelectEnumSchema(['a'], null, '');
     }
@@ -117,7 +117,7 @@ final class UntitledSingleSelectEnumSchemaTest extends TestCase
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIs($expectedMessage);
 
         UntitledSingleSelectEnumSchema::fromArray($payload);
     }

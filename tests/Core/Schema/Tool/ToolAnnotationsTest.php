@@ -59,7 +59,7 @@ final class ToolAnnotationsTest extends TestCase
     public function testConstructorRejectsEmptyTitle(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"annotations.title" must be a non-empty string or null.');
+        $this->expectExceptionMessageIs('"annotations.title" must be a non-empty string or null.');
 
         new ToolAnnotations(title: '');
     }
@@ -67,7 +67,7 @@ final class ToolAnnotationsTest extends TestCase
     public function testConstructorRejectsDestructiveHintWhenReadOnly(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"annotations.destructiveHint" must be null when "readOnlyHint" is true; the spec defines it only when readOnlyHint == false.');
+        $this->expectExceptionMessageIs('"annotations.destructiveHint" must be null when "readOnlyHint" is true; the spec defines it only when readOnlyHint == false.');
 
         new ToolAnnotations(readOnlyHint: true, destructiveHint: false);
     }
@@ -75,7 +75,7 @@ final class ToolAnnotationsTest extends TestCase
     public function testConstructorRejectsIdempotentHintWhenReadOnly(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"annotations.idempotentHint" must be null when "readOnlyHint" is true; the spec defines it only when readOnlyHint == false.');
+        $this->expectExceptionMessageIs('"annotations.idempotentHint" must be null when "readOnlyHint" is true; the spec defines it only when readOnlyHint == false.');
 
         new ToolAnnotations(readOnlyHint: true, idempotentHint: true);
     }
@@ -171,7 +171,7 @@ final class ToolAnnotationsTest extends TestCase
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIs($expectedMessage);
 
         ToolAnnotations::fromArray($payload);
     }

@@ -323,7 +323,7 @@ final class JsonRpcMessageParserTest extends TestCase
     public function testParseRejectsNonStringMethod(): void
     {
         $this->expectException(InvalidRequestException::class);
-        $this->expectExceptionMessage('JSON-RPC envelope "method" must be a non-empty string, int given.');
+        $this->expectExceptionMessageIs('JSON-RPC envelope "method" must be a non-empty string, int given.');
 
         $parser = new JsonRpcMessageParser();
         $parser->parse(['jsonrpc' => '2.0', 'id' => 1, 'method' => 42]);
@@ -332,7 +332,7 @@ final class JsonRpcMessageParserTest extends TestCase
     public function testParseRejectsEmptyStringMethod(): void
     {
         $this->expectException(InvalidRequestException::class);
-        $this->expectExceptionMessage('JSON-RPC envelope "method" must be a non-empty string, string given.');
+        $this->expectExceptionMessageIs('JSON-RPC envelope "method" must be a non-empty string, string given.');
 
         $parser = new JsonRpcMessageParser();
         $parser->parse(['jsonrpc' => '2.0', 'id' => 1, 'method' => '']);
@@ -353,7 +353,7 @@ final class JsonRpcMessageParserTest extends TestCase
     public function testParseRejectsEmptyStringIdWithTypedResultAsInvalidRequest(): void
     {
         $this->expectException(InvalidRequestException::class);
-        $this->expectExceptionMessage('"id" must be a non-empty string.');
+        $this->expectExceptionMessageIs('"id" must be a non-empty string.');
 
         $parser = new JsonRpcMessageParser();
         $parser->parse(['jsonrpc' => '2.0', 'id' => '', 'result' => []], EmptyResult::class);
@@ -400,7 +400,7 @@ final class JsonRpcMessageParserTest extends TestCase
     public function testParseRejectsMissingVersion(): void
     {
         $this->expectException(InvalidRequestException::class);
-        $this->expectExceptionMessage('Invalid JSON-RPC version: expected "2.0", got null.');
+        $this->expectExceptionMessageIs('Invalid JSON-RPC version: expected "2.0", got null.');
 
         $parser = new JsonRpcMessageParser();
         $parser->parse(['id' => 1, 'method' => 'ping']);
@@ -444,7 +444,7 @@ final class JsonRpcMessageParserTest extends TestCase
     public function testParseRejectsMissingIdOnResultEnvelopeEvenWhenResultClassOmitted(): void
     {
         $this->expectException(InvalidRequestException::class);
-        $this->expectExceptionMessage('Success response must carry an "id".');
+        $this->expectExceptionMessageIs('Success response must carry an "id".');
 
         $parser = new JsonRpcMessageParser();
         $parser->parse(['jsonrpc' => '2.0', 'result' => ['payload' => 'x']]);
@@ -453,7 +453,7 @@ final class JsonRpcMessageParserTest extends TestCase
     public function testParseRejectsNonScalarIdOnResultEnvelopeEvenWhenResultClassOmitted(): void
     {
         $this->expectException(InvalidRequestException::class);
-        $this->expectExceptionMessage('Response "id" must be an int or string, array given.');
+        $this->expectExceptionMessageIs('Response "id" must be an int or string, array given.');
 
         $parser = new JsonRpcMessageParser();
         $parser->parse(['jsonrpc' => '2.0', 'id' => [], 'result' => []]);
@@ -472,7 +472,7 @@ final class JsonRpcMessageParserTest extends TestCase
     public function testParseRejectsResultResponseWithMissingId(): void
     {
         $this->expectException(InvalidRequestException::class);
-        $this->expectExceptionMessage('Success response must carry an "id".');
+        $this->expectExceptionMessageIs('Success response must carry an "id".');
 
         $parser = new JsonRpcMessageParser();
         $parser->parse(['jsonrpc' => '2.0', 'result' => []], EmptyResult::class);
@@ -481,7 +481,7 @@ final class JsonRpcMessageParserTest extends TestCase
     public function testParseRejectsResultResponseWithBadIdType(): void
     {
         $this->expectException(InvalidRequestException::class);
-        $this->expectExceptionMessage('Response "id" must be an int or string, array given.');
+        $this->expectExceptionMessageIs('Response "id" must be an int or string, array given.');
 
         $parser = new JsonRpcMessageParser();
         $parser->parse(['jsonrpc' => '2.0', 'id' => [], 'result' => []], EmptyResult::class);

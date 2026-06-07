@@ -55,7 +55,7 @@ final class HandlerRegistryTest extends TestCase
     public function testConstructorRejectsEmptyStringKey(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('Request handler registry key must be a non-empty string.');
+        $this->expectExceptionMessageIs('Request handler registry key must be a non-empty string.');
 
         new HandlerRegistry(
             // @phpstan-ignore argument.type
@@ -80,7 +80,7 @@ final class HandlerRegistryTest extends TestCase
     public function testLabelFlowsThroughToAssertionMessage(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('Notification handler registry key must be a non-empty string.');
+        $this->expectExceptionMessageIs('Notification handler registry key must be a non-empty string.');
 
         new HandlerRegistry(
             // @phpstan-ignore argument.type

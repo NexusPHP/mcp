@@ -680,7 +680,7 @@ final class ClientTest extends TestCase
         self::handshake($client, $transport, capabilities: []);
 
         $this->expectException(ServerCapabilityNotSupportedException::class);
-        $this->expectExceptionMessage(\sprintf(
+        $this->expectExceptionMessageIs(\sprintf(
             'Request method "%s" requires a server capability that was not advertised during initialize.',
             $method,
         ));

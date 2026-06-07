@@ -127,7 +127,7 @@ final class RootTest extends TestCase
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIs($expectedMessage);
 
         Root::fromArray($payload);
     }
@@ -171,7 +171,7 @@ final class RootTest extends TestCase
     public function testConstructorRejectsNonFileUri(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('root "uri" must start with \'file://\', got \'https://example.com\'.');
+        $this->expectExceptionMessageIs('root "uri" must start with \'file://\', got \'https://example.com\'.');
 
         new Root('https://example.com');
     }

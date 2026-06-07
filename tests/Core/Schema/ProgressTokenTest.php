@@ -37,7 +37,7 @@ final class ProgressTokenTest extends TestCase
     public function testProgressTokenCannotBeEmptyString(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"progressToken" must be a non-empty string.');
+        $this->expectExceptionMessageIs('"progressToken" must be a non-empty string.');
 
         new ProgressToken('');
     }

@@ -164,7 +164,7 @@ final class ResourceTemplateTest extends TestCase
     public function testConstructorRejectsEmptyUriTemplate(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('resource template "uriTemplate" must be a non-empty string.');
+        $this->expectExceptionMessageIs('resource template "uriTemplate" must be a non-empty string.');
 
         new ResourceTemplate('my-template', '');
     }
@@ -180,7 +180,7 @@ final class ResourceTemplateTest extends TestCase
     public function testConstructorRejectsEmptyDescription(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('resource template "description" must be a non-empty string or null.');
+        $this->expectExceptionMessageIs('resource template "description" must be a non-empty string or null.');
 
         new ResourceTemplate('my-template', 'file:///tmp/{name}', null, '');
     }
@@ -188,7 +188,7 @@ final class ResourceTemplateTest extends TestCase
     public function testConstructorRejectsEmptyMimeType(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('resource template "mimeType" must be a non-empty string or null.');
+        $this->expectExceptionMessageIs('resource template "mimeType" must be a non-empty string or null.');
 
         new ResourceTemplate('my-template', 'file:///tmp/{name}', null, null, '');
     }
@@ -208,7 +208,7 @@ final class ResourceTemplateTest extends TestCase
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIs($expectedMessage);
 
         ResourceTemplate::fromArray($payload);
     }

@@ -182,7 +182,7 @@ final class ToolTest extends TestCase
     public function testConstructorRejectsEmptyDescription(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('Tool description must be a non-empty string or null.');
+        $this->expectExceptionMessageIs('Tool description must be a non-empty string or null.');
 
         new Tool('read-file', ['type' => 'object'], description: '');
     }
@@ -216,7 +216,7 @@ final class ToolTest extends TestCase
     public function testConstructorRejectsInvalidSchemaEnvelope(array $schema, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIs($expectedMessage);
 
         new Tool('read-file', $schema);
     }
@@ -270,7 +270,7 @@ final class ToolTest extends TestCase
     public function testConstructorRejectsInvalidOutputSchema(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('tool "outputSchema" "type" must be \'object\', \'array\' given.');
+        $this->expectExceptionMessageIs('tool "outputSchema" "type" must be \'object\', \'array\' given.');
 
         new Tool('read-file', ['type' => 'object'], outputSchema: ['type' => 'array']);
     }
@@ -282,7 +282,7 @@ final class ToolTest extends TestCase
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIs($expectedMessage);
 
         Tool::fromArray($payload);
     }

@@ -85,7 +85,7 @@ final class CreateMessageRequestTest extends TestCase
     public function testFromArrayRejectsMissingId(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('missing the required "id" key.');
+        $this->expectExceptionMessageIs('missing the required "id" key.');
 
         CreateMessageRequest::fromArray(['method' => 'sampling/createMessage', 'params' => ['maxTokens' => 1, 'messages' => []]]);
     }
@@ -93,7 +93,7 @@ final class CreateMessageRequestTest extends TestCase
     public function testFromArrayRejectsNonScalarId(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"id" must be an int or string, array given.');
+        $this->expectExceptionMessageIs('"id" must be an int or string, array given.');
 
         CreateMessageRequest::fromArray(['id' => [], 'method' => 'sampling/createMessage', 'params' => ['maxTokens' => 1, 'messages' => []]]);
     }
@@ -101,7 +101,7 @@ final class CreateMessageRequestTest extends TestCase
     public function testFromArrayRejectsMissingParams(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('missing the required "params" key.');
+        $this->expectExceptionMessageIs('missing the required "params" key.');
 
         CreateMessageRequest::fromArray(['id' => 'r-1', 'method' => 'sampling/createMessage']);
     }
@@ -109,7 +109,7 @@ final class CreateMessageRequestTest extends TestCase
     public function testFromArrayRejectsNonObjectParams(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"params" must be an object, string given.');
+        $this->expectExceptionMessageIs('"params" must be an object, string given.');
 
         CreateMessageRequest::fromArray(['id' => 'r-1', 'method' => 'sampling/createMessage', 'params' => 'oops']);
     }

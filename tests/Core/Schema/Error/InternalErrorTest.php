@@ -133,7 +133,7 @@ final class InternalErrorTest extends TestCase
     public function testInternalErrorRejectsEmptyMessage(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('error "message" must be a non-empty string.');
+        $this->expectExceptionMessageIs('error "message" must be a non-empty string.');
 
         new InternalError('');
     }

@@ -110,7 +110,7 @@ final class ListTasksResultTest extends TestCase
     public function testConstructorRejectsNonListTasks(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"result.tasks" must be a list, non-list array given.');
+        $this->expectExceptionMessageIs('"result.tasks" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
         new ListTasksResult([5 => self::task()]);
@@ -131,7 +131,7 @@ final class ListTasksResultTest extends TestCase
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIs($expectedMessage);
 
         ListTasksResult::fromArray($payload);
     }

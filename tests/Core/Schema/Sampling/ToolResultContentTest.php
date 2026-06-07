@@ -43,7 +43,7 @@ final class ToolResultContentTest extends TestCase
     public function testConstructorRejectsEmptyToolUseId(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"content.toolUseId" must be a non-empty string.');
+        $this->expectExceptionMessageIs('"content.toolUseId" must be a non-empty string.');
 
         new ToolResultContent('', []);
     }
@@ -51,7 +51,7 @@ final class ToolResultContentTest extends TestCase
     public function testConstructorRejectsNonContentBlockEntry(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('Value "\'not-a-block\'" in iterable is expected to be an instance of \'Nexus\\\\Mcp\\\\Core\\\\Schema\\\\Arrayable\' but got string instead.');
+        $this->expectExceptionMessageIs('Value "\'not-a-block\'" in iterable is expected to be an instance of \'Nexus\\\\Mcp\\\\Core\\\\Schema\\\\Arrayable\' but got string instead.');
 
         new ToolResultContent('tu-1', ['not-a-block']); // @phpstan-ignore argument.type
     }
@@ -116,7 +116,7 @@ final class ToolResultContentTest extends TestCase
     public function testFromArrayRejectsMissingType(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"content" missing the required "type" key.');
+        $this->expectExceptionMessageIs('"content" missing the required "type" key.');
 
         ToolResultContent::fromArray(['toolUseId' => 'x', 'content' => []]);
     }
@@ -124,7 +124,7 @@ final class ToolResultContentTest extends TestCase
     public function testFromArrayRejectsWrongType(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"content.type" must be \'tool_result\', \'text\' given.');
+        $this->expectExceptionMessageIs('"content.type" must be \'tool_result\', \'text\' given.');
 
         ToolResultContent::fromArray(['type' => 'text', 'toolUseId' => 'x', 'content' => []]);
     }
@@ -132,7 +132,7 @@ final class ToolResultContentTest extends TestCase
     public function testFromArrayRejectsMissingToolUseId(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"content" missing the required "toolUseId" key.');
+        $this->expectExceptionMessageIs('"content" missing the required "toolUseId" key.');
 
         ToolResultContent::fromArray(['type' => 'tool_result', 'content' => []]);
     }
@@ -140,7 +140,7 @@ final class ToolResultContentTest extends TestCase
     public function testFromArrayRejectsMissingContent(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"content" missing the required "content" key.');
+        $this->expectExceptionMessageIs('"content" missing the required "content" key.');
 
         ToolResultContent::fromArray(['type' => 'tool_result', 'toolUseId' => 'x']);
     }
@@ -148,7 +148,7 @@ final class ToolResultContentTest extends TestCase
     public function testFromArrayRejectsNonListContent(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"content.content" must be a list, string given.');
+        $this->expectExceptionMessageIs('"content.content" must be a list, string given.');
 
         ToolResultContent::fromArray(['type' => 'tool_result', 'toolUseId' => 'x', 'content' => 'oops']);
     }
@@ -156,7 +156,7 @@ final class ToolResultContentTest extends TestCase
     public function testFromArrayRejectsNonObjectContentEntry(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('each "content.content" must be an object, string given.');
+        $this->expectExceptionMessageIs('each "content.content" must be an object, string given.');
 
         ToolResultContent::fromArray(['type' => 'tool_result', 'toolUseId' => 'x', 'content' => ['oops']]);
     }
@@ -164,7 +164,7 @@ final class ToolResultContentTest extends TestCase
     public function testFromArrayRejectsNonBoolIsError(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"content.isError" must be a bool or null, string given.');
+        $this->expectExceptionMessageIs('"content.isError" must be a bool or null, string given.');
 
         ToolResultContent::fromArray(['type' => 'tool_result', 'toolUseId' => 'x', 'content' => [], 'isError' => 'oops']);
     }
@@ -172,7 +172,7 @@ final class ToolResultContentTest extends TestCase
     public function testFromArrayRejectsNonObjectStructuredContent(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"content.structuredContent" must be an object, string given.');
+        $this->expectExceptionMessageIs('"content.structuredContent" must be an object, string given.');
 
         ToolResultContent::fromArray(['type' => 'tool_result', 'toolUseId' => 'x', 'content' => [], 'structuredContent' => 'oops']);
     }
@@ -180,7 +180,7 @@ final class ToolResultContentTest extends TestCase
     public function testFromArrayRejectsListKeyedStructuredContent(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"content.structuredContent" must be a string-keyed object.');
+        $this->expectExceptionMessageIs('"content.structuredContent" must be a string-keyed object.');
 
         ToolResultContent::fromArray(['type' => 'tool_result', 'toolUseId' => 'x', 'content' => [], 'structuredContent' => ['x']]);
     }
@@ -188,7 +188,7 @@ final class ToolResultContentTest extends TestCase
     public function testFromArrayRejectsNonObjectMeta(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"content._meta" must be an object, string given.');
+        $this->expectExceptionMessageIs('"content._meta" must be an object, string given.');
 
         ToolResultContent::fromArray(['type' => 'tool_result', 'toolUseId' => 'x', 'content' => [], '_meta' => 'oops']);
     }
@@ -196,7 +196,7 @@ final class ToolResultContentTest extends TestCase
     public function testFromArrayRejectsListKeyedMeta(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"content._meta" must be a string-keyed object.');
+        $this->expectExceptionMessageIs('"content._meta" must be a string-keyed object.');
 
         ToolResultContent::fromArray(['type' => 'tool_result', 'toolUseId' => 'x', 'content' => [], '_meta' => ['x']]);
     }

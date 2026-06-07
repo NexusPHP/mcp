@@ -75,7 +75,7 @@ final class ServerBuilderTest extends TestCase
     public function testBuildFailsWithoutServerInfo(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Server information must be set before build() via setServerInfo() or a class-level #[AsServer].');
+        $this->expectExceptionMessageIs('Server information must be set before build() via setServerInfo() or a class-level #[AsServer].');
 
         new ServerBuilder()->build();
     }
@@ -83,7 +83,7 @@ final class ServerBuilderTest extends TestCase
     public function testSetServerInfoRejectsEmptyName(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Implementation name must be a non-empty string.');
+        $this->expectExceptionMessageIs('Implementation name must be a non-empty string.');
 
         new ServerBuilder()->setServerInfo('', '1.0.0');
     }
@@ -91,7 +91,7 @@ final class ServerBuilderTest extends TestCase
     public function testSetServerInfoRejectsEmptyVersion(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('"version" must be a non-empty string.');
+        $this->expectExceptionMessageIs('"version" must be a non-empty string.');
 
         new ServerBuilder()->setServerInfo('demo', '');
     }
@@ -99,7 +99,7 @@ final class ServerBuilderTest extends TestCase
     public function testSetInstructionsRejectsEmptyString(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Server instructions must be a non-empty string or null.');
+        $this->expectExceptionMessageIs('Server instructions must be a non-empty string or null.');
 
         new ServerBuilder()->setInstructions('');
     }
@@ -684,7 +684,7 @@ final class ServerBuilderTest extends TestCase
         $source = new #[AsServer(name: 'x', version: '1.0.0', instructions: '')] class {};
 
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Server instructions must be a non-empty string or null.');
+        $this->expectExceptionMessageIs('Server instructions must be a non-empty string or null.');
 
         new ServerBuilder()->register($source)->build();
     }
@@ -899,7 +899,7 @@ final class ServerBuilderTest extends TestCase
     public function testAddRequestHandlerRejectsReservedSpecMethod(string $method): void
     {
         $this->expectException(ReservedMethodException::class);
-        $this->expectExceptionMessage(\sprintf(
+        $this->expectExceptionMessageIs(\sprintf(
             'Request method "%s" is reserved by the MCP specification. Use replaceRequestHandler() to attach a handler to it.',
             $method,
         ));
@@ -975,7 +975,7 @@ final class ServerBuilderTest extends TestCase
     public function testAddNotificationHandlerRejectsReservedSpecMethod(string $method): void
     {
         $this->expectException(ReservedMethodException::class);
-        $this->expectExceptionMessage(\sprintf(
+        $this->expectExceptionMessageIs(\sprintf(
             'Notification method "%s" is reserved by the MCP specification. Use replaceNotificationHandler() to attach a handler to it.',
             $method,
         ));
@@ -1016,7 +1016,7 @@ final class ServerBuilderTest extends TestCase
     public function testReplaceRequestHandlerRejectsVendorExtensionMethod(): void
     {
         $this->expectException(UnreservedMethodException::class);
-        $this->expectExceptionMessage(
+        $this->expectExceptionMessageIs(
             'Request method "acme/snapshot" is not reserved by the MCP specification. Use addRequestHandler() to register a vendor extension.',
         );
 
@@ -1028,7 +1028,7 @@ final class ServerBuilderTest extends TestCase
     public function testReplaceNotificationHandlerRejectsVendorExtensionMethod(): void
     {
         $this->expectException(UnreservedMethodException::class);
-        $this->expectExceptionMessage(
+        $this->expectExceptionMessageIs(
             'Notification method "acme/snapshot-done" is not reserved by the MCP specification. Use addNotificationHandler() to register a vendor extension.',
         );
 

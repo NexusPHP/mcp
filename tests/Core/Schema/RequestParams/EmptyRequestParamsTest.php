@@ -69,7 +69,7 @@ final class EmptyRequestParamsTest extends TestCase
     public function testFromArrayRejectsNonObjectMeta(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('"params._meta" must be an object, string given.');
+        $this->expectExceptionMessageIs('"params._meta" must be an object, string given.');
 
         EmptyRequestParams::fromArray(['_meta' => 'bad']);
     }

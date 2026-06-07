@@ -107,7 +107,7 @@ final class CompleteResultTest extends TestCase
     public function testConstructorRejectsNonListValues(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"result.completion.values" must be a list, non-list array given.');
+        $this->expectExceptionMessageIs('"result.completion.values" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
         new CompleteResult(['values' => [5 => 'auth']]);
@@ -116,7 +116,7 @@ final class CompleteResultTest extends TestCase
     public function testConstructorRejectsNonStringValueElement(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('each "result.completion.values" must be a string, int given.');
+        $this->expectExceptionMessageIs('each "result.completion.values" must be a string, int given.');
 
         // @phpstan-ignore argument.type
         new CompleteResult(['values' => [1]]);
@@ -125,7 +125,7 @@ final class CompleteResultTest extends TestCase
     public function testConstructorRejectsNonIntTotal(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"result.completion.total" must be an int, string given.');
+        $this->expectExceptionMessageIs('"result.completion.total" must be an int, string given.');
 
         // @phpstan-ignore argument.type
         new CompleteResult(['values' => [], 'total' => 'oops']);
@@ -134,7 +134,7 @@ final class CompleteResultTest extends TestCase
     public function testConstructorRejectsNonBoolHasMore(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"result.completion.hasMore" must be a bool, string given.');
+        $this->expectExceptionMessageIs('"result.completion.hasMore" must be a bool, string given.');
 
         // @phpstan-ignore argument.type
         new CompleteResult(['values' => [], 'hasMore' => 'oops']);
@@ -147,7 +147,7 @@ final class CompleteResultTest extends TestCase
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIs($expectedMessage);
 
         CompleteResult::fromArray($payload);
     }

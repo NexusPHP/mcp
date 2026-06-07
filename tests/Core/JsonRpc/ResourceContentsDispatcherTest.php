@@ -54,7 +54,7 @@ final class ResourceContentsDispatcherTest extends TestCase
     public function testFromArrayRejectsBothTextAndBlob(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('embedded resource resource data must not have both "text" and "blob".');
+        $this->expectExceptionMessageIs('embedded resource resource data must not have both "text" and "blob".');
 
         ResourceContentsDispatcher::fromArray(
             ['uri' => 'file:///x', 'text' => 'hello', 'blob' => 'aGVsbG8='],
@@ -65,7 +65,7 @@ final class ResourceContentsDispatcherTest extends TestCase
     public function testFromArrayRejectsMissingDiscriminator(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('ReadResourceResult contents data must have either "text" or "blob".');
+        $this->expectExceptionMessageIs('ReadResourceResult contents data must have either "text" or "blob".');
 
         ResourceContentsDispatcher::fromArray(['uri' => 'file:///x'], 'ReadResourceResult contents');
     }

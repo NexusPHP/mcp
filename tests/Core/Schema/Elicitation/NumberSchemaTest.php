@@ -105,7 +105,7 @@ final class NumberSchemaTest extends TestCase
     public function testConstructorRejectsUnknownType(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('number schema "type" must be one of [\'number\', \'integer\'].');
+        $this->expectExceptionMessageIs('number schema "type" must be one of [\'number\', \'integer\'].');
 
         new NumberSchema('string');
     }
@@ -113,7 +113,7 @@ final class NumberSchemaTest extends TestCase
     public function testConstructorRejectsEmptyTitle(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('number schema "title" must be a non-empty string or null.');
+        $this->expectExceptionMessageIs('number schema "title" must be a non-empty string or null.');
 
         new NumberSchema('number', '');
     }
@@ -121,7 +121,7 @@ final class NumberSchemaTest extends TestCase
     public function testConstructorRejectsEmptyDescription(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('number schema "description" must be a non-empty string or null.');
+        $this->expectExceptionMessageIs('number schema "description" must be a non-empty string or null.');
 
         new NumberSchema('number', null, '');
     }
@@ -133,7 +133,7 @@ final class NumberSchemaTest extends TestCase
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIs($expectedMessage);
 
         NumberSchema::fromArray($payload);
     }

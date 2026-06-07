@@ -72,7 +72,7 @@ final class LineDuplexTest extends TestCase
         $duplex->start(new ReadableBuffer(''), new WritableBuffer());
 
         $this->expectException(TransportAlreadyStartedException::class);
-        $this->expectExceptionMessage(\sprintf('%s has already been started.', self::class));
+        $this->expectExceptionMessageIs(\sprintf('%s has already been started.', self::class));
 
         try {
             $duplex->start(new ReadableBuffer(''), new WritableBuffer());

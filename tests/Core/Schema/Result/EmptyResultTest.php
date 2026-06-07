@@ -60,7 +60,7 @@ final class EmptyResultTest extends TestCase
     public function testFromArrayRejectsNonObjectMeta(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('"result._meta" must be an object, bool given.');
+        $this->expectExceptionMessageIs('"result._meta" must be an object, bool given.');
 
         EmptyResult::fromArray(['_meta' => true]);
     }

@@ -163,7 +163,7 @@ final class CallToolRequestParamsTest extends TestCase
     public function testConstructorRejectsListKeyedArguments(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"params.arguments" must be a string-keyed map.');
+        $this->expectExceptionMessageIs('"params.arguments" must be a string-keyed map.');
 
         // @phpstan-ignore argument.type
         new CallToolRequestParams('read-file', ['v1', 'v2']);
@@ -176,7 +176,7 @@ final class CallToolRequestParamsTest extends TestCase
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIs($expectedMessage);
 
         CallToolRequestParams::fromArray($payload);
     }

@@ -141,7 +141,7 @@ final class CallToolResultTest extends TestCase
     public function testConstructorRejectsNonListContent(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"result.content" must be a list, non-list array given.');
+        $this->expectExceptionMessageIs('"result.content" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
         new CallToolResult([5 => new TextContent('x')]);
@@ -158,7 +158,7 @@ final class CallToolResultTest extends TestCase
     public function testConstructorRejectsListKeyedStructuredContent(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"result.structuredContent" must be a string-keyed map.');
+        $this->expectExceptionMessageIs('"result.structuredContent" must be a string-keyed map.');
 
         // @phpstan-ignore argument.type
         new CallToolResult([], ['v1', 'v2']);
@@ -171,7 +171,7 @@ final class CallToolResultTest extends TestCase
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIs($expectedMessage);
 
         CallToolResult::fromArray($payload);
     }

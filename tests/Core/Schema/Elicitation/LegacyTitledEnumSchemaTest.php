@@ -82,7 +82,7 @@ final class LegacyTitledEnumSchemaTest extends TestCase
     public function testConstructorRejectsNonListEnum(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('legacy titled enum schema "enum" must be a list, non-list array given.');
+        $this->expectExceptionMessageIs('legacy titled enum schema "enum" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
         new LegacyTitledEnumSchema(['k' => 'v']);
@@ -91,7 +91,7 @@ final class LegacyTitledEnumSchemaTest extends TestCase
     public function testConstructorRejectsEmptyEnumEntry(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('each legacy titled enum schema "enum" must be a non-empty string.');
+        $this->expectExceptionMessageIs('each legacy titled enum schema "enum" must be a non-empty string.');
 
         new LegacyTitledEnumSchema(['']);
     }
@@ -99,7 +99,7 @@ final class LegacyTitledEnumSchemaTest extends TestCase
     public function testConstructorRejectsEmptyTitle(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('legacy titled enum schema "title" must be a non-empty string or null.');
+        $this->expectExceptionMessageIs('legacy titled enum schema "title" must be a non-empty string or null.');
 
         new LegacyTitledEnumSchema(['a'], '');
     }
@@ -107,7 +107,7 @@ final class LegacyTitledEnumSchemaTest extends TestCase
     public function testConstructorRejectsEmptyDescription(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('legacy titled enum schema "description" must be a non-empty string or null.');
+        $this->expectExceptionMessageIs('legacy titled enum schema "description" must be a non-empty string or null.');
 
         new LegacyTitledEnumSchema(['a'], null, '');
     }
@@ -115,7 +115,7 @@ final class LegacyTitledEnumSchemaTest extends TestCase
     public function testConstructorRejectsNonListEnumNames(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('legacy titled enum schema "enumNames" must be a list, non-list array given.');
+        $this->expectExceptionMessageIs('legacy titled enum schema "enumNames" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
         new LegacyTitledEnumSchema(['a'], null, null, ['k' => 'v']);
@@ -124,7 +124,7 @@ final class LegacyTitledEnumSchemaTest extends TestCase
     public function testConstructorRejectsEmptyEnumNamesEntry(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('each legacy titled enum schema "enumNames" must be a non-empty string.');
+        $this->expectExceptionMessageIs('each legacy titled enum schema "enumNames" must be a non-empty string.');
 
         new LegacyTitledEnumSchema(['a'], null, null, ['']);
     }
@@ -136,7 +136,7 @@ final class LegacyTitledEnumSchemaTest extends TestCase
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIs($expectedMessage);
 
         LegacyTitledEnumSchema::fromArray($payload);
     }

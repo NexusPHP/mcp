@@ -181,7 +181,7 @@ final class ReadResourceResultTest extends TestCase
     public function testConstructorRejectsNonListContents(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"result.contents" must be a list, non-list array given.');
+        $this->expectExceptionMessageIs('"result.contents" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
         new ReadResourceResult([5 => new TextResourceContents('file:///x', 'hi')]);
@@ -202,7 +202,7 @@ final class ReadResourceResultTest extends TestCase
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIs($expectedMessage);
 
         ReadResourceResult::fromArray($payload);
     }

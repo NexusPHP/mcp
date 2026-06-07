@@ -131,7 +131,7 @@ final class BlobResourceContentsTest extends TestCase
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIs($expectedMessage);
 
         BlobResourceContents::fromArray($payload);
     }
@@ -168,12 +168,12 @@ final class BlobResourceContentsTest extends TestCase
 
         yield '_meta not an object' => [
             ['uri' => 'file:///x', 'blob' => 'aGVsbG8=', '_meta' => 'oops'],
-            'resource contents "_meta" must be an object, string given.',
+            'blob resource contents "_meta" must be an object, string given.',
         ];
 
         yield '_meta list-keyed' => [
             ['uri' => 'file:///x', 'blob' => 'aGVsbG8=', '_meta' => ['x']],
-            'resource contents "_meta" must be a string-keyed object.',
+            'blob resource contents "_meta" must be a string-keyed object.',
         ];
     }
 }

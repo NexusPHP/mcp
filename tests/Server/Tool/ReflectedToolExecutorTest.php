@@ -97,7 +97,7 @@ final class ReflectedToolExecutorTest extends TestCase
     public function testRejectsNonContentBlockList(): void
     {
         $this->expectException(UnsupportedReturnValueException::class);
-        $this->expectExceptionMessage(ReflectedHandlers::class.'::toolList() must return a '.CallToolResult::class.', a string, content blocks, or an array, array given.');
+        $this->expectExceptionMessageIs(ReflectedHandlers::class.'::toolList() must return a '.CallToolResult::class.', a string, content blocks, or an array, array given.');
 
         self::execute('toolList');
     }
@@ -105,7 +105,7 @@ final class ReflectedToolExecutorTest extends TestCase
     public function testRejectsIntegerKeyedArray(): void
     {
         $this->expectException(UnsupportedReturnValueException::class);
-        $this->expectExceptionMessage(ReflectedHandlers::class.'::toolIntKeyedArray() must return a '.CallToolResult::class.', a string, content blocks, or an array, array given.');
+        $this->expectExceptionMessageIs(ReflectedHandlers::class.'::toolIntKeyedArray() must return a '.CallToolResult::class.', a string, content blocks, or an array, array given.');
 
         self::execute('toolIntKeyedArray');
     }
@@ -113,7 +113,7 @@ final class ReflectedToolExecutorTest extends TestCase
     public function testThrowsOnUnsupportedReturn(): void
     {
         $this->expectException(UnsupportedReturnValueException::class);
-        $this->expectExceptionMessage(ReflectedHandlers::class.'::toolUnsupported() must return a '.CallToolResult::class.', a string, content blocks, or an array, int given.');
+        $this->expectExceptionMessageIs(ReflectedHandlers::class.'::toolUnsupported() must return a '.CallToolResult::class.', a string, content blocks, or an array, int given.');
 
         self::execute('toolUnsupported');
     }

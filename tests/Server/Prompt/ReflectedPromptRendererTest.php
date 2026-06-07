@@ -101,7 +101,7 @@ final class ReflectedPromptRendererTest extends TestCase
     public function testThrowsOnUnsupportedReturn(): void
     {
         $this->expectException(UnsupportedReturnValueException::class);
-        $this->expectExceptionMessage(ReflectedHandlers::class.'::promptUnsupported() must return a '.GetPromptResult::class.', a string, or prompt messages, float given.');
+        $this->expectExceptionMessageIs(ReflectedHandlers::class.'::promptUnsupported() must return a '.GetPromptResult::class.', a string, or prompt messages, float given.');
 
         self::render('promptUnsupported', null);
     }

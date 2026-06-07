@@ -194,7 +194,7 @@ final class ResourceLinkTest extends TestCase
     public function testConstructorRejectsEmptyDescription(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('resource link "description" must be a non-empty string or null.');
+        $this->expectExceptionMessageIs('resource link "description" must be a non-empty string or null.');
 
         new ResourceLink('my-link', 'file:///tmp/x', null, '');
     }
@@ -202,7 +202,7 @@ final class ResourceLinkTest extends TestCase
     public function testConstructorRejectsEmptyMimeType(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('resource link "mimeType" must be a non-empty string or null.');
+        $this->expectExceptionMessageIs('resource link "mimeType" must be a non-empty string or null.');
 
         new ResourceLink('my-link', 'file:///tmp/x', null, null, '');
     }
@@ -222,7 +222,7 @@ final class ResourceLinkTest extends TestCase
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIs($expectedMessage);
 
         ResourceLink::fromArray($payload);
     }

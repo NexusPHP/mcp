@@ -41,7 +41,7 @@ final class ClientBuilderTest extends TestCase
     public function testBuildWithoutClientInfoThrows(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Client information must be set before build() via setClientInfo().');
+        $this->expectExceptionMessageIs('Client information must be set before build() via setClientInfo().');
 
         new ClientBuilder()->build();
     }

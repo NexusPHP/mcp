@@ -107,7 +107,7 @@ final class ElicitResultTest extends TestCase
     public function testConstructorRejectsListKeyedContent(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"result.content" must be a string-keyed map.');
+        $this->expectExceptionMessageIs('"result.content" must be a string-keyed map.');
 
         // @phpstan-ignore argument.type
         new ElicitResult(ElicitAction::Accept, ['a']);
@@ -116,7 +116,7 @@ final class ElicitResultTest extends TestCase
     public function testConstructorRejectsEmptyContentKey(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('each "result.content" key must be a non-empty string.');
+        $this->expectExceptionMessageIs('each "result.content" key must be a non-empty string.');
 
         new ElicitResult(ElicitAction::Accept, ['' => 'v']);
     }
@@ -124,7 +124,7 @@ final class ElicitResultTest extends TestCase
     public function testConstructorRejectsNonScalarContentValue(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"result" "x" must be a string, int, bool, or list of strings, non-list array given.');
+        $this->expectExceptionMessageIs('"result" "x" must be a string, int, bool, or list of strings, non-list array given.');
 
         // @phpstan-ignore argument.type
         new ElicitResult(ElicitAction::Accept, ['x' => ['k' => 'v']]);
@@ -133,7 +133,7 @@ final class ElicitResultTest extends TestCase
     public function testConstructorRejectsListWithNonStringEntries(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('each "result" "x" list entry must be a string, int given.');
+        $this->expectExceptionMessageIs('each "result" "x" list entry must be a string, int given.');
 
         // @phpstan-ignore argument.type
         new ElicitResult(ElicitAction::Accept, ['x' => [1, 2]]);
@@ -146,7 +146,7 @@ final class ElicitResultTest extends TestCase
     public function testFromArrayRejectsAssertInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIs($expectedMessage);
 
         ElicitResult::fromArray($payload);
     }

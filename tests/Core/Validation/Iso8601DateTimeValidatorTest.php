@@ -50,7 +50,7 @@ final class Iso8601DateTimeValidatorTest extends TestCase
     public function testParseRejectsNullByte(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Test field must not contain NULL bytes.');
+        $this->expectExceptionMessageIs('Test field must not contain NULL bytes.');
 
         Iso8601DateTimeValidator::parse("2026-05-10T12:00:00\0+00:00", 'Test field');
     }
@@ -58,7 +58,7 @@ final class Iso8601DateTimeValidatorTest extends TestCase
     public function testParseRejectsInvalidFormat(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Test field must be a valid ISO 8601 datetime.');
+        $this->expectExceptionMessageIs('Test field must be a valid ISO 8601 datetime.');
 
         Iso8601DateTimeValidator::parse('not-a-date', 'Test field');
     }
@@ -66,7 +66,7 @@ final class Iso8601DateTimeValidatorTest extends TestCase
     public function testParseRejectsMissingTimezone(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Test field must be a valid ISO 8601 datetime.');
+        $this->expectExceptionMessageIs('Test field must be a valid ISO 8601 datetime.');
 
         Iso8601DateTimeValidator::parse('2026-05-10T12:00:00', 'Test field');
     }
@@ -74,7 +74,7 @@ final class Iso8601DateTimeValidatorTest extends TestCase
     public function testParseRejectsOverflowedDate(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('The parsed date was invalid.');
+        $this->expectExceptionMessageIs('The parsed date was invalid.');
 
         Iso8601DateTimeValidator::parse('2026-13-45T25:99:99+00:00', 'Test field');
     }

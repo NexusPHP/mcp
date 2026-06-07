@@ -90,7 +90,7 @@ final class UntitledMultiSelectEnumSchemaTest extends TestCase
     public function testConstructorRejectsNonListItems(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('untitled multi-select enum schema "items" must be a list, non-list array given.');
+        $this->expectExceptionMessageIs('untitled multi-select enum schema "items" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
         new UntitledMultiSelectEnumSchema(['k' => 'v']);
@@ -99,7 +99,7 @@ final class UntitledMultiSelectEnumSchemaTest extends TestCase
     public function testConstructorRejectsEmptyItemsEntry(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('each untitled multi-select enum schema "items" must be a non-empty string.');
+        $this->expectExceptionMessageIs('each untitled multi-select enum schema "items" must be a non-empty string.');
 
         new UntitledMultiSelectEnumSchema(['']);
     }
@@ -107,7 +107,7 @@ final class UntitledMultiSelectEnumSchemaTest extends TestCase
     public function testConstructorRejectsEmptyTitle(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('untitled multi-select enum schema "title" must be a non-empty string or null.');
+        $this->expectExceptionMessageIs('untitled multi-select enum schema "title" must be a non-empty string or null.');
 
         new UntitledMultiSelectEnumSchema(['a'], '');
     }
@@ -115,7 +115,7 @@ final class UntitledMultiSelectEnumSchemaTest extends TestCase
     public function testConstructorRejectsEmptyDescription(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('untitled multi-select enum schema "description" must be a non-empty string or null.');
+        $this->expectExceptionMessageIs('untitled multi-select enum schema "description" must be a non-empty string or null.');
 
         new UntitledMultiSelectEnumSchema(['a'], null, '');
     }
@@ -123,7 +123,7 @@ final class UntitledMultiSelectEnumSchemaTest extends TestCase
     public function testConstructorRejectsNegativeMinItems(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('untitled multi-select enum schema "minItems" must be a non-negative integer or null.');
+        $this->expectExceptionMessageIs('untitled multi-select enum schema "minItems" must be a non-negative integer or null.');
 
         new UntitledMultiSelectEnumSchema(['a'], null, null, -1);
     }
@@ -131,7 +131,7 @@ final class UntitledMultiSelectEnumSchemaTest extends TestCase
     public function testConstructorRejectsNegativeMaxItems(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('untitled multi-select enum schema "maxItems" must be a non-negative integer or null.');
+        $this->expectExceptionMessageIs('untitled multi-select enum schema "maxItems" must be a non-negative integer or null.');
 
         new UntitledMultiSelectEnumSchema(['a'], null, null, null, -1);
     }
@@ -139,7 +139,7 @@ final class UntitledMultiSelectEnumSchemaTest extends TestCase
     public function testConstructorRejectsNonListDefault(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('untitled multi-select enum schema "default" must be a list, non-list array given.');
+        $this->expectExceptionMessageIs('untitled multi-select enum schema "default" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
         new UntitledMultiSelectEnumSchema(['a'], null, null, null, null, ['k' => 'v']);
@@ -152,7 +152,7 @@ final class UntitledMultiSelectEnumSchemaTest extends TestCase
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIs($expectedMessage);
 
         UntitledMultiSelectEnumSchema::fromArray($payload);
     }

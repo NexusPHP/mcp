@@ -136,7 +136,7 @@ final class UrlElicitationRequiredErrorTest extends TestCase
     public function testConstructorRejectsWrongErrorCode(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"error" code must be -32042, -32600 given.');
+        $this->expectExceptionMessageIs('"error" code must be -32042, -32600 given.');
 
         new UrlElicitationRequiredError(
             new RequestId('r-1'),
@@ -149,7 +149,7 @@ final class UrlElicitationRequiredErrorTest extends TestCase
     public function testConstructorRejectsNonListElicitations(mixed $elicitations): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"elicitations" must be a list, non-list array given.');
+        $this->expectExceptionMessageIs('"elicitations" must be a list, non-list array given.');
 
         new UrlElicitationRequiredError(
             null,
@@ -173,7 +173,7 @@ final class UrlElicitationRequiredErrorTest extends TestCase
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIs($expectedMessage);
 
         UrlElicitationRequiredError::fromArray($payload);
     }

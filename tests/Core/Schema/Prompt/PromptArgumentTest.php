@@ -120,7 +120,7 @@ final class PromptArgumentTest extends TestCase
     public function testConstructorRejectsEmptyDescription(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"arguments.description" must be a non-empty string or null.');
+        $this->expectExceptionMessageIs('"arguments.description" must be a non-empty string or null.');
 
         new PromptArgument('topic', null, '');
     }
@@ -132,7 +132,7 @@ final class PromptArgumentTest extends TestCase
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIs($expectedMessage);
 
         PromptArgument::fromArray($payload);
     }

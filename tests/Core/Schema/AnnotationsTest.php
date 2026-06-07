@@ -58,7 +58,7 @@ final class AnnotationsTest extends TestCase
     public function testAnnotationsRejectsOutOfRangePriority(float $priority): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('"annotations.priority" must be between 0.0 and 1.0.');
+        $this->expectExceptionMessageIs('"annotations.priority" must be between 0.0 and 1.0.');
 
         new Annotations(priority: $priority);
     }
@@ -100,7 +100,7 @@ final class AnnotationsTest extends TestCase
     public function testAnnotationsRejectsInvalidLastModified(string $lastModified, string $expectedMessage): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIs($expectedMessage);
 
         new Annotations(lastModified: $lastModified);
     }
@@ -150,7 +150,7 @@ final class AnnotationsTest extends TestCase
     public function testAnnotationsFromArrayRejectsInvalidAudienceValue(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('each "annotations.audience" must be one of [\'user\', \'assistant\'], \'invalid-role\' given.');
+        $this->expectExceptionMessageIs('each "annotations.audience" must be one of [\'user\', \'assistant\'], \'invalid-role\' given.');
 
         Annotations::fromArray(['audience' => ['invalid-role']]);
     }
@@ -158,7 +158,7 @@ final class AnnotationsTest extends TestCase
     public function testAnnotationsFromArrayRejectsNonStringAudienceEntry(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('each "annotations.audience" must be one of [\'user\', \'assistant\'], 42 given.');
+        $this->expectExceptionMessageIs('each "annotations.audience" must be one of [\'user\', \'assistant\'], 42 given.');
 
         Annotations::fromArray(['audience' => [42]]);
     }

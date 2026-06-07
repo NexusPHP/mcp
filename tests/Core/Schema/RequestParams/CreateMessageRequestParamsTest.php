@@ -73,7 +73,7 @@ final class CreateMessageRequestParamsTest extends TestCase
     public function testConstructorRejectsNonSamplingMessageEntry(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('Value "\'not-a-message\'" in iterable is expected to be an instance of \'Nexus\\\\Mcp\\\\Core\\\\Schema\\\\Sampling\\\\SamplingMessage\' but got string instead.');
+        $this->expectExceptionMessageIs('Value "\'not-a-message\'" in iterable is expected to be an instance of \'Nexus\\\\Mcp\\\\Core\\\\Schema\\\\Sampling\\\\SamplingMessage\' but got string instead.');
 
         new CreateMessageRequestParams(maxTokens: 1, messages: ['not-a-message']); // @phpstan-ignore argument.type
     }
@@ -81,7 +81,7 @@ final class CreateMessageRequestParamsTest extends TestCase
     public function testConstructorRejectsEmptySystemPrompt(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"params.systemPrompt" must be a non-empty string or null.');
+        $this->expectExceptionMessageIs('"params.systemPrompt" must be a non-empty string or null.');
 
         new CreateMessageRequestParams(maxTokens: 1, messages: [], systemPrompt: '');
     }
@@ -89,7 +89,7 @@ final class CreateMessageRequestParamsTest extends TestCase
     public function testConstructorRejectsNonStringStopSequencesEntry(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('each "params.stopSequences" entry must be a string, int given.');
+        $this->expectExceptionMessageIs('each "params.stopSequences" entry must be a string, int given.');
 
         new CreateMessageRequestParams(maxTokens: 1, messages: [], stopSequences: [42]); // @phpstan-ignore argument.type
     }
@@ -104,7 +104,7 @@ final class CreateMessageRequestParamsTest extends TestCase
     public function testConstructorRejectsNonToolEntry(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('Value "\'not-a-tool\'" in iterable is expected to be an instance of \'Nexus\\\\Mcp\\\\Core\\\\Schema\\\\Tool\\\\Tool\' but got string instead.');
+        $this->expectExceptionMessageIs('Value "\'not-a-tool\'" in iterable is expected to be an instance of \'Nexus\\\\Mcp\\\\Core\\\\Schema\\\\Tool\\\\Tool\' but got string instead.');
 
         new CreateMessageRequestParams(maxTokens: 1, messages: [], tools: ['not-a-tool']); // @phpstan-ignore argument.type
     }
@@ -233,7 +233,7 @@ final class CreateMessageRequestParamsTest extends TestCase
     public function testFromArrayRejectsMissingMaxTokens(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('missing the required "maxTokens" key.');
+        $this->expectExceptionMessageIs('missing the required "maxTokens" key.');
 
         CreateMessageRequestParams::fromArray(['messages' => []]);
     }
@@ -241,7 +241,7 @@ final class CreateMessageRequestParamsTest extends TestCase
     public function testFromArrayRejectsNonIntMaxTokens(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"params.maxTokens" must be an int, string given.');
+        $this->expectExceptionMessageIs('"params.maxTokens" must be an int, string given.');
 
         CreateMessageRequestParams::fromArray(['maxTokens' => 'oops', 'messages' => []]);
     }
@@ -249,7 +249,7 @@ final class CreateMessageRequestParamsTest extends TestCase
     public function testFromArrayRejectsMissingMessages(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('missing the required "messages" key.');
+        $this->expectExceptionMessageIs('missing the required "messages" key.');
 
         CreateMessageRequestParams::fromArray(['maxTokens' => 1]);
     }
@@ -257,7 +257,7 @@ final class CreateMessageRequestParamsTest extends TestCase
     public function testFromArrayRejectsNonListMessages(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"params.messages" must be a list, non-list array given.');
+        $this->expectExceptionMessageIs('"params.messages" must be a list, non-list array given.');
 
         CreateMessageRequestParams::fromArray(['maxTokens' => 1, 'messages' => ['x' => 1]]);
     }
@@ -265,7 +265,7 @@ final class CreateMessageRequestParamsTest extends TestCase
     public function testFromArrayRejectsUnknownIncludeContext(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"params.includeContext" must be one of [\'allServers\', \'none\', \'thisServer\'], \'unknown\' given.');
+        $this->expectExceptionMessageIs('"params.includeContext" must be one of [\'allServers\', \'none\', \'thisServer\'], \'unknown\' given.');
 
         CreateMessageRequestParams::fromArray(['maxTokens' => 1, 'messages' => [], 'includeContext' => 'unknown']);
     }
@@ -273,7 +273,7 @@ final class CreateMessageRequestParamsTest extends TestCase
     public function testFromArrayRejectsNonStringIncludeContext(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"params.includeContext" must be one of [\'allServers\', \'none\', \'thisServer\'], 0 given.');
+        $this->expectExceptionMessageIs('"params.includeContext" must be one of [\'allServers\', \'none\', \'thisServer\'], 0 given.');
 
         CreateMessageRequestParams::fromArray(['maxTokens' => 1, 'messages' => [], 'includeContext' => 0]);
     }
@@ -281,7 +281,7 @@ final class CreateMessageRequestParamsTest extends TestCase
     public function testFromArrayRejectsNonObjectModelPreferences(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"params.modelPreferences" must be an object, string given.');
+        $this->expectExceptionMessageIs('"params.modelPreferences" must be an object, string given.');
 
         CreateMessageRequestParams::fromArray(['maxTokens' => 1, 'messages' => [], 'modelPreferences' => 'oops']);
     }
@@ -289,7 +289,7 @@ final class CreateMessageRequestParamsTest extends TestCase
     public function testFromArrayRejectsNonListStopSequences(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"params.stopSequences" must be a list, non-list array given.');
+        $this->expectExceptionMessageIs('"params.stopSequences" must be a list, non-list array given.');
 
         CreateMessageRequestParams::fromArray(['maxTokens' => 1, 'messages' => [], 'stopSequences' => ['x' => 1]]);
     }
@@ -297,7 +297,7 @@ final class CreateMessageRequestParamsTest extends TestCase
     public function testFromArrayRejectsNonStringStopSequencesEntry(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('each "params.stopSequences" must be a string, int given.');
+        $this->expectExceptionMessageIs('each "params.stopSequences" must be a string, int given.');
 
         CreateMessageRequestParams::fromArray(['maxTokens' => 1, 'messages' => [], 'stopSequences' => [42]]);
     }
@@ -305,7 +305,7 @@ final class CreateMessageRequestParamsTest extends TestCase
     public function testFromArrayRejectsNonObjectTask(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"params.task" must be an object, string given.');
+        $this->expectExceptionMessageIs('"params.task" must be an object, string given.');
 
         CreateMessageRequestParams::fromArray(['maxTokens' => 1, 'messages' => [], 'task' => 'oops']);
     }
@@ -313,7 +313,7 @@ final class CreateMessageRequestParamsTest extends TestCase
     public function testFromArrayRejectsNonNumericTemperature(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"params.temperature" must be a number or null, string given.');
+        $this->expectExceptionMessageIs('"params.temperature" must be a number or null, string given.');
 
         CreateMessageRequestParams::fromArray(['maxTokens' => 1, 'messages' => [], 'temperature' => 'hot']);
     }
@@ -321,7 +321,7 @@ final class CreateMessageRequestParamsTest extends TestCase
     public function testFromArrayRejectsNonListTools(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"params.tools" must be a list, non-list array given.');
+        $this->expectExceptionMessageIs('"params.tools" must be a list, non-list array given.');
 
         CreateMessageRequestParams::fromArray(['maxTokens' => 1, 'messages' => [], 'tools' => ['x' => 1]]);
     }
@@ -329,7 +329,7 @@ final class CreateMessageRequestParamsTest extends TestCase
     public function testFromArrayRejectsNonObjectMetadata(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"params.metadata" must be an object, string given.');
+        $this->expectExceptionMessageIs('"params.metadata" must be an object, string given.');
 
         CreateMessageRequestParams::fromArray(['maxTokens' => 1, 'messages' => [], 'metadata' => 'oops']);
     }
@@ -337,7 +337,7 @@ final class CreateMessageRequestParamsTest extends TestCase
     public function testFromArrayRejectsNonObjectMeta(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"params._meta" must be an object, string given.');
+        $this->expectExceptionMessageIs('"params._meta" must be an object, string given.');
 
         CreateMessageRequestParams::fromArray(['maxTokens' => 1, 'messages' => [], '_meta' => 'oops']);
     }
@@ -345,7 +345,7 @@ final class CreateMessageRequestParamsTest extends TestCase
     public function testFromArrayRejectsListKeyedMeta(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"params._meta" must be a string-keyed object.');
+        $this->expectExceptionMessageIs('"params._meta" must be a string-keyed object.');
 
         CreateMessageRequestParams::fromArray(['maxTokens' => 1, 'messages' => [], '_meta' => ['x']]);
     }

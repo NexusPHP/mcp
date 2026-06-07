@@ -105,7 +105,7 @@ final class ToolListChangedNotificationTest extends TestCase
     public function testFromArrayRejectsNonObjectParams(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('"params" must be an object, string given.');
+        $this->expectExceptionMessageIs('"params" must be an object, string given.');
 
         ToolListChangedNotification::fromArray([
             'jsonrpc' => '2.0',

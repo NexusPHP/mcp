@@ -62,7 +62,7 @@ final class EnumOptionTest extends TestCase
     public function testConstructorRejectsEmptyConst(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"oneOf.const" must be a non-empty string.');
+        $this->expectExceptionMessageIs('"oneOf.const" must be a non-empty string.');
 
         new EnumOption('', 'Title');
     }
@@ -70,7 +70,7 @@ final class EnumOptionTest extends TestCase
     public function testConstructorRejectsEmptyTitle(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"oneOf.title" must be a non-empty string.');
+        $this->expectExceptionMessageIs('"oneOf.title" must be a non-empty string.');
 
         new EnumOption('value', '');
     }
@@ -82,7 +82,7 @@ final class EnumOptionTest extends TestCase
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIs($expectedMessage);
 
         EnumOption::fromArray($payload);
     }

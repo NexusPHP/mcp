@@ -101,7 +101,7 @@ final class StringSchemaTest extends TestCase
     public function testConstructorRejectsEmptyTitle(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('string schema "title" must be a non-empty string or null.');
+        $this->expectExceptionMessageIs('string schema "title" must be a non-empty string or null.');
 
         new StringSchema('');
     }
@@ -109,7 +109,7 @@ final class StringSchemaTest extends TestCase
     public function testConstructorRejectsEmptyDescription(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('string schema "description" must be a non-empty string or null.');
+        $this->expectExceptionMessageIs('string schema "description" must be a non-empty string or null.');
 
         new StringSchema(null, '');
     }
@@ -117,7 +117,7 @@ final class StringSchemaTest extends TestCase
     public function testConstructorRejectsNegativeMinLength(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('string schema "minLength" must be a non-negative integer or null.');
+        $this->expectExceptionMessageIs('string schema "minLength" must be a non-negative integer or null.');
 
         new StringSchema(null, null, -1);
     }
@@ -125,7 +125,7 @@ final class StringSchemaTest extends TestCase
     public function testConstructorRejectsNegativeMaxLength(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('string schema "maxLength" must be a non-negative integer or null.');
+        $this->expectExceptionMessageIs('string schema "maxLength" must be a non-negative integer or null.');
 
         new StringSchema(null, null, null, -1);
     }
@@ -133,7 +133,7 @@ final class StringSchemaTest extends TestCase
     public function testConstructorRejectsUnknownFormat(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('string schema "format" must be one of "date", "date-time", "email", "uri".');
+        $this->expectExceptionMessageIs('string schema "format" must be one of "date", "date-time", "email", "uri".');
 
         new StringSchema(null, null, null, null, 'phone');
     }
@@ -167,7 +167,7 @@ final class StringSchemaTest extends TestCase
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIs($expectedMessage);
 
         StringSchema::fromArray($payload);
     }

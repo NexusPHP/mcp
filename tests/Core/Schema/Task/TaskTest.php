@@ -62,7 +62,7 @@ final class TaskTest extends TestCase
     public function testConstructorRejectsEmptyTaskId(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('task "taskId" must be a non-empty string.');
+        $this->expectExceptionMessageIs('task "taskId" must be a non-empty string.');
 
         new Task('', TaskStatus::Working, '2026-05-10T12:00:00+00:00', '2026-05-10T12:00:00+00:00', null);
     }
@@ -70,7 +70,7 @@ final class TaskTest extends TestCase
     public function testConstructorRejectsEmptyStatusMessage(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('task "statusMessage" must be a non-empty string or null.');
+        $this->expectExceptionMessageIs('task "statusMessage" must be a non-empty string or null.');
 
         new Task('task-abc', TaskStatus::Working, '2026-05-10T12:00:00+00:00', '2026-05-10T12:00:00+00:00', null, '');
     }
@@ -85,7 +85,7 @@ final class TaskTest extends TestCase
     public function testConstructorRejectsNegativeTtl(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('task "ttl" must be a non-negative integer or null.');
+        $this->expectExceptionMessageIs('task "ttl" must be a non-negative integer or null.');
 
         new Task('task-abc', TaskStatus::Working, '2026-05-10T12:00:00+00:00', '2026-05-10T12:00:00+00:00', -1);
     }
@@ -100,7 +100,7 @@ final class TaskTest extends TestCase
     public function testConstructorRejectsNegativePollInterval(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('task "pollInterval" must be a non-negative integer or null.');
+        $this->expectExceptionMessageIs('task "pollInterval" must be a non-negative integer or null.');
 
         new Task('task-abc', TaskStatus::Working, '2026-05-10T12:00:00+00:00', '2026-05-10T12:00:00+00:00', null, null, -1);
     }
@@ -112,7 +112,7 @@ final class TaskTest extends TestCase
     public function testConstructorRejectsInvalidTimestamp(string $field, string $value, string $expectedMessage): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIs($expectedMessage);
 
         if ('createdAt' === $field) {
             new Task('task-abc', TaskStatus::Working, $value, '2026-05-10T12:00:00+00:00', null);
@@ -242,7 +242,7 @@ final class TaskTest extends TestCase
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIs($expectedMessage);
 
         Task::fromArray($payload);
     }

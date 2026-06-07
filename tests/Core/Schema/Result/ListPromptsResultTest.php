@@ -124,7 +124,7 @@ final class ListPromptsResultTest extends TestCase
     public function testConstructorRejectsNonListPrompts(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"result.prompts" must be a list, non-list array given.');
+        $this->expectExceptionMessageIs('"result.prompts" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
         new ListPromptsResult([5 => new Prompt('a')]);
@@ -145,7 +145,7 @@ final class ListPromptsResultTest extends TestCase
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIs($expectedMessage);
 
         ListPromptsResult::fromArray($payload);
     }

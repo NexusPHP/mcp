@@ -68,7 +68,7 @@ final class SamplingContentDispatcherTest extends TestCase
     public function testFromArrayRejectsUnknownType(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('sampling message content "type" must be one of "text", "image", "audio", "tool_use", "tool_result", \'resource_link\' given.');
+        $this->expectExceptionMessageIs('sampling message content "type" must be one of "text", "image", "audio", "tool_use", "tool_result", \'resource_link\' given.');
 
         SamplingContentDispatcher::fromArray(['type' => 'resource_link'], 'sampling message content');
     }
@@ -76,7 +76,7 @@ final class SamplingContentDispatcherTest extends TestCase
     public function testFromArrayPropagatesContextToReadType(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"result" content data missing "type".');
+        $this->expectExceptionMessageIs('"result" content data missing "type".');
 
         SamplingContentDispatcher::fromArray(['text' => 'oops'], '"result" content');
     }

@@ -88,7 +88,7 @@ final class TaskStatusNotificationTest extends TestCase
     public function testFromArrayRejectsNonObjectParams(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('"params" must be an object, string given.');
+        $this->expectExceptionMessageIs('"params" must be an object, string given.');
 
         TaskStatusNotification::fromArray([
             'jsonrpc' => '2.0',
@@ -100,7 +100,7 @@ final class TaskStatusNotificationTest extends TestCase
     public function testFromArrayRejectsListKeyedParams(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('"params" must be a string-keyed object.');
+        $this->expectExceptionMessageIs('"params" must be a string-keyed object.');
 
         TaskStatusNotification::fromArray([
             'jsonrpc' => '2.0',

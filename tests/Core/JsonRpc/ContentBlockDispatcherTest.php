@@ -65,7 +65,7 @@ final class ContentBlockDispatcherTest extends TestCase
     public function testFromArrayRejectsUnknownType(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('prompt message "content" "type" must be one of "text", "image", "audio", "resource_link", "resource", \'unknown\' given.');
+        $this->expectExceptionMessageIs('prompt message "content" "type" must be one of "text", "image", "audio", "resource_link", "resource", \'unknown\' given.');
 
         ContentBlockDispatcher::fromArray(['type' => 'unknown'], 'prompt message "content"');
     }
@@ -73,7 +73,7 @@ final class ContentBlockDispatcherTest extends TestCase
     public function testFromArrayPropagatesContextToReadType(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('CallToolResult content data missing "type".');
+        $this->expectExceptionMessageIs('CallToolResult content data missing "type".');
 
         ContentBlockDispatcher::fromArray(['text' => 'oops'], 'CallToolResult content');
     }

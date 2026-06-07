@@ -94,7 +94,7 @@ final class TaskMetadataTest extends TestCase
     public function testFromArrayRejectsNonIntTtl(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('task metadata "ttl" must be an int or null, string given.');
+        $this->expectExceptionMessageIs('task metadata "ttl" must be an int or null, string given.');
 
         TaskMetadata::fromArray(['ttl' => 'oops']);
     }

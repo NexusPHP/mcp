@@ -50,7 +50,7 @@ final class ListRootsResultTest extends TestCase
     public function testConstructorRejectsNonListRoots(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"result.roots" must be a list, non-list array given.');
+        $this->expectExceptionMessageIs('"result.roots" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
         new ListRootsResult([5 => new Root('file:///x')]);
@@ -153,7 +153,7 @@ final class ListRootsResultTest extends TestCase
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIs($expectedMessage);
 
         ListRootsResult::fromArray($payload);
     }

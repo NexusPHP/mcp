@@ -66,7 +66,7 @@ final class InitializeResultTest extends TestCase
     public function testConstructionRejectsEmptyInstructions(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('"result.instructions" must be a non-empty string or null.');
+        $this->expectExceptionMessageIs('"result.instructions" must be a non-empty string or null.');
 
         new InitializeResult(
             new ProtocolVersion('2025-11-25'),
@@ -172,7 +172,7 @@ final class InitializeResultTest extends TestCase
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIs($expectedMessage);
 
         InitializeResult::fromArray($payload);
     }

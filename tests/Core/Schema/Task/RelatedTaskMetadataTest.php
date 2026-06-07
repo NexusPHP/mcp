@@ -37,7 +37,7 @@ final class RelatedTaskMetadataTest extends TestCase
     public function testConstructorRejectsEmptyTaskId(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('related task metadata "taskId" must be a non-empty string.');
+        $this->expectExceptionMessageIs('related task metadata "taskId" must be a non-empty string.');
 
         new RelatedTaskMetadata('');
     }
@@ -68,7 +68,7 @@ final class RelatedTaskMetadataTest extends TestCase
     public function testFromArrayRejectsMissingTaskId(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('related task metadata missing the required "taskId" key.');
+        $this->expectExceptionMessageIs('related task metadata missing the required "taskId" key.');
 
         RelatedTaskMetadata::fromArray([]);
     }
@@ -76,7 +76,7 @@ final class RelatedTaskMetadataTest extends TestCase
     public function testFromArrayRejectsNonStringTaskId(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('related task metadata "taskId" must be a string, int given.');
+        $this->expectExceptionMessageIs('related task metadata "taskId" must be a string, int given.');
 
         RelatedTaskMetadata::fromArray(['taskId' => 42]);
     }

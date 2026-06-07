@@ -95,7 +95,7 @@ final class ToolExecutionTest extends TestCase
     public function testFromArrayRejectsNonStringTaskSupport(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('tool execution "taskSupport" must be one of [\'forbidden\', \'optional\', \'required\'], 1 given.');
+        $this->expectExceptionMessageIs('tool execution "taskSupport" must be one of [\'forbidden\', \'optional\', \'required\'], 1 given.');
 
         ToolExecution::fromArray(['taskSupport' => 1]);
     }
@@ -103,7 +103,7 @@ final class ToolExecutionTest extends TestCase
     public function testFromArrayRejectsUnknownTaskSupport(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessage('tool execution "taskSupport" must be one of [\'forbidden\', \'optional\', \'required\'], \'unknown\' given.');
+        $this->expectExceptionMessageIs('tool execution "taskSupport" must be one of [\'forbidden\', \'optional\', \'required\'], \'unknown\' given.');
 
         ToolExecution::fromArray(['taskSupport' => 'unknown']);
     }
