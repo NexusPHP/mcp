@@ -15,12 +15,10 @@ namespace Nexus\Mcp\Tests\Core\Schema\Tool;
 
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\BaseMetadata;
-use Nexus\Mcp\Core\Schema\Enum\TaskSupport;
 use Nexus\Mcp\Core\Schema\Icon;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Tool\Tool;
 use Nexus\Mcp\Core\Schema\Tool\ToolAnnotations;
-use Nexus\Mcp\Core\Schema\Tool\ToolExecution;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -45,7 +43,6 @@ final class ToolTest extends TestCase
         self::assertSame(['type' => 'object'], $tool->inputSchema);
         self::assertNull($tool->outputSchema);
         self::assertSame([], $tool->annotations->toArray());
-        self::assertSame([], $tool->execution->toArray());
         self::assertNull($tool->icons);
         self::assertSame([], $tool->meta->toArray());
     }
@@ -72,7 +69,6 @@ final class ToolTest extends TestCase
             description: 'Reads contents.',
             outputSchema: ['type' => 'object', 'properties' => ['content' => ['type' => 'string']]],
             annotations: new ToolAnnotations(readOnlyHint: true),
-            execution: new ToolExecution(TaskSupport::Optional),
             icons: [new Icon('https://example.com/icon.png')],
             meta: new MetaObject(['vendor' => 'x']),
         );
@@ -85,7 +81,6 @@ final class ToolTest extends TestCase
                 'description' => 'Reads contents.',
                 'outputSchema' => ['type' => 'object', 'properties' => ['content' => ['type' => 'string']]],
                 'annotations' => ['readOnlyHint' => true],
-                'execution' => ['taskSupport' => 'optional'],
                 'icons' => [['src' => 'https://example.com/icon.png']],
                 '_meta' => ['vendor' => 'x'],
             ],
@@ -96,16 +91,6 @@ final class ToolTest extends TestCase
     public function testToArrayOmitsEmptyAnnotations(): void
     {
         $tool = new Tool('read-file', ['type' => 'object'], annotations: new ToolAnnotations());
-
-        self::assertSame(
-            ['name' => 'read-file', 'inputSchema' => ['type' => 'object']],
-            $tool->toArray(),
-        );
-    }
-
-    public function testToArrayOmitsEmptyExecution(): void
-    {
-        $tool = new Tool('read-file', ['type' => 'object'], execution: new ToolExecution());
 
         self::assertSame(
             ['name' => 'read-file', 'inputSchema' => ['type' => 'object']],
@@ -137,7 +122,6 @@ final class ToolTest extends TestCase
             'description' => 'Reads contents.',
             'outputSchema' => ['type' => 'object'],
             'annotations' => ['readOnlyHint' => true],
-            'execution' => ['taskSupport' => 'required'],
             'icons' => [['src' => 'https://example.com/icon.png']],
             '_meta' => ['vendor' => 'x'],
         ]);
@@ -146,7 +130,6 @@ final class ToolTest extends TestCase
         self::assertSame('Reads contents.', $tool->description);
         self::assertSame(['type' => 'object'], $tool->outputSchema);
         self::assertTrue($tool->annotations->readOnlyHint);
-        self::assertSame(TaskSupport::Required, $tool->execution->taskSupport);
         self::assertNotNull($tool->icons);
         self::assertCount(1, $tool->icons);
         self::assertSame(['vendor' => 'x'], $tool->meta->extras);
@@ -161,7 +144,6 @@ final class ToolTest extends TestCase
             description: 'Reads contents.',
             outputSchema: ['type' => 'object', 'properties' => ['content' => ['type' => 'string']]],
             annotations: new ToolAnnotations(title: 'Read File', readOnlyHint: true),
-            execution: new ToolExecution(TaskSupport::Optional),
             icons: [new Icon('https://example.com/icon.png')],
             meta: new MetaObject(['vendor' => 'x']),
         );
@@ -335,11 +317,6 @@ final class ToolTest extends TestCase
         yield 'annotations not an object' => [
             ['name' => 'read-file', 'inputSchema' => ['type' => 'object'], 'annotations' => 'oops'],
             'Tool "annotations" must be an object, string given.',
-        ];
-
-        yield 'execution not an object' => [
-            ['name' => 'read-file', 'inputSchema' => ['type' => 'object'], 'execution' => 'oops'],
-            'Tool "execution" must be an object, string given.',
         ];
 
         yield 'icons not an array' => [

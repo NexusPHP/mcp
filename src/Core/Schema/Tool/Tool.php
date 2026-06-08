@@ -38,7 +38,6 @@ use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
  *   inputSchema: array{type: 'object', '$schema'?: non-empty-string, properties?: array<string, array<string, mixed>>, required?: list<string>},
  *   outputSchema?: array{type: 'object', '$schema'?: non-empty-string, properties?: array<string, array<string, mixed>>, required?: list<string>},
  *   annotations?: template-type<ToolAnnotations, Arrayable, 'T'>,
- *   execution?: template-type<ToolExecution, Arrayable, 'T'>,
  *   icons?: list<template-type<Icon, Arrayable, 'T'>>,
  *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
  * }>
@@ -74,7 +73,6 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
         ?string $description = null,
         ?array $outputSchema = null,
         public ToolAnnotations $annotations = new ToolAnnotations(),
-        public ToolExecution $execution = new ToolExecution(),
         public ?array $icons = null,
         public MetaObject $meta = new MetaObject(),
     ) {
@@ -147,16 +145,6 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
             $annotations = ToolAnnotations::fromArray($data['annotations']);
         }
 
-        $execution = new ToolExecution();
-
-        if (\array_key_exists('execution', $data)) {
-            Assert::that($data['execution'])
-                ->isArray('Tool "execution" must be an object, {type} given.')
-                ->isMap('Tool "execution" must be a string-keyed object.')
-            ;
-            $execution = ToolExecution::fromArray($data['execution']);
-        }
-
         $icons = null;
 
         if (isset($data['icons'])) {
@@ -179,7 +167,7 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
             $meta = MetaObject::fromArray($data['_meta']);
         }
 
-        return new self($name, $inputSchema, $title, $description, $outputSchema, $annotations, $execution, $icons, $meta);
+        return new self($name, $inputSchema, $title, $description, $outputSchema, $annotations, $icons, $meta);
     }
 
     #[\Override]
@@ -206,12 +194,6 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
 
         if ([] !== $annotations) {
             $data['annotations'] = $annotations;
-        }
-
-        $execution = $this->execution->toArray();
-
-        if ([] !== $execution) {
-            $data['execution'] = $execution;
         }
 
         if (null !== $this->icons) {

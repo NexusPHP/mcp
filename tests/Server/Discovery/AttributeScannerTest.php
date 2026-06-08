@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Server\Discovery;
 
-use Nexus\Mcp\Core\Schema\Enum\TaskSupport;
 use Nexus\Mcp\Core\Schema\Prompt\Prompt;
 use Nexus\Mcp\Core\Schema\Prompt\PromptArgument;
 use Nexus\Mcp\Server\Attribute\AsPrompt;
@@ -65,7 +64,6 @@ final class AttributeScannerTest extends TestCase
 
         self::assertSame('Greeter', $tool->title);
         self::assertTrue($tool->annotations->readOnlyHint);
-        self::assertSame(TaskSupport::Optional, $tool->execution->taskSupport);
         self::assertSame(['category' => 'social'], $tool->meta->extras);
         self::assertNotNull($tool->outputSchema);
     }
@@ -83,7 +81,6 @@ final class AttributeScannerTest extends TestCase
         $tool = self::toolEntry('add')->tool;
 
         self::assertNull($tool->annotations->readOnlyHint);
-        self::assertNull($tool->execution->taskSupport);
         self::assertSame([], $tool->meta->extras);
         self::assertNull($tool->outputSchema);
     }

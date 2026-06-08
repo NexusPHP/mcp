@@ -29,9 +29,6 @@
         "title": "Read File",
         "readOnlyHint": true
     },
-    "execution": {
-        "taskSupport": "optional"
-    },
     "icons": [
         {
             "src": "https://example.com/read.png"

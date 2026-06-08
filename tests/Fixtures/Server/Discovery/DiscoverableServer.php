@@ -16,14 +16,12 @@ namespace Nexus\Mcp\Tests\Fixtures\Server\Discovery;
 use Nexus\Mcp\Core\Schema\Annotations;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Enum\Role;
-use Nexus\Mcp\Core\Schema\Enum\TaskSupport;
 use Nexus\Mcp\Core\Schema\Prompt\PromptMessage;
 use Nexus\Mcp\Core\Schema\Resource\TextResourceContents;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
 use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
 use Nexus\Mcp\Core\Schema\Tool\ToolAnnotations;
-use Nexus\Mcp\Core\Schema\Tool\ToolExecution;
 use Nexus\Mcp\Server\Attribute\AsPrompt;
 use Nexus\Mcp\Server\Attribute\AsResource;
 use Nexus\Mcp\Server\Attribute\AsResourceTemplate;
@@ -48,7 +46,6 @@ final class DiscoverableServer
         name: 'greet_user',
         title: 'Greeter',
         annotations: new ToolAnnotations(readOnlyHint: true),
-        execution: new ToolExecution(TaskSupport::Optional),
         outputSchema: ['type' => 'object', 'properties' => ['greeting' => ['type' => 'string']]],
         meta: ['category' => 'social'],
     )]

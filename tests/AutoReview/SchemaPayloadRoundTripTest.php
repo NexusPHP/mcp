@@ -76,7 +76,6 @@ final class SchemaPayloadRoundTripTest extends AbstractRoundTripTestCase
         'ServerCapabilities' => true,
         'TaskMetadata' => true,
         'ToolAnnotations' => true,
-        'ToolExecution' => true,
     ];
 
     public function testEveryRegisteredEntryIsArrayable(): void

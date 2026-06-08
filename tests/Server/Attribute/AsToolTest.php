@@ -15,7 +15,6 @@ namespace Nexus\Mcp\Tests\Server\Attribute;
 
 use Nexus\Mcp\Core\Schema\Icon;
 use Nexus\Mcp\Core\Schema\Tool\ToolAnnotations;
-use Nexus\Mcp\Core\Schema\Tool\ToolExecution;
 use Nexus\Mcp\Server\Attribute\AsTool;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
@@ -37,7 +36,6 @@ final class AsToolTest extends TestCase
         self::assertNull($tool->title);
         self::assertNull($tool->description);
         self::assertNull($tool->annotations);
-        self::assertNull($tool->execution);
         self::assertNull($tool->icons);
         self::assertNull($tool->outputSchema);
         self::assertNull($tool->meta);
@@ -46,7 +44,6 @@ final class AsToolTest extends TestCase
     public function testStoresAllValues(): void
     {
         $annotations = new ToolAnnotations(readOnlyHint: true);
-        $execution = new ToolExecution();
         $icon = new Icon('https://example.test/icon.svg');
 
         $tool = new AsTool(
@@ -54,7 +51,6 @@ final class AsToolTest extends TestCase
             title: 'Calculator',
             description: 'Adds two numbers.',
             annotations: $annotations,
-            execution: $execution,
             icons: [$icon],
             outputSchema: ['type' => 'object'],
             meta: ['vendor' => 'acme'],
@@ -64,7 +60,6 @@ final class AsToolTest extends TestCase
         self::assertSame('Calculator', $tool->title);
         self::assertSame('Adds two numbers.', $tool->description);
         self::assertSame($annotations, $tool->annotations);
-        self::assertSame($execution, $tool->execution);
         self::assertSame([$icon], $tool->icons);
         self::assertSame(['type' => 'object'], $tool->outputSchema);
         self::assertSame(['vendor' => 'acme'], $tool->meta);

@@ -21,7 +21,6 @@ use Nexus\Mcp\Core\Schema\Elicitation\EnumOption;
 use Nexus\Mcp\Core\Schema\Enum\ElicitAction;
 use Nexus\Mcp\Core\Schema\Enum\IncludeContext;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
-use Nexus\Mcp\Core\Schema\Enum\TaskSupport;
 use Nexus\Mcp\Core\Schema\Enum\ToolChoiceMode;
 use Nexus\Mcp\Core\Schema\Error;
 use Nexus\Mcp\Core\Schema\Error\InternalError;
@@ -102,7 +101,6 @@ final class SchemaConformanceTest extends TestCase
         ElicitAction::class => self::TS_SCHEMA_FILE_URL,
         IncludeContext::class => self::TS_SCHEMA_FILE_URL,
         ProtocolErrorCode::class => self::JSON_RPC_ERROR_OBJECT_URL,
-        TaskSupport::class => self::TS_SCHEMA_FILE_URL,
         ToolChoiceMode::class => self::TS_SCHEMA_FILE_URL,
         InternalError::class => self::JSON_RPC_ERROR_OBJECT_URL,
         InvalidParamsError::class => self::JSON_RPC_ERROR_OBJECT_URL,
