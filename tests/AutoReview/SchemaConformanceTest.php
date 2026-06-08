@@ -263,7 +263,7 @@ final class SchemaConformanceTest extends TestCase
 
             if (null !== $shape) {
                 foreach (self::diffShapeAgainstSpec($shape, $specRequiredKeys, $specOptionalKeys, $schema) as $finding) {
-                    $findings[] = '[@implements Arrayable<...>] '.$finding;
+                    $findings[] = \sprintf('[array shape] %s', $finding);
                 }
             }
 
@@ -277,11 +277,11 @@ final class SchemaConformanceTest extends TestCase
             }
 
             foreach (self::diffPropertiesAgainstSpec($reflection, $specRequiredKeys, $specOptionalKeys, $typedSpecProperties) as $finding) {
-                $findings[] = '[property structure] '.$finding;
+                $findings[] = \sprintf('[property] %s', $finding);
             }
 
             self::assertSame([], $findings, \sprintf(
-                "Schema class \"%s\" diverges from spec \"%s\":\n  * %s",
+                "Schema class \"%s\" diverges from spec's \"%s\":\n  * %s",
                 $schemaClass,
                 $schema,
                 implode("\n  * ", $findings),
@@ -487,7 +487,7 @@ final class SchemaConformanceTest extends TestCase
             self::assertDoesNotMatchRegularExpression(
                 '/^\s*\*\s*@see\s+/m',
                 $docComment,
-                \sprintf('Schema class "%s" is in SEE_ANNOTATION_EXEMPT but declares an @see tag; remove the tag or move the class out of the exemption list.', $schemaClass),
+                \sprintf('Schema class "%s" is in SEE_ANNOTATION_EXEMPT but declares an @see tag. Remove the tag or move the class out of the exemption list.', $schemaClass),
             );
         }
     }
@@ -662,7 +662,7 @@ final class SchemaConformanceTest extends TestCase
 
                 if ('constant' === $rep['kind'] && ! $reflection->hasConstant($rep['name'])) {
                     $findings[] = \sprintf(
-                        'spec \'%s\' must be backed by class constant %s::%s but it is not defined.',
+                        '"%s" must be backed by class constant %s::%s but it is not defined.',
                         $key,
                         $reflection->getShortName(),
                         $rep['name'],
@@ -672,7 +672,7 @@ final class SchemaConformanceTest extends TestCase
                 if ('static-method' === $rep['kind']) {
                     if (! $reflection->hasMethod($rep['name'])) {
                         $findings[] = \sprintf(
-                            'spec \'%s\' must be backed by public static method %s::%s() but it is not defined.',
+                            '"%s" must be backed by public static method %s::%s() but it is not defined.',
                             $key,
                             $reflection->getShortName(),
                             $rep['name'],
@@ -682,7 +682,7 @@ final class SchemaConformanceTest extends TestCase
 
                         if (! $accessor->isPublic() || ! $accessor->isStatic()) {
                             $findings[] = \sprintf(
-                                'spec \'%s\' must be backed by public static method %s::%s() but its visibility/staticness is wrong.',
+                                '"%s" must be backed by public static method %s::%s() but its visibility/staticness is wrong.',
                                 $key,
                                 $reflection->getShortName(),
                                 $rep['name'],
@@ -693,7 +693,7 @@ final class SchemaConformanceTest extends TestCase
 
                 if (! $isRequired) {
                     $findings[] = \sprintf(
-                        'spec \'%s\' is optional but is backed by an always-present constant/method; consider whether the spec marks it required.',
+                        '"%s" is optional but is backed by an always-present constant/method. Consider whether the spec marks it as required.',
                         $key,
                     );
                 }
@@ -717,7 +717,7 @@ final class SchemaConformanceTest extends TestCase
                 $source = \sprintf('property $%s', $phpName);
             } else {
                 $findings[] = \sprintf(
-                    'spec \'%s\' has no constructor parameter $%s, no public property $%s, no class constant, and no public static method on %s.',
+                    '"%s" has no constructor parameter $%s, no public property $%s, no class constant, and no public static method on %s.',
                     $key,
                     $phpName,
                     $phpName,
@@ -732,7 +732,7 @@ final class SchemaConformanceTest extends TestCase
             if ($isRequired) {
                 if ($hasDefault) {
                     $findings[] = \sprintf(
-                        'spec \'%s\' is required but %s has a default value; remove the default.',
+                        '"%s" is required but %s has a default value. Remove the default.',
                         $key,
                         $source,
                     );
@@ -740,14 +740,14 @@ final class SchemaConformanceTest extends TestCase
 
                 if ($allowsNull && ! $isMixed && ! $specAllowsNull) {
                     $findings[] = \sprintf(
-                        'spec \'%s\' is required but %s is nullable; remove the \'?\' from its type.',
+                        '"%s" is required but %s is nullable. Remove the "?" from its type.',
                         $key,
                         $source,
                     );
                 }
             } elseif (! $hasDefault && ! $allowsNull) {
                 $findings[] = \sprintf(
-                    'spec \'%s\' is optional but %s is neither nullable nor has a default value; add `= null` (or any default) so callers can omit it, or change the type to `?T`.',
+                    '"%s" is optional but %s is neither nullable nor has a default value. Add `= null` (or any default) so callers can omit it, or change the type to `?T`.',
                     $key,
                     $source,
                 );
@@ -786,26 +786,26 @@ final class SchemaConformanceTest extends TestCase
 
         foreach (array_diff($shape['required'], $specRequired) as $key) {
             if (\in_array($key, $specOptional, true)) {
-                $findings[] = \sprintf('\'%s\' is declared as required (no \'?\') but spec "%s" marks it optional; use \'%s?:\' instead.', $key, $schema, $key);
+                $findings[] = \sprintf('"%s" is declared as required (no "?") but spec "%s" marks it optional. Use "%s?:" instead.', $key, $schema, $key);
             } else {
-                $findings[] = \sprintf('\'%s\' is declared as required but spec "%s" does not list it; remove it from the shape.', $key, $schema);
+                $findings[] = \sprintf('"%s" is declared as required but spec "%s" does not list it. Remove it from the shape.', $key, $schema);
             }
         }
 
         foreach (array_diff($shape['optional'], $specOptional) as $key) {
             if (\in_array($key, $specRequired, true)) {
-                $findings[] = \sprintf('\'%s\' is declared as optional (\'%s?:\') but spec "%s" marks it required; drop the \'?\'.', $key, $key, $schema);
+                $findings[] = \sprintf('"%s" is declared as optional ("%s?:") but spec "%s" marks it required. Drop the "?".', $key, $key, $schema);
             } else {
-                $findings[] = \sprintf('\'%s\' is declared as optional but spec "%s" does not list it; remove it from the shape.', $key, $schema);
+                $findings[] = \sprintf('"%s" is declared as optional but spec "%s" does not list it. Remove it from the shape.', $key, $schema);
             }
         }
 
         foreach (array_diff($specRequired, $shape['required'], $shape['optional']) as $key) {
-            $findings[] = \sprintf('\'%s\' is required by spec "%s" but is missing from the shape; add \'%s:\'.', $key, $schema, $key);
+            $findings[] = \sprintf('"%s" is required by spec "%s" but is missing from the shape. Add "%s:".', $key, $schema, $key);
         }
 
         foreach (array_diff($specOptional, $shape['optional'], $shape['required']) as $key) {
-            $findings[] = \sprintf('\'%s\' is optional in spec "%s" but is missing from the shape; add \'%s?:\'.', $key, $schema, $key);
+            $findings[] = \sprintf('"%s" is optional in spec "%s" but is missing from the shape. Add "%s?:".', $key, $schema, $key);
         }
 
         sort($findings);
