@@ -16,7 +16,7 @@ namespace Nexus\Mcp\Core\Schema\Enum;
 /**
  * Controls the tool use ability of the model during sampling.
  *
- * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2025-11-25/schema.ts
+ * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/draft/schema.ts
  */
 enum ToolChoiceMode: string
 {

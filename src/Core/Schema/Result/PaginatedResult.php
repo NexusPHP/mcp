@@ -21,7 +21,7 @@ use Nexus\Mcp\Core\Schema\MetaObject;
  * Common shape for results that paginate via an opaque cursor. Subclasses add their own
  * payload field alongside the optional `nextCursor`.
  *
- * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2025-11-25/schema.ts
+ * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/draft/schema.ts
  */
 abstract readonly class PaginatedResult extends CacheableResult
 {

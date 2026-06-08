@@ -30,7 +30,7 @@ use Nexus\Mcp\Core\Schema\Result;
 /**
  * Parses decoded JSON-RPC envelopes into concrete message objects.
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/basic
+ * @see https://modelcontextprotocol.io/specification/draft/basic
  */
 final class JsonRpcMessageParser
 {

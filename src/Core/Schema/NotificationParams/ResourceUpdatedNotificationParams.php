@@ -20,7 +20,7 @@ use Nexus\Mcp\Core\Schema\NotificationParams;
 /**
  * Parameters for a `notifications/resources/updated` notification.
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#resourceupdatednotificationparams
+ * @see https://modelcontextprotocol.io/specification/draft/schema#resourceupdatednotificationparams
  */
 final readonly class ResourceUpdatedNotificationParams extends NotificationParams
 {

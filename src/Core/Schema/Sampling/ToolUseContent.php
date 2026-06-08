@@ -28,7 +28,7 @@ use Nexus\Mcp\Core\Schema\MetaObject;
  *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#toolusecontent
+ * @see https://modelcontextprotocol.io/specification/draft/schema#toolusecontent
  */
 final readonly class ToolUseContent implements Arrayable, SamplingMessageContentBlock
 {

@@ -20,7 +20,7 @@ use Nexus\Mcp\Core\Schema\NotificationParams;
 /**
  * Parameters for a `notifications/elicitation/complete` notification.
  *
- * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2025-11-25/schema.ts
+ * @see https://modelcontextprotocol.io/specification/draft/schema#elicitationcompletenotificationparams
  */
 final readonly class ElicitationCompleteNotificationParams extends NotificationParams
 {

@@ -25,7 +25,7 @@ use Nexus\Mcp\Core\Schema\RequestParams\PaginatedRequestParams;
  *
  * @extends PaginatedRequest<'resources/list'>
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#listresourcesrequest
+ * @see https://modelcontextprotocol.io/specification/draft/schema#listresourcesrequest
  */
 final readonly class ListResourcesRequest extends PaginatedRequest implements ClientRequest
 {

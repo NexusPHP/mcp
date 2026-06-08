@@ -24,7 +24,7 @@ use Nexus\Mcp\Core\Schema\Root;
  * This result contains an array of `Root` objects, each representing a root directory or file
  * that the server can operate on.
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#listrootsresult
+ * @see https://modelcontextprotocol.io/specification/draft/schema#listrootsresult
  */
 final readonly class ListRootsResult extends Result implements ClientResult
 {

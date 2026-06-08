@@ -28,7 +28,7 @@ use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
  *
  * @extends JsonRpcRequest<'roots/list'>
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#listrootsrequest
+ * @see https://modelcontextprotocol.io/specification/draft/schema#listrootsrequest
  */
 final readonly class ListRootsRequest extends JsonRpcRequest implements ServerRequest
 {

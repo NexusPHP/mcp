@@ -18,16 +18,17 @@ use Nexus\Assert\Assert;
 /**
  * A revision of the Model Context Protocol identified by its release date.
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/basic/lifecycle#version-negotiation
+ * @see https://modelcontextprotocol.io/specification/draft/basic/lifecycle#protocol-version-negotiation
  */
 final readonly class ProtocolVersion
 {
-    public const string LATEST_VERSION = '2025-11-25';
+    public const string LATEST_VERSION = '2026-07-28';
 
     /**
-     * Previously published spec revisions in reverse chronological order.
+     * Superseded spec revisions, newest first.
      */
     public const array PREVIOUS_VERSIONS = [
+        '2025-11-25',
         '2025-06-18',
         '2025-03-26',
         '2024-11-05',

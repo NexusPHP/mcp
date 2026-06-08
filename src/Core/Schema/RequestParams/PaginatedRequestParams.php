@@ -21,7 +21,7 @@ use Nexus\Mcp\Core\Schema\RequestParams;
 /**
  * Common params for paginated requests.
  *
- * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2025-11-25/schema.ts
+ * @see https://modelcontextprotocol.io/specification/draft/schema#paginatedrequestparams
  */
 final readonly class PaginatedRequestParams extends RequestParams
 {

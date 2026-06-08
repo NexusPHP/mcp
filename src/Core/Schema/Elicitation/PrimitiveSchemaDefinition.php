@@ -21,7 +21,7 @@ use Nexus\Mcp\Core\Schema\Arrayable;
  *
  * @extends Arrayable<array<string, mixed>>
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#primitiveschemadefinition
+ * @see https://modelcontextprotocol.io/specification/draft/schema#primitiveschemadefinition
  */
 interface PrimitiveSchemaDefinition extends Arrayable
 {

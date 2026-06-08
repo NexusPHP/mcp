@@ -19,7 +19,7 @@ namespace Nexus\Mcp\Core\Schema;
  * @implements Arrayable<array{_meta: template-type<RequestMetaObject, Arrayable, 'T'>, ...<string, mixed>}>
  * @implements RequestParamsInterface<array{_meta: template-type<RequestMetaObject, Arrayable, 'T'>, ...<string, mixed>}>
  *
- * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/draft/schema.ts
+ * @see https://modelcontextprotocol.io/specification/draft/schema#requestparams
  */
 abstract readonly class RequestParams implements Arrayable, RequestParamsInterface
 {

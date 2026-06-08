@@ -61,7 +61,7 @@ final class DiscoverResultTest extends TestCase
     public function testToArrayMinimal(): void
     {
         $result = new DiscoverResult(
-            ['2025-11-25'],
+            ['2026-07-28'],
             new ServerCapabilities(tools: ['listChanged' => true]),
             new Implementation('srv', '1.0.0'),
             0,
@@ -73,7 +73,7 @@ final class DiscoverResultTest extends TestCase
                 'resultType' => 'complete',
                 'ttlMs' => 0,
                 'cacheScope' => 'private',
-                'supportedVersions' => ['2025-11-25'],
+                'supportedVersions' => ['2026-07-28'],
                 'capabilities' => ['tools' => ['listChanged' => true]],
                 'serverInfo' => ['name' => 'srv', 'version' => '1.0.0'],
             ],
@@ -84,7 +84,7 @@ final class DiscoverResultTest extends TestCase
     public function testToArrayWithAllFields(): void
     {
         $result = new DiscoverResult(
-            ['2025-11-25', '2025-06-18'],
+            ['2026-07-28', '2025-06-18'],
             new ServerCapabilities(tools: ['listChanged' => true]),
             new Implementation('srv', '1.0.0'),
             60000,
@@ -99,7 +99,7 @@ final class DiscoverResultTest extends TestCase
                 'resultType' => 'complete',
                 'ttlMs' => 60000,
                 'cacheScope' => 'public',
-                'supportedVersions' => ['2025-11-25', '2025-06-18'],
+                'supportedVersions' => ['2026-07-28', '2025-06-18'],
                 'capabilities' => ['tools' => ['listChanged' => true]],
                 'serverInfo' => ['name' => 'srv', 'version' => '1.0.0'],
                 'instructions' => 'Be helpful.',
@@ -111,7 +111,7 @@ final class DiscoverResultTest extends TestCase
     public function testJsonSerializeSubstitutesEmptyCapabilities(): void
     {
         $result = new DiscoverResult(
-            ['2025-11-25'],
+            ['2026-07-28'],
             new ServerCapabilities(logging: []),
             new Implementation('srv', '1.0.0'),
             0,
@@ -124,7 +124,7 @@ final class DiscoverResultTest extends TestCase
     public function testJsonSerializeMatchesToArrayForNonEmptyCapabilities(): void
     {
         $result = new DiscoverResult(
-            ['2025-11-25'],
+            ['2026-07-28'],
             new ServerCapabilities(tools: ['listChanged' => true]),
             new Implementation('srv', '1.0.0'),
             0,
@@ -137,7 +137,7 @@ final class DiscoverResultTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new DiscoverResult(
-            ['2025-11-25', '2025-06-18'],
+            ['2026-07-28', '2025-06-18'],
             new ServerCapabilities(tools: ['listChanged' => true]),
             new Implementation('srv', '1.0.0'),
             60000,
@@ -229,62 +229,62 @@ final class DiscoverResultTest extends TestCase
         ];
 
         yield 'missing capabilities' => [
-            ['supportedVersions' => ['2025-11-25']],
+            ['supportedVersions' => ['2026-07-28']],
             '"result" missing the required "capabilities" key.',
         ];
 
         yield 'capabilities not an object' => [
-            ['supportedVersions' => ['2025-11-25'], 'capabilities' => 'oops'],
+            ['supportedVersions' => ['2026-07-28'], 'capabilities' => 'oops'],
             '"result.capabilities" must be an object, string given.',
         ];
 
         yield 'capabilities list-keyed' => [
-            ['supportedVersions' => ['2025-11-25'], 'capabilities' => ['x']],
+            ['supportedVersions' => ['2026-07-28'], 'capabilities' => ['x']],
             '"result.capabilities" must be a string-keyed object.',
         ];
 
         yield 'missing serverInfo' => [
-            ['supportedVersions' => ['2025-11-25'], 'capabilities' => []],
+            ['supportedVersions' => ['2026-07-28'], 'capabilities' => []],
             '"result" missing the required "serverInfo" key.',
         ];
 
         yield 'serverInfo not an object' => [
-            ['supportedVersions' => ['2025-11-25'], 'capabilities' => [], 'serverInfo' => 'oops'],
+            ['supportedVersions' => ['2026-07-28'], 'capabilities' => [], 'serverInfo' => 'oops'],
             '"result.serverInfo" must be an object, string given.',
         ];
 
         yield 'serverInfo list-keyed' => [
-            ['supportedVersions' => ['2025-11-25'], 'capabilities' => [], 'serverInfo' => ['x']],
+            ['supportedVersions' => ['2026-07-28'], 'capabilities' => [], 'serverInfo' => ['x']],
             '"result.serverInfo" must be a string-keyed object.',
         ];
 
         yield 'missing ttlMs' => [
-            ['supportedVersions' => ['2025-11-25'], 'capabilities' => [], 'serverInfo' => $validInfo],
+            ['supportedVersions' => ['2026-07-28'], 'capabilities' => [], 'serverInfo' => $validInfo],
             '"result" missing the required "ttlMs" key.',
         ];
 
         yield 'ttlMs not an integer' => [
-            ['supportedVersions' => ['2025-11-25'], 'capabilities' => [], 'serverInfo' => $validInfo, 'ttlMs' => 'oops'],
+            ['supportedVersions' => ['2026-07-28'], 'capabilities' => [], 'serverInfo' => $validInfo, 'ttlMs' => 'oops'],
             '"result.ttlMs" must be an integer, string given.',
         ];
 
         yield 'missing cacheScope' => [
-            ['supportedVersions' => ['2025-11-25'], 'capabilities' => [], 'serverInfo' => $validInfo, 'ttlMs' => 0],
+            ['supportedVersions' => ['2026-07-28'], 'capabilities' => [], 'serverInfo' => $validInfo, 'ttlMs' => 0],
             '"result" missing the required "cacheScope" key.',
         ];
 
         yield 'cacheScope not a known value' => [
-            ['supportedVersions' => ['2025-11-25'], 'capabilities' => [], 'serverInfo' => $validInfo, 'ttlMs' => 0, 'cacheScope' => 'shared'],
+            ['supportedVersions' => ['2026-07-28'], 'capabilities' => [], 'serverInfo' => $validInfo, 'ttlMs' => 0, 'cacheScope' => 'shared'],
             '"result.cacheScope" must be one of [\'public\', \'private\'], \'shared\' given.',
         ];
 
         yield 'instructions not a string' => [
-            ['supportedVersions' => ['2025-11-25'], 'capabilities' => [], 'serverInfo' => $validInfo, 'ttlMs' => 0, 'cacheScope' => 'private', 'instructions' => 1],
+            ['supportedVersions' => ['2026-07-28'], 'capabilities' => [], 'serverInfo' => $validInfo, 'ttlMs' => 0, 'cacheScope' => 'private', 'instructions' => 1],
             '"result.instructions" must be a string, int given.',
         ];
 
         yield '_meta not an object' => [
-            ['supportedVersions' => ['2025-11-25'], 'capabilities' => [], 'serverInfo' => $validInfo, 'ttlMs' => 0, 'cacheScope' => 'private', '_meta' => 'oops'],
+            ['supportedVersions' => ['2026-07-28'], 'capabilities' => [], 'serverInfo' => $validInfo, 'ttlMs' => 0, 'cacheScope' => 'private', '_meta' => 'oops'],
             '"result._meta" must be an object, string given.',
         ];
     }

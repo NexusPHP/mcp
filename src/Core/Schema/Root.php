@@ -24,7 +24,7 @@ use Nexus\Assert\Assert;
  *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#root
+ * @see https://modelcontextprotocol.io/specification/draft/schema#root
  */
 final readonly class Root implements Arrayable
 {

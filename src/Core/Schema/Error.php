@@ -23,7 +23,7 @@ use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
  *   data?: mixed
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#error
+ * @see https://modelcontextprotocol.io/specification/draft/schema#error
  */
 abstract readonly class Error implements Arrayable
 {

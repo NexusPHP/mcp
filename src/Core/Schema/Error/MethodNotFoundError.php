@@ -25,7 +25,7 @@ use Nexus\Mcp\Core\Schema\Error;
  * advertised). A request that requires a client capability the client did not declare is
  * signalled instead by `MissingRequiredClientCapabilityError` (`-32003`).
  *
- * @see https://www.jsonrpc.org/specification#error_object
+ * @see https://modelcontextprotocol.io/specification/draft/schema#methodnotfounderror
  */
 final readonly class MethodNotFoundError extends Error
 {

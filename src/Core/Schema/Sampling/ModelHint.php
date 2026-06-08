@@ -24,7 +24,7 @@ use Nexus\Mcp\Core\Schema\Arrayable;
  *
  * @implements Arrayable<array{name?: non-empty-string}>
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#modelhint
+ * @see https://modelcontextprotocol.io/specification/draft/schema#modelhint
  */
 final readonly class ModelHint implements Arrayable
 {

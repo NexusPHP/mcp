@@ -31,7 +31,7 @@ use Nexus\Mcp\Core\Schema\RequestParamsInterface;
  *   params?: array<string, mixed>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#jsonrpcrequest
+ * @see https://modelcontextprotocol.io/specification/draft/schema#jsonrpcrequest
  */
 abstract readonly class JsonRpcRequest extends Request implements Arrayable, JsonRpcMessage
 {

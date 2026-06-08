@@ -27,7 +27,7 @@ use Nexus\Mcp\Core\Schema\Arrayable;
  *   '$schema'?: non-empty-string,
  * }>
  *
- * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2025-11-25/schema.ts
+ * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/draft/schema.ts
  */
 final readonly class ElicitRequestedSchema implements Arrayable
 {

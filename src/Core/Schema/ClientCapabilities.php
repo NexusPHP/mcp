@@ -33,7 +33,7 @@ use Nexus\Assert\Assert;
  *   sampling?: SamplingCapability,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#clientcapabilities
+ * @see https://modelcontextprotocol.io/specification/draft/schema#clientcapabilities
  */
 final readonly class ClientCapabilities implements Arrayable
 {

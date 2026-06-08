@@ -28,7 +28,7 @@ use Nexus\Mcp\Core\Validation\Rfc3986UriValidator;
  *   ...<string, mixed>
  * }>
  *
- * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2025-11-25/schema.ts
+ * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/draft/schema.ts
  */
 abstract readonly class ResourceContents implements Arrayable
 {

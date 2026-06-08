@@ -22,7 +22,7 @@ namespace Nexus\Mcp\Tools;
  */
 final class McpAnchorSnapshot
 {
-    public const string SPEC_BASE_URL = 'https://modelcontextprotocol.io/specification/2025-11-25';
+    public const string SPEC_BASE_URL = 'https://modelcontextprotocol.io/specification/draft';
     public const string SNAPSHOT_PATH = __DIR__.'/../../tests/AutoReview/data/spec-anchors.json';
 
     /**
@@ -34,17 +34,7 @@ final class McpAnchorSnapshot
         'schema',
         'basic',
         'basic/lifecycle',
-        'basic/utilities/cancellation',
-        'basic/utilities/progress',
-        'basic/utilities/ping',
-        'server/resources',
-        'server/prompts',
         'server/tools',
-        'server/utilities/logging',
-        'server/utilities/completion',
-        'client/roots',
-        'client/sampling',
-        'client/elicitation',
     ];
 
     /**
@@ -55,7 +45,8 @@ final class McpAnchorSnapshot
      */
     private const array EXTRA_VALID_ANCHORS = [
         'basic' => ['_meta', 'icons'],
-        'basic/lifecycle' => ['version-negotiation'],
+        'basic/lifecycle' => ['protocol-version-negotiation'],
+        'server/tools' => ['tool-names'],
     ];
 
     /**

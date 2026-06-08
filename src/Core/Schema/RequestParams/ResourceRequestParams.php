@@ -19,7 +19,7 @@ use Nexus\Mcp\Core\Schema\RequestParams;
 /**
  * Common params for resource-related requests.
  *
- * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2025-11-25/schema.ts
+ * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/draft/schema.ts
  */
 abstract readonly class ResourceRequestParams extends RequestParams
 {

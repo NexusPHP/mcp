@@ -25,7 +25,7 @@ use Nexus\Mcp\Core\Schema\RequestParams\GetPromptRequestParams;
  *
  * @extends JsonRpcRequest<'prompts/get'>
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#getpromptrequest
+ * @see https://modelcontextprotocol.io/specification/draft/schema#getpromptrequest
  */
 final readonly class GetPromptRequest extends JsonRpcRequest implements ClientRequest
 {

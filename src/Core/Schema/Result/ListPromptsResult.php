@@ -23,7 +23,7 @@ use Nexus\Mcp\Core\Validation\EnumValueValidator;
 /**
  * The result returned by the server for a `prompts/list` request.
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#listpromptsresult
+ * @see https://modelcontextprotocol.io/specification/draft/schema#listpromptsresult
  */
 final readonly class ListPromptsResult extends PaginatedResult implements ServerResult
 {

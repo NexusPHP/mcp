@@ -23,7 +23,7 @@ use Nexus\Mcp\Core\Schema\Error;
  * specification requirements for a request (e.g., missing required fields like `jsonrpc` or
  * `method`, or using invalid types for these fields).
  *
- * @see https://www.jsonrpc.org/specification#error_object
+ * @see https://modelcontextprotocol.io/specification/draft/schema#invalidrequesterror
  */
 final readonly class InvalidRequestError extends Error
 {

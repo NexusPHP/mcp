@@ -14,7 +14,7 @@
 > is implemented. Streamable HTTP lands with the 2026-07-28 migration.
 
 A PHP SDK for the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/docs/getting-started/intro),
-tracking spec revision **2025-11-25**. It provides both sides of an MCP session: a server for exposing
+tracking spec revision **2026-07-28**. It provides both sides of an MCP session: a server for exposing
 tools, resources, and prompts, and a client for connecting to MCP servers over a transport.
 
 This SDK is architected independently of the official PHP MCP SDK. See [ROADMAP.md](ROADMAP.md) for

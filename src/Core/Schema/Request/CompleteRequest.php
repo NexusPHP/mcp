@@ -25,7 +25,7 @@ use Nexus\Mcp\Core\Schema\RequestParams\CompleteRequestParams;
  *
  * @extends JsonRpcRequest<'completion/complete'>
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#completerequest
+ * @see https://modelcontextprotocol.io/specification/draft/schema#completerequest
  */
 final readonly class CompleteRequest extends JsonRpcRequest implements ClientRequest
 {

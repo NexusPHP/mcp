@@ -16,7 +16,7 @@ namespace Nexus\Mcp\Core\Schema\Sampling;
 /**
  * Marker for the content of a `SamplingMessage`. Each variant carries its own `type` discriminator.
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#samplingmessagecontentblock
+ * @see https://modelcontextprotocol.io/specification/draft/schema#samplingmessagecontentblock
  */
 interface SamplingMessageContentBlock
 {

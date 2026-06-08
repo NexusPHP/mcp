@@ -30,7 +30,7 @@ use Nexus\Mcp\Core\Validation\EnumValueValidator;
  * @implements Arrayable<array{maxTokens: int, messages: list<array<string, mixed>>, includeContext?: string, modelPreferences?: array<string, mixed>, stopSequences?: list<string>, systemPrompt?: non-empty-string, temperature?: float, toolChoice?: array<string, mixed>, tools?: list<array<string, mixed>>, metadata?: array<string, mixed>}>
  * @implements RequestParamsInterface<array{maxTokens: int, messages: list<array<string, mixed>>, includeContext?: string, modelPreferences?: array<string, mixed>, stopSequences?: list<string>, systemPrompt?: non-empty-string, temperature?: float, toolChoice?: array<string, mixed>, tools?: list<array<string, mixed>>, metadata?: array<string, mixed>}>
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#createmessagerequestparams
+ * @see https://modelcontextprotocol.io/specification/draft/schema#createmessagerequestparams
  */
 final readonly class CreateMessageRequestParams implements Arrayable, RequestParamsInterface
 {

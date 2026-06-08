@@ -6,7 +6,7 @@
         "ttlMs": 0,
         "cacheScope": "private",
         "supportedVersions": [
-            "2025-11-25"
+            "2026-07-28"
         ],
         "capabilities": {},
         "serverInfo": {

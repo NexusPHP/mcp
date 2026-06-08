@@ -16,7 +16,7 @@ namespace Nexus\Mcp\Core\Schema\Enum;
 /**
  * The user action in response to an elicitation request.
  *
- * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2025-11-25/schema.ts
+ * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/draft/schema.ts
  */
 enum ElicitAction: string
 {

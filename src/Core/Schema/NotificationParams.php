@@ -18,7 +18,7 @@ namespace Nexus\Mcp\Core\Schema;
  *
  * @implements Arrayable<array{_meta?: template-type<MetaObject, Arrayable, 'T'>, ...<string, mixed>}>
  *
- * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2025-11-25/schema.ts
+ * @see https://modelcontextprotocol.io/specification/draft/schema#notificationparams
  */
 abstract readonly class NotificationParams implements Arrayable
 {

@@ -25,7 +25,7 @@ use Nexus\Mcp\Core\Schema\RequestParams\CallToolRequestParams;
  *
  * @extends JsonRpcRequest<'tools/call'>
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#calltoolrequest
+ * @see https://modelcontextprotocol.io/specification/draft/schema#calltoolrequest
  */
 final readonly class CallToolRequest extends JsonRpcRequest implements ClientRequest
 {

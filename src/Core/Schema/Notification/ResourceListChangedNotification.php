@@ -24,7 +24,7 @@ use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
  *
  * @extends JsonRpcNotification<'notifications/resources/list_changed'>
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#resourcelistchangednotification
+ * @see https://modelcontextprotocol.io/specification/draft/schema#resourcelistchangednotification
  */
 final readonly class ResourceListChangedNotification extends JsonRpcNotification implements ServerNotification
 {

@@ -24,7 +24,7 @@ use Nexus\Mcp\Core\Schema\Resource\ResourceTemplateReference;
 /**
  * Parameters for a `completion/complete` request.
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#completerequestparams
+ * @see https://modelcontextprotocol.io/specification/draft/schema#completerequestparams
  */
 final readonly class CompleteRequestParams extends RequestParams
 {

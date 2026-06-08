@@ -42,7 +42,7 @@ use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
  *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#tool
+ * @see https://modelcontextprotocol.io/specification/draft/schema#tool
  */
 final readonly class Tool extends BaseMetadata implements Arrayable, Icons
 {

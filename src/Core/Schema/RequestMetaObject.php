@@ -23,7 +23,7 @@ use Nexus\Mcp\Core\Validation\EnumValueValidator;
  *
  * @implements Arrayable<array<string, mixed>>
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/basic#_meta
+ * @see https://modelcontextprotocol.io/specification/draft/schema#requestmetaobject
  */
 final readonly class RequestMetaObject implements Arrayable
 {

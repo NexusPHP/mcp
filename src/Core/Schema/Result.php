@@ -18,7 +18,7 @@ namespace Nexus\Mcp\Core\Schema;
  *
  * @implements Arrayable<array<string, mixed>>
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#result
+ * @see https://modelcontextprotocol.io/specification/draft/schema#result
  */
 abstract readonly class Result implements Arrayable
 {

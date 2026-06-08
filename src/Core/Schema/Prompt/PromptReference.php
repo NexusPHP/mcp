@@ -27,7 +27,7 @@ use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
  *   title?: non-empty-string,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#promptreference
+ * @see https://modelcontextprotocol.io/specification/draft/schema#promptreference
  */
 final readonly class PromptReference extends BaseMetadata implements Arrayable
 {

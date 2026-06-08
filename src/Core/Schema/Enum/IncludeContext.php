@@ -17,7 +17,7 @@ namespace Nexus\Mcp\Core\Schema\Enum;
  * Controls whether and how MCP servers should be consulted for context to be
  * attached to a sampling prompt.
  *
- * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2025-11-25/schema.ts
+ * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/draft/schema.ts
  */
 enum IncludeContext: string
 {

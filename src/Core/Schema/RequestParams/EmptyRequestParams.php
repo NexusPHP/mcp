@@ -20,7 +20,7 @@ use Nexus\Mcp\Core\Schema\RequestParams;
 /**
  * Default request params for methods that carry no typed fields beyond `_meta`.
  *
- * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2025-11-25/schema.ts
+ * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/draft/schema.ts
  */
 final readonly class EmptyRequestParams extends RequestParams
 {

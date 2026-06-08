@@ -30,7 +30,7 @@ use Nexus\Mcp\Core\Schema\Sampling\SamplingMessageContentBlock;
  *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#textcontent
+ * @see https://modelcontextprotocol.io/specification/draft/schema#textcontent
  */
 final readonly class TextContent implements Arrayable, ContentBlock, SamplingMessageContentBlock
 {

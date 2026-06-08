@@ -31,7 +31,7 @@ use Nexus\Mcp\Core\Schema\Sampling\SamplingMessageContentBlock;
  *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#imagecontent
+ * @see https://modelcontextprotocol.io/specification/draft/schema#imagecontent
  */
 final readonly class ImageContent implements Arrayable, ContentBlock, SamplingMessageContentBlock
 {

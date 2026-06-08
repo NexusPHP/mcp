@@ -24,7 +24,7 @@ use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
  *
  * @extends JsonRpcNotification<'notifications/prompts/list_changed'>
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#promptlistchangednotification
+ * @see https://modelcontextprotocol.io/specification/draft/schema#promptlistchangednotification
  */
 final readonly class PromptListChangedNotification extends JsonRpcNotification implements ServerNotification
 {

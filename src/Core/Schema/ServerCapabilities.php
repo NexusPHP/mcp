@@ -37,7 +37,7 @@ use Nexus\Assert\Assert;
  *   tools?: ToolsCapability,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#servercapabilities
+ * @see https://modelcontextprotocol.io/specification/draft/schema#servercapabilities
  */
 final readonly class ServerCapabilities implements Arrayable
 {

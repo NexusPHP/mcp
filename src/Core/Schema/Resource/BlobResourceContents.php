@@ -20,7 +20,7 @@ use Nexus\Mcp\Core\Schema\MetaObject;
  * Binary resource contents. The `blob` payload carries a base64-encoded
  * representation of the binary data.
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#blobresourcecontents
+ * @see https://modelcontextprotocol.io/specification/draft/schema#blobresourcecontents
  */
 final readonly class BlobResourceContents extends ResourceContents
 {

@@ -18,7 +18,7 @@ namespace Nexus\Mcp\Core\Schema\JsonRpc;
  *
  * @phpstan-sealed JsonRpcRequest|JsonRpcNotification|JsonRpcResponse
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#jsonrpcmessage
+ * @see https://modelcontextprotocol.io/specification/draft/schema#jsonrpcmessage
  */
 interface JsonRpcMessage extends \JsonSerializable
 {

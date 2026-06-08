@@ -31,7 +31,7 @@ use Nexus\Mcp\Core\Schema\RequestId;
  *   error: template-type<Error, Arrayable, 'T'>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#jsonrpcerrorresponse
+ * @see https://modelcontextprotocol.io/specification/draft/schema#jsonrpcerrorresponse
  */
 final readonly class JsonRpcErrorResponse implements Arrayable, JsonRpcResponse
 {

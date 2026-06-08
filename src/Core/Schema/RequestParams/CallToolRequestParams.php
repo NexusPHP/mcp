@@ -21,7 +21,7 @@ use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
 /**
  * Parameters for a `tools/call` request.
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#calltoolrequestparams
+ * @see https://modelcontextprotocol.io/specification/draft/schema#calltoolrequestparams
  */
 final readonly class CallToolRequestParams extends RequestParams
 {

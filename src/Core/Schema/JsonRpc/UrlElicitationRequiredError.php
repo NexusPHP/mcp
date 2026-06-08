@@ -33,7 +33,7 @@ use Nexus\Mcp\Core\Schema\RequestParams\ElicitRequestUrlParams;
  *
  * @internal
  *
- * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2025-11-25/schema.ts
+ * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/draft/schema.ts
  */
 final readonly class UrlElicitationRequiredError implements Arrayable
 {

@@ -28,7 +28,7 @@ use Nexus\Mcp\Core\Schema\Arrayable;
  *   default?: string,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#legacytitledenumschema
+ * @see https://modelcontextprotocol.io/specification/draft/schema#legacytitledenumschema
  */
 final readonly class LegacyTitledEnumSchema implements Arrayable, EnumSchema
 {

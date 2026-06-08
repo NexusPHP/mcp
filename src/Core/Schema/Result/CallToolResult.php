@@ -27,7 +27,7 @@ use Nexus\Mcp\Core\Schema\Result;
 /**
  * The result returned by the server for a `tools/call` request.
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#calltoolresult
+ * @see https://modelcontextprotocol.io/specification/draft/schema#calltoolresult
  */
 final readonly class CallToolResult extends Result implements ServerResult
 {

@@ -33,7 +33,7 @@ use Nexus\Mcp\Core\Validation\EnumValueValidator;
  *
  * @phpstan-import-type ContentMember from SamplingMessage
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#createmessageresult
+ * @see https://modelcontextprotocol.io/specification/draft/schema#createmessageresult
  */
 final readonly class CreateMessageResult extends Result implements ClientResult
 {

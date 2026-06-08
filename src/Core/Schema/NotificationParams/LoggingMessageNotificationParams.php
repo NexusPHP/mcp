@@ -22,7 +22,7 @@ use Nexus\Mcp\Core\Validation\EnumValueValidator;
 /**
  * Parameters for a `notifications/message` notification.
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#loggingmessagenotificationparams
+ * @see https://modelcontextprotocol.io/specification/draft/schema#loggingmessagenotificationparams
  */
 final readonly class LoggingMessageNotificationParams extends NotificationParams
 {

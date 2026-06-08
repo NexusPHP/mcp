@@ -23,7 +23,7 @@ use Nexus\Mcp\Core\Validation\EnumValueValidator;
 /**
  * The result returned by the server for a `tools/list` request.
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#listtoolsresult
+ * @see https://modelcontextprotocol.io/specification/draft/schema#listtoolsresult
  */
 final readonly class ListToolsResult extends PaginatedResult implements ServerResult
 {

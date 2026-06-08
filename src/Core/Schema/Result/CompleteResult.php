@@ -20,7 +20,7 @@ use Nexus\Mcp\Core\Schema\Result;
 /**
  * The result returned by the server for a `completion/complete` request.
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#completeresult
+ * @see https://modelcontextprotocol.io/specification/draft/schema#completeresult
  */
 final readonly class CompleteResult extends Result implements ServerResult
 {

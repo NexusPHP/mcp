@@ -19,7 +19,7 @@ namespace Nexus\Mcp\Core\Schema\Elicitation;
  *
  * @phpstan-sealed UntitledSingleSelectEnumSchema|TitledSingleSelectEnumSchema
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#singleselectenumschema
+ * @see https://modelcontextprotocol.io/specification/draft/schema#singleselectenumschema
  */
 interface SingleSelectEnumSchema extends EnumSchema
 {

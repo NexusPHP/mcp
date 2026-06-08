@@ -29,7 +29,7 @@ use Nexus\Mcp\Core\Schema\Arrayable;
  *   default?: string,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#stringschema
+ * @see https://modelcontextprotocol.io/specification/draft/schema#stringschema
  */
 final readonly class StringSchema implements Arrayable, PrimitiveSchemaDefinition
 {

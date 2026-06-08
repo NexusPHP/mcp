@@ -25,7 +25,7 @@ use Nexus\Mcp\Core\Schema\RequestParams\PaginatedRequestParams;
  *
  * @extends PaginatedRequest<'tools/list'>
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#listtoolsrequest
+ * @see https://modelcontextprotocol.io/specification/draft/schema#listtoolsrequest
  */
 final readonly class ListToolsRequest extends PaginatedRequest implements ClientRequest
 {

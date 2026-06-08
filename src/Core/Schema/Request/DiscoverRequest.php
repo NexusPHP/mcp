@@ -28,7 +28,7 @@ use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
  *
  * @extends JsonRpcRequest<'server/discover'>
  *
- * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/draft/schema.ts
+ * @see https://modelcontextprotocol.io/specification/draft/schema#discoverrequest
  */
 final readonly class DiscoverRequest extends JsonRpcRequest implements ClientRequest
 {

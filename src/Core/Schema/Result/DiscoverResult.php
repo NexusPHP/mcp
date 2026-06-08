@@ -23,7 +23,7 @@ use Nexus\Mcp\Core\Validation\EnumValueValidator;
 /**
  * The result returned by the server for a `server/discover` request.
  *
- * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/draft/schema.ts
+ * @see https://modelcontextprotocol.io/specification/draft/schema#discoverresult
  */
 final readonly class DiscoverResult extends CacheableResult implements ServerResult
 {

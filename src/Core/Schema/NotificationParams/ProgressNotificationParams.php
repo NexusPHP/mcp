@@ -22,7 +22,7 @@ use Nexus\Mcp\Core\Schema\ProgressToken;
 /**
  * Parameters for a `notifications/progress` notification.
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#progressnotificationparams
+ * @see https://modelcontextprotocol.io/specification/draft/schema#progressnotificationparams
  */
 final readonly class ProgressNotificationParams extends NotificationParams
 {

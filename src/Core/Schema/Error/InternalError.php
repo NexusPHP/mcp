@@ -22,7 +22,7 @@ use Nexus\Mcp\Core\Schema\Error;
  * This error is returned when the receiver encounters an unexpected condition that prevents it
  * from fulfilling the request.
  *
- * @see https://www.jsonrpc.org/specification#error_object
+ * @see https://modelcontextprotocol.io/specification/draft/schema#internalerror
  */
 final readonly class InternalError extends Error
 {

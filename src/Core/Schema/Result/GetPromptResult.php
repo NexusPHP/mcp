@@ -21,7 +21,7 @@ use Nexus\Mcp\Core\Schema\Result;
 /**
  * The result returned by the server for a `prompts/get` request.
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#getpromptresult
+ * @see https://modelcontextprotocol.io/specification/draft/schema#getpromptresult
  */
 final readonly class GetPromptResult extends Result implements ServerResult
 {

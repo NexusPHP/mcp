@@ -21,7 +21,7 @@ use Nexus\Mcp\Core\Schema\RequestId;
 /**
  * Parameters for a `notifications/cancelled` notification.
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#cancellednotificationparams
+ * @see https://modelcontextprotocol.io/specification/draft/schema#cancellednotificationparams
  */
 final readonly class CancelledNotificationParams extends NotificationParams
 {

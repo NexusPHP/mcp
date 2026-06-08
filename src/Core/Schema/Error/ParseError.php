@@ -21,7 +21,7 @@ use Nexus\Mcp\Core\Schema\Error;
  *
  * This error is returned when the server cannot parse the JSON text of a message.
  *
- * @see https://www.jsonrpc.org/specification#error_object
+ * @see https://modelcontextprotocol.io/specification/draft/schema#parseerror
  */
 final readonly class ParseError extends Error
 {

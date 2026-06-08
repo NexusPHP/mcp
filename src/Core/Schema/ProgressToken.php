@@ -18,7 +18,7 @@ use Nexus\Assert\Assert;
 /**
  * A progress token, used to associate progress notifications with the original request.
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#progresstoken
+ * @see https://modelcontextprotocol.io/specification/draft/schema#progresstoken
  */
 final readonly class ProgressToken
 {

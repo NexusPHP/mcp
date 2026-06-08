@@ -23,7 +23,7 @@ use Nexus\Mcp\Core\Validation\EnumValueValidator;
 /**
  * The result returned by the server for a `resources/templates/list` request.
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#listresourcetemplatesresult
+ * @see https://modelcontextprotocol.io/specification/draft/schema#listresourcetemplatesresult
  */
 final readonly class ListResourceTemplatesResult extends PaginatedResult implements ServerResult
 {

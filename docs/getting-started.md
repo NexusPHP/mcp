@@ -11,7 +11,7 @@
 composer require nexusphp/mcp-sdk
 ```
 
-The SDK targets MCP spec **2025-11-25** and runs on [AMPHP](https://amphp.org) and
+The SDK targets MCP spec **2026-07-28** and runs on [AMPHP](https://amphp.org) and
 [Revolt](https://revolt.run), so its synchronous-looking API is fiber-driven. No further setup is needed
 to build a server.
 
@@ -94,7 +94,7 @@ Drop this into the client's MCP configuration:
 ### Direct CLI
 
 ```bash
-echo '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{"_meta":{"io.modelcontextprotocol/protocolVersion":"2025-11-25","io.modelcontextprotocol/clientInfo":{"name":"cli","version":"1.0.0"},"io.modelcontextprotocol/clientCapabilities":{}}}}' | php hello.php
+echo '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{"_meta":{"io.modelcontextprotocol/protocolVersion":"2026-07-28","io.modelcontextprotocol/clientInfo":{"name":"cli","version":"1.0.0"},"io.modelcontextprotocol/clientCapabilities":{}}}}' | php hello.php
 ```
 
 Every request carries a `_meta` block with the client's identity: `io.modelcontextprotocol/protocolVersion`,

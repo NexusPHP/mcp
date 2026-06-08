@@ -22,7 +22,7 @@ use Nexus\Mcp\Core\Schema\Result;
  *
  * @template-covariant T of Result
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#jsonrpcresultresponse
+ * @see https://modelcontextprotocol.io/specification/draft/schema#jsonrpcresultresponse
  */
 final readonly class JsonRpcResultResponse implements \JsonSerializable, JsonRpcResponse
 {

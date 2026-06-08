@@ -34,7 +34,7 @@ use Nexus\Mcp\Core\Validation\EnumValueValidator;
  *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#samplingmessage
+ * @see https://modelcontextprotocol.io/specification/draft/schema#samplingmessage
  */
 final readonly class SamplingMessage implements Arrayable
 {

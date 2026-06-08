@@ -25,7 +25,7 @@ use Nexus\Mcp\Core\Schema\RequestParams\PaginatedRequestParams;
  *
  * @extends PaginatedRequest<'prompts/list'>
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#listpromptsrequest
+ * @see https://modelcontextprotocol.io/specification/draft/schema#listpromptsrequest
  */
 final readonly class ListPromptsRequest extends PaginatedRequest implements ClientRequest
 {

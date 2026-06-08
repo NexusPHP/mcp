@@ -27,7 +27,7 @@ use Nexus\Mcp\Core\Schema\RequestParams\CreateMessageRequestParams;
  *
  * @extends JsonRpcRequest<'sampling/createMessage'>
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#createmessagerequest
+ * @see https://modelcontextprotocol.io/specification/draft/schema#createmessagerequest
  */
 final readonly class CreateMessageRequest extends JsonRpcRequest implements ServerRequest
 {

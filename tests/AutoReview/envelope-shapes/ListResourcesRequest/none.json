@@ -4,7 +4,7 @@
     "method": "resources/list",
     "params": {
         "_meta": {
-            "io.modelcontextprotocol/protocolVersion": "2025-11-25",
+            "io.modelcontextprotocol/protocolVersion": "2026-07-28",
             "io.modelcontextprotocol/clientInfo": {
                 "name": "test-client",
                 "version": "1.0.0"

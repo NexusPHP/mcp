@@ -19,7 +19,7 @@ use Nexus\Mcp\Core\Schema\RequestMetaObject;
 /**
  * Parameters for a `resources/read` request.
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#readresourcerequestparams
+ * @see https://modelcontextprotocol.io/specification/draft/schema#readresourcerequestparams
  */
 final readonly class ReadResourceRequestParams extends ResourceRequestParams
 {

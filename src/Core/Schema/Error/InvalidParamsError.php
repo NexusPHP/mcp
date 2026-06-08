@@ -28,7 +28,7 @@ use Nexus\Mcp\Core\Schema\Error;
  * - **Elicitation**: Server requests an elicitation mode not declared in client capabilities
  * - **Sampling**: Missing tool result or tool results mixed with other content
  *
- * @see https://www.jsonrpc.org/specification#error_object
+ * @see https://modelcontextprotocol.io/specification/draft/schema#invalidparamserror
  */
 final readonly class InvalidParamsError extends Error
 {

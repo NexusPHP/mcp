@@ -22,7 +22,7 @@ use Nexus\Mcp\Core\Validation\EnumValueValidator;
  *
  * @implements Arrayable<array{mode?: value-of<ToolChoiceMode>}>
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#toolchoice
+ * @see https://modelcontextprotocol.io/specification/draft/schema#toolchoice
  */
 final readonly class ToolChoice implements Arrayable
 {

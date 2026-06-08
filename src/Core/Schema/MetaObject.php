@@ -38,7 +38,7 @@ namespace Nexus\Mcp\Core\Schema;
  *
  * @implements Arrayable<array<string, mixed>>
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/basic#_meta
+ * @see https://modelcontextprotocol.io/specification/draft/schema#metaobject
  */
 final readonly class MetaObject implements Arrayable
 {

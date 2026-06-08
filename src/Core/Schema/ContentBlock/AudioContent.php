@@ -31,7 +31,7 @@ use Nexus\Mcp\Core\Schema\Sampling\SamplingMessageContentBlock;
  *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#audiocontent
+ * @see https://modelcontextprotocol.io/specification/draft/schema#audiocontent
  */
 final readonly class AudioContent implements Arrayable, ContentBlock, SamplingMessageContentBlock
 {

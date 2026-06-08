@@ -68,7 +68,7 @@ composer lint:fix
 
 ## Spec compliance
 
-The SDK tracks MCP spec revision **2025-11-25**. Do not introduce types, params, or response shapes
+The SDK tracks MCP spec revision **2026-07-28**. Do not introduce types, params, or response shapes
 that are not in the official spec. Schema classes under `src/Core/Schema/` map directly to spec
 definitions. If a change touches an envelope or schema payload, cite the spec definition that
 justifies it.

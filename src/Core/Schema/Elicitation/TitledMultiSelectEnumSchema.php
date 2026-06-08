@@ -29,7 +29,7 @@ use Nexus\Mcp\Core\Schema\Arrayable;
  *   default?: list<string>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#titledmultiselectenumschema
+ * @see https://modelcontextprotocol.io/specification/draft/schema#titledmultiselectenumschema
  */
 final readonly class TitledMultiSelectEnumSchema implements Arrayable, MultiSelectEnumSchema
 {

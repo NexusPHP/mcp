@@ -33,7 +33,7 @@ use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
  *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#prompt
+ * @see https://modelcontextprotocol.io/specification/draft/schema#prompt
  */
 final readonly class Prompt extends BaseMetadata implements Arrayable, Icons
 {

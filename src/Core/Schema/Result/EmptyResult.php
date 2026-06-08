@@ -20,7 +20,7 @@ use Nexus\Mcp\Core\Schema\Result;
 /**
  * Common result fields.
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#emptyresult
+ * @see https://modelcontextprotocol.io/specification/draft/schema#emptyresult
  */
 final readonly class EmptyResult extends Result implements ClientResult, ServerResult
 {

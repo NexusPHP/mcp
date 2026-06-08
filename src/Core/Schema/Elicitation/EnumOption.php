@@ -21,7 +21,7 @@ use Nexus\Mcp\Core\Schema\Arrayable;
  *
  * @implements Arrayable<array{const: non-empty-string, title: non-empty-string}>
  *
- * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2025-11-25/schema.ts
+ * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/draft/schema.ts
  */
 final readonly class EnumOption implements Arrayable
 {

@@ -25,7 +25,7 @@ use Nexus\Mcp\Core\Schema\NotificationParams\LoggingMessageNotificationParams;
  *
  * @extends JsonRpcNotification<'notifications/message'>
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#loggingmessagenotification
+ * @see https://modelcontextprotocol.io/specification/draft/schema#loggingmessagenotification
  */
 final readonly class LoggingMessageNotification extends JsonRpcNotification implements ServerNotification
 {

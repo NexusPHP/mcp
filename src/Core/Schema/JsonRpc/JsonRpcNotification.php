@@ -29,7 +29,7 @@ use Nexus\Mcp\Core\Schema\NotificationParams;
  *   params?: template-type<NotificationParams, Arrayable, 'T'>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#jsonrpcnotification
+ * @see https://modelcontextprotocol.io/specification/draft/schema#jsonrpcnotification
  */
 abstract readonly class JsonRpcNotification extends Notification implements Arrayable, JsonRpcMessage
 {

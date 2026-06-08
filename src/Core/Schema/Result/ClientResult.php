@@ -16,7 +16,7 @@ namespace Nexus\Mcp\Core\Schema\Result;
 /**
  * Common result fields.
  *
- * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2025-11-25/schema.ts
+ * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/draft/schema.ts
  */
 interface ClientResult
 {

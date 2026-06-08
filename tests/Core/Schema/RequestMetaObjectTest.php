@@ -79,7 +79,7 @@ final class RequestMetaObjectTest extends TestCase
 
         self::assertSame(
             [
-                RequestMetaObject::PROTOCOL_VERSION_KEY => '2025-11-25',
+                RequestMetaObject::PROTOCOL_VERSION_KEY => '2026-07-28',
                 RequestMetaObject::CLIENT_INFO_KEY => ['name' => 'client', 'version' => '1.0.0'],
                 RequestMetaObject::CLIENT_CAPABILITIES_KEY => ['roots' => ['listChanged' => true]],
             ],
@@ -101,7 +101,7 @@ final class RequestMetaObjectTest extends TestCase
         self::assertSame(
             [
                 'vendor' => 'x',
-                RequestMetaObject::PROTOCOL_VERSION_KEY => '2025-11-25',
+                RequestMetaObject::PROTOCOL_VERSION_KEY => '2026-07-28',
                 RequestMetaObject::CLIENT_INFO_KEY => ['name' => 'client', 'version' => '1.0.0'],
                 RequestMetaObject::CLIENT_CAPABILITIES_KEY => ['roots' => ['listChanged' => true]],
                 'progressToken' => 42,
@@ -128,7 +128,7 @@ final class RequestMetaObjectTest extends TestCase
     public function testFromArrayParsesAllFields(): void
     {
         $meta = RequestMetaObject::fromArray([
-            RequestMetaObject::PROTOCOL_VERSION_KEY => '2025-11-25',
+            RequestMetaObject::PROTOCOL_VERSION_KEY => '2026-07-28',
             RequestMetaObject::CLIENT_INFO_KEY => ['name' => 'client', 'version' => '1.0.0'],
             RequestMetaObject::CLIENT_CAPABILITIES_KEY => ['roots' => ['listChanged' => true]],
             RequestMetaObject::LOG_LEVEL_KEY => 'info',
@@ -136,7 +136,7 @@ final class RequestMetaObjectTest extends TestCase
             'vendor' => 'x',
         ]);
 
-        self::assertSame('2025-11-25', $meta->protocolVersion->version);
+        self::assertSame('2026-07-28', $meta->protocolVersion->version);
         self::assertSame('client', $meta->clientInfo->name);
         self::assertSame(['listChanged' => true], $meta->clientCapabilities->roots);
         self::assertSame(LoggingLevel::Info, $meta->logLevel);
@@ -148,7 +148,7 @@ final class RequestMetaObjectTest extends TestCase
     public function testFromArrayLeavesOptionalFieldsNull(): void
     {
         $meta = RequestMetaObject::fromArray([
-            RequestMetaObject::PROTOCOL_VERSION_KEY => '2025-11-25',
+            RequestMetaObject::PROTOCOL_VERSION_KEY => '2026-07-28',
             RequestMetaObject::CLIENT_INFO_KEY => ['name' => 'client', 'version' => '1.0.0'],
             RequestMetaObject::CLIENT_CAPABILITIES_KEY => [],
         ]);
@@ -231,13 +231,13 @@ final class RequestMetaObjectTest extends TestCase
         ];
 
         yield 'missing clientInfo' => [
-            [RequestMetaObject::PROTOCOL_VERSION_KEY => '2025-11-25'],
+            [RequestMetaObject::PROTOCOL_VERSION_KEY => '2026-07-28'],
             '"_meta" missing the required "io.modelcontextprotocol/clientInfo" key.',
         ];
 
         yield 'clientInfo not an object' => [
             [
-                RequestMetaObject::PROTOCOL_VERSION_KEY => '2025-11-25',
+                RequestMetaObject::PROTOCOL_VERSION_KEY => '2026-07-28',
                 RequestMetaObject::CLIENT_INFO_KEY => 'oops',
             ],
             '"_meta.io.modelcontextprotocol/clientInfo" must be an object, string given.',
@@ -245,7 +245,7 @@ final class RequestMetaObjectTest extends TestCase
 
         yield 'clientInfo list-keyed' => [
             [
-                RequestMetaObject::PROTOCOL_VERSION_KEY => '2025-11-25',
+                RequestMetaObject::PROTOCOL_VERSION_KEY => '2026-07-28',
                 RequestMetaObject::CLIENT_INFO_KEY => ['x'],
             ],
             '"_meta.io.modelcontextprotocol/clientInfo" must be a string-keyed object.',
@@ -253,7 +253,7 @@ final class RequestMetaObjectTest extends TestCase
 
         yield 'missing clientCapabilities' => [
             [
-                RequestMetaObject::PROTOCOL_VERSION_KEY => '2025-11-25',
+                RequestMetaObject::PROTOCOL_VERSION_KEY => '2026-07-28',
                 RequestMetaObject::CLIENT_INFO_KEY => $validInfo,
             ],
             '"_meta" missing the required "io.modelcontextprotocol/clientCapabilities" key.',
@@ -261,7 +261,7 @@ final class RequestMetaObjectTest extends TestCase
 
         yield 'clientCapabilities not an object' => [
             [
-                RequestMetaObject::PROTOCOL_VERSION_KEY => '2025-11-25',
+                RequestMetaObject::PROTOCOL_VERSION_KEY => '2026-07-28',
                 RequestMetaObject::CLIENT_INFO_KEY => $validInfo,
                 RequestMetaObject::CLIENT_CAPABILITIES_KEY => 'oops',
             ],
@@ -270,7 +270,7 @@ final class RequestMetaObjectTest extends TestCase
 
         yield 'clientCapabilities list-keyed' => [
             [
-                RequestMetaObject::PROTOCOL_VERSION_KEY => '2025-11-25',
+                RequestMetaObject::PROTOCOL_VERSION_KEY => '2026-07-28',
                 RequestMetaObject::CLIENT_INFO_KEY => $validInfo,
                 RequestMetaObject::CLIENT_CAPABILITIES_KEY => ['x'],
             ],
@@ -289,7 +289,7 @@ final class RequestMetaObjectTest extends TestCase
 
         yield 'progressToken not an int or string' => [
             [
-                RequestMetaObject::PROTOCOL_VERSION_KEY => '2025-11-25',
+                RequestMetaObject::PROTOCOL_VERSION_KEY => '2026-07-28',
                 RequestMetaObject::CLIENT_INFO_KEY => $validInfo,
                 RequestMetaObject::CLIENT_CAPABILITIES_KEY => [],
                 'progressToken' => [],

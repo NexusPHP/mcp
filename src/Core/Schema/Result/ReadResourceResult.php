@@ -25,7 +25,7 @@ use Nexus\Mcp\Core\Validation\EnumValueValidator;
 /**
  * The result returned by the server for a `resources/read` request.
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#readresourceresult
+ * @see https://modelcontextprotocol.io/specification/draft/schema#readresourceresult
  */
 final readonly class ReadResourceResult extends CacheableResult implements ServerResult
 {

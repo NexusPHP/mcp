@@ -37,7 +37,7 @@ use Nexus\Mcp\Core\Schema\ParsesNumber;
  *   intelligencePriority?: float,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#modelpreferences
+ * @see https://modelcontextprotocol.io/specification/draft/schema#modelpreferences
  */
 final readonly class ModelPreferences implements Arrayable
 {

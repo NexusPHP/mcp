@@ -19,7 +19,7 @@ namespace Nexus\Mcp\Core\Schema\Enum;
  * These map to syslog message severities, as specified in RFC-5424:
  * https://datatracker.ietf.org/doc/html/rfc5424#section-6.2.1
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#logginglevel
+ * @see https://modelcontextprotocol.io/specification/draft/schema#logginglevel
  */
 enum LoggingLevel: string
 {

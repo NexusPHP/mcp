@@ -28,7 +28,7 @@ use Nexus\Mcp\Core\Schema\Arrayable;
  *   default?: int,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#numberschema
+ * @see https://modelcontextprotocol.io/specification/draft/schema#numberschema
  */
 final readonly class NumberSchema implements Arrayable, PrimitiveSchemaDefinition
 {

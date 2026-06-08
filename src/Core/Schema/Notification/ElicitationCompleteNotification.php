@@ -23,7 +23,7 @@ use Nexus\Mcp\Core\Schema\NotificationParams\ElicitationCompleteNotificationPara
  *
  * @extends JsonRpcNotification<'notifications/elicitation/complete'>
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#elicitationcompletenotification
+ * @see https://modelcontextprotocol.io/specification/draft/schema#elicitationcompletenotification
  */
 final readonly class ElicitationCompleteNotification extends JsonRpcNotification implements ServerNotification
 {

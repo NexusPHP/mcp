@@ -23,7 +23,7 @@ use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequestedSchema;
  * @implements Arrayable<array{mode?: 'form', message: non-empty-string, requestedSchema: array<string, mixed>}>
  * @implements ElicitRequestParams<array{mode?: 'form', message: non-empty-string, requestedSchema: array<string, mixed>}>
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#elicitrequestformparams
+ * @see https://modelcontextprotocol.io/specification/draft/schema#elicitrequestformparams
  */
 final readonly class ElicitRequestFormParams implements Arrayable, ElicitRequestParams
 {

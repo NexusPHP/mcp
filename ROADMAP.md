@@ -284,15 +284,15 @@ to the DNS-prefix `_meta` convention. The runtime `_meta` validator needs to per
 
 The schema generator tracks the release candidate: `McpSchemaProcessor` fetches the RC draft schema
 (`schema/draft/` at the `2026-07-28-RC` tag) into the local `latest-schema.json` / `latest-schema.ts`
-references. The `@see` tags across `src/` (162 files) and the `SchemaConformanceTest` anchor constants
-still point at the `2025-11-25` docs pages, because the dated `2026-07-28` spec pages are not published
-yet. They retarget once the final spec ships.
+references. The `@see` tags across `src/` and the `SchemaConformanceTest` anchor constants point at the
+`specification/draft/` docs pages, because the dated `2026-07-28` spec pages are not published yet. They
+retarget to the dated pages once the final spec ships.
 
-- [ ] Repoint the `@see` URLs in `src/` from `specification/2025-11-25/...` (and the
-  `schema/2025-11-25/schema.ts` blob link) to the dated `2026-07-28` pages once published.
-- [ ] Update `SchemaConformanceTest`'s `SCHEMA_ANCHOR_BASE_URL`, `JSON_RPC_ERROR_OBJECT_URL` siblings,
-  and `TS_SCHEMA_FILE_URL` to the dated spec, then re-run `composer spec:snapshot-anchors` to refresh the
-  anchor snapshot.
+- [ ] Repoint the `@see` URLs in `src/` from `specification/draft/...` (and the `schema/draft/schema.ts`
+  blob link) to the dated `2026-07-28` pages once published.
+- [ ] Update `SchemaConformanceTest`'s `SCHEMA_ANCHOR_BASE_URL` and `TS_SCHEMA_FILE_URL`, plus
+  `McpAnchorSnapshot::SPEC_BASE_URL`, to the dated spec, then re-run `composer spec:snapshot-anchors` to
+  refresh the anchor snapshot.
 
 ## Transports
 

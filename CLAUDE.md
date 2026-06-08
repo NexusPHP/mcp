@@ -5,7 +5,7 @@ Read [.github/copilot-instructions.md](.github/copilot-instructions.md) first fo
 ## Before making changes
 
 - Target PHP 8.4 minimum. Use typed class constants (`public const string FOO = 'x';`), readonly classes, constructor property promotion, `#[\Override]`, asymmetric visibility (`public private(set)`), property hooks, and the `#[\Deprecated]` attribute where they fit.
-- The SDK tracks **MCP spec version 2025-11-25 and later**. Do not add back-compat for earlier revisions (e.g. 2025-03-26 batching). The live schema sits at `latest-schema.json`. The class-to-schema map is in `sorted-schema.json`. If either file is missing, run `composer schema:generate` to regenerate them.
+- The SDK tracks **MCP spec version 2026-07-28 and later**. Do not add back-compat for earlier revisions (e.g. 2025-03-26 batching). The live schema sits at `latest-schema.json`. The class-to-schema map is in `sorted-schema.json`. If either file is missing, run `composer schema:generate` to regenerate them.
 - `Core/Schema/` is types-only. Behaviour (parsers, codecs, registries) lives in sibling namespaces under `Core/`, not under `Core/Schema/`. Prefer editing existing files over introducing new layers.
 
 ## Spec compliance
