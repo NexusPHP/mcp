@@ -31,8 +31,7 @@ final class MethodNotFoundErrorTest extends TestCase
 {
     public function testMethodNotFoundErrorHasCorrectDefaultMessage(): void
     {
-        $error = new MethodNotFoundError();
-        self::assertSame('Method not found', $error->message);
+        self::assertSame('Method not found', MethodNotFoundError::fromArray([])->message);
     }
 
     public function testMethodNotFoundErrorCanOverrideMessage(): void
@@ -43,7 +42,7 @@ final class MethodNotFoundErrorTest extends TestCase
 
     public function testMethodNotFoundErrorHasCorrectCode(): void
     {
-        $error = new MethodNotFoundError();
+        $error = new MethodNotFoundError(MethodNotFoundError::DEFAULT_MESSAGE);
         self::assertSame(ProtocolErrorCode::MethodNotFound->value, $error->code);
         self::assertSame(-32601, $error->code);
     }

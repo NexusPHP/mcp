@@ -308,7 +308,7 @@ final class LineDuplex
                 '{label} transport rejected malformed JSON line.',
                 ['label' => $this->label, 'exception' => $e],
             );
-            $this->reportParseFailure(new JsonRpcErrorResponse(null, new ParseError()));
+            $this->reportParseFailure(new JsonRpcErrorResponse(null, new ParseError(ParseError::DEFAULT_MESSAGE)));
 
             return;
         }
@@ -321,7 +321,7 @@ final class LineDuplex
                 ['label' => $this->label, 'exception' => $e],
             );
             $this->events->emitError($e);
-            $this->reportParseFailure(new JsonRpcErrorResponse(null, new InvalidRequestError()));
+            $this->reportParseFailure(new JsonRpcErrorResponse(null, new InvalidRequestError(InvalidRequestError::DEFAULT_MESSAGE)));
 
             return;
         }

@@ -32,7 +32,9 @@ use Nexus\Mcp\Core\Schema\Error;
  */
 final readonly class InvalidParamsError extends Error
 {
-    public function __construct(string $message = 'Invalid params', mixed $data = null)
+    public const string DEFAULT_MESSAGE = 'Invalid params';
+
+    public function __construct(string $message, mixed $data = null)
     {
         parent::__construct(ProtocolErrorCode::InvalidParams, $message, $data);
     }
@@ -43,6 +45,6 @@ final readonly class InvalidParamsError extends Error
     #[\Override]
     public static function fromArray(array $data): static
     {
-        return new self($data['message'] ?? 'Invalid params', $data['data'] ?? null);
+        return new self($data['message'] ?? self::DEFAULT_MESSAGE, $data['data'] ?? null);
     }
 }

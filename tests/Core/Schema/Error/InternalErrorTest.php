@@ -31,8 +31,7 @@ final class InternalErrorTest extends TestCase
 {
     public function testInternalErrorHasCorrectDefaultMessage(): void
     {
-        $error = new InternalError();
-        self::assertSame('Internal error', $error->message);
+        self::assertSame('Internal error', InternalError::fromArray([])->message);
     }
 
     public function testInternalErrorCanOverrideMessage(): void
@@ -43,7 +42,7 @@ final class InternalErrorTest extends TestCase
 
     public function testInternalErrorHasCorrectCode(): void
     {
-        $error = new InternalError();
+        $error = new InternalError(InternalError::DEFAULT_MESSAGE);
         self::assertSame(ProtocolErrorCode::InternalError->value, $error->code);
         self::assertSame(-32603, $error->code);
     }

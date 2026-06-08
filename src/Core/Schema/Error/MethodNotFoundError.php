@@ -29,7 +29,9 @@ use Nexus\Mcp\Core\Schema\Error;
  */
 final readonly class MethodNotFoundError extends Error
 {
-    public function __construct(string $message = 'Method not found', mixed $data = null)
+    public const string DEFAULT_MESSAGE = 'Method not found';
+
+    public function __construct(string $message, mixed $data = null)
     {
         parent::__construct(ProtocolErrorCode::MethodNotFound, $message, $data);
     }
@@ -40,6 +42,6 @@ final readonly class MethodNotFoundError extends Error
     #[\Override]
     public static function fromArray(array $data): static
     {
-        return new self($data['message'] ?? 'Method not found', $data['data'] ?? null);
+        return new self($data['message'] ?? self::DEFAULT_MESSAGE, $data['data'] ?? null);
     }
 }

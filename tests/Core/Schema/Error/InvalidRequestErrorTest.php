@@ -31,8 +31,7 @@ final class InvalidRequestErrorTest extends TestCase
 {
     public function testInvalidRequestErrorHasCorrectDefaultMessage(): void
     {
-        $error = new InvalidRequestError();
-        self::assertSame('Invalid request', $error->message);
+        self::assertSame('Invalid request', InvalidRequestError::fromArray([])->message);
     }
 
     public function testInvalidRequestErrorCanOverrideMessage(): void
@@ -43,7 +42,7 @@ final class InvalidRequestErrorTest extends TestCase
 
     public function testInvalidRequestErrorHasCorrectCode(): void
     {
-        $error = new InvalidRequestError();
+        $error = new InvalidRequestError(InvalidRequestError::DEFAULT_MESSAGE);
         self::assertSame(ProtocolErrorCode::InvalidRequest->value, $error->code);
         self::assertSame(-32600, $error->code);
     }

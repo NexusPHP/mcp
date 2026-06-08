@@ -31,8 +31,7 @@ final class InvalidParamsErrorTest extends TestCase
 {
     public function testInvalidParamsErrorHasCorrectDefaultMessage(): void
     {
-        $error = new InvalidParamsError();
-        self::assertSame('Invalid params', $error->message);
+        self::assertSame('Invalid params', InvalidParamsError::fromArray([])->message);
     }
 
     public function testInvalidParamsErrorCanOverrideMessage(): void
@@ -43,7 +42,7 @@ final class InvalidParamsErrorTest extends TestCase
 
     public function testInvalidParamsErrorHasCorrectCode(): void
     {
-        $error = new InvalidParamsError();
+        $error = new InvalidParamsError(InvalidParamsError::DEFAULT_MESSAGE);
         self::assertSame(ProtocolErrorCode::InvalidParams->value, $error->code);
         self::assertSame(-32602, $error->code);
     }

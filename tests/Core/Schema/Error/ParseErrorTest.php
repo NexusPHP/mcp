@@ -31,9 +31,7 @@ final class ParseErrorTest extends TestCase
 {
     public function testParseErrorHasCorrectDefaultMessage(): void
     {
-        $error = new ParseError();
-
-        self::assertSame('Parse error', $error->message);
+        self::assertSame('Parse error', ParseError::fromArray([])->message);
     }
 
     public function testParseErrorCanOverrideMessage(): void
@@ -45,7 +43,7 @@ final class ParseErrorTest extends TestCase
 
     public function testParseErrorHasCorrectCode(): void
     {
-        $error = new ParseError();
+        $error = new ParseError(ParseError::DEFAULT_MESSAGE);
 
         self::assertSame(ProtocolErrorCode::ParseError->value, $error->code);
         self::assertSame(-32700, $error->code);

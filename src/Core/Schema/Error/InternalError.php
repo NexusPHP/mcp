@@ -26,7 +26,9 @@ use Nexus\Mcp\Core\Schema\Error;
  */
 final readonly class InternalError extends Error
 {
-    public function __construct(string $message = 'Internal error', mixed $data = null)
+    public const string DEFAULT_MESSAGE = 'Internal error';
+
+    public function __construct(string $message, mixed $data = null)
     {
         parent::__construct(ProtocolErrorCode::InternalError, $message, $data);
     }
@@ -37,6 +39,6 @@ final readonly class InternalError extends Error
     #[\Override]
     public static function fromArray(array $data): static
     {
-        return new self($data['message'] ?? 'Internal error', $data['data'] ?? null);
+        return new self($data['message'] ?? self::DEFAULT_MESSAGE, $data['data'] ?? null);
     }
 }

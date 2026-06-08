@@ -79,7 +79,7 @@ final class JsonRpcErrorResponseTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $response = new JsonRpcErrorResponse(new RequestId(1), new InternalError());
+        $response = new JsonRpcErrorResponse(new RequestId(1), new InternalError(InternalError::DEFAULT_MESSAGE));
 
         self::assertSame($response->toArray(), $response->jsonSerialize());
     }

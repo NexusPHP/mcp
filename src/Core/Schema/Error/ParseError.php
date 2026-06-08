@@ -25,7 +25,9 @@ use Nexus\Mcp\Core\Schema\Error;
  */
 final readonly class ParseError extends Error
 {
-    public function __construct(string $message = 'Parse error', mixed $data = null)
+    public const string DEFAULT_MESSAGE = 'Parse error';
+
+    public function __construct(string $message, mixed $data = null)
     {
         parent::__construct(ProtocolErrorCode::ParseError, $message, $data);
     }
@@ -36,6 +38,6 @@ final readonly class ParseError extends Error
     #[\Override]
     public static function fromArray(array $data): static
     {
-        return new self($data['message'] ?? 'Parse error', $data['data'] ?? null);
+        return new self($data['message'] ?? self::DEFAULT_MESSAGE, $data['data'] ?? null);
     }
 }

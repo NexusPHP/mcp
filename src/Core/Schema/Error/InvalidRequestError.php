@@ -27,7 +27,9 @@ use Nexus\Mcp\Core\Schema\Error;
  */
 final readonly class InvalidRequestError extends Error
 {
-    public function __construct(string $message = 'Invalid request', mixed $data = null)
+    public const string DEFAULT_MESSAGE = 'Invalid request';
+
+    public function __construct(string $message, mixed $data = null)
     {
         parent::__construct(ProtocolErrorCode::InvalidRequest, $message, $data);
     }
@@ -38,6 +40,6 @@ final readonly class InvalidRequestError extends Error
     #[\Override]
     public static function fromArray(array $data): static
     {
-        return new self($data['message'] ?? 'Invalid request', $data['data'] ?? null);
+        return new self($data['message'] ?? self::DEFAULT_MESSAGE, $data['data'] ?? null);
     }
 }
