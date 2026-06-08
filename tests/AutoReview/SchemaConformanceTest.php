@@ -46,10 +46,7 @@ use Nexus\Mcp\Core\Schema\Request\ClientRequest;
 use Nexus\Mcp\Core\Schema\Request\ServerRequest;
 use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams;
-use Nexus\Mcp\Core\Schema\RequestParams\CancelTaskRequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
-use Nexus\Mcp\Core\Schema\RequestParams\GetTaskPayloadRequestParams;
-use Nexus\Mcp\Core\Schema\RequestParams\GetTaskRequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\PaginatedRequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\ResourceRequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\TaskAugmentedRequestParams;
@@ -124,10 +121,7 @@ final class SchemaConformanceTest extends TestCase
         Request::class => self::TS_SCHEMA_FILE_URL,
         RequestMetaObject::class => 'https://modelcontextprotocol.io/specification/2025-11-25/basic#_meta',
         RequestParams::class => self::TS_SCHEMA_FILE_URL,
-        CancelTaskRequestParams::class => 'https://modelcontextprotocol.io/specification/2025-11-25/schema#canceltaskrequest',
         EmptyRequestParams::class => self::TS_SCHEMA_FILE_URL,
-        GetTaskPayloadRequestParams::class => 'https://modelcontextprotocol.io/specification/2025-11-25/schema#gettaskpayloadrequest',
-        GetTaskRequestParams::class => 'https://modelcontextprotocol.io/specification/2025-11-25/schema#gettaskrequest',
         PaginatedRequestParams::class => self::TS_SCHEMA_FILE_URL,
         ResourceRequestParams::class => self::TS_SCHEMA_FILE_URL,
         TaskAugmentedRequestParams::class => self::TS_SCHEMA_FILE_URL,

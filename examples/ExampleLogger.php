@@ -11,7 +11,6 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-use Nexus\Mcp\Core\Schema\Enum\LoggingLevel;
 use Psr\Log\AbstractLogger;
 use Psr\Log\LogLevel;
 
@@ -20,8 +19,7 @@ use Psr\Log\LogLevel;
  *
  * MCP servers MUST NOT write to STDOUT outside the JSON-RPC stream, so all
  * diagnostics go to STDERR. The threshold starts at `info`, or `debug` when the
- * `DEBUG` environment variable is set, and follows whatever a client later
- * requests through `logging/setLevel`.
+ * `DEBUG` environment variable is set.
  */
 final class ExampleLogger extends AbstractLogger
 {
@@ -46,11 +44,6 @@ final class ExampleLogger extends AbstractLogger
     {
         $debug = in_array(strtolower((string) getenv('DEBUG')), ['1', 'true', 'on', 'yes'], true);
         $this->minLevel = $debug ? LogLevel::DEBUG : LogLevel::INFO;
-    }
-
-    public function setMinLevel(LoggingLevel $level): void
-    {
-        $this->minLevel = $level->value;
     }
 
     #[Override]

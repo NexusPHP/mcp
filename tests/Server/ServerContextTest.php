@@ -186,7 +186,7 @@ final class ServerContextTest extends TestCase
         self::assertCount(2, $sender->notifications);
     }
 
-    public function testLogObservesLiveMutationsOfTheStore(): void
+    public function testLogDropsMessagesBelowTheGateThreshold(): void
     {
         $sender = new RecordingSender();
         $store = new LoggingLevelGate(LoggingLevel::Warning);
@@ -200,11 +200,7 @@ final class ServerContextTest extends TestCase
         );
 
         $context->log(LoggingLevel::Debug, 'dropped');
+
         self::assertSame([], $sender->notifications);
-
-        $store->setLevel(LoggingLevel::Debug);
-        $context->log(LoggingLevel::Debug, 'emitted');
-
-        self::assertCount(1, $sender->notifications);
     }
 }

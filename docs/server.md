@@ -222,18 +222,15 @@ For vendor-extension methods (those outside the MCP spec):
 ```
 
 Both reject spec-reserved methods. To override the SDK's built-in handler for a spec method
-(e.g. to take over `logging/setLevel` or `ping`), use the `replace*` variants:
+(e.g. to take over `ping`), use the `replace*` variants:
 
 ```php
-->replaceRequestHandler('logging/setLevel', new MySetLevelHandler())
+->replaceRequestHandler('ping', new MyPingHandler())
 ->replaceNotificationHandler('notifications/initialized', new MyInitializedHandler())
 ```
 
 The `replace*` variants in turn reject non-spec methods, so each tool steers vendor extensions
 and spec overrides to the correct entry point.
-
-See [examples/stdio-server.php](../examples/stdio-server.php) for a worked example of
-`replaceRequestHandler('logging/setLevel', ...)`.
 
 ## Attribute discovery
 
@@ -252,7 +249,7 @@ reference.
 | `prompts` | At least one `addPrompt(...)`, `setPromptStore(...)`, or both `prompts/list` and `prompts/get` `replaceRequestHandler(...)`. |
 | `resources` | At least one `addResource(...)` / `addResourceTemplate(...)`, `setResourceStore(...)` / `setResourceTemplateStore(...)`, or both `resources/list` and `resources/read` `replaceRequestHandler(...)`. |
 | `completions` | `setCompletionStore(...)`, or `completion/complete` `replaceRequestHandler(...)`. |
-| `logging` | Always advertised. The SDK ships a default `logging/setLevel` handler so the capability is always honoured. |
+| `logging` | Always advertised. `$context->log()` emits `notifications/message`, filtered by the gate's minimum level. |
 
 `listChanged` is not advertised on any slot. The per-feature stores are immutable after `build()` returns,
 so there is nothing to notify the client about.
@@ -267,7 +264,7 @@ Every handler closure receives a `ServerContext` as its last argument.
 | `$context->cancellation` | An `Amp\Cancellation` token. Pass it to any `await()` so client `notifications/cancelled` can interrupt long-running work. |
 | `$context->meta` | The request's `_meta` object (`progressToken`, etc.). |
 | `$context->sessionId` | The transport's session id, if any. `null` for stdio. |
-| `$context->log($level, $data, $logger = null)` | Emits a `notifications/message`. Gated by the level the client set via `logging/setLevel` (default: `info`). |
+| `$context->log($level, $data, $logger = null)` | Emits a `notifications/message`. Dropped if below the gate's minimum level (default: `info`). |
 | `$context->reportProgress($progress, $total, $message)` | Emits a `notifications/progress` if the original request carried a `progressToken`. |
 
 ## Lifecycle

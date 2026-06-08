@@ -42,15 +42,6 @@ final class LoggingLevelGateTest extends TestCase
         self::assertSame(LoggingLevel::Debug, $gate->level);
     }
 
-    public function testSetLevelMutatesTheCurrentLevel(): void
-    {
-        $gate = new LoggingLevelGate();
-
-        $gate->setLevel(LoggingLevel::Error);
-
-        self::assertSame(LoggingLevel::Error, $gate->level);
-    }
-
     /**
      * @param non-empty-string $why
      */

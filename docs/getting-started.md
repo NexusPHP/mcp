@@ -60,7 +60,7 @@ $server->run(new StdioServerTransport());
 ```
 
 That is a full, runnable MCP server. It advertises one tool (`greet`), exposes the `initialize` /
-`tools/list` / `tools/call` / `ping` / `logging/setLevel` handlers the SDK ships by default, and speaks
+`tools/list` / `tools/call` / `ping` handlers the SDK ships by default, and speaks
 line-framed JSON-RPC over STDIN/STDOUT.
 
 ## Run it
@@ -105,8 +105,8 @@ scripting smoke tests. Less useful for interactive exploration.
 MCP servers MUST NOT write to STDOUT outside of the JSON-RPC stream. The SDK uses
 [PSR-3](https://www.php-fig.org/psr/psr-3/) for diagnostic logging and writes nothing by default (a
 `NullLogger` is used unless you provide one). Pass a real logger via `ServerBuilder::setLogger()` and
-target STDERR. See [examples/stdio-server.php](../examples/stdio-server.php) for a worked example with a
-`logging/setLevel` handler that bridges the client-controlled level to the PSR-3 logger.
+target STDERR. See [examples/stdio-server.php](../examples/stdio-server.php) for a worked example that
+routes server diagnostics to a PSR-3 logger on STDERR.
 
 ## Next steps
 

@@ -151,11 +151,9 @@ before initialization completes.
 
 ### `LoggingLevelGate`
 
-Same shape as `ServerInitializationGate`: a single mutable `LoggingLevel`, mutated by the `logging/setLevel`
-handler, consulted by `ServerContext::log()` before emitting any `notifications/message`. The SDK ships a
-default `SetLevelRequestHandler` so the always-advertised `logging` capability is actually honoured. See
-[examples/stdio-server.php](../examples/stdio-server.php) for an example that bridges the client-controlled
-level to the operator's PSR-3 logger.
+A single `LoggingLevel` (default `info`), consulted by `ServerContext::log()` before emitting any
+`notifications/message`: a message below the threshold is dropped. The `logging` capability is always
+advertised, so `$context->log()` always has a gate to consult.
 
 ### Coroutine draining
 

@@ -27,47 +27,33 @@ use Nexus\Mcp\Core\Schema\Notification\ProgressNotification;
 use Nexus\Mcp\Core\Schema\Notification\PromptListChangedNotification;
 use Nexus\Mcp\Core\Schema\Notification\ResourceListChangedNotification;
 use Nexus\Mcp\Core\Schema\Notification\ResourceUpdatedNotification;
-use Nexus\Mcp\Core\Schema\Notification\RootsListChangedNotification;
-use Nexus\Mcp\Core\Schema\Notification\TaskStatusNotification;
 use Nexus\Mcp\Core\Schema\Notification\ToolListChangedNotification;
 use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
-use Nexus\Mcp\Core\Schema\Request\CancelTaskRequest;
 use Nexus\Mcp\Core\Schema\Request\CompleteRequest;
 use Nexus\Mcp\Core\Schema\Request\CreateMessageRequest;
 use Nexus\Mcp\Core\Schema\Request\ElicitRequest;
 use Nexus\Mcp\Core\Schema\Request\GetPromptRequest;
-use Nexus\Mcp\Core\Schema\Request\GetTaskPayloadRequest;
-use Nexus\Mcp\Core\Schema\Request\GetTaskRequest;
 use Nexus\Mcp\Core\Schema\Request\InitializeRequest;
 use Nexus\Mcp\Core\Schema\Request\ListPromptsRequest;
 use Nexus\Mcp\Core\Schema\Request\ListResourcesRequest;
 use Nexus\Mcp\Core\Schema\Request\ListResourceTemplatesRequest;
 use Nexus\Mcp\Core\Schema\Request\ListRootsRequest;
-use Nexus\Mcp\Core\Schema\Request\ListTasksRequest;
 use Nexus\Mcp\Core\Schema\Request\ListToolsRequest;
 use Nexus\Mcp\Core\Schema\Request\PingRequest;
 use Nexus\Mcp\Core\Schema\Request\ReadResourceRequest;
-use Nexus\Mcp\Core\Schema\Request\SetLevelRequest;
-use Nexus\Mcp\Core\Schema\Request\SubscribeRequest;
-use Nexus\Mcp\Core\Schema\Request\UnsubscribeRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
-use Nexus\Mcp\Core\Schema\Result\CancelTaskResult;
 use Nexus\Mcp\Core\Schema\Result\CompleteResult;
 use Nexus\Mcp\Core\Schema\Result\CreateMessageResult;
-use Nexus\Mcp\Core\Schema\Result\CreateTaskResult;
 use Nexus\Mcp\Core\Schema\Result\ElicitResult;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
-use Nexus\Mcp\Core\Schema\Result\GetTaskPayloadResult;
-use Nexus\Mcp\Core\Schema\Result\GetTaskResult;
 use Nexus\Mcp\Core\Schema\Result\InitializeResult;
 use Nexus\Mcp\Core\Schema\Result\ListPromptsResult;
 use Nexus\Mcp\Core\Schema\Result\ListResourcesResult;
 use Nexus\Mcp\Core\Schema\Result\ListResourceTemplatesResult;
 use Nexus\Mcp\Core\Schema\Result\ListRootsResult;
-use Nexus\Mcp\Core\Schema\Result\ListTasksResult;
 use Nexus\Mcp\Core\Schema\Result\ListToolsResult;
 use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
 use PHPUnit\Framework\Attributes\CoversNothing;
@@ -178,12 +164,6 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
 
         yield 'CallToolRequest' => ['wrapper' => CallToolRequest::class, 'inner' => null];
 
-        yield 'CancelTaskRequest' => ['wrapper' => CancelTaskRequest::class, 'inner' => null];
-
-        yield 'GetTaskRequest' => ['wrapper' => GetTaskRequest::class, 'inner' => null];
-
-        yield 'GetTaskPayloadRequest' => ['wrapper' => GetTaskPayloadRequest::class, 'inner' => null];
-
         yield 'ListPromptsRequest' => ['wrapper' => ListPromptsRequest::class, 'inner' => null];
 
         yield 'ListResourcesRequest' => ['wrapper' => ListResourcesRequest::class, 'inner' => null];
@@ -192,15 +172,7 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
 
         yield 'ListRootsRequest' => ['wrapper' => ListRootsRequest::class, 'inner' => null];
 
-        yield 'ListTasksRequest' => ['wrapper' => ListTasksRequest::class, 'inner' => null];
-
         yield 'ListToolsRequest' => ['wrapper' => ListToolsRequest::class, 'inner' => null];
-
-        yield 'SetLevelRequest' => ['wrapper' => SetLevelRequest::class, 'inner' => null];
-
-        yield 'SubscribeRequest' => ['wrapper' => SubscribeRequest::class, 'inner' => null];
-
-        yield 'UnsubscribeRequest' => ['wrapper' => UnsubscribeRequest::class, 'inner' => null];
 
         yield 'ElicitRequest' => ['wrapper' => ElicitRequest::class, 'inner' => null];
 
@@ -219,10 +191,6 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
 
         yield 'ResourceUpdatedNotification' => ['wrapper' => ResourceUpdatedNotification::class, 'inner' => null];
 
-        yield 'RootsListChangedNotification' => ['wrapper' => RootsListChangedNotification::class, 'inner' => null];
-
-        yield 'TaskStatusNotification' => ['wrapper' => TaskStatusNotification::class, 'inner' => null];
-
         yield 'ToolListChangedNotification' => ['wrapper' => ToolListChangedNotification::class, 'inner' => null];
 
         yield 'ElicitationCompleteNotification' => ['wrapper' => ElicitationCompleteNotification::class, 'inner' => null];
@@ -230,21 +198,13 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
         // Result responses, parameterized by the inner Result subclass.
         yield 'JsonRpcResultResponse-CallToolResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => CallToolResult::class];
 
-        yield 'JsonRpcResultResponse-CancelTaskResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => CancelTaskResult::class];
-
         yield 'JsonRpcResultResponse-CompleteResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => CompleteResult::class];
 
         yield 'JsonRpcResultResponse-CreateMessageResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => CreateMessageResult::class];
 
-        yield 'JsonRpcResultResponse-CreateTaskResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => CreateTaskResult::class];
-
         yield 'JsonRpcResultResponse-EmptyResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => EmptyResult::class];
 
         yield 'JsonRpcResultResponse-GetPromptResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => GetPromptResult::class];
-
-        yield 'JsonRpcResultResponse-GetTaskResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => GetTaskResult::class];
-
-        yield 'JsonRpcResultResponse-GetTaskPayloadResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => GetTaskPayloadResult::class];
 
         yield 'JsonRpcResultResponse-InitializeResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => InitializeResult::class];
 
@@ -255,8 +215,6 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
         yield 'JsonRpcResultResponse-ListResourceTemplatesResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => ListResourceTemplatesResult::class];
 
         yield 'JsonRpcResultResponse-ListRootsResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => ListRootsResult::class];
-
-        yield 'JsonRpcResultResponse-ListTasksResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => ListTasksResult::class];
 
         yield 'JsonRpcResultResponse-ListToolsResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => ListToolsResult::class];
 

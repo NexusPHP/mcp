@@ -9,7 +9,7 @@ autoloader, an uncaught-exception handler, and `ExampleLogger`) lives in
 
 | Example | Description | File |
 | --- | --- | --- |
-| `stdio-server` | Stdio MCP server with two interactive tools (`multi_greet`, `count_down`), one resource, one prompt, and a custom `logging/setLevel` handler that bridges the client-controlled log level to the server's PSR-3 logger. | [stdio-server.php](stdio-server.php) |
+| `stdio-server` | Stdio MCP server with two interactive tools (`multi_greet`, `count_down`), one resource, and one prompt, streaming `notifications/message` and `notifications/progress` mid-execution. | [stdio-server.php](stdio-server.php) |
 | `attribute-discovery` | Stdio MCP server assembled from one plain PHP class via `ServerBuilder::register()`: `#[AsTool]`, `#[AsPrompt]`, `#[AsResource]`, and `#[AsResourceTemplate]` methods become definitions, with `inputSchema` and prompt arguments inferred from signatures and `@param` docblocks. | [attribute-discovery.php](attribute-discovery.php) |
 | `stdio-client` | Stdio MCP client that spawns `stdio-server` as a subprocess and drives it through the typed `Client` API: handshake, `listTools`, `callTool` (with streaming `onProgress`), `readResource`, `listPrompts`. Renders the server's log notifications via a registered handler. | [stdio-client.php](stdio-client.php) |
 | `in-memory` | Runs a server and client in a single process over `InMemoryTransport::createPair()`, with no subprocess. The pattern for embedding a server in a host application or exercising one in tests. | [in-memory.php](in-memory.php) |
@@ -96,4 +96,4 @@ diagnostic logs to STDERR via PSR-3. Inspector surfaces this stream under its
 **Debug Log** pane regardless of level. `ExampleLogger` (in
 [bootstrap.php](bootstrap.php)) filters by a minimum severity before writing,
 defaulting to `info`, dropping to `debug` when the `DEBUG` environment variable is
-set, and updating live in response to `logging/setLevel` calls from the client.
+set.

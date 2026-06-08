@@ -134,7 +134,6 @@ optional `Cursor` for pagination.
 | `complete(PromptReference\|ResourceTemplateReference $ref, array $argument, ?array $context = null)` | `completion/complete` | `CompleteResult` |
 | `callTool(string $name, ?array $arguments = null, ?\Closure $onProgress = null)` | `tools/call` | `CallToolResult` |
 | `ping()` | `ping` | `void` |
-| `setLoggingLevel(LoggingLevel $level)` | `logging/setLevel` | `void` |
 
 ```php
 $tools = $client->listTools();
@@ -142,15 +141,14 @@ $result = $client->callTool('greet', ['name' => 'Paul']);
 $about = $client->readResource('example://about');
 $prompt = $client->getPrompt('walkthrough', ['audience' => 'a junior developer']);
 $client->ping();
-$client->setLoggingLevel(LoggingLevel::Info);
 ```
 
-`ping()` and `setLoggingLevel()` return `void`. `ping()` is the only typed request permitted before `initialize()`
+`ping()` returns `void` and is the only typed request permitted before `initialize()`
 completes, returning normally when the peer answers and throwing on failure.
 
 Every typed request other than `ping` requires the server to have advertised the matching capability during
 the handshake: `tools/*` needs `tools`, `resources/*` needs `resources`, `prompts/*` needs `prompts`,
-`completion/complete` needs `completions`, and `logging/setLevel` needs `logging`. Calling one the server did
+and `completion/complete` needs `completions`. Calling one the server did
 not advertise throws `ServerCapabilityNotSupportedException` before anything reaches the transport. Check
 `getServerCapabilities()` first when you need to branch on what the server supports.
 
@@ -189,26 +187,22 @@ and the build-time handler sees the rest.
 
 ## The escape hatch: `sendRequest()`
 
-For spec methods without a convenience wrapper, or to send a pre-built request, call `sendRequest()` with
-the request and the expected `Result` class. It returns the `JsonRpcResultResponse<T>` wrapper.
+Every standard client-to-server method has a typed wrapper above, so `sendRequest()` is for vendor extension
+methods (or any pre-built request). Pass the request plus the expected `Result` class. It returns the
+`JsonRpcResultResponse<T>` wrapper.
 
 ```php
-use Nexus\Mcp\Core\Schema\Request\SubscribeRequest;
-use Nexus\Mcp\Core\Schema\RequestId;
-use Nexus\Mcp\Core\Schema\RequestParams\SubscribeRequestParams;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 
-$response = $client->sendRequest(
-    new SubscribeRequest(new RequestId(1), new SubscribeRequestParams('example://resource')),
-    EmptyResult::class,
-);
+// $request is your own JsonRpcRequest subclass bound to a vendor method literal, e.g. "acme/snapshot".
+$response = $client->sendRequest($request, EmptyResult::class);
 ```
 
-You supply the `RequestId` yourself here. The auto-incrementing factory backs the typed methods above, and
-the same gates apply: any method other than `ping` is rejected until `initialize()` completes. The capability
-gate covers exactly the methods behind the typed requests above, so a `tools/list` against a server without
-`tools` throws `ServerCapabilityNotSupportedException` (see [Typed requests](#typed-requests)). Any other
-method, including the `resources/subscribe` shown here, passes through ungated.
+You supply the `RequestId` yourself when building the request. The auto-incrementing factory backs the typed
+methods above, and the same gates apply: any method other than `ping` is rejected until `initialize()`
+completes. The capability gate covers exactly the methods behind the typed requests above, so a `tools/list`
+against a server without `tools` throws `ServerCapabilityNotSupportedException`
+(see [Typed requests](#typed-requests)). A vendor method like `acme/snapshot` passes through ungated.
 
 ## Lifecycle
 

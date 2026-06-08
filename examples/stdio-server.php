@@ -33,20 +33,15 @@ declare(strict_types=1);
 
 require __DIR__.'/bootstrap.php';
 
-use Nexus\Mcp\Core\Handler\AbstractContext;
-use Nexus\Mcp\Core\Handler\RequestHandlerInterface;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Enum\LoggingLevel;
 use Nexus\Mcp\Core\Schema\Enum\Role;
-use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\Prompt\Prompt;
 use Nexus\Mcp\Core\Schema\Prompt\PromptArgument;
 use Nexus\Mcp\Core\Schema\Prompt\PromptMessage;
-use Nexus\Mcp\Core\Schema\Request\SetLevelRequest;
 use Nexus\Mcp\Core\Schema\Resource\Resource;
 use Nexus\Mcp\Core\Schema\Resource\TextResourceContents;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
-use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
 use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
 use Nexus\Mcp\Core\Schema\Tool\Tool;
@@ -166,24 +161,6 @@ $server = new ServerBuilder()
                     )),
                 ),
             ]);
-        },
-    )
-    ->replaceRequestHandler(
-        SetLevelRequest::getMethod(),
-        new class ($logger) implements RequestHandlerInterface {
-            public function __construct(private object $logger)
-            {
-            }
-
-            #[Override]
-            public function handle(JsonRpcRequest $request, AbstractContext $context): EmptyResult
-            {
-                assert($request instanceof SetLevelRequest);
-
-                $this->logger->setMinLevel($request->params->level);
-
-                return new EmptyResult();
-            }
         },
     )
     ->build()

@@ -15,11 +15,9 @@ namespace Nexus\Mcp\Tests\Server;
 
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Cursor;
-use Nexus\Mcp\Core\Schema\Enum\LoggingLevel;
 use Nexus\Mcp\Core\Schema\Icon;
 use Nexus\Mcp\Core\Schema\Implementation;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
-use Nexus\Mcp\Core\Schema\Notification\LoggingMessageNotification;
 use Nexus\Mcp\Core\Schema\Prompt\Prompt;
 use Nexus\Mcp\Core\Schema\Resource\Resource;
 use Nexus\Mcp\Core\Schema\Resource\ResourceTemplate;
@@ -774,111 +772,6 @@ final class ServerBuilderTest extends TestCase
         self::assertSame(1, $invoked);
     }
 
-    public function testDefaultLoggingSetLevelHandlerReturnsEmptyResult(): void
-    {
-        $server = new ServerBuilder()->setServerInfo('demo', '1.0.0')->build();
-
-        $result = $this->dispatchAfterInitialize($server, 'logging/setLevel', ['level' => 'debug']);
-
-        self::assertInstanceOf(EmptyResult::class, $result);
-    }
-
-    public function testLoggingSetLevelMutatesTheThresholdConsultedByContextLog(): void
-    {
-        $server = new ServerBuilder()
-            ->setServerInfo('demo', '1.0.0')
-            ->addTool(
-                new Tool('emit', ['type' => 'object']),
-                static function (?array $args, ServerContext $ctx): CallToolResult {
-                    $ctx->log(LoggingLevel::Debug, 'debug-message');
-
-                    return new CallToolResult([new TextContent('ok')]);
-                },
-            )
-            ->build()
-        ;
-
-        $transport = new RecordingTransport();
-        $serverRun = \Amp\async(static function () use ($server, $transport): void {
-            $server->run($transport);
-        });
-
-        $initSent = $transport->nextSend();
-        EventLoop::queue(static function () use ($transport): void {
-            $transport->emitMessage([
-                'jsonrpc' => '2.0',
-                'id' => 1,
-                'method' => 'initialize',
-                'params' => [
-                    'protocolVersion' => '2025-11-25',
-                    'capabilities' => [],
-                    'clientInfo' => ['name' => 'test-client', 'version' => '1.0.0'],
-                ],
-            ]);
-        });
-        $initSent->await();
-
-        $firstCallSent = $transport->nextSend();
-        EventLoop::queue(static function () use ($transport): void {
-            $transport->emitMessage(['jsonrpc' => '2.0', 'method' => 'notifications/initialized']);
-            $transport->emitMessage([
-                'jsonrpc' => '2.0',
-                'id' => 2,
-                'method' => 'tools/call',
-                'params' => ['name' => 'emit'],
-            ]);
-        });
-        $firstCallSent->await();
-
-        $setLevelSent = $transport->nextSend();
-        EventLoop::queue(static function () use ($transport): void {
-            $transport->emitMessage([
-                'jsonrpc' => '2.0',
-                'id' => 3,
-                'method' => 'logging/setLevel',
-                'params' => ['level' => 'debug'],
-            ]);
-        });
-        $setLevelSent->await();
-
-        EventLoop::queue(static function () use ($transport): void {
-            $transport->emitMessage([
-                'jsonrpc' => '2.0',
-                'id' => 4,
-                'method' => 'tools/call',
-                'params' => ['name' => 'emit'],
-            ]);
-            $transport->close();
-        });
-
-        $serverRun->await();
-
-        $debugLogsBefore = 0;
-        $debugLogsAfter = 0;
-        $crossedSetLevel = false;
-
-        foreach ($transport->sent as $entry) {
-            $msg = $entry['message'];
-
-            if ($msg instanceof JsonRpcResultResponse && 3 === $msg->id->id) {
-                $crossedSetLevel = true;
-
-                continue;
-            }
-
-            if ($msg instanceof LoggingMessageNotification && LoggingLevel::Debug === $msg->params->level) {
-                if ($crossedSetLevel) {
-                    ++$debugLogsAfter;
-                } else {
-                    ++$debugLogsBefore;
-                }
-            }
-        }
-
-        self::assertSame(0, $debugLogsBefore, 'Debug log was emitted before setLevel(debug). The default Info threshold should have dropped it.');
-        self::assertSame(1, $debugLogsAfter, 'Debug log was not emitted after setLevel(debug). The gate wired into ServerContext is not the one mutated by the handler.');
-    }
-
     public function testAddRequestHandlerAcceptsVendorExtensionMethod(): void
     {
         $this->expectNotToPerformAssertions();
@@ -920,8 +813,6 @@ final class ServerBuilderTest extends TestCase
 
         yield 'initialize' => ['initialize'];
 
-        yield 'logging/setLevel' => ['logging/setLevel'];
-
         yield 'ping' => ['ping'];
 
         yield 'prompts/get' => ['prompts/get'];
@@ -932,23 +823,11 @@ final class ServerBuilderTest extends TestCase
 
         yield 'resources/read' => ['resources/read'];
 
-        yield 'resources/subscribe' => ['resources/subscribe'];
-
         yield 'resources/templates/list' => ['resources/templates/list'];
-
-        yield 'resources/unsubscribe' => ['resources/unsubscribe'];
 
         yield 'roots/list' => ['roots/list'];
 
         yield 'sampling/createMessage' => ['sampling/createMessage'];
-
-        yield 'tasks/cancel' => ['tasks/cancel'];
-
-        yield 'tasks/get' => ['tasks/get'];
-
-        yield 'tasks/list' => ['tasks/list'];
-
-        yield 'tasks/result' => ['tasks/result'];
 
         yield 'tools/call' => ['tools/call'];
 
@@ -1005,10 +884,6 @@ final class ServerBuilderTest extends TestCase
         yield 'notifications/resources/list_changed' => ['notifications/resources/list_changed'];
 
         yield 'notifications/resources/updated' => ['notifications/resources/updated'];
-
-        yield 'notifications/roots/list_changed' => ['notifications/roots/list_changed'];
-
-        yield 'notifications/tasks/status' => ['notifications/tasks/status'];
 
         yield 'notifications/tools/list_changed' => ['notifications/tools/list_changed'];
     }

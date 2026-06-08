@@ -13,8 +13,7 @@ capability but breaks when a declared one stays silent, which is why the SDK doe
 
 **Keep STDOUT for the protocol.** A stdio server MUST NOT write anything to STDOUT except the JSON-RPC
 stream. Send all diagnostics to STDERR through the PSR-3 logger you pass to the builder. The examples'
-`ExampleLogger` ([examples/ExampleLogger.php](../examples/ExampleLogger.php)) does this and follows the
-client's `logging/setLevel` requests.
+`ExampleLogger` ([examples/ExampleLogger.php](../examples/ExampleLogger.php)) does this.
 
 **Signal tool failures with `isError`, not exceptions.** A tool that fails for a domain reason (bad input
 the schema allowed, an upstream timeout) should return a `CallToolResult` with `isError: true` and a
