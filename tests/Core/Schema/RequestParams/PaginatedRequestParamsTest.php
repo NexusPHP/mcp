@@ -15,9 +15,9 @@ namespace Nexus\Mcp\Tests\Core\Schema\RequestParams;
 
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Cursor;
-use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\PaginatedRequestParams;
+use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -32,41 +32,33 @@ use PHPUnit\Framework\TestCase;
 #[Group('core-tests')]
 final class PaginatedRequestParamsTest extends TestCase
 {
-    public function testConstructionDefaultsCursorAndMetaToNull(): void
+    public function testConstructionDefaultsCursorToNull(): void
     {
-        $params = new PaginatedRequestParams();
+        $params = new PaginatedRequestParams(RequestMetaObjectFactory::create());
 
         self::assertNull($params->cursor);
-        self::assertSame([], $params->meta->toArray());
     }
 
     public function testToArrayMinimal(): void
     {
-        $params = new PaginatedRequestParams();
+        $params = new PaginatedRequestParams(RequestMetaObjectFactory::create());
 
-        self::assertSame([], $params->toArray());
+        self::assertSame(['_meta' => RequestMetaObjectFactory::shape()], $params->toArray());
     }
 
     public function testToArrayWithCursor(): void
     {
-        $params = new PaginatedRequestParams(new Cursor('cur-1'));
+        $params = new PaginatedRequestParams(RequestMetaObjectFactory::create(), new Cursor('cur-1'));
 
-        self::assertSame(['cursor' => 'cur-1'], $params->toArray());
-    }
-
-    public function testToArrayWithMeta(): void
-    {
-        $params = new PaginatedRequestParams(null, new RequestMetaObject(null, ['vendor' => 'x']));
-
-        self::assertSame(['_meta' => ['vendor' => 'x']], $params->toArray());
+        self::assertSame(
+            ['_meta' => RequestMetaObjectFactory::shape(), 'cursor' => 'cur-1'],
+            $params->toArray(),
+        );
     }
 
     public function testToArrayKeyOrder(): void
     {
-        $params = new PaginatedRequestParams(
-            new Cursor('cur-1'),
-            new RequestMetaObject(null, ['k' => 'v']),
-        );
+        $params = new PaginatedRequestParams(RequestMetaObjectFactory::create(), new Cursor('cur-1'));
 
         self::assertSame(
             ['_meta', 'cursor'],
@@ -76,25 +68,24 @@ final class PaginatedRequestParamsTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $params = new PaginatedRequestParams(
-            new Cursor('cur-1'),
-            new RequestMetaObject(null, ['k' => 'v']),
-        );
+        $params = new PaginatedRequestParams(RequestMetaObjectFactory::create(null, ['k' => 'v']), new Cursor('cur-1'));
 
         self::assertSame($params->toArray(), $params->jsonSerialize());
     }
 
     public function testFromArrayMinimal(): void
     {
-        $params = PaginatedRequestParams::fromArray([]);
+        $params = PaginatedRequestParams::fromArray(['_meta' => RequestMetaObjectFactory::shape()]);
 
         self::assertNull($params->cursor);
-        self::assertSame([], $params->meta->toArray());
     }
 
     public function testFromArrayParsesCursor(): void
     {
-        $params = PaginatedRequestParams::fromArray(['cursor' => 'cur-1']);
+        $params = PaginatedRequestParams::fromArray([
+            'cursor' => 'cur-1',
+            '_meta' => RequestMetaObjectFactory::shape(),
+        ]);
 
         self::assertNotNull($params->cursor);
         self::assertSame('cur-1', $params->cursor->cursor);
@@ -102,16 +93,13 @@ final class PaginatedRequestParamsTest extends TestCase
 
     public function testFromArrayParsesMeta(): void
     {
-        $params = PaginatedRequestParams::fromArray(['_meta' => ['vendor' => 'x']]);
+        $params = PaginatedRequestParams::fromArray(['_meta' => RequestMetaObjectFactory::shape(null, ['vendor' => 'x'])]);
         self::assertSame(['vendor' => 'x'], $params->meta->extras);
     }
 
     public function testFromArrayFullRoundTrip(): void
     {
-        $original = new PaginatedRequestParams(
-            new Cursor('cur-1'),
-            new RequestMetaObject(null, ['vendor' => 'x']),
-        );
+        $original = new PaginatedRequestParams(RequestMetaObjectFactory::create(null, ['vendor' => 'x']), new Cursor('cur-1'));
 
         $rebuilt = PaginatedRequestParams::fromArray($original->toArray());
 
@@ -138,6 +126,11 @@ final class PaginatedRequestParamsTest extends TestCase
         yield 'cursor not a string' => [
             ['cursor' => 1],
             '"params.cursor" must be a string, int given.',
+        ];
+
+        yield 'missing _meta' => [
+            [],
+            '"params" missing the required "_meta" key.',
         ];
 
         yield '_meta not an object' => [

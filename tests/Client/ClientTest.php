@@ -16,38 +16,33 @@ namespace Nexus\Mcp\Tests\Client;
 use Nexus\Mcp\Client\Client;
 use Nexus\Mcp\Client\ClientBuilder;
 use Nexus\Mcp\Client\Exception\ClientAlreadyConnectedException;
-use Nexus\Mcp\Client\Exception\ClientAlreadyInitializedException;
 use Nexus\Mcp\Client\Exception\ClientNotConnectedException;
-use Nexus\Mcp\Client\Exception\ClientNotInitializedException;
 use Nexus\Mcp\Client\Exception\ServerCapabilityNotSupportedException;
-use Nexus\Mcp\Client\Exception\UnsupportedProtocolVersionException;
 use Nexus\Mcp\Core\Exception\RemoteCallFailedException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
 use Nexus\Mcp\Core\Schema\ClientCapabilities;
 use Nexus\Mcp\Core\Schema\Cursor;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
-use Nexus\Mcp\Core\Schema\Notification\InitializedNotification;
 use Nexus\Mcp\Core\Schema\Notification\ProgressNotification;
 use Nexus\Mcp\Core\Schema\Prompt\PromptReference;
 use Nexus\Mcp\Core\Schema\ProtocolVersion;
 use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
 use Nexus\Mcp\Core\Schema\Request\CompleteRequest;
+use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
 use Nexus\Mcp\Core\Schema\Request\GetPromptRequest;
-use Nexus\Mcp\Core\Schema\Request\InitializeRequest;
 use Nexus\Mcp\Core\Schema\Request\ListPromptsRequest;
 use Nexus\Mcp\Core\Schema\Request\ListResourcesRequest;
 use Nexus\Mcp\Core\Schema\Request\ListResourceTemplatesRequest;
 use Nexus\Mcp\Core\Schema\Request\ListToolsRequest;
-use Nexus\Mcp\Core\Schema\Request\PingRequest;
 use Nexus\Mcp\Core\Schema\Request\ReadResourceRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
-use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
+use Nexus\Mcp\Core\Schema\RequestParams\PaginatedRequestParams;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Core\Schema\Result\CompleteResult;
+use Nexus\Mcp\Core\Schema\Result\DiscoverResult;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
-use Nexus\Mcp\Core\Schema\Result\InitializeResult;
 use Nexus\Mcp\Core\Schema\Result\ListPromptsResult;
 use Nexus\Mcp\Core\Schema\Result\ListResourcesResult;
 use Nexus\Mcp\Core\Schema\Result\ListResourceTemplatesResult;
@@ -56,6 +51,7 @@ use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
 use Nexus\Mcp\Core\Schema\ServerCapabilities;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureNotificationHandler;
+use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -125,7 +121,7 @@ final class ClientTest extends TestCase
     public function testSendRequestBeforeConnectThrowsClientNotConnectedException(): void
     {
         $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
-        $request = new PingRequest(new RequestId(1), new EmptyRequestParams());
+        $request = new ListToolsRequest(new RequestId(1), new PaginatedRequestParams(RequestMetaObjectFactory::create()));
 
         $this->expectException(ClientNotConnectedException::class);
         $this->expectExceptionMessageMatches('/not connected/');
@@ -139,7 +135,7 @@ final class ClientTest extends TestCase
         $transport = new RecordingTransport();
         $client->connect($transport);
 
-        $request = new PingRequest(new RequestId(1), new EmptyRequestParams());
+        $request = new ListToolsRequest(new RequestId(1), new PaginatedRequestParams(RequestMetaObjectFactory::create()));
 
         $deferredCall = async(static fn() => $client->sendRequest($request, EmptyResult::class));
 
@@ -164,7 +160,7 @@ final class ClientTest extends TestCase
         $transport = new RecordingTransport();
         $client->connect($transport);
 
-        $request = new PingRequest(new RequestId(1), new EmptyRequestParams());
+        $request = new ListToolsRequest(new RequestId(1), new PaginatedRequestParams(RequestMetaObjectFactory::create()));
         $call = async(static fn() => $client->sendRequest($request, EmptyResult::class));
         $transport->nextSend()->await();
 
@@ -185,7 +181,7 @@ final class ClientTest extends TestCase
         $transport->sendError = new TransportAlreadyClosedException(operation: 'send-request');
         $client->connect($transport);
 
-        $request = new PingRequest(new RequestId(1), new EmptyRequestParams());
+        $request = new ListToolsRequest(new RequestId(1), new PaginatedRequestParams(RequestMetaObjectFactory::create()));
 
         try {
             $client->sendRequest($request, EmptyResult::class);
@@ -203,7 +199,7 @@ final class ClientTest extends TestCase
         }
     }
 
-    public function testInitializeForgetsTheRegistrationWhenTheTransportSendThrows(): void
+    public function testDiscoverForgetsTheRegistrationWhenTheTransportSendThrows(): void
     {
         $client = new ClientBuilder()
             ->setClientInfo('demo', '1.0.0')
@@ -215,16 +211,16 @@ final class ClientTest extends TestCase
         $client->connect($transport);
 
         try {
-            $client->initialize();
+            $client->discover();
             self::fail('Expected the transport send failure to propagate.');
         } catch (TransportAlreadyClosedException) {
         }
 
-        // The second initialize reuses the same minted id. It surfaces the send
-        // failure again only if the in-flight gate was reverted and the failed
-        // registration was freed (otherwise a duplicate-id or already-initialized error).
+        // The second discover reuses the same minted id. It surfaces the send
+        // failure again only if the failed registration was freed (a leak would
+        // raise a duplicate-id error instead).
         try {
-            $client->initialize();
+            $client->discover();
             self::fail('Expected the transport send failure to propagate.');
         } catch (TransportAlreadyClosedException $e) {
             self::assertStringContainsString('send-request', $e->getMessage());
@@ -246,182 +242,110 @@ final class ClientTest extends TestCase
         self::assertSame($error, $matches[0]['context']['exception'] ?? null);
     }
 
-    public function testInitializeBeforeConnectThrowsClientNotConnectedException(): void
+    public function testDiscoverBeforeConnectThrowsClientNotConnectedException(): void
     {
         $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
 
         $this->expectException(ClientNotConnectedException::class);
         $this->expectExceptionMessageMatches('/not connected/');
 
-        $client->initialize();
+        $client->discover();
     }
 
-    public function testInitializeSendsRequestAwaitsResultThenSendsNotification(): void
+    public function testDiscoverSendsRequestAndCachesServerInfoAndCapabilities(): void
     {
         $client = new ClientBuilder()->setClientInfo('demo', '1.2.3')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
 
-        $deferred = async(static fn() => $client->initialize());
+        $deferred = async(static fn() => $client->discover());
 
         $transport->nextSend()->await();
         self::assertCount(1, $transport->sent);
-        self::assertInstanceOf(InitializeRequest::class, $transport->sent[0]['message']);
-
         $sentRequest = $transport->sent[0]['message'];
-        $sentId = $sentRequest->id->id;
-        self::assertSame(1, $sentId, 'Default factory mints the handshake request id starting at 1.');
-        self::assertSame(ProtocolVersion::LATEST_VERSION, $sentRequest->params->protocolVersion->version);
-        self::assertSame('demo', $sentRequest->params->clientInfo->name);
-        self::assertSame('1.2.3', $sentRequest->params->clientInfo->version);
+        self::assertInstanceOf(DiscoverRequest::class, $sentRequest);
 
-        $transport->emitMessage([
-            'jsonrpc' => '2.0',
-            'id' => $sentId,
-            'result' => [
-                'protocolVersion' => ProtocolVersion::LATEST_VERSION,
-                'capabilities' => [],
-                'serverInfo' => ['name' => 'srv', 'version' => '9.9'],
-            ],
-        ]);
+        $sentId = $sentRequest->id->id;
+        self::assertSame(1, $sentId, 'Default factory mints the discover request id starting at 1.');
+        self::assertSame(ProtocolVersion::LATEST_VERSION, $sentRequest->params->meta->protocolVersion->version);
+        self::assertSame('demo', $sentRequest->params->meta->clientInfo->name);
+        self::assertSame('1.2.3', $sentRequest->params->meta->clientInfo->version);
+        self::assertSame([], $sentRequest->params->meta->clientCapabilities->toArray());
+
+        $transport->emitMessage(self::discoverResponse($sentId, 'srv', '9.9'));
 
         $result = $deferred->await();
 
-        self::assertInstanceOf(InitializeResult::class, $result);
+        self::assertInstanceOf(DiscoverResult::class, $result);
         self::assertSame('srv', $result->serverInfo->name);
 
+        // No notification follows the discover response.
+        self::assertCount(1, $transport->sent);
+
+        $serverInfo = $client->getServerInfo();
+        self::assertNotNull($serverInfo);
+        self::assertSame('srv', $serverInfo->name);
+    }
+
+    public function testSecondDiscoverPassesTheDefaultCapabilityGate(): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+
+        // The first discover caches the server capabilities, arming the gate.
+        self::discover($client, $transport);
+
+        // `server/discover` carries no capability requirement, so a second discover
+        // (now that capabilities are cached) must clear the gate's `default` arm.
+        $deferred = async(static fn() => $client->discover());
+        $transport->nextSend()->await();
         self::assertCount(2, $transport->sent);
-        self::assertInstanceOf(InitializedNotification::class, $transport->sent[1]['message']);
+        $request = $transport->sent[1]['message'];
+        self::assertInstanceOf(DiscoverRequest::class, $request);
+
+        $transport->emitMessage(self::discoverResponse($request->id->id));
+        $result = $deferred->await();
+
+        self::assertInstanceOf(DiscoverResult::class, $result);
     }
 
-    public function testInitializeForwardsCapabilitiesAndProtocolVersion(): void
+    public function testDiscoverStampsClientCapabilitiesIntoTheRequestMeta(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
-        $transport = new RecordingTransport();
-        $client->connect($transport);
-
         $capabilities = new ClientCapabilities(sampling: []);
-        $protocolVersion = new ProtocolVersion(ProtocolVersion::LATEST_VERSION);
+        $client = new ClientBuilder()
+            ->setClientInfo('demo', '1.0.0')
+            ->setClientCapabilities($capabilities)
+            ->build()
+        ;
+        $transport = new RecordingTransport();
+        $client->connect($transport);
 
-        $deferred = async(static fn() => $client->initialize($capabilities, $protocolVersion));
+        $deferred = async(static fn() => $client->discover());
         $transport->nextSend()->await();
 
         self::assertCount(1, $transport->sent);
         $sentRequest = $transport->sent[0]['message'];
-        self::assertInstanceOf(InitializeRequest::class, $sentRequest);
-        self::assertSame($capabilities, $sentRequest->params->capabilities);
-        self::assertSame($protocolVersion, $sentRequest->params->protocolVersion);
+        self::assertInstanceOf(DiscoverRequest::class, $sentRequest);
+        self::assertSame($capabilities, $sentRequest->params->meta->clientCapabilities);
+        self::assertSame(ProtocolVersion::LATEST_VERSION, $sentRequest->params->meta->protocolVersion->version);
 
-        $transport->emitMessage([
-            'jsonrpc' => '2.0',
-            'id' => $sentRequest->id->id,
-            'result' => [
-                'protocolVersion' => ProtocolVersion::LATEST_VERSION,
-                'capabilities' => [],
-                'serverInfo' => ['name' => 'srv', 'version' => '1'],
-            ],
-        ]);
+        $transport->emitMessage(self::discoverResponse($sentRequest->id->id));
 
         $deferred->await();
     }
 
-    public function testInitializeThrowsAndWithholdsInitializedWhenServerVersionIsUnsupported(): void
+    public function testDiscoverPropagatesRemoteCallFailureWhenPeerReturnsError(): void
     {
         $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
 
-        $deferred = async(static fn() => $client->initialize());
+        $deferred = async(static fn() => $client->discover());
         $transport->nextSend()->await();
         self::assertCount(1, $transport->sent);
         $sentRequest = $transport->sent[0]['message'];
-        self::assertInstanceOf(InitializeRequest::class, $sentRequest);
-
-        $transport->emitMessage([
-            'jsonrpc' => '2.0',
-            'id' => $sentRequest->id->id,
-            'result' => [
-                'protocolVersion' => '2025-06-18',
-                'capabilities' => [],
-                'serverInfo' => ['name' => 'srv', 'version' => '1'],
-            ],
-        ]);
-
-        try {
-            $deferred->await();
-            self::fail('Expected the unsupported negotiated version to abort the handshake.');
-        } catch (UnsupportedProtocolVersionException $e) {
-            self::assertStringContainsString('2025-06-18', $e->getMessage());
-            self::assertSame('2025-06-18', $e->negotiated->version);
-        }
-
-        self::assertCount(
-            1,
-            $transport->sent,
-            'The client must not send notifications/initialized after rejecting the version.',
-        );
-        self::assertTrue($transport->closed, 'The client must disconnect on an unsupported negotiated version.');
-    }
-
-    public function testInitializeRejectsReentryWhileInFlight(): void
-    {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
-        $transport = new RecordingTransport();
-        $client->connect($transport);
-
-        $first = async(static fn() => $client->initialize());
-        $transport->nextSend()->await();
-
-        try {
-            $client->initialize();
-            self::fail('Expected ClientAlreadyInitializedException for re-entry while a handshake was in flight.');
-        } catch (ClientAlreadyInitializedException $e) {
-            self::assertStringContainsString('already started or completed', $e->getMessage());
-        }
-
-        $first->ignore();
-    }
-
-    public function testInitializeRejectsAfterSuccessfulHandshake(): void
-    {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
-        $transport = new RecordingTransport();
-        $client->connect($transport);
-
-        $deferred = async(static fn() => $client->initialize());
-        $transport->nextSend()->await();
-        self::assertCount(1, $transport->sent);
-        $sentRequest = $transport->sent[0]['message'];
-        self::assertInstanceOf(InitializeRequest::class, $sentRequest);
-
-        $transport->emitMessage([
-            'jsonrpc' => '2.0',
-            'id' => $sentRequest->id->id,
-            'result' => [
-                'protocolVersion' => ProtocolVersion::LATEST_VERSION,
-                'capabilities' => [],
-                'serverInfo' => ['name' => 'srv', 'version' => '1'],
-            ],
-        ]);
-        $deferred->await();
-
-        $this->expectException(ClientAlreadyInitializedException::class);
-        $this->expectExceptionMessageMatches('/already started or completed/');
-
-        $client->initialize();
-    }
-
-    public function testInitializeRevertsGateWhenPeerReturnsError(): void
-    {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
-        $transport = new RecordingTransport();
-        $client->connect($transport);
-
-        $deferred = async(static fn() => $client->initialize());
-        $transport->nextSend()->await();
-        self::assertCount(1, $transport->sent);
-        $sentRequest = $transport->sent[0]['message'];
-        self::assertInstanceOf(InitializeRequest::class, $sentRequest);
+        self::assertInstanceOf(DiscoverRequest::class, $sentRequest);
 
         $transport->emitMessage([
             'jsonrpc' => '2.0',
@@ -436,124 +360,7 @@ final class ClientTest extends TestCase
             self::assertSame('peer refused', $e->getMessage());
         }
 
-        // Gate reverted: a fresh handshake is now allowed.
-        $retry = async(static fn() => $client->initialize());
-        $transport->nextSend()->await();
-        self::assertCount(2, $transport->sent, 'A second initialize must be sendable after revert.');
-        $retry->ignore();
-    }
-
-    public function testSendRequestAfterHandshakeAllowsArbitraryMethods(): void
-    {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
-        $transport = new RecordingTransport();
-        $client->connect($transport);
-
-        $deferred = async(static fn() => $client->initialize());
-        $transport->nextSend()->await();
-        self::assertCount(1, $transport->sent);
-        $initializeRequest = $transport->sent[0]['message'];
-        self::assertInstanceOf(InitializeRequest::class, $initializeRequest);
-        $transport->emitMessage([
-            'jsonrpc' => '2.0',
-            'id' => $initializeRequest->id->id,
-            'result' => [
-                'protocolVersion' => ProtocolVersion::LATEST_VERSION,
-                'capabilities' => ['tools' => []],
-                'serverInfo' => ['name' => 'srv', 'version' => '1'],
-            ],
-        ]);
-        $deferred->await();
-
-        // Without markInitialized() firing, the gate would remain in InitializeInFlight
-        // and reject this non-handshake non-ping request.
-        $followUp = async(static fn() => $client->sendRequest(
-            new ListToolsRequest(new RequestId(2)),
-            EmptyResult::class,
-        ));
-        $transport->nextSend()->await();
-        self::assertCount(3, $transport->sent);
-        self::assertInstanceOf(ListToolsRequest::class, $transport->sent[2]['message']);
-        $followUp->ignore();
-    }
-
-    public function testSendRequestBeforeHandshakeRejectsArbitraryMethods(): void
-    {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
-        $transport = new RecordingTransport();
-        $client->connect($transport);
-
-        $this->expectException(ClientNotInitializedException::class);
-        $this->expectExceptionMessageMatches('/cannot be sent before the client handshake completes/');
-
-        $client->sendRequest(new ListToolsRequest(new RequestId(99)), EmptyResult::class);
-    }
-
-    public function testSendRequestPingIsAllowedBeforeHandshake(): void
-    {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
-        $transport = new RecordingTransport();
-        $client->connect($transport);
-
-        $request = new PingRequest(new RequestId(7), new EmptyRequestParams());
-        $deferred = async(static fn() => $client->sendRequest($request, EmptyResult::class));
-        $transport->nextSend()->await();
-
-        self::assertCount(1, $transport->sent);
-        self::assertSame($request, $transport->sent[0]['message']);
-        $deferred->ignore();
-    }
-
-    public function testPingSendsAPingRequestAndResolvesOnAcknowledgement(): void
-    {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
-        $transport = new RecordingTransport();
-        $client->connect($transport);
-
-        // No handshake first: ping() is permitted before initialize().
-        $deferred = async(static function () use ($client): void {
-            $client->ping();
-        });
-        $transport->nextSend()->await();
-
-        self::assertCount(1, $transport->sent);
-        $sent = $transport->sent[0]['message'];
-        self::assertInstanceOf(PingRequest::class, $sent);
-        self::assertInstanceOf(EmptyRequestParams::class, $sent->params);
-        self::assertSame(1, $sent->id->id, 'ping() mints its id from the request-id factory.');
-
-        $transport->emitMessage(['jsonrpc' => '2.0', 'id' => 1, 'result' => []]);
-
-        $deferred->await();
-    }
-
-    public function testInitializedNotificationCarriesNoParams(): void
-    {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
-        $transport = new RecordingTransport();
-        $client->connect($transport);
-
-        $deferred = async(static fn() => $client->initialize());
-        $transport->nextSend()->await();
-        self::assertCount(1, $transport->sent);
-        $sentRequest = $transport->sent[0]['message'];
-        self::assertInstanceOf(InitializeRequest::class, $sentRequest);
-
-        $transport->emitMessage([
-            'jsonrpc' => '2.0',
-            'id' => $sentRequest->id->id,
-            'result' => [
-                'protocolVersion' => ProtocolVersion::LATEST_VERSION,
-                'capabilities' => [],
-                'serverInfo' => ['name' => 'srv', 'version' => '1'],
-            ],
-        ]);
-        $deferred->await();
-
-        self::assertCount(2, $transport->sent);
-        $notification = $transport->sent[1]['message'];
-        self::assertInstanceOf(InitializedNotification::class, $notification);
-        self::assertSame('notifications/initialized', $notification::getMethod());
+        self::assertNull($client->getServerCapabilities(), 'A failed discover must not cache capabilities.');
     }
 
     public function testDrainFiresFlushPendingOnTheDispatcher(): void
@@ -586,19 +393,19 @@ final class ClientTest extends TestCase
         self::assertCount(1, $matches);
     }
 
-    public function testGetServerInfoReturnsNullBeforeHandshake(): void
+    public function testGetServerInfoReturnsNullBeforeDiscovery(): void
     {
         $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
 
         self::assertNull($client->getServerInfo());
     }
 
-    public function testGetServerInfoReturnsImplementationCachedFromHandshake(): void
+    public function testGetServerInfoReturnsImplementationCachedFromDiscovery(): void
     {
         $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
-        self::handshake($client, $transport, 'srv', '9.9');
+        self::discover($client, $transport, 'srv', '9.9');
 
         $serverInfo = $client->getServerInfo();
         self::assertNotNull($serverInfo);
@@ -606,19 +413,19 @@ final class ClientTest extends TestCase
         self::assertSame('9.9', $serverInfo->version);
     }
 
-    public function testGetServerCapabilitiesReturnsNullBeforeHandshake(): void
+    public function testGetServerCapabilitiesReturnsNullBeforeDiscovery(): void
     {
         $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
 
         self::assertNull($client->getServerCapabilities());
     }
 
-    public function testGetServerCapabilitiesReturnsCapabilitiesCachedFromHandshake(): void
+    public function testGetServerCapabilitiesReturnsCapabilitiesCachedFromDiscovery(): void
     {
         $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
-        self::handshake($client, $transport, capabilities: ['tools' => []]);
+        self::discover($client, $transport, capabilities: ['tools' => []]);
 
         $capabilities = $client->getServerCapabilities();
         self::assertInstanceOf(ServerCapabilities::class, $capabilities);
@@ -635,7 +442,7 @@ final class ClientTest extends TestCase
         $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
-        self::handshake($client, $transport, capabilities: []);
+        self::discover($client, $transport, capabilities: []);
 
         $this->expectException(ServerCapabilityNotSupportedException::class);
         $this->expectExceptionMessageIs(\sprintf(
@@ -677,39 +484,18 @@ final class ClientTest extends TestCase
         ];
     }
 
-    public function testPingAfterHandshakeIsAllowedRegardlessOfServerCapabilities(): void
-    {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
-        $transport = new RecordingTransport();
-        $client->connect($transport);
-        self::handshake($client, $transport, capabilities: []);
-
-        $deferred = async(static fn() => $client->ping());
-        $transport->nextSend()->await();
-
-        self::assertCount(3, $transport->sent);
-        $sent = $transport->sent[2]['message'];
-
-        if (! $sent instanceof PingRequest) {
-            self::fail(\sprintf('Expected PingRequest, got %s.', $sent::class));
-        }
-
-        $transport->emitMessage(['jsonrpc' => '2.0', 'id' => $sent->id->id, 'result' => []]);
-        $deferred->await();
-    }
-
     public function testListToolsSendsRequestAndUnwrapsResult(): void
     {
         $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
-        self::handshake($client, $transport);
+        self::discover($client, $transport);
 
         $deferred = async(static fn() => $client->listTools());
         $transport->nextSend()->await();
 
-        self::assertCount(3, $transport->sent);
-        $request = $transport->sent[2]['message'];
+        self::assertCount(2, $transport->sent);
+        $request = $transport->sent[1]['message'];
         self::assertInstanceOf(ListToolsRequest::class, $request);
         self::assertNull($request->params->cursor);
 
@@ -729,14 +515,14 @@ final class ClientTest extends TestCase
         $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
-        self::handshake($client, $transport);
+        self::discover($client, $transport);
 
         $cursor = new Cursor('page-2');
         $deferred = async(static fn() => $client->listTools($cursor));
         $transport->nextSend()->await();
 
-        self::assertCount(3, $transport->sent);
-        $request = $transport->sent[2]['message'];
+        self::assertCount(2, $transport->sent);
+        $request = $transport->sent[1]['message'];
         self::assertInstanceOf(ListToolsRequest::class, $request);
         self::assertSame($cursor, $request->params->cursor);
 
@@ -753,13 +539,13 @@ final class ClientTest extends TestCase
         $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
-        self::handshake($client, $transport);
+        self::discover($client, $transport);
 
         $deferred = async(static fn() => $client->listResources());
         $transport->nextSend()->await();
 
-        self::assertCount(3, $transport->sent);
-        $request = $transport->sent[2]['message'];
+        self::assertCount(2, $transport->sent);
+        $request = $transport->sent[1]['message'];
         self::assertInstanceOf(ListResourcesRequest::class, $request);
 
         $transport->emitMessage([
@@ -778,13 +564,13 @@ final class ClientTest extends TestCase
         $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
-        self::handshake($client, $transport);
+        self::discover($client, $transport);
 
         $deferred = async(static fn() => $client->listResourceTemplates());
         $transport->nextSend()->await();
 
-        self::assertCount(3, $transport->sent);
-        $request = $transport->sent[2]['message'];
+        self::assertCount(2, $transport->sent);
+        $request = $transport->sent[1]['message'];
         self::assertInstanceOf(ListResourceTemplatesRequest::class, $request);
 
         $transport->emitMessage([
@@ -803,13 +589,13 @@ final class ClientTest extends TestCase
         $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
-        self::handshake($client, $transport);
+        self::discover($client, $transport);
 
         $deferred = async(static fn() => $client->listPrompts());
         $transport->nextSend()->await();
 
-        self::assertCount(3, $transport->sent);
-        $request = $transport->sent[2]['message'];
+        self::assertCount(2, $transport->sent);
+        $request = $transport->sent[1]['message'];
         self::assertInstanceOf(ListPromptsRequest::class, $request);
 
         $transport->emitMessage([
@@ -828,13 +614,13 @@ final class ClientTest extends TestCase
         $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
-        self::handshake($client, $transport);
+        self::discover($client, $transport);
 
         $deferred = async(static fn() => $client->readResource('example://greeting'));
         $transport->nextSend()->await();
 
-        self::assertCount(3, $transport->sent);
-        $request = $transport->sent[2]['message'];
+        self::assertCount(2, $transport->sent);
+        $request = $transport->sent[1]['message'];
         self::assertInstanceOf(ReadResourceRequest::class, $request);
         self::assertSame('example://greeting', $request->params->uri);
 
@@ -854,13 +640,13 @@ final class ClientTest extends TestCase
         $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
-        self::handshake($client, $transport);
+        self::discover($client, $transport);
 
         $deferred = async(static fn() => $client->getPrompt('walkthrough', ['audience' => 'reviewers']));
         $transport->nextSend()->await();
 
-        self::assertCount(3, $transport->sent);
-        $request = $transport->sent[2]['message'];
+        self::assertCount(2, $transport->sent);
+        $request = $transport->sent[1]['message'];
         self::assertInstanceOf(GetPromptRequest::class, $request);
         self::assertSame('walkthrough', $request->params->name);
         self::assertSame(['audience' => 'reviewers'], $request->params->arguments);
@@ -881,15 +667,15 @@ final class ClientTest extends TestCase
         $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
-        self::handshake($client, $transport);
+        self::discover($client, $transport);
 
         $ref = new PromptReference('walkthrough');
         $argument = ['name' => 'audience', 'value' => 'rev'];
         $deferred = async(static fn() => $client->complete($ref, $argument));
         $transport->nextSend()->await();
 
-        self::assertCount(3, $transport->sent);
-        $request = $transport->sent[2]['message'];
+        self::assertCount(2, $transport->sent);
+        $request = $transport->sent[1]['message'];
         self::assertInstanceOf(CompleteRequest::class, $request);
         self::assertSame($ref, $request->params->ref);
         self::assertSame($argument, $request->params->argument);
@@ -911,13 +697,13 @@ final class ClientTest extends TestCase
         $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
-        self::handshake($client, $transport);
+        self::discover($client, $transport);
 
         $deferred = async(static fn() => $client->callTool('greet', ['name' => 'Paul']));
         $transport->nextSend()->await();
 
-        self::assertCount(3, $transport->sent);
-        $request = $transport->sent[2]['message'];
+        self::assertCount(2, $transport->sent);
+        $request = $transport->sent[1]['message'];
         self::assertInstanceOf(CallToolRequest::class, $request);
         self::assertSame('greet', $request->params->name);
         self::assertSame(['name' => 'Paul'], $request->params->arguments);
@@ -939,7 +725,7 @@ final class ClientTest extends TestCase
         $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
-        self::handshake($client, $transport);
+        self::discover($client, $transport);
 
         /** @var list<array{float, ?float, ?string}> $received */
         $received = [];
@@ -949,8 +735,8 @@ final class ClientTest extends TestCase
         $deferred = async(static fn() => $client->callTool('count_down', ['count' => 2], $onProgress));
         $transport->nextSend()->await();
 
-        self::assertCount(3, $transport->sent);
-        $request = $transport->sent[2]['message'];
+        self::assertCount(2, $transport->sent);
+        $request = $transport->sent[1]['message'];
         self::assertInstanceOf(CallToolRequest::class, $request);
         $progressToken = $request->params->meta->progressToken;
         self::assertNotNull($progressToken);
@@ -986,7 +772,7 @@ final class ClientTest extends TestCase
         $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
-        self::handshake($client, $transport);
+        self::discover($client, $transport);
 
         /** @var list<array{float, ?float, ?string}> $received */
         $received = [];
@@ -996,8 +782,8 @@ final class ClientTest extends TestCase
         $deferred = async(static fn() => $client->callTool('count_down', ['count' => 1], $onProgress));
         $transport->nextSend()->await();
 
-        self::assertCount(3, $transport->sent);
-        $request = $transport->sent[2]['message'];
+        self::assertCount(2, $transport->sent);
+        $request = $transport->sent[1]['message'];
         self::assertInstanceOf(CallToolRequest::class, $request);
         $progressToken = $request->params->meta->progressToken;
         self::assertNotNull($progressToken);
@@ -1029,14 +815,14 @@ final class ClientTest extends TestCase
         ;
         $transport = new RecordingTransport();
         $client->connect($transport);
-        self::handshake($client, $transport);
+        self::discover($client, $transport);
 
         $onProgress = static function (float $progress, ?float $total, ?string $message): void {};
         $deferred = async(static fn() => $client->callTool('greet', null, $onProgress));
         $transport->nextSend()->await();
 
-        self::assertCount(3, $transport->sent);
-        $request = $transport->sent[2]['message'];
+        self::assertCount(2, $transport->sent);
+        $request = $transport->sent[1]['message'];
         self::assertInstanceOf(CallToolRequest::class, $request);
         self::assertSame('custom-token', $request->params->meta->progressToken?->token);
 
@@ -1065,7 +851,7 @@ final class ClientTest extends TestCase
         ;
         $transport = new RecordingTransport();
         $client->connect($transport);
-        self::handshake($client, $transport);
+        self::discover($client, $transport);
 
         // No callTool in flight, so the token matches no per-call listener and falls through.
         $transport->emitMessage([
@@ -1079,36 +865,55 @@ final class ClientTest extends TestCase
     }
 
     /**
+     * Runs `discover()` against the transport and resolves it with a synthetic
+     * `DiscoverResult` envelope, leaving the discover request as `sent[0]`.
+     *
      * @param array<string, mixed> $capabilities
      */
-    private static function handshake(
+    private static function discover(
         Client $client,
         RecordingTransport $transport,
         string $serverName = 'srv',
         string $serverVersion = '1',
         array $capabilities = [
             'completions' => [],
-            'logging' => [],
             'prompts' => [],
             'resources' => [],
             'tools' => [],
         ],
     ): void {
-        $deferred = async(static fn() => $client->initialize());
+        $deferred = async(static fn() => $client->discover());
         $transport->nextSend()->await();
         self::assertCount(1, $transport->sent);
         $request = $transport->sent[0]['message'];
-        self::assertInstanceOf(InitializeRequest::class, $request);
+        self::assertInstanceOf(DiscoverRequest::class, $request);
 
-        $transport->emitMessage([
+        $transport->emitMessage(self::discoverResponse($request->id->id, $serverName, $serverVersion, $capabilities));
+        $deferred->await();
+    }
+
+    /**
+     * @param array<string, mixed> $capabilities
+     *
+     * @return array<string, mixed>
+     */
+    private static function discoverResponse(
+        int|string $id,
+        string $serverName = 'srv',
+        string $serverVersion = '1',
+        array $capabilities = [],
+    ): array {
+        return [
             'jsonrpc' => '2.0',
-            'id' => $request->id->id,
+            'id' => $id,
             'result' => [
+                'supportedVersions' => [ProtocolVersion::LATEST_VERSION],
                 'protocolVersion' => ProtocolVersion::LATEST_VERSION,
                 'capabilities' => $capabilities,
                 'serverInfo' => ['name' => $serverName, 'version' => $serverVersion],
+                'ttlMs' => 0,
+                'cacheScope' => 'private',
             ],
-        ]);
-        $deferred->await();
+        ];
     }
 }

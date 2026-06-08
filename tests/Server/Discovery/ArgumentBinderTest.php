@@ -16,10 +16,10 @@ namespace Nexus\Mcp\Tests\Server\Discovery;
 use Amp\NullCancellation;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\RequestId;
-use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Server\Discovery\ArgumentBinder;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
+use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\BackedIntEnum;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\BackedStringEnum;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\Coordinate;
@@ -253,7 +253,7 @@ final class ArgumentBinderTest extends TestCase
         return new ServerContext(
             new RequestId(7),
             new NullCancellation(),
-            new RequestMetaObject(),
+            RequestMetaObjectFactory::create(),
             $sessionId,
             new RecordingSender(),
         );

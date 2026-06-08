@@ -8,7 +8,7 @@ that drives every inbound JSON-RPC message, and what the SDK does and does not c
 ```text
 Nexus\Mcp\
 ├── Core\               Protocol primitives shared by both peers. Depends on no other Mcp namespace
-│   ├── Dispatch\       Shared dispatch contract, in-flight correlation primitives, handshake state enum
+│   ├── Dispatch\       Shared dispatch contract and in-flight correlation primitives
 │   ├── Exception\      McpExceptionInterface marker plus concrete protocol error types
 │   ├── Handler\        Handler interfaces, the method-to-handler registry, and the abstract context base
 │   │   └── Request\    Built-in request handlers shared by both peers
@@ -19,7 +19,7 @@ Nexus\Mcp\
 │   └── Validation\     URI templates, RFC 3339, enum-value coercion
 ├── Server\             Server-side composition. Depends on Core only
 │   ├── Completion\     Completion store contract
-│   ├── Dispatch\       Server-side per-envelope inbound pipeline plus the inbound handshake gate
+│   ├── Dispatch\       Server-side per-envelope inbound pipeline
 │   ├── Exception\      Server-side error types
 │   ├── Handler\
 │   │   └── Request\    Built-in server request handlers
@@ -30,8 +30,8 @@ Nexus\Mcp\
 │   ├── Transport\      Server-side transport implementations
 │   └── Validation\      Pluggable JSON Schema validator contract plus the opis-backed default
 └── Client\             Client-side composition. Depends on Core only
-    ├── Dispatch\       Client-side per-envelope inbound pipeline plus the outbound handshake gate
-    ├── Exception\      Client-side local-misuse errors (not connected, already initialised, unsupported version, unadvertised server capability)
+    ├── Dispatch\       Client-side per-envelope inbound pipeline
+    ├── Exception\      Client-side local-misuse errors (not connected, already connected, unadvertised server capability)
     ├── Handler\
     │   └── Notification\  Built-in client notification handlers (progress routing, logging message)
     └── Transport\      Client-side transport implementations
@@ -44,7 +44,7 @@ Nexus\Mcp\
 - **`Core/Schema/` is types only.** No parsers, no codecs, no registries. Behaviour for those lives in
   sibling namespaces (`Core/JsonRpc/`, `Core/Validation/`, `Core/UriTemplate/`). Abstract bases sit at the
   namespace root with concrete subclasses in same-named subfolders (`Schema/Result.php` +
-  `Schema/Result/EmptyResult.php`, `Schema/Request.php` + `Schema/Request/PingRequest.php`, etc.).
+  `Schema/Result/EmptyResult.php`, `Schema/Request.php` + `Schema/Request/DiscoverRequest.php`, etc.).
 - **`Server` depends on `Core` only.** No back-references from `Core` into `Server`.
 - **`Client` depends on `Core` only.** `Server` and `Client` are symmetric peers, neither depending on the
   other.
@@ -100,54 +100,25 @@ JsonRpcMessageParser::parse()        ← classifies request/notification, raises
    └── parse succeeded
          │
          ├── JsonRpcRequest      → dispatchRequest()
-         │     ├── $gate->allowsRequest($method)?
-         │     ├── sync (pre-coroutine): on initialize, $gate->markInitializeInFlight()
-         │     ├── spawn async coroutine → resolve handler → emit response or error
-         │     └── on initialize success in coroutine, $gate->markInitializeCompleted()
+         │     ├── claim the request id (duplicate in-flight id → InvalidRequest error)
+         │     └── spawn async coroutine → resolve handler → emit response or error
          │
          └── JsonRpcNotification → dispatchNotification()
-               ├── initialized notification: $gate->markInitialized()
-               ├── other notifications: dropped if uninitialized, dispatched otherwise
                └── spawn async coroutine → call handler (no response)
 ```
 
-The diagram traces the server. The client shares the request and notification arms but diverges in two
-places. First, the response-shape fork above: where the server discards a `result`/`error` envelope, the
-client correlates it to the pending outbound request it is awaiting, resolving on success or rejecting on
-error, and warns on an unknown ("orphan") id. Second, inbound requests and notifications are not
-init-gated on the client. It gates its own *outbound* sends in `Client::sendRequest()` instead, so the
-`$gate->...` steps above are absent and the client simply runs the handler and replies. The client is
-thus both a responder (it answers peer `ping`, routes `notifications/progress` to per-call listeners, and
-surfaces `notifications/message`) and a requester (it awaits the responses to the calls it makes).
+The protocol is stateless: every inbound request dispatches immediately, carrying the client's identity and
+capabilities in its `_meta`, which the server-side handler reads through `ServerContext::$meta`.
+
+The diagram traces the server. The client shares the request and notification arms but diverges in one
+place: the response-shape fork above. Where the server discards a `result`/`error` envelope, the client
+correlates it to the pending outbound request it is awaiting, resolving on success or rejecting on error,
+and warns on an unknown ("orphan") id. The client is thus both a responder (it routes
+`notifications/progress` to per-call listeners and surfaces `notifications/message`) and a requester (it
+awaits the responses to the calls it makes, gating each *outbound* send on the server's advertised
+capabilities in `Client::sendRequest()`).
 
 A few pieces are worth calling out:
-
-### `ServerInitializationGate`
-
-Holds the lifecycle phase (`AwaitingInitialize`, `InitializeInFlight`, `InitializeCompleted`,
-`Initialized`) plus a one-bit `pendingInitializedNotification` flag. `InitializeInFlight` is set
-synchronously when the `initialize` request is accepted (before the handler runs). When the handler
-returns successfully, the coroutine calls `markInitializeCompleted()`, which folds the buffered
-notification flag into the transition: if `notifications/initialized` arrived while the handler was
-still running, the gate jumps `InitializeInFlight` -> `Initialized` directly. Otherwise it transitions
-to `InitializeCompleted` to wait for the notification. `markInitialized()` accepts both an in-flight
-arrival (buffers it) and a post-completion arrival (flips to `Initialized`). The buffer flag is cleared
-on `revertInitializeInFlight()` so a retry handshake starts fresh.
-Consulted on every request to enforce the spec's "no other method may be invoked before `initialize`
-completes" rule. It also rejects a second `initialize` once one is in flight, and silently drops
-`notifications/initialized` envelopes that arrive outside a valid handshake (either no handshake yet,
-or one already completed, or a duplicate during the buffered window).
-
-### `ClientInitializationGate`
-
-Symmetric to the server gate but simpler. The client *initiates* the handshake, so there is no race
-window between the request completing and the notification arriving. Three states only
-(`AwaitingInitialize`, `InitializeInFlight`, `Initialized`): no `InitializeCompleted` intermediate, no
-buffered-notification flag. `Client::initialize()` flips it `InitializeInFlight` synchronously before
-the request goes out, then to `Initialized` once both the result is awaited and the
-`notifications/initialized` is sent. Any throw mid-flight reverts to `AwaitingInitialize` so a retry
-starts fresh. `Client::sendRequest()` consults the gate and rejects non-handshake non-`ping` methods
-before initialization completes.
 
 ### `LoggingLevelGate`
 
@@ -171,15 +142,14 @@ finishes right as the transport closes would lose its response to a race with th
 - Auto-review tests (`tests/AutoReview/`) verify every PHP class with a spec counterpart matches the
   canonical description, every `@see` link resolves to a real anchor in the spec docs, and every round-trip
   fixture matches the canonical envelope shape.
-- What we have today: server-side covering tools, prompts, resources (static + templated), completions,
-  logging, ping. Client-side covering the handshake plus typed requests for the same surface
-  (`tools/call` with streaming progress, the list/read/get/complete methods). Stdio transport on both sides.
-  Tool call arguments and results are validated against the tool's declared `inputSchema` / `outputSchema`
-  (pluggable via `SchemaValidatorInterface`), and a `structuredContent`-only result is mirrored into a
-  `TextContent` block for backwards compatibility.
-- What we do not have yet: streamable HTTP transport, sampling / elicitation, tasks, OAuth, MCP Apps. These
-  land across subsequent phases. Tasks, sampling, elicitation, and MCP Apps in particular reshape
-  significantly in the upcoming 2026-07-28 RC and are deferred to that migration rather than built twice.
+- What we have today: server-side covering `server/discover`, tools, prompts, resources (static +
+  templated), completions, and logging. Client-side covering `discover()` plus typed requests for the same
+  surface (`tools/call` with streaming progress, the list/read/get/complete methods). Stdio transport on
+  both sides. Tool call arguments and results are validated against the tool's declared `inputSchema` /
+  `outputSchema` (pluggable via `SchemaValidatorInterface`), and a `structuredContent`-only result is
+  mirrored into a `TextContent` block for backwards compatibility.
+- What we do not have yet: streamable HTTP transport, sampling, elicitation, tasks, OAuth, MCP Apps. These
+  land across subsequent phases.
 
 ## Diagnostic message conventions
 

@@ -18,14 +18,11 @@ use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Enum\IncludeContext;
 use Nexus\Mcp\Core\Schema\Enum\Role;
 use Nexus\Mcp\Core\Schema\Enum\ToolChoiceMode;
-use Nexus\Mcp\Core\Schema\RequestMetaObject;
-use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\CreateMessageRequestParams;
 use Nexus\Mcp\Core\Schema\Sampling\ModelHint;
 use Nexus\Mcp\Core\Schema\Sampling\ModelPreferences;
 use Nexus\Mcp\Core\Schema\Sampling\SamplingMessage;
 use Nexus\Mcp\Core\Schema\Sampling\ToolChoice;
-use Nexus\Mcp\Core\Schema\Task\TaskMetadata;
 use Nexus\Mcp\Core\Schema\Tool\Tool;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
@@ -35,7 +32,6 @@ use PHPUnit\Framework\TestCase;
  * @internal
  */
 #[CoversClass(CreateMessageRequestParams::class)]
-#[CoversClass(RequestParams::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
 final class CreateMessageRequestParamsTest extends TestCase
@@ -53,12 +49,10 @@ final class CreateMessageRequestParamsTest extends TestCase
         self::assertSame([], $params->modelPreferences->toArray());
         self::assertNull($params->stopSequences);
         self::assertNull($params->systemPrompt);
-        self::assertNull($params->task);
         self::assertNull($params->temperature);
         self::assertSame([], $params->toolChoice->toArray());
         self::assertNull($params->tools);
         self::assertNull($params->metadata);
-        self::assertSame([], $params->meta->toArray());
     }
 
     public function testConstructorAcceptsAnyIntMaxTokens(): void
@@ -133,7 +127,6 @@ final class CreateMessageRequestParamsTest extends TestCase
             modelPreferences: new ModelPreferences([new ModelHint('sonnet')]),
             stopSequences: ['STOP'],
             systemPrompt: 'Be concise.',
-            task: new TaskMetadata(60000),
             temperature: 0.7,
             toolChoice: new ToolChoice(ToolChoiceMode::Auto),
             tools: [new Tool('search', ['type' => 'object'])],
@@ -150,7 +143,6 @@ final class CreateMessageRequestParamsTest extends TestCase
                 'modelPreferences' => ['hints' => [['name' => 'sonnet']]],
                 'stopSequences' => ['STOP'],
                 'systemPrompt' => 'Be concise.',
-                'task' => ['ttl' => 60000],
                 'temperature' => 0.7,
                 'toolChoice' => ['mode' => 'auto'],
                 'tools' => [['name' => 'search', 'inputSchema' => ['type' => 'object']]],
@@ -169,26 +161,6 @@ final class CreateMessageRequestParamsTest extends TestCase
         );
 
         self::assertStringContainsString('"metadata":{}', (string) json_encode($params));
-    }
-
-    public function testToArrayIncludesMetaFromParentRequestParams(): void
-    {
-        $params = new CreateMessageRequestParams(
-            maxTokens: 1,
-            messages: [new SamplingMessage(Role::User, new TextContent('hi'))],
-            meta: new RequestMetaObject(extras: ['vendor' => 'acme']),
-        );
-
-        self::assertSame(
-            [
-                '_meta' => ['vendor' => 'acme'],
-                'maxTokens' => 1,
-                'messages' => [
-                    ['role' => 'user', 'content' => ['text' => 'hi', 'type' => 'text']],
-                ],
-            ],
-            $params->toArray(),
-        );
     }
 
     public function testJsonSerializeConvertsMessagesToArrays(): void
@@ -218,7 +190,6 @@ final class CreateMessageRequestParamsTest extends TestCase
             modelPreferences: new ModelPreferences([new ModelHint('sonnet')]),
             stopSequences: ['STOP'],
             systemPrompt: 'Be concise.',
-            task: new TaskMetadata(60000),
             temperature: 0.7,
             toolChoice: new ToolChoice(ToolChoiceMode::Auto),
             tools: [new Tool('search', ['type' => 'object'])],
@@ -302,14 +273,6 @@ final class CreateMessageRequestParamsTest extends TestCase
         CreateMessageRequestParams::fromArray(['maxTokens' => 1, 'messages' => [], 'stopSequences' => [42]]);
     }
 
-    public function testFromArrayRejectsNonObjectTask(): void
-    {
-        $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageIs('"params.task" must be an object, string given.');
-
-        CreateMessageRequestParams::fromArray(['maxTokens' => 1, 'messages' => [], 'task' => 'oops']);
-    }
-
     public function testFromArrayRejectsNonNumericTemperature(): void
     {
         $this->expectException(ExpectationFailedException::class);
@@ -332,21 +295,5 @@ final class CreateMessageRequestParamsTest extends TestCase
         $this->expectExceptionMessageIs('"params.metadata" must be an object, string given.');
 
         CreateMessageRequestParams::fromArray(['maxTokens' => 1, 'messages' => [], 'metadata' => 'oops']);
-    }
-
-    public function testFromArrayRejectsNonObjectMeta(): void
-    {
-        $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageIs('"params._meta" must be an object, string given.');
-
-        CreateMessageRequestParams::fromArray(['maxTokens' => 1, 'messages' => [], '_meta' => 'oops']);
-    }
-
-    public function testFromArrayRejectsListKeyedMeta(): void
-    {
-        $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageIs('"params._meta" must be a string-keyed object.');
-
-        CreateMessageRequestParams::fromArray(['maxTokens' => 1, 'messages' => [], '_meta' => ['x']]);
     }
 }

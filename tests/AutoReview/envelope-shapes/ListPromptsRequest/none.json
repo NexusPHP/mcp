@@ -1,5 +1,19 @@
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "prompts/list"
+    "method": "prompts/list",
+    "params": {
+        "_meta": {
+            "io.modelcontextprotocol/protocolVersion": "2025-11-25",
+            "io.modelcontextprotocol/clientInfo": {
+                "name": "test-client",
+                "version": "1.0.0"
+            },
+            "io.modelcontextprotocol/clientCapabilities": {
+                "roots": {
+                    "listChanged": true
+                }
+            }
+        }
+    }
 }

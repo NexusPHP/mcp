@@ -40,11 +40,11 @@ final class TransportEventsTest extends TestCase
             $calls[] = ['second', $envelope];
         });
 
-        $events->emitMessage(['method' => 'ping']);
+        $events->emitMessage(['method' => 'tools/list']);
 
         self::assertSame([
-            ['first', ['method' => 'ping']],
-            ['second', ['method' => 'ping']],
+            ['first', ['method' => 'tools/list']],
+            ['second', ['method' => 'tools/list']],
         ], $calls);
     }
 
@@ -164,7 +164,7 @@ final class TransportEventsTest extends TestCase
     {
         $events = new TransportEvents();
 
-        $events->emitMessage(['method' => 'ping']);
+        $events->emitMessage(['method' => 'tools/list']);
         $events->emitError(new \RuntimeException('x'));
         $events->emitDrain();
         $events->emitClose();

@@ -14,23 +14,25 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\RequestParams;
 
 use Nexus\Assert\Assert;
+use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\Enum\IncludeContext;
 use Nexus\Mcp\Core\Schema\ParsesNumber;
-use Nexus\Mcp\Core\Schema\RequestMetaObject;
-use Nexus\Mcp\Core\Schema\RequestParams;
+use Nexus\Mcp\Core\Schema\RequestParamsInterface;
 use Nexus\Mcp\Core\Schema\Sampling\ModelPreferences;
 use Nexus\Mcp\Core\Schema\Sampling\SamplingMessage;
 use Nexus\Mcp\Core\Schema\Sampling\ToolChoice;
-use Nexus\Mcp\Core\Schema\Task\TaskMetadata;
 use Nexus\Mcp\Core\Schema\Tool\Tool;
 use Nexus\Mcp\Core\Validation\EnumValueValidator;
 
 /**
  * Parameters for a `sampling/createMessage` request.
  *
+ * @implements Arrayable<array{maxTokens: int, messages: list<array<string, mixed>>, includeContext?: string, modelPreferences?: array<string, mixed>, stopSequences?: list<string>, systemPrompt?: non-empty-string, temperature?: float, toolChoice?: array<string, mixed>, tools?: list<array<string, mixed>>, metadata?: array<string, mixed>}>
+ * @implements RequestParamsInterface<array{maxTokens: int, messages: list<array<string, mixed>>, includeContext?: string, modelPreferences?: array<string, mixed>, stopSequences?: list<string>, systemPrompt?: non-empty-string, temperature?: float, toolChoice?: array<string, mixed>, tools?: list<array<string, mixed>>, metadata?: array<string, mixed>}>
+ *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#createmessagerequestparams
  */
-final readonly class CreateMessageRequestParams extends RequestParams
+final readonly class CreateMessageRequestParams implements Arrayable, RequestParamsInterface
 {
     use ParsesNumber;
 
@@ -72,12 +74,10 @@ final readonly class CreateMessageRequestParams extends RequestParams
         public ModelPreferences $modelPreferences = new ModelPreferences(),
         ?array $stopSequences = null,
         ?string $systemPrompt = null,
-        public ?TaskMetadata $task = null,
         public ?float $temperature = null,
         public ToolChoice $toolChoice = new ToolChoice(),
         ?array $tools = null,
         ?array $metadata = null,
-        RequestMetaObject $meta = new RequestMetaObject(),
     ) {
         Assert::that($messages)->values()->isInstanceOf(SamplingMessage::class);
         Assert::that($systemPrompt)->nullOr()->isNonEmptyString('"params.systemPrompt" must be a non-empty string or null.');
@@ -95,8 +95,6 @@ final readonly class CreateMessageRequestParams extends RequestParams
         $this->stopSequences = $stopSequences;
         $this->metadata = $metadata;
         $this->tools = $tools;
-
-        parent::__construct($meta);
     }
 
     /**
@@ -147,16 +145,6 @@ final readonly class CreateMessageRequestParams extends RequestParams
         $systemPrompt = $data['systemPrompt'] ?? null;
         Assert::that($systemPrompt)->nullOr()->isString('"params.systemPrompt" must be a string or null, {type} given.');
 
-        $task = null;
-
-        if (\array_key_exists('task', $data)) {
-            Assert::that($data['task'])
-                ->isArray('"params.task" must be an object, {type} given.')
-                ->isMap('"params.task" must be a string-keyed object.')
-            ;
-            $task = TaskMetadata::fromArray($data['task']);
-        }
-
         $temperature = $data['temperature'] ?? null;
 
         if (null !== $temperature) {
@@ -195,16 +183,6 @@ final readonly class CreateMessageRequestParams extends RequestParams
             $metadata = $data['metadata'];
         }
 
-        $meta = new RequestMetaObject();
-
-        if (\array_key_exists('_meta', $data)) {
-            Assert::that($data['_meta'])
-                ->isArray('"params._meta" must be an object, {type} given.')
-                ->isMap('"params._meta" must be a string-keyed object.')
-            ;
-            $meta = RequestMetaObject::fromArray($data['_meta']);
-        }
-
         return new self(
             $maxTokens,
             $messages,
@@ -212,12 +190,10 @@ final readonly class CreateMessageRequestParams extends RequestParams
             $modelPreferences,
             $stopSequences,
             $systemPrompt,
-            $task,
             $temperature,
             $toolChoice,
             $tools,
             $metadata,
-            $meta,
         );
     }
 
@@ -225,7 +201,6 @@ final readonly class CreateMessageRequestParams extends RequestParams
     public function toArray(): array
     {
         $data = [
-            ...parent::toArray(),
             'maxTokens' => $this->maxTokens,
             'messages' => array_map(static fn(SamplingMessage $m): array => $m->toArray(), $this->messages),
         ];
@@ -246,10 +221,6 @@ final readonly class CreateMessageRequestParams extends RequestParams
 
         if (null !== $this->systemPrompt) {
             $data['systemPrompt'] = $this->systemPrompt;
-        }
-
-        if (null !== $this->task) {
-            $data['task'] = $this->task->toArray();
         }
 
         if (null !== $this->temperature) {
@@ -285,10 +256,6 @@ final readonly class CreateMessageRequestParams extends RequestParams
 
         if ([] !== $this->modelPreferences->toArray()) {
             $data['modelPreferences'] = $this->modelPreferences->jsonSerialize();
-        }
-
-        if (null !== $this->task) {
-            $data['task'] = $this->task->jsonSerialize();
         }
 
         if ([] !== $this->toolChoice->toArray()) {

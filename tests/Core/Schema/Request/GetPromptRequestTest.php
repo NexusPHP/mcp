@@ -19,6 +19,7 @@ use Nexus\Mcp\Core\Schema\Request;
 use Nexus\Mcp\Core\Schema\Request\GetPromptRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\GetPromptRequestParams;
+use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -41,14 +42,14 @@ final class GetPromptRequestTest extends TestCase
 
     public function testToArray(): void
     {
-        $request = new GetPromptRequest(new RequestId(1), new GetPromptRequestParams('code-review'));
+        $request = new GetPromptRequest(new RequestId(1), new GetPromptRequestParams('code-review', RequestMetaObjectFactory::create()));
 
         self::assertSame(
             [
                 'jsonrpc' => '2.0',
                 'id' => 1,
                 'method' => 'prompts/get',
-                'params' => ['name' => 'code-review'],
+                'params' => ['_meta' => RequestMetaObjectFactory::shape(), 'name' => 'code-review'],
             ],
             $request->toArray(),
         );
@@ -58,7 +59,7 @@ final class GetPromptRequestTest extends TestCase
     {
         $original = new GetPromptRequest(
             new RequestId('req-1'),
-            new GetPromptRequestParams('code-review', ['topic' => 'auth']),
+            new GetPromptRequestParams('code-review', RequestMetaObjectFactory::create(), ['topic' => 'auth']),
         );
 
         $rebuilt = GetPromptRequest::fromArray($original->toArray());

@@ -25,11 +25,13 @@ use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcMessage;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\Notification\CancelledNotification;
 use Nexus\Mcp\Core\Schema\NotificationParams\CancelledNotificationParams;
-use Nexus\Mcp\Core\Schema\Request\PingRequest;
+use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Core\Transport\LineDuplex;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
+use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\ThrowingReadableStream;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\ThrowingWritableStream;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -97,7 +99,7 @@ final class LineDuplexTest extends TestCase
 
         $this->expectException(TransportNotStartedException::class);
 
-        $duplex->send(new PingRequest(new RequestId(1)));
+        $duplex->send(new DiscoverRequest(new RequestId(1), new EmptyRequestParams(RequestMetaObjectFactory::create())));
     }
 
     public function testSendAfterCloseThrowsTransportAlreadyClosed(): void
@@ -109,7 +111,7 @@ final class LineDuplexTest extends TestCase
 
         $this->expectException(TransportAlreadyClosedException::class);
 
-        $duplex->send(new PingRequest(new RequestId(1)));
+        $duplex->send(new DiscoverRequest(new RequestId(1), new EmptyRequestParams(RequestMetaObjectFactory::create())));
     }
 
     public function testCloseFromIdleIsIdempotent(): void
@@ -488,7 +490,7 @@ final class LineDuplexTest extends TestCase
         });
 
         $duplex->start(
-            new ReadableIterableStream(new \ArrayIterator(['{"jsonrpc":"2.0","id":1,"method":"ping"}'."\n"])),
+            new ReadableIterableStream(new \ArrayIterator(['{"jsonrpc":"2.0","id":1,"method":"tools/list"}'."\n"])),
             new WritableBuffer(),
         );
         EventLoop::run();
@@ -500,14 +502,15 @@ final class LineDuplexTest extends TestCase
     {
         $writable = new WritableBuffer();
         $duplex = self::buildDuplex();
+        $message = new DiscoverRequest(new RequestId(99), new EmptyRequestParams(RequestMetaObjectFactory::create()));
 
         $duplex->start(new ReadableBuffer(''), $writable);
-        $duplex->send(new PingRequest(new RequestId(99)));
+        $duplex->send($message);
         EventLoop::run();
         $writable->close();
 
         self::assertSame(
-            '{"jsonrpc":"2.0","id":99,"method":"ping"}'."\n",
+            json_encode($message, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE)."\n",
             $writable->buffer(),
         );
     }
@@ -551,8 +554,8 @@ final class LineDuplexTest extends TestCase
     public static function provideLoggerEmitsDebugOnSendSuccessCases(): iterable
     {
         yield 'request' => [
-            new PingRequest(new RequestId(42)),
-            '"ping" request with id "42"',
+            new DiscoverRequest(new RequestId(42), new EmptyRequestParams(RequestMetaObjectFactory::create())),
+            '"server/discover" request with id "42"',
         ];
 
         yield 'notification' => [
@@ -580,7 +583,7 @@ final class LineDuplexTest extends TestCase
         $closesBeforeSend = $closes;
 
         try {
-            $duplex->send(new PingRequest(new RequestId(1)));
+            $duplex->send(new DiscoverRequest(new RequestId(1), new EmptyRequestParams(RequestMetaObjectFactory::create())));
             self::fail('Expected send() to rethrow the underlying write failure.');
         } catch (\RuntimeException $caught) {
             self::assertSame($boom, $caught);
@@ -625,8 +628,8 @@ final class LineDuplexTest extends TestCase
     public static function provideLoggerEmitsErrorOnSendFailureCases(): iterable
     {
         yield 'request' => [
-            new PingRequest(new RequestId(42)),
-            '"ping" request with id "42"',
+            new DiscoverRequest(new RequestId(42), new EmptyRequestParams(RequestMetaObjectFactory::create())),
+            '"server/discover" request with id "42"',
         ];
 
         yield 'notification' => [
@@ -660,7 +663,7 @@ final class LineDuplexTest extends TestCase
         $this->duplexUnderConcurrentClose->start(new ReadableBuffer(''), $writable);
 
         try {
-            $this->duplexUnderConcurrentClose->send(new PingRequest(new RequestId(1)));
+            $this->duplexUnderConcurrentClose->send(new DiscoverRequest(new RequestId(1), new EmptyRequestParams(RequestMetaObjectFactory::create())));
             self::fail('Expected send() to throw on the concurrent close.');
         } catch (TransportAlreadyClosedException $caught) {
             self::assertSame('Cannot send on a closed transport.', $caught->getMessage());
@@ -720,8 +723,8 @@ final class LineDuplexTest extends TestCase
     public static function provideLoggerEmitsDebugOnConcurrentCloseSkippedSendCases(): iterable
     {
         yield 'request' => [
-            new PingRequest(new RequestId(42)),
-            '"ping" request with id "42"',
+            new DiscoverRequest(new RequestId(42), new EmptyRequestParams(RequestMetaObjectFactory::create())),
+            '"server/discover" request with id "42"',
         ];
 
         yield 'notification' => [
@@ -794,7 +797,7 @@ final class LineDuplexTest extends TestCase
         $duplex = self::buildDuplex(logger: $logger);
 
         $duplex->start(
-            new ReadableIterableStream(new \ArrayIterator(['{"jsonrpc":"2.0","id":1,"method":"ping"}'."\n"])),
+            new ReadableIterableStream(new \ArrayIterator(['{"jsonrpc":"2.0","id":1,"method":"tools/list"}'."\n"])),
             new WritableBuffer(),
         );
         EventLoop::run();
@@ -813,13 +816,13 @@ final class LineDuplexTest extends TestCase
         });
 
         $duplex->start(
-            new ReadableIterableStream(new \ArrayIterator(['{"jsonrpc":"2.0","id":1,"method":"ping"}'."\n"])),
+            new ReadableIterableStream(new \ArrayIterator(['{"jsonrpc":"2.0","id":1,"method":"tools/list"}'."\n"])),
             new WritableBuffer(),
         );
         EventLoop::run();
 
         self::assertSame(
-            [['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping']],
+            [['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/list']],
             $envelopes,
         );
     }

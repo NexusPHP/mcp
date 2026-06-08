@@ -150,13 +150,13 @@ the moment the side starts. This lets a test pre-load the full request sequence 
 wires its listeners and calls `start()` on the server-side transport:
 
 ```php
-use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
-use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
-use Nexus\Mcp\Core\Schema\Notification\InitializedNotification;
-use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
-use Nexus\Mcp\Core\Schema\Request\InitializeRequest;
+use Nexus\Mcp\Core\Schema\ClientCapabilities;
+use Nexus\Mcp\Core\Schema\Implementation;
+use Nexus\Mcp\Core\Schema\ProtocolVersion;
+use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
-use Nexus\Mcp\Core\Schema\RequestParams\InitializeRequestParams;
+use Nexus\Mcp\Core\Schema\RequestMetaObject;
+use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 use Nexus\Mcp\Core\Transport\InMemoryTransport;
 use Nexus\Mcp\Server\ServerBuilder;
 
@@ -168,14 +168,16 @@ $clientSide->onMessage(static function (array $envelope) use (&$received): void 
     $received[] = $envelope;
 });
 
-// Start the client and pre-load the initialize handshake. `$serverSide` is still Idle.
+// Start the client and pre-load a request. `$serverSide` is still Idle.
 // Every $clientSide->send() call here queues onto `$serverSide`'s pendingInbound list.
 $clientSide->start();
-$clientSide->send(new InitializeRequest(
-    new RequestId(1),
-    new InitializeRequestParams(/* protocolVersion, capabilities, clientInfo */),
-));
-$clientSide->send(new InitializedNotification(new EmptyNotificationParams()));
+
+$meta = new RequestMetaObject(
+    new ProtocolVersion(ProtocolVersion::LATEST_VERSION),
+    new Implementation('client', '1.0.0'),
+    new ClientCapabilities(),
+);
+$clientSide->send(new DiscoverRequest(new RequestId(1), new EmptyRequestParams($meta)));
 
 // Run the server. `Server::run()` calls `$serverSide->start()`, which drains the queue
 // in arrival order into the dispatcher's onMessage listener.

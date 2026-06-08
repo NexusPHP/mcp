@@ -14,16 +14,18 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\RequestParams;
 
 use Nexus\Assert\Assert;
+use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequestedSchema;
-use Nexus\Mcp\Core\Schema\RequestMetaObject;
-use Nexus\Mcp\Core\Schema\Task\TaskMetadata;
 
 /**
  * The parameters for a request to elicit non-sensitive information from the user via a form in the client.
  *
+ * @implements Arrayable<array{mode?: 'form', message: non-empty-string, requestedSchema: array<string, mixed>}>
+ * @implements ElicitRequestParams<array{mode?: 'form', message: non-empty-string, requestedSchema: array<string, mixed>}>
+ *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#elicitrequestformparams
  */
-final readonly class ElicitRequestFormParams extends TaskAugmentedRequestParams implements ElicitRequestParams
+final readonly class ElicitRequestFormParams implements Arrayable, ElicitRequestParams
 {
     public const string MODE = 'form';
 
@@ -41,16 +43,12 @@ final readonly class ElicitRequestFormParams extends TaskAugmentedRequestParams 
         string $message,
         public ElicitRequestedSchema $requestedSchema,
         string $mode = self::MODE,
-        ?TaskMetadata $task = null,
-        RequestMetaObject $meta = new RequestMetaObject(),
     ) {
         Assert::that($message)->isNonEmptyString('"params.message" must be a non-empty string.');
         Assert::that($mode)->isIdentical(self::MODE, '"params.mode" must be {other}, {value} given.');
 
         $this->message = $message;
         $this->mode = $mode;
-
-        parent::__construct($task, $meta);
     }
 
     /**
@@ -73,34 +71,13 @@ final readonly class ElicitRequestFormParams extends TaskAugmentedRequestParams 
         ;
         $requestedSchema = ElicitRequestedSchema::fromArray($data['requestedSchema']);
 
-        $task = null;
-
-        if (\array_key_exists('task', $data)) {
-            Assert::that($data['task'])
-                ->isArray('"params.task" must be an object, {type} given.')
-                ->isMap('"params.task" must be a string-keyed object.')
-            ;
-            $task = TaskMetadata::fromArray($data['task']);
-        }
-
-        $meta = new RequestMetaObject();
-
-        if (\array_key_exists('_meta', $data)) {
-            Assert::that($data['_meta'])
-                ->isArray('"params._meta" must be an object, {type} given.')
-                ->isMap('"params._meta" must be a string-keyed object.')
-            ;
-            $meta = RequestMetaObject::fromArray($data['_meta']);
-        }
-
-        return new self($message, $requestedSchema, $mode, $task, $meta);
+        return new self($message, $requestedSchema, $mode);
     }
 
     #[\Override]
     public function toArray(): array
     {
         return [
-            ...parent::toArray(),
             'mode' => $this->mode,
             'message' => $this->message,
             'requestedSchema' => $this->requestedSchema->toArray(),

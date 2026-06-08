@@ -20,6 +20,7 @@ use Nexus\Mcp\Core\Schema\Request;
 use Nexus\Mcp\Core\Schema\Request\CompleteRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\CompleteRequestParams;
+use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -47,6 +48,7 @@ final class CompleteRequestTest extends TestCase
             new CompleteRequestParams(
                 new PromptReference('code-review'),
                 ['name' => 'topic', 'value' => 'auth'],
+                RequestMetaObjectFactory::create(),
             ),
         );
 
@@ -56,6 +58,7 @@ final class CompleteRequestTest extends TestCase
                 'id' => 1,
                 'method' => 'completion/complete',
                 'params' => [
+                    '_meta' => RequestMetaObjectFactory::shape(),
                     'ref' => ['name' => 'code-review', 'type' => 'ref/prompt'],
                     'argument' => ['name' => 'topic', 'value' => 'auth'],
                 ],
@@ -71,6 +74,7 @@ final class CompleteRequestTest extends TestCase
             new CompleteRequestParams(
                 new PromptReference('code-review'),
                 ['name' => 'topic', 'value' => 'auth'],
+                RequestMetaObjectFactory::create(),
                 ['arguments' => ['topic' => 'auth']],
             ),
         );

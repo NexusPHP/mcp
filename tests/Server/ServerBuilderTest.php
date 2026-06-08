@@ -26,9 +26,9 @@ use Nexus\Mcp\Core\Schema\Resource\TextResourceContents;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Core\Schema\Result\CompleteResult;
+use Nexus\Mcp\Core\Schema\Result\DiscoverResult;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
-use Nexus\Mcp\Core\Schema\Result\InitializeResult;
 use Nexus\Mcp\Core\Schema\Result\ListPromptsResult;
 use Nexus\Mcp\Core\Schema\Result\ListResourcesResult;
 use Nexus\Mcp\Core\Schema\Result\ListResourceTemplatesResult;
@@ -52,6 +52,7 @@ use Nexus\Mcp\Server\Validation\SchemaValidatorInterface;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureNotificationHandler;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureRequestHandler;
+use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
 use Nexus\Mcp\Tests\Fixtures\Server\Completion\RecordingCompletionStore;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\DiscoverableServer;
@@ -103,9 +104,9 @@ final class ServerBuilderTest extends TestCase
         new ServerBuilder()->setInstructions('');
     }
 
-    public function testInitializeOnEmptyServerAdvertisesLoggingOnly(): void
+    public function testDiscoverOnEmptyServerAdvertisesLoggingOnly(): void
     {
-        $result = $this->initializeResultFor(new ServerBuilder()->setServerInfo('demo', '1.0.0')->build());
+        $result = $this->discoverResultFor(new ServerBuilder()->setServerInfo('demo', '1.0.0')->build());
 
         self::assertSame([], $result->capabilities->logging);
         self::assertNull($result->capabilities->tools);
@@ -125,7 +126,7 @@ final class ServerBuilderTest extends TestCase
             ->build()
         ;
 
-        $result = $this->initializeResultFor($server);
+        $result = $this->discoverResultFor($server);
 
         self::assertSame([], $result->capabilities->tools);
     }
@@ -141,7 +142,7 @@ final class ServerBuilderTest extends TestCase
             ->build()
         ;
 
-        $result = $this->initializeResultFor($server);
+        $result = $this->discoverResultFor($server);
 
         self::assertSame([], $result->capabilities->prompts);
     }
@@ -157,7 +158,7 @@ final class ServerBuilderTest extends TestCase
             ->build()
         ;
 
-        $result = $this->initializeResultFor($server);
+        $result = $this->discoverResultFor($server);
 
         self::assertSame([], $result->capabilities->resources);
     }
@@ -173,7 +174,7 @@ final class ServerBuilderTest extends TestCase
             ->build()
         ;
 
-        $result = $this->initializeResultFor($server);
+        $result = $this->discoverResultFor($server);
 
         self::assertSame([], $result->capabilities->resources);
     }
@@ -186,7 +187,7 @@ final class ServerBuilderTest extends TestCase
             ->build()
         ;
 
-        $result = $this->initializeResultFor($server);
+        $result = $this->discoverResultFor($server);
 
         self::assertSame([], $result->capabilities->completions);
     }
@@ -204,7 +205,7 @@ final class ServerBuilderTest extends TestCase
             ->build()
         ;
 
-        $result = $this->initializeResultFor($server);
+        $result = $this->discoverResultFor($server);
 
         self::assertSame([], $result->capabilities->tools);
     }
@@ -223,7 +224,7 @@ final class ServerBuilderTest extends TestCase
             ->build()
         ;
 
-        $result = $this->initializeResultFor($server);
+        $result = $this->discoverResultFor($server);
 
         self::assertNull($result->capabilities->tools);
     }
@@ -251,7 +252,7 @@ final class ServerBuilderTest extends TestCase
             ->build()
         ;
 
-        $result = $this->initializeResultFor($server);
+        $result = $this->discoverResultFor($server);
 
         self::assertSame([], $result->capabilities->prompts);
     }
@@ -270,7 +271,7 @@ final class ServerBuilderTest extends TestCase
             ->build()
         ;
 
-        $result = $this->initializeResultFor($server);
+        $result = $this->discoverResultFor($server);
 
         self::assertNull($result->capabilities->prompts);
     }
@@ -298,7 +299,7 @@ final class ServerBuilderTest extends TestCase
             ->build()
         ;
 
-        $result = $this->initializeResultFor($server);
+        $result = $this->discoverResultFor($server);
 
         self::assertSame([], $result->capabilities->resources);
     }
@@ -317,7 +318,7 @@ final class ServerBuilderTest extends TestCase
             ->build()
         ;
 
-        $result = $this->initializeResultFor($server);
+        $result = $this->discoverResultFor($server);
 
         self::assertNull($result->capabilities->resources);
     }
@@ -344,12 +345,12 @@ final class ServerBuilderTest extends TestCase
             ->build()
         ;
 
-        $result = $this->initializeResultFor($server);
+        $result = $this->discoverResultFor($server);
 
         self::assertSame([], $result->capabilities->completions);
     }
 
-    public function testInstructionsArePropagatedToInitializeResult(): void
+    public function testInstructionsArePropagatedToDiscoverResult(): void
     {
         $server = new ServerBuilder()
             ->setServerInfo('demo', '1.0.0')
@@ -357,7 +358,7 @@ final class ServerBuilderTest extends TestCase
             ->build()
         ;
 
-        $result = $this->initializeResultFor($server);
+        $result = $this->discoverResultFor($server);
 
         self::assertSame('Greet the user warmly.', $result->instructions);
     }
@@ -366,7 +367,7 @@ final class ServerBuilderTest extends TestCase
     {
         $server = new ServerBuilder()->setServerInfo('demo-srv', '2.3.4')->build();
 
-        $result = $this->initializeResultFor($server);
+        $result = $this->discoverResultFor($server);
 
         self::assertSame('demo-srv', $result->serverInfo->name);
         self::assertSame('2.3.4', $result->serverInfo->version);
@@ -383,7 +384,7 @@ final class ServerBuilderTest extends TestCase
             ->build()
         ;
 
-        $result = $this->dispatchAfterInitialize($server, 'tools/list');
+        $result = $this->dispatch($server, 'tools/list');
 
         self::assertInstanceOf(ListToolsResult::class, $result);
         self::assertCount(1, $result->tools);
@@ -414,7 +415,7 @@ final class ServerBuilderTest extends TestCase
             ->build()
         ;
 
-        $result = $this->dispatchAfterInitialize($server, 'tools/call', ['name' => 'report']);
+        $result = $this->dispatch($server, 'tools/call', ['name' => 'report']);
 
         // The default opis validator would reject the non-integer n and yield a generic error result.
         self::assertInstanceOf(CallToolResult::class, $result);
@@ -433,7 +434,7 @@ final class ServerBuilderTest extends TestCase
             ->build()
         ;
 
-        $result = $this->dispatchAfterInitialize($server, 'prompts/list');
+        $result = $this->dispatch($server, 'prompts/list');
 
         self::assertInstanceOf(ListPromptsResult::class, $result);
         self::assertCount(1, $result->prompts);
@@ -451,7 +452,7 @@ final class ServerBuilderTest extends TestCase
             ->build()
         ;
 
-        $result = $this->dispatchAfterInitialize($server, 'resources/list');
+        $result = $this->dispatch($server, 'resources/list');
 
         self::assertInstanceOf(ListResourcesResult::class, $result);
         self::assertCount(1, $result->resources);
@@ -473,11 +474,11 @@ final class ServerBuilderTest extends TestCase
             ->build()
         ;
 
-        $listResult = $this->dispatchAfterInitialize($server, 'resources/list');
+        $listResult = $this->dispatch($server, 'resources/list');
         self::assertInstanceOf(ListResourcesResult::class, $listResult);
         self::assertCount(1, $listResult->resources);
 
-        $staticRead = $this->dispatchAfterInitialize($server, 'resources/read', ['uri' => 'file:///etc/cfg']);
+        $staticRead = $this->dispatch($server, 'resources/read', ['uri' => 'file:///etc/cfg']);
         self::assertInstanceOf(ReadResourceResult::class, $staticRead);
         $staticEntry = $staticRead->contents[0] ?? null;
 
@@ -487,7 +488,7 @@ final class ServerBuilderTest extends TestCase
 
         self::assertSame('static', $staticEntry->text);
 
-        $templatedRead = $this->dispatchAfterInitialize($server, 'resources/read', ['uri' => 'file:///other']);
+        $templatedRead = $this->dispatch($server, 'resources/read', ['uri' => 'file:///other']);
         self::assertInstanceOf(ReadResourceResult::class, $templatedRead);
         $templatedEntry = $templatedRead->contents[0] ?? null;
 
@@ -509,7 +510,7 @@ final class ServerBuilderTest extends TestCase
             ->build()
         ;
 
-        $result = $this->dispatchAfterInitialize($server, 'resources/templates/list');
+        $result = $this->dispatch($server, 'resources/templates/list');
 
         self::assertInstanceOf(ListResourceTemplatesResult::class, $result);
         self::assertCount(1, $result->resourceTemplates);
@@ -527,7 +528,7 @@ final class ServerBuilderTest extends TestCase
             ->build()
         ;
 
-        $result = $this->dispatchAfterInitialize($server, 'resources/read', ['uri' => 'file:///etc']);
+        $result = $this->dispatch($server, 'resources/read', ['uri' => 'file:///etc']);
 
         self::assertInstanceOf(ReadResourceResult::class, $result);
         $entry = $result->contents[0] ?? null;
@@ -547,19 +548,19 @@ final class ServerBuilderTest extends TestCase
             ->build()
         ;
 
-        $tools = $this->dispatchAfterInitialize($server, 'tools/list');
+        $tools = $this->dispatch($server, 'tools/list');
         self::assertInstanceOf(ListToolsResult::class, $tools);
         self::assertSame(['add', 'greet_user'], self::sorted(array_map(static fn(Tool $tool): string => $tool->name, $tools->tools)));
 
-        $prompts = $this->dispatchAfterInitialize($server, 'prompts/list');
+        $prompts = $this->dispatch($server, 'prompts/list');
         self::assertInstanceOf(ListPromptsResult::class, $prompts);
         self::assertSame(['compose', 'labelled', 'outline', 'ping_prompt'], self::sorted(array_map(static fn(Prompt $prompt): string => $prompt->name, $prompts->prompts)));
 
-        $resources = $this->dispatchAfterInitialize($server, 'resources/list');
+        $resources = $this->dispatch($server, 'resources/list');
         self::assertInstanceOf(ListResourcesResult::class, $resources);
         self::assertSame(['app_config', 'defaults'], self::sorted(array_map(static fn(Resource $resource): string => $resource->name, $resources->resources)));
 
-        $templates = $this->dispatchAfterInitialize($server, 'resources/templates/list');
+        $templates = $this->dispatch($server, 'resources/templates/list');
         self::assertInstanceOf(ListResourceTemplatesResult::class, $templates);
         self::assertSame(['fileTemplate', 'user_profile'], self::sorted(array_map(static fn(ResourceTemplate $template): string => $template->name, $templates->resourceTemplates)));
     }
@@ -572,7 +573,7 @@ final class ServerBuilderTest extends TestCase
             ->build()
         ;
 
-        $result = $this->dispatchAfterInitialize($server, 'tools/call', ['name' => 'add', 'arguments' => ['a' => 2, 'b' => 3]]);
+        $result = $this->dispatch($server, 'tools/call', ['name' => 'add', 'arguments' => ['a' => 2, 'b' => 3]]);
 
         self::assertInstanceOf(CallToolResult::class, $result);
 
@@ -601,7 +602,7 @@ final class ServerBuilderTest extends TestCase
             ->build()
         ;
 
-        $tools = $this->dispatchAfterInitialize($server, 'tools/list');
+        $tools = $this->dispatch($server, 'tools/list');
 
         self::assertInstanceOf(ListToolsResult::class, $tools);
         self::assertSame(['add', 'greet_user', 'ping'], self::sorted(array_map(static fn(Tool $tool): string => $tool->name, $tools->tools)));
@@ -621,7 +622,7 @@ final class ServerBuilderTest extends TestCase
             ->build()
         ;
 
-        $result = $this->initializeResultFor($server);
+        $result = $this->discoverResultFor($server);
 
         self::assertSame('described-server', $result->serverInfo->name);
         self::assertSame('2.3.4', $result->serverInfo->version);
@@ -640,7 +641,7 @@ final class ServerBuilderTest extends TestCase
             ->build()
         ;
 
-        $result = $this->initializeResultFor($server);
+        $result = $this->discoverResultFor($server);
         $info = $result->serverInfo;
 
         self::assertSame('explicit-server', $info->name);
@@ -659,7 +660,7 @@ final class ServerBuilderTest extends TestCase
             ->build()
         ;
 
-        $result = $this->initializeResultFor($server);
+        $result = $this->discoverResultFor($server);
         $info = $result->serverInfo;
 
         self::assertSame('Explicit Title', $info->title);
@@ -672,7 +673,7 @@ final class ServerBuilderTest extends TestCase
     {
         $source = new #[AsServer(name: 'minimal', version: '1.0.0')] class {};
 
-        $result = $this->initializeResultFor(new ServerBuilder()->register($source)->build());
+        $result = $this->discoverResultFor(new ServerBuilder()->register($source)->build());
 
         self::assertNull($result->instructions);
         self::assertSame('minimal', $result->serverInfo->name);
@@ -698,7 +699,7 @@ final class ServerBuilderTest extends TestCase
             }
         };
 
-        $result = $this->initializeResultFor(
+        $result = $this->discoverResultFor(
             new ServerBuilder()->register(new SelfDescribingServer(), $extra)->build(),
         );
 
@@ -735,7 +736,7 @@ final class ServerBuilderTest extends TestCase
             ->build()
         ;
 
-        $result = $this->initializeResultFor($server);
+        $result = $this->discoverResultFor($server);
 
         self::assertSame('Explicit instructions win.', $result->instructions);
     }
@@ -758,7 +759,7 @@ final class ServerBuilderTest extends TestCase
         $invoked = 0;
         $server = new ServerBuilder()
             ->setServerInfo('demo', '1.0.0')
-            ->replaceRequestHandler('ping', new ClosureRequestHandler(
+            ->replaceRequestHandler('server/discover', new ClosureRequestHandler(
                 static function () use (&$invoked): EmptyResult {
                     ++$invoked;
 
@@ -768,7 +769,7 @@ final class ServerBuilderTest extends TestCase
             ->build()
         ;
 
-        $this->dispatchAfterInitialize($server, 'ping');
+        $this->dispatch($server, 'server/discover');
 
         self::assertSame(1, $invoked);
     }
@@ -812,10 +813,6 @@ final class ServerBuilderTest extends TestCase
 
         yield 'elicitation/create' => ['elicitation/create'];
 
-        yield 'initialize' => ['initialize'];
-
-        yield 'ping' => ['ping'];
-
         yield 'prompts/get' => ['prompts/get'];
 
         yield 'prompts/list' => ['prompts/list'];
@@ -829,6 +826,8 @@ final class ServerBuilderTest extends TestCase
         yield 'roots/list' => ['roots/list'];
 
         yield 'sampling/createMessage' => ['sampling/createMessage'];
+
+        yield 'server/discover' => ['server/discover'];
 
         yield 'tools/call' => ['tools/call'];
 
@@ -873,8 +872,6 @@ final class ServerBuilderTest extends TestCase
         yield 'notifications/cancelled' => ['notifications/cancelled'];
 
         yield 'notifications/elicitation/complete' => ['notifications/elicitation/complete'];
-
-        yield 'notifications/initialized' => ['notifications/initialized'];
 
         yield 'notifications/message' => ['notifications/message'];
 
@@ -929,28 +926,7 @@ final class ServerBuilderTest extends TestCase
             $server->run($transport);
         });
 
-        $initializeSent = $transport->nextSend();
-
         EventLoop::queue(static function () use ($transport): void {
-            $transport->emitMessage([
-                'jsonrpc' => '2.0',
-                'id' => 1,
-                'method' => 'initialize',
-                'params' => [
-                    'protocolVersion' => '2025-11-25',
-                    'capabilities' => [],
-                    'clientInfo' => ['name' => 'test-client', 'version' => '1.0.0'],
-                ],
-            ]);
-        });
-
-        $initializeSent->await();
-
-        EventLoop::queue(static function () use ($transport): void {
-            $transport->emitMessage([
-                'jsonrpc' => '2.0',
-                'method' => 'notifications/initialized',
-            ]);
             $transport->emitMessage([
                 'jsonrpc' => '2.0',
                 'method' => 'notifications/cancelled',
@@ -997,7 +973,7 @@ final class ServerBuilderTest extends TestCase
             ->build()
         ;
 
-        $result = $this->dispatchAfterInitialize($server, 'completion/complete', [
+        $result = $this->dispatch($server, 'completion/complete', [
             'ref' => ['type' => 'ref/prompt', 'name' => 'hello'],
             'argument' => ['name' => 'arg', 'value' => 'partial'],
         ]);
@@ -1022,19 +998,19 @@ final class ServerBuilderTest extends TestCase
             }
         };
 
-        $capabilities = $this->initializeResultFor(
+        $capabilities = $this->discoverResultFor(
             new ServerBuilder()->setServerInfo('demo', '1.0.0')->setToolStore($store)->build(),
         )->capabilities;
         self::assertSame([], $capabilities->tools);
 
-        $storeOnly = $this->dispatchAfterInitialize(
+        $storeOnly = $this->dispatch(
             new ServerBuilder()->setServerInfo('demo', '1.0.0')->setToolStore($store)->build(),
             'tools/list',
         );
         self::assertInstanceOf(ListToolsResult::class, $storeOnly);
         self::assertSame(['custom_tool'], array_map(static fn(Tool $tool): string => $tool->name, $storeOnly->tools));
 
-        $withEntry = $this->dispatchAfterInitialize(
+        $withEntry = $this->dispatch(
             new ServerBuilder()
                 ->setServerInfo('demo', '1.0.0')
                 ->addTool(
@@ -1065,19 +1041,19 @@ final class ServerBuilderTest extends TestCase
             }
         };
 
-        $capabilities = $this->initializeResultFor(
+        $capabilities = $this->discoverResultFor(
             new ServerBuilder()->setServerInfo('demo', '1.0.0')->setPromptStore($store)->build(),
         )->capabilities;
         self::assertSame([], $capabilities->prompts);
 
-        $storeOnly = $this->dispatchAfterInitialize(
+        $storeOnly = $this->dispatch(
             new ServerBuilder()->setServerInfo('demo', '1.0.0')->setPromptStore($store)->build(),
             'prompts/list',
         );
         self::assertInstanceOf(ListPromptsResult::class, $storeOnly);
         self::assertSame(['custom_prompt'], array_map(static fn(Prompt $prompt): string => $prompt->name, $storeOnly->prompts));
 
-        $withEntry = $this->dispatchAfterInitialize(
+        $withEntry = $this->dispatch(
             new ServerBuilder()
                 ->setServerInfo('demo', '1.0.0')
                 ->addPrompt(
@@ -1108,19 +1084,19 @@ final class ServerBuilderTest extends TestCase
             }
         };
 
-        $capabilities = $this->initializeResultFor(
+        $capabilities = $this->discoverResultFor(
             new ServerBuilder()->setServerInfo('demo', '1.0.0')->setResourceStore($store)->build(),
         )->capabilities;
         self::assertSame([], $capabilities->resources);
 
-        $storeOnly = $this->dispatchAfterInitialize(
+        $storeOnly = $this->dispatch(
             new ServerBuilder()->setServerInfo('demo', '1.0.0')->setResourceStore($store)->build(),
             'resources/list',
         );
         self::assertInstanceOf(ListResourcesResult::class, $storeOnly);
         self::assertSame(['mem://custom'], array_map(static fn(Resource $resource): string => $resource->uri, $storeOnly->resources));
 
-        $withEntry = $this->dispatchAfterInitialize(
+        $withEntry = $this->dispatch(
             new ServerBuilder()
                 ->setServerInfo('demo', '1.0.0')
                 ->addResource(
@@ -1134,7 +1110,7 @@ final class ServerBuilderTest extends TestCase
         self::assertInstanceOf(ListResourcesResult::class, $withEntry);
         self::assertSame(['mem://custom'], array_map(static fn(Resource $resource): string => $resource->uri, $withEntry->resources));
 
-        $alongsideTemplates = $this->dispatchAfterInitialize(
+        $alongsideTemplates = $this->dispatch(
             new ServerBuilder()
                 ->setServerInfo('demo', '1.0.0')
                 ->addResource(
@@ -1169,19 +1145,19 @@ final class ServerBuilderTest extends TestCase
             }
         };
 
-        $capabilities = $this->initializeResultFor(
+        $capabilities = $this->discoverResultFor(
             new ServerBuilder()->setServerInfo('demo', '1.0.0')->setResourceTemplateStore($store)->build(),
         )->capabilities;
         self::assertSame([], $capabilities->resources);
 
-        $storeOnly = $this->dispatchAfterInitialize(
+        $storeOnly = $this->dispatch(
             new ServerBuilder()->setServerInfo('demo', '1.0.0')->setResourceTemplateStore($store)->build(),
             'resources/templates/list',
         );
         self::assertInstanceOf(ListResourceTemplatesResult::class, $storeOnly);
         self::assertSame(['mem://{id}'], array_map(static fn(ResourceTemplate $template): string => $template->uriTemplate, $storeOnly->resourceTemplates));
 
-        $withEntry = $this->dispatchAfterInitialize(
+        $withEntry = $this->dispatch(
             new ServerBuilder()
                 ->setServerInfo('demo', '1.0.0')
                 ->addResourceTemplate(
@@ -1220,83 +1196,45 @@ final class ServerBuilderTest extends TestCase
     }
 
     /**
-     * Drives the constructed server with a synthetic `initialize` request and
+     * Drives the constructed server with a synthetic `server/discover` request and
      * returns the typed result captured off the recording transport.
      */
-    private function initializeResultFor(Server $server): InitializeResult
+    private function discoverResultFor(Server $server): DiscoverResult
     {
-        $transport = new RecordingTransport();
-        $serverRun = \Amp\async(static function () use ($server, $transport): void {
-            $server->run($transport);
-        });
+        $result = $this->dispatch($server, 'server/discover');
 
-        EventLoop::queue(static function () use ($transport): void {
-            $transport->emitMessage([
-                'jsonrpc' => '2.0',
-                'id' => 1,
-                'method' => 'initialize',
-                'params' => [
-                    'protocolVersion' => '2025-11-25',
-                    'capabilities' => [],
-                    'clientInfo' => ['name' => 'test-client', 'version' => '1.0.0'],
-                ],
-            ]);
-            $transport->close();
-        });
+        self::assertInstanceOf(DiscoverResult::class, $result);
 
-        $serverRun->await();
-
-        self::assertNotEmpty($transport->sent);
-        $message = $transport->sent[0]['message'];
-        self::assertInstanceOf(JsonRpcResultResponse::class, $message);
-        self::assertInstanceOf(InitializeResult::class, $message->result);
-
-        return $message->result;
+        return $result;
     }
 
     /**
-     * Drives the built server through a full `initialize` + `notifications/initialized`
-     * + given operation cycle, returning the typed result of the operation response.
+     * Drives the built server with a single operation request, returning the
+     * typed result of the operation response.
      *
      * @param array<string, mixed> $params
      */
-    private function dispatchAfterInitialize(Server $server, string $method, array $params = []): Result
+    private function dispatch(Server $server, string $method, array $params = []): Result
     {
         $transport = new RecordingTransport();
         $serverRun = \Amp\async(static function () use ($server, $transport): void {
             $server->run($transport);
         });
 
-        $initializeSent = $transport->nextSend();
-
-        EventLoop::queue(static function () use ($transport): void {
-            $transport->emitMessage([
-                'jsonrpc' => '2.0',
-                'id' => 1,
-                'method' => 'initialize',
-                'params' => [
-                    'protocolVersion' => '2025-11-25',
-                    'capabilities' => [],
-                    'clientInfo' => ['name' => 'test-client', 'version' => '1.0.0'],
-                ],
-            ]);
-        });
-
-        $initializeSent->await();
+        $started = $transport->nextSend();
 
         EventLoop::queue(static function () use ($transport, $method, $params): void {
             $transport->emitMessage([
                 'jsonrpc' => '2.0',
-                'method' => 'notifications/initialized',
+                'id' => 2,
+                'method' => $method,
+                'params' => ['_meta' => RequestMetaObjectFactory::shape(), ...$params],
             ]);
+        });
 
-            $envelope = ['jsonrpc' => '2.0', 'id' => 2, 'method' => $method];
+        $started->await();
 
-            if ([] !== $params) {
-                $envelope['params'] = $params;
-            }
-
-            $transport->emitMessage($envelope);
+        EventLoop::queue(static function () use ($transport): void {
             $transport->close();
         });
 

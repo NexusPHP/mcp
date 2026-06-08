@@ -16,20 +16,23 @@ namespace Nexus\Mcp\Core\Schema\Request;
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
-use Nexus\Mcp\Core\Schema\RequestParams\InitializeRequestParams;
+use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 
 /**
- * This request is sent from the client to the server when it first connects, asking it to begin initialization.
+ * A request from the client asking the server to advertise its supported
+ * protocol versions, capabilities, and other metadata. Servers **MUST**
+ * implement `server/discover`. Clients **MAY** call it but are not required
+ * to — version negotiation can also happen inline via per-request `_meta`.
  *
- * @property-read InitializeRequestParams $params
+ * @property-read EmptyRequestParams $params
  *
- * @extends JsonRpcRequest<'initialize'>
+ * @extends JsonRpcRequest<'server/discover'>
  *
- * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#initializerequest
+ * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/draft/schema.ts
  */
-final readonly class InitializeRequest extends JsonRpcRequest implements ClientRequest
+final readonly class DiscoverRequest extends JsonRpcRequest implements ClientRequest
 {
-    public function __construct(RequestId $id, InitializeRequestParams $params)
+    public function __construct(RequestId $id, EmptyRequestParams $params)
     {
         parent::__construct($id, $params);
     }
@@ -37,14 +40,13 @@ final readonly class InitializeRequest extends JsonRpcRequest implements ClientR
     #[\Override]
     public static function getMethod(): string
     {
-        return 'initialize';
+        return 'server/discover';
     }
 
     #[\Override]
     public static function fromArray(array $data): static
     {
         Assert::that($data)->hasOffset('id', 'missing the required "id" key.');
-
         $id = $data['id'];
         Assert::that($id)->isArrayKey('"id" must be an int or string, {type} given.');
 
@@ -53,10 +55,8 @@ final readonly class InitializeRequest extends JsonRpcRequest implements ClientR
             ->isArray('"params" must be an object, {type} given.')
             ->isMap('"params" must be a string-keyed object.')
         ;
+        $params = EmptyRequestParams::fromArray($data['params']);
 
-        return new self(
-            new RequestId($id),
-            InitializeRequestParams::fromArray($data['params']),
-        );
+        return new self(new RequestId($id), $params);
     }
 }

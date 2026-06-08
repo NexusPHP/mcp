@@ -17,7 +17,6 @@ use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\Notification\CancelledNotification;
 use Nexus\Mcp\Core\Schema\Notification\ElicitationCompleteNotification;
-use Nexus\Mcp\Core\Schema\Notification\InitializedNotification;
 use Nexus\Mcp\Core\Schema\Notification\LoggingMessageNotification;
 use Nexus\Mcp\Core\Schema\Notification\ProgressNotification;
 use Nexus\Mcp\Core\Schema\Notification\PromptListChangedNotification;
@@ -27,15 +26,14 @@ use Nexus\Mcp\Core\Schema\Notification\ToolListChangedNotification;
 use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
 use Nexus\Mcp\Core\Schema\Request\CompleteRequest;
 use Nexus\Mcp\Core\Schema\Request\CreateMessageRequest;
+use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
 use Nexus\Mcp\Core\Schema\Request\ElicitRequest;
 use Nexus\Mcp\Core\Schema\Request\GetPromptRequest;
-use Nexus\Mcp\Core\Schema\Request\InitializeRequest;
 use Nexus\Mcp\Core\Schema\Request\ListPromptsRequest;
 use Nexus\Mcp\Core\Schema\Request\ListResourcesRequest;
 use Nexus\Mcp\Core\Schema\Request\ListResourceTemplatesRequest;
 use Nexus\Mcp\Core\Schema\Request\ListRootsRequest;
 use Nexus\Mcp\Core\Schema\Request\ListToolsRequest;
-use Nexus\Mcp\Core\Schema\Request\PingRequest;
 use Nexus\Mcp\Core\Schema\Request\ReadResourceRequest;
 
 /**
@@ -53,8 +51,6 @@ final class JsonRpcMethodRegistry
         return [
             CompleteRequest::getMethod() => CompleteRequest::class,
             ElicitRequest::getMethod() => ElicitRequest::class,
-            InitializeRequest::getMethod() => InitializeRequest::class,
-            PingRequest::getMethod() => PingRequest::class,
             GetPromptRequest::getMethod() => GetPromptRequest::class,
             ListPromptsRequest::getMethod() => ListPromptsRequest::class,
             ListResourcesRequest::getMethod() => ListResourcesRequest::class,
@@ -62,6 +58,7 @@ final class JsonRpcMethodRegistry
             ListResourceTemplatesRequest::getMethod() => ListResourceTemplatesRequest::class,
             ListRootsRequest::getMethod() => ListRootsRequest::class,
             CreateMessageRequest::getMethod() => CreateMessageRequest::class,
+            DiscoverRequest::getMethod() => DiscoverRequest::class,
             CallToolRequest::getMethod() => CallToolRequest::class,
             ListToolsRequest::getMethod() => ListToolsRequest::class,
         ];
@@ -77,7 +74,6 @@ final class JsonRpcMethodRegistry
         return [
             CancelledNotification::getMethod() => CancelledNotification::class,
             ElicitationCompleteNotification::getMethod() => ElicitationCompleteNotification::class,
-            InitializedNotification::getMethod() => InitializedNotification::class,
             LoggingMessageNotification::getMethod() => LoggingMessageNotification::class,
             ProgressNotification::getMethod() => ProgressNotification::class,
             PromptListChangedNotification::getMethod() => PromptListChangedNotification::class,

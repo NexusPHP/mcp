@@ -21,6 +21,7 @@ use Nexus\Mcp\Core\Schema\Request;
 use Nexus\Mcp\Core\Schema\Request\ListResourceTemplatesRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\PaginatedRequestParams;
+use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -42,12 +43,17 @@ final class ListResourceTemplatesRequestTest extends TestCase
         self::assertSame('resources/templates/list', ListResourceTemplatesRequest::getMethod());
     }
 
-    public function testToArrayOmitsParamsWhenEmpty(): void
+    public function testToArrayMinimal(): void
     {
-        $request = new ListResourceTemplatesRequest(new RequestId(1));
+        $request = new ListResourceTemplatesRequest(new RequestId(1), new PaginatedRequestParams(RequestMetaObjectFactory::create()));
 
         self::assertSame(
-            ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'resources/templates/list'],
+            [
+                'jsonrpc' => '2.0',
+                'id' => 1,
+                'method' => 'resources/templates/list',
+                'params' => ['_meta' => RequestMetaObjectFactory::shape()],
+            ],
             $request->toArray(),
         );
     }
@@ -56,7 +62,7 @@ final class ListResourceTemplatesRequestTest extends TestCase
     {
         $request = new ListResourceTemplatesRequest(
             new RequestId(1),
-            new PaginatedRequestParams(new Cursor('cur-1')),
+            new PaginatedRequestParams(RequestMetaObjectFactory::create(), new Cursor('cur-1')),
         );
 
         self::assertSame(
@@ -64,29 +70,17 @@ final class ListResourceTemplatesRequestTest extends TestCase
                 'jsonrpc' => '2.0',
                 'id' => 1,
                 'method' => 'resources/templates/list',
-                'params' => ['cursor' => 'cur-1'],
+                'params' => ['_meta' => RequestMetaObjectFactory::shape(), 'cursor' => 'cur-1'],
             ],
             $request->toArray(),
         );
-    }
-
-    public function testFromArrayParsesWithoutParams(): void
-    {
-        $request = ListResourceTemplatesRequest::fromArray([
-            'jsonrpc' => '2.0',
-            'id' => 1,
-            'method' => 'resources/templates/list',
-        ]);
-
-        self::assertSame(PaginatedRequestParams::class, $request->params::class);
-        self::assertNull($request->params->cursor);
     }
 
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new ListResourceTemplatesRequest(
             new RequestId('req-1'),
-            new PaginatedRequestParams(new Cursor('cur-1')),
+            new PaginatedRequestParams(RequestMetaObjectFactory::create(), new Cursor('cur-1')),
         );
 
         $rebuilt = ListResourceTemplatesRequest::fromArray($original->toArray());
@@ -119,6 +113,11 @@ final class ListResourceTemplatesRequestTest extends TestCase
         yield 'id not int or string' => [
             ['jsonrpc' => '2.0', 'id' => [], 'method' => 'resources/templates/list'],
             '"id" must be an int or string, array given.',
+        ];
+
+        yield 'missing params' => [
+            ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'resources/templates/list'],
+            'missing the required "params" key.',
         ];
 
         yield 'params not an object' => [

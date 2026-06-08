@@ -21,6 +21,7 @@ use Nexus\Mcp\Core\Schema\Request;
 use Nexus\Mcp\Core\Schema\Request\ListPromptsRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\PaginatedRequestParams;
+use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -42,12 +43,17 @@ final class ListPromptsRequestTest extends TestCase
         self::assertSame('prompts/list', ListPromptsRequest::getMethod());
     }
 
-    public function testToArrayOmitsParamsWhenEmpty(): void
+    public function testToArrayMinimal(): void
     {
-        $request = new ListPromptsRequest(new RequestId(1));
+        $request = new ListPromptsRequest(new RequestId(1), new PaginatedRequestParams(RequestMetaObjectFactory::create()));
 
         self::assertSame(
-            ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'prompts/list'],
+            [
+                'jsonrpc' => '2.0',
+                'id' => 1,
+                'method' => 'prompts/list',
+                'params' => ['_meta' => RequestMetaObjectFactory::shape()],
+            ],
             $request->toArray(),
         );
     }
@@ -56,7 +62,7 @@ final class ListPromptsRequestTest extends TestCase
     {
         $request = new ListPromptsRequest(
             new RequestId(1),
-            new PaginatedRequestParams(new Cursor('cur-1')),
+            new PaginatedRequestParams(RequestMetaObjectFactory::create(), new Cursor('cur-1')),
         );
 
         self::assertSame(
@@ -64,29 +70,17 @@ final class ListPromptsRequestTest extends TestCase
                 'jsonrpc' => '2.0',
                 'id' => 1,
                 'method' => 'prompts/list',
-                'params' => ['cursor' => 'cur-1'],
+                'params' => ['_meta' => RequestMetaObjectFactory::shape(), 'cursor' => 'cur-1'],
             ],
             $request->toArray(),
         );
-    }
-
-    public function testFromArrayParsesWithoutParams(): void
-    {
-        $request = ListPromptsRequest::fromArray([
-            'jsonrpc' => '2.0',
-            'id' => 1,
-            'method' => 'prompts/list',
-        ]);
-
-        self::assertSame(PaginatedRequestParams::class, $request->params::class);
-        self::assertNull($request->params->cursor);
     }
 
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new ListPromptsRequest(
             new RequestId('req-1'),
-            new PaginatedRequestParams(new Cursor('cur-1')),
+            new PaginatedRequestParams(RequestMetaObjectFactory::create(), new Cursor('cur-1')),
         );
 
         $rebuilt = ListPromptsRequest::fromArray($original->toArray());
@@ -119,6 +113,11 @@ final class ListPromptsRequestTest extends TestCase
         yield 'id not int or string' => [
             ['jsonrpc' => '2.0', 'id' => [], 'method' => 'prompts/list'],
             '"id" must be an int or string, array given.',
+        ];
+
+        yield 'missing params' => [
+            ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'prompts/list'],
+            'missing the required "params" key.',
         ];
 
         yield 'params not an object' => [

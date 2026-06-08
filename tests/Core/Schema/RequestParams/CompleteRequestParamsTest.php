@@ -16,10 +16,10 @@ namespace Nexus\Mcp\Tests\Core\Schema\RequestParams;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\ProgressToken;
 use Nexus\Mcp\Core\Schema\Prompt\PromptReference;
-use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\CompleteRequestParams;
 use Nexus\Mcp\Core\Schema\Resource\ResourceTemplateReference;
+use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -39,22 +39,22 @@ final class CompleteRequestParamsTest extends TestCase
         $params = new CompleteRequestParams(
             new PromptReference('code-review'),
             ['name' => 'topic', 'value' => 'auth'],
+            RequestMetaObjectFactory::create(),
         );
 
         self::assertInstanceOf(PromptReference::class, $params->ref);
         self::assertSame(['name' => 'topic', 'value' => 'auth'], $params->argument);
         self::assertNull($params->context);
-        self::assertSame([], $params->meta->toArray());
     }
 
     public function testConstructionWithAllFields(): void
     {
-        $meta = new RequestMetaObject(new ProgressToken('p-1'), ['vendor.brand' => 'acme']);
+        $meta = RequestMetaObjectFactory::create(new ProgressToken('p-1'), ['vendor.brand' => 'acme']);
         $params = new CompleteRequestParams(
             new ResourceTemplateReference('file:///{path}'),
             ['name' => 'path', 'value' => 'src/'],
-            ['arguments' => ['path' => 'src/']],
             $meta,
+            ['arguments' => ['path' => 'src/']],
         );
 
         self::assertInstanceOf(ResourceTemplateReference::class, $params->ref);
@@ -67,6 +67,7 @@ final class CompleteRequestParamsTest extends TestCase
         $params = new CompleteRequestParams(
             new PromptReference('code-review'),
             ['name' => 'topic', 'value' => 'auth'],
+            RequestMetaObjectFactory::create(),
             [],
         );
 
@@ -78,10 +79,12 @@ final class CompleteRequestParamsTest extends TestCase
         $params = new CompleteRequestParams(
             new PromptReference('code-review'),
             ['name' => 'topic', 'value' => 'auth'],
+            RequestMetaObjectFactory::create(),
         );
 
         self::assertSame(
             [
+                '_meta' => RequestMetaObjectFactory::shape(),
                 'ref' => ['name' => 'code-review', 'type' => 'ref/prompt'],
                 'argument' => ['name' => 'topic', 'value' => 'auth'],
             ],
@@ -94,13 +97,13 @@ final class CompleteRequestParamsTest extends TestCase
         $params = new CompleteRequestParams(
             new ResourceTemplateReference('file:///{path}'),
             ['name' => 'path', 'value' => 'src/'],
+            RequestMetaObjectFactory::create(null, ['vendor.brand' => 'acme']),
             ['arguments' => ['path' => 'src/']],
-            new RequestMetaObject(null, ['vendor.brand' => 'acme']),
         );
 
         self::assertSame(
             [
-                '_meta' => ['vendor.brand' => 'acme'],
+                '_meta' => RequestMetaObjectFactory::shape(null, ['vendor.brand' => 'acme']),
                 'ref' => ['type' => 'ref/resource', 'uri' => 'file:///{path}'],
                 'argument' => ['name' => 'path', 'value' => 'src/'],
                 'context' => ['arguments' => ['path' => 'src/']],
@@ -114,6 +117,7 @@ final class CompleteRequestParamsTest extends TestCase
         $params = new CompleteRequestParams(
             new PromptReference('code-review'),
             ['name' => 'topic', 'value' => 'auth'],
+            RequestMetaObjectFactory::create(),
             [],
         );
 
@@ -125,6 +129,7 @@ final class CompleteRequestParamsTest extends TestCase
         $params = new CompleteRequestParams(
             new PromptReference('code-review'),
             ['name' => 'topic', 'value' => 'auth'],
+            RequestMetaObjectFactory::create(),
             ['arguments' => []],
         );
 
@@ -136,6 +141,7 @@ final class CompleteRequestParamsTest extends TestCase
         $params = new CompleteRequestParams(
             new PromptReference('code-review'),
             ['name' => 'topic', 'value' => 'auth'],
+            RequestMetaObjectFactory::create(),
         );
 
         self::assertSame($params->toArray(), $params->jsonSerialize());
@@ -146,6 +152,7 @@ final class CompleteRequestParamsTest extends TestCase
         $params = CompleteRequestParams::fromArray([
             'ref' => ['type' => 'ref/prompt', 'name' => 'code-review'],
             'argument' => ['name' => 'topic', 'value' => 'auth'],
+            '_meta' => RequestMetaObjectFactory::shape(),
         ]);
 
         self::assertInstanceOf(PromptReference::class, $params->ref);
@@ -156,6 +163,7 @@ final class CompleteRequestParamsTest extends TestCase
         $params = CompleteRequestParams::fromArray([
             'ref' => ['type' => 'ref/resource', 'uri' => 'file:///{path}'],
             'argument' => ['name' => 'path', 'value' => 'src/'],
+            '_meta' => RequestMetaObjectFactory::shape(),
         ]);
 
         self::assertInstanceOf(ResourceTemplateReference::class, $params->ref);
@@ -167,6 +175,7 @@ final class CompleteRequestParamsTest extends TestCase
             'ref' => ['type' => 'ref/prompt', 'name' => 'code-review'],
             'argument' => ['name' => 'topic', 'value' => 'auth'],
             'context' => ['arguments' => ['topic' => 'auth']],
+            '_meta' => RequestMetaObjectFactory::shape(),
         ]);
 
         self::assertSame(['arguments' => ['topic' => 'auth']], $params->context);
@@ -178,6 +187,7 @@ final class CompleteRequestParamsTest extends TestCase
             'ref' => ['type' => 'ref/prompt', 'name' => 'code-review'],
             'argument' => ['name' => 'topic', 'value' => 'auth'],
             'context' => [],
+            '_meta' => RequestMetaObjectFactory::shape(),
         ]);
 
         self::assertSame([], $params->context);
@@ -188,8 +198,8 @@ final class CompleteRequestParamsTest extends TestCase
         $original = new CompleteRequestParams(
             new PromptReference('code-review'),
             ['name' => 'topic', 'value' => 'auth'],
+            RequestMetaObjectFactory::create(null, ['vendor.brand' => 'acme']),
             ['arguments' => ['topic' => 'auth']],
-            new RequestMetaObject(null, ['vendor.brand' => 'acme']),
         );
 
         $rebuilt = CompleteRequestParams::fromArray($original->toArray());
@@ -206,6 +216,7 @@ final class CompleteRequestParamsTest extends TestCase
             new PromptReference('code-review'),
             // @phpstan-ignore argument.type
             ['name' => 1, 'value' => 'auth'],
+            RequestMetaObjectFactory::create(),
         );
     }
 
@@ -218,6 +229,7 @@ final class CompleteRequestParamsTest extends TestCase
             new PromptReference('code-review'),
             // @phpstan-ignore argument.type
             ['name' => 'topic', 'value' => 1],
+            RequestMetaObjectFactory::create(),
         );
     }
 
@@ -229,6 +241,7 @@ final class CompleteRequestParamsTest extends TestCase
         new CompleteRequestParams(
             new PromptReference('code-review'),
             ['name' => 'topic', 'value' => 'auth'],
+            RequestMetaObjectFactory::create(),
             // @phpstan-ignore argument.type
             ['arguments' => ['v']],
         );
@@ -242,6 +255,7 @@ final class CompleteRequestParamsTest extends TestCase
         new CompleteRequestParams(
             new PromptReference('code-review'),
             ['name' => 'topic', 'value' => 'auth'],
+            RequestMetaObjectFactory::create(),
             // @phpstan-ignore argument.type
             ['arguments' => ['k' => 1]],
         );
@@ -280,17 +294,17 @@ final class CompleteRequestParamsTest extends TestCase
         ];
 
         yield 'ref missing type' => [
-            ['ref' => ['name' => 'code-review'], 'argument' => ['name' => 'topic', 'value' => 'auth']],
+            ['ref' => ['name' => 'code-review'], 'argument' => ['name' => 'topic', 'value' => 'auth'], '_meta' => RequestMetaObjectFactory::shape()],
             '"params.ref" data missing "type".',
         ];
 
         yield 'ref type not a string' => [
-            ['ref' => ['type' => 1], 'argument' => ['name' => 'topic', 'value' => 'auth']],
+            ['ref' => ['type' => 1], 'argument' => ['name' => 'topic', 'value' => 'auth'], '_meta' => RequestMetaObjectFactory::shape()],
             '"params.ref" "type" must be a string, int given.',
         ];
 
         yield 'ref type unknown' => [
-            ['ref' => ['type' => 'unknown'], 'argument' => ['name' => 'topic', 'value' => 'auth']],
+            ['ref' => ['type' => 'unknown'], 'argument' => ['name' => 'topic', 'value' => 'auth'], '_meta' => RequestMetaObjectFactory::shape()],
             '"params.ref" "type" must be one of "ref/prompt", "ref/resource", \'unknown\' given.',
         ];
 
@@ -352,6 +366,11 @@ final class CompleteRequestParamsTest extends TestCase
         yield 'context argument value not a string' => [
             ['ref' => ['type' => 'ref/prompt', 'name' => 'code-review'], 'argument' => ['name' => 'topic', 'value' => 'auth'], 'context' => ['arguments' => ['k' => 1]]],
             'each "params.context.arguments" must be a string, int given.',
+        ];
+
+        yield 'missing _meta' => [
+            ['ref' => ['type' => 'ref/prompt', 'name' => 'code-review'], 'argument' => ['name' => 'topic', 'value' => 'auth']],
+            '"params" missing the required "_meta" key.',
         ];
 
         yield '_meta not an object' => [

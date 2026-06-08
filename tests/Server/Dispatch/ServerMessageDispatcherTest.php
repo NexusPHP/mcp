@@ -19,25 +19,29 @@ use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
 use Nexus\Mcp\Core\Handler\AbstractContext;
 use Nexus\Mcp\Core\Handler\HandlerRegistry;
 use Nexus\Mcp\Core\Handler\NotificationHandlerInterface;
-use Nexus\Mcp\Core\Handler\Request\PingRequestHandler;
 use Nexus\Mcp\Core\Handler\RequestHandlerInterface;
 use Nexus\Mcp\Core\Schema\Enum\LoggingLevel;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
+use Nexus\Mcp\Core\Schema\Implementation;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\Notification\LoggingMessageNotification;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result;
+use Nexus\Mcp\Core\Schema\Result\DiscoverResult;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
-use Nexus\Mcp\Server\Dispatch\ServerInitializationGate;
+use Nexus\Mcp\Core\Schema\ServerCapabilities;
 use Nexus\Mcp\Server\Dispatch\ServerMessageDispatcher;
 use Nexus\Mcp\Server\Exception\ResourceNotFoundException;
+use Nexus\Mcp\Server\Handler\Request\DiscoverRequestHandler;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureNotificationHandler;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureRequestHandler;
+use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LogLevel;
@@ -117,7 +121,7 @@ final class ServerMessageDispatcherTest extends TestCase
         $transport = new RecordingTransport();
         $dispatcher = self::buildDispatcher();
 
-        $dispatcher->dispatch(['jsonrpc' => '1.0', 'id' => 7, 'method' => 'ping'], $transport);
+        $dispatcher->dispatch(['jsonrpc' => '1.0', 'id' => 7, 'method' => 'tools/list'], $transport);
 
         EventLoop::run();
 
@@ -155,7 +159,7 @@ final class ServerMessageDispatcherTest extends TestCase
         $logger = new ArrayLogger();
         $dispatcher = self::buildDispatcher(logger: $logger);
 
-        $envelope = ['jsonrpc' => '2.0', 'method' => 'initialize'];
+        $envelope = ['jsonrpc' => '2.0', 'method' => 'tools/list'];
         $dispatcher->dispatch($envelope, $transport);
 
         EventLoop::run();
@@ -165,7 +169,7 @@ final class ServerMessageDispatcherTest extends TestCase
         self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
         self::assertNull($message->id, 'Misrouted request envelope carried no id, so the response uses null per JSON-RPC 2.0 §5.');
         self::assertSame(ProtocolErrorCode::InvalidRequest->value, $message->error->code);
-        self::assertStringContainsString('"initialize"', $message->error->message);
+        self::assertStringContainsString('"tools/list"', $message->error->message);
 
         $matches = $logger->recordsMatching(
             LogLevel::WARNING,
@@ -180,9 +184,9 @@ final class ServerMessageDispatcherTest extends TestCase
     {
         $transport = new RecordingTransport();
         $logger = new ArrayLogger();
-        $dispatcher = self::buildDispatcher(initialize: true, logger: $logger);
+        $dispatcher = self::buildDispatcher(logger: $logger);
 
-        $envelope = ['jsonrpc' => '2.0', 'id' => 7, 'method' => 'notifications/initialized'];
+        $envelope = ['jsonrpc' => '2.0', 'id' => 7, 'method' => 'notifications/cancelled'];
         $dispatcher->dispatch($envelope, $transport);
 
         EventLoop::run();
@@ -202,7 +206,7 @@ final class ServerMessageDispatcherTest extends TestCase
     {
         $transport = new RecordingTransport();
         $logger = new ArrayLogger();
-        $dispatcher = self::buildDispatcher(initialize: true, logger: $logger);
+        $dispatcher = self::buildDispatcher(logger: $logger);
 
         $envelope = ['jsonrpc' => '2.0', 'method' => 'notifications/vendor/unknown'];
         $dispatcher->dispatch($envelope, $transport);
@@ -222,7 +226,7 @@ final class ServerMessageDispatcherTest extends TestCase
     {
         $transport = new RecordingTransport();
         $logger = new ArrayLogger();
-        $dispatcher = self::buildDispatcher(initialize: true, logger: $logger);
+        $dispatcher = self::buildDispatcher(logger: $logger);
 
         $envelope = [
             'jsonrpc' => '2.0',
@@ -245,7 +249,7 @@ final class ServerMessageDispatcherTest extends TestCase
     public function testRequestForUnknownMethodReturnsMethodNotFoundError(): void
     {
         $transport = new RecordingTransport();
-        $dispatcher = self::buildDispatcher(initialize: true);
+        $dispatcher = self::buildDispatcher();
 
         $dispatcher->dispatch(
             ['jsonrpc' => '2.0', 'id' => 'req-1', 'method' => 'vendor/unknown'],
@@ -268,12 +272,9 @@ final class ServerMessageDispatcherTest extends TestCase
         // request path fires `MethodNotFoundException` and rides the same
         // protocol-error catch-arm to a `MethodNotFound` error response.
         $transport = new RecordingTransport();
-        $dispatcher = self::buildDispatcher(initialize: true);
+        $dispatcher = self::buildDispatcher();
 
-        $dispatcher->dispatch(
-            ['jsonrpc' => '2.0', 'id' => 'req-2', 'method' => 'ping'],
-            $transport,
-        );
+        $dispatcher->dispatch(self::toolsListEnvelope('req-2'), $transport);
 
         EventLoop::run();
 
@@ -284,107 +285,119 @@ final class ServerMessageDispatcherTest extends TestCase
         self::assertSame(ProtocolErrorCode::MethodNotFound->value, $message->error->code);
     }
 
-    public function testNonInitRequestBeforeHandshakeIsRejected(): void
+    /**
+     * @param array<string, mixed> $envelope
+     */
+    #[DataProvider('provideServerRejectsServerToClientMethodWithMethodNotFoundCases')]
+    public function testServerRejectsServerToClientMethodWithMethodNotFound(string $expectedId, array $envelope): void
     {
+        // The parser accepts these methods (they live in the registry), but they are
+        // server-to-client requests with null or standalone params. The dispatcher must
+        // answer MethodNotFound rather than read `->meta` and silently drop the response.
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher();
+
+        $dispatcher->dispatch($envelope, $transport);
+
+        EventLoop::run();
+
+        self::assertCount(1, $transport->sent, 'A server-bound server-to-client method must draw exactly one response, not a silent drop.');
+        $message = $transport->sent[0]['message'];
+        self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
+        self::assertSame($expectedId, $message->id?->id);
+        self::assertSame(ProtocolErrorCode::MethodNotFound->value, $message->error->code);
+    }
+
+    /**
+     * @return iterable<string, array{string, array<string, mixed>}>
+     */
+    public static function provideServerRejectsServerToClientMethodWithMethodNotFoundCases(): iterable
+    {
+        yield 'roots/list (null params)' => [
+            'r-1',
+            ['jsonrpc' => '2.0', 'id' => 'r-1', 'method' => 'roots/list'],
+        ];
+
+        yield 'sampling/createMessage (standalone params)' => [
+            'r-2',
+            [
+                'jsonrpc' => '2.0',
+                'id' => 'r-2',
+                'method' => 'sampling/createMessage',
+                'params' => [
+                    'maxTokens' => 100,
+                    'messages' => [['role' => 'user', 'content' => ['text' => 'hi', 'type' => 'text']]],
+                ],
+            ],
+        ];
+
+        yield 'elicitation/create (standalone params)' => [
+            'r-3',
+            [
+                'jsonrpc' => '2.0',
+                'id' => 'r-3',
+                'method' => 'elicitation/create',
+                'params' => [
+                    'mode' => 'form',
+                    'message' => 'Pick',
+                    'requestedSchema' => [
+                        'type' => 'object',
+                        'properties' => ['x' => ['type' => 'string']],
+                    ],
+                ],
+            ],
+        ];
+    }
+
+    public function testServerToClientMethodIsRejectedByDirectionEvenWhenAHandlerIsRegistered(): void
+    {
+        // Registering a server-to-client handler is a misconfiguration. The dispatcher must
+        // reject by direction before the handler runs, not invoke it.
+        $invoked = false;
         $transport = new RecordingTransport();
         $dispatcher = self::buildDispatcher(
             requestHandlers: [
-                'tools/list' => self::okHandler(),
+                'roots/list' => new ClosureRequestHandler(
+                    static function () use (&$invoked): Result {
+                        $invoked = true;
+
+                        return new EmptyResult();
+                    },
+                ),
             ],
         );
 
         $dispatcher->dispatch(
-            ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/list'],
+            [
+                'jsonrpc' => '2.0',
+                'id' => 'r-1',
+                'method' => 'roots/list',
+                'params' => ['_meta' => RequestMetaObjectFactory::shape()],
+            ],
             $transport,
         );
 
         EventLoop::run();
 
+        self::assertFalse($invoked, 'A server-to-client method must be rejected by direction before any registered handler runs.');
         self::assertCount(1, $transport->sent);
         $message = $transport->sent[0]['message'];
         self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
-        self::assertSame(ProtocolErrorCode::InvalidRequest->value, $message->error->code);
-        self::assertStringContainsString('tools/list', $message->error->message);
-    }
-
-    public function testSecondInitializeAfterHandshakeStartedIsRejectedWithAlreadyInitializedError(): void
-    {
-        $transport = new RecordingTransport();
-        $gate = new ServerInitializationGate();
-        $gate->markInitializeInFlight();
-        $dispatcher = self::buildDispatcher(
-            gate: $gate,
-            requestHandlers: [
-                'initialize' => new ClosureRequestHandler(
-                    static fn() => self::fail('Handler must not run for re-initialize attempt.'),
-                ),
-            ],
-        );
-
-        $dispatcher->dispatch(self::initializeEnvelope(), $transport);
-
-        EventLoop::run();
-
-        self::assertCount(1, $transport->sent);
-        $message = $transport->sent[0]['message'];
-        self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
-        self::assertSame(ProtocolErrorCode::InvalidRequest->value, $message->error->code);
-        self::assertStringContainsString('re-initialize', $message->error->message);
-    }
-
-    public function testSecondInitializeAfterFullHandshakeIsRejectedWithAlreadyInitializedError(): void
-    {
-        $transport = new RecordingTransport();
-        $dispatcher = self::buildDispatcher(
-            initialize: true,
-            requestHandlers: [
-                'initialize' => new ClosureRequestHandler(
-                    static fn() => self::fail('Handler must not run for re-initialize attempt.'),
-                ),
-            ],
-        );
-
-        $dispatcher->dispatch(self::initializeEnvelope(), $transport);
-
-        EventLoop::run();
-
-        self::assertCount(1, $transport->sent);
-        $message = $transport->sent[0]['message'];
-        self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
-        self::assertSame(ProtocolErrorCode::InvalidRequest->value, $message->error->code);
-        self::assertStringContainsString('re-initialize', $message->error->message);
-    }
-
-    public function testPingIsAllowedBeforeHandshake(): void
-    {
-        $transport = new RecordingTransport();
-        $dispatcher = self::buildDispatcher(
-            requestHandlers: ['ping' => new PingRequestHandler()],
-        );
-
-        $dispatcher->dispatch(
-            ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping'],
-            $transport,
-        );
-
-        EventLoop::run();
-
-        self::assertCount(1, $transport->sent);
-        self::assertInstanceOf(JsonRpcResultResponse::class, $transport->sent[0]['message']);
+        self::assertSame('r-1', $message->id?->id);
+        self::assertSame(ProtocolErrorCode::MethodNotFound->value, $message->error->code);
     }
 
     public function testSuccessfulRequestSendsResultResponse(): void
     {
         $transport = new RecordingTransport();
         $dispatcher = self::buildDispatcher(
-            initialize: true,
-            requestHandlers: ['ping' => new PingRequestHandler()],
+            requestHandlers: ['server/discover' => new DiscoverRequestHandler(
+                new Implementation('test-server', '1.0.0'),
+                new ServerCapabilities(),
+            )],
         );
 
-        $dispatcher->dispatch(
-            ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping'],
-            $transport,
-        );
+        $dispatcher->dispatch(self::discoverEnvelope(1), $transport);
 
         EventLoop::run();
 
@@ -392,18 +405,18 @@ final class ServerMessageDispatcherTest extends TestCase
         $message = $transport->sent[0]['message'];
         self::assertInstanceOf(JsonRpcResultResponse::class, $message);
         self::assertSame(1, $message->id->id);
+        self::assertInstanceOf(DiscoverResult::class, $message->result);
     }
 
     public function testSecondRequestWithSameInFlightIdIsRejectedSynchronouslyWithInvalidRequest(): void
     {
         $transport = new RecordingTransport();
         $dispatcher = self::buildDispatcher(
-            initialize: true,
-            requestHandlers: ['ping' => new PingRequestHandler()],
+            requestHandlers: ['tools/list' => self::okHandler()],
         );
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping'], $transport);
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping'], $transport);
+        $dispatcher->dispatch(self::toolsListEnvelope(1), $transport);
+        $dispatcher->dispatch(self::toolsListEnvelope(1), $transport);
         EventLoop::run();
 
         self::assertCount(2, $transport->sent);
@@ -424,13 +437,12 @@ final class ServerMessageDispatcherTest extends TestCase
     {
         $transport = new RecordingTransport();
         $dispatcher = self::buildDispatcher(
-            initialize: true,
-            requestHandlers: ['ping' => new PingRequestHandler()],
+            requestHandlers: ['tools/list' => self::okHandler()],
         );
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 'x', 'method' => 'ping'], $transport);
+        $dispatcher->dispatch(self::toolsListEnvelope('x'), $transport);
         EventLoop::run();
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 'x', 'method' => 'ping'], $transport);
+        $dispatcher->dispatch(self::toolsListEnvelope('x'), $transport);
         EventLoop::run();
 
         self::assertCount(2, $transport->sent);
@@ -438,22 +450,52 @@ final class ServerMessageDispatcherTest extends TestCase
         self::assertInstanceOf(JsonRpcResultResponse::class, $transport->sent[1]['message']);
     }
 
+    public function testIdIsReleasedAfterAThrowingHandlerSoTheSameIdCanBeReused(): void
+    {
+        $calls = 0;
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher(
+            requestHandlers: [
+                'tools/list' => new ClosureRequestHandler(
+                    static function () use (&$calls): Result {
+                        if (1 === ++$calls) {
+                            throw new \RuntimeException('boom');
+                        }
+
+                        return new EmptyResult();
+                    },
+                ),
+            ],
+        );
+
+        $dispatcher->dispatch(self::toolsListEnvelope(1), $transport);
+        EventLoop::run();
+        $dispatcher->dispatch(self::toolsListEnvelope(1), $transport);
+        EventLoop::run();
+
+        self::assertCount(2, $transport->sent);
+
+        // First handler threw, so the id must be released despite the early return.
+        self::assertInstanceOf(JsonRpcErrorResponse::class, $transport->sent[0]['message']);
+        self::assertSame(ProtocolErrorCode::InternalError->value, $transport->sent[0]['message']->error->code);
+
+        // Reusing the same id succeeds, proving the `finally` released it on the throw path.
+        self::assertInstanceOf(JsonRpcResultResponse::class, $transport->sent[1]['message']);
+        self::assertSame(1, $transport->sent[1]['message']->id->id);
+    }
+
     public function testErrorResponseUsesExceptionRequestIdWhenSetEvenIfDifferentFromIncomingRequestId(): void
     {
         $transport = new RecordingTransport();
         $dispatcher = self::buildDispatcher(
-            initialize: true,
             requestHandlers: [
-                'ping' => new ClosureRequestHandler(
+                'tools/list' => new ClosureRequestHandler(
                     static fn() => throw new ResourceNotFoundException('file:///x', new RequestId('explicit-id')),
                 ),
             ],
         );
 
-        $dispatcher->dispatch(
-            ['jsonrpc' => '2.0', 'id' => 'incoming-id', 'method' => 'ping'],
-            $transport,
-        );
+        $dispatcher->dispatch(self::toolsListEnvelope('incoming-id'), $transport);
 
         EventLoop::run();
 
@@ -467,18 +509,14 @@ final class ServerMessageDispatcherTest extends TestCase
     {
         $transport = new RecordingTransport();
         $dispatcher = self::buildDispatcher(
-            initialize: true,
             requestHandlers: [
-                'ping' => new ClosureRequestHandler(
+                'tools/list' => new ClosureRequestHandler(
                     static fn() => throw new ResourceNotFoundException('file:///missing'),
                 ),
             ],
         );
 
-        $dispatcher->dispatch(
-            ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping'],
-            $transport,
-        );
+        $dispatcher->dispatch(self::toolsListEnvelope(1), $transport);
 
         EventLoop::run();
 
@@ -494,19 +532,15 @@ final class ServerMessageDispatcherTest extends TestCase
         $transport = new RecordingTransport();
         $logger = new ArrayLogger();
         $dispatcher = self::buildDispatcher(
-            initialize: true,
             requestHandlers: [
-                'ping' => new ClosureRequestHandler(
+                'tools/list' => new ClosureRequestHandler(
                     static fn() => throw new \RuntimeException('mysql://root:hunter2@db-prod:3306 unreachable'),
                 ),
             ],
             logger: $logger,
         );
 
-        $dispatcher->dispatch(
-            ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping'],
-            $transport,
-        );
+        $dispatcher->dispatch(self::toolsListEnvelope(1), $transport);
 
         EventLoop::run();
 
@@ -520,7 +554,7 @@ final class ServerMessageDispatcherTest extends TestCase
 
         $matches = $logger->recordsMatching(LogLevel::ERROR, 'Uncaught request handler exception.');
         self::assertCount(1, $matches);
-        self::assertSame('ping', $matches[0]['context']['method'] ?? null);
+        self::assertSame('tools/list', $matches[0]['context']['method'] ?? null);
         $logged = $matches[0]['context']['exception'] ?? null;
         self::assertInstanceOf(\RuntimeException::class, $logged);
         self::assertSame('mysql://root:hunter2@db-prod:3306 unreachable', $logged->getMessage());
@@ -532,21 +566,17 @@ final class ServerMessageDispatcherTest extends TestCase
         $transport->sendError = new \RuntimeException('write failed');
         $logger = new ArrayLogger();
         $dispatcher = self::buildDispatcher(
-            initialize: true,
-            requestHandlers: ['ping' => new PingRequestHandler()],
+            requestHandlers: ['tools/list' => self::okHandler()],
             logger: $logger,
         );
 
-        $dispatcher->dispatch(
-            ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping'],
-            $transport,
-        );
+        $dispatcher->dispatch(self::toolsListEnvelope(1), $transport);
 
         EventLoop::run();
 
         $matches = $logger->recordsMatching(LogLevel::ERROR, 'Failed to deliver response to transport.');
         self::assertCount(1, $matches);
-        self::assertSame('ping', $matches[0]['context']['method'] ?? null);
+        self::assertSame('tools/list', $matches[0]['context']['method'] ?? null);
         self::assertInstanceOf(\RuntimeException::class, $matches[0]['context']['exception'] ?? null);
     }
 
@@ -556,22 +586,18 @@ final class ServerMessageDispatcherTest extends TestCase
         $transport->sendError = new TransportAlreadyClosedException('send');
         $logger = new ArrayLogger();
         $dispatcher = self::buildDispatcher(
-            initialize: true,
-            requestHandlers: ['ping' => new PingRequestHandler()],
+            requestHandlers: ['tools/list' => self::okHandler()],
             logger: $logger,
         );
 
-        $dispatcher->dispatch(
-            ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping'],
-            $transport,
-        );
+        $dispatcher->dispatch(self::toolsListEnvelope(1), $transport);
 
         EventLoop::run();
 
         self::assertSame([], $logger->messagesAtLevel(LogLevel::ERROR), 'Closed transport must not produce error-level logs.');
         $matches = $logger->recordsMatching(LogLevel::INFO, 'Skipping response delivery. Transport is closed.');
         self::assertCount(1, $matches);
-        self::assertSame('ping', $matches[0]['context']['method'] ?? null);
+        self::assertSame('tools/list', $matches[0]['context']['method'] ?? null);
         self::assertInstanceOf(TransportAlreadyClosedException::class, $matches[0]['context']['exception'] ?? null);
     }
 
@@ -580,19 +606,15 @@ final class ServerMessageDispatcherTest extends TestCase
         $transport = new RecordingTransport();
         $logger = new ArrayLogger();
         $dispatcher = self::buildDispatcher(
-            initialize: true,
             requestHandlers: [
-                'ping' => new ClosureRequestHandler(
+                'tools/list' => new ClosureRequestHandler(
                     static fn() => throw new TransportAlreadyClosedException('send'),
                 ),
             ],
             logger: $logger,
         );
 
-        $dispatcher->dispatch(
-            ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping'],
-            $transport,
-        );
+        $dispatcher->dispatch(self::toolsListEnvelope(1), $transport);
 
         EventLoop::run();
 
@@ -600,28 +622,8 @@ final class ServerMessageDispatcherTest extends TestCase
         self::assertSame([], $logger->messagesAtLevel(LogLevel::ERROR));
         $matches = $logger->recordsMatching(LogLevel::INFO, 'Skipping response delivery. Transport is closed.');
         self::assertCount(1, $matches);
-        self::assertSame('ping', $matches[0]['context']['method'] ?? null);
+        self::assertSame('tools/list', $matches[0]['context']['method'] ?? null);
         self::assertInstanceOf(TransportAlreadyClosedException::class, $matches[0]['context']['exception'] ?? null);
-    }
-
-    public function testInitializeHandlerPropagatingTransportClosedRevertsTheGate(): void
-    {
-        $transport = new RecordingTransport();
-        $gate = new ServerInitializationGate();
-        $dispatcher = self::buildDispatcher(
-            gate: $gate,
-            requestHandlers: [
-                'initialize' => new ClosureRequestHandler(
-                    static fn() => throw new TransportAlreadyClosedException('send'),
-                ),
-            ],
-        );
-
-        $dispatcher->dispatch(self::initializeEnvelope(), $transport);
-
-        EventLoop::run();
-
-        self::assertTrue($gate->allowsRequest('initialize'), 'Gate must revert after a closed-transport failure in the initialize handler.');
     }
 
     public function testProtocolExceptionWithClosedTransportLogsInfoNotError(): void
@@ -630,26 +632,22 @@ final class ServerMessageDispatcherTest extends TestCase
         $transport->sendError = new TransportAlreadyClosedException('send');
         $logger = new ArrayLogger();
         $dispatcher = self::buildDispatcher(
-            initialize: true,
             requestHandlers: [
-                'ping' => new ClosureRequestHandler(
+                'tools/list' => new ClosureRequestHandler(
                     static fn() => throw new ResourceNotFoundException('file:///missing'),
                 ),
             ],
             logger: $logger,
         );
 
-        $dispatcher->dispatch(
-            ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping'],
-            $transport,
-        );
+        $dispatcher->dispatch(self::toolsListEnvelope(1), $transport);
 
         EventLoop::run();
 
         self::assertSame([], $logger->messagesAtLevel(LogLevel::ERROR));
         $matches = $logger->recordsMatching(LogLevel::INFO, 'Skipping response delivery. Transport is closed.');
         self::assertCount(1, $matches);
-        self::assertSame('ping', $matches[0]['context']['method'] ?? null);
+        self::assertSame('tools/list', $matches[0]['context']['method'] ?? null);
     }
 
     public function testRequestHandlerReceivesContextWithSessionIdAndRequestScopedSender(): void
@@ -658,9 +656,8 @@ final class ServerMessageDispatcherTest extends TestCase
         $captured = ['sessionId' => null];
 
         $dispatcher = self::buildDispatcher(
-            initialize: true,
             requestHandlers: [
-                'ping' => new ClosureRequestHandler(
+                'tools/list' => new ClosureRequestHandler(
                     static function ($req, $ctx) use (&$captured): EmptyResult {
                         \assert($ctx instanceof ServerContext);
 
@@ -673,17 +670,14 @@ final class ServerMessageDispatcherTest extends TestCase
             ],
         );
 
-        $dispatcher->dispatch(
-            ['jsonrpc' => '2.0', 'id' => 99, 'method' => 'ping'],
-            $transport,
-        );
+        $dispatcher->dispatch(self::toolsListEnvelope(99), $transport);
 
         EventLoop::run();
 
         self::assertSame('sess-xyz', $captured['sessionId']);
 
         // The notification emitted via $ctx->log() should be tagged with the
-        // originating request id, proving the request-scoped sender wiring.
+        // originating request id, proving the request-scoped sender binding.
         $logSend = null;
 
         foreach ($transport->sent as $entry) {
@@ -698,470 +692,11 @@ final class ServerMessageDispatcherTest extends TestCase
         self::assertSame(99, $logSend['context']?->relatedRequestId?->id);
     }
 
-    public function testNotificationBeforeInitializeIsDroppedAndLoggedAtInfo(): void
-    {
-        $invocations = 0;
-        $transport = new RecordingTransport();
-        $logger = new ArrayLogger();
-        $dispatcher = self::buildDispatcher(
-            notificationHandlers: [
-                'notifications/cancelled' => new ClosureNotificationHandler(
-                    static function () use (&$invocations): void { ++$invocations; },
-                ),
-            ],
-            logger: $logger,
-        );
-
-        $dispatcher->dispatch(
-            [
-                'jsonrpc' => '2.0',
-                'method' => 'notifications/cancelled',
-                'params' => ['requestId' => 1],
-            ],
-            $transport,
-        );
-
-        EventLoop::run();
-
-        self::assertSame(0, $invocations);
-        self::assertSame([], $transport->sent);
-        $matches = $logger->recordsMatching(LogLevel::INFO, 'Dropping notification before client has completed initialize.');
-        self::assertCount(1, $matches);
-        self::assertSame(['method' => 'notifications/cancelled'], $matches[0]['context']);
-    }
-
-    public function testInitializedNotificationFlipsTheGateAndIsDispatchedToHandlerWhenCompleted(): void
-    {
-        $invocations = 0;
-        $transport = new RecordingTransport();
-        $gate = new ServerInitializationGate();
-        $gate->markInitializeInFlight();
-        $gate->markInitializeCompleted();
-        $dispatcher = self::buildDispatcher(
-            gate: $gate,
-            notificationHandlers: [
-                'notifications/initialized' => new ClosureNotificationHandler(
-                    static function () use (&$invocations): void { ++$invocations; },
-                ),
-            ],
-        );
-
-        $dispatcher->dispatch(
-            ['jsonrpc' => '2.0', 'method' => 'notifications/initialized'],
-            $transport,
-        );
-
-        EventLoop::run();
-
-        self::assertTrue($gate->isInitialized());
-        self::assertSame(1, $invocations);
-    }
-
-    public function testInitializedNotificationBeforeInitializeRequestIsDiscardedAndDoesNotFlipGate(): void
-    {
-        $invocations = 0;
-        $transport = new RecordingTransport();
-        $logger = new ArrayLogger();
-        $gate = new ServerInitializationGate();
-        $dispatcher = self::buildDispatcher(
-            gate: $gate,
-            notificationHandlers: [
-                'notifications/initialized' => new ClosureNotificationHandler(
-                    static function () use (&$invocations): void { ++$invocations; },
-                ),
-            ],
-            logger: $logger,
-        );
-
-        $dispatcher->dispatch(
-            ['jsonrpc' => '2.0', 'method' => 'notifications/initialized'],
-            $transport,
-        );
-
-        EventLoop::run();
-
-        self::assertFalse($gate->isInitialized());
-        self::assertSame(0, $invocations);
-        self::assertSame([], $transport->sent);
-        $matches = $logger->recordsMatching(
-            LogLevel::WARNING,
-            'Discarding "notifications/initialized" received in an unexpected initialize handshake state.',
-        );
-        self::assertCount(1, $matches);
-        self::assertSame(['method' => 'notifications/initialized'], $matches[0]['context']);
-    }
-
-    public function testInitializedNotificationAfterFullHandshakeIsDiscardedAndDoesNotFireHandlerAgain(): void
-    {
-        $invocations = 0;
-        $transport = new RecordingTransport();
-        $logger = new ArrayLogger();
-        $gate = new ServerInitializationGate();
-        $gate->markInitializeInFlight();
-        $gate->markInitializeCompleted();
-        $gate->markInitialized();
-        $dispatcher = self::buildDispatcher(
-            gate: $gate,
-            notificationHandlers: [
-                'notifications/initialized' => new ClosureNotificationHandler(
-                    static function () use (&$invocations): void { ++$invocations; },
-                ),
-            ],
-            logger: $logger,
-        );
-
-        $dispatcher->dispatch(
-            ['jsonrpc' => '2.0', 'method' => 'notifications/initialized'],
-            $transport,
-        );
-
-        EventLoop::run();
-
-        self::assertSame(0, $invocations);
-        self::assertSame([], $transport->sent);
-        $matches = $logger->recordsMatching(
-            LogLevel::WARNING,
-            'Discarding "notifications/initialized" received in an unexpected initialize handshake state.',
-        );
-        self::assertCount(1, $matches);
-    }
-
-    public function testSuccessfulInitializeHandlerFlipsGateToInFlight(): void
-    {
-        $transport = new RecordingTransport();
-        $gate = new ServerInitializationGate();
-        $dispatcher = self::buildDispatcher(
-            gate: $gate,
-            requestHandlers: [
-                'initialize' => new ClosureRequestHandler(
-                    static fn() => new EmptyResult(),
-                ),
-            ],
-        );
-
-        $dispatcher->dispatch(self::initializeEnvelope(), $transport);
-
-        EventLoop::run();
-
-        self::assertFalse($gate->isInitialized(), 'Gate should be in-flight, not initialized, before "notifications/initialized" arrives.');
-        self::assertFalse($gate->allowsRequest('tools/list'), 'Non-init requests must remain rejected during in-flight state.');
-
-        $dispatcher->dispatch(
-            ['jsonrpc' => '2.0', 'method' => 'notifications/initialized'],
-            $transport,
-        );
-
-        EventLoop::run();
-
-        self::assertTrue($gate->isInitialized());
-        self::assertTrue($gate->allowsRequest('tools/list'));
-    }
-
-    public function testFailedInitializeHandlerDoesNotFlipGateToInFlight(): void
-    {
-        $transport = new RecordingTransport();
-        $gate = new ServerInitializationGate();
-        $dispatcher = self::buildDispatcher(
-            gate: $gate,
-            requestHandlers: [
-                'initialize' => new ClosureRequestHandler(
-                    static fn() => throw new \RuntimeException('init blew up'),
-                ),
-            ],
-        );
-
-        $dispatcher->dispatch(self::initializeEnvelope(), $transport);
-
-        EventLoop::run();
-
-        self::assertFalse($gate->isInitialized());
-
-        $dispatcher->dispatch(
-            ['jsonrpc' => '2.0', 'method' => 'notifications/initialized'],
-            $transport,
-        );
-
-        EventLoop::run();
-
-        self::assertFalse($gate->isInitialized(), 'Gate must not promote to initialized when the preceding "initialize" handler failed.');
-    }
-
-    public function testInitializedNotificationArrivingBeforeInitializeHandlerCompletesIsBufferedAndAppliedOnSuccess(): void
-    {
-        $transport = new RecordingTransport();
-        $logger = new ArrayLogger();
-        $gate = new ServerInitializationGate();
-        $notificationFired = 0;
-        $dispatcher = self::buildDispatcher(
-            gate: $gate,
-            requestHandlers: [
-                'initialize' => new ClosureRequestHandler(
-                    static fn() => new EmptyResult(),
-                ),
-            ],
-            notificationHandlers: [
-                'notifications/initialized' => new ClosureNotificationHandler(
-                    static function () use (&$notificationFired): void { ++$notificationFired; },
-                ),
-            ],
-            logger: $logger,
-        );
-
-        $dispatcher->dispatch(self::initializeEnvelope(), $transport);
-        $dispatcher->dispatch(
-            ['jsonrpc' => '2.0', 'method' => 'notifications/initialized'],
-            $transport,
-        );
-
-        EventLoop::run();
-
-        self::assertTrue(
-            $gate->isInitialized(),
-            'A same-tick "notifications/initialized" must be buffered and applied when the initialize handler completes.',
-        );
-        self::assertTrue($gate->allowsRequest('tools/list'), 'Feature requests open after the buffered notification is consumed.');
-        self::assertSame(1, $notificationFired, 'The user-defined notification handler still runs even when the gate transition is deferred.');
-        self::assertCount(1, $transport->sent);
-        self::assertInstanceOf(JsonRpcResultResponse::class, $transport->sent[0]['message']);
-
-        self::assertCount(
-            0,
-            $logger->recordsMatching(
-                LogLevel::WARNING,
-                'Discarding "notifications/initialized" received in an unexpected initialize handshake state.',
-            ),
-            'Buffered notifications do not produce the discard WARN.',
-        );
-    }
-
-    public function testDuplicateInitializedNotificationDuringInFlightLogsWarnAndDoesNotFireHandlerTwice(): void
-    {
-        $transport = new RecordingTransport();
-        $logger = new ArrayLogger();
-        $gate = new ServerInitializationGate();
-        $notificationFired = 0;
-        $dispatcher = self::buildDispatcher(
-            gate: $gate,
-            requestHandlers: [
-                'initialize' => new ClosureRequestHandler(
-                    static fn() => new EmptyResult(),
-                ),
-            ],
-            notificationHandlers: [
-                'notifications/initialized' => new ClosureNotificationHandler(
-                    static function () use (&$notificationFired): void { ++$notificationFired; },
-                ),
-            ],
-            logger: $logger,
-        );
-
-        $dispatcher->dispatch(self::initializeEnvelope(), $transport);
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'method' => 'notifications/initialized'], $transport);
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'method' => 'notifications/initialized'], $transport);
-
-        EventLoop::run();
-
-        self::assertTrue($gate->isInitialized(), 'First buffered notification still flips the gate when the handler completes.');
-        self::assertSame(
-            1,
-            $notificationFired,
-            'A duplicate "notifications/initialized" arriving while the first one is buffered must not fire the user handler twice.',
-        );
-
-        $matches = $logger->recordsMatching(
-            LogLevel::WARNING,
-            'Discarding "notifications/initialized" received in an unexpected initialize handshake state.',
-        );
-        self::assertCount(1, $matches, 'The duplicate notification must produce exactly one discard WARN.');
-        self::assertSame(['method' => 'notifications/initialized'], $matches[0]['context']);
-    }
-
-    public function testFailingInitializeHandlerRacedByEarlyInitializedNotificationStillRevertsToAwaitingInitialize(): void
-    {
-        $transport = new RecordingTransport();
-        $logger = new ArrayLogger();
-        $gate = new ServerInitializationGate();
-        $notificationFired = 0;
-        $dispatcher = self::buildDispatcher(
-            gate: $gate,
-            requestHandlers: [
-                'initialize' => new ClosureRequestHandler(
-                    static fn() => throw new \RuntimeException('init blew up'),
-                ),
-            ],
-            notificationHandlers: [
-                'notifications/initialized' => new ClosureNotificationHandler(
-                    static function () use (&$notificationFired): void { ++$notificationFired; },
-                ),
-            ],
-            logger: $logger,
-        );
-
-        $dispatcher->dispatch(self::initializeEnvelope(), $transport);
-        $dispatcher->dispatch(
-            ['jsonrpc' => '2.0', 'method' => 'notifications/initialized'],
-            $transport,
-        );
-
-        EventLoop::run();
-
-        self::assertFalse($gate->isInitialized());
-        self::assertTrue(
-            $gate->allowsRequest('initialize'),
-            'After the handler throws, the gate must revert to AwaitingInitialize so a retry "initialize" is accepted.',
-        );
-        self::assertFalse($gate->allowsRequest('tools/list'), 'Non-init requests stay rejected until a fresh handshake succeeds.');
-        self::assertSame(
-            1,
-            $notificationFired,
-            'Notification handler fires because the buffered notification was accepted at envelope time. The buffer flag is cleared by revertInitializeInFlight, so the gate transition is not applied.',
-        );
-    }
-
-    public function testConcurrentInitializeEnvelopesInSameTickRejectSecondAsReinitialize(): void
-    {
-        $transport = new RecordingTransport();
-        $gate = new ServerInitializationGate();
-        $handlerInvocations = 0;
-        $dispatcher = self::buildDispatcher(
-            gate: $gate,
-            requestHandlers: [
-                'initialize' => new ClosureRequestHandler(
-                    static function () use (&$handlerInvocations): EmptyResult {
-                        ++$handlerInvocations;
-
-                        return new EmptyResult();
-                    },
-                ),
-            ],
-        );
-
-        $dispatcher->dispatch(self::initializeEnvelope(), $transport);
-        $dispatcher->dispatch(self::initializeEnvelope(), $transport);
-
-        EventLoop::run();
-
-        self::assertSame(1, $handlerInvocations, 'Second initialize must be rejected before the handler runs.');
-        self::assertCount(2, $transport->sent);
-        self::assertInstanceOf(JsonRpcErrorResponse::class, $transport->sent[0]['message']);
-        self::assertSame(ProtocolErrorCode::InvalidRequest->value, $transport->sent[0]['message']->error->code);
-        self::assertStringContainsString('re-initialize', $transport->sent[0]['message']->error->message);
-        self::assertInstanceOf(JsonRpcResultResponse::class, $transport->sent[1]['message']);
-    }
-
-    public function testFailedInitializeHandlerRevertsGateAllowingAFreshInitializeAttempt(): void
-    {
-        $transport = new RecordingTransport();
-        $gate = new ServerInitializationGate();
-        $attempt = 0;
-        $dispatcher = self::buildDispatcher(
-            gate: $gate,
-            requestHandlers: [
-                'initialize' => new ClosureRequestHandler(
-                    static function () use (&$attempt): EmptyResult {
-                        if (1 === ++$attempt) {
-                            throw new \RuntimeException('first attempt fails');
-                        }
-
-                        return new EmptyResult();
-                    },
-                ),
-            ],
-        );
-
-        $dispatcher->dispatch(self::initializeEnvelope(), $transport);
-
-        EventLoop::run();
-
-        self::assertTrue($gate->allowsRequest('initialize'), 'Gate must revert to AwaitingInitialize after a failed handler.');
-
-        $dispatcher->dispatch(self::initializeEnvelope(), $transport);
-
-        EventLoop::run();
-
-        self::assertSame(2, $attempt);
-        self::assertCount(2, $transport->sent);
-        self::assertInstanceOf(JsonRpcErrorResponse::class, $transport->sent[0]['message']);
-        self::assertSame(ProtocolErrorCode::InternalError->value, $transport->sent[0]['message']->error->code);
-        self::assertInstanceOf(JsonRpcResultResponse::class, $transport->sent[1]['message']);
-    }
-
-    public function testInitializeHandlerThrowingProtocolExceptionRevertsTheGate(): void
-    {
-        $transport = new RecordingTransport();
-        $gate = new ServerInitializationGate();
-        $dispatcher = self::buildDispatcher(
-            gate: $gate,
-            requestHandlers: [
-                'initialize' => new ClosureRequestHandler(
-                    static fn() => throw new ResourceNotFoundException('file:///x'),
-                ),
-            ],
-        );
-
-        $dispatcher->dispatch(self::initializeEnvelope(), $transport);
-
-        EventLoop::run();
-
-        self::assertTrue($gate->allowsRequest('initialize'), 'Gate must revert after a protocol-exception failure in the initialize handler.');
-        self::assertCount(1, $transport->sent);
-        self::assertInstanceOf(JsonRpcErrorResponse::class, $transport->sent[0]['message']);
-        self::assertSame(ProtocolErrorCode::InvalidParams->value, $transport->sent[0]['message']->error->code);
-    }
-
-    public function testGateRejectionWithFailingTransportLogsRatherThanThrowing(): void
-    {
-        $transport = new RecordingTransport();
-        $transport->sendError = new \RuntimeException('write failed');
-        $logger = new ArrayLogger();
-        $dispatcher = self::buildDispatcher(
-            requestHandlers: ['tools/list' => self::okHandler()],
-            logger: $logger,
-        );
-
-        $dispatcher->dispatch(
-            ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/list'],
-            $transport,
-        );
-
-        EventLoop::run();
-
-        $matches = $logger->recordsMatching(LogLevel::ERROR, 'Failed to deliver response to transport.');
-        self::assertCount(1, $matches);
-        self::assertSame('tools/list', $matches[0]['context']['method'] ?? null);
-        self::assertInstanceOf(\RuntimeException::class, $matches[0]['context']['exception'] ?? null);
-    }
-
-    public function testInitializeEnvelopeWithMalformedParamsLeavesGateAwaiting(): void
-    {
-        $transport = new RecordingTransport();
-        $gate = new ServerInitializationGate();
-        $dispatcher = self::buildDispatcher(gate: $gate);
-
-        $dispatcher->dispatch(
-            ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'initialize'],
-            $transport,
-        );
-
-        EventLoop::run();
-
-        self::assertFalse($gate->isInitialized());
-
-        $dispatcher->dispatch(
-            ['jsonrpc' => '2.0', 'method' => 'notifications/initialized'],
-            $transport,
-        );
-
-        EventLoop::run();
-
-        self::assertFalse($gate->isInitialized(), 'Subsequent "notifications/initialized" must still be discarded when no valid "initialize" envelope has been received.');
-    }
-
     public function testNotificationWithNoRegisteredHandlerIsSilentlyDropped(): void
     {
         $transport = new RecordingTransport();
         $logger = new ArrayLogger();
-        $dispatcher = self::buildDispatcher(initialize: true, logger: $logger);
+        $dispatcher = self::buildDispatcher(logger: $logger);
 
         $dispatcher->dispatch(
             [
@@ -1183,7 +718,6 @@ final class ServerMessageDispatcherTest extends TestCase
         $transport = new RecordingTransport();
         $logger = new ArrayLogger();
         $dispatcher = self::buildDispatcher(
-            initialize: true,
             notificationHandlers: [
                 'notifications/cancelled' => new ClosureNotificationHandler(
                     static fn() => throw new \RuntimeException('handler boom'),
@@ -1210,6 +744,33 @@ final class ServerMessageDispatcherTest extends TestCase
         self::assertInstanceOf(\RuntimeException::class, $matches[0]['context']['exception'] ?? null);
     }
 
+    public function testNotificationIsDispatchedToRegisteredHandler(): void
+    {
+        $invocations = 0;
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher(
+            notificationHandlers: [
+                'notifications/cancelled' => new ClosureNotificationHandler(
+                    static function () use (&$invocations): void { ++$invocations; },
+                ),
+            ],
+        );
+
+        $dispatcher->dispatch(
+            [
+                'jsonrpc' => '2.0',
+                'method' => 'notifications/cancelled',
+                'params' => ['requestId' => 1],
+            ],
+            $transport,
+        );
+
+        EventLoop::run();
+
+        self::assertSame(1, $invocations);
+        self::assertSame([], $transport->sent);
+    }
+
     public function testFlushPendingWithNothingScheduledIsANoOp(): void
     {
         $dispatcher = self::buildDispatcher();
@@ -1223,14 +784,10 @@ final class ServerMessageDispatcherTest extends TestCase
     {
         $transport = new RecordingTransport();
         $dispatcher = self::buildDispatcher(
-            initialize: true,
-            requestHandlers: ['ping' => new PingRequestHandler()],
+            requestHandlers: ['tools/list' => self::okHandler()],
         );
 
-        $dispatcher->dispatch(
-            ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping'],
-            $transport,
-        );
+        $dispatcher->dispatch(self::toolsListEnvelope(1), $transport);
 
         $dispatcher->flushPending();
 
@@ -1245,7 +802,6 @@ final class ServerMessageDispatcherTest extends TestCase
         $transport = new RecordingTransport();
         $logger = new ArrayLogger();
         $dispatcher = self::buildDispatcher(
-            initialize: true,
             notificationHandlers: [
                 'notifications/cancelled' => new ClosureNotificationHandler(
                     static fn() => throw new \RuntimeException('handler ran'),
@@ -1272,24 +828,13 @@ final class ServerMessageDispatcherTest extends TestCase
      * @param array<non-empty-string, NotificationHandlerInterface<non-empty-string>>                   $notificationHandlers
      */
     private static function buildDispatcher(
-        bool $initialize = false,
         array $requestHandlers = [],
         array $notificationHandlers = [],
-        ?ServerInitializationGate $gate = null,
         ?ArrayLogger $logger = null,
     ): ServerMessageDispatcher {
-        $gate ??= new ServerInitializationGate();
-
-        if ($initialize) {
-            $gate->markInitializeInFlight();
-            $gate->markInitializeCompleted();
-            $gate->markInitialized();
-        }
-
         return new ServerMessageDispatcher(
             new HandlerRegistry($requestHandlers, RequestHandlerInterface::class, 'Request handler'),
             new HandlerRegistry($notificationHandlers, NotificationHandlerInterface::class, 'Notification handler'),
-            $gate,
             logger: $logger ?? new ArrayLogger(),
         );
     }
@@ -1305,17 +850,26 @@ final class ServerMessageDispatcherTest extends TestCase
     /**
      * @return array<string, mixed>
      */
-    private static function initializeEnvelope(): array
+    private static function toolsListEnvelope(int|string $id): array
     {
         return [
             'jsonrpc' => '2.0',
-            'id' => 1,
-            'method' => 'initialize',
-            'params' => [
-                'protocolVersion' => '2025-11-25',
-                'capabilities' => [],
-                'clientInfo' => ['name' => 'test-client', 'version' => '1.0.0'],
-            ],
+            'id' => $id,
+            'method' => 'tools/list',
+            'params' => ['_meta' => RequestMetaObjectFactory::shape()],
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function discoverEnvelope(int|string $id): array
+    {
+        return [
+            'jsonrpc' => '2.0',
+            'id' => $id,
+            'method' => 'server/discover',
+            'params' => ['_meta' => RequestMetaObjectFactory::shape()],
         ];
     }
 }

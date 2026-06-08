@@ -31,25 +31,28 @@ call `Server::run()`.
 
 ## Client
 
-**Follow the lifecycle: `connect()`, `initialize()`, then calls.** Typed methods throw
-`ClientNotConnectedException` / `ClientNotInitializedException` if called out of order. Always pair
-`connect()` with a `disconnect()` in a `finally` so the transport closes even when a call throws:
+**Connect, then call.** Each request stands on its own, so typed calls can start as soon as `connect()`
+returns. Typed methods
+throw `ClientNotConnectedException` if called before `connect()`. Always pair `connect()` with a
+`disconnect()` in a `finally` so the transport closes even when a call throws:
 
 ```php
 $client->connect($transport);
 
 try {
-    $client->initialize();
+    // Optionally learn the server's identity and capabilities first.
+    $client->discover();
     // ... typed calls ...
 } finally {
     $client->disconnect();
 }
 ```
 
-**Degrade gracefully on missing capabilities.** Before relying on an optional capability, check
-`getServerCapabilities()` or catch `ServerCapabilityNotSupportedException`. The client gates each typed
-request on what the server advertised, so a `complete()` against a server without completions fails before
-sending. See [examples/capability-aware-client.php](../examples/capability-aware-client.php).
+**Degrade gracefully on missing capabilities.** Before relying on an optional capability, call `discover()`
+then check `getServerCapabilities()`, or catch `ServerCapabilityNotSupportedException`. Once discovery has
+run, the client gates each typed request on what the server advertised, so a `complete()` against a server
+without completions fails before sending. See
+[examples/capability-aware-client.php](../examples/capability-aware-client.php).
 
 **Stream progress for long tools.** Pass an `onProgress` callback to `callTool()` to receive
 `notifications/progress` while the call is in flight, and register a `LoggingMessageNotification` handler

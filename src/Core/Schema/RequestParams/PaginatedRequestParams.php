@@ -25,7 +25,7 @@ use Nexus\Mcp\Core\Schema\RequestParams;
  */
 final readonly class PaginatedRequestParams extends RequestParams
 {
-    public function __construct(public ?Cursor $cursor = null, RequestMetaObject $meta = new RequestMetaObject())
+    public function __construct(RequestMetaObject $meta, public ?Cursor $cursor = null)
     {
         parent::__construct($meta);
     }
@@ -44,17 +44,14 @@ final readonly class PaginatedRequestParams extends RequestParams
             $cursor = new Cursor($raw);
         }
 
-        $meta = new RequestMetaObject();
+        Assert::that($data)->hasOffset('_meta', '"params" missing the required "_meta" key.');
+        Assert::that($data['_meta'])
+            ->isArray('"params._meta" must be an object, {type} given.')
+            ->isMap('"params._meta" must be a string-keyed object.')
+        ;
+        $meta = RequestMetaObject::fromArray($data['_meta']);
 
-        if (\array_key_exists('_meta', $data)) {
-            Assert::that($data['_meta'])
-                ->isArray('"params._meta" must be an object, {type} given.')
-                ->isMap('"params._meta" must be a string-keyed object.')
-            ;
-            $meta = RequestMetaObject::fromArray($data['_meta']);
-        }
-
-        return new self($cursor, $meta);
+        return new self($meta, $cursor);
     }
 
     #[\Override]
@@ -67,11 +64,5 @@ final readonly class PaginatedRequestParams extends RequestParams
         }
 
         return $data;
-    }
-
-    #[\Override]
-    public function jsonSerialize(): array
-    {
-        return $this->toArray();
     }
 }

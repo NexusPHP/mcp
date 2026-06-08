@@ -24,7 +24,7 @@ use Nexus\Mcp\Core\Schema\RequestParams;
  */
 final readonly class EmptyRequestParams extends RequestParams
 {
-    public function __construct(RequestMetaObject $meta = new RequestMetaObject())
+    public function __construct(RequestMetaObject $meta)
     {
         parent::__construct($meta);
     }
@@ -32,15 +32,12 @@ final readonly class EmptyRequestParams extends RequestParams
     #[\Override]
     public static function fromArray(array $data): static
     {
-        $meta = new RequestMetaObject();
-
-        if (\array_key_exists('_meta', $data)) {
-            Assert::that($data['_meta'])
-                ->isArray('"params._meta" must be an object, {type} given.')
-                ->isMap('"params._meta" must be a string-keyed object.')
-            ;
-            $meta = RequestMetaObject::fromArray($data['_meta']);
-        }
+        Assert::that($data)->hasOffset('_meta', '"params" missing the required "_meta" key.');
+        Assert::that($data['_meta'])
+            ->isArray('"params._meta" must be an object, {type} given.')
+            ->isMap('"params._meta" must be a string-keyed object.')
+        ;
+        $meta = RequestMetaObject::fromArray($data['_meta']);
 
         return new self($meta);
     }

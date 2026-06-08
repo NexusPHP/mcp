@@ -18,7 +18,6 @@ use Nexus\Mcp\Core\Schema\Cursor;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\Request\ListResourcesRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
-use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams\PaginatedRequestParams;
 use Nexus\Mcp\Core\Schema\Resource\Resource;
 use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
@@ -28,6 +27,7 @@ use Nexus\Mcp\Server\Resource\ResourceEntry;
 use Nexus\Mcp\Server\Resource\ResourceStore;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
+use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
@@ -49,7 +49,7 @@ final class ListResourcesRequestHandlerTest extends TestCase
         $handler = new ListResourcesRequestHandler($store);
 
         $result = $handler->handle(
-            new ListResourcesRequest(new RequestId(1), new PaginatedRequestParams()),
+            new ListResourcesRequest(new RequestId(1), new PaginatedRequestParams(RequestMetaObjectFactory::create())),
             self::makeContext(),
         );
 
@@ -71,7 +71,7 @@ final class ListResourcesRequestHandlerTest extends TestCase
         $handler = new ListResourcesRequestHandler($store);
 
         $result = $handler->handle(
-            new ListResourcesRequest(new RequestId(2), new PaginatedRequestParams(new Cursor('file:///b'))),
+            new ListResourcesRequest(new RequestId(2), new PaginatedRequestParams(RequestMetaObjectFactory::create(), new Cursor('file:///b'))),
             self::makeContext(),
         );
 
@@ -91,7 +91,7 @@ final class ListResourcesRequestHandlerTest extends TestCase
         return new ServerContext(
             new RequestId(1),
             new NullCancellation(),
-            new RequestMetaObject(),
+            RequestMetaObjectFactory::create(),
             null,
             new RecordingSender(),
         );

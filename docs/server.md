@@ -27,14 +27,15 @@ Required before `build()`.
     name: 'my-server',
     version: '1.0.0',
     title: 'My Friendly Server',
-    description: 'A short description sent to the client during initialize.',
+    description: 'A short description the server advertises via server/discover.',
     websiteUrl: 'https://example.com',
 )
 ```
 
 ## Instructions
 
-Optional. Sent to the client on `initialize`. Use it to give models guidance about how to use the server.
+Optional. Advertised to the client via `server/discover`. Use it to give models guidance about how to use
+the server.
 
 ```php
 ->setInstructions('Use the search_docs tool before answering questions about Nexus.')
@@ -240,11 +241,11 @@ For vendor-extension methods (those outside the MCP spec):
 ```
 
 Both reject spec-reserved methods. To override the SDK's built-in handler for a spec method
-(e.g. to take over `ping`), use the `replace*` variants:
+(e.g. to take over `tools/list`), use the `replace*` variants:
 
 ```php
-->replaceRequestHandler('ping', new MyPingHandler())
-->replaceNotificationHandler('notifications/initialized', new MyInitializedHandler())
+->replaceRequestHandler('tools/list', new MyListToolsHandler())
+->replaceNotificationHandler('notifications/cancelled', new MyCancelledHandler())
 ```
 
 The `replace*` variants in turn reject non-spec methods, so each tool steers vendor extensions
@@ -280,7 +281,7 @@ Every handler closure receives a `ServerContext` as its last argument.
 | --- | --- |
 | `$context->requestId` | The originating `RequestId`. |
 | `$context->cancellation` | An `Amp\Cancellation` token. Pass it to any `await()` so client `notifications/cancelled` can interrupt long-running work. |
-| `$context->meta` | The request's `_meta` object (`progressToken`, etc.). |
+| `$context->meta` | The request's `_meta` object: the client's `protocolVersion`, `clientInfo`, and `clientCapabilities`, plus `progressToken`. Read client capabilities per request, never inferred from a prior one. |
 | `$context->sessionId` | The transport's session id, if any. `null` for stdio. |
 | `$context->log($level, $data, $logger = null)` | Emits a `notifications/message`. Dropped if below the gate's minimum level (default: `info`). |
 | `$context->reportProgress($progress, $total, $message)` | Emits a `notifications/progress` if the original request carried a `progressToken`. |
@@ -288,14 +289,12 @@ Every handler closure receives a `ServerContext` as its last argument.
 ## Lifecycle
 
 1. **`build()`** validates the configuration (e.g. server info must be set) and returns a `Server` instance.
-2. **`run($transport)`** wires the listener chain on the transport, starts it, and blocks until the
+2. **`run($transport)`** registers the listener chain on the transport, starts it, and blocks until the
    transport closes.
-3. While running, the dispatcher classifies each inbound envelope:
-   - `initialize` request: routed before initialization completes. Subsequent calls are rejected with
-     `InvalidRequest`.
-   - `notifications/initialized`: marks the gate ready.
-   - All other requests and notifications: gated on the initialization state. Requests before init get an
-     `InvalidRequest` error.
+3. While running, the dispatcher classifies each inbound envelope and routes it straight to its handler.
+   The protocol is stateless, so every request dispatches immediately, with the client's identity and
+   capabilities read from the request's `_meta`. Requests for an unregistered method get a `MethodNotFound`
+   error, and malformed envelopes get an `InvalidRequest` or `ParseError` error.
 4. **Shutdown** is signalled by the transport closing (e.g. stdin EOF). The dispatcher drains in-flight
    coroutines before the transport's close listeners fire, so responses already in flight are flushed
    before the process exits.

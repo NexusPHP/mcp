@@ -14,15 +14,17 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Client;
 
 use Nexus\Mcp\Client\ClientBuilder;
+use Nexus\Mcp\Core\Schema\ClientCapabilities;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\ProtocolVersion;
 use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
-use Nexus\Mcp\Core\Schema\Request\InitializeRequest;
+use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
 use Nexus\Mcp\Core\Schema\Request\ListToolsRequest;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureNotificationHandler;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureRequestHandler;
+use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
@@ -51,6 +53,15 @@ final class ClientBuilderTest extends TestCase
         $builder = new ClientBuilder();
 
         $returned = $builder->setClientInfo('demo', '1.0.0');
+
+        self::assertSame($builder, $returned);
+    }
+
+    public function testSetClientCapabilitiesIsFluent(): void
+    {
+        $builder = new ClientBuilder();
+
+        $returned = $builder->setClientCapabilities(new ClientCapabilities());
 
         self::assertSame($builder, $returned);
     }
@@ -103,40 +114,30 @@ final class ClientBuilderTest extends TestCase
         self::assertSame($builder, $returned);
     }
 
-    public function testBuildSeedsADefaultPingHandlerSoServerInitiatedPingsAreAnswered(): void
-    {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
-        $transport = new RecordingTransport();
-        $client->connect($transport);
-
-        $transport->emitMessage(['jsonrpc' => '2.0', 'id' => 5, 'method' => 'ping']);
-        $transport->nextSend()->await();
-
-        self::assertCount(1, $transport->sent);
-        $response = $transport->sent[0]['message'];
-        self::assertInstanceOf(JsonRpcResultResponse::class, $response);
-        self::assertSame(5, $response->id->id);
-        self::assertInstanceOf(EmptyResult::class, $response->result);
-    }
-
-    public function testBuildLetsACustomPingHandlerOverrideTheDefault(): void
+    public function testBuildWiresRegisteredRequestHandlersIntoTheInboundDispatcher(): void
     {
         $marker = new EmptyResult();
 
         $client = new ClientBuilder()
             ->setClientInfo('demo', '1.0.0')
-            ->addRequestHandler('ping', new ClosureRequestHandler(static fn(): EmptyResult => $marker))
+            ->addRequestHandler('server/discover', new ClosureRequestHandler(static fn(): EmptyResult => $marker))
             ->build()
         ;
         $transport = new RecordingTransport();
         $client->connect($transport);
 
-        $transport->emitMessage(['jsonrpc' => '2.0', 'id' => 7, 'method' => 'ping']);
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => 7,
+            'method' => 'server/discover',
+            'params' => ['_meta' => RequestMetaObjectFactory::shape()],
+        ]);
         $transport->nextSend()->await();
 
         self::assertCount(1, $transport->sent);
         $response = $transport->sent[0]['message'];
         self::assertInstanceOf(JsonRpcResultResponse::class, $response);
+        self::assertSame(7, $response->id->id);
         self::assertSame($marker, $response->result);
     }
 
@@ -146,31 +147,23 @@ final class ClientBuilderTest extends TestCase
         $transport = new RecordingTransport();
         $client->connect($transport);
 
-        $deferred = async(static fn() => $client->initialize());
+        $deferred = async(static fn() => $client->discover());
         $transport->nextSend()->await();
 
         self::assertCount(1, $transport->sent);
         $sentRequest = $transport->sent[0]['message'];
-        self::assertInstanceOf(InitializeRequest::class, $sentRequest);
+        self::assertInstanceOf(DiscoverRequest::class, $sentRequest);
         self::assertSame(1, $sentRequest->id->id, 'Default factory must start the counter at 1.');
 
-        $transport->emitMessage([
-            'jsonrpc' => '2.0',
-            'id' => 1,
-            'result' => [
-                'protocolVersion' => ProtocolVersion::LATEST_VERSION,
-                'capabilities' => ['tools' => []],
-                'serverInfo' => ['name' => 'srv', 'version' => '1'],
-            ],
-        ]);
+        $transport->emitMessage(self::discoverResponse(1, ['tools' => []]));
         $deferred->await();
 
         // A second factory-minted id must increment, not reset to 1. Guards against an
         // arrow-function factory whose by-value counter capture never persists.
         $list = async(static fn() => $client->listTools());
         $transport->nextSend()->await();
-        self::assertCount(3, $transport->sent);
-        $listRequest = $transport->sent[2]['message'];
+        self::assertCount(2, $transport->sent);
+        $listRequest = $transport->sent[1]['message'];
         self::assertInstanceOf(ListToolsRequest::class, $listRequest);
         self::assertSame(2, $listRequest->id->id, 'The factory must increment across calls.');
 
@@ -194,23 +187,15 @@ final class ClientBuilderTest extends TestCase
         $transport = new RecordingTransport();
         $client->connect($transport);
 
-        $deferred = async(static fn() => $client->initialize());
+        $deferred = async(static fn() => $client->discover());
         $transport->nextSend()->await();
 
         self::assertCount(1, $transport->sent);
         $sentRequest = $transport->sent[0]['message'];
-        self::assertInstanceOf(InitializeRequest::class, $sentRequest);
+        self::assertInstanceOf(DiscoverRequest::class, $sentRequest);
         self::assertSame($uuid, $sentRequest->id->id);
 
-        $transport->emitMessage([
-            'jsonrpc' => '2.0',
-            'id' => $uuid,
-            'result' => [
-                'protocolVersion' => ProtocolVersion::LATEST_VERSION,
-                'capabilities' => [],
-                'serverInfo' => ['name' => 'srv', 'version' => '1'],
-            ],
-        ]);
+        $transport->emitMessage(self::discoverResponse($uuid));
         $deferred->await();
     }
 
@@ -220,28 +205,20 @@ final class ClientBuilderTest extends TestCase
         $transport = new RecordingTransport();
         $client->connect($transport);
 
-        $handshake = async(static fn() => $client->initialize());
+        $handshake = async(static fn() => $client->discover());
         $transport->nextSend()->await();
         self::assertCount(1, $transport->sent);
-        $initRequest = $transport->sent[0]['message'];
-        self::assertInstanceOf(InitializeRequest::class, $initRequest);
-        $transport->emitMessage([
-            'jsonrpc' => '2.0',
-            'id' => $initRequest->id->id,
-            'result' => [
-                'protocolVersion' => ProtocolVersion::LATEST_VERSION,
-                'capabilities' => ['tools' => []],
-                'serverInfo' => ['name' => 'srv', 'version' => '1'],
-            ],
-        ]);
+        $discoverRequest = $transport->sent[0]['message'];
+        self::assertInstanceOf(DiscoverRequest::class, $discoverRequest);
+        $transport->emitMessage(self::discoverResponse($discoverRequest->id->id, ['tools' => []]));
         $handshake->await();
 
         $onProgress = static function (float $progress, ?float $total, ?string $message): void {};
 
         $first = async(static fn() => $client->callTool('a', null, $onProgress));
         $transport->nextSend()->await();
-        self::assertCount(3, $transport->sent);
-        $firstRequest = $transport->sent[2]['message'];
+        self::assertCount(2, $transport->sent);
+        $firstRequest = $transport->sent[1]['message'];
         self::assertInstanceOf(CallToolRequest::class, $firstRequest);
         $transport->emitMessage([
             'jsonrpc' => '2.0',
@@ -252,13 +229,33 @@ final class ClientBuilderTest extends TestCase
 
         $second = async(static fn() => $client->callTool('b', null, $onProgress));
         $transport->nextSend()->await();
-        self::assertCount(4, $transport->sent);
-        $secondRequest = $transport->sent[3]['message'];
+        self::assertCount(3, $transport->sent);
+        $secondRequest = $transport->sent[2]['message'];
         self::assertInstanceOf(CallToolRequest::class, $secondRequest);
         $transport->emitMessage(['jsonrpc' => '2.0', 'id' => $secondRequest->id->id, 'result' => ['content' => []]]);
         $second->await();
 
         self::assertSame('progress-1', $firstRequest->params->meta->progressToken?->token);
         self::assertSame('progress-2', $secondRequest->params->meta->progressToken?->token);
+    }
+
+    /**
+     * @param array<string, mixed> $capabilities
+     *
+     * @return array<string, mixed>
+     */
+    private static function discoverResponse(int|string $id, array $capabilities = []): array
+    {
+        return [
+            'jsonrpc' => '2.0',
+            'id' => $id,
+            'result' => [
+                'supportedVersions' => [ProtocolVersion::LATEST_VERSION],
+                'capabilities' => $capabilities,
+                'serverInfo' => ['name' => 'srv', 'version' => '1'],
+                'ttlMs' => 0,
+                'cacheScope' => 'private',
+            ],
+        ];
     }
 }

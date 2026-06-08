@@ -44,6 +44,7 @@ use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
 use Nexus\Mcp\Core\Schema\ProtocolVersion;
 use Nexus\Mcp\Core\Schema\Request;
 use Nexus\Mcp\Core\Schema\Request\ClientRequest;
+use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
 use Nexus\Mcp\Core\Schema\Request\ServerRequest;
 use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams;
@@ -51,10 +52,12 @@ use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\PaginatedRequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\ResourceRequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\TaskAugmentedRequestParams;
+use Nexus\Mcp\Core\Schema\RequestParamsInterface;
 use Nexus\Mcp\Core\Schema\Resource\ResourceContents;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\CacheableResult;
 use Nexus\Mcp\Core\Schema\Result\ClientResult;
+use Nexus\Mcp\Core\Schema\Result\DiscoverResult;
 use Nexus\Mcp\Core\Schema\Result\PaginatedResult;
 use Nexus\Mcp\Core\Schema\Result\ServerResult;
 use Nexus\Mcp\Tools\McpAnchorSnapshot;
@@ -80,6 +83,17 @@ final class SchemaConformanceTest extends TestCase
         'method' => ['kind' => 'static-method', 'name' => 'getMethod'],
         'resultType' => ['kind' => 'constant', 'name' => 'RESULT_TYPE'],
         'type' => ['kind' => 'constant', 'name' => 'TYPE'],
+    ];
+
+    /**
+     * DNS-prefixed `_meta` claim keys whose PHP property name is not derivable
+     * by the default `ltrim('_')` rule.
+     */
+    private const array SPEC_KEY_TO_PHP_NAME = [
+        'io.modelcontextprotocol/protocolVersion' => 'protocolVersion',
+        'io.modelcontextprotocol/clientInfo' => 'clientInfo',
+        'io.modelcontextprotocol/clientCapabilities' => 'clientCapabilities',
+        'io.modelcontextprotocol/logLevel' => 'logLevel',
     ];
 
     private const string SCHEMA_ANCHOR_BASE_URL = 'https://modelcontextprotocol.io/specification/2025-11-25/schema#';
@@ -124,16 +138,18 @@ final class SchemaConformanceTest extends TestCase
         ProtocolVersion::class => 'https://modelcontextprotocol.io/specification/2025-11-25/basic/lifecycle#version-negotiation',
         Request::class => self::TS_SCHEMA_FILE_URL,
         RequestMetaObject::class => 'https://modelcontextprotocol.io/specification/2025-11-25/basic#_meta',
-        RequestParams::class => self::TS_SCHEMA_FILE_URL,
+        RequestParams::class => self::TS_DRAFT_SCHEMA_FILE_URL,
         EmptyRequestParams::class => self::TS_SCHEMA_FILE_URL,
         PaginatedRequestParams::class => self::TS_SCHEMA_FILE_URL,
         ResourceRequestParams::class => self::TS_SCHEMA_FILE_URL,
         TaskAugmentedRequestParams::class => self::TS_SCHEMA_FILE_URL,
         ClientRequest::class => self::TS_SCHEMA_FILE_URL,
+        DiscoverRequest::class => self::TS_DRAFT_SCHEMA_FILE_URL,
         ServerRequest::class => self::TS_SCHEMA_FILE_URL,
         ResourceContents::class => self::TS_SCHEMA_FILE_URL,
         CacheableResult::class => self::TS_DRAFT_SCHEMA_FILE_URL,
         ClientResult::class => self::TS_SCHEMA_FILE_URL,
+        DiscoverResult::class => self::TS_DRAFT_SCHEMA_FILE_URL,
         PaginatedResult::class => self::TS_SCHEMA_FILE_URL,
         ServerResult::class => self::TS_SCHEMA_FILE_URL,
     ];
@@ -144,6 +160,7 @@ final class SchemaConformanceTest extends TestCase
      */
     private const array SEE_ANNOTATION_EXEMPT = [
         Arrayable::class,
+        RequestParamsInterface::class,
     ];
 
     /**
@@ -760,11 +777,12 @@ final class SchemaConformanceTest extends TestCase
     /**
      * Map a spec property name to its expected PHP constructor parameter name.
      * The leading underscore on `_meta` is dropped to match the project's
-     * convention of `$meta` for the meta value object.
+     * convention of `$meta` for the meta value object. DNS-prefixed `_meta`
+     * claim keys map to their unprefixed PHP property.
      */
     private static function specKeyToPhpName(string $key): string
     {
-        return ltrim($key, '_');
+        return self::SPEC_KEY_TO_PHP_NAME[$key] ?? ltrim($key, '_');
     }
 
     /**

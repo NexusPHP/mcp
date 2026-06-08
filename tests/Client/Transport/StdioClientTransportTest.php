@@ -18,11 +18,12 @@ use Nexus\Mcp\Client\Transport\StdioClientTransport;
 use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyStartedException;
 use Nexus\Mcp\Core\Exception\TransportNotStartedException;
-use Nexus\Mcp\Core\Schema\Notification\InitializedNotification;
-use Nexus\Mcp\Core\Schema\Request\PingRequest;
+use Nexus\Mcp\Core\Schema\Notification\ToolListChangedNotification;
+use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
+use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -63,7 +64,7 @@ final class StdioClientTransportTest extends TestCase
 
         $this->expectException(TransportNotStartedException::class);
 
-        $transport->send(new PingRequest(new RequestId(1), new EmptyRequestParams()));
+        $transport->send(new DiscoverRequest(new RequestId(1), new EmptyRequestParams(RequestMetaObjectFactory::create())));
     }
 
     public function testStartAfterStartThrows(): void
@@ -113,14 +114,14 @@ final class StdioClientTransportTest extends TestCase
         });
 
         $transport->start();
-        $transport->send(new PingRequest(new RequestId('round-trip-1'), new EmptyRequestParams()));
+        $transport->send(new DiscoverRequest(new RequestId('round-trip-1'), new EmptyRequestParams(RequestMetaObjectFactory::create())));
 
         $envelope = $messageReceived->getFuture()->await();
         $transport->close();
 
         self::assertSame('2.0', $envelope['jsonrpc'] ?? null);
         self::assertSame('round-trip-1', $envelope['id'] ?? null);
-        self::assertSame('ping', $envelope['method'] ?? null);
+        self::assertSame('server/discover', $envelope['method'] ?? null);
     }
 
     public function testSendsANotificationAndLogsItAtDebug(): void
@@ -136,15 +137,15 @@ final class StdioClientTransportTest extends TestCase
         });
 
         $transport->start();
-        $transport->send(new InitializedNotification());
+        $transport->send(new ToolListChangedNotification());
         $envelope = $messageReceived->getFuture()->await();
         $transport->close();
 
-        self::assertSame('notifications/initialized', $envelope['method'] ?? null);
+        self::assertSame('notifications/tools/list_changed', $envelope['method'] ?? null);
         $matches = $logger->recordsMatching(LogLevel::DEBUG, '{label} transport sent {kind}.');
         self::assertNotEmpty($matches);
         self::assertSame('Stdio client', $matches[0]['context']['label'] ?? null);
-        self::assertSame('"notifications/initialized" notification', $matches[0]['context']['kind'] ?? null);
+        self::assertSame('"notifications/tools/list_changed" notification', $matches[0]['context']['kind'] ?? null);
     }
 
     public function testSubprocessStderrIsForwardedToTheLogger(): void
@@ -187,7 +188,7 @@ final class StdioClientTransportTest extends TestCase
 
         $this->expectException(TransportAlreadyClosedException::class);
 
-        $transport->send(new PingRequest(new RequestId(1), new EmptyRequestParams()));
+        $transport->send(new DiscoverRequest(new RequestId(1), new EmptyRequestParams(RequestMetaObjectFactory::create())));
     }
 
     public function testCloseLogsAtInfoLevel(): void

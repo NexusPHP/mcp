@@ -17,7 +17,6 @@ use Amp\NullCancellation;
 use Nexus\Mcp\Core\Schema\Prompt\Prompt;
 use Nexus\Mcp\Core\Schema\Request\GetPromptRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
-use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams\GetPromptRequestParams;
 use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
 use Nexus\Mcp\Server\Exception\PromptNotFoundException;
@@ -27,6 +26,7 @@ use Nexus\Mcp\Server\Prompt\PromptEntry;
 use Nexus\Mcp\Server\Prompt\PromptStore;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
+use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
@@ -55,7 +55,7 @@ final class GetPromptRequestHandlerTest extends TestCase
         $handler = new GetPromptRequestHandler($store);
 
         $handler->handle(
-            new GetPromptRequest(new RequestId(42), new GetPromptRequestParams('greeting', ['name' => 'Paul'])),
+            new GetPromptRequest(new RequestId(42), new GetPromptRequestParams('greeting', RequestMetaObjectFactory::create(), ['name' => 'Paul'])),
             self::makeContext(),
         );
 
@@ -74,7 +74,7 @@ final class GetPromptRequestHandlerTest extends TestCase
         $handler = new GetPromptRequestHandler($store);
 
         $result = $handler->handle(
-            new GetPromptRequest(new RequestId(1), new GetPromptRequestParams('greeting')),
+            new GetPromptRequest(new RequestId(1), new GetPromptRequestParams('greeting', RequestMetaObjectFactory::create())),
             self::makeContext(),
         );
 
@@ -89,7 +89,7 @@ final class GetPromptRequestHandlerTest extends TestCase
         $this->expectExceptionMessageMatches('/^No prompt registered under name "missing"\.$/');
 
         $handler->handle(
-            new GetPromptRequest(new RequestId(1), new GetPromptRequestParams('missing')),
+            new GetPromptRequest(new RequestId(1), new GetPromptRequestParams('missing', RequestMetaObjectFactory::create())),
             self::makeContext(),
         );
     }
@@ -99,7 +99,7 @@ final class GetPromptRequestHandlerTest extends TestCase
         return new ServerContext(
             new RequestId(99),
             new NullCancellation(),
-            new RequestMetaObject(),
+            RequestMetaObjectFactory::create(),
             null,
             new RecordingSender(),
         );

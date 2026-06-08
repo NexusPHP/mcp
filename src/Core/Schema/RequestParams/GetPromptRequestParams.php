@@ -38,7 +38,7 @@ final readonly class GetPromptRequestParams extends RequestParams
     /**
      * @param null|array<string, string> $arguments
      */
-    public function __construct(string $name, ?array $arguments = null, RequestMetaObject $meta = new RequestMetaObject())
+    public function __construct(string $name, RequestMetaObject $meta, ?array $arguments = null)
     {
         IdentifierNameValidator::validate($name, '"params.name"');
 
@@ -76,17 +76,14 @@ final readonly class GetPromptRequestParams extends RequestParams
             $arguments = $data['arguments'];
         }
 
-        $meta = new RequestMetaObject();
+        Assert::that($data)->hasOffset('_meta', '"params" missing the required "_meta" key.');
+        Assert::that($data['_meta'])
+            ->isArray('"params._meta" must be an object, {type} given.')
+            ->isMap('"params._meta" must be a string-keyed object.')
+        ;
+        $meta = RequestMetaObject::fromArray($data['_meta']);
 
-        if (\array_key_exists('_meta', $data)) {
-            Assert::that($data['_meta'])
-                ->isArray('"params._meta" must be an object, {type} given.')
-                ->isMap('"params._meta" must be a string-keyed object.')
-            ;
-            $meta = RequestMetaObject::fromArray($data['_meta']);
-        }
-
-        return new self($name, $arguments, $meta);
+        return new self($name, $meta, $arguments);
     }
 
     #[\Override]
@@ -99,11 +96,5 @@ final readonly class GetPromptRequestParams extends RequestParams
         }
 
         return [...parent::toArray(), ...$data];
-    }
-
-    #[\Override]
-    public function jsonSerialize(): array
-    {
-        return $this->toArray();
     }
 }

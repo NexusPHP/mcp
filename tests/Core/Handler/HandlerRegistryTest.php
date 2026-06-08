@@ -16,10 +16,11 @@ namespace Nexus\Mcp\Tests\Core\Handler;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Handler\HandlerRegistry;
 use Nexus\Mcp\Core\Handler\NotificationHandlerInterface;
-use Nexus\Mcp\Core\Handler\Request\PingRequestHandler;
 use Nexus\Mcp\Core\Handler\RequestHandlerInterface;
-use Nexus\Mcp\Core\Schema\Notification\InitializedNotification;
-use Nexus\Mcp\Core\Schema\Request\PingRequest;
+use Nexus\Mcp\Core\Schema\Notification\ToolListChangedNotification;
+use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
+use Nexus\Mcp\Core\Schema\Result;
+use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureRequestHandler;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingNotificationHandler;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
@@ -35,14 +36,14 @@ final class HandlerRegistryTest extends TestCase
 {
     public function testGetReturnsRegisteredHandler(): void
     {
-        $handler = new PingRequestHandler();
+        $handler = new ClosureRequestHandler(static fn(): Result => self::fail('handler must not run'));
         $registry = new HandlerRegistry(
-            [PingRequest::getMethod() => $handler],
+            [DiscoverRequest::getMethod() => $handler],
             RequestHandlerInterface::class,
             'Request handler',
         );
 
-        self::assertSame($handler, $registry->get(PingRequest::getMethod()));
+        self::assertSame($handler, $registry->get(DiscoverRequest::getMethod()));
     }
 
     public function testGetReturnsNullForUnregisteredMethod(): void
@@ -59,7 +60,7 @@ final class HandlerRegistryTest extends TestCase
 
         new HandlerRegistry(
             // @phpstan-ignore argument.type
-            ['' => new PingRequestHandler()],
+            ['' => new ClosureRequestHandler(static fn(): Result => self::fail('handler must not run'))],
             RequestHandlerInterface::class,
             'Request handler',
         );
@@ -71,7 +72,7 @@ final class HandlerRegistryTest extends TestCase
         $this->expectExceptionMessageMatches('/^Request handler registry value must implement .+RequestHandlerInterface\'\\.$/');
 
         new HandlerRegistry(
-            [PingRequest::getMethod() => new \stdClass()],
+            [DiscoverRequest::getMethod() => new \stdClass()],
             RequestHandlerInterface::class,
             'Request handler',
         );
@@ -96,7 +97,7 @@ final class HandlerRegistryTest extends TestCase
         $this->expectExceptionMessageMatches('/^Notification handler registry value must implement .+NotificationHandlerInterface\'\\.$/');
 
         new HandlerRegistry(
-            [InitializedNotification::getMethod() => new \stdClass()],
+            [ToolListChangedNotification::getMethod() => new \stdClass()],
             NotificationHandlerInterface::class,
             'Notification handler',
         );

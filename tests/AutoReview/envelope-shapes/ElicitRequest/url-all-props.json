@@ -3,13 +3,6 @@
     "id": "req-2",
     "method": "elicitation/create",
     "params": {
-        "_meta": {
-            "vendor.brand": "acme",
-            "progressToken": "progress-2"
-        },
-        "task": {
-            "ttl": 120000
-        },
         "elicitationId": "elicit-xyz",
         "message": "Authorize the application to read your data.",
         "mode": "url",

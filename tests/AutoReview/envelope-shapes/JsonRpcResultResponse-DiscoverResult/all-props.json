@@ -1,0 +1,27 @@
+{
+    "jsonrpc": "2.0",
+    "id": "req-1",
+    "result": {
+        "_meta": {
+            "vendor": "acme"
+        },
+        "resultType": "complete",
+        "ttlMs": 300000,
+        "cacheScope": "public",
+        "supportedVersions": [
+            "2025-11-25"
+        ],
+        "capabilities": {
+            "tools": {
+                "listChanged": true
+            }
+        },
+        "serverInfo": {
+            "name": "test-server",
+            "version": "1.0.0",
+            "title": "Test Server",
+            "description": "A test server."
+        },
+        "instructions": "Welcome to the test server."
+    }
+}

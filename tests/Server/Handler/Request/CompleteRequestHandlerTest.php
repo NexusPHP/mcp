@@ -17,13 +17,13 @@ use Amp\NullCancellation;
 use Nexus\Mcp\Core\Schema\Prompt\PromptReference;
 use Nexus\Mcp\Core\Schema\Request\CompleteRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
-use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams\CompleteRequestParams;
 use Nexus\Mcp\Core\Schema\Resource\ResourceTemplateReference;
 use Nexus\Mcp\Core\Schema\Result\CompleteResult;
 use Nexus\Mcp\Server\Handler\Request\CompleteRequestHandler;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
+use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use Nexus\Mcp\Tests\Fixtures\Server\Completion\RecordingCompletionStore;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
@@ -48,6 +48,7 @@ final class CompleteRequestHandlerTest extends TestCase
             new CompleteRequestParams(
                 new PromptReference('my-prompt'),
                 ['name' => 'arg', 'value' => 'partial'],
+                RequestMetaObjectFactory::create(),
                 ['arguments' => ['other' => 'context-value']],
             ),
         );
@@ -80,6 +81,7 @@ final class CompleteRequestHandlerTest extends TestCase
             new CompleteRequestParams(
                 new ResourceTemplateReference('file:///{folder}/{filename}'),
                 ['name' => 'filename', 'value' => 'rep'],
+                RequestMetaObjectFactory::create(),
                 ['arguments' => ['folder' => 'docs']],
             ),
         );
@@ -110,6 +112,7 @@ final class CompleteRequestHandlerTest extends TestCase
             new CompleteRequestParams(
                 new PromptReference('p'),
                 ['name' => 'a', 'value' => ''],
+                RequestMetaObjectFactory::create(),
             ),
         );
 
@@ -128,6 +131,7 @@ final class CompleteRequestHandlerTest extends TestCase
             new CompleteRequestParams(
                 new PromptReference('p'),
                 ['name' => 'a', 'value' => ''],
+                RequestMetaObjectFactory::create(),
                 [],
             ),
         );
@@ -160,7 +164,7 @@ final class CompleteRequestHandlerTest extends TestCase
         return new ServerContext(
             new RequestId(1),
             new NullCancellation(),
-            new RequestMetaObject(),
+            RequestMetaObjectFactory::create(),
             null,
             new RecordingSender(),
         );

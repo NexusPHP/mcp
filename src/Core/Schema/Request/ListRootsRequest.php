@@ -45,7 +45,7 @@ final readonly class ListRootsRequest extends JsonRpcRequest implements ServerRe
         $id = $data['id'];
         Assert::that($id)->isArrayKey('"id" must be an int or string, {type} given.');
 
-        $params = new EmptyRequestParams();
+        $params = null;
 
         if (\array_key_exists('params', $data)) {
             Assert::that($data['params'])

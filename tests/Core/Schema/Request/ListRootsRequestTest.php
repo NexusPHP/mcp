@@ -19,6 +19,7 @@ use Nexus\Mcp\Core\Schema\Request;
 use Nexus\Mcp\Core\Schema\Request\ListRootsRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
+use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -57,7 +58,19 @@ final class ListRootsRequestTest extends TestCase
             'method' => 'roots/list',
         ]);
 
-        self::assertSame(EmptyRequestParams::class, $request->params::class);
+        self::assertNull($request->params);
+    }
+
+    public function testFromArrayParsesWithParams(): void
+    {
+        $request = ListRootsRequest::fromArray([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'roots/list',
+            'params' => ['_meta' => RequestMetaObjectFactory::shape()],
+        ]);
+
+        self::assertInstanceOf(EmptyRequestParams::class, $request->params);
     }
 
     public function testFromArrayFullRoundTrip(): void

@@ -13,8 +13,13 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Schema\JsonRpc;
 
+use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Core\Schema\RequestParams\PaginatedRequestParams;
+
 /**
  * A request that paginates its result via an opaque cursor.
+ *
+ * @property-read PaginatedRequestParams $params
  *
  * @template-covariant TMethod of non-empty-string
  *
@@ -24,4 +29,8 @@ namespace Nexus\Mcp\Core\Schema\JsonRpc;
  */
 abstract readonly class PaginatedRequest extends JsonRpcRequest
 {
+    public function __construct(RequestId $id, PaginatedRequestParams $params)
+    {
+        parent::__construct($id, $params);
+    }
 }

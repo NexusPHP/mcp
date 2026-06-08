@@ -15,11 +15,11 @@ namespace Nexus\Mcp\Tests\Core\Schema\RequestParams;
 
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\ProgressToken;
-use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\CallToolRequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\TaskAugmentedRequestParams;
 use Nexus\Mcp\Core\Schema\Task\TaskMetadata;
+use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -37,19 +37,18 @@ final class CallToolRequestParamsTest extends TestCase
 {
     public function testConstructionMinimal(): void
     {
-        $params = new CallToolRequestParams('read-file');
+        $params = new CallToolRequestParams('read-file', RequestMetaObjectFactory::create());
 
         self::assertSame('read-file', $params->name);
         self::assertNull($params->arguments);
         self::assertNull($params->task);
-        self::assertSame([], $params->meta->toArray());
     }
 
     public function testConstructionWithAllFields(): void
     {
         $task = new TaskMetadata(60000);
-        $meta = new RequestMetaObject(new ProgressToken('p-1'), ['vendor.brand' => 'acme']);
-        $params = new CallToolRequestParams('read-file', ['path' => 'src/'], $task, $meta);
+        $meta = RequestMetaObjectFactory::create(new ProgressToken('p-1'), ['vendor.brand' => 'acme']);
+        $params = new CallToolRequestParams('read-file', $meta, ['path' => 'src/'], $task);
 
         self::assertSame(['path' => 'src/'], $params->arguments);
         self::assertSame($task, $params->task);
@@ -58,17 +57,20 @@ final class CallToolRequestParamsTest extends TestCase
 
     public function testToArrayMinimal(): void
     {
-        $params = new CallToolRequestParams('read-file');
+        $params = new CallToolRequestParams('read-file', RequestMetaObjectFactory::create());
 
-        self::assertSame(['name' => 'read-file'], $params->toArray());
+        self::assertSame(
+            ['_meta' => RequestMetaObjectFactory::shape(), 'name' => 'read-file'],
+            $params->toArray(),
+        );
     }
 
     public function testToArrayWithArguments(): void
     {
-        $params = new CallToolRequestParams('read-file', ['path' => 'src/']);
+        $params = new CallToolRequestParams('read-file', RequestMetaObjectFactory::create(), ['path' => 'src/']);
 
         self::assertSame(
-            ['name' => 'read-file', 'arguments' => ['path' => 'src/']],
+            ['_meta' => RequestMetaObjectFactory::shape(), 'name' => 'read-file', 'arguments' => ['path' => 'src/']],
             $params->toArray(),
         );
     }
@@ -77,14 +79,14 @@ final class CallToolRequestParamsTest extends TestCase
     {
         $params = new CallToolRequestParams(
             'read-file',
+            RequestMetaObjectFactory::create(null, ['vendor.brand' => 'acme']),
             null,
             new TaskMetadata(60000),
-            new RequestMetaObject(null, ['vendor.brand' => 'acme']),
         );
 
         self::assertSame(
             [
-                '_meta' => ['vendor.brand' => 'acme'],
+                '_meta' => RequestMetaObjectFactory::shape(null, ['vendor.brand' => 'acme']),
                 'task' => ['ttl' => 60000],
                 'name' => 'read-file',
             ],
@@ -94,29 +96,37 @@ final class CallToolRequestParamsTest extends TestCase
 
     public function testToArrayOmitsEmptyTask(): void
     {
-        $params = new CallToolRequestParams('read-file', null, new TaskMetadata());
+        $params = new CallToolRequestParams('read-file', RequestMetaObjectFactory::create(), null, new TaskMetadata());
 
-        self::assertSame(['name' => 'read-file'], $params->toArray());
+        self::assertSame(
+            ['_meta' => RequestMetaObjectFactory::shape(), 'name' => 'read-file'],
+            $params->toArray(),
+        );
     }
 
     public function testToArrayOmitsEmptyArguments(): void
     {
-        $params = new CallToolRequestParams('read-file', []);
+        $params = new CallToolRequestParams('read-file', RequestMetaObjectFactory::create(), []);
 
-        self::assertSame(['name' => 'read-file'], $params->toArray());
-        self::assertSame('{"name":"read-file"}', json_encode($params, \JSON_THROW_ON_ERROR));
+        self::assertSame(
+            ['_meta' => RequestMetaObjectFactory::shape(), 'name' => 'read-file'],
+            $params->toArray(),
+        );
     }
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $params = new CallToolRequestParams('read-file', ['path' => 'src/']);
+        $params = new CallToolRequestParams('read-file', RequestMetaObjectFactory::create(), ['path' => 'src/']);
 
         self::assertSame($params->toArray(), $params->jsonSerialize());
     }
 
     public function testFromArrayMinimal(): void
     {
-        $params = CallToolRequestParams::fromArray(['name' => 'read-file']);
+        $params = CallToolRequestParams::fromArray([
+            'name' => 'read-file',
+            '_meta' => RequestMetaObjectFactory::shape(),
+        ]);
 
         self::assertSame('read-file', $params->name);
         self::assertNull($params->arguments);
@@ -129,7 +139,7 @@ final class CallToolRequestParamsTest extends TestCase
             'name' => 'read-file',
             'arguments' => ['path' => 'src/'],
             'task' => ['ttl' => 60000],
-            '_meta' => ['vendor.brand' => 'acme'],
+            '_meta' => RequestMetaObjectFactory::shape(null, ['vendor.brand' => 'acme']),
         ]);
 
         self::assertSame(['path' => 'src/'], $params->arguments);
@@ -142,9 +152,9 @@ final class CallToolRequestParamsTest extends TestCase
     {
         $original = new CallToolRequestParams(
             'read-file',
+            RequestMetaObjectFactory::create(null, ['vendor.brand' => 'acme']),
             ['path' => 'src/'],
             new TaskMetadata(60000),
-            new RequestMetaObject(null, ['vendor.brand' => 'acme']),
         );
 
         $rebuilt = CallToolRequestParams::fromArray($original->toArray());
@@ -157,7 +167,7 @@ final class CallToolRequestParamsTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageMatches('/\A"params.name" must be 1-128 characters/');
 
-        new CallToolRequestParams('bad name');
+        new CallToolRequestParams('bad name', RequestMetaObjectFactory::create());
     }
 
     public function testConstructorRejectsListKeyedArguments(): void
@@ -166,7 +176,7 @@ final class CallToolRequestParamsTest extends TestCase
         $this->expectExceptionMessageIs('"params.arguments" must be a string-keyed map.');
 
         // @phpstan-ignore argument.type
-        new CallToolRequestParams('read-file', ['v1', 'v2']);
+        new CallToolRequestParams('read-file', RequestMetaObjectFactory::create(), ['v1', 'v2']);
     }
 
     /**
@@ -214,6 +224,11 @@ final class CallToolRequestParamsTest extends TestCase
         yield 'task list-keyed' => [
             ['name' => 'read-file', 'task' => ['x']],
             '"params.task" must be a string-keyed object.',
+        ];
+
+        yield 'missing _meta' => [
+            ['name' => 'read-file'],
+            '"params" missing the required "_meta" key.',
         ];
 
         yield '_meta not an object' => [

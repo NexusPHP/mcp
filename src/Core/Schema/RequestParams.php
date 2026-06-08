@@ -16,13 +16,14 @@ namespace Nexus\Mcp\Core\Schema;
 /**
  * Common params for any request.
  *
- * @implements Arrayable<array{_meta?: template-type<RequestMetaObject, Arrayable, 'T'>, ...<string, mixed>}>
+ * @implements Arrayable<array{_meta: template-type<RequestMetaObject, Arrayable, 'T'>, ...<string, mixed>}>
+ * @implements RequestParamsInterface<array{_meta: template-type<RequestMetaObject, Arrayable, 'T'>, ...<string, mixed>}>
  *
- * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2025-11-25/schema.ts
+ * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/draft/schema.ts
  */
-abstract readonly class RequestParams implements Arrayable
+abstract readonly class RequestParams implements Arrayable, RequestParamsInterface
 {
-    public function __construct(public RequestMetaObject $meta = new RequestMetaObject())
+    public function __construct(public RequestMetaObject $meta)
     {
     }
 
@@ -34,19 +35,20 @@ abstract readonly class RequestParams implements Arrayable
 
     /**
      * Serializes the params body. Subclasses override to merge their own fields
-     * alongside the `_meta` slice returned here.
+     * alongside the required `_meta` slice returned here.
      */
     #[\Override]
     public function toArray(): array
     {
-        $meta = $this->meta->toArray();
-
-        return [] === $meta ? [] : ['_meta' => $meta];
+        return ['_meta' => $this->meta->toArray()];
     }
 
     #[\Override]
     public function jsonSerialize(): array
     {
-        return $this->toArray();
+        $data = $this->toArray();
+        $data['_meta'] = $this->meta->jsonSerialize();
+
+        return $data;
     }
 }

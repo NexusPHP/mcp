@@ -22,10 +22,10 @@ use Nexus\Mcp\Core\Schema\NotificationParams\LoggingMessageNotificationParams;
 use Nexus\Mcp\Core\Schema\NotificationParams\ProgressNotificationParams;
 use Nexus\Mcp\Core\Schema\ProgressToken;
 use Nexus\Mcp\Core\Schema\RequestId;
-use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Server\Logging\LoggingLevelGate;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
+use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
@@ -43,7 +43,7 @@ final class ServerContextTest extends TestCase
     {
         $requestId = new RequestId(42);
         $cancellation = new NullCancellation();
-        $meta = new RequestMetaObject();
+        $meta = RequestMetaObjectFactory::create();
         $sender = new RecordingSender();
 
         $context = new ServerContext($requestId, $cancellation, $meta, 'sess-1', $sender);
@@ -54,17 +54,17 @@ final class ServerContextTest extends TestCase
         self::assertSame('sess-1', $context->sessionId);
     }
 
-    public function testAcceptsEmptyMetaAndNullSessionId(): void
+    public function testAcceptsExtraFreeMetaAndNullSessionId(): void
     {
         $context = new ServerContext(
             new RequestId('req-1'),
             new NullCancellation(),
-            new RequestMetaObject(),
+            RequestMetaObjectFactory::create(),
             null,
             new RecordingSender(),
         );
 
-        self::assertSame([], $context->meta->toArray());
+        self::assertSame(RequestMetaObjectFactory::shape(), $context->meta->toArray());
         self::assertNull($context->sessionId);
     }
 
@@ -75,7 +75,7 @@ final class ServerContextTest extends TestCase
         $context = new ServerContext(
             new RequestId(1),
             new NullCancellation(),
-            new RequestMetaObject(progressToken: $token),
+            RequestMetaObjectFactory::create(progressToken: $token),
             null,
             $sender,
         );
@@ -96,7 +96,7 @@ final class ServerContextTest extends TestCase
         $context = new ServerContext(
             new RequestId(1),
             new NullCancellation(),
-            new RequestMetaObject(),
+            RequestMetaObjectFactory::create(),
             null,
             $sender,
         );
@@ -112,7 +112,7 @@ final class ServerContextTest extends TestCase
         $context = new ServerContext(
             new RequestId(1),
             new NullCancellation(),
-            new RequestMetaObject(),
+            RequestMetaObjectFactory::create(),
             null,
             $sender,
         );
@@ -133,7 +133,7 @@ final class ServerContextTest extends TestCase
         $context = new ServerContext(
             new RequestId(1),
             new NullCancellation(),
-            new RequestMetaObject(),
+            RequestMetaObjectFactory::create(),
             null,
             $sender,
         );
@@ -154,7 +154,7 @@ final class ServerContextTest extends TestCase
         $context = new ServerContext(
             new RequestId(1),
             new NullCancellation(),
-            new RequestMetaObject(),
+            RequestMetaObjectFactory::create(),
             null,
             $sender,
             new LoggingLevelGate(LoggingLevel::Warning),
@@ -174,7 +174,7 @@ final class ServerContextTest extends TestCase
         $context = new ServerContext(
             new RequestId(1),
             new NullCancellation(),
-            new RequestMetaObject(),
+            RequestMetaObjectFactory::create(),
             null,
             $sender,
             $store,
@@ -193,7 +193,7 @@ final class ServerContextTest extends TestCase
         $context = new ServerContext(
             new RequestId(1),
             new NullCancellation(),
-            new RequestMetaObject(),
+            RequestMetaObjectFactory::create(),
             null,
             $sender,
             $store,

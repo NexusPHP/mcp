@@ -19,6 +19,7 @@ use Nexus\Mcp\Core\Schema\Request;
 use Nexus\Mcp\Core\Schema\Request\ReadResourceRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\ReadResourceRequestParams;
+use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -43,7 +44,7 @@ final class ReadResourceRequestTest extends TestCase
     {
         $request = new ReadResourceRequest(
             new RequestId(1),
-            new ReadResourceRequestParams('file:///x'),
+            new ReadResourceRequestParams('file:///x', RequestMetaObjectFactory::create()),
         );
 
         self::assertSame(
@@ -51,7 +52,7 @@ final class ReadResourceRequestTest extends TestCase
                 'jsonrpc' => '2.0',
                 'id' => 1,
                 'method' => 'resources/read',
-                'params' => ['uri' => 'file:///x'],
+                'params' => ['_meta' => RequestMetaObjectFactory::shape(), 'uri' => 'file:///x'],
             ],
             $request->toArray(),
         );
@@ -61,7 +62,7 @@ final class ReadResourceRequestTest extends TestCase
     {
         $original = new ReadResourceRequest(
             new RequestId('req-1'),
-            new ReadResourceRequestParams('file:///x'),
+            new ReadResourceRequestParams('file:///x', RequestMetaObjectFactory::create()),
         );
 
         $rebuilt = ReadResourceRequest::fromArray($original->toArray());

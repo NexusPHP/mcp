@@ -16,8 +16,8 @@ namespace Nexus\Mcp\Core\Handler;
 use Amp\Cancellation;
 use Nexus\Mcp\Core\Schema\Notification\ProgressNotification;
 use Nexus\Mcp\Core\Schema\NotificationParams\ProgressNotificationParams;
+use Nexus\Mcp\Core\Schema\ProgressToken;
 use Nexus\Mcp\Core\Schema\RequestId;
-use Nexus\Mcp\Core\Schema\RequestMetaObject;
 
 /**
  * Context passed to a request handler. Carries metadata about the incoming
@@ -28,7 +28,7 @@ abstract readonly class AbstractContext
     public function __construct(
         public RequestId $requestId,
         public Cancellation $cancellation,
-        public RequestMetaObject $meta,
+        public ?ProgressToken $progressToken,
         public ?string $sessionId,
         protected SenderInterface $sender,
     ) {
@@ -36,7 +36,7 @@ abstract readonly class AbstractContext
 
     public function reportProgress(float $progress, ?float $total = null, ?string $message = null): void
     {
-        $token = $this->meta->progressToken;
+        $token = $this->progressToken;
 
         if (null === $token) {
             return;

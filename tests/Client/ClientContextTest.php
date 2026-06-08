@@ -19,7 +19,6 @@ use Nexus\Mcp\Core\Handler\AbstractContext;
 use Nexus\Mcp\Core\Schema\Notification\ProgressNotification;
 use Nexus\Mcp\Core\Schema\ProgressToken;
 use Nexus\Mcp\Core\Schema\RequestId;
-use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
@@ -38,21 +37,21 @@ final class ClientContextTest extends TestCase
     {
         $sender = new RecordingSender();
         $id = new RequestId(42);
-        $meta = new RequestMetaObject();
+        $progressToken = new ProgressToken('tok-1');
 
-        $context = new ClientContext($id, new NullCancellation(), $meta, 'sess-abc', $sender);
+        $context = new ClientContext($id, new NullCancellation(), $progressToken, 'sess-abc', $sender);
 
         self::assertSame($id, $context->requestId);
-        self::assertSame($meta, $context->meta);
+        self::assertSame($progressToken, $context->progressToken);
         self::assertSame('sess-abc', $context->sessionId);
     }
 
     public function testReportProgressDelegatesToTheInheritedSenderWhenAProgressTokenIsSet(): void
     {
         $sender = new RecordingSender();
-        $meta = new RequestMetaObject(progressToken: new ProgressToken('tok-1'));
+        $progressToken = new ProgressToken('tok-1');
 
-        $context = new ClientContext(new RequestId(1), new NullCancellation(), $meta, null, $sender);
+        $context = new ClientContext(new RequestId(1), new NullCancellation(), $progressToken, null, $sender);
 
         $context->reportProgress(0.5, 1.0, 'halfway');
 

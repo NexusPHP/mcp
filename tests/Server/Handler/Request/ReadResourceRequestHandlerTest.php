@@ -17,7 +17,6 @@ use Amp\NullCancellation;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\Request\ReadResourceRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
-use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams\ReadResourceRequestParams;
 use Nexus\Mcp\Core\Schema\Resource\Resource;
 use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
@@ -28,6 +27,7 @@ use Nexus\Mcp\Server\Resource\ResourceEntry;
 use Nexus\Mcp\Server\Resource\ResourceStore;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
+use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
@@ -56,7 +56,7 @@ final class ReadResourceRequestHandlerTest extends TestCase
         $handler = new ReadResourceRequestHandler($store);
 
         $handler->handle(
-            new ReadResourceRequest(new RequestId(42), new ReadResourceRequestParams('file:///a')),
+            new ReadResourceRequest(new RequestId(42), new ReadResourceRequestParams('file:///a', RequestMetaObjectFactory::create())),
             self::makeContext(),
         );
 
@@ -75,7 +75,7 @@ final class ReadResourceRequestHandlerTest extends TestCase
         $handler = new ReadResourceRequestHandler($store);
 
         $result = $handler->handle(
-            new ReadResourceRequest(new RequestId(1), new ReadResourceRequestParams('file:///a')),
+            new ReadResourceRequest(new RequestId(1), new ReadResourceRequestParams('file:///a', RequestMetaObjectFactory::create())),
             self::makeContext(),
         );
 
@@ -90,7 +90,7 @@ final class ReadResourceRequestHandlerTest extends TestCase
         $this->expectExceptionMessageMatches('/^No resource registered under URI "file:\\/\\/\\/missing"\.$/');
 
         $handler->handle(
-            new ReadResourceRequest(new RequestId(1), new ReadResourceRequestParams('file:///missing')),
+            new ReadResourceRequest(new RequestId(1), new ReadResourceRequestParams('file:///missing', RequestMetaObjectFactory::create())),
             self::makeContext(),
         );
     }
@@ -100,7 +100,7 @@ final class ReadResourceRequestHandlerTest extends TestCase
         return new ServerContext(
             new RequestId(99),
             new NullCancellation(),
-            new RequestMetaObject(),
+            RequestMetaObjectFactory::create(),
             null,
             new RecordingSender(),
         );

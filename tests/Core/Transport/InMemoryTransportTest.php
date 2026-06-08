@@ -16,10 +16,12 @@ namespace Nexus\Mcp\Tests\Core\Transport;
 use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyStartedException;
 use Nexus\Mcp\Core\Exception\TransportNotStartedException;
-use Nexus\Mcp\Core\Schema\Notification\InitializedNotification;
-use Nexus\Mcp\Core\Schema\Request\PingRequest;
+use Nexus\Mcp\Core\Schema\Notification\ToolListChangedNotification;
+use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 use Nexus\Mcp\Core\Transport\InMemoryTransport;
+use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
@@ -57,10 +59,18 @@ final class InMemoryTransportTest extends TestCase
         $server->start();
         $client->start();
 
-        $client->send(new PingRequest(new RequestId(42)));
+        $client->send(new DiscoverRequest(new RequestId(42), new EmptyRequestParams(RequestMetaObjectFactory::create())));
 
         self::assertCount(1, $received);
-        self::assertSame(['jsonrpc' => '2.0', 'id' => 42, 'method' => 'ping'], $received[0]);
+        self::assertSame(
+            [
+                'jsonrpc' => '2.0',
+                'id' => 42,
+                'method' => 'server/discover',
+                'params' => ['_meta' => RequestMetaObjectFactory::shape()],
+            ],
+            $received[0],
+        );
     }
 
     public function testInboundEnvelopesArrivingBeforeStartDrainOnStart(): void
@@ -71,8 +81,8 @@ final class InMemoryTransportTest extends TestCase
             $received->append($envelope);
         });
         $client->start();
-        $client->send(new InitializedNotification());
-        $client->send(new PingRequest(new RequestId(1)));
+        $client->send(new ToolListChangedNotification());
+        $client->send(new DiscoverRequest(new RequestId(1), new EmptyRequestParams(RequestMetaObjectFactory::create())));
 
         self::assertCount(0, $received, 'Server has not started yet, so envelopes must queue.');
 
@@ -80,8 +90,13 @@ final class InMemoryTransportTest extends TestCase
 
         self::assertSame(
             [
-                ['jsonrpc' => '2.0', 'method' => 'notifications/initialized'],
-                ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping'],
+                ['jsonrpc' => '2.0', 'method' => 'notifications/tools/list_changed'],
+                [
+                    'jsonrpc' => '2.0',
+                    'id' => 1,
+                    'method' => 'server/discover',
+                    'params' => ['_meta' => RequestMetaObjectFactory::shape()],
+                ],
             ],
             $received->getArrayCopy(),
         );
@@ -93,7 +108,7 @@ final class InMemoryTransportTest extends TestCase
 
         $this->expectException(TransportNotStartedException::class);
 
-        $a->send(new PingRequest(new RequestId(1)));
+        $a->send(new DiscoverRequest(new RequestId(1), new EmptyRequestParams(RequestMetaObjectFactory::create())));
     }
 
     public function testStartTwiceThrowsTransportAlreadyStarted(): void
@@ -124,7 +139,7 @@ final class InMemoryTransportTest extends TestCase
 
         $this->expectException(TransportAlreadyClosedException::class);
 
-        $a->send(new PingRequest(new RequestId(1)));
+        $a->send(new DiscoverRequest(new RequestId(1), new EmptyRequestParams(RequestMetaObjectFactory::create())));
     }
 
     public function testCloseCascadesToPeerAndFiresCloseListenersOnBothSides(): void
@@ -173,7 +188,7 @@ final class InMemoryTransportTest extends TestCase
 
         $this->expectException(TransportAlreadyClosedException::class);
 
-        $client->send(new PingRequest(new RequestId(1)));
+        $client->send(new DiscoverRequest(new RequestId(1), new EmptyRequestParams(RequestMetaObjectFactory::create())));
     }
 
     public function testDisposingMessageSubscriptionStopsDelivery(): void
@@ -186,11 +201,11 @@ final class InMemoryTransportTest extends TestCase
         $server->start();
         $client->start();
 
-        $client->send(new PingRequest(new RequestId(1)));
+        $client->send(new DiscoverRequest(new RequestId(1), new EmptyRequestParams(RequestMetaObjectFactory::create())));
         self::assertCount(1, $received);
 
         $subscription->dispose();
-        $client->send(new PingRequest(new RequestId(2)));
+        $client->send(new DiscoverRequest(new RequestId(2), new EmptyRequestParams(RequestMetaObjectFactory::create())));
 
         self::assertCount(1, $received, 'Disposed listener must not receive subsequent envelopes.');
     }
@@ -290,7 +305,7 @@ final class InMemoryTransportTest extends TestCase
         $server->start();
         $client->start();
 
-        $client->send(new PingRequest(new RequestId(1)));
+        $client->send(new DiscoverRequest(new RequestId(1), new EmptyRequestParams(RequestMetaObjectFactory::create())));
 
         self::assertSame(['first', 'second'], $order);
     }

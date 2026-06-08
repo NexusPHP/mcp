@@ -29,7 +29,7 @@ use Nexus\Mcp\Core\Schema\RequestParams\PaginatedRequestParams;
  */
 final readonly class ListToolsRequest extends PaginatedRequest implements ClientRequest
 {
-    public function __construct(RequestId $id, PaginatedRequestParams $params = new PaginatedRequestParams())
+    public function __construct(RequestId $id, PaginatedRequestParams $params)
     {
         parent::__construct($id, $params);
     }
@@ -47,15 +47,12 @@ final readonly class ListToolsRequest extends PaginatedRequest implements Client
         $id = $data['id'];
         Assert::that($id)->isArrayKey('"id" must be an int or string, {type} given.');
 
-        $params = new PaginatedRequestParams();
-
-        if (\array_key_exists('params', $data)) {
-            Assert::that($data['params'])
-                ->isArray('"params" must be an object, {type} given.')
-                ->isMap('"params" must be a string-keyed object.')
-            ;
-            $params = PaginatedRequestParams::fromArray($data['params']);
-        }
+        Assert::that($data)->hasOffset('params', 'missing the required "params" key.');
+        Assert::that($data['params'])
+            ->isArray('"params" must be an object, {type} given.')
+            ->isMap('"params" must be a string-keyed object.')
+        ;
+        $params = PaginatedRequestParams::fromArray($data['params']);
 
         return new self(new RequestId($id), $params);
     }

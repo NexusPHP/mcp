@@ -19,9 +19,10 @@ use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Notification\ProgressNotification;
 use Nexus\Mcp\Core\Schema\NotificationParams\ProgressNotificationParams;
 use Nexus\Mcp\Core\Schema\ProgressToken;
-use Nexus\Mcp\Core\Schema\Request\PingRequest;
+use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
+use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
@@ -60,7 +61,7 @@ final class RequestBoundSenderTest extends TestCase
         $sender = new RequestBoundSender(new RecordingTransport(), $inboundId);
 
         try {
-            $sender->sendRequest(new PingRequest(new RequestId(2), new EmptyRequestParams()));
+            $sender->sendRequest(new DiscoverRequest(new RequestId(2), new EmptyRequestParams(RequestMetaObjectFactory::create())));
         } catch (OutboundRequestsNotSupportedException $e) {
             self::assertSame($inboundId, $e->requestId);
             self::assertSame(

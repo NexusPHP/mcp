@@ -23,7 +23,7 @@ use Nexus\Mcp\Core\Schema\RequestParams;
  */
 abstract readonly class ResourceRequestParams extends RequestParams
 {
-    public function __construct(public string $uri, RequestMetaObject $meta = new RequestMetaObject())
+    public function __construct(public string $uri, RequestMetaObject $meta)
     {
         parent::__construct($meta);
     }
@@ -35,11 +35,5 @@ abstract readonly class ResourceRequestParams extends RequestParams
             ...parent::toArray(),
             'uri' => $this->uri,
         ];
-    }
-
-    #[\Override]
-    public function jsonSerialize(): array
-    {
-        return $this->toArray();
     }
 }

@@ -13,12 +13,14 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Server;
 
-use Nexus\Mcp\Core\Schema\Request\PingRequest;
+use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 use Nexus\Mcp\Core\Transport\InMemoryTransport;
 use Nexus\Mcp\Server\Server;
 use Nexus\Mcp\Server\ServerBuilder;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
+use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
@@ -86,7 +88,8 @@ final class ServerTest extends TestCase
             $transport->emitMessage([
                 'jsonrpc' => '2.0',
                 'id' => 1,
-                'method' => 'ping',
+                'method' => 'server/discover',
+                'params' => ['_meta' => RequestMetaObjectFactory::shape()],
             ]);
             $transport->close();
         });
@@ -188,7 +191,7 @@ final class ServerTest extends TestCase
     }
 
     /**
-     * Proves `run()` wires a drain listener to `dispatcher->flushPending()`.
+     * Proves `run()` attaches a drain listener to `dispatcher->flushPending()`.
      * `InMemoryTransport` throws `TransportAlreadyClosedException` on
      * send-after-close, so without the drain step the async dispatch coroutine
      * would lose the race and the client would never see a response.
@@ -209,7 +212,10 @@ final class ServerTest extends TestCase
 
         EventLoop::queue(static function () use ($clientSide, $serverSide): void {
             $clientSide->start();
-            $clientSide->send(new PingRequest(new RequestId(42)));
+            $clientSide->send(new DiscoverRequest(
+                new RequestId(42),
+                new EmptyRequestParams(RequestMetaObjectFactory::create()),
+            ));
             $serverSide->close();
         });
 

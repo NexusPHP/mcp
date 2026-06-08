@@ -16,11 +16,7 @@ namespace Nexus\Mcp\Tests\Core\Schema\RequestParams;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequestedSchema;
 use Nexus\Mcp\Core\Schema\Elicitation\StringSchema;
-use Nexus\Mcp\Core\Schema\RequestMetaObject;
-use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\ElicitRequestFormParams;
-use Nexus\Mcp\Core\Schema\RequestParams\TaskAugmentedRequestParams;
-use Nexus\Mcp\Core\Schema\Task\TaskMetadata;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -30,8 +26,6 @@ use PHPUnit\Framework\TestCase;
  * @internal
  */
 #[CoversClass(ElicitRequestFormParams::class)]
-#[CoversClass(TaskAugmentedRequestParams::class)]
-#[CoversClass(RequestParams::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
 final class ElicitRequestFormParamsTest extends TestCase
@@ -45,8 +39,6 @@ final class ElicitRequestFormParamsTest extends TestCase
 
         self::assertSame('Pick an option', $params->message);
         self::assertSame('form', $params->mode);
-        self::assertNull($params->task);
-        self::assertSame([], $params->meta->toArray());
     }
 
     public function testConstructionWithCustomModeKeepsForm(): void
@@ -80,31 +72,6 @@ final class ElicitRequestFormParamsTest extends TestCase
         );
     }
 
-    public function testToArrayWithAllFields(): void
-    {
-        $params = new ElicitRequestFormParams(
-            'Pick',
-            new ElicitRequestedSchema(['x' => new StringSchema()]),
-            'form',
-            new TaskMetadata(60000),
-            new RequestMetaObject(null, ['vendor' => 'x']),
-        );
-
-        self::assertSame(
-            [
-                '_meta' => ['vendor' => 'x'],
-                'task' => ['ttl' => 60000],
-                'mode' => 'form',
-                'message' => 'Pick',
-                'requestedSchema' => [
-                    'type' => 'object',
-                    'properties' => ['x' => ['type' => 'string']],
-                ],
-            ],
-            $params->toArray(),
-        );
-    }
-
     public function testJsonSerializeMatchesToArray(): void
     {
         $params = new ElicitRequestFormParams(
@@ -121,8 +88,6 @@ final class ElicitRequestFormParamsTest extends TestCase
             'Pick',
             new ElicitRequestedSchema(['x' => new StringSchema()]),
             'form',
-            new TaskMetadata(60000),
-            new RequestMetaObject(null, ['vendor' => 'x']),
         );
 
         $rebuilt = ElicitRequestFormParams::fromArray($original->toArray());
@@ -208,16 +173,6 @@ final class ElicitRequestFormParamsTest extends TestCase
         yield 'requestedSchema list-keyed' => [
             ['message' => 'm', 'requestedSchema' => ['x']],
             '"params.requestedSchema" must be a string-keyed object.',
-        ];
-
-        yield 'task not an object' => [
-            ['message' => 'm', 'requestedSchema' => ['type' => 'object', 'properties' => []], 'task' => 'oops'],
-            '"params.task" must be an object, string given.',
-        ];
-
-        yield 'task list-keyed' => [
-            ['message' => 'm', 'requestedSchema' => ['type' => 'object', 'properties' => []], 'task' => ['x']],
-            '"params.task" must be a string-keyed object.',
         ];
     }
 }

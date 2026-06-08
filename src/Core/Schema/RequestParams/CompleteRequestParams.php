@@ -45,8 +45,8 @@ final readonly class CompleteRequestParams extends RequestParams
     public function __construct(
         public PromptReference|ResourceTemplateReference $ref,
         array $argument,
+        RequestMetaObject $meta,
         ?array $context = null,
-        RequestMetaObject $meta = new RequestMetaObject(),
     ) {
         Assert::that($argument['name'])->isString('"params.argument.name" must be a string, {type} given.');
         Assert::that($argument['value'])->isString('"params.argument.value" must be a string, {type} given.');
@@ -108,21 +108,18 @@ final readonly class CompleteRequestParams extends RequestParams
             }
         }
 
-        $meta = new RequestMetaObject();
-
-        if (\array_key_exists('_meta', $data)) {
-            Assert::that($data['_meta'])
-                ->isArray('"params._meta" must be an object, {type} given.')
-                ->isMap('"params._meta" must be a string-keyed object.')
-            ;
-            $meta = RequestMetaObject::fromArray($data['_meta']);
-        }
+        Assert::that($data)->hasOffset('_meta', '"params" missing the required "_meta" key.');
+        Assert::that($data['_meta'])
+            ->isArray('"params._meta" must be an object, {type} given.')
+            ->isMap('"params._meta" must be a string-keyed object.')
+        ;
+        $meta = RequestMetaObject::fromArray($data['_meta']);
 
         return new self(
             self::dispatchRef($data['ref']),
             ['name' => $data['argument']['name'], 'value' => $data['argument']['value']],
-            $context,
             $meta,
+            $context,
         );
     }
 
@@ -140,12 +137,6 @@ final readonly class CompleteRequestParams extends RequestParams
         }
 
         return $data;
-    }
-
-    #[\Override]
-    public function jsonSerialize(): array
-    {
-        return $this->toArray();
     }
 
     /**

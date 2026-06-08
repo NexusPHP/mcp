@@ -21,7 +21,6 @@ use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\Notification\CancelledNotification;
 use Nexus\Mcp\Core\Schema\Notification\ElicitationCompleteNotification;
-use Nexus\Mcp\Core\Schema\Notification\InitializedNotification;
 use Nexus\Mcp\Core\Schema\Notification\LoggingMessageNotification;
 use Nexus\Mcp\Core\Schema\Notification\ProgressNotification;
 use Nexus\Mcp\Core\Schema\Notification\PromptListChangedNotification;
@@ -31,25 +30,24 @@ use Nexus\Mcp\Core\Schema\Notification\ToolListChangedNotification;
 use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
 use Nexus\Mcp\Core\Schema\Request\CompleteRequest;
 use Nexus\Mcp\Core\Schema\Request\CreateMessageRequest;
+use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
 use Nexus\Mcp\Core\Schema\Request\ElicitRequest;
 use Nexus\Mcp\Core\Schema\Request\GetPromptRequest;
-use Nexus\Mcp\Core\Schema\Request\InitializeRequest;
 use Nexus\Mcp\Core\Schema\Request\ListPromptsRequest;
 use Nexus\Mcp\Core\Schema\Request\ListResourcesRequest;
 use Nexus\Mcp\Core\Schema\Request\ListResourceTemplatesRequest;
 use Nexus\Mcp\Core\Schema\Request\ListRootsRequest;
 use Nexus\Mcp\Core\Schema\Request\ListToolsRequest;
-use Nexus\Mcp\Core\Schema\Request\PingRequest;
 use Nexus\Mcp\Core\Schema\Request\ReadResourceRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Core\Schema\Result\CompleteResult;
 use Nexus\Mcp\Core\Schema\Result\CreateMessageResult;
+use Nexus\Mcp\Core\Schema\Result\DiscoverResult;
 use Nexus\Mcp\Core\Schema\Result\ElicitResult;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
-use Nexus\Mcp\Core\Schema\Result\InitializeResult;
 use Nexus\Mcp\Core\Schema\Result\ListPromptsResult;
 use Nexus\Mcp\Core\Schema\Result\ListResourcesResult;
 use Nexus\Mcp\Core\Schema\Result\ListResourceTemplatesResult;
@@ -150,11 +148,9 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
     protected static function registry(): iterable
     {
         // Concrete requests.
-        yield 'PingRequest' => ['wrapper' => PingRequest::class, 'inner' => null];
+        yield 'DiscoverRequest' => ['wrapper' => DiscoverRequest::class, 'inner' => null];
 
         yield 'ReadResourceRequest' => ['wrapper' => ReadResourceRequest::class, 'inner' => null];
-
-        yield 'InitializeRequest' => ['wrapper' => InitializeRequest::class, 'inner' => null, 'encodingPathsDiverge' => true];
 
         yield 'CompleteRequest' => ['wrapper' => CompleteRequest::class, 'inner' => null];
 
@@ -179,8 +175,6 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
         // Concrete notifications.
         yield 'CancelledNotification' => ['wrapper' => CancelledNotification::class, 'inner' => null, 'encodingPathsDiverge' => true];
 
-        yield 'InitializedNotification' => ['wrapper' => InitializedNotification::class, 'inner' => null];
-
         yield 'LoggingMessageNotification' => ['wrapper' => LoggingMessageNotification::class, 'inner' => null];
 
         yield 'ProgressNotification' => ['wrapper' => ProgressNotification::class, 'inner' => null];
@@ -202,11 +196,11 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
 
         yield 'JsonRpcResultResponse-CreateMessageResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => CreateMessageResult::class];
 
+        yield 'JsonRpcResultResponse-DiscoverResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => DiscoverResult::class];
+
         yield 'JsonRpcResultResponse-EmptyResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => EmptyResult::class];
 
         yield 'JsonRpcResultResponse-GetPromptResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => GetPromptResult::class];
-
-        yield 'JsonRpcResultResponse-InitializeResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => InitializeResult::class];
 
         yield 'JsonRpcResultResponse-ListPromptsResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => ListPromptsResult::class];
 

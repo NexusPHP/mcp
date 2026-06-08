@@ -23,15 +23,15 @@ use Nexus\Mcp\Core\JsonRpc\UnparsedResultEnvelope;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
-use Nexus\Mcp\Core\Schema\Notification\InitializedNotification;
+use Nexus\Mcp\Core\Schema\Notification\ToolListChangedNotification;
 use Nexus\Mcp\Core\Schema\ProgressToken;
-use Nexus\Mcp\Core\Schema\Request\PingRequest;
+use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
-use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
+use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use Nexus\Mcp\Tests\Fixtures\Core\TestNotification;
-use Nexus\Mcp\Tests\Fixtures\Core\TestPingOverride;
+use Nexus\Mcp\Tests\Fixtures\Core\TestRequest;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
@@ -44,48 +44,48 @@ use PHPUnit\Framework\TestCase;
 #[Group('core-tests')]
 final class JsonRpcMessageParserTest extends TestCase
 {
-    public function testPingRequestSerializesWithoutEmptyParams(): void
+    public function testRequestWithNullParamsSerializesWithoutParamsKey(): void
     {
-        $request = new PingRequest(new RequestId(42));
+        $request = new TestRequest(new RequestId(42));
 
         self::assertSame(
-            ['jsonrpc' => '2.0', 'id' => 42, 'method' => 'ping'],
+            ['jsonrpc' => '2.0', 'id' => 42, 'method' => 'tests/test-request'],
             $request->toArray(),
         );
     }
 
-    public function testPingRequestRoundTripUsesDefaultRegistration(): void
+    public function testDiscoverRequestRoundTripUsesDefaultRegistration(): void
     {
-        $original = new PingRequest(new RequestId(42));
+        $original = new DiscoverRequest(new RequestId(42), new EmptyRequestParams(RequestMetaObjectFactory::create()));
 
         $parser = new JsonRpcMessageParser();
         $parsed = $parser->parse($original->toArray());
 
-        if (! $parsed instanceof PingRequest) {
-            self::fail(\sprintf('Expected PingRequest, got %s.', $parsed::class));
+        if (! $parsed instanceof DiscoverRequest) {
+            self::fail(\sprintf('Expected DiscoverRequest, got %s.', $parsed::class));
         }
 
         self::assertSame(42, $parsed->id->id);
-        self::assertSame([], $parsed->params->meta->toArray());
+        self::assertSame(RequestMetaObjectFactory::shape(), $parsed->params->meta->toArray());
     }
 
-    public function testUserRequestsOverrideDefaults(): void
+    public function testUserRequestsRegisterMethodsAbsentFromDefaults(): void
     {
-        $parser = new JsonRpcMessageParser(requests: ['ping' => TestPingOverride::class]);
+        $parser = new JsonRpcMessageParser(requests: ['tests/test-request' => TestRequest::class]);
         $parsed = $parser->parse([
             'jsonrpc' => '2.0',
             'id' => 7,
-            'method' => 'ping',
+            'method' => 'tests/test-request',
         ]);
 
-        self::assertInstanceOf(TestPingOverride::class, $parsed);
+        self::assertInstanceOf(TestRequest::class, $parsed);
     }
 
-    public function testPingRequestWithProgressTokenRoundTrip(): void
+    public function testDiscoverRequestWithProgressTokenRoundTrip(): void
     {
-        $original = new PingRequest(
+        $original = new DiscoverRequest(
             new RequestId('req-1'),
-            new EmptyRequestParams(new RequestMetaObject(new ProgressToken('tok-1'), ['vendor' => 'x'])),
+            new EmptyRequestParams(RequestMetaObjectFactory::create(new ProgressToken('tok-1'), ['vendor' => 'x'])),
         );
 
         $envelope = $original->toArray();
@@ -94,8 +94,8 @@ final class JsonRpcMessageParserTest extends TestCase
             [
                 'jsonrpc' => '2.0',
                 'id' => 'req-1',
-                'method' => 'ping',
-                'params' => ['_meta' => ['vendor' => 'x', 'progressToken' => 'tok-1']],
+                'method' => 'server/discover',
+                'params' => ['_meta' => RequestMetaObjectFactory::shape(new ProgressToken('tok-1'), ['vendor' => 'x'])],
             ],
             $envelope,
         );
@@ -103,8 +103,8 @@ final class JsonRpcMessageParserTest extends TestCase
         $parser = new JsonRpcMessageParser();
         $parsed = $parser->parse($envelope);
 
-        if (! $parsed instanceof PingRequest) {
-            self::fail(\sprintf('Expected PingRequest, got %s.', $parsed::class));
+        if (! $parsed instanceof DiscoverRequest) {
+            self::fail(\sprintf('Expected DiscoverRequest, got %s.', $parsed::class));
         }
 
         $progressToken = $parsed->params->meta->progressToken;
@@ -171,10 +171,10 @@ final class JsonRpcMessageParserTest extends TestCase
         $parser = new JsonRpcMessageParser();
         $parsed = $parser->parse([
             'jsonrpc' => '2.0',
-            'method' => 'notifications/initialized',
+            'method' => 'notifications/tools/list_changed',
         ]);
 
-        self::assertInstanceOf(InitializedNotification::class, $parsed);
+        self::assertInstanceOf(ToolListChangedNotification::class, $parsed);
     }
 
     public function testParseDispatchesNotificationWithParams(): void
@@ -260,13 +260,13 @@ final class JsonRpcMessageParserTest extends TestCase
             $parser = new JsonRpcMessageParser();
             $parser->parse([
                 'jsonrpc' => '2.0',
-                'method' => 'initialize',
+                'method' => 'server/discover',
             ]);
             self::fail('Expected MethodMisroutedException.');
         } catch (MethodMisroutedException $e) {
             self::assertNull($e->requestId, 'Notification envelopes carry no id.');
             self::assertSame(ProtocolErrorCode::InvalidRequest, MethodMisroutedException::getErrorCode());
-            self::assertSame('Method "initialize" must be sent as a request, not a notification.', $e->getMessage());
+            self::assertSame('Method "server/discover" must be sent as a request, not a notification.', $e->getMessage());
         }
     }
 
@@ -277,13 +277,13 @@ final class JsonRpcMessageParserTest extends TestCase
             $parser->parse([
                 'jsonrpc' => '2.0',
                 'id' => 7,
-                'method' => 'notifications/initialized',
+                'method' => 'notifications/tools/list_changed',
             ]);
             self::fail('Expected MethodMisroutedException.');
         } catch (MethodMisroutedException $e) {
             self::assertSame(7, $e->requestId?->id);
             self::assertSame(
-                'Method "notifications/initialized" must be sent as a notification, not a request.',
+                'Method "notifications/tools/list_changed" must be sent as a notification, not a request.',
                 $e->getMessage(),
             );
         }
@@ -363,7 +363,7 @@ final class JsonRpcMessageParserTest extends TestCase
     {
         try {
             $parser = new JsonRpcMessageParser();
-            $parser->parse(['jsonrpc' => '2.0', 'id' => ['bad'], 'method' => 'ping']);
+            $parser->parse(['jsonrpc' => '2.0', 'id' => ['bad'], 'method' => 'tests/test-request']);
             self::fail('Expected InvalidRequestException.');
         } catch (InvalidRequestException $e) {
             self::assertNull($e->requestId, 'A non-scalar id cannot be preserved on the exception.');
@@ -376,12 +376,12 @@ final class JsonRpcMessageParserTest extends TestCase
     {
         try {
             $parser = new JsonRpcMessageParser();
-            $parser->parse(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping', 'params' => 'not-an-object']);
+            $parser->parse(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'server/discover', 'params' => 'not-an-object']);
             self::fail('Expected InvalidParamsException.');
         } catch (InvalidParamsException $e) {
             self::assertSame(1, $e->requestId?->id);
             self::assertSame(ProtocolErrorCode::InvalidParams, InvalidParamsException::getErrorCode());
-            self::assertSame('Invalid "ping" request: "params" must be an object, string given.', $e->getMessage());
+            self::assertSame('Invalid "server/discover" request: "params" must be an object, string given.', $e->getMessage());
         }
     }
 
@@ -389,7 +389,7 @@ final class JsonRpcMessageParserTest extends TestCase
     {
         try {
             $parser = new JsonRpcMessageParser();
-            $parser->parse(['jsonrpc' => '1.0', 'id' => 1, 'method' => 'ping']);
+            $parser->parse(['jsonrpc' => '1.0', 'id' => 1, 'method' => 'tests/test-request']);
             self::fail('Expected InvalidRequestException.');
         } catch (InvalidRequestException $e) {
             self::assertSame(1, $e->requestId?->id);
@@ -403,14 +403,14 @@ final class JsonRpcMessageParserTest extends TestCase
         $this->expectExceptionMessageIs('Invalid JSON-RPC version: expected "2.0", got null.');
 
         $parser = new JsonRpcMessageParser();
-        $parser->parse(['id' => 1, 'method' => 'ping']);
+        $parser->parse(['id' => 1, 'method' => 'tests/test-request']);
     }
 
     public function testParseEscapesControlCharactersInWrongVersionMessage(): void
     {
         try {
             $parser = new JsonRpcMessageParser();
-            $parser->parse(['jsonrpc' => "1.0\ninjected", 'id' => 1, 'method' => 'ping']);
+            $parser->parse(['jsonrpc' => "1.0\ninjected", 'id' => 1, 'method' => 'tests/test-request']);
             self::fail('Expected InvalidRequestException.');
         } catch (InvalidRequestException $e) {
             self::assertSame(
@@ -542,7 +542,7 @@ final class JsonRpcMessageParserTest extends TestCase
     {
         try {
             $parser = new JsonRpcMessageParser();
-            $parser->parse(['jsonrpc' => '1.0', 'id' => '', 'method' => 'ping']);
+            $parser->parse(['jsonrpc' => '1.0', 'id' => '', 'method' => 'tests/test-request']);
             self::fail('Expected an InvalidRequestException.');
         } catch (InvalidRequestException $e) {
             self::assertNull($e->requestId, 'An empty-string envelope id cannot be wrapped into a RequestId, so the exception carries null.');

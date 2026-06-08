@@ -56,14 +56,14 @@ $transport = new StdioClientTransport(command: [\PHP_BINARY, __DIR__.'/stdio-ser
 $client->connect($transport);
 
 try {
-    $initializeResult = $client->initialize();
+    $discoverResult = $client->discover();
 
-    fwrite(\STDOUT, "=== Handshake ===\n");
+    fwrite(\STDOUT, "=== Discovery ===\n");
     fwrite(\STDOUT, sprintf(
-        "Connected to %s v%s (protocol %s)\n\n",
-        $initializeResult->serverInfo->name,
-        $initializeResult->serverInfo->version,
-        $initializeResult->protocolVersion->version,
+        "Connected to %s v%s (protocol versions: %s)\n\n",
+        $discoverResult->serverInfo->name,
+        $discoverResult->serverInfo->version,
+        implode(', ', $discoverResult->supportedVersions),
     ));
 
     fwrite(\STDOUT, "=== tools/list ===\n");

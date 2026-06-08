@@ -20,9 +20,9 @@ use Nexus\Mcp\Core\Schema\Error\ParseError;
 use Nexus\Mcp\Core\Schema\Icon;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\MetaObject;
-use Nexus\Mcp\Core\Schema\Notification\InitializedNotification;
+use Nexus\Mcp\Core\Schema\Notification\ToolListChangedNotification;
 use Nexus\Mcp\Core\Schema\NotificationParams;
-use Nexus\Mcp\Core\Schema\Request\PingRequest;
+use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
 use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
@@ -46,6 +46,6 @@ assertType(JsonRpcErrorResponse::class, JsonRpcErrorResponse::fromArray([]));
 assertType(RequestParams::class, RequestParams::fromArray([]));
 assertType(NotificationParams::class, NotificationParams::fromArray([]));
 
-assertType(PingRequest::class, PingRequest::fromArray(['id' => 1]));
+assertType(DiscoverRequest::class, DiscoverRequest::fromArray(['id' => 1]));
 
-assertType(InitializedNotification::class, InitializedNotification::fromArray([]));
+assertType(ToolListChangedNotification::class, ToolListChangedNotification::fromArray([]));

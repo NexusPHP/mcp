@@ -14,15 +14,17 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\RequestParams;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\Schema\RequestMetaObject;
-use Nexus\Mcp\Core\Schema\Task\TaskMetadata;
+use Nexus\Mcp\Core\Schema\Arrayable;
 
 /**
  * The parameters for a request to elicit information from the user via a URL in the client.
  *
+ * @implements Arrayable<array{elicitationId: non-empty-string, message: non-empty-string, mode: 'url', url: non-empty-string}>
+ * @implements ElicitRequestParams<array{elicitationId: non-empty-string, message: non-empty-string, mode: 'url', url: non-empty-string}>
+ *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#elicitrequesturlparams
  */
-final readonly class ElicitRequestUrlParams extends TaskAugmentedRequestParams implements ElicitRequestParams
+final readonly class ElicitRequestUrlParams implements Arrayable, ElicitRequestParams
 {
     public const string MODE = 'url';
 
@@ -51,8 +53,6 @@ final readonly class ElicitRequestUrlParams extends TaskAugmentedRequestParams i
         string $message,
         string $mode,
         string $url,
-        ?TaskMetadata $task = null,
-        RequestMetaObject $meta = new RequestMetaObject(),
     ) {
         Assert::that($elicitationId)->isNonEmptyString('"params.elicitationId" must be a non-empty string.');
         Assert::that($message)->isNonEmptyString('"params.message" must be a non-empty string.');
@@ -63,8 +63,6 @@ final readonly class ElicitRequestUrlParams extends TaskAugmentedRequestParams i
         $this->message = $message;
         $this->url = $url;
         $this->mode = $mode;
-
-        parent::__construct($task, $meta);
     }
 
     /**
@@ -89,34 +87,13 @@ final readonly class ElicitRequestUrlParams extends TaskAugmentedRequestParams i
         $url = $data['url'];
         Assert::that($url)->isString('"params.url" must be a string, {type} given.');
 
-        $task = null;
-
-        if (\array_key_exists('task', $data)) {
-            Assert::that($data['task'])
-                ->isArray('"params.task" must be an object, {type} given.')
-                ->isMap('"params.task" must be a string-keyed object.')
-            ;
-            $task = TaskMetadata::fromArray($data['task']);
-        }
-
-        $meta = new RequestMetaObject();
-
-        if (\array_key_exists('_meta', $data)) {
-            Assert::that($data['_meta'])
-                ->isArray('"params._meta" must be an object, {type} given.')
-                ->isMap('"params._meta" must be a string-keyed object.')
-            ;
-            $meta = RequestMetaObject::fromArray($data['_meta']);
-        }
-
-        return new self($elicitationId, $message, $mode, $url, $task, $meta);
+        return new self($elicitationId, $message, $mode, $url);
     }
 
     #[\Override]
     public function toArray(): array
     {
         return [
-            ...parent::toArray(),
             'elicitationId' => $this->elicitationId,
             'message' => $this->message,
             'mode' => $this->mode,

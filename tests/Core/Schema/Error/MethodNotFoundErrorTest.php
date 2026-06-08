@@ -86,13 +86,13 @@ final class MethodNotFoundErrorTest extends TestCase
 
     public function testMethodNotFoundErrorToArray(): void
     {
-        $error = new MethodNotFoundError('No such method', ['available' => ['ping']]);
+        $error = new MethodNotFoundError('No such method', ['available' => ['tools/list']]);
         $array = $error->toArray();
 
         self::assertSame([
             'code' => -32601,
             'message' => 'No such method',
-            'data' => ['available' => ['ping']],
+            'data' => ['available' => ['tools/list']],
         ], $array);
     }
 

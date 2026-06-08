@@ -1,7 +1,8 @@
 # Client API
 
 The `Client` class drives the client side of an MCP session over a `TransportInterface`. Build one with the
-fluent `ClientBuilder`, connect it to a transport, run the handshake, then issue typed requests.
+fluent `ClientBuilder`, connect it to a transport, then issue typed requests. Each request is self-contained,
+so typed calls can start as soon as the transport is connected.
 
 ```php
 use Nexus\Mcp\Client\ClientBuilder;
@@ -14,7 +15,6 @@ $client = new ClientBuilder()
 
 $transport = new StdioClientTransport(command: [\PHP_BINARY, 'server.php']);
 $client->connect($transport);
-$client->initialize();
 
 foreach ($client->listTools()->tools as $tool) {
     echo $tool->name, "\n";
@@ -27,18 +27,34 @@ $transport->close();
 `Client::close()`. Shut the session down by closing the transport, which cancels any pending requests with
 a `TransportAlreadyClosedException`.
 
+Every request the client sends carries the client's identity in its `_meta` block. The SDK stamps three
+namespaced keys onto every outbound request automatically: `io.modelcontextprotocol/protocolVersion`,
+`io.modelcontextprotocol/clientInfo`, and `io.modelcontextprotocol/clientCapabilities`. The server reads the
+client's identity and capabilities from each request's `_meta`.
+
 ## Client info
 
-Required before `build()`. Sent to the server during `initialize`.
+Required before `build()`. Stamped into every request's `_meta`.
 
 ```php
 ->setClientInfo(
     name: 'my-client',
     version: '1.0.0',
     title: 'My Friendly Client',
-    description: 'A short description sent to the server during initialize.',
+    description: 'A short description carried in every request.',
     websiteUrl: 'https://example.com',
 )
+```
+
+## Client capabilities
+
+Optional. Defaults to an empty `ClientCapabilities`. Stamped into every request's `_meta` so the server can
+read what the client supports.
+
+```php
+use Nexus\Mcp\Core\Schema\ClientCapabilities;
+
+->setClientCapabilities(new ClientCapabilities(sampling: []))
 ```
 
 ## Logger
@@ -64,41 +80,44 @@ for example UUIDs.
 Each factory is a `\Closure(): (int|non-empty-string)` and must return a value unique among concurrently
 in-flight requests.
 
-## Connecting and the handshake
+## Connecting and discovery
 
 ```php
 $client->connect($transport);
-$result = $client->initialize();
+$result = $client->discover();
 ```
 
-`initialize()` sends the `initialize` request, awaits the result, validates the protocol version the server
-settled on, then sends `notifications/initialized`. It accepts an optional `ClientCapabilities` and
-`ProtocolVersion`. Both default to an empty capability set and the latest supported protocol version. It
-returns the `InitializeResult` and may be called only once per client. A second `initialize()` throws
-`ClientAlreadyInitializedException`, and any non-`ping` request issued before the handshake completes is
-rejected with `ClientNotInitializedException`.
+`discover()` sends a `server/discover` request and records the server's advertised info and capabilities. It
+is optional: a client may call it to learn the server's identity and capabilities, but no discovery is
+required before issuing typed requests. After `connect()`, the client can call `listTools()` / `callTool()` /
+the other typed methods directly.
 
-Version negotiation follows the spec: the server's response carries the protocol version it chose. Because
-the SDK ships against a single revision with no back-compat layer, the client supports exactly that revision.
-If the server settles on any other version, `initialize()` withholds `notifications/initialized`, closes the
-transport (the spec's "disconnect" on an unsupported version), and throws `UnsupportedProtocolVersionException`.
+`discover()` returns a `DiscoverResult`:
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `supportedVersions` | `list<string>` | The protocol revisions the server speaks. |
+| `capabilities` | `ServerCapabilities` | Advertised server capabilities. |
+| `serverInfo` | `Implementation` | The server's name, version, title, … |
+| `instructions` | `?string` | Optional model-facing guidance. |
+| `ttlMs` / `cacheScope` | `int` / `CacheScope` | Cache hints, inherited from `CacheableResult`. |
 
 ```php
-use Nexus\Mcp\Core\Schema\ClientCapabilities;
-
-$result = $client->initialize(new ClientCapabilities(sampling: []));
+$result = $client->discover();
+echo $result->serverInfo->name, ' ', $result->serverInfo->version, "\n";
+echo 'Protocol versions: ', implode(', ', $result->supportedVersions), "\n";
 ```
 
-After the handshake, `getServerInfo()` returns the server's `Implementation` block (name, version, title,
-…). It returns `null` before the handshake completes.
+After `discover()`, `getServerInfo()` returns the server's `Implementation` block (name, version, title, …).
+It returns `null` before discovery runs.
 
 ```php
 $info = $client->getServerInfo();
 echo $info?->name, ' ', $info?->version;
 ```
 
-`getServerCapabilities()` returns the server's negotiated `ServerCapabilities`, or `null` before the
-handshake. Use it to check what the server supports before issuing a typed request (see
+`getServerCapabilities()` returns the server's advertised `ServerCapabilities`, or `null` before discovery.
+Use it to check what the server supports before issuing a typed request (see
 [Typed requests](#typed-requests)).
 
 ```php
@@ -111,8 +130,6 @@ if (null !== $client->getServerCapabilities()?->tools) {
 detaches it (a no-op when not connected), so the client can `connect()` to a new transport afterwards.
 Calling `connect()` twice throws `ClientAlreadyConnectedException`, and using the client before `connect()`
 throws `ClientNotConnectedException`.
-Re-running `initialize()` over a reconnection is only possible after a handshake that did not complete. A
-client that already finished `initialize()` stays initialized.
 
 ```php
 $client->disconnect();
@@ -133,24 +150,21 @@ optional `Cursor` for pagination.
 | `getPrompt(string $name, ?array $arguments = null)` | `prompts/get` | `GetPromptResult` |
 | `complete(PromptReference\|ResourceTemplateReference $ref, array $argument, ?array $context = null)` | `completion/complete` | `CompleteResult` |
 | `callTool(string $name, ?array $arguments = null, ?\Closure $onProgress = null)` | `tools/call` | `CallToolResult` |
-| `ping()` | `ping` | `void` |
+| `discover()` | `server/discover` | `DiscoverResult` |
 
 ```php
 $tools = $client->listTools();
 $result = $client->callTool('greet', ['name' => 'Paul']);
 $about = $client->readResource('example://about');
 $prompt = $client->getPrompt('walkthrough', ['audience' => 'a junior developer']);
-$client->ping();
 ```
 
-`ping()` returns `void` and is the only typed request permitted before `initialize()`
-completes, returning normally when the peer answers and throwing on failure.
-
-Every typed request other than `ping` requires the server to have advertised the matching capability during
-the handshake: `tools/*` needs `tools`, `resources/*` needs `resources`, `prompts/*` needs `prompts`,
-and `completion/complete` needs `completions`. Calling one the server did
-not advertise throws `ServerCapabilityNotSupportedException` before anything reaches the transport. Check
-`getServerCapabilities()` first when you need to branch on what the server supports.
+Once `discover()` has run, every typed request requires the server to have advertised the matching
+capability: `tools/*` needs `tools`, `resources/*` needs `resources`, `prompts/*` needs `prompts`, and
+`completion/complete` needs `completions`. Calling one the server did not advertise throws
+`ServerCapabilityNotSupportedException` before anything reaches the transport. Before discovery there are no
+advertised capabilities to gate against, so requests pass through. Check `getServerCapabilities()` when you
+need to branch on what the server supports.
 
 ### Streaming progress from `callTool`
 
@@ -199,18 +213,17 @@ $response = $client->sendRequest($request, EmptyResult::class);
 ```
 
 You supply the `RequestId` yourself when building the request. The auto-incrementing factory backs the typed
-methods above, and the same gates apply: any method other than `ping` is rejected until `initialize()`
-completes. The capability gate covers exactly the methods behind the typed requests above, so a `tools/list`
-against a server without `tools` throws `ServerCapabilityNotSupportedException`
+methods above. The capability gate covers exactly the methods behind the typed requests above, so a
+`tools/list` against a server that advertised no `tools` throws `ServerCapabilityNotSupportedException`
 (see [Typed requests](#typed-requests)). A vendor method like `acme/snapshot` passes through ungated.
 
 ## Lifecycle
 
 1. **`build()`** validates the configuration (client info must be set) and returns a `Client`.
 2. **`connect($transport)`** attaches the listener chain, starts the transport, and returns immediately.
-3. **`initialize()`** runs the handshake. Exactly once.
-4. **Typed requests** correlate inbound responses to awaiting callers by `RequestId`.
-5. **Shutdown** is `($transport)->close()`. Pending requests are cancelled with
+3. **Typed requests** correlate inbound responses to awaiting callers by `RequestId`. Optionally call
+   `discover()` first to learn the server's identity and capabilities.
+4. **Shutdown** is `($transport)->close()`. Pending requests are cancelled with
    `TransportAlreadyClosedException`. In-flight notification handlers drain before the close listeners fire.
 
 ## See also

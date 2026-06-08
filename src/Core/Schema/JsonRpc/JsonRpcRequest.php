@@ -16,8 +16,7 @@ namespace Nexus\Mcp\Core\Schema\JsonRpc;
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\Request;
 use Nexus\Mcp\Core\Schema\RequestId;
-use Nexus\Mcp\Core\Schema\RequestParams;
-use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
+use Nexus\Mcp\Core\Schema\RequestParamsInterface;
 
 /**
  * A request that expects a response.
@@ -29,14 +28,17 @@ use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
  *   jsonrpc: '2.0',
  *   id: int|non-empty-string,
  *   method: non-empty-string,
- *   params?: template-type<RequestParams, Arrayable, 'T'>,
+ *   params?: array<string, mixed>,
  * }>
  *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#jsonrpcrequest
  */
 abstract readonly class JsonRpcRequest extends Request implements Arrayable, JsonRpcMessage
 {
-    public function __construct(public RequestId $id, RequestParams $params = new EmptyRequestParams())
+    /**
+     * @param null|RequestParamsInterface<array<string, mixed>> $params
+     */
+    public function __construct(public RequestId $id, ?RequestParamsInterface $params = null)
     {
         parent::__construct($params);
     }
@@ -56,10 +58,8 @@ abstract readonly class JsonRpcRequest extends Request implements Arrayable, Jso
             'method' => static::getMethod(),
         ];
 
-        $params = $this->params->toArray();
-
-        if ([] !== $params) {
-            $envelope['params'] = $params;
+        if (null !== $this->params) {
+            $envelope['params'] = $this->params->toArray();
         }
 
         return $envelope;
@@ -74,10 +74,8 @@ abstract readonly class JsonRpcRequest extends Request implements Arrayable, Jso
             'method' => static::getMethod(),
         ];
 
-        $params = $this->params->jsonSerialize();
-
-        if ([] !== $params) {
-            $envelope['params'] = $params;
+        if (null !== $this->params) {
+            $envelope['params'] = $this->params->jsonSerialize();
         }
 
         return $envelope;

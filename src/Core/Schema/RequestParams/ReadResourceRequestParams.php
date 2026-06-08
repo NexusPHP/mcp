@@ -33,15 +33,12 @@ final readonly class ReadResourceRequestParams extends ResourceRequestParams
         $uri = $data['uri'];
         Assert::that($uri)->isString('"params.uri" must be a string, {type} given.');
 
-        $meta = new RequestMetaObject();
-
-        if (\array_key_exists('_meta', $data)) {
-            Assert::that($data['_meta'])
-                ->isArray('"params._meta" must be an object, {type} given.')
-                ->isMap('"params._meta" must be a string-keyed object.')
-            ;
-            $meta = RequestMetaObject::fromArray($data['_meta']);
-        }
+        Assert::that($data)->hasOffset('_meta', '"params" missing the required "_meta" key.');
+        Assert::that($data['_meta'])
+            ->isArray('"params._meta" must be an object, {type} given.')
+            ->isMap('"params._meta" must be a string-keyed object.')
+        ;
+        $meta = RequestMetaObject::fromArray($data['_meta']);
 
         return new self($uri, $meta);
     }

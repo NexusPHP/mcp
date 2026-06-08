@@ -17,7 +17,6 @@ use Amp\NullCancellation;
 use Nexus\Mcp\Core\Schema\Cursor;
 use Nexus\Mcp\Core\Schema\Request\ListResourceTemplatesRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
-use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams\PaginatedRequestParams;
 use Nexus\Mcp\Core\Schema\Resource\ResourceTemplate;
 use Nexus\Mcp\Server\Handler\Request\ListResourceTemplatesRequestHandler;
@@ -26,6 +25,7 @@ use Nexus\Mcp\Server\Resource\ResourceTemplateEntry;
 use Nexus\Mcp\Server\Resource\ResourceTemplateStore;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
+use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
@@ -47,7 +47,7 @@ final class ListResourceTemplatesRequestHandlerTest extends TestCase
         $handler = new ListResourceTemplatesRequestHandler($store);
 
         $result = $handler->handle(
-            new ListResourceTemplatesRequest(new RequestId(1), new PaginatedRequestParams()),
+            new ListResourceTemplatesRequest(new RequestId(1), new PaginatedRequestParams(RequestMetaObjectFactory::create())),
             self::makeContext(),
         );
 
@@ -69,7 +69,7 @@ final class ListResourceTemplatesRequestHandlerTest extends TestCase
         $handler = new ListResourceTemplatesRequestHandler($store);
 
         $result = $handler->handle(
-            new ListResourceTemplatesRequest(new RequestId(2), new PaginatedRequestParams(new Cursor('file:///{x}.b'))),
+            new ListResourceTemplatesRequest(new RequestId(2), new PaginatedRequestParams(RequestMetaObjectFactory::create(), new Cursor('file:///{x}.b'))),
             self::makeContext(),
         );
 
@@ -82,7 +82,7 @@ final class ListResourceTemplatesRequestHandlerTest extends TestCase
         return new ServerContext(
             new RequestId(1),
             new NullCancellation(),
-            new RequestMetaObject(),
+            RequestMetaObjectFactory::create(),
             null,
             new RecordingSender(),
         );

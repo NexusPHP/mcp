@@ -13,13 +13,14 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\JsonRpc;
 
+use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\Implementation;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\ProtocolVersion;
 use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Core\Schema\Result\DiscoverResult;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
-use Nexus\Mcp\Core\Schema\Result\InitializeResult;
 use Nexus\Mcp\Core\Schema\ServerCapabilities;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
@@ -71,10 +72,12 @@ final class JsonRpcResultResponseTest extends TestCase
     {
         $response = new JsonRpcResultResponse(
             new RequestId(99),
-            new InitializeResult(
-                new ProtocolVersion(ProtocolVersion::LATEST_VERSION),
+            new DiscoverResult(
+                [ProtocolVersion::LATEST_VERSION],
                 new ServerCapabilities(logging: []),
                 new Implementation('srv', '1.0.0'),
+                0,
+                CacheScope::Private,
             ),
         );
 

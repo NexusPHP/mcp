@@ -17,23 +17,26 @@ use Nexus\Mcp\Client\ClientContext;
 use Nexus\Mcp\Client\Dispatch\ClientMessageDispatcher;
 use Nexus\Mcp\Core\Dispatch\PendingOutboundRequests;
 use Nexus\Mcp\Core\Exception\AbstractJsonRpcProtocolException;
+use Nexus\Mcp\Core\Exception\MethodNotFoundException;
 use Nexus\Mcp\Core\Exception\RemoteCallFailedException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
 use Nexus\Mcp\Core\Handler\HandlerRegistry;
 use Nexus\Mcp\Core\Handler\NotificationHandlerInterface;
-use Nexus\Mcp\Core\Handler\Request\PingRequestHandler;
 use Nexus\Mcp\Core\Handler\RequestHandlerInterface;
+use Nexus\Mcp\Core\JsonRpc\JsonRpcMessageParser;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
+use Nexus\Mcp\Core\Schema\ProgressToken;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Server\Exception\ResourceNotFoundException;
-use Nexus\Mcp\Server\Exception\ServerNotInitializedException;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureNotificationHandler;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureRequestHandler;
+use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
+use Nexus\Mcp\Tests\Fixtures\Core\TestRequest;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
@@ -232,7 +235,7 @@ final class ClientMessageDispatcherTest extends TestCase
         $dispatcher = self::buildDispatcher(
             $outbound,
             requestHandlers: [
-                'ping' => new ClosureRequestHandler(
+                'tests/test-request' => new ClosureRequestHandler(
                     static function () use (&$attempts): EmptyResult {
                         if (1 === ++$attempts) {
                             throw new \RuntimeException('first attempt fails');
@@ -246,11 +249,11 @@ final class ClientMessageDispatcherTest extends TestCase
         $transport = new RecordingTransport();
 
         // First dispatch with id 1 - handler throws.
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping'], $transport);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport);
         EventLoop::run();
 
         // Second dispatch with the SAME id 1. The finally block must have released it.
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping'], $transport);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport);
         EventLoop::run();
 
         self::assertSame(2, $attempts);
@@ -265,14 +268,14 @@ final class ClientMessageDispatcherTest extends TestCase
         $dispatcher = self::buildDispatcher(
             $outbound,
             requestHandlers: [
-                'ping' => new ClosureRequestHandler(
-                    static fn() => throw new ServerNotInitializedException('tools/call', new RequestId('exception-pinned-id')),
+                'tests/test-request' => new ClosureRequestHandler(
+                    static fn() => throw new MethodNotFoundException('tools/call', new RequestId('exception-pinned-id')),
                 ),
             ],
         );
         $transport = new RecordingTransport();
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 42, 'method' => 'ping'], $transport);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 42, 'method' => 'tests/test-request'], $transport);
         EventLoop::run();
 
         self::assertCount(1, $transport->sent);
@@ -290,11 +293,11 @@ final class ClientMessageDispatcherTest extends TestCase
         $outbound = new PendingOutboundRequests();
         $dispatcher = self::buildDispatcher(
             $outbound,
-            requestHandlers: ['ping' => new PingRequestHandler()],
+            requestHandlers: ['tests/test-request' => new ClosureRequestHandler(static fn(): EmptyResult => new EmptyResult())],
         );
         $transport = new RecordingTransport();
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping'], $transport);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport);
 
         EventLoop::run();
 
@@ -304,13 +307,48 @@ final class ClientMessageDispatcherTest extends TestCase
         self::assertSame(1, $message->id->id);
     }
 
+    public function testInboundRequestWithHeavyParamsExposesItsProgressTokenToTheContext(): void
+    {
+        $outbound = new PendingOutboundRequests();
+        $captured = null;
+        $dispatcher = self::buildDispatcher(
+            $outbound,
+            requestHandlers: [
+                'roots/list' => new ClosureRequestHandler(
+                    static function ($req, $ctx) use (&$captured): EmptyResult {
+                        if (! $ctx instanceof ClientContext) {
+                            self::fail('Expected a ClientContext.');
+                        }
+
+                        $captured = $ctx->progressToken;
+
+                        return new EmptyResult();
+                    },
+                ),
+            ],
+        );
+        $transport = new RecordingTransport();
+
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'roots/list',
+            'params' => ['_meta' => RequestMetaObjectFactory::shape(new ProgressToken('p-1'))],
+        ], $transport);
+
+        EventLoop::run();
+
+        self::assertInstanceOf(ProgressToken::class, $captured);
+        self::assertSame('p-1', $captured->token);
+    }
+
     public function testInboundRequestForUnknownMethodResponseIsMethodNotFound(): void
     {
         $outbound = new PendingOutboundRequests();
         $dispatcher = self::buildDispatcher($outbound);
         $transport = new RecordingTransport();
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping'], $transport);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport);
 
         EventLoop::run();
 
@@ -379,12 +417,12 @@ final class ClientMessageDispatcherTest extends TestCase
         $outbound = new PendingOutboundRequests();
         $dispatcher = self::buildDispatcher(
             $outbound,
-            requestHandlers: ['ping' => new PingRequestHandler()],
+            requestHandlers: ['tests/test-request' => new ClosureRequestHandler(static fn(): EmptyResult => new EmptyResult())],
         );
         $transport = new RecordingTransport();
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping'], $transport);
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping'], $transport);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport);
 
         EventLoop::run();
 
@@ -423,7 +461,7 @@ final class ClientMessageDispatcherTest extends TestCase
         $dispatcher = self::buildDispatcher($outbound, logger: $logger);
         $transport = new RecordingTransport();
 
-        $envelope = ['jsonrpc' => '2.0', 'method' => 'ping'];
+        $envelope = ['jsonrpc' => '2.0', 'method' => 'tests/test-request'];
         $dispatcher->dispatch($envelope, $transport);
 
         EventLoop::run();
@@ -448,7 +486,7 @@ final class ClientMessageDispatcherTest extends TestCase
         $transport = new RecordingTransport();
 
         // Bad jsonrpc version on a request envelope. Parser raises InvalidRequestException.
-        $envelope = ['jsonrpc' => '1.0', 'id' => 7, 'method' => 'ping'];
+        $envelope = ['jsonrpc' => '1.0', 'id' => 7, 'method' => 'tests/test-request'];
         $dispatcher->dispatch($envelope, $transport);
 
         EventLoop::run();
@@ -503,13 +541,13 @@ final class ClientMessageDispatcherTest extends TestCase
         $outbound = new PendingOutboundRequests();
         $dispatcher = self::buildDispatcher(
             $outbound,
-            requestHandlers: ['ping' => new PingRequestHandler()],
+            requestHandlers: ['tests/test-request' => new ClosureRequestHandler(static fn(): EmptyResult => new EmptyResult())],
         );
         $transport = new RecordingTransport();
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping'], $transport);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport);
         EventLoop::run();
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping'], $transport);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport);
         EventLoop::run();
 
         self::assertCount(2, $transport->sent);
@@ -523,14 +561,14 @@ final class ClientMessageDispatcherTest extends TestCase
         $dispatcher = self::buildDispatcher(
             $outbound,
             requestHandlers: [
-                'ping' => new ClosureRequestHandler(
+                'tests/test-request' => new ClosureRequestHandler(
                     static fn() => throw new ResourceNotFoundException('file:///missing'),
                 ),
             ],
         );
         $transport = new RecordingTransport();
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping'], $transport);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport);
         EventLoop::run();
 
         self::assertCount(1, $transport->sent);
@@ -546,7 +584,7 @@ final class ClientMessageDispatcherTest extends TestCase
         $dispatcher = self::buildDispatcher(
             $outbound,
             requestHandlers: [
-                'ping' => new ClosureRequestHandler(
+                'tests/test-request' => new ClosureRequestHandler(
                     static fn() => throw new \RuntimeException('handler exploded'),
                 ),
             ],
@@ -554,7 +592,7 @@ final class ClientMessageDispatcherTest extends TestCase
         );
         $transport = new RecordingTransport();
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping'], $transport);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport);
         EventLoop::run();
 
         self::assertCount(1, $transport->sent);
@@ -564,7 +602,7 @@ final class ClientMessageDispatcherTest extends TestCase
 
         $matches = $logger->recordsMatching(LogLevel::ERROR, 'Uncaught request handler exception.');
         self::assertCount(1, $matches);
-        self::assertSame('ping', $matches[0]['context']['method'] ?? null);
+        self::assertSame('tests/test-request', $matches[0]['context']['method'] ?? null);
         self::assertInstanceOf(\RuntimeException::class, $matches[0]['context']['exception'] ?? null);
     }
 
@@ -575,7 +613,7 @@ final class ClientMessageDispatcherTest extends TestCase
         $dispatcher = self::buildDispatcher(
             $outbound,
             requestHandlers: [
-                'ping' => new ClosureRequestHandler(
+                'tests/test-request' => new ClosureRequestHandler(
                     static fn() => throw new TransportAlreadyClosedException('send'),
                 ),
             ],
@@ -583,14 +621,14 @@ final class ClientMessageDispatcherTest extends TestCase
         );
         $transport = new RecordingTransport();
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping'], $transport);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport);
         EventLoop::run();
 
         self::assertSame([], $transport->sent, 'A closed transport must not receive an InternalError follow-up.');
         self::assertSame([], $logger->messagesAtLevel(LogLevel::ERROR));
         $matches = $logger->recordsMatching(LogLevel::INFO, 'Skipping response delivery. Transport is closed.');
         self::assertCount(1, $matches);
-        self::assertSame('ping', $matches[0]['context']['method'] ?? null);
+        self::assertSame('tests/test-request', $matches[0]['context']['method'] ?? null);
     }
 
     public function testProtocolExceptionWithClosedTransportLogsInfoNotError(): void
@@ -600,7 +638,7 @@ final class ClientMessageDispatcherTest extends TestCase
         $dispatcher = self::buildDispatcher(
             $outbound,
             requestHandlers: [
-                'ping' => new ClosureRequestHandler(
+                'tests/test-request' => new ClosureRequestHandler(
                     static fn() => throw new ResourceNotFoundException('file:///missing'),
                 ),
             ],
@@ -609,7 +647,7 @@ final class ClientMessageDispatcherTest extends TestCase
         $transport = new RecordingTransport();
         $transport->sendError = new TransportAlreadyClosedException('send');
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping'], $transport);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport);
         EventLoop::run();
 
         self::assertSame([], $logger->messagesAtLevel(LogLevel::ERROR));
@@ -625,16 +663,16 @@ final class ClientMessageDispatcherTest extends TestCase
         $transport->sendError = new \RuntimeException('write failed');
         $dispatcher = self::buildDispatcher(
             $outbound,
-            requestHandlers: ['ping' => new PingRequestHandler()],
+            requestHandlers: ['tests/test-request' => new ClosureRequestHandler(static fn(): EmptyResult => new EmptyResult())],
             logger: $logger,
         );
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping'], $transport);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport);
         EventLoop::run();
 
         $matches = $logger->recordsMatching(LogLevel::ERROR, 'Failed to deliver response to transport.');
         self::assertCount(1, $matches);
-        self::assertSame('ping', $matches[0]['context']['method'] ?? null);
+        self::assertSame('tests/test-request', $matches[0]['context']['method'] ?? null);
         self::assertInstanceOf(\RuntimeException::class, $matches[0]['context']['exception'] ?? null);
     }
 
@@ -646,11 +684,11 @@ final class ClientMessageDispatcherTest extends TestCase
         $transport->sendError = new TransportAlreadyClosedException('send');
         $dispatcher = self::buildDispatcher(
             $outbound,
-            requestHandlers: ['ping' => new PingRequestHandler()],
+            requestHandlers: ['tests/test-request' => new ClosureRequestHandler(static fn(): EmptyResult => new EmptyResult())],
             logger: $logger,
         );
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping'], $transport);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport);
         EventLoop::run();
 
         self::assertSame([], $logger->messagesAtLevel(LogLevel::ERROR));
@@ -666,14 +704,14 @@ final class ClientMessageDispatcherTest extends TestCase
         $dispatcher = self::buildDispatcher(
             $outbound,
             requestHandlers: [
-                'ping' => new ClosureRequestHandler(
+                'tests/test-request' => new ClosureRequestHandler(
                     static fn($req) => throw new ResourceNotFoundException('file:///x'),
                 ),
             ],
         );
         $transport = new RecordingTransport();
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 42, 'method' => 'ping'], $transport);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 42, 'method' => 'tests/test-request'], $transport);
         EventLoop::run();
 
         self::assertCount(1, $transport->sent);
@@ -691,7 +729,7 @@ final class ClientMessageDispatcherTest extends TestCase
         $dispatcher = self::buildDispatcher(
             $outbound,
             requestHandlers: [
-                'ping' => new ClosureRequestHandler(
+                'tests/test-request' => new ClosureRequestHandler(
                     static function ($req, $ctx) use (&$captured): EmptyResult {
                         if (! $ctx instanceof ClientContext) {
                             self::fail('Expected a ClientContext.');
@@ -705,7 +743,7 @@ final class ClientMessageDispatcherTest extends TestCase
             ],
         );
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 99, 'method' => 'ping'], $transport);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 99, 'method' => 'tests/test-request'], $transport);
         EventLoop::run();
 
         self::assertSame('sess-xyz', $captured['sessionId']);
@@ -727,10 +765,10 @@ final class ClientMessageDispatcherTest extends TestCase
         $transport = new RecordingTransport();
         $dispatcher = self::buildDispatcher(
             $outbound,
-            requestHandlers: ['ping' => new PingRequestHandler()],
+            requestHandlers: ['tests/test-request' => new ClosureRequestHandler(static fn(): EmptyResult => new EmptyResult())],
         );
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping'], $transport);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport);
 
         $dispatcher->flushPending();
 
@@ -781,6 +819,7 @@ final class ClientMessageDispatcherTest extends TestCase
             new HandlerRegistry($notificationHandlers, NotificationHandlerInterface::class, 'Notification handler'),
             $outbound,
             logger: $logger ?? new ArrayLogger(),
+            parser: new JsonRpcMessageParser(requests: ['tests/test-request' => TestRequest::class]),
         );
     }
 }

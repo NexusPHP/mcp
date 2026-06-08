@@ -19,11 +19,13 @@ use Amp\ByteStream\WritableBuffer;
 use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyStartedException;
 use Nexus\Mcp\Core\Exception\TransportNotStartedException;
-use Nexus\Mcp\Core\Schema\Request\PingRequest;
+use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 use Nexus\Mcp\Core\Transport\SendContext;
 use Nexus\Mcp\Server\Transport\StdioServerTransport;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
+use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\ThrowingWritableStream;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -65,7 +67,7 @@ final class StdioServerTransportTest extends TestCase
 
     public function testEmitsDecodedEnvelope(): void
     {
-        $transport = self::buildTransportReading(['{"jsonrpc":"2.0","id":1,"method":"ping"}'."\n"]);
+        $transport = self::buildTransportReading(['{"jsonrpc":"2.0","id":1,"method":"server/discover"}'."\n"]);
         $envelopes = [];
         $transport->onMessage(static function (array $envelope) use (&$envelopes): void {
             $envelopes[] = $envelope;
@@ -75,7 +77,7 @@ final class StdioServerTransportTest extends TestCase
         EventLoop::run();
 
         self::assertSame(
-            [['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping']],
+            [['jsonrpc' => '2.0', 'id' => 1, 'method' => 'server/discover']],
             $envelopes,
         );
     }
@@ -109,7 +111,7 @@ final class StdioServerTransportTest extends TestCase
         $writable = new WritableBuffer();
         $transport = new StdioServerTransport(
             new ReadableIterableStream(new \ArrayIterator([
-                "{not json}\n".'{"jsonrpc":"2.0","id":1,"method":"ping"}'."\n",
+                "{not json}\n".'{"jsonrpc":"2.0","id":1,"method":"server/discover"}'."\n",
             ])),
             $writable,
         );
@@ -123,7 +125,7 @@ final class StdioServerTransportTest extends TestCase
         $writable->close();
 
         self::assertSame(
-            [['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping']],
+            [['jsonrpc' => '2.0', 'id' => 1, 'method' => 'server/discover']],
             $envelopes,
             'The valid envelope after a malformed line must still reach listeners.',
         );
@@ -157,15 +159,12 @@ final class StdioServerTransportTest extends TestCase
         $transport = new StdioServerTransport(new ReadableBuffer(''), $writable);
 
         $transport->start();
-        $transport->send(new PingRequest(new RequestId(99)));
+        $transport->send(self::discoverRequest(99));
 
         EventLoop::run();
         $writable->close();
 
-        self::assertSame(
-            '{"jsonrpc":"2.0","id":99,"method":"ping"}'."\n",
-            $writable->buffer(),
-        );
+        self::assertSame(self::expectedLine(99), $writable->buffer());
     }
 
     public function testSendIgnoresContextForStdio(): void
@@ -174,15 +173,12 @@ final class StdioServerTransportTest extends TestCase
         $transport = new StdioServerTransport(new ReadableBuffer(''), $writable);
 
         $transport->start();
-        $transport->send(new PingRequest(new RequestId(7)), new SendContext(new RequestId(99)));
+        $transport->send(self::discoverRequest(7), new SendContext(new RequestId(99)));
 
         EventLoop::run();
         $writable->close();
 
-        self::assertSame(
-            '{"jsonrpc":"2.0","id":7,"method":"ping"}'."\n",
-            $writable->buffer(),
-        );
+        self::assertSame(self::expectedLine(7), $writable->buffer());
     }
 
     public function testSendFailureClosesAndRethrows(): void
@@ -195,7 +191,7 @@ final class StdioServerTransportTest extends TestCase
         $transport->start();
 
         try {
-            $transport->send(new PingRequest(new RequestId(1)));
+            $transport->send(self::discoverRequest(1));
             self::fail('Expected send() to rethrow the underlying write failure.');
         } catch (\RuntimeException $caught) {
             self::assertSame($boom, $caught);
@@ -214,7 +210,7 @@ final class StdioServerTransportTest extends TestCase
         $this->expectException(TransportNotStartedException::class);
         $this->expectExceptionMessageIs('Cannot send before start() has been called.');
 
-        $transport->send(new PingRequest(new RequestId(1)));
+        $transport->send(self::discoverRequest(1));
     }
 
     public function testSendAfterCloseThrows(): void
@@ -227,7 +223,7 @@ final class StdioServerTransportTest extends TestCase
         EventLoop::run();
 
         try {
-            $transport->send(new PingRequest(new RequestId(1)));
+            $transport->send(self::discoverRequest(1));
             self::fail('Expected send() to throw on a closed transport.');
         } catch (TransportAlreadyClosedException $caught) {
             self::assertSame('Cannot send on a closed transport.', $caught->getMessage());
@@ -298,5 +294,23 @@ final class StdioServerTransportTest extends TestCase
             new ReadableIterableStream(new \ArrayIterator($chunks)),
             new WritableBuffer(),
         );
+    }
+
+    private static function discoverRequest(int $id): DiscoverRequest
+    {
+        return new DiscoverRequest(
+            new RequestId($id),
+            new EmptyRequestParams(RequestMetaObjectFactory::create()),
+        );
+    }
+
+    private static function expectedLine(int $id): string
+    {
+        return json_encode([
+            'jsonrpc' => '2.0',
+            'id' => $id,
+            'method' => 'server/discover',
+            'params' => ['_meta' => RequestMetaObjectFactory::shape()],
+        ], \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE)."\n";
     }
 }

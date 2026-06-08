@@ -17,9 +17,11 @@ use Nexus\Mcp\Core\Dispatch\ResponseSender;
 use Nexus\Mcp\Core\Exception\MethodNotFoundException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
-use Nexus\Mcp\Core\Schema\Request\PingRequest;
+use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
+use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
@@ -37,10 +39,10 @@ final class ResponseSenderTest extends TestCase
     public function testSendDeliversTheMessage(): void
     {
         $transport = new RecordingTransport();
-        $message = new PingRequest(new RequestId(1));
+        $message = new DiscoverRequest(new RequestId(1), new EmptyRequestParams(RequestMetaObjectFactory::create()));
         $sender = new ResponseSender(new ArrayLogger());
 
-        $sender->send($transport, $message, 'ping');
+        $sender->send($transport, $message, 'server/discover');
 
         self::assertCount(1, $transport->sent);
         self::assertSame($message, $transport->sent[0]['message']);
@@ -53,11 +55,11 @@ final class ResponseSenderTest extends TestCase
         $logger = new ArrayLogger();
         $sender = new ResponseSender($logger);
 
-        $sender->send($transport, new PingRequest(new RequestId(1)), 'ping');
+        $sender->send($transport, new DiscoverRequest(new RequestId(1), new EmptyRequestParams(RequestMetaObjectFactory::create())), 'server/discover');
 
         $matches = $logger->recordsMatching(LogLevel::INFO, 'Skipping response delivery. Transport is closed.');
         self::assertCount(1, $matches);
-        self::assertSame('ping', $matches[0]['context']['method'] ?? null);
+        self::assertSame('server/discover', $matches[0]['context']['method'] ?? null);
         self::assertInstanceOf(TransportAlreadyClosedException::class, $matches[0]['context']['exception'] ?? null);
     }
 
@@ -68,11 +70,11 @@ final class ResponseSenderTest extends TestCase
         $logger = new ArrayLogger();
         $sender = new ResponseSender($logger);
 
-        $sender->send($transport, new PingRequest(new RequestId(1)), 'ping');
+        $sender->send($transport, new DiscoverRequest(new RequestId(1), new EmptyRequestParams(RequestMetaObjectFactory::create())), 'server/discover');
 
         $matches = $logger->recordsMatching(LogLevel::ERROR, 'Failed to deliver response to transport.');
         self::assertCount(1, $matches);
-        self::assertSame('ping', $matches[0]['context']['method'] ?? null);
+        self::assertSame('server/discover', $matches[0]['context']['method'] ?? null);
     }
 
     public function testToErrorResponseUsesTheExceptionRequestId(): void

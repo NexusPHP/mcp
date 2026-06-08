@@ -19,7 +19,6 @@ use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
-use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams\CallToolRequestParams;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Core\Schema\Tool\Tool;
@@ -31,6 +30,7 @@ use Nexus\Mcp\Server\Tool\ToolEntry;
 use Nexus\Mcp\Server\Tool\ToolStore;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
+use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
@@ -60,7 +60,7 @@ final class CallToolRequestHandlerTest extends TestCase
         $handler = new CallToolRequestHandler($store);
 
         $handler->handle(
-            new CallToolRequest(new RequestId(42), new CallToolRequestParams('echo', ['x' => 1])),
+            new CallToolRequest(new RequestId(42), new CallToolRequestParams('echo', RequestMetaObjectFactory::create(), ['x' => 1])),
             self::makeContext(),
         );
 
@@ -79,7 +79,7 @@ final class CallToolRequestHandlerTest extends TestCase
         $handler = new CallToolRequestHandler($store);
 
         $result = $handler->handle(
-            new CallToolRequest(new RequestId(1), new CallToolRequestParams('echo')),
+            new CallToolRequest(new RequestId(1), new CallToolRequestParams('echo', RequestMetaObjectFactory::create())),
             self::makeContext(),
         );
 
@@ -103,7 +103,7 @@ final class CallToolRequestHandlerTest extends TestCase
         $handler = new CallToolRequestHandler($store);
 
         $result = $handler->handle(
-            new CallToolRequest(new RequestId(1), new CallToolRequestParams('report')),
+            new CallToolRequest(new RequestId(1), new CallToolRequestParams('report', RequestMetaObjectFactory::create())),
             self::makeContext(),
         );
 
@@ -135,7 +135,7 @@ final class CallToolRequestHandlerTest extends TestCase
         $handler = new CallToolRequestHandler($store);
 
         $result = $handler->handle(
-            new CallToolRequest(new RequestId(1), new CallToolRequestParams('report')),
+            new CallToolRequest(new RequestId(1), new CallToolRequestParams('report', RequestMetaObjectFactory::create())),
             self::makeContext(),
         );
 
@@ -157,7 +157,7 @@ final class CallToolRequestHandlerTest extends TestCase
         $handler = new CallToolRequestHandler($store, $logger);
 
         $result = $handler->handle(
-            new CallToolRequest(new RequestId(1), new CallToolRequestParams('report')),
+            new CallToolRequest(new RequestId(1), new CallToolRequestParams('report', RequestMetaObjectFactory::create())),
             self::makeContext(),
         );
 
@@ -197,7 +197,7 @@ final class CallToolRequestHandlerTest extends TestCase
         $this->expectExceptionMessageMatches('/^Invalid arguments for tool "search": /');
 
         $handler->handle(
-            new CallToolRequest(new RequestId(1), new CallToolRequestParams('search', ['q' => 123])),
+            new CallToolRequest(new RequestId(1), new CallToolRequestParams('search', RequestMetaObjectFactory::create(), ['q' => 123])),
             self::makeContext(),
         );
     }
@@ -218,7 +218,7 @@ final class CallToolRequestHandlerTest extends TestCase
         $handler = new CallToolRequestHandler($store, $logger);
 
         $result = $handler->handle(
-            new CallToolRequest(new RequestId(1), new CallToolRequestParams('report')),
+            new CallToolRequest(new RequestId(1), new CallToolRequestParams('report', RequestMetaObjectFactory::create())),
             self::makeContext(),
         );
 
@@ -248,7 +248,7 @@ final class CallToolRequestHandlerTest extends TestCase
         $this->expectExceptionMessageMatches('/^No tool registered under name "missing"\.$/');
 
         $handler->handle(
-            new CallToolRequest(new RequestId(1), new CallToolRequestParams('missing')),
+            new CallToolRequest(new RequestId(1), new CallToolRequestParams('missing', RequestMetaObjectFactory::create())),
             self::makeContext(),
         );
     }
@@ -268,7 +268,7 @@ final class CallToolRequestHandlerTest extends TestCase
         $handler = new CallToolRequestHandler($store, $logger);
 
         $result = $handler->handle(
-            new CallToolRequest(new RequestId(1), new CallToolRequestParams('flaky')),
+            new CallToolRequest(new RequestId(1), new CallToolRequestParams('flaky', RequestMetaObjectFactory::create())),
             self::makeContext(),
         );
 
@@ -307,7 +307,7 @@ final class CallToolRequestHandlerTest extends TestCase
         $handler = new CallToolRequestHandler($store, $logger);
 
         $result = $handler->handle(
-            new CallToolRequest(new RequestId(1), new CallToolRequestParams('flaky')),
+            new CallToolRequest(new RequestId(1), new CallToolRequestParams('flaky', RequestMetaObjectFactory::create())),
             self::makeContext(),
         );
 
@@ -334,7 +334,7 @@ final class CallToolRequestHandlerTest extends TestCase
         return new ServerContext(
             new RequestId(99),
             new NullCancellation(),
-            new RequestMetaObject(),
+            RequestMetaObjectFactory::create(),
             null,
             new RecordingSender(),
         );

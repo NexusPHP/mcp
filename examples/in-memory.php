@@ -78,13 +78,13 @@ $serverRun = async(static fn() => $server->run($serverSide));
 $client->connect($clientSide);
 
 try {
-    $initializeResult = $client->initialize();
+    $discoverResult = $client->discover();
 
     fwrite(\STDOUT, sprintf(
-        "Connected in-process to %s v%s (protocol %s)\n\n",
-        $initializeResult->serverInfo->name,
-        $initializeResult->serverInfo->version,
-        $initializeResult->protocolVersion->version,
+        "Connected in-process to %s v%s (protocol versions: %s)\n\n",
+        $discoverResult->serverInfo->name,
+        $discoverResult->serverInfo->version,
+        implode(', ', $discoverResult->supportedVersions),
     ));
 
     fwrite(\STDOUT, "=== tools/list ===\n");

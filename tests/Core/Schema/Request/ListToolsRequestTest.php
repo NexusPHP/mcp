@@ -21,6 +21,7 @@ use Nexus\Mcp\Core\Schema\Request;
 use Nexus\Mcp\Core\Schema\Request\ListToolsRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\PaginatedRequestParams;
+use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -44,13 +45,14 @@ final class ListToolsRequestTest extends TestCase
 
     public function testToArrayMinimal(): void
     {
-        $request = new ListToolsRequest(new RequestId(1));
+        $request = new ListToolsRequest(new RequestId(1), new PaginatedRequestParams(RequestMetaObjectFactory::create()));
 
         self::assertSame(
             [
                 'jsonrpc' => '2.0',
                 'id' => 1,
                 'method' => 'tools/list',
+                'params' => ['_meta' => RequestMetaObjectFactory::shape()],
             ],
             $request->toArray(),
         );
@@ -58,14 +60,17 @@ final class ListToolsRequestTest extends TestCase
 
     public function testToArrayWithCursor(): void
     {
-        $request = new ListToolsRequest(new RequestId(1), new PaginatedRequestParams(new Cursor('cursor-1')));
+        $request = new ListToolsRequest(
+            new RequestId(1),
+            new PaginatedRequestParams(RequestMetaObjectFactory::create(), new Cursor('cursor-1')),
+        );
 
         self::assertSame(
             [
                 'jsonrpc' => '2.0',
                 'id' => 1,
                 'method' => 'tools/list',
-                'params' => ['cursor' => 'cursor-1'],
+                'params' => ['_meta' => RequestMetaObjectFactory::shape(), 'cursor' => 'cursor-1'],
             ],
             $request->toArray(),
         );
@@ -75,19 +80,12 @@ final class ListToolsRequestTest extends TestCase
     {
         $original = new ListToolsRequest(
             new RequestId('req-1'),
-            new PaginatedRequestParams(new Cursor('cursor-1')),
+            new PaginatedRequestParams(RequestMetaObjectFactory::create(), new Cursor('cursor-1')),
         );
 
         $rebuilt = ListToolsRequest::fromArray($original->toArray());
 
         self::assertSame($original->toArray(), $rebuilt->toArray());
-    }
-
-    public function testFromArrayWithoutParams(): void
-    {
-        $request = ListToolsRequest::fromArray(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/list']);
-
-        self::assertSame(1, $request->id->id);
     }
 
     /**
@@ -115,6 +113,11 @@ final class ListToolsRequestTest extends TestCase
         yield 'id not int or string' => [
             ['jsonrpc' => '2.0', 'id' => [], 'method' => 'tools/list'],
             '"id" must be an int or string, array given.',
+        ];
+
+        yield 'missing params' => [
+            ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/list'],
+            'missing the required "params" key.',
         ];
 
         yield 'params not an object' => [

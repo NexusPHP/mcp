@@ -1,5 +1,12 @@
 {
     "vendor": "acme",
     "trace": "abc-123",
-    "progressToken": "p-1"
+    "io.modelcontextprotocol/protocolVersion": "2025-11-25",
+    "io.modelcontextprotocol/clientInfo": {
+        "name": "test-client",
+        "version": "1.0.0"
+    },
+    "io.modelcontextprotocol/clientCapabilities": {},
+    "progressToken": "p-1",
+    "io.modelcontextprotocol/logLevel": "info"
 }

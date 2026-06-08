@@ -59,9 +59,9 @@ $server = new ServerBuilder()
 $server->run(new StdioServerTransport());
 ```
 
-That is a full, runnable MCP server. It advertises one tool (`greet`), exposes the `initialize` /
-`tools/list` / `tools/call` / `ping` handlers the SDK ships by default, and speaks
-line-framed JSON-RPC over STDIN/STDOUT.
+That is a full, runnable MCP server. It advertises one tool (`greet`), exposes the `server/discover` /
+`tools/list` / `tools/call` handlers the SDK ships by default, and speaks line-framed JSON-RPC over
+STDIN/STDOUT.
 
 ## Run it
 
@@ -94,11 +94,13 @@ Drop this into the client's MCP configuration:
 ### Direct CLI
 
 ```bash
-echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"cli","version":"1.0.0"}}}' | php hello.php
+echo '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{"_meta":{"io.modelcontextprotocol/protocolVersion":"2025-11-25","io.modelcontextprotocol/clientInfo":{"name":"cli","version":"1.0.0"},"io.modelcontextprotocol/clientCapabilities":{}}}}' | php hello.php
 ```
 
-The server reads JSON-RPC envelopes one per line on STDIN and writes responses to STDOUT. Useful for
-scripting smoke tests. Less useful for interactive exploration.
+Every request carries a `_meta` block with the client's identity: `io.modelcontextprotocol/protocolVersion`,
+`io.modelcontextprotocol/clientInfo`, and `io.modelcontextprotocol/clientCapabilities`. The server reads JSON-RPC
+envelopes one per line on STDIN and writes responses to STDOUT. Useful for scripting smoke tests. Less useful for
+interactive exploration.
 
 ## Logging
 
@@ -112,7 +114,7 @@ routes server diagnostics to a PSR-3 logger on STDERR.
 
 - **[Server API](server.md)**: full `ServerBuilder` reference covering tools, prompts, resources,
   completions, custom request handlers, and the request/notification lifecycle.
-- **[Client API](client.md)**: `ClientBuilder` + `Client` reference covering the handshake, the typed
+- **[Client API](client.md)**: `ClientBuilder` + `Client` reference covering `server/discover`, the typed
   request methods, and streaming progress from `callTool`.
 - **[Transports](transports.md)**: what `StdioServerTransport` does and doesn't guarantee. What's coming
   for streamable HTTP.

@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 use Nexus\Mcp\Core\Schema\Notification\CancelledNotification;
 use Nexus\Mcp\Core\Schema\Notification\ElicitationCompleteNotification;
-use Nexus\Mcp\Core\Schema\Notification\InitializedNotification;
 use Nexus\Mcp\Core\Schema\Notification\LoggingMessageNotification;
 use Nexus\Mcp\Core\Schema\Notification\ProgressNotification;
 use Nexus\Mcp\Core\Schema\Notification\PromptListChangedNotification;
@@ -25,7 +24,6 @@ use function PHPStan\Testing\assertType;
 
 assertType('\'notifications/cancelled\'', CancelledNotification::getMethod());
 assertType('\'notifications/elicitation/complete\'', ElicitationCompleteNotification::getMethod());
-assertType('\'notifications/initialized\'', InitializedNotification::getMethod());
 assertType('\'notifications/message\'', LoggingMessageNotification::getMethod());
 assertType('\'notifications/progress\'', ProgressNotification::getMethod());
 assertType('\'notifications/prompts/list_changed\'', PromptListChangedNotification::getMethod());

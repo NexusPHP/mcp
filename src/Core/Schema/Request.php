@@ -13,8 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Schema;
 
-use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
-
 /**
  * @template-covariant TMethod of non-empty-string
  *
@@ -22,7 +20,10 @@ use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
  */
 abstract readonly class Request
 {
-    public function __construct(public RequestParams $params = new EmptyRequestParams())
+    /**
+     * @param null|RequestParamsInterface<array<string, mixed>> $params
+     */
+    public function __construct(public ?RequestParamsInterface $params = null)
     {
     }
 

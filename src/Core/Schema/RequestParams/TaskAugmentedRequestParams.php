@@ -24,7 +24,7 @@ use Nexus\Mcp\Core\Schema\Task\TaskMetadata;
  */
 abstract readonly class TaskAugmentedRequestParams extends RequestParams
 {
-    public function __construct(public ?TaskMetadata $task = null, RequestMetaObject $meta = new RequestMetaObject())
+    public function __construct(RequestMetaObject $meta, public ?TaskMetadata $task = null)
     {
         parent::__construct($meta);
     }
@@ -43,11 +43,5 @@ abstract readonly class TaskAugmentedRequestParams extends RequestParams
         }
 
         return $data;
-    }
-
-    #[\Override]
-    public function jsonSerialize(): array
-    {
-        return $this->toArray();
     }
 }

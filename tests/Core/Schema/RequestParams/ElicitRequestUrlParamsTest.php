@@ -14,11 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Schema\RequestParams;
 
 use Nexus\Assert\ExpectationFailedException;
-use Nexus\Mcp\Core\Schema\RequestMetaObject;
-use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\ElicitRequestUrlParams;
-use Nexus\Mcp\Core\Schema\RequestParams\TaskAugmentedRequestParams;
-use Nexus\Mcp\Core\Schema\Task\TaskMetadata;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -28,8 +24,6 @@ use PHPUnit\Framework\TestCase;
  * @internal
  */
 #[CoversClass(ElicitRequestUrlParams::class)]
-#[CoversClass(TaskAugmentedRequestParams::class)]
-#[CoversClass(RequestParams::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
 final class ElicitRequestUrlParamsTest extends TestCase
@@ -47,8 +41,6 @@ final class ElicitRequestUrlParamsTest extends TestCase
         self::assertSame('Sign in', $params->message);
         self::assertSame('url', $params->mode);
         self::assertSame('https://auth.example.com', $params->url);
-        self::assertNull($params->task);
-        self::assertSame([], $params->meta->toArray());
     }
 
     public function testToArrayMinimal(): void
@@ -62,30 +54,6 @@ final class ElicitRequestUrlParamsTest extends TestCase
 
         self::assertSame(
             [
-                'elicitationId' => 'elicit-1',
-                'message' => 'Sign in',
-                'mode' => 'url',
-                'url' => 'https://auth.example.com',
-            ],
-            $params->toArray(),
-        );
-    }
-
-    public function testToArrayWithAllFields(): void
-    {
-        $params = new ElicitRequestUrlParams(
-            'elicit-1',
-            'Sign in',
-            'url',
-            'https://auth.example.com',
-            new TaskMetadata(60000),
-            new RequestMetaObject(null, ['vendor' => 'x']),
-        );
-
-        self::assertSame(
-            [
-                '_meta' => ['vendor' => 'x'],
-                'task' => ['ttl' => 60000],
                 'elicitationId' => 'elicit-1',
                 'message' => 'Sign in',
                 'mode' => 'url',
@@ -114,8 +82,6 @@ final class ElicitRequestUrlParamsTest extends TestCase
             'Sign in',
             'url',
             'https://auth.example.com',
-            new TaskMetadata(60000),
-            new RequestMetaObject(null, ['vendor' => 'x']),
         );
 
         $rebuilt = ElicitRequestUrlParams::fromArray($original->toArray());
@@ -218,16 +184,6 @@ final class ElicitRequestUrlParamsTest extends TestCase
         yield 'url not a string' => [
             ['elicitationId' => 'id', 'message' => 'm', 'mode' => 'url', 'url' => 1],
             '"params.url" must be a string, int given.',
-        ];
-
-        yield 'task not an object' => [
-            ['elicitationId' => 'id', 'message' => 'm', 'mode' => 'url', 'url' => 'https://example.com', 'task' => 'oops'],
-            '"params.task" must be an object, string given.',
-        ];
-
-        yield 'task list-keyed' => [
-            ['elicitationId' => 'id', 'message' => 'm', 'mode' => 'url', 'url' => 'https://example.com', 'task' => ['x']],
-            '"params.task" must be a string-keyed object.',
         ];
     }
 }

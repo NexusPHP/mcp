@@ -126,7 +126,7 @@ $serverRun = async(static fn() => $server->run($serverSide));
 $client->connect($clientSide);
 
 try {
-    $client->initialize();
+    $client->discover();
 
     fwrite(\STDOUT, "=== completion/complete for the users://{userId} template (value 'al') ===\n");
     $userIds = $client->complete(

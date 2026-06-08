@@ -42,11 +42,11 @@ $transport = new StdioClientTransport(command: [\PHP_BINARY, __DIR__.'/stdio-ser
 $client->connect($transport);
 
 try {
-    $client->initialize();
+    $client->discover();
 
     $capabilities = $client->getServerCapabilities();
 
-    fwrite(\STDOUT, "=== Negotiated server capabilities ===\n");
+    fwrite(\STDOUT, "=== Discovered server capabilities ===\n");
 
     $advertised = [
         'tools' => null !== $capabilities?->tools,

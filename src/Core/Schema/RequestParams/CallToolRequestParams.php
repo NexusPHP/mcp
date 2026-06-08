@@ -40,9 +40,9 @@ final readonly class CallToolRequestParams extends TaskAugmentedRequestParams
      */
     public function __construct(
         string $name,
+        RequestMetaObject $meta,
         ?array $arguments = null,
         ?TaskMetadata $task = null,
-        RequestMetaObject $meta = new RequestMetaObject(),
     ) {
         IdentifierNameValidator::validate($name, '"params.name"');
 
@@ -53,7 +53,7 @@ final readonly class CallToolRequestParams extends TaskAugmentedRequestParams
         $this->name = $name;
         $this->arguments = $arguments;
 
-        parent::__construct($task, $meta);
+        parent::__construct($meta, $task);
     }
 
     #[\Override]
@@ -83,17 +83,14 @@ final readonly class CallToolRequestParams extends TaskAugmentedRequestParams
             $task = TaskMetadata::fromArray($data['task']);
         }
 
-        $meta = new RequestMetaObject();
+        Assert::that($data)->hasOffset('_meta', '"params" missing the required "_meta" key.');
+        Assert::that($data['_meta'])
+            ->isArray('"params._meta" must be an object, {type} given.')
+            ->isMap('"params._meta" must be a string-keyed object.')
+        ;
+        $meta = RequestMetaObject::fromArray($data['_meta']);
 
-        if (\array_key_exists('_meta', $data)) {
-            Assert::that($data['_meta'])
-                ->isArray('"params._meta" must be an object, {type} given.')
-                ->isMap('"params._meta" must be a string-keyed object.')
-            ;
-            $meta = RequestMetaObject::fromArray($data['_meta']);
-        }
-
-        return new self($name, $arguments, $task, $meta);
+        return new self($name, $meta, $arguments, $task);
     }
 
     #[\Override]
@@ -106,11 +103,5 @@ final readonly class CallToolRequestParams extends TaskAugmentedRequestParams
         }
 
         return [...parent::toArray(), ...$data];
-    }
-
-    #[\Override]
-    public function jsonSerialize(): array
-    {
-        return $this->toArray();
     }
 }

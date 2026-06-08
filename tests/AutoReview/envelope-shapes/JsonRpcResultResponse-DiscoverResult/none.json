@@ -1,0 +1,17 @@
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "resultType": "complete",
+        "ttlMs": 0,
+        "cacheScope": "private",
+        "supportedVersions": [
+            "2025-11-25"
+        ],
+        "capabilities": {},
+        "serverInfo": {
+            "name": "test-server",
+            "version": "1.0.0"
+        }
+    }
+}

@@ -19,6 +19,7 @@ use Nexus\Mcp\Core\Schema\Request;
 use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\CallToolRequestParams;
+use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -41,14 +42,14 @@ final class CallToolRequestTest extends TestCase
 
     public function testToArray(): void
     {
-        $request = new CallToolRequest(new RequestId(1), new CallToolRequestParams('read-file'));
+        $request = new CallToolRequest(new RequestId(1), new CallToolRequestParams('read-file', RequestMetaObjectFactory::create()));
 
         self::assertSame(
             [
                 'jsonrpc' => '2.0',
                 'id' => 1,
                 'method' => 'tools/call',
-                'params' => ['name' => 'read-file'],
+                'params' => ['_meta' => RequestMetaObjectFactory::shape(), 'name' => 'read-file'],
             ],
             $request->toArray(),
         );
@@ -58,7 +59,7 @@ final class CallToolRequestTest extends TestCase
     {
         $original = new CallToolRequest(
             new RequestId('req-1'),
-            new CallToolRequestParams('read-file', ['path' => 'src/']),
+            new CallToolRequestParams('read-file', RequestMetaObjectFactory::create(), ['path' => 'src/']),
         );
 
         $rebuilt = CallToolRequest::fromArray($original->toArray());
