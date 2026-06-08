@@ -17,9 +17,6 @@
             },
             "progressToken": "progress-1"
         },
-        "task": {
-            "ttl": 60000
-        },
         "name": "read-file",
         "arguments": {
             "path": "src/index.php"

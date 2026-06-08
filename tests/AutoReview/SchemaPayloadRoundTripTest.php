@@ -74,7 +74,6 @@ final class SchemaPayloadRoundTripTest extends AbstractRoundTripTestCase
         'RequestMetaObject' => true,
         'SamplingMessage' => true,
         'ServerCapabilities' => true,
-        'TaskMetadata' => true,
         'ToolAnnotations' => true,
     ];
 

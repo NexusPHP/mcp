@@ -51,7 +51,6 @@ use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\PaginatedRequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\ResourceRequestParams;
-use Nexus\Mcp\Core\Schema\RequestParams\TaskAugmentedRequestParams;
 use Nexus\Mcp\Core\Schema\RequestParamsInterface;
 use Nexus\Mcp\Core\Schema\Resource\ResourceContents;
 use Nexus\Mcp\Core\Schema\Result;
@@ -142,7 +141,6 @@ final class SchemaConformanceTest extends TestCase
         EmptyRequestParams::class => self::TS_SCHEMA_FILE_URL,
         PaginatedRequestParams::class => self::TS_SCHEMA_FILE_URL,
         ResourceRequestParams::class => self::TS_SCHEMA_FILE_URL,
-        TaskAugmentedRequestParams::class => self::TS_SCHEMA_FILE_URL,
         ClientRequest::class => self::TS_SCHEMA_FILE_URL,
         DiscoverRequest::class => self::TS_DRAFT_SCHEMA_FILE_URL,
         ServerRequest::class => self::TS_SCHEMA_FILE_URL,
@@ -161,6 +159,21 @@ final class SchemaConformanceTest extends TestCase
     private const array SEE_ANNOTATION_EXEMPT = [
         Arrayable::class,
         RequestParamsInterface::class,
+    ];
+
+    /**
+     * Optional spec properties the SDK does not yet model, keyed by spec def.
+     * Both belong to multi-round tool resolution: `inputResponses` carries the
+     * client's results for prior server-initiated requests, and `requestState`
+     * an opaque continuation token. The property and array-shape conformance
+     * checks skip these keys until MRTR lands. `testDeferredSpecPropertiesStayDeferrable`
+     * fails the moment any entry turns required, leaves the spec, or gains a PHP
+     * representation, forcing the entry's removal.
+     */
+    private const array DEFERRED_SPEC_PROPERTIES = [
+        'CallToolRequestParams' => ['inputResponses', 'requestState'],
+        'GetPromptRequestParams' => ['inputResponses', 'requestState'],
+        'ReadResourceRequestParams' => ['inputResponses', 'requestState'],
     ];
 
     /**
@@ -271,6 +284,7 @@ final class SchemaConformanceTest extends TestCase
             $specPropertyKeys = array_filter(array_keys($specProperties), is_string(...));
             $specRequiredKeys = array_values(array_filter($specRequired, is_string(...)));
             $specOptionalKeys = array_values(array_diff($specPropertyKeys, $specRequiredKeys));
+            $specOptionalKeys = array_values(array_diff($specOptionalKeys, self::DEFERRED_SPEC_PROPERTIES[$schema] ?? []));
 
             $findings = [];
 
@@ -504,6 +518,59 @@ final class SchemaConformanceTest extends TestCase
                 $docComment,
                 \sprintf('Schema class "%s" is in SEE_ANNOTATION_EXEMPT but declares an @see tag. Remove the tag or move the class out of the exemption list.', $schemaClass),
             );
+        }
+    }
+
+    public function testDeferredSpecPropertiesStayDeferrable(): void
+    {
+        self::generateLatestSchema();
+        self::sortSchemaDefinition();
+
+        foreach (self::DEFERRED_SPEC_PROPERTIES as $schema => $keys) {
+            $schemaDef = self::$latestSchema[$schema] ?? null;
+            self::assertIsArray($schemaDef, \sprintf(
+                'Deferred schema "%s" is no longer in the spec. Remove its DEFERRED_SPEC_PROPERTIES entry.',
+                $schema,
+            ));
+
+            $properties = $schemaDef['properties'] ?? [];
+            self::assertIsArray($properties);
+
+            $required = $schemaDef['required'] ?? [];
+            self::assertIsArray($required);
+
+            $schemaClass = self::$sortedSchema['processed_schema'][$schema] ?? null;
+            self::assertIsString($schemaClass, \sprintf('Deferred schema "%s" has no PHP class.', $schema));
+
+            $reflection = new \ReflectionClass($schemaClass);
+            $constructor = $reflection->getConstructor();
+            $ctorParams = null === $constructor
+                ? []
+                : array_map(static fn(\ReflectionParameter $param) => $param->getName(), $constructor->getParameters());
+
+            foreach ($keys as $key) {
+                self::assertArrayHasKey($key, $properties, \sprintf(
+                    'Deferred property "%s.%s" is gone from the spec. Remove the DEFERRED_SPEC_PROPERTIES entry.',
+                    $schema,
+                    $key,
+                ));
+
+                self::assertNotContains($key, $required, \sprintf(
+                    'Deferred property "%s.%s" is now required and can no longer be deferred. Implement it.',
+                    $schema,
+                    $key,
+                ));
+
+                $phpName = self::specKeyToPhpName($key);
+                $modelled = \in_array($phpName, $ctorParams, true)
+                    || ($reflection->hasProperty($phpName) && $reflection->getProperty($phpName)->isPublic());
+
+                self::assertFalse($modelled, \sprintf(
+                    'Deferred property "%s.%s" now has a PHP representation. Remove its DEFERRED_SPEC_PROPERTIES entry so conformance enforces it.',
+                    $schema,
+                    $key,
+                ));
+            }
         }
     }
 

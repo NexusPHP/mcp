@@ -17,8 +17,6 @@ use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\ProgressToken;
 use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\CallToolRequestParams;
-use Nexus\Mcp\Core\Schema\RequestParams\TaskAugmentedRequestParams;
-use Nexus\Mcp\Core\Schema\Task\TaskMetadata;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -29,7 +27,6 @@ use PHPUnit\Framework\TestCase;
  * @internal
  */
 #[CoversClass(CallToolRequestParams::class)]
-#[CoversClass(TaskAugmentedRequestParams::class)]
 #[CoversClass(RequestParams::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
@@ -41,17 +38,14 @@ final class CallToolRequestParamsTest extends TestCase
 
         self::assertSame('read-file', $params->name);
         self::assertNull($params->arguments);
-        self::assertNull($params->task);
     }
 
     public function testConstructionWithAllFields(): void
     {
-        $task = new TaskMetadata(60000);
         $meta = RequestMetaObjectFactory::create(new ProgressToken('p-1'), ['vendor.brand' => 'acme']);
-        $params = new CallToolRequestParams('read-file', $meta, ['path' => 'src/'], $task);
+        $params = new CallToolRequestParams('read-file', $meta, ['path' => 'src/']);
 
         self::assertSame(['path' => 'src/'], $params->arguments);
-        self::assertSame($task, $params->task);
         self::assertSame($meta, $params->meta);
     }
 
@@ -75,31 +69,18 @@ final class CallToolRequestParamsTest extends TestCase
         );
     }
 
-    public function testToArrayWithTaskAndMeta(): void
+    public function testToArrayWithMetaExtras(): void
     {
         $params = new CallToolRequestParams(
             'read-file',
             RequestMetaObjectFactory::create(null, ['vendor.brand' => 'acme']),
-            null,
-            new TaskMetadata(60000),
         );
 
         self::assertSame(
             [
                 '_meta' => RequestMetaObjectFactory::shape(null, ['vendor.brand' => 'acme']),
-                'task' => ['ttl' => 60000],
                 'name' => 'read-file',
             ],
-            $params->toArray(),
-        );
-    }
-
-    public function testToArrayOmitsEmptyTask(): void
-    {
-        $params = new CallToolRequestParams('read-file', RequestMetaObjectFactory::create(), null, new TaskMetadata());
-
-        self::assertSame(
-            ['_meta' => RequestMetaObjectFactory::shape(), 'name' => 'read-file'],
             $params->toArray(),
         );
     }
@@ -130,7 +111,6 @@ final class CallToolRequestParamsTest extends TestCase
 
         self::assertSame('read-file', $params->name);
         self::assertNull($params->arguments);
-        self::assertNull($params->task);
     }
 
     public function testFromArrayParsesAllFields(): void
@@ -138,13 +118,10 @@ final class CallToolRequestParamsTest extends TestCase
         $params = CallToolRequestParams::fromArray([
             'name' => 'read-file',
             'arguments' => ['path' => 'src/'],
-            'task' => ['ttl' => 60000],
             '_meta' => RequestMetaObjectFactory::shape(null, ['vendor.brand' => 'acme']),
         ]);
 
         self::assertSame(['path' => 'src/'], $params->arguments);
-        self::assertNotNull($params->task);
-        self::assertSame(60000, $params->task->ttl);
         self::assertSame(['vendor.brand' => 'acme'], $params->meta->extras);
     }
 
@@ -154,7 +131,6 @@ final class CallToolRequestParamsTest extends TestCase
             'read-file',
             RequestMetaObjectFactory::create(null, ['vendor.brand' => 'acme']),
             ['path' => 'src/'],
-            new TaskMetadata(60000),
         );
 
         $rebuilt = CallToolRequestParams::fromArray($original->toArray());
@@ -214,16 +190,6 @@ final class CallToolRequestParamsTest extends TestCase
         yield 'arguments list-keyed' => [
             ['name' => 'read-file', 'arguments' => ['v']],
             '"params.arguments" must be a string-keyed object.',
-        ];
-
-        yield 'task not an object' => [
-            ['name' => 'read-file', 'task' => 'oops'],
-            '"params.task" must be an object, string given.',
-        ];
-
-        yield 'task list-keyed' => [
-            ['name' => 'read-file', 'task' => ['x']],
-            '"params.task" must be a string-keyed object.',
         ];
 
         yield 'missing _meta' => [

@@ -15,7 +15,7 @@ namespace Nexus\Mcp\Core\Schema\RequestParams;
 
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\RequestMetaObject;
-use Nexus\Mcp\Core\Schema\Task\TaskMetadata;
+use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
 
 /**
@@ -23,7 +23,7 @@ use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
  *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#calltoolrequestparams
  */
-final readonly class CallToolRequestParams extends TaskAugmentedRequestParams
+final readonly class CallToolRequestParams extends RequestParams
 {
     /**
      * @var non-empty-string
@@ -38,12 +38,8 @@ final readonly class CallToolRequestParams extends TaskAugmentedRequestParams
     /**
      * @param null|array<string, mixed> $arguments
      */
-    public function __construct(
-        string $name,
-        RequestMetaObject $meta,
-        ?array $arguments = null,
-        ?TaskMetadata $task = null,
-    ) {
+    public function __construct(string $name, RequestMetaObject $meta, ?array $arguments = null)
+    {
         IdentifierNameValidator::validate($name, '"params.name"');
 
         if (null !== $arguments) {
@@ -53,7 +49,7 @@ final readonly class CallToolRequestParams extends TaskAugmentedRequestParams
         $this->name = $name;
         $this->arguments = $arguments;
 
-        parent::__construct($meta, $task);
+        parent::__construct($meta);
     }
 
     #[\Override]
@@ -73,16 +69,6 @@ final readonly class CallToolRequestParams extends TaskAugmentedRequestParams
             $arguments = $data['arguments'];
         }
 
-        $task = null;
-
-        if (\array_key_exists('task', $data)) {
-            Assert::that($data['task'])
-                ->isArray('"params.task" must be an object, {type} given.')
-                ->isMap('"params.task" must be a string-keyed object.')
-            ;
-            $task = TaskMetadata::fromArray($data['task']);
-        }
-
         Assert::that($data)->hasOffset('_meta', '"params" missing the required "_meta" key.');
         Assert::that($data['_meta'])
             ->isArray('"params._meta" must be an object, {type} given.')
@@ -90,7 +76,7 @@ final readonly class CallToolRequestParams extends TaskAugmentedRequestParams
         ;
         $meta = RequestMetaObject::fromArray($data['_meta']);
 
-        return new self($name, $meta, $arguments, $task);
+        return new self($name, $meta, $arguments);
     }
 
     #[\Override]
