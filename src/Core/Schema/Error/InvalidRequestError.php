@@ -17,7 +17,11 @@ use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Error;
 
 /**
- * Error indicating that the request payload is not a valid JSON-RPC request (code -32600).
+ * A JSON-RPC error indicating that the request is not a valid request object.
+ *
+ * This error is returned when the message structure does not conform to the JSON-RPC 2.0
+ * specification requirements for a request (e.g., missing required fields like `jsonrpc` or
+ * `method`, or using invalid types for these fields).
  *
  * @see https://www.jsonrpc.org/specification#error_object
  */

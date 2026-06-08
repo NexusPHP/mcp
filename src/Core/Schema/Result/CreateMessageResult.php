@@ -27,7 +27,7 @@ use Nexus\Mcp\Core\Schema\Sampling\ToolUseContent;
 use Nexus\Mcp\Core\Validation\EnumValueValidator;
 
 /**
- * The client's response to a sampling/createMessage request from the server. The client should
+ * The result returned by the client for a `sampling/createMessage` request. The client should
  * inform the user before returning the sampled message, to allow them to inspect the response
  * (human in the loop) and decide whether to allow the server to see it.
  *

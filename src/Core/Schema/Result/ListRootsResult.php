@@ -19,8 +19,9 @@ use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Root;
 
 /**
- * The client's response to a roots/list request from the server.
- * This result contains an array of Root objects, each representing a root directory or file
+ * The result returned by the client for a `roots/list` request.
+ *
+ * This result contains an array of `Root` objects, each representing a root directory or file
  * that the server can operate on.
  *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#listrootsresult

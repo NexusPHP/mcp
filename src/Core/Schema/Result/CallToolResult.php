@@ -25,7 +25,7 @@ use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Result;
 
 /**
- * The server's response to a tool call.
+ * The result returned by the server for a `tools/call` request.
  *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#calltoolresult
  */

@@ -17,7 +17,7 @@ use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams;
 
 /**
- * Common parameters when working with resources.
+ * Common params for resource-related requests.
  *
  * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2025-11-25/schema.ts
  */

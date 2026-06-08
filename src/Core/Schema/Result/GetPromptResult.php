@@ -19,7 +19,7 @@ use Nexus\Mcp\Core\Schema\Prompt\PromptMessage;
 use Nexus\Mcp\Core\Schema\Result;
 
 /**
- * The server's response to a prompts/get request from the client.
+ * The result returned by the server for a `prompts/get` request.
  *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#getpromptresult
  */

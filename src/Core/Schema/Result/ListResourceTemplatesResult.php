@@ -19,7 +19,7 @@ use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Resource\ResourceTemplate;
 
 /**
- * The server's response to a resources/templates/list request from the client.
+ * The result returned by the server for a `resources/templates/list` request.
  *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#listresourcetemplatesresult
  */

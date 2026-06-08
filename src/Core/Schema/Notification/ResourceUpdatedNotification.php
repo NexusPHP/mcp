@@ -19,8 +19,8 @@ use Nexus\Mcp\Core\Schema\NotificationParams\ResourceUpdatedNotificationParams;
 
 /**
  * A notification from the server to the client, informing it that a resource has changed and
- * may need to be read again. This should only be sent if the client previously sent a
- * resources/subscribe request.
+ * may need to be read again. This is only sent for resources the client opted in to via the
+ * `resourceSubscriptions` field of a `subscriptions/listen` request.
  *
  * @extends JsonRpcNotification<'notifications/resources/updated'>
  *

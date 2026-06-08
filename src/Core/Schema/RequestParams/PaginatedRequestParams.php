@@ -19,7 +19,7 @@ use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams;
 
 /**
- * Common parameters for paginated requests.
+ * Common params for paginated requests.
  *
  * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2025-11-25/schema.ts
  */

@@ -20,7 +20,7 @@ use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Validation\EnumValueValidator;
 
 /**
- * The client's response to an elicitation request.
+ * The result returned by the client for an `elicitation/create` request.
  *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#elicitresult
  */

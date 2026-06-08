@@ -17,13 +17,13 @@ use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Arrayable;
 
 /**
- * Additional properties describing a Tool to clients.
+ * Additional properties describing a `Tool` to clients.
  *
- * NOTE: all properties in ToolAnnotations are **hints**.
+ * NOTE: all properties in `ToolAnnotations` are **hints**.
  * They are not guaranteed to provide a faithful description of
  * tool behavior (including descriptive properties like `title`).
  *
- * Clients should never make tool use decisions based on ToolAnnotations
+ * Clients should never make tool use decisions based on `ToolAnnotations`
  * received from untrusted servers.
  *
  * @implements Arrayable<array{

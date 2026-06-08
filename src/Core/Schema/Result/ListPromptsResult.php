@@ -19,7 +19,7 @@ use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Prompt\Prompt;
 
 /**
- * The server's response to a prompts/list request from the client.
+ * The result returned by the server for a `prompts/list` request.
  *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#listpromptsresult
  */

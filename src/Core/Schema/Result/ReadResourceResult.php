@@ -22,7 +22,7 @@ use Nexus\Mcp\Core\Schema\Resource\TextResourceContents;
 use Nexus\Mcp\Core\Schema\Result;
 
 /**
- * The server's response to a resources/read request from the client.
+ * The result returned by the server for a `resources/read` request.
  *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#readresourceresult
  */

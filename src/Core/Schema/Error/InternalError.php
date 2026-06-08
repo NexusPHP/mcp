@@ -17,7 +17,10 @@ use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Error;
 
 /**
- * Error indicating that an internal JSON-RPC error occurred (code -32603).
+ * A JSON-RPC error indicating that an internal error occurred on the receiver.
+ *
+ * This error is returned when the receiver encounters an unexpected condition that prevents it
+ * from fulfilling the request.
  *
  * @see https://www.jsonrpc.org/specification#error_object
  */

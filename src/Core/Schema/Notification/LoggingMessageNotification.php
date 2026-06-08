@@ -18,8 +18,8 @@ use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 use Nexus\Mcp\Core\Schema\NotificationParams\LoggingMessageNotificationParams;
 
 /**
- * JSONRPCNotification of a log message passed from server to client. If no logging/setLevel request has been
- * sent from the client, the server MAY decide which messages to send automatically.
+ * JSONRPCNotification of a log message passed from server to client. The client opts in by
+ * setting `"io.modelcontextprotocol/logLevel"` in a request's `_meta`.
  *
  * @property-read LoggingMessageNotificationParams $params
  *

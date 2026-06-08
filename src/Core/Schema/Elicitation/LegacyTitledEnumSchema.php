@@ -17,8 +17,7 @@ use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Arrayable;
 
 /**
- * Use TitledSingleSelectEnumSchema instead.
- * This interface will be removed in a future version.
+ * Use `TitledSingleSelectEnumSchema` instead. This interface will be removed in a future version.
  *
  * @implements Arrayable<array{
  *   type: 'string',

@@ -18,8 +18,7 @@ use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Result;
 
 /**
- * A result that carries no fields beyond the optional `_meta`. Used by methods
- * like `ping` whose acknowledgement has no payload.
+ * Common result fields.
  *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#emptyresult
  */

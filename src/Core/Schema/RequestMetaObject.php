@@ -16,8 +16,8 @@ namespace Nexus\Mcp\Core\Schema;
 use Nexus\Assert\Assert;
 
 /**
- * The `_meta` extension slot carried by request params. Adds a typed `progressToken`
- * alongside open-ended extras.
+ * Extends `MetaObject` with additional request-specific fields.
+ * All key naming rules from `MetaObject` apply.
  *
  * @implements Arrayable<array<string, mixed>>
  *

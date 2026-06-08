@@ -19,7 +19,7 @@ use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Tool\Tool;
 
 /**
- * The server's response to a tools/list request from the client.
+ * The result returned by the server for a `tools/list` request.
  *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#listtoolsresult
  */

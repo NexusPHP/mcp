@@ -17,7 +17,9 @@ use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Error;
 
 /**
- * Error indicating that the received JSON could not be parsed (code -32700).
+ * A JSON-RPC error indicating that invalid JSON was received by the server.
+ *
+ * This error is returned when the server cannot parse the JSON text of a message.
  *
  * @see https://www.jsonrpc.org/specification#error_object
  */

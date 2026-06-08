@@ -25,10 +25,6 @@ use Nexus\Mcp\Core\Schema\NotificationParams\CancelledNotificationParams;
  *
  * This notification indicates that the result will be unused, so any associated processing SHOULD cease.
  *
- * A client MUST NOT attempt to cancel its `initialize` request.
- *
- * For task cancellation, use the `tasks/cancel` request instead of this notification.
- *
  * @extends JsonRpcNotification<'notifications/cancelled'>
  *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#cancellednotification

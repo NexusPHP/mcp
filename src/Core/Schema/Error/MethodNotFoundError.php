@@ -17,7 +17,13 @@ use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Error;
 
 /**
- * Error indicating that the JSON-RPC method does not exist or is not available (code -32601).
+ * A JSON-RPC error indicating that the requested method does not exist or is not available.
+ *
+ * In MCP, a server returns this error when a client invokes a method the server does not
+ * implement — either a genuinely unknown method, or one gated behind a server capability the
+ * server did not advertise (e.g., calling `prompts/list` when the `prompts` capability was not
+ * advertised). A request that requires a client capability the client did not declare is
+ * signalled instead by `MissingRequiredClientCapabilityError` (`-32003`).
  *
  * @see https://www.jsonrpc.org/specification#error_object
  */

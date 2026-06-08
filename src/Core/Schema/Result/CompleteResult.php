@@ -18,7 +18,7 @@ use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Result;
 
 /**
- * The server's response to a completion/complete request.
+ * The result returned by the server for a `completion/complete` request.
  *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#completeresult
  */
