@@ -15,18 +15,19 @@ namespace Nexus\Mcp\Core\Schema\Result;
 
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\JsonRpc\ResourceContentsDispatcher;
+use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Resource\BlobResourceContents;
 use Nexus\Mcp\Core\Schema\Resource\ResourceContents;
 use Nexus\Mcp\Core\Schema\Resource\TextResourceContents;
-use Nexus\Mcp\Core\Schema\Result;
+use Nexus\Mcp\Core\Validation\EnumValueValidator;
 
 /**
  * The result returned by the server for a `resources/read` request.
  *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#readresourceresult
  */
-final readonly class ReadResourceResult extends Result implements ServerResult
+final readonly class ReadResourceResult extends CacheableResult implements ServerResult
 {
     /**
      * @var list<BlobResourceContents|TextResourceContents>
@@ -36,8 +37,12 @@ final readonly class ReadResourceResult extends Result implements ServerResult
     /**
      * @param list<BlobResourceContents|TextResourceContents> $contents
      */
-    public function __construct(array $contents, MetaObject $meta = new MetaObject())
-    {
+    public function __construct(
+        array $contents,
+        int $ttlMs,
+        CacheScope $cacheScope,
+        MetaObject $meta = new MetaObject(),
+    ) {
         Assert::that($contents)
             ->isList('"result.contents" must be a list, non-list array given.')
             ->values()->isInstanceOf(ResourceContents::class)
@@ -45,7 +50,7 @@ final readonly class ReadResourceResult extends Result implements ServerResult
 
         $this->contents = $contents;
 
-        parent::__construct($meta);
+        parent::__construct($ttlMs, $cacheScope, $meta);
     }
 
     /**
@@ -66,6 +71,13 @@ final readonly class ReadResourceResult extends Result implements ServerResult
             $data['contents'],
         );
 
+        Assert::that($data)->hasOffset('ttlMs', '"result" missing the required "ttlMs" key.');
+        $ttlMs = $data['ttlMs'];
+        Assert::that($ttlMs)->isInt('"result.ttlMs" must be an integer, {type} given.');
+
+        Assert::that($data)->hasOffset('cacheScope', '"result" missing the required "cacheScope" key.');
+        $cacheScope = EnumValueValidator::parse(CacheScope::class, $data['cacheScope'], '"result.cacheScope"');
+
         $meta = new MetaObject();
 
         if (\array_key_exists('_meta', $data)) {
@@ -76,7 +88,7 @@ final readonly class ReadResourceResult extends Result implements ServerResult
             $meta = MetaObject::fromArray($data['_meta']);
         }
 
-        return new self($contents, $meta);
+        return new self($contents, $ttlMs, $cacheScope, $meta);
     }
 
     #[\Override]

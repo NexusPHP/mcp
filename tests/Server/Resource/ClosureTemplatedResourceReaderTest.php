@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Server\Resource;
 
 use Amp\NullCancellation;
+use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\Resource\TextResourceContents;
@@ -36,7 +37,7 @@ final class ClosureTemplatedResourceReaderTest extends TestCase
     public function testForwardsUriBindingsAndContextToClosureAndReturnsItsResult(): void
     {
         $captured = ['uri' => null, 'bindings' => null, 'context' => null];
-        $expected = new ReadResourceResult([new TextResourceContents('file:///etc', 'ok')]);
+        $expected = new ReadResourceResult([new TextResourceContents('file:///etc', 'ok')], 0, CacheScope::Private);
         $context = new ServerContext(
             new RequestId(42),
             new NullCancellation(),

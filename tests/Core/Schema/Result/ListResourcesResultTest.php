@@ -15,9 +15,11 @@ namespace Nexus\Mcp\Tests\Core\Schema\Result;
 
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Cursor;
+use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Resource\Resource;
 use Nexus\Mcp\Core\Schema\Result;
+use Nexus\Mcp\Core\Schema\Result\CacheableResult;
 use Nexus\Mcp\Core\Schema\Result\ListResourcesResult;
 use Nexus\Mcp\Core\Schema\Result\PaginatedResult;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -30,6 +32,7 @@ use PHPUnit\Framework\TestCase;
  */
 #[CoversClass(ListResourcesResult::class)]
 #[CoversClass(PaginatedResult::class)]
+#[CoversClass(CacheableResult::class)]
 #[CoversClass(Result::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
@@ -37,16 +40,18 @@ final class ListResourcesResultTest extends TestCase
 {
     public function testConstructionDefaults(): void
     {
-        $result = new ListResourcesResult([new Resource('r', 'file:///x')]);
+        $result = new ListResourcesResult([new Resource('r', 'file:///x')], 0, CacheScope::Private);
 
         self::assertCount(1, $result->resources);
+        self::assertSame(0, $result->ttlMs);
+        self::assertSame(CacheScope::Private, $result->cacheScope);
         self::assertNull($result->nextCursor);
         self::assertSame([], $result->meta->toArray());
     }
 
     public function testConstructionAcceptsEmptyResourcesList(): void
     {
-        $result = new ListResourcesResult([]);
+        $result = new ListResourcesResult([], 0, CacheScope::Private);
 
         self::assertSame([], $result->resources);
     }
@@ -56,11 +61,13 @@ final class ListResourcesResultTest extends TestCase
         $result = new ListResourcesResult([
             new Resource('a', 'file:///a'),
             new Resource('b', 'file:///b'),
-        ]);
+        ], 0, CacheScope::Private);
 
         self::assertSame(
             [
                 'resultType' => 'complete',
+                'ttlMs' => 0,
+                'cacheScope' => 'private',
                 'resources' => [
                     ['name' => 'a', 'uri' => 'file:///a'],
                     ['name' => 'b', 'uri' => 'file:///b'],
@@ -74,12 +81,16 @@ final class ListResourcesResultTest extends TestCase
     {
         $result = new ListResourcesResult(
             [new Resource('a', 'file:///a')],
+            0,
+            CacheScope::Private,
             new Cursor('cur-1'),
         );
 
         self::assertSame(
             [
                 'resultType' => 'complete',
+                'ttlMs' => 0,
+                'cacheScope' => 'private',
                 'nextCursor' => 'cur-1',
                 'resources' => [['name' => 'a', 'uri' => 'file:///a']],
             ],
@@ -91,6 +102,8 @@ final class ListResourcesResultTest extends TestCase
     {
         $result = new ListResourcesResult(
             [new Resource('a', 'file:///a')],
+            0,
+            CacheScope::Private,
             null,
             new MetaObject(['vendor' => 'x']),
         );
@@ -99,6 +112,8 @@ final class ListResourcesResultTest extends TestCase
             [
                 '_meta' => ['vendor' => 'x'],
                 'resultType' => 'complete',
+                'ttlMs' => 0,
+                'cacheScope' => 'private',
                 'resources' => [['name' => 'a', 'uri' => 'file:///a']],
             ],
             $result->toArray(),
@@ -109,6 +124,8 @@ final class ListResourcesResultTest extends TestCase
     {
         $result = new ListResourcesResult(
             [new Resource('a', 'file:///a')],
+            60000,
+            CacheScope::Public,
             new Cursor('cur-1'),
             new MetaObject(['vendor' => 'x']),
         );
@@ -117,6 +134,8 @@ final class ListResourcesResultTest extends TestCase
             [
                 '_meta' => ['vendor' => 'x'],
                 'resultType' => 'complete',
+                'ttlMs' => 60000,
+                'cacheScope' => 'public',
                 'nextCursor' => 'cur-1',
                 'resources' => [['name' => 'a', 'uri' => 'file:///a']],
             ],
@@ -128,6 +147,8 @@ final class ListResourcesResultTest extends TestCase
     {
         $result = new ListResourcesResult(
             [new Resource('a', 'file:///a')],
+            60000,
+            CacheScope::Public,
             new Cursor('cur-1'),
             new MetaObject(['k' => 'v']),
         );
@@ -137,9 +158,11 @@ final class ListResourcesResultTest extends TestCase
 
     public function testFromArrayParsesEmptyResources(): void
     {
-        $result = ListResourcesResult::fromArray(['resources' => []]);
+        $result = ListResourcesResult::fromArray(['resources' => [], 'ttlMs' => 0, 'cacheScope' => 'private']);
 
         self::assertSame([], $result->resources);
+        self::assertSame(0, $result->ttlMs);
+        self::assertSame(CacheScope::Private, $result->cacheScope);
         self::assertNull($result->nextCursor);
         self::assertSame([], $result->meta->toArray());
     }
@@ -151,6 +174,8 @@ final class ListResourcesResultTest extends TestCase
                 ['name' => 'a', 'uri' => 'file:///a'],
                 ['name' => 'b', 'uri' => 'file:///b'],
             ],
+            'ttlMs' => 60000,
+            'cacheScope' => 'public',
             'nextCursor' => 'cur-1',
             '_meta' => ['vendor' => 'x'],
         ]);
@@ -158,6 +183,8 @@ final class ListResourcesResultTest extends TestCase
         self::assertCount(2, $result->resources);
         self::assertSame('a', $result->resources[0]->name);
         self::assertSame('file:///a', $result->resources[0]->uri);
+        self::assertSame(60000, $result->ttlMs);
+        self::assertSame(CacheScope::Public, $result->cacheScope);
         self::assertNotNull($result->nextCursor);
         self::assertSame('cur-1', $result->nextCursor->cursor);
         self::assertSame(['vendor' => 'x'], $result->meta->extras);
@@ -167,6 +194,8 @@ final class ListResourcesResultTest extends TestCase
     {
         $original = new ListResourcesResult(
             [new Resource('a', 'file:///a', 'A')],
+            60000,
+            CacheScope::Public,
             new Cursor('cur-1'),
             new MetaObject(['vendor' => 'x']),
         );
@@ -182,7 +211,7 @@ final class ListResourcesResultTest extends TestCase
         $this->expectExceptionMessageIs('"result.resources" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
-        new ListResourcesResult([5 => new Resource('a', 'file:///a')]);
+        new ListResourcesResult([5 => new Resource('a', 'file:///a')], 0, CacheScope::Private);
     }
 
     public function testConstructorRejectsNonResourceElement(): void
@@ -190,7 +219,15 @@ final class ListResourcesResultTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
 
         // @phpstan-ignore argument.type
-        new ListResourcesResult([42]);
+        new ListResourcesResult([42], 0, CacheScope::Private);
+    }
+
+    public function testConstructorRejectsNegativeTtl(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs('"result.ttlMs" must be a non-negative integer, -1 given.');
+
+        new ListResourcesResult([], -1, CacheScope::Private);
     }
 
     /**
@@ -230,18 +267,38 @@ final class ListResourcesResultTest extends TestCase
             'each "result.resource" must be a string-keyed object.',
         ];
 
+        yield 'missing ttlMs' => [
+            ['resources' => []],
+            '"result" missing the required "ttlMs" key.',
+        ];
+
+        yield 'ttlMs not an integer' => [
+            ['resources' => [], 'ttlMs' => 'oops'],
+            '"result.ttlMs" must be an integer, string given.',
+        ];
+
+        yield 'missing cacheScope' => [
+            ['resources' => [], 'ttlMs' => 0],
+            '"result" missing the required "cacheScope" key.',
+        ];
+
+        yield 'cacheScope not a known value' => [
+            ['resources' => [], 'ttlMs' => 0, 'cacheScope' => 'shared'],
+            '"result.cacheScope" must be one of [\'public\', \'private\'], \'shared\' given.',
+        ];
+
         yield 'nextCursor not a string' => [
-            ['resources' => [], 'nextCursor' => 1],
+            ['resources' => [], 'ttlMs' => 0, 'cacheScope' => 'private', 'nextCursor' => 1],
             '"result.nextCursor" must be a string, int given.',
         ];
 
         yield '_meta not an object' => [
-            ['resources' => [], '_meta' => 'oops'],
+            ['resources' => [], 'ttlMs' => 0, 'cacheScope' => 'private', '_meta' => 'oops'],
             '"result._meta" must be an object, string given.',
         ];
 
         yield '_meta list-keyed' => [
-            ['resources' => [], '_meta' => ['x']],
+            ['resources' => [], 'ttlMs' => 0, 'cacheScope' => 'private', '_meta' => ['x']],
             '"result._meta" must be a string-keyed object.',
         ];
     }

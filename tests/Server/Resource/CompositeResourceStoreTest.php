@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Tests\Server\Resource;
 
 use Amp\NullCancellation;
 use Nexus\Mcp\Core\Schema\Cursor;
+use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\Resource\Resource;
@@ -45,7 +46,7 @@ final class CompositeResourceStoreTest extends TestCase
 {
     public function testReadPrefersExactStaticUriMatch(): void
     {
-        $expected = new ReadResourceResult([new TextResourceContents('file:///etc', 'static')]);
+        $expected = new ReadResourceResult([new TextResourceContents('file:///etc', 'static')], 0, CacheScope::Private);
         $templateCalled = false;
 
         $composite = new CompositeResourceStore(
@@ -62,7 +63,7 @@ final class CompositeResourceStoreTest extends TestCase
                         static function () use (&$templateCalled): ReadResourceResult {
                             $templateCalled = true;
 
-                            return new ReadResourceResult([new TextResourceContents('file:///', 'template')]);
+                            return new ReadResourceResult([new TextResourceContents('file:///', 'template')], 0, CacheScope::Private);
                         },
                     ),
                 ),
@@ -75,7 +76,7 @@ final class CompositeResourceStoreTest extends TestCase
 
     public function testReadFallsThroughToTemplateOnStaticMiss(): void
     {
-        $expected = new ReadResourceResult([new TextResourceContents('file:///etc', 'matched')]);
+        $expected = new ReadResourceResult([new TextResourceContents('file:///etc', 'matched')], 0, CacheScope::Private);
 
         $composite = new CompositeResourceStore(
             new ResourceStore(),

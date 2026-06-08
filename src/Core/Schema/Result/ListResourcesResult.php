@@ -15,8 +15,10 @@ namespace Nexus\Mcp\Core\Schema\Result;
 
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Cursor;
+use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Resource\Resource;
+use Nexus\Mcp\Core\Validation\EnumValueValidator;
 
 /**
  * The result returned by the server for a `resources/list` request.
@@ -33,8 +35,13 @@ final readonly class ListResourcesResult extends PaginatedResult implements Serv
     /**
      * @param list<Resource> $resources
      */
-    public function __construct(array $resources, ?Cursor $nextCursor = null, MetaObject $meta = new MetaObject())
-    {
+    public function __construct(
+        array $resources,
+        int $ttlMs,
+        CacheScope $cacheScope,
+        ?Cursor $nextCursor = null,
+        MetaObject $meta = new MetaObject(),
+    ) {
         Assert::that($resources)
             ->isList('"result.resources" must be a list, non-list array given.')
             ->values()->isInstanceOf(Resource::class)
@@ -42,7 +49,7 @@ final readonly class ListResourcesResult extends PaginatedResult implements Serv
 
         $this->resources = $resources;
 
-        parent::__construct($nextCursor, $meta);
+        parent::__construct($ttlMs, $cacheScope, $nextCursor, $meta);
     }
 
     #[\Override]
@@ -56,6 +63,13 @@ final readonly class ListResourcesResult extends PaginatedResult implements Serv
             ->isMap('each "result.resource" must be a string-keyed object.')
         ;
         $resources = array_map(Resource::fromArray(...), $data['resources']);
+
+        Assert::that($data)->hasOffset('ttlMs', '"result" missing the required "ttlMs" key.');
+        $ttlMs = $data['ttlMs'];
+        Assert::that($ttlMs)->isInt('"result.ttlMs" must be an integer, {type} given.');
+
+        Assert::that($data)->hasOffset('cacheScope', '"result" missing the required "cacheScope" key.');
+        $cacheScope = EnumValueValidator::parse(CacheScope::class, $data['cacheScope'], '"result.cacheScope"');
 
         $nextCursor = null;
 
@@ -75,7 +89,7 @@ final readonly class ListResourcesResult extends PaginatedResult implements Serv
             $meta = MetaObject::fromArray($data['_meta']);
         }
 
-        return new self($resources, $nextCursor, $meta);
+        return new self($resources, $ttlMs, $cacheScope, $nextCursor, $meta);
     }
 
     #[\Override]

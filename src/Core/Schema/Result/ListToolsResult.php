@@ -15,8 +15,10 @@ namespace Nexus\Mcp\Core\Schema\Result;
 
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Cursor;
+use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Tool\Tool;
+use Nexus\Mcp\Core\Validation\EnumValueValidator;
 
 /**
  * The result returned by the server for a `tools/list` request.
@@ -33,8 +35,13 @@ final readonly class ListToolsResult extends PaginatedResult implements ServerRe
     /**
      * @param list<Tool> $tools
      */
-    public function __construct(array $tools, ?Cursor $nextCursor = null, MetaObject $meta = new MetaObject())
-    {
+    public function __construct(
+        array $tools,
+        int $ttlMs,
+        CacheScope $cacheScope,
+        ?Cursor $nextCursor = null,
+        MetaObject $meta = new MetaObject(),
+    ) {
         Assert::that($tools)
             ->isList('"result.tools" must be a list, non-list array given.')
             ->values()->isInstanceOf(Tool::class)
@@ -42,7 +49,7 @@ final readonly class ListToolsResult extends PaginatedResult implements ServerRe
 
         $this->tools = $tools;
 
-        parent::__construct($nextCursor, $meta);
+        parent::__construct($ttlMs, $cacheScope, $nextCursor, $meta);
     }
 
     #[\Override]
@@ -56,6 +63,13 @@ final readonly class ListToolsResult extends PaginatedResult implements ServerRe
             ->isMap('each "result.tool" must be a string-keyed object.')
         ;
         $tools = array_map(Tool::fromArray(...), $data['tools']);
+
+        Assert::that($data)->hasOffset('ttlMs', '"result" missing the required "ttlMs" key.');
+        $ttlMs = $data['ttlMs'];
+        Assert::that($ttlMs)->isInt('"result.ttlMs" must be an integer, {type} given.');
+
+        Assert::that($data)->hasOffset('cacheScope', '"result" missing the required "cacheScope" key.');
+        $cacheScope = EnumValueValidator::parse(CacheScope::class, $data['cacheScope'], '"result.cacheScope"');
 
         $nextCursor = null;
 
@@ -75,7 +89,7 @@ final readonly class ListToolsResult extends PaginatedResult implements ServerRe
             $meta = MetaObject::fromArray($data['_meta']);
         }
 
-        return new self($tools, $nextCursor, $meta);
+        return new self($tools, $ttlMs, $cacheScope, $nextCursor, $meta);
     }
 
     #[\Override]

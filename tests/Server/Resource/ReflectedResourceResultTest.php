@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Server\Resource;
 
+use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\Resource\BlobResourceContents;
 use Nexus\Mcp\Core\Schema\Resource\TextResourceContents;
 use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
@@ -33,7 +34,7 @@ final class ReflectedResourceResultTest extends TestCase
 {
     public function testReturnsReadResourceResultUnchanged(): void
     {
-        $expected = new ReadResourceResult([new TextResourceContents('mem://x', 'body')]);
+        $expected = new ReadResourceResult([new TextResourceContents('mem://x', 'body')], 0, CacheScope::Private);
 
         self::assertSame($expected, self::adapt($expected));
     }
@@ -50,6 +51,8 @@ final class ReflectedResourceResultTest extends TestCase
 
         self::assertSame('mem://greeting', $contents->uri);
         self::assertSame('hello', $contents->text);
+        self::assertSame(0, $result->ttlMs);
+        self::assertSame(CacheScope::Private, $result->cacheScope);
     }
 
     public function testWrapsSingleResourceContents(): void
@@ -59,6 +62,8 @@ final class ReflectedResourceResultTest extends TestCase
         $result = self::adapt($blob);
 
         self::assertSame([$blob], $result->contents);
+        self::assertSame(0, $result->ttlMs);
+        self::assertSame(CacheScope::Private, $result->cacheScope);
     }
 
     public function testReturnsResourceContentsList(): void
@@ -68,6 +73,8 @@ final class ReflectedResourceResultTest extends TestCase
         $result = self::adapt($list);
 
         self::assertSame($list, $result->contents);
+        self::assertSame(0, $result->ttlMs);
+        self::assertSame(CacheScope::Private, $result->cacheScope);
     }
 
     public function testThrowsOnMapOfContents(): void

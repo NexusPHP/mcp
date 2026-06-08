@@ -34,6 +34,7 @@ declare(strict_types=1);
 require __DIR__.'/bootstrap.php';
 
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
+use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\Enum\LoggingLevel;
 use Nexus\Mcp\Core\Schema\Enum\Role;
 use Nexus\Mcp\Core\Schema\Prompt\Prompt;
@@ -129,17 +130,21 @@ $server = new ServerBuilder()
             description: 'A short description of what this example server exposes.',
             mimeType: 'text/markdown',
         ),
-        static fn(string $uri, ServerContext $context): ReadResourceResult => new ReadResourceResult(contents: [
-            new TextResourceContents(
-                uri: $uri,
-                text: "# nexus-stdio-example\n\n"
-                    ."Two interactive tools:\n\n"
-                    ."- `multi_greet(name)` streams log notifications mid-execution.\n"
-                    ."- `count_down(count, intervalMs)` streams log + progress notifications.\n\n"
-                    ."Watch the client's notification stream while either tool is running.\n",
-                mimeType: 'text/markdown',
-            ),
-        ]),
+        static fn(string $uri, ServerContext $context): ReadResourceResult => new ReadResourceResult(
+            contents: [
+                new TextResourceContents(
+                    uri: $uri,
+                    text: "# nexus-stdio-example\n\n"
+                        ."Two interactive tools:\n\n"
+                        ."- `multi_greet(name)` streams log notifications mid-execution.\n"
+                        ."- `count_down(count, intervalMs)` streams log + progress notifications.\n\n"
+                        ."Watch the client's notification stream while either tool is running.\n",
+                    mimeType: 'text/markdown',
+                ),
+            ],
+            ttlMs: 0,
+            cacheScope: CacheScope::Private,
+        ),
     )
     ->addPrompt(
         new Prompt(

@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Tests\Fixtures\Server\Discovery;
 
 use Nexus\Mcp\Core\Schema\Annotations;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
+use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\Enum\Role;
 use Nexus\Mcp\Core\Schema\Prompt\PromptMessage;
 use Nexus\Mcp\Core\Schema\Resource\TextResourceContents;
@@ -103,7 +104,7 @@ final class DiscoverableServer
     #[AsResource(uri: 'config://defaults')]
     public function defaults(string $uri): ReadResourceResult
     {
-        return new ReadResourceResult([new TextResourceContents($uri, 'defaults')]);
+        return new ReadResourceResult([new TextResourceContents($uri, 'defaults')], 0, CacheScope::Private);
     }
 
     /**
@@ -123,7 +124,7 @@ final class DiscoverableServer
     #[AsResourceTemplate(uriTemplate: 'files://{path}')]
     public function fileTemplate(string $uri): ReadResourceResult
     {
-        return new ReadResourceResult([new TextResourceContents($uri, 'file')]);
+        return new ReadResourceResult([new TextResourceContents($uri, 'file')], 0, CacheScope::Private);
     }
 
     public function helper(): string

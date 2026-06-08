@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Tests\Server\Resource;
 
 use Amp\NullCancellation;
 use Nexus\Mcp\Core\Schema\Cursor;
+use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\Resource\ResourceTemplate;
@@ -54,6 +55,22 @@ final class ResourceTemplateStoreTest extends TestCase
         self::assertSame('alpha', $result->resourceTemplates[0]->name);
         self::assertSame('beta', $result->resourceTemplates[1]->name);
         self::assertNull($result->nextCursor);
+        self::assertSame(0, $result->ttlMs);
+        self::assertSame(CacheScope::Private, $result->cacheScope);
+    }
+
+    public function testListReflectsConfiguredTtlAndCacheScope(): void
+    {
+        $store = new ResourceTemplateStore(
+            ['file:///{name}.txt' => self::entry(new ResourceTemplate('alpha', 'file:///{name}.txt'))],
+            ttlMs: 120000,
+            cacheScope: CacheScope::Public,
+        );
+
+        $result = $store->list(null);
+
+        self::assertSame(120000, $result->ttlMs);
+        self::assertSame(CacheScope::Public, $result->cacheScope);
     }
 
     public function testListPaginatesWithCursor(): void
@@ -184,7 +201,7 @@ final class ResourceTemplateStoreTest extends TestCase
     public function testReadDelegatesToFirstMatchingTemplateWithBindings(): void
     {
         $captured = ['uri' => null, 'bindings' => null];
-        $expected = new ReadResourceResult([new TextResourceContents('file:///etc', 'hello')]);
+        $expected = new ReadResourceResult([new TextResourceContents('file:///etc', 'hello')], 0, CacheScope::Private);
 
         $store = new ResourceTemplateStore([
             'weather://{city}/{day}' => self::entry(
@@ -212,7 +229,7 @@ final class ResourceTemplateStoreTest extends TestCase
     public function testReadStopsAtFirstMatch(): void
     {
         $firstCalled = false;
-        $expected = new ReadResourceResult([new TextResourceContents('file:///x', 'ok')]);
+        $expected = new ReadResourceResult([new TextResourceContents('file:///x', 'ok')], 0, CacheScope::Private);
 
         $store = new ResourceTemplateStore([
             'file:///{path}' => self::entry(

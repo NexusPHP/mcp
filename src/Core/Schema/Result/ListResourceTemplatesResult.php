@@ -15,8 +15,10 @@ namespace Nexus\Mcp\Core\Schema\Result;
 
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Cursor;
+use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Resource\ResourceTemplate;
+use Nexus\Mcp\Core\Validation\EnumValueValidator;
 
 /**
  * The result returned by the server for a `resources/templates/list` request.
@@ -33,8 +35,13 @@ final readonly class ListResourceTemplatesResult extends PaginatedResult impleme
     /**
      * @param list<ResourceTemplate> $resourceTemplates
      */
-    public function __construct(array $resourceTemplates, ?Cursor $nextCursor = null, MetaObject $meta = new MetaObject())
-    {
+    public function __construct(
+        array $resourceTemplates,
+        int $ttlMs,
+        CacheScope $cacheScope,
+        ?Cursor $nextCursor = null,
+        MetaObject $meta = new MetaObject(),
+    ) {
         Assert::that($resourceTemplates)
             ->isList('"result.resourceTemplates" must be a list, non-list array given.')
             ->values()->isInstanceOf(ResourceTemplate::class)
@@ -42,7 +49,7 @@ final readonly class ListResourceTemplatesResult extends PaginatedResult impleme
 
         $this->resourceTemplates = $resourceTemplates;
 
-        parent::__construct($nextCursor, $meta);
+        parent::__construct($ttlMs, $cacheScope, $nextCursor, $meta);
     }
 
     #[\Override]
@@ -56,6 +63,13 @@ final readonly class ListResourceTemplatesResult extends PaginatedResult impleme
             ->isMap('each "result.resourceTemplate" must be a string-keyed object.')
         ;
         $resourceTemplates = array_map(ResourceTemplate::fromArray(...), $data['resourceTemplates']);
+
+        Assert::that($data)->hasOffset('ttlMs', '"result" missing the required "ttlMs" key.');
+        $ttlMs = $data['ttlMs'];
+        Assert::that($ttlMs)->isInt('"result.ttlMs" must be an integer, {type} given.');
+
+        Assert::that($data)->hasOffset('cacheScope', '"result" missing the required "cacheScope" key.');
+        $cacheScope = EnumValueValidator::parse(CacheScope::class, $data['cacheScope'], '"result.cacheScope"');
 
         $nextCursor = null;
 
@@ -75,7 +89,7 @@ final readonly class ListResourceTemplatesResult extends PaginatedResult impleme
             $meta = MetaObject::fromArray($data['_meta']);
         }
 
-        return new self($resourceTemplates, $nextCursor, $meta);
+        return new self($resourceTemplates, $ttlMs, $cacheScope, $nextCursor, $meta);
     }
 
     #[\Override]

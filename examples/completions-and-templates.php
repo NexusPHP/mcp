@@ -26,6 +26,7 @@ require __DIR__.'/bootstrap.php';
 
 use Nexus\Mcp\Client\ClientBuilder;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
+use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\Enum\Role;
 use Nexus\Mcp\Core\Schema\Prompt\Prompt;
 use Nexus\Mcp\Core\Schema\Prompt\PromptArgument;
@@ -71,13 +72,17 @@ $server = new ServerBuilder()
             $userId = $variables['userId'] ?? 'unknown';
             $user = ['id' => $userId, 'name' => ucfirst($userId), 'role' => 'member'];
 
-            return new ReadResourceResult(contents: [
-                new TextResourceContents(
-                    uri: $uri,
-                    text: json_encode($user, \JSON_PRETTY_PRINT | \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES),
-                    mimeType: 'application/json',
-                ),
-            ]);
+            return new ReadResourceResult(
+                contents: [
+                    new TextResourceContents(
+                        uri: $uri,
+                        text: json_encode($user, \JSON_PRETTY_PRINT | \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES),
+                        mimeType: 'application/json',
+                    ),
+                ],
+                ttlMs: 0,
+                cacheScope: CacheScope::Private,
+            );
         },
     )
     ->addPrompt(

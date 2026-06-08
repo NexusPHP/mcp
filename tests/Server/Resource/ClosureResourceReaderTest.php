@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Server\Resource;
 
 use Amp\NullCancellation;
+use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
@@ -35,7 +36,7 @@ final class ClosureResourceReaderTest extends TestCase
     public function testForwardsUriAndContextToClosure(): void
     {
         $captured = ['uri' => '', 'requestId' => 0];
-        $expected = new ReadResourceResult([]);
+        $expected = new ReadResourceResult([], 0, CacheScope::Private);
         $reader = new ClosureResourceReader(
             static function (string $uri, ServerContext $context) use ($expected, &$captured): ReadResourceResult {
                 $captured = ['uri' => $uri, 'requestId' => $context->requestId->id];

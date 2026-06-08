@@ -18,6 +18,7 @@ use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\BaseMetadata;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequestedSchema;
 use Nexus\Mcp\Core\Schema\Elicitation\EnumOption;
+use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\Enum\ElicitAction;
 use Nexus\Mcp\Core\Schema\Enum\IncludeContext;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
@@ -52,6 +53,7 @@ use Nexus\Mcp\Core\Schema\RequestParams\ResourceRequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\TaskAugmentedRequestParams;
 use Nexus\Mcp\Core\Schema\Resource\ResourceContents;
 use Nexus\Mcp\Core\Schema\Result;
+use Nexus\Mcp\Core\Schema\Result\CacheableResult;
 use Nexus\Mcp\Core\Schema\Result\ClientResult;
 use Nexus\Mcp\Core\Schema\Result\PaginatedResult;
 use Nexus\Mcp\Core\Schema\Result\ServerResult;
@@ -83,6 +85,7 @@ final class SchemaConformanceTest extends TestCase
     private const string SCHEMA_ANCHOR_BASE_URL = 'https://modelcontextprotocol.io/specification/2025-11-25/schema#';
     private const string JSON_RPC_ERROR_OBJECT_URL = 'https://www.jsonrpc.org/specification#error_object';
     private const string TS_SCHEMA_FILE_URL = 'https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2025-11-25/schema.ts';
+    private const string TS_DRAFT_SCHEMA_FILE_URL = 'https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/draft/schema.ts';
 
     /**
      * Schema classes whose `@see` cannot be the default 1:1 schema-anchor URL,
@@ -96,6 +99,7 @@ final class SchemaConformanceTest extends TestCase
         BaseMetadata::class => self::TS_SCHEMA_FILE_URL,
         ElicitRequestedSchema::class => self::TS_SCHEMA_FILE_URL,
         EnumOption::class => self::TS_SCHEMA_FILE_URL,
+        CacheScope::class => self::TS_DRAFT_SCHEMA_FILE_URL,
         ElicitAction::class => self::TS_SCHEMA_FILE_URL,
         IncludeContext::class => self::TS_SCHEMA_FILE_URL,
         ProtocolErrorCode::class => self::JSON_RPC_ERROR_OBJECT_URL,
@@ -128,6 +132,7 @@ final class SchemaConformanceTest extends TestCase
         ClientRequest::class => self::TS_SCHEMA_FILE_URL,
         ServerRequest::class => self::TS_SCHEMA_FILE_URL,
         ResourceContents::class => self::TS_SCHEMA_FILE_URL,
+        CacheableResult::class => self::TS_DRAFT_SCHEMA_FILE_URL,
         ClientResult::class => self::TS_SCHEMA_FILE_URL,
         PaginatedResult::class => self::TS_SCHEMA_FILE_URL,
         ServerResult::class => self::TS_SCHEMA_FILE_URL,

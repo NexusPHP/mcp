@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Tests\Server\Handler\Request;
 
 use Amp\NullCancellation;
 use Nexus\Mcp\Core\Schema\Cursor;
+use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\Request\ListResourcesRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestMetaObject;
@@ -81,7 +82,7 @@ final class ListResourcesRequestHandlerTest extends TestCase
     private static function reader(): ClosureResourceReader
     {
         return new ClosureResourceReader(
-            static fn(string $uri, ServerContext $context): ReadResourceResult => new ReadResourceResult([]),
+            static fn(string $uri, ServerContext $context): ReadResourceResult => new ReadResourceResult([], 0, CacheScope::Private),
         );
     }
 

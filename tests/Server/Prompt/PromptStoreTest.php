@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Tests\Server\Prompt;
 
 use Amp\NullCancellation;
 use Nexus\Mcp\Core\Schema\Cursor;
+use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\Prompt\Prompt;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestMetaObject;
@@ -50,6 +51,8 @@ final class PromptStoreTest extends TestCase
         self::assertSame('alpha', $result->prompts[0]->name);
         self::assertSame('beta', $result->prompts[1]->name);
         self::assertNull($result->nextCursor);
+        self::assertSame(0, $result->ttlMs);
+        self::assertSame(CacheScope::Private, $result->cacheScope);
     }
 
     public function testListPaginatesWithCursor(): void

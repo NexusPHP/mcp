@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Tests\Server;
 
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Cursor;
+use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\Icon;
 use Nexus\Mcp\Core\Schema\Implementation;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
@@ -151,7 +152,7 @@ final class ServerBuilderTest extends TestCase
             ->setServerInfo('demo', '1.0.0')
             ->addResource(
                 new Resource('cfg', 'file:///etc/cfg'),
-                static fn(string $uri, $ctx): ReadResourceResult => new ReadResourceResult([new TextResourceContents($uri, 'data')]),
+                static fn(string $uri, $ctx): ReadResourceResult => new ReadResourceResult([new TextResourceContents($uri, 'data')], 0, CacheScope::Private),
             )
             ->build()
         ;
@@ -445,7 +446,7 @@ final class ServerBuilderTest extends TestCase
             ->setServerInfo('demo', '1.0.0')
             ->addResource(
                 new Resource('cfg', 'file:///etc/cfg'),
-                static fn(string $uri, $ctx): ReadResourceResult => new ReadResourceResult([new TextResourceContents($uri, 'data')]),
+                static fn(string $uri, $ctx): ReadResourceResult => new ReadResourceResult([new TextResourceContents($uri, 'data')], 0, CacheScope::Private),
             )
             ->build()
         ;
@@ -463,11 +464,11 @@ final class ServerBuilderTest extends TestCase
             ->setServerInfo('demo', '1.0.0')
             ->addResource(
                 new Resource('cfg', 'file:///etc/cfg'),
-                static fn(string $uri, $ctx): ReadResourceResult => new ReadResourceResult([new TextResourceContents($uri, 'static')]),
+                static fn(string $uri, $ctx): ReadResourceResult => new ReadResourceResult([new TextResourceContents($uri, 'static')], 0, CacheScope::Private),
             )
             ->addResourceTemplate(
                 new ResourceTemplate('files', 'file:///{path}'),
-                static fn(string $uri, array $bindings, $ctx): ReadResourceResult => new ReadResourceResult([new TextResourceContents($uri, 'templated:'.($bindings['path'] ?? 'missing'))]),
+                static fn(string $uri, array $bindings, $ctx): ReadResourceResult => new ReadResourceResult([new TextResourceContents($uri, 'templated:'.($bindings['path'] ?? 'missing'))], 0, CacheScope::Private),
             )
             ->build()
         ;
@@ -521,7 +522,7 @@ final class ServerBuilderTest extends TestCase
             ->setServerInfo('demo', '1.0.0')
             ->addResourceTemplate(
                 new ResourceTemplate('files', 'file:///{path}'),
-                static fn(string $uri, array $bindings, $ctx): ReadResourceResult => new ReadResourceResult([new TextResourceContents($uri, 'templated:'.($bindings['path'] ?? 'missing'))]),
+                static fn(string $uri, array $bindings, $ctx): ReadResourceResult => new ReadResourceResult([new TextResourceContents($uri, 'templated:'.($bindings['path'] ?? 'missing'))], 0, CacheScope::Private),
             )
             ->build()
         ;
@@ -1011,7 +1012,7 @@ final class ServerBuilderTest extends TestCase
             #[\Override]
             public function list(?Cursor $cursor): ListToolsResult
             {
-                return new ListToolsResult([new Tool('custom_tool', ['type' => 'object'])]);
+                return new ListToolsResult([new Tool('custom_tool', ['type' => 'object'])], 0, CacheScope::Private);
             }
 
             #[\Override]
@@ -1054,7 +1055,7 @@ final class ServerBuilderTest extends TestCase
             #[\Override]
             public function list(?Cursor $cursor): ListPromptsResult
             {
-                return new ListPromptsResult([new Prompt('custom_prompt')]);
+                return new ListPromptsResult([new Prompt('custom_prompt')], 0, CacheScope::Private);
             }
 
             #[\Override]
@@ -1097,13 +1098,13 @@ final class ServerBuilderTest extends TestCase
             #[\Override]
             public function list(?Cursor $cursor): ListResourcesResult
             {
-                return new ListResourcesResult([new Resource('custom', 'mem://custom')]);
+                return new ListResourcesResult([new Resource('custom', 'mem://custom')], 0, CacheScope::Private);
             }
 
             #[\Override]
             public function read(string $uri, ServerContext $context): ReadResourceResult
             {
-                return new ReadResourceResult([new TextResourceContents($uri, 'custom-body')]);
+                return new ReadResourceResult([new TextResourceContents($uri, 'custom-body')], 0, CacheScope::Private);
             }
         };
 
@@ -1124,7 +1125,7 @@ final class ServerBuilderTest extends TestCase
                 ->setServerInfo('demo', '1.0.0')
                 ->addResource(
                     new Resource('entry', 'mem://entry'),
-                    static fn(string $uri, $ctx): ReadResourceResult => new ReadResourceResult([]),
+                    static fn(string $uri, $ctx): ReadResourceResult => new ReadResourceResult([], 0, CacheScope::Private),
                 )
                 ->setResourceStore($store)
                 ->build(),
@@ -1138,11 +1139,11 @@ final class ServerBuilderTest extends TestCase
                 ->setServerInfo('demo', '1.0.0')
                 ->addResource(
                     new Resource('entry', 'mem://entry'),
-                    static fn(string $uri, $ctx): ReadResourceResult => new ReadResourceResult([]),
+                    static fn(string $uri, $ctx): ReadResourceResult => new ReadResourceResult([], 0, CacheScope::Private),
                 )
                 ->addResourceTemplate(
                     new ResourceTemplate('files', 'mem://files/{id}'),
-                    static fn(string $uri, array $bindings, $ctx): ReadResourceResult => new ReadResourceResult([]),
+                    static fn(string $uri, array $bindings, $ctx): ReadResourceResult => new ReadResourceResult([], 0, CacheScope::Private),
                 )
                 ->setResourceStore($store)
                 ->build(),
@@ -1158,13 +1159,13 @@ final class ServerBuilderTest extends TestCase
             #[\Override]
             public function list(?Cursor $cursor): ListResourceTemplatesResult
             {
-                return new ListResourceTemplatesResult([new ResourceTemplate('custom', 'mem://{id}')]);
+                return new ListResourceTemplatesResult([new ResourceTemplate('custom', 'mem://{id}')], 0, CacheScope::Private);
             }
 
             #[\Override]
             public function read(string $uri, ServerContext $context): ReadResourceResult
             {
-                return new ReadResourceResult([new TextResourceContents($uri, 'custom-body')]);
+                return new ReadResourceResult([new TextResourceContents($uri, 'custom-body')], 0, CacheScope::Private);
             }
         };
 
@@ -1185,7 +1186,7 @@ final class ServerBuilderTest extends TestCase
                 ->setServerInfo('demo', '1.0.0')
                 ->addResourceTemplate(
                     new ResourceTemplate('entry', 'mem://entry/{id}'),
-                    static fn(string $uri, array $bindings, $ctx): ReadResourceResult => new ReadResourceResult([]),
+                    static fn(string $uri, array $bindings, $ctx): ReadResourceResult => new ReadResourceResult([], 0, CacheScope::Private),
                 )
                 ->setResourceTemplateStore($store)
                 ->build(),

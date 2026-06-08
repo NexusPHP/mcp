@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Server\Handler\Request;
 
 use Amp\NullCancellation;
+use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\Request\ReadResourceRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestMetaObject;
@@ -48,7 +49,7 @@ final class ReadResourceRequestHandlerTest extends TestCase
                 new ClosureResourceReader(static function (string $uri, ServerContext $context) use (&$captured): ReadResourceResult {
                     $captured = ['uri' => $uri, 'requestId' => $context->requestId->id];
 
-                    return new ReadResourceResult([]);
+                    return new ReadResourceResult([], 0, CacheScope::Private);
                 }),
             ),
         ]);
@@ -64,7 +65,7 @@ final class ReadResourceRequestHandlerTest extends TestCase
 
     public function testReturnsResultFromStoreUnchanged(): void
     {
-        $expected = new ReadResourceResult([]);
+        $expected = new ReadResourceResult([], 0, CacheScope::Private);
         $store = new ResourceStore([
             'file:///a' => new ResourceEntry(
                 new Resource('a', 'file:///a'),

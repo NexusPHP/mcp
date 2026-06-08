@@ -6,6 +6,8 @@
             "vendor.brand": "acme"
         },
         "resultType": "complete",
+        "ttlMs": 60000,
+        "cacheScope": "public",
         "nextCursor": "cursor-token",
         "resourceTemplates": [
             {

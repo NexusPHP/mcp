@@ -18,6 +18,7 @@ use Nexus\Mcp\Core\Schema\ContentBlock\EmbeddedResource;
 use Nexus\Mcp\Core\Schema\ContentBlock\ImageContent;
 use Nexus\Mcp\Core\Schema\ContentBlock\ResourceLink;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
+use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\Enum\Role;
 use Nexus\Mcp\Core\Schema\Prompt\PromptMessage;
 use Nexus\Mcp\Core\Schema\Resource\TextResourceContents;
@@ -229,7 +230,7 @@ final class ReflectedHandlers
 
     public function resourceResult(): ReadResourceResult
     {
-        return new ReadResourceResult([new TextResourceContents('mem://fixed', 'body')]);
+        return new ReadResourceResult([new TextResourceContents('mem://fixed', 'body')], 0, CacheScope::Private);
     }
 
     public function resourceUri(string $uri): string
@@ -254,6 +255,6 @@ final class ReflectedHandlers
 
     public function templatedResult(string $id): ReadResourceResult
     {
-        return new ReadResourceResult([new TextResourceContents('mem://users/'.$id, 'profile')]);
+        return new ReadResourceResult([new TextResourceContents('mem://users/'.$id, 'profile')], 0, CacheScope::Private);
     }
 }

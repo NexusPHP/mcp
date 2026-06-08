@@ -174,7 +174,11 @@ final class ClientBuilderTest extends TestCase
         self::assertInstanceOf(ListToolsRequest::class, $listRequest);
         self::assertSame(2, $listRequest->id->id, 'The factory must increment across calls.');
 
-        $transport->emitMessage(['jsonrpc' => '2.0', 'id' => $listRequest->id->id, 'result' => ['tools' => []]]);
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => $listRequest->id->id,
+            'result' => ['tools' => [], 'ttlMs' => 0, 'cacheScope' => 'private'],
+        ]);
         $list->await();
     }
 
@@ -239,7 +243,11 @@ final class ClientBuilderTest extends TestCase
         self::assertCount(3, $transport->sent);
         $firstRequest = $transport->sent[2]['message'];
         self::assertInstanceOf(CallToolRequest::class, $firstRequest);
-        $transport->emitMessage(['jsonrpc' => '2.0', 'id' => $firstRequest->id->id, 'result' => ['content' => []]]);
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => $firstRequest->id->id,
+            'result' => ['content' => [], 'ttlMs' => 0, 'cacheScope' => 'private'],
+        ]);
         $first->await();
 
         $second = async(static fn() => $client->callTool('b', null, $onProgress));

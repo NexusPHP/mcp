@@ -157,15 +157,18 @@ The renderer can be a `\Closure` or a `PromptRendererInterface`.
 Static URIs:
 
 ```php
+use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\Resource\Resource;
 use Nexus\Mcp\Core\Schema\Resource\TextResourceContents;
 use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
 
 ->addResource(
     resource: new Resource(name: 'config', uri: 'config://app.toml', mimeType: 'application/toml'),
-    reader: static fn(string $uri, ServerContext $context): ReadResourceResult => new ReadResourceResult([
-        new TextResourceContents(uri: $uri, text: file_get_contents('/etc/app.toml')),
-    ]),
+    reader: static fn(string $uri, ServerContext $context): ReadResourceResult => new ReadResourceResult(
+        contents: [new TextResourceContents(uri: $uri, text: file_get_contents('/etc/app.toml'))],
+        ttlMs: 60_000,
+        cacheScope: CacheScope::Public,
+    ),
 )
 ```
 
@@ -176,14 +179,29 @@ use Nexus\Mcp\Core\Schema\Resource\ResourceTemplate;
 
 ->addResourceTemplate(
     template: new ResourceTemplate(name: 'user', uriTemplate: 'users://{userId}'),
-    reader: static fn(string $uri, array $vars, ServerContext $context): ReadResourceResult => new ReadResourceResult([
-        new TextResourceContents(uri: $uri, text: loadUser($vars['userId'])),
-    ]),
+    reader: static fn(string $uri, array $vars, ServerContext $context): ReadResourceResult => new ReadResourceResult(
+        contents: [new TextResourceContents(uri: $uri, text: loadUser($vars['userId']))],
+        ttlMs: 0,
+        cacheScope: CacheScope::Private,
+    ),
 )
 ```
 
 `$vars` carries the resolved template variables (`['userId' => '123']` for `users://123`). The reader can
 be a `\Closure` or a `ResourceReaderInterface` / `TemplatedResourceReaderInterface`.
+
+### Cache hints
+
+`ReadResourceResult` and the `*/list` results require two cache hints the server returns to the client:
+`ttlMs` (how many milliseconds the client MAY treat the response as fresh, `0` meaning re-fetch every time)
+and `cacheScope` (`CacheScope::Public` for a response any shared cache MAY serve to any user, or
+`CacheScope::Private` for one only the requesting user's client MAY cache). The built-in stores emit
+`ttlMs: 0` / `CacheScope::Private` by default and accept `ttlMs:` / `cacheScope:` constructor arguments to
+advertise a longer TTL on their `*/list` results:
+
+```php
+->setToolStore(new ToolStore($entries, ttlMs: 60_000, cacheScope: CacheScope::Public))
+```
 
 ## Custom stores
 

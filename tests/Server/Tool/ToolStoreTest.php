@@ -17,6 +17,7 @@ use Amp\NullCancellation;
 use Nexus\Mcp\Core\Exception\InvalidParamsException;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Cursor;
+use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
@@ -53,6 +54,18 @@ final class ToolStoreTest extends TestCase
         self::assertSame('alpha', $result->tools[0]->name);
         self::assertSame('beta', $result->tools[1]->name);
         self::assertNull($result->nextCursor);
+        self::assertSame(0, $result->ttlMs);
+        self::assertSame(CacheScope::Private, $result->cacheScope);
+    }
+
+    public function testListReflectsConfiguredTtlAndCacheScope(): void
+    {
+        $store = new ToolStore(self::makeEntries('alpha'), ttlMs: 120000, cacheScope: CacheScope::Public);
+
+        $result = $store->list(null);
+
+        self::assertSame(120000, $result->ttlMs);
+        self::assertSame(CacheScope::Public, $result->cacheScope);
     }
 
     public function testListPaginatesWithCursor(): void
@@ -94,6 +107,14 @@ final class ToolStoreTest extends TestCase
         $this->expectExceptionMessageMatches('/^Tool store page size must be a positive integer, 0 given\.$/');
 
         new ToolStore([], 0);
+    }
+
+    public function testConstructorRejectsNegativeTtl(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('Tool store TTL must be a non-negative integer, -1 given.');
+
+        new ToolStore(ttlMs: -1);
     }
 
     public function testConstructorRejectsIntegerEntryKey(): void

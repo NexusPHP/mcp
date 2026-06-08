@@ -15,8 +15,10 @@ namespace Nexus\Mcp\Core\Schema\Result;
 
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Cursor;
+use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Prompt\Prompt;
+use Nexus\Mcp\Core\Validation\EnumValueValidator;
 
 /**
  * The result returned by the server for a `prompts/list` request.
@@ -33,8 +35,13 @@ final readonly class ListPromptsResult extends PaginatedResult implements Server
     /**
      * @param list<Prompt> $prompts
      */
-    public function __construct(array $prompts, ?Cursor $nextCursor = null, MetaObject $meta = new MetaObject())
-    {
+    public function __construct(
+        array $prompts,
+        int $ttlMs,
+        CacheScope $cacheScope,
+        ?Cursor $nextCursor = null,
+        MetaObject $meta = new MetaObject(),
+    ) {
         Assert::that($prompts)
             ->isList('"result.prompts" must be a list, non-list array given.')
             ->values()->isInstanceOf(Prompt::class)
@@ -42,7 +49,7 @@ final readonly class ListPromptsResult extends PaginatedResult implements Server
 
         $this->prompts = $prompts;
 
-        parent::__construct($nextCursor, $meta);
+        parent::__construct($ttlMs, $cacheScope, $nextCursor, $meta);
     }
 
     #[\Override]
@@ -56,6 +63,13 @@ final readonly class ListPromptsResult extends PaginatedResult implements Server
             ->isMap('each "result.prompt" must be a string-keyed object.')
         ;
         $prompts = array_map(Prompt::fromArray(...), $data['prompts']);
+
+        Assert::that($data)->hasOffset('ttlMs', '"result" missing the required "ttlMs" key.');
+        $ttlMs = $data['ttlMs'];
+        Assert::that($ttlMs)->isInt('"result.ttlMs" must be an integer, {type} given.');
+
+        Assert::that($data)->hasOffset('cacheScope', '"result" missing the required "cacheScope" key.');
+        $cacheScope = EnumValueValidator::parse(CacheScope::class, $data['cacheScope'], '"result.cacheScope"');
 
         $nextCursor = null;
 
@@ -75,7 +89,7 @@ final readonly class ListPromptsResult extends PaginatedResult implements Server
             $meta = MetaObject::fromArray($data['_meta']);
         }
 
-        return new self($prompts, $nextCursor, $meta);
+        return new self($prompts, $ttlMs, $cacheScope, $nextCursor, $meta);
     }
 
     #[\Override]

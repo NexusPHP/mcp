@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Tests\Server\Resource;
 
 use Amp\NullCancellation;
 use Nexus\Mcp\Core\Schema\Cursor;
+use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\Resource\Resource;
@@ -53,6 +54,22 @@ final class ResourceStoreTest extends TestCase
         self::assertSame('file:///tmp/a.txt', $result->resources[0]->uri);
         self::assertSame('file:///tmp/b.txt', $result->resources[1]->uri);
         self::assertNull($result->nextCursor);
+        self::assertSame(0, $result->ttlMs);
+        self::assertSame(CacheScope::Private, $result->cacheScope);
+    }
+
+    public function testListReflectsConfiguredTtlAndCacheScope(): void
+    {
+        $store = new ResourceStore(
+            self::makeEntries(['alpha', 'file:///tmp/a.txt']),
+            ttlMs: 120000,
+            cacheScope: CacheScope::Public,
+        );
+
+        $result = $store->list(null);
+
+        self::assertSame(120000, $result->ttlMs);
+        self::assertSame(CacheScope::Public, $result->cacheScope);
     }
 
     public function testListPaginatesWithCursor(): void
@@ -129,8 +146,8 @@ final class ResourceStoreTest extends TestCase
 
     public function testReadInvokesTheReaderMatchingTheUri(): void
     {
-        $alphaResult = new ReadResourceResult([]);
-        $betaResult = new ReadResourceResult([]);
+        $alphaResult = new ReadResourceResult([], 0, CacheScope::Private);
+        $betaResult = new ReadResourceResult([], 0, CacheScope::Private);
         $captured = [];
         $store = new ResourceStore([
             'file:///alpha.txt' => new ResourceEntry(
@@ -188,7 +205,7 @@ final class ResourceStoreTest extends TestCase
     private static function makeReader(): ClosureResourceReader
     {
         return new ClosureResourceReader(
-            static fn(string $uri, ServerContext $context): ReadResourceResult => new ReadResourceResult([]),
+            static fn(string $uri, ServerContext $context): ReadResourceResult => new ReadResourceResult([], 0, CacheScope::Private),
         );
     }
 

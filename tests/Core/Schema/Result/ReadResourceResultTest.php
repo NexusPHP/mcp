@@ -14,10 +14,12 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Schema\Result;
 
 use Nexus\Assert\ExpectationFailedException;
+use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Resource\BlobResourceContents;
 use Nexus\Mcp\Core\Schema\Resource\TextResourceContents;
 use Nexus\Mcp\Core\Schema\Result;
+use Nexus\Mcp\Core\Schema\Result\CacheableResult;
 use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -28,6 +30,7 @@ use PHPUnit\Framework\TestCase;
  * @internal
  */
 #[CoversClass(ReadResourceResult::class)]
+#[CoversClass(CacheableResult::class)]
 #[CoversClass(Result::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
@@ -35,9 +38,11 @@ final class ReadResourceResultTest extends TestCase
 {
     public function testConstructionAcceptsEmptyContentsList(): void
     {
-        $result = new ReadResourceResult([]);
+        $result = new ReadResourceResult([], 0, CacheScope::Private);
 
         self::assertSame([], $result->contents);
+        self::assertSame(0, $result->ttlMs);
+        self::assertSame(CacheScope::Private, $result->cacheScope);
         self::assertSame([], $result->meta->toArray());
     }
 
@@ -45,11 +50,13 @@ final class ReadResourceResultTest extends TestCase
     {
         $result = new ReadResourceResult([
             new TextResourceContents('file:///x', 'hello', 'text/plain'),
-        ]);
+        ], 0, CacheScope::Private);
 
         self::assertSame(
             [
                 'resultType' => 'complete',
+                'ttlMs' => 0,
+                'cacheScope' => 'private',
                 'contents' => [
                     [
                         'uri' => 'file:///x',
@@ -66,11 +73,13 @@ final class ReadResourceResultTest extends TestCase
     {
         $result = new ReadResourceResult([
             new BlobResourceContents('file:///x', 'aGVsbG8=', 'application/octet-stream'),
-        ]);
+        ], 0, CacheScope::Private);
 
         self::assertSame(
             [
                 'resultType' => 'complete',
+                'ttlMs' => 0,
+                'cacheScope' => 'private',
                 'contents' => [
                     [
                         'uri' => 'file:///x',
@@ -88,11 +97,13 @@ final class ReadResourceResultTest extends TestCase
         $result = new ReadResourceResult([
             new TextResourceContents('file:///a', 'hi'),
             new BlobResourceContents('file:///b', 'aGVsbG8='),
-        ]);
+        ], 0, CacheScope::Private);
 
         self::assertSame(
             [
                 'resultType' => 'complete',
+                'ttlMs' => 0,
+                'cacheScope' => 'private',
                 'contents' => [
                     ['uri' => 'file:///a', 'text' => 'hi'],
                     ['uri' => 'file:///b', 'blob' => 'aGVsbG8='],
@@ -106,6 +117,8 @@ final class ReadResourceResultTest extends TestCase
     {
         $result = new ReadResourceResult(
             [new TextResourceContents('file:///x', 'hi')],
+            0,
+            CacheScope::Private,
             new MetaObject(['vendor' => 'x']),
         );
 
@@ -113,6 +126,8 @@ final class ReadResourceResultTest extends TestCase
             [
                 '_meta' => ['vendor' => 'x'],
                 'resultType' => 'complete',
+                'ttlMs' => 0,
+                'cacheScope' => 'private',
                 'contents' => [['uri' => 'file:///x', 'text' => 'hi']],
             ],
             $result->toArray(),
@@ -123,6 +138,8 @@ final class ReadResourceResultTest extends TestCase
     {
         $result = new ReadResourceResult(
             [new TextResourceContents('file:///x', 'hi')],
+            0,
+            CacheScope::Private,
             new MetaObject(['k' => 'v']),
         );
 
@@ -131,9 +148,11 @@ final class ReadResourceResultTest extends TestCase
 
     public function testFromArrayParsesEmptyContents(): void
     {
-        $result = ReadResourceResult::fromArray(['contents' => []]);
+        $result = ReadResourceResult::fromArray(['contents' => [], 'ttlMs' => 0, 'cacheScope' => 'private']);
 
         self::assertSame([], $result->contents);
+        self::assertSame(0, $result->ttlMs);
+        self::assertSame(CacheScope::Private, $result->cacheScope);
     }
 
     public function testFromArrayParsesMixedContents(): void
@@ -143,6 +162,8 @@ final class ReadResourceResultTest extends TestCase
                 ['uri' => 'file:///a', 'text' => 'hi'],
                 ['uri' => 'file:///b', 'blob' => 'aGVsbG8='],
             ],
+            'ttlMs' => 0,
+            'cacheScope' => 'private',
         ]);
 
         self::assertCount(2, $result->contents);
@@ -164,6 +185,8 @@ final class ReadResourceResultTest extends TestCase
     {
         $result = ReadResourceResult::fromArray([
             'contents' => [['uri' => 'file:///x', 'text' => 'hi']],
+            'ttlMs' => 0,
+            'cacheScope' => 'private',
             '_meta' => ['vendor' => 'x'],
         ]);
         self::assertSame(['vendor' => 'x'], $result->meta->extras);
@@ -176,6 +199,8 @@ final class ReadResourceResultTest extends TestCase
                 new TextResourceContents('file:///a', 'hi', 'text/plain'),
                 new BlobResourceContents('file:///b', 'aGVsbG8=', 'application/octet-stream'),
             ],
+            60000,
+            CacheScope::Public,
             new MetaObject(['vendor' => 'x']),
         );
 
@@ -188,7 +213,7 @@ final class ReadResourceResultTest extends TestCase
         $this->expectExceptionMessageIs('"result.contents" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
-        new ReadResourceResult([5 => new TextResourceContents('file:///x', 'hi')]);
+        new ReadResourceResult([5 => new TextResourceContents('file:///x', 'hi')], 0, CacheScope::Private);
     }
 
     public function testConstructorRejectsNonResourceContentsElement(): void
@@ -196,7 +221,15 @@ final class ReadResourceResultTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
 
         // @phpstan-ignore argument.type
-        new ReadResourceResult([42]);
+        new ReadResourceResult([42], 0, CacheScope::Private);
+    }
+
+    public function testConstructorRejectsNegativeTtl(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs('"result.ttlMs" must be a non-negative integer, -1 given.');
+
+        new ReadResourceResult([], -1, CacheScope::Private);
     }
 
     /**
@@ -241,13 +274,33 @@ final class ReadResourceResultTest extends TestCase
             'ReadResourceResult contents data must have either "text" or "blob".',
         ];
 
+        yield 'missing ttlMs' => [
+            ['contents' => []],
+            '"result" missing the required "ttlMs" key.',
+        ];
+
+        yield 'ttlMs not an integer' => [
+            ['contents' => [], 'ttlMs' => 'oops'],
+            '"result.ttlMs" must be an integer, string given.',
+        ];
+
+        yield 'missing cacheScope' => [
+            ['contents' => [], 'ttlMs' => 0],
+            '"result" missing the required "cacheScope" key.',
+        ];
+
+        yield 'cacheScope not a known value' => [
+            ['contents' => [], 'ttlMs' => 0, 'cacheScope' => 'shared'],
+            '"result.cacheScope" must be one of [\'public\', \'private\'], \'shared\' given.',
+        ];
+
         yield '_meta not an object' => [
-            ['contents' => [], '_meta' => 'oops'],
+            ['contents' => [], 'ttlMs' => 0, 'cacheScope' => 'private', '_meta' => 'oops'],
             '"result._meta" must be an object, string given.',
         ];
 
         yield '_meta list-keyed' => [
-            ['contents' => [], '_meta' => ['x']],
+            ['contents' => [], 'ttlMs' => 0, 'cacheScope' => 'private', '_meta' => ['x']],
             '"result._meta" must be a string-keyed object.',
         ];
     }

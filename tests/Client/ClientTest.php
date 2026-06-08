@@ -716,7 +716,7 @@ final class ClientTest extends TestCase
         $transport->emitMessage([
             'jsonrpc' => '2.0',
             'id' => $request->id->id,
-            'result' => ['tools' => []],
+            'result' => ['tools' => [], 'ttlMs' => 0, 'cacheScope' => 'private'],
         ]);
 
         $result = $deferred->await();
@@ -743,7 +743,7 @@ final class ClientTest extends TestCase
         $transport->emitMessage([
             'jsonrpc' => '2.0',
             'id' => $request->id->id,
-            'result' => ['tools' => []],
+            'result' => ['tools' => [], 'ttlMs' => 0, 'cacheScope' => 'private'],
         ]);
         $deferred->await();
     }
@@ -765,7 +765,7 @@ final class ClientTest extends TestCase
         $transport->emitMessage([
             'jsonrpc' => '2.0',
             'id' => $request->id->id,
-            'result' => ['resources' => []],
+            'result' => ['resources' => [], 'ttlMs' => 0, 'cacheScope' => 'private'],
         ]);
 
         $result = $deferred->await();
@@ -790,7 +790,7 @@ final class ClientTest extends TestCase
         $transport->emitMessage([
             'jsonrpc' => '2.0',
             'id' => $request->id->id,
-            'result' => ['resourceTemplates' => []],
+            'result' => ['resourceTemplates' => [], 'ttlMs' => 0, 'cacheScope' => 'private'],
         ]);
 
         $result = $deferred->await();
@@ -815,7 +815,7 @@ final class ClientTest extends TestCase
         $transport->emitMessage([
             'jsonrpc' => '2.0',
             'id' => $request->id->id,
-            'result' => ['prompts' => []],
+            'result' => ['prompts' => [], 'ttlMs' => 0, 'cacheScope' => 'private'],
         ]);
 
         $result = $deferred->await();
@@ -841,7 +841,7 @@ final class ClientTest extends TestCase
         $transport->emitMessage([
             'jsonrpc' => '2.0',
             'id' => $request->id->id,
-            'result' => ['contents' => []],
+            'result' => ['contents' => [], 'ttlMs' => 0, 'cacheScope' => 'private'],
         ]);
 
         $result = $deferred->await();
