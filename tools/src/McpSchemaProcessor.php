@@ -18,10 +18,10 @@ namespace Nexus\Mcp\Tools;
  */
 final class McpSchemaProcessor
 {
-    public const string LATEST_SCHEMA_JSON_URL = 'https://raw.githubusercontent.com/modelcontextprotocol/modelcontextprotocol/main/schema/2025-11-25/schema.json';
+    public const string LATEST_SCHEMA_JSON_URL = 'https://raw.githubusercontent.com/modelcontextprotocol/modelcontextprotocol/main/schema/draft/schema.json';
     public const string LATEST_SCHEMA_JSON_PATH = __DIR__.'/../../latest-schema.json';
     public const string SORTED_SCHEMA_JSON_PATH = __DIR__.'/../../sorted-schema.json';
-    public const string LATEST_SCHEMA_TS_URL = 'https://raw.githubusercontent.com/modelcontextprotocol/modelcontextprotocol/main/schema/2025-11-25/schema.ts';
+    public const string LATEST_SCHEMA_TS_URL = 'https://raw.githubusercontent.com/modelcontextprotocol/modelcontextprotocol/main/schema/draft/schema.ts';
     public const string LATEST_SCHEMA_TS_PATH = __DIR__.'/../../latest-schema.ts';
 
     /**
@@ -53,8 +53,9 @@ final class McpSchemaProcessor
     {
         $forceFetch = filter_var(getenv('MCP_FETCH_LATEST_SCHEMA'), \FILTER_VALIDATE_BOOL);
         $schemaJson = $forceFetch ? false : @file_get_contents(self::LATEST_SCHEMA_JSON_PATH);
+        $fetched = false === $schemaJson;
 
-        if (false === $schemaJson) {
+        if ($fetched) {
             $schemaJson = file_get_contents(self::LATEST_SCHEMA_JSON_URL);
 
             if (false === $schemaJson) {
@@ -64,22 +65,25 @@ final class McpSchemaProcessor
             file_put_contents(self::LATEST_SCHEMA_JSON_PATH, $schemaJson);
         }
 
+        /** @var array{'$schema': string, '$defs': array<string, mixed>} $decodedSchema */
         $decodedSchema = json_decode($schemaJson, true, flags: \JSON_THROW_ON_ERROR);
 
         if (! \is_array($decodedSchema)) {
             throw new \RuntimeException('The decoded schema is not a valid array.');
         }
 
-        unset($decodedSchema['$schema']);
-
         if (! \array_key_exists('$defs', $decodedSchema) || ! \is_array($decodedSchema['$defs'])) {
             throw new \RuntimeException('The latest schema does not contain valid $defs.');
         }
 
-        /** @var array<string, mixed> $defs */
-        $defs = $decodedSchema['$defs'];
+        $decodedSchema['$defs'] = self::resolveLinks($decodedSchema['$defs']);
 
-        return self::resolveRefAliases($defs);
+        if ($fetched) {
+            $schemaJson = json_encode(self::convertEmptyArraysToObjects($decodedSchema), \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE | \JSON_THROW_ON_ERROR);
+            file_put_contents(self::LATEST_SCHEMA_JSON_PATH, $schemaJson);
+        }
+
+        return self::resolveRefAliases($decodedSchema['$defs']);
     }
 
     /**
@@ -214,5 +218,68 @@ final class McpSchemaProcessor
         }
 
         return $defs;
+    }
+
+    /**
+     * @param array<string, mixed> $defs
+     *
+     * @return array<string, mixed>
+     */
+    private static function resolveLinks(array $defs): array
+    {
+        foreach ($defs as $key => $def) {
+            if (! \is_array($def) || ! isset($def['description']) || ! \is_string($def['description'])) {
+                continue;
+            }
+
+            $def['description'] = preg_replace_callback(
+                '/\{@link\s+([^\}]+)\}/',
+                static function (array $matches) use ($defs) {
+                    $targetKey = $matches[1];
+
+                    if (\array_key_exists($targetKey, $defs)) {
+                        return \sprintf('`%s`', $targetKey);
+                    }
+
+                    if (str_contains($targetKey, '/')) {
+                        $chunk = explode('/', $targetKey)[0];
+
+                        while ('' !== $chunk) {
+                            if (\array_key_exists($chunk, $defs)) {
+                                return \sprintf('`%s`', substr($targetKey, \strlen($chunk)));
+                            }
+
+                            $chunk = substr($chunk, 0, -1);
+                        }
+                    }
+
+                    return $matches[0];
+                },
+                $def['description'],
+            );
+            $defs[$key] = $def;
+        }
+
+        return $defs;
+    }
+
+    /**
+     * @param array<array-key, mixed> $value
+     *
+     * @return array<array-key, mixed>|\stdClass
+     */
+    private static function convertEmptyArraysToObjects(array $value): array|\stdClass
+    {
+        if ([] === $value) {
+            return new \stdClass();
+        }
+
+        foreach ($value as $key => $item) {
+            if (\is_array($item)) {
+                $value[$key] = self::convertEmptyArraysToObjects($item);
+            }
+        }
+
+        return $value;
     }
 }
