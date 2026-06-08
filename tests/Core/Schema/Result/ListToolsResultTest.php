@@ -57,7 +57,7 @@ final class ListToolsResultTest extends TestCase
     {
         $result = new ListToolsResult([]);
 
-        self::assertSame(['tools' => []], $result->toArray());
+        self::assertSame(['resultType' => 'complete', 'tools' => []], $result->toArray());
     }
 
     public function testToArrayWithAllFields(): void
@@ -71,6 +71,7 @@ final class ListToolsResultTest extends TestCase
         self::assertSame(
             [
                 '_meta' => ['vendor' => 'x'],
+                'resultType' => 'complete',
                 'nextCursor' => 'cursor-1',
                 'tools' => [['name' => 'read-file', 'inputSchema' => ['type' => 'object']]],
             ],

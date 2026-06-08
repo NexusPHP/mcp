@@ -34,16 +34,16 @@ final class EmptyResultTest extends TestCase
         self::assertSame([], new EmptyResult()->meta->toArray());
     }
 
-    public function testToArrayIsEmptyWhenNoMeta(): void
+    public function testToArrayCarriesResultTypeWhenNoMeta(): void
     {
-        self::assertSame([], new EmptyResult()->toArray());
+        self::assertSame(['resultType' => 'complete'], new EmptyResult()->toArray());
     }
 
     public function testToArrayEmitsMeta(): void
     {
         $result = new EmptyResult(new MetaObject(['vendor' => 'x']));
 
-        self::assertSame(['_meta' => ['vendor' => 'x']], $result->toArray());
+        self::assertSame(['_meta' => ['vendor' => 'x'], 'resultType' => 'complete'], $result->toArray());
     }
 
     public function testFromArrayWithoutMetaYieldsNullMeta(): void

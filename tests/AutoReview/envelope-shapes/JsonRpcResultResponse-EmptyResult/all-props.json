@@ -4,6 +4,7 @@
     "result": {
         "_meta": {
             "vendor.brand": "acme"
-        }
+        },
+        "resultType": "complete"
     }
 }

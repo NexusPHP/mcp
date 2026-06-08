@@ -1,5 +1,7 @@
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result": {}
+    "result": {
+        "resultType": "complete"
+    }
 }

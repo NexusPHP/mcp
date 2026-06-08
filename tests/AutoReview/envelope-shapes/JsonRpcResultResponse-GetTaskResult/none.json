@@ -2,6 +2,7 @@
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
+        "resultType": "complete",
         "taskId": "task-abc",
         "status": "working",
         "createdAt": "2026-05-10T12:00:00+00:00",

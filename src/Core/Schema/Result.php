@@ -22,6 +22,8 @@ namespace Nexus\Mcp\Core\Schema;
  */
 abstract readonly class Result implements Arrayable
 {
+    public const string RESULT_TYPE = 'complete';
+
     public function __construct(public MetaObject $meta = new MetaObject())
     {
     }
@@ -34,21 +36,26 @@ abstract readonly class Result implements Arrayable
 
     /**
      * Serializes the result body. Subclasses override to merge their own fields
-     * alongside the `_meta` slice returned here.
+     * alongside the `_meta` slice and required `resultType` discriminator returned here.
      */
     #[\Override]
     public function toArray(): array
     {
+        $data = [];
         $meta = $this->meta->toArray();
 
-        return [] === $meta ? [] : ['_meta' => $meta];
+        if ([] !== $meta) {
+            $data['_meta'] = $meta;
+        }
+
+        $data['resultType'] = static::RESULT_TYPE;
+
+        return $data;
     }
 
     #[\Override]
-    public function jsonSerialize(): array|\stdClass
+    public function jsonSerialize(): array
     {
-        $data = $this->toArray();
-
-        return [] === $data ? new \stdClass() : $data;
+        return $this->toArray();
     }
 }

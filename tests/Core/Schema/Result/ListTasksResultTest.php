@@ -58,7 +58,7 @@ final class ListTasksResultTest extends TestCase
     {
         $result = new ListTasksResult([]);
 
-        self::assertSame(['tasks' => []], $result->toArray());
+        self::assertSame(['resultType' => 'complete', 'tasks' => []], $result->toArray());
     }
 
     public function testToArrayWithAllFields(): void
@@ -72,6 +72,7 @@ final class ListTasksResultTest extends TestCase
         self::assertSame(
             [
                 '_meta' => ['vendor' => 'x'],
+                'resultType' => 'complete',
                 'nextCursor' => 'cursor-1',
                 'tasks' => [
                     [

@@ -62,7 +62,7 @@ final class CallToolResultTest extends TestCase
     {
         $result = new CallToolResult([]);
 
-        self::assertSame(['content' => []], $result->toArray());
+        self::assertSame(['resultType' => 'complete', 'content' => []], $result->toArray());
     }
 
     public function testToArrayWithMixedContent(): void
@@ -74,6 +74,7 @@ final class CallToolResultTest extends TestCase
 
         self::assertSame(
             [
+                'resultType' => 'complete',
                 'content' => [
                     ['text' => 'hi', 'type' => 'text'],
                     ['data' => 'aGVsbG8=', 'mimeType' => 'image/png', 'type' => 'image'],
@@ -95,6 +96,7 @@ final class CallToolResultTest extends TestCase
         self::assertSame(
             [
                 '_meta' => ['vendor' => 'x'],
+                'resultType' => 'complete',
                 'content' => [['text' => 'hi', 'type' => 'text']],
                 'structuredContent' => ['lines' => 42],
                 'isError' => false,

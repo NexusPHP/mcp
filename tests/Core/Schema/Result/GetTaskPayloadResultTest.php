@@ -44,9 +44,9 @@ final class GetTaskPayloadResultTest extends TestCase
         self::assertSame(['content' => [['type' => 'text', 'text' => 'hello']]], $result->payload);
     }
 
-    public function testToArrayEmpty(): void
+    public function testToArrayCarriesResultTypeWhenEmpty(): void
     {
-        self::assertSame([], new GetTaskPayloadResult()->toArray());
+        self::assertSame(['resultType' => 'complete'], new GetTaskPayloadResult()->toArray());
     }
 
     public function testToArrayWithPayload(): void
@@ -54,7 +54,7 @@ final class GetTaskPayloadResultTest extends TestCase
         $result = new GetTaskPayloadResult(['content' => [['type' => 'text', 'text' => 'hello']]]);
 
         self::assertSame(
-            ['content' => [['type' => 'text', 'text' => 'hello']]],
+            ['resultType' => 'complete', 'content' => [['type' => 'text', 'text' => 'hello']]],
             $result->toArray(),
         );
     }
@@ -67,24 +67,24 @@ final class GetTaskPayloadResultTest extends TestCase
         );
 
         self::assertSame(
-            ['_meta' => ['vendor' => 'x'], 'isError' => false],
+            ['_meta' => ['vendor' => 'x'], 'resultType' => 'complete', 'isError' => false],
             $result->toArray(),
         );
     }
 
-    public function testJsonSerializeReturnsStdClassWhenEmpty(): void
+    public function testJsonSerializeCarriesResultTypeWhenEmpty(): void
     {
         $result = new GetTaskPayloadResult();
 
-        self::assertInstanceOf(\stdClass::class, $result->jsonSerialize());
-        self::assertSame('{}', json_encode($result));
+        self::assertSame(['resultType' => 'complete'], $result->jsonSerialize());
+        self::assertSame('{"resultType":"complete"}', json_encode($result));
     }
 
     public function testJsonSerializeReturnsArrayWhenPopulated(): void
     {
         $result = new GetTaskPayloadResult(['isError' => true]);
 
-        self::assertSame(['isError' => true], $result->jsonSerialize());
+        self::assertSame(['resultType' => 'complete', 'isError' => true], $result->jsonSerialize());
     }
 
     public function testFromArrayPreservesPayloadFields(): void

@@ -45,7 +45,7 @@ final class ElicitResultTest extends TestCase
     {
         $result = new ElicitResult(ElicitAction::Decline);
 
-        self::assertSame(['action' => 'decline'], $result->toArray());
+        self::assertSame(['resultType' => 'complete', 'action' => 'decline'], $result->toArray());
     }
 
     public function testToArrayWithAllFields(): void
@@ -59,6 +59,7 @@ final class ElicitResultTest extends TestCase
         self::assertSame(
             [
                 '_meta' => ['vendor' => 'x'],
+                'resultType' => 'complete',
                 'action' => 'accept',
                 'content' => [
                     'email' => 'a@b.com',

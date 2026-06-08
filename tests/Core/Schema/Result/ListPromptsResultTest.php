@@ -59,7 +59,7 @@ final class ListPromptsResultTest extends TestCase
         ]);
 
         self::assertSame(
-            ['prompts' => [['name' => 'a'], ['name' => 'b']]],
+            ['resultType' => 'complete', 'prompts' => [['name' => 'a'], ['name' => 'b']]],
             $result->toArray(),
         );
     }
@@ -75,6 +75,7 @@ final class ListPromptsResultTest extends TestCase
         self::assertSame(
             [
                 '_meta' => ['vendor' => 'x'],
+                'resultType' => 'complete',
                 'nextCursor' => 'cur-1',
                 'prompts' => [['name' => 'a']],
             ],

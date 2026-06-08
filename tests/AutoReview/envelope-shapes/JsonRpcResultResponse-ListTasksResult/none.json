@@ -2,6 +2,7 @@
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
+        "resultType": "complete",
         "tasks": []
     }
 }

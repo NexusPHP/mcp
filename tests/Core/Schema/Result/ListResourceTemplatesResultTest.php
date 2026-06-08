@@ -60,6 +60,7 @@ final class ListResourceTemplatesResultTest extends TestCase
 
         self::assertSame(
             [
+                'resultType' => 'complete',
                 'resourceTemplates' => [
                     ['name' => 'a', 'uriTemplate' => 'file:///{a}'],
                     ['name' => 'b', 'uriTemplate' => 'file:///{b}'],
@@ -78,6 +79,7 @@ final class ListResourceTemplatesResultTest extends TestCase
 
         self::assertSame(
             [
+                'resultType' => 'complete',
                 'nextCursor' => 'cur-1',
                 'resourceTemplates' => [['name' => 'a', 'uriTemplate' => 'file:///{a}']],
             ],
@@ -96,6 +98,7 @@ final class ListResourceTemplatesResultTest extends TestCase
         self::assertSame(
             [
                 '_meta' => ['vendor' => 'x'],
+                'resultType' => 'complete',
                 'resourceTemplates' => [['name' => 'a', 'uriTemplate' => 'file:///{a}']],
             ],
             $result->toArray(),
@@ -113,6 +116,7 @@ final class ListResourceTemplatesResultTest extends TestCase
         self::assertSame(
             [
                 '_meta' => ['vendor' => 'x'],
+                'resultType' => 'complete',
                 'nextCursor' => 'cur-1',
                 'resourceTemplates' => [['name' => 'a', 'uriTemplate' => 'file:///{a}']],
             ],

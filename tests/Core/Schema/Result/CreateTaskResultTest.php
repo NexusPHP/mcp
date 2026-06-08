@@ -48,6 +48,7 @@ final class CreateTaskResultTest extends TestCase
 
         self::assertSame(
             [
+                'resultType' => 'complete',
                 'task' => [
                     'taskId' => 'task-abc',
                     'status' => 'working',
@@ -67,6 +68,7 @@ final class CreateTaskResultTest extends TestCase
         self::assertSame(
             [
                 '_meta' => ['vendor' => 'x'],
+                'resultType' => 'complete',
                 'task' => [
                     'taskId' => 'task-abc',
                     'status' => 'working',

@@ -5,6 +5,7 @@
         "_meta": {
             "vendor.brand": "acme"
         },
+        "resultType": "complete",
         "taskId": "task-abc",
         "status": "completed",
         "createdAt": "2026-05-10T12:00:00+00:00",

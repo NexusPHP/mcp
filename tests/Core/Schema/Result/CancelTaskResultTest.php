@@ -46,6 +46,7 @@ final class CancelTaskResultTest extends TestCase
 
         self::assertSame(
             [
+                'resultType' => 'complete',
                 'taskId' => 'task-abc',
                 'status' => 'cancelled',
                 'createdAt' => '2026-05-10T12:00:00+00:00',
@@ -63,6 +64,7 @@ final class CancelTaskResultTest extends TestCase
         self::assertSame(
             [
                 '_meta' => ['vendor' => 'x'],
+                'resultType' => 'complete',
                 'taskId' => 'task-abc',
                 'status' => 'cancelled',
                 'createdAt' => '2026-05-10T12:00:00+00:00',

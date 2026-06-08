@@ -5,6 +5,7 @@
         "_meta": {
             "vendor.brand": "acme"
         },
+        "resultType": "complete",
         "protocolVersion": "2025-11-25",
         "capabilities": {
             "logging": {},

@@ -49,6 +49,7 @@ final class ReadResourceResultTest extends TestCase
 
         self::assertSame(
             [
+                'resultType' => 'complete',
                 'contents' => [
                     [
                         'uri' => 'file:///x',
@@ -69,6 +70,7 @@ final class ReadResourceResultTest extends TestCase
 
         self::assertSame(
             [
+                'resultType' => 'complete',
                 'contents' => [
                     [
                         'uri' => 'file:///x',
@@ -90,6 +92,7 @@ final class ReadResourceResultTest extends TestCase
 
         self::assertSame(
             [
+                'resultType' => 'complete',
                 'contents' => [
                     ['uri' => 'file:///a', 'text' => 'hi'],
                     ['uri' => 'file:///b', 'blob' => 'aGVsbG8='],
@@ -109,6 +112,7 @@ final class ReadResourceResultTest extends TestCase
         self::assertSame(
             [
                 '_meta' => ['vendor' => 'x'],
+                'resultType' => 'complete',
                 'contents' => [['uri' => 'file:///x', 'text' => 'hi']],
             ],
             $result->toArray(),

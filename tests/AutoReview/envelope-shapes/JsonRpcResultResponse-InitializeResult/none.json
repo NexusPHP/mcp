@@ -2,6 +2,7 @@
     "jsonrpc": "2.0",
     "id": "req-1",
     "result": {
+        "resultType": "complete",
         "protocolVersion": "2025-11-25",
         "capabilities": {
             "logging": {},

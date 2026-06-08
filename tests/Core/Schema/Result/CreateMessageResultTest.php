@@ -66,6 +66,7 @@ final class CreateMessageResultTest extends TestCase
 
         self::assertSame(
             [
+                'resultType' => 'complete',
                 'model' => 'claude-3-5-sonnet',
                 'role' => 'assistant',
                 'content' => ['text' => 'Hi.', 'type' => 'text'],
@@ -87,6 +88,7 @@ final class CreateMessageResultTest extends TestCase
         self::assertSame(
             [
                 '_meta' => ['vendor' => 'acme'],
+                'resultType' => 'complete',
                 'model' => 'claude-3-5-sonnet',
                 'role' => 'assistant',
                 'content' => ['text' => 'Hi.', 'type' => 'text'],
@@ -105,6 +107,7 @@ final class CreateMessageResultTest extends TestCase
 
         self::assertSame(
             [
+                'resultType' => 'complete',
                 'model' => 'claude-3-5-sonnet',
                 'role' => 'assistant',
                 'content' => [
@@ -137,6 +140,7 @@ final class CreateMessageResultTest extends TestCase
 
         self::assertSame(
             [
+                'resultType' => 'complete',
                 'model' => 'claude-3-5-sonnet',
                 'role' => 'assistant',
                 'content' => [

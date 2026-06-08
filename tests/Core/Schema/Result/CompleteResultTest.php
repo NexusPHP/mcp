@@ -64,7 +64,7 @@ final class CompleteResultTest extends TestCase
         $result = new CompleteResult(['values' => ['auth']]);
 
         self::assertSame(
-            ['completion' => ['values' => ['auth']]],
+            ['resultType' => 'complete', 'completion' => ['values' => ['auth']]],
             $result->toArray(),
         );
     }
@@ -79,6 +79,7 @@ final class CompleteResultTest extends TestCase
         self::assertSame(
             [
                 '_meta' => ['vendor.brand' => 'acme'],
+                'resultType' => 'complete',
                 'completion' => ['values' => ['auth'], 'total' => 1, 'hasMore' => false],
             ],
             $result->toArray(),

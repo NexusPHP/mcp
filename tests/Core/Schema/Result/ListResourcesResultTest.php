@@ -60,6 +60,7 @@ final class ListResourcesResultTest extends TestCase
 
         self::assertSame(
             [
+                'resultType' => 'complete',
                 'resources' => [
                     ['name' => 'a', 'uri' => 'file:///a'],
                     ['name' => 'b', 'uri' => 'file:///b'],
@@ -78,6 +79,7 @@ final class ListResourcesResultTest extends TestCase
 
         self::assertSame(
             [
+                'resultType' => 'complete',
                 'nextCursor' => 'cur-1',
                 'resources' => [['name' => 'a', 'uri' => 'file:///a']],
             ],
@@ -96,6 +98,7 @@ final class ListResourcesResultTest extends TestCase
         self::assertSame(
             [
                 '_meta' => ['vendor' => 'x'],
+                'resultType' => 'complete',
                 'resources' => [['name' => 'a', 'uri' => 'file:///a']],
             ],
             $result->toArray(),
@@ -113,6 +116,7 @@ final class ListResourcesResultTest extends TestCase
         self::assertSame(
             [
                 '_meta' => ['vendor' => 'x'],
+                'resultType' => 'complete',
                 'nextCursor' => 'cur-1',
                 'resources' => [['name' => 'a', 'uri' => 'file:///a']],
             ],

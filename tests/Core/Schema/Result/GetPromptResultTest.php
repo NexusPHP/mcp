@@ -56,6 +56,7 @@ final class GetPromptResultTest extends TestCase
 
         self::assertSame(
             [
+                'resultType' => 'complete',
                 'messages' => [
                     [
                         'content' => ['text' => 'hi', 'type' => 'text'],
@@ -78,6 +79,7 @@ final class GetPromptResultTest extends TestCase
         self::assertSame(
             [
                 '_meta' => ['vendor' => 'x'],
+                'resultType' => 'complete',
                 'messages' => [
                     [
                         'content' => ['text' => 'hi', 'type' => 'text'],

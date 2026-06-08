@@ -123,7 +123,7 @@ final class JsonRpcMessageParserTest extends TestCase
         $response = new JsonRpcResultResponse(new RequestId(42), new EmptyResult());
 
         self::assertSame(
-            ['jsonrpc' => '2.0', 'id' => 42, 'result' => []],
+            ['jsonrpc' => '2.0', 'id' => 42, 'result' => ['resultType' => 'complete']],
             $response->toArray(),
         );
 

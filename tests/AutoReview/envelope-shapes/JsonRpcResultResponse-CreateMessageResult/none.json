@@ -2,6 +2,7 @@
     "jsonrpc": "2.0",
     "id": "req-1",
     "result": {
+        "resultType": "complete",
         "model": "claude-3-5-sonnet",
         "role": "assistant",
         "content": {

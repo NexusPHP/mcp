@@ -73,6 +73,7 @@ final class ListRootsResultTest extends TestCase
 
         self::assertSame(
             [
+                'resultType' => 'complete',
                 'roots' => [
                     ['uri' => 'file:///a', 'name' => 'project-a'],
                     ['uri' => 'file:///b'],
@@ -92,6 +93,7 @@ final class ListRootsResultTest extends TestCase
         self::assertSame(
             [
                 '_meta' => ['vendor' => 'x'],
+                'resultType' => 'complete',
                 'roots' => [['uri' => 'file:///x']],
             ],
             $result->toArray(),

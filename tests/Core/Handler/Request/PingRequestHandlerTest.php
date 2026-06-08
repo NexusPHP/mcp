@@ -50,7 +50,7 @@ final class PingRequestHandlerTest extends TestCase
 
         $result = $handler->handle(self::makeRequest(), self::makeContext());
 
-        self::assertSame(['_meta' => ['trace' => 'abc']], $result->toArray());
+        self::assertSame(['_meta' => ['trace' => 'abc'], 'resultType' => 'complete'], $result->toArray());
     }
 
     private static function makeRequest(): PingRequest
