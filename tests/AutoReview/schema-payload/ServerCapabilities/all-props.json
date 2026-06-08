@@ -3,6 +3,9 @@
     "experimental": {
         "acme.preview": {}
     },
+    "extensions": {
+        "io.modelcontextprotocol/tasks": {}
+    },
     "logging": {},
     "prompts": {
         "listChanged": true
@@ -10,15 +13,6 @@
     "resources": {
         "listChanged": true,
         "subscribe": false
-    },
-    "tasks": {
-        "cancel": {},
-        "list": {},
-        "requests": {
-            "tools": {
-                "call": {}
-            }
-        }
     },
     "tools": {
         "listChanged": true

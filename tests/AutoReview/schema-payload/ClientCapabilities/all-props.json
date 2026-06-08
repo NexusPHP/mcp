@@ -6,23 +6,14 @@
     "experimental": {
         "acme.preview": {}
     },
+    "extensions": {
+        "io.modelcontextprotocol/oauth-client-credentials": {}
+    },
     "roots": {
         "listChanged": true
     },
     "sampling": {
         "context": {},
         "tools": {}
-    },
-    "tasks": {
-        "cancel": {},
-        "list": {},
-        "requests": {
-            "elicitation": {
-                "create": {}
-            },
-            "sampling": {
-                "createMessage": {}
-            }
-        }
     }
 }

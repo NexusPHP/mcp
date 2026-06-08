@@ -34,9 +34,9 @@ final class ClientCapabilitiesTest extends TestCase
 
         self::assertNull($caps->elicitation);
         self::assertNull($caps->experimental);
+        self::assertNull($caps->extensions);
         self::assertNull($caps->roots);
         self::assertNull($caps->sampling);
-        self::assertNull($caps->tasks);
     }
 
     public function testFullConstructionExposesAllFields(): void
@@ -44,33 +44,16 @@ final class ClientCapabilitiesTest extends TestCase
         $caps = new ClientCapabilities(
             elicitation: ['form' => [], 'url' => []],
             experimental: ['custom' => ['flag' => true]],
+            extensions: ['io.modelcontextprotocol/oauth-client-credentials' => ['scope' => 'read']],
             roots: ['listChanged' => true],
             sampling: ['context' => [], 'tools' => []],
-            tasks: [
-                'cancel' => [],
-                'list' => [],
-                'requests' => [
-                    'elicitation' => ['create' => []],
-                    'sampling' => ['createMessage' => []],
-                ],
-            ],
         );
 
         self::assertSame(['form' => [], 'url' => []], $caps->elicitation);
         self::assertSame(['custom' => ['flag' => true]], $caps->experimental);
+        self::assertSame(['io.modelcontextprotocol/oauth-client-credentials' => ['scope' => 'read']], $caps->extensions);
         self::assertSame(['listChanged' => true], $caps->roots);
         self::assertSame(['context' => [], 'tools' => []], $caps->sampling);
-        self::assertSame(
-            [
-                'cancel' => [],
-                'list' => [],
-                'requests' => [
-                    'elicitation' => ['create' => []],
-                    'sampling' => ['createMessage' => []],
-                ],
-            ],
-            $caps->tasks,
-        );
     }
 
     public function testToArrayMinimalIsEmpty(): void
@@ -90,18 +73,18 @@ final class ClientCapabilitiesTest extends TestCase
         $caps = new ClientCapabilities(
             elicitation: ['form' => []],
             experimental: ['x' => []],
+            extensions: ['io.example/ext' => []],
             roots: ['listChanged' => true],
             sampling: ['tools' => []],
-            tasks: ['cancel' => []],
         );
 
         self::assertSame(
             [
                 'elicitation' => ['form' => []],
                 'experimental' => ['x' => []],
+                'extensions' => ['io.example/ext' => []],
                 'roots' => ['listChanged' => true],
                 'sampling' => ['tools' => []],
-                'tasks' => ['cancel' => []],
             ],
             $caps->toArray(),
         );
@@ -127,16 +110,9 @@ final class ClientCapabilitiesTest extends TestCase
         $caps = new ClientCapabilities(
             elicitation: ['form' => [], 'url' => []],
             experimental: ['ext' => []],
+            extensions: ['acme.ext' => []],
             roots: [],
             sampling: ['context' => [], 'tools' => []],
-            tasks: [
-                'cancel' => [],
-                'list' => [],
-                'requests' => [
-                    'elicitation' => ['create' => []],
-                    'sampling' => ['createMessage' => []],
-                ],
-            ],
         );
 
         $json = json_encode($caps);
@@ -146,12 +122,9 @@ final class ClientCapabilitiesTest extends TestCase
         self::assertStringContainsString('"form":{}', $json);
         self::assertStringContainsString('"url":{}', $json);
         self::assertStringContainsString('"experimental":{"ext":{}}', $json);
+        self::assertStringContainsString('"extensions":{"acme.ext":{}}', $json);
         self::assertStringContainsString('"context":{}', $json);
         self::assertStringContainsString('"tools":{}', $json);
-        self::assertStringContainsString('"cancel":{}', $json);
-        self::assertStringContainsString('"list":{}', $json);
-        self::assertStringContainsString('"create":{}', $json);
-        self::assertStringContainsString('"createMessage":{}', $json);
         self::assertStringNotContainsString('[]', $json);
     }
 
@@ -168,9 +141,9 @@ final class ClientCapabilitiesTest extends TestCase
 
         self::assertNull($caps->elicitation);
         self::assertNull($caps->experimental);
+        self::assertNull($caps->extensions);
         self::assertNull($caps->roots);
         self::assertNull($caps->sampling);
-        self::assertNull($caps->tasks);
     }
 
     public function testFromArrayFullRoundTrip(): void
@@ -178,16 +151,9 @@ final class ClientCapabilitiesTest extends TestCase
         $original = new ClientCapabilities(
             elicitation: ['form' => ['custom' => 1], 'url' => []],
             experimental: ['ext' => ['nested' => 'value']],
+            extensions: ['io.example/ext' => ['nested' => 'value']],
             roots: ['listChanged' => true],
             sampling: ['context' => [], 'tools' => ['x' => 'y']],
-            tasks: [
-                'cancel' => [],
-                'list' => [],
-                'requests' => [
-                    'elicitation' => ['create' => []],
-                    'sampling' => ['createMessage' => []],
-                ],
-            ],
         );
 
         $rebuilt = ClientCapabilities::fromArray($original->toArray());
@@ -199,15 +165,15 @@ final class ClientCapabilitiesTest extends TestCase
     {
         $caps = ClientCapabilities::fromArray([
             'elicitation' => [],
+            'extensions' => [],
             'roots' => [],
             'sampling' => [],
-            'tasks' => [],
         ]);
 
         self::assertSame([], $caps->elicitation);
+        self::assertSame([], $caps->extensions);
         self::assertSame([], $caps->roots);
         self::assertSame([], $caps->sampling);
-        self::assertSame([], $caps->tasks);
     }
 
     public function testFromArrayIgnoresUnknownNestedKeys(): void
@@ -226,11 +192,11 @@ final class ClientCapabilitiesTest extends TestCase
         self::assertSame(['listChanged' => false], $caps->roots);
     }
 
-    public function testFromArrayTasksRequestsWithoutInnerKeysIsEmpty(): void
+    public function testFromArrayExtensionsPreservesSettings(): void
     {
-        $caps = ClientCapabilities::fromArray(['tasks' => ['requests' => []]]);
+        $caps = ClientCapabilities::fromArray(['extensions' => ['io.example/ext' => ['setting' => 'value']]]);
 
-        self::assertSame(['requests' => []], $caps->tasks);
+        self::assertSame(['io.example/ext' => ['setting' => 'value']], $caps->extensions);
     }
 
     /**
@@ -320,44 +286,24 @@ final class ClientCapabilitiesTest extends TestCase
             '"capabilities.sampling.tools" must be an object, string given.',
         ];
 
-        yield 'tasks not an object' => [
-            ['tasks' => 'oops'],
-            '"capabilities.tasks" must be an object, string given.',
+        yield 'extensions not an object' => [
+            ['extensions' => 'oops'],
+            '"capabilities.extensions" must be an object, string given.',
         ];
 
-        yield 'tasks.cancel not an object' => [
-            ['tasks' => ['cancel' => 'oops']],
-            '"capabilities.tasks.cancel" must be an object, string given.',
+        yield 'extensions list-keyed' => [
+            ['extensions' => ['x']],
+            '"capabilities.extensions" must be a string-keyed object.',
         ];
 
-        yield 'tasks.list not an object' => [
-            ['tasks' => ['list' => 'oops']],
-            '"capabilities.tasks.list" must be an object, string given.',
+        yield 'extensions value not an object' => [
+            ['extensions' => ['ext' => 'oops']],
+            '"capabilities.extensions.ext" must be an object, string given.',
         ];
 
-        yield 'tasks.requests not an object' => [
-            ['tasks' => ['requests' => 'oops']],
-            '"capabilities.tasks.requests" must be an object, string given.',
-        ];
-
-        yield 'tasks.requests.elicitation not an object' => [
-            ['tasks' => ['requests' => ['elicitation' => 'oops']]],
-            '"capabilities.tasks.requests.elicitation" must be an object, string given.',
-        ];
-
-        yield 'tasks.requests.elicitation.create not an object' => [
-            ['tasks' => ['requests' => ['elicitation' => ['create' => 'oops']]]],
-            '"capabilities.tasks.requests.elicitation.create" must be an object, string given.',
-        ];
-
-        yield 'tasks.requests.sampling not an object' => [
-            ['tasks' => ['requests' => ['sampling' => 'oops']]],
-            '"capabilities.tasks.requests.sampling" must be an object, string given.',
-        ];
-
-        yield 'tasks.requests.sampling.createMessage not an object' => [
-            ['tasks' => ['requests' => ['sampling' => ['createMessage' => 'oops']]]],
-            '"capabilities.tasks.requests.sampling.createMessage" must be an object, string given.',
+        yield 'extensions value list-keyed' => [
+            ['extensions' => ['ext' => ['x']]],
+            '"capabilities.extensions.ext" must be a string-keyed object.',
         ];
     }
 }

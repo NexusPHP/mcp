@@ -20,26 +20,20 @@ use Nexus\Assert\Assert;
  * is not a closed set: any server can define its own, additional capabilities.
  *
  * @phpstan-type CompletionsCapability array<string, mixed>
+ * @phpstan-type ExtensionsCapability array<string, array<string, mixed>>
  * @phpstan-type LoggingCapability array<string, mixed>
  * @phpstan-type PromptsCapability array{listChanged?: bool}
  * @phpstan-type ResourcesCapability array{listChanged?: bool, subscribe?: bool}
  * @phpstan-type ServerExperimentalCapability array<string, array<string, mixed>>
- * @phpstan-type ServerTasksCapability array{
- *   cancel?: array<string, mixed>,
- *   list?: array<string, mixed>,
- *   requests?: array{
- *     tools?: array{call?: array<string, mixed>},
- *   },
- * }
  * @phpstan-type ToolsCapability array{listChanged?: bool}
  *
  * @implements Arrayable<array{
  *   completions?: CompletionsCapability,
  *   experimental?: ServerExperimentalCapability,
+ *   extensions?: ExtensionsCapability,
  *   logging?: LoggingCapability,
  *   prompts?: PromptsCapability,
  *   resources?: ResourcesCapability,
- *   tasks?: ServerTasksCapability,
  *   tools?: ToolsCapability,
  * }>
  *
@@ -50,19 +44,19 @@ final readonly class ServerCapabilities implements Arrayable
     /**
      * @param null|CompletionsCapability        $completions
      * @param null|ServerExperimentalCapability $experimental
+     * @param null|ExtensionsCapability         $extensions
      * @param null|LoggingCapability            $logging
      * @param null|PromptsCapability            $prompts
      * @param null|ResourcesCapability          $resources
-     * @param null|ServerTasksCapability        $tasks
      * @param null|ToolsCapability              $tools
      */
     public function __construct(
         public ?array $completions = null,
         public ?array $experimental = null,
+        public ?array $extensions = null,
         public ?array $logging = null,
         public ?array $prompts = null,
         public ?array $resources = null,
-        public ?array $tasks = null,
         public ?array $tools = null,
     ) {
     }
@@ -76,10 +70,10 @@ final readonly class ServerCapabilities implements Arrayable
         return new self(
             self::extractOpenObject($data, 'completions'),
             self::extractExperimental($data),
+            self::extractExtensions($data),
             self::extractOpenObject($data, 'logging'),
             self::extractListChangedOnly($data, 'prompts'),
             self::extractResources($data),
-            self::extractTasks($data),
             self::extractListChangedOnly($data, 'tools'),
         );
     }
@@ -97,6 +91,10 @@ final readonly class ServerCapabilities implements Arrayable
             $data['experimental'] = $this->experimental;
         }
 
+        if (null !== $this->extensions) {
+            $data['extensions'] = $this->extensions;
+        }
+
         if (null !== $this->logging) {
             $data['logging'] = $this->logging;
         }
@@ -107,10 +105,6 @@ final readonly class ServerCapabilities implements Arrayable
 
         if (null !== $this->resources) {
             $data['resources'] = $this->resources;
-        }
-
-        if (null !== $this->tasks) {
-            $data['tasks'] = $this->tasks;
         }
 
         if (null !== $this->tools) {
@@ -279,77 +273,31 @@ final readonly class ServerCapabilities implements Arrayable
     /**
      * @param array<string, mixed> $data
      *
-     * @return null|ServerTasksCapability
+     * @return null|ExtensionsCapability
      */
-    private static function extractTasks(array $data): ?array
+    private static function extractExtensions(array $data): ?array
     {
-        $value = $data['tasks'] ?? null;
+        $value = $data['extensions'] ?? null;
 
         if (null === $value) {
             return null;
         }
 
         Assert::that($value)
-            ->isArray('"capabilities.tasks" must be an object, {type} given.')
-            ->isMap('"capabilities.tasks" must be a string-keyed object.')
+            ->isArray('"capabilities.extensions" must be an object, {type} given.')
+            ->isMap('"capabilities.extensions" must be a string-keyed object.')
         ;
 
-        $tasks = [];
+        $extensions = [];
 
-        if (\array_key_exists('cancel', $value)) {
-            Assert::that($value['cancel'])
-                ->isArray('"capabilities.tasks.cancel" must be an object, {type} given.')
-                ->isMap('"capabilities.tasks.cancel" must be a string-keyed object.')
+        foreach ($value as $extKey => $extValue) {
+            Assert::that($extValue)
+                ->isArray(\sprintf('"capabilities.extensions.%s" must be an object, {type} given.', $extKey))
+                ->isMap(\sprintf('"capabilities.extensions.%s" must be a string-keyed object.', $extKey))
             ;
-            $tasks['cancel'] = $value['cancel'];
+            $extensions[$extKey] = $extValue;
         }
 
-        if (\array_key_exists('list', $value)) {
-            Assert::that($value['list'])
-                ->isArray('"capabilities.tasks.list" must be an object, {type} given.')
-                ->isMap('"capabilities.tasks.list" must be a string-keyed object.')
-            ;
-            $tasks['list'] = $value['list'];
-        }
-
-        if (\array_key_exists('requests', $value)) {
-            $tasks['requests'] = self::extractTasksRequests($value['requests']);
-        }
-
-        return $tasks;
-    }
-
-    /**
-     * @return array{
-     *   tools?: array{call?: array<string, mixed>},
-     * }
-     */
-    private static function extractTasksRequests(mixed $value): array
-    {
-        Assert::that($value)
-            ->isArray('"capabilities.tasks.requests" must be an object, {type} given.')
-            ->isMap('"capabilities.tasks.requests" must be a string-keyed object.')
-        ;
-
-        if (! \array_key_exists('tools', $value)) {
-            return [];
-        }
-
-        Assert::that($value['tools'])
-            ->isArray('"capabilities.tasks.requests.tools" must be an object, {type} given.')
-            ->isMap('"capabilities.tasks.requests.tools" must be a string-keyed object.')
-        ;
-
-        $tools = [];
-
-        if (\array_key_exists('call', $value['tools'])) {
-            Assert::that($value['tools']['call'])
-                ->isArray('"capabilities.tasks.requests.tools.call" must be an object, {type} given.')
-                ->isMap('"capabilities.tasks.requests.tools.call" must be a string-keyed object.')
-            ;
-            $tools['call'] = $value['tools']['call'];
-        }
-
-        return ['tools' => $tools];
+        return $extensions;
     }
 }

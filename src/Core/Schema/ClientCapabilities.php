@@ -21,23 +21,16 @@ use Nexus\Assert\Assert;
  *
  * @phpstan-type ElicitationCapability array{form?: array<string, mixed>, url?: array<string, mixed>}
  * @phpstan-type ExperimentalCapability array<string, array<string, mixed>>
+ * @phpstan-type ExtensionsCapability array<string, array<string, mixed>>
  * @phpstan-type RootsCapability array{listChanged?: bool}
  * @phpstan-type SamplingCapability array{context?: array<string, mixed>, tools?: array<string, mixed>}
- * @phpstan-type ClientTasksCapability array{
- *   cancel?: array<string, mixed>,
- *   list?: array<string, mixed>,
- *   requests?: array{
- *     elicitation?: array{create?: array<string, mixed>},
- *     sampling?: array{createMessage?: array<string, mixed>},
- *   },
- * }
  *
  * @implements Arrayable<array{
  *   elicitation?: ElicitationCapability,
  *   experimental?: ExperimentalCapability,
+ *   extensions?: ExtensionsCapability,
  *   roots?: RootsCapability,
  *   sampling?: SamplingCapability,
- *   tasks?: ClientTasksCapability,
  * }>
  *
  * @see https://modelcontextprotocol.io/specification/2025-11-25/schema#clientcapabilities
@@ -47,16 +40,16 @@ final readonly class ClientCapabilities implements Arrayable
     /**
      * @param null|ElicitationCapability  $elicitation
      * @param null|ExperimentalCapability $experimental
+     * @param null|ExtensionsCapability   $extensions
      * @param null|RootsCapability        $roots
      * @param null|SamplingCapability     $sampling
-     * @param null|ClientTasksCapability  $tasks
      */
     public function __construct(
         public ?array $elicitation = null,
         public ?array $experimental = null,
+        public ?array $extensions = null,
         public ?array $roots = null,
         public ?array $sampling = null,
-        public ?array $tasks = null,
     ) {
     }
 
@@ -69,9 +62,9 @@ final readonly class ClientCapabilities implements Arrayable
         return new self(
             self::extractElicitation($data),
             self::extractExperimental($data),
+            self::extractExtensions($data),
             self::extractRoots($data),
             self::extractSampling($data),
-            self::extractTasks($data),
         );
     }
 
@@ -88,16 +81,16 @@ final readonly class ClientCapabilities implements Arrayable
             $data['experimental'] = $this->experimental;
         }
 
+        if (null !== $this->extensions) {
+            $data['extensions'] = $this->extensions;
+        }
+
         if (null !== $this->roots) {
             $data['roots'] = $this->roots;
         }
 
         if (null !== $this->sampling) {
             $data['sampling'] = $this->sampling;
-        }
-
-        if (null !== $this->tasks) {
-            $data['tasks'] = $this->tasks;
         }
 
         return $data;
@@ -282,99 +275,31 @@ final readonly class ClientCapabilities implements Arrayable
     /**
      * @param array<string, mixed> $data
      *
-     * @return null|ClientTasksCapability
+     * @return null|ExtensionsCapability
      */
-    private static function extractTasks(array $data): ?array
+    private static function extractExtensions(array $data): ?array
     {
-        $value = $data['tasks'] ?? null;
+        $value = $data['extensions'] ?? null;
 
         if (null === $value) {
             return null;
         }
 
         Assert::that($value)
-            ->isArray('"capabilities.tasks" must be an object, {type} given.')
-            ->isMap('"capabilities.tasks" must be a string-keyed object.')
+            ->isArray('"capabilities.extensions" must be an object, {type} given.')
+            ->isMap('"capabilities.extensions" must be a string-keyed object.')
         ;
 
-        $tasks = [];
+        $extensions = [];
 
-        if (\array_key_exists('cancel', $value)) {
-            Assert::that($value['cancel'])
-                ->isArray('"capabilities.tasks.cancel" must be an object, {type} given.')
-                ->isMap('"capabilities.tasks.cancel" must be a string-keyed object.')
+        foreach ($value as $extKey => $extValue) {
+            Assert::that($extValue)
+                ->isArray(\sprintf('"capabilities.extensions.%s" must be an object, {type} given.', $extKey))
+                ->isMap(\sprintf('"capabilities.extensions.%s" must be a string-keyed object.', $extKey))
             ;
-            $tasks['cancel'] = $value['cancel'];
+            $extensions[$extKey] = $extValue;
         }
 
-        if (\array_key_exists('list', $value)) {
-            Assert::that($value['list'])
-                ->isArray('"capabilities.tasks.list" must be an object, {type} given.')
-                ->isMap('"capabilities.tasks.list" must be a string-keyed object.')
-            ;
-            $tasks['list'] = $value['list'];
-        }
-
-        if (\array_key_exists('requests', $value)) {
-            $tasks['requests'] = self::extractTasksRequests($value['requests']);
-        }
-
-        return $tasks;
-    }
-
-    /**
-     * @return array{
-     *   elicitation?: array{create?: array<string, mixed>},
-     *   sampling?: array{createMessage?: array<string, mixed>},
-     * }
-     */
-    private static function extractTasksRequests(mixed $value): array
-    {
-        Assert::that($value)
-            ->isArray('"capabilities.tasks.requests" must be an object, {type} given.')
-            ->isMap('"capabilities.tasks.requests" must be a string-keyed object.')
-        ;
-
-        $requests = [];
-
-        if (\array_key_exists('elicitation', $value)) {
-            Assert::that($value['elicitation'])
-                ->isArray('"capabilities.tasks.requests.elicitation" must be an object, {type} given.')
-                ->isMap('"capabilities.tasks.requests.elicitation" must be a string-keyed object.')
-            ;
-
-            $elicitation = [];
-
-            if (\array_key_exists('create', $value['elicitation'])) {
-                Assert::that($value['elicitation']['create'])
-                    ->isArray('"capabilities.tasks.requests.elicitation.create" must be an object, {type} given.')
-                    ->isMap('"capabilities.tasks.requests.elicitation.create" must be a string-keyed object.')
-                ;
-                $elicitation['create'] = $value['elicitation']['create'];
-            }
-
-            $requests['elicitation'] = $elicitation;
-        }
-
-        if (\array_key_exists('sampling', $value)) {
-            Assert::that($value['sampling'])
-                ->isArray('"capabilities.tasks.requests.sampling" must be an object, {type} given.')
-                ->isMap('"capabilities.tasks.requests.sampling" must be a string-keyed object.')
-            ;
-
-            $sampling = [];
-
-            if (\array_key_exists('createMessage', $value['sampling'])) {
-                Assert::that($value['sampling']['createMessage'])
-                    ->isArray('"capabilities.tasks.requests.sampling.createMessage" must be an object, {type} given.')
-                    ->isMap('"capabilities.tasks.requests.sampling.createMessage" must be a string-keyed object.')
-                ;
-                $sampling['createMessage'] = $value['sampling']['createMessage'];
-            }
-
-            $requests['sampling'] = $sampling;
-        }
-
-        return $requests;
+        return $extensions;
     }
 }
