@@ -33,7 +33,7 @@ final class BlobResourceContentsTest extends TestCase
 {
     public function testConstructionMinimal(): void
     {
-        $contents = new BlobResourceContents('file:///x', 'aGVsbG8=');
+        $contents = new BlobResourceContents(uri: 'file:///x', blob: 'aGVsbG8=');
 
         self::assertSame('file:///x', $contents->uri);
         self::assertSame('aGVsbG8=', $contents->blob);
@@ -44,10 +44,10 @@ final class BlobResourceContentsTest extends TestCase
     public function testConstructionWithAllFields(): void
     {
         $contents = new BlobResourceContents(
-            'file:///x',
-            'aGVsbG8=',
-            'application/octet-stream',
-            new MetaObject(['vendor' => 'x']),
+            uri: 'file:///x',
+            blob: 'aGVsbG8=',
+            mimeType: 'application/octet-stream',
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame('application/octet-stream', $contents->mimeType);
@@ -56,7 +56,7 @@ final class BlobResourceContentsTest extends TestCase
 
     public function testToArrayMinimal(): void
     {
-        $contents = new BlobResourceContents('file:///x', 'aGVsbG8=');
+        $contents = new BlobResourceContents(uri: 'file:///x', blob: 'aGVsbG8=');
 
         self::assertSame(
             ['uri' => 'file:///x', 'blob' => 'aGVsbG8='],
@@ -67,10 +67,10 @@ final class BlobResourceContentsTest extends TestCase
     public function testToArrayWithAllFields(): void
     {
         $contents = new BlobResourceContents(
-            'file:///x',
-            'aGVsbG8=',
-            'application/octet-stream',
-            new MetaObject(['vendor' => 'x']),
+            uri: 'file:///x',
+            blob: 'aGVsbG8=',
+            mimeType: 'application/octet-stream',
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -86,7 +86,7 @@ final class BlobResourceContentsTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $contents = new BlobResourceContents('file:///x', 'aGVsbG8=', 'application/octet-stream');
+        $contents = new BlobResourceContents(uri: 'file:///x', blob: 'aGVsbG8=', mimeType: 'application/octet-stream');
 
         self::assertSame($contents->toArray(), $contents->jsonSerialize());
     }
@@ -115,10 +115,10 @@ final class BlobResourceContentsTest extends TestCase
     public function testFromArrayRoundTrip(): void
     {
         $original = new BlobResourceContents(
-            'file:///x',
-            'aGVsbG8=',
-            'application/octet-stream',
-            new MetaObject(['vendor' => 'x']),
+            uri: 'file:///x',
+            blob: 'aGVsbG8=',
+            mimeType: 'application/octet-stream',
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame($original->toArray(), BlobResourceContents::fromArray($original->toArray())->toArray());

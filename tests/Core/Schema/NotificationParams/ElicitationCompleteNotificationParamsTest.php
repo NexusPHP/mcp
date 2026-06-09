@@ -33,7 +33,7 @@ final class ElicitationCompleteNotificationParamsTest extends TestCase
 {
     public function testConstructionMinimal(): void
     {
-        $params = new ElicitationCompleteNotificationParams('elicit-1');
+        $params = new ElicitationCompleteNotificationParams(elicitationId: 'elicit-1');
 
         self::assertSame('elicit-1', $params->elicitationId);
         self::assertSame([], $params->meta->toArray());
@@ -41,14 +41,14 @@ final class ElicitationCompleteNotificationParamsTest extends TestCase
 
     public function testToArrayMinimal(): void
     {
-        $params = new ElicitationCompleteNotificationParams('elicit-1');
+        $params = new ElicitationCompleteNotificationParams(elicitationId: 'elicit-1');
 
         self::assertSame(['elicitationId' => 'elicit-1'], $params->toArray());
     }
 
     public function testToArrayWithMeta(): void
     {
-        $params = new ElicitationCompleteNotificationParams('elicit-1', new MetaObject(['vendor' => 'x']));
+        $params = new ElicitationCompleteNotificationParams(elicitationId: 'elicit-1', meta: new MetaObject(extras: ['vendor' => 'x']));
 
         self::assertSame(
             ['_meta' => ['vendor' => 'x'], 'elicitationId' => 'elicit-1'],
@@ -58,14 +58,14 @@ final class ElicitationCompleteNotificationParamsTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $params = new ElicitationCompleteNotificationParams('elicit-1', new MetaObject(['k' => 'v']));
+        $params = new ElicitationCompleteNotificationParams(elicitationId: 'elicit-1', meta: new MetaObject(extras: ['k' => 'v']));
 
         self::assertSame($params->toArray(), $params->jsonSerialize());
     }
 
     public function testFromArrayFullRoundTrip(): void
     {
-        $original = new ElicitationCompleteNotificationParams('elicit-1', new MetaObject(['vendor' => 'x']));
+        $original = new ElicitationCompleteNotificationParams(elicitationId: 'elicit-1', meta: new MetaObject(extras: ['vendor' => 'x']));
 
         $rebuilt = ElicitationCompleteNotificationParams::fromArray($original->toArray());
 
@@ -77,7 +77,7 @@ final class ElicitationCompleteNotificationParamsTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"params.elicitationId" must be a non-empty string.');
 
-        new ElicitationCompleteNotificationParams('');
+        new ElicitationCompleteNotificationParams(elicitationId: '');
     }
 
     /**

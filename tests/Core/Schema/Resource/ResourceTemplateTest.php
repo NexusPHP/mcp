@@ -35,7 +35,7 @@ final class ResourceTemplateTest extends TestCase
 {
     public function testConstructionMinimal(): void
     {
-        $template = new ResourceTemplate('my-template', 'file:///tmp/{name}');
+        $template = new ResourceTemplate(name: 'my-template', uriTemplate: 'file:///tmp/{name}');
 
         self::assertSame('my-template', $template->name);
         self::assertSame('file:///tmp/{name}', $template->uriTemplate);
@@ -49,7 +49,7 @@ final class ResourceTemplateTest extends TestCase
 
     public function testToArrayMinimal(): void
     {
-        $template = new ResourceTemplate('my-template', 'file:///tmp/{name}');
+        $template = new ResourceTemplate(name: 'my-template', uriTemplate: 'file:///tmp/{name}');
 
         self::assertSame(
             ['name' => 'my-template', 'uriTemplate' => 'file:///tmp/{name}'],
@@ -60,14 +60,14 @@ final class ResourceTemplateTest extends TestCase
     public function testToArrayWithAllFields(): void
     {
         $template = new ResourceTemplate(
-            'my-template',
-            'file:///tmp/{name}',
-            'My Template',
-            'A description.',
-            'text/plain',
-            new Annotations(null, 0.5),
-            [new Icon('https://example.com/icon.png')],
-            new MetaObject(['vendor' => 'x']),
+            name: 'my-template',
+            uriTemplate: 'file:///tmp/{name}',
+            title: 'My Template',
+            description: 'A description.',
+            mimeType: 'text/plain',
+            annotations: new Annotations(audience: null, priority: 0.5),
+            icons: [new Icon(src: 'https://example.com/icon.png')],
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -88,14 +88,14 @@ final class ResourceTemplateTest extends TestCase
     public function testJsonSerializeMatchesToArray(): void
     {
         $template = new ResourceTemplate(
-            'my-template',
-            'file:///tmp/{name}',
-            'My Template',
-            null,
-            'text/plain',
-            new Annotations(),
-            null,
-            new MetaObject(['k' => 'v']),
+            name: 'my-template',
+            uriTemplate: 'file:///tmp/{name}',
+            title: 'My Template',
+            description: null,
+            mimeType: 'text/plain',
+            annotations: new Annotations(),
+            icons: null,
+            meta: new MetaObject(extras: ['k' => 'v']),
         );
 
         self::assertSame($template->toArray(), $template->jsonSerialize());
@@ -138,14 +138,14 @@ final class ResourceTemplateTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new ResourceTemplate(
-            'my-template',
-            'file:///tmp/{name}',
-            'My Template',
-            'A description.',
-            'text/plain',
-            new Annotations(null, 0.5),
-            [new Icon('https://example.com/icon.png')],
-            new MetaObject(['vendor' => 'x']),
+            name: 'my-template',
+            uriTemplate: 'file:///tmp/{name}',
+            title: 'My Template',
+            description: 'A description.',
+            mimeType: 'text/plain',
+            annotations: new Annotations(audience: null, priority: 0.5),
+            icons: [new Icon(src: 'https://example.com/icon.png')],
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         $rebuilt = ResourceTemplate::fromArray($original->toArray());
@@ -158,7 +158,7 @@ final class ResourceTemplateTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageMatches('/\Aresource template "name" must be 1-128 characters/');
 
-        new ResourceTemplate('my template', 'file:///tmp/{name}');
+        new ResourceTemplate(name: 'my template', uriTemplate: 'file:///tmp/{name}');
     }
 
     public function testConstructorRejectsEmptyUriTemplate(): void
@@ -166,7 +166,7 @@ final class ResourceTemplateTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('resource template "uriTemplate" must be a non-empty string.');
 
-        new ResourceTemplate('my-template', '');
+        new ResourceTemplate(name: 'my-template', uriTemplate: '');
     }
 
     public function testConstructorRejectsInvalidUriTemplate(): void
@@ -174,7 +174,7 @@ final class ResourceTemplateTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageMatches('/\Aresource template "uriTemplate" must be a valid RFC 6570/');
 
-        new ResourceTemplate('my-template', 'not-a-template');
+        new ResourceTemplate(name: 'my-template', uriTemplate: 'not-a-template');
     }
 
     public function testConstructorRejectsEmptyDescription(): void
@@ -182,7 +182,7 @@ final class ResourceTemplateTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('resource template "description" must be a non-empty string or null.');
 
-        new ResourceTemplate('my-template', 'file:///tmp/{name}', null, '');
+        new ResourceTemplate(name: 'my-template', uriTemplate: 'file:///tmp/{name}', title: null, description: '');
     }
 
     public function testConstructorRejectsEmptyMimeType(): void
@@ -190,7 +190,7 @@ final class ResourceTemplateTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('resource template "mimeType" must be a non-empty string or null.');
 
-        new ResourceTemplate('my-template', 'file:///tmp/{name}', null, null, '');
+        new ResourceTemplate(name: 'my-template', uriTemplate: 'file:///tmp/{name}', title: null, description: null, mimeType: '');
     }
 
     public function testConstructorRejectsNonIconElement(): void
@@ -198,7 +198,7 @@ final class ResourceTemplateTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
 
         // @phpstan-ignore argument.type
-        new ResourceTemplate('my-template', 'file:///tmp/{name}', null, null, null, new Annotations(), [42]);
+        new ResourceTemplate(name: 'my-template', uriTemplate: 'file:///tmp/{name}', title: null, description: null, mimeType: null, annotations: new Annotations(), icons: [42]);
     }
 
     /**

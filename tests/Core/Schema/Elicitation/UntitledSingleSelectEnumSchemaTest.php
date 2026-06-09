@@ -30,7 +30,7 @@ final class UntitledSingleSelectEnumSchemaTest extends TestCase
 {
     public function testConstructionMinimal(): void
     {
-        $schema = new UntitledSingleSelectEnumSchema(['a', 'b']);
+        $schema = new UntitledSingleSelectEnumSchema(enum: ['a', 'b']);
 
         self::assertSame(['a', 'b'], $schema->enum);
         self::assertNull($schema->title);
@@ -40,14 +40,14 @@ final class UntitledSingleSelectEnumSchemaTest extends TestCase
 
     public function testToArrayMinimal(): void
     {
-        $schema = new UntitledSingleSelectEnumSchema(['a']);
+        $schema = new UntitledSingleSelectEnumSchema(enum: ['a']);
 
         self::assertSame(['type' => 'string', 'enum' => ['a']], $schema->toArray());
     }
 
     public function testToArrayWithAllFields(): void
     {
-        $schema = new UntitledSingleSelectEnumSchema(['red', 'blue'], 'Colour', 'Pick one', 'blue');
+        $schema = new UntitledSingleSelectEnumSchema(enum: ['red', 'blue'], title: 'Colour', description: 'Pick one', default: 'blue');
 
         self::assertSame(
             [
@@ -63,14 +63,14 @@ final class UntitledSingleSelectEnumSchemaTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $schema = new UntitledSingleSelectEnumSchema(['a'], 'T', null, 'a');
+        $schema = new UntitledSingleSelectEnumSchema(enum: ['a'], title: 'T', description: null, default: 'a');
 
         self::assertSame($schema->toArray(), $schema->jsonSerialize());
     }
 
     public function testFromArrayFullRoundTrip(): void
     {
-        $original = new UntitledSingleSelectEnumSchema(['x', 'y'], 'T', 'desc', 'y');
+        $original = new UntitledSingleSelectEnumSchema(enum: ['x', 'y'], title: 'T', description: 'desc', default: 'y');
 
         $rebuilt = UntitledSingleSelectEnumSchema::fromArray($original->toArray());
 
@@ -83,7 +83,7 @@ final class UntitledSingleSelectEnumSchemaTest extends TestCase
         $this->expectExceptionMessageIs('untitled single select enum schema "enum" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
-        new UntitledSingleSelectEnumSchema(['k' => 'v']);
+        new UntitledSingleSelectEnumSchema(enum: ['k' => 'v']);
     }
 
     public function testConstructorRejectsEmptyEnumEntry(): void
@@ -91,7 +91,7 @@ final class UntitledSingleSelectEnumSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('each untitled single select enum schema "enum" must be a non-empty string.');
 
-        new UntitledSingleSelectEnumSchema(['']);
+        new UntitledSingleSelectEnumSchema(enum: ['']);
     }
 
     public function testConstructorRejectsEmptyTitle(): void
@@ -99,7 +99,7 @@ final class UntitledSingleSelectEnumSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('untitled single select enum schema "title" must be a non-empty string or null.');
 
-        new UntitledSingleSelectEnumSchema(['a'], '');
+        new UntitledSingleSelectEnumSchema(enum: ['a'], title: '');
     }
 
     public function testConstructorRejectsEmptyDescription(): void
@@ -107,7 +107,7 @@ final class UntitledSingleSelectEnumSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('untitled single select enum schema "description" must be a non-empty string or null.');
 
-        new UntitledSingleSelectEnumSchema(['a'], null, '');
+        new UntitledSingleSelectEnumSchema(enum: ['a'], title: null, description: '');
     }
 
     /**

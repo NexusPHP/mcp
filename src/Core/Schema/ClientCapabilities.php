@@ -60,11 +60,11 @@ final readonly class ClientCapabilities implements Arrayable
     public static function fromArray(array $data): static
     {
         return new self(
-            self::extractElicitation($data),
-            self::extractExperimental($data),
-            self::extractExtensions($data),
-            self::extractRoots($data),
-            self::extractSampling($data),
+            elicitation: self::extractElicitation($data),
+            experimental: self::extractExperimental($data),
+            extensions: self::extractExtensions($data),
+            roots: self::extractRoots($data),
+            sampling: self::extractSampling($data),
         );
     }
 

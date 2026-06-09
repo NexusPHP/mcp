@@ -43,13 +43,13 @@ final class ListResourcesRequestHandlerTest extends TestCase
     public function testReturnsAllRegisteredResourcesWhenCursorIsNull(): void
     {
         $store = new ResourceStore([
-            'file:///a' => new ResourceEntry(new Resource('a', 'file:///a'), self::reader()),
-            'file:///b' => new ResourceEntry(new Resource('b', 'file:///b'), self::reader()),
+            'file:///a' => new ResourceEntry(new Resource(name: 'a', uri: 'file:///a'), self::reader()),
+            'file:///b' => new ResourceEntry(new Resource(name: 'b', uri: 'file:///b'), self::reader()),
         ]);
         $handler = new ListResourcesRequestHandler($store);
 
         $result = $handler->handle(
-            new ListResourcesRequest(new RequestId(1), new PaginatedRequestParams(RequestMetaObjectFactory::create())),
+            new ListResourcesRequest(id: new RequestId(id: 1), params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create())),
             self::makeContext(),
         );
 
@@ -62,16 +62,16 @@ final class ListResourcesRequestHandlerTest extends TestCase
     {
         $store = new ResourceStore(
             [
-                'file:///a' => new ResourceEntry(new Resource('a', 'file:///a'), self::reader()),
-                'file:///b' => new ResourceEntry(new Resource('b', 'file:///b'), self::reader()),
-                'file:///c' => new ResourceEntry(new Resource('c', 'file:///c'), self::reader()),
+                'file:///a' => new ResourceEntry(new Resource(name: 'a', uri: 'file:///a'), self::reader()),
+                'file:///b' => new ResourceEntry(new Resource(name: 'b', uri: 'file:///b'), self::reader()),
+                'file:///c' => new ResourceEntry(new Resource(name: 'c', uri: 'file:///c'), self::reader()),
             ],
             pageSize: 2,
         );
         $handler = new ListResourcesRequestHandler($store);
 
         $result = $handler->handle(
-            new ListResourcesRequest(new RequestId(2), new PaginatedRequestParams(RequestMetaObjectFactory::create(), new Cursor('file:///b'))),
+            new ListResourcesRequest(id: new RequestId(id: 2), params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create(), cursor: new Cursor(cursor: 'file:///b'))),
             self::makeContext(),
         );
 
@@ -82,14 +82,14 @@ final class ListResourcesRequestHandlerTest extends TestCase
     private static function reader(): ClosureResourceReader
     {
         return new ClosureResourceReader(
-            static fn(string $uri, ServerContext $context): ReadResourceResult => new ReadResourceResult([], 0, CacheScope::Private),
+            static fn(string $uri, ServerContext $context): ReadResourceResult => new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private),
         );
     }
 
     private static function makeContext(): ServerContext
     {
         return new ServerContext(
-            new RequestId(1),
+            new RequestId(id: 1),
             new NullCancellation(),
             RequestMetaObjectFactory::create(),
             null,

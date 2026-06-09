@@ -29,7 +29,7 @@ final class UnparsedResultEnvelopeTest extends TestCase
 {
     public function testCarriesIdAndResultPayload(): void
     {
-        $id = new RequestId('req-1');
+        $id = new RequestId(id: 'req-1');
         $envelope = new UnparsedResultEnvelope($id, ['answer' => 42]);
 
         self::assertSame($id, $envelope->id);
@@ -38,7 +38,7 @@ final class UnparsedResultEnvelopeTest extends TestCase
 
     public function testResultPreservesNonMapPayload(): void
     {
-        $envelope = new UnparsedResultEnvelope(new RequestId(7), 'opaque-string');
+        $envelope = new UnparsedResultEnvelope(new RequestId(id: 7), 'opaque-string');
 
         self::assertSame('opaque-string', $envelope->result);
     }

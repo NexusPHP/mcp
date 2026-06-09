@@ -95,7 +95,7 @@ final readonly class ToolUseContent implements Arrayable, SamplingMessageContent
             $meta = MetaObject::fromArray($data['_meta']);
         }
 
-        return new self($id, $name, $input, $meta);
+        return new self(id: $id, name: $name, input: $input, meta: $meta);
     }
 
     #[\Override]

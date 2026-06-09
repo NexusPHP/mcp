@@ -60,7 +60,7 @@ final readonly class TextResourceContents extends ResourceContents
             $meta = MetaObject::fromArray($data['_meta']);
         }
 
-        return new self($uri, $text, $mimeType, $meta);
+        return new self(uri: $uri, text: $text, mimeType: $mimeType, meta: $meta);
     }
 
     #[\Override]

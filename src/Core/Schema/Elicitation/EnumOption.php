@@ -58,7 +58,7 @@ final readonly class EnumOption implements Arrayable
         $title = $data['title'];
         Assert::that($title)->isString('"oneOf.title" must be a string, {type} given.');
 
-        return new self($const, $title);
+        return new self(const: $const, title: $title);
     }
 
     #[\Override]

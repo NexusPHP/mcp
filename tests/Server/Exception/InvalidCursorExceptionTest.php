@@ -41,7 +41,7 @@ final class InvalidCursorExceptionTest extends TestCase
     public function testCarriesProvidedRequestIdAndPrevious(): void
     {
         $previous = new \RuntimeException('inner');
-        $e = new InvalidCursorException('opaque-token', new RequestId(7), $previous);
+        $e = new InvalidCursorException('opaque-token', new RequestId(id: 7), $previous);
 
         self::assertSame(7, $e->requestId?->id);
         self::assertSame($previous, $e->getPrevious());

@@ -36,13 +36,13 @@ final class InvalidRequestErrorTest extends TestCase
 
     public function testInvalidRequestErrorCanOverrideMessage(): void
     {
-        $error = new InvalidRequestError('Request is malformed');
+        $error = new InvalidRequestError(message: 'Request is malformed');
         self::assertSame('Request is malformed', $error->message);
     }
 
     public function testInvalidRequestErrorHasCorrectCode(): void
     {
-        $error = new InvalidRequestError(InvalidRequestError::DEFAULT_MESSAGE);
+        $error = new InvalidRequestError(message: InvalidRequestError::DEFAULT_MESSAGE);
         self::assertSame(ProtocolErrorCode::InvalidRequest->value, $error->code);
         self::assertSame(-32600, $error->code);
     }
@@ -50,7 +50,7 @@ final class InvalidRequestErrorTest extends TestCase
     public function testInvalidRequestErrorCanIncludeData(): void
     {
         $data = ['field' => 'method', 'reason' => 'missing'];
-        $error = new InvalidRequestError('Invalid request', $data);
+        $error = new InvalidRequestError(message: 'Invalid request', data: $data);
         self::assertSame($data, $error->data);
     }
 
@@ -86,7 +86,7 @@ final class InvalidRequestErrorTest extends TestCase
 
     public function testInvalidRequestErrorToArray(): void
     {
-        $error = new InvalidRequestError('Bad request', ['why' => 'malformed']);
+        $error = new InvalidRequestError(message: 'Bad request', data: ['why' => 'malformed']);
         $array = $error->toArray();
 
         self::assertSame([
@@ -98,7 +98,7 @@ final class InvalidRequestErrorTest extends TestCase
 
     public function testInvalidRequestErrorJsonSerialize(): void
     {
-        $error = new InvalidRequestError('Bad request');
+        $error = new InvalidRequestError(message: 'Bad request');
         $result = $error->jsonSerialize();
 
         self::assertSame([
@@ -110,7 +110,7 @@ final class InvalidRequestErrorTest extends TestCase
     public function testInvalidRequestErrorJsonSerializeWithData(): void
     {
         $data = ['field' => 'id'];
-        $error = new InvalidRequestError('Bad request', $data);
+        $error = new InvalidRequestError(message: 'Bad request', data: $data);
         $result = $error->jsonSerialize();
 
         self::assertSame([

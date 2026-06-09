@@ -99,7 +99,7 @@ final class LineDuplexTest extends TestCase
 
         $this->expectException(TransportNotStartedException::class);
 
-        $duplex->send(new DiscoverRequest(new RequestId(1), new EmptyRequestParams(RequestMetaObjectFactory::create())));
+        $duplex->send(new DiscoverRequest(id: new RequestId(id: 1), params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create())));
     }
 
     public function testSendAfterCloseThrowsTransportAlreadyClosed(): void
@@ -111,7 +111,7 @@ final class LineDuplexTest extends TestCase
 
         $this->expectException(TransportAlreadyClosedException::class);
 
-        $duplex->send(new DiscoverRequest(new RequestId(1), new EmptyRequestParams(RequestMetaObjectFactory::create())));
+        $duplex->send(new DiscoverRequest(id: new RequestId(id: 1), params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create())));
     }
 
     public function testCloseFromIdleIsIdempotent(): void
@@ -502,7 +502,7 @@ final class LineDuplexTest extends TestCase
     {
         $writable = new WritableBuffer();
         $duplex = self::buildDuplex();
-        $message = new DiscoverRequest(new RequestId(99), new EmptyRequestParams(RequestMetaObjectFactory::create()));
+        $message = new DiscoverRequest(id: new RequestId(id: 99), params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create()));
 
         $duplex->start(new ReadableBuffer(''), $writable);
         $duplex->send($message);
@@ -521,9 +521,9 @@ final class LineDuplexTest extends TestCase
         $duplex = self::buildDuplex();
 
         $duplex->start(new ReadableBuffer(''), $writable);
-        $duplex->send(new CancelledNotification(new CancelledNotificationParams(
-            new RequestId(1),
-            'café/done',
+        $duplex->send(new CancelledNotification(params: new CancelledNotificationParams(
+            requestId: new RequestId(id: 1),
+            reason: 'café/done',
         )));
         EventLoop::run();
         $writable->close();
@@ -554,17 +554,17 @@ final class LineDuplexTest extends TestCase
     public static function provideLoggerEmitsDebugOnSendSuccessCases(): iterable
     {
         yield 'request' => [
-            new DiscoverRequest(new RequestId(42), new EmptyRequestParams(RequestMetaObjectFactory::create())),
+            new DiscoverRequest(id: new RequestId(id: 42), params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create())),
             '"server/discover" request with id "42"',
         ];
 
         yield 'notification' => [
-            new CancelledNotification(new CancelledNotificationParams(new RequestId(7))),
+            new CancelledNotification(params: new CancelledNotificationParams(requestId: new RequestId(id: 7))),
             '"notifications/cancelled" notification',
         ];
 
         yield 'response envelope' => [
-            new JsonRpcResultResponse(new RequestId(99), new EmptyResult()),
+            new JsonRpcResultResponse(id: new RequestId(id: 99), result: new EmptyResult()),
             'a response envelope',
         ];
     }
@@ -583,7 +583,7 @@ final class LineDuplexTest extends TestCase
         $closesBeforeSend = $closes;
 
         try {
-            $duplex->send(new DiscoverRequest(new RequestId(1), new EmptyRequestParams(RequestMetaObjectFactory::create())));
+            $duplex->send(new DiscoverRequest(id: new RequestId(id: 1), params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create())));
             self::fail('Expected send() to rethrow the underlying write failure.');
         } catch (\RuntimeException $caught) {
             self::assertSame($boom, $caught);
@@ -628,17 +628,17 @@ final class LineDuplexTest extends TestCase
     public static function provideLoggerEmitsErrorOnSendFailureCases(): iterable
     {
         yield 'request' => [
-            new DiscoverRequest(new RequestId(42), new EmptyRequestParams(RequestMetaObjectFactory::create())),
+            new DiscoverRequest(id: new RequestId(id: 42), params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create())),
             '"server/discover" request with id "42"',
         ];
 
         yield 'notification' => [
-            new CancelledNotification(new CancelledNotificationParams(new RequestId(7))),
+            new CancelledNotification(params: new CancelledNotificationParams(requestId: new RequestId(id: 7))),
             '"notifications/cancelled" notification',
         ];
 
         yield 'response envelope' => [
-            new JsonRpcResultResponse(new RequestId(99), new EmptyResult()),
+            new JsonRpcResultResponse(id: new RequestId(id: 99), result: new EmptyResult()),
             'a response envelope',
         ];
     }
@@ -663,7 +663,7 @@ final class LineDuplexTest extends TestCase
         $this->duplexUnderConcurrentClose->start(new ReadableBuffer(''), $writable);
 
         try {
-            $this->duplexUnderConcurrentClose->send(new DiscoverRequest(new RequestId(1), new EmptyRequestParams(RequestMetaObjectFactory::create())));
+            $this->duplexUnderConcurrentClose->send(new DiscoverRequest(id: new RequestId(id: 1), params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create())));
             self::fail('Expected send() to throw on the concurrent close.');
         } catch (TransportAlreadyClosedException $caught) {
             self::assertSame('Cannot send on a closed transport.', $caught->getMessage());
@@ -723,17 +723,17 @@ final class LineDuplexTest extends TestCase
     public static function provideLoggerEmitsDebugOnConcurrentCloseSkippedSendCases(): iterable
     {
         yield 'request' => [
-            new DiscoverRequest(new RequestId(42), new EmptyRequestParams(RequestMetaObjectFactory::create())),
+            new DiscoverRequest(id: new RequestId(id: 42), params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create())),
             '"server/discover" request with id "42"',
         ];
 
         yield 'notification' => [
-            new CancelledNotification(new CancelledNotificationParams(new RequestId(7))),
+            new CancelledNotification(params: new CancelledNotificationParams(requestId: new RequestId(id: 7))),
             '"notifications/cancelled" notification',
         ];
 
         yield 'response envelope' => [
-            new JsonRpcResultResponse(new RequestId(99), new EmptyResult()),
+            new JsonRpcResultResponse(id: new RequestId(id: 99), result: new EmptyResult()),
             'a response envelope',
         ];
     }

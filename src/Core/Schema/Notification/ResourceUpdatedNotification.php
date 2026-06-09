@@ -48,6 +48,6 @@ final readonly class ResourceUpdatedNotification extends JsonRpcNotification imp
             ->isMap('"params" must be a string-keyed object.')
         ;
 
-        return new self(ResourceUpdatedNotificationParams::fromArray($data['params']));
+        return new self(params: ResourceUpdatedNotificationParams::fromArray($data['params']));
     }
 }

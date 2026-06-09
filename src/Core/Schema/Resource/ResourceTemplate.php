@@ -147,7 +147,16 @@ final readonly class ResourceTemplate extends BaseMetadata implements Arrayable,
             $meta = MetaObject::fromArray($data['_meta']);
         }
 
-        return new self($name, $uriTemplate, $title, $description, $mimeType, $annotations, $icons, $meta);
+        return new self(
+            name: $name,
+            uriTemplate: $uriTemplate,
+            title: $title,
+            description: $description,
+            mimeType: $mimeType,
+            annotations: $annotations,
+            icons: $icons,
+            meta: $meta,
+        );
     }
 
     #[\Override]

@@ -63,7 +63,7 @@ try {
     fwrite(\STDOUT, "\n=== Attempting completion/complete (not advertised) ===\n");
 
     try {
-        $client->complete(new PromptReference('walkthrough'), ['name' => 'audience', 'value' => 'a']);
+        $client->complete(new PromptReference(name: 'walkthrough'), ['name' => 'audience', 'value' => 'a']);
         fwrite(\STDOUT, "    completion succeeded (unexpected for this server)\n");
     } catch (ServerCapabilityNotSupportedException $e) {
         fwrite(\STDOUT, sprintf("    skipped: %s\n", $e->getMessage()));

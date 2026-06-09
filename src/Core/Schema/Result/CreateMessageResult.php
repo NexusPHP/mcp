@@ -116,7 +116,7 @@ final readonly class CreateMessageResult extends Result implements ClientResult
             $meta = MetaObject::fromArray($data['_meta']);
         }
 
-        return new self($model, $role, $content, $stopReason, $meta);
+        return new self(model: $model, role: $role, content: $content, stopReason: $stopReason, meta: $meta);
     }
 
     #[\Override]

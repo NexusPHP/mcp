@@ -106,7 +106,7 @@ final class ReflectedHandlers
 
     public function toolResult(): CallToolResult
     {
-        return new CallToolResult([new TextContent('done')], isError: true);
+        return new CallToolResult(content: [new TextContent(text: 'done')], isError: true);
     }
 
     /**
@@ -132,7 +132,7 @@ final class ReflectedHandlers
 
     public function toolSingleBlock(): ImageContent
     {
-        return new ImageContent('aW1n', 'image/png');
+        return new ImageContent(data: 'aW1n', mimeType: 'image/png');
     }
 
     /**
@@ -141,11 +141,11 @@ final class ReflectedHandlers
     public function toolBlockList(): array
     {
         return [
-            new TextContent('t'),
-            new ImageContent('aW1n', 'image/png'),
-            new AudioContent('YXVk', 'audio/mpeg'),
-            new EmbeddedResource(new TextResourceContents('mem://embedded', 'e')),
-            new ResourceLink('link', 'mem://link'),
+            new TextContent(text: 't'),
+            new ImageContent(data: 'aW1n', mimeType: 'image/png'),
+            new AudioContent(data: 'YXVk', mimeType: 'audio/mpeg'),
+            new EmbeddedResource(resource: new TextResourceContents(uri: 'mem://embedded', text: 'e')),
+            new ResourceLink(name: 'link', uri: 'mem://link'),
         ];
     }
 
@@ -154,7 +154,7 @@ final class ReflectedHandlers
      */
     public function toolMapOfBlocks(): array
     {
-        return ['main' => new TextContent('x')];
+        return ['main' => new TextContent(text: 'x')];
     }
 
     /**
@@ -175,7 +175,7 @@ final class ReflectedHandlers
 
     public function promptResult(): GetPromptResult
     {
-        return new GetPromptResult([new PromptMessage(Role::Assistant, new TextContent('seed'))], 'a description');
+        return new GetPromptResult(messages: [new PromptMessage(role: Role::Assistant, content: new TextContent(text: 'seed'))], description: 'a description');
     }
 
     public function promptString(string $topic): string
@@ -190,7 +190,7 @@ final class ReflectedHandlers
 
     public function promptMessage(): PromptMessage
     {
-        return new PromptMessage(Role::Assistant, new TextContent('one'));
+        return new PromptMessage(role: Role::Assistant, content: new TextContent(text: 'one'));
     }
 
     /**
@@ -199,8 +199,8 @@ final class ReflectedHandlers
     public function promptMessageList(): array
     {
         return [
-            new PromptMessage(Role::User, new TextContent('a')),
-            new PromptMessage(Role::Assistant, new TextContent('b')),
+            new PromptMessage(role: Role::User, content: new TextContent(text: 'a')),
+            new PromptMessage(role: Role::Assistant, content: new TextContent(text: 'b')),
         ];
     }
 
@@ -209,7 +209,7 @@ final class ReflectedHandlers
      */
     public function promptMapOfMessages(): array
     {
-        return ['x' => new PromptMessage(Role::User, new TextContent('m'))];
+        return ['x' => new PromptMessage(role: Role::User, content: new TextContent(text: 'm'))];
     }
 
     /**
@@ -230,7 +230,7 @@ final class ReflectedHandlers
 
     public function resourceResult(): ReadResourceResult
     {
-        return new ReadResourceResult([new TextResourceContents('mem://fixed', 'body')], 0, CacheScope::Private);
+        return new ReadResourceResult(contents: [new TextResourceContents(uri: 'mem://fixed', text: 'body')], ttlMs: 0, cacheScope: CacheScope::Private);
     }
 
     public function resourceUri(string $uri): string
@@ -255,6 +255,6 @@ final class ReflectedHandlers
 
     public function templatedResult(string $id): ReadResourceResult
     {
-        return new ReadResourceResult([new TextResourceContents('mem://users/'.$id, 'profile')], 0, CacheScope::Private);
+        return new ReadResourceResult(contents: [new TextResourceContents(uri: 'mem://users/'.$id, text: 'profile')], ttlMs: 0, cacheScope: CacheScope::Private);
     }
 }

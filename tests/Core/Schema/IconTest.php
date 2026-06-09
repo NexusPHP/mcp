@@ -30,7 +30,7 @@ final class IconTest extends TestCase
 {
     public function testIconCanBeCreatedWithHttpUrl(): void
     {
-        $icon = new Icon('https://example.com/icon.png');
+        $icon = new Icon(src: 'https://example.com/icon.png');
 
         self::assertSame('https://example.com/icon.png', $icon->src);
         self::assertNull($icon->mimeType);
@@ -40,21 +40,21 @@ final class IconTest extends TestCase
 
     public function testIconCanBeCreatedWithHttpsUrl(): void
     {
-        $icon = new Icon('http://example.com/icon.png');
+        $icon = new Icon(src: 'http://example.com/icon.png');
 
         self::assertSame('http://example.com/icon.png', $icon->src);
     }
 
     public function testIconCanBeCreatedWithDataUri(): void
     {
-        $icon = new Icon('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA');
+        $icon = new Icon(src: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA');
 
         self::assertSame('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA', $icon->src);
     }
 
     public function testIconCanBeCreatedWithDataUriWithPadding(): void
     {
-        $icon = new Icon('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmc+PC9zdmc+==');
+        $icon = new Icon(src: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmc+PC9zdmc+==');
 
         self::assertSame('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmc+PC9zdmc+==', $icon->src);
     }
@@ -62,10 +62,10 @@ final class IconTest extends TestCase
     public function testIconCanBeCreatedWithAllParameters(): void
     {
         $icon = new Icon(
-            'https://example.com/icon.png',
-            'image/png',
-            ['32x32', '64x64', 'any'],
-            'dark',
+            src: 'https://example.com/icon.png',
+            mimeType: 'image/png',
+            sizes: ['32x32', '64x64', 'any'],
+            theme: 'dark',
         );
 
         self::assertSame('https://example.com/icon.png', $icon->src);
@@ -80,7 +80,7 @@ final class IconTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
-        new Icon($src);
+        new Icon(src: $src);
     }
 
     /**
@@ -102,7 +102,7 @@ final class IconTest extends TestCase
     #[DataProvider('provideIconAcceptsValidMimeTypesCases')]
     public function testIconAcceptsValidMimeTypes(string $mimeType): void
     {
-        $icon = new Icon('https://example.com/icon.png', $mimeType);
+        $icon = new Icon(src: 'https://example.com/icon.png', mimeType: $mimeType);
 
         self::assertSame($mimeType, $icon->mimeType);
     }
@@ -135,7 +135,7 @@ final class IconTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
-        new Icon('https://example.com/icon.png', $mimeType);
+        new Icon(src: 'https://example.com/icon.png', mimeType: $mimeType);
     }
 
     /**
@@ -158,7 +158,7 @@ final class IconTest extends TestCase
     #[DataProvider('provideIconAcceptsValidSizesCases')]
     public function testIconAcceptsValidSizes(array $sizes): void
     {
-        $icon = new Icon('https://example.com/icon.png', null, $sizes);
+        $icon = new Icon(src: 'https://example.com/icon.png', mimeType: null, sizes: $sizes);
 
         self::assertSame($sizes, $icon->sizes);
     }
@@ -186,7 +186,7 @@ final class IconTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
-        new Icon('https://example.com/icon.png', null, $sizes);
+        new Icon(src: 'https://example.com/icon.png', mimeType: null, sizes: $sizes);
     }
 
     /**
@@ -206,7 +206,7 @@ final class IconTest extends TestCase
     #[DataProvider('provideIconAcceptsValidThemesCases')]
     public function testIconAcceptsValidThemes(string $theme): void
     {
-        $icon = new Icon('https://example.com/icon.png', null, null, $theme);
+        $icon = new Icon(src: 'https://example.com/icon.png', mimeType: null, sizes: null, theme: $theme);
 
         self::assertSame($theme, $icon->theme);
     }
@@ -226,7 +226,7 @@ final class IconTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"icons.theme" must be one of "light", "dark".');
 
-        new Icon('https://example.com/icon.png', null, null, 'invalid');
+        new Icon(src: 'https://example.com/icon.png', mimeType: null, sizes: null, theme: 'invalid');
     }
 
     public function testIconCanBeCreatedFromArray(): void
@@ -260,7 +260,7 @@ final class IconTest extends TestCase
 
     public function testIconToArrayIncludesOnlySrc(): void
     {
-        $icon = new Icon('https://example.com/icon.png');
+        $icon = new Icon(src: 'https://example.com/icon.png');
 
         self::assertSame(['src' => 'https://example.com/icon.png'], $icon->toArray());
     }
@@ -268,10 +268,10 @@ final class IconTest extends TestCase
     public function testIconToArrayIncludesAllSetProperties(): void
     {
         $icon = new Icon(
-            'https://example.com/icon.png',
-            'image/png',
-            ['32x32', '64x64'],
-            'dark',
+            src: 'https://example.com/icon.png',
+            mimeType: 'image/png',
+            sizes: ['32x32', '64x64'],
+            theme: 'dark',
         );
 
         $expected = [
@@ -287,10 +287,10 @@ final class IconTest extends TestCase
     public function testIconJsonSerializeMatchesToArray(): void
     {
         $icon = new Icon(
-            'https://example.com/icon.png',
-            'image/png',
-            ['32x32'],
-            'light',
+            src: 'https://example.com/icon.png',
+            mimeType: 'image/png',
+            sizes: ['32x32'],
+            theme: 'light',
         );
 
         self::assertSame($icon->toArray(), $icon->jsonSerialize());

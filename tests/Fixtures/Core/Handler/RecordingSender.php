@@ -47,6 +47,6 @@ final class RecordingSender implements SenderInterface
     {
         $this->requests[] = $request;
 
-        return new JsonRpcResultResponse($request->id, new EmptyResult());
+        return new JsonRpcResultResponse(id: $request->id, result: new EmptyResult());
     }
 }

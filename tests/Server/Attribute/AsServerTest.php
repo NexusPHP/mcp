@@ -42,7 +42,7 @@ final class AsServerTest extends TestCase
 
     public function testStoresAllValues(): void
     {
-        $icon = new Icon('https://example.test/icon.svg');
+        $icon = new Icon(src: 'https://example.test/icon.svg');
 
         $server = new AsServer(
             name: 'demo',

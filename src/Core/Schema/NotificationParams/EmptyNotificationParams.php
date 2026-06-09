@@ -37,6 +37,6 @@ final readonly class EmptyNotificationParams extends NotificationParams
             $meta = MetaObject::fromArray($data['_meta']);
         }
 
-        return new self($meta);
+        return new self(meta: $meta);
     }
 }

@@ -47,6 +47,6 @@ final readonly class ToolListChangedNotification extends JsonRpcNotification imp
             $params = EmptyNotificationParams::fromArray($data['params']);
         }
 
-        return new self($params);
+        return new self(params: $params);
     }
 }

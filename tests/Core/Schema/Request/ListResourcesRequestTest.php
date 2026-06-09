@@ -45,7 +45,7 @@ final class ListResourcesRequestTest extends TestCase
 
     public function testToArrayMinimal(): void
     {
-        $request = new ListResourcesRequest(new RequestId(1), new PaginatedRequestParams(RequestMetaObjectFactory::create()));
+        $request = new ListResourcesRequest(id: new RequestId(id: 1), params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create()));
 
         self::assertSame(
             [
@@ -61,8 +61,8 @@ final class ListResourcesRequestTest extends TestCase
     public function testToArrayIncludesCursor(): void
     {
         $request = new ListResourcesRequest(
-            new RequestId(1),
-            new PaginatedRequestParams(RequestMetaObjectFactory::create(), new Cursor('cur-1')),
+            id: new RequestId(id: 1),
+            params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create(), cursor: new Cursor(cursor: 'cur-1')),
         );
 
         self::assertSame(
@@ -79,8 +79,8 @@ final class ListResourcesRequestTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new ListResourcesRequest(
-            new RequestId('req-1'),
-            new PaginatedRequestParams(RequestMetaObjectFactory::create(), new Cursor('cur-1')),
+            id: new RequestId(id: 'req-1'),
+            params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create(), cursor: new Cursor(cursor: 'cur-1')),
         );
 
         $rebuilt = ListResourcesRequest::fromArray($original->toArray());

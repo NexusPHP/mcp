@@ -39,7 +39,7 @@ final class LoggingMessageNotificationHandlerTest extends TestCase
         );
 
         $notification = new LoggingMessageNotification(
-            new LoggingMessageNotificationParams(LoggingLevel::Info, 'hello', 'demo'),
+            params: new LoggingMessageNotificationParams(level: LoggingLevel::Info, data: 'hello', logger: 'demo'),
         );
         $handler->handle($notification);
 

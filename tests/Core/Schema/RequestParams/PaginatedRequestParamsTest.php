@@ -34,21 +34,21 @@ final class PaginatedRequestParamsTest extends TestCase
 {
     public function testConstructionDefaultsCursorToNull(): void
     {
-        $params = new PaginatedRequestParams(RequestMetaObjectFactory::create());
+        $params = new PaginatedRequestParams(meta: RequestMetaObjectFactory::create());
 
         self::assertNull($params->cursor);
     }
 
     public function testToArrayMinimal(): void
     {
-        $params = new PaginatedRequestParams(RequestMetaObjectFactory::create());
+        $params = new PaginatedRequestParams(meta: RequestMetaObjectFactory::create());
 
         self::assertSame(['_meta' => RequestMetaObjectFactory::shape()], $params->toArray());
     }
 
     public function testToArrayWithCursor(): void
     {
-        $params = new PaginatedRequestParams(RequestMetaObjectFactory::create(), new Cursor('cur-1'));
+        $params = new PaginatedRequestParams(meta: RequestMetaObjectFactory::create(), cursor: new Cursor(cursor: 'cur-1'));
 
         self::assertSame(
             ['_meta' => RequestMetaObjectFactory::shape(), 'cursor' => 'cur-1'],
@@ -58,7 +58,7 @@ final class PaginatedRequestParamsTest extends TestCase
 
     public function testToArrayKeyOrder(): void
     {
-        $params = new PaginatedRequestParams(RequestMetaObjectFactory::create(), new Cursor('cur-1'));
+        $params = new PaginatedRequestParams(meta: RequestMetaObjectFactory::create(), cursor: new Cursor(cursor: 'cur-1'));
 
         self::assertSame(
             ['_meta', 'cursor'],
@@ -68,7 +68,7 @@ final class PaginatedRequestParamsTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $params = new PaginatedRequestParams(RequestMetaObjectFactory::create(null, ['k' => 'v']), new Cursor('cur-1'));
+        $params = new PaginatedRequestParams(meta: RequestMetaObjectFactory::create(null, ['k' => 'v']), cursor: new Cursor(cursor: 'cur-1'));
 
         self::assertSame($params->toArray(), $params->jsonSerialize());
     }
@@ -99,7 +99,7 @@ final class PaginatedRequestParamsTest extends TestCase
 
     public function testFromArrayFullRoundTrip(): void
     {
-        $original = new PaginatedRequestParams(RequestMetaObjectFactory::create(null, ['vendor' => 'x']), new Cursor('cur-1'));
+        $original = new PaginatedRequestParams(meta: RequestMetaObjectFactory::create(null, ['vendor' => 'x']), cursor: new Cursor(cursor: 'cur-1'));
 
         $rebuilt = PaginatedRequestParams::fromArray($original->toArray());
 

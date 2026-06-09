@@ -41,7 +41,7 @@ final class CancelledNotificationTest extends TestCase
 
     public function testToArrayWithMinimalParams(): void
     {
-        $notification = new CancelledNotification(new CancelledNotificationParams(new RequestId(7)));
+        $notification = new CancelledNotification(params: new CancelledNotificationParams(requestId: new RequestId(id: 7)));
 
         self::assertSame(
             [
@@ -55,10 +55,10 @@ final class CancelledNotificationTest extends TestCase
 
     public function testToArrayWithReasonAndMeta(): void
     {
-        $notification = new CancelledNotification(new CancelledNotificationParams(
-            new RequestId('req-1'),
-            'user aborted',
-            new MetaObject(['vendor' => 'x']),
+        $notification = new CancelledNotification(params: new CancelledNotificationParams(
+            requestId: new RequestId(id: 'req-1'),
+            reason: 'user aborted',
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         ));
 
         self::assertSame(
@@ -77,7 +77,7 @@ final class CancelledNotificationTest extends TestCase
 
     public function testToArrayPreservesKeyOrderStartingWithJsonRpc(): void
     {
-        $notification = new CancelledNotification(new CancelledNotificationParams(new RequestId(1)));
+        $notification = new CancelledNotification(params: new CancelledNotificationParams(requestId: new RequestId(id: 1)));
 
         self::assertSame(
             ['jsonrpc', 'method', 'params'],
@@ -87,10 +87,10 @@ final class CancelledNotificationTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $notification = new CancelledNotification(new CancelledNotificationParams(
-            new RequestId(1),
-            'because',
-            new MetaObject(['k' => 'v']),
+        $notification = new CancelledNotification(params: new CancelledNotificationParams(
+            requestId: new RequestId(id: 1),
+            reason: 'because',
+            meta: new MetaObject(extras: ['k' => 'v']),
         ));
 
         self::assertSame($notification->toArray(), $notification->jsonSerialize());
@@ -98,7 +98,7 @@ final class CancelledNotificationTest extends TestCase
 
     public function testFromArrayFullRoundTripWithMinimalParams(): void
     {
-        $original = new CancelledNotification(new CancelledNotificationParams(new RequestId(9)));
+        $original = new CancelledNotification(params: new CancelledNotificationParams(requestId: new RequestId(id: 9)));
 
         $rebuilt = CancelledNotification::fromArray($original->toArray());
 
@@ -107,10 +107,10 @@ final class CancelledNotificationTest extends TestCase
 
     public function testFromArrayFullRoundTripWithAllFields(): void
     {
-        $original = new CancelledNotification(new CancelledNotificationParams(
-            new RequestId('req-3'),
-            'timeout',
-            new MetaObject(['vendor' => 'x']),
+        $original = new CancelledNotification(params: new CancelledNotificationParams(
+            requestId: new RequestId(id: 'req-3'),
+            reason: 'timeout',
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         ));
 
         $rebuilt = CancelledNotification::fromArray($original->toArray());
@@ -155,7 +155,7 @@ final class CancelledNotificationTest extends TestCase
 
     public function testToArrayOmitsParamsKeyWhenEmpty(): void
     {
-        $notification = new CancelledNotification(new CancelledNotificationParams());
+        $notification = new CancelledNotification(params: new CancelledNotificationParams());
 
         self::assertSame(
             [
@@ -168,7 +168,7 @@ final class CancelledNotificationTest extends TestCase
 
     public function testJsonSerializeSubstitutesStdClassForEmptyParams(): void
     {
-        $notification = new CancelledNotification(new CancelledNotificationParams());
+        $notification = new CancelledNotification(params: new CancelledNotificationParams());
 
         $serialized = $notification->jsonSerialize();
 
@@ -179,7 +179,7 @@ final class CancelledNotificationTest extends TestCase
 
     public function testEmptyParamsRoundTripsThroughEnvelope(): void
     {
-        $original = new CancelledNotification(new CancelledNotificationParams());
+        $original = new CancelledNotification(params: new CancelledNotificationParams());
 
         $envelope = json_encode($original);
         self::assertIsString($envelope);

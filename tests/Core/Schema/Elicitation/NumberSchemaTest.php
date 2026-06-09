@@ -42,7 +42,7 @@ final class NumberSchemaTest extends TestCase
 
     public function testConstructionAcceptsIntegerType(): void
     {
-        $schema = new NumberSchema('integer');
+        $schema = new NumberSchema(type: 'integer');
 
         self::assertSame('integer', $schema->type);
     }
@@ -54,7 +54,7 @@ final class NumberSchemaTest extends TestCase
 
     public function testToArrayWithAllFields(): void
     {
-        $schema = new NumberSchema('integer', 'Age', 'User age', 0, 120, 30);
+        $schema = new NumberSchema(type: 'integer', title: 'Age', description: 'User age', minimum: 0, maximum: 120, default: 30);
 
         self::assertSame(
             [
@@ -71,7 +71,7 @@ final class NumberSchemaTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $schema = new NumberSchema('number', 'x', null, 1);
+        $schema = new NumberSchema(type: 'number', title: 'x', description: null, minimum: 1);
 
         self::assertSame($schema->toArray(), $schema->jsonSerialize());
     }
@@ -95,7 +95,7 @@ final class NumberSchemaTest extends TestCase
 
     public function testFromArrayFullRoundTrip(): void
     {
-        $original = new NumberSchema('integer', 'Age', 'desc', 0, 120, 30);
+        $original = new NumberSchema(type: 'integer', title: 'Age', description: 'desc', minimum: 0, maximum: 120, default: 30);
 
         $rebuilt = NumberSchema::fromArray($original->toArray());
 
@@ -107,7 +107,7 @@ final class NumberSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('number schema "type" must be one of [\'number\', \'integer\'].');
 
-        new NumberSchema('string');
+        new NumberSchema(type: 'string');
     }
 
     public function testConstructorRejectsEmptyTitle(): void
@@ -115,7 +115,7 @@ final class NumberSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('number schema "title" must be a non-empty string or null.');
 
-        new NumberSchema('number', '');
+        new NumberSchema(type: 'number', title: '');
     }
 
     public function testConstructorRejectsEmptyDescription(): void
@@ -123,7 +123,7 @@ final class NumberSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('number schema "description" must be a non-empty string or null.');
 
-        new NumberSchema('number', null, '');
+        new NumberSchema(type: 'number', title: null, description: '');
     }
 
     /**

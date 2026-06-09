@@ -173,11 +173,11 @@ $clientSide->onMessage(static function (array $envelope) use (&$received): void 
 $clientSide->start();
 
 $meta = new RequestMetaObject(
-    new ProtocolVersion(ProtocolVersion::LATEST_VERSION),
-    new Implementation('client', '1.0.0'),
-    new ClientCapabilities(),
+    protocolVersion: new ProtocolVersion(version: ProtocolVersion::LATEST_VERSION),
+    clientInfo: new Implementation(name: 'client', version: '1.0.0'),
+    clientCapabilities: new ClientCapabilities(),
 );
-$clientSide->send(new DiscoverRequest(new RequestId(1), new EmptyRequestParams($meta)));
+$clientSide->send(new DiscoverRequest(id: new RequestId(id: 1), params: new EmptyRequestParams(meta: $meta)));
 
 // Run the server. `Server::run()` calls `$serverSide->start()`, which drains the queue
 // in arrival order into the dispatcher's onMessage listener.

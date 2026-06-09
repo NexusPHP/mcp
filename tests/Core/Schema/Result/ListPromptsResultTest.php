@@ -40,7 +40,7 @@ final class ListPromptsResultTest extends TestCase
 {
     public function testConstructionDefaults(): void
     {
-        $result = new ListPromptsResult([new Prompt('code-review')], 0, CacheScope::Private);
+        $result = new ListPromptsResult(prompts: [new Prompt(name: 'code-review')], ttlMs: 0, cacheScope: CacheScope::Private);
 
         self::assertCount(1, $result->prompts);
         self::assertSame(0, $result->ttlMs);
@@ -51,17 +51,17 @@ final class ListPromptsResultTest extends TestCase
 
     public function testConstructionAcceptsEmptyList(): void
     {
-        $result = new ListPromptsResult([], 0, CacheScope::Private);
+        $result = new ListPromptsResult(prompts: [], ttlMs: 0, cacheScope: CacheScope::Private);
 
         self::assertSame([], $result->prompts);
     }
 
     public function testToArrayEmitsPrompts(): void
     {
-        $result = new ListPromptsResult([
-            new Prompt('a'),
-            new Prompt('b'),
-        ], 0, CacheScope::Private);
+        $result = new ListPromptsResult(prompts: [
+            new Prompt(name: 'a'),
+            new Prompt(name: 'b'),
+        ], ttlMs: 0, cacheScope: CacheScope::Private);
 
         self::assertSame(
             [
@@ -77,11 +77,11 @@ final class ListPromptsResultTest extends TestCase
     public function testToArrayWithMetaAndNextCursor(): void
     {
         $result = new ListPromptsResult(
-            [new Prompt('a')],
-            60000,
-            CacheScope::Public,
-            new Cursor('cur-1'),
-            new MetaObject(['vendor' => 'x']),
+            prompts: [new Prompt(name: 'a')],
+            ttlMs: 60000,
+            cacheScope: CacheScope::Public,
+            nextCursor: new Cursor(cursor: 'cur-1'),
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -100,11 +100,11 @@ final class ListPromptsResultTest extends TestCase
     public function testJsonSerializeMatchesToArray(): void
     {
         $result = new ListPromptsResult(
-            [new Prompt('a')],
-            60000,
-            CacheScope::Public,
-            new Cursor('cur-1'),
-            new MetaObject(['k' => 'v']),
+            prompts: [new Prompt(name: 'a')],
+            ttlMs: 60000,
+            cacheScope: CacheScope::Public,
+            nextCursor: new Cursor(cursor: 'cur-1'),
+            meta: new MetaObject(extras: ['k' => 'v']),
         );
 
         self::assertSame($result->toArray(), $result->jsonSerialize());
@@ -132,11 +132,11 @@ final class ListPromptsResultTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new ListPromptsResult(
-            [new Prompt('a', 'A')],
-            60000,
-            CacheScope::Public,
-            new Cursor('cur-1'),
-            new MetaObject(['vendor' => 'x']),
+            prompts: [new Prompt(name: 'a', title: 'A')],
+            ttlMs: 60000,
+            cacheScope: CacheScope::Public,
+            nextCursor: new Cursor(cursor: 'cur-1'),
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         $rebuilt = ListPromptsResult::fromArray($original->toArray());
@@ -150,7 +150,7 @@ final class ListPromptsResultTest extends TestCase
         $this->expectExceptionMessageIs('"result.prompts" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
-        new ListPromptsResult([5 => new Prompt('a')], 0, CacheScope::Private);
+        new ListPromptsResult(prompts: [5 => new Prompt(name: 'a')], ttlMs: 0, cacheScope: CacheScope::Private);
     }
 
     public function testConstructorRejectsNonPromptElement(): void
@@ -158,7 +158,7 @@ final class ListPromptsResultTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
 
         // @phpstan-ignore argument.type
-        new ListPromptsResult([42], 0, CacheScope::Private);
+        new ListPromptsResult(prompts: [42], ttlMs: 0, cacheScope: CacheScope::Private);
     }
 
     public function testConstructorRejectsNegativeTtl(): void
@@ -166,7 +166,7 @@ final class ListPromptsResultTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"result.ttlMs" must be a non-negative integer, -1 given.');
 
-        new ListPromptsResult([], -1, CacheScope::Private);
+        new ListPromptsResult(prompts: [], ttlMs: -1, cacheScope: CacheScope::Private);
     }
 
     /**

@@ -33,7 +33,7 @@ final class SamplingMessageTest extends TestCase
 {
     public function testConstructionWithSingleContent(): void
     {
-        $msg = new SamplingMessage(Role::User, new TextContent('hi'));
+        $msg = new SamplingMessage(role: Role::User, content: new TextContent(text: 'hi'));
 
         self::assertSame(Role::User, $msg->role);
         self::assertInstanceOf(TextContent::class, $msg->content);
@@ -41,8 +41,8 @@ final class SamplingMessageTest extends TestCase
 
     public function testConstructionWithListContent(): void
     {
-        $blocks = [new TextContent('step 1'), new ToolUseContent('tu-1', 'search', [])];
-        $msg = new SamplingMessage(Role::Assistant, $blocks);
+        $blocks = [new TextContent(text: 'step 1'), new ToolUseContent(id: 'tu-1', name: 'search', input: [])];
+        $msg = new SamplingMessage(role: Role::Assistant, content: $blocks);
 
         self::assertSame($blocks, $msg->content);
     }
@@ -52,12 +52,12 @@ final class SamplingMessageTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('Value "\'not-a-block\'" in iterable is expected to be an instance of \'Nexus\\\\Mcp\\\\Core\\\\Schema\\\\Sampling\\\\SamplingMessageContentBlock\' but got string instead.');
 
-        new SamplingMessage(Role::User, ['not-a-block']); // @phpstan-ignore argument.type
+        new SamplingMessage(role: Role::User, content: ['not-a-block']); // @phpstan-ignore argument.type
     }
 
     public function testToArrayWithSingleContent(): void
     {
-        $msg = new SamplingMessage(Role::User, new TextContent('hi'));
+        $msg = new SamplingMessage(role: Role::User, content: new TextContent(text: 'hi'));
 
         self::assertSame(
             ['role' => 'user', 'content' => ['text' => 'hi', 'type' => 'text']],
@@ -67,7 +67,7 @@ final class SamplingMessageTest extends TestCase
 
     public function testToArrayWithListContent(): void
     {
-        $msg = new SamplingMessage(Role::Assistant, [new TextContent('step 1')]);
+        $msg = new SamplingMessage(role: Role::Assistant, content: [new TextContent(text: 'step 1')]);
 
         self::assertSame(
             ['role' => 'assistant', 'content' => [['text' => 'step 1', 'type' => 'text']]],
@@ -77,7 +77,7 @@ final class SamplingMessageTest extends TestCase
 
     public function testToArrayWithMeta(): void
     {
-        $msg = new SamplingMessage(Role::User, new TextContent('hi'), new MetaObject(extras: ['trace' => 'abc']));
+        $msg = new SamplingMessage(role: Role::User, content: new TextContent(text: 'hi'), meta: new MetaObject(extras: ['trace' => 'abc']));
 
         self::assertSame(
             ['role' => 'user', 'content' => ['text' => 'hi', 'type' => 'text'], '_meta' => ['trace' => 'abc']],
@@ -87,21 +87,21 @@ final class SamplingMessageTest extends TestCase
 
     public function testToArrayOmitsEmptyMeta(): void
     {
-        $msg = new SamplingMessage(Role::User, new TextContent('hi'), new MetaObject());
+        $msg = new SamplingMessage(role: Role::User, content: new TextContent(text: 'hi'), meta: new MetaObject());
 
         self::assertArrayNotHasKey('_meta', $msg->toArray());
     }
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $msg = new SamplingMessage(Role::User, new TextContent('hi'));
+        $msg = new SamplingMessage(role: Role::User, content: new TextContent(text: 'hi'));
 
         self::assertSame($msg->toArray(), $msg->jsonSerialize());
     }
 
     public function testJsonSerializeIncludesMeta(): void
     {
-        $msg = new SamplingMessage(Role::User, new TextContent('hi'), new MetaObject(extras: ['trace' => 'abc']));
+        $msg = new SamplingMessage(role: Role::User, content: new TextContent(text: 'hi'), meta: new MetaObject(extras: ['trace' => 'abc']));
 
         self::assertSame(
             ['role' => 'user', 'content' => ['text' => 'hi', 'type' => 'text'], '_meta' => ['trace' => 'abc']],
@@ -146,7 +146,7 @@ final class SamplingMessageTest extends TestCase
 
     public function testFromArrayFullRoundTrip(): void
     {
-        $original = new SamplingMessage(Role::User, new TextContent('hi'));
+        $original = new SamplingMessage(role: Role::User, content: new TextContent(text: 'hi'));
 
         $rebuilt = SamplingMessage::fromArray($original->toArray());
 
@@ -241,7 +241,7 @@ final class SamplingMessageTest extends TestCase
 
     public function testJsonSerializeListContentReturnsArrayOfArrays(): void
     {
-        $msg = new SamplingMessage(Role::Assistant, [new TextContent('one'), new TextContent('two')]);
+        $msg = new SamplingMessage(role: Role::Assistant, content: [new TextContent(text: 'one'), new TextContent(text: 'two')]);
 
         self::assertSame(
             [

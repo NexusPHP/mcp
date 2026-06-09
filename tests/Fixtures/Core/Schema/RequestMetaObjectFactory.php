@@ -42,12 +42,12 @@ final class RequestMetaObjectFactory
         ?LoggingLevel $logLevel = null,
     ): RequestMetaObject {
         return new RequestMetaObject(
-            new ProtocolVersion(ProtocolVersion::LATEST_VERSION),
-            new Implementation(self::CLIENT_NAME, self::CLIENT_VERSION),
-            new ClientCapabilities(roots: ['listChanged' => true]),
-            $logLevel,
-            $progressToken,
-            $extras,
+            protocolVersion: new ProtocolVersion(version: ProtocolVersion::LATEST_VERSION),
+            clientInfo: new Implementation(name: self::CLIENT_NAME, version: self::CLIENT_VERSION),
+            clientCapabilities: new ClientCapabilities(roots: ['listChanged' => true]),
+            logLevel: $logLevel,
+            progressToken: $progressToken,
+            extras: $extras,
         );
     }
 

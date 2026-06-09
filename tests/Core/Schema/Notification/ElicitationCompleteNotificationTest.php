@@ -41,7 +41,7 @@ final class ElicitationCompleteNotificationTest extends TestCase
     public function testToArray(): void
     {
         $notification = new ElicitationCompleteNotification(
-            new ElicitationCompleteNotificationParams('elicit-1'),
+            params: new ElicitationCompleteNotificationParams(elicitationId: 'elicit-1'),
         );
 
         self::assertSame(
@@ -57,7 +57,7 @@ final class ElicitationCompleteNotificationTest extends TestCase
     public function testJsonSerializeMatchesToArray(): void
     {
         $notification = new ElicitationCompleteNotification(
-            new ElicitationCompleteNotificationParams('elicit-1'),
+            params: new ElicitationCompleteNotificationParams(elicitationId: 'elicit-1'),
         );
 
         self::assertSame($notification->toArray(), $notification->jsonSerialize());
@@ -66,7 +66,7 @@ final class ElicitationCompleteNotificationTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new ElicitationCompleteNotification(
-            new ElicitationCompleteNotificationParams('elicit-1'),
+            params: new ElicitationCompleteNotificationParams(elicitationId: 'elicit-1'),
         );
 
         $rebuilt = ElicitationCompleteNotification::fromArray($original->toArray());

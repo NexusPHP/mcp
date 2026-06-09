@@ -74,7 +74,7 @@ final class PromptStoreTest extends TestCase
     {
         $store = new PromptStore(self::makeEntries('only'), pageSize: 1);
 
-        $page = $store->list(new Cursor('only'));
+        $page = $store->list(new Cursor(cursor: 'only'));
 
         self::assertSame([], $page->prompts);
         self::assertNull($page->nextCursor);
@@ -102,7 +102,7 @@ final class PromptStoreTest extends TestCase
         $this->expectExceptionMessageMatches('/^Prompt store entry key must be a non-empty string\.$/');
 
         // @phpstan-ignore argument.type
-        new PromptStore([1 => new PromptEntry(new Prompt('one'), self::makeRenderer())]);
+        new PromptStore([1 => new PromptEntry(new Prompt(name: 'one'), self::makeRenderer())]);
     }
 
     public function testConstructorRejectsEmptyStringEntryKey(): void
@@ -111,7 +111,7 @@ final class PromptStoreTest extends TestCase
         $this->expectExceptionMessageMatches('/^Prompt store entry key must be a non-empty string\.$/');
 
         // @phpstan-ignore argument.type
-        new PromptStore(['' => new PromptEntry(new Prompt('one'), self::makeRenderer())]);
+        new PromptStore(['' => new PromptEntry(new Prompt(name: 'one'), self::makeRenderer())]);
     }
 
     public function testListRejectsCursorThatMatchesNoEntry(): void
@@ -121,17 +121,17 @@ final class PromptStoreTest extends TestCase
         $this->expectException(InvalidCursorException::class);
         $this->expectExceptionMessageMatches('/^Cursor "missing" does not match any registered entry\.$/');
 
-        $store->list(new Cursor('missing'));
+        $store->list(new Cursor(cursor: 'missing'));
     }
 
     public function testGetInvokesTheRendererMatchingTheName(): void
     {
-        $alphaResult = new GetPromptResult([]);
-        $betaResult = new GetPromptResult([]);
+        $alphaResult = new GetPromptResult(messages: []);
+        $betaResult = new GetPromptResult(messages: []);
         $captured = [];
         $store = new PromptStore([
             'alpha' => new PromptEntry(
-                new Prompt('alpha'),
+                new Prompt(name: 'alpha'),
                 new ClosurePromptRenderer(static function (?array $arguments, ServerContext $context) use ($alphaResult, &$captured): GetPromptResult {
                     $captured[] = ['name' => 'alpha', 'arguments' => $arguments, 'sessionId' => $context->sessionId];
 
@@ -139,7 +139,7 @@ final class PromptStoreTest extends TestCase
                 }),
             ),
             'beta' => new PromptEntry(
-                new Prompt('beta'),
+                new Prompt(name: 'beta'),
                 new ClosurePromptRenderer(static function (?array $arguments, ServerContext $context) use ($betaResult, &$captured): GetPromptResult {
                     $captured[] = ['name' => 'beta', 'arguments' => $arguments, 'sessionId' => $context->sessionId];
 
@@ -175,7 +175,7 @@ final class PromptStoreTest extends TestCase
 
         foreach ($names as $name) {
             \assert('' !== $name);
-            $entries[$name] = new PromptEntry(new Prompt($name), self::makeRenderer());
+            $entries[$name] = new PromptEntry(new Prompt(name: $name), self::makeRenderer());
         }
 
         return $entries;
@@ -184,14 +184,14 @@ final class PromptStoreTest extends TestCase
     private static function makeRenderer(): ClosurePromptRenderer
     {
         return new ClosurePromptRenderer(
-            static fn(?array $arguments, ServerContext $context): GetPromptResult => new GetPromptResult([]),
+            static fn(?array $arguments, ServerContext $context): GetPromptResult => new GetPromptResult(messages: []),
         );
     }
 
     private static function makeContext(): ServerContext
     {
         return new ServerContext(
-            new RequestId(1),
+            new RequestId(id: 1),
             new NullCancellation(),
             RequestMetaObjectFactory::create(),
             null,

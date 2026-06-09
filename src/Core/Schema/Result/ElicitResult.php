@@ -90,7 +90,7 @@ final readonly class ElicitResult extends Result implements ClientResult
             $meta = MetaObject::fromArray($data['_meta']);
         }
 
-        return new self($action, $content, $meta);
+        return new self(action: $action, content: $content, meta: $meta);
     }
 
     #[\Override]

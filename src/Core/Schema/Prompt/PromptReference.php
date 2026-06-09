@@ -57,7 +57,7 @@ final readonly class PromptReference extends BaseMetadata implements Arrayable
         $title = $data['title'] ?? null;
         Assert::that($title)->nullOr()->isString('prompt reference "title" must be a string or null, {type} given.');
 
-        return new self($name, $title);
+        return new self(name: $name, title: $title);
     }
 
     #[\Override]

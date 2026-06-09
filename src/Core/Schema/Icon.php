@@ -113,7 +113,7 @@ final readonly class Icon implements Arrayable
         $theme = $data['theme'] ?? null;
         Assert::that($theme)->nullOr()->isString('"icons.theme" must be a string or null, {type} given.');
 
-        return new self($src, $mimeType, $sizes, $theme);
+        return new self(src: $src, mimeType: $mimeType, sizes: $sizes, theme: $theme);
     }
 
     #[\Override]

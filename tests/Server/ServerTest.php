@@ -213,8 +213,8 @@ final class ServerTest extends TestCase
         EventLoop::queue(static function () use ($clientSide, $serverSide): void {
             $clientSide->start();
             $clientSide->send(new DiscoverRequest(
-                new RequestId(42),
-                new EmptyRequestParams(RequestMetaObjectFactory::create()),
+                id: new RequestId(id: 42),
+                params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create()),
             ));
             $serverSide->close();
         });

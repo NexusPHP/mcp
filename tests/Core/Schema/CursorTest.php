@@ -29,7 +29,7 @@ final class CursorTest extends TestCase
 {
     public function testCursorAcceptsNonEmptyString(): void
     {
-        self::assertSame('abc123', new Cursor('abc123')->cursor);
+        self::assertSame('abc123', new Cursor(cursor: 'abc123')->cursor);
     }
 
     public function testCursorRejectsEmptyString(): void
@@ -37,6 +37,6 @@ final class CursorTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"cursor" must be a non-empty string.');
 
-        new Cursor('');
+        new Cursor(cursor: '');
     }
 }

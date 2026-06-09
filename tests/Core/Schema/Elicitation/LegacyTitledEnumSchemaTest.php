@@ -30,7 +30,7 @@ final class LegacyTitledEnumSchemaTest extends TestCase
 {
     public function testConstructionMinimal(): void
     {
-        $schema = new LegacyTitledEnumSchema(['a', 'b']);
+        $schema = new LegacyTitledEnumSchema(enum: ['a', 'b']);
 
         self::assertSame(['a', 'b'], $schema->enum);
         self::assertNull($schema->title);
@@ -41,14 +41,14 @@ final class LegacyTitledEnumSchemaTest extends TestCase
 
     public function testToArrayMinimal(): void
     {
-        $schema = new LegacyTitledEnumSchema(['a']);
+        $schema = new LegacyTitledEnumSchema(enum: ['a']);
 
         self::assertSame(['type' => 'string', 'enum' => ['a']], $schema->toArray());
     }
 
     public function testToArrayWithAllFields(): void
     {
-        $schema = new LegacyTitledEnumSchema(['S', 'M'], 'Size', 'desc', ['Small', 'Medium'], 'M');
+        $schema = new LegacyTitledEnumSchema(enum: ['S', 'M'], title: 'Size', description: 'desc', enumNames: ['Small', 'Medium'], default: 'M');
 
         self::assertSame(
             [
@@ -65,14 +65,14 @@ final class LegacyTitledEnumSchemaTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $schema = new LegacyTitledEnumSchema(['a'], 'T');
+        $schema = new LegacyTitledEnumSchema(enum: ['a'], title: 'T');
 
         self::assertSame($schema->toArray(), $schema->jsonSerialize());
     }
 
     public function testFromArrayFullRoundTrip(): void
     {
-        $original = new LegacyTitledEnumSchema(['S', 'M'], 'Size', 'desc', ['Small', 'Medium'], 'M');
+        $original = new LegacyTitledEnumSchema(enum: ['S', 'M'], title: 'Size', description: 'desc', enumNames: ['Small', 'Medium'], default: 'M');
 
         $rebuilt = LegacyTitledEnumSchema::fromArray($original->toArray());
 
@@ -85,7 +85,7 @@ final class LegacyTitledEnumSchemaTest extends TestCase
         $this->expectExceptionMessageIs('legacy titled enum schema "enum" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
-        new LegacyTitledEnumSchema(['k' => 'v']);
+        new LegacyTitledEnumSchema(enum: ['k' => 'v']);
     }
 
     public function testConstructorRejectsEmptyEnumEntry(): void
@@ -93,7 +93,7 @@ final class LegacyTitledEnumSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('each legacy titled enum schema "enum" must be a non-empty string.');
 
-        new LegacyTitledEnumSchema(['']);
+        new LegacyTitledEnumSchema(enum: ['']);
     }
 
     public function testConstructorRejectsEmptyTitle(): void
@@ -101,7 +101,7 @@ final class LegacyTitledEnumSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('legacy titled enum schema "title" must be a non-empty string or null.');
 
-        new LegacyTitledEnumSchema(['a'], '');
+        new LegacyTitledEnumSchema(enum: ['a'], title: '');
     }
 
     public function testConstructorRejectsEmptyDescription(): void
@@ -109,7 +109,7 @@ final class LegacyTitledEnumSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('legacy titled enum schema "description" must be a non-empty string or null.');
 
-        new LegacyTitledEnumSchema(['a'], null, '');
+        new LegacyTitledEnumSchema(enum: ['a'], title: null, description: '');
     }
 
     public function testConstructorRejectsNonListEnumNames(): void
@@ -118,7 +118,7 @@ final class LegacyTitledEnumSchemaTest extends TestCase
         $this->expectExceptionMessageIs('legacy titled enum schema "enumNames" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
-        new LegacyTitledEnumSchema(['a'], null, null, ['k' => 'v']);
+        new LegacyTitledEnumSchema(enum: ['a'], title: null, description: null, enumNames: ['k' => 'v']);
     }
 
     public function testConstructorRejectsEmptyEnumNamesEntry(): void
@@ -126,7 +126,7 @@ final class LegacyTitledEnumSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('each legacy titled enum schema "enumNames" must be a non-empty string.');
 
-        new LegacyTitledEnumSchema(['a'], null, null, ['']);
+        new LegacyTitledEnumSchema(enum: ['a'], title: null, description: null, enumNames: ['']);
     }
 
     /**

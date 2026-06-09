@@ -49,18 +49,18 @@ final class CallToolRequestHandlerTest extends TestCase
         $captured = ['arguments' => null, 'requestId' => 0];
         $store = new ToolStore([
             'echo' => new ToolEntry(
-                new Tool('echo', ['type' => 'object']),
+                new Tool(name: 'echo', inputSchema: ['type' => 'object']),
                 new ClosureToolExecutor(static function (?array $arguments, ServerContext $context) use (&$captured): CallToolResult {
                     $captured = ['arguments' => $arguments, 'requestId' => $context->requestId->id];
 
-                    return new CallToolResult([]);
+                    return new CallToolResult(content: []);
                 }),
             ),
         ]);
         $handler = new CallToolRequestHandler($store);
 
         $handler->handle(
-            new CallToolRequest(new RequestId(42), new CallToolRequestParams('echo', RequestMetaObjectFactory::create(), ['x' => 1])),
+            new CallToolRequest(id: new RequestId(id: 42), params: new CallToolRequestParams(name: 'echo', meta: RequestMetaObjectFactory::create(), arguments: ['x' => 1])),
             self::makeContext(),
         );
 
@@ -69,17 +69,17 @@ final class CallToolRequestHandlerTest extends TestCase
 
     public function testReturnsResultFromStoreUnchanged(): void
     {
-        $expected = new CallToolResult([]);
+        $expected = new CallToolResult(content: []);
         $store = new ToolStore([
             'echo' => new ToolEntry(
-                new Tool('echo', ['type' => 'object']),
+                new Tool(name: 'echo', inputSchema: ['type' => 'object']),
                 new ClosureToolExecutor(static fn(?array $arguments, ServerContext $context): CallToolResult => $expected),
             ),
         ]);
         $handler = new CallToolRequestHandler($store);
 
         $result = $handler->handle(
-            new CallToolRequest(new RequestId(1), new CallToolRequestParams('echo', RequestMetaObjectFactory::create())),
+            new CallToolRequest(id: new RequestId(id: 1), params: new CallToolRequestParams(name: 'echo', meta: RequestMetaObjectFactory::create())),
             self::makeContext(),
         );
 
@@ -91,19 +91,19 @@ final class CallToolRequestHandlerTest extends TestCase
         $structured = ['path' => 'docs/intro', 'lines' => 42];
         $store = new ToolStore([
             'report' => new ToolEntry(
-                new Tool('report', ['type' => 'object']),
+                new Tool(name: 'report', inputSchema: ['type' => 'object']),
                 new ClosureToolExecutor(static fn(?array $arguments, ServerContext $context): CallToolResult => new CallToolResult(
                     content: [],
                     structuredContent: $structured,
                     isError: false,
-                    meta: new MetaObject(['vendor' => 'x']),
+                    meta: new MetaObject(extras: ['vendor' => 'x']),
                 )),
             ),
         ]);
         $handler = new CallToolRequestHandler($store);
 
         $result = $handler->handle(
-            new CallToolRequest(new RequestId(1), new CallToolRequestParams('report', RequestMetaObjectFactory::create())),
+            new CallToolRequest(id: new RequestId(id: 1), params: new CallToolRequestParams(name: 'report', meta: RequestMetaObjectFactory::create())),
             self::makeContext(),
         );
 
@@ -123,19 +123,19 @@ final class CallToolRequestHandlerTest extends TestCase
     public function testDoesNotMirrorWhenContentAlreadyPresent(): void
     {
         $expected = new CallToolResult(
-            content: [new TextContent('explicit')],
+            content: [new TextContent(text: 'explicit')],
             structuredContent: ['lines' => 42],
         );
         $store = new ToolStore([
             'report' => new ToolEntry(
-                new Tool('report', ['type' => 'object']),
+                new Tool(name: 'report', inputSchema: ['type' => 'object']),
                 new ClosureToolExecutor(static fn(?array $arguments, ServerContext $context): CallToolResult => $expected),
             ),
         ]);
         $handler = new CallToolRequestHandler($store);
 
         $result = $handler->handle(
-            new CallToolRequest(new RequestId(1), new CallToolRequestParams('report', RequestMetaObjectFactory::create())),
+            new CallToolRequest(id: new RequestId(id: 1), params: new CallToolRequestParams(name: 'report', meta: RequestMetaObjectFactory::create())),
             self::makeContext(),
         );
 
@@ -146,7 +146,7 @@ final class CallToolRequestHandlerTest extends TestCase
     {
         $store = new ToolStore([
             'report' => new ToolEntry(
-                new Tool('report', ['type' => 'object']),
+                new Tool(name: 'report', inputSchema: ['type' => 'object']),
                 new ClosureToolExecutor(static fn(?array $arguments, ServerContext $context): CallToolResult => new CallToolResult(
                     content: [],
                     structuredContent: ['value' => \NAN],
@@ -157,7 +157,7 @@ final class CallToolRequestHandlerTest extends TestCase
         $handler = new CallToolRequestHandler($store, $logger);
 
         $result = $handler->handle(
-            new CallToolRequest(new RequestId(1), new CallToolRequestParams('report', RequestMetaObjectFactory::create())),
+            new CallToolRequest(id: new RequestId(id: 1), params: new CallToolRequestParams(name: 'report', meta: RequestMetaObjectFactory::create())),
             self::makeContext(),
         );
 
@@ -183,12 +183,12 @@ final class CallToolRequestHandlerTest extends TestCase
     {
         $store = new ToolStore([
             'search' => new ToolEntry(
-                new Tool('search', [
+                new Tool(name: 'search', inputSchema: [
                     'type' => 'object',
                     'properties' => ['q' => ['type' => 'string']],
                     'required' => ['q'],
                 ]),
-                new ClosureToolExecutor(static fn(?array $arguments, ServerContext $context): CallToolResult => new CallToolResult([])),
+                new ClosureToolExecutor(static fn(?array $arguments, ServerContext $context): CallToolResult => new CallToolResult(content: [])),
             ),
         ]);
         $handler = new CallToolRequestHandler($store);
@@ -197,7 +197,7 @@ final class CallToolRequestHandlerTest extends TestCase
         $this->expectExceptionMessageMatches('/^Invalid arguments for tool "search": /');
 
         $handler->handle(
-            new CallToolRequest(new RequestId(1), new CallToolRequestParams('search', RequestMetaObjectFactory::create(), ['q' => 123])),
+            new CallToolRequest(id: new RequestId(id: 1), params: new CallToolRequestParams(name: 'search', meta: RequestMetaObjectFactory::create(), arguments: ['q' => 123])),
             self::makeContext(),
         );
     }
@@ -206,19 +206,19 @@ final class CallToolRequestHandlerTest extends TestCase
     {
         $store = new ToolStore([
             'report' => new ToolEntry(
-                new Tool('report', ['type' => 'object'], outputSchema: [
+                new Tool(name: 'report', inputSchema: ['type' => 'object'], outputSchema: [
                     'type' => 'object',
                     'properties' => ['n' => ['type' => 'integer']],
                     'required' => ['n'],
                 ]),
-                new ClosureToolExecutor(static fn(?array $arguments, ServerContext $context): CallToolResult => new CallToolResult([], ['n' => 'oops'])),
+                new ClosureToolExecutor(static fn(?array $arguments, ServerContext $context): CallToolResult => new CallToolResult(content: [], structuredContent: ['n' => 'oops'])),
             ),
         ]);
         $logger = new ArrayLogger();
         $handler = new CallToolRequestHandler($store, $logger);
 
         $result = $handler->handle(
-            new CallToolRequest(new RequestId(1), new CallToolRequestParams('report', RequestMetaObjectFactory::create())),
+            new CallToolRequest(id: new RequestId(id: 1), params: new CallToolRequestParams(name: 'report', meta: RequestMetaObjectFactory::create())),
             self::makeContext(),
         );
 
@@ -248,7 +248,7 @@ final class CallToolRequestHandlerTest extends TestCase
         $this->expectExceptionMessageMatches('/^No tool registered under name "missing"\.$/');
 
         $handler->handle(
-            new CallToolRequest(new RequestId(1), new CallToolRequestParams('missing', RequestMetaObjectFactory::create())),
+            new CallToolRequest(id: new RequestId(id: 1), params: new CallToolRequestParams(name: 'missing', meta: RequestMetaObjectFactory::create())),
             self::makeContext(),
         );
     }
@@ -258,7 +258,7 @@ final class CallToolRequestHandlerTest extends TestCase
         $exception = new \RuntimeException('db timeout at /opt/app/vendor/foo/bar/Loader.php:217');
         $store = new ToolStore([
             'flaky' => new ToolEntry(
-                new Tool('flaky', ['type' => 'object']),
+                new Tool(name: 'flaky', inputSchema: ['type' => 'object']),
                 new ClosureToolExecutor(static function () use ($exception): CallToolResult {
                     throw $exception;
                 }),
@@ -268,7 +268,7 @@ final class CallToolRequestHandlerTest extends TestCase
         $handler = new CallToolRequestHandler($store, $logger);
 
         $result = $handler->handle(
-            new CallToolRequest(new RequestId(1), new CallToolRequestParams('flaky', RequestMetaObjectFactory::create())),
+            new CallToolRequest(id: new RequestId(id: 1), params: new CallToolRequestParams(name: 'flaky', meta: RequestMetaObjectFactory::create())),
             self::makeContext(),
         );
 
@@ -297,7 +297,7 @@ final class CallToolRequestHandlerTest extends TestCase
         $exception = new \LogicException('bad branch');
         $store = new ToolStore([
             'flaky' => new ToolEntry(
-                new Tool('flaky', ['type' => 'object']),
+                new Tool(name: 'flaky', inputSchema: ['type' => 'object']),
                 new ClosureToolExecutor(static function () use ($exception): CallToolResult {
                     throw $exception;
                 }),
@@ -307,7 +307,7 @@ final class CallToolRequestHandlerTest extends TestCase
         $handler = new CallToolRequestHandler($store, $logger);
 
         $result = $handler->handle(
-            new CallToolRequest(new RequestId(1), new CallToolRequestParams('flaky', RequestMetaObjectFactory::create())),
+            new CallToolRequest(id: new RequestId(id: 1), params: new CallToolRequestParams(name: 'flaky', meta: RequestMetaObjectFactory::create())),
             self::makeContext(),
         );
 
@@ -332,7 +332,7 @@ final class CallToolRequestHandlerTest extends TestCase
     private static function makeContext(): ServerContext
     {
         return new ServerContext(
-            new RequestId(99),
+            new RequestId(id: 99),
             new NullCancellation(),
             RequestMetaObjectFactory::create(),
             null,

@@ -40,13 +40,13 @@ final class DiscoverResultTest extends TestCase
     public function testConstructionMinimal(): void
     {
         $capabilities = new ServerCapabilities(tools: ['listChanged' => true]);
-        $serverInfo = new Implementation('srv', '1.0.0');
+        $serverInfo = new Implementation(name: 'srv', version: '1.0.0');
         $result = new DiscoverResult(
-            [ProtocolVersion::LATEST_VERSION],
-            $capabilities,
-            $serverInfo,
-            0,
-            CacheScope::Private,
+            supportedVersions: [ProtocolVersion::LATEST_VERSION],
+            capabilities: $capabilities,
+            serverInfo: $serverInfo,
+            ttlMs: 0,
+            cacheScope: CacheScope::Private,
         );
 
         self::assertSame([ProtocolVersion::LATEST_VERSION], $result->supportedVersions);
@@ -61,11 +61,11 @@ final class DiscoverResultTest extends TestCase
     public function testToArrayMinimal(): void
     {
         $result = new DiscoverResult(
-            ['2026-07-28'],
-            new ServerCapabilities(tools: ['listChanged' => true]),
-            new Implementation('srv', '1.0.0'),
-            0,
-            CacheScope::Private,
+            supportedVersions: ['2026-07-28'],
+            capabilities: new ServerCapabilities(tools: ['listChanged' => true]),
+            serverInfo: new Implementation(name: 'srv', version: '1.0.0'),
+            ttlMs: 0,
+            cacheScope: CacheScope::Private,
         );
 
         self::assertSame(
@@ -84,13 +84,13 @@ final class DiscoverResultTest extends TestCase
     public function testToArrayWithAllFields(): void
     {
         $result = new DiscoverResult(
-            ['2026-07-28', '2025-06-18'],
-            new ServerCapabilities(tools: ['listChanged' => true]),
-            new Implementation('srv', '1.0.0'),
-            60000,
-            CacheScope::Public,
-            'Be helpful.',
-            new MetaObject(['vendor' => 'x']),
+            supportedVersions: ['2026-07-28', '2025-06-18'],
+            capabilities: new ServerCapabilities(tools: ['listChanged' => true]),
+            serverInfo: new Implementation(name: 'srv', version: '1.0.0'),
+            ttlMs: 60000,
+            cacheScope: CacheScope::Public,
+            instructions: 'Be helpful.',
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -111,11 +111,11 @@ final class DiscoverResultTest extends TestCase
     public function testJsonSerializeSubstitutesEmptyCapabilities(): void
     {
         $result = new DiscoverResult(
-            ['2026-07-28'],
-            new ServerCapabilities(logging: []),
-            new Implementation('srv', '1.0.0'),
-            0,
-            CacheScope::Private,
+            supportedVersions: ['2026-07-28'],
+            capabilities: new ServerCapabilities(logging: []),
+            serverInfo: new Implementation(name: 'srv', version: '1.0.0'),
+            ttlMs: 0,
+            cacheScope: CacheScope::Private,
         );
 
         self::assertStringContainsString('"logging":{}', (string) json_encode($result));
@@ -124,11 +124,11 @@ final class DiscoverResultTest extends TestCase
     public function testJsonSerializeMatchesToArrayForNonEmptyCapabilities(): void
     {
         $result = new DiscoverResult(
-            ['2026-07-28'],
-            new ServerCapabilities(tools: ['listChanged' => true]),
-            new Implementation('srv', '1.0.0'),
-            0,
-            CacheScope::Private,
+            supportedVersions: ['2026-07-28'],
+            capabilities: new ServerCapabilities(tools: ['listChanged' => true]),
+            serverInfo: new Implementation(name: 'srv', version: '1.0.0'),
+            ttlMs: 0,
+            cacheScope: CacheScope::Private,
         );
 
         self::assertSame($result->toArray(), $result->jsonSerialize());
@@ -137,13 +137,13 @@ final class DiscoverResultTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new DiscoverResult(
-            ['2026-07-28', '2025-06-18'],
-            new ServerCapabilities(tools: ['listChanged' => true]),
-            new Implementation('srv', '1.0.0'),
-            60000,
-            CacheScope::Public,
-            'Be helpful.',
-            new MetaObject(['vendor' => 'x']),
+            supportedVersions: ['2026-07-28', '2025-06-18'],
+            capabilities: new ServerCapabilities(tools: ['listChanged' => true]),
+            serverInfo: new Implementation(name: 'srv', version: '1.0.0'),
+            ttlMs: 60000,
+            cacheScope: CacheScope::Public,
+            instructions: 'Be helpful.',
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         $rebuilt = DiscoverResult::fromArray($original->toArray());
@@ -158,11 +158,11 @@ final class DiscoverResultTest extends TestCase
 
         new DiscoverResult(
             // @phpstan-ignore argument.type
-            [1],
-            new ServerCapabilities(),
-            new Implementation('srv', '1.0.0'),
-            0,
-            CacheScope::Private,
+            supportedVersions: [1],
+            capabilities: new ServerCapabilities(),
+            serverInfo: new Implementation(name: 'srv', version: '1.0.0'),
+            ttlMs: 0,
+            cacheScope: CacheScope::Private,
         );
     }
 
@@ -172,11 +172,11 @@ final class DiscoverResultTest extends TestCase
         $this->expectExceptionMessageIs('each "result.supportedVersions" must be a non-empty string.');
 
         new DiscoverResult(
-            [''],
-            new ServerCapabilities(),
-            new Implementation('srv', '1.0.0'),
-            0,
-            CacheScope::Private,
+            supportedVersions: [''],
+            capabilities: new ServerCapabilities(),
+            serverInfo: new Implementation(name: 'srv', version: '1.0.0'),
+            ttlMs: 0,
+            cacheScope: CacheScope::Private,
         );
     }
 
@@ -186,11 +186,11 @@ final class DiscoverResultTest extends TestCase
         $this->expectExceptionMessageIs('"result.ttlMs" must be a non-negative integer, -1 given.');
 
         new DiscoverResult(
-            [ProtocolVersion::LATEST_VERSION],
-            new ServerCapabilities(),
-            new Implementation('srv', '1.0.0'),
-            -1,
-            CacheScope::Private,
+            supportedVersions: [ProtocolVersion::LATEST_VERSION],
+            capabilities: new ServerCapabilities(),
+            serverInfo: new Implementation(name: 'srv', version: '1.0.0'),
+            ttlMs: -1,
+            cacheScope: CacheScope::Private,
         );
     }
 

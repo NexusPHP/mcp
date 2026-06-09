@@ -49,7 +49,7 @@ final class MethodMisroutedExceptionTest extends TestCase
             'notifications/initialized',
             expectedShape: 'notification',
             receivedShape: 'request',
-            requestId: new RequestId(42),
+            requestId: new RequestId(id: 42),
             previous: $previous,
         );
 

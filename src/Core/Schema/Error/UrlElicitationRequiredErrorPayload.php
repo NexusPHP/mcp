@@ -34,6 +34,6 @@ final readonly class UrlElicitationRequiredErrorPayload extends Error
     #[\Override]
     public static function fromArray(array $data): static
     {
-        return new self($data['message'] ?? 'URL elicitation required', $data['data'] ?? null);
+        return new self(message: $data['message'] ?? 'URL elicitation required', data: $data['data'] ?? null);
     }
 }

@@ -52,7 +52,7 @@ final readonly class MetaObject implements Arrayable
     #[\Override]
     public static function fromArray(array $data): static
     {
-        return new self($data);
+        return new self(extras: $data);
     }
 
     #[\Override]

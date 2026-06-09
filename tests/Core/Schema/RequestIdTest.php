@@ -29,9 +29,9 @@ final class RequestIdTest extends TestCase
 {
     public function testRequestIdCapturesIdAsIs(): void
     {
-        self::assertSame('12345', new RequestId('12345')->id);
-        self::assertSame('abcde', new RequestId('abcde')->id);
-        self::assertSame(100, new RequestId(100)->id);
+        self::assertSame('12345', new RequestId(id: '12345')->id);
+        self::assertSame('abcde', new RequestId(id: 'abcde')->id);
+        self::assertSame(100, new RequestId(id: 100)->id);
     }
 
     public function testRequestIdCannotBeEmptyString(): void
@@ -39,6 +39,6 @@ final class RequestIdTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"id" must be a non-empty string.');
 
-        new RequestId('');
+        new RequestId(id: '');
     }
 }

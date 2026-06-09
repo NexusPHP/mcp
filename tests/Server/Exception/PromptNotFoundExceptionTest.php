@@ -42,7 +42,7 @@ final class PromptNotFoundExceptionTest extends TestCase
     public function testCarriesProvidedRequestIdAndPrevious(): void
     {
         $previous = new \RuntimeException('inner');
-        $e = new PromptNotFoundException('missing', new RequestId(42), $previous);
+        $e = new PromptNotFoundException('missing', new RequestId(id: 42), $previous);
 
         self::assertSame('missing', $e->name);
         self::assertSame(42, $e->requestId?->id);

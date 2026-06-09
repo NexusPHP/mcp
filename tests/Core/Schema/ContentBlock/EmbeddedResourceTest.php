@@ -34,7 +34,7 @@ final class EmbeddedResourceTest extends TestCase
 {
     public function testConstructionMinimalText(): void
     {
-        $embedded = new EmbeddedResource(new TextResourceContents('file:///x', 'hello'));
+        $embedded = new EmbeddedResource(resource: new TextResourceContents(uri: 'file:///x', text: 'hello'));
 
         self::assertSame('file:///x', $embedded->resource->uri);
         self::assertSame([], $embedded->annotations->toArray());
@@ -43,14 +43,14 @@ final class EmbeddedResourceTest extends TestCase
 
     public function testConstructionMinimalBlob(): void
     {
-        $embedded = new EmbeddedResource(new BlobResourceContents('file:///x', 'aGVsbG8='));
+        $embedded = new EmbeddedResource(resource: new BlobResourceContents(uri: 'file:///x', blob: 'aGVsbG8='));
 
         self::assertSame('file:///x', $embedded->resource->uri);
     }
 
     public function testToArrayWithText(): void
     {
-        $embedded = new EmbeddedResource(new TextResourceContents('file:///x', 'hello'));
+        $embedded = new EmbeddedResource(resource: new TextResourceContents(uri: 'file:///x', text: 'hello'));
 
         self::assertSame(
             [
@@ -63,7 +63,7 @@ final class EmbeddedResourceTest extends TestCase
 
     public function testToArrayWithBlob(): void
     {
-        $embedded = new EmbeddedResource(new BlobResourceContents('file:///x', 'aGVsbG8='));
+        $embedded = new EmbeddedResource(resource: new BlobResourceContents(uri: 'file:///x', blob: 'aGVsbG8='));
 
         self::assertSame(
             [
@@ -77,9 +77,9 @@ final class EmbeddedResourceTest extends TestCase
     public function testToArrayWithAllFields(): void
     {
         $embedded = new EmbeddedResource(
-            new TextResourceContents('file:///x', 'hello'),
-            new Annotations(null, 0.5),
-            new MetaObject(['vendor' => 'x']),
+            resource: new TextResourceContents(uri: 'file:///x', text: 'hello'),
+            annotations: new Annotations(audience: null, priority: 0.5),
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -96,9 +96,9 @@ final class EmbeddedResourceTest extends TestCase
     public function testJsonSerializeMatchesToArray(): void
     {
         $embedded = new EmbeddedResource(
-            new TextResourceContents('file:///x', 'hello'),
-            new Annotations(),
-            new MetaObject(['k' => 'v']),
+            resource: new TextResourceContents(uri: 'file:///x', text: 'hello'),
+            annotations: new Annotations(),
+            meta: new MetaObject(extras: ['k' => 'v']),
         );
 
         self::assertSame($embedded->toArray(), $embedded->jsonSerialize());
@@ -142,9 +142,9 @@ final class EmbeddedResourceTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new EmbeddedResource(
-            new TextResourceContents('file:///x', 'hello'),
-            new Annotations(null, 0.5),
-            new MetaObject(['vendor' => 'x']),
+            resource: new TextResourceContents(uri: 'file:///x', text: 'hello'),
+            annotations: new Annotations(audience: null, priority: 0.5),
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         $rebuilt = EmbeddedResource::fromArray($original->toArray());

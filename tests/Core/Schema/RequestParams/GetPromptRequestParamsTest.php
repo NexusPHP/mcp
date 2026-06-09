@@ -34,7 +34,7 @@ final class GetPromptRequestParamsTest extends TestCase
 {
     public function testConstructionMinimal(): void
     {
-        $params = new GetPromptRequestParams('code-review', RequestMetaObjectFactory::create());
+        $params = new GetPromptRequestParams(name: 'code-review', meta: RequestMetaObjectFactory::create());
 
         self::assertSame('code-review', $params->name);
         self::assertNull($params->arguments);
@@ -42,8 +42,8 @@ final class GetPromptRequestParamsTest extends TestCase
 
     public function testConstructionWithAllFields(): void
     {
-        $meta = RequestMetaObjectFactory::create(new ProgressToken('p-1'), ['vendor.brand' => 'acme']);
-        $params = new GetPromptRequestParams('code-review', $meta, ['topic' => 'auth']);
+        $meta = RequestMetaObjectFactory::create(new ProgressToken(token: 'p-1'), ['vendor.brand' => 'acme']);
+        $params = new GetPromptRequestParams(name: 'code-review', meta: $meta, arguments: ['topic' => 'auth']);
 
         self::assertSame(['topic' => 'auth'], $params->arguments);
         self::assertSame($meta, $params->meta);
@@ -51,7 +51,7 @@ final class GetPromptRequestParamsTest extends TestCase
 
     public function testToArrayMinimal(): void
     {
-        $params = new GetPromptRequestParams('code-review', RequestMetaObjectFactory::create());
+        $params = new GetPromptRequestParams(name: 'code-review', meta: RequestMetaObjectFactory::create());
 
         self::assertSame(
             ['_meta' => RequestMetaObjectFactory::shape(), 'name' => 'code-review'],
@@ -61,7 +61,7 @@ final class GetPromptRequestParamsTest extends TestCase
 
     public function testToArrayWithArguments(): void
     {
-        $params = new GetPromptRequestParams('code-review', RequestMetaObjectFactory::create(), ['topic' => 'auth']);
+        $params = new GetPromptRequestParams(name: 'code-review', meta: RequestMetaObjectFactory::create(), arguments: ['topic' => 'auth']);
 
         self::assertSame(
             ['_meta' => RequestMetaObjectFactory::shape(), 'name' => 'code-review', 'arguments' => ['topic' => 'auth']],
@@ -71,7 +71,7 @@ final class GetPromptRequestParamsTest extends TestCase
 
     public function testToArrayOmitsEmptyArguments(): void
     {
-        $params = new GetPromptRequestParams('code-review', RequestMetaObjectFactory::create(), []);
+        $params = new GetPromptRequestParams(name: 'code-review', meta: RequestMetaObjectFactory::create(), arguments: []);
 
         self::assertSame(
             ['_meta' => RequestMetaObjectFactory::shape(), 'name' => 'code-review'],
@@ -82,7 +82,7 @@ final class GetPromptRequestParamsTest extends TestCase
     public function testToArrayWithMeta(): void
     {
         $meta = RequestMetaObjectFactory::create(null, ['vendor.brand' => 'acme']);
-        $params = new GetPromptRequestParams('code-review', $meta);
+        $params = new GetPromptRequestParams(name: 'code-review', meta: $meta);
 
         self::assertSame(
             ['_meta' => RequestMetaObjectFactory::shape(null, ['vendor.brand' => 'acme']), 'name' => 'code-review'],
@@ -92,7 +92,7 @@ final class GetPromptRequestParamsTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $params = new GetPromptRequestParams('code-review', RequestMetaObjectFactory::create(), ['topic' => 'auth']);
+        $params = new GetPromptRequestParams(name: 'code-review', meta: RequestMetaObjectFactory::create(), arguments: ['topic' => 'auth']);
 
         self::assertSame($params->toArray(), $params->jsonSerialize());
     }
@@ -123,9 +123,9 @@ final class GetPromptRequestParamsTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new GetPromptRequestParams(
-            'code-review',
-            RequestMetaObjectFactory::create(null, ['vendor.brand' => 'acme']),
-            ['topic' => 'auth'],
+            name: 'code-review',
+            meta: RequestMetaObjectFactory::create(null, ['vendor.brand' => 'acme']),
+            arguments: ['topic' => 'auth'],
         );
 
         $rebuilt = GetPromptRequestParams::fromArray($original->toArray());
@@ -138,7 +138,7 @@ final class GetPromptRequestParamsTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageMatches('/\A"params.name" must be 1-128 characters/');
 
-        new GetPromptRequestParams('bad name', RequestMetaObjectFactory::create());
+        new GetPromptRequestParams(name: 'bad name', meta: RequestMetaObjectFactory::create());
     }
 
     public function testConstructorRejectsListKeyedArguments(): void
@@ -147,7 +147,7 @@ final class GetPromptRequestParamsTest extends TestCase
         $this->expectExceptionMessageIs('"params.arguments" must be a string-keyed map.');
 
         // @phpstan-ignore argument.type
-        new GetPromptRequestParams('topic', RequestMetaObjectFactory::create(), ['v1', 'v2']);
+        new GetPromptRequestParams(name: 'topic', meta: RequestMetaObjectFactory::create(), arguments: ['v1', 'v2']);
     }
 
     public function testConstructorRejectsNonStringArgumentValue(): void
@@ -156,7 +156,7 @@ final class GetPromptRequestParamsTest extends TestCase
         $this->expectExceptionMessageIs('"params.arguments" values must all be strings, int given.');
 
         // @phpstan-ignore argument.type
-        new GetPromptRequestParams('topic', RequestMetaObjectFactory::create(), ['k' => 1]);
+        new GetPromptRequestParams(name: 'topic', meta: RequestMetaObjectFactory::create(), arguments: ['k' => 1]);
     }
 
     /**

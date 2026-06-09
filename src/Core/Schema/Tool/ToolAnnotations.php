@@ -81,7 +81,13 @@ final readonly class ToolAnnotations implements Arrayable
         $openWorldHint = $data['openWorldHint'] ?? null;
         Assert::that($openWorldHint)->nullOr()->isBool('"annotations.openWorldHint" must be a bool or null, {type} given.');
 
-        return new self($title, $readOnlyHint, $destructiveHint, $idempotentHint, $openWorldHint);
+        return new self(
+            title: $title,
+            readOnlyHint: $readOnlyHint,
+            destructiveHint: $destructiveHint,
+            idempotentHint: $idempotentHint,
+            openWorldHint: $openWorldHint,
+        );
     }
 
     #[\Override]

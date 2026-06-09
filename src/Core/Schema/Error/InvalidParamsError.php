@@ -45,6 +45,6 @@ final readonly class InvalidParamsError extends Error
     #[\Override]
     public static function fromArray(array $data): static
     {
-        return new self($data['message'] ?? self::DEFAULT_MESSAGE, $data['data'] ?? null);
+        return new self(message: $data['message'] ?? self::DEFAULT_MESSAGE, data: $data['data'] ?? null);
     }
 }

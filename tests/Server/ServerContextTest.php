@@ -41,7 +41,7 @@ final class ServerContextTest extends TestCase
 {
     public function testCarriesAllProvidedFields(): void
     {
-        $requestId = new RequestId(42);
+        $requestId = new RequestId(id: 42);
         $cancellation = new NullCancellation();
         $meta = RequestMetaObjectFactory::create();
         $sender = new RecordingSender();
@@ -57,7 +57,7 @@ final class ServerContextTest extends TestCase
     public function testAcceptsExtraFreeMetaAndNullSessionId(): void
     {
         $context = new ServerContext(
-            new RequestId('req-1'),
+            new RequestId(id: 'req-1'),
             new NullCancellation(),
             RequestMetaObjectFactory::create(),
             null,
@@ -70,10 +70,10 @@ final class ServerContextTest extends TestCase
 
     public function testReportProgressSendsNotificationWhenProgressTokenPresent(): void
     {
-        $token = new ProgressToken('tok-1');
+        $token = new ProgressToken(token: 'tok-1');
         $sender = new RecordingSender();
         $context = new ServerContext(
-            new RequestId(1),
+            new RequestId(id: 1),
             new NullCancellation(),
             RequestMetaObjectFactory::create(progressToken: $token),
             null,
@@ -83,7 +83,7 @@ final class ServerContextTest extends TestCase
         $context->reportProgress(0.5, 1.0, 'halfway');
 
         $expected = new ProgressNotification(
-            new ProgressNotificationParams($token, 0.5, 1.0, 'halfway'),
+            params: new ProgressNotificationParams(progressToken: $token, progress: 0.5, total: 1.0, message: 'halfway'),
         );
 
         self::assertCount(1, $sender->notifications);
@@ -94,7 +94,7 @@ final class ServerContextTest extends TestCase
     {
         $sender = new RecordingSender();
         $context = new ServerContext(
-            new RequestId(1),
+            new RequestId(id: 1),
             new NullCancellation(),
             RequestMetaObjectFactory::create(),
             null,
@@ -110,7 +110,7 @@ final class ServerContextTest extends TestCase
     {
         $sender = new RecordingSender();
         $context = new ServerContext(
-            new RequestId(1),
+            new RequestId(id: 1),
             new NullCancellation(),
             RequestMetaObjectFactory::create(),
             null,
@@ -120,7 +120,7 @@ final class ServerContextTest extends TestCase
         $context->log(LoggingLevel::Warning, ['code' => 'slow', 'duration_ms' => 1200], 'tools/echo');
 
         $expected = new LoggingMessageNotification(
-            new LoggingMessageNotificationParams(LoggingLevel::Warning, ['code' => 'slow', 'duration_ms' => 1200], 'tools/echo'),
+            params: new LoggingMessageNotificationParams(level: LoggingLevel::Warning, data: ['code' => 'slow', 'duration_ms' => 1200], logger: 'tools/echo'),
         );
 
         self::assertCount(1, $sender->notifications);
@@ -131,7 +131,7 @@ final class ServerContextTest extends TestCase
     {
         $sender = new RecordingSender();
         $context = new ServerContext(
-            new RequestId(1),
+            new RequestId(id: 1),
             new NullCancellation(),
             RequestMetaObjectFactory::create(),
             null,
@@ -141,7 +141,7 @@ final class ServerContextTest extends TestCase
         $context->log(LoggingLevel::Info, 'starting');
 
         $expected = new LoggingMessageNotification(
-            new LoggingMessageNotificationParams(LoggingLevel::Info, 'starting'),
+            params: new LoggingMessageNotificationParams(level: LoggingLevel::Info, data: 'starting'),
         );
 
         self::assertCount(1, $sender->notifications);
@@ -152,7 +152,7 @@ final class ServerContextTest extends TestCase
     {
         $sender = new RecordingSender();
         $context = new ServerContext(
-            new RequestId(1),
+            new RequestId(id: 1),
             new NullCancellation(),
             RequestMetaObjectFactory::create(),
             null,
@@ -172,7 +172,7 @@ final class ServerContextTest extends TestCase
         $sender = new RecordingSender();
         $store = new LoggingLevelGate(LoggingLevel::Warning);
         $context = new ServerContext(
-            new RequestId(1),
+            new RequestId(id: 1),
             new NullCancellation(),
             RequestMetaObjectFactory::create(),
             null,
@@ -191,7 +191,7 @@ final class ServerContextTest extends TestCase
         $sender = new RecordingSender();
         $store = new LoggingLevelGate(LoggingLevel::Warning);
         $context = new ServerContext(
-            new RequestId(1),
+            new RequestId(id: 1),
             new NullCancellation(),
             RequestMetaObjectFactory::create(),
             null,

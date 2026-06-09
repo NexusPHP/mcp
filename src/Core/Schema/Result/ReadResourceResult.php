@@ -88,7 +88,7 @@ final readonly class ReadResourceResult extends CacheableResult implements Serve
             $meta = MetaObject::fromArray($data['_meta']);
         }
 
-        return new self($contents, $ttlMs, $cacheScope, $meta);
+        return new self(contents: $contents, ttlMs: $ttlMs, cacheScope: $cacheScope, meta: $meta);
     }
 
     #[\Override]

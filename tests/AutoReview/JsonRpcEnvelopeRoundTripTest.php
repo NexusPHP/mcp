@@ -263,7 +263,7 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
 
             \assert(is_subclass_of($inner, Result::class));
 
-            return new JsonRpcResultResponse(new RequestId($id), $inner::fromArray($decoded['result']));
+            return new JsonRpcResultResponse(id: new RequestId(id: $id), result: $inner::fromArray($decoded['result']));
         }
 
         \assert(is_subclass_of($wrapper, Arrayable::class));

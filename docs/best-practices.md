@@ -70,6 +70,14 @@ exceptions only where you act on them differently. See [error handling](error-ha
 **Pass a real PSR-3 logger.** Both `ServerBuilder` and `ClientBuilder` accept a logger and default to
 `NullLogger`. Passing a logger surfaces transport and dispatch diagnostics, which the SDK keeps off STDOUT.
 
+**Construct schema objects with named arguments.** The classes under `Nexus\Mcp\Core\Schema` mirror the MCP
+spec shape, so their structure is dictated by the protocol rather than by this SDK's backward-compatibility
+promise. As the spec evolves, a class may gain, drop, or reorder constructor parameters without that
+counting as a breaking change under the SDK's own versioning. Always pass arguments by name
+(`new TextContent(text: $body)`, not `new TextContent($body)`), regardless of how many parameters a
+constructor currently takes, so a future parameter reordering or insertion cannot silently bind your values
+to the wrong slot. The bundled examples follow this convention.
+
 ## See also
 
 - **[Getting started](getting-started.md)**: minimal server and client.

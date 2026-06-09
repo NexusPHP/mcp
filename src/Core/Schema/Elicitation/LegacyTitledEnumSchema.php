@@ -121,7 +121,13 @@ final readonly class LegacyTitledEnumSchema implements Arrayable, EnumSchema
         $default = $data['default'] ?? null;
         Assert::that($default)->nullOr()->isString('legacy titled enum schema "default" must be a string or null, {type} given.');
 
-        return new self($enum, $title, $description, $enumNames, $default);
+        return new self(
+            enum: $enum,
+            title: $title,
+            description: $description,
+            enumNames: $enumNames,
+            default: $default,
+        );
     }
 
     #[\Override]

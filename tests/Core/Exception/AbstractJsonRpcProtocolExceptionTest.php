@@ -40,7 +40,7 @@ final class AbstractJsonRpcProtocolExceptionTest extends TestCase
     public function testCarriesProvidedRequestIdAndPrevious(): void
     {
         $previous = new \RuntimeException('inner');
-        $e = new StubProtocolException(new RequestId('req-42'), 'boom', $previous);
+        $e = new StubProtocolException(new RequestId(id: 'req-42'), 'boom', $previous);
 
         self::assertSame('boom', $e->getMessage());
         self::assertSame('req-42', $e->requestId?->id);
@@ -49,7 +49,7 @@ final class AbstractJsonRpcProtocolExceptionTest extends TestCase
 
     public function testAcceptsIntegerRequestId(): void
     {
-        $e = new StubProtocolException(new RequestId(7), 'boom');
+        $e = new StubProtocolException(new RequestId(id: 7), 'boom');
 
         self::assertSame(7, $e->requestId?->id);
     }

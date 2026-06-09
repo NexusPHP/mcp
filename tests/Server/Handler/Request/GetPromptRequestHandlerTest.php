@@ -44,18 +44,18 @@ final class GetPromptRequestHandlerTest extends TestCase
         $captured = ['arguments' => null, 'requestId' => 0];
         $store = new PromptStore([
             'greeting' => new PromptEntry(
-                new Prompt('greeting'),
+                new Prompt(name: 'greeting'),
                 new ClosurePromptRenderer(static function (?array $arguments, ServerContext $context) use (&$captured): GetPromptResult {
                     $captured = ['arguments' => $arguments, 'requestId' => $context->requestId->id];
 
-                    return new GetPromptResult([]);
+                    return new GetPromptResult(messages: []);
                 }),
             ),
         ]);
         $handler = new GetPromptRequestHandler($store);
 
         $handler->handle(
-            new GetPromptRequest(new RequestId(42), new GetPromptRequestParams('greeting', RequestMetaObjectFactory::create(), ['name' => 'Paul'])),
+            new GetPromptRequest(id: new RequestId(id: 42), params: new GetPromptRequestParams(name: 'greeting', meta: RequestMetaObjectFactory::create(), arguments: ['name' => 'Paul'])),
             self::makeContext(),
         );
 
@@ -64,17 +64,17 @@ final class GetPromptRequestHandlerTest extends TestCase
 
     public function testReturnsResultFromStoreUnchanged(): void
     {
-        $expected = new GetPromptResult([]);
+        $expected = new GetPromptResult(messages: []);
         $store = new PromptStore([
             'greeting' => new PromptEntry(
-                new Prompt('greeting'),
+                new Prompt(name: 'greeting'),
                 new ClosurePromptRenderer(static fn(?array $arguments, ServerContext $context): GetPromptResult => $expected),
             ),
         ]);
         $handler = new GetPromptRequestHandler($store);
 
         $result = $handler->handle(
-            new GetPromptRequest(new RequestId(1), new GetPromptRequestParams('greeting', RequestMetaObjectFactory::create())),
+            new GetPromptRequest(id: new RequestId(id: 1), params: new GetPromptRequestParams(name: 'greeting', meta: RequestMetaObjectFactory::create())),
             self::makeContext(),
         );
 
@@ -89,7 +89,7 @@ final class GetPromptRequestHandlerTest extends TestCase
         $this->expectExceptionMessageMatches('/^No prompt registered under name "missing"\.$/');
 
         $handler->handle(
-            new GetPromptRequest(new RequestId(1), new GetPromptRequestParams('missing', RequestMetaObjectFactory::create())),
+            new GetPromptRequest(id: new RequestId(id: 1), params: new GetPromptRequestParams(name: 'missing', meta: RequestMetaObjectFactory::create())),
             self::makeContext(),
         );
     }
@@ -97,7 +97,7 @@ final class GetPromptRequestHandlerTest extends TestCase
     private static function makeContext(): ServerContext
     {
         return new ServerContext(
-            new RequestId(99),
+            new RequestId(id: 99),
             new NullCancellation(),
             RequestMetaObjectFactory::create(),
             null,

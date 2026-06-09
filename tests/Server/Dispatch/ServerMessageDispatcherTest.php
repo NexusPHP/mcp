@@ -392,7 +392,7 @@ final class ServerMessageDispatcherTest extends TestCase
         $transport = new RecordingTransport();
         $dispatcher = self::buildDispatcher(
             requestHandlers: ['server/discover' => new DiscoverRequestHandler(
-                new Implementation('test-server', '1.0.0'),
+                new Implementation(name: 'test-server', version: '1.0.0'),
                 new ServerCapabilities(),
             )],
         );
@@ -490,7 +490,7 @@ final class ServerMessageDispatcherTest extends TestCase
         $dispatcher = self::buildDispatcher(
             requestHandlers: [
                 'tools/list' => new ClosureRequestHandler(
-                    static fn() => throw new ResourceNotFoundException('file:///x', new RequestId('explicit-id')),
+                    static fn() => throw new ResourceNotFoundException('file:///x', new RequestId(id: 'explicit-id')),
                 ),
             ],
         );

@@ -31,10 +31,10 @@ final class ElicitRequestUrlParamsTest extends TestCase
     public function testConstructionMinimal(): void
     {
         $params = new ElicitRequestUrlParams(
-            'elicit-1',
-            'Sign in',
-            'url',
-            'https://auth.example.com',
+            elicitationId: 'elicit-1',
+            message: 'Sign in',
+            mode: 'url',
+            url: 'https://auth.example.com',
         );
 
         self::assertSame('elicit-1', $params->elicitationId);
@@ -46,10 +46,10 @@ final class ElicitRequestUrlParamsTest extends TestCase
     public function testToArrayMinimal(): void
     {
         $params = new ElicitRequestUrlParams(
-            'elicit-1',
-            'Sign in',
-            'url',
-            'https://auth.example.com',
+            elicitationId: 'elicit-1',
+            message: 'Sign in',
+            mode: 'url',
+            url: 'https://auth.example.com',
         );
 
         self::assertSame(
@@ -66,10 +66,10 @@ final class ElicitRequestUrlParamsTest extends TestCase
     public function testJsonSerializeMatchesToArray(): void
     {
         $params = new ElicitRequestUrlParams(
-            'elicit-1',
-            'Sign in',
-            'url',
-            'https://auth.example.com',
+            elicitationId: 'elicit-1',
+            message: 'Sign in',
+            mode: 'url',
+            url: 'https://auth.example.com',
         );
 
         self::assertSame($params->toArray(), $params->jsonSerialize());
@@ -78,10 +78,10 @@ final class ElicitRequestUrlParamsTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new ElicitRequestUrlParams(
-            'elicit-1',
-            'Sign in',
-            'url',
-            'https://auth.example.com',
+            elicitationId: 'elicit-1',
+            message: 'Sign in',
+            mode: 'url',
+            url: 'https://auth.example.com',
         );
 
         $rebuilt = ElicitRequestUrlParams::fromArray($original->toArray());
@@ -94,7 +94,7 @@ final class ElicitRequestUrlParamsTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"params.elicitationId" must be a non-empty string.');
 
-        new ElicitRequestUrlParams('', 'm', 'url', 'https://example.com');
+        new ElicitRequestUrlParams(elicitationId: '', message: 'm', mode: 'url', url: 'https://example.com');
     }
 
     public function testConstructorRejectsEmptyMessage(): void
@@ -102,7 +102,7 @@ final class ElicitRequestUrlParamsTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"params.message" must be a non-empty string.');
 
-        new ElicitRequestUrlParams('id', '', 'url', 'https://example.com');
+        new ElicitRequestUrlParams(elicitationId: 'id', message: '', mode: 'url', url: 'https://example.com');
     }
 
     public function testConstructorRejectsEmptyUrl(): void
@@ -110,7 +110,7 @@ final class ElicitRequestUrlParamsTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"params.url" must be a non-empty string.');
 
-        new ElicitRequestUrlParams('id', 'm', 'url', '');
+        new ElicitRequestUrlParams(elicitationId: 'id', message: 'm', mode: 'url', url: '');
     }
 
     public function testConstructorRejectsInvalidUrl(): void
@@ -118,7 +118,7 @@ final class ElicitRequestUrlParamsTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"params.url" must be a valid URL.');
 
-        new ElicitRequestUrlParams('id', 'm', 'url', 'not a url');
+        new ElicitRequestUrlParams(elicitationId: 'id', message: 'm', mode: 'url', url: 'not a url');
     }
 
     public function testConstructorRejectsWrongMode(): void
@@ -126,7 +126,7 @@ final class ElicitRequestUrlParamsTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"params.mode" must be \'url\', \'form\' given.');
 
-        new ElicitRequestUrlParams('id', 'm', 'form', 'https://example.com');
+        new ElicitRequestUrlParams(elicitationId: 'id', message: 'm', mode: 'form', url: 'https://example.com');
     }
 
     /**

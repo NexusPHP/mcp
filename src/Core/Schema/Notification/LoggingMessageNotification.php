@@ -49,6 +49,6 @@ final readonly class LoggingMessageNotification extends JsonRpcNotification impl
             ->isMap('"params" must be a string-keyed object.')
         ;
 
-        return new self(LoggingMessageNotificationParams::fromArray($data['params']));
+        return new self(params: LoggingMessageNotificationParams::fromArray($data['params']));
     }
 }

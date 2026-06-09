@@ -40,7 +40,7 @@ final class ListToolsResultTest extends TestCase
 {
     public function testConstructionDefaults(): void
     {
-        $result = new ListToolsResult([], 0, CacheScope::Private);
+        $result = new ListToolsResult(tools: [], ttlMs: 0, cacheScope: CacheScope::Private);
 
         self::assertSame([], $result->tools);
         self::assertSame(0, $result->ttlMs);
@@ -51,8 +51,8 @@ final class ListToolsResultTest extends TestCase
 
     public function testConstructionAcceptsTools(): void
     {
-        $tool = new Tool('read-file', ['type' => 'object']);
-        $result = new ListToolsResult([$tool], 0, CacheScope::Private);
+        $tool = new Tool(name: 'read-file', inputSchema: ['type' => 'object']);
+        $result = new ListToolsResult(tools: [$tool], ttlMs: 0, cacheScope: CacheScope::Private);
 
         self::assertCount(1, $result->tools);
         self::assertSame($tool, $result->tools[0]);
@@ -60,7 +60,7 @@ final class ListToolsResultTest extends TestCase
 
     public function testToArrayMinimal(): void
     {
-        $result = new ListToolsResult([], 0, CacheScope::Private);
+        $result = new ListToolsResult(tools: [], ttlMs: 0, cacheScope: CacheScope::Private);
 
         self::assertSame(
             ['resultType' => 'complete', 'ttlMs' => 0, 'cacheScope' => 'private', 'tools' => []],
@@ -71,11 +71,11 @@ final class ListToolsResultTest extends TestCase
     public function testToArrayWithAllFields(): void
     {
         $result = new ListToolsResult(
-            [new Tool('read-file', ['type' => 'object'])],
-            60000,
-            CacheScope::Public,
-            new Cursor('cursor-1'),
-            new MetaObject(['vendor' => 'x']),
+            tools: [new Tool(name: 'read-file', inputSchema: ['type' => 'object'])],
+            ttlMs: 60000,
+            cacheScope: CacheScope::Public,
+            nextCursor: new Cursor(cursor: 'cursor-1'),
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -93,7 +93,7 @@ final class ListToolsResultTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $result = new ListToolsResult([new Tool('read-file', ['type' => 'object'])], 0, CacheScope::Private);
+        $result = new ListToolsResult(tools: [new Tool(name: 'read-file', inputSchema: ['type' => 'object'])], ttlMs: 0, cacheScope: CacheScope::Private);
 
         self::assertSame($result->toArray(), $result->jsonSerialize());
     }
@@ -101,11 +101,11 @@ final class ListToolsResultTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new ListToolsResult(
-            [new Tool('read-file', ['type' => 'object'])],
-            60000,
-            CacheScope::Public,
-            new Cursor('cursor-1'),
-            new MetaObject(['vendor' => 'x']),
+            tools: [new Tool(name: 'read-file', inputSchema: ['type' => 'object'])],
+            ttlMs: 60000,
+            cacheScope: CacheScope::Public,
+            nextCursor: new Cursor(cursor: 'cursor-1'),
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         $rebuilt = ListToolsResult::fromArray($original->toArray());
@@ -119,7 +119,7 @@ final class ListToolsResultTest extends TestCase
         $this->expectExceptionMessageIs('"result.tools" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
-        new ListToolsResult([5 => new Tool('read-file', ['type' => 'object'])], 0, CacheScope::Private);
+        new ListToolsResult(tools: [5 => new Tool(name: 'read-file', inputSchema: ['type' => 'object'])], ttlMs: 0, cacheScope: CacheScope::Private);
     }
 
     public function testConstructorRejectsNonToolEntry(): void
@@ -127,7 +127,7 @@ final class ListToolsResultTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
 
         // @phpstan-ignore argument.type
-        new ListToolsResult([42], 0, CacheScope::Private);
+        new ListToolsResult(tools: [42], ttlMs: 0, cacheScope: CacheScope::Private);
     }
 
     public function testConstructorRejectsNegativeTtl(): void
@@ -135,7 +135,7 @@ final class ListToolsResultTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"result.ttlMs" must be a non-negative integer, -1 given.');
 
-        new ListToolsResult([], -1, CacheScope::Private);
+        new ListToolsResult(tools: [], ttlMs: -1, cacheScope: CacheScope::Private);
     }
 
     /**

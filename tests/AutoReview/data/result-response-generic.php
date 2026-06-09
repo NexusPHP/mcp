@@ -17,7 +17,7 @@ use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 
 use function PHPStan\Testing\assertType;
 
-$response = new JsonRpcResultResponse(new RequestId(1), new EmptyResult());
+$response = new JsonRpcResultResponse(id: new RequestId(id: 1), result: new EmptyResult());
 
 assertType(
     'Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse<Nexus\Mcp\Core\Schema\Result\EmptyResult>',

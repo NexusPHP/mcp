@@ -41,7 +41,7 @@ final class MethodNotFoundExceptionTest extends TestCase
     public function testCarriesProvidedRequestIdAndPrevious(): void
     {
         $previous = new \RuntimeException('inner');
-        $e = new MethodNotFoundException('vendor/whatever', new RequestId(99), $previous);
+        $e = new MethodNotFoundException('vendor/whatever', new RequestId(id: 99), $previous);
 
         self::assertSame(99, $e->requestId?->id);
         self::assertSame($previous, $e->getPrevious());

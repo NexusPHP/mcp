@@ -34,7 +34,7 @@ final class ReflectedResourceResultTest extends TestCase
 {
     public function testReturnsReadResourceResultUnchanged(): void
     {
-        $expected = new ReadResourceResult([new TextResourceContents('mem://x', 'body')], 0, CacheScope::Private);
+        $expected = new ReadResourceResult(contents: [new TextResourceContents(uri: 'mem://x', text: 'body')], ttlMs: 0, cacheScope: CacheScope::Private);
 
         self::assertSame($expected, self::adapt($expected));
     }
@@ -57,7 +57,7 @@ final class ReflectedResourceResultTest extends TestCase
 
     public function testWrapsSingleResourceContents(): void
     {
-        $blob = new BlobResourceContents('mem://b', 'YmJi');
+        $blob = new BlobResourceContents(uri: 'mem://b', blob: 'YmJi');
 
         $result = self::adapt($blob);
 
@@ -68,7 +68,7 @@ final class ReflectedResourceResultTest extends TestCase
 
     public function testReturnsResourceContentsList(): void
     {
-        $list = [new TextResourceContents('mem://t', 't'), new BlobResourceContents('mem://b', 'YmJi')];
+        $list = [new TextResourceContents(uri: 'mem://t', text: 't'), new BlobResourceContents(uri: 'mem://b', blob: 'YmJi')];
 
         $result = self::adapt($list);
 
@@ -81,7 +81,7 @@ final class ReflectedResourceResultTest extends TestCase
     {
         $this->expectException(UnsupportedReturnValueException::class);
 
-        self::adapt(['main' => new TextResourceContents('mem://t', 't')]);
+        self::adapt(['main' => new TextResourceContents(uri: 'mem://t', text: 't')]);
     }
 
     public function testThrowsOnEmptyArray(): void

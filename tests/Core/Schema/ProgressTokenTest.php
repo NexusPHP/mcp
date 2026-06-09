@@ -29,9 +29,9 @@ final class ProgressTokenTest extends TestCase
 {
     public function testProgressTokenCapturesTokenAsIs(): void
     {
-        self::assertSame('token123', new ProgressToken('token123')->token);
-        self::assertSame('xyz789', new ProgressToken('xyz789')->token);
-        self::assertSame(456, new ProgressToken(456)->token);
+        self::assertSame('token123', new ProgressToken(token: 'token123')->token);
+        self::assertSame('xyz789', new ProgressToken(token: 'xyz789')->token);
+        self::assertSame(456, new ProgressToken(token: 456)->token);
     }
 
     public function testProgressTokenCannotBeEmptyString(): void
@@ -39,6 +39,6 @@ final class ProgressTokenTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"progressToken" must be a non-empty string.');
 
-        new ProgressToken('');
+        new ProgressToken(token: '');
     }
 }

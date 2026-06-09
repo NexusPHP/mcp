@@ -36,14 +36,14 @@ final class ParseErrorTest extends TestCase
 
     public function testParseErrorCanOverrideMessage(): void
     {
-        $error = new ParseError('Custom parse error message');
+        $error = new ParseError(message: 'Custom parse error message');
 
         self::assertSame('Custom parse error message', $error->message);
     }
 
     public function testParseErrorHasCorrectCode(): void
     {
-        $error = new ParseError(ParseError::DEFAULT_MESSAGE);
+        $error = new ParseError(message: ParseError::DEFAULT_MESSAGE);
 
         self::assertSame(ProtocolErrorCode::ParseError->value, $error->code);
         self::assertSame(-32700, $error->code);
@@ -52,7 +52,7 @@ final class ParseErrorTest extends TestCase
     public function testParseErrorCanIncludeData(): void
     {
         $data = ['line' => 1, 'column' => 5];
-        $error = new ParseError('Parse failed', $data);
+        $error = new ParseError(message: 'Parse failed', data: $data);
 
         self::assertSame($data, $error->data);
     }
@@ -80,7 +80,7 @@ final class ParseErrorTest extends TestCase
 
     public function testParseErrorToArray(): void
     {
-        $error = new ParseError('Test parse error', ['metadata' => 'value']);
+        $error = new ParseError(message: 'Test parse error', data: ['metadata' => 'value']);
         $array = $error->toArray();
 
         self::assertSame([
@@ -92,7 +92,7 @@ final class ParseErrorTest extends TestCase
 
     public function testParseErrorJsonSerialize(): void
     {
-        $error = new ParseError('Test parse error');
+        $error = new ParseError(message: 'Test parse error');
         $result = $error->jsonSerialize();
 
         self::assertSame([
@@ -104,7 +104,7 @@ final class ParseErrorTest extends TestCase
     public function testParseErrorJsonSerializeWithData(): void
     {
         $data = ['context' => 'test'];
-        $error = new ParseError('Test parse error', $data);
+        $error = new ParseError(message: 'Test parse error', data: $data);
         $result = $error->jsonSerialize();
 
         self::assertSame([

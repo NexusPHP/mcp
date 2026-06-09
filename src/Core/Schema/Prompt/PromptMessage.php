@@ -57,7 +57,10 @@ final readonly class PromptMessage implements Arrayable
             ->isMap('prompt message "content" must be a string-keyed object.')
         ;
 
-        return new self($role, ContentBlockDispatcher::fromArray($data['content'], 'prompt message "content"'));
+        return new self(
+            role: $role,
+            content: ContentBlockDispatcher::fromArray($data['content'], 'prompt message "content"'),
+        );
     }
 
     #[\Override]

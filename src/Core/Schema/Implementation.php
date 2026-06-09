@@ -117,7 +117,14 @@ final readonly class Implementation extends BaseMetadata implements Arrayable, I
             $icons = array_map(Icon::fromArray(...), $data['icons']);
         }
 
-        return new self($name, $version, $title, $description, $websiteUrl, $icons);
+        return new self(
+            name: $name,
+            version: $version,
+            title: $title,
+            description: $description,
+            websiteUrl: $websiteUrl,
+            icons: $icons,
+        );
     }
 
     #[\Override]

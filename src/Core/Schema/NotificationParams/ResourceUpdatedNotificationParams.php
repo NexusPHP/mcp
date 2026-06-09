@@ -49,7 +49,7 @@ final readonly class ResourceUpdatedNotificationParams extends NotificationParam
             $meta = MetaObject::fromArray($data['_meta']);
         }
 
-        return new self($uri, $meta);
+        return new self(uri: $uri, meta: $meta);
     }
 
     #[\Override]

@@ -35,7 +35,7 @@ final class PromptTest extends TestCase
 {
     public function testConstructionMinimal(): void
     {
-        $prompt = new Prompt('code-review');
+        $prompt = new Prompt(name: 'code-review');
 
         self::assertSame('code-review', $prompt->name);
         self::assertNull($prompt->title);
@@ -47,7 +47,7 @@ final class PromptTest extends TestCase
 
     public function testToArrayMinimal(): void
     {
-        $prompt = new Prompt('code-review');
+        $prompt = new Prompt(name: 'code-review');
 
         self::assertSame(['name' => 'code-review'], $prompt->toArray());
     }
@@ -55,12 +55,12 @@ final class PromptTest extends TestCase
     public function testToArrayWithAllFields(): void
     {
         $prompt = new Prompt(
-            'code-review',
-            'Code Review',
-            'Reviews changes against the project guidelines.',
-            [new PromptArgument('topic', 'Topic')],
-            [new Icon('https://example.com/icon.png')],
-            new MetaObject(['vendor' => 'x']),
+            name: 'code-review',
+            title: 'Code Review',
+            description: 'Reviews changes against the project guidelines.',
+            arguments: [new PromptArgument(name: 'topic', title: 'Topic')],
+            icons: [new Icon(src: 'https://example.com/icon.png')],
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -78,7 +78,7 @@ final class PromptTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $prompt = new Prompt('code-review', 'Code Review', null, null, null, new MetaObject(['k' => 'v']));
+        $prompt = new Prompt(name: 'code-review', title: 'Code Review', description: null, arguments: null, icons: null, meta: new MetaObject(extras: ['k' => 'v']));
 
         self::assertSame($prompt->toArray(), $prompt->jsonSerialize());
     }
@@ -115,12 +115,12 @@ final class PromptTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new Prompt(
-            'code-review',
-            'Code Review',
-            'desc',
-            [new PromptArgument('topic', null, null, true)],
-            [new Icon('https://example.com/icon.png')],
-            new MetaObject(['vendor' => 'x']),
+            name: 'code-review',
+            title: 'Code Review',
+            description: 'desc',
+            arguments: [new PromptArgument(name: 'topic', title: null, description: null, required: true)],
+            icons: [new Icon(src: 'https://example.com/icon.png')],
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         $rebuilt = Prompt::fromArray($original->toArray());
@@ -133,7 +133,7 @@ final class PromptTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageMatches('/\Aprompt "name" must be 1-128 characters/');
 
-        new Prompt('bad name');
+        new Prompt(name: 'bad name');
     }
 
     public function testConstructorRejectsEmptyDescription(): void
@@ -141,7 +141,7 @@ final class PromptTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('prompt "description" must be a non-empty string or null.');
 
-        new Prompt('code-review', null, '');
+        new Prompt(name: 'code-review', title: null, description: '');
     }
 
     public function testConstructorRejectsNonPromptArgumentEntry(): void
@@ -149,7 +149,7 @@ final class PromptTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
 
         // @phpstan-ignore argument.type
-        new Prompt('code-review', null, null, [42]);
+        new Prompt(name: 'code-review', title: null, description: null, arguments: [42]);
     }
 
     public function testConstructorRejectsNonIconEntry(): void
@@ -157,7 +157,7 @@ final class PromptTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
 
         // @phpstan-ignore argument.type
-        new Prompt('code-review', null, null, null, [42]);
+        new Prompt(name: 'code-review', title: null, description: null, arguments: null, icons: [42]);
     }
 
     /**

@@ -94,7 +94,7 @@ final class ResourceStoreTest extends TestCase
     {
         $store = new ResourceStore(self::makeEntries(['only', 'file:///only']), pageSize: 1);
 
-        $page = $store->list(new Cursor('file:///only'));
+        $page = $store->list(new Cursor(cursor: 'file:///only'));
 
         self::assertSame([], $page->resources);
         self::assertNull($page->nextCursor);
@@ -122,7 +122,7 @@ final class ResourceStoreTest extends TestCase
         $this->expectExceptionMessageMatches('/^Resource store entry key must be a non-empty string\.$/');
 
         // @phpstan-ignore argument.type
-        new ResourceStore([1 => new ResourceEntry(new Resource('one', 'file:///one'), self::makeReader())]);
+        new ResourceStore([1 => new ResourceEntry(new Resource(name: 'one', uri: 'file:///one'), self::makeReader())]);
     }
 
     public function testConstructorRejectsEmptyStringEntryKey(): void
@@ -131,7 +131,7 @@ final class ResourceStoreTest extends TestCase
         $this->expectExceptionMessageMatches('/^Resource store entry key must be a non-empty string\.$/');
 
         // @phpstan-ignore argument.type
-        new ResourceStore(['' => new ResourceEntry(new Resource('one', 'file:///one'), self::makeReader())]);
+        new ResourceStore(['' => new ResourceEntry(new Resource(name: 'one', uri: 'file:///one'), self::makeReader())]);
     }
 
     public function testListRejectsCursorThatMatchesNoEntry(): void
@@ -141,17 +141,17 @@ final class ResourceStoreTest extends TestCase
         $this->expectException(InvalidCursorException::class);
         $this->expectExceptionMessageMatches('/^Cursor "file:\\/\\/\\/missing" does not match any registered entry\.$/');
 
-        $store->list(new Cursor('file:///missing'));
+        $store->list(new Cursor(cursor: 'file:///missing'));
     }
 
     public function testReadInvokesTheReaderMatchingTheUri(): void
     {
-        $alphaResult = new ReadResourceResult([], 0, CacheScope::Private);
-        $betaResult = new ReadResourceResult([], 0, CacheScope::Private);
+        $alphaResult = new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private);
+        $betaResult = new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private);
         $captured = [];
         $store = new ResourceStore([
             'file:///alpha.txt' => new ResourceEntry(
-                new Resource('alpha', 'file:///alpha.txt'),
+                new Resource(name: 'alpha', uri: 'file:///alpha.txt'),
                 new ClosureResourceReader(static function (string $uri, ServerContext $context) use ($alphaResult, &$captured): ReadResourceResult {
                     $captured[] = ['key' => 'alpha', 'uri' => $uri, 'sessionId' => $context->sessionId];
 
@@ -159,7 +159,7 @@ final class ResourceStoreTest extends TestCase
                 }),
             ),
             'file:///beta.txt' => new ResourceEntry(
-                new Resource('beta', 'file:///beta.txt'),
+                new Resource(name: 'beta', uri: 'file:///beta.txt'),
                 new ClosureResourceReader(static function (string $uri, ServerContext $context) use ($betaResult, &$captured): ReadResourceResult {
                     $captured[] = ['key' => 'beta', 'uri' => $uri, 'sessionId' => $context->sessionId];
 
@@ -196,7 +196,7 @@ final class ResourceStoreTest extends TestCase
         $entries = [];
 
         foreach ($pairs as [$name, $uri]) {
-            $entries[$uri] = new ResourceEntry(new Resource($name, $uri), self::makeReader());
+            $entries[$uri] = new ResourceEntry(new Resource(name: $name, uri: $uri), self::makeReader());
         }
 
         return $entries;
@@ -205,14 +205,14 @@ final class ResourceStoreTest extends TestCase
     private static function makeReader(): ClosureResourceReader
     {
         return new ClosureResourceReader(
-            static fn(string $uri, ServerContext $context): ReadResourceResult => new ReadResourceResult([], 0, CacheScope::Private),
+            static fn(string $uri, ServerContext $context): ReadResourceResult => new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private),
         );
     }
 
     private static function makeContext(): ServerContext
     {
         return new ServerContext(
-            new RequestId(1),
+            new RequestId(id: 1),
             new NullCancellation(),
             RequestMetaObjectFactory::create(),
             null,

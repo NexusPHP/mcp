@@ -47,6 +47,6 @@ final readonly class ElicitationCompleteNotification extends JsonRpcNotification
             ->isMap('"params" must be a string-keyed object.')
         ;
 
-        return new self(ElicitationCompleteNotificationParams::fromArray($data['params']));
+        return new self(params: ElicitationCompleteNotificationParams::fromArray($data['params']));
     }
 }

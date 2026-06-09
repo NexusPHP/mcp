@@ -37,14 +37,14 @@ final class ToolChoiceTest extends TestCase
 
     public function testConstructionWithMode(): void
     {
-        $choice = new ToolChoice(ToolChoiceMode::Required);
+        $choice = new ToolChoice(mode: ToolChoiceMode::Required);
 
         self::assertSame(ToolChoiceMode::Required, $choice->mode);
     }
 
     public function testToArrayEmitsMode(): void
     {
-        self::assertSame(['mode' => 'auto'], new ToolChoice(ToolChoiceMode::Auto)->toArray());
+        self::assertSame(['mode' => 'auto'], new ToolChoice(mode: ToolChoiceMode::Auto)->toArray());
     }
 
     public function testToArrayOmitsAbsentMode(): void
@@ -60,7 +60,7 @@ final class ToolChoiceTest extends TestCase
 
     public function testJsonSerializeWhenSet(): void
     {
-        self::assertSame(['mode' => 'auto'], new ToolChoice(ToolChoiceMode::Auto)->jsonSerialize());
+        self::assertSame(['mode' => 'auto'], new ToolChoice(mode: ToolChoiceMode::Auto)->jsonSerialize());
     }
 
     public function testFromArrayParsesMode(): void

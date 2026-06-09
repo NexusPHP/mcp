@@ -58,7 +58,7 @@ final readonly class ElicitationCompleteNotificationParams extends NotificationP
             $meta = MetaObject::fromArray($data['_meta']);
         }
 
-        return new self($elicitationId, $meta);
+        return new self(elicitationId: $elicitationId, meta: $meta);
     }
 
     #[\Override]

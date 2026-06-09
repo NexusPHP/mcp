@@ -77,7 +77,7 @@ final readonly class TextContent implements Arrayable, ContentBlock, SamplingMes
             $meta = MetaObject::fromArray($data['_meta']);
         }
 
-        return new self($text, $annotations, $meta);
+        return new self(text: $text, annotations: $annotations, meta: $meta);
     }
 
     #[\Override]

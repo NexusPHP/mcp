@@ -32,7 +32,7 @@ final class PromptReferenceTest extends TestCase
 {
     public function testConstructionMinimal(): void
     {
-        $reference = new PromptReference('my-prompt');
+        $reference = new PromptReference(name: 'my-prompt');
 
         self::assertSame('my-prompt', $reference->name);
         self::assertNull($reference->title);
@@ -40,7 +40,7 @@ final class PromptReferenceTest extends TestCase
 
     public function testConstructionWithTitle(): void
     {
-        $reference = new PromptReference('my-prompt', 'My Prompt');
+        $reference = new PromptReference(name: 'my-prompt', title: 'My Prompt');
 
         self::assertSame('my-prompt', $reference->name);
         self::assertSame('My Prompt', $reference->title);
@@ -48,7 +48,7 @@ final class PromptReferenceTest extends TestCase
 
     public function testToArrayMinimal(): void
     {
-        $reference = new PromptReference('my-prompt');
+        $reference = new PromptReference(name: 'my-prompt');
 
         self::assertSame(
             ['name' => 'my-prompt', 'type' => 'ref/prompt'],
@@ -58,7 +58,7 @@ final class PromptReferenceTest extends TestCase
 
     public function testToArrayWithTitle(): void
     {
-        $reference = new PromptReference('my-prompt', 'My Prompt');
+        $reference = new PromptReference(name: 'my-prompt', title: 'My Prompt');
 
         self::assertSame(
             ['name' => 'my-prompt', 'type' => 'ref/prompt', 'title' => 'My Prompt'],
@@ -68,7 +68,7 @@ final class PromptReferenceTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $reference = new PromptReference('my-prompt', 'My Prompt');
+        $reference = new PromptReference(name: 'my-prompt', title: 'My Prompt');
 
         self::assertSame($reference->toArray(), $reference->jsonSerialize());
     }
@@ -98,7 +98,7 @@ final class PromptReferenceTest extends TestCase
 
     public function testFromArrayFullRoundTrip(): void
     {
-        $original = new PromptReference('my-prompt', 'My Prompt');
+        $original = new PromptReference(name: 'my-prompt', title: 'My Prompt');
 
         $rebuilt = PromptReference::fromArray($original->toArray());
 
@@ -110,7 +110,7 @@ final class PromptReferenceTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageMatches('/\Aprompt reference "name" must be 1-128 characters/');
 
-        new PromptReference('my prompt');
+        new PromptReference(name: 'my prompt');
     }
 
     /**

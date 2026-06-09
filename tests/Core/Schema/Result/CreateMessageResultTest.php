@@ -35,7 +35,7 @@ final class CreateMessageResultTest extends TestCase
 {
     public function testConstruction(): void
     {
-        $result = new CreateMessageResult('claude-3-5-sonnet', Role::Assistant, new TextContent('Hi.'));
+        $result = new CreateMessageResult(model: 'claude-3-5-sonnet', role: Role::Assistant, content: new TextContent(text: 'Hi.'));
 
         self::assertSame('claude-3-5-sonnet', $result->model);
         self::assertSame(Role::Assistant, $result->role);
@@ -49,7 +49,7 @@ final class CreateMessageResultTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"result.model" must be a non-empty string.');
 
-        new CreateMessageResult('', Role::Assistant, new TextContent('hi'));
+        new CreateMessageResult(model: '', role: Role::Assistant, content: new TextContent(text: 'hi'));
     }
 
     public function testConstructorRejectsEmptyStopReason(): void
@@ -57,12 +57,12 @@ final class CreateMessageResultTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"result.stopReason" must be a non-empty string or null.');
 
-        new CreateMessageResult('claude-3-5-sonnet', Role::Assistant, new TextContent('hi'), stopReason: '');
+        new CreateMessageResult(model: 'claude-3-5-sonnet', role: Role::Assistant, content: new TextContent(text: 'hi'), stopReason: '');
     }
 
     public function testToArray(): void
     {
-        $result = new CreateMessageResult('claude-3-5-sonnet', Role::Assistant, new TextContent('Hi.'), 'endTurn');
+        $result = new CreateMessageResult(model: 'claude-3-5-sonnet', role: Role::Assistant, content: new TextContent(text: 'Hi.'), stopReason: 'endTurn');
 
         self::assertSame(
             [
@@ -79,9 +79,9 @@ final class CreateMessageResultTest extends TestCase
     public function testToArrayWithMeta(): void
     {
         $result = new CreateMessageResult(
-            'claude-3-5-sonnet',
-            Role::Assistant,
-            new TextContent('Hi.'),
+            model: 'claude-3-5-sonnet',
+            role: Role::Assistant,
+            content: new TextContent(text: 'Hi.'),
             meta: new MetaObject(extras: ['vendor' => 'acme']),
         );
 
@@ -100,9 +100,9 @@ final class CreateMessageResultTest extends TestCase
     public function testToArrayWithListContent(): void
     {
         $result = new CreateMessageResult(
-            'claude-3-5-sonnet',
-            Role::Assistant,
-            [new TextContent('Step 1.'), new TextContent('Step 2.')],
+            model: 'claude-3-5-sonnet',
+            role: Role::Assistant,
+            content: [new TextContent(text: 'Step 1.'), new TextContent(text: 'Step 2.')],
         );
 
         self::assertSame(
@@ -122,9 +122,9 @@ final class CreateMessageResultTest extends TestCase
     public function testJsonSerializeWrapsEmptyToolUseInput(): void
     {
         $result = new CreateMessageResult(
-            'claude-3-5-sonnet',
-            Role::Assistant,
-            new ToolUseContent('tu-1', 'search', []),
+            model: 'claude-3-5-sonnet',
+            role: Role::Assistant,
+            content: new ToolUseContent(id: 'tu-1', name: 'search', input: []),
         );
 
         self::assertStringContainsString('"input":{}', (string) json_encode($result));
@@ -133,9 +133,9 @@ final class CreateMessageResultTest extends TestCase
     public function testJsonSerializeListContentReturnsArrayOfArrays(): void
     {
         $result = new CreateMessageResult(
-            'claude-3-5-sonnet',
-            Role::Assistant,
-            [new TextContent('Step 1.'), new TextContent('Step 2.')],
+            model: 'claude-3-5-sonnet',
+            role: Role::Assistant,
+            content: [new TextContent(text: 'Step 1.'), new TextContent(text: 'Step 2.')],
         );
 
         self::assertSame(
@@ -154,7 +154,7 @@ final class CreateMessageResultTest extends TestCase
 
     public function testFromArrayFullRoundTrip(): void
     {
-        $original = new CreateMessageResult('claude-3-5-sonnet', Role::Assistant, new TextContent('Hi.'), 'endTurn');
+        $original = new CreateMessageResult(model: 'claude-3-5-sonnet', role: Role::Assistant, content: new TextContent(text: 'Hi.'), stopReason: 'endTurn');
 
         $rebuilt = CreateMessageResult::fromArray($original->toArray());
 

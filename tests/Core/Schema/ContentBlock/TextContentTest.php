@@ -32,7 +32,7 @@ final class TextContentTest extends TestCase
 {
     public function testConstructionMinimal(): void
     {
-        $content = new TextContent('hello');
+        $content = new TextContent(text: 'hello');
 
         self::assertSame('hello', $content->text);
         self::assertSame([], $content->annotations->toArray());
@@ -41,7 +41,7 @@ final class TextContentTest extends TestCase
 
     public function testToArrayMinimal(): void
     {
-        $content = new TextContent('hello');
+        $content = new TextContent(text: 'hello');
 
         self::assertSame(
             ['text' => 'hello', 'type' => 'text'],
@@ -52,9 +52,9 @@ final class TextContentTest extends TestCase
     public function testToArrayWithAllFields(): void
     {
         $content = new TextContent(
-            'hello',
-            new Annotations(null, 0.5),
-            new MetaObject(['vendor' => 'x']),
+            text: 'hello',
+            annotations: new Annotations(audience: null, priority: 0.5),
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -70,7 +70,7 @@ final class TextContentTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $content = new TextContent('hello', new Annotations(), new MetaObject(['k' => 'v']));
+        $content = new TextContent(text: 'hello', annotations: new Annotations(), meta: new MetaObject(extras: ['k' => 'v']));
 
         self::assertSame($content->toArray(), $content->jsonSerialize());
     }
@@ -92,9 +92,9 @@ final class TextContentTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new TextContent(
-            'hello',
-            new Annotations(null, 0.5),
-            new MetaObject(['vendor' => 'x']),
+            text: 'hello',
+            annotations: new Annotations(audience: null, priority: 0.5),
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         $rebuilt = TextContent::fromArray($original->toArray());

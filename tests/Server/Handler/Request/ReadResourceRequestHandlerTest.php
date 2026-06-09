@@ -45,18 +45,18 @@ final class ReadResourceRequestHandlerTest extends TestCase
         $captured = ['uri' => '', 'requestId' => 0];
         $store = new ResourceStore([
             'file:///a' => new ResourceEntry(
-                new Resource('a', 'file:///a'),
+                new Resource(name: 'a', uri: 'file:///a'),
                 new ClosureResourceReader(static function (string $uri, ServerContext $context) use (&$captured): ReadResourceResult {
                     $captured = ['uri' => $uri, 'requestId' => $context->requestId->id];
 
-                    return new ReadResourceResult([], 0, CacheScope::Private);
+                    return new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private);
                 }),
             ),
         ]);
         $handler = new ReadResourceRequestHandler($store);
 
         $handler->handle(
-            new ReadResourceRequest(new RequestId(42), new ReadResourceRequestParams('file:///a', RequestMetaObjectFactory::create())),
+            new ReadResourceRequest(id: new RequestId(id: 42), params: new ReadResourceRequestParams(uri: 'file:///a', meta: RequestMetaObjectFactory::create())),
             self::makeContext(),
         );
 
@@ -65,17 +65,17 @@ final class ReadResourceRequestHandlerTest extends TestCase
 
     public function testReturnsResultFromStoreUnchanged(): void
     {
-        $expected = new ReadResourceResult([], 0, CacheScope::Private);
+        $expected = new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private);
         $store = new ResourceStore([
             'file:///a' => new ResourceEntry(
-                new Resource('a', 'file:///a'),
+                new Resource(name: 'a', uri: 'file:///a'),
                 new ClosureResourceReader(static fn(string $uri, ServerContext $context): ReadResourceResult => $expected),
             ),
         ]);
         $handler = new ReadResourceRequestHandler($store);
 
         $result = $handler->handle(
-            new ReadResourceRequest(new RequestId(1), new ReadResourceRequestParams('file:///a', RequestMetaObjectFactory::create())),
+            new ReadResourceRequest(id: new RequestId(id: 1), params: new ReadResourceRequestParams(uri: 'file:///a', meta: RequestMetaObjectFactory::create())),
             self::makeContext(),
         );
 
@@ -90,7 +90,7 @@ final class ReadResourceRequestHandlerTest extends TestCase
         $this->expectExceptionMessageMatches('/^No resource registered under URI "file:\\/\\/\\/missing"\.$/');
 
         $handler->handle(
-            new ReadResourceRequest(new RequestId(1), new ReadResourceRequestParams('file:///missing', RequestMetaObjectFactory::create())),
+            new ReadResourceRequest(id: new RequestId(id: 1), params: new ReadResourceRequestParams(uri: 'file:///missing', meta: RequestMetaObjectFactory::create())),
             self::makeContext(),
         );
     }
@@ -98,7 +98,7 @@ final class ReadResourceRequestHandlerTest extends TestCase
     private static function makeContext(): ServerContext
     {
         return new ServerContext(
-            new RequestId(99),
+            new RequestId(id: 99),
             new NullCancellation(),
             RequestMetaObjectFactory::create(),
             null,

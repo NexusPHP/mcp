@@ -53,6 +53,6 @@ final readonly class GetPromptRequest extends JsonRpcRequest implements ClientRe
             ->isMap('"params" must be a string-keyed object.')
         ;
 
-        return new self(new RequestId($id), GetPromptRequestParams::fromArray($data['params']));
+        return new self(id: new RequestId(id: $id), params: GetPromptRequestParams::fromArray($data['params']));
     }
 }

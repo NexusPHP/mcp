@@ -43,7 +43,12 @@ abstract readonly class AbstractContext
         }
 
         $this->sender->sendNotification(new ProgressNotification(
-            new ProgressNotificationParams($token, $progress, $total, $message),
+            params: new ProgressNotificationParams(
+                progressToken: $token,
+                progress: $progress,
+                total: $total,
+                message: $message,
+            ),
         ));
     }
 }

@@ -87,7 +87,7 @@ final readonly class ElicitRequestUrlParams implements Arrayable, ElicitRequestP
         $url = $data['url'];
         Assert::that($url)->isString('"params.url" must be a string, {type} given.');
 
-        return new self($elicitationId, $message, $mode, $url);
+        return new self(elicitationId: $elicitationId, message: $message, mode: $mode, url: $url);
     }
 
     #[\Override]

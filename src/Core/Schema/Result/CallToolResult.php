@@ -104,7 +104,7 @@ final readonly class CallToolResult extends Result implements ServerResult
             $meta = MetaObject::fromArray($data['_meta']);
         }
 
-        return new self($content, $structuredContent, $isError, $meta);
+        return new self(content: $content, structuredContent: $structuredContent, isError: $isError, meta: $meta);
     }
 
     #[\Override]

@@ -132,7 +132,14 @@ final readonly class Prompt extends BaseMetadata implements Arrayable, Icons
             $meta = MetaObject::fromArray($data['_meta']);
         }
 
-        return new self($name, $title, $description, $arguments, $icons, $meta);
+        return new self(
+            name: $name,
+            title: $title,
+            description: $description,
+            arguments: $arguments,
+            icons: $icons,
+            meta: $meta,
+        );
     }
 
     #[\Override]

@@ -70,7 +70,7 @@ final readonly class PromptArgument extends BaseMetadata implements Arrayable
         $required = $data['required'] ?? null;
         Assert::that($required)->nullOr()->isBool('"arguments.required" must be a bool or null, {type} given.');
 
-        return new self($name, $title, $description, $required);
+        return new self(name: $name, title: $title, description: $description, required: $required);
     }
 
     #[\Override]

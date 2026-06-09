@@ -45,10 +45,10 @@ final class ElicitRequestTest extends TestCase
     public function testToArrayWithFormParams(): void
     {
         $req = new ElicitRequest(
-            new RequestId('r-1'),
-            new ElicitRequestFormParams(
-                'Pick',
-                new ElicitRequestedSchema(['x' => new StringSchema()]),
+            id: new RequestId(id: 'r-1'),
+            params: new ElicitRequestFormParams(
+                message: 'Pick',
+                requestedSchema: new ElicitRequestedSchema(properties: ['x' => new StringSchema()]),
             ),
         );
 
@@ -73,8 +73,8 @@ final class ElicitRequestTest extends TestCase
     public function testToArrayWithUrlParams(): void
     {
         $req = new ElicitRequest(
-            new RequestId(7),
-            new ElicitRequestUrlParams('e-1', 'Sign in', 'url', 'https://example.com'),
+            id: new RequestId(id: 7),
+            params: new ElicitRequestUrlParams(elicitationId: 'e-1', message: 'Sign in', mode: 'url', url: 'https://example.com'),
         );
 
         self::assertSame(
@@ -96,8 +96,8 @@ final class ElicitRequestTest extends TestCase
     public function testJsonSerializeMatchesToArray(): void
     {
         $req = new ElicitRequest(
-            new RequestId('r-1'),
-            new ElicitRequestFormParams('Pick', new ElicitRequestedSchema(['x' => new StringSchema()])),
+            id: new RequestId(id: 'r-1'),
+            params: new ElicitRequestFormParams(message: 'Pick', requestedSchema: new ElicitRequestedSchema(properties: ['x' => new StringSchema()])),
         );
 
         self::assertSame($req->toArray(), $req->jsonSerialize());
@@ -159,8 +159,8 @@ final class ElicitRequestTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new ElicitRequest(
-            new RequestId('r-1'),
-            new ElicitRequestUrlParams('e-1', 'Sign in', 'url', 'https://example.com'),
+            id: new RequestId(id: 'r-1'),
+            params: new ElicitRequestUrlParams(elicitationId: 'e-1', message: 'Sign in', mode: 'url', url: 'https://example.com'),
         );
 
         $rebuilt = ElicitRequest::fromArray($original->toArray());

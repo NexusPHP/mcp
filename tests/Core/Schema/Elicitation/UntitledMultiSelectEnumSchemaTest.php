@@ -30,7 +30,7 @@ final class UntitledMultiSelectEnumSchemaTest extends TestCase
 {
     public function testConstructionMinimal(): void
     {
-        $schema = new UntitledMultiSelectEnumSchema(['a', 'b']);
+        $schema = new UntitledMultiSelectEnumSchema(items: ['a', 'b']);
 
         self::assertSame(['a', 'b'], $schema->items);
         self::assertNull($schema->title);
@@ -42,7 +42,7 @@ final class UntitledMultiSelectEnumSchemaTest extends TestCase
 
     public function testToArrayMinimal(): void
     {
-        $schema = new UntitledMultiSelectEnumSchema(['a']);
+        $schema = new UntitledMultiSelectEnumSchema(items: ['a']);
 
         self::assertSame(
             [
@@ -55,7 +55,7 @@ final class UntitledMultiSelectEnumSchemaTest extends TestCase
 
     public function testToArrayWithAllFields(): void
     {
-        $schema = new UntitledMultiSelectEnumSchema(['x', 'y'], 'Things', 'Pick some', 1, 2, ['x']);
+        $schema = new UntitledMultiSelectEnumSchema(items: ['x', 'y'], title: 'Things', description: 'Pick some', minItems: 1, maxItems: 2, default: ['x']);
 
         self::assertSame(
             [
@@ -73,14 +73,14 @@ final class UntitledMultiSelectEnumSchemaTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $schema = new UntitledMultiSelectEnumSchema(['a'], 'T', null, 1);
+        $schema = new UntitledMultiSelectEnumSchema(items: ['a'], title: 'T', description: null, minItems: 1);
 
         self::assertSame($schema->toArray(), $schema->jsonSerialize());
     }
 
     public function testFromArrayFullRoundTrip(): void
     {
-        $original = new UntitledMultiSelectEnumSchema(['x', 'y'], 'T', 'desc', 1, 2, ['x']);
+        $original = new UntitledMultiSelectEnumSchema(items: ['x', 'y'], title: 'T', description: 'desc', minItems: 1, maxItems: 2, default: ['x']);
 
         $rebuilt = UntitledMultiSelectEnumSchema::fromArray($original->toArray());
 
@@ -93,7 +93,7 @@ final class UntitledMultiSelectEnumSchemaTest extends TestCase
         $this->expectExceptionMessageIs('untitled multi-select enum schema "items" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
-        new UntitledMultiSelectEnumSchema(['k' => 'v']);
+        new UntitledMultiSelectEnumSchema(items: ['k' => 'v']);
     }
 
     public function testConstructorRejectsEmptyItemsEntry(): void
@@ -101,7 +101,7 @@ final class UntitledMultiSelectEnumSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('each untitled multi-select enum schema "items" must be a non-empty string.');
 
-        new UntitledMultiSelectEnumSchema(['']);
+        new UntitledMultiSelectEnumSchema(items: ['']);
     }
 
     public function testConstructorRejectsEmptyTitle(): void
@@ -109,7 +109,7 @@ final class UntitledMultiSelectEnumSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('untitled multi-select enum schema "title" must be a non-empty string or null.');
 
-        new UntitledMultiSelectEnumSchema(['a'], '');
+        new UntitledMultiSelectEnumSchema(items: ['a'], title: '');
     }
 
     public function testConstructorRejectsEmptyDescription(): void
@@ -117,7 +117,7 @@ final class UntitledMultiSelectEnumSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('untitled multi-select enum schema "description" must be a non-empty string or null.');
 
-        new UntitledMultiSelectEnumSchema(['a'], null, '');
+        new UntitledMultiSelectEnumSchema(items: ['a'], title: null, description: '');
     }
 
     public function testConstructorRejectsNegativeMinItems(): void
@@ -125,7 +125,7 @@ final class UntitledMultiSelectEnumSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('untitled multi-select enum schema "minItems" must be a non-negative integer or null.');
 
-        new UntitledMultiSelectEnumSchema(['a'], null, null, -1);
+        new UntitledMultiSelectEnumSchema(items: ['a'], title: null, description: null, minItems: -1);
     }
 
     public function testConstructorRejectsNegativeMaxItems(): void
@@ -133,7 +133,7 @@ final class UntitledMultiSelectEnumSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('untitled multi-select enum schema "maxItems" must be a non-negative integer or null.');
 
-        new UntitledMultiSelectEnumSchema(['a'], null, null, null, -1);
+        new UntitledMultiSelectEnumSchema(items: ['a'], title: null, description: null, minItems: null, maxItems: -1);
     }
 
     public function testConstructorRejectsNonListDefault(): void
@@ -142,7 +142,7 @@ final class UntitledMultiSelectEnumSchemaTest extends TestCase
         $this->expectExceptionMessageIs('untitled multi-select enum schema "default" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
-        new UntitledMultiSelectEnumSchema(['a'], null, null, null, null, ['k' => 'v']);
+        new UntitledMultiSelectEnumSchema(items: ['a'], title: null, description: null, minItems: null, maxItems: null, default: ['k' => 'v']);
     }
 
     /**

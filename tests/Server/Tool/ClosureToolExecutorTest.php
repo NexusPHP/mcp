@@ -35,7 +35,7 @@ final class ClosureToolExecutorTest extends TestCase
     public function testForwardsArgumentsAndContextToClosure(): void
     {
         $captured = ['arguments' => null, 'requestId' => 0];
-        $expected = new CallToolResult([]);
+        $expected = new CallToolResult(content: []);
         $executor = new ClosureToolExecutor(
             static function (?array $arguments, ServerContext $context) use ($expected, &$captured): CallToolResult {
                 $captured = ['arguments' => $arguments, 'requestId' => $context->requestId->id];
@@ -57,7 +57,7 @@ final class ClosureToolExecutorTest extends TestCase
             static function (?array $arguments, ServerContext $context) use (&$captured): CallToolResult {
                 $captured = ['arguments' => $arguments];
 
-                return new CallToolResult([]);
+                return new CallToolResult(content: []);
             },
         );
 
@@ -69,7 +69,7 @@ final class ClosureToolExecutorTest extends TestCase
     private static function makeContext(): ServerContext
     {
         return new ServerContext(
-            new RequestId(7),
+            new RequestId(id: 7),
             new NullCancellation(),
             RequestMetaObjectFactory::create(),
             null,

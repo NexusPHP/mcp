@@ -104,7 +104,12 @@ final readonly class ModelPreferences implements Arrayable
             $intelligencePriority = self::parseNumber($intelligencePriority, '"modelPreferences.intelligencePriority" must be a number or null, {type} given.');
         }
 
-        return new self($hints, $costPriority, $speedPriority, $intelligencePriority);
+        return new self(
+            hints: $hints,
+            costPriority: $costPriority,
+            speedPriority: $speedPriority,
+            intelligencePriority: $intelligencePriority,
+        );
     }
 
     #[\Override]

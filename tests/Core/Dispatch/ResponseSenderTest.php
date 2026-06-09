@@ -39,7 +39,7 @@ final class ResponseSenderTest extends TestCase
     public function testSendDeliversTheMessage(): void
     {
         $transport = new RecordingTransport();
-        $message = new DiscoverRequest(new RequestId(1), new EmptyRequestParams(RequestMetaObjectFactory::create()));
+        $message = new DiscoverRequest(id: new RequestId(id: 1), params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create()));
         $sender = new ResponseSender(new ArrayLogger());
 
         $sender->send($transport, $message, 'server/discover');
@@ -55,7 +55,7 @@ final class ResponseSenderTest extends TestCase
         $logger = new ArrayLogger();
         $sender = new ResponseSender($logger);
 
-        $sender->send($transport, new DiscoverRequest(new RequestId(1), new EmptyRequestParams(RequestMetaObjectFactory::create())), 'server/discover');
+        $sender->send($transport, new DiscoverRequest(id: new RequestId(id: 1), params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create())), 'server/discover');
 
         $matches = $logger->recordsMatching(LogLevel::INFO, 'Skipping response delivery. Transport is closed.');
         self::assertCount(1, $matches);
@@ -70,7 +70,7 @@ final class ResponseSenderTest extends TestCase
         $logger = new ArrayLogger();
         $sender = new ResponseSender($logger);
 
-        $sender->send($transport, new DiscoverRequest(new RequestId(1), new EmptyRequestParams(RequestMetaObjectFactory::create())), 'server/discover');
+        $sender->send($transport, new DiscoverRequest(id: new RequestId(id: 1), params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create())), 'server/discover');
 
         $matches = $logger->recordsMatching(LogLevel::ERROR, 'Failed to deliver response to transport.');
         self::assertCount(1, $matches);
@@ -79,9 +79,9 @@ final class ResponseSenderTest extends TestCase
 
     public function testToErrorResponseUsesTheExceptionRequestId(): void
     {
-        $exception = new MethodNotFoundException('vendor/x', new RequestId(7));
+        $exception = new MethodNotFoundException('vendor/x', new RequestId(id: 7));
 
-        $response = ResponseSender::buildErrorResponse($exception, new RequestId(99));
+        $response = ResponseSender::buildErrorResponse($exception, new RequestId(id: 99));
 
         self::assertSame(7, $response->id?->id);
         self::assertSame(ProtocolErrorCode::MethodNotFound->value, $response->error->code);
@@ -90,7 +90,7 @@ final class ResponseSenderTest extends TestCase
 
     public function testToErrorResponseFallsBackWhenExceptionHasNoRequestId(): void
     {
-        $response = ResponseSender::buildErrorResponse(new MethodNotFoundException('vendor/x'), new RequestId(99));
+        $response = ResponseSender::buildErrorResponse(new MethodNotFoundException('vendor/x'), new RequestId(id: 99));
 
         self::assertSame(99, $response->id?->id);
     }

@@ -46,7 +46,7 @@ final class AsResourceTest extends TestCase
     public function testStoresAllValues(): void
     {
         $annotations = new Annotations(priority: 0.5);
-        $icon = new Icon('https://example.test/icon.svg');
+        $icon = new Icon(src: 'https://example.test/icon.svg');
 
         $resource = new AsResource(
             uri: 'file:///data.txt',

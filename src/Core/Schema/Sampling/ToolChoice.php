@@ -42,7 +42,7 @@ final readonly class ToolChoice implements Arrayable
             $mode = EnumValueValidator::parse(ToolChoiceMode::class, $data['mode'], '"toolChoice.mode"');
         }
 
-        return new self($mode);
+        return new self(mode: $mode);
     }
 
     #[\Override]

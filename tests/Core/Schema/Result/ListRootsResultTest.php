@@ -34,7 +34,7 @@ final class ListRootsResultTest extends TestCase
 {
     public function testConstructionDefaultsMetaToNull(): void
     {
-        $result = new ListRootsResult([new Root('file:///x')]);
+        $result = new ListRootsResult(roots: [new Root(uri: 'file:///x')]);
 
         self::assertCount(1, $result->roots);
         self::assertSame([], $result->meta->toArray());
@@ -42,7 +42,7 @@ final class ListRootsResultTest extends TestCase
 
     public function testConstructionAcceptsEmptyRootsList(): void
     {
-        $result = new ListRootsResult([]);
+        $result = new ListRootsResult(roots: []);
 
         self::assertSame([], $result->roots);
     }
@@ -53,7 +53,7 @@ final class ListRootsResultTest extends TestCase
         $this->expectExceptionMessageIs('"result.roots" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
-        new ListRootsResult([5 => new Root('file:///x')]);
+        new ListRootsResult(roots: [5 => new Root(uri: 'file:///x')]);
     }
 
     public function testConstructorRejectsNonRootElement(): void
@@ -61,14 +61,14 @@ final class ListRootsResultTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
 
         // @phpstan-ignore argument.type
-        new ListRootsResult([42]);
+        new ListRootsResult(roots: [42]);
     }
 
     public function testToArrayEmitsRoots(): void
     {
-        $result = new ListRootsResult([
-            new Root('file:///a', 'project-a'),
-            new Root('file:///b'),
+        $result = new ListRootsResult(roots: [
+            new Root(uri: 'file:///a', name: 'project-a'),
+            new Root(uri: 'file:///b'),
         ]);
 
         self::assertSame(
@@ -86,8 +86,8 @@ final class ListRootsResultTest extends TestCase
     public function testToArrayIncludesMetaWhenPresent(): void
     {
         $result = new ListRootsResult(
-            [new Root('file:///x')],
-            new MetaObject(['vendor' => 'x']),
+            roots: [new Root(uri: 'file:///x')],
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -103,8 +103,8 @@ final class ListRootsResultTest extends TestCase
     public function testJsonSerializeMatchesToArray(): void
     {
         $result = new ListRootsResult(
-            [new Root('file:///x', 'project')],
-            new MetaObject(['k' => 'v']),
+            roots: [new Root(uri: 'file:///x', name: 'project')],
+            meta: new MetaObject(extras: ['k' => 'v']),
         );
 
         self::assertSame($result->toArray(), $result->jsonSerialize());
@@ -139,8 +139,8 @@ final class ListRootsResultTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new ListRootsResult(
-            [new Root('file:///x', 'project', new MetaObject(['k' => 'v']))],
-            new MetaObject(['vendor' => 'x']),
+            roots: [new Root(uri: 'file:///x', name: 'project', meta: new MetaObject(extras: ['k' => 'v']))],
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         $rebuilt = ListRootsResult::fromArray($original->toArray());

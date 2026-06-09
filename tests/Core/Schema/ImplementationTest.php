@@ -32,7 +32,7 @@ final class ImplementationTest extends TestCase
 {
     public function testMinimalConstructionExposesNameAndVersion(): void
     {
-        $implementation = new Implementation('Nexus MCP', '1.0.0');
+        $implementation = new Implementation(name: 'Nexus MCP', version: '1.0.0');
 
         self::assertSame('Nexus MCP', $implementation->name);
         self::assertSame('1.0.0', $implementation->version);
@@ -44,15 +44,15 @@ final class ImplementationTest extends TestCase
 
     public function testFullConstructionExposesAllFields(): void
     {
-        $icon = new Icon('https://example.com/icon.png');
+        $icon = new Icon(src: 'https://example.com/icon.png');
 
         $implementation = new Implementation(
-            'Nexus MCP',
-            '1.0.0',
-            'Nexus MCP Server',
-            'A Model Context Protocol server.',
-            'https://nexus.example.com',
-            [$icon],
+            name: 'Nexus MCP',
+            version: '1.0.0',
+            title: 'Nexus MCP Server',
+            description: 'A Model Context Protocol server.',
+            websiteUrl: 'https://nexus.example.com',
+            icons: [$icon],
         );
 
         self::assertSame('Nexus MCP Server', $implementation->title);
@@ -66,7 +66,7 @@ final class ImplementationTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('Implementation name must be a non-empty string.');
 
-        new Implementation('', '1.0.0');
+        new Implementation(name: '', version: '1.0.0');
     }
 
     public function testEmptyVersionIsRejected(): void
@@ -74,7 +74,7 @@ final class ImplementationTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"version" must be a non-empty string.');
 
-        new Implementation('Nexus MCP', '');
+        new Implementation(name: 'Nexus MCP', version: '');
     }
 
     public function testEmptyTitleIsRejected(): void
@@ -82,7 +82,7 @@ final class ImplementationTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('Implementation title must be a non-empty string or null.');
 
-        new Implementation('Nexus MCP', '1.0.0', '');
+        new Implementation(name: 'Nexus MCP', version: '1.0.0', title: '');
     }
 
     public function testEmptyDescriptionIsRejected(): void
@@ -90,7 +90,7 @@ final class ImplementationTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"description" must be a non-empty string or null.');
 
-        new Implementation('Nexus MCP', '1.0.0', null, '');
+        new Implementation(name: 'Nexus MCP', version: '1.0.0', title: null, description: '');
     }
 
     public function testEmptyWebsiteUrlIsRejected(): void
@@ -98,7 +98,7 @@ final class ImplementationTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"websiteUrl" must be a non-empty string or null.');
 
-        new Implementation('Nexus MCP', '1.0.0', null, null, '');
+        new Implementation(name: 'Nexus MCP', version: '1.0.0', title: null, description: null, websiteUrl: '');
     }
 
     public function testNonHttpWebsiteUrlIsRejected(): void
@@ -106,19 +106,19 @@ final class ImplementationTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"websiteUrl" must be an HTTP or HTTPS URL.');
 
-        new Implementation('Nexus MCP', '1.0.0', null, null, 'ftp://example.com');
+        new Implementation(name: 'Nexus MCP', version: '1.0.0', title: null, description: null, websiteUrl: 'ftp://example.com');
     }
 
     public function testNonIconInIconsIsRejected(): void
     {
         $this->expectException(ExpectationFailedException::class);
 
-        new Implementation('Nexus MCP', '1.0.0', null, null, null, ['not-an-icon']); // @phpstan-ignore argument.type
+        new Implementation(name: 'Nexus MCP', version: '1.0.0', title: null, description: null, websiteUrl: null, icons: ['not-an-icon']); // @phpstan-ignore argument.type
     }
 
     public function testToArrayMinimal(): void
     {
-        $implementation = new Implementation('Nexus MCP', '1.0.0');
+        $implementation = new Implementation(name: 'Nexus MCP', version: '1.0.0');
 
         self::assertSame(
             ['name' => 'Nexus MCP', 'version' => '1.0.0'],
@@ -128,15 +128,15 @@ final class ImplementationTest extends TestCase
 
     public function testToArrayFull(): void
     {
-        $icon = new Icon('https://example.com/icon.png', 'image/png');
+        $icon = new Icon(src: 'https://example.com/icon.png', mimeType: 'image/png');
 
         $implementation = new Implementation(
-            'Nexus MCP',
-            '1.0.0',
-            'Nexus MCP Server',
-            'A Model Context Protocol server.',
-            'https://nexus.example.com',
-            [$icon],
+            name: 'Nexus MCP',
+            version: '1.0.0',
+            title: 'Nexus MCP Server',
+            description: 'A Model Context Protocol server.',
+            websiteUrl: 'https://nexus.example.com',
+            icons: [$icon],
         );
 
         self::assertSame(
@@ -154,7 +154,7 @@ final class ImplementationTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $implementation = new Implementation('Nexus MCP', '1.0.0');
+        $implementation = new Implementation(name: 'Nexus MCP', version: '1.0.0');
 
         self::assertSame($implementation->toArray(), $implementation->jsonSerialize());
     }
@@ -170,12 +170,12 @@ final class ImplementationTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new Implementation(
-            'Nexus MCP',
-            '1.0.0',
-            'Nexus MCP Server',
-            'A Model Context Protocol server.',
-            'https://nexus.example.com',
-            [new Icon('https://example.com/icon.png', 'image/png')],
+            name: 'Nexus MCP',
+            version: '1.0.0',
+            title: 'Nexus MCP Server',
+            description: 'A Model Context Protocol server.',
+            websiteUrl: 'https://nexus.example.com',
+            icons: [new Icon(src: 'https://example.com/icon.png', mimeType: 'image/png')],
         );
 
         $rebuilt = Implementation::fromArray($original->toArray());
@@ -257,14 +257,14 @@ final class ImplementationTest extends TestCase
 
     public function testDisplayNameReturnsTitleWhenSet(): void
     {
-        $implementation = new Implementation('nexus-mcp', '1.0.0', 'Nexus MCP Server');
+        $implementation = new Implementation(name: 'nexus-mcp', version: '1.0.0', title: 'Nexus MCP Server');
 
         self::assertSame('Nexus MCP Server', $implementation->getDisplayName());
     }
 
     public function testDisplayNameFallsBackToNameWhenTitleNull(): void
     {
-        $implementation = new Implementation('nexus-mcp', '1.0.0');
+        $implementation = new Implementation(name: 'nexus-mcp', version: '1.0.0');
 
         self::assertSame('nexus-mcp', $implementation->getDisplayName());
     }

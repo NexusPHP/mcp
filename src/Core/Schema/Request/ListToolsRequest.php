@@ -54,6 +54,6 @@ final readonly class ListToolsRequest extends PaginatedRequest implements Client
         ;
         $params = PaginatedRequestParams::fromArray($data['params']);
 
-        return new self(new RequestId($id), $params);
+        return new self(id: new RequestId(id: $id), params: $params);
     }
 }

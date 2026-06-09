@@ -35,9 +35,9 @@ final class UrlElicitationRequiredErrorTest extends TestCase
     public function testConstructionMinimal(): void
     {
         $error = new UrlElicitationRequiredError(
-            new RequestId('r-1'),
-            new UrlElicitationRequiredErrorPayload('Authorization required.', ['elicitations' => []]),
-            [new ElicitRequestUrlParams('e-1', 'Sign in', 'url', 'https://example.com')],
+            id: new RequestId(id: 'r-1'),
+            error: new UrlElicitationRequiredErrorPayload(message: 'Authorization required.', data: ['elicitations' => []]),
+            elicitations: [new ElicitRequestUrlParams(elicitationId: 'e-1', message: 'Sign in', mode: 'url', url: 'https://example.com')],
         );
 
         self::assertNotNull($error->id);
@@ -48,9 +48,9 @@ final class UrlElicitationRequiredErrorTest extends TestCase
     public function testToArrayWithNullId(): void
     {
         $error = new UrlElicitationRequiredError(
-            null,
-            new UrlElicitationRequiredErrorPayload('Authorization required.', ['elicitations' => []]),
-            [],
+            id: null,
+            error: new UrlElicitationRequiredErrorPayload(message: 'Authorization required.', data: ['elicitations' => []]),
+            elicitations: [],
         );
 
         self::assertSame(
@@ -69,8 +69,8 @@ final class UrlElicitationRequiredErrorTest extends TestCase
     public function testToArrayWithAllFields(): void
     {
         $error = new UrlElicitationRequiredError(
-            new RequestId(42),
-            new UrlElicitationRequiredErrorPayload('Authorization required.', [
+            id: new RequestId(id: 42),
+            error: new UrlElicitationRequiredErrorPayload(message: 'Authorization required.', data: [
                 'elicitations' => [
                     [
                         'elicitationId' => 'e-1',
@@ -80,7 +80,7 @@ final class UrlElicitationRequiredErrorTest extends TestCase
                     ],
                 ],
             ]),
-            [new ElicitRequestUrlParams('e-1', 'Sign in', 'url', 'https://example.com')],
+            elicitations: [new ElicitRequestUrlParams(elicitationId: 'e-1', message: 'Sign in', mode: 'url', url: 'https://example.com')],
         );
 
         self::assertSame(
@@ -109,9 +109,9 @@ final class UrlElicitationRequiredErrorTest extends TestCase
     public function testJsonSerializeMatchesToArray(): void
     {
         $error = new UrlElicitationRequiredError(
-            new RequestId('r-1'),
-            new UrlElicitationRequiredErrorPayload('msg', ['elicitations' => []]),
-            [],
+            id: new RequestId(id: 'r-1'),
+            error: new UrlElicitationRequiredErrorPayload(message: 'msg', data: ['elicitations' => []]),
+            elicitations: [],
         );
 
         self::assertSame($error->toArray(), $error->jsonSerialize());
@@ -119,13 +119,13 @@ final class UrlElicitationRequiredErrorTest extends TestCase
 
     public function testFromArrayFullRoundTrip(): void
     {
-        $elicitation = new ElicitRequestUrlParams('e-1', 'Sign in', 'url', 'https://example.com');
+        $elicitation = new ElicitRequestUrlParams(elicitationId: 'e-1', message: 'Sign in', mode: 'url', url: 'https://example.com');
         $original = new UrlElicitationRequiredError(
-            new RequestId('r-1'),
-            new UrlElicitationRequiredErrorPayload('Authorization required.', [
+            id: new RequestId(id: 'r-1'),
+            error: new UrlElicitationRequiredErrorPayload(message: 'Authorization required.', data: [
                 'elicitations' => [$elicitation->toArray()],
             ]),
-            [$elicitation],
+            elicitations: [$elicitation],
         );
 
         $rebuilt = UrlElicitationRequiredError::fromArray($original->toArray());
@@ -139,9 +139,9 @@ final class UrlElicitationRequiredErrorTest extends TestCase
         $this->expectExceptionMessageIs('"error" code must be -32042, -32600 given.');
 
         new UrlElicitationRequiredError(
-            new RequestId('r-1'),
-            new InvalidRequestError('oops'),
-            [],
+            id: new RequestId(id: 'r-1'),
+            error: new InvalidRequestError(message: 'oops'),
+            elicitations: [],
         );
     }
 
@@ -152,9 +152,9 @@ final class UrlElicitationRequiredErrorTest extends TestCase
         $this->expectExceptionMessageIs('"elicitations" must be a list, non-list array given.');
 
         new UrlElicitationRequiredError(
-            null,
-            new UrlElicitationRequiredErrorPayload('msg', ['elicitations' => []]),
-            $elicitations, // @phpstan-ignore argument.type
+            id: null,
+            error: new UrlElicitationRequiredErrorPayload(message: 'msg', data: ['elicitations' => []]),
+            elicitations: $elicitations, // @phpstan-ignore argument.type
         );
     }
 
@@ -163,7 +163,7 @@ final class UrlElicitationRequiredErrorTest extends TestCase
      */
     public static function provideConstructorRejectsNonListElicitationsCases(): iterable
     {
-        yield 'string-keyed entry' => [['k' => new ElicitRequestUrlParams('e-1', 'm', 'url', 'https://example.com')]];
+        yield 'string-keyed entry' => [['k' => new ElicitRequestUrlParams(elicitationId: 'e-1', message: 'm', mode: 'url', url: 'https://example.com')]];
     }
 
     /**

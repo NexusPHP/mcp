@@ -33,7 +33,7 @@ final class ResourceUpdatedNotificationParamsTest extends TestCase
 {
     public function testConstructionExposesUri(): void
     {
-        $params = new ResourceUpdatedNotificationParams('file:///x');
+        $params = new ResourceUpdatedNotificationParams(uri: 'file:///x');
 
         self::assertSame('file:///x', $params->uri);
         self::assertSame([], $params->meta->toArray());
@@ -41,7 +41,7 @@ final class ResourceUpdatedNotificationParamsTest extends TestCase
 
     public function testToArrayEmitsUriOnly(): void
     {
-        $params = new ResourceUpdatedNotificationParams('file:///x');
+        $params = new ResourceUpdatedNotificationParams(uri: 'file:///x');
 
         self::assertSame(['uri' => 'file:///x'], $params->toArray());
     }
@@ -49,8 +49,8 @@ final class ResourceUpdatedNotificationParamsTest extends TestCase
     public function testToArrayIncludesMetaWhenPresent(): void
     {
         $params = new ResourceUpdatedNotificationParams(
-            'file:///x',
-            new MetaObject(['vendor' => 'x']),
+            uri: 'file:///x',
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -62,8 +62,8 @@ final class ResourceUpdatedNotificationParamsTest extends TestCase
     public function testJsonSerializeMatchesToArray(): void
     {
         $params = new ResourceUpdatedNotificationParams(
-            'file:///x',
-            new MetaObject(['k' => 'v']),
+            uri: 'file:///x',
+            meta: new MetaObject(extras: ['k' => 'v']),
         );
 
         self::assertSame($params->toArray(), $params->jsonSerialize());
@@ -89,8 +89,8 @@ final class ResourceUpdatedNotificationParamsTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new ResourceUpdatedNotificationParams(
-            'file:///x',
-            new MetaObject(['vendor' => 'x']),
+            uri: 'file:///x',
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         $rebuilt = ResourceUpdatedNotificationParams::fromArray($original->toArray());

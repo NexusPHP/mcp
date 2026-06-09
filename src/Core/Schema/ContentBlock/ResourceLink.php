@@ -168,7 +168,17 @@ final readonly class ResourceLink extends BaseMetadata implements Arrayable, Con
             $meta = MetaObject::fromArray($data['_meta']);
         }
 
-        return new self($name, $uri, $title, $description, $mimeType, $annotations, $size, $icons, $meta);
+        return new self(
+            name: $name,
+            uri: $uri,
+            title: $title,
+            description: $description,
+            mimeType: $mimeType,
+            annotations: $annotations,
+            size: $size,
+            icons: $icons,
+            meta: $meta,
+        );
     }
 
     #[\Override]

@@ -36,7 +36,7 @@ final class CallToolResultTest extends TestCase
 {
     public function testConstructionMinimal(): void
     {
-        $result = new CallToolResult([]);
+        $result = new CallToolResult(content: []);
 
         self::assertSame([], $result->content);
         self::assertNull($result->structuredContent);
@@ -47,10 +47,10 @@ final class CallToolResultTest extends TestCase
     public function testConstructionWithAllFields(): void
     {
         $result = new CallToolResult(
-            content: [new TextContent('hello')],
+            content: [new TextContent(text: 'hello')],
             structuredContent: ['lines' => 42],
             isError: false,
-            meta: new MetaObject(['vendor' => 'x']),
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertCount(1, $result->content);
@@ -60,16 +60,16 @@ final class CallToolResultTest extends TestCase
 
     public function testToArrayMinimal(): void
     {
-        $result = new CallToolResult([]);
+        $result = new CallToolResult(content: []);
 
         self::assertSame(['resultType' => 'complete', 'content' => []], $result->toArray());
     }
 
     public function testToArrayWithMixedContent(): void
     {
-        $result = new CallToolResult([
-            new TextContent('hi'),
-            new ImageContent('aGVsbG8=', 'image/png'),
+        $result = new CallToolResult(content: [
+            new TextContent(text: 'hi'),
+            new ImageContent(data: 'aGVsbG8=', mimeType: 'image/png'),
         ]);
 
         self::assertSame(
@@ -87,10 +87,10 @@ final class CallToolResultTest extends TestCase
     public function testToArrayWithAllFields(): void
     {
         $result = new CallToolResult(
-            content: [new TextContent('hi')],
+            content: [new TextContent(text: 'hi')],
             structuredContent: ['lines' => 42],
             isError: false,
-            meta: new MetaObject(['vendor' => 'x']),
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -107,7 +107,7 @@ final class CallToolResultTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $result = new CallToolResult([new TextContent('hi')]);
+        $result = new CallToolResult(content: [new TextContent(text: 'hi')]);
 
         self::assertSame($result->toArray(), $result->jsonSerialize());
     }
@@ -129,10 +129,10 @@ final class CallToolResultTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new CallToolResult(
-            content: [new TextContent('hi')],
+            content: [new TextContent(text: 'hi')],
             structuredContent: ['lines' => 42],
             isError: true,
-            meta: new MetaObject(['vendor' => 'x']),
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         $rebuilt = CallToolResult::fromArray($original->toArray());
@@ -146,7 +146,7 @@ final class CallToolResultTest extends TestCase
         $this->expectExceptionMessageIs('"result.content" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
-        new CallToolResult([5 => new TextContent('x')]);
+        new CallToolResult(content: [5 => new TextContent(text: 'x')]);
     }
 
     public function testConstructorRejectsNonContentBlockEntry(): void
@@ -154,7 +154,7 @@ final class CallToolResultTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
 
         // @phpstan-ignore argument.type
-        new CallToolResult([42]);
+        new CallToolResult(content: [42]);
     }
 
     public function testConstructorRejectsListKeyedStructuredContent(): void
@@ -163,7 +163,7 @@ final class CallToolResultTest extends TestCase
         $this->expectExceptionMessageIs('"result.structuredContent" must be a string-keyed map.');
 
         // @phpstan-ignore argument.type
-        new CallToolResult([], ['v1', 'v2']);
+        new CallToolResult(content: [], structuredContent: ['v1', 'v2']);
     }
 
     /**

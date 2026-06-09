@@ -61,8 +61,8 @@ final readonly class ResponseSender
         ?RequestId $fallbackId,
     ): JsonRpcErrorResponse {
         return new JsonRpcErrorResponse(
-            $exception->requestId ?? $fallbackId,
-            ErrorFactory::create($exception::getErrorCode(), $exception->getMessage()),
+            id: $exception->requestId ?? $fallbackId,
+            error: ErrorFactory::create($exception::getErrorCode(), $exception->getMessage()),
         );
     }
 }

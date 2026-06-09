@@ -76,7 +76,7 @@ final readonly class ListResourceTemplatesResult extends PaginatedResult impleme
         if (\array_key_exists('nextCursor', $data)) {
             $raw = $data['nextCursor'];
             Assert::that($raw)->isString('"result.nextCursor" must be a string, {type} given.');
-            $nextCursor = new Cursor($raw);
+            $nextCursor = new Cursor(cursor: $raw);
         }
 
         $meta = new MetaObject();
@@ -89,7 +89,13 @@ final readonly class ListResourceTemplatesResult extends PaginatedResult impleme
             $meta = MetaObject::fromArray($data['_meta']);
         }
 
-        return new self($resourceTemplates, $ttlMs, $cacheScope, $nextCursor, $meta);
+        return new self(
+            resourceTemplates: $resourceTemplates,
+            ttlMs: $ttlMs,
+            cacheScope: $cacheScope,
+            nextCursor: $nextCursor,
+            meta: $meta,
+        );
     }
 
     #[\Override]

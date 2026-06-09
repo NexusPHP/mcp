@@ -34,7 +34,7 @@ final class LoggingMessageNotificationParamsTest extends TestCase
 {
     public function testConstructionDefaultsLoggerAndMetaToNull(): void
     {
-        $params = new LoggingMessageNotificationParams(LoggingLevel::Info, 'something happened');
+        $params = new LoggingMessageNotificationParams(level: LoggingLevel::Info, data: 'something happened');
 
         self::assertSame(LoggingLevel::Info, $params->level);
         self::assertSame('something happened', $params->data);
@@ -44,7 +44,7 @@ final class LoggingMessageNotificationParamsTest extends TestCase
 
     public function testToArrayWithMinimalFields(): void
     {
-        $params = new LoggingMessageNotificationParams(LoggingLevel::Warning, 'msg');
+        $params = new LoggingMessageNotificationParams(level: LoggingLevel::Warning, data: 'msg');
 
         self::assertSame(
             ['level' => 'warning', 'data' => 'msg'],
@@ -54,7 +54,7 @@ final class LoggingMessageNotificationParamsTest extends TestCase
 
     public function testToArrayWithLogger(): void
     {
-        $params = new LoggingMessageNotificationParams(LoggingLevel::Error, 'boom', 'app.db');
+        $params = new LoggingMessageNotificationParams(level: LoggingLevel::Error, data: 'boom', logger: 'app.db');
 
         self::assertSame(
             ['level' => 'error', 'data' => 'boom', 'logger' => 'app.db'],
@@ -64,7 +64,7 @@ final class LoggingMessageNotificationParamsTest extends TestCase
 
     public function testToArrayWithEmptyLogger(): void
     {
-        $params = new LoggingMessageNotificationParams(LoggingLevel::Debug, 'x', '');
+        $params = new LoggingMessageNotificationParams(level: LoggingLevel::Debug, data: 'x', logger: '');
 
         self::assertSame(
             ['level' => 'debug', 'data' => 'x', 'logger' => ''],
@@ -75,10 +75,10 @@ final class LoggingMessageNotificationParamsTest extends TestCase
     public function testToArrayWithMeta(): void
     {
         $params = new LoggingMessageNotificationParams(
-            LoggingLevel::Notice,
-            'x',
-            null,
-            new MetaObject(['vendor' => 'x']),
+            level: LoggingLevel::Notice,
+            data: 'x',
+            logger: null,
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -90,10 +90,10 @@ final class LoggingMessageNotificationParamsTest extends TestCase
     public function testToArrayKeyOrderHasMetaThenLevelThenDataThenLogger(): void
     {
         $params = new LoggingMessageNotificationParams(
-            LoggingLevel::Critical,
-            'x',
-            'app',
-            new MetaObject(['k' => 'v']),
+            level: LoggingLevel::Critical,
+            data: 'x',
+            logger: 'app',
+            meta: new MetaObject(extras: ['k' => 'v']),
         );
 
         self::assertSame(
@@ -105,7 +105,7 @@ final class LoggingMessageNotificationParamsTest extends TestCase
     #[DataProvider('provideToArrayPreservesAnyDataTypeCases')]
     public function testToArrayPreservesAnyDataType(mixed $data): void
     {
-        $params = new LoggingMessageNotificationParams(LoggingLevel::Info, $data);
+        $params = new LoggingMessageNotificationParams(level: LoggingLevel::Info, data: $data);
 
         $result = $params->toArray();
         self::assertArrayHasKey('data', $result);
@@ -135,10 +135,10 @@ final class LoggingMessageNotificationParamsTest extends TestCase
     public function testJsonSerializeMatchesToArray(): void
     {
         $params = new LoggingMessageNotificationParams(
-            LoggingLevel::Info,
-            'x',
-            'app',
-            new MetaObject(['k' => 'v']),
+            level: LoggingLevel::Info,
+            data: 'x',
+            logger: 'app',
+            meta: new MetaObject(extras: ['k' => 'v']),
         );
 
         self::assertSame($params->toArray(), $params->jsonSerialize());
@@ -193,10 +193,10 @@ final class LoggingMessageNotificationParamsTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new LoggingMessageNotificationParams(
-            LoggingLevel::Emergency,
-            ['kind' => 'oom', 'pid' => 123],
-            'app.db',
-            new MetaObject(['vendor' => 'x']),
+            level: LoggingLevel::Emergency,
+            data: ['kind' => 'oom', 'pid' => 123],
+            logger: 'app.db',
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         $rebuilt = LoggingMessageNotificationParams::fromArray($original->toArray());

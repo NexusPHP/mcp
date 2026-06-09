@@ -36,7 +36,7 @@ final class ReadResourceRequestParamsTest extends TestCase
 {
     public function testConstructionMinimal(): void
     {
-        $params = new ReadResourceRequestParams('file:///x', RequestMetaObjectFactory::create());
+        $params = new ReadResourceRequestParams(uri: 'file:///x', meta: RequestMetaObjectFactory::create());
 
         self::assertSame('file:///x', $params->uri);
     }
@@ -44,8 +44,8 @@ final class ReadResourceRequestParamsTest extends TestCase
     public function testConstructionWithMeta(): void
     {
         $params = new ReadResourceRequestParams(
-            'file:///x',
-            RequestMetaObjectFactory::create(new ProgressToken('p-1'), ['vendor' => 'x']),
+            uri: 'file:///x',
+            meta: RequestMetaObjectFactory::create(new ProgressToken(token: 'p-1'), ['vendor' => 'x']),
         );
         self::assertNotNull($params->meta->progressToken);
         self::assertSame('p-1', $params->meta->progressToken->token);
@@ -54,13 +54,13 @@ final class ReadResourceRequestParamsTest extends TestCase
     public function testToArrayWithMeta(): void
     {
         $params = new ReadResourceRequestParams(
-            'file:///x',
-            RequestMetaObjectFactory::create(new ProgressToken('p-1')),
+            uri: 'file:///x',
+            meta: RequestMetaObjectFactory::create(new ProgressToken(token: 'p-1')),
         );
 
         self::assertSame(
             [
-                '_meta' => RequestMetaObjectFactory::shape(new ProgressToken('p-1')),
+                '_meta' => RequestMetaObjectFactory::shape(new ProgressToken(token: 'p-1')),
                 'uri' => 'file:///x',
             ],
             $params->toArray(),
@@ -69,7 +69,7 @@ final class ReadResourceRequestParamsTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $params = new ReadResourceRequestParams('file:///x', RequestMetaObjectFactory::create());
+        $params = new ReadResourceRequestParams(uri: 'file:///x', meta: RequestMetaObjectFactory::create());
 
         self::assertSame($params->toArray(), $params->jsonSerialize());
     }
@@ -88,7 +88,7 @@ final class ReadResourceRequestParamsTest extends TestCase
     {
         $params = ReadResourceRequestParams::fromArray([
             'uri' => 'file:///x',
-            '_meta' => RequestMetaObjectFactory::shape(new ProgressToken('p-1'), ['vendor' => 'x']),
+            '_meta' => RequestMetaObjectFactory::shape(new ProgressToken(token: 'p-1'), ['vendor' => 'x']),
         ]);
         self::assertNotNull($params->meta->progressToken);
         self::assertSame('p-1', $params->meta->progressToken->token);
@@ -97,8 +97,8 @@ final class ReadResourceRequestParamsTest extends TestCase
     public function testFromArrayRoundTrip(): void
     {
         $original = new ReadResourceRequestParams(
-            'file:///x',
-            RequestMetaObjectFactory::create(new ProgressToken('p-1'), ['vendor' => 'x']),
+            uri: 'file:///x',
+            meta: RequestMetaObjectFactory::create(new ProgressToken(token: 'p-1'), ['vendor' => 'x']),
         );
 
         self::assertSame($original->toArray(), ReadResourceRequestParams::fromArray($original->toArray())->toArray());

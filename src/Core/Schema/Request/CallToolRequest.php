@@ -53,6 +53,6 @@ final readonly class CallToolRequest extends JsonRpcRequest implements ClientReq
             ->isMap('"params" must be a string-keyed object.')
         ;
 
-        return new self(new RequestId($id), CallToolRequestParams::fromArray($data['params']));
+        return new self(id: new RequestId(id: $id), params: CallToolRequestParams::fromArray($data['params']));
     }
 }

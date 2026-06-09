@@ -184,16 +184,16 @@ final readonly class CreateMessageRequestParams implements Arrayable, RequestPar
         }
 
         return new self(
-            $maxTokens,
-            $messages,
-            $includeContext,
-            $modelPreferences,
-            $stopSequences,
-            $systemPrompt,
-            $temperature,
-            $toolChoice,
-            $tools,
-            $metadata,
+            maxTokens: $maxTokens,
+            messages: $messages,
+            includeContext: $includeContext,
+            modelPreferences: $modelPreferences,
+            stopSequences: $stopSequences,
+            systemPrompt: $systemPrompt,
+            temperature: $temperature,
+            toolChoice: $toolChoice,
+            tools: $tools,
+            metadata: $metadata,
         );
     }
 

@@ -55,6 +55,6 @@ final readonly class ListRootsRequest extends JsonRpcRequest implements ServerRe
             $params = EmptyRequestParams::fromArray($data['params']);
         }
 
-        return new self(new RequestId($id), $params);
+        return new self(id: new RequestId(id: $id), params: $params);
     }
 }

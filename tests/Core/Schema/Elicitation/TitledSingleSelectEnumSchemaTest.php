@@ -31,8 +31,8 @@ final class TitledSingleSelectEnumSchemaTest extends TestCase
 {
     public function testConstructionMinimal(): void
     {
-        $opt = new EnumOption('a', 'Apple');
-        $schema = new TitledSingleSelectEnumSchema([$opt]);
+        $opt = new EnumOption(const: 'a', title: 'Apple');
+        $schema = new TitledSingleSelectEnumSchema(oneOf: [$opt]);
 
         self::assertCount(1, $schema->oneOf);
         self::assertSame('a', $schema->oneOf[0]->const);
@@ -40,7 +40,7 @@ final class TitledSingleSelectEnumSchemaTest extends TestCase
 
     public function testToArrayMinimal(): void
     {
-        $schema = new TitledSingleSelectEnumSchema([new EnumOption('a', 'Apple')]);
+        $schema = new TitledSingleSelectEnumSchema(oneOf: [new EnumOption(const: 'a', title: 'Apple')]);
 
         self::assertSame(
             [
@@ -54,10 +54,10 @@ final class TitledSingleSelectEnumSchemaTest extends TestCase
     public function testToArrayWithAllFields(): void
     {
         $schema = new TitledSingleSelectEnumSchema(
-            [new EnumOption('a', 'Apple'), new EnumOption('b', 'Banana')],
-            'Fruit',
-            'Pick a fruit.',
-            'a',
+            oneOf: [new EnumOption(const: 'a', title: 'Apple'), new EnumOption(const: 'b', title: 'Banana')],
+            title: 'Fruit',
+            description: 'Pick a fruit.',
+            default: 'a',
         );
 
         self::assertSame(
@@ -77,7 +77,7 @@ final class TitledSingleSelectEnumSchemaTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $schema = new TitledSingleSelectEnumSchema([new EnumOption('a', 'A')]);
+        $schema = new TitledSingleSelectEnumSchema(oneOf: [new EnumOption(const: 'a', title: 'A')]);
 
         self::assertSame($schema->toArray(), $schema->jsonSerialize());
     }
@@ -85,10 +85,10 @@ final class TitledSingleSelectEnumSchemaTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new TitledSingleSelectEnumSchema(
-            [new EnumOption('a', 'Apple')],
-            'Fruit',
-            'desc',
-            'a',
+            oneOf: [new EnumOption(const: 'a', title: 'Apple')],
+            title: 'Fruit',
+            description: 'desc',
+            default: 'a',
         );
 
         $rebuilt = TitledSingleSelectEnumSchema::fromArray($original->toArray());
@@ -102,7 +102,7 @@ final class TitledSingleSelectEnumSchemaTest extends TestCase
         $this->expectExceptionMessageIs('titled single select enum schema "oneOf" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
-        new TitledSingleSelectEnumSchema(['k' => new EnumOption('a', 'A')]);
+        new TitledSingleSelectEnumSchema(oneOf: ['k' => new EnumOption(const: 'a', title: 'A')]);
     }
 
     public function testConstructorRejectsNonEnumOptionEntry(): void
@@ -110,7 +110,7 @@ final class TitledSingleSelectEnumSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
 
         // @phpstan-ignore argument.type
-        new TitledSingleSelectEnumSchema([42]);
+        new TitledSingleSelectEnumSchema(oneOf: [42]);
     }
 
     public function testConstructorRejectsEmptyTitle(): void
@@ -118,7 +118,7 @@ final class TitledSingleSelectEnumSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('titled single select enum schema "title" must be a non-empty string or null.');
 
-        new TitledSingleSelectEnumSchema([new EnumOption('a', 'A')], '');
+        new TitledSingleSelectEnumSchema(oneOf: [new EnumOption(const: 'a', title: 'A')], title: '');
     }
 
     public function testConstructorRejectsEmptyDescription(): void
@@ -126,7 +126,7 @@ final class TitledSingleSelectEnumSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('titled single select enum schema "description" must be a non-empty string or null.');
 
-        new TitledSingleSelectEnumSchema([new EnumOption('a', 'A')], null, '');
+        new TitledSingleSelectEnumSchema(oneOf: [new EnumOption(const: 'a', title: 'A')], title: null, description: '');
     }
 
     /**

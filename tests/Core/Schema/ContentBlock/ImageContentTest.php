@@ -32,7 +32,7 @@ final class ImageContentTest extends TestCase
 {
     public function testConstructionMinimal(): void
     {
-        $content = new ImageContent('aGVsbG8=', 'image/png');
+        $content = new ImageContent(data: 'aGVsbG8=', mimeType: 'image/png');
 
         self::assertSame('aGVsbG8=', $content->data);
         self::assertSame('image/png', $content->mimeType);
@@ -42,7 +42,7 @@ final class ImageContentTest extends TestCase
 
     public function testToArrayMinimal(): void
     {
-        $content = new ImageContent('aGVsbG8=', 'image/png');
+        $content = new ImageContent(data: 'aGVsbG8=', mimeType: 'image/png');
 
         self::assertSame(
             ['data' => 'aGVsbG8=', 'mimeType' => 'image/png', 'type' => 'image'],
@@ -53,10 +53,10 @@ final class ImageContentTest extends TestCase
     public function testToArrayWithAllFields(): void
     {
         $content = new ImageContent(
-            'aGVsbG8=',
-            'image/png',
-            new Annotations(null, 0.5),
-            new MetaObject(['vendor' => 'x']),
+            data: 'aGVsbG8=',
+            mimeType: 'image/png',
+            annotations: new Annotations(audience: null, priority: 0.5),
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -73,7 +73,7 @@ final class ImageContentTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $content = new ImageContent('aGVsbG8=', 'image/png', new Annotations(), new MetaObject(['k' => 'v']));
+        $content = new ImageContent(data: 'aGVsbG8=', mimeType: 'image/png', annotations: new Annotations(), meta: new MetaObject(extras: ['k' => 'v']));
 
         self::assertSame($content->toArray(), $content->jsonSerialize());
     }
@@ -97,10 +97,10 @@ final class ImageContentTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new ImageContent(
-            'aGVsbG8=',
-            'image/png',
-            new Annotations(null, 0.5),
-            new MetaObject(['vendor' => 'x']),
+            data: 'aGVsbG8=',
+            mimeType: 'image/png',
+            annotations: new Annotations(audience: null, priority: 0.5),
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         $rebuilt = ImageContent::fromArray($original->toArray());
@@ -113,7 +113,7 @@ final class ImageContentTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('image content "data" must be a non-empty string.');
 
-        new ImageContent('', 'image/png');
+        new ImageContent(data: '', mimeType: 'image/png');
     }
 
     public function testConstructorRejectsEmptyMimeType(): void
@@ -121,7 +121,7 @@ final class ImageContentTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('image content "mimeType" must be a non-empty string.');
 
-        new ImageContent('aGVsbG8=', '');
+        new ImageContent(data: 'aGVsbG8=', mimeType: '');
     }
 
     /**

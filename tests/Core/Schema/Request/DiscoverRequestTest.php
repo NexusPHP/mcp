@@ -43,8 +43,8 @@ final class DiscoverRequestTest extends TestCase
     public function testToArray(): void
     {
         $request = new DiscoverRequest(
-            new RequestId(1),
-            new EmptyRequestParams(RequestMetaObjectFactory::create()),
+            id: new RequestId(id: 1),
+            params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create()),
         );
 
         self::assertSame(
@@ -61,8 +61,8 @@ final class DiscoverRequestTest extends TestCase
     public function testJsonSerializeMatchesToArray(): void
     {
         $request = new DiscoverRequest(
-            new RequestId(1),
-            new EmptyRequestParams(RequestMetaObjectFactory::create()),
+            id: new RequestId(id: 1),
+            params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create()),
         );
 
         self::assertSame($request->toArray(), $request->jsonSerialize());
@@ -71,8 +71,8 @@ final class DiscoverRequestTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new DiscoverRequest(
-            new RequestId('req-1'),
-            new EmptyRequestParams(RequestMetaObjectFactory::create()),
+            id: new RequestId(id: 'req-1'),
+            params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create()),
         );
 
         $rebuilt = DiscoverRequest::fromArray($original->toArray());

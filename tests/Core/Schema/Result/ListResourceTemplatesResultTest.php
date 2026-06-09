@@ -40,7 +40,7 @@ final class ListResourceTemplatesResultTest extends TestCase
 {
     public function testConstructionDefaults(): void
     {
-        $result = new ListResourceTemplatesResult([new ResourceTemplate('t', 'file:///{name}')], 0, CacheScope::Private);
+        $result = new ListResourceTemplatesResult(resourceTemplates: [new ResourceTemplate(name: 't', uriTemplate: 'file:///{name}')], ttlMs: 0, cacheScope: CacheScope::Private);
 
         self::assertCount(1, $result->resourceTemplates);
         self::assertSame(0, $result->ttlMs);
@@ -51,17 +51,17 @@ final class ListResourceTemplatesResultTest extends TestCase
 
     public function testConstructionAcceptsEmptyList(): void
     {
-        $result = new ListResourceTemplatesResult([], 0, CacheScope::Private);
+        $result = new ListResourceTemplatesResult(resourceTemplates: [], ttlMs: 0, cacheScope: CacheScope::Private);
 
         self::assertSame([], $result->resourceTemplates);
     }
 
     public function testToArrayEmitsResourceTemplates(): void
     {
-        $result = new ListResourceTemplatesResult([
-            new ResourceTemplate('a', 'file:///{a}'),
-            new ResourceTemplate('b', 'file:///{b}'),
-        ], 0, CacheScope::Private);
+        $result = new ListResourceTemplatesResult(resourceTemplates: [
+            new ResourceTemplate(name: 'a', uriTemplate: 'file:///{a}'),
+            new ResourceTemplate(name: 'b', uriTemplate: 'file:///{b}'),
+        ], ttlMs: 0, cacheScope: CacheScope::Private);
 
         self::assertSame(
             [
@@ -80,10 +80,10 @@ final class ListResourceTemplatesResultTest extends TestCase
     public function testToArrayIncludesNextCursor(): void
     {
         $result = new ListResourceTemplatesResult(
-            [new ResourceTemplate('a', 'file:///{a}')],
-            0,
-            CacheScope::Private,
-            new Cursor('cur-1'),
+            resourceTemplates: [new ResourceTemplate(name: 'a', uriTemplate: 'file:///{a}')],
+            ttlMs: 0,
+            cacheScope: CacheScope::Private,
+            nextCursor: new Cursor(cursor: 'cur-1'),
         );
 
         self::assertSame(
@@ -101,11 +101,11 @@ final class ListResourceTemplatesResultTest extends TestCase
     public function testToArrayIncludesMeta(): void
     {
         $result = new ListResourceTemplatesResult(
-            [new ResourceTemplate('a', 'file:///{a}')],
-            0,
-            CacheScope::Private,
-            null,
-            new MetaObject(['vendor' => 'x']),
+            resourceTemplates: [new ResourceTemplate(name: 'a', uriTemplate: 'file:///{a}')],
+            ttlMs: 0,
+            cacheScope: CacheScope::Private,
+            nextCursor: null,
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -123,11 +123,11 @@ final class ListResourceTemplatesResultTest extends TestCase
     public function testToArrayWithMetaAndNextCursor(): void
     {
         $result = new ListResourceTemplatesResult(
-            [new ResourceTemplate('a', 'file:///{a}')],
-            60000,
-            CacheScope::Public,
-            new Cursor('cur-1'),
-            new MetaObject(['vendor' => 'x']),
+            resourceTemplates: [new ResourceTemplate(name: 'a', uriTemplate: 'file:///{a}')],
+            ttlMs: 60000,
+            cacheScope: CacheScope::Public,
+            nextCursor: new Cursor(cursor: 'cur-1'),
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -146,11 +146,11 @@ final class ListResourceTemplatesResultTest extends TestCase
     public function testJsonSerializeMatchesToArray(): void
     {
         $result = new ListResourceTemplatesResult(
-            [new ResourceTemplate('a', 'file:///{a}')],
-            60000,
-            CacheScope::Public,
-            new Cursor('cur-1'),
-            new MetaObject(['k' => 'v']),
+            resourceTemplates: [new ResourceTemplate(name: 'a', uriTemplate: 'file:///{a}')],
+            ttlMs: 60000,
+            cacheScope: CacheScope::Public,
+            nextCursor: new Cursor(cursor: 'cur-1'),
+            meta: new MetaObject(extras: ['k' => 'v']),
         );
 
         self::assertSame($result->toArray(), $result->jsonSerialize());
@@ -193,11 +193,11 @@ final class ListResourceTemplatesResultTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new ListResourceTemplatesResult(
-            [new ResourceTemplate('a', 'file:///{a}', 'A')],
-            60000,
-            CacheScope::Public,
-            new Cursor('cur-1'),
-            new MetaObject(['vendor' => 'x']),
+            resourceTemplates: [new ResourceTemplate(name: 'a', uriTemplate: 'file:///{a}', title: 'A')],
+            ttlMs: 60000,
+            cacheScope: CacheScope::Public,
+            nextCursor: new Cursor(cursor: 'cur-1'),
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         $rebuilt = ListResourceTemplatesResult::fromArray($original->toArray());
@@ -211,7 +211,7 @@ final class ListResourceTemplatesResultTest extends TestCase
         $this->expectExceptionMessageIs('"result.resourceTemplates" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
-        new ListResourceTemplatesResult([5 => new ResourceTemplate('a', 'file:///{a}')], 0, CacheScope::Private);
+        new ListResourceTemplatesResult(resourceTemplates: [5 => new ResourceTemplate(name: 'a', uriTemplate: 'file:///{a}')], ttlMs: 0, cacheScope: CacheScope::Private);
     }
 
     public function testConstructorRejectsNonResourceTemplateElement(): void
@@ -219,7 +219,7 @@ final class ListResourceTemplatesResultTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
 
         // @phpstan-ignore argument.type
-        new ListResourceTemplatesResult([42], 0, CacheScope::Private);
+        new ListResourceTemplatesResult(resourceTemplates: [42], ttlMs: 0, cacheScope: CacheScope::Private);
     }
 
     public function testConstructorRejectsNegativeTtl(): void
@@ -227,7 +227,7 @@ final class ListResourceTemplatesResultTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"result.ttlMs" must be a non-negative integer, -1 given.');
 
-        new ListResourceTemplatesResult([], -1, CacheScope::Private);
+        new ListResourceTemplatesResult(resourceTemplates: [], ttlMs: -1, cacheScope: CacheScope::Private);
     }
 
     /**

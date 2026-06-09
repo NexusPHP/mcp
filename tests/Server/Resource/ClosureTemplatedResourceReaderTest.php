@@ -37,9 +37,9 @@ final class ClosureTemplatedResourceReaderTest extends TestCase
     public function testForwardsUriBindingsAndContextToClosureAndReturnsItsResult(): void
     {
         $captured = ['uri' => null, 'bindings' => null, 'context' => null];
-        $expected = new ReadResourceResult([new TextResourceContents('file:///etc', 'ok')], 0, CacheScope::Private);
+        $expected = new ReadResourceResult(contents: [new TextResourceContents(uri: 'file:///etc', text: 'ok')], ttlMs: 0, cacheScope: CacheScope::Private);
         $context = new ServerContext(
-            new RequestId(42),
+            new RequestId(id: 42),
             new NullCancellation(),
             RequestMetaObjectFactory::create(),
             null,

@@ -70,7 +70,13 @@ final readonly class ProgressNotificationParams extends NotificationParams
             $meta = MetaObject::fromArray($data['_meta']);
         }
 
-        return new self(new ProgressToken($progressToken), $progress, $total, $message, $meta);
+        return new self(
+            progressToken: new ProgressToken(token: $progressToken),
+            progress: $progress,
+            total: $total,
+            message: $message,
+            meta: $meta,
+        );
     }
 
     #[\Override]

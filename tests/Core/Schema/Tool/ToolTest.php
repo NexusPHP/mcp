@@ -35,7 +35,7 @@ final class ToolTest extends TestCase
 {
     public function testConstructionMinimal(): void
     {
-        $tool = new Tool('read-file', ['type' => 'object']);
+        $tool = new Tool(name: 'read-file', inputSchema: ['type' => 'object']);
 
         self::assertSame('read-file', $tool->name);
         self::assertNull($tool->title);
@@ -49,7 +49,7 @@ final class ToolTest extends TestCase
 
     public function testToArrayMinimal(): void
     {
-        $tool = new Tool('read-file', ['type' => 'object']);
+        $tool = new Tool(name: 'read-file', inputSchema: ['type' => 'object']);
 
         self::assertSame(
             [
@@ -69,8 +69,8 @@ final class ToolTest extends TestCase
             description: 'Reads contents.',
             outputSchema: ['type' => 'object', 'properties' => ['content' => ['type' => 'string']]],
             annotations: new ToolAnnotations(readOnlyHint: true),
-            icons: [new Icon('https://example.com/icon.png')],
-            meta: new MetaObject(['vendor' => 'x']),
+            icons: [new Icon(src: 'https://example.com/icon.png')],
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -90,7 +90,7 @@ final class ToolTest extends TestCase
 
     public function testToArrayOmitsEmptyAnnotations(): void
     {
-        $tool = new Tool('read-file', ['type' => 'object'], annotations: new ToolAnnotations());
+        $tool = new Tool(name: 'read-file', inputSchema: ['type' => 'object'], annotations: new ToolAnnotations());
 
         self::assertSame(
             ['name' => 'read-file', 'inputSchema' => ['type' => 'object']],
@@ -100,7 +100,7 @@ final class ToolTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $tool = new Tool('read-file', self::objectSchema());
+        $tool = new Tool(name: 'read-file', inputSchema: self::objectSchema());
 
         self::assertSame($tool->toArray(), $tool->jsonSerialize());
     }
@@ -144,8 +144,8 @@ final class ToolTest extends TestCase
             description: 'Reads contents.',
             outputSchema: ['type' => 'object', 'properties' => ['content' => ['type' => 'string']]],
             annotations: new ToolAnnotations(title: 'Read File', readOnlyHint: true),
-            icons: [new Icon('https://example.com/icon.png')],
-            meta: new MetaObject(['vendor' => 'x']),
+            icons: [new Icon(src: 'https://example.com/icon.png')],
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         $rebuilt = Tool::fromArray($original->toArray());
@@ -158,7 +158,7 @@ final class ToolTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageMatches('/\Atool "name" must be 1-128 characters/');
 
-        new Tool('bad name', ['type' => 'object']);
+        new Tool(name: 'bad name', inputSchema: ['type' => 'object']);
     }
 
     public function testConstructorRejectsEmptyDescription(): void
@@ -166,7 +166,7 @@ final class ToolTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('Tool description must be a non-empty string or null.');
 
-        new Tool('read-file', ['type' => 'object'], description: '');
+        new Tool(name: 'read-file', inputSchema: ['type' => 'object'], description: '');
     }
 
     public function testConstructorRejectsNonIconEntry(): void
@@ -174,12 +174,12 @@ final class ToolTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
 
         // @phpstan-ignore argument.type
-        new Tool('read-file', ['type' => 'object'], icons: [42]);
+        new Tool(name: 'read-file', inputSchema: ['type' => 'object'], icons: [42]);
     }
 
     public function testConstructorProjectsInputSchemaToCanonicalShape(): void
     {
-        $tool = new Tool('read-file', [
+        $tool = new Tool(name: 'read-file', inputSchema: [
             'required' => ['path'],
             'type' => 'object',
             'properties' => ['path' => ['type' => 'string']],
@@ -200,7 +200,7 @@ final class ToolTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
-        new Tool('read-file', $schema);
+        new Tool(name: 'read-file', inputSchema: $schema);
     }
 
     /**
@@ -254,7 +254,7 @@ final class ToolTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('tool "outputSchema" "type" must be \'object\', \'array\' given.');
 
-        new Tool('read-file', ['type' => 'object'], outputSchema: ['type' => 'array']);
+        new Tool(name: 'read-file', inputSchema: ['type' => 'object'], outputSchema: ['type' => 'array']);
     }
 
     /**
@@ -338,8 +338,8 @@ final class ToolTest extends TestCase
     public function testDisplayNameReturnsTitleWhenSet(): void
     {
         $tool = new Tool(
-            'read-file',
-            ['type' => 'object'],
+            name: 'read-file',
+            inputSchema: ['type' => 'object'],
             title: 'Read File',
             annotations: new ToolAnnotations(title: 'Reader'),
         );
@@ -350,8 +350,8 @@ final class ToolTest extends TestCase
     public function testDisplayNameFallsBackToAnnotationsTitleWhenTopLevelTitleNull(): void
     {
         $tool = new Tool(
-            'read-file',
-            ['type' => 'object'],
+            name: 'read-file',
+            inputSchema: ['type' => 'object'],
             annotations: new ToolAnnotations(title: 'Reader'),
         );
 
@@ -360,7 +360,7 @@ final class ToolTest extends TestCase
 
     public function testDisplayNameFallsBackToNameWhenAllOtherFieldsNull(): void
     {
-        $tool = new Tool('read-file', ['type' => 'object']);
+        $tool = new Tool(name: 'read-file', inputSchema: ['type' => 'object']);
 
         self::assertSame('read-file', $tool->getDisplayName());
     }

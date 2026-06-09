@@ -60,8 +60,8 @@ final readonly class JsonRpcErrorResponse implements Arrayable, JsonRpcResponse
         ;
 
         return new self(
-            null === $id ? null : new RequestId($id),
-            self::parseError($data['error']),
+            id: null === $id ? null : new RequestId(id: $id),
+            error: self::parseError($data['error']),
         );
     }
 
@@ -119,7 +119,7 @@ final readonly class JsonRpcErrorResponse implements Arrayable, JsonRpcResponse
         }
 
         if (null === $resolved) {
-            return new UnknownProtocolError($code, $message, $extra);
+            return new UnknownProtocolError(code: $code, message: $message, data: $extra);
         }
 
         return ErrorFactory::create($resolved, $message, $extra);

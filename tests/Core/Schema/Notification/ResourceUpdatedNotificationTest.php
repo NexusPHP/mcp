@@ -41,7 +41,7 @@ final class ResourceUpdatedNotificationTest extends TestCase
     public function testToArrayBuildsEnvelope(): void
     {
         $notification = new ResourceUpdatedNotification(
-            new ResourceUpdatedNotificationParams('file:///x'),
+            params: new ResourceUpdatedNotificationParams(uri: 'file:///x'),
         );
 
         self::assertSame(
@@ -57,7 +57,7 @@ final class ResourceUpdatedNotificationTest extends TestCase
     public function testJsonSerializeMatchesToArray(): void
     {
         $notification = new ResourceUpdatedNotification(
-            new ResourceUpdatedNotificationParams('file:///x'),
+            params: new ResourceUpdatedNotificationParams(uri: 'file:///x'),
         );
 
         self::assertSame($notification->toArray(), $notification->jsonSerialize());
@@ -66,7 +66,7 @@ final class ResourceUpdatedNotificationTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new ResourceUpdatedNotification(
-            new ResourceUpdatedNotificationParams('file:///x'),
+            params: new ResourceUpdatedNotificationParams(uri: 'file:///x'),
         );
 
         $rebuilt = ResourceUpdatedNotification::fromArray($original->toArray());

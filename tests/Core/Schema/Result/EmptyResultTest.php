@@ -41,7 +41,7 @@ final class EmptyResultTest extends TestCase
 
     public function testToArrayEmitsMeta(): void
     {
-        $result = new EmptyResult(new MetaObject(['vendor' => 'x']));
+        $result = new EmptyResult(meta: new MetaObject(extras: ['vendor' => 'x']));
 
         self::assertSame(['_meta' => ['vendor' => 'x'], 'resultType' => 'complete'], $result->toArray());
     }
@@ -67,14 +67,14 @@ final class EmptyResultTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $result = new EmptyResult(new MetaObject(['k' => 'v']));
+        $result = new EmptyResult(meta: new MetaObject(extras: ['k' => 'v']));
 
         self::assertSame($result->toArray(), $result->jsonSerialize());
     }
 
     public function testRoundTripPreservesMeta(): void
     {
-        $original = new EmptyResult(new MetaObject(['vendor' => 'x']));
+        $original = new EmptyResult(meta: new MetaObject(extras: ['vendor' => 'x']));
 
         self::assertSame($original->toArray(), EmptyResult::fromArray($original->toArray())->toArray());
     }

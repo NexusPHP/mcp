@@ -85,7 +85,7 @@ final class ReflectedResourceReaderTest extends TestCase
     private static function makeContext(): ServerContext
     {
         return new ServerContext(
-            new RequestId(7),
+            new RequestId(id: 7),
             new NullCancellation(),
             RequestMetaObjectFactory::create(),
             'session-1',

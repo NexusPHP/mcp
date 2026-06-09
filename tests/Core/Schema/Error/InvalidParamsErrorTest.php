@@ -36,13 +36,13 @@ final class InvalidParamsErrorTest extends TestCase
 
     public function testInvalidParamsErrorCanOverrideMessage(): void
     {
-        $error = new InvalidParamsError('Parameters do not match method signature');
+        $error = new InvalidParamsError(message: 'Parameters do not match method signature');
         self::assertSame('Parameters do not match method signature', $error->message);
     }
 
     public function testInvalidParamsErrorHasCorrectCode(): void
     {
-        $error = new InvalidParamsError(InvalidParamsError::DEFAULT_MESSAGE);
+        $error = new InvalidParamsError(message: InvalidParamsError::DEFAULT_MESSAGE);
         self::assertSame(ProtocolErrorCode::InvalidParams->value, $error->code);
         self::assertSame(-32602, $error->code);
     }
@@ -50,7 +50,7 @@ final class InvalidParamsErrorTest extends TestCase
     public function testInvalidParamsErrorCanIncludeData(): void
     {
         $data = ['expected' => 'object', 'received' => 'string'];
-        $error = new InvalidParamsError('Invalid params', $data);
+        $error = new InvalidParamsError(message: 'Invalid params', data: $data);
         self::assertSame($data, $error->data);
     }
 
@@ -86,7 +86,7 @@ final class InvalidParamsErrorTest extends TestCase
 
     public function testInvalidParamsErrorToArray(): void
     {
-        $error = new InvalidParamsError('Missing arguments', ['missing' => ['arg1']]);
+        $error = new InvalidParamsError(message: 'Missing arguments', data: ['missing' => ['arg1']]);
         $array = $error->toArray();
 
         self::assertSame([
@@ -98,7 +98,7 @@ final class InvalidParamsErrorTest extends TestCase
 
     public function testInvalidParamsErrorJsonSerialize(): void
     {
-        $error = new InvalidParamsError('Missing arguments');
+        $error = new InvalidParamsError(message: 'Missing arguments');
         $result = $error->jsonSerialize();
 
         self::assertSame([
@@ -110,7 +110,7 @@ final class InvalidParamsErrorTest extends TestCase
     public function testInvalidParamsErrorJsonSerializeWithData(): void
     {
         $data = ['param' => 'timeout'];
-        $error = new InvalidParamsError('Missing arguments', $data);
+        $error = new InvalidParamsError(message: 'Missing arguments', data: $data);
         $result = $error->jsonSerialize();
 
         self::assertSame([

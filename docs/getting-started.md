@@ -50,7 +50,7 @@ $server = new ServerBuilder()
         executor: static function (?array $args, ServerContext $context): CallToolResult {
             $name = is_string($args['name'] ?? null) ? $args['name'] : 'stranger';
 
-            return new CallToolResult([new TextContent(text: sprintf('Hello, %s!', $name))]);
+            return new CallToolResult(content: [new TextContent(text: sprintf('Hello, %s!', $name))]);
         },
     )
     ->build()

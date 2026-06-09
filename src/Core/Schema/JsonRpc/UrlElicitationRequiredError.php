@@ -101,12 +101,12 @@ final readonly class UrlElicitationRequiredError implements Arrayable
         $message = $error['message'] ?? null;
         Assert::that($message)->isString('"error.message" must be a string, {type} given.');
 
-        $error = new UrlElicitationRequiredErrorPayload($message, $payload);
+        $error = new UrlElicitationRequiredErrorPayload(message: $message, data: $payload);
 
         return new self(
-            null === $id ? null : new RequestId($id),
-            $error,
-            $elicitations,
+            id: null === $id ? null : new RequestId(id: $id),
+            error: $error,
+            elicitations: $elicitations,
         );
     }
 

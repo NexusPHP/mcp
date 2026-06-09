@@ -52,7 +52,7 @@ final class ToolListChangedNotificationTest extends TestCase
 
     public function testToArrayIncludesParamsWithMeta(): void
     {
-        $notification = new ToolListChangedNotification(new EmptyNotificationParams(new MetaObject(['vendor' => 'x'])));
+        $notification = new ToolListChangedNotification(params: new EmptyNotificationParams(meta: new MetaObject(extras: ['vendor' => 'x'])));
 
         self::assertSame(
             [
@@ -66,7 +66,7 @@ final class ToolListChangedNotificationTest extends TestCase
 
     public function testToArrayPreservesKeyOrderStartingWithJsonRpc(): void
     {
-        $notification = new ToolListChangedNotification(new EmptyNotificationParams(new MetaObject(['k' => 'v'])));
+        $notification = new ToolListChangedNotification(params: new EmptyNotificationParams(meta: new MetaObject(extras: ['k' => 'v'])));
 
         self::assertSame(
             ['jsonrpc', 'method', 'params'],
@@ -76,7 +76,7 @@ final class ToolListChangedNotificationTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $notification = new ToolListChangedNotification(new EmptyNotificationParams(new MetaObject(['k' => 'v'])));
+        $notification = new ToolListChangedNotification(params: new EmptyNotificationParams(meta: new MetaObject(extras: ['k' => 'v'])));
 
         self::assertSame($notification->toArray(), $notification->jsonSerialize());
     }

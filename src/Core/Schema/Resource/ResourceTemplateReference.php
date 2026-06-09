@@ -57,7 +57,7 @@ final readonly class ResourceTemplateReference implements Arrayable
         $uri = $data['uri'];
         Assert::that($uri)->isString('resource template reference "uri" must be a string, {type} given.');
 
-        return new self($uri);
+        return new self(uri: $uri);
     }
 
     #[\Override]

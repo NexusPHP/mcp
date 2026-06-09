@@ -73,7 +73,7 @@ final readonly class BooleanSchema implements Arrayable, PrimitiveSchemaDefiniti
         $default = $data['default'] ?? null;
         Assert::that($default)->nullOr()->isBool('boolean schema "default" must be a bool or null, {type} given.');
 
-        return new self($title, $description, $default);
+        return new self(title: $title, description: $description, default: $default);
     }
 
     #[\Override]

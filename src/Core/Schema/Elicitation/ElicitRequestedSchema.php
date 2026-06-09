@@ -114,7 +114,7 @@ final readonly class ElicitRequestedSchema implements Arrayable
         $schema = $data['$schema'] ?? null;
         Assert::that($schema)->nullOr()->isString('"requestedSchema.$schema" must be a string or null, {type} given.');
 
-        return new self($properties, $required, $schema);
+        return new self(properties: $properties, required: $required, schema: $schema);
     }
 
     #[\Override]

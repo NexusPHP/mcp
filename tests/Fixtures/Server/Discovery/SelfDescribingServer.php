@@ -27,7 +27,7 @@ use Nexus\Mcp\Server\Attribute\AsTool;
     description: 'A server described entirely by attributes.',
     websiteUrl: 'https://nexus.test',
     instructions: 'Call the tools politely.',
-    icons: [new Icon('https://nexus.test/icon.svg')],
+    icons: [new Icon(src: 'https://nexus.test/icon.svg')],
 )]
 final class SelfDescribingServer
 {

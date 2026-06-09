@@ -31,7 +31,7 @@ final class DuplicateOutboundRequestIdExceptionTest extends TestCase
     {
         self::assertSame(
             'Outbound request id 7 is already pending. The id-generation strategy must produce unique ids per in-flight request.',
-            new DuplicateOutboundRequestIdException(new RequestId(7))->getMessage(),
+            new DuplicateOutboundRequestIdException(new RequestId(id: 7))->getMessage(),
         );
     }
 }

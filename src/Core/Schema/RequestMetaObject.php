@@ -82,17 +82,17 @@ final readonly class RequestMetaObject implements Arrayable
             $raw = $data['progressToken'];
             Assert::that($raw)->isArrayKey('"_meta.progressToken" must be an int or string, {type} given.');
 
-            $progressToken = new ProgressToken($raw);
+            $progressToken = new ProgressToken(token: $raw);
             unset($data['progressToken']);
         }
 
         return new self(
-            new ProtocolVersion($protocolVersion),
-            $clientInfo,
-            $clientCapabilities,
-            $logLevel,
-            $progressToken,
-            $data,
+            protocolVersion: new ProtocolVersion(version: $protocolVersion),
+            clientInfo: $clientInfo,
+            clientCapabilities: $clientCapabilities,
+            logLevel: $logLevel,
+            progressToken: $progressToken,
+            extras: $data,
         );
     }
 

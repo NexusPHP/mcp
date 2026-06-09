@@ -32,7 +32,7 @@ final class DuplicateInboundRequestIdExceptionTest extends TestCase
 {
     public function testComposesFixedMessage(): void
     {
-        $e = new DuplicateInboundRequestIdException(new RequestId(42));
+        $e = new DuplicateInboundRequestIdException(new RequestId(id: 42));
 
         self::assertSame(42, $e->requestId?->id);
         self::assertSame(
@@ -44,7 +44,7 @@ final class DuplicateInboundRequestIdExceptionTest extends TestCase
     public function testCarriesProvidedRequestIdAndPrevious(): void
     {
         $previous = new \RuntimeException('inner');
-        $e = new DuplicateInboundRequestIdException(new RequestId('abc'), $previous);
+        $e = new DuplicateInboundRequestIdException(new RequestId(id: 'abc'), $previous);
 
         self::assertSame('abc', $e->requestId?->id);
         self::assertSame($previous, $e->getPrevious());

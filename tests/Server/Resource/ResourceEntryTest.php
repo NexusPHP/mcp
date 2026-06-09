@@ -30,7 +30,7 @@ final class ResourceEntryTest extends TestCase
 {
     public function testExposesResourceAndReader(): void
     {
-        $resource = new Resource('etc', 'file:///etc');
+        $resource = new Resource(name: 'etc', uri: 'file:///etc');
         $reader = new ClosureResourceReader(
             static fn(): never => throw new \LogicException('unreachable'),
         );

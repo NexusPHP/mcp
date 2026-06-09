@@ -38,7 +38,7 @@ final class SendContextTest extends TestCase
 
     public function testCarriesProvidedRelatedRequestId(): void
     {
-        $id = new RequestId(42);
+        $id = new RequestId(id: 42);
         $context = new SendContext(relatedRequestId: $id);
 
         self::assertSame($id, $context->relatedRequestId);

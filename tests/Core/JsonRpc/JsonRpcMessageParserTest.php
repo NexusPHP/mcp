@@ -46,7 +46,7 @@ final class JsonRpcMessageParserTest extends TestCase
 {
     public function testRequestWithNullParamsSerializesWithoutParamsKey(): void
     {
-        $request = new TestRequest(new RequestId(42));
+        $request = new TestRequest(new RequestId(id: 42));
 
         self::assertSame(
             ['jsonrpc' => '2.0', 'id' => 42, 'method' => 'tests/test-request'],
@@ -56,7 +56,7 @@ final class JsonRpcMessageParserTest extends TestCase
 
     public function testDiscoverRequestRoundTripUsesDefaultRegistration(): void
     {
-        $original = new DiscoverRequest(new RequestId(42), new EmptyRequestParams(RequestMetaObjectFactory::create()));
+        $original = new DiscoverRequest(id: new RequestId(id: 42), params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create()));
 
         $parser = new JsonRpcMessageParser();
         $parsed = $parser->parse($original->toArray());
@@ -84,8 +84,8 @@ final class JsonRpcMessageParserTest extends TestCase
     public function testDiscoverRequestWithProgressTokenRoundTrip(): void
     {
         $original = new DiscoverRequest(
-            new RequestId('req-1'),
-            new EmptyRequestParams(RequestMetaObjectFactory::create(new ProgressToken('tok-1'), ['vendor' => 'x'])),
+            id: new RequestId(id: 'req-1'),
+            params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create(new ProgressToken(token: 'tok-1'), ['vendor' => 'x'])),
         );
 
         $envelope = $original->toArray();
@@ -95,7 +95,7 @@ final class JsonRpcMessageParserTest extends TestCase
                 'jsonrpc' => '2.0',
                 'id' => 'req-1',
                 'method' => 'server/discover',
-                'params' => ['_meta' => RequestMetaObjectFactory::shape(new ProgressToken('tok-1'), ['vendor' => 'x'])],
+                'params' => ['_meta' => RequestMetaObjectFactory::shape(new ProgressToken(token: 'tok-1'), ['vendor' => 'x'])],
             ],
             $envelope,
         );
@@ -120,7 +120,7 @@ final class JsonRpcMessageParserTest extends TestCase
 
     public function testEmptyResultRoundTrip(): void
     {
-        $response = new JsonRpcResultResponse(new RequestId(42), new EmptyResult());
+        $response = new JsonRpcResultResponse(id: new RequestId(id: 42), result: new EmptyResult());
 
         self::assertSame(
             ['jsonrpc' => '2.0', 'id' => 42, 'result' => ['resultType' => 'complete']],

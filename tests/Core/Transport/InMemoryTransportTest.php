@@ -59,7 +59,7 @@ final class InMemoryTransportTest extends TestCase
         $server->start();
         $client->start();
 
-        $client->send(new DiscoverRequest(new RequestId(42), new EmptyRequestParams(RequestMetaObjectFactory::create())));
+        $client->send(new DiscoverRequest(id: new RequestId(id: 42), params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create())));
 
         self::assertCount(1, $received);
         self::assertSame(
@@ -82,7 +82,7 @@ final class InMemoryTransportTest extends TestCase
         });
         $client->start();
         $client->send(new ToolListChangedNotification());
-        $client->send(new DiscoverRequest(new RequestId(1), new EmptyRequestParams(RequestMetaObjectFactory::create())));
+        $client->send(new DiscoverRequest(id: new RequestId(id: 1), params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create())));
 
         self::assertCount(0, $received, 'Server has not started yet, so envelopes must queue.');
 
@@ -108,7 +108,7 @@ final class InMemoryTransportTest extends TestCase
 
         $this->expectException(TransportNotStartedException::class);
 
-        $a->send(new DiscoverRequest(new RequestId(1), new EmptyRequestParams(RequestMetaObjectFactory::create())));
+        $a->send(new DiscoverRequest(id: new RequestId(id: 1), params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create())));
     }
 
     public function testStartTwiceThrowsTransportAlreadyStarted(): void
@@ -139,7 +139,7 @@ final class InMemoryTransportTest extends TestCase
 
         $this->expectException(TransportAlreadyClosedException::class);
 
-        $a->send(new DiscoverRequest(new RequestId(1), new EmptyRequestParams(RequestMetaObjectFactory::create())));
+        $a->send(new DiscoverRequest(id: new RequestId(id: 1), params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create())));
     }
 
     public function testCloseCascadesToPeerAndFiresCloseListenersOnBothSides(): void
@@ -188,7 +188,7 @@ final class InMemoryTransportTest extends TestCase
 
         $this->expectException(TransportAlreadyClosedException::class);
 
-        $client->send(new DiscoverRequest(new RequestId(1), new EmptyRequestParams(RequestMetaObjectFactory::create())));
+        $client->send(new DiscoverRequest(id: new RequestId(id: 1), params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create())));
     }
 
     public function testDisposingMessageSubscriptionStopsDelivery(): void
@@ -201,11 +201,11 @@ final class InMemoryTransportTest extends TestCase
         $server->start();
         $client->start();
 
-        $client->send(new DiscoverRequest(new RequestId(1), new EmptyRequestParams(RequestMetaObjectFactory::create())));
+        $client->send(new DiscoverRequest(id: new RequestId(id: 1), params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create())));
         self::assertCount(1, $received);
 
         $subscription->dispose();
-        $client->send(new DiscoverRequest(new RequestId(2), new EmptyRequestParams(RequestMetaObjectFactory::create())));
+        $client->send(new DiscoverRequest(id: new RequestId(id: 2), params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create())));
 
         self::assertCount(1, $received, 'Disposed listener must not receive subsequent envelopes.');
     }
@@ -305,7 +305,7 @@ final class InMemoryTransportTest extends TestCase
         $server->start();
         $client->start();
 
-        $client->send(new DiscoverRequest(new RequestId(1), new EmptyRequestParams(RequestMetaObjectFactory::create())));
+        $client->send(new DiscoverRequest(id: new RequestId(id: 1), params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create())));
 
         self::assertSame(['first', 'second'], $order);
     }

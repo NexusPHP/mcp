@@ -95,7 +95,7 @@ final readonly class SamplingMessage implements Arrayable
             $meta = MetaObject::fromArray($data['_meta']);
         }
 
-        return new self($role, $content, $meta);
+        return new self(role: $role, content: $content, meta: $meta);
     }
 
     #[\Override]

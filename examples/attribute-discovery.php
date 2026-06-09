@@ -68,7 +68,10 @@ final class Concierge
     public function haiku(string $topic): GetPromptResult
     {
         return new GetPromptResult(messages: [
-            new PromptMessage(Role::User, new TextContent(sprintf('Write a haiku about %s.', $topic))),
+            new PromptMessage(
+                role: Role::User,
+                content: new TextContent(text: sprintf('Write a haiku about %s.', $topic)),
+            ),
         ]);
     }
 

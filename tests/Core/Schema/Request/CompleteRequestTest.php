@@ -44,11 +44,11 @@ final class CompleteRequestTest extends TestCase
     public function testToArray(): void
     {
         $request = new CompleteRequest(
-            new RequestId(1),
-            new CompleteRequestParams(
-                new PromptReference('code-review'),
-                ['name' => 'topic', 'value' => 'auth'],
-                RequestMetaObjectFactory::create(),
+            id: new RequestId(id: 1),
+            params: new CompleteRequestParams(
+                ref: new PromptReference(name: 'code-review'),
+                argument: ['name' => 'topic', 'value' => 'auth'],
+                meta: RequestMetaObjectFactory::create(),
             ),
         );
 
@@ -70,12 +70,12 @@ final class CompleteRequestTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new CompleteRequest(
-            new RequestId('req-1'),
-            new CompleteRequestParams(
-                new PromptReference('code-review'),
-                ['name' => 'topic', 'value' => 'auth'],
-                RequestMetaObjectFactory::create(),
-                ['arguments' => ['topic' => 'auth']],
+            id: new RequestId(id: 'req-1'),
+            params: new CompleteRequestParams(
+                ref: new PromptReference(name: 'code-review'),
+                argument: ['name' => 'topic', 'value' => 'auth'],
+                meta: RequestMetaObjectFactory::create(),
+                context: ['arguments' => ['topic' => 'auth']],
             ),
         );
 

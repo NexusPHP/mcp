@@ -38,7 +38,7 @@ final class JsonRpcErrorResponseTest extends TestCase
 {
     public function testToArrayWithCorrelatedId(): void
     {
-        $response = new JsonRpcErrorResponse(new RequestId(42), new InternalError('boom'));
+        $response = new JsonRpcErrorResponse(id: new RequestId(id: 42), error: new InternalError(message: 'boom'));
 
         self::assertSame(
             [
@@ -52,7 +52,7 @@ final class JsonRpcErrorResponseTest extends TestCase
 
     public function testToArrayOmitsIdWhenUnparsable(): void
     {
-        $response = new JsonRpcErrorResponse(null, new ParseError('bad json'));
+        $response = new JsonRpcErrorResponse(id: null, error: new ParseError(message: 'bad json'));
 
         $envelope = $response->toArray();
 
@@ -79,7 +79,7 @@ final class JsonRpcErrorResponseTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $response = new JsonRpcErrorResponse(new RequestId(1), new InternalError(InternalError::DEFAULT_MESSAGE));
+        $response = new JsonRpcErrorResponse(id: new RequestId(id: 1), error: new InternalError(message: InternalError::DEFAULT_MESSAGE));
 
         self::assertSame($response->toArray(), $response->jsonSerialize());
     }

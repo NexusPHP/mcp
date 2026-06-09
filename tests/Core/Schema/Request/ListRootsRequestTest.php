@@ -42,7 +42,7 @@ final class ListRootsRequestTest extends TestCase
 
     public function testToArrayOmitsParamsWhenEmpty(): void
     {
-        $request = new ListRootsRequest(new RequestId(1));
+        $request = new ListRootsRequest(id: new RequestId(id: 1));
 
         self::assertSame(
             ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'roots/list'],
@@ -75,7 +75,7 @@ final class ListRootsRequestTest extends TestCase
 
     public function testFromArrayFullRoundTrip(): void
     {
-        $original = new ListRootsRequest(new RequestId('req-1'));
+        $original = new ListRootsRequest(id: new RequestId(id: 'req-1'));
 
         $rebuilt = ListRootsRequest::fromArray($original->toArray());
 

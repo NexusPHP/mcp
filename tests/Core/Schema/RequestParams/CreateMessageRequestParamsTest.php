@@ -40,7 +40,7 @@ final class CreateMessageRequestParamsTest extends TestCase
     {
         $params = new CreateMessageRequestParams(
             maxTokens: 100,
-            messages: [new SamplingMessage(Role::User, new TextContent('hi'))],
+            messages: [new SamplingMessage(role: Role::User, content: new TextContent(text: 'hi'))],
         );
 
         self::assertSame(100, $params->maxTokens);
@@ -105,7 +105,7 @@ final class CreateMessageRequestParamsTest extends TestCase
 
     public function testToArrayMinimal(): void
     {
-        $params = new CreateMessageRequestParams(maxTokens: 100, messages: [new SamplingMessage(Role::User, new TextContent('hi'))]);
+        $params = new CreateMessageRequestParams(maxTokens: 100, messages: [new SamplingMessage(role: Role::User, content: new TextContent(text: 'hi'))]);
 
         self::assertSame(
             [
@@ -122,14 +122,14 @@ final class CreateMessageRequestParamsTest extends TestCase
     {
         $params = new CreateMessageRequestParams(
             maxTokens: 100,
-            messages: [new SamplingMessage(Role::User, new TextContent('hi'))],
+            messages: [new SamplingMessage(role: Role::User, content: new TextContent(text: 'hi'))],
             includeContext: IncludeContext::ThisServer,
-            modelPreferences: new ModelPreferences([new ModelHint('sonnet')]),
+            modelPreferences: new ModelPreferences(hints: [new ModelHint(name: 'sonnet')]),
             stopSequences: ['STOP'],
             systemPrompt: 'Be concise.',
             temperature: 0.7,
-            toolChoice: new ToolChoice(ToolChoiceMode::Auto),
-            tools: [new Tool('search', ['type' => 'object'])],
+            toolChoice: new ToolChoice(mode: ToolChoiceMode::Auto),
+            tools: [new Tool(name: 'search', inputSchema: ['type' => 'object'])],
             metadata: ['vendor' => 'acme'],
         );
 
@@ -156,7 +156,7 @@ final class CreateMessageRequestParamsTest extends TestCase
     {
         $params = new CreateMessageRequestParams(
             maxTokens: 1,
-            messages: [new SamplingMessage(Role::User, new TextContent('hi'))],
+            messages: [new SamplingMessage(role: Role::User, content: new TextContent(text: 'hi'))],
             metadata: [],
         );
 
@@ -167,7 +167,7 @@ final class CreateMessageRequestParamsTest extends TestCase
     {
         $params = new CreateMessageRequestParams(
             maxTokens: 1,
-            messages: [new SamplingMessage(Role::User, new TextContent('hi'))],
+            messages: [new SamplingMessage(role: Role::User, content: new TextContent(text: 'hi'))],
         );
 
         self::assertSame(
@@ -185,9 +185,9 @@ final class CreateMessageRequestParamsTest extends TestCase
     {
         $params = new CreateMessageRequestParams(
             maxTokens: 1,
-            messages: [new SamplingMessage(Role::User, new TextContent('hi'))],
-            modelPreferences: new ModelPreferences([new ModelHint('sonnet')]),
-            toolChoice: new ToolChoice(ToolChoiceMode::Auto),
+            messages: [new SamplingMessage(role: Role::User, content: new TextContent(text: 'hi'))],
+            modelPreferences: new ModelPreferences(hints: [new ModelHint(name: 'sonnet')]),
+            toolChoice: new ToolChoice(mode: ToolChoiceMode::Auto),
         );
 
         self::assertSame(
@@ -207,14 +207,14 @@ final class CreateMessageRequestParamsTest extends TestCase
     {
         $original = new CreateMessageRequestParams(
             maxTokens: 100,
-            messages: [new SamplingMessage(Role::User, new TextContent('hi'))],
+            messages: [new SamplingMessage(role: Role::User, content: new TextContent(text: 'hi'))],
             includeContext: IncludeContext::AllServers,
-            modelPreferences: new ModelPreferences([new ModelHint('sonnet')]),
+            modelPreferences: new ModelPreferences(hints: [new ModelHint(name: 'sonnet')]),
             stopSequences: ['STOP'],
             systemPrompt: 'Be concise.',
             temperature: 0.7,
-            toolChoice: new ToolChoice(ToolChoiceMode::Auto),
-            tools: [new Tool('search', ['type' => 'object'])],
+            toolChoice: new ToolChoice(mode: ToolChoiceMode::Auto),
+            tools: [new Tool(name: 'search', inputSchema: ['type' => 'object'])],
             metadata: ['vendor' => 'acme'],
         );
 

@@ -31,7 +31,7 @@ final class ProgressListenerRegistryTest extends TestCase
     {
         $registry = new ProgressListenerRegistry();
 
-        self::assertNull($registry->get(new ProgressToken('absent')));
+        self::assertNull($registry->get(new ProgressToken(token: 'absent')));
     }
 
     public function testRegisterThenGetReturnsTheListener(): void
@@ -39,9 +39,9 @@ final class ProgressListenerRegistryTest extends TestCase
         $registry = new ProgressListenerRegistry();
         $listener = static function (float $progress, ?float $total, ?string $message): void {};
 
-        $registry->register(new ProgressToken('demo'), $listener);
+        $registry->register(new ProgressToken(token: 'demo'), $listener);
 
-        self::assertSame($listener, $registry->get(new ProgressToken('demo')));
+        self::assertSame($listener, $registry->get(new ProgressToken(token: 'demo')));
     }
 
     public function testRegisterKeysByTokenValueNotIdentity(): void
@@ -49,10 +49,10 @@ final class ProgressListenerRegistryTest extends TestCase
         $registry = new ProgressListenerRegistry();
         $listener = static function (float $progress, ?float $total, ?string $message): void {};
 
-        $registry->register(new ProgressToken(7), $listener);
+        $registry->register(new ProgressToken(token: 7), $listener);
 
         // A distinct ProgressToken instance with the same value resolves the listener.
-        self::assertSame($listener, $registry->get(new ProgressToken(7)));
+        self::assertSame($listener, $registry->get(new ProgressToken(token: 7)));
     }
 
     public function testIntAndNumericStringTokensDoNotCollide(): void
@@ -61,31 +61,31 @@ final class ProgressListenerRegistryTest extends TestCase
         $intListener = static function (float $progress, ?float $total, ?string $message): void {};
         $stringListener = static function (float $progress, ?float $total, ?string $message): void {};
 
-        $registry->register(new ProgressToken(7), $intListener);
-        $registry->register(new ProgressToken('7'), $stringListener);
+        $registry->register(new ProgressToken(token: 7), $intListener);
+        $registry->register(new ProgressToken(token: '7'), $stringListener);
 
-        self::assertSame($intListener, $registry->get(new ProgressToken(7)));
-        self::assertSame($stringListener, $registry->get(new ProgressToken('7')));
+        self::assertSame($intListener, $registry->get(new ProgressToken(token: 7)));
+        self::assertSame($stringListener, $registry->get(new ProgressToken(token: '7')));
     }
 
     public function testUnregisterRemovesTheListener(): void
     {
         $registry = new ProgressListenerRegistry();
-        $registry->register(new ProgressToken('demo'), static function (float $progress, ?float $total, ?string $message): void {});
+        $registry->register(new ProgressToken(token: 'demo'), static function (float $progress, ?float $total, ?string $message): void {});
 
-        $registry->unregister(new ProgressToken('demo'));
+        $registry->unregister(new ProgressToken(token: 'demo'));
 
-        self::assertNull($registry->get(new ProgressToken('demo')));
+        self::assertNull($registry->get(new ProgressToken(token: 'demo')));
     }
 
     public function testUnregisterIsNoOpForUnknownToken(): void
     {
         $registry = new ProgressListenerRegistry();
         $listener = static function (float $progress, ?float $total, ?string $message): void {};
-        $registry->register(new ProgressToken('keep'), $listener);
+        $registry->register(new ProgressToken(token: 'keep'), $listener);
 
-        $registry->unregister(new ProgressToken('other'));
+        $registry->unregister(new ProgressToken(token: 'other'));
 
-        self::assertSame($listener, $registry->get(new ProgressToken('keep')));
+        self::assertSame($listener, $registry->get(new ProgressToken(token: 'keep')));
     }
 }

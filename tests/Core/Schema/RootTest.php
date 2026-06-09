@@ -31,7 +31,7 @@ final class RootTest extends TestCase
 {
     public function testConstructionDefaultsNameAndMetaToNull(): void
     {
-        $root = new Root('file:///x');
+        $root = new Root(uri: 'file:///x');
 
         self::assertSame('file:///x', $root->uri);
         self::assertNull($root->name);
@@ -40,14 +40,14 @@ final class RootTest extends TestCase
 
     public function testToArrayMinimal(): void
     {
-        $root = new Root('file:///x');
+        $root = new Root(uri: 'file:///x');
 
         self::assertSame(['uri' => 'file:///x'], $root->toArray());
     }
 
     public function testToArrayWithName(): void
     {
-        $root = new Root('file:///x', 'project');
+        $root = new Root(uri: 'file:///x', name: 'project');
 
         self::assertSame(
             ['uri' => 'file:///x', 'name' => 'project'],
@@ -57,7 +57,7 @@ final class RootTest extends TestCase
 
     public function testToArrayWithMeta(): void
     {
-        $root = new Root('file:///x', null, new MetaObject(['vendor' => 'x']));
+        $root = new Root(uri: 'file:///x', name: null, meta: new MetaObject(extras: ['vendor' => 'x']));
 
         self::assertSame(
             ['uri' => 'file:///x', '_meta' => ['vendor' => 'x']],
@@ -67,14 +67,14 @@ final class RootTest extends TestCase
 
     public function testToArrayOmitsEmptyMeta(): void
     {
-        $root = new Root('file:///x', null, new MetaObject([]));
+        $root = new Root(uri: 'file:///x', name: null, meta: new MetaObject(extras: []));
 
         self::assertSame(['uri' => 'file:///x'], $root->toArray());
     }
 
     public function testToArrayKeyOrder(): void
     {
-        $root = new Root('file:///x', 'project', new MetaObject(['k' => 'v']));
+        $root = new Root(uri: 'file:///x', name: 'project', meta: new MetaObject(extras: ['k' => 'v']));
 
         self::assertSame(
             ['uri', 'name', '_meta'],
@@ -84,7 +84,7 @@ final class RootTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $root = new Root('file:///x', 'project', new MetaObject(['k' => 'v']));
+        $root = new Root(uri: 'file:///x', name: 'project', meta: new MetaObject(extras: ['k' => 'v']));
 
         self::assertSame($root->toArray(), $root->jsonSerialize());
     }
@@ -113,7 +113,7 @@ final class RootTest extends TestCase
 
     public function testFromArrayFullRoundTrip(): void
     {
-        $original = new Root('file:///x', 'project', new MetaObject(['vendor' => 'x']));
+        $original = new Root(uri: 'file:///x', name: 'project', meta: new MetaObject(extras: ['vendor' => 'x']));
 
         $rebuilt = Root::fromArray($original->toArray());
 
@@ -173,6 +173,6 @@ final class RootTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('root "uri" must start with \'file://\', got \'https://example.com\'.');
 
-        new Root('https://example.com');
+        new Root(uri: 'https://example.com');
     }
 }

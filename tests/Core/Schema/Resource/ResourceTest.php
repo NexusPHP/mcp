@@ -35,7 +35,7 @@ final class ResourceTest extends TestCase
 {
     public function testConstructionMinimal(): void
     {
-        $resource = new Resource('my-resource', 'file:///x');
+        $resource = new Resource(name: 'my-resource', uri: 'file:///x');
 
         self::assertSame('my-resource', $resource->name);
         self::assertSame('file:///x', $resource->uri);
@@ -50,7 +50,7 @@ final class ResourceTest extends TestCase
 
     public function testToArrayMinimal(): void
     {
-        $resource = new Resource('my-resource', 'file:///x');
+        $resource = new Resource(name: 'my-resource', uri: 'file:///x');
 
         self::assertSame(
             ['name' => 'my-resource', 'uri' => 'file:///x'],
@@ -61,15 +61,15 @@ final class ResourceTest extends TestCase
     public function testToArrayWithAllFields(): void
     {
         $resource = new Resource(
-            'my-resource',
-            'file:///x',
-            'My Resource',
-            'A description.',
-            'text/plain',
-            new Annotations(null, 0.5),
-            1024.0,
-            [new Icon('https://example.com/icon.png')],
-            new MetaObject(['vendor' => 'x']),
+            name: 'my-resource',
+            uri: 'file:///x',
+            title: 'My Resource',
+            description: 'A description.',
+            mimeType: 'text/plain',
+            annotations: new Annotations(audience: null, priority: 0.5),
+            size: 1024.0,
+            icons: [new Icon(src: 'https://example.com/icon.png')],
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -91,15 +91,15 @@ final class ResourceTest extends TestCase
     public function testJsonSerializeMatchesToArray(): void
     {
         $resource = new Resource(
-            'my-resource',
-            'file:///x',
-            'My Resource',
-            null,
-            'text/plain',
-            new Annotations(),
-            42.0,
-            null,
-            new MetaObject(['k' => 'v']),
+            name: 'my-resource',
+            uri: 'file:///x',
+            title: 'My Resource',
+            description: null,
+            mimeType: 'text/plain',
+            annotations: new Annotations(),
+            size: 42.0,
+            icons: null,
+            meta: new MetaObject(extras: ['k' => 'v']),
         );
 
         self::assertSame($resource->toArray(), $resource->jsonSerialize());
@@ -152,15 +152,15 @@ final class ResourceTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new Resource(
-            'my-resource',
-            'file:///x',
-            'My Resource',
-            'A description.',
-            'text/plain',
-            new Annotations(null, 0.5),
-            42.0,
-            [new Icon('https://example.com/icon.png')],
-            new MetaObject(['vendor' => 'x']),
+            name: 'my-resource',
+            uri: 'file:///x',
+            title: 'My Resource',
+            description: 'A description.',
+            mimeType: 'text/plain',
+            annotations: new Annotations(audience: null, priority: 0.5),
+            size: 42.0,
+            icons: [new Icon(src: 'https://example.com/icon.png')],
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         $rebuilt = Resource::fromArray($original->toArray());
@@ -173,7 +173,7 @@ final class ResourceTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageMatches('/\Aresource "name" must be 1-128 characters/');
 
-        new Resource('my resource', 'file:///x');
+        new Resource(name: 'my resource', uri: 'file:///x');
     }
 
     public function testConstructorRejectsUriViolatingRfc3986(): void
@@ -181,7 +181,7 @@ final class ResourceTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageMatches('/\Aresource "uri" must be a valid RFC 3986/');
 
-        new Resource('my-resource', 'not-a-uri');
+        new Resource(name: 'my-resource', uri: 'not-a-uri');
     }
 
     public function testConstructorRejectsEmptyDescription(): void
@@ -189,7 +189,7 @@ final class ResourceTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('resource "description" must be a non-empty string or null.');
 
-        new Resource('my-resource', 'file:///x', null, '');
+        new Resource(name: 'my-resource', uri: 'file:///x', title: null, description: '');
     }
 
     public function testConstructorRejectsEmptyMimeType(): void
@@ -197,7 +197,7 @@ final class ResourceTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('resource "mimeType" must be a non-empty string or null.');
 
-        new Resource('my-resource', 'file:///x', null, null, '');
+        new Resource(name: 'my-resource', uri: 'file:///x', title: null, description: null, mimeType: '');
     }
 
     public function testConstructorRejectsNonIconElement(): void
@@ -205,7 +205,7 @@ final class ResourceTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
 
         // @phpstan-ignore argument.type
-        new Resource('my-resource', 'file:///x', null, null, null, new Annotations(), null, [42]);
+        new Resource(name: 'my-resource', uri: 'file:///x', title: null, description: null, mimeType: null, annotations: new Annotations(), size: null, icons: [42]);
     }
 
     /**

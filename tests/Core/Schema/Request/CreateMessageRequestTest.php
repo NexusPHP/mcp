@@ -44,10 +44,10 @@ final class CreateMessageRequestTest extends TestCase
     public function testToArray(): void
     {
         $req = new CreateMessageRequest(
-            new RequestId('r-1'),
-            new CreateMessageRequestParams(
+            id: new RequestId(id: 'r-1'),
+            params: new CreateMessageRequestParams(
                 maxTokens: 100,
-                messages: [new SamplingMessage(Role::User, new TextContent('hi'))],
+                messages: [new SamplingMessage(role: Role::User, content: new TextContent(text: 'hi'))],
             ),
         );
 
@@ -70,10 +70,10 @@ final class CreateMessageRequestTest extends TestCase
     public function testFromArrayRoundTrip(): void
     {
         $original = new CreateMessageRequest(
-            new RequestId('r-1'),
-            new CreateMessageRequestParams(
+            id: new RequestId(id: 'r-1'),
+            params: new CreateMessageRequestParams(
                 maxTokens: 100,
-                messages: [new SamplingMessage(Role::User, new TextContent('hi'))],
+                messages: [new SamplingMessage(role: Role::User, content: new TextContent(text: 'hi'))],
             ),
         );
 

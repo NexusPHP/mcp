@@ -31,7 +31,7 @@ final class ToolResultContentTest extends TestCase
 {
     public function testConstruction(): void
     {
-        $content = new ToolResultContent('tu-1', [new TextContent('Sunny, 22°C')]);
+        $content = new ToolResultContent(toolUseId: 'tu-1', content: [new TextContent(text: 'Sunny, 22°C')]);
 
         self::assertSame('tu-1', $content->toolUseId);
         self::assertCount(1, $content->content);
@@ -45,7 +45,7 @@ final class ToolResultContentTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"content.toolUseId" must be a non-empty string.');
 
-        new ToolResultContent('', []);
+        new ToolResultContent(toolUseId: '', content: []);
     }
 
     public function testConstructorRejectsNonContentBlockEntry(): void
@@ -53,12 +53,12 @@ final class ToolResultContentTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('Value "\'not-a-block\'" in iterable is expected to be an instance of \'Nexus\\\\Mcp\\\\Core\\\\Schema\\\\Arrayable\' but got string instead.');
 
-        new ToolResultContent('tu-1', ['not-a-block']); // @phpstan-ignore argument.type
+        new ToolResultContent(toolUseId: 'tu-1', content: ['not-a-block']); // @phpstan-ignore argument.type
     }
 
     public function testToArrayMinimal(): void
     {
-        $content = new ToolResultContent('tu-1', [new TextContent('hi')]);
+        $content = new ToolResultContent(toolUseId: 'tu-1', content: [new TextContent(text: 'hi')]);
 
         self::assertSame(
             [
@@ -72,7 +72,7 @@ final class ToolResultContentTest extends TestCase
 
     public function testToArrayFull(): void
     {
-        $content = new ToolResultContent('tu-1', [new TextContent('hi')], false, ['t' => 22], new MetaObject(extras: ['trace_id' => 'abc']));
+        $content = new ToolResultContent(toolUseId: 'tu-1', content: [new TextContent(text: 'hi')], isError: false, structuredContent: ['t' => 22], meta: new MetaObject(extras: ['trace_id' => 'abc']));
 
         self::assertSame(
             [
@@ -89,7 +89,7 @@ final class ToolResultContentTest extends TestCase
 
     public function testJsonSerializeWrapsEmptyStructuredContent(): void
     {
-        $content = new ToolResultContent('tu-1', [new TextContent('hi')], structuredContent: []);
+        $content = new ToolResultContent(toolUseId: 'tu-1', content: [new TextContent(text: 'hi')], structuredContent: []);
 
         self::assertSame(
             '{"content":[{"text":"hi","type":"text"}],"toolUseId":"tu-1","type":"tool_result","structuredContent":{}}',
@@ -99,14 +99,14 @@ final class ToolResultContentTest extends TestCase
 
     public function testJsonSerializeKeepsNonEmptyStructuredContent(): void
     {
-        $content = new ToolResultContent('tu-1', [new TextContent('hi')], structuredContent: ['t' => 22]);
+        $content = new ToolResultContent(toolUseId: 'tu-1', content: [new TextContent(text: 'hi')], structuredContent: ['t' => 22]);
 
         self::assertStringContainsString('"structuredContent":{"t":22}', (string) json_encode($content));
     }
 
     public function testFromArrayFullRoundTrip(): void
     {
-        $original = new ToolResultContent('tu-1', [new TextContent('hi')], true, ['t' => 22]);
+        $original = new ToolResultContent(toolUseId: 'tu-1', content: [new TextContent(text: 'hi')], isError: true, structuredContent: ['t' => 22]);
 
         $rebuilt = ToolResultContent::fromArray($original->toArray());
 

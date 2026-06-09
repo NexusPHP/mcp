@@ -59,7 +59,7 @@ final readonly class LoggingMessageNotificationParams extends NotificationParams
             $meta = MetaObject::fromArray($data['_meta']);
         }
 
-        return new self($level, $data['data'], $logger, $meta);
+        return new self(level: $level, data: $data['data'], logger: $logger, meta: $meta);
     }
 
     #[\Override]

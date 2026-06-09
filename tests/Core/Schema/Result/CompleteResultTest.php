@@ -33,7 +33,7 @@ final class CompleteResultTest extends TestCase
 {
     public function testConstructionMinimal(): void
     {
-        $result = new CompleteResult(['values' => ['auth']]);
+        $result = new CompleteResult(completion: ['values' => ['auth']]);
 
         self::assertSame(['values' => ['auth']], $result->completion);
         self::assertSame([], $result->meta->toArray());
@@ -41,7 +41,7 @@ final class CompleteResultTest extends TestCase
 
     public function testConstructionAcceptsEmptyValues(): void
     {
-        $result = new CompleteResult(['values' => []]);
+        $result = new CompleteResult(completion: ['values' => []]);
 
         self::assertSame(['values' => []], $result->completion);
     }
@@ -49,8 +49,8 @@ final class CompleteResultTest extends TestCase
     public function testConstructionWithAllFields(): void
     {
         $result = new CompleteResult(
-            ['values' => ['auth', 'auth-bearer'], 'total' => 2, 'hasMore' => false],
-            new MetaObject(['vendor.brand' => 'acme']),
+            completion: ['values' => ['auth', 'auth-bearer'], 'total' => 2, 'hasMore' => false],
+            meta: new MetaObject(extras: ['vendor.brand' => 'acme']),
         );
 
         self::assertSame(
@@ -61,7 +61,7 @@ final class CompleteResultTest extends TestCase
 
     public function testToArrayMinimal(): void
     {
-        $result = new CompleteResult(['values' => ['auth']]);
+        $result = new CompleteResult(completion: ['values' => ['auth']]);
 
         self::assertSame(
             ['resultType' => 'complete', 'completion' => ['values' => ['auth']]],
@@ -72,8 +72,8 @@ final class CompleteResultTest extends TestCase
     public function testToArrayWithAllFields(): void
     {
         $result = new CompleteResult(
-            ['values' => ['auth'], 'total' => 1, 'hasMore' => false],
-            new MetaObject(['vendor.brand' => 'acme']),
+            completion: ['values' => ['auth'], 'total' => 1, 'hasMore' => false],
+            meta: new MetaObject(extras: ['vendor.brand' => 'acme']),
         );
 
         self::assertSame(
@@ -88,7 +88,7 @@ final class CompleteResultTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $result = new CompleteResult(['values' => ['auth']]);
+        $result = new CompleteResult(completion: ['values' => ['auth']]);
 
         self::assertSame($result->toArray(), $result->jsonSerialize());
     }
@@ -96,8 +96,8 @@ final class CompleteResultTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new CompleteResult(
-            ['values' => ['auth', 'auth-bearer'], 'total' => 2, 'hasMore' => true],
-            new MetaObject(['vendor.brand' => 'acme']),
+            completion: ['values' => ['auth', 'auth-bearer'], 'total' => 2, 'hasMore' => true],
+            meta: new MetaObject(extras: ['vendor.brand' => 'acme']),
         );
 
         $rebuilt = CompleteResult::fromArray($original->toArray());
@@ -111,7 +111,7 @@ final class CompleteResultTest extends TestCase
         $this->expectExceptionMessageIs('"result.completion.values" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
-        new CompleteResult(['values' => [5 => 'auth']]);
+        new CompleteResult(completion: ['values' => [5 => 'auth']]);
     }
 
     public function testConstructorRejectsNonStringValueElement(): void
@@ -120,7 +120,7 @@ final class CompleteResultTest extends TestCase
         $this->expectExceptionMessageIs('each "result.completion.values" must be a string, int given.');
 
         // @phpstan-ignore argument.type
-        new CompleteResult(['values' => [1]]);
+        new CompleteResult(completion: ['values' => [1]]);
     }
 
     public function testConstructorRejectsNonIntTotal(): void
@@ -129,7 +129,7 @@ final class CompleteResultTest extends TestCase
         $this->expectExceptionMessageIs('"result.completion.total" must be an int, string given.');
 
         // @phpstan-ignore argument.type
-        new CompleteResult(['values' => [], 'total' => 'oops']);
+        new CompleteResult(completion: ['values' => [], 'total' => 'oops']);
     }
 
     public function testConstructorRejectsNonBoolHasMore(): void
@@ -138,7 +138,7 @@ final class CompleteResultTest extends TestCase
         $this->expectExceptionMessageIs('"result.completion.hasMore" must be a bool, string given.');
 
         // @phpstan-ignore argument.type
-        new CompleteResult(['values' => [], 'hasMore' => 'oops']);
+        new CompleteResult(completion: ['values' => [], 'hasMore' => 'oops']);
     }
 
     /**

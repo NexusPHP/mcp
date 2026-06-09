@@ -107,7 +107,14 @@ final readonly class StringSchema implements Arrayable, PrimitiveSchemaDefinitio
         $default = $data['default'] ?? null;
         Assert::that($default)->nullOr()->isString('string schema "default" must be a string or null, {type} given.');
 
-        return new self($title, $description, $minLength, $maxLength, $format, $default);
+        return new self(
+            title: $title,
+            description: $description,
+            minLength: $minLength,
+            maxLength: $maxLength,
+            format: $format,
+            default: $default,
+        );
     }
 
     #[\Override]

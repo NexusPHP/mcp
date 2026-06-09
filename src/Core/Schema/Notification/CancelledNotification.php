@@ -51,7 +51,7 @@ final readonly class CancelledNotification extends JsonRpcNotification implement
             ->isMap('"params" must be a string-keyed object.')
         ;
 
-        return new self(CancelledNotificationParams::fromArray($data['params']));
+        return new self(params: CancelledNotificationParams::fromArray($data['params']));
     }
 
     #[\Override]

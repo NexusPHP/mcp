@@ -138,7 +138,14 @@ final readonly class UntitledMultiSelectEnumSchema implements Arrayable, MultiSe
             $default = $data['default'];
         }
 
-        return new self($itemsEnum, $title, $description, $minItems, $maxItems, $default);
+        return new self(
+            items: $itemsEnum,
+            title: $title,
+            description: $description,
+            minItems: $minItems,
+            maxItems: $maxItems,
+            default: $default,
+        );
     }
 
     #[\Override]

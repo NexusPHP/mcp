@@ -42,7 +42,7 @@ final class GetPromptRequestTest extends TestCase
 
     public function testToArray(): void
     {
-        $request = new GetPromptRequest(new RequestId(1), new GetPromptRequestParams('code-review', RequestMetaObjectFactory::create()));
+        $request = new GetPromptRequest(id: new RequestId(id: 1), params: new GetPromptRequestParams(name: 'code-review', meta: RequestMetaObjectFactory::create()));
 
         self::assertSame(
             [
@@ -58,8 +58,8 @@ final class GetPromptRequestTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new GetPromptRequest(
-            new RequestId('req-1'),
-            new GetPromptRequestParams('code-review', RequestMetaObjectFactory::create(), ['topic' => 'auth']),
+            id: new RequestId(id: 'req-1'),
+            params: new GetPromptRequestParams(name: 'code-review', meta: RequestMetaObjectFactory::create(), arguments: ['topic' => 'auth']),
         );
 
         $rebuilt = GetPromptRequest::fromArray($original->toArray());

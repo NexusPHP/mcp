@@ -52,7 +52,7 @@ final class DiscoverableServer
     )]
     public function greet(string $name, ServerContext $context): CallToolResult
     {
-        return new CallToolResult([new TextContent(\sprintf('Hello, %s!', $name))]);
+        return new CallToolResult(content: [new TextContent(text: \sprintf('Hello, %s!', $name))]);
     }
 
     /**
@@ -68,7 +68,7 @@ final class DiscoverableServer
     #[AsPrompt]
     public function outline(string $subject, ServerContext $context): GetPromptResult
     {
-        return new GetPromptResult(messages: [new PromptMessage(Role::User, new TextContent($subject))]);
+        return new GetPromptResult(messages: [new PromptMessage(role: Role::User, content: new TextContent(text: $subject))]);
     }
 
     #[AsPrompt(name: 'ping_prompt')]
@@ -104,7 +104,7 @@ final class DiscoverableServer
     #[AsResource(uri: 'config://defaults')]
     public function defaults(string $uri): ReadResourceResult
     {
-        return new ReadResourceResult([new TextResourceContents($uri, 'defaults')], 0, CacheScope::Private);
+        return new ReadResourceResult(contents: [new TextResourceContents(uri: $uri, text: 'defaults')], ttlMs: 0, cacheScope: CacheScope::Private);
     }
 
     /**
@@ -124,7 +124,7 @@ final class DiscoverableServer
     #[AsResourceTemplate(uriTemplate: 'files://{path}')]
     public function fileTemplate(string $uri): ReadResourceResult
     {
-        return new ReadResourceResult([new TextResourceContents($uri, 'file')], 0, CacheScope::Private);
+        return new ReadResourceResult(contents: [new TextResourceContents(uri: $uri, text: 'file')], ttlMs: 0, cacheScope: CacheScope::Private);
     }
 
     public function helper(): string

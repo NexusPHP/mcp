@@ -120,8 +120,8 @@ final class ServerBuilderTest extends TestCase
         $server = new ServerBuilder()
             ->setServerInfo('demo', '1.0.0')
             ->addTool(
-                new Tool('echo', ['type' => 'object']),
-                static fn(?array $args, $ctx): CallToolResult => new CallToolResult([new TextContent('echo')]),
+                new Tool(name: 'echo', inputSchema: ['type' => 'object']),
+                static fn(?array $args, $ctx): CallToolResult => new CallToolResult(content: [new TextContent(text: 'echo')]),
             )
             ->build()
         ;
@@ -136,8 +136,8 @@ final class ServerBuilderTest extends TestCase
         $server = new ServerBuilder()
             ->setServerInfo('demo', '1.0.0')
             ->addPrompt(
-                new Prompt('hello'),
-                static fn(?array $args, $ctx): GetPromptResult => new GetPromptResult([]),
+                new Prompt(name: 'hello'),
+                static fn(?array $args, $ctx): GetPromptResult => new GetPromptResult(messages: []),
             )
             ->build()
         ;
@@ -152,8 +152,8 @@ final class ServerBuilderTest extends TestCase
         $server = new ServerBuilder()
             ->setServerInfo('demo', '1.0.0')
             ->addResource(
-                new Resource('cfg', 'file:///etc/cfg'),
-                static fn(string $uri, $ctx): ReadResourceResult => new ReadResourceResult([new TextResourceContents($uri, 'data')], 0, CacheScope::Private),
+                new Resource(name: 'cfg', uri: 'file:///etc/cfg'),
+                static fn(string $uri, $ctx): ReadResourceResult => new ReadResourceResult(contents: [new TextResourceContents(uri: $uri, text: 'data')], ttlMs: 0, cacheScope: CacheScope::Private),
             )
             ->build()
         ;
@@ -168,7 +168,7 @@ final class ServerBuilderTest extends TestCase
         $server = new ServerBuilder()
             ->setServerInfo('demo', '1.0.0')
             ->addResourceTemplate(
-                new ResourceTemplate('files', 'file:///{path}'),
+                new ResourceTemplate(name: 'files', uriTemplate: 'file:///{path}'),
                 static fn(): never => throw new \LogicException('unreachable'),
             )
             ->build()
@@ -183,7 +183,7 @@ final class ServerBuilderTest extends TestCase
     {
         $server = new ServerBuilder()
             ->setServerInfo('demo', '1.0.0')
-            ->setCompletionStore(new RecordingCompletionStore(new CompleteResult(['values' => []])))
+            ->setCompletionStore(new RecordingCompletionStore(new CompleteResult(completion: ['values' => []])))
             ->build()
         ;
 
@@ -378,8 +378,8 @@ final class ServerBuilderTest extends TestCase
         $server = new ServerBuilder()
             ->setServerInfo('demo', '1.0.0')
             ->addTool(
-                new Tool('echo', ['type' => 'object']),
-                static fn(?array $args, $ctx): CallToolResult => new CallToolResult([new TextContent('echo')]),
+                new Tool(name: 'echo', inputSchema: ['type' => 'object']),
+                static fn(?array $args, $ctx): CallToolResult => new CallToolResult(content: [new TextContent(text: 'echo')]),
             )
             ->build()
         ;
@@ -405,12 +405,12 @@ final class ServerBuilderTest extends TestCase
             ->setServerInfo('demo', '1.0.0')
             ->setSchemaValidator($alwaysValid)
             ->addTool(
-                new Tool('report', ['type' => 'object'], outputSchema: [
+                new Tool(name: 'report', inputSchema: ['type' => 'object'], outputSchema: [
                     'type' => 'object',
                     'properties' => ['n' => ['type' => 'integer']],
                     'required' => ['n'],
                 ]),
-                static fn(?array $args, $ctx): CallToolResult => new CallToolResult([], ['n' => 'not-an-int']),
+                static fn(?array $args, $ctx): CallToolResult => new CallToolResult(content: [], structuredContent: ['n' => 'not-an-int']),
             )
             ->build()
         ;
@@ -428,8 +428,8 @@ final class ServerBuilderTest extends TestCase
         $server = new ServerBuilder()
             ->setServerInfo('demo', '1.0.0')
             ->addPrompt(
-                new Prompt('hello'),
-                static fn(?array $args, $ctx): GetPromptResult => new GetPromptResult([]),
+                new Prompt(name: 'hello'),
+                static fn(?array $args, $ctx): GetPromptResult => new GetPromptResult(messages: []),
             )
             ->build()
         ;
@@ -446,8 +446,8 @@ final class ServerBuilderTest extends TestCase
         $server = new ServerBuilder()
             ->setServerInfo('demo', '1.0.0')
             ->addResource(
-                new Resource('cfg', 'file:///etc/cfg'),
-                static fn(string $uri, $ctx): ReadResourceResult => new ReadResourceResult([new TextResourceContents($uri, 'data')], 0, CacheScope::Private),
+                new Resource(name: 'cfg', uri: 'file:///etc/cfg'),
+                static fn(string $uri, $ctx): ReadResourceResult => new ReadResourceResult(contents: [new TextResourceContents(uri: $uri, text: 'data')], ttlMs: 0, cacheScope: CacheScope::Private),
             )
             ->build()
         ;
@@ -464,12 +464,12 @@ final class ServerBuilderTest extends TestCase
         $server = new ServerBuilder()
             ->setServerInfo('demo', '1.0.0')
             ->addResource(
-                new Resource('cfg', 'file:///etc/cfg'),
-                static fn(string $uri, $ctx): ReadResourceResult => new ReadResourceResult([new TextResourceContents($uri, 'static')], 0, CacheScope::Private),
+                new Resource(name: 'cfg', uri: 'file:///etc/cfg'),
+                static fn(string $uri, $ctx): ReadResourceResult => new ReadResourceResult(contents: [new TextResourceContents(uri: $uri, text: 'static')], ttlMs: 0, cacheScope: CacheScope::Private),
             )
             ->addResourceTemplate(
-                new ResourceTemplate('files', 'file:///{path}'),
-                static fn(string $uri, array $bindings, $ctx): ReadResourceResult => new ReadResourceResult([new TextResourceContents($uri, 'templated:'.($bindings['path'] ?? 'missing'))], 0, CacheScope::Private),
+                new ResourceTemplate(name: 'files', uriTemplate: 'file:///{path}'),
+                static fn(string $uri, array $bindings, $ctx): ReadResourceResult => new ReadResourceResult(contents: [new TextResourceContents(uri: $uri, text: 'templated:'.($bindings['path'] ?? 'missing'))], ttlMs: 0, cacheScope: CacheScope::Private),
             )
             ->build()
         ;
@@ -504,7 +504,7 @@ final class ServerBuilderTest extends TestCase
         $server = new ServerBuilder()
             ->setServerInfo('demo', '1.0.0')
             ->addResourceTemplate(
-                new ResourceTemplate('files', 'file:///{path}'),
+                new ResourceTemplate(name: 'files', uriTemplate: 'file:///{path}'),
                 static fn(): never => throw new \LogicException('unreachable'),
             )
             ->build()
@@ -522,8 +522,8 @@ final class ServerBuilderTest extends TestCase
         $server = new ServerBuilder()
             ->setServerInfo('demo', '1.0.0')
             ->addResourceTemplate(
-                new ResourceTemplate('files', 'file:///{path}'),
-                static fn(string $uri, array $bindings, $ctx): ReadResourceResult => new ReadResourceResult([new TextResourceContents($uri, 'templated:'.($bindings['path'] ?? 'missing'))], 0, CacheScope::Private),
+                new ResourceTemplate(name: 'files', uriTemplate: 'file:///{path}'),
+                static fn(string $uri, array $bindings, $ctx): ReadResourceResult => new ReadResourceResult(contents: [new TextResourceContents(uri: $uri, text: 'templated:'.($bindings['path'] ?? 'missing'))], ttlMs: 0, cacheScope: CacheScope::Private),
             )
             ->build()
         ;
@@ -655,7 +655,7 @@ final class ServerBuilderTest extends TestCase
     public function testExplicitServerInfoFieldsTakePrecedencePerField(): void
     {
         $server = new ServerBuilder()
-            ->setServerInfo('explicit-server', '9.9.9', 'Explicit Title', 'Explicit description.', 'https://explicit.test', [new Icon('https://explicit.test/icon.svg')])
+            ->setServerInfo('explicit-server', '9.9.9', 'Explicit Title', 'Explicit description.', 'https://explicit.test', [new Icon(src: 'https://explicit.test/icon.svg')])
             ->register(new SelfDescribingServer())
             ->build()
         ;
@@ -749,7 +749,7 @@ final class ServerBuilderTest extends TestCase
         $this->expectExceptionMessageMatches('/^ResourceTemplate URI template must use only RFC 6570 Level 1 simple-name expressions/');
 
         $builder->addResourceTemplate(
-            new ResourceTemplate('files', 'file:///{+path}'),
+            new ResourceTemplate(name: 'files', uriTemplate: 'file:///{+path}'),
             static fn(): never => throw new \LogicException('unreachable'),
         );
     }
@@ -969,7 +969,7 @@ final class ServerBuilderTest extends TestCase
     {
         $server = new ServerBuilder()
             ->setServerInfo('demo', '1.0.0')
-            ->setCompletionStore(new RecordingCompletionStore(new CompleteResult(['values' => ['x']])))
+            ->setCompletionStore(new RecordingCompletionStore(new CompleteResult(completion: ['values' => ['x']])))
             ->build()
         ;
 
@@ -988,13 +988,13 @@ final class ServerBuilderTest extends TestCase
             #[\Override]
             public function list(?Cursor $cursor): ListToolsResult
             {
-                return new ListToolsResult([new Tool('custom_tool', ['type' => 'object'])], 0, CacheScope::Private);
+                return new ListToolsResult(tools: [new Tool(name: 'custom_tool', inputSchema: ['type' => 'object'])], ttlMs: 0, cacheScope: CacheScope::Private);
             }
 
             #[\Override]
             public function call(string $name, ?array $arguments, ServerContext $context): CallToolResult
             {
-                return new CallToolResult([new TextContent('custom')]);
+                return new CallToolResult(content: [new TextContent(text: 'custom')]);
             }
         };
 
@@ -1014,8 +1014,8 @@ final class ServerBuilderTest extends TestCase
             new ServerBuilder()
                 ->setServerInfo('demo', '1.0.0')
                 ->addTool(
-                    new Tool('entry_tool', ['type' => 'object']),
-                    static fn(?array $args, $ctx): CallToolResult => new CallToolResult([]),
+                    new Tool(name: 'entry_tool', inputSchema: ['type' => 'object']),
+                    static fn(?array $args, $ctx): CallToolResult => new CallToolResult(content: []),
                 )
                 ->setToolStore($store)
                 ->build(),
@@ -1031,13 +1031,13 @@ final class ServerBuilderTest extends TestCase
             #[\Override]
             public function list(?Cursor $cursor): ListPromptsResult
             {
-                return new ListPromptsResult([new Prompt('custom_prompt')], 0, CacheScope::Private);
+                return new ListPromptsResult(prompts: [new Prompt(name: 'custom_prompt')], ttlMs: 0, cacheScope: CacheScope::Private);
             }
 
             #[\Override]
             public function get(string $name, ?array $arguments, ServerContext $context): GetPromptResult
             {
-                return new GetPromptResult([]);
+                return new GetPromptResult(messages: []);
             }
         };
 
@@ -1057,8 +1057,8 @@ final class ServerBuilderTest extends TestCase
             new ServerBuilder()
                 ->setServerInfo('demo', '1.0.0')
                 ->addPrompt(
-                    new Prompt('entry_prompt'),
-                    static fn(?array $args, $ctx): GetPromptResult => new GetPromptResult([]),
+                    new Prompt(name: 'entry_prompt'),
+                    static fn(?array $args, $ctx): GetPromptResult => new GetPromptResult(messages: []),
                 )
                 ->setPromptStore($store)
                 ->build(),
@@ -1074,13 +1074,13 @@ final class ServerBuilderTest extends TestCase
             #[\Override]
             public function list(?Cursor $cursor): ListResourcesResult
             {
-                return new ListResourcesResult([new Resource('custom', 'mem://custom')], 0, CacheScope::Private);
+                return new ListResourcesResult(resources: [new Resource(name: 'custom', uri: 'mem://custom')], ttlMs: 0, cacheScope: CacheScope::Private);
             }
 
             #[\Override]
             public function read(string $uri, ServerContext $context): ReadResourceResult
             {
-                return new ReadResourceResult([new TextResourceContents($uri, 'custom-body')], 0, CacheScope::Private);
+                return new ReadResourceResult(contents: [new TextResourceContents(uri: $uri, text: 'custom-body')], ttlMs: 0, cacheScope: CacheScope::Private);
             }
         };
 
@@ -1100,8 +1100,8 @@ final class ServerBuilderTest extends TestCase
             new ServerBuilder()
                 ->setServerInfo('demo', '1.0.0')
                 ->addResource(
-                    new Resource('entry', 'mem://entry'),
-                    static fn(string $uri, $ctx): ReadResourceResult => new ReadResourceResult([], 0, CacheScope::Private),
+                    new Resource(name: 'entry', uri: 'mem://entry'),
+                    static fn(string $uri, $ctx): ReadResourceResult => new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private),
                 )
                 ->setResourceStore($store)
                 ->build(),
@@ -1114,12 +1114,12 @@ final class ServerBuilderTest extends TestCase
             new ServerBuilder()
                 ->setServerInfo('demo', '1.0.0')
                 ->addResource(
-                    new Resource('entry', 'mem://entry'),
-                    static fn(string $uri, $ctx): ReadResourceResult => new ReadResourceResult([], 0, CacheScope::Private),
+                    new Resource(name: 'entry', uri: 'mem://entry'),
+                    static fn(string $uri, $ctx): ReadResourceResult => new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private),
                 )
                 ->addResourceTemplate(
-                    new ResourceTemplate('files', 'mem://files/{id}'),
-                    static fn(string $uri, array $bindings, $ctx): ReadResourceResult => new ReadResourceResult([], 0, CacheScope::Private),
+                    new ResourceTemplate(name: 'files', uriTemplate: 'mem://files/{id}'),
+                    static fn(string $uri, array $bindings, $ctx): ReadResourceResult => new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private),
                 )
                 ->setResourceStore($store)
                 ->build(),
@@ -1135,13 +1135,13 @@ final class ServerBuilderTest extends TestCase
             #[\Override]
             public function list(?Cursor $cursor): ListResourceTemplatesResult
             {
-                return new ListResourceTemplatesResult([new ResourceTemplate('custom', 'mem://{id}')], 0, CacheScope::Private);
+                return new ListResourceTemplatesResult(resourceTemplates: [new ResourceTemplate(name: 'custom', uriTemplate: 'mem://{id}')], ttlMs: 0, cacheScope: CacheScope::Private);
             }
 
             #[\Override]
             public function read(string $uri, ServerContext $context): ReadResourceResult
             {
-                return new ReadResourceResult([new TextResourceContents($uri, 'custom-body')], 0, CacheScope::Private);
+                return new ReadResourceResult(contents: [new TextResourceContents(uri: $uri, text: 'custom-body')], ttlMs: 0, cacheScope: CacheScope::Private);
             }
         };
 
@@ -1161,8 +1161,8 @@ final class ServerBuilderTest extends TestCase
             new ServerBuilder()
                 ->setServerInfo('demo', '1.0.0')
                 ->addResourceTemplate(
-                    new ResourceTemplate('entry', 'mem://entry/{id}'),
-                    static fn(string $uri, array $bindings, $ctx): ReadResourceResult => new ReadResourceResult([], 0, CacheScope::Private),
+                    new ResourceTemplate(name: 'entry', uriTemplate: 'mem://entry/{id}'),
+                    static fn(string $uri, array $bindings, $ctx): ReadResourceResult => new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private),
                 )
                 ->setResourceTemplateStore($store)
                 ->build(),

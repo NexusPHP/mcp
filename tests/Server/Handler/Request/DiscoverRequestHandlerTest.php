@@ -40,7 +40,7 @@ final class DiscoverRequestHandlerTest extends TestCase
 {
     public function testAdvertisesLatestProtocolVersionCapabilitiesAndServerInfo(): void
     {
-        $serverInfo = new Implementation('test-server', '2.0.0');
+        $serverInfo = new Implementation(name: 'test-server', version: '2.0.0');
         $capabilities = new ServerCapabilities(tools: ['listChanged' => true]);
         $handler = new DiscoverRequestHandler($serverInfo, $capabilities);
 
@@ -57,9 +57,9 @@ final class DiscoverRequestHandlerTest extends TestCase
 
     public function testPropagatesInstructionsTtlCacheScopeAndMeta(): void
     {
-        $meta = new MetaObject(['vendor' => 'x']);
+        $meta = new MetaObject(extras: ['vendor' => 'x']);
         $handler = new DiscoverRequestHandler(
-            new Implementation('test-server', '2.0.0'),
+            new Implementation(name: 'test-server', version: '2.0.0'),
             new ServerCapabilities(),
             'Use the tools wisely.',
             5_000,
@@ -78,15 +78,15 @@ final class DiscoverRequestHandlerTest extends TestCase
     private static function makeRequest(): DiscoverRequest
     {
         return new DiscoverRequest(
-            new RequestId(1),
-            new EmptyRequestParams(RequestMetaObjectFactory::create()),
+            id: new RequestId(id: 1),
+            params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create()),
         );
     }
 
     private static function makeContext(): ServerContext
     {
         return new ServerContext(
-            new RequestId(1),
+            new RequestId(id: 1),
             new NullCancellation(),
             RequestMetaObjectFactory::create(),
             null,

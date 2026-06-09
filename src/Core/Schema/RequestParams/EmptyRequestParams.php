@@ -39,6 +39,6 @@ final readonly class EmptyRequestParams extends RequestParams
         ;
         $meta = RequestMetaObject::fromArray($data['_meta']);
 
-        return new self($meta);
+        return new self(meta: $meta);
     }
 }

@@ -59,7 +59,7 @@ final readonly class Root implements Arrayable
             $meta = MetaObject::fromArray($data['_meta']);
         }
 
-        return new self($uri, $name, $meta);
+        return new self(uri: $uri, name: $name, meta: $meta);
     }
 
     #[\Override]

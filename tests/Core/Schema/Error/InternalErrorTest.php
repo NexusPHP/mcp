@@ -36,13 +36,13 @@ final class InternalErrorTest extends TestCase
 
     public function testInternalErrorCanOverrideMessage(): void
     {
-        $error = new InternalError('Something went wrong internally');
+        $error = new InternalError(message: 'Something went wrong internally');
         self::assertSame('Something went wrong internally', $error->message);
     }
 
     public function testInternalErrorHasCorrectCode(): void
     {
-        $error = new InternalError(InternalError::DEFAULT_MESSAGE);
+        $error = new InternalError(message: InternalError::DEFAULT_MESSAGE);
         self::assertSame(ProtocolErrorCode::InternalError->value, $error->code);
         self::assertSame(-32603, $error->code);
     }
@@ -50,7 +50,7 @@ final class InternalErrorTest extends TestCase
     public function testInternalErrorCanIncludeData(): void
     {
         $data = ['exception' => \RuntimeException::class, 'line' => 42];
-        $error = new InternalError('Internal error', $data);
+        $error = new InternalError(message: 'Internal error', data: $data);
         self::assertSame($data, $error->data);
     }
 
@@ -85,7 +85,7 @@ final class InternalErrorTest extends TestCase
 
     public function testInternalErrorToArray(): void
     {
-        $error = new InternalError('Unexpected error', ['error_id' => '12345']);
+        $error = new InternalError(message: 'Unexpected error', data: ['error_id' => '12345']);
         $array = $error->toArray();
 
         self::assertSame([
@@ -97,7 +97,7 @@ final class InternalErrorTest extends TestCase
 
     public function testInternalErrorJsonSerialize(): void
     {
-        $error = new InternalError('Unexpected error');
+        $error = new InternalError(message: 'Unexpected error');
         $result = $error->jsonSerialize();
 
         self::assertSame([
@@ -109,7 +109,7 @@ final class InternalErrorTest extends TestCase
     public function testInternalErrorJsonSerializeWithData(): void
     {
         $data = ['trace_id' => 'abc123'];
-        $error = new InternalError('Unexpected error', $data);
+        $error = new InternalError(message: 'Unexpected error', data: $data);
         $result = $error->jsonSerialize();
 
         self::assertSame([
@@ -121,7 +121,7 @@ final class InternalErrorTest extends TestCase
 
     public function testInternalErrorToArrayOmitsEmptyData(): void
     {
-        $error = new InternalError('Unexpected error', []);
+        $error = new InternalError(message: 'Unexpected error', data: []);
 
         self::assertSame([
             'code' => -32603,
@@ -134,6 +134,6 @@ final class InternalErrorTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('error "message" must be a non-empty string.');
 
-        new InternalError('');
+        new InternalError(message: '');
     }
 }

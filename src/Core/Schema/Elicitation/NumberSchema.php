@@ -92,7 +92,14 @@ final readonly class NumberSchema implements Arrayable, PrimitiveSchemaDefinitio
         $default = $data['default'] ?? null;
         Assert::that($default)->nullOr()->isInt('number schema "default" must be an int or null, {type} given.');
 
-        return new self($type, $title, $description, $minimum, $maximum, $default);
+        return new self(
+            type: $type,
+            title: $title,
+            description: $description,
+            minimum: $minimum,
+            maximum: $maximum,
+            default: $default,
+        );
     }
 
     #[\Override]

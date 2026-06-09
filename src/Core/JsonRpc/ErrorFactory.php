@@ -34,11 +34,11 @@ final class ErrorFactory
     public static function create(ProtocolErrorCode $code, string $message, mixed $data = null): Error
     {
         return match ($code) {
-            ProtocolErrorCode::ParseError => new ParseError($message, $data),
-            ProtocolErrorCode::InvalidRequest => new InvalidRequestError($message, $data),
-            ProtocolErrorCode::MethodNotFound => new MethodNotFoundError($message, $data),
-            ProtocolErrorCode::InvalidParams => new InvalidParamsError($message, $data),
-            ProtocolErrorCode::InternalError => new InternalError($message, $data),
+            ProtocolErrorCode::ParseError => new ParseError(message: $message, data: $data),
+            ProtocolErrorCode::InvalidRequest => new InvalidRequestError(message: $message, data: $data),
+            ProtocolErrorCode::MethodNotFound => new MethodNotFoundError(message: $message, data: $data),
+            ProtocolErrorCode::InvalidParams => new InvalidParamsError(message: $message, data: $data),
+            ProtocolErrorCode::InternalError => new InternalError(message: $message, data: $data),
             ProtocolErrorCode::UrlElicitationRequired => throw new \InvalidArgumentException(
                 'ErrorFactory::create() cannot construct UrlElicitationRequiredErrorPayload. '
                 .'Instantiate it directly with the required url/urlError payload.',

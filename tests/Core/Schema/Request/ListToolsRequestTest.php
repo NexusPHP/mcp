@@ -45,7 +45,7 @@ final class ListToolsRequestTest extends TestCase
 
     public function testToArrayMinimal(): void
     {
-        $request = new ListToolsRequest(new RequestId(1), new PaginatedRequestParams(RequestMetaObjectFactory::create()));
+        $request = new ListToolsRequest(id: new RequestId(id: 1), params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create()));
 
         self::assertSame(
             [
@@ -61,8 +61,8 @@ final class ListToolsRequestTest extends TestCase
     public function testToArrayWithCursor(): void
     {
         $request = new ListToolsRequest(
-            new RequestId(1),
-            new PaginatedRequestParams(RequestMetaObjectFactory::create(), new Cursor('cursor-1')),
+            id: new RequestId(id: 1),
+            params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create(), cursor: new Cursor(cursor: 'cursor-1')),
         );
 
         self::assertSame(
@@ -79,8 +79,8 @@ final class ListToolsRequestTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new ListToolsRequest(
-            new RequestId('req-1'),
-            new PaginatedRequestParams(RequestMetaObjectFactory::create(), new Cursor('cursor-1')),
+            id: new RequestId(id: 'req-1'),
+            params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create(), cursor: new Cursor(cursor: 'cursor-1')),
         );
 
         $rebuilt = ListToolsRequest::fromArray($original->toArray());

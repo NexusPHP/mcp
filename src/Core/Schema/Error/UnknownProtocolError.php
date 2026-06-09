@@ -49,6 +49,6 @@ final readonly class UnknownProtocolError extends Error
         Assert::that($data)->hasOffset('message', 'missing the required "message" key.');
         Assert::that($data['message'])->isString('"message" must be a string, {type} given.');
 
-        return new self($data['code'], $data['message'], $data['data'] ?? null);
+        return new self(code: $data['code'], message: $data['message'], data: $data['data'] ?? null);
     }
 }

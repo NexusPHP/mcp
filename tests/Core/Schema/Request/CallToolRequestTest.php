@@ -42,7 +42,7 @@ final class CallToolRequestTest extends TestCase
 
     public function testToArray(): void
     {
-        $request = new CallToolRequest(new RequestId(1), new CallToolRequestParams('read-file', RequestMetaObjectFactory::create()));
+        $request = new CallToolRequest(id: new RequestId(id: 1), params: new CallToolRequestParams(name: 'read-file', meta: RequestMetaObjectFactory::create()));
 
         self::assertSame(
             [
@@ -58,8 +58,8 @@ final class CallToolRequestTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new CallToolRequest(
-            new RequestId('req-1'),
-            new CallToolRequestParams('read-file', RequestMetaObjectFactory::create(), ['path' => 'src/']),
+            id: new RequestId(id: 'req-1'),
+            params: new CallToolRequestParams(name: 'read-file', meta: RequestMetaObjectFactory::create(), arguments: ['path' => 'src/']),
         );
 
         $rebuilt = CallToolRequest::fromArray($original->toArray());

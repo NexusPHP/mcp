@@ -41,7 +41,7 @@ final readonly class PaginatedRequestParams extends RequestParams
         if (\array_key_exists('cursor', $data)) {
             $raw = $data['cursor'];
             Assert::that($raw)->isString('"params.cursor" must be a string, {type} given.');
-            $cursor = new Cursor($raw);
+            $cursor = new Cursor(cursor: $raw);
         }
 
         Assert::that($data)->hasOffset('_meta', '"params" missing the required "_meta" key.');
@@ -51,7 +51,7 @@ final readonly class PaginatedRequestParams extends RequestParams
         ;
         $meta = RequestMetaObject::fromArray($data['_meta']);
 
-        return new self($meta, $cursor);
+        return new self(meta: $meta, cursor: $cursor);
     }
 
     #[\Override]

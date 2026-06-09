@@ -31,9 +31,9 @@ final class PromptEntryTest extends TestCase
 {
     public function testExposesPromptAndRenderer(): void
     {
-        $prompt = new Prompt('greeting');
+        $prompt = new Prompt(name: 'greeting');
         $renderer = new ClosurePromptRenderer(
-            static fn(): GetPromptResult => new GetPromptResult([]),
+            static fn(): GetPromptResult => new GetPromptResult(messages: []),
         );
 
         $entry = new PromptEntry($prompt, $renderer);

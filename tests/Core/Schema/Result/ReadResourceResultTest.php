@@ -38,7 +38,7 @@ final class ReadResourceResultTest extends TestCase
 {
     public function testConstructionAcceptsEmptyContentsList(): void
     {
-        $result = new ReadResourceResult([], 0, CacheScope::Private);
+        $result = new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private);
 
         self::assertSame([], $result->contents);
         self::assertSame(0, $result->ttlMs);
@@ -48,9 +48,9 @@ final class ReadResourceResultTest extends TestCase
 
     public function testToArrayEmitsTextContents(): void
     {
-        $result = new ReadResourceResult([
-            new TextResourceContents('file:///x', 'hello', 'text/plain'),
-        ], 0, CacheScope::Private);
+        $result = new ReadResourceResult(contents: [
+            new TextResourceContents(uri: 'file:///x', text: 'hello', mimeType: 'text/plain'),
+        ], ttlMs: 0, cacheScope: CacheScope::Private);
 
         self::assertSame(
             [
@@ -71,9 +71,9 @@ final class ReadResourceResultTest extends TestCase
 
     public function testToArrayEmitsBlobContents(): void
     {
-        $result = new ReadResourceResult([
-            new BlobResourceContents('file:///x', 'aGVsbG8=', 'application/octet-stream'),
-        ], 0, CacheScope::Private);
+        $result = new ReadResourceResult(contents: [
+            new BlobResourceContents(uri: 'file:///x', blob: 'aGVsbG8=', mimeType: 'application/octet-stream'),
+        ], ttlMs: 0, cacheScope: CacheScope::Private);
 
         self::assertSame(
             [
@@ -94,10 +94,10 @@ final class ReadResourceResultTest extends TestCase
 
     public function testToArrayEmitsMixedContents(): void
     {
-        $result = new ReadResourceResult([
-            new TextResourceContents('file:///a', 'hi'),
-            new BlobResourceContents('file:///b', 'aGVsbG8='),
-        ], 0, CacheScope::Private);
+        $result = new ReadResourceResult(contents: [
+            new TextResourceContents(uri: 'file:///a', text: 'hi'),
+            new BlobResourceContents(uri: 'file:///b', blob: 'aGVsbG8='),
+        ], ttlMs: 0, cacheScope: CacheScope::Private);
 
         self::assertSame(
             [
@@ -116,10 +116,10 @@ final class ReadResourceResultTest extends TestCase
     public function testToArrayIncludesMeta(): void
     {
         $result = new ReadResourceResult(
-            [new TextResourceContents('file:///x', 'hi')],
-            0,
-            CacheScope::Private,
-            new MetaObject(['vendor' => 'x']),
+            contents: [new TextResourceContents(uri: 'file:///x', text: 'hi')],
+            ttlMs: 0,
+            cacheScope: CacheScope::Private,
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -137,10 +137,10 @@ final class ReadResourceResultTest extends TestCase
     public function testJsonSerializeMatchesToArray(): void
     {
         $result = new ReadResourceResult(
-            [new TextResourceContents('file:///x', 'hi')],
-            0,
-            CacheScope::Private,
-            new MetaObject(['k' => 'v']),
+            contents: [new TextResourceContents(uri: 'file:///x', text: 'hi')],
+            ttlMs: 0,
+            cacheScope: CacheScope::Private,
+            meta: new MetaObject(extras: ['k' => 'v']),
         );
 
         self::assertSame($result->toArray(), $result->jsonSerialize());
@@ -195,13 +195,13 @@ final class ReadResourceResultTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new ReadResourceResult(
-            [
-                new TextResourceContents('file:///a', 'hi', 'text/plain'),
-                new BlobResourceContents('file:///b', 'aGVsbG8=', 'application/octet-stream'),
+            contents: [
+                new TextResourceContents(uri: 'file:///a', text: 'hi', mimeType: 'text/plain'),
+                new BlobResourceContents(uri: 'file:///b', blob: 'aGVsbG8=', mimeType: 'application/octet-stream'),
             ],
-            60000,
-            CacheScope::Public,
-            new MetaObject(['vendor' => 'x']),
+            ttlMs: 60000,
+            cacheScope: CacheScope::Public,
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame($original->toArray(), ReadResourceResult::fromArray($original->toArray())->toArray());
@@ -213,7 +213,7 @@ final class ReadResourceResultTest extends TestCase
         $this->expectExceptionMessageIs('"result.contents" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
-        new ReadResourceResult([5 => new TextResourceContents('file:///x', 'hi')], 0, CacheScope::Private);
+        new ReadResourceResult(contents: [5 => new TextResourceContents(uri: 'file:///x', text: 'hi')], ttlMs: 0, cacheScope: CacheScope::Private);
     }
 
     public function testConstructorRejectsNonResourceContentsElement(): void
@@ -221,7 +221,7 @@ final class ReadResourceResultTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
 
         // @phpstan-ignore argument.type
-        new ReadResourceResult([42], 0, CacheScope::Private);
+        new ReadResourceResult(contents: [42], ttlMs: 0, cacheScope: CacheScope::Private);
     }
 
     public function testConstructorRejectsNegativeTtl(): void
@@ -229,7 +229,7 @@ final class ReadResourceResultTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"result.ttlMs" must be a non-negative integer, -1 given.');
 
-        new ReadResourceResult([], -1, CacheScope::Private);
+        new ReadResourceResult(contents: [], ttlMs: -1, cacheScope: CacheScope::Private);
     }
 
     /**

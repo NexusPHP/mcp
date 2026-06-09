@@ -83,7 +83,7 @@ final readonly class GetPromptRequestParams extends RequestParams
         ;
         $meta = RequestMetaObject::fromArray($data['_meta']);
 
-        return new self($name, $meta, $arguments);
+        return new self(name: $name, meta: $meta, arguments: $arguments);
     }
 
     #[\Override]

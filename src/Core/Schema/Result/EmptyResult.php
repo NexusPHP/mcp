@@ -42,6 +42,6 @@ final readonly class EmptyResult extends Result implements ClientResult, ServerR
             $meta = MetaObject::fromArray($data['_meta']);
         }
 
-        return new self($meta);
+        return new self(meta: $meta);
     }
 }

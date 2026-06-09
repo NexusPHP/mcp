@@ -36,7 +36,7 @@ final class ClosureResourceReaderTest extends TestCase
     public function testForwardsUriAndContextToClosure(): void
     {
         $captured = ['uri' => '', 'requestId' => 0];
-        $expected = new ReadResourceResult([], 0, CacheScope::Private);
+        $expected = new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private);
         $reader = new ClosureResourceReader(
             static function (string $uri, ServerContext $context) use ($expected, &$captured): ReadResourceResult {
                 $captured = ['uri' => $uri, 'requestId' => $context->requestId->id];
@@ -54,7 +54,7 @@ final class ClosureResourceReaderTest extends TestCase
     private static function makeContext(): ServerContext
     {
         return new ServerContext(
-            new RequestId(7),
+            new RequestId(id: 7),
             new NullCancellation(),
             RequestMetaObjectFactory::create(),
             null,

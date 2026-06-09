@@ -35,7 +35,7 @@ final class ResourceLinkTest extends TestCase
 {
     public function testConstructionMinimal(): void
     {
-        $link = new ResourceLink('my-link', 'file:///tmp/x');
+        $link = new ResourceLink(name: 'my-link', uri: 'file:///tmp/x');
 
         self::assertSame('my-link', $link->name);
         self::assertSame('file:///tmp/x', $link->uri);
@@ -50,7 +50,7 @@ final class ResourceLinkTest extends TestCase
 
     public function testToArrayMinimal(): void
     {
-        $link = new ResourceLink('my-link', 'file:///tmp/x');
+        $link = new ResourceLink(name: 'my-link', uri: 'file:///tmp/x');
 
         self::assertSame(
             ['name' => 'my-link', 'type' => 'resource_link', 'uri' => 'file:///tmp/x'],
@@ -61,15 +61,15 @@ final class ResourceLinkTest extends TestCase
     public function testToArrayWithAllFields(): void
     {
         $link = new ResourceLink(
-            'my-link',
-            'file:///tmp/x',
-            'My Link',
-            'A description.',
-            'text/plain',
-            new Annotations(null, 0.5),
-            1024.0,
-            [new Icon('https://example.com/icon.png')],
-            new MetaObject(['vendor' => 'x']),
+            name: 'my-link',
+            uri: 'file:///tmp/x',
+            title: 'My Link',
+            description: 'A description.',
+            mimeType: 'text/plain',
+            annotations: new Annotations(audience: null, priority: 0.5),
+            size: 1024.0,
+            icons: [new Icon(src: 'https://example.com/icon.png')],
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -92,15 +92,15 @@ final class ResourceLinkTest extends TestCase
     public function testJsonSerializeMatchesToArray(): void
     {
         $link = new ResourceLink(
-            'my-link',
-            'file:///tmp/x',
-            'My Link',
-            null,
-            'text/plain',
-            new Annotations(),
-            42.0,
-            null,
-            new MetaObject(['k' => 'v']),
+            name: 'my-link',
+            uri: 'file:///tmp/x',
+            title: 'My Link',
+            description: null,
+            mimeType: 'text/plain',
+            annotations: new Annotations(),
+            size: 42.0,
+            icons: null,
+            meta: new MetaObject(extras: ['k' => 'v']),
         );
 
         self::assertSame($link->toArray(), $link->jsonSerialize());
@@ -159,15 +159,15 @@ final class ResourceLinkTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new ResourceLink(
-            'my-link',
-            'file:///tmp/x',
-            'My Link',
-            'A description.',
-            'text/plain',
-            new Annotations(null, 0.5),
-            42.0,
-            [new Icon('https://example.com/icon.png')],
-            new MetaObject(['vendor' => 'x']),
+            name: 'my-link',
+            uri: 'file:///tmp/x',
+            title: 'My Link',
+            description: 'A description.',
+            mimeType: 'text/plain',
+            annotations: new Annotations(audience: null, priority: 0.5),
+            size: 42.0,
+            icons: [new Icon(src: 'https://example.com/icon.png')],
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         $rebuilt = ResourceLink::fromArray($original->toArray());
@@ -180,7 +180,7 @@ final class ResourceLinkTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageMatches('/\Aresource link "name" must be 1-128 characters/');
 
-        new ResourceLink('my link', 'file:///tmp/x');
+        new ResourceLink(name: 'my link', uri: 'file:///tmp/x');
     }
 
     public function testConstructorRejectsUriViolatingRfc3986(): void
@@ -188,7 +188,7 @@ final class ResourceLinkTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageMatches('/\Aresource link "uri" must be a valid RFC 3986/');
 
-        new ResourceLink('my-link', 'not-a-uri');
+        new ResourceLink(name: 'my-link', uri: 'not-a-uri');
     }
 
     public function testConstructorRejectsEmptyDescription(): void
@@ -196,7 +196,7 @@ final class ResourceLinkTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('resource link "description" must be a non-empty string or null.');
 
-        new ResourceLink('my-link', 'file:///tmp/x', null, '');
+        new ResourceLink(name: 'my-link', uri: 'file:///tmp/x', title: null, description: '');
     }
 
     public function testConstructorRejectsEmptyMimeType(): void
@@ -204,7 +204,7 @@ final class ResourceLinkTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('resource link "mimeType" must be a non-empty string or null.');
 
-        new ResourceLink('my-link', 'file:///tmp/x', null, null, '');
+        new ResourceLink(name: 'my-link', uri: 'file:///tmp/x', title: null, description: null, mimeType: '');
     }
 
     public function testConstructorRejectsNonIconElement(): void
@@ -212,7 +212,7 @@ final class ResourceLinkTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
 
         // @phpstan-ignore argument.type
-        new ResourceLink('my-link', 'file:///tmp/x', null, null, null, new Annotations(), null, [42]);
+        new ResourceLink(name: 'my-link', uri: 'file:///tmp/x', title: null, description: null, mimeType: null, annotations: new Annotations(), size: null, icons: [42]);
     }
 
     /**

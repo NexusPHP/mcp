@@ -37,7 +37,7 @@ final class PromptMessageTest extends TestCase
 {
     public function testConstructionWithText(): void
     {
-        $message = new PromptMessage(Role::User, new TextContent('hello'));
+        $message = new PromptMessage(role: Role::User, content: new TextContent(text: 'hello'));
 
         self::assertSame(Role::User, $message->role);
 
@@ -50,7 +50,7 @@ final class PromptMessageTest extends TestCase
 
     public function testToArrayWithText(): void
     {
-        $message = new PromptMessage(Role::User, new TextContent('hello'));
+        $message = new PromptMessage(role: Role::User, content: new TextContent(text: 'hello'));
 
         self::assertSame(
             [
@@ -63,7 +63,7 @@ final class PromptMessageTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $message = new PromptMessage(Role::Assistant, new TextContent('hi'));
+        $message = new PromptMessage(role: Role::Assistant, content: new TextContent(text: 'hi'));
 
         self::assertSame($message->toArray(), $message->jsonSerialize());
     }
@@ -128,8 +128,8 @@ final class PromptMessageTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new PromptMessage(
-            Role::Assistant,
-            new EmbeddedResource(new TextResourceContents('file:///x', 'hello')),
+            role: Role::Assistant,
+            content: new EmbeddedResource(resource: new TextResourceContents(uri: 'file:///x', text: 'hello')),
         );
 
         $rebuilt = PromptMessage::fromArray($original->toArray());

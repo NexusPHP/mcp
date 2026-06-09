@@ -85,7 +85,7 @@ final readonly class EmbeddedResource implements Arrayable, ContentBlock
             $meta = MetaObject::fromArray($data['_meta']);
         }
 
-        return new self($resource, $annotations, $meta);
+        return new self(resource: $resource, annotations: $annotations, meta: $meta);
     }
 
     #[\Override]

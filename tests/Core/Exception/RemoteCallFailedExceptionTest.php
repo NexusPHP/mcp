@@ -30,7 +30,7 @@ final class RemoteCallFailedExceptionTest extends TestCase
 {
     public function testCopiesMessageAndCodeFromTheError(): void
     {
-        $exception = new RemoteCallFailedException(new InternalError('peer blew up'));
+        $exception = new RemoteCallFailedException(new InternalError(message: 'peer blew up'));
 
         self::assertSame('peer blew up', $exception->getMessage());
         self::assertSame(ProtocolErrorCode::InternalError->value, $exception->getCode());

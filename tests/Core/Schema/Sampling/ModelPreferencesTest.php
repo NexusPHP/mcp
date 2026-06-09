@@ -41,7 +41,7 @@ final class ModelPreferencesTest extends TestCase
 
     public function testConstructionFull(): void
     {
-        $prefs = new ModelPreferences([new ModelHint('sonnet')], 0.2, 0.5, 0.9);
+        $prefs = new ModelPreferences(hints: [new ModelHint(name: 'sonnet')], costPriority: 0.2, speedPriority: 0.5, intelligencePriority: 0.9);
 
         self::assertCount(1, $prefs->hints ?? []);
         self::assertSame(0.2, $prefs->costPriority);
@@ -54,7 +54,7 @@ final class ModelPreferencesTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('Value "\'not-a-hint\'" in iterable is expected to be an instance of \'Nexus\\\\Mcp\\\\Core\\\\Schema\\\\Sampling\\\\ModelHint\' but got string instead.');
 
-        new ModelPreferences(['not-a-hint']); // @phpstan-ignore argument.type
+        new ModelPreferences(hints: ['not-a-hint']); // @phpstan-ignore argument.type
     }
 
     #[DataProvider('provideConstructorRejectsOutOfRangeFieldCases')]
@@ -104,14 +104,14 @@ final class ModelPreferencesTest extends TestCase
 
     public function testToArrayEmitsHintsAsArrays(): void
     {
-        $prefs = new ModelPreferences([new ModelHint('sonnet')]);
+        $prefs = new ModelPreferences(hints: [new ModelHint(name: 'sonnet')]);
 
         self::assertSame(['hints' => [['name' => 'sonnet']]], $prefs->toArray());
     }
 
     public function testToArrayPreservesAllFields(): void
     {
-        $prefs = new ModelPreferences([new ModelHint('sonnet')], 0.2, 0.5, 0.9);
+        $prefs = new ModelPreferences(hints: [new ModelHint(name: 'sonnet')], costPriority: 0.2, speedPriority: 0.5, intelligencePriority: 0.9);
 
         self::assertSame(
             [
@@ -126,7 +126,7 @@ final class ModelPreferencesTest extends TestCase
 
     public function testJsonSerializeConvertsHintsToArrays(): void
     {
-        $prefs = new ModelPreferences([new ModelHint('sonnet'), new ModelHint('haiku')]);
+        $prefs = new ModelPreferences(hints: [new ModelHint(name: 'sonnet'), new ModelHint(name: 'haiku')]);
 
         self::assertSame(
             ['hints' => [['name' => 'sonnet'], ['name' => 'haiku']]],
@@ -142,7 +142,7 @@ final class ModelPreferencesTest extends TestCase
 
     public function testJsonSerializeWrapsEmptyHints(): void
     {
-        $prefs = new ModelPreferences([new ModelHint()]);
+        $prefs = new ModelPreferences(hints: [new ModelHint()]);
 
         $encoded = json_encode($prefs);
 
@@ -151,7 +151,7 @@ final class ModelPreferencesTest extends TestCase
 
     public function testJsonSerializeIncludesPriorities(): void
     {
-        $prefs = new ModelPreferences([new ModelHint('sonnet')], 0.2, 0.5, 0.9);
+        $prefs = new ModelPreferences(hints: [new ModelHint(name: 'sonnet')], costPriority: 0.2, speedPriority: 0.5, intelligencePriority: 0.9);
 
         self::assertSame(
             [
@@ -166,7 +166,7 @@ final class ModelPreferencesTest extends TestCase
 
     public function testFromArrayFullRoundTrip(): void
     {
-        $original = new ModelPreferences([new ModelHint('sonnet')], 0.2, 0.5, 0.9);
+        $original = new ModelPreferences(hints: [new ModelHint(name: 'sonnet')], costPriority: 0.2, speedPriority: 0.5, intelligencePriority: 0.9);
 
         $rebuilt = ModelPreferences::fromArray($original->toArray());
 

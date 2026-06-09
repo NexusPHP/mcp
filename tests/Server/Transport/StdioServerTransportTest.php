@@ -190,7 +190,7 @@ final class StdioServerTransportTest extends TestCase
         $transport = new StdioServerTransport(new ReadableBuffer(''), $writable);
 
         $transport->start();
-        $transport->send(self::discoverRequest(7), new SendContext(new RequestId(99)));
+        $transport->send(self::discoverRequest(7), new SendContext(new RequestId(id: 99)));
 
         EventLoop::run();
         $writable->close();
@@ -316,8 +316,8 @@ final class StdioServerTransportTest extends TestCase
     private static function discoverRequest(int $id): DiscoverRequest
     {
         return new DiscoverRequest(
-            new RequestId($id),
-            new EmptyRequestParams(RequestMetaObjectFactory::create()),
+            id: new RequestId(id: $id),
+            params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create()),
         );
     }
 

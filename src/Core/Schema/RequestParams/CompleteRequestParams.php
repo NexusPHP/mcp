@@ -116,10 +116,10 @@ final readonly class CompleteRequestParams extends RequestParams
         $meta = RequestMetaObject::fromArray($data['_meta']);
 
         return new self(
-            self::dispatchRef($data['ref']),
-            ['name' => $data['argument']['name'], 'value' => $data['argument']['value']],
-            $meta,
-            $context,
+            ref: self::dispatchRef($data['ref']),
+            argument: ['name' => $data['argument']['name'], 'value' => $data['argument']['value']],
+            meta: $meta,
+            context: $context,
         );
     }
 

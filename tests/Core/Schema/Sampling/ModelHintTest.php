@@ -36,7 +36,7 @@ final class ModelHintTest extends TestCase
 
     public function testConstructionWithName(): void
     {
-        $hint = new ModelHint('claude-3-5-sonnet');
+        $hint = new ModelHint(name: 'claude-3-5-sonnet');
 
         self::assertSame('claude-3-5-sonnet', $hint->name);
     }
@@ -46,12 +46,12 @@ final class ModelHintTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"hints.name" must be a non-empty string or null.');
 
-        new ModelHint('');
+        new ModelHint(name: '');
     }
 
     public function testToArrayEmitsName(): void
     {
-        self::assertSame(['name' => 'sonnet'], new ModelHint('sonnet')->toArray());
+        self::assertSame(['name' => 'sonnet'], new ModelHint(name: 'sonnet')->toArray());
     }
 
     public function testToArrayOmitsAbsentName(): void
@@ -61,7 +61,7 @@ final class ModelHintTest extends TestCase
 
     public function testJsonSerializeMatchesToArrayWhenNonEmpty(): void
     {
-        $hint = new ModelHint('sonnet');
+        $hint = new ModelHint(name: 'sonnet');
 
         self::assertSame($hint->toArray(), $hint->jsonSerialize());
     }

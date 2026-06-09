@@ -33,7 +33,7 @@ final class ProgressNotificationParamsTest extends TestCase
 {
     public function testConstructionDefaultsTotalAndMessageAndMetaToNull(): void
     {
-        $params = new ProgressNotificationParams(new ProgressToken('p-1'), 0.5);
+        $params = new ProgressNotificationParams(progressToken: new ProgressToken(token: 'p-1'), progress: 0.5);
 
         self::assertSame('p-1', $params->progressToken->token);
         self::assertSame(0.5, $params->progress);
@@ -44,7 +44,7 @@ final class ProgressNotificationParamsTest extends TestCase
 
     public function testToArrayMinimal(): void
     {
-        $params = new ProgressNotificationParams(new ProgressToken('p-1'), 0.5);
+        $params = new ProgressNotificationParams(progressToken: new ProgressToken(token: 'p-1'), progress: 0.5);
 
         self::assertSame(
             ['progressToken' => 'p-1', 'progress' => 0.5],
@@ -54,7 +54,7 @@ final class ProgressNotificationParamsTest extends TestCase
 
     public function testToArrayWithIntProgressToken(): void
     {
-        $params = new ProgressNotificationParams(new ProgressToken(42), 1.0);
+        $params = new ProgressNotificationParams(progressToken: new ProgressToken(token: 42), progress: 1.0);
 
         self::assertSame(
             ['progressToken' => 42, 'progress' => 1.0],
@@ -64,7 +64,7 @@ final class ProgressNotificationParamsTest extends TestCase
 
     public function testToArrayWithTotal(): void
     {
-        $params = new ProgressNotificationParams(new ProgressToken('p-1'), 5.0, 10.0);
+        $params = new ProgressNotificationParams(progressToken: new ProgressToken(token: 'p-1'), progress: 5.0, total: 10.0);
 
         self::assertSame(
             ['progressToken' => 'p-1', 'progress' => 5.0, 'total' => 10.0],
@@ -74,7 +74,7 @@ final class ProgressNotificationParamsTest extends TestCase
 
     public function testToArrayWithMessage(): void
     {
-        $params = new ProgressNotificationParams(new ProgressToken('p-1'), 5.0, null, 'fetching');
+        $params = new ProgressNotificationParams(progressToken: new ProgressToken(token: 'p-1'), progress: 5.0, total: null, message: 'fetching');
 
         self::assertSame(
             ['progressToken' => 'p-1', 'progress' => 5.0, 'message' => 'fetching'],
@@ -84,7 +84,7 @@ final class ProgressNotificationParamsTest extends TestCase
 
     public function testToArrayWithEmptyMessage(): void
     {
-        $params = new ProgressNotificationParams(new ProgressToken('p-1'), 5.0, null, '');
+        $params = new ProgressNotificationParams(progressToken: new ProgressToken(token: 'p-1'), progress: 5.0, total: null, message: '');
 
         self::assertSame(
             ['progressToken' => 'p-1', 'progress' => 5.0, 'message' => ''],
@@ -95,11 +95,11 @@ final class ProgressNotificationParamsTest extends TestCase
     public function testToArrayWithMeta(): void
     {
         $params = new ProgressNotificationParams(
-            new ProgressToken('p-1'),
-            0.25,
-            null,
-            null,
-            new MetaObject(['vendor' => 'x']),
+            progressToken: new ProgressToken(token: 'p-1'),
+            progress: 0.25,
+            total: null,
+            message: null,
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -111,11 +111,11 @@ final class ProgressNotificationParamsTest extends TestCase
     public function testToArrayKeyOrder(): void
     {
         $params = new ProgressNotificationParams(
-            new ProgressToken('p-1'),
-            5.0,
-            10.0,
-            'fetching',
-            new MetaObject(['k' => 'v']),
+            progressToken: new ProgressToken(token: 'p-1'),
+            progress: 5.0,
+            total: 10.0,
+            message: 'fetching',
+            meta: new MetaObject(extras: ['k' => 'v']),
         );
 
         self::assertSame(
@@ -127,11 +127,11 @@ final class ProgressNotificationParamsTest extends TestCase
     public function testJsonSerializeMatchesToArray(): void
     {
         $params = new ProgressNotificationParams(
-            new ProgressToken('p-1'),
-            5.0,
-            10.0,
-            'fetching',
-            new MetaObject(['k' => 'v']),
+            progressToken: new ProgressToken(token: 'p-1'),
+            progress: 5.0,
+            total: 10.0,
+            message: 'fetching',
+            meta: new MetaObject(extras: ['k' => 'v']),
         );
 
         self::assertSame($params->toArray(), $params->jsonSerialize());
@@ -180,11 +180,11 @@ final class ProgressNotificationParamsTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new ProgressNotificationParams(
-            new ProgressToken('p-7'),
-            3.14,
-            42.0,
-            'crunching',
-            new MetaObject(['vendor' => 'x']),
+            progressToken: new ProgressToken(token: 'p-7'),
+            progress: 3.14,
+            total: 42.0,
+            message: 'crunching',
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         $rebuilt = ProgressNotificationParams::fromArray($original->toArray());

@@ -53,7 +53,7 @@ $prefixCompletion = static fn(array $candidates): Closure => static function (st
         static fn(string $candidate): bool => str_starts_with($candidate, $value),
     ));
 
-    return new CompleteResult(['values' => $matched]);
+    return new CompleteResult(completion: ['values' => $matched]);
 };
 
 [$serverSide, $clientSide] = InMemoryTransport::createPair();
@@ -130,7 +130,7 @@ try {
 
     fwrite(\STDOUT, "=== completion/complete for the users://{userId} template (value 'al') ===\n");
     $userIds = $client->complete(
-        new ResourceTemplateReference('users://{userId}'),
+        new ResourceTemplateReference(uri: 'users://{userId}'),
         ['name' => 'userId', 'value' => 'al'],
     );
     fwrite(\STDOUT, sprintf("    suggestions: %s\n\n", implode(', ', $userIds->completion['values'])));
@@ -145,7 +145,7 @@ try {
 
     fwrite(\STDOUT, "\n=== completion/complete for the greet prompt's style argument (value 'c') ===\n");
     $styles = $client->complete(
-        new PromptReference('greet'),
+        new PromptReference(name: 'greet'),
         ['name' => 'style', 'value' => 'c'],
     );
     fwrite(\STDOUT, sprintf("    suggestions: %s\n\n", implode(', ', $styles->completion['values'])));

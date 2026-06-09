@@ -86,7 +86,7 @@ final readonly class GetPromptResult extends Result implements ServerResult
             $meta = MetaObject::fromArray($data['_meta']);
         }
 
-        return new self($messages, $description, $meta);
+        return new self(messages: $messages, description: $description, meta: $meta);
     }
 
     #[\Override]

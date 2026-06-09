@@ -33,8 +33,8 @@ final class ElicitRequestFormParamsTest extends TestCase
     public function testConstructionMinimal(): void
     {
         $params = new ElicitRequestFormParams(
-            'Pick an option',
-            new ElicitRequestedSchema(['x' => new StringSchema()]),
+            message: 'Pick an option',
+            requestedSchema: new ElicitRequestedSchema(properties: ['x' => new StringSchema()]),
         );
 
         self::assertSame('Pick an option', $params->message);
@@ -44,9 +44,9 @@ final class ElicitRequestFormParamsTest extends TestCase
     public function testConstructionWithCustomModeKeepsForm(): void
     {
         $params = new ElicitRequestFormParams(
-            'Pick',
-            new ElicitRequestedSchema(['x' => new StringSchema()]),
-            'form',
+            message: 'Pick',
+            requestedSchema: new ElicitRequestedSchema(properties: ['x' => new StringSchema()]),
+            mode: 'form',
         );
 
         self::assertSame('form', $params->mode);
@@ -55,8 +55,8 @@ final class ElicitRequestFormParamsTest extends TestCase
     public function testToArrayMinimal(): void
     {
         $params = new ElicitRequestFormParams(
-            'Pick',
-            new ElicitRequestedSchema(['x' => new StringSchema()]),
+            message: 'Pick',
+            requestedSchema: new ElicitRequestedSchema(properties: ['x' => new StringSchema()]),
         );
 
         self::assertSame(
@@ -75,8 +75,8 @@ final class ElicitRequestFormParamsTest extends TestCase
     public function testJsonSerializeMatchesToArray(): void
     {
         $params = new ElicitRequestFormParams(
-            'Pick',
-            new ElicitRequestedSchema(['x' => new StringSchema()]),
+            message: 'Pick',
+            requestedSchema: new ElicitRequestedSchema(properties: ['x' => new StringSchema()]),
         );
 
         self::assertSame($params->toArray(), $params->jsonSerialize());
@@ -85,9 +85,9 @@ final class ElicitRequestFormParamsTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new ElicitRequestFormParams(
-            'Pick',
-            new ElicitRequestedSchema(['x' => new StringSchema()]),
-            'form',
+            message: 'Pick',
+            requestedSchema: new ElicitRequestedSchema(properties: ['x' => new StringSchema()]),
+            mode: 'form',
         );
 
         $rebuilt = ElicitRequestFormParams::fromArray($original->toArray());
@@ -113,7 +113,7 @@ final class ElicitRequestFormParamsTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"params.message" must be a non-empty string.');
 
-        new ElicitRequestFormParams('', new ElicitRequestedSchema(['x' => new StringSchema()]));
+        new ElicitRequestFormParams(message: '', requestedSchema: new ElicitRequestedSchema(properties: ['x' => new StringSchema()]));
     }
 
     public function testConstructorRejectsWrongMode(): void
@@ -122,9 +122,9 @@ final class ElicitRequestFormParamsTest extends TestCase
         $this->expectExceptionMessageIs('"params.mode" must be \'form\', \'url\' given.');
 
         new ElicitRequestFormParams(
-            'Pick',
-            new ElicitRequestedSchema(['x' => new StringSchema()]),
-            'url',
+            message: 'Pick',
+            requestedSchema: new ElicitRequestedSchema(properties: ['x' => new StringSchema()]),
+            mode: 'url',
         );
     }
 

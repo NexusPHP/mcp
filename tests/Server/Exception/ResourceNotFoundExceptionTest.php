@@ -42,7 +42,7 @@ final class ResourceNotFoundExceptionTest extends TestCase
     public function testCarriesProvidedRequestIdAndPrevious(): void
     {
         $previous = new \RuntimeException('inner');
-        $e = new ResourceNotFoundException('file:///missing', new RequestId(42), $previous);
+        $e = new ResourceNotFoundException('file:///missing', new RequestId(id: 42), $previous);
 
         self::assertSame('file:///missing', $e->uri);
         self::assertSame(42, $e->requestId?->id);

@@ -36,8 +36,8 @@ final class ClientContextTest extends TestCase
     public function testExposesTheConstructorFieldsInheritedFromAbstractContext(): void
     {
         $sender = new RecordingSender();
-        $id = new RequestId(42);
-        $progressToken = new ProgressToken('tok-1');
+        $id = new RequestId(id: 42);
+        $progressToken = new ProgressToken(token: 'tok-1');
 
         $context = new ClientContext($id, new NullCancellation(), $progressToken, 'sess-abc', $sender);
 
@@ -49,9 +49,9 @@ final class ClientContextTest extends TestCase
     public function testReportProgressDelegatesToTheInheritedSenderWhenAProgressTokenIsSet(): void
     {
         $sender = new RecordingSender();
-        $progressToken = new ProgressToken('tok-1');
+        $progressToken = new ProgressToken(token: 'tok-1');
 
-        $context = new ClientContext(new RequestId(1), new NullCancellation(), $progressToken, null, $sender);
+        $context = new ClientContext(new RequestId(id: 1), new NullCancellation(), $progressToken, null, $sender);
 
         $context->reportProgress(0.5, 1.0, 'halfway');
 

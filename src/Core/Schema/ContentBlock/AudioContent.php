@@ -98,7 +98,7 @@ final readonly class AudioContent implements Arrayable, ContentBlock, SamplingMe
             $meta = MetaObject::fromArray($data['_meta']);
         }
 
-        return new self($payload, $mimeType, $annotations, $meta);
+        return new self(data: $payload, mimeType: $mimeType, annotations: $annotations, meta: $meta);
     }
 
     #[\Override]

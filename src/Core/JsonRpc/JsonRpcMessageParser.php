@@ -86,7 +86,7 @@ final class JsonRpcMessageParser
             try {
                 Assert::that($message)->hasOffset('id', 'Success response must carry an "id".');
                 Assert::that($message['id'])->isArrayKey('Response "id" must be an int or string, {type} given.');
-                $id = new RequestId($message['id']);
+                $id = new RequestId(id: $message['id']);
             } catch (\InvalidArgumentException $e) {
                 throw new InvalidRequestException(null, $e->getMessage());
             }
@@ -110,7 +110,7 @@ final class JsonRpcMessageParser
                 throw new InvalidRequestException($id, \sprintf('Invalid %s payload: %s', $result, $e->getMessage()));
             }
 
-            return new JsonRpcResultResponse($id, $typed);
+            return new JsonRpcResultResponse(id: $id, result: $typed);
         }
 
         try {
@@ -125,7 +125,7 @@ final class JsonRpcMessageParser
         if (\array_key_exists('id', $message)) {
             try {
                 Assert::that($message['id'])->isArrayKey('Request "id" must be an int or string, {type} given.');
-                $id = new RequestId($message['id']);
+                $id = new RequestId(id: $message['id']);
             } catch (\InvalidArgumentException $e) {
                 throw new InvalidRequestException(null, $e->getMessage());
             }
@@ -210,7 +210,7 @@ final class JsonRpcMessageParser
         }
 
         try {
-            return new RequestId($id);
+            return new RequestId(id: $id);
         } catch (\InvalidArgumentException) {
             return null;
         }

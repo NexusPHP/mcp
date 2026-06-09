@@ -41,14 +41,14 @@ final class EmptyNotificationParamsTest extends TestCase
 
     public function testToArrayEmitsMetaUnderUnderscoreKey(): void
     {
-        $params = new EmptyNotificationParams(new MetaObject(['vendor' => 'x']));
+        $params = new EmptyNotificationParams(meta: new MetaObject(extras: ['vendor' => 'x']));
 
         self::assertSame(['_meta' => ['vendor' => 'x']], $params->toArray());
     }
 
     public function testToArrayOmitsEmptyMeta(): void
     {
-        $params = new EmptyNotificationParams(new MetaObject());
+        $params = new EmptyNotificationParams(meta: new MetaObject());
 
         self::assertSame([], $params->toArray());
     }
@@ -74,7 +74,7 @@ final class EmptyNotificationParamsTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $params = new EmptyNotificationParams(new MetaObject(['k' => 'v']));
+        $params = new EmptyNotificationParams(meta: new MetaObject(extras: ['k' => 'v']));
 
         self::assertSame($params->toArray(), $params->jsonSerialize());
     }

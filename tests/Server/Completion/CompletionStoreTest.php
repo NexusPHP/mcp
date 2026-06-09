@@ -39,7 +39,7 @@ final class CompletionStoreTest extends TestCase
         $store = new CompletionStore();
 
         $result = $store->complete(
-            new PromptReference('missing'),
+            new PromptReference(name: 'missing'),
             'arg',
             'partial',
             null,
@@ -54,7 +54,7 @@ final class CompletionStoreTest extends TestCase
         $store = new CompletionStore();
 
         $result = $store->complete(
-            new ResourceTemplateReference('file:///{missing}'),
+            new ResourceTemplateReference(uri: 'file:///{missing}'),
             'arg',
             'partial',
             null,
@@ -68,12 +68,12 @@ final class CompletionStoreTest extends TestCase
     {
         $store = new CompletionStore(promptCompletions: [
             'my-prompt' => [
-                'arg' => static fn(): CompleteResult => new CompleteResult(['values' => ['x']]),
+                'arg' => static fn(): CompleteResult => new CompleteResult(completion: ['values' => ['x']]),
             ],
         ]);
 
         $result = $store->complete(
-            new PromptReference('my-prompt'),
+            new PromptReference(name: 'my-prompt'),
             'other-arg',
             'partial',
             null,
@@ -87,12 +87,12 @@ final class CompletionStoreTest extends TestCase
     {
         $store = new CompletionStore(templateCompletions: [
             'file:///{folder}/{filename}' => [
-                'folder' => static fn(): CompleteResult => new CompleteResult(['values' => ['x']]),
+                'folder' => static fn(): CompleteResult => new CompleteResult(completion: ['values' => ['x']]),
             ],
         ]);
 
         $result = $store->complete(
-            new ResourceTemplateReference('file:///{folder}/{filename}'),
+            new ResourceTemplateReference(uri: 'file:///{folder}/{filename}'),
             'filename',
             'partial',
             null,
@@ -110,13 +110,13 @@ final class CompletionStoreTest extends TestCase
                 'arg' => static function (string $value, ?array $contextArguments, ServerContext $context) use (&$captured): CompleteResult {
                     $captured = ['value' => $value, 'contextArguments' => $contextArguments, 'requestId' => $context->requestId->id];
 
-                    return new CompleteResult(['values' => ['suggestion-a', 'suggestion-b']]);
+                    return new CompleteResult(completion: ['values' => ['suggestion-a', 'suggestion-b']]);
                 },
             ],
         ]);
 
         $result = $store->complete(
-            new PromptReference('my-prompt'),
+            new PromptReference(name: 'my-prompt'),
             'arg',
             'partial-value',
             ['other' => 'context-value'],
@@ -135,13 +135,13 @@ final class CompletionStoreTest extends TestCase
                 'filename' => static function (string $value, ?array $contextArguments, ServerContext $context) use (&$captured): CompleteResult {
                     $captured = ['value' => $value, 'contextArguments' => $contextArguments, 'requestId' => $context->requestId->id];
 
-                    return new CompleteResult(['values' => ['report.pdf', 'report.csv']]);
+                    return new CompleteResult(completion: ['values' => ['report.pdf', 'report.csv']]);
                 },
             ],
         ]);
 
         $result = $store->complete(
-            new ResourceTemplateReference('file:///{folder}/{filename}'),
+            new ResourceTemplateReference(uri: 'file:///{folder}/{filename}'),
             'filename',
             'rep',
             ['folder' => 'docs'],
@@ -156,15 +156,15 @@ final class CompletionStoreTest extends TestCase
     {
         $store = new CompletionStore(
             promptCompletions: [
-                'p' => ['a' => static fn(): CompleteResult => new CompleteResult(['values' => ['from-prompt']])],
+                'p' => ['a' => static fn(): CompleteResult => new CompleteResult(completion: ['values' => ['from-prompt']])],
             ],
             templateCompletions: [
-                'file:///{x}' => ['x' => static fn(): CompleteResult => new CompleteResult(['values' => ['from-template']])],
+                'file:///{x}' => ['x' => static fn(): CompleteResult => new CompleteResult(completion: ['values' => ['from-template']])],
             ],
         );
 
-        $promptResult = $store->complete(new PromptReference('p'), 'a', '', null, self::makeContext());
-        $templateResult = $store->complete(new ResourceTemplateReference('file:///{x}'), 'x', '', null, self::makeContext());
+        $promptResult = $store->complete(new PromptReference(name: 'p'), 'a', '', null, self::makeContext());
+        $templateResult = $store->complete(new ResourceTemplateReference(uri: 'file:///{x}'), 'x', '', null, self::makeContext());
 
         self::assertSame(['from-prompt'], $promptResult->completion['values']);
         self::assertSame(['from-template'], $templateResult->completion['values']);
@@ -209,7 +209,7 @@ final class CompletionStoreTest extends TestCase
     private static function makeContext(): ServerContext
     {
         return new ServerContext(
-            new RequestId(99),
+            new RequestId(id: 99),
             new NullCancellation(),
             RequestMetaObjectFactory::create(),
             null,

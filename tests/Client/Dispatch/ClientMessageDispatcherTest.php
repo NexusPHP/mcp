@@ -55,7 +55,7 @@ final class ClientMessageDispatcherTest extends TestCase
     public function testSuccessResponseResolvesTheRegisteredFuture(): void
     {
         $outbound = new PendingOutboundRequests();
-        $future = $outbound->register(new RequestId(7), EmptyResult::class);
+        $future = $outbound->register(new RequestId(id: 7), EmptyResult::class);
         $dispatcher = self::buildDispatcher($outbound);
         $transport = new RecordingTransport();
 
@@ -73,7 +73,7 @@ final class ClientMessageDispatcherTest extends TestCase
     public function testErrorResponseRejectsTheRegisteredFutureWithRemoteCallFailedException(): void
     {
         $outbound = new PendingOutboundRequests();
-        $future = $outbound->register(new RequestId(1), EmptyResult::class);
+        $future = $outbound->register(new RequestId(id: 1), EmptyResult::class);
         $dispatcher = self::buildDispatcher($outbound);
         $transport = new RecordingTransport();
 
@@ -97,7 +97,7 @@ final class ClientMessageDispatcherTest extends TestCase
     public function testErrorResponseWithNonObjectDataRejectsTheRegisteredFuture(): void
     {
         $outbound = new PendingOutboundRequests();
-        $future = $outbound->register(new RequestId(1), EmptyResult::class);
+        $future = $outbound->register(new RequestId(id: 1), EmptyResult::class);
         $dispatcher = self::buildDispatcher($outbound);
         $transport = new RecordingTransport();
 
@@ -178,7 +178,7 @@ final class ClientMessageDispatcherTest extends TestCase
     public function testSuccessResponseWithMalformedResultPayloadRejectsTheFuture(): void
     {
         $outbound = new PendingOutboundRequests();
-        $future = $outbound->register(new RequestId(1), EmptyResult::class);
+        $future = $outbound->register(new RequestId(id: 1), EmptyResult::class);
         $dispatcher = self::buildDispatcher($outbound);
         $transport = new RecordingTransport();
 
@@ -269,7 +269,7 @@ final class ClientMessageDispatcherTest extends TestCase
             $outbound,
             requestHandlers: [
                 'tests/test-request' => new ClosureRequestHandler(
-                    static fn() => throw new MethodNotFoundException('tools/call', new RequestId('exception-pinned-id')),
+                    static fn() => throw new MethodNotFoundException('tools/call', new RequestId(id: 'exception-pinned-id')),
                 ),
             ],
         );
@@ -333,7 +333,7 @@ final class ClientMessageDispatcherTest extends TestCase
             'jsonrpc' => '2.0',
             'id' => 1,
             'method' => 'roots/list',
-            'params' => ['_meta' => RequestMetaObjectFactory::shape(new ProgressToken('p-1'))],
+            'params' => ['_meta' => RequestMetaObjectFactory::shape(new ProgressToken(token: 'p-1'))],
         ], $transport);
 
         EventLoop::run();

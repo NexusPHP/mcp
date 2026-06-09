@@ -54,8 +54,8 @@ final readonly class ReadResourceRequest extends JsonRpcRequest implements Clien
         ;
 
         return new self(
-            new RequestId($id),
-            ReadResourceRequestParams::fromArray($data['params']),
+            id: new RequestId(id: $id),
+            params: ReadResourceRequestParams::fromArray($data['params']),
         );
     }
 }

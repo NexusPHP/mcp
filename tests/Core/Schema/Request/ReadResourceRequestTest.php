@@ -43,8 +43,8 @@ final class ReadResourceRequestTest extends TestCase
     public function testToArrayBuildsEnvelope(): void
     {
         $request = new ReadResourceRequest(
-            new RequestId(1),
-            new ReadResourceRequestParams('file:///x', RequestMetaObjectFactory::create()),
+            id: new RequestId(id: 1),
+            params: new ReadResourceRequestParams(uri: 'file:///x', meta: RequestMetaObjectFactory::create()),
         );
 
         self::assertSame(
@@ -61,8 +61,8 @@ final class ReadResourceRequestTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new ReadResourceRequest(
-            new RequestId('req-1'),
-            new ReadResourceRequestParams('file:///x', RequestMetaObjectFactory::create()),
+            id: new RequestId(id: 'req-1'),
+            params: new ReadResourceRequestParams(uri: 'file:///x', meta: RequestMetaObjectFactory::create()),
         );
 
         $rebuilt = ReadResourceRequest::fromArray($original->toArray());

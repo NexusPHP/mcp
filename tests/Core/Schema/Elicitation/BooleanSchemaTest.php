@@ -46,7 +46,7 @@ final class BooleanSchemaTest extends TestCase
 
     public function testToArrayWithAllFields(): void
     {
-        $schema = new BooleanSchema('Accept', 'Accept the terms.', false);
+        $schema = new BooleanSchema(title: 'Accept', description: 'Accept the terms.', default: false);
 
         self::assertSame(
             [
@@ -61,7 +61,7 @@ final class BooleanSchemaTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $schema = new BooleanSchema('Accept', null, true);
+        $schema = new BooleanSchema(title: 'Accept', description: null, default: true);
 
         self::assertSame($schema->toArray(), $schema->jsonSerialize());
     }
@@ -82,7 +82,7 @@ final class BooleanSchemaTest extends TestCase
 
     public function testFromArrayFullRoundTrip(): void
     {
-        $original = new BooleanSchema('Accept', 'desc', false);
+        $original = new BooleanSchema(title: 'Accept', description: 'desc', default: false);
 
         $rebuilt = BooleanSchema::fromArray($original->toArray());
 
@@ -94,7 +94,7 @@ final class BooleanSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('boolean schema "title" must be a non-empty string or null.');
 
-        new BooleanSchema('');
+        new BooleanSchema(title: '');
     }
 
     public function testConstructorRejectsEmptyDescription(): void
@@ -102,7 +102,7 @@ final class BooleanSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('boolean schema "description" must be a non-empty string or null.');
 
-        new BooleanSchema(null, '');
+        new BooleanSchema(title: null, description: '');
     }
 
     /**

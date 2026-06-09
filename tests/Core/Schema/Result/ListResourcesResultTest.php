@@ -40,7 +40,7 @@ final class ListResourcesResultTest extends TestCase
 {
     public function testConstructionDefaults(): void
     {
-        $result = new ListResourcesResult([new Resource('r', 'file:///x')], 0, CacheScope::Private);
+        $result = new ListResourcesResult(resources: [new Resource(name: 'r', uri: 'file:///x')], ttlMs: 0, cacheScope: CacheScope::Private);
 
         self::assertCount(1, $result->resources);
         self::assertSame(0, $result->ttlMs);
@@ -51,17 +51,17 @@ final class ListResourcesResultTest extends TestCase
 
     public function testConstructionAcceptsEmptyResourcesList(): void
     {
-        $result = new ListResourcesResult([], 0, CacheScope::Private);
+        $result = new ListResourcesResult(resources: [], ttlMs: 0, cacheScope: CacheScope::Private);
 
         self::assertSame([], $result->resources);
     }
 
     public function testToArrayEmitsResources(): void
     {
-        $result = new ListResourcesResult([
-            new Resource('a', 'file:///a'),
-            new Resource('b', 'file:///b'),
-        ], 0, CacheScope::Private);
+        $result = new ListResourcesResult(resources: [
+            new Resource(name: 'a', uri: 'file:///a'),
+            new Resource(name: 'b', uri: 'file:///b'),
+        ], ttlMs: 0, cacheScope: CacheScope::Private);
 
         self::assertSame(
             [
@@ -80,10 +80,10 @@ final class ListResourcesResultTest extends TestCase
     public function testToArrayIncludesNextCursor(): void
     {
         $result = new ListResourcesResult(
-            [new Resource('a', 'file:///a')],
-            0,
-            CacheScope::Private,
-            new Cursor('cur-1'),
+            resources: [new Resource(name: 'a', uri: 'file:///a')],
+            ttlMs: 0,
+            cacheScope: CacheScope::Private,
+            nextCursor: new Cursor(cursor: 'cur-1'),
         );
 
         self::assertSame(
@@ -101,11 +101,11 @@ final class ListResourcesResultTest extends TestCase
     public function testToArrayIncludesMeta(): void
     {
         $result = new ListResourcesResult(
-            [new Resource('a', 'file:///a')],
-            0,
-            CacheScope::Private,
-            null,
-            new MetaObject(['vendor' => 'x']),
+            resources: [new Resource(name: 'a', uri: 'file:///a')],
+            ttlMs: 0,
+            cacheScope: CacheScope::Private,
+            nextCursor: null,
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -123,11 +123,11 @@ final class ListResourcesResultTest extends TestCase
     public function testToArrayWithMetaAndNextCursor(): void
     {
         $result = new ListResourcesResult(
-            [new Resource('a', 'file:///a')],
-            60000,
-            CacheScope::Public,
-            new Cursor('cur-1'),
-            new MetaObject(['vendor' => 'x']),
+            resources: [new Resource(name: 'a', uri: 'file:///a')],
+            ttlMs: 60000,
+            cacheScope: CacheScope::Public,
+            nextCursor: new Cursor(cursor: 'cur-1'),
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -146,11 +146,11 @@ final class ListResourcesResultTest extends TestCase
     public function testJsonSerializeMatchesToArray(): void
     {
         $result = new ListResourcesResult(
-            [new Resource('a', 'file:///a')],
-            60000,
-            CacheScope::Public,
-            new Cursor('cur-1'),
-            new MetaObject(['k' => 'v']),
+            resources: [new Resource(name: 'a', uri: 'file:///a')],
+            ttlMs: 60000,
+            cacheScope: CacheScope::Public,
+            nextCursor: new Cursor(cursor: 'cur-1'),
+            meta: new MetaObject(extras: ['k' => 'v']),
         );
 
         self::assertSame($result->toArray(), $result->jsonSerialize());
@@ -193,11 +193,11 @@ final class ListResourcesResultTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new ListResourcesResult(
-            [new Resource('a', 'file:///a', 'A')],
-            60000,
-            CacheScope::Public,
-            new Cursor('cur-1'),
-            new MetaObject(['vendor' => 'x']),
+            resources: [new Resource(name: 'a', uri: 'file:///a', title: 'A')],
+            ttlMs: 60000,
+            cacheScope: CacheScope::Public,
+            nextCursor: new Cursor(cursor: 'cur-1'),
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         $rebuilt = ListResourcesResult::fromArray($original->toArray());
@@ -211,7 +211,7 @@ final class ListResourcesResultTest extends TestCase
         $this->expectExceptionMessageIs('"result.resources" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
-        new ListResourcesResult([5 => new Resource('a', 'file:///a')], 0, CacheScope::Private);
+        new ListResourcesResult(resources: [5 => new Resource(name: 'a', uri: 'file:///a')], ttlMs: 0, cacheScope: CacheScope::Private);
     }
 
     public function testConstructorRejectsNonResourceElement(): void
@@ -219,7 +219,7 @@ final class ListResourcesResultTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
 
         // @phpstan-ignore argument.type
-        new ListResourcesResult([42], 0, CacheScope::Private);
+        new ListResourcesResult(resources: [42], ttlMs: 0, cacheScope: CacheScope::Private);
     }
 
     public function testConstructorRejectsNegativeTtl(): void
@@ -227,7 +227,7 @@ final class ListResourcesResultTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"result.ttlMs" must be a non-negative integer, -1 given.');
 
-        new ListResourcesResult([], -1, CacheScope::Private);
+        new ListResourcesResult(resources: [], ttlMs: -1, cacheScope: CacheScope::Private);
     }
 
     /**

@@ -39,7 +39,7 @@ final class ElicitRequestedSchemaTest extends TestCase
 {
     public function testConstructionMinimal(): void
     {
-        $schema = new ElicitRequestedSchema(['email' => new StringSchema()]);
+        $schema = new ElicitRequestedSchema(properties: ['email' => new StringSchema()]);
 
         self::assertArrayHasKey('email', $schema->properties);
         self::assertNull($schema->required);
@@ -48,7 +48,7 @@ final class ElicitRequestedSchemaTest extends TestCase
 
     public function testToArrayMinimal(): void
     {
-        $schema = new ElicitRequestedSchema(['email' => new StringSchema(null, null, null, null, 'email')]);
+        $schema = new ElicitRequestedSchema(properties: ['email' => new StringSchema(title: null, description: null, minLength: null, maxLength: null, format: 'email')]);
 
         self::assertSame(
             [
@@ -64,12 +64,12 @@ final class ElicitRequestedSchemaTest extends TestCase
     public function testToArrayWithAllFields(): void
     {
         $schema = new ElicitRequestedSchema(
-            [
-                'email' => new StringSchema(null, null, null, null, 'email'),
-                'age' => new NumberSchema('integer'),
+            properties: [
+                'email' => new StringSchema(title: null, description: null, minLength: null, maxLength: null, format: 'email'),
+                'age' => new NumberSchema(type: 'integer'),
             ],
-            ['email'],
-            'https://json-schema.org/draft/2020-12/schema',
+            required: ['email'],
+            schema: 'https://json-schema.org/draft/2020-12/schema',
         );
 
         self::assertSame(
@@ -88,7 +88,7 @@ final class ElicitRequestedSchemaTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $schema = new ElicitRequestedSchema(['email' => new StringSchema()]);
+        $schema = new ElicitRequestedSchema(properties: ['email' => new StringSchema()]);
 
         self::assertSame($schema->toArray(), $schema->jsonSerialize());
     }
@@ -170,12 +170,12 @@ final class ElicitRequestedSchemaTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new ElicitRequestedSchema(
-            [
-                'email' => new StringSchema(null, null, null, null, 'email'),
-                'plan' => new TitledSingleSelectEnumSchema([new EnumOption('free', 'Free')]),
+            properties: [
+                'email' => new StringSchema(title: null, description: null, minLength: null, maxLength: null, format: 'email'),
+                'plan' => new TitledSingleSelectEnumSchema(oneOf: [new EnumOption(const: 'free', title: 'Free')]),
             ],
-            ['email'],
-            'https://json-schema.org/draft/2020-12/schema',
+            required: ['email'],
+            schema: 'https://json-schema.org/draft/2020-12/schema',
         );
 
         $rebuilt = ElicitRequestedSchema::fromArray($original->toArray());
@@ -189,7 +189,7 @@ final class ElicitRequestedSchemaTest extends TestCase
         $this->expectExceptionMessageIs('"requestedSchema.properties" must be a string-keyed map.');
 
         // @phpstan-ignore argument.type
-        new ElicitRequestedSchema([new StringSchema()]);
+        new ElicitRequestedSchema(properties: [new StringSchema()]);
     }
 
     public function testConstructorRejectsEmptyPropertyName(): void
@@ -197,7 +197,7 @@ final class ElicitRequestedSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('each "requestedSchema.properties" key must be a non-empty string.');
 
-        new ElicitRequestedSchema(['' => new StringSchema()]);
+        new ElicitRequestedSchema(properties: ['' => new StringSchema()]);
     }
 
     public function testConstructorRejectsNonPrimitivePropertyValue(): void
@@ -205,7 +205,7 @@ final class ElicitRequestedSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
 
         // @phpstan-ignore argument.type
-        new ElicitRequestedSchema(['x' => 42]);
+        new ElicitRequestedSchema(properties: ['x' => 42]);
     }
 
     public function testConstructorRejectsNonListRequired(): void
@@ -214,7 +214,7 @@ final class ElicitRequestedSchemaTest extends TestCase
         $this->expectExceptionMessageIs('"requestedSchema.required" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
-        new ElicitRequestedSchema(['x' => new StringSchema()], ['k' => 'v']);
+        new ElicitRequestedSchema(properties: ['x' => new StringSchema()], required: ['k' => 'v']);
     }
 
     public function testConstructorRejectsEmptyRequiredEntry(): void
@@ -222,7 +222,7 @@ final class ElicitRequestedSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('each "requestedSchema.required" must be a non-empty string.');
 
-        new ElicitRequestedSchema(['x' => new StringSchema()], ['']);
+        new ElicitRequestedSchema(properties: ['x' => new StringSchema()], required: ['']);
     }
 
     public function testConstructorRejectsEmptySchema(): void
@@ -230,7 +230,7 @@ final class ElicitRequestedSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"requestedSchema.$schema" must be a non-empty string or null.');
 
-        new ElicitRequestedSchema(['x' => new StringSchema()], null, '');
+        new ElicitRequestedSchema(properties: ['x' => new StringSchema()], required: null, schema: '');
     }
 
     /**

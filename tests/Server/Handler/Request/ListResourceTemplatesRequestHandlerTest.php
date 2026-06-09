@@ -41,13 +41,13 @@ final class ListResourceTemplatesRequestHandlerTest extends TestCase
     public function testReturnsAllRegisteredTemplatesWhenCursorIsNull(): void
     {
         $store = new ResourceTemplateStore([
-            'file:///{x}.alpha' => self::entry(new ResourceTemplate('alpha', 'file:///{x}.alpha')),
-            'file:///{x}.beta' => self::entry(new ResourceTemplate('beta', 'file:///{x}.beta')),
+            'file:///{x}.alpha' => self::entry(new ResourceTemplate(name: 'alpha', uriTemplate: 'file:///{x}.alpha')),
+            'file:///{x}.beta' => self::entry(new ResourceTemplate(name: 'beta', uriTemplate: 'file:///{x}.beta')),
         ]);
         $handler = new ListResourceTemplatesRequestHandler($store);
 
         $result = $handler->handle(
-            new ListResourceTemplatesRequest(new RequestId(1), new PaginatedRequestParams(RequestMetaObjectFactory::create())),
+            new ListResourceTemplatesRequest(id: new RequestId(id: 1), params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create())),
             self::makeContext(),
         );
 
@@ -60,16 +60,16 @@ final class ListResourceTemplatesRequestHandlerTest extends TestCase
     {
         $store = new ResourceTemplateStore(
             [
-                'file:///{x}.a' => self::entry(new ResourceTemplate('a', 'file:///{x}.a')),
-                'file:///{x}.b' => self::entry(new ResourceTemplate('b', 'file:///{x}.b')),
-                'file:///{x}.c' => self::entry(new ResourceTemplate('c', 'file:///{x}.c')),
+                'file:///{x}.a' => self::entry(new ResourceTemplate(name: 'a', uriTemplate: 'file:///{x}.a')),
+                'file:///{x}.b' => self::entry(new ResourceTemplate(name: 'b', uriTemplate: 'file:///{x}.b')),
+                'file:///{x}.c' => self::entry(new ResourceTemplate(name: 'c', uriTemplate: 'file:///{x}.c')),
             ],
             pageSize: 2,
         );
         $handler = new ListResourceTemplatesRequestHandler($store);
 
         $result = $handler->handle(
-            new ListResourceTemplatesRequest(new RequestId(2), new PaginatedRequestParams(RequestMetaObjectFactory::create(), new Cursor('file:///{x}.b'))),
+            new ListResourceTemplatesRequest(id: new RequestId(id: 2), params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create(), cursor: new Cursor(cursor: 'file:///{x}.b'))),
             self::makeContext(),
         );
 
@@ -80,7 +80,7 @@ final class ListResourceTemplatesRequestHandlerTest extends TestCase
     private static function makeContext(): ServerContext
     {
         return new ServerContext(
-            new RequestId(1),
+            new RequestId(id: 1),
             new NullCancellation(),
             RequestMetaObjectFactory::create(),
             null,

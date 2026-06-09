@@ -57,6 +57,6 @@ final readonly class DiscoverRequest extends JsonRpcRequest implements ClientReq
         ;
         $params = EmptyRequestParams::fromArray($data['params']);
 
-        return new self(new RequestId($id), $params);
+        return new self(id: new RequestId(id: $id), params: $params);
     }
 }

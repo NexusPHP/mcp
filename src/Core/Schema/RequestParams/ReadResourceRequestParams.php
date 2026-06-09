@@ -40,6 +40,6 @@ final readonly class ReadResourceRequestParams extends ResourceRequestParams
         ;
         $meta = RequestMetaObject::fromArray($data['_meta']);
 
-        return new self($uri, $meta);
+        return new self(uri: $uri, meta: $meta);
     }
 }

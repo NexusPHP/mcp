@@ -32,7 +32,7 @@ final class AudioContentTest extends TestCase
 {
     public function testConstructionMinimal(): void
     {
-        $content = new AudioContent('aGVsbG8=', 'audio/mp3');
+        $content = new AudioContent(data: 'aGVsbG8=', mimeType: 'audio/mp3');
 
         self::assertSame('aGVsbG8=', $content->data);
         self::assertSame('audio/mp3', $content->mimeType);
@@ -42,7 +42,7 @@ final class AudioContentTest extends TestCase
 
     public function testToArrayMinimal(): void
     {
-        $content = new AudioContent('aGVsbG8=', 'audio/mp3');
+        $content = new AudioContent(data: 'aGVsbG8=', mimeType: 'audio/mp3');
 
         self::assertSame(
             ['data' => 'aGVsbG8=', 'mimeType' => 'audio/mp3', 'type' => 'audio'],
@@ -53,10 +53,10 @@ final class AudioContentTest extends TestCase
     public function testToArrayWithAllFields(): void
     {
         $content = new AudioContent(
-            'aGVsbG8=',
-            'audio/mp3',
-            new Annotations(null, 0.5),
-            new MetaObject(['vendor' => 'x']),
+            data: 'aGVsbG8=',
+            mimeType: 'audio/mp3',
+            annotations: new Annotations(audience: null, priority: 0.5),
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -73,7 +73,7 @@ final class AudioContentTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $content = new AudioContent('aGVsbG8=', 'audio/mp3', new Annotations(), new MetaObject(['k' => 'v']));
+        $content = new AudioContent(data: 'aGVsbG8=', mimeType: 'audio/mp3', annotations: new Annotations(), meta: new MetaObject(extras: ['k' => 'v']));
 
         self::assertSame($content->toArray(), $content->jsonSerialize());
     }
@@ -97,10 +97,10 @@ final class AudioContentTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new AudioContent(
-            'aGVsbG8=',
-            'audio/mp3',
-            new Annotations(null, 0.5),
-            new MetaObject(['vendor' => 'x']),
+            data: 'aGVsbG8=',
+            mimeType: 'audio/mp3',
+            annotations: new Annotations(audience: null, priority: 0.5),
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         $rebuilt = AudioContent::fromArray($original->toArray());
@@ -113,7 +113,7 @@ final class AudioContentTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('audio content "data" must be a non-empty string.');
 
-        new AudioContent('', 'audio/mp3');
+        new AudioContent(data: '', mimeType: 'audio/mp3');
     }
 
     public function testConstructorRejectsEmptyMimeType(): void
@@ -121,7 +121,7 @@ final class AudioContentTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('audio content "mimeType" must be a non-empty string.');
 
-        new AudioContent('aGVsbG8=', '');
+        new AudioContent(data: 'aGVsbG8=', mimeType: '');
     }
 
     /**

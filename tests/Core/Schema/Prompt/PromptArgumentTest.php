@@ -32,7 +32,7 @@ final class PromptArgumentTest extends TestCase
 {
     public function testConstructionMinimal(): void
     {
-        $arg = new PromptArgument('topic');
+        $arg = new PromptArgument(name: 'topic');
 
         self::assertSame('topic', $arg->name);
         self::assertNull($arg->title);
@@ -42,7 +42,7 @@ final class PromptArgumentTest extends TestCase
 
     public function testConstructionWithAllFields(): void
     {
-        $arg = new PromptArgument('topic', 'Topic', 'The topic of discussion.', true);
+        $arg = new PromptArgument(name: 'topic', title: 'Topic', description: 'The topic of discussion.', required: true);
 
         self::assertSame('topic', $arg->name);
         self::assertSame('Topic', $arg->title);
@@ -52,14 +52,14 @@ final class PromptArgumentTest extends TestCase
 
     public function testToArrayMinimal(): void
     {
-        $arg = new PromptArgument('topic');
+        $arg = new PromptArgument(name: 'topic');
 
         self::assertSame(['name' => 'topic'], $arg->toArray());
     }
 
     public function testToArrayWithAllFields(): void
     {
-        $arg = new PromptArgument('topic', 'Topic', 'The topic of discussion.', true);
+        $arg = new PromptArgument(name: 'topic', title: 'Topic', description: 'The topic of discussion.', required: true);
 
         self::assertSame(
             [
@@ -74,7 +74,7 @@ final class PromptArgumentTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $arg = new PromptArgument('topic', 'Topic', 'desc', false);
+        $arg = new PromptArgument(name: 'topic', title: 'Topic', description: 'desc', required: false);
 
         self::assertSame($arg->toArray(), $arg->jsonSerialize());
     }
@@ -102,7 +102,7 @@ final class PromptArgumentTest extends TestCase
 
     public function testFromArrayFullRoundTrip(): void
     {
-        $original = new PromptArgument('topic', 'Topic', 'desc', true);
+        $original = new PromptArgument(name: 'topic', title: 'Topic', description: 'desc', required: true);
 
         $rebuilt = PromptArgument::fromArray($original->toArray());
 
@@ -114,7 +114,7 @@ final class PromptArgumentTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageMatches('/\A"arguments.name" must be 1-128 characters/');
 
-        new PromptArgument('bad name');
+        new PromptArgument(name: 'bad name');
     }
 
     public function testConstructorRejectsEmptyDescription(): void
@@ -122,7 +122,7 @@ final class PromptArgumentTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"arguments.description" must be a non-empty string or null.');
 
-        new PromptArgument('topic', null, '');
+        new PromptArgument(name: 'topic', title: null, description: '');
     }
 
     /**

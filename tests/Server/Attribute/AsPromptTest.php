@@ -40,7 +40,7 @@ final class AsPromptTest extends TestCase
 
     public function testStoresAllValues(): void
     {
-        $icon = new Icon('https://example.test/icon.svg');
+        $icon = new Icon(src: 'https://example.test/icon.svg');
 
         $prompt = new AsPrompt(
             name: 'review',

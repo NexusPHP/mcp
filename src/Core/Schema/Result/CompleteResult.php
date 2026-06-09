@@ -96,7 +96,7 @@ final readonly class CompleteResult extends Result implements ServerResult
             $meta = MetaObject::fromArray($data['_meta']);
         }
 
-        return new self($completion, $meta);
+        return new self(completion: $completion, meta: $meta);
     }
 
     #[\Override]

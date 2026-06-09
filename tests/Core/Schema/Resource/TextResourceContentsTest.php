@@ -33,7 +33,7 @@ final class TextResourceContentsTest extends TestCase
 {
     public function testConstructionMinimal(): void
     {
-        $contents = new TextResourceContents('file:///x', 'hello');
+        $contents = new TextResourceContents(uri: 'file:///x', text: 'hello');
 
         self::assertSame('file:///x', $contents->uri);
         self::assertSame('hello', $contents->text);
@@ -44,10 +44,10 @@ final class TextResourceContentsTest extends TestCase
     public function testConstructionWithAllFields(): void
     {
         $contents = new TextResourceContents(
-            'file:///x',
-            'hello',
-            'text/plain',
-            new MetaObject(['vendor' => 'x']),
+            uri: 'file:///x',
+            text: 'hello',
+            mimeType: 'text/plain',
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame('text/plain', $contents->mimeType);
@@ -59,7 +59,7 @@ final class TextResourceContentsTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageMatches('/\Aresource contents "uri" must be a valid RFC 3986/');
 
-        new TextResourceContents('not-a-uri', 'hello');
+        new TextResourceContents(uri: 'not-a-uri', text: 'hello');
     }
 
     public function testConstructorRejectsEmptyMimeType(): void
@@ -67,12 +67,12 @@ final class TextResourceContentsTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('resource contents "mimeType" must be a non-empty string or null.');
 
-        new TextResourceContents('file:///x', 'hello', '');
+        new TextResourceContents(uri: 'file:///x', text: 'hello', mimeType: '');
     }
 
     public function testToArrayMinimal(): void
     {
-        $contents = new TextResourceContents('file:///x', 'hello');
+        $contents = new TextResourceContents(uri: 'file:///x', text: 'hello');
 
         self::assertSame(
             ['uri' => 'file:///x', 'text' => 'hello'],
@@ -83,10 +83,10 @@ final class TextResourceContentsTest extends TestCase
     public function testToArrayWithAllFields(): void
     {
         $contents = new TextResourceContents(
-            'file:///x',
-            'hello',
-            'text/plain',
-            new MetaObject(['vendor' => 'x']),
+            uri: 'file:///x',
+            text: 'hello',
+            mimeType: 'text/plain',
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -102,7 +102,7 @@ final class TextResourceContentsTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $contents = new TextResourceContents('file:///x', 'hello', 'text/plain');
+        $contents = new TextResourceContents(uri: 'file:///x', text: 'hello', mimeType: 'text/plain');
 
         self::assertSame($contents->toArray(), $contents->jsonSerialize());
     }
@@ -131,10 +131,10 @@ final class TextResourceContentsTest extends TestCase
     public function testFromArrayRoundTrip(): void
     {
         $original = new TextResourceContents(
-            'file:///x',
-            'hello',
-            'text/plain',
-            new MetaObject(['vendor' => 'x']),
+            uri: 'file:///x',
+            text: 'hello',
+            mimeType: 'text/plain',
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame($original->toArray(), TextResourceContents::fromArray($original->toArray())->toArray());

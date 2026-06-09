@@ -121,7 +121,7 @@ final class ClientTest extends TestCase
     public function testSendRequestBeforeConnectThrowsClientNotConnectedException(): void
     {
         $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
-        $request = new ListToolsRequest(new RequestId(1), new PaginatedRequestParams(RequestMetaObjectFactory::create()));
+        $request = new ListToolsRequest(id: new RequestId(id: 1), params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create()));
 
         $this->expectException(ClientNotConnectedException::class);
         $this->expectExceptionMessageMatches('/not connected/');
@@ -135,7 +135,7 @@ final class ClientTest extends TestCase
         $transport = new RecordingTransport();
         $client->connect($transport);
 
-        $request = new ListToolsRequest(new RequestId(1), new PaginatedRequestParams(RequestMetaObjectFactory::create()));
+        $request = new ListToolsRequest(id: new RequestId(id: 1), params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create()));
 
         $deferredCall = async(static fn() => $client->sendRequest($request, EmptyResult::class));
 
@@ -160,7 +160,7 @@ final class ClientTest extends TestCase
         $transport = new RecordingTransport();
         $client->connect($transport);
 
-        $request = new ListToolsRequest(new RequestId(1), new PaginatedRequestParams(RequestMetaObjectFactory::create()));
+        $request = new ListToolsRequest(id: new RequestId(id: 1), params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create()));
         $call = async(static fn() => $client->sendRequest($request, EmptyResult::class));
         $transport->nextSend()->await();
 
@@ -181,7 +181,7 @@ final class ClientTest extends TestCase
         $transport->sendError = new TransportAlreadyClosedException(operation: 'send-request');
         $client->connect($transport);
 
-        $request = new ListToolsRequest(new RequestId(1), new PaginatedRequestParams(RequestMetaObjectFactory::create()));
+        $request = new ListToolsRequest(id: new RequestId(id: 1), params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create()));
 
         try {
             $client->sendRequest($request, EmptyResult::class);
@@ -478,7 +478,7 @@ final class ClientTest extends TestCase
         yield 'completion/complete' => [
             'completion/complete',
             static fn(Client $client) => $client->complete(
-                new PromptReference('walkthrough'),
+                new PromptReference(name: 'walkthrough'),
                 ['name' => 'audience', 'value' => 'rev'],
             ),
         ];
@@ -517,7 +517,7 @@ final class ClientTest extends TestCase
         $client->connect($transport);
         self::discover($client, $transport);
 
-        $cursor = new Cursor('page-2');
+        $cursor = new Cursor(cursor: 'page-2');
         $deferred = async(static fn() => $client->listTools($cursor));
         $transport->nextSend()->await();
 
@@ -669,7 +669,7 @@ final class ClientTest extends TestCase
         $client->connect($transport);
         self::discover($client, $transport);
 
-        $ref = new PromptReference('walkthrough');
+        $ref = new PromptReference(name: 'walkthrough');
         $argument = ['name' => 'audience', 'value' => 'rev'];
         $deferred = async(static fn() => $client->complete($ref, $argument));
         $transport->nextSend()->await();

@@ -39,11 +39,11 @@ final class RequestBoundSenderTest extends TestCase
     public function testSendNotificationDelegatesToTransportWithRelatedRequestIdContext(): void
     {
         $transport = new RecordingTransport();
-        $requestId = new RequestId('req-1');
+        $requestId = new RequestId(id: 'req-1');
         $sender = new RequestBoundSender($transport, $requestId);
 
         $notification = new ProgressNotification(
-            new ProgressNotificationParams(new ProgressToken('tok-1'), 0.5),
+            params: new ProgressNotificationParams(progressToken: new ProgressToken(token: 'tok-1'), progress: 0.5),
         );
 
         $sender->sendNotification($notification);
@@ -57,11 +57,11 @@ final class RequestBoundSenderTest extends TestCase
 
     public function testSendRequestThrowsTypedExceptionCarryingTheInboundRequestId(): void
     {
-        $inboundId = new RequestId(1);
+        $inboundId = new RequestId(id: 1);
         $sender = new RequestBoundSender(new RecordingTransport(), $inboundId);
 
         try {
-            $sender->sendRequest(new DiscoverRequest(new RequestId(2), new EmptyRequestParams(RequestMetaObjectFactory::create())));
+            $sender->sendRequest(new DiscoverRequest(id: new RequestId(id: 2), params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create())));
         } catch (OutboundRequestsNotSupportedException $e) {
             self::assertSame($inboundId, $e->requestId);
             self::assertSame(

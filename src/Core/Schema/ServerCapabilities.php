@@ -68,13 +68,13 @@ final readonly class ServerCapabilities implements Arrayable
     public static function fromArray(array $data): static
     {
         return new self(
-            self::extractOpenObject($data, 'completions'),
-            self::extractExperimental($data),
-            self::extractExtensions($data),
-            self::extractOpenObject($data, 'logging'),
-            self::extractListChangedOnly($data, 'prompts'),
-            self::extractResources($data),
-            self::extractListChangedOnly($data, 'tools'),
+            completions: self::extractOpenObject($data, 'completions'),
+            experimental: self::extractExperimental($data),
+            extensions: self::extractExtensions($data),
+            logging: self::extractOpenObject($data, 'logging'),
+            prompts: self::extractListChangedOnly($data, 'prompts'),
+            resources: self::extractResources($data),
+            tools: self::extractListChangedOnly($data, 'tools'),
         );
     }
 

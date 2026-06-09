@@ -70,7 +70,7 @@ final readonly class ListRootsResult extends Result implements ClientResult
             $meta = MetaObject::fromArray($data['_meta']);
         }
 
-        return new self($roots, $meta);
+        return new self(roots: $roots, meta: $meta);
     }
 
     #[\Override]

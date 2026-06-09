@@ -30,7 +30,7 @@ final class PendingInboundRequestsTest extends TestCase
     public function testFirstClaimSucceedsAndRegistersTheId(): void
     {
         $set = new PendingInboundRequests();
-        $id = new RequestId(1);
+        $id = new RequestId(id: 1);
 
         self::assertTrue($set->claim($id));
         self::assertCount(1, $set);
@@ -39,7 +39,7 @@ final class PendingInboundRequestsTest extends TestCase
     public function testDuplicateClaimFailsWithoutMutatingTheSet(): void
     {
         $set = new PendingInboundRequests();
-        $id = new RequestId(1);
+        $id = new RequestId(id: 1);
 
         self::assertTrue($set->claim($id));
         self::assertFalse($set->claim($id));
@@ -49,7 +49,7 @@ final class PendingInboundRequestsTest extends TestCase
     public function testDuplicateStringClaimFailsWithoutMutatingTheSet(): void
     {
         $set = new PendingInboundRequests();
-        $id = new RequestId('correlation-token');
+        $id = new RequestId(id: 'correlation-token');
 
         self::assertTrue($set->claim($id));
         self::assertFalse($set->claim($id), 'String ids must collide on a duplicate claim, just like int ids.');
@@ -60,16 +60,16 @@ final class PendingInboundRequestsTest extends TestCase
     {
         $set = new PendingInboundRequests();
 
-        self::assertTrue($set->claim(new RequestId(7)));
-        self::assertFalse($set->claim(new RequestId(7)), 'Distinct RequestId instances with the same envelope id must collide.');
+        self::assertTrue($set->claim(new RequestId(id: 7)));
+        self::assertFalse($set->claim(new RequestId(id: 7)), 'Distinct RequestId instances with the same envelope id must collide.');
     }
 
     public function testIntAndStringIdsAreDistinct(): void
     {
         $set = new PendingInboundRequests();
 
-        self::assertTrue($set->claim(new RequestId(1)));
-        self::assertTrue($set->claim(new RequestId('1')), 'String "1" and int 1 are distinct envelope ids per JSON-RPC.');
+        self::assertTrue($set->claim(new RequestId(id: 1)));
+        self::assertTrue($set->claim(new RequestId(id: '1')), 'String "1" and int 1 are distinct envelope ids per JSON-RPC.');
         self::assertCount(2, $set);
     }
 
@@ -77,18 +77,18 @@ final class PendingInboundRequestsTest extends TestCase
     {
         $set = new PendingInboundRequests();
 
-        self::assertTrue($set->claim(new RequestId(1)));
-        self::assertTrue($set->claim(new RequestId(2)));
-        self::assertTrue($set->claim(new RequestId('a')));
-        self::assertTrue($set->claim(new RequestId('b')));
+        self::assertTrue($set->claim(new RequestId(id: 1)));
+        self::assertTrue($set->claim(new RequestId(id: 2)));
+        self::assertTrue($set->claim(new RequestId(id: 'a')));
+        self::assertTrue($set->claim(new RequestId(id: 'b')));
         self::assertCount(4, $set);
     }
 
     public function testReleasingAStringIdLeavesUnrelatedIntIdInPlace(): void
     {
         $set = new PendingInboundRequests();
-        $intId = new RequestId(1);
-        $stringId = new RequestId('1');
+        $intId = new RequestId(id: 1);
+        $stringId = new RequestId(id: '1');
 
         $set->claim($intId);
         $set->claim($stringId);
@@ -102,7 +102,7 @@ final class PendingInboundRequestsTest extends TestCase
     public function testReleaseAllowsReclaiming(): void
     {
         $set = new PendingInboundRequests();
-        $id = new RequestId(1);
+        $id = new RequestId(id: 1);
 
         $set->claim($id);
         $set->release($id);
@@ -115,7 +115,7 @@ final class PendingInboundRequestsTest extends TestCase
     {
         $set = new PendingInboundRequests();
 
-        $set->release(new RequestId('never-claimed'));
+        $set->release(new RequestId(id: 'never-claimed'));
 
         self::assertCount(0, $set);
     }

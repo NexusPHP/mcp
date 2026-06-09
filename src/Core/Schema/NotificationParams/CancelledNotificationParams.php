@@ -43,7 +43,7 @@ final readonly class CancelledNotificationParams extends NotificationParams
 
         if (\array_key_exists('requestId', $data)) {
             Assert::that($data['requestId'])->isArrayKey('"params.requestId" must be an int or string, {type} given.');
-            $requestId = new RequestId($data['requestId']);
+            $requestId = new RequestId(id: $data['requestId']);
         }
 
         $reason = $data['reason'] ?? null;
@@ -59,7 +59,7 @@ final readonly class CancelledNotificationParams extends NotificationParams
             $meta = MetaObject::fromArray($data['_meta']);
         }
 
-        return new self($requestId, $reason, $meta);
+        return new self(requestId: $requestId, reason: $reason, meta: $meta);
     }
 
     #[\Override]

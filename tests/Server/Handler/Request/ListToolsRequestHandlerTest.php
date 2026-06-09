@@ -42,13 +42,13 @@ final class ListToolsRequestHandlerTest extends TestCase
     public function testReturnsAllRegisteredToolsWhenCursorIsNull(): void
     {
         $store = new ToolStore([
-            'alpha' => new ToolEntry(new Tool('alpha', ['type' => 'object']), self::executor()),
-            'beta' => new ToolEntry(new Tool('beta', ['type' => 'object']), self::executor()),
+            'alpha' => new ToolEntry(new Tool(name: 'alpha', inputSchema: ['type' => 'object']), self::executor()),
+            'beta' => new ToolEntry(new Tool(name: 'beta', inputSchema: ['type' => 'object']), self::executor()),
         ]);
         $handler = new ListToolsRequestHandler($store);
 
         $result = $handler->handle(
-            new ListToolsRequest(new RequestId(1), new PaginatedRequestParams(RequestMetaObjectFactory::create())),
+            new ListToolsRequest(id: new RequestId(id: 1), params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create())),
             self::makeContext(),
         );
 
@@ -61,16 +61,16 @@ final class ListToolsRequestHandlerTest extends TestCase
     {
         $store = new ToolStore(
             [
-                'a' => new ToolEntry(new Tool('a', ['type' => 'object']), self::executor()),
-                'b' => new ToolEntry(new Tool('b', ['type' => 'object']), self::executor()),
-                'c' => new ToolEntry(new Tool('c', ['type' => 'object']), self::executor()),
+                'a' => new ToolEntry(new Tool(name: 'a', inputSchema: ['type' => 'object']), self::executor()),
+                'b' => new ToolEntry(new Tool(name: 'b', inputSchema: ['type' => 'object']), self::executor()),
+                'c' => new ToolEntry(new Tool(name: 'c', inputSchema: ['type' => 'object']), self::executor()),
             ],
             pageSize: 2,
         );
         $handler = new ListToolsRequestHandler($store);
 
         $result = $handler->handle(
-            new ListToolsRequest(new RequestId(2), new PaginatedRequestParams(RequestMetaObjectFactory::create(), new Cursor('b'))),
+            new ListToolsRequest(id: new RequestId(id: 2), params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create(), cursor: new Cursor(cursor: 'b'))),
             self::makeContext(),
         );
 
@@ -81,14 +81,14 @@ final class ListToolsRequestHandlerTest extends TestCase
     private static function executor(): ClosureToolExecutor
     {
         return new ClosureToolExecutor(
-            static fn(?array $arguments, ServerContext $context): CallToolResult => new CallToolResult([]),
+            static fn(?array $arguments, ServerContext $context): CallToolResult => new CallToolResult(content: []),
         );
     }
 
     private static function makeContext(): ServerContext
     {
         return new ServerContext(
-            new RequestId(1),
+            new RequestId(id: 1),
             new NullCancellation(),
             RequestMetaObjectFactory::create(),
             null,

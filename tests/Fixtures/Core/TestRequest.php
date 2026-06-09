@@ -53,6 +53,6 @@ final readonly class TestRequest extends JsonRpcRequest
             ));
         }
 
-        return new self(new RequestId($id));
+        return new self(new RequestId(id: $id));
     }
 }

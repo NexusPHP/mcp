@@ -44,7 +44,7 @@ final class AsToolTest extends TestCase
     public function testStoresAllValues(): void
     {
         $annotations = new ToolAnnotations(readOnlyHint: true);
-        $icon = new Icon('https://example.test/icon.svg');
+        $icon = new Icon(src: 'https://example.test/icon.svg');
 
         $tool = new AsTool(
             name: 'calculate',

@@ -97,7 +97,7 @@ final readonly class TitledSingleSelectEnumSchema implements Arrayable, SingleSe
         $default = $data['default'] ?? null;
         Assert::that($default)->nullOr()->isString('titled single select enum schema "default" must be a string or null, {type} given.');
 
-        return new self($oneOf, $title, $description, $default);
+        return new self(oneOf: $oneOf, title: $title, description: $description, default: $default);
     }
 
     #[\Override]

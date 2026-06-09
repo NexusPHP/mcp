@@ -30,14 +30,14 @@ final class ResourceTemplateReferenceTest extends TestCase
 {
     public function testConstructionStoresUri(): void
     {
-        $reference = new ResourceTemplateReference('file:///tmp/{name}');
+        $reference = new ResourceTemplateReference(uri: 'file:///tmp/{name}');
 
         self::assertSame('file:///tmp/{name}', $reference->uri);
     }
 
     public function testToArrayEmitsTypeAndUri(): void
     {
-        $reference = new ResourceTemplateReference('file:///tmp/{name}');
+        $reference = new ResourceTemplateReference(uri: 'file:///tmp/{name}');
 
         self::assertSame(
             ['type' => 'ref/resource', 'uri' => 'file:///tmp/{name}'],
@@ -47,7 +47,7 @@ final class ResourceTemplateReferenceTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $reference = new ResourceTemplateReference('file:///tmp/{name}');
+        $reference = new ResourceTemplateReference(uri: 'file:///tmp/{name}');
 
         self::assertSame($reference->toArray(), $reference->jsonSerialize());
     }
@@ -64,7 +64,7 @@ final class ResourceTemplateReferenceTest extends TestCase
 
     public function testFromArrayFullRoundTrip(): void
     {
-        $original = new ResourceTemplateReference('https://api.example.com/{user}/repos/{repo}');
+        $original = new ResourceTemplateReference(uri: 'https://api.example.com/{user}/repos/{repo}');
 
         $rebuilt = ResourceTemplateReference::fromArray($original->toArray());
 
@@ -76,7 +76,7 @@ final class ResourceTemplateReferenceTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageMatches('/\Aresource template reference "uri" must be a valid RFC 6570/');
 
-        new ResourceTemplateReference('not-a-uri');
+        new ResourceTemplateReference(uri: 'not-a-uri');
     }
 
     public function testConstructorRejectsEmptyUri(): void
@@ -84,7 +84,7 @@ final class ResourceTemplateReferenceTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('resource template reference "uri" must be a non-empty string.');
 
-        new ResourceTemplateReference('');
+        new ResourceTemplateReference(uri: '');
     }
 
     /**

@@ -53,6 +53,6 @@ final readonly class CompleteRequest extends JsonRpcRequest implements ClientReq
             ->isMap('"params" must be a string-keyed object.')
         ;
 
-        return new self(new RequestId($id), CompleteRequestParams::fromArray($data['params']));
+        return new self(id: new RequestId(id: $id), params: CompleteRequestParams::fromArray($data['params']));
     }
 }

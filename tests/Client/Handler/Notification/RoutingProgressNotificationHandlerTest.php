@@ -37,7 +37,7 @@ final class RoutingProgressNotificationHandlerTest extends TestCase
         $registry = new ProgressListenerRegistry();
         $received = [];
         $registry->register(
-            new ProgressToken('match'),
+            new ProgressToken(token: 'match'),
             static function (float $progress, ?float $total, ?string $message) use (&$received): void {
                 $received = [$progress, $total, $message];
             },
@@ -85,7 +85,7 @@ final class RoutingProgressNotificationHandlerTest extends TestCase
         ?string $message = null,
     ): ProgressNotification {
         return new ProgressNotification(
-            new ProgressNotificationParams(new ProgressToken($token), $progress, $total, $message),
+            params: new ProgressNotificationParams(progressToken: new ProgressToken(token: $token), progress: $progress, total: $total, message: $message),
         );
     }
 }

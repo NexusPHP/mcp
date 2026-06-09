@@ -118,7 +118,13 @@ final readonly class ToolResultContent implements Arrayable, SamplingMessageCont
             $meta = MetaObject::fromArray($data['_meta']);
         }
 
-        return new self($toolUseId, $content, $isError, $structuredContent, $meta);
+        return new self(
+            toolUseId: $toolUseId,
+            content: $content,
+            isError: $isError,
+            structuredContent: $structuredContent,
+            meta: $meta,
+        );
     }
 
     #[\Override]

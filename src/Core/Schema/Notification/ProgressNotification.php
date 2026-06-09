@@ -48,6 +48,6 @@ final readonly class ProgressNotification extends JsonRpcNotification implements
             ->isMap('"params" must be a string-keyed object.')
         ;
 
-        return new self(ProgressNotificationParams::fromArray($data['params']));
+        return new self(params: ProgressNotificationParams::fromArray($data['params']));
     }
 }

@@ -60,7 +60,7 @@ final readonly class BlobResourceContents extends ResourceContents
             $meta = MetaObject::fromArray($data['_meta']);
         }
 
-        return new self($uri, $blob, $mimeType, $meta);
+        return new self(uri: $uri, blob: $blob, mimeType: $mimeType, meta: $meta);
     }
 
     #[\Override]

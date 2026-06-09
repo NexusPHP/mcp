@@ -47,6 +47,6 @@ final readonly class PromptListChangedNotification extends JsonRpcNotification i
             $params = EmptyNotificationParams::fromArray($data['params']);
         }
 
-        return new self($params);
+        return new self(params: $params);
     }
 }

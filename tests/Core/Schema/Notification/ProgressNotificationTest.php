@@ -43,7 +43,7 @@ final class ProgressNotificationTest extends TestCase
     public function testToArrayBuildsEnvelope(): void
     {
         $notification = new ProgressNotification(
-            new ProgressNotificationParams(new ProgressToken('p-1'), 0.5),
+            params: new ProgressNotificationParams(progressToken: new ProgressToken(token: 'p-1'), progress: 0.5),
         );
 
         self::assertSame(
@@ -59,12 +59,12 @@ final class ProgressNotificationTest extends TestCase
     public function testToArrayWithFullParams(): void
     {
         $notification = new ProgressNotification(
-            new ProgressNotificationParams(
-                new ProgressToken(7),
-                3.0,
-                10.0,
-                'fetching',
-                new MetaObject(['vendor' => 'x']),
+            params: new ProgressNotificationParams(
+                progressToken: new ProgressToken(token: 7),
+                progress: 3.0,
+                total: 10.0,
+                message: 'fetching',
+                meta: new MetaObject(extras: ['vendor' => 'x']),
             ),
         );
 
@@ -87,7 +87,7 @@ final class ProgressNotificationTest extends TestCase
     public function testJsonSerializeMatchesToArray(): void
     {
         $notification = new ProgressNotification(
-            new ProgressNotificationParams(new ProgressToken('p-1'), 0.5),
+            params: new ProgressNotificationParams(progressToken: new ProgressToken(token: 'p-1'), progress: 0.5),
         );
 
         self::assertSame($notification->toArray(), $notification->jsonSerialize());
@@ -96,12 +96,12 @@ final class ProgressNotificationTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new ProgressNotification(
-            new ProgressNotificationParams(
-                new ProgressToken('p-9'),
-                7.0,
-                14.0,
-                'halfway',
-                new MetaObject(['vendor' => 'x']),
+            params: new ProgressNotificationParams(
+                progressToken: new ProgressToken(token: 'p-9'),
+                progress: 7.0,
+                total: 14.0,
+                message: 'halfway',
+                meta: new MetaObject(extras: ['vendor' => 'x']),
             ),
         );
 

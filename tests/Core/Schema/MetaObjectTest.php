@@ -35,7 +35,7 @@ final class MetaObjectTest extends TestCase
 
     public function testCapturesExtras(): void
     {
-        $meta = new MetaObject(['vendor' => 'x', 'trace-id' => 123]);
+        $meta = new MetaObject(extras: ['vendor' => 'x', 'trace-id' => 123]);
 
         self::assertSame(['vendor' => 'x', 'trace-id' => 123], $meta->extras);
     }
@@ -49,21 +49,21 @@ final class MetaObjectTest extends TestCase
 
     public function testToArrayEmitsExtrasVerbatim(): void
     {
-        $meta = new MetaObject(['a' => 1]);
+        $meta = new MetaObject(extras: ['a' => 1]);
 
         self::assertSame(['a' => 1], $meta->toArray());
     }
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $meta = new MetaObject(['a' => 1]);
+        $meta = new MetaObject(extras: ['a' => 1]);
 
         self::assertSame($meta->toArray(), $meta->jsonSerialize());
     }
 
     public function testRoundTripPreservesExtras(): void
     {
-        $original = new MetaObject(['key' => 'value', 'num' => 42]);
+        $original = new MetaObject(extras: ['key' => 'value', 'num' => 42]);
 
         self::assertSame($original->toArray(), MetaObject::fromArray($original->toArray())->toArray());
     }

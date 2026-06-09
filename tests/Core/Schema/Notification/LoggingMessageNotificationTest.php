@@ -43,7 +43,7 @@ final class LoggingMessageNotificationTest extends TestCase
     public function testToArrayBuildsEnvelope(): void
     {
         $notification = new LoggingMessageNotification(
-            new LoggingMessageNotificationParams(LoggingLevel::Warning, 'msg'),
+            params: new LoggingMessageNotificationParams(level: LoggingLevel::Warning, data: 'msg'),
         );
 
         self::assertSame(
@@ -59,11 +59,11 @@ final class LoggingMessageNotificationTest extends TestCase
     public function testToArrayWithFullParams(): void
     {
         $notification = new LoggingMessageNotification(
-            new LoggingMessageNotificationParams(
-                LoggingLevel::Error,
-                ['kind' => 'oom'],
-                'app',
-                new MetaObject(['vendor' => 'x']),
+            params: new LoggingMessageNotificationParams(
+                level: LoggingLevel::Error,
+                data: ['kind' => 'oom'],
+                logger: 'app',
+                meta: new MetaObject(extras: ['vendor' => 'x']),
             ),
         );
 
@@ -85,7 +85,7 @@ final class LoggingMessageNotificationTest extends TestCase
     public function testJsonSerializeMatchesToArray(): void
     {
         $notification = new LoggingMessageNotification(
-            new LoggingMessageNotificationParams(LoggingLevel::Info, 'x', 'app'),
+            params: new LoggingMessageNotificationParams(level: LoggingLevel::Info, data: 'x', logger: 'app'),
         );
 
         self::assertSame($notification->toArray(), $notification->jsonSerialize());
@@ -94,11 +94,11 @@ final class LoggingMessageNotificationTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new LoggingMessageNotification(
-            new LoggingMessageNotificationParams(
-                LoggingLevel::Notice,
-                ['k' => 'v'],
-                'app.db',
-                new MetaObject(['vendor' => 'x']),
+            params: new LoggingMessageNotificationParams(
+                level: LoggingLevel::Notice,
+                data: ['k' => 'v'],
+                logger: 'app.db',
+                meta: new MetaObject(extras: ['vendor' => 'x']),
             ),
         );
 

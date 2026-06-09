@@ -137,7 +137,14 @@ final readonly class TitledMultiSelectEnumSchema implements Arrayable, MultiSele
             $default = $data['default'];
         }
 
-        return new self($items, $title, $description, $minItems, $maxItems, $default);
+        return new self(
+            items: $items,
+            title: $title,
+            description: $description,
+            minItems: $minItems,
+            maxItems: $maxItems,
+            default: $default,
+        );
     }
 
     #[\Override]

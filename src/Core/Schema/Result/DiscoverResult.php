@@ -103,7 +103,15 @@ final readonly class DiscoverResult extends CacheableResult implements ServerRes
             $meta = MetaObject::fromArray($data['_meta']);
         }
 
-        return new self($supportedVersions, $capabilities, $serverInfo, $ttlMs, $cacheScope, $instructions, $meta);
+        return new self(
+            supportedVersions: $supportedVersions,
+            capabilities: $capabilities,
+            serverInfo: $serverInfo,
+            ttlMs: $ttlMs,
+            cacheScope: $cacheScope,
+            instructions: $instructions,
+            meta: $meta,
+        );
     }
 
     #[\Override]

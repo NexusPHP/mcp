@@ -30,7 +30,7 @@ final class ProtocolVersionTest extends TestCase
 {
     public function testLatestIsAcceptedByTheConstructor(): void
     {
-        self::assertSame(ProtocolVersion::LATEST_VERSION, new ProtocolVersion(ProtocolVersion::LATEST_VERSION)->version);
+        self::assertSame(ProtocolVersion::LATEST_VERSION, new ProtocolVersion(version: ProtocolVersion::LATEST_VERSION)->version);
     }
 
     public function testPreviousVersionsDoNotIncludeLatest(): void
@@ -44,7 +44,7 @@ final class ProtocolVersionTest extends TestCase
     #[DataProvider('providePreviousVersionsAreAcceptedByConstructorCases')]
     public function testPreviousVersionsAreAcceptedByConstructor(string $version): void
     {
-        self::assertSame($version, new ProtocolVersion($version)->version);
+        self::assertSame($version, new ProtocolVersion(version: $version)->version);
     }
 
     /**
@@ -62,7 +62,7 @@ final class ProtocolVersionTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"protocolVersion" must be a non-empty string.');
 
-        new ProtocolVersion('');
+        new ProtocolVersion(version: '');
     }
 
     #[DataProvider('provideMalformedVersionIsRejectedCases')]
@@ -71,7 +71,7 @@ final class ProtocolVersionTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"protocolVersion" must be in the format "YYYY-MM-DD".');
 
-        new ProtocolVersion($version);
+        new ProtocolVersion(version: $version);
     }
 
     /**

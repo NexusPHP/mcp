@@ -34,7 +34,7 @@ final class ElicitResultTest extends TestCase
 {
     public function testConstructionMinimal(): void
     {
-        $result = new ElicitResult(ElicitAction::Cancel);
+        $result = new ElicitResult(action: ElicitAction::Cancel);
 
         self::assertSame(ElicitAction::Cancel, $result->action);
         self::assertNull($result->content);
@@ -43,7 +43,7 @@ final class ElicitResultTest extends TestCase
 
     public function testToArrayMinimal(): void
     {
-        $result = new ElicitResult(ElicitAction::Decline);
+        $result = new ElicitResult(action: ElicitAction::Decline);
 
         self::assertSame(['resultType' => 'complete', 'action' => 'decline'], $result->toArray());
     }
@@ -51,9 +51,9 @@ final class ElicitResultTest extends TestCase
     public function testToArrayWithAllFields(): void
     {
         $result = new ElicitResult(
-            ElicitAction::Accept,
-            ['email' => 'a@b.com', 'age' => 30, 'opt' => true, 'topics' => ['php', 'mcp']],
-            new MetaObject(['vendor' => 'x']),
+            action: ElicitAction::Accept,
+            content: ['email' => 'a@b.com', 'age' => 30, 'opt' => true, 'topics' => ['php', 'mcp']],
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -74,7 +74,7 @@ final class ElicitResultTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $result = new ElicitResult(ElicitAction::Accept, ['x' => 'y']);
+        $result = new ElicitResult(action: ElicitAction::Accept, content: ['x' => 'y']);
 
         self::assertSame($result->toArray(), $result->jsonSerialize());
     }
@@ -95,9 +95,9 @@ final class ElicitResultTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new ElicitResult(
-            ElicitAction::Accept,
-            ['email' => 'a@b.com', 'count' => 5, 'optIn' => true, 'tags' => ['a']],
-            new MetaObject(['vendor' => 'x']),
+            action: ElicitAction::Accept,
+            content: ['email' => 'a@b.com', 'count' => 5, 'optIn' => true, 'tags' => ['a']],
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         $rebuilt = ElicitResult::fromArray($original->toArray());
@@ -111,7 +111,7 @@ final class ElicitResultTest extends TestCase
         $this->expectExceptionMessageIs('"result.content" must be a string-keyed map.');
 
         // @phpstan-ignore argument.type
-        new ElicitResult(ElicitAction::Accept, ['a']);
+        new ElicitResult(action: ElicitAction::Accept, content: ['a']);
     }
 
     public function testConstructorRejectsEmptyContentKey(): void
@@ -119,7 +119,7 @@ final class ElicitResultTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('each "result.content" key must be a non-empty string.');
 
-        new ElicitResult(ElicitAction::Accept, ['' => 'v']);
+        new ElicitResult(action: ElicitAction::Accept, content: ['' => 'v']);
     }
 
     public function testConstructorRejectsNonScalarContentValue(): void
@@ -128,7 +128,7 @@ final class ElicitResultTest extends TestCase
         $this->expectExceptionMessageIs('"result" "x" must be a string, int, bool, or list of strings, non-list array given.');
 
         // @phpstan-ignore argument.type
-        new ElicitResult(ElicitAction::Accept, ['x' => ['k' => 'v']]);
+        new ElicitResult(action: ElicitAction::Accept, content: ['x' => ['k' => 'v']]);
     }
 
     public function testConstructorRejectsListWithNonStringEntries(): void
@@ -137,7 +137,7 @@ final class ElicitResultTest extends TestCase
         $this->expectExceptionMessageIs('each "result" "x" list entry must be a string, int given.');
 
         // @phpstan-ignore argument.type
-        new ElicitResult(ElicitAction::Accept, ['x' => [1, 2]]);
+        new ElicitResult(action: ElicitAction::Accept, content: ['x' => [1, 2]]);
     }
 
     /**

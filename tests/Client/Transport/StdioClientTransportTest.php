@@ -77,7 +77,7 @@ final class StdioClientTransportTest extends TestCase
 
         $this->expectException(TransportNotStartedException::class);
 
-        $transport->send(new DiscoverRequest(new RequestId(1), new EmptyRequestParams(RequestMetaObjectFactory::create())));
+        $transport->send(new DiscoverRequest(id: new RequestId(id: 1), params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create())));
     }
 
     public function testStartAfterStartThrows(): void
@@ -127,7 +127,7 @@ final class StdioClientTransportTest extends TestCase
         });
 
         $transport->start();
-        $transport->send(new DiscoverRequest(new RequestId('round-trip-1'), new EmptyRequestParams(RequestMetaObjectFactory::create())));
+        $transport->send(new DiscoverRequest(id: new RequestId(id: 'round-trip-1'), params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create())));
 
         $envelope = $messageReceived->getFuture()->await();
         $transport->close();
@@ -201,7 +201,7 @@ final class StdioClientTransportTest extends TestCase
 
         $this->expectException(TransportAlreadyClosedException::class);
 
-        $transport->send(new DiscoverRequest(new RequestId(1), new EmptyRequestParams(RequestMetaObjectFactory::create())));
+        $transport->send(new DiscoverRequest(id: new RequestId(id: 1), params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create())));
     }
 
     public function testCloseLogsAtInfoLevel(): void

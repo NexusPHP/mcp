@@ -71,7 +71,7 @@ use Nexus\Mcp\Server\ServerContext;
     executor: static function (?array $args, ServerContext $context): CallToolResult {
         $query = is_string($args['query'] ?? null) ? $args['query'] : '';
 
-        return new CallToolResult([new TextContent(text: "Results for {$query}")]);
+        return new CallToolResult(content: [new TextContent(text: "Results for {$query}")]);
     },
 )
 ```
@@ -142,7 +142,7 @@ use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
 
 ->addPrompt(
     prompt: new Prompt(name: 'summarise', description: 'Summarises the user input.'),
-    renderer: static fn(?array $args, ServerContext $context): GetPromptResult => new GetPromptResult([
+    renderer: static fn(?array $args, ServerContext $context): GetPromptResult => new GetPromptResult(messages: [
         new PromptMessage(
             role: Role::User,
             content: new TextContent(text: 'Summarise the following ...'),

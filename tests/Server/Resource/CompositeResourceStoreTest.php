@@ -46,24 +46,24 @@ final class CompositeResourceStoreTest extends TestCase
 {
     public function testReadPrefersExactStaticUriMatch(): void
     {
-        $expected = new ReadResourceResult([new TextResourceContents('file:///etc', 'static')], 0, CacheScope::Private);
+        $expected = new ReadResourceResult(contents: [new TextResourceContents(uri: 'file:///etc', text: 'static')], ttlMs: 0, cacheScope: CacheScope::Private);
         $templateCalled = false;
 
         $composite = new CompositeResourceStore(
             new ResourceStore([
                 'file:///etc' => new ResourceEntry(
-                    new Resource('etc', 'file:///etc'),
+                    new Resource(name: 'etc', uri: 'file:///etc'),
                     new ClosureResourceReader(static fn(): ReadResourceResult => $expected),
                 ),
             ]),
             new ResourceTemplateStore([
                 'file:///{path}' => new ResourceTemplateEntry(
-                    new ResourceTemplate('files', 'file:///{path}'),
+                    new ResourceTemplate(name: 'files', uriTemplate: 'file:///{path}'),
                     new ClosureTemplatedResourceReader(
                         static function () use (&$templateCalled): ReadResourceResult {
                             $templateCalled = true;
 
-                            return new ReadResourceResult([new TextResourceContents('file:///', 'template')], 0, CacheScope::Private);
+                            return new ReadResourceResult(contents: [new TextResourceContents(uri: 'file:///', text: 'template')], ttlMs: 0, cacheScope: CacheScope::Private);
                         },
                     ),
                 ),
@@ -76,13 +76,13 @@ final class CompositeResourceStoreTest extends TestCase
 
     public function testReadFallsThroughToTemplateOnStaticMiss(): void
     {
-        $expected = new ReadResourceResult([new TextResourceContents('file:///etc', 'matched')], 0, CacheScope::Private);
+        $expected = new ReadResourceResult(contents: [new TextResourceContents(uri: 'file:///etc', text: 'matched')], ttlMs: 0, cacheScope: CacheScope::Private);
 
         $composite = new CompositeResourceStore(
             new ResourceStore(),
             new ResourceTemplateStore([
                 'file:///{path}' => new ResourceTemplateEntry(
-                    new ResourceTemplate('files', 'file:///{path}'),
+                    new ResourceTemplate(name: 'files', uriTemplate: 'file:///{path}'),
                     new ClosureTemplatedResourceReader(static fn(): ReadResourceResult => $expected),
                 ),
             ]),
@@ -97,7 +97,7 @@ final class CompositeResourceStoreTest extends TestCase
             new ResourceStore(),
             new ResourceTemplateStore([
                 'weather://{city}' => new ResourceTemplateEntry(
-                    new ResourceTemplate('weather', 'weather://{city}'),
+                    new ResourceTemplate(name: 'weather', uriTemplate: 'weather://{city}'),
                     new ClosureTemplatedResourceReader(
                         static fn(): never => throw new \LogicException('unreachable'),
                     ),
@@ -112,7 +112,7 @@ final class CompositeResourceStoreTest extends TestCase
 
     public function testListDelegatesToPrimaryUnchanged(): void
     {
-        $static = new Resource('etc', 'file:///etc');
+        $static = new Resource(name: 'etc', uri: 'file:///etc');
         $composite = new CompositeResourceStore(
             new ResourceStore([
                 'file:///etc' => new ResourceEntry(
@@ -137,13 +137,13 @@ final class CompositeResourceStoreTest extends TestCase
             new ResourceStore(
                 [
                     'file:///a' => new ResourceEntry(
-                        new Resource('a', 'file:///a'),
+                        new Resource(name: 'a', uri: 'file:///a'),
                         new ClosureResourceReader(
                             static fn(): never => throw new \LogicException('unreachable'),
                         ),
                     ),
                     'file:///b' => new ResourceEntry(
-                        new Resource('b', 'file:///b'),
+                        new Resource(name: 'b', uri: 'file:///b'),
                         new ClosureResourceReader(
                             static fn(): never => throw new \LogicException('unreachable'),
                         ),
@@ -154,7 +154,7 @@ final class CompositeResourceStoreTest extends TestCase
             new ResourceTemplateStore(),
         );
 
-        $second = $composite->list(new Cursor('file:///a'));
+        $second = $composite->list(new Cursor(cursor: 'file:///a'));
 
         self::assertCount(1, $second->resources);
         self::assertSame('b', $second->resources[0]->name);
@@ -163,7 +163,7 @@ final class CompositeResourceStoreTest extends TestCase
     private static function makeContext(): ServerContext
     {
         return new ServerContext(
-            new RequestId(1),
+            new RequestId(id: 1),
             new NullCancellation(),
             RequestMetaObjectFactory::create(),
             null,

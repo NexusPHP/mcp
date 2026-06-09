@@ -167,7 +167,16 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
             $meta = MetaObject::fromArray($data['_meta']);
         }
 
-        return new self($name, $inputSchema, $title, $description, $outputSchema, $annotations, $icons, $meta);
+        return new self(
+            name: $name,
+            inputSchema: $inputSchema,
+            title: $title,
+            description: $description,
+            outputSchema: $outputSchema,
+            annotations: $annotations,
+            icons: $icons,
+            meta: $meta,
+        );
     }
 
     #[\Override]

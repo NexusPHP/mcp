@@ -36,7 +36,7 @@ final class JsonRpcResultResponseTest extends TestCase
 {
     public function testToArrayEmitsEnvelopeWithEmptyResult(): void
     {
-        $response = new JsonRpcResultResponse(new RequestId(42), new EmptyResult());
+        $response = new JsonRpcResultResponse(id: new RequestId(id: 42), result: new EmptyResult());
 
         self::assertSame(
             ['jsonrpc' => '2.0', 'id' => 42, 'result' => ['resultType' => 'complete']],
@@ -47,8 +47,8 @@ final class JsonRpcResultResponseTest extends TestCase
     public function testToArrayEmitsEnvelopeWithResultMeta(): void
     {
         $response = new JsonRpcResultResponse(
-            new RequestId('req-1'),
-            new EmptyResult(new MetaObject(['vendor' => 'x'])),
+            id: new RequestId(id: 'req-1'),
+            result: new EmptyResult(meta: new MetaObject(extras: ['vendor' => 'x'])),
         );
 
         self::assertSame(
@@ -63,7 +63,7 @@ final class JsonRpcResultResponseTest extends TestCase
 
     public function testJsonSerializeMatchesToArrayForLeafResult(): void
     {
-        $response = new JsonRpcResultResponse(new RequestId(1), new EmptyResult(new MetaObject(['vendor' => 'x'])));
+        $response = new JsonRpcResultResponse(id: new RequestId(id: 1), result: new EmptyResult(meta: new MetaObject(extras: ['vendor' => 'x'])));
 
         self::assertSame($response->toArray(), $response->jsonSerialize());
     }
@@ -71,13 +71,13 @@ final class JsonRpcResultResponseTest extends TestCase
     public function testJsonSerializePreservesEmptyObjectMarkersFromInnerResult(): void
     {
         $response = new JsonRpcResultResponse(
-            new RequestId(99),
-            new DiscoverResult(
-                [ProtocolVersion::LATEST_VERSION],
-                new ServerCapabilities(logging: []),
-                new Implementation('srv', '1.0.0'),
-                0,
-                CacheScope::Private,
+            id: new RequestId(id: 99),
+            result: new DiscoverResult(
+                supportedVersions: [ProtocolVersion::LATEST_VERSION],
+                capabilities: new ServerCapabilities(logging: []),
+                serverInfo: new Implementation(name: 'srv', version: '1.0.0'),
+                ttlMs: 0,
+                cacheScope: CacheScope::Private,
             ),
         );
 

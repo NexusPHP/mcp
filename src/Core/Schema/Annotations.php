@@ -85,7 +85,7 @@ final readonly class Annotations implements Arrayable
         $lastModified = $data['lastModified'] ?? null;
         Assert::that($lastModified)->nullOr()->isString('"annotations.lastModified" must be a string or null, {type} given.');
 
-        return new self($audience, $priority, $lastModified);
+        return new self(audience: $audience, priority: $priority, lastModified: $lastModified);
     }
 
     #[\Override]

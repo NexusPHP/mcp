@@ -30,7 +30,7 @@ final class ToolUseContentTest extends TestCase
 {
     public function testConstruction(): void
     {
-        $content = new ToolUseContent('tu-1', 'get_weather', ['city' => 'Paris']);
+        $content = new ToolUseContent(id: 'tu-1', name: 'get_weather', input: ['city' => 'Paris']);
 
         self::assertSame('tu-1', $content->id);
         self::assertSame('get_weather', $content->name);
@@ -43,7 +43,7 @@ final class ToolUseContentTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"content.id" must be a non-empty string.');
 
-        new ToolUseContent('', 'name', []);
+        new ToolUseContent(id: '', name: 'name', input: []);
     }
 
     public function testConstructorRejectsEmptyName(): void
@@ -51,12 +51,12 @@ final class ToolUseContentTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"content.name" must be a non-empty string.');
 
-        new ToolUseContent('id', '', []);
+        new ToolUseContent(id: 'id', name: '', input: []);
     }
 
     public function testToArray(): void
     {
-        $content = new ToolUseContent('tu-1', 'get_weather', ['city' => 'Paris']);
+        $content = new ToolUseContent(id: 'tu-1', name: 'get_weather', input: ['city' => 'Paris']);
 
         self::assertSame(
             ['id' => 'tu-1', 'input' => ['city' => 'Paris'], 'name' => 'get_weather', 'type' => 'tool_use'],
@@ -66,7 +66,7 @@ final class ToolUseContentTest extends TestCase
 
     public function testToArrayWithMeta(): void
     {
-        $content = new ToolUseContent('tu-1', 'get_weather', ['city' => 'Paris'], new MetaObject(extras: ['trace_id' => 'abc']));
+        $content = new ToolUseContent(id: 'tu-1', name: 'get_weather', input: ['city' => 'Paris'], meta: new MetaObject(extras: ['trace_id' => 'abc']));
 
         self::assertSame(
             ['id' => 'tu-1', 'input' => ['city' => 'Paris'], 'name' => 'get_weather', 'type' => 'tool_use', '_meta' => ['trace_id' => 'abc']],
@@ -76,7 +76,7 @@ final class ToolUseContentTest extends TestCase
 
     public function testToArrayOmitsEmptyMeta(): void
     {
-        $content = new ToolUseContent('tu-1', 'get_weather', [], new MetaObject());
+        $content = new ToolUseContent(id: 'tu-1', name: 'get_weather', input: [], meta: new MetaObject());
 
         self::assertSame(
             ['id' => 'tu-1', 'input' => [], 'name' => 'get_weather', 'type' => 'tool_use'],
@@ -86,7 +86,7 @@ final class ToolUseContentTest extends TestCase
 
     public function testJsonSerializeWrapsEmptyInput(): void
     {
-        $content = new ToolUseContent('tu-1', 'get_weather', []);
+        $content = new ToolUseContent(id: 'tu-1', name: 'get_weather', input: []);
 
         self::assertSame(
             '{"id":"tu-1","input":{},"name":"get_weather","type":"tool_use"}',
@@ -96,7 +96,7 @@ final class ToolUseContentTest extends TestCase
 
     public function testJsonSerializeKeepsNonEmptyInput(): void
     {
-        $content = new ToolUseContent('tu-1', 'get_weather', ['city' => 'Paris']);
+        $content = new ToolUseContent(id: 'tu-1', name: 'get_weather', input: ['city' => 'Paris']);
 
         self::assertSame(
             '{"id":"tu-1","input":{"city":"Paris"},"name":"get_weather","type":"tool_use"}',
@@ -106,7 +106,7 @@ final class ToolUseContentTest extends TestCase
 
     public function testFromArrayFullRoundTrip(): void
     {
-        $original = new ToolUseContent('tu-1', 'get_weather', ['city' => 'Paris']);
+        $original = new ToolUseContent(id: 'tu-1', name: 'get_weather', input: ['city' => 'Paris']);
 
         $rebuilt = ToolUseContent::fromArray($original->toArray());
 

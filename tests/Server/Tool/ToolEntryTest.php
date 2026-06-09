@@ -31,9 +31,9 @@ final class ToolEntryTest extends TestCase
 {
     public function testExposesToolAndExecutor(): void
     {
-        $tool = new Tool('echo', ['type' => 'object']);
+        $tool = new Tool(name: 'echo', inputSchema: ['type' => 'object']);
         $executor = new ClosureToolExecutor(
-            static fn(): CallToolResult => new CallToolResult([]),
+            static fn(): CallToolResult => new CallToolResult(content: []),
         );
 
         $entry = new ToolEntry($tool, $executor);

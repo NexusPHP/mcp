@@ -71,7 +71,7 @@ final readonly class ElicitRequestFormParams implements Arrayable, ElicitRequest
         ;
         $requestedSchema = ElicitRequestedSchema::fromArray($data['requestedSchema']);
 
-        return new self($message, $requestedSchema, $mode);
+        return new self(message: $message, requestedSchema: $requestedSchema, mode: $mode);
     }
 
     #[\Override]

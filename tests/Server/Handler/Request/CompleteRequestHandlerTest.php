@@ -39,17 +39,17 @@ final class CompleteRequestHandlerTest extends TestCase
 {
     public function testDelegatesPromptRefToStoreWithDeconstructedParams(): void
     {
-        $store = new RecordingCompletionStore(new CompleteResult(['values' => ['suggestion']]));
+        $store = new RecordingCompletionStore(new CompleteResult(completion: ['values' => ['suggestion']]));
 
         $handler = new CompleteRequestHandler($store);
         $context = self::makeContext();
         $request = new CompleteRequest(
-            new RequestId(7),
-            new CompleteRequestParams(
-                new PromptReference('my-prompt'),
-                ['name' => 'arg', 'value' => 'partial'],
-                RequestMetaObjectFactory::create(),
-                ['arguments' => ['other' => 'context-value']],
+            id: new RequestId(id: 7),
+            params: new CompleteRequestParams(
+                ref: new PromptReference(name: 'my-prompt'),
+                argument: ['name' => 'arg', 'value' => 'partial'],
+                meta: RequestMetaObjectFactory::create(),
+                context: ['arguments' => ['other' => 'context-value']],
             ),
         );
 
@@ -73,16 +73,16 @@ final class CompleteRequestHandlerTest extends TestCase
 
     public function testDelegatesTemplateRefToStoreWithDeconstructedParams(): void
     {
-        $store = new RecordingCompletionStore(new CompleteResult(['values' => ['report.pdf']]));
+        $store = new RecordingCompletionStore(new CompleteResult(completion: ['values' => ['report.pdf']]));
 
         $handler = new CompleteRequestHandler($store);
         $request = new CompleteRequest(
-            new RequestId(8),
-            new CompleteRequestParams(
-                new ResourceTemplateReference('file:///{folder}/{filename}'),
-                ['name' => 'filename', 'value' => 'rep'],
-                RequestMetaObjectFactory::create(),
-                ['arguments' => ['folder' => 'docs']],
+            id: new RequestId(id: 8),
+            params: new CompleteRequestParams(
+                ref: new ResourceTemplateReference(uri: 'file:///{folder}/{filename}'),
+                argument: ['name' => 'filename', 'value' => 'rep'],
+                meta: RequestMetaObjectFactory::create(),
+                context: ['arguments' => ['folder' => 'docs']],
             ),
         );
 
@@ -104,15 +104,15 @@ final class CompleteRequestHandlerTest extends TestCase
 
     public function testPassesNullContextArgumentsWhenParamsHaveNoContext(): void
     {
-        $store = new RecordingCompletionStore(new CompleteResult(['values' => []]));
+        $store = new RecordingCompletionStore(new CompleteResult(completion: ['values' => []]));
 
         $handler = new CompleteRequestHandler($store);
         $request = new CompleteRequest(
-            new RequestId(9),
-            new CompleteRequestParams(
-                new PromptReference('p'),
-                ['name' => 'a', 'value' => ''],
-                RequestMetaObjectFactory::create(),
+            id: new RequestId(id: 9),
+            params: new CompleteRequestParams(
+                ref: new PromptReference(name: 'p'),
+                argument: ['name' => 'a', 'value' => ''],
+                meta: RequestMetaObjectFactory::create(),
             ),
         );
 
@@ -123,16 +123,16 @@ final class CompleteRequestHandlerTest extends TestCase
 
     public function testPassesNullContextArgumentsWhenContextOmitsArguments(): void
     {
-        $store = new RecordingCompletionStore(new CompleteResult(['values' => []]));
+        $store = new RecordingCompletionStore(new CompleteResult(completion: ['values' => []]));
 
         $handler = new CompleteRequestHandler($store);
         $request = new CompleteRequest(
-            new RequestId(10),
-            new CompleteRequestParams(
-                new PromptReference('p'),
-                ['name' => 'a', 'value' => ''],
-                RequestMetaObjectFactory::create(),
-                [],
+            id: new RequestId(id: 10),
+            params: new CompleteRequestParams(
+                ref: new PromptReference(name: 'p'),
+                argument: ['name' => 'a', 'value' => ''],
+                meta: RequestMetaObjectFactory::create(),
+                context: [],
             ),
         );
 
@@ -162,7 +162,7 @@ final class CompleteRequestHandlerTest extends TestCase
     private static function makeContext(): ServerContext
     {
         return new ServerContext(
-            new RequestId(1),
+            new RequestId(id: 1),
             new NullCancellation(),
             RequestMetaObjectFactory::create(),
             null,

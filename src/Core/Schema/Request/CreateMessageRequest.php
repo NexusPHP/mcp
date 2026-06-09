@@ -55,6 +55,6 @@ final readonly class CreateMessageRequest extends JsonRpcRequest implements Serv
             ->isMap('"params" must be a string-keyed object.')
         ;
 
-        return new self(new RequestId($id), CreateMessageRequestParams::fromArray($data['params']));
+        return new self(id: new RequestId(id: $id), params: CreateMessageRequestParams::fromArray($data['params']));
     }
 }

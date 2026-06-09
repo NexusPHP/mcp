@@ -35,16 +35,16 @@ final class RequestMetaObjectTest extends TestCase
 {
     public function testConstructionCapturesAllFields(): void
     {
-        $protocolVersion = new ProtocolVersion(ProtocolVersion::LATEST_VERSION);
-        $clientInfo = new Implementation('client', '1.0.0');
+        $protocolVersion = new ProtocolVersion(version: ProtocolVersion::LATEST_VERSION);
+        $clientInfo = new Implementation(name: 'client', version: '1.0.0');
         $clientCapabilities = new ClientCapabilities(roots: ['listChanged' => true]);
         $meta = new RequestMetaObject(
-            $protocolVersion,
-            $clientInfo,
-            $clientCapabilities,
-            LoggingLevel::Debug,
-            new ProgressToken('tok-1'),
-            ['vendor' => 'x'],
+            protocolVersion: $protocolVersion,
+            clientInfo: $clientInfo,
+            clientCapabilities: $clientCapabilities,
+            logLevel: LoggingLevel::Debug,
+            progressToken: new ProgressToken(token: 'tok-1'),
+            extras: ['vendor' => 'x'],
         );
 
         self::assertSame($protocolVersion, $meta->protocolVersion);
@@ -59,9 +59,9 @@ final class RequestMetaObjectTest extends TestCase
     public function testConstructionDefaultsOptionalFields(): void
     {
         $meta = new RequestMetaObject(
-            new ProtocolVersion(ProtocolVersion::LATEST_VERSION),
-            new Implementation('client', '1.0.0'),
-            new ClientCapabilities(),
+            protocolVersion: new ProtocolVersion(version: ProtocolVersion::LATEST_VERSION),
+            clientInfo: new Implementation(name: 'client', version: '1.0.0'),
+            clientCapabilities: new ClientCapabilities(),
         );
 
         self::assertNull($meta->logLevel);
@@ -72,9 +72,9 @@ final class RequestMetaObjectTest extends TestCase
     public function testToArrayEmitsNamespacedKeys(): void
     {
         $meta = new RequestMetaObject(
-            new ProtocolVersion(ProtocolVersion::LATEST_VERSION),
-            new Implementation('client', '1.0.0'),
-            new ClientCapabilities(roots: ['listChanged' => true]),
+            protocolVersion: new ProtocolVersion(version: ProtocolVersion::LATEST_VERSION),
+            clientInfo: new Implementation(name: 'client', version: '1.0.0'),
+            clientCapabilities: new ClientCapabilities(roots: ['listChanged' => true]),
         );
 
         self::assertSame(
@@ -90,12 +90,12 @@ final class RequestMetaObjectTest extends TestCase
     public function testToArrayEmitsProgressTokenAndLogLevelAndExtras(): void
     {
         $meta = new RequestMetaObject(
-            new ProtocolVersion(ProtocolVersion::LATEST_VERSION),
-            new Implementation('client', '1.0.0'),
-            new ClientCapabilities(roots: ['listChanged' => true]),
-            LoggingLevel::Warning,
-            new ProgressToken(42),
-            ['vendor' => 'x'],
+            protocolVersion: new ProtocolVersion(version: ProtocolVersion::LATEST_VERSION),
+            clientInfo: new Implementation(name: 'client', version: '1.0.0'),
+            clientCapabilities: new ClientCapabilities(roots: ['listChanged' => true]),
+            logLevel: LoggingLevel::Warning,
+            progressToken: new ProgressToken(token: 42),
+            extras: ['vendor' => 'x'],
         );
 
         self::assertSame(
@@ -114,9 +114,9 @@ final class RequestMetaObjectTest extends TestCase
     public function testToArrayOmitsProgressTokenAndLogLevelWhenNull(): void
     {
         $meta = new RequestMetaObject(
-            new ProtocolVersion(ProtocolVersion::LATEST_VERSION),
-            new Implementation('client', '1.0.0'),
-            new ClientCapabilities(roots: ['listChanged' => true]),
+            protocolVersion: new ProtocolVersion(version: ProtocolVersion::LATEST_VERSION),
+            clientInfo: new Implementation(name: 'client', version: '1.0.0'),
+            clientCapabilities: new ClientCapabilities(roots: ['listChanged' => true]),
         );
 
         $data = $meta->toArray();
@@ -161,9 +161,9 @@ final class RequestMetaObjectTest extends TestCase
     public function testJsonSerializeSubstitutesEmptyClientCapabilities(): void
     {
         $meta = new RequestMetaObject(
-            new ProtocolVersion(ProtocolVersion::LATEST_VERSION),
-            new Implementation('client', '1.0.0'),
-            new ClientCapabilities(),
+            protocolVersion: new ProtocolVersion(version: ProtocolVersion::LATEST_VERSION),
+            clientInfo: new Implementation(name: 'client', version: '1.0.0'),
+            clientCapabilities: new ClientCapabilities(),
         );
 
         $serialized = $meta->jsonSerialize();
@@ -179,9 +179,9 @@ final class RequestMetaObjectTest extends TestCase
     public function testJsonSerializeMatchesToArrayForNonEmptyClientCapabilities(): void
     {
         $meta = new RequestMetaObject(
-            new ProtocolVersion(ProtocolVersion::LATEST_VERSION),
-            new Implementation('client', '1.0.0'),
-            new ClientCapabilities(roots: ['listChanged' => true]),
+            protocolVersion: new ProtocolVersion(version: ProtocolVersion::LATEST_VERSION),
+            clientInfo: new Implementation(name: 'client', version: '1.0.0'),
+            clientCapabilities: new ClientCapabilities(roots: ['listChanged' => true]),
         );
 
         self::assertSame($meta->toArray(), $meta->jsonSerialize());
@@ -190,12 +190,12 @@ final class RequestMetaObjectTest extends TestCase
     public function testRoundTripPreservesEverything(): void
     {
         $original = new RequestMetaObject(
-            new ProtocolVersion(ProtocolVersion::LATEST_VERSION),
-            new Implementation('client', '1.0.0'),
-            new ClientCapabilities(roots: ['listChanged' => true]),
-            LoggingLevel::Error,
-            new ProgressToken(7),
-            ['key' => 'value'],
+            protocolVersion: new ProtocolVersion(version: ProtocolVersion::LATEST_VERSION),
+            clientInfo: new Implementation(name: 'client', version: '1.0.0'),
+            clientCapabilities: new ClientCapabilities(roots: ['listChanged' => true]),
+            logLevel: LoggingLevel::Error,
+            progressToken: new ProgressToken(token: 7),
+            extras: ['key' => 'value'],
         );
 
         self::assertSame($original->toArray(), RequestMetaObject::fromArray($original->toArray())->toArray());

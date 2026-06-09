@@ -36,13 +36,13 @@ final class MethodNotFoundErrorTest extends TestCase
 
     public function testMethodNotFoundErrorCanOverrideMessage(): void
     {
-        $error = new MethodNotFoundError('Unknown method: something');
+        $error = new MethodNotFoundError(message: 'Unknown method: something');
         self::assertSame('Unknown method: something', $error->message);
     }
 
     public function testMethodNotFoundErrorHasCorrectCode(): void
     {
-        $error = new MethodNotFoundError(MethodNotFoundError::DEFAULT_MESSAGE);
+        $error = new MethodNotFoundError(message: MethodNotFoundError::DEFAULT_MESSAGE);
         self::assertSame(ProtocolErrorCode::MethodNotFound->value, $error->code);
         self::assertSame(-32601, $error->code);
     }
@@ -50,7 +50,7 @@ final class MethodNotFoundErrorTest extends TestCase
     public function testMethodNotFoundErrorCanIncludeData(): void
     {
         $data = ['method' => 'nonexistent_method'];
-        $error = new MethodNotFoundError('Method not found', $data);
+        $error = new MethodNotFoundError(message: 'Method not found', data: $data);
         self::assertSame($data, $error->data);
     }
 
@@ -86,7 +86,7 @@ final class MethodNotFoundErrorTest extends TestCase
 
     public function testMethodNotFoundErrorToArray(): void
     {
-        $error = new MethodNotFoundError('No such method', ['available' => ['tools/list']]);
+        $error = new MethodNotFoundError(message: 'No such method', data: ['available' => ['tools/list']]);
         $array = $error->toArray();
 
         self::assertSame([
@@ -98,7 +98,7 @@ final class MethodNotFoundErrorTest extends TestCase
 
     public function testMethodNotFoundErrorJsonSerialize(): void
     {
-        $error = new MethodNotFoundError('No such method');
+        $error = new MethodNotFoundError(message: 'No such method');
         $result = $error->jsonSerialize();
 
         self::assertSame([
@@ -110,7 +110,7 @@ final class MethodNotFoundErrorTest extends TestCase
     public function testMethodNotFoundErrorJsonSerializeWithData(): void
     {
         $data = ['method' => 'xyz'];
-        $error = new MethodNotFoundError('No such method', $data);
+        $error = new MethodNotFoundError(message: 'No such method', data: $data);
         $result = $error->jsonSerialize();
 
         self::assertSame([

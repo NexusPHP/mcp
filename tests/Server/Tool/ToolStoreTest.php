@@ -87,7 +87,7 @@ final class ToolStoreTest extends TestCase
     {
         $store = new ToolStore(self::makeEntries('only'), pageSize: 1);
 
-        $page = $store->list(new Cursor('only'));
+        $page = $store->list(new Cursor(cursor: 'only'));
 
         self::assertSame([], $page->tools);
         self::assertNull($page->nextCursor);
@@ -142,13 +142,13 @@ final class ToolStoreTest extends TestCase
         $this->expectException(InvalidCursorException::class);
         $this->expectExceptionMessageMatches('/^Cursor "missing" does not match any registered entry\.$/');
 
-        $store->list(new Cursor('missing'));
+        $store->list(new Cursor(cursor: 'missing'));
     }
 
     public function testCallInvokesTheExecutorMatchingTheName(): void
     {
-        $alphaResult = new CallToolResult([]);
-        $betaResult = new CallToolResult([]);
+        $alphaResult = new CallToolResult(content: []);
+        $betaResult = new CallToolResult(content: []);
         $captured = [];
         $store = new ToolStore([
             'alpha' => new ToolEntry(
@@ -191,7 +191,7 @@ final class ToolStoreTest extends TestCase
     {
         $store = new ToolStore([
             'search' => new ToolEntry(
-                new Tool('search', [
+                new Tool(name: 'search', inputSchema: [
                     'type' => 'object',
                     'properties' => ['q' => ['type' => 'string']],
                     'required' => ['q'],
@@ -208,10 +208,10 @@ final class ToolStoreTest extends TestCase
 
     public function testCallAcceptsArgumentsSatisfyingRequiredInputSchema(): void
     {
-        $result = new CallToolResult([]);
+        $result = new CallToolResult(content: []);
         $store = new ToolStore([
             'search' => new ToolEntry(
-                new Tool('search', [
+                new Tool(name: 'search', inputSchema: [
                     'type' => 'object',
                     'properties' => ['q' => ['type' => 'string']],
                     'required' => ['q'],
@@ -225,7 +225,7 @@ final class ToolStoreTest extends TestCase
 
     public function testCallAcceptsEmptyArrayArgumentsAsEmptyObject(): void
     {
-        $result = new CallToolResult([]);
+        $result = new CallToolResult(content: []);
         $store = new ToolStore([
             'noop' => new ToolEntry(self::makeTool('noop'), self::makeExecutorReturning($result)),
         ]);
@@ -235,7 +235,7 @@ final class ToolStoreTest extends TestCase
 
     public function testCallReturnsResultWhenStructuredContentConformsToOutputSchema(): void
     {
-        $result = new CallToolResult([], ['n' => 42]);
+        $result = new CallToolResult(content: [], structuredContent: ['n' => 42]);
         $store = new ToolStore([
             'report' => new ToolEntry(self::makeToolWithOutputSchema('report'), self::makeExecutorReturning($result)),
         ]);
@@ -248,7 +248,7 @@ final class ToolStoreTest extends TestCase
         $store = new ToolStore([
             'report' => new ToolEntry(
                 self::makeToolWithOutputSchema('report'),
-                self::makeExecutorReturning(new CallToolResult([], ['n' => 'oops'])),
+                self::makeExecutorReturning(new CallToolResult(content: [], structuredContent: ['n' => 'oops'])),
             ),
         ]);
 
@@ -260,7 +260,7 @@ final class ToolStoreTest extends TestCase
 
     public function testCallSkipsOutputValidationWhenResultHasNoStructuredContent(): void
     {
-        $result = new CallToolResult([new TextContent('hi')]);
+        $result = new CallToolResult(content: [new TextContent(text: 'hi')]);
         $store = new ToolStore([
             'report' => new ToolEntry(self::makeToolWithOutputSchema('report'), self::makeExecutorReturning($result)),
         ]);
@@ -270,7 +270,7 @@ final class ToolStoreTest extends TestCase
 
     public function testCallSkipsOutputValidationForErrorResults(): void
     {
-        $result = new CallToolResult([new TextContent('boom')], ['n' => 'oops'], isError: true);
+        $result = new CallToolResult(content: [new TextContent(text: 'boom')], structuredContent: ['n' => 'oops'], isError: true);
         $store = new ToolStore([
             'report' => new ToolEntry(self::makeToolWithOutputSchema('report'), self::makeExecutorReturning($result)),
         ]);
@@ -280,10 +280,10 @@ final class ToolStoreTest extends TestCase
 
     public function testCallAcceptsEmptyStructuredContentAsEmptyObject(): void
     {
-        $result = new CallToolResult([], []);
+        $result = new CallToolResult(content: [], structuredContent: []);
         $store = new ToolStore([
             'report' => new ToolEntry(
-                new Tool('report', ['type' => 'object'], outputSchema: ['type' => 'object']),
+                new Tool(name: 'report', inputSchema: ['type' => 'object'], outputSchema: ['type' => 'object']),
                 self::makeExecutorReturning($result),
             ),
         ]);
@@ -293,12 +293,12 @@ final class ToolStoreTest extends TestCase
 
     private static function makeTool(string $name): Tool
     {
-        return new Tool($name, ['type' => 'object']);
+        return new Tool(name: $name, inputSchema: ['type' => 'object']);
     }
 
     private static function makeToolWithOutputSchema(string $name): Tool
     {
-        return new Tool($name, ['type' => 'object'], outputSchema: [
+        return new Tool(name: $name, inputSchema: ['type' => 'object'], outputSchema: [
             'type' => 'object',
             'properties' => ['n' => ['type' => 'integer']],
             'required' => ['n'],
@@ -328,14 +328,14 @@ final class ToolStoreTest extends TestCase
     private static function makeExecutor(): ClosureToolExecutor
     {
         return new ClosureToolExecutor(
-            static fn(?array $arguments, ServerContext $context): CallToolResult => new CallToolResult([]),
+            static fn(?array $arguments, ServerContext $context): CallToolResult => new CallToolResult(content: []),
         );
     }
 
     private static function makeContext(): ServerContext
     {
         return new ServerContext(
-            new RequestId(1),
+            new RequestId(id: 1),
             new NullCancellation(),
             RequestMetaObjectFactory::create(),
             null,

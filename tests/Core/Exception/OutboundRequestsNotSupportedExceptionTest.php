@@ -44,7 +44,7 @@ final class OutboundRequestsNotSupportedExceptionTest extends TestCase
     public function testCarriesProvidedRequestIdAndPrevious(): void
     {
         $previous = new \RuntimeException('inner');
-        $e = new OutboundRequestsNotSupportedException(new RequestId(42), $previous);
+        $e = new OutboundRequestsNotSupportedException(new RequestId(id: 42), $previous);
 
         self::assertSame(42, $e->requestId?->id);
         self::assertSame($previous, $e->getPrevious());

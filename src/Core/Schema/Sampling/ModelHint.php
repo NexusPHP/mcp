@@ -49,7 +49,7 @@ final readonly class ModelHint implements Arrayable
         $name = $data['name'] ?? null;
         Assert::that($name)->nullOr()->isString('"hints.name" must be a string or null, {type} given.');
 
-        return new self($name);
+        return new self(name: $name);
     }
 
     #[\Override]

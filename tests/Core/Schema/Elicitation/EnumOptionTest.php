@@ -30,7 +30,7 @@ final class EnumOptionTest extends TestCase
 {
     public function testConstruction(): void
     {
-        $option = new EnumOption('free', 'Free plan');
+        $option = new EnumOption(const: 'free', title: 'Free plan');
 
         self::assertSame('free', $option->const);
         self::assertSame('Free plan', $option->title);
@@ -38,21 +38,21 @@ final class EnumOptionTest extends TestCase
 
     public function testToArray(): void
     {
-        $option = new EnumOption('pro', 'Pro plan');
+        $option = new EnumOption(const: 'pro', title: 'Pro plan');
 
         self::assertSame(['const' => 'pro', 'title' => 'Pro plan'], $option->toArray());
     }
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $option = new EnumOption('free', 'Free plan');
+        $option = new EnumOption(const: 'free', title: 'Free plan');
 
         self::assertSame($option->toArray(), $option->jsonSerialize());
     }
 
     public function testFromArrayRoundTrip(): void
     {
-        $original = new EnumOption('pro', 'Pro plan');
+        $original = new EnumOption(const: 'pro', title: 'Pro plan');
 
         $rebuilt = EnumOption::fromArray($original->toArray());
 
@@ -64,7 +64,7 @@ final class EnumOptionTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"oneOf.const" must be a non-empty string.');
 
-        new EnumOption('', 'Title');
+        new EnumOption(const: '', title: 'Title');
     }
 
     public function testConstructorRejectsEmptyTitle(): void
@@ -72,7 +72,7 @@ final class EnumOptionTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"oneOf.title" must be a non-empty string.');
 
-        new EnumOption('value', '');
+        new EnumOption(const: 'value', title: '');
     }
 
     /**

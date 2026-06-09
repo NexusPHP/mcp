@@ -42,13 +42,13 @@ final class ListPromptsRequestHandlerTest extends TestCase
     public function testReturnsAllRegisteredPromptsWhenCursorIsNull(): void
     {
         $store = new PromptStore([
-            'alpha' => new PromptEntry(new Prompt('alpha'), self::renderer()),
-            'beta' => new PromptEntry(new Prompt('beta'), self::renderer()),
+            'alpha' => new PromptEntry(new Prompt(name: 'alpha'), self::renderer()),
+            'beta' => new PromptEntry(new Prompt(name: 'beta'), self::renderer()),
         ]);
         $handler = new ListPromptsRequestHandler($store);
 
         $result = $handler->handle(
-            new ListPromptsRequest(new RequestId(1), new PaginatedRequestParams(RequestMetaObjectFactory::create())),
+            new ListPromptsRequest(id: new RequestId(id: 1), params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create())),
             self::makeContext(),
         );
 
@@ -61,16 +61,16 @@ final class ListPromptsRequestHandlerTest extends TestCase
     {
         $store = new PromptStore(
             [
-                'a' => new PromptEntry(new Prompt('a'), self::renderer()),
-                'b' => new PromptEntry(new Prompt('b'), self::renderer()),
-                'c' => new PromptEntry(new Prompt('c'), self::renderer()),
+                'a' => new PromptEntry(new Prompt(name: 'a'), self::renderer()),
+                'b' => new PromptEntry(new Prompt(name: 'b'), self::renderer()),
+                'c' => new PromptEntry(new Prompt(name: 'c'), self::renderer()),
             ],
             pageSize: 2,
         );
         $handler = new ListPromptsRequestHandler($store);
 
         $result = $handler->handle(
-            new ListPromptsRequest(new RequestId(2), new PaginatedRequestParams(RequestMetaObjectFactory::create(), new Cursor('b'))),
+            new ListPromptsRequest(id: new RequestId(id: 2), params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create(), cursor: new Cursor(cursor: 'b'))),
             self::makeContext(),
         );
 
@@ -81,14 +81,14 @@ final class ListPromptsRequestHandlerTest extends TestCase
     private static function renderer(): ClosurePromptRenderer
     {
         return new ClosurePromptRenderer(
-            static fn(?array $arguments, ServerContext $context): GetPromptResult => new GetPromptResult([]),
+            static fn(?array $arguments, ServerContext $context): GetPromptResult => new GetPromptResult(messages: []),
         );
     }
 
     private static function makeContext(): ServerContext
     {
         return new ServerContext(
-            new RequestId(1),
+            new RequestId(id: 1),
             new NullCancellation(),
             RequestMetaObjectFactory::create(),
             null,

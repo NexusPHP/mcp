@@ -36,7 +36,7 @@ final class GetPromptResultTest extends TestCase
 {
     public function testConstructionDefaults(): void
     {
-        $result = new GetPromptResult([new PromptMessage(Role::User, new TextContent('hi'))]);
+        $result = new GetPromptResult(messages: [new PromptMessage(role: Role::User, content: new TextContent(text: 'hi'))]);
 
         self::assertCount(1, $result->messages);
         self::assertNull($result->description);
@@ -45,14 +45,14 @@ final class GetPromptResultTest extends TestCase
 
     public function testConstructionAcceptsEmptyMessagesList(): void
     {
-        $result = new GetPromptResult([]);
+        $result = new GetPromptResult(messages: []);
 
         self::assertSame([], $result->messages);
     }
 
     public function testToArrayEmitsMessages(): void
     {
-        $result = new GetPromptResult([new PromptMessage(Role::User, new TextContent('hi'))]);
+        $result = new GetPromptResult(messages: [new PromptMessage(role: Role::User, content: new TextContent(text: 'hi'))]);
 
         self::assertSame(
             [
@@ -71,9 +71,9 @@ final class GetPromptResultTest extends TestCase
     public function testToArrayWithAllFields(): void
     {
         $result = new GetPromptResult(
-            [new PromptMessage(Role::User, new TextContent('hi'))],
-            'Reviews changes.',
-            new MetaObject(['vendor' => 'x']),
+            messages: [new PromptMessage(role: Role::User, content: new TextContent(text: 'hi'))],
+            description: 'Reviews changes.',
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -95,9 +95,9 @@ final class GetPromptResultTest extends TestCase
     public function testJsonSerializeMatchesToArray(): void
     {
         $result = new GetPromptResult(
-            [new PromptMessage(Role::User, new TextContent('hi'))],
-            'desc',
-            new MetaObject(['k' => 'v']),
+            messages: [new PromptMessage(role: Role::User, content: new TextContent(text: 'hi'))],
+            description: 'desc',
+            meta: new MetaObject(extras: ['k' => 'v']),
         );
 
         self::assertSame($result->toArray(), $result->jsonSerialize());
@@ -106,12 +106,12 @@ final class GetPromptResultTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new GetPromptResult(
-            [
-                new PromptMessage(Role::User, new TextContent('hi')),
-                new PromptMessage(Role::Assistant, new TextContent('there')),
+            messages: [
+                new PromptMessage(role: Role::User, content: new TextContent(text: 'hi')),
+                new PromptMessage(role: Role::Assistant, content: new TextContent(text: 'there')),
             ],
-            'desc',
-            new MetaObject(['vendor' => 'x']),
+            description: 'desc',
+            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         $rebuilt = GetPromptResult::fromArray($original->toArray());
@@ -125,7 +125,7 @@ final class GetPromptResultTest extends TestCase
         $this->expectExceptionMessageIs('"result.messages" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
-        new GetPromptResult([5 => new PromptMessage(Role::User, new TextContent('x'))]);
+        new GetPromptResult(messages: [5 => new PromptMessage(role: Role::User, content: new TextContent(text: 'x'))]);
     }
 
     public function testConstructorRejectsNonPromptMessageElement(): void
@@ -133,7 +133,7 @@ final class GetPromptResultTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
 
         // @phpstan-ignore argument.type
-        new GetPromptResult([42]);
+        new GetPromptResult(messages: [42]);
     }
 
     public function testConstructorRejectsEmptyDescription(): void
@@ -141,7 +141,7 @@ final class GetPromptResultTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"result.description" must be a non-empty string or null.');
 
-        new GetPromptResult([], '');
+        new GetPromptResult(messages: [], description: '');
     }
 
     /**
