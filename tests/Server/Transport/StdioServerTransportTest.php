@@ -82,6 +82,23 @@ final class StdioServerTransportTest extends TestCase
         );
     }
 
+    public function testEmitsDrainBeforeCloseOnEof(): void
+    {
+        $transport = new StdioServerTransport(new ReadableBuffer(''), new WritableBuffer());
+        $events = [];
+        $transport->onDrain(static function () use (&$events): void {
+            $events[] = 'drain';
+        });
+        $transport->onClose(static function () use (&$events): void {
+            $events[] = 'close';
+        });
+
+        $transport->start();
+        EventLoop::run();
+
+        self::assertSame(['drain', 'close'], $events);
+    }
+
     public function testOversizedInboundLineSurfacesAsTransportErrorAndClose(): void
     {
         $transport = new StdioServerTransport(

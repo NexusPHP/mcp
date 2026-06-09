@@ -181,6 +181,28 @@ final class CreateMessageRequestParamsTest extends TestCase
         );
     }
 
+    public function testJsonSerializeIncludesModelPreferencesAndToolChoice(): void
+    {
+        $params = new CreateMessageRequestParams(
+            maxTokens: 1,
+            messages: [new SamplingMessage(Role::User, new TextContent('hi'))],
+            modelPreferences: new ModelPreferences([new ModelHint('sonnet')]),
+            toolChoice: new ToolChoice(ToolChoiceMode::Auto),
+        );
+
+        self::assertSame(
+            [
+                'maxTokens' => 1,
+                'messages' => [
+                    ['role' => 'user', 'content' => ['text' => 'hi', 'type' => 'text']],
+                ],
+                'modelPreferences' => ['hints' => [['name' => 'sonnet']]],
+                'toolChoice' => ['mode' => 'auto'],
+            ],
+            $params->jsonSerialize(),
+        );
+    }
+
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new CreateMessageRequestParams(

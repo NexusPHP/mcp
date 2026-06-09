@@ -45,10 +45,4 @@ abstract readonly class PaginatedResult extends CacheableResult
 
         return $data;
     }
-
-    #[\Override]
-    public function jsonSerialize(): array
-    {
-        return $this->toArray();
-    }
 }

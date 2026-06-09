@@ -149,6 +149,21 @@ final class ModelPreferencesTest extends TestCase
         self::assertSame('{"hints":[{}]}', $encoded);
     }
 
+    public function testJsonSerializeIncludesPriorities(): void
+    {
+        $prefs = new ModelPreferences([new ModelHint('sonnet')], 0.2, 0.5, 0.9);
+
+        self::assertSame(
+            [
+                'hints' => [['name' => 'sonnet']],
+                'costPriority' => 0.2,
+                'speedPriority' => 0.5,
+                'intelligencePriority' => 0.9,
+            ],
+            $prefs->jsonSerialize(),
+        );
+    }
+
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new ModelPreferences([new ModelHint('sonnet')], 0.2, 0.5, 0.9);

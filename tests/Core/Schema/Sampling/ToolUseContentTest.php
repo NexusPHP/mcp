@@ -113,6 +113,19 @@ final class ToolUseContentTest extends TestCase
         self::assertSame($original->toArray(), $rebuilt->toArray());
     }
 
+    public function testFromArrayReadsMeta(): void
+    {
+        $content = ToolUseContent::fromArray([
+            'type' => 'tool_use',
+            'id' => 'tu-1',
+            'name' => 'get_weather',
+            'input' => ['city' => 'Paris'],
+            '_meta' => ['trace_id' => 'abc'],
+        ]);
+
+        self::assertSame(['trace_id' => 'abc'], $content->meta->toArray());
+    }
+
     public function testFromArrayRejectsMissingType(): void
     {
         $this->expectException(ExpectationFailedException::class);

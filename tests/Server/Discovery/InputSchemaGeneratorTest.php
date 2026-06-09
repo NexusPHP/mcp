@@ -190,6 +190,16 @@ final class InputSchemaGeneratorTest extends TestCase
         ], self::generate('paramDefinition'));
     }
 
+    public function testParameterExplicitTypeReplacesInferredSchema(): void
+    {
+        self::assertSame([
+            'type' => 'object',
+            '$schema' => self::DIALECT,
+            'properties' => ['color' => ['type' => 'string']],
+            'required' => ['color'],
+        ], self::generate('explicitType'));
+    }
+
     public function testMethodDefinitionShortCircuitsAndInjectsDialect(): void
     {
         self::assertSame([

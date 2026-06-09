@@ -76,6 +76,10 @@ final class SampleToolHandlers
     {
     }
 
+    public function explicitType(#[InputSchema(type: 'string')] BackedStringEnum $color): void
+    {
+    }
+
     public function unsupported(\DateTimeImmutable $when): void
     {
     }

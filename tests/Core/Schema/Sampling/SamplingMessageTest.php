@@ -99,6 +99,16 @@ final class SamplingMessageTest extends TestCase
         self::assertSame($msg->toArray(), $msg->jsonSerialize());
     }
 
+    public function testJsonSerializeIncludesMeta(): void
+    {
+        $msg = new SamplingMessage(Role::User, new TextContent('hi'), new MetaObject(extras: ['trace' => 'abc']));
+
+        self::assertSame(
+            ['role' => 'user', 'content' => ['text' => 'hi', 'type' => 'text'], '_meta' => ['trace' => 'abc']],
+            $msg->jsonSerialize(),
+        );
+    }
+
     public function testFromArrayWithSingleContent(): void
     {
         $msg = SamplingMessage::fromArray([
@@ -141,6 +151,20 @@ final class SamplingMessageTest extends TestCase
         $rebuilt = SamplingMessage::fromArray($original->toArray());
 
         self::assertSame($original->toArray(), $rebuilt->toArray());
+    }
+
+    public function testFromArrayReadsMeta(): void
+    {
+        $msg = SamplingMessage::fromArray([
+            'role' => 'user',
+            'content' => ['text' => 'hi', 'type' => 'text'],
+            '_meta' => ['trace' => 'abc'],
+        ]);
+
+        self::assertSame(
+            ['role' => 'user', 'content' => ['text' => 'hi', 'type' => 'text'], '_meta' => ['trace' => 'abc']],
+            $msg->toArray(),
+        );
     }
 
     public function testFromArrayRejectsMissingRole(): void

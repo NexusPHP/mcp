@@ -161,6 +161,18 @@ final class CreateMessageResultTest extends TestCase
         self::assertSame($original->toArray(), $rebuilt->toArray());
     }
 
+    public function testFromArrayReadsMeta(): void
+    {
+        $result = CreateMessageResult::fromArray([
+            'model' => 'claude-3-5-sonnet',
+            'role' => 'assistant',
+            'content' => ['text' => 'Hi.', 'type' => 'text'],
+            '_meta' => ['vendor' => 'acme'],
+        ]);
+
+        self::assertSame(['vendor' => 'acme'], $result->meta->toArray());
+    }
+
     public function testFromArrayWithListContent(): void
     {
         $rebuilt = CreateMessageResult::fromArray([

@@ -58,6 +58,19 @@ final class StdioClientTransportTest extends TestCase
         self::assertNull($transport->getSessionId());
     }
 
+    public function testListenerRegistrationReturnsDistinctSubscriptionsPerChannel(): void
+    {
+        $transport = self::buildTransport();
+
+        $error = $transport->onError(static fn() => null);
+        $drain = $transport->onDrain(static fn() => null);
+        $close = $transport->onClose(static fn() => null);
+
+        self::assertNotSame($error, $drain);
+        self::assertNotSame($drain, $close);
+        self::assertNotSame($error, $close);
+    }
+
     public function testSendBeforeStartThrows(): void
     {
         $transport = self::buildTransport();
