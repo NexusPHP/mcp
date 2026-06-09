@@ -78,13 +78,13 @@ header both disappear. Each request becomes self-describing via required per-req
 subscription primitive that replaces today's `resources/subscribe` / `unsubscribe`. The `ping` keepalive
 utility (SEP-2575, changelog item 5) is removed from the protocol entirely.
 
-- [ ] Delete `initialize` request + `notifications/initialized`, reshape lifecycle around per-request
+- [x] Delete `initialize` request + `notifications/initialized`, reshape lifecycle around per-request
   `_meta`.
-- [ ] Delete `ping` (`PingRequest`, `PingRequestHandler`, the method-registry entry, and the
+- [x] Delete `ping` (`PingRequest`, `PingRequestHandler`, the method-registry entry, and the
   initialization gate's `ping` allowance). The RC removes the method along with the session it kept alive.
-- [ ] Implement `server/discover` request method.
+- [x] Implement `server/discover` request method.
 - [ ] Implement `subscriptions/listen` request method + `SubscriptionsAcknowledgedNotification`.
-- [ ] Delete `resources/subscribe` / `resources/unsubscribe` (none of these are implemented today, so
+- [x] Delete `resources/subscribe` / `resources/unsubscribe` (none of these are implemented today, so
   this is a non-action verified by the migration).
 
 ### Stdio client restart on unexpected server exit
@@ -200,10 +200,10 @@ A new `CacheableResult` interface lets servers tell clients how long a list resu
 (`ttlMs` + `cacheScope`). Replaces the `*ListChanged` notification pattern as the primary cache-busting
 mechanism. Today's stores need a way to surface TTL on their list outputs.
 
-- [ ] Add `CacheableResult` interface under `Core/Schema/`.
-- [ ] Implement on `ListToolsResult`, `ListPromptsResult`, `ListResourcesResult`,
+- [x] Add `CacheableResult` interface under `Core/Schema/`.
+- [x] Implement on `ListToolsResult`, `ListPromptsResult`, `ListResourcesResult`,
   `ListResourceTemplatesResult`, `ReadResourceResult`, and `DiscoverResult`.
-- [ ] Plumb `?int $ttlMs` + `?string $cacheScope` through the per-feature stores and the
+- [x] Plumb `?int $ttlMs` + `?string $cacheScope` through the per-feature stores and the
   `server/discover` handler.
 
 ### Streamable HTTP transport
