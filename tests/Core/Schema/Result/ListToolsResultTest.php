@@ -63,7 +63,7 @@ final class ListToolsResultTest extends TestCase
         $result = new ListToolsResult(tools: [], ttlMs: 0, cacheScope: CacheScope::Private);
 
         self::assertSame(
-            ['resultType' => 'complete', 'ttlMs' => 0, 'cacheScope' => 'private', 'tools' => []],
+            ['resultType' => 'complete', 'tools' => [], 'ttlMs' => 0, 'cacheScope' => 'private'],
             $result->toArray(),
         );
     }
@@ -82,10 +82,10 @@ final class ListToolsResultTest extends TestCase
             [
                 '_meta' => ['vendor' => 'x'],
                 'resultType' => 'complete',
+                'tools' => [['name' => 'read-file', 'inputSchema' => ['type' => 'object']]],
+                'nextCursor' => 'cursor-1',
                 'ttlMs' => 60000,
                 'cacheScope' => 'public',
-                'nextCursor' => 'cursor-1',
-                'tools' => [['name' => 'read-file', 'inputSchema' => ['type' => 'object']]],
             ],
             $result->toArray(),
         );

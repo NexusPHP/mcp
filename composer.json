@@ -79,6 +79,7 @@
             "api/vendor/bin/apigen src --output=api/docs --config=api/apigen.neon"
         ],
         "arch:check": "tools/vendor/bin/structarmed analyse src",
+        "coverage:check": "Nexus\\Mcp\\Tools\\ComposerScripts::checkCoverage",
         "cs:check": "tools/vendor/bin/php-cs-fixer check --verbose --diff",
         "cs:fix": "tools/vendor/bin/php-cs-fixer fix --verbose --diff",
         "deps:check": "tools/vendor/bin/composer-dependency-analyser",
@@ -115,6 +116,7 @@
             "@test:auto-review",
             "@test:stan",
             "@test:unit",
+            "@coverage:check",
             "@mutation:check"
         ],
         "test:auto-review": "phpunit --group=auto-review --colors=always --no-coverage",
@@ -122,7 +124,7 @@
         "test:core": "phpunit --group=core-tests --colors=always --no-coverage",
         "test:server": "phpunit --group=server-tests --colors=always --no-coverage",
         "test:stan": "phpunit --group=static-analysis --colors=always --no-coverage",
-        "test:unit": "phpunit --group=unit-tests --colors=always --coverage-html=build/phpunit/html",
+        "test:unit": "phpunit --group=unit-tests --colors=always --coverage-html=build/phpunit/html --coverage-clover=build/phpunit/clover.xml",
         "test:with-untracked": [
             "@cs:check",
             "@phpstan:check",
@@ -132,12 +134,14 @@
             "@test:auto-review",
             "@test:stan",
             "@test:unit",
+            "@coverage:check",
             "@mutation:filter"
         ]
     },
     "scripts-descriptions": {
         "api:docs": "Generates the public API reference with ApiGen",
         "arch:check": "Checks architecture layer boundaries with StructArmed",
+        "coverage:check": "Fails when any src statement line is left uncovered (enforces 100% line coverage)",
         "cs:check": "Checks for coding style violations",
         "cs:fix": "Fixes any coding style violations",
         "deps:check": "Analyses composer dependency declarations with shipmonk",

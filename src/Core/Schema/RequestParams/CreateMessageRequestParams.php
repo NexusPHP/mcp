@@ -97,9 +97,6 @@ final readonly class CreateMessageRequestParams implements Arrayable, RequestPar
         $this->tools = $tools;
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
     #[\Override]
     public static function fromArray(array $data): static
     {

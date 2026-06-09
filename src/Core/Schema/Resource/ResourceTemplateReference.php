@@ -43,9 +43,6 @@ final readonly class ResourceTemplateReference implements Arrayable
         $this->uri = $uri;
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
     #[\Override]
     public static function fromArray(array $data): static
     {

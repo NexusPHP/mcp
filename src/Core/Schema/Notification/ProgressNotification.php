@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Core\Schema\Notification;
 
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
+use Nexus\Mcp\Core\Schema\NotificationParams;
 use Nexus\Mcp\Core\Schema\NotificationParams\ProgressNotificationParams;
 
 /**
@@ -22,7 +23,11 @@ use Nexus\Mcp\Core\Schema\NotificationParams\ProgressNotificationParams;
  *
  * @property-read ProgressNotificationParams $params
  *
- * @extends JsonRpcNotification<'notifications/progress'>
+ * @extends JsonRpcNotification<'notifications/progress', array{
+ *   jsonrpc: '2.0',
+ *   method: 'notifications/progress',
+ *   params: template-type<ProgressNotificationParams, NotificationParams, 'T'>,
+ * }>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#progressnotification
  */
@@ -49,5 +54,15 @@ final readonly class ProgressNotification extends JsonRpcNotification implements
         ;
 
         return new self(params: ProgressNotificationParams::fromArray($data['params']));
+    }
+
+    #[\Override]
+    public function toArray(): array
+    {
+        return [
+            'jsonrpc' => self::JSONRPC_VERSION,
+            'method' => static::getMethod(),
+            'params' => $this->params->toArray(),
+        ];
     }
 }

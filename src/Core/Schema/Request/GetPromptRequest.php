@@ -16,6 +16,7 @@ namespace Nexus\Mcp\Core\Schema\Request;
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\GetPromptRequestParams;
 
 /**
@@ -23,7 +24,12 @@ use Nexus\Mcp\Core\Schema\RequestParams\GetPromptRequestParams;
  *
  * @property-read GetPromptRequestParams $params
  *
- * @extends JsonRpcRequest<'prompts/get'>
+ * @extends JsonRpcRequest<'prompts/get', array{
+ *   jsonrpc: '2.0',
+ *   id: int|non-empty-string,
+ *   method: 'prompts/get',
+ *   params: template-type<GetPromptRequestParams, RequestParams, 'T'>,
+ * }>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#getpromptrequest
  */
@@ -54,5 +60,16 @@ final readonly class GetPromptRequest extends JsonRpcRequest implements ClientRe
         ;
 
         return new self(id: new RequestId(id: $id), params: GetPromptRequestParams::fromArray($data['params']));
+    }
+
+    #[\Override]
+    public function toArray(): array
+    {
+        return [
+            'jsonrpc' => self::JSONRPC_VERSION,
+            'id' => $this->id->id,
+            'method' => static::getMethod(),
+            'params' => $this->params->toArray(),
+        ];
     }
 }

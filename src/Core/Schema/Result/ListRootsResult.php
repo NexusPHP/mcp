@@ -24,6 +24,8 @@ use Nexus\Mcp\Core\Schema\Root;
  * This result contains an array of `Root` objects, each representing a root directory or file
  * that the server can operate on.
  *
+ * @extends Result<array<string, mixed>>
+ *
  * @see https://modelcontextprotocol.io/specification/draft/schema#listrootsresult
  */
 final readonly class ListRootsResult extends Result implements ClientResult
@@ -76,15 +78,28 @@ final readonly class ListRootsResult extends Result implements ClientResult
     #[\Override]
     public function toArray(): array
     {
-        return [
-            ...parent::toArray(),
-            'roots' => array_map(static fn(Root $root): array => $root->toArray(), $this->roots),
-        ];
+        $data = [];
+        $meta = $this->meta->toArray();
+
+        if ([] !== $meta) {
+            $data['_meta'] = $meta;
+        }
+
+        $data['resultType'] = self::getResultType();
+        $data['roots'] = array_map(static fn(Root $root): array => $root->toArray(), $this->roots);
+
+        return $data;
     }
 
     #[\Override]
     public function jsonSerialize(): array
     {
         return $this->toArray();
+    }
+
+    #[\Override]
+    protected function getResultType(): string
+    {
+        return 'complete';
     }
 }

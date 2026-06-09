@@ -27,12 +27,12 @@ use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 final class RecordingSender implements SenderInterface
 {
     /**
-     * @var list<JsonRpcNotification<non-empty-string>>
+     * @var list<JsonRpcNotification<non-empty-string, array<string, mixed>>>
      */
     public private(set) array $notifications = [];
 
     /**
-     * @var list<JsonRpcRequest<non-empty-string>>
+     * @var list<JsonRpcRequest<non-empty-string, array<string, mixed>>>
      */
     public private(set) array $requests = [];
 

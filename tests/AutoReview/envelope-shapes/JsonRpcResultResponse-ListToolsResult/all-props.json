@@ -6,9 +6,6 @@
             "vendor.brand": "acme"
         },
         "resultType": "complete",
-        "ttlMs": 60000,
-        "cacheScope": "public",
-        "nextCursor": "cursor-2",
         "tools": [
             {
                 "name": "read-file",
@@ -24,6 +21,9 @@
                     ]
                 }
             }
-        ]
+        ],
+        "nextCursor": "cursor-2",
+        "ttlMs": 60000,
+        "cacheScope": "public"
     }
 }

@@ -103,9 +103,6 @@ final readonly class ResourceLink extends BaseMetadata implements Arrayable, Con
         $this->icons = $icons;
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
     #[\Override]
     public static function fromArray(array $data): static
     {

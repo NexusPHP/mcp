@@ -43,9 +43,6 @@ final readonly class TextContent implements Arrayable, ContentBlock, SamplingMes
     ) {
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
     #[\Override]
     public static function fromArray(array $data): static
     {

@@ -54,9 +54,6 @@ final readonly class BooleanSchema implements Arrayable, PrimitiveSchemaDefiniti
         $this->description = $description;
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
     #[\Override]
     public static function fromArray(array $data): static
     {

@@ -16,8 +16,10 @@ namespace Nexus\Mcp\Core\Schema;
 /**
  * Common params for any request.
  *
- * @implements Arrayable<array{_meta: template-type<RequestMetaObject, Arrayable, 'T'>, ...<string, mixed>}>
- * @implements RequestParamsInterface<array{_meta: template-type<RequestMetaObject, Arrayable, 'T'>, ...<string, mixed>}>
+ * @template-covariant T of array<string, mixed>
+ *
+ * @implements Arrayable<T>
+ * @implements RequestParamsInterface<T>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#requestparams
  */
@@ -25,22 +27,6 @@ abstract readonly class RequestParams implements Arrayable, RequestParamsInterfa
 {
     public function __construct(public RequestMetaObject $meta)
     {
-    }
-
-    /**
-     * @param array<string, mixed> $data
-     */
-    #[\Override]
-    abstract public static function fromArray(array $data): static;
-
-    /**
-     * Serializes the params body. Subclasses override to merge their own fields
-     * alongside the required `_meta` slice returned here.
-     */
-    #[\Override]
-    public function toArray(): array
-    {
-        return ['_meta' => $this->meta->toArray()];
     }
 
     #[\Override]

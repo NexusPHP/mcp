@@ -42,6 +42,7 @@ composer phpstan:check   # static analysis (PHPStan level 10)
 composer arch:check      # layer boundaries (Server and Client stay independent, both build on Core)
 composer deps:check      # composer dependency declarations (shadow/unused deps)
 composer test:unit       # or test:client / test:core / test:server
+composer coverage:check  # enforce 100% line coverage (after test:unit)
 composer lint:docs       # typos, markdownlint
 ```
 

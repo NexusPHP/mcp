@@ -65,9 +65,6 @@ final readonly class ElicitRequestUrlParams implements Arrayable, ElicitRequestP
         $this->mode = $mode;
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
     #[\Override]
     public static function fromArray(array $data): static
     {

@@ -14,18 +14,21 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\RequestParams;
 
 use Nexus\Assert\Assert;
+use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\RequestMetaObject;
 
 /**
  * Parameters for a `resources/read` request.
  *
+ * @extends ResourceRequestParams<array{
+ *   _meta: template-type<RequestMetaObject, Arrayable, 'T'>,
+ *   uri: string,
+ * }>
+ *
  * @see https://modelcontextprotocol.io/specification/draft/schema#readresourcerequestparams
  */
 final readonly class ReadResourceRequestParams extends ResourceRequestParams
 {
-    /**
-     * @param array<string, mixed> $data
-     */
     #[\Override]
     public static function fromArray(array $data): static
     {
@@ -41,5 +44,14 @@ final readonly class ReadResourceRequestParams extends ResourceRequestParams
         $meta = RequestMetaObject::fromArray($data['_meta']);
 
         return new self(uri: $uri, meta: $meta);
+    }
+
+    #[\Override]
+    public function toArray(): array
+    {
+        return [
+            '_meta' => $this->meta->toArray(),
+            'uri' => $this->uri,
+        ];
     }
 }

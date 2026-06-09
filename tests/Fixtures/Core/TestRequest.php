@@ -23,7 +23,7 @@ use Nexus\Mcp\Core\Schema\RequestParamsInterface;
  *
  * @internal
  *
- * @extends JsonRpcRequest<'tests/test-request'>
+ * @extends JsonRpcRequest<'tests/test-request', array<string, mixed>>
  */
 final readonly class TestRequest extends JsonRpcRequest
 {
@@ -54,5 +54,21 @@ final readonly class TestRequest extends JsonRpcRequest
         }
 
         return new self(new RequestId(id: $id));
+    }
+
+    #[\Override]
+    public function toArray(): array
+    {
+        $envelope = [
+            'jsonrpc' => self::JSONRPC_VERSION,
+            'id' => $this->id->id,
+            'method' => static::getMethod(),
+        ];
+
+        if (null !== $this->params) {
+            $envelope['params'] = $this->params->toArray();
+        }
+
+        return $envelope;
     }
 }

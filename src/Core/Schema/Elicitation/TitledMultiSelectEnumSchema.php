@@ -89,9 +89,6 @@ final readonly class TitledMultiSelectEnumSchema implements Arrayable, MultiSele
         $this->default = $default;
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
     #[\Override]
     public static function fromArray(array $data): static
     {

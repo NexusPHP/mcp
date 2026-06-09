@@ -11,8 +11,9 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Nexus\Mcp\Core\Schema\JsonRpc;
+namespace Nexus\Mcp\Core\Schema\Request;
 
+use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\PaginatedRequestParams;
 
@@ -22,8 +23,9 @@ use Nexus\Mcp\Core\Schema\RequestParams\PaginatedRequestParams;
  * @property-read PaginatedRequestParams $params
  *
  * @template-covariant TMethod of non-empty-string
+ * @template-covariant TEnvelope of array<string, mixed>
  *
- * @extends JsonRpcRequest<TMethod>
+ * @extends JsonRpcRequest<TMethod, TEnvelope>
  *
  * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/draft/schema.ts
  */

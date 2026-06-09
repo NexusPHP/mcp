@@ -55,15 +55,15 @@ final class ReadResourceResultTest extends TestCase
         self::assertSame(
             [
                 'resultType' => 'complete',
-                'ttlMs' => 0,
-                'cacheScope' => 'private',
                 'contents' => [
                     [
                         'uri' => 'file:///x',
-                        'mimeType' => 'text/plain',
                         'text' => 'hello',
+                        'mimeType' => 'text/plain',
                     ],
                 ],
+                'ttlMs' => 0,
+                'cacheScope' => 'private',
             ],
             $result->toArray(),
         );
@@ -78,15 +78,15 @@ final class ReadResourceResultTest extends TestCase
         self::assertSame(
             [
                 'resultType' => 'complete',
-                'ttlMs' => 0,
-                'cacheScope' => 'private',
                 'contents' => [
                     [
                         'uri' => 'file:///x',
-                        'mimeType' => 'application/octet-stream',
                         'blob' => 'aGVsbG8=',
+                        'mimeType' => 'application/octet-stream',
                     ],
                 ],
+                'ttlMs' => 0,
+                'cacheScope' => 'private',
             ],
             $result->toArray(),
         );
@@ -102,12 +102,12 @@ final class ReadResourceResultTest extends TestCase
         self::assertSame(
             [
                 'resultType' => 'complete',
-                'ttlMs' => 0,
-                'cacheScope' => 'private',
                 'contents' => [
                     ['uri' => 'file:///a', 'text' => 'hi'],
                     ['uri' => 'file:///b', 'blob' => 'aGVsbG8='],
                 ],
+                'ttlMs' => 0,
+                'cacheScope' => 'private',
             ],
             $result->toArray(),
         );
@@ -126,9 +126,9 @@ final class ReadResourceResultTest extends TestCase
             [
                 '_meta' => ['vendor' => 'x'],
                 'resultType' => 'complete',
+                'contents' => [['uri' => 'file:///x', 'text' => 'hi']],
                 'ttlMs' => 0,
                 'cacheScope' => 'private',
-                'contents' => [['uri' => 'file:///x', 'text' => 'hi']],
             ],
             $result->toArray(),
         );

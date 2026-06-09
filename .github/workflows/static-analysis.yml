@@ -49,6 +49,7 @@ jobs:
         with:
           php-version: ${{ env.DEFAULT_PHP_VERSION }}
           coverage: none
+          ini-values: zend.assertions=1, assert.exception=1, error_reporting=-1, display_errors=On, display_startup_errors=On
 
       - name: Get Composer cache directory
         id: composer-cache

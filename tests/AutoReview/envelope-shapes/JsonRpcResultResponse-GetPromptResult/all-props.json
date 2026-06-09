@@ -6,6 +6,7 @@
             "vendor.brand": "acme"
         },
         "resultType": "complete",
+        "description": "Code review template.",
         "messages": [
             {
                 "content": {
@@ -21,7 +22,6 @@
                 },
                 "role": "assistant"
             }
-        ],
-        "description": "Code review template."
+        ]
     }
 }

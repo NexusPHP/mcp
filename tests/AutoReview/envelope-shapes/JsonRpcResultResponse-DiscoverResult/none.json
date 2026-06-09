@@ -3,8 +3,6 @@
     "id": 42,
     "result": {
         "resultType": "complete",
-        "ttlMs": 0,
-        "cacheScope": "private",
         "supportedVersions": [
             "2026-07-28"
         ],
@@ -12,6 +10,8 @@
         "serverInfo": {
             "name": "test-server",
             "version": "1.0.0"
-        }
+        },
+        "ttlMs": 0,
+        "cacheScope": "private"
     }
 }

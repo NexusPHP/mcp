@@ -14,11 +14,17 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\NotificationParams;
 
 use Nexus\Assert\Assert;
+use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\NotificationParams;
 
 /**
  * Parameters for a `notifications/elicitation/complete` notification.
+ *
+ * @extends NotificationParams<array{
+ *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
+ *   elicitationId: non-empty-string,
+ * }>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#elicitationcompletenotificationparams
  */
@@ -38,9 +44,6 @@ final readonly class ElicitationCompleteNotificationParams extends NotificationP
         parent::__construct($meta);
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
     #[\Override]
     public static function fromArray(array $data): static
     {
@@ -64,10 +67,16 @@ final readonly class ElicitationCompleteNotificationParams extends NotificationP
     #[\Override]
     public function toArray(): array
     {
-        return [
-            ...parent::toArray(),
-            'elicitationId' => $this->elicitationId,
-        ];
+        $data = [];
+        $meta = $this->meta->toArray();
+
+        if ([] !== $meta) {
+            $data['_meta'] = $meta;
+        }
+
+        $data['elicitationId'] = $this->elicitationId;
+
+        return $data;
     }
 
     #[\Override]

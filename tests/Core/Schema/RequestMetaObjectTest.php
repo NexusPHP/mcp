@@ -100,12 +100,12 @@ final class RequestMetaObjectTest extends TestCase
 
         self::assertSame(
             [
-                'vendor' => 'x',
                 RequestMetaObject::PROTOCOL_VERSION_KEY => '2026-07-28',
                 RequestMetaObject::CLIENT_INFO_KEY => ['name' => 'client', 'version' => '1.0.0'],
                 RequestMetaObject::CLIENT_CAPABILITIES_KEY => ['roots' => ['listChanged' => true]],
-                'progressToken' => 42,
                 RequestMetaObject::LOG_LEVEL_KEY => 'warning',
+                'progressToken' => 42,
+                'vendor' => 'x',
             ],
             $meta->toArray(),
         );

@@ -24,14 +24,14 @@ use Nexus\Mcp\Core\Schema\Result;
 interface SenderInterface
 {
     /**
-     * @param JsonRpcNotification<non-empty-string> $notification
+     * @param JsonRpcNotification<non-empty-string, array<string, mixed>> $notification
      */
     public function sendNotification(JsonRpcNotification $notification): void;
 
     /**
-     * @param JsonRpcRequest<non-empty-string> $request
+     * @param JsonRpcRequest<non-empty-string, array<string, mixed>> $request
      *
-     * @return JsonRpcResultResponse<Result>
+     * @return JsonRpcResultResponse<Result<array<string, mixed>>>
      */
     public function sendRequest(JsonRpcRequest $request): JsonRpcResultResponse;
 }

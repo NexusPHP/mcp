@@ -21,6 +21,8 @@ use Nexus\Mcp\Core\Schema\Error;
 /**
  * Error carrying a raw integer code that does not map to a known `ProtocolErrorCode` case.
  *
+ * @extends Error<array{code: int, message: non-empty-string, data?: mixed}>
+ *
  * @see https://www.jsonrpc.org/specification#error_object
  */
 final readonly class UnknownProtocolError extends Error
@@ -37,9 +39,6 @@ final readonly class UnknownProtocolError extends Error
         parent::__construct($code, $message, $data);
     }
 
-    /**
-     * @param array{code: int, message: string, data?: mixed} $data
-     */
     #[\Override]
     public static function fromArray(array $data): static
     {
@@ -50,5 +49,22 @@ final readonly class UnknownProtocolError extends Error
         Assert::that($data['message'])->isString('"message" must be a string, {type} given.');
 
         return new self(code: $data['code'], message: $data['message'], data: $data['data'] ?? null);
+    }
+
+    #[\Override]
+    public function toArray(): array
+    {
+        $result = [
+            'code' => $this->code,
+            'message' => $this->message,
+        ];
+
+        $data = $this->data ?? [];
+
+        if ([] !== $data) {
+            $result['data'] = $data;
+        }
+
+        return $result;
     }
 }

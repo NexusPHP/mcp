@@ -87,7 +87,6 @@ final class UnknownProtocolErrorTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('missing the required "message" key.');
 
-        // @phpstan-ignore argument.type
         UnknownProtocolError::fromArray(['code' => 42]);
     }
 
@@ -96,7 +95,6 @@ final class UnknownProtocolErrorTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"message" must be a string, int given.');
 
-        // @phpstan-ignore argument.type
         UnknownProtocolError::fromArray(['code' => 42, 'message' => 1]);
     }
 
@@ -105,7 +103,6 @@ final class UnknownProtocolErrorTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('missing the required "code" key.');
 
-        // @phpstan-ignore argument.type
         UnknownProtocolError::fromArray([]);
     }
 
@@ -114,7 +111,6 @@ final class UnknownProtocolErrorTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"code" must be an integer, string given.');
 
-        // @phpstan-ignore argument.type
         UnknownProtocolError::fromArray(['code' => 'oops']);
     }
 }

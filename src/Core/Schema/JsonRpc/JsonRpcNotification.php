@@ -15,47 +15,20 @@ namespace Nexus\Mcp\Core\Schema\JsonRpc;
 
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\Notification;
-use Nexus\Mcp\Core\Schema\NotificationParams;
 
 /**
  * A notification which does not expect a response.
  *
  * @template-covariant TMethod of non-empty-string
+ * @template-covariant TEnvelope of array<string, mixed>
  *
  * @extends Notification<TMethod>
- * @implements Arrayable<array{
- *   jsonrpc: '2.0',
- *   method: non-empty-string,
- *   params?: template-type<NotificationParams, Arrayable, 'T'>,
- * }>
+ * @implements Arrayable<TEnvelope>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#jsonrpcnotification
  */
 abstract readonly class JsonRpcNotification extends Notification implements Arrayable, JsonRpcMessage
 {
-    /**
-     * @param array<string, mixed> $data
-     */
-    #[\Override]
-    abstract public static function fromArray(array $data): static;
-
-    #[\Override]
-    public function toArray(): array
-    {
-        $envelope = [
-            'jsonrpc' => self::JSONRPC_VERSION,
-            'method' => static::getMethod(),
-        ];
-
-        $params = $this->params->toArray();
-
-        if ([] !== $params) {
-            $envelope['params'] = $params;
-        }
-
-        return $envelope;
-    }
-
     #[\Override]
     public function jsonSerialize(): array
     {

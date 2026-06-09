@@ -102,9 +102,6 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
         return $this->title ?? $this->annotations->title ?? $this->name;
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
     #[\Override]
     public static function fromArray(array $data): static
     {

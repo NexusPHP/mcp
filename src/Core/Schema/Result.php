@@ -16,41 +16,16 @@ namespace Nexus\Mcp\Core\Schema;
 /**
  * Common result fields.
  *
- * @implements Arrayable<array<string, mixed>>
+ * @template-covariant T of array<string, mixed>
+ *
+ * @implements Arrayable<T>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#result
  */
 abstract readonly class Result implements Arrayable
 {
-    public const string RESULT_TYPE = 'complete';
-
     public function __construct(public MetaObject $meta = new MetaObject())
     {
-    }
-
-    /**
-     * @param array<string, mixed> $data
-     */
-    #[\Override]
-    abstract public static function fromArray(array $data): static;
-
-    /**
-     * Serializes the result body. Subclasses override to merge their own fields
-     * alongside the `_meta` slice and required `resultType` discriminator returned here.
-     */
-    #[\Override]
-    public function toArray(): array
-    {
-        $data = [];
-        $meta = $this->meta->toArray();
-
-        if ([] !== $meta) {
-            $data['_meta'] = $meta;
-        }
-
-        $data['resultType'] = static::RESULT_TYPE;
-
-        return $data;
     }
 
     #[\Override]
@@ -58,4 +33,9 @@ abstract readonly class Result implements Arrayable
     {
         return $this->toArray();
     }
+
+    /**
+     * @return non-empty-string
+     */
+    abstract protected function getResultType(): string;
 }

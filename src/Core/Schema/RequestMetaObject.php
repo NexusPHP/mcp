@@ -21,7 +21,14 @@ use Nexus\Mcp\Core\Validation\EnumValueValidator;
  * Extends `MetaObject` with additional request-specific fields.
  * All key naming rules from `MetaObject` apply.
  *
- * @implements Arrayable<array<string, mixed>>
+ * @implements Arrayable<array{
+ *   'io.modelcontextprotocol/protocolVersion': non-empty-string,
+ *   'io.modelcontextprotocol/clientInfo': template-type<Implementation, Arrayable, 'T'>,
+ *   'io.modelcontextprotocol/clientCapabilities': template-type<ClientCapabilities, Arrayable, 'T'>,
+ *   'io.modelcontextprotocol/logLevel'?: value-of<LoggingLevel>,
+ *   progressToken?: int|non-empty-string,
+ *   ...<string, mixed>,
+ * }>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#requestmetaobject
  */
@@ -99,19 +106,21 @@ final readonly class RequestMetaObject implements Arrayable
     #[\Override]
     public function toArray(): array
     {
-        $out = $this->extras;
+        $out = [];
 
         $out[self::PROTOCOL_VERSION_KEY] = $this->protocolVersion->version;
         $out[self::CLIENT_INFO_KEY] = $this->clientInfo->toArray();
         $out[self::CLIENT_CAPABILITIES_KEY] = $this->clientCapabilities->toArray();
 
+        if (null !== $this->logLevel) {
+            $out[self::LOG_LEVEL_KEY] = $this->logLevel->value;
+        }
+
         if (null !== $this->progressToken) {
             $out['progressToken'] = $this->progressToken->token;
         }
 
-        if (null !== $this->logLevel) {
-            $out[self::LOG_LEVEL_KEY] = $this->logLevel->value;
-        }
+        $out += $this->extras;
 
         return $out;
     }

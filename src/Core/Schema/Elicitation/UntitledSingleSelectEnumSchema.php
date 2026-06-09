@@ -69,9 +69,6 @@ final readonly class UntitledSingleSelectEnumSchema implements Arrayable, Single
         $this->description = $description;
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
     #[\Override]
     public static function fromArray(array $data): static
     {

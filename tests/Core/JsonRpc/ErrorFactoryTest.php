@@ -35,7 +35,7 @@ use PHPUnit\Framework\TestCase;
 final class ErrorFactoryTest extends TestCase
 {
     /**
-     * @param class-string<Error> $expectedClass
+     * @param class-string<Error<array<string, mixed>>> $expectedClass
      */
     #[DataProvider('provideCreateReturnsConcreteSubclassCases')]
     public function testCreateReturnsConcreteSubclass(ProtocolErrorCode $code, string $expectedClass): void
@@ -48,7 +48,7 @@ final class ErrorFactoryTest extends TestCase
     }
 
     /**
-     * @return iterable<string, array{ProtocolErrorCode, class-string<Error>}>
+     * @return iterable<string, array{ProtocolErrorCode, class-string<Error<array<string, mixed>>>}>
      */
     public static function provideCreateReturnsConcreteSubclassCases(): iterable
     {

@@ -21,12 +21,9 @@ use Nexus\Mcp\Core\Validation\Rfc3986UriValidator;
 /**
  * The contents of a specific resource or sub-resource.
  *
- * @implements Arrayable<array{
- *   uri: non-empty-string,
- *   mimeType?: non-empty-string,
- *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
- *   ...<string, mixed>
- * }>
+ * @template T of array<string, mixed>
+ *
+ * @implements Arrayable<T>
  *
  * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/draft/schema.ts
  */
@@ -52,34 +49,6 @@ abstract readonly class ResourceContents implements Arrayable
 
         $this->uri = $uri;
         $this->mimeType = $mimeType;
-    }
-
-    /**
-     * @param array<string, mixed> $data
-     */
-    #[\Override]
-    abstract public static function fromArray(array $data): static;
-
-    /**
-     * Serializes the shared fields. Subclasses override to merge their own
-     * payload field alongside the slice returned here.
-     */
-    #[\Override]
-    public function toArray(): array
-    {
-        $data = ['uri' => $this->uri];
-
-        if (null !== $this->mimeType) {
-            $data['mimeType'] = $this->mimeType;
-        }
-
-        $meta = $this->meta->toArray();
-
-        if ([] !== $meta) {
-            $data['_meta'] = $meta;
-        }
-
-        return $data;
     }
 
     #[\Override]

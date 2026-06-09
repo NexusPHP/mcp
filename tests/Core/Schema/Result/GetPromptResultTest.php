@@ -80,13 +80,13 @@ final class GetPromptResultTest extends TestCase
             [
                 '_meta' => ['vendor' => 'x'],
                 'resultType' => 'complete',
+                'description' => 'Reviews changes.',
                 'messages' => [
                     [
                         'content' => ['text' => 'hi', 'type' => 'text'],
                         'role' => 'user',
                     ],
                 ],
-                'description' => 'Reviews changes.',
             ],
             $result->toArray(),
         );

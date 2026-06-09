@@ -60,9 +60,6 @@ final readonly class ToolUseContent implements Arrayable, SamplingMessageContent
         $this->name = $name;
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
     #[\Override]
     public static function fromArray(array $data): static
     {

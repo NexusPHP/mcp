@@ -85,9 +85,6 @@ final readonly class LegacyTitledEnumSchema implements Arrayable, EnumSchema
         $this->enumNames = $enumNames;
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
     #[\Override]
     public static function fromArray(array $data): static
     {

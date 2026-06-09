@@ -22,6 +22,8 @@ use Nexus\Mcp\Core\Validation\EnumValueValidator;
 /**
  * The result returned by the client for an `elicitation/create` request.
  *
+ * @extends Result<array<string, mixed>>
+ *
  * @see https://modelcontextprotocol.io/specification/draft/schema#elicitresult
  */
 final readonly class ElicitResult extends Result implements ClientResult
@@ -55,9 +57,6 @@ final readonly class ElicitResult extends Result implements ClientResult
         parent::__construct($meta);
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
     #[\Override]
     public static function fromArray(array $data): static
     {
@@ -96,10 +95,15 @@ final readonly class ElicitResult extends Result implements ClientResult
     #[\Override]
     public function toArray(): array
     {
-        $data = [
-            ...parent::toArray(),
-            'action' => $this->action->value,
-        ];
+        $data = [];
+        $meta = $this->meta->toArray();
+
+        if ([] !== $meta) {
+            $data['_meta'] = $meta;
+        }
+
+        $data['resultType'] = self::getResultType();
+        $data['action'] = $this->action->value;
 
         if (null !== $this->content) {
             $data['content'] = $this->content;
@@ -112,6 +116,12 @@ final readonly class ElicitResult extends Result implements ClientResult
     public function jsonSerialize(): array
     {
         return $this->toArray();
+    }
+
+    #[\Override]
+    protected function getResultType(): string
+    {
+        return 'complete';
     }
 
     private static function validateValue(string $context, mixed $value): void

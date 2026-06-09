@@ -16,6 +16,7 @@ namespace Nexus\Mcp\Core\Schema\Request;
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\CompleteRequestParams;
 
 /**
@@ -23,7 +24,12 @@ use Nexus\Mcp\Core\Schema\RequestParams\CompleteRequestParams;
  *
  * @property-read CompleteRequestParams $params
  *
- * @extends JsonRpcRequest<'completion/complete'>
+ * @extends JsonRpcRequest<'completion/complete', array{
+ *   jsonrpc: '2.0',
+ *   id: int|non-empty-string,
+ *   method: 'completion/complete',
+ *   params: template-type<CompleteRequestParams, RequestParams, 'T'>,
+ * }>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#completerequest
  */
@@ -54,5 +60,16 @@ final readonly class CompleteRequest extends JsonRpcRequest implements ClientReq
         ;
 
         return new self(id: new RequestId(id: $id), params: CompleteRequestParams::fromArray($data['params']));
+    }
+
+    #[\Override]
+    public function toArray(): array
+    {
+        return [
+            'jsonrpc' => self::JSONRPC_VERSION,
+            'id' => $this->id->id,
+            'method' => static::getMethod(),
+            'params' => $this->params->toArray(),
+        ];
     }
 }

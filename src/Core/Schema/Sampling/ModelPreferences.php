@@ -68,9 +68,6 @@ final readonly class ModelPreferences implements Arrayable
         $this->hints = $hints;
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
     #[\Override]
     public static function fromArray(array $data): static
     {

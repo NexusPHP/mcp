@@ -58,9 +58,6 @@ final readonly class SamplingMessage implements Arrayable
         $this->content = $content;
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
     #[\Override]
     public static function fromArray(array $data): static
     {

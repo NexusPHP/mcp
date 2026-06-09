@@ -17,11 +17,9 @@ use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 
 /**
- * @implements Arrayable<array{
- *   code: int,
- *   message: non-empty-string,
- *   data?: mixed
- * }>
+ * @template-covariant T of array<string, mixed>
+ *
+ * @implements Arrayable<T>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#error
  */
@@ -43,23 +41,6 @@ abstract readonly class Error implements Arrayable
 
         $this->code = $code instanceof ProtocolErrorCode ? $code->value : $code;
         $this->message = $message;
-    }
-
-    #[\Override]
-    public function toArray(): array
-    {
-        $result = [
-            'code' => $this->code,
-            'message' => $this->message,
-        ];
-
-        $data = $this->data ?? [];
-
-        if ([] !== $data) {
-            $result['data'] = $data;
-        }
-
-        return $result;
     }
 
     #[\Override]

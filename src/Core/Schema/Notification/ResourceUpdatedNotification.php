@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Core\Schema\Notification;
 
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
+use Nexus\Mcp\Core\Schema\NotificationParams;
 use Nexus\Mcp\Core\Schema\NotificationParams\ResourceUpdatedNotificationParams;
 
 /**
@@ -22,7 +23,13 @@ use Nexus\Mcp\Core\Schema\NotificationParams\ResourceUpdatedNotificationParams;
  * may need to be read again. This is only sent for resources the client opted in to via the
  * `resourceSubscriptions` field of a `subscriptions/listen` request.
  *
- * @extends JsonRpcNotification<'notifications/resources/updated'>
+ * @property-read ResourceUpdatedNotificationParams $params
+ *
+ * @extends JsonRpcNotification<'notifications/resources/updated', array{
+ *   jsonrpc: '2.0',
+ *   method: 'notifications/resources/updated',
+ *   params: template-type<ResourceUpdatedNotificationParams, NotificationParams, 'T'>,
+ * }>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#resourceupdatednotification
  */
@@ -49,5 +56,15 @@ final readonly class ResourceUpdatedNotification extends JsonRpcNotification imp
         ;
 
         return new self(params: ResourceUpdatedNotificationParams::fromArray($data['params']));
+    }
+
+    #[\Override]
+    public function toArray(): array
+    {
+        return [
+            'jsonrpc' => self::JSONRPC_VERSION,
+            'method' => static::getMethod(),
+            'params' => $this->params->toArray(),
+        ];
     }
 }

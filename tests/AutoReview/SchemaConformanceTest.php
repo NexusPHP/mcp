@@ -27,7 +27,8 @@ use Nexus\Mcp\Core\Schema\Error;
 use Nexus\Mcp\Core\Schema\Error\UnknownProtocolError;
 use Nexus\Mcp\Core\Schema\Error\UrlElicitationRequiredErrorPayload;
 use Nexus\Mcp\Core\Schema\Icons;
-use Nexus\Mcp\Core\Schema\JsonRpc\PaginatedRequest;
+use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
+use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\JsonRpc\UrlElicitationRequiredError;
 use Nexus\Mcp\Core\Schema\Notification;
 use Nexus\Mcp\Core\Schema\Notification\ClientNotification;
@@ -36,6 +37,10 @@ use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
 use Nexus\Mcp\Core\Schema\ProtocolVersion;
 use Nexus\Mcp\Core\Schema\Request;
 use Nexus\Mcp\Core\Schema\Request\ClientRequest;
+use Nexus\Mcp\Core\Schema\Request\CreateMessageRequest;
+use Nexus\Mcp\Core\Schema\Request\ElicitRequest;
+use Nexus\Mcp\Core\Schema\Request\ListRootsRequest;
+use Nexus\Mcp\Core\Schema\Request\PaginatedRequest;
 use Nexus\Mcp\Core\Schema\Request\ServerRequest;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\ResourceRequestParams;
@@ -44,6 +49,9 @@ use Nexus\Mcp\Core\Schema\Resource\ResourceContents;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\CacheableResult;
 use Nexus\Mcp\Core\Schema\Result\ClientResult;
+use Nexus\Mcp\Core\Schema\Result\CreateMessageResult;
+use Nexus\Mcp\Core\Schema\Result\ElicitResult;
+use Nexus\Mcp\Core\Schema\Result\ListRootsResult;
 use Nexus\Mcp\Core\Schema\Result\PaginatedResult;
 use Nexus\Mcp\Core\Schema\Result\ServerResult;
 use Nexus\Mcp\Tools\McpAnchorSnapshot;
@@ -67,8 +75,30 @@ final class SchemaConformanceTest extends TestCase
     private const array SPEC_KEY_TO_NON_PROPERTY_REPRESENTATION = [
         'jsonrpc' => ['kind' => 'constant', 'name' => 'JSONRPC_VERSION'],
         'method' => ['kind' => 'static-method', 'name' => 'getMethod'],
-        'resultType' => ['kind' => 'constant', 'name' => 'RESULT_TYPE'],
+        'resultType' => ['kind' => 'method', 'name' => 'getResultType'],
         'type' => ['kind' => 'constant', 'name' => 'TYPE'],
+    ];
+
+    /**
+     * `JsonRpcRequest` subclasses whose spec def omits the `jsonrpc`/`id`
+     * envelope keys the SDK still serialises, keyed to those keys. Pending
+     * re-modelling off `JsonRpcRequest` (see `ROADMAP.md`).
+     */
+    private const array ENVELOPE_SPEC_DRIFT = [
+        CreateMessageRequest::class => ['jsonrpc', 'id'],
+        ElicitRequest::class => ['jsonrpc', 'id'],
+        ListRootsRequest::class => ['jsonrpc', 'id'],
+    ];
+
+    /**
+     * `Result` subclasses whose spec def omits the `resultType`/`_meta` keys the
+     * SDK still serialises via `Result`. Pending re-modelling off `Result`
+     * (see `ROADMAP.md`).
+     */
+    private const array RESULT_SPEC_DRIFT = [
+        CreateMessageResult::class => ['resultType'],
+        ElicitResult::class => ['resultType', '_meta'],
+        ListRootsResult::class => ['resultType', '_meta'],
     ];
 
     /**
@@ -106,7 +136,6 @@ final class SchemaConformanceTest extends TestCase
         UnknownProtocolError::class => self::JSON_RPC_ERROR_OBJECT_URL,
         UrlElicitationRequiredErrorPayload::class => self::JSON_RPC_ERROR_OBJECT_URL,
         Icons::class => 'https://modelcontextprotocol.io/specification/draft/basic#icons',
-        PaginatedRequest::class => self::TS_SCHEMA_FILE_URL,
         UrlElicitationRequiredError::class => self::TS_SCHEMA_FILE_URL,
         Notification::class => self::TS_SCHEMA_FILE_URL,
         EmptyNotificationParams::class => self::TS_SCHEMA_FILE_URL,
@@ -117,6 +146,7 @@ final class SchemaConformanceTest extends TestCase
         EmptyRequestParams::class => self::TS_SCHEMA_FILE_URL,
         ResourceRequestParams::class => self::TS_SCHEMA_FILE_URL,
         ClientRequest::class => self::TS_SCHEMA_FILE_URL,
+        PaginatedRequest::class => self::TS_SCHEMA_FILE_URL,
         ServerRequest::class => self::TS_SCHEMA_FILE_URL,
         ResourceContents::class => self::TS_SCHEMA_FILE_URL,
         CacheableResult::class => self::TS_SCHEMA_FILE_URL,
@@ -467,6 +497,100 @@ final class SchemaConformanceTest extends TestCase
         ));
     }
 
+    public function testJsonRpcEnvelopeStructuralKeysMatchSpecOrAreKnownDrift(): void
+    {
+        self::generateLatestSchema();
+        self::sortSchemaDefinition();
+
+        $drift = [];
+
+        foreach (self::$sortedSchema['processed_schema'] as $basename => $schemaClass) {
+            $reflection = new \ReflectionClass($schemaClass);
+
+            if ($reflection->isAbstract()) {
+                continue;
+            }
+
+            $isRequest = $reflection->isSubclassOf(JsonRpcRequest::class);
+
+            if (! $isRequest && ! $reflection->isSubclassOf(JsonRpcNotification::class)) {
+                continue;
+            }
+
+            $structuralKeys = $isRequest ? ['jsonrpc', 'id'] : ['jsonrpc'];
+
+            $specDef = self::$latestSchema[$basename] ?? null;
+
+            if (! \is_array($specDef)) {
+                continue;
+            }
+
+            $specProperties = $specDef['properties'] ?? [];
+            $specPropertyKeys = \is_array($specProperties)
+                ? array_filter(array_keys($specProperties), is_string(...))
+                : [];
+
+            $missing = array_values(array_filter(
+                $structuralKeys,
+                static fn(string $key): bool => ! \in_array($key, $specPropertyKeys, true),
+            ));
+
+            if ([] !== $missing) {
+                $drift[$schemaClass] = $missing;
+            }
+        }
+
+        ksort($drift);
+
+        self::assertSame(self::ENVELOPE_SPEC_DRIFT, $drift, \sprintf(
+            'JsonRpcRequest/JsonRpcNotification subclasses serialising "jsonrpc"/"id" keys absent from their spec def must be listed in ENVELOPE_SPEC_DRIFT. Untracked: %s.',
+            implode(', ', array_keys(array_diff_key($drift, self::ENVELOPE_SPEC_DRIFT))),
+        ));
+    }
+
+    public function testResultStructuralKeysMatchSpecOrAreKnownDrift(): void
+    {
+        self::generateLatestSchema();
+        self::sortSchemaDefinition();
+
+        $drift = [];
+
+        foreach (self::$sortedSchema['processed_schema'] as $basename => $schemaClass) {
+            $reflection = new \ReflectionClass($schemaClass);
+
+            if ($reflection->isAbstract() || ! $reflection->isSubclassOf(Result::class)) {
+                continue;
+            }
+
+            $specDef = self::$latestSchema[$basename] ?? null;
+
+            if (! \is_array($specDef) || ! isset($specDef['properties'])) {
+                continue;
+            }
+
+            $specProperties = $specDef['properties'];
+            $specPropertyKeys = \is_array($specProperties)
+                ? array_filter(array_keys($specProperties), is_string(...))
+                : [];
+
+            $missing = array_values(array_filter(
+                ['resultType', '_meta'],
+                static fn(string $key): bool => ! \in_array($key, $specPropertyKeys, true),
+            ));
+
+            if ([] !== $missing) {
+                $drift[$schemaClass] = $missing;
+            }
+        }
+
+        ksort($drift);
+
+        self::assertSame(self::RESULT_SPEC_DRIFT, $drift, \sprintf(
+            'Result subclasses serialising "resultType"/"_meta" keys absent from their spec def must be listed in RESULT_SPEC_DRIFT. Untracked: %s.',
+            implode(', ', array_keys(array_diff_key($drift, self::RESULT_SPEC_DRIFT))),
+        ));
+    }
+
     public function testNonSchemaAnchorSeeUrlsIsSortedByKey(): void
     {
         $keys = array_keys(self::NON_SCHEMA_ANCHOR_SEE_URLS);
@@ -746,6 +870,15 @@ final class SchemaConformanceTest extends TestCase
                     }
                 }
 
+                if ('method' === $rep['kind'] && ! $reflection->hasMethod($rep['name'])) {
+                    $findings[] = \sprintf(
+                        '"%s" must be backed by method %s::%s() but it is not defined.',
+                        $key,
+                        $reflection->getShortName(),
+                        $rep['name'],
+                    );
+                }
+
                 if (! $isRequired) {
                     $findings[] = \sprintf(
                         '"%s" is optional but is backed by an always-present constant/method. Consider whether the spec marks it as required.',
@@ -870,10 +1003,7 @@ final class SchemaConformanceTest extends TestCase
     }
 
     /**
-     * Extract top-level keys from a class's `@implements Arrayable<array{...}>`
-     * docblock. Reads the class's own docblock (no walk-up). Returns null when
-     * the class has no docblock, no `@implements Arrayable<array{...}>`, or a
-     * loose shape (e.g. `Arrayable<array<string, mixed>>`).
+     * Extract top-level keys from a class's array shape docblock.
      *
      * @param \ReflectionClass<object> $reflection
      *
@@ -887,7 +1017,8 @@ final class SchemaConformanceTest extends TestCase
             return null;
         }
 
-        return self::parseShapeAfter($docComment, '/@implements\s+Arrayable\s*<\s*array\{/');
+        return self::parseShapeAfter($docComment, '/@implements\s+Arrayable\s*<\s*array\{/')
+            ?? self::parseShapeAfter($docComment, '/@extends\s+\w+\s*<\s*[^<>]*?array\{/');
     }
 
     /**
@@ -994,7 +1125,7 @@ final class SchemaConformanceTest extends TestCase
                 return;
             }
 
-            if (preg_match('/^([\'"]?)([A-Za-z_][\w\-]*)\1(\??):/', $entry, $m) !== 1) {
+            if (preg_match('/^([\'"]?)([A-Za-z_][\w\-.\/]*)\1(\??):/', $entry, $m) !== 1) {
                 return;
             }
 

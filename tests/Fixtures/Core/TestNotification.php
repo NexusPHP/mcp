@@ -15,12 +15,19 @@ namespace Nexus\Mcp\Tests\Fixtures\Core;
 
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
+use Nexus\Mcp\Core\Schema\NotificationParams;
 use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
 
 /**
  * @internal
  *
- * @extends JsonRpcNotification<'tests/test-notification'>
+ * @property-read EmptyNotificationParams $params
+ *
+ * @extends JsonRpcNotification<'tests/test-notification', array{
+ *   jsonrpc: '2.0',
+ *   method: 'tests/test-notification',
+ *   params?: template-type<EmptyNotificationParams, NotificationParams, 'T'>,
+ * }>
  */
 final readonly class TestNotification extends JsonRpcNotification
 {
@@ -49,5 +56,22 @@ final readonly class TestNotification extends JsonRpcNotification
         }
 
         return new self($params);
+    }
+
+    #[\Override]
+    public function toArray(): array
+    {
+        $envelope = [
+            'jsonrpc' => self::JSONRPC_VERSION,
+            'method' => static::getMethod(),
+        ];
+
+        $params = $this->params->toArray();
+
+        if ([] !== $params) {
+            $envelope['params'] = $params;
+        }
+
+        return $envelope;
     }
 }

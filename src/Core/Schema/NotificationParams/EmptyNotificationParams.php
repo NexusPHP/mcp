@@ -14,11 +14,16 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\NotificationParams;
 
 use Nexus\Assert\Assert;
+use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\NotificationParams;
 
 /**
  * Default notification params for methods that carry no typed fields beyond `_meta`.
+ *
+ * @extends NotificationParams<array{
+ *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
+ * }>
  *
  * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/draft/schema.ts
  */
@@ -38,5 +43,13 @@ final readonly class EmptyNotificationParams extends NotificationParams
         }
 
         return new self(meta: $meta);
+    }
+
+    #[\Override]
+    public function toArray(): array
+    {
+        $meta = $this->meta->toArray();
+
+        return [] !== $meta ? ['_meta' => $meta] : [];
     }
 }

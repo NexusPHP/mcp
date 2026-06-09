@@ -14,11 +14,19 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\Resource;
 
 use Nexus\Assert\Assert;
+use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\MetaObject;
 
 /**
  * Binary resource contents. The `blob` payload carries a base64-encoded
  * representation of the binary data.
+ *
+ * @extends ResourceContents<array{
+ *   uri: non-empty-string,
+ *   blob: string,
+ *   mimeType?: non-empty-string,
+ *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
+ * }>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#blobresourcecontents
  */
@@ -33,9 +41,6 @@ final readonly class BlobResourceContents extends ResourceContents
         parent::__construct($uri, $mimeType, $meta);
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
     #[\Override]
     public static function fromArray(array $data): static
     {
@@ -66,6 +71,21 @@ final readonly class BlobResourceContents extends ResourceContents
     #[\Override]
     public function toArray(): array
     {
-        return [...parent::toArray(), 'blob' => $this->blob];
+        $data = [
+            'uri' => $this->uri,
+            'blob' => $this->blob,
+        ];
+
+        if (null !== $this->mimeType) {
+            $data['mimeType'] = $this->mimeType;
+        }
+
+        $meta = $this->meta->toArray();
+
+        if ([] !== $meta) {
+            $data['_meta'] = $meta;
+        }
+
+        return $data;
     }
 }

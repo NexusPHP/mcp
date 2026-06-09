@@ -6,8 +6,6 @@
             "vendor": "acme"
         },
         "resultType": "complete",
-        "ttlMs": 300000,
-        "cacheScope": "public",
         "supportedVersions": [
             "2026-07-28"
         ],
@@ -22,6 +20,8 @@
             "title": "Test Server",
             "description": "A test server."
         },
-        "instructions": "Welcome to the test server."
+        "instructions": "Welcome to the test server.",
+        "ttlMs": 300000,
+        "cacheScope": "public"
     }
 }

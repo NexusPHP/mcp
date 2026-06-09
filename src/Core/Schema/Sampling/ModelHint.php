@@ -40,9 +40,6 @@ final readonly class ModelHint implements Arrayable
         $this->name = $name;
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
     #[\Override]
     public static function fromArray(array $data): static
     {

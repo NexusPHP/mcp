@@ -66,12 +66,12 @@ final class ListResourceTemplatesResultTest extends TestCase
         self::assertSame(
             [
                 'resultType' => 'complete',
-                'ttlMs' => 0,
-                'cacheScope' => 'private',
                 'resourceTemplates' => [
                     ['name' => 'a', 'uriTemplate' => 'file:///{a}'],
                     ['name' => 'b', 'uriTemplate' => 'file:///{b}'],
                 ],
+                'ttlMs' => 0,
+                'cacheScope' => 'private',
             ],
             $result->toArray(),
         );
@@ -89,10 +89,10 @@ final class ListResourceTemplatesResultTest extends TestCase
         self::assertSame(
             [
                 'resultType' => 'complete',
+                'resourceTemplates' => [['name' => 'a', 'uriTemplate' => 'file:///{a}']],
+                'nextCursor' => 'cur-1',
                 'ttlMs' => 0,
                 'cacheScope' => 'private',
-                'nextCursor' => 'cur-1',
-                'resourceTemplates' => [['name' => 'a', 'uriTemplate' => 'file:///{a}']],
             ],
             $result->toArray(),
         );
@@ -112,9 +112,9 @@ final class ListResourceTemplatesResultTest extends TestCase
             [
                 '_meta' => ['vendor' => 'x'],
                 'resultType' => 'complete',
+                'resourceTemplates' => [['name' => 'a', 'uriTemplate' => 'file:///{a}']],
                 'ttlMs' => 0,
                 'cacheScope' => 'private',
-                'resourceTemplates' => [['name' => 'a', 'uriTemplate' => 'file:///{a}']],
             ],
             $result->toArray(),
         );
@@ -134,10 +134,10 @@ final class ListResourceTemplatesResultTest extends TestCase
             [
                 '_meta' => ['vendor' => 'x'],
                 'resultType' => 'complete',
+                'resourceTemplates' => [['name' => 'a', 'uriTemplate' => 'file:///{a}']],
+                'nextCursor' => 'cur-1',
                 'ttlMs' => 60000,
                 'cacheScope' => 'public',
-                'nextCursor' => 'cur-1',
-                'resourceTemplates' => [['name' => 'a', 'uriTemplate' => 'file:///{a}']],
             ],
             $result->toArray(),
         );

@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Schema\Error;
 
+use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Error;
 
@@ -25,6 +26,8 @@ use Nexus\Mcp\Core\Schema\Error;
  * advertised). A request that requires a client capability the client did not declare is
  * signalled instead by `MissingRequiredClientCapabilityError` (`-32003`).
  *
+ * @extends Error<array{code: -32601, message: non-empty-string, data?: mixed}>
+ *
  * @see https://modelcontextprotocol.io/specification/draft/schema#methodnotfounderror
  */
 final readonly class MethodNotFoundError extends Error
@@ -36,12 +39,29 @@ final readonly class MethodNotFoundError extends Error
         parent::__construct(ProtocolErrorCode::MethodNotFound, $message, $data);
     }
 
-    /**
-     * @param array{code?: int, message?: string, data?: mixed} $data
-     */
     #[\Override]
     public static function fromArray(array $data): static
     {
-        return new self(message: $data['message'] ?? self::DEFAULT_MESSAGE, data: $data['data'] ?? null);
+        $message = $data['message'] ?? self::DEFAULT_MESSAGE;
+        Assert::that($message)->isString('error "message" must be a string, {type} given.');
+
+        return new self(message: $message, data: $data['data'] ?? null);
+    }
+
+    #[\Override]
+    public function toArray(): array
+    {
+        $result = [
+            'code' => ProtocolErrorCode::MethodNotFound->value,
+            'message' => $this->message,
+        ];
+
+        $data = $this->data ?? [];
+
+        if ([] !== $data) {
+            $result['data'] = $data;
+        }
+
+        return $result;
     }
 }

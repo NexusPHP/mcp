@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Core\Schema\Notification;
 
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
+use Nexus\Mcp\Core\Schema\NotificationParams;
 use Nexus\Mcp\Core\Schema\NotificationParams\CancelledNotificationParams;
 
 /**
@@ -25,7 +26,13 @@ use Nexus\Mcp\Core\Schema\NotificationParams\CancelledNotificationParams;
  *
  * This notification indicates that the result will be unused, so any associated processing SHOULD cease.
  *
- * @extends JsonRpcNotification<'notifications/cancelled'>
+ * @property-read CancelledNotificationParams $params
+ *
+ * @extends JsonRpcNotification<'notifications/cancelled', array{
+ *   jsonrpc: '2.0',
+ *   method: 'notifications/cancelled',
+ *   params: template-type<CancelledNotificationParams, NotificationParams, 'T'>,
+ * }>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#cancellednotification
  */
@@ -52,6 +59,16 @@ final readonly class CancelledNotification extends JsonRpcNotification implement
         ;
 
         return new self(params: CancelledNotificationParams::fromArray($data['params']));
+    }
+
+    #[\Override]
+    public function toArray(): array
+    {
+        return [
+            'jsonrpc' => self::JSONRPC_VERSION,
+            'method' => static::getMethod(),
+            'params' => $this->params->toArray(),
+        ];
     }
 
     #[\Override]

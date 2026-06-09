@@ -35,18 +35,18 @@ use Nexus\Mcp\Core\Schema\Result;
 final class JsonRpcMessageParser
 {
     /**
-     * @var array<non-empty-string, class-string<JsonRpcRequest<non-empty-string>>>
+     * @var array<non-empty-string, class-string<JsonRpcRequest<non-empty-string, array<string, mixed>>>>
      */
     private readonly array $requests;
 
     /**
-     * @var array<non-empty-string, class-string<JsonRpcNotification<non-empty-string>>>
+     * @var array<non-empty-string, class-string<JsonRpcNotification<non-empty-string, array<string, mixed>>>>
      */
     private readonly array $notifications;
 
     /**
-     * @param array<non-empty-string, class-string<JsonRpcRequest<non-empty-string>>>      $requests      Merged over `JsonRpcMethodRegistry::requests()` with caller precedence.
-     * @param array<non-empty-string, class-string<JsonRpcNotification<non-empty-string>>> $notifications Merged over `JsonRpcMethodRegistry::notifications()` with caller precedence.
+     * @param array<non-empty-string, class-string<JsonRpcRequest<non-empty-string, array<string, mixed>>>>      $requests      Merged over `JsonRpcMethodRegistry::requests()` with caller precedence.
+     * @param array<non-empty-string, class-string<JsonRpcNotification<non-empty-string, array<string, mixed>>>> $notifications Merged over `JsonRpcMethodRegistry::notifications()` with caller precedence.
      */
     public function __construct(array $requests = [], array $notifications = [])
     {
@@ -62,8 +62,8 @@ final class JsonRpcMessageParser
      *                                      carrying the raw payload. When supplied, it is decoded into `JsonRpcResultResponse<T>`.
      *
      * @return ($result is null
-     *     ? JsonRpcErrorResponse|JsonRpcNotification<non-empty-string>|JsonRpcRequest<non-empty-string>|UnparsedResultEnvelope
-     *     : JsonRpcErrorResponse|JsonRpcNotification<non-empty-string>|JsonRpcRequest<non-empty-string>|JsonRpcResultResponse<T>)
+     *     ? JsonRpcErrorResponse|JsonRpcNotification<non-empty-string, array<string, mixed>>|JsonRpcRequest<non-empty-string, array<string, mixed>>|UnparsedResultEnvelope
+     *     : JsonRpcErrorResponse|JsonRpcNotification<non-empty-string, array<string, mixed>>|JsonRpcRequest<non-empty-string, array<string, mixed>>|JsonRpcResultResponse<T>)
      *
      * @throws AbstractJsonRpcProtocolException
      */

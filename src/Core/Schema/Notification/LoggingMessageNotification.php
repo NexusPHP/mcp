@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Core\Schema\Notification;
 
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
+use Nexus\Mcp\Core\Schema\NotificationParams;
 use Nexus\Mcp\Core\Schema\NotificationParams\LoggingMessageNotificationParams;
 
 /**
@@ -23,7 +24,11 @@ use Nexus\Mcp\Core\Schema\NotificationParams\LoggingMessageNotificationParams;
  *
  * @property-read LoggingMessageNotificationParams $params
  *
- * @extends JsonRpcNotification<'notifications/message'>
+ * @extends JsonRpcNotification<'notifications/message', array{
+ *   jsonrpc: '2.0',
+ *   method: 'notifications/message',
+ *   params: template-type<LoggingMessageNotificationParams, NotificationParams, 'T'>,
+ * }>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#loggingmessagenotification
  */
@@ -50,5 +55,15 @@ final readonly class LoggingMessageNotification extends JsonRpcNotification impl
         ;
 
         return new self(params: LoggingMessageNotificationParams::fromArray($data['params']));
+    }
+
+    #[\Override]
+    public function toArray(): array
+    {
+        return [
+            'jsonrpc' => self::JSONRPC_VERSION,
+            'method' => static::getMethod(),
+            'params' => $this->params->toArray(),
+        ];
     }
 }

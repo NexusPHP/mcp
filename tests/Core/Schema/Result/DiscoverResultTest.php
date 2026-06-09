@@ -71,11 +71,11 @@ final class DiscoverResultTest extends TestCase
         self::assertSame(
             [
                 'resultType' => 'complete',
-                'ttlMs' => 0,
-                'cacheScope' => 'private',
                 'supportedVersions' => ['2026-07-28'],
                 'capabilities' => ['tools' => ['listChanged' => true]],
                 'serverInfo' => ['name' => 'srv', 'version' => '1.0.0'],
+                'ttlMs' => 0,
+                'cacheScope' => 'private',
             ],
             $result->toArray(),
         );
@@ -97,12 +97,12 @@ final class DiscoverResultTest extends TestCase
             [
                 '_meta' => ['vendor' => 'x'],
                 'resultType' => 'complete',
-                'ttlMs' => 60000,
-                'cacheScope' => 'public',
                 'supportedVersions' => ['2026-07-28', '2025-06-18'],
                 'capabilities' => ['tools' => ['listChanged' => true]],
                 'serverInfo' => ['name' => 'srv', 'version' => '1.0.0'],
                 'instructions' => 'Be helpful.',
+                'ttlMs' => 60000,
+                'cacheScope' => 'public',
             ],
             $result->toArray(),
         );

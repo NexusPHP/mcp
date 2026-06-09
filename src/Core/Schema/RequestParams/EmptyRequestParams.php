@@ -14,11 +14,16 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\RequestParams;
 
 use Nexus\Assert\Assert;
+use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams;
 
 /**
  * Default request params for methods that carry no typed fields beyond `_meta`.
+ *
+ * @extends RequestParams<array{
+ *   _meta: template-type<RequestMetaObject, Arrayable, 'T'>,
+ * }>
  *
  * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/draft/schema.ts
  */
@@ -40,5 +45,11 @@ final readonly class EmptyRequestParams extends RequestParams
         $meta = RequestMetaObject::fromArray($data['_meta']);
 
         return new self(meta: $meta);
+    }
+
+    #[\Override]
+    public function toArray(): array
+    {
+        return ['_meta' => $this->meta->toArray()];
     }
 }

@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Core\Schema\Notification;
 
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
+use Nexus\Mcp\Core\Schema\NotificationParams;
 use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
 
 /**
@@ -22,7 +23,13 @@ use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
  * resources it can read from has changed. This may be issued by servers without any previous
  * subscription from the client.
  *
- * @extends JsonRpcNotification<'notifications/resources/list_changed'>
+ * @property-read EmptyNotificationParams $params
+ *
+ * @extends JsonRpcNotification<'notifications/resources/list_changed', array{
+ *   jsonrpc: '2.0',
+ *   method: 'notifications/resources/list_changed',
+ *   params?: template-type<EmptyNotificationParams, NotificationParams, 'T'>,
+ * }>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#resourcelistchangednotification
  */
@@ -48,5 +55,22 @@ final readonly class ResourceListChangedNotification extends JsonRpcNotification
         }
 
         return new self(params: $params);
+    }
+
+    #[\Override]
+    public function toArray(): array
+    {
+        $envelope = [
+            'jsonrpc' => self::JSONRPC_VERSION,
+            'method' => static::getMethod(),
+        ];
+
+        $params = $this->params->toArray();
+
+        if ([] !== $params) {
+            $envelope['params'] = $params;
+        }
+
+        return $envelope;
     }
 }

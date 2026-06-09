@@ -23,12 +23,12 @@ use Nexus\Mcp\Core\Schema\Result;
  *
  * @internal
  *
- * @implements RequestHandlerInterface<non-empty-string, Result, AbstractContext>
+ * @implements RequestHandlerInterface<non-empty-string, Result<array<string, mixed>>, AbstractContext>
  */
 final readonly class ClosureRequestHandler implements RequestHandlerInterface
 {
     /**
-     * @param \Closure(JsonRpcRequest<non-empty-string>, AbstractContext): Result $handler
+     * @param \Closure(JsonRpcRequest<non-empty-string, array<string, mixed>>, AbstractContext): Result<array<string, mixed>> $handler
      */
     public function __construct(private \Closure $handler)
     {

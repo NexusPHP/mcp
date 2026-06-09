@@ -6,19 +6,19 @@
             "vendor.brand": "acme"
         },
         "resultType": "complete",
-        "ttlMs": 60000,
-        "cacheScope": "public",
         "contents": [
             {
                 "uri": "file:///tmp/sample.txt",
-                "mimeType": "text/plain",
-                "text": "hello"
+                "text": "hello",
+                "mimeType": "text/plain"
             },
             {
                 "uri": "file:///tmp/sample.bin",
-                "mimeType": "application/octet-stream",
-                "blob": "aGVsbG8="
+                "blob": "aGVsbG8=",
+                "mimeType": "application/octet-stream"
             }
-        ]
+        ],
+        "ttlMs": 60000,
+        "cacheScope": "public"
     }
 }

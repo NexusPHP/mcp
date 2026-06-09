@@ -28,7 +28,7 @@ use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 interface NotificationHandlerInterface
 {
     /**
-     * @param JsonRpcNotification<non-empty-string> $notification
+     * @param JsonRpcNotification<non-empty-string, array<string, mixed>> $notification
      */
     public function handle(JsonRpcNotification $notification): void;
 }

@@ -67,9 +67,6 @@ final readonly class NumberSchema implements Arrayable, PrimitiveSchemaDefinitio
         $this->description = $description;
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
     #[\Override]
     public static function fromArray(array $data): static
     {

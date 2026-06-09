@@ -74,9 +74,6 @@ final readonly class ElicitRequestedSchema implements Arrayable
         $this->schema = $schema;
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
     #[\Override]
     public static function fromArray(array $data): static
     {

@@ -38,6 +38,9 @@ composer test:client # only client tests
 composer test:core   # only core tests
 composer test:server # only server tests
 
+# Enforce 100% line coverage (parses the Clover report emitted by test:unit)
+composer coverage:check
+
 # Run a single test file or test method
 ./vendor/bin/phpunit tests/Core/SomeTest.php
 ./vendor/bin/phpunit --filter testMethodName

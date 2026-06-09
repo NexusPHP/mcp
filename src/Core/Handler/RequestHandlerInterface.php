@@ -30,8 +30,8 @@ use Nexus\Mcp\Core\Schema\Result;
 interface RequestHandlerInterface
 {
     /**
-     * @param JsonRpcRequest<non-empty-string> $request
-     * @param TContext                         $context
+     * @param JsonRpcRequest<non-empty-string, array<string, mixed>> $request
+     * @param TContext                                               $context
      *
      * @return TResult
      */

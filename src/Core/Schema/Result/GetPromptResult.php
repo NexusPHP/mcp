@@ -14,12 +14,20 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\Result;
 
 use Nexus\Assert\Assert;
+use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Prompt\PromptMessage;
 use Nexus\Mcp\Core\Schema\Result;
 
 /**
  * The result returned by the server for a `prompts/get` request.
+ *
+ * @extends Result<array{
+ *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
+ *   resultType: non-empty-string,
+ *   description?: non-empty-string,
+ *   messages: list<template-type<PromptMessage, Arrayable, 'T'>>,
+ * }>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#getpromptresult
  */
@@ -54,9 +62,6 @@ final readonly class GetPromptResult extends Result implements ServerResult
         parent::__construct($meta);
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
     #[\Override]
     public static function fromArray(array $data): static
     {
@@ -92,14 +97,23 @@ final readonly class GetPromptResult extends Result implements ServerResult
     #[\Override]
     public function toArray(): array
     {
-        $data = [
-            ...parent::toArray(),
-            'messages' => array_map(static fn(PromptMessage $message): array => $message->toArray(), $this->messages),
-        ];
+        $data = [];
+        $meta = $this->meta->toArray();
+
+        if ([] !== $meta) {
+            $data['_meta'] = $meta;
+        }
+
+        $data['resultType'] = self::getResultType();
 
         if (null !== $this->description) {
             $data['description'] = $this->description;
         }
+
+        $data['messages'] = array_map(
+            static fn(PromptMessage $message): array => $message->toArray(),
+            $this->messages,
+        );
 
         return $data;
     }
@@ -108,5 +122,11 @@ final readonly class GetPromptResult extends Result implements ServerResult
     public function jsonSerialize(): array
     {
         return $this->toArray();
+    }
+
+    #[\Override]
+    protected function getResultType(): string
+    {
+        return 'complete';
     }
 }

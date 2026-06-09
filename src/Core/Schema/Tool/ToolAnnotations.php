@@ -60,9 +60,6 @@ final readonly class ToolAnnotations implements Arrayable
         }
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
     #[\Override]
     public static function fromArray(array $data): static
     {

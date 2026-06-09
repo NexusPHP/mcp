@@ -76,9 +76,9 @@ final class BlobResourceContentsTest extends TestCase
         self::assertSame(
             [
                 'uri' => 'file:///x',
+                'blob' => 'aGVsbG8=',
                 'mimeType' => 'application/octet-stream',
                 '_meta' => ['vendor' => 'x'],
-                'blob' => 'aGVsbG8=',
             ],
             $contents->toArray(),
         );

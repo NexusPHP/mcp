@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\Result;
 
 use Nexus\Assert\Assert;
+use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\Implementation;
 use Nexus\Mcp\Core\Schema\MetaObject;
@@ -22,6 +23,17 @@ use Nexus\Mcp\Core\Validation\EnumValueValidator;
 
 /**
  * The result returned by the server for a `server/discover` request.
+ *
+ * @extends CacheableResult<array{
+ *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
+ *   resultType: non-empty-string,
+ *   supportedVersions: list<non-empty-string>,
+ *   capabilities: template-type<ServerCapabilities, Arrayable, 'T'>,
+ *   serverInfo: template-type<Implementation, Arrayable, 'T'>,
+ *   instructions?: string,
+ *   ttlMs: int,
+ *   cacheScope: value-of<CacheScope>,
+ * }>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#discoverresult
  */
@@ -117,16 +129,24 @@ final readonly class DiscoverResult extends CacheableResult implements ServerRes
     #[\Override]
     public function toArray(): array
     {
-        $data = [
-            ...parent::toArray(),
-            'supportedVersions' => $this->supportedVersions,
-            'capabilities' => $this->capabilities->toArray(),
-            'serverInfo' => $this->serverInfo->toArray(),
-        ];
+        $data = [];
+        $meta = $this->meta->toArray();
+
+        if ([] !== $meta) {
+            $data['_meta'] = $meta;
+        }
+
+        $data['resultType'] = self::getResultType();
+        $data['supportedVersions'] = $this->supportedVersions;
+        $data['capabilities'] = $this->capabilities->toArray();
+        $data['serverInfo'] = $this->serverInfo->toArray();
 
         if (null !== $this->instructions) {
             $data['instructions'] = $this->instructions;
         }
+
+        $data['ttlMs'] = $this->ttlMs;
+        $data['cacheScope'] = $this->cacheScope->value;
 
         return $data;
     }
@@ -138,5 +158,11 @@ final readonly class DiscoverResult extends CacheableResult implements ServerRes
         $data['capabilities'] = $this->capabilities->jsonSerialize();
 
         return $data;
+    }
+
+    #[\Override]
+    protected function getResultType(): string
+    {
+        return 'complete';
     }
 }

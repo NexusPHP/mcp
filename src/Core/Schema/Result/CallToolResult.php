@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Core\Schema\Result;
 
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\JsonRpc\ContentBlockDispatcher;
+use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\ContentBlock;
 use Nexus\Mcp\Core\Schema\ContentBlock\AudioContent;
 use Nexus\Mcp\Core\Schema\ContentBlock\EmbeddedResource;
@@ -26,6 +27,14 @@ use Nexus\Mcp\Core\Schema\Result;
 
 /**
  * The result returned by the server for a `tools/call` request.
+ *
+ * @extends Result<array{
+ *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
+ *   resultType: non-empty-string,
+ *   content: list<template-type<AudioContent|EmbeddedResource|ImageContent|ResourceLink|TextContent, Arrayable, 'T'>>,
+ *   structuredContent?: array<string, mixed>,
+ *   isError?: bool,
+ * }>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#calltoolresult
  */
@@ -110,13 +119,18 @@ final readonly class CallToolResult extends Result implements ServerResult
     #[\Override]
     public function toArray(): array
     {
-        $data = [
-            ...parent::toArray(),
-            'content' => array_map(
-                static fn(AudioContent|EmbeddedResource|ImageContent|ResourceLink|TextContent $block): array => $block->toArray(),
-                $this->content,
-            ),
-        ];
+        $data = [];
+        $meta = $this->meta->toArray();
+
+        if ([] !== $meta) {
+            $data['_meta'] = $meta;
+        }
+
+        $data['resultType'] = self::getResultType();
+        $data['content'] = array_map(
+            static fn(AudioContent|EmbeddedResource|ImageContent|ResourceLink|TextContent $block): array => $block->toArray(),
+            $this->content,
+        );
 
         if (null !== $this->structuredContent) {
             $data['structuredContent'] = $this->structuredContent;
@@ -133,5 +147,11 @@ final readonly class CallToolResult extends Result implements ServerResult
     public function jsonSerialize(): array
     {
         return $this->toArray();
+    }
+
+    #[\Override]
+    protected function getResultType(): string
+    {
+        return 'complete';
     }
 }

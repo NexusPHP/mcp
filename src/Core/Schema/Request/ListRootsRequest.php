@@ -26,7 +26,7 @@ use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
  * This request is typically used when the server needs to understand the file system structure
  * or access specific locations that the client has permission to read from.
  *
- * @extends JsonRpcRequest<'roots/list'>
+ * @extends JsonRpcRequest<'roots/list', array<string, mixed>>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#listrootsrequest
  */
@@ -56,5 +56,21 @@ final readonly class ListRootsRequest extends JsonRpcRequest implements ServerRe
         }
 
         return new self(id: new RequestId(id: $id), params: $params);
+    }
+
+    #[\Override]
+    public function toArray(): array
+    {
+        $envelope = [
+            'jsonrpc' => self::JSONRPC_VERSION,
+            'id' => $this->id->id,
+            'method' => static::getMethod(),
+        ];
+
+        if (null !== $this->params) {
+            $envelope['params'] = $this->params->toArray();
+        }
+
+        return $envelope;
     }
 }

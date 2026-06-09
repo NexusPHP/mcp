@@ -14,12 +14,18 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\RequestParams;
 
 use Nexus\Assert\Assert;
+use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\Cursor;
 use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams;
 
 /**
  * Common params for paginated requests.
+ *
+ * @extends RequestParams<array{
+ *   _meta: template-type<RequestMetaObject, Arrayable, 'T'>,
+ *   cursor?: non-empty-string,
+ * }>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#paginatedrequestparams
  */
@@ -30,9 +36,6 @@ final readonly class PaginatedRequestParams extends RequestParams
         parent::__construct($meta);
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
     #[\Override]
     public static function fromArray(array $data): static
     {
@@ -57,7 +60,7 @@ final readonly class PaginatedRequestParams extends RequestParams
     #[\Override]
     public function toArray(): array
     {
-        $data = parent::toArray();
+        $data = ['_meta' => $this->meta->toArray()];
 
         if (null !== $this->cursor) {
             $data['cursor'] = $this->cursor->cursor;

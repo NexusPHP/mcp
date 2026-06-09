@@ -16,14 +16,16 @@ namespace Nexus\Mcp\Core\Schema;
 /**
  * Interface for classes that can be converted to and from arrays.
  *
- * @template T of array<string, mixed>
+ * @template-covariant T of array<string, mixed>
  */
 interface Arrayable extends \JsonSerializable
 {
     /**
      * Create an instance of the class from an array.
      *
-     * @param T $data
+     * @template TData of array<string, mixed>
+     *
+     * @param TData $data
      *
      * @todo See ROADMAP.md (PHP 8.5 language compatibility).
      */

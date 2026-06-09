@@ -92,9 +92,9 @@ final class TextResourceContentsTest extends TestCase
         self::assertSame(
             [
                 'uri' => 'file:///x',
+                'text' => 'hello',
                 'mimeType' => 'text/plain',
                 '_meta' => ['vendor' => 'x'],
-                'text' => 'hello',
             ],
             $contents->toArray(),
         );

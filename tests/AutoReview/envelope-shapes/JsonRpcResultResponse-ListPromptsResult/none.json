@@ -3,12 +3,12 @@
     "id": 42,
     "result": {
         "resultType": "complete",
-        "ttlMs": 0,
-        "cacheScope": "private",
         "prompts": [
             {
                 "name": "code-review"
             }
-        ]
+        ],
+        "ttlMs": 0,
+        "cacheScope": "private"
     }
 }

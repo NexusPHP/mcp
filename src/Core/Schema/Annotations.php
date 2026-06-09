@@ -60,9 +60,6 @@ final readonly class Annotations implements Arrayable
         $this->lastModified = $lastModified;
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
     #[\Override]
     public static function fromArray(array $data): static
     {

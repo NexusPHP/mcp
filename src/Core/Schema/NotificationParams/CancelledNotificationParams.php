@@ -14,12 +14,19 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\NotificationParams;
 
 use Nexus\Assert\Assert;
+use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\NotificationParams;
 use Nexus\Mcp\Core\Schema\RequestId;
 
 /**
  * Parameters for a `notifications/cancelled` notification.
+ *
+ * @extends NotificationParams<array{
+ *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
+ *   requestId?: int|non-empty-string,
+ *   reason?: string,
+ * }>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#cancellednotificationparams
  */
@@ -33,9 +40,6 @@ final readonly class CancelledNotificationParams extends NotificationParams
         parent::__construct($meta);
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
     #[\Override]
     public static function fromArray(array $data): static
     {
@@ -65,7 +69,12 @@ final readonly class CancelledNotificationParams extends NotificationParams
     #[\Override]
     public function toArray(): array
     {
-        $data = parent::toArray();
+        $data = [];
+        $meta = $this->meta->toArray();
+
+        if ([] !== $meta) {
+            $data['_meta'] = $meta;
+        }
 
         if (null !== $this->requestId) {
             $data['requestId'] = $this->requestId->id;

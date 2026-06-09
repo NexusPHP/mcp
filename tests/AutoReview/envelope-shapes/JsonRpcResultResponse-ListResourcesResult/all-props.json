@@ -6,14 +6,14 @@
             "vendor.brand": "acme"
         },
         "resultType": "complete",
-        "ttlMs": 60000,
-        "cacheScope": "public",
-        "nextCursor": "cursor-token",
         "resources": [
             {
                 "name": "sample",
                 "uri": "file:///tmp/sample"
             }
-        ]
+        ],
+        "nextCursor": "cursor-token",
+        "ttlMs": 60000,
+        "cacheScope": "public"
     }
 }

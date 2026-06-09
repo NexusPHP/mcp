@@ -180,7 +180,7 @@ provider APIs over Sampling, and tool parameters or resource URIs over Roots). T
 greenfield SDK with zero published tags. Omitting them is conformant. This is settled, not an open
 spec-divergence question.
 
-- [ ] Delete Roots (`roots/list`, `notifications/roots/list_changed`, `Root`, the capability slot).
+- [ ] Delete Roots (`roots/list`, `notifications/roots/list_changed`, `Root`, `ListRootsResult`, the capability slot).
 - [ ] Delete the residual server-side Logging emission path: `notifications/message`
   (`LoggingMessageNotification`), the `logging` capability slot, `LoggingLevelGate`, and the `log()`
   helper on `ServerContext`. Retain the `LoggingLevel` enum and `RequestMetaObject.logLevel` as a
@@ -193,6 +193,15 @@ spec-divergence question.
 - [ ] Rename the `ServerRequest` marker interface to `InputRequest`, matching the union the 2026-07-28
   spec renamed. After Roots and Sampling are deleted above, only `ElicitRequest` implements it. Touches
   the marker, its implementers, the conformance `@see` map, and tests. `ClientRequest` is unchanged.
+- [ ] Re-model `ElicitRequest` off `JsonRpcRequest`. The 2026-07-28 spec defines it as a bare `Request`
+  (`method` + `params`, no `jsonrpc`/`id` envelope), surfaced through the MRTR `InputRequiredResult` flow
+  rather than as a standalone JSON-RPC request. The SDK still serialises the full envelope, pinned by
+  `ENVELOPE_SPEC_DRIFT` in `SchemaConformanceTest` until the re-model lands.
+- [ ] Re-model `ElicitResult` off `Result`. The 2026-07-28 spec defines it as a standalone result
+  (`action` plus optional `content`), not a `Result` subtype, so it carries neither the `resultType`
+  discriminator nor `_meta`. The SDK extends `Result` and serialises both, pinned by `RESULT_SPEC_DRIFT`
+  in `SchemaConformanceTest` until the re-model lands. The same pin tracks `CreateMessageResult` and
+  `ListRootsResult`, whose entries clear when Sampling and Roots are deleted above.
 
 ### TTL on list results
 

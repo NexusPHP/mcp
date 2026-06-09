@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\Result;
 
 use Nexus\Assert\Assert;
+use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\Cursor;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\MetaObject;
@@ -22,6 +23,15 @@ use Nexus\Mcp\Core\Validation\EnumValueValidator;
 
 /**
  * The result returned by the server for a `resources/list` request.
+ *
+ * @extends PaginatedResult<array{
+ *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
+ *   resultType: non-empty-string,
+ *   resources: list<template-type<Resource, Arrayable, 'T'>>,
+ *   nextCursor?: non-empty-string,
+ *   ttlMs: int,
+ *   cacheScope: value-of<CacheScope>,
+ * }>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#listresourcesresult
  */
@@ -101,15 +111,38 @@ final readonly class ListResourcesResult extends PaginatedResult implements Serv
     #[\Override]
     public function toArray(): array
     {
-        return [
-            ...parent::toArray(),
-            'resources' => array_map(static fn(Resource $resource): array => $resource->toArray(), $this->resources),
-        ];
+        $data = [];
+        $meta = $this->meta->toArray();
+
+        if ([] !== $meta) {
+            $data['_meta'] = $meta;
+        }
+
+        $data['resultType'] = self::getResultType();
+        $data['resources'] = array_map(
+            static fn(Resource $resource): array => $resource->toArray(),
+            $this->resources,
+        );
+
+        if (null !== $this->nextCursor) {
+            $data['nextCursor'] = $this->nextCursor->cursor;
+        }
+
+        $data['ttlMs'] = $this->ttlMs;
+        $data['cacheScope'] = $this->cacheScope->value;
+
+        return $data;
     }
 
     #[\Override]
     public function jsonSerialize(): array
     {
         return $this->toArray();
+    }
+
+    #[\Override]
+    protected function getResultType(): string
+    {
+        return 'complete';
     }
 }

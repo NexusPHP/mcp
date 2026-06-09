@@ -4,7 +4,6 @@
     "method": "resources/list",
     "params": {
         "_meta": {
-            "vendor.brand": "acme",
             "io.modelcontextprotocol/protocolVersion": "2026-07-28",
             "io.modelcontextprotocol/clientInfo": {
                 "name": "test-client",
@@ -15,7 +14,8 @@
                     "listChanged": true
                 }
             },
-            "progressToken": "progress-1"
+            "progressToken": "progress-1",
+            "vendor.brand": "acme"
         },
         "cursor": "cursor-token"
     }

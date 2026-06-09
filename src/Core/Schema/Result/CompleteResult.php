@@ -14,11 +14,18 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\Result;
 
 use Nexus\Assert\Assert;
+use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Result;
 
 /**
  * The result returned by the server for a `completion/complete` request.
+ *
+ * @extends Result<array{
+ *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
+ *   resultType: non-empty-string,
+ *   completion: array{values: list<string>, total?: int, hasMore?: bool},
+ * }>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#completeresult
  */
@@ -56,9 +63,6 @@ final readonly class CompleteResult extends Result implements ServerResult
         parent::__construct($meta);
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
     #[\Override]
     public static function fromArray(array $data): static
     {
@@ -102,15 +106,28 @@ final readonly class CompleteResult extends Result implements ServerResult
     #[\Override]
     public function toArray(): array
     {
-        return [
-            ...parent::toArray(),
-            'completion' => $this->completion,
-        ];
+        $data = [];
+        $meta = $this->meta->toArray();
+
+        if ([] !== $meta) {
+            $data['_meta'] = $meta;
+        }
+
+        $data['resultType'] = self::getResultType();
+        $data['completion'] = $this->completion;
+
+        return $data;
     }
 
     #[\Override]
     public function jsonSerialize(): array
     {
         return $this->toArray();
+    }
+
+    #[\Override]
+    protected function getResultType(): string
+    {
+        return 'complete';
     }
 }

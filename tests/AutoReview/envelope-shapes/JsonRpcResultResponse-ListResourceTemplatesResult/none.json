@@ -3,13 +3,13 @@
     "id": 42,
     "result": {
         "resultType": "complete",
-        "ttlMs": 0,
-        "cacheScope": "private",
         "resourceTemplates": [
             {
                 "name": "sample",
                 "uriTemplate": "file:///tmp/{name}"
             }
-        ]
+        ],
+        "ttlMs": 0,
+        "cacheScope": "private"
     }
 }

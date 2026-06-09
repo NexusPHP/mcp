@@ -16,6 +16,7 @@ namespace Nexus\Mcp\Core\Schema\Request;
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\CallToolRequestParams;
 
 /**
@@ -23,7 +24,12 @@ use Nexus\Mcp\Core\Schema\RequestParams\CallToolRequestParams;
  *
  * @property-read CallToolRequestParams $params
  *
- * @extends JsonRpcRequest<'tools/call'>
+ * @extends JsonRpcRequest<'tools/call', array{
+ *   jsonrpc: '2.0',
+ *   id: int|non-empty-string,
+ *   method: 'tools/call',
+ *   params: template-type<CallToolRequestParams, RequestParams, 'T'>,
+ * }>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#calltoolrequest
  */
@@ -54,5 +60,16 @@ final readonly class CallToolRequest extends JsonRpcRequest implements ClientReq
         ;
 
         return new self(id: new RequestId(id: $id), params: CallToolRequestParams::fromArray($data['params']));
+    }
+
+    #[\Override]
+    public function toArray(): array
+    {
+        return [
+            'jsonrpc' => self::JSONRPC_VERSION,
+            'id' => $this->id->id,
+            'method' => static::getMethod(),
+            'params' => $this->params->toArray(),
+        ];
     }
 }

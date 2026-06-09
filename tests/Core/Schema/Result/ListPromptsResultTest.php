@@ -66,9 +66,9 @@ final class ListPromptsResultTest extends TestCase
         self::assertSame(
             [
                 'resultType' => 'complete',
+                'prompts' => [['name' => 'a'], ['name' => 'b']],
                 'ttlMs' => 0,
                 'cacheScope' => 'private',
-                'prompts' => [['name' => 'a'], ['name' => 'b']],
             ],
             $result->toArray(),
         );
@@ -88,10 +88,10 @@ final class ListPromptsResultTest extends TestCase
             [
                 '_meta' => ['vendor' => 'x'],
                 'resultType' => 'complete',
+                'prompts' => [['name' => 'a']],
+                'nextCursor' => 'cur-1',
                 'ttlMs' => 60000,
                 'cacheScope' => 'public',
-                'nextCursor' => 'cur-1',
-                'prompts' => [['name' => 'a']],
             ],
             $result->toArray(),
         );

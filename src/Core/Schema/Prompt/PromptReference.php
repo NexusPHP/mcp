@@ -40,9 +40,6 @@ final readonly class PromptReference extends BaseMetadata implements Arrayable
         IdentifierNameValidator::validate($name, 'prompt reference "name"');
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
     #[\Override]
     public static function fromArray(array $data): static
     {

@@ -51,9 +51,6 @@ final readonly class ElicitRequestFormParams implements Arrayable, ElicitRequest
         $this->mode = $mode;
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
     #[\Override]
     public static function fromArray(array $data): static
     {

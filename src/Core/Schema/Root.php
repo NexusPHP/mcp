@@ -36,9 +36,6 @@ final readonly class Root implements Arrayable
         Assert::that($uri)->startsWith('file://', 'root "uri" must start with {needle}, got {value}.');
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
     #[\Override]
     public static function fromArray(array $data): static
     {

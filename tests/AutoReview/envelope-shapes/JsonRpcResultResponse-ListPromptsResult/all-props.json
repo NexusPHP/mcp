@@ -6,14 +6,14 @@
             "vendor.brand": "acme"
         },
         "resultType": "complete",
-        "ttlMs": 60000,
-        "cacheScope": "public",
-        "nextCursor": "cursor-token",
         "prompts": [
             {
                 "name": "code-review",
                 "title": "Code Review"
             }
-        ]
+        ],
+        "nextCursor": "cursor-token",
+        "ttlMs": 60000,
+        "cacheScope": "public"
     }
 }

@@ -25,6 +25,7 @@ final class ComposerScripts
     private const string INTELEPHENSE_INCLUDE_ENTRY = 'vendor/phpstan/phpstan-phar/';
     private const string INFECTION_BIN = self::PROJECT_ROOT.'/tools/vendor/bin/infection';
     private const array MUTATION_SOURCE_DIRECTORIES = ['src', 'tests'];
+    private const string PHPUNIT_CLOVER = self::PROJECT_ROOT.'/build/phpunit/clover.xml';
 
     /**
      * Native binaries used by the doc-lint composer scripts, mapped to their
@@ -150,6 +151,77 @@ final class ComposerScripts
         if (0 !== $exitCode) {
             exit($exitCode);
         }
+    }
+
+    /**
+     * Fails the build when any executable statement line under `src/` is left
+     * uncovered. Reads the Clover report emitted by `test:unit`, so it must run
+     * after it. Bridges the gap Infection cannot see: a line with no generated
+     * mutant stays invisible to MSI even when no test exercises it.
+     */
+    public static function checkCoverage(): void
+    {
+        if (! is_file(self::PHPUNIT_CLOVER)) {
+            self::fail(\sprintf('Coverage report not found at %s. Run "composer test:unit" first.', self::PHPUNIT_CLOVER));
+        }
+
+        $contents = file_get_contents(self::PHPUNIT_CLOVER);
+
+        if (false === $contents) {
+            self::fail(\sprintf('Cannot read coverage report at %s.', self::PHPUNIT_CLOVER));
+        }
+
+        $dom = new \DOMDocument();
+        $previous = libxml_use_internal_errors(true);
+        $loaded = $dom->loadXML($contents);
+        libxml_use_internal_errors($previous);
+
+        if (false === $loaded) {
+            self::fail(\sprintf('Invalid XML in coverage report at %s.', self::PHPUNIT_CLOVER));
+        }
+
+        $nodes = new \DOMXPath($dom)->query('//file/line[@type="stmt" and @count="0"]');
+
+        if (false === $nodes) {
+            self::fail('Failed to inspect the coverage report.');
+        }
+
+        $offenders = [];
+
+        foreach ($nodes as $node) {
+            if (! $node instanceof \DOMElement) {
+                continue;
+            }
+
+            $file = $node->parentNode;
+
+            if (! $file instanceof \DOMElement) {
+                continue;
+            }
+
+            $offenders[$file->getAttribute('name')][] = $node->getAttribute('num');
+        }
+
+        if ([] === $offenders) {
+            echo 'Line coverage is 100%.'.\PHP_EOL;
+
+            return;
+        }
+
+        $root = realpath(self::PROJECT_ROOT);
+        $report = [];
+
+        foreach ($offenders as $file => $lines) {
+            if (\is_string($root) && str_starts_with($file, $root.\DIRECTORY_SEPARATOR)) {
+                $file = substr($file, \strlen($root) + 1);
+            }
+
+            $report[] = \sprintf('  %s: %s', $file, implode(', ', $lines));
+        }
+
+        sort($report);
+
+        self::fail(\sprintf("Line coverage is below 100%%. Uncovered statement lines:\n%s", implode(\PHP_EOL, $report)));
     }
 
     /**

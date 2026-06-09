@@ -24,7 +24,7 @@ use Nexus\Mcp\Core\Schema\RequestParams\ElicitRequestUrlParams;
  *
  * @property-read ElicitRequestFormParams|ElicitRequestUrlParams $params
  *
- * @extends JsonRpcRequest<'elicitation/create'>
+ * @extends JsonRpcRequest<'elicitation/create', array<string, mixed>>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#elicitrequest
  */
@@ -61,5 +61,16 @@ final readonly class ElicitRequest extends JsonRpcRequest implements ServerReque
             : ElicitRequestFormParams::fromArray($data['params']);
 
         return new self(id: new RequestId(id: $id), params: $params);
+    }
+
+    #[\Override]
+    public function toArray(): array
+    {
+        return [
+            'jsonrpc' => self::JSONRPC_VERSION,
+            'id' => $this->id->id,
+            'method' => static::getMethod(),
+            'params' => $this->params->toArray(),
+        ];
     }
 }

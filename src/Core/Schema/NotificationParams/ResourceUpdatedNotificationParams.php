@@ -14,11 +14,17 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\NotificationParams;
 
 use Nexus\Assert\Assert;
+use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\NotificationParams;
 
 /**
  * Parameters for a `notifications/resources/updated` notification.
+ *
+ * @extends NotificationParams<array{
+ *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
+ *   uri: string,
+ * }>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#resourceupdatednotificationparams
  */
@@ -29,9 +35,6 @@ final readonly class ResourceUpdatedNotificationParams extends NotificationParam
         parent::__construct($meta);
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
     #[\Override]
     public static function fromArray(array $data): static
     {
@@ -55,10 +58,16 @@ final readonly class ResourceUpdatedNotificationParams extends NotificationParam
     #[\Override]
     public function toArray(): array
     {
-        return [
-            ...parent::toArray(),
-            'uri' => $this->uri,
-        ];
+        $data = [];
+        $meta = $this->meta->toArray();
+
+        if ([] !== $meta) {
+            $data['_meta'] = $meta;
+        }
+
+        $data['uri'] = $this->uri;
+
+        return $data;
     }
 
     #[\Override]

@@ -55,4 +55,25 @@ final class UrlElicitationRequiredErrorPayloadTest extends TestCase
         self::assertSame('URL elicitation required', $payload->message);
         self::assertNull($payload->data);
     }
+
+    public function testToArrayIncludesData(): void
+    {
+        $payload = new UrlElicitationRequiredErrorPayload('Custom auth challenge', ['elicitations' => []]);
+
+        self::assertSame([
+            'code' => -32042,
+            'message' => 'Custom auth challenge',
+            'data' => ['elicitations' => []],
+        ], $payload->toArray());
+    }
+
+    public function testToArrayOmitsEmptyData(): void
+    {
+        $payload = new UrlElicitationRequiredErrorPayload();
+
+        self::assertSame([
+            'code' => -32042,
+            'message' => 'URL elicitation required',
+        ], $payload->toArray());
+    }
 }

@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Core\Schema\Result;
 
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\JsonRpc\ResourceContentsDispatcher;
+use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Resource\BlobResourceContents;
@@ -24,6 +25,14 @@ use Nexus\Mcp\Core\Validation\EnumValueValidator;
 
 /**
  * The result returned by the server for a `resources/read` request.
+ *
+ * @extends CacheableResult<array{
+ *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
+ *   resultType: non-empty-string,
+ *   contents: list<template-type<BlobResourceContents|TextResourceContents, Arrayable, 'T'>>,
+ *   ttlMs: int,
+ *   cacheScope: value-of<CacheScope>,
+ * }>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#readresourceresult
  */
@@ -53,9 +62,6 @@ final readonly class ReadResourceResult extends CacheableResult implements Serve
         parent::__construct($ttlMs, $cacheScope, $meta);
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
     #[\Override]
     public static function fromArray(array $data): static
     {
@@ -94,15 +100,30 @@ final readonly class ReadResourceResult extends CacheableResult implements Serve
     #[\Override]
     public function toArray(): array
     {
-        return [
-            ...parent::toArray(),
-            'contents' => array_map(static fn(ResourceContents $entry): array => $entry->toArray(), $this->contents),
-        ];
+        $data = [];
+        $meta = $this->meta->toArray();
+
+        if ([] !== $meta) {
+            $data['_meta'] = $meta;
+        }
+
+        $data['resultType'] = self::getResultType();
+        $data['contents'] = array_map(static fn(ResourceContents $entry): array => $entry->toArray(), $this->contents);
+        $data['ttlMs'] = $this->ttlMs;
+        $data['cacheScope'] = $this->cacheScope->value;
+
+        return $data;
     }
 
     #[\Override]
     public function jsonSerialize(): array
     {
         return $this->toArray();
+    }
+
+    #[\Override]
+    protected function getResultType(): string
+    {
+        return 'complete';
     }
 }

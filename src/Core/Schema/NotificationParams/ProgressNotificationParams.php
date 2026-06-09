@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\NotificationParams;
 
 use Nexus\Assert\Assert;
+use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\NotificationParams;
 use Nexus\Mcp\Core\Schema\ParsesNumber;
@@ -21,6 +22,14 @@ use Nexus\Mcp\Core\Schema\ProgressToken;
 
 /**
  * Parameters for a `notifications/progress` notification.
+ *
+ * @extends NotificationParams<array{
+ *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
+ *   progressToken: int|non-empty-string,
+ *   progress: float,
+ *   total?: float,
+ *   message?: string,
+ * }>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#progressnotificationparams
  */
@@ -38,9 +47,6 @@ final readonly class ProgressNotificationParams extends NotificationParams
         parent::__construct($meta);
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
     #[\Override]
     public static function fromArray(array $data): static
     {
@@ -82,11 +88,15 @@ final readonly class ProgressNotificationParams extends NotificationParams
     #[\Override]
     public function toArray(): array
     {
-        $data = [
-            ...parent::toArray(),
-            'progressToken' => $this->progressToken->token,
-            'progress' => $this->progress,
-        ];
+        $data = [];
+        $meta = $this->meta->toArray();
+
+        if ([] !== $meta) {
+            $data['_meta'] = $meta;
+        }
+
+        $data['progressToken'] = $this->progressToken->token;
+        $data['progress'] = $this->progress;
 
         if (null !== $this->total) {
             $data['total'] = $this->total;

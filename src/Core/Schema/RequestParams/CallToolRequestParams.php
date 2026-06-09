@@ -14,12 +14,19 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\RequestParams;
 
 use Nexus\Assert\Assert;
+use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
 
 /**
  * Parameters for a `tools/call` request.
+ *
+ * @extends RequestParams<array{
+ *   _meta: template-type<RequestMetaObject, Arrayable, 'T'>,
+ *   name: non-empty-string,
+ *   arguments?: array<string, mixed>,
+ * }>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#calltoolrequestparams
  */
@@ -82,12 +89,15 @@ final readonly class CallToolRequestParams extends RequestParams
     #[\Override]
     public function toArray(): array
     {
-        $data = ['name' => $this->name];
+        $data = [
+            '_meta' => $this->meta->toArray(),
+            'name' => $this->name,
+        ];
 
-        if ([] !== ($this->arguments ?? [])) {
+        if (null !== $this->arguments && [] !== $this->arguments) {
             $data['arguments'] = $this->arguments;
         }
 
-        return [...parent::toArray(), ...$data];
+        return $data;
     }
 }

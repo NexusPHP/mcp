@@ -51,9 +51,6 @@ final readonly class PromptArgument extends BaseMetadata implements Arrayable
         $this->description = $description;
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
     #[\Override]
     public static function fromArray(array $data): static
     {

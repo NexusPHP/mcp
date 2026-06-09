@@ -3,8 +3,8 @@
     "id": 42,
     "result": {
         "resultType": "complete",
+        "tools": [],
         "ttlMs": 0,
-        "cacheScope": "private",
-        "tools": []
+        "cacheScope": "private"
     }
 }

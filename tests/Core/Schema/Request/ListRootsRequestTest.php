@@ -50,6 +50,24 @@ final class ListRootsRequestTest extends TestCase
         );
     }
 
+    public function testToArrayIncludesParamsWhenPresent(): void
+    {
+        $request = new ListRootsRequest(
+            id: new RequestId(id: 1),
+            params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create()),
+        );
+
+        self::assertSame(
+            [
+                'jsonrpc' => '2.0',
+                'id' => 1,
+                'method' => 'roots/list',
+                'params' => ['_meta' => RequestMetaObjectFactory::shape()],
+            ],
+            $request->toArray(),
+        );
+    }
+
     public function testFromArrayParsesWithoutParams(): void
     {
         $request = ListRootsRequest::fromArray([

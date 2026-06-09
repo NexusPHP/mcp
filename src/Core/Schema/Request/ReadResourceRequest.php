@@ -16,6 +16,7 @@ namespace Nexus\Mcp\Core\Schema\Request;
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\ReadResourceRequestParams;
 
 /**
@@ -23,7 +24,12 @@ use Nexus\Mcp\Core\Schema\RequestParams\ReadResourceRequestParams;
  *
  * @property-read ReadResourceRequestParams $params
  *
- * @extends JsonRpcRequest<'resources/read'>
+ * @extends JsonRpcRequest<'resources/read', array{
+ *   jsonrpc: '2.0',
+ *   id: int|non-empty-string,
+ *   method: 'resources/read',
+ *   params: template-type<ReadResourceRequestParams, RequestParams, 'T'>,
+ * }>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#readresourcerequest
  */
@@ -57,5 +63,16 @@ final readonly class ReadResourceRequest extends JsonRpcRequest implements Clien
             id: new RequestId(id: $id),
             params: ReadResourceRequestParams::fromArray($data['params']),
         );
+    }
+
+    #[\Override]
+    public function toArray(): array
+    {
+        return [
+            'jsonrpc' => self::JSONRPC_VERSION,
+            'id' => $this->id->id,
+            'method' => static::getMethod(),
+            'params' => $this->params->toArray(),
+        ];
     }
 }

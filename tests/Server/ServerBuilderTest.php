@@ -1213,6 +1213,8 @@ final class ServerBuilderTest extends TestCase
      * typed result of the operation response.
      *
      * @param array<string, mixed> $params
+     *
+     * @return Result<array<string, mixed>>
      */
     private function dispatch(Server $server, string $method, array $params = []): Result
     {

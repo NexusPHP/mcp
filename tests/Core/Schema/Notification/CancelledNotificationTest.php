@@ -153,7 +153,7 @@ final class CancelledNotificationTest extends TestCase
         ]);
     }
 
-    public function testToArrayOmitsParamsKeyWhenEmpty(): void
+    public function testToArrayIncludesEmptyParamsKey(): void
     {
         $notification = new CancelledNotification(params: new CancelledNotificationParams());
 
@@ -161,6 +161,7 @@ final class CancelledNotificationTest extends TestCase
             [
                 'jsonrpc' => '2.0',
                 'method' => 'notifications/cancelled',
+                'params' => [],
             ],
             $notification->toArray(),
         );

@@ -25,7 +25,7 @@ use Nexus\Mcp\Core\Schema\RequestParams\CreateMessageRequestParams;
  *
  * @property-read CreateMessageRequestParams $params
  *
- * @extends JsonRpcRequest<'sampling/createMessage'>
+ * @extends JsonRpcRequest<'sampling/createMessage', array<string, mixed>>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#createmessagerequest
  */
@@ -56,5 +56,16 @@ final readonly class CreateMessageRequest extends JsonRpcRequest implements Serv
         ;
 
         return new self(id: new RequestId(id: $id), params: CreateMessageRequestParams::fromArray($data['params']));
+    }
+
+    #[\Override]
+    public function toArray(): array
+    {
+        return [
+            'jsonrpc' => self::JSONRPC_VERSION,
+            'id' => $this->id->id,
+            'method' => static::getMethod(),
+            'params' => $this->params->toArray(),
+        ];
     }
 }

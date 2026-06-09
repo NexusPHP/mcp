@@ -19,6 +19,10 @@ use Nexus\Mcp\Core\Schema\RequestParams;
 /**
  * Common params for resource-related requests.
  *
+ * @template-covariant T of array<string, mixed>
+ *
+ * @extends RequestParams<T>
+ *
  * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/draft/schema.ts
  */
 abstract readonly class ResourceRequestParams extends RequestParams
@@ -26,14 +30,5 @@ abstract readonly class ResourceRequestParams extends RequestParams
     public function __construct(public string $uri, RequestMetaObject $meta)
     {
         parent::__construct($meta);
-    }
-
-    #[\Override]
-    public function toArray(): array
-    {
-        return [
-            ...parent::toArray(),
-            'uri' => $this->uri,
-        ];
     }
 }

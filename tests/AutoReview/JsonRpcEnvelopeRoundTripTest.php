@@ -142,7 +142,7 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
      * composition). Result responses inherit this from `Result`, which
      * applies the substitution at the result level.
      *
-     * @return iterable<string, array{wrapper: class-string, inner: null|class-string<Result>, encodingPathsDiverge?: bool}>
+     * @return iterable<string, array{wrapper: class-string, inner: null|class-string<Result<array<string, mixed>>>, encodingPathsDiverge?: bool}>
      */
     #[\Override]
     protected static function registry(): iterable

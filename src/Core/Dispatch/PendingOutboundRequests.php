@@ -32,7 +32,7 @@ use Nexus\Mcp\Core\Schema\Result;
 final class PendingOutboundRequests implements \Countable
 {
     /**
-     * @var array<non-empty-string, array{deferred: DeferredFuture<JsonRpcResultResponse<Result>>, result: class-string<Result>}>
+     * @var array<non-empty-string, array{deferred: DeferredFuture<JsonRpcResultResponse<Result<array<string, mixed>>>>, result: class-string<Result<array<string, mixed>>>}>
      */
     private array $map = [];
 
@@ -67,7 +67,7 @@ final class PendingOutboundRequests implements \Countable
      * Returns the `Result` subclass registered for `$id`, or `null` if no
      * entry exists.
      *
-     * @return null|class-string<Result>
+     * @return null|class-string<Result<array<string, mixed>>>
      */
     public function resolveResultClass(RequestId $id): ?string
     {
@@ -84,7 +84,7 @@ final class PendingOutboundRequests implements \Countable
      * Completes the future for `$id` with the given response. Returns false
      * if no entry was registered for that id.
      *
-     * @param JsonRpcResultResponse<Result> $response
+     * @param JsonRpcResultResponse<Result<array<string, mixed>>> $response
      */
     public function resolve(RequestId $id, JsonRpcResultResponse $response): bool
     {

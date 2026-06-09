@@ -79,9 +79,6 @@ final readonly class StringSchema implements Arrayable, PrimitiveSchemaDefinitio
         $this->format = $format;
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
     #[\Override]
     public static function fromArray(array $data): static
     {

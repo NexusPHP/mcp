@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\NotificationParams;
 
 use Nexus\Assert\Assert;
+use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\Enum\LoggingLevel;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\NotificationParams;
@@ -21,6 +22,13 @@ use Nexus\Mcp\Core\Validation\EnumValueValidator;
 
 /**
  * Parameters for a `notifications/message` notification.
+ *
+ * @extends NotificationParams<array{
+ *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
+ *   level: value-of<LoggingLevel>,
+ *   data: mixed,
+ *   logger?: string,
+ * }>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#loggingmessagenotificationparams
  */
@@ -35,9 +43,6 @@ final readonly class LoggingMessageNotificationParams extends NotificationParams
         parent::__construct($meta);
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
     #[\Override]
     public static function fromArray(array $data): static
     {
@@ -65,11 +70,15 @@ final readonly class LoggingMessageNotificationParams extends NotificationParams
     #[\Override]
     public function toArray(): array
     {
-        $data = [
-            ...parent::toArray(),
-            'level' => $this->level->value,
-            'data' => $this->data,
-        ];
+        $data = [];
+        $meta = $this->meta->toArray();
+
+        if ([] !== $meta) {
+            $data['_meta'] = $meta;
+        }
+
+        $data['level'] = $this->level->value;
+        $data['data'] = $this->data;
 
         if (null !== $this->logger) {
             $data['logger'] = $this->logger;

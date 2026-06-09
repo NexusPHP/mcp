@@ -82,9 +82,6 @@ final readonly class Prompt extends BaseMetadata implements Arrayable, Icons
         $this->icons = $icons;
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
     #[\Override]
     public static function fromArray(array $data): static
     {

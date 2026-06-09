@@ -14,11 +14,17 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\Result;
 
 use Nexus\Assert\Assert;
+use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Result;
 
 /**
  * Common result fields.
+ *
+ * @extends Result<array{
+ *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
+ *   resultType: non-empty-string,
+ * }>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#emptyresult
  */
@@ -43,5 +49,26 @@ final readonly class EmptyResult extends Result implements ClientResult, ServerR
         }
 
         return new self(meta: $meta);
+    }
+
+    #[\Override]
+    public function toArray(): array
+    {
+        $data = [];
+        $meta = $this->meta->toArray();
+
+        if ([] !== $meta) {
+            $data['_meta'] = $meta;
+        }
+
+        $data['resultType'] = self::getResultType();
+
+        return $data;
+    }
+
+    #[\Override]
+    protected function getResultType(): string
+    {
+        return 'complete';
     }
 }

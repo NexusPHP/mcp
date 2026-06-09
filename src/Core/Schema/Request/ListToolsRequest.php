@@ -14,8 +14,8 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\Request;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\Schema\JsonRpc\PaginatedRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\PaginatedRequestParams;
 
 /**
@@ -23,7 +23,12 @@ use Nexus\Mcp\Core\Schema\RequestParams\PaginatedRequestParams;
  *
  * @property-read PaginatedRequestParams $params
  *
- * @extends PaginatedRequest<'tools/list'>
+ * @extends PaginatedRequest<'tools/list', array{
+ *   jsonrpc: '2.0',
+ *   id: int|non-empty-string,
+ *   method: 'tools/list',
+ *   params: template-type<PaginatedRequestParams, RequestParams, 'T'>,
+ * }>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#listtoolsrequest
  */
@@ -55,5 +60,16 @@ final readonly class ListToolsRequest extends PaginatedRequest implements Client
         $params = PaginatedRequestParams::fromArray($data['params']);
 
         return new self(id: new RequestId(id: $id), params: $params);
+    }
+
+    #[\Override]
+    public function toArray(): array
+    {
+        return [
+            'jsonrpc' => self::JSONRPC_VERSION,
+            'id' => $this->id->id,
+            'method' => static::getMethod(),
+            'params' => $this->params->toArray(),
+        ];
     }
 }

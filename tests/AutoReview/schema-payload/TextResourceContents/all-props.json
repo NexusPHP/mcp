@@ -1,8 +1,8 @@
 {
     "uri": "file:///tmp/sample.txt",
+    "text": "hello",
     "mimeType": "text/plain",
     "_meta": {
         "vendor.brand": "acme"
-    },
-    "text": "hello"
+    }
 }

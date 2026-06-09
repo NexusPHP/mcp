@@ -16,7 +16,9 @@ namespace Nexus\Mcp\Core\Schema;
 /**
  * Common params for any notification.
  *
- * @implements Arrayable<array{_meta?: template-type<MetaObject, Arrayable, 'T'>, ...<string, mixed>}>
+ * @template-covariant T of array<string, mixed>
+ *
+ * @implements Arrayable<T>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#notificationparams
  */
@@ -24,24 +26,6 @@ abstract readonly class NotificationParams implements Arrayable
 {
     public function __construct(public MetaObject $meta = new MetaObject())
     {
-    }
-
-    /**
-     * @param array<string, mixed> $data
-     */
-    #[\Override]
-    abstract public static function fromArray(array $data): static;
-
-    /**
-     * Serializes the params body. Subclasses override to merge their own fields
-     * alongside the `_meta` slice returned here.
-     */
-    #[\Override]
-    public function toArray(): array
-    {
-        $meta = $this->meta->toArray();
-
-        return [] === $meta ? [] : ['_meta' => $meta];
     }
 
     #[\Override]

@@ -82,9 +82,6 @@ final readonly class Implementation extends BaseMetadata implements Arrayable, I
         $this->icons = $icons;
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
     #[\Override]
     public static function fromArray(array $data): static
     {

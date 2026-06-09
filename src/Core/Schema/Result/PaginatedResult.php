@@ -21,6 +21,10 @@ use Nexus\Mcp\Core\Schema\MetaObject;
  * Common shape for results that paginate via an opaque cursor. Subclasses add their own
  * payload field alongside the optional `nextCursor`.
  *
+ * @template-covariant T of array<string, mixed>
+ *
+ * @extends CacheableResult<T>
+ *
  * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/draft/schema.ts
  */
 abstract readonly class PaginatedResult extends CacheableResult
@@ -32,17 +36,5 @@ abstract readonly class PaginatedResult extends CacheableResult
         MetaObject $meta = new MetaObject(),
     ) {
         parent::__construct($ttlMs, $cacheScope, $meta);
-    }
-
-    #[\Override]
-    public function toArray(): array
-    {
-        $data = parent::toArray();
-
-        if (null !== $this->nextCursor) {
-            $data['nextCursor'] = $this->nextCursor->cursor;
-        }
-
-        return $data;
     }
 }

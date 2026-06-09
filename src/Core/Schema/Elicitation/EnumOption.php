@@ -44,9 +44,6 @@ final readonly class EnumOption implements Arrayable
         $this->title = $title;
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
     #[\Override]
     public static function fromArray(array $data): static
     {

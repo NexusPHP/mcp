@@ -29,7 +29,7 @@ use Nexus\Mcp\Core\Schema\Resource\TextResourceContents;
  * It is up to the client how best to render embedded resources for the benefit of the LLM and/or the user.
  *
  * @implements Arrayable<array{
- *   resource: template-type<ResourceContents, Arrayable, 'T'>,
+ *   resource: template-type<ResourceContents<array<string, mixed>>, Arrayable, 'T'>,
  *   type: 'resource',
  *   annotations?: template-type<Annotations, Arrayable, 'T'>,
  *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
@@ -48,9 +48,6 @@ final readonly class EmbeddedResource implements Arrayable, ContentBlock
     ) {
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
     #[\Override]
     public static function fromArray(array $data): static
     {

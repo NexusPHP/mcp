@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Core\Schema\Notification;
 
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
+use Nexus\Mcp\Core\Schema\NotificationParams;
 use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
 
 /**
@@ -22,7 +23,13 @@ use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
  * it offers has changed. This may be issued by servers without any previous subscription from
  * the client.
  *
- * @extends JsonRpcNotification<'notifications/prompts/list_changed'>
+ * @property-read EmptyNotificationParams $params
+ *
+ * @extends JsonRpcNotification<'notifications/prompts/list_changed', array{
+ *   jsonrpc: '2.0',
+ *   method: 'notifications/prompts/list_changed',
+ *   params?: template-type<EmptyNotificationParams, NotificationParams, 'T'>,
+ * }>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#promptlistchangednotification
  */
@@ -48,5 +55,22 @@ final readonly class PromptListChangedNotification extends JsonRpcNotification i
         }
 
         return new self(params: $params);
+    }
+
+    #[\Override]
+    public function toArray(): array
+    {
+        $envelope = [
+            'jsonrpc' => self::JSONRPC_VERSION,
+            'method' => static::getMethod(),
+        ];
+
+        $params = $this->params->toArray();
+
+        if ([] !== $params) {
+            $envelope['params'] = $params;
+        }
+
+        return $envelope;
     }
 }

@@ -15,13 +15,20 @@ namespace Nexus\Mcp\Core\Schema\Notification;
 
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
+use Nexus\Mcp\Core\Schema\NotificationParams;
 use Nexus\Mcp\Core\Schema\NotificationParams\ElicitationCompleteNotificationParams;
 
 /**
  * An optional notification from the server to the client, informing it of
  * a completion of a out-of-band elicitation request.
  *
- * @extends JsonRpcNotification<'notifications/elicitation/complete'>
+ * @property-read ElicitationCompleteNotificationParams $params
+ *
+ * @extends JsonRpcNotification<'notifications/elicitation/complete', array{
+ *   jsonrpc: '2.0',
+ *   method: 'notifications/elicitation/complete',
+ *   params: template-type<ElicitationCompleteNotificationParams, NotificationParams, 'T'>,
+ * }>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#elicitationcompletenotification
  */
@@ -48,5 +55,15 @@ final readonly class ElicitationCompleteNotification extends JsonRpcNotification
         ;
 
         return new self(params: ElicitationCompleteNotificationParams::fromArray($data['params']));
+    }
+
+    #[\Override]
+    public function toArray(): array
+    {
+        return [
+            'jsonrpc' => self::JSONRPC_VERSION,
+            'method' => static::getMethod(),
+            'params' => $this->params->toArray(),
+        ];
     }
 }

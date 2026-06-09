@@ -33,6 +33,8 @@ use Nexus\Mcp\Core\Validation\EnumValueValidator;
  *
  * @phpstan-import-type ContentMember from SamplingMessage
  *
+ * @extends Result<array<string, mixed>>
+ *
  * @see https://modelcontextprotocol.io/specification/draft/schema#createmessageresult
  */
 final readonly class CreateMessageResult extends Result implements ClientResult
@@ -72,9 +74,6 @@ final readonly class CreateMessageResult extends Result implements ClientResult
         parent::__construct($meta);
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
     #[\Override]
     public static function fromArray(array $data): static
     {
@@ -122,11 +121,16 @@ final readonly class CreateMessageResult extends Result implements ClientResult
     #[\Override]
     public function toArray(): array
     {
-        $data = [
-            ...parent::toArray(),
-            'model' => $this->model,
-            'role' => $this->role->value,
-        ];
+        $data = [];
+        $meta = $this->meta->toArray();
+
+        if ([] !== $meta) {
+            $data['_meta'] = $meta;
+        }
+
+        $data['resultType'] = self::getResultType();
+        $data['model'] = $this->model;
+        $data['role'] = $this->role->value;
 
         if (\is_array($this->content)) {
             $data['content'] = array_map(
@@ -159,5 +163,11 @@ final readonly class CreateMessageResult extends Result implements ClientResult
         }
 
         return $data;
+    }
+
+    #[\Override]
+    protected function getResultType(): string
+    {
+        return 'complete';
     }
 }
