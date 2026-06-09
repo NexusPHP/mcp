@@ -63,9 +63,9 @@ composer cs:check
 # Code style (fix)
 composer cs:fix
 
-# Documentation linters (typos whole-repo + markdownlint + lychee link check, the last two scoped to .md)
+# Documentation linters (typos whole-repo + markdownlint scoped to .md)
 composer lint:docs
-composer lint:fix         # auto-fix typos + markdownlint (lychee has no fixer)
+composer lint:fix         # auto-fix typos + markdownlint
 
 # Regenerate the schema snapshots (latest-schema.json + sorted-schema.json)
 composer schema:generate

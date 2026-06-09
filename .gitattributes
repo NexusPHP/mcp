@@ -13,7 +13,6 @@
 /CONTRIBUTING.md                  export-ignore
 /DEPENDENCY_POLICY.md             export-ignore
 /infection.json5                  export-ignore
-/lychee.toml                      export-ignore
 /phpstan-baseline.php             export-ignore
 /phpstan.dist.neon                export-ignore
 /phpunit.dist.xml                 export-ignore

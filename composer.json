@@ -84,14 +84,12 @@
         "deps:check": "tools/vendor/bin/composer-dependency-analyser",
         "lint:docs": [
             "@lint:typos",
-            "@lint:markdown",
-            "@lint:links"
+            "@lint:markdown"
         ],
         "lint:fix": [
             "@lint:typos:fix",
             "@lint:markdown:fix"
         ],
-        "lint:links": "lychee --config lychee.toml '**/*.md'",
         "lint:markdown": "markdownlint-cli2",
         "lint:markdown:fix": "markdownlint-cli2 --fix",
         "lint:typos": "typos && echo 'No typos found.'",
@@ -143,9 +141,8 @@
         "cs:check": "Checks for coding style violations",
         "cs:fix": "Fixes any coding style violations",
         "deps:check": "Analyses composer dependency declarations with shipmonk",
-        "lint:docs": "Runs all documentation linters (typos, markdown, links)",
+        "lint:docs": "Runs all documentation linters (typos, markdown)",
         "lint:fix": "Runs all auto-fixable doc linters (typos, markdown)",
-        "lint:links": "Runs lychee link check across markdown files",
         "lint:markdown": "Runs markdownlint-cli2 across markdown files",
         "lint:markdown:fix": "Auto-fixes markdown violations with markdownlint-cli2",
         "lint:typos": "Runs typos spell-check across the repository",

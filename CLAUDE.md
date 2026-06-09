@@ -29,11 +29,11 @@ Mutation testing:
 - Both enforce **100% MSI, 100% Code Coverage, 100% Covered Code MSI** ([infection.json5](infection.json5)). Escaped mutants fail the build, so improve the tests rather than adding ignores.
 - One file in isolation: `composer mutation:check -- --filter="path/to/File.php"` (the `--` passes args through to Infection).
 
-Docs sync: after any change that renames, deletes, moves, or adds a top-level building block (class, trait, enum, namespace, interface, public method, file location), grep `docs/`, `ROADMAP.md`, and the project memories for the old symbol and update them, then run `composer lint:docs` (lychee catches dead file links). Skip only for purely internal changes (private body, test-only, comment-only).
+Docs sync: after any change that renames, deletes, moves, or adds a top-level building block (class, trait, enum, namespace, interface, public method, file location), grep `docs/`, `ROADMAP.md`, and the project memories for the old symbol and update them, then run `composer lint:docs`. Skip only for purely internal changes (private body, test-only, comment-only).
 
 ## Doc linters
 
-`composer lint:docs` bundles typos (whole-repo), markdownlint, and lychee. Auto-fix with `composer lint:fix` (lychee has no fixer). Gotcha: `composer lint:typos:fix` rewrites identifiers in source files too, not just docs, so review the diff before staging.
+`composer lint:docs` bundles typos (whole-repo) and markdownlint. Auto-fix with `composer lint:fix`. Gotcha: `composer lint:typos:fix` rewrites identifiers in source files too, not just docs, so review the diff before staging.
 
 ## Conventions worth internalising
 

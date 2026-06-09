@@ -33,7 +33,6 @@ final class ComposerScripts
     private const array DOC_LINTER_BINARIES = [
         'typos' => 'typos-cli',
         'markdownlint-cli2' => 'markdownlint-cli2',
-        'lychee' => 'lychee',
     ];
 
     public static function postUpdate(): void
