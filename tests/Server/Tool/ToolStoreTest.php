@@ -58,6 +58,21 @@ final class ToolStoreTest extends TestCase
         self::assertSame(CacheScope::Private, $result->cacheScope);
     }
 
+    public function testListPreservesRegistrationOrderDeterministically(): void
+    {
+        // Names are intentionally not alphabetical so registration order is
+        // distinguishable from a sorted order.
+        $store = new ToolStore(self::makeEntries('zeta', 'alpha', 'mike', 'bravo'));
+
+        $expected = ['zeta', 'alpha', 'mike', 'bravo'];
+
+        $first = array_map(static fn(Tool $tool): string => $tool->name, $store->list(null)->tools);
+        $second = array_map(static fn(Tool $tool): string => $tool->name, $store->list(null)->tools);
+
+        self::assertSame($expected, $first);
+        self::assertSame($expected, $second);
+    }
+
     public function testListReflectsConfiguredTtlAndCacheScope(): void
     {
         $store = new ToolStore(self::makeEntries('alpha'), ttlMs: 120000, cacheScope: CacheScope::Public);

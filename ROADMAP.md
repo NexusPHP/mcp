@@ -155,7 +155,7 @@ across requests when the tool set is unchanged) so clients can cache the list an
 prompt-cache hit rates. The SDK already satisfies this by construction: the tool store preserves
 registration order. The migration verifies the property rather than adding new work.
 
-- [ ] Verify deterministic `tools/list` ordering holds after the migration.
+- [x] Verify deterministic `tools/list` ordering holds after the migration.
 
 ### Optional-string field validation consistency
 
