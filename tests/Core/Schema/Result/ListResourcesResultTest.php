@@ -104,7 +104,6 @@ final class ListResourcesResultTest extends TestCase
             resources: [new Resource(name: 'a', uri: 'file:///a')],
             ttlMs: 0,
             cacheScope: CacheScope::Private,
-            nextCursor: null,
             meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 

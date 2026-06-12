@@ -66,7 +66,7 @@ final class ResourceLinkTest extends TestCase
             title: 'My Link',
             description: 'A description.',
             mimeType: 'text/plain',
-            annotations: new Annotations(audience: null, priority: 0.5),
+            annotations: new Annotations(priority: 0.5),
             size: 1024.0,
             icons: [new Icon(src: 'https://example.com/icon.png')],
             meta: new MetaObject(extras: ['vendor' => 'x']),
@@ -95,11 +95,8 @@ final class ResourceLinkTest extends TestCase
             name: 'my-link',
             uri: 'file:///tmp/x',
             title: 'My Link',
-            description: null,
             mimeType: 'text/plain',
-            annotations: new Annotations(),
             size: 42.0,
-            icons: null,
             meta: new MetaObject(extras: ['k' => 'v']),
         );
 
@@ -164,7 +161,7 @@ final class ResourceLinkTest extends TestCase
             title: 'My Link',
             description: 'A description.',
             mimeType: 'text/plain',
-            annotations: new Annotations(audience: null, priority: 0.5),
+            annotations: new Annotations(priority: 0.5),
             size: 42.0,
             icons: [new Icon(src: 'https://example.com/icon.png')],
             meta: new MetaObject(extras: ['vendor' => 'x']),
@@ -196,7 +193,7 @@ final class ResourceLinkTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('resource link "description" must be a non-empty string or null.');
 
-        new ResourceLink(name: 'my-link', uri: 'file:///tmp/x', title: null, description: '');
+        new ResourceLink(name: 'my-link', uri: 'file:///tmp/x', description: '');
     }
 
     public function testConstructorRejectsEmptyMimeType(): void
@@ -204,7 +201,7 @@ final class ResourceLinkTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('resource link "mimeType" must be a non-empty string or null.');
 
-        new ResourceLink(name: 'my-link', uri: 'file:///tmp/x', title: null, description: null, mimeType: '');
+        new ResourceLink(name: 'my-link', uri: 'file:///tmp/x', mimeType: '');
     }
 
     public function testConstructorRejectsNonIconElement(): void
@@ -212,7 +209,7 @@ final class ResourceLinkTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
 
         // @phpstan-ignore argument.type
-        new ResourceLink(name: 'my-link', uri: 'file:///tmp/x', title: null, description: null, mimeType: null, annotations: new Annotations(), size: null, icons: [42]);
+        new ResourceLink(name: 'my-link', uri: 'file:///tmp/x', icons: [42]);
     }
 
     /**

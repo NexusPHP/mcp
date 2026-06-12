@@ -78,7 +78,7 @@ final class EmbeddedResourceTest extends TestCase
     {
         $embedded = new EmbeddedResource(
             resource: new TextResourceContents(uri: 'file:///x', text: 'hello'),
-            annotations: new Annotations(audience: null, priority: 0.5),
+            annotations: new Annotations(priority: 0.5),
             meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
@@ -97,7 +97,6 @@ final class EmbeddedResourceTest extends TestCase
     {
         $embedded = new EmbeddedResource(
             resource: new TextResourceContents(uri: 'file:///x', text: 'hello'),
-            annotations: new Annotations(),
             meta: new MetaObject(extras: ['k' => 'v']),
         );
 
@@ -143,7 +142,7 @@ final class EmbeddedResourceTest extends TestCase
     {
         $original = new EmbeddedResource(
             resource: new TextResourceContents(uri: 'file:///x', text: 'hello'),
-            annotations: new Annotations(audience: null, priority: 0.5),
+            annotations: new Annotations(priority: 0.5),
             meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 

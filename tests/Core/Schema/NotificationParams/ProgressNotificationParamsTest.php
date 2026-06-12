@@ -74,7 +74,7 @@ final class ProgressNotificationParamsTest extends TestCase
 
     public function testToArrayWithMessage(): void
     {
-        $params = new ProgressNotificationParams(progressToken: new ProgressToken(token: 'p-1'), progress: 5.0, total: null, message: 'fetching');
+        $params = new ProgressNotificationParams(progressToken: new ProgressToken(token: 'p-1'), progress: 5.0, message: 'fetching');
 
         self::assertSame(
             ['progressToken' => 'p-1', 'progress' => 5.0, 'message' => 'fetching'],
@@ -99,8 +99,6 @@ final class ProgressNotificationParamsTest extends TestCase
         $params = new ProgressNotificationParams(
             progressToken: new ProgressToken(token: 'p-1'),
             progress: 0.25,
-            total: null,
-            message: null,
             meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 

@@ -48,7 +48,7 @@ final class EmptyNotificationParamsTest extends TestCase
 
     public function testToArrayOmitsEmptyMeta(): void
     {
-        $params = new EmptyNotificationParams(meta: new MetaObject());
+        $params = new EmptyNotificationParams();
 
         self::assertSame([], $params->toArray());
     }

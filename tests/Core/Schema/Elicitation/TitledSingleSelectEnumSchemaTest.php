@@ -126,7 +126,7 @@ final class TitledSingleSelectEnumSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('titled single select enum schema "description" must be a non-empty string or null.');
 
-        new TitledSingleSelectEnumSchema(oneOf: [new EnumOption(const: 'a', title: 'A')], title: null, description: '');
+        new TitledSingleSelectEnumSchema(oneOf: [new EnumOption(const: 'a', title: 'A')], description: '');
     }
 
     /**

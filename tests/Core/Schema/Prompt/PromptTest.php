@@ -78,7 +78,7 @@ final class PromptTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $prompt = new Prompt(name: 'code-review', title: 'Code Review', description: null, arguments: null, icons: null, meta: new MetaObject(extras: ['k' => 'v']));
+        $prompt = new Prompt(name: 'code-review', title: 'Code Review', meta: new MetaObject(extras: ['k' => 'v']));
 
         self::assertSame($prompt->toArray(), $prompt->jsonSerialize());
     }
@@ -118,7 +118,7 @@ final class PromptTest extends TestCase
             name: 'code-review',
             title: 'Code Review',
             description: 'desc',
-            arguments: [new PromptArgument(name: 'topic', title: null, description: null, required: true)],
+            arguments: [new PromptArgument(name: 'topic', required: true)],
             icons: [new Icon(src: 'https://example.com/icon.png')],
             meta: new MetaObject(extras: ['vendor' => 'x']),
         );
@@ -141,7 +141,7 @@ final class PromptTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('prompt "description" must be a non-empty string or null.');
 
-        new Prompt(name: 'code-review', title: null, description: '');
+        new Prompt(name: 'code-review', description: '');
     }
 
     public function testConstructorRejectsNonPromptArgumentEntry(): void
@@ -149,7 +149,7 @@ final class PromptTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
 
         // @phpstan-ignore argument.type
-        new Prompt(name: 'code-review', title: null, description: null, arguments: [42]);
+        new Prompt(name: 'code-review', arguments: [42]);
     }
 
     public function testConstructorRejectsNonIconEntry(): void
@@ -157,7 +157,7 @@ final class PromptTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
 
         // @phpstan-ignore argument.type
-        new Prompt(name: 'code-review', title: null, description: null, arguments: null, icons: [42]);
+        new Prompt(name: 'code-review', icons: [42]);
     }
 
     /**

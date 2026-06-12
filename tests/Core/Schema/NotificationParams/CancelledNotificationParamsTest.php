@@ -79,7 +79,7 @@ final class CancelledNotificationParamsTest extends TestCase
 
     public function testToArrayIncludesMeta(): void
     {
-        $params = new CancelledNotificationParams(requestId: new RequestId(id: 1), reason: null, meta: new MetaObject(extras: ['vendor' => 'x']));
+        $params = new CancelledNotificationParams(requestId: new RequestId(id: 1), meta: new MetaObject(extras: ['vendor' => 'x']));
 
         self::assertSame(
             ['_meta' => ['vendor' => 'x'], 'requestId' => 1],
@@ -103,7 +103,7 @@ final class CancelledNotificationParamsTest extends TestCase
 
     public function testToArrayOmitsMetaWhenMetaIsEmpty(): void
     {
-        $params = new CancelledNotificationParams(requestId: new RequestId(id: 1), reason: null, meta: new MetaObject());
+        $params = new CancelledNotificationParams(requestId: new RequestId(id: 1));
 
         self::assertSame(['requestId' => 1], $params->toArray());
     }

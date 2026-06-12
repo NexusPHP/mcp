@@ -158,7 +158,7 @@ final class IconTest extends TestCase
     #[DataProvider('provideIconAcceptsValidSizesCases')]
     public function testIconAcceptsValidSizes(array $sizes): void
     {
-        $icon = new Icon(src: 'https://example.com/icon.png', mimeType: null, sizes: $sizes);
+        $icon = new Icon(src: 'https://example.com/icon.png', sizes: $sizes);
 
         self::assertSame($sizes, $icon->sizes);
     }
@@ -186,7 +186,7 @@ final class IconTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
-        new Icon(src: 'https://example.com/icon.png', mimeType: null, sizes: $sizes);
+        new Icon(src: 'https://example.com/icon.png', sizes: $sizes);
     }
 
     /**
@@ -206,7 +206,7 @@ final class IconTest extends TestCase
     #[DataProvider('provideIconAcceptsValidThemesCases')]
     public function testIconAcceptsValidThemes(string $theme): void
     {
-        $icon = new Icon(src: 'https://example.com/icon.png', mimeType: null, sizes: null, theme: $theme);
+        $icon = new Icon(src: 'https://example.com/icon.png', theme: $theme);
 
         self::assertSame($theme, $icon->theme);
     }
@@ -226,7 +226,7 @@ final class IconTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"icons.theme" must be one of "light", "dark".');
 
-        new Icon(src: 'https://example.com/icon.png', mimeType: null, sizes: null, theme: 'invalid');
+        new Icon(src: 'https://example.com/icon.png', theme: 'invalid');
     }
 
     public function testIconCanBeCreatedFromArray(): void

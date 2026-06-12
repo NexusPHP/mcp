@@ -136,7 +136,7 @@ final class TitledMultiSelectEnumSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('titled multi-select enum schema "description" must be a non-empty string or null.');
 
-        new TitledMultiSelectEnumSchema(items: [new EnumOption(const: 'r', title: 'Read')], title: null, description: '');
+        new TitledMultiSelectEnumSchema(items: [new EnumOption(const: 'r', title: 'Read')], description: '');
     }
 
     public function testConstructorRejectsNegativeMinItems(): void
@@ -144,7 +144,7 @@ final class TitledMultiSelectEnumSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('titled multi-select enum schema "minItems" must be a non-negative integer or null.');
 
-        new TitledMultiSelectEnumSchema(items: [new EnumOption(const: 'r', title: 'Read')], title: null, description: null, minItems: -1);
+        new TitledMultiSelectEnumSchema(items: [new EnumOption(const: 'r', title: 'Read')], minItems: -1);
     }
 
     public function testConstructorRejectsNegativeMaxItems(): void
@@ -152,7 +152,7 @@ final class TitledMultiSelectEnumSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('titled multi-select enum schema "maxItems" must be a non-negative integer or null.');
 
-        new TitledMultiSelectEnumSchema(items: [new EnumOption(const: 'r', title: 'Read')], title: null, description: null, minItems: null, maxItems: -1);
+        new TitledMultiSelectEnumSchema(items: [new EnumOption(const: 'r', title: 'Read')], maxItems: -1);
     }
 
     public function testConstructorRejectsNonListDefault(): void
@@ -161,7 +161,7 @@ final class TitledMultiSelectEnumSchemaTest extends TestCase
         $this->expectExceptionMessageIs('titled multi-select enum schema "default" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
-        new TitledMultiSelectEnumSchema(items: [new EnumOption(const: 'r', title: 'Read')], title: null, description: null, minItems: null, maxItems: null, default: ['k' => 'v']);
+        new TitledMultiSelectEnumSchema(items: [new EnumOption(const: 'r', title: 'Read')], default: ['k' => 'v']);
     }
 
     /**

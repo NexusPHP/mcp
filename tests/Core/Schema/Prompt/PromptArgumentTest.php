@@ -122,7 +122,7 @@ final class PromptArgumentTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"arguments.description" must be a non-empty string or null.');
 
-        new PromptArgument(name: 'topic', title: null, description: '');
+        new PromptArgument(name: 'topic', description: '');
     }
 
     /**

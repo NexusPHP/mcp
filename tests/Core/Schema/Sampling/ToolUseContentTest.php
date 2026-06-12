@@ -76,7 +76,7 @@ final class ToolUseContentTest extends TestCase
 
     public function testToArrayOmitsEmptyMeta(): void
     {
-        $content = new ToolUseContent(id: 'tu-1', name: 'get_weather', input: [], meta: new MetaObject());
+        $content = new ToolUseContent(id: 'tu-1', name: 'get_weather', input: []);
 
         self::assertSame(
             ['id' => 'tu-1', 'input' => [], 'name' => 'get_weather', 'type' => 'tool_use'],

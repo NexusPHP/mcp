@@ -55,7 +55,7 @@ final class AudioContentTest extends TestCase
         $content = new AudioContent(
             data: 'aGVsbG8=',
             mimeType: 'audio/mp3',
-            annotations: new Annotations(audience: null, priority: 0.5),
+            annotations: new Annotations(priority: 0.5),
             meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
@@ -73,7 +73,7 @@ final class AudioContentTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $content = new AudioContent(data: 'aGVsbG8=', mimeType: 'audio/mp3', annotations: new Annotations(), meta: new MetaObject(extras: ['k' => 'v']));
+        $content = new AudioContent(data: 'aGVsbG8=', mimeType: 'audio/mp3', meta: new MetaObject(extras: ['k' => 'v']));
 
         self::assertSame($content->toArray(), $content->jsonSerialize());
     }
@@ -99,7 +99,7 @@ final class AudioContentTest extends TestCase
         $original = new AudioContent(
             data: 'aGVsbG8=',
             mimeType: 'audio/mp3',
-            annotations: new Annotations(audience: null, priority: 0.5),
+            annotations: new Annotations(priority: 0.5),
             meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 

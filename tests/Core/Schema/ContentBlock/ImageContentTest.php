@@ -55,7 +55,7 @@ final class ImageContentTest extends TestCase
         $content = new ImageContent(
             data: 'aGVsbG8=',
             mimeType: 'image/png',
-            annotations: new Annotations(audience: null, priority: 0.5),
+            annotations: new Annotations(priority: 0.5),
             meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
@@ -73,7 +73,7 @@ final class ImageContentTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $content = new ImageContent(data: 'aGVsbG8=', mimeType: 'image/png', annotations: new Annotations(), meta: new MetaObject(extras: ['k' => 'v']));
+        $content = new ImageContent(data: 'aGVsbG8=', mimeType: 'image/png', meta: new MetaObject(extras: ['k' => 'v']));
 
         self::assertSame($content->toArray(), $content->jsonSerialize());
     }
@@ -99,7 +99,7 @@ final class ImageContentTest extends TestCase
         $original = new ImageContent(
             data: 'aGVsbG8=',
             mimeType: 'image/png',
-            annotations: new Annotations(audience: null, priority: 0.5),
+            annotations: new Annotations(priority: 0.5),
             meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 

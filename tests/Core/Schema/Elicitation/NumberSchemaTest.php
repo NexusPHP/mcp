@@ -71,7 +71,7 @@ final class NumberSchemaTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $schema = new NumberSchema(type: 'number', title: 'x', description: null, minimum: 1);
+        $schema = new NumberSchema(title: 'x', minimum: 1);
 
         self::assertSame($schema->toArray(), $schema->jsonSerialize());
     }
@@ -115,7 +115,7 @@ final class NumberSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('number schema "title" must be a non-empty string or null.');
 
-        new NumberSchema(type: 'number', title: '');
+        new NumberSchema(title: '');
     }
 
     public function testConstructorRejectsEmptyDescription(): void
@@ -123,7 +123,7 @@ final class NumberSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('number schema "description" must be a non-empty string or null.');
 
-        new NumberSchema(type: 'number', title: null, description: '');
+        new NumberSchema(description: '');
     }
 
     /**

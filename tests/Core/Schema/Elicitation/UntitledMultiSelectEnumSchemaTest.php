@@ -73,7 +73,7 @@ final class UntitledMultiSelectEnumSchemaTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $schema = new UntitledMultiSelectEnumSchema(items: ['a'], title: 'T', description: null, minItems: 1);
+        $schema = new UntitledMultiSelectEnumSchema(items: ['a'], title: 'T', minItems: 1);
 
         self::assertSame($schema->toArray(), $schema->jsonSerialize());
     }
@@ -117,7 +117,7 @@ final class UntitledMultiSelectEnumSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('untitled multi-select enum schema "description" must be a non-empty string or null.');
 
-        new UntitledMultiSelectEnumSchema(items: ['a'], title: null, description: '');
+        new UntitledMultiSelectEnumSchema(items: ['a'], description: '');
     }
 
     public function testConstructorRejectsNegativeMinItems(): void
@@ -125,7 +125,7 @@ final class UntitledMultiSelectEnumSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('untitled multi-select enum schema "minItems" must be a non-negative integer or null.');
 
-        new UntitledMultiSelectEnumSchema(items: ['a'], title: null, description: null, minItems: -1);
+        new UntitledMultiSelectEnumSchema(items: ['a'], minItems: -1);
     }
 
     public function testConstructorRejectsNegativeMaxItems(): void
@@ -133,7 +133,7 @@ final class UntitledMultiSelectEnumSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('untitled multi-select enum schema "maxItems" must be a non-negative integer or null.');
 
-        new UntitledMultiSelectEnumSchema(items: ['a'], title: null, description: null, minItems: null, maxItems: -1);
+        new UntitledMultiSelectEnumSchema(items: ['a'], maxItems: -1);
     }
 
     public function testConstructorRejectsNonListDefault(): void
@@ -142,7 +142,7 @@ final class UntitledMultiSelectEnumSchemaTest extends TestCase
         $this->expectExceptionMessageIs('untitled multi-select enum schema "default" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
-        new UntitledMultiSelectEnumSchema(items: ['a'], title: null, description: null, minItems: null, maxItems: null, default: ['k' => 'v']);
+        new UntitledMultiSelectEnumSchema(items: ['a'], default: ['k' => 'v']);
     }
 
     /**

@@ -65,7 +65,7 @@ final class ResourceTemplateTest extends TestCase
             title: 'My Template',
             description: 'A description.',
             mimeType: 'text/plain',
-            annotations: new Annotations(audience: null, priority: 0.5),
+            annotations: new Annotations(priority: 0.5),
             icons: [new Icon(src: 'https://example.com/icon.png')],
             meta: new MetaObject(extras: ['vendor' => 'x']),
         );
@@ -91,10 +91,7 @@ final class ResourceTemplateTest extends TestCase
             name: 'my-template',
             uriTemplate: 'file:///tmp/{name}',
             title: 'My Template',
-            description: null,
             mimeType: 'text/plain',
-            annotations: new Annotations(),
-            icons: null,
             meta: new MetaObject(extras: ['k' => 'v']),
         );
 
@@ -143,7 +140,7 @@ final class ResourceTemplateTest extends TestCase
             title: 'My Template',
             description: 'A description.',
             mimeType: 'text/plain',
-            annotations: new Annotations(audience: null, priority: 0.5),
+            annotations: new Annotations(priority: 0.5),
             icons: [new Icon(src: 'https://example.com/icon.png')],
             meta: new MetaObject(extras: ['vendor' => 'x']),
         );
@@ -182,7 +179,7 @@ final class ResourceTemplateTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('resource template "description" must be a non-empty string or null.');
 
-        new ResourceTemplate(name: 'my-template', uriTemplate: 'file:///tmp/{name}', title: null, description: '');
+        new ResourceTemplate(name: 'my-template', uriTemplate: 'file:///tmp/{name}', description: '');
     }
 
     public function testConstructorRejectsEmptyMimeType(): void
@@ -190,7 +187,7 @@ final class ResourceTemplateTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('resource template "mimeType" must be a non-empty string or null.');
 
-        new ResourceTemplate(name: 'my-template', uriTemplate: 'file:///tmp/{name}', title: null, description: null, mimeType: '');
+        new ResourceTemplate(name: 'my-template', uriTemplate: 'file:///tmp/{name}', mimeType: '');
     }
 
     public function testConstructorRejectsNonIconElement(): void
@@ -198,7 +195,7 @@ final class ResourceTemplateTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
 
         // @phpstan-ignore argument.type
-        new ResourceTemplate(name: 'my-template', uriTemplate: 'file:///tmp/{name}', title: null, description: null, mimeType: null, annotations: new Annotations(), icons: [42]);
+        new ResourceTemplate(name: 'my-template', uriTemplate: 'file:///tmp/{name}', icons: [42]);
     }
 
     /**

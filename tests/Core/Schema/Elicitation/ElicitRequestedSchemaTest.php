@@ -48,7 +48,7 @@ final class ElicitRequestedSchemaTest extends TestCase
 
     public function testToArrayMinimal(): void
     {
-        $schema = new ElicitRequestedSchema(properties: ['email' => new StringSchema(title: null, description: null, minLength: null, maxLength: null, format: 'email')]);
+        $schema = new ElicitRequestedSchema(properties: ['email' => new StringSchema(format: 'email')]);
 
         self::assertSame(
             [
@@ -65,7 +65,7 @@ final class ElicitRequestedSchemaTest extends TestCase
     {
         $schema = new ElicitRequestedSchema(
             properties: [
-                'email' => new StringSchema(title: null, description: null, minLength: null, maxLength: null, format: 'email'),
+                'email' => new StringSchema(format: 'email'),
                 'age' => new NumberSchema(type: 'integer'),
             ],
             required: ['email'],
@@ -171,7 +171,7 @@ final class ElicitRequestedSchemaTest extends TestCase
     {
         $original = new ElicitRequestedSchema(
             properties: [
-                'email' => new StringSchema(title: null, description: null, minLength: null, maxLength: null, format: 'email'),
+                'email' => new StringSchema(format: 'email'),
                 'plan' => new TitledSingleSelectEnumSchema(oneOf: [new EnumOption(const: 'free', title: 'Free')]),
             ],
             required: ['email'],
@@ -230,7 +230,7 @@ final class ElicitRequestedSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"requestedSchema.$schema" must be a non-empty string or null.');
 
-        new ElicitRequestedSchema(properties: ['x' => new StringSchema()], required: null, schema: '');
+        new ElicitRequestedSchema(properties: ['x' => new StringSchema()], schema: '');
     }
 
     /**

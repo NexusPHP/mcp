@@ -90,7 +90,7 @@ final class ImplementationTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"description" must be a non-empty string or null.');
 
-        new Implementation(name: 'Nexus MCP', version: '1.0.0', title: null, description: '');
+        new Implementation(name: 'Nexus MCP', version: '1.0.0', description: '');
     }
 
     public function testEmptyWebsiteUrlIsRejected(): void
@@ -98,7 +98,7 @@ final class ImplementationTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"websiteUrl" must be a non-empty string or null.');
 
-        new Implementation(name: 'Nexus MCP', version: '1.0.0', title: null, description: null, websiteUrl: '');
+        new Implementation(name: 'Nexus MCP', version: '1.0.0', websiteUrl: '');
     }
 
     public function testNonHttpWebsiteUrlIsRejected(): void
@@ -106,14 +106,14 @@ final class ImplementationTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"websiteUrl" must be an HTTP or HTTPS URL.');
 
-        new Implementation(name: 'Nexus MCP', version: '1.0.0', title: null, description: null, websiteUrl: 'ftp://example.com');
+        new Implementation(name: 'Nexus MCP', version: '1.0.0', websiteUrl: 'ftp://example.com');
     }
 
     public function testNonIconInIconsIsRejected(): void
     {
         $this->expectException(ExpectationFailedException::class);
 
-        new Implementation(name: 'Nexus MCP', version: '1.0.0', title: null, description: null, websiteUrl: null, icons: ['not-an-icon']); // @phpstan-ignore argument.type
+        new Implementation(name: 'Nexus MCP', version: '1.0.0', icons: ['not-an-icon']); // @phpstan-ignore argument.type
     }
 
     public function testToArrayMinimal(): void

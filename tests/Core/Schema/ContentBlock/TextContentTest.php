@@ -53,7 +53,7 @@ final class TextContentTest extends TestCase
     {
         $content = new TextContent(
             text: 'hello',
-            annotations: new Annotations(audience: null, priority: 0.5),
+            annotations: new Annotations(priority: 0.5),
             meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
@@ -70,7 +70,7 @@ final class TextContentTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $content = new TextContent(text: 'hello', annotations: new Annotations(), meta: new MetaObject(extras: ['k' => 'v']));
+        $content = new TextContent(text: 'hello', meta: new MetaObject(extras: ['k' => 'v']));
 
         self::assertSame($content->toArray(), $content->jsonSerialize());
     }
@@ -93,7 +93,7 @@ final class TextContentTest extends TestCase
     {
         $original = new TextContent(
             text: 'hello',
-            annotations: new Annotations(audience: null, priority: 0.5),
+            annotations: new Annotations(priority: 0.5),
             meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 

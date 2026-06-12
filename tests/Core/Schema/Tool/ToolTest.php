@@ -90,7 +90,7 @@ final class ToolTest extends TestCase
 
     public function testToArrayOmitsEmptyAnnotations(): void
     {
-        $tool = new Tool(name: 'read-file', inputSchema: ['type' => 'object'], annotations: new ToolAnnotations());
+        $tool = new Tool(name: 'read-file', inputSchema: ['type' => 'object']);
 
         self::assertSame(
             ['name' => 'read-file', 'inputSchema' => ['type' => 'object']],

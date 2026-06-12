@@ -77,7 +77,6 @@ final class LoggingMessageNotificationParamsTest extends TestCase
         $params = new LoggingMessageNotificationParams(
             level: LoggingLevel::Notice,
             data: 'x',
-            logger: null,
             meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 

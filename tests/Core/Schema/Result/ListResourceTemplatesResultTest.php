@@ -104,7 +104,6 @@ final class ListResourceTemplatesResultTest extends TestCase
             resourceTemplates: [new ResourceTemplate(name: 'a', uriTemplate: 'file:///{a}')],
             ttlMs: 0,
             cacheScope: CacheScope::Private,
-            nextCursor: null,
             meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 

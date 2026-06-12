@@ -87,7 +87,7 @@ final class SamplingMessageTest extends TestCase
 
     public function testToArrayOmitsEmptyMeta(): void
     {
-        $msg = new SamplingMessage(role: Role::User, content: new TextContent(text: 'hi'), meta: new MetaObject());
+        $msg = new SamplingMessage(role: Role::User, content: new TextContent(text: 'hi'));
 
         self::assertArrayNotHasKey('_meta', $msg->toArray());
     }

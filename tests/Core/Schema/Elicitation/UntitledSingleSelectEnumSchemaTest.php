@@ -63,7 +63,7 @@ final class UntitledSingleSelectEnumSchemaTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $schema = new UntitledSingleSelectEnumSchema(enum: ['a'], title: 'T', description: null, default: 'a');
+        $schema = new UntitledSingleSelectEnumSchema(enum: ['a'], title: 'T', default: 'a');
 
         self::assertSame($schema->toArray(), $schema->jsonSerialize());
     }
@@ -107,7 +107,7 @@ final class UntitledSingleSelectEnumSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('untitled single select enum schema "description" must be a non-empty string or null.');
 
-        new UntitledSingleSelectEnumSchema(enum: ['a'], title: null, description: '');
+        new UntitledSingleSelectEnumSchema(enum: ['a'], description: '');
     }
 
     /**

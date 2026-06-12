@@ -61,7 +61,7 @@ final class BooleanSchemaTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $schema = new BooleanSchema(title: 'Accept', description: null, default: true);
+        $schema = new BooleanSchema(title: 'Accept', default: true);
 
         self::assertSame($schema->toArray(), $schema->jsonSerialize());
     }
@@ -102,7 +102,7 @@ final class BooleanSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('boolean schema "description" must be a non-empty string or null.');
 
-        new BooleanSchema(title: null, description: '');
+        new BooleanSchema(description: '');
     }
 
     /**

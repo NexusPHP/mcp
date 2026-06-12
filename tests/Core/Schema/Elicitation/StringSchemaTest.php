@@ -65,7 +65,7 @@ final class StringSchemaTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $schema = new StringSchema(title: 'Email', description: null, minLength: null, maxLength: null, format: 'email');
+        $schema = new StringSchema(title: 'Email', format: 'email');
 
         self::assertSame($schema->toArray(), $schema->jsonSerialize());
     }
@@ -111,7 +111,7 @@ final class StringSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('string schema "description" must be a non-empty string or null.');
 
-        new StringSchema(title: null, description: '');
+        new StringSchema(description: '');
     }
 
     public function testConstructorRejectsNegativeMinLength(): void
@@ -119,7 +119,7 @@ final class StringSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('string schema "minLength" must be a non-negative integer or null.');
 
-        new StringSchema(title: null, description: null, minLength: -1);
+        new StringSchema(minLength: -1);
     }
 
     public function testConstructorRejectsNegativeMaxLength(): void
@@ -127,7 +127,7 @@ final class StringSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('string schema "maxLength" must be a non-negative integer or null.');
 
-        new StringSchema(title: null, description: null, minLength: null, maxLength: -1);
+        new StringSchema(maxLength: -1);
     }
 
     public function testConstructorRejectsUnknownFormat(): void
@@ -135,13 +135,13 @@ final class StringSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('string schema "format" must be one of "date", "date-time", "email", "uri".');
 
-        new StringSchema(title: null, description: null, minLength: null, maxLength: null, format: 'phone');
+        new StringSchema(format: 'phone');
     }
 
     #[DataProvider('provideConstructorAcceptsKnownFormatCases')]
     public function testConstructorAcceptsKnownFormat(string $format): void
     {
-        $schema = new StringSchema(title: null, description: null, minLength: null, maxLength: null, format: $format);
+        $schema = new StringSchema(format: $format);
 
         self::assertSame($format, $schema->format);
     }
