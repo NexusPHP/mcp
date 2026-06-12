@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Core\Schema\Result;
 
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Arrayable;
+use Nexus\Mcp\Core\Schema\Enum\ResultType;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Prompt\PromptMessage;
 use Nexus\Mcp\Core\Schema\Result;
@@ -127,6 +128,6 @@ final readonly class GetPromptResult extends Result implements ServerResult
     #[\Override]
     protected function getResultType(): string
     {
-        return 'complete';
+        return ResultType::Complete->value;
     }
 }

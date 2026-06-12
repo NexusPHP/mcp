@@ -17,6 +17,7 @@ use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\Cursor;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
+use Nexus\Mcp\Core\Schema\Enum\ResultType;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Tool\Tool;
 use Nexus\Mcp\Core\Validation\EnumValueValidator;
@@ -134,6 +135,6 @@ final readonly class ListToolsResult extends PaginatedResult implements ServerRe
     #[\Override]
     protected function getResultType(): string
     {
-        return 'complete';
+        return ResultType::Complete->value;
     }
 }

@@ -22,6 +22,7 @@ use Nexus\Mcp\Core\Schema\ContentBlock\EmbeddedResource;
 use Nexus\Mcp\Core\Schema\ContentBlock\ImageContent;
 use Nexus\Mcp\Core\Schema\ContentBlock\ResourceLink;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
+use Nexus\Mcp\Core\Schema\Enum\ResultType;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Result;
 
@@ -152,6 +153,6 @@ final readonly class CallToolResult extends Result implements ServerResult
     #[\Override]
     protected function getResultType(): string
     {
-        return 'complete';
+        return ResultType::Complete->value;
     }
 }

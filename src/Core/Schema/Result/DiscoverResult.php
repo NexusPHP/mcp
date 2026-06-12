@@ -16,6 +16,7 @@ namespace Nexus\Mcp\Core\Schema\Result;
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
+use Nexus\Mcp\Core\Schema\Enum\ResultType;
 use Nexus\Mcp\Core\Schema\Implementation;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\ServerCapabilities;
@@ -170,6 +171,6 @@ final readonly class DiscoverResult extends CacheableResult implements ServerRes
     #[\Override]
     protected function getResultType(): string
     {
-        return 'complete';
+        return ResultType::Complete->value;
     }
 }

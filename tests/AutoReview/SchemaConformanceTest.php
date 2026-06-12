@@ -389,7 +389,15 @@ final class SchemaConformanceTest extends TestCase
     public static function provideSchemaEnumMatchesCasesCases(): iterable
     {
         // @phpstan-ignore-next-line argument.type
-        yield from self::getProtocolSchemasForTesting(static fn(string $class) => enum_exists($class));
+        yield from self::getProtocolSchemasForTesting(static function (string $class, string $basename): bool {
+            if (! enum_exists($class)) {
+                return false;
+            }
+
+            $definition = self::$latestSchema[$basename] ?? null;
+
+            return \is_array($definition) && \is_array($definition['enum'] ?? null);
+        });
     }
 
     public function testProtocolSchemaExistsOnlyInCore(): void

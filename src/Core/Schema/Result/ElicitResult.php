@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Core\Schema\Result;
 
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Enum\ElicitAction;
+use Nexus\Mcp\Core\Schema\Enum\ResultType;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Validation\EnumValueValidator;
@@ -121,7 +122,7 @@ final readonly class ElicitResult extends Result implements ClientResult
     #[\Override]
     protected function getResultType(): string
     {
-        return 'complete';
+        return ResultType::Complete->value;
     }
 
     private static function validateValue(string $context, mixed $value): void
