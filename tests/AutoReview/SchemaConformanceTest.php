@@ -190,12 +190,14 @@ final class SchemaConformanceTest extends TestCase
      * @var array{
      *   processed_schema: array<string, class-string>,
      *   internal_schema: array<string, class-string>,
+     *   deprecated_schema: list<string>,
      *   unprocessed_schema: list<string>,
      * }
      */
     private static array $sortedSchema = [
         'processed_schema' => [],
         'internal_schema' => [],
+        'deprecated_schema' => [],
         'unprocessed_schema' => [],
     ];
 
@@ -1280,7 +1282,7 @@ final class SchemaConformanceTest extends TestCase
         }
 
         if (
-            ['processed_schema' => [], 'internal_schema' => [], 'unprocessed_schema' => []] !== self::$sortedSchema
+            ['processed_schema' => [], 'internal_schema' => [], 'deprecated_schema' => [], 'unprocessed_schema' => []] !== self::$sortedSchema
             && getenv('MCP_FETCH_LATEST_SCHEMA') === false
         ) {
             return;

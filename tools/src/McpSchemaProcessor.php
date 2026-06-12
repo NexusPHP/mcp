@@ -92,6 +92,7 @@ final class McpSchemaProcessor
      * @return array{
      *   processed_schema: array<string, class-string>,
      *   internal_schema: array<string, class-string>,
+     *   deprecated_schema: list<string>,
      *   unprocessed_schema: list<string>
      * }
      */
@@ -139,12 +140,18 @@ final class McpSchemaProcessor
         ksort($processedSchema);
         ksort($internalSchema);
 
-        $unprocessedSchema = array_diff(array_keys($schemaDefs), array_keys($processedSchema));
+        $missingFromSpec = array_diff(array_keys($schemaDefs), array_keys($processedSchema));
+        $deprecatedDefs = self::deprecatedSpecDefNames();
+
+        $deprecatedSchema = array_intersect($missingFromSpec, $deprecatedDefs);
+        $unprocessedSchema = array_diff($missingFromSpec, $deprecatedDefs);
+        sort($deprecatedSchema);
         sort($unprocessedSchema);
 
         $sortedSchema = [
             'processed_schema' => $processedSchema,
             'internal_schema' => $internalSchema,
+            'deprecated_schema' => $deprecatedSchema,
             'unprocessed_schema' => $unprocessedSchema,
         ];
 
@@ -157,6 +164,31 @@ final class McpSchemaProcessor
         }
 
         return $sortedSchema;
+    }
+
+    /**
+     * Spec def names carrying an `@deprecated` JSDoc tag in the upstream
+     * TypeScript schema. The TS is the only source: the generated JSON schema
+     * drops the tag. Used to separate deliberately-omitted deprecated defs from
+     * genuinely not-yet-modelled ones in `unprocessed_schema`.
+     *
+     * @return list<string>
+     */
+    private static function deprecatedSpecDefNames(): array
+    {
+        $ts = @file_get_contents(self::LATEST_SCHEMA_TS_PATH);
+
+        if (false === $ts) {
+            return [];
+        }
+
+        $matched = preg_match_all(
+            '#/\*\*(?:(?!\*/).)*?@deprecated(?:(?!\*/).)*?\*/\s*export\s+(?:interface|type)\s+(\w+)#s',
+            $ts,
+            $matches,
+        );
+
+        return 0 === $matched || false === $matched ? [] : $matches[1];
     }
 
     /**
