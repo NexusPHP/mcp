@@ -1,0 +1,7 @@
+{
+    "jsonrpc": "2.0",
+    "method": "notifications/subscriptions/acknowledged",
+    "params": {
+        "notifications": {}
+    }
+}

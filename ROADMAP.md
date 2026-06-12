@@ -83,7 +83,12 @@ utility (SEP-2575, changelog item 5) is removed from the protocol entirely.
 - [x] Delete `ping` (`PingRequest`, `PingRequestHandler`, the method-registry entry, and the
   initialization gate's `ping` allowance). The RC removes the method along with the session it kept alive.
 - [x] Implement `server/discover` request method.
-- [ ] Implement `subscriptions/listen` request method + `SubscriptionsAcknowledgedNotification`.
+- [x] Add the `subscriptions/listen` schema classes: the request and its params, the `SubscriptionFilter`
+  opt-in object, and `SubscriptionsAcknowledgedNotification` with its params, registered in the method registry.
+- [ ] Serve `subscriptions/listen` server-side: a handler that returns the empty result response (leaving
+  the dispatcher's result-send path unchanged) and emits `SubscriptionsAcknowledgedNotification` as the
+  first stream message, tagged with the server-minted `io.modelcontextprotocol/subscriptionId` `_meta` key.
+  Requires a subscription store and a list-changed / resource-updated fanout source to feed the stream.
 - [x] Delete `resources/subscribe` / `resources/unsubscribe` (none of these are implemented today, so
   this is a non-action verified by the migration).
 

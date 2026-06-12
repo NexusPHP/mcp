@@ -1,0 +1,17 @@
+{
+    "jsonrpc": "2.0",
+    "method": "notifications/subscriptions/acknowledged",
+    "params": {
+        "_meta": {
+            "vendor.brand": "acme"
+        },
+        "notifications": {
+            "toolsListChanged": true,
+            "promptsListChanged": true,
+            "resourcesListChanged": false,
+            "resourceSubscriptions": [
+                "file:///tmp/sample"
+            ]
+        }
+    }
+}

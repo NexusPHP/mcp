@@ -1,0 +1,9 @@
+{
+    "toolsListChanged": true,
+    "promptsListChanged": false,
+    "resourcesListChanged": true,
+    "resourceSubscriptions": [
+        "file:///tmp/sample",
+        "https://example.com/resource"
+    ]
+}

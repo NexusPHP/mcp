@@ -22,6 +22,7 @@ use Nexus\Mcp\Core\Schema\Notification\ProgressNotification;
 use Nexus\Mcp\Core\Schema\Notification\PromptListChangedNotification;
 use Nexus\Mcp\Core\Schema\Notification\ResourceListChangedNotification;
 use Nexus\Mcp\Core\Schema\Notification\ResourceUpdatedNotification;
+use Nexus\Mcp\Core\Schema\Notification\SubscriptionsAcknowledgedNotification;
 use Nexus\Mcp\Core\Schema\Notification\ToolListChangedNotification;
 use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
 use Nexus\Mcp\Core\Schema\Request\CompleteRequest;
@@ -35,6 +36,7 @@ use Nexus\Mcp\Core\Schema\Request\ListResourceTemplatesRequest;
 use Nexus\Mcp\Core\Schema\Request\ListRootsRequest;
 use Nexus\Mcp\Core\Schema\Request\ListToolsRequest;
 use Nexus\Mcp\Core\Schema\Request\ReadResourceRequest;
+use Nexus\Mcp\Core\Schema\Request\SubscriptionsListenRequest;
 
 /**
  * Spec-default method → class maps consumed by `JsonRpcMessageParser`.
@@ -59,6 +61,7 @@ final class JsonRpcMethodRegistry
             ListRootsRequest::getMethod() => ListRootsRequest::class,
             CreateMessageRequest::getMethod() => CreateMessageRequest::class,
             DiscoverRequest::getMethod() => DiscoverRequest::class,
+            SubscriptionsListenRequest::getMethod() => SubscriptionsListenRequest::class,
             CallToolRequest::getMethod() => CallToolRequest::class,
             ListToolsRequest::getMethod() => ListToolsRequest::class,
         ];
@@ -79,6 +82,7 @@ final class JsonRpcMethodRegistry
             PromptListChangedNotification::getMethod() => PromptListChangedNotification::class,
             ResourceListChangedNotification::getMethod() => ResourceListChangedNotification::class,
             ResourceUpdatedNotification::getMethod() => ResourceUpdatedNotification::class,
+            SubscriptionsAcknowledgedNotification::getMethod() => SubscriptionsAcknowledgedNotification::class,
             ToolListChangedNotification::getMethod() => ToolListChangedNotification::class,
         ];
     }

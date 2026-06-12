@@ -23,6 +23,7 @@ use Nexus\Mcp\Core\Schema\Request\ListResourceTemplatesRequest;
 use Nexus\Mcp\Core\Schema\Request\ListRootsRequest;
 use Nexus\Mcp\Core\Schema\Request\ListToolsRequest;
 use Nexus\Mcp\Core\Schema\Request\ReadResourceRequest;
+use Nexus\Mcp\Core\Schema\Request\SubscriptionsListenRequest;
 
 use function PHPStan\Testing\assertType;
 
@@ -36,5 +37,6 @@ assertType('\'resources/templates/list\'', ListResourceTemplatesRequest::getMeth
 assertType('\'roots/list\'', ListRootsRequest::getMethod());
 assertType('\'sampling/createMessage\'', CreateMessageRequest::getMethod());
 assertType('\'server/discover\'', DiscoverRequest::getMethod());
+assertType('\'subscriptions/listen\'', SubscriptionsListenRequest::getMethod());
 assertType('\'tools/call\'', CallToolRequest::getMethod());
 assertType('\'tools/list\'', ListToolsRequest::getMethod());

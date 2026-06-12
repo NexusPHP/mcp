@@ -26,6 +26,7 @@ use Nexus\Mcp\Core\Schema\Notification\ProgressNotification;
 use Nexus\Mcp\Core\Schema\Notification\PromptListChangedNotification;
 use Nexus\Mcp\Core\Schema\Notification\ResourceListChangedNotification;
 use Nexus\Mcp\Core\Schema\Notification\ResourceUpdatedNotification;
+use Nexus\Mcp\Core\Schema\Notification\SubscriptionsAcknowledgedNotification;
 use Nexus\Mcp\Core\Schema\Notification\ToolListChangedNotification;
 use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
 use Nexus\Mcp\Core\Schema\Request\CompleteRequest;
@@ -39,6 +40,7 @@ use Nexus\Mcp\Core\Schema\Request\ListResourceTemplatesRequest;
 use Nexus\Mcp\Core\Schema\Request\ListRootsRequest;
 use Nexus\Mcp\Core\Schema\Request\ListToolsRequest;
 use Nexus\Mcp\Core\Schema\Request\ReadResourceRequest;
+use Nexus\Mcp\Core\Schema\Request\SubscriptionsListenRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
@@ -172,6 +174,8 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
 
         yield 'ElicitRequest' => ['wrapper' => ElicitRequest::class, 'inner' => null];
 
+        yield 'SubscriptionsListenRequest' => ['wrapper' => SubscriptionsListenRequest::class, 'inner' => null, 'encodingPathsDiverge' => true];
+
         // Concrete notifications.
         yield 'CancelledNotification' => ['wrapper' => CancelledNotification::class, 'inner' => null, 'encodingPathsDiverge' => true];
 
@@ -188,6 +192,8 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
         yield 'ToolListChangedNotification' => ['wrapper' => ToolListChangedNotification::class, 'inner' => null];
 
         yield 'ElicitationCompleteNotification' => ['wrapper' => ElicitationCompleteNotification::class, 'inner' => null];
+
+        yield 'SubscriptionsAcknowledgedNotification' => ['wrapper' => SubscriptionsAcknowledgedNotification::class, 'inner' => null, 'encodingPathsDiverge' => true];
 
         // Result responses, parameterized by the inner Result subclass.
         yield 'JsonRpcResultResponse-CallToolResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => CallToolResult::class];

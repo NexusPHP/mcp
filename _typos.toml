@@ -12,6 +12,8 @@ extend-ignore-words-re = [
 extend-ignore-re = [
     "Controls tool selection behavior for sampling requests\\.",
     "tool behavior \\(including descriptive properties",
+    "consistent behavior between HTTP and STDIO\\.",
+    "agreed to honor\\.",
 ]
 
 [files]
