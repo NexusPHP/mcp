@@ -30,7 +30,7 @@ use Nexus\Mcp\Core\Validation\EnumValueValidator;
  *   supportedVersions: list<non-empty-string>,
  *   capabilities: template-type<ServerCapabilities, Arrayable, 'T'>,
  *   serverInfo: template-type<Implementation, Arrayable, 'T'>,
- *   instructions?: string,
+ *   instructions?: non-empty-string,
  *   ttlMs: int,
  *   cacheScope: value-of<CacheScope>,
  * }>
@@ -45,6 +45,11 @@ final readonly class DiscoverResult extends CacheableResult implements ServerRes
     public array $supportedVersions;
 
     /**
+     * @var null|non-empty-string
+     */
+    public ?string $instructions;
+
+    /**
      * @param list<string> $supportedVersions
      */
     public function __construct(
@@ -53,15 +58,17 @@ final readonly class DiscoverResult extends CacheableResult implements ServerRes
         public Implementation $serverInfo,
         int $ttlMs,
         CacheScope $cacheScope,
-        public ?string $instructions = null,
+        ?string $instructions = null,
         MetaObject $meta = new MetaObject(),
     ) {
         Assert::that($supportedVersions)
             ->isList('"result.supportedVersions" must be a list, non-list array given.')
             ->values()->isNonEmptyString('each "result.supportedVersions" must be a non-empty string.')
         ;
+        Assert::that($instructions)->nullOr()->isNonEmptyString('"result.instructions" must be a non-empty string or null.');
 
         $this->supportedVersions = $supportedVersions;
+        $this->instructions = $instructions;
 
         parent::__construct($ttlMs, $cacheScope, $meta);
     }

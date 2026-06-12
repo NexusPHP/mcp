@@ -90,6 +90,28 @@ final class ServerContextTest extends TestCase
         self::assertSame($expected->toArray(), $sender->notifications[0]->toArray());
     }
 
+    public function testReportProgressOmitsEmptyMessage(): void
+    {
+        $token = new ProgressToken(token: 'tok-1');
+        $sender = new RecordingSender();
+        $context = new ServerContext(
+            new RequestId(id: 1),
+            new NullCancellation(),
+            RequestMetaObjectFactory::create(progressToken: $token),
+            null,
+            $sender,
+        );
+
+        $context->reportProgress(0.5, 1.0, '');
+
+        $expected = new ProgressNotification(
+            params: new ProgressNotificationParams(progressToken: $token, progress: 0.5, total: 1.0),
+        );
+
+        self::assertCount(1, $sender->notifications);
+        self::assertSame($expected->toArray(), $sender->notifications[0]->toArray());
+    }
+
     public function testReportProgressNoOpsWhenMetaLacksProgressToken(): void
     {
         $sender = new RecordingSender();

@@ -25,18 +25,27 @@ use Nexus\Mcp\Core\Schema\RequestId;
  * @extends NotificationParams<array{
  *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
  *   requestId?: int|non-empty-string,
- *   reason?: string,
+ *   reason?: non-empty-string,
  * }>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#cancellednotificationparams
  */
 final readonly class CancelledNotificationParams extends NotificationParams
 {
+    /**
+     * @var null|non-empty-string
+     */
+    public ?string $reason;
+
     public function __construct(
         public ?RequestId $requestId = null,
-        public ?string $reason = null,
+        ?string $reason = null,
         MetaObject $meta = new MetaObject(),
     ) {
+        Assert::that($reason)->nullOr()->isNonEmptyString('"params.reason" must be a non-empty string or null.');
+
+        $this->reason = $reason;
+
         parent::__construct($meta);
     }
 

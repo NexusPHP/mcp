@@ -180,6 +180,21 @@ final class DiscoverResultTest extends TestCase
         );
     }
 
+    public function testConstructorRejectsEmptyInstructions(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs('"result.instructions" must be a non-empty string or null.');
+
+        new DiscoverResult(
+            supportedVersions: ['2026-07-28'],
+            capabilities: new ServerCapabilities(),
+            serverInfo: new Implementation(name: 'srv', version: '1.0.0'),
+            ttlMs: 0,
+            cacheScope: CacheScope::Private,
+            instructions: '',
+        );
+    }
+
     public function testConstructorRejectsNegativeTtl(): void
     {
         $this->expectException(ExpectationFailedException::class);
@@ -281,6 +296,11 @@ final class DiscoverResultTest extends TestCase
         yield 'instructions not a string' => [
             ['supportedVersions' => ['2026-07-28'], 'capabilities' => [], 'serverInfo' => $validInfo, 'ttlMs' => 0, 'cacheScope' => 'private', 'instructions' => 1],
             '"result.instructions" must be a string, int given.',
+        ];
+
+        yield 'instructions empty' => [
+            ['supportedVersions' => ['2026-07-28'], 'capabilities' => [], 'serverInfo' => $validInfo, 'ttlMs' => 0, 'cacheScope' => 'private', 'instructions' => ''],
+            '"result.instructions" must be a non-empty string or null.',
         ];
 
         yield '_meta not an object' => [

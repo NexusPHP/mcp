@@ -47,7 +47,7 @@ abstract readonly class AbstractContext
                 progressToken: $token,
                 progress: $progress,
                 total: $total,
-                message: $message,
+                message: '' === $message ? null : $message,
             ),
         ));
     }

@@ -165,7 +165,7 @@ and accept `""` (`DiscoverResult.instructions`). The spec types each as `?: stri
 legal on all of them, and the decode boundary should treat them alike. Settle on one rule: either reject
 `""` everywhere (empty equals absent) or accept it everywhere as a plain `?string`.
 
-- [ ] Choose a single optional-string validation rule and align the affected schema classes
+- [x] Choose a single optional-string validation rule and align the affected schema classes
   (`Implementation`, `DiscoverResult`, and any peers) on it.
 
 ### Deprecation cleanup

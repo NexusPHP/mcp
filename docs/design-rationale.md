@@ -50,6 +50,21 @@ locked to the MCP shape. Internal micro-DRY is declined where it would add an ab
 byte-identical, spec-fixed structures. Spec-covered edge cases (failed handshake, malformed envelopes,
 out-of-order notifications) are treated as required, not optional.
 
+## Empty optional strings are absent
+
+The spec types most optional descriptive strings as `?: string`, so an empty string is technically a legal
+value. The SDK normalises that: an optional, human-readable string field (a description, a title,
+server `instructions`, a cancellation `reason`, a progress `message`) treats `""` as absent. Constructors
+reject it with an `\InvalidArgumentException` rather than storing a value that means nothing, so the object
+model has exactly one representation for "no value": `null`. The rule holds on the decode boundary too, so
+`CancelledNotificationParams::fromArray(['reason' => ''])` fails the same way as
+`new CancelledNotificationParams(reason: '')`.
+
+This is the one place the SDK is deliberately stricter than the spec. Value-bearing string fields are
+exempt, because there an empty string is a real value rather than a missing one: a JSON Schema `default`
+of `""` keeps its plain `?string` typing. The SDK's own emitters degrade gracefully instead of surfacing
+the rejection, so `ServerContext::reportProgress(..., message: '')` sends no message rather than throwing.
+
 ## Enforced package boundaries
 
 The codebase is organised into `Core`, `Server`, and `Client`, with `Server` and `Client` depending only

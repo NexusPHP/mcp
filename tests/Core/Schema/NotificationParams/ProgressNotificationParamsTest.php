@@ -82,13 +82,15 @@ final class ProgressNotificationParamsTest extends TestCase
         );
     }
 
-    public function testToArrayWithEmptyMessage(): void
+    public function testConstructorRejectsEmptyMessage(): void
     {
-        $params = new ProgressNotificationParams(progressToken: new ProgressToken(token: 'p-1'), progress: 5.0, total: null, message: '');
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('"params.message" must be a non-empty string or null.');
 
-        self::assertSame(
-            ['progressToken' => 'p-1', 'progress' => 5.0, 'message' => ''],
-            $params->toArray(),
+        new ProgressNotificationParams(
+            progressToken: new ProgressToken(token: 'p-1'),
+            progress: 5.0,
+            message: '',
         );
     }
 
@@ -242,6 +244,11 @@ final class ProgressNotificationParamsTest extends TestCase
         yield 'message not a string' => [
             ['progressToken' => 'p-1', 'progress' => 0.5, 'message' => 1],
             '"params.message" must be a string or null, int given.',
+        ];
+
+        yield 'message empty' => [
+            ['progressToken' => 'p-1', 'progress' => 0.5, 'message' => ''],
+            '"params.message" must be a non-empty string or null.',
         ];
 
         yield '_meta not an object' => [

@@ -69,14 +69,12 @@ final class CancelledNotificationParamsTest extends TestCase
         );
     }
 
-    public function testToArrayIncludesEmptyReason(): void
+    public function testConstructorRejectsEmptyReason(): void
     {
-        $params = new CancelledNotificationParams(requestId: new RequestId(id: 1), reason: '');
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('"params.reason" must be a non-empty string or null.');
 
-        self::assertSame(
-            ['requestId' => 1, 'reason' => ''],
-            $params->toArray(),
-        );
+        new CancelledNotificationParams(requestId: new RequestId(id: 1), reason: '');
     }
 
     public function testToArrayIncludesMeta(): void
@@ -163,14 +161,15 @@ final class CancelledNotificationParamsTest extends TestCase
         self::assertSame('user aborted', $params->reason);
     }
 
-    public function testFromArrayParsesEmptyReason(): void
+    public function testFromArrayRejectsEmptyReason(): void
     {
-        $params = CancelledNotificationParams::fromArray([
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('"params.reason" must be a non-empty string or null.');
+
+        CancelledNotificationParams::fromArray([
             'requestId' => 1,
             'reason' => '',
         ]);
-
-        self::assertSame('', $params->reason);
     }
 
     public function testFromArrayParsesMeta(): void

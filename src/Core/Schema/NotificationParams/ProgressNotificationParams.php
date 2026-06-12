@@ -28,7 +28,7 @@ use Nexus\Mcp\Core\Schema\ProgressToken;
  *   progressToken: int|non-empty-string,
  *   progress: float,
  *   total?: float,
- *   message?: string,
+ *   message?: non-empty-string,
  * }>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#progressnotificationparams
@@ -37,13 +37,22 @@ final readonly class ProgressNotificationParams extends NotificationParams
 {
     use ParsesNumber;
 
+    /**
+     * @var null|non-empty-string
+     */
+    public ?string $message;
+
     public function __construct(
         public ProgressToken $progressToken,
         public float $progress,
         public ?float $total = null,
-        public ?string $message = null,
+        ?string $message = null,
         MetaObject $meta = new MetaObject(),
     ) {
+        Assert::that($message)->nullOr()->isNonEmptyString('"params.message" must be a non-empty string or null.');
+
+        $this->message = $message;
+
         parent::__construct($meta);
     }
 
