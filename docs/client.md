@@ -54,7 +54,7 @@ read what the client supports.
 ```php
 use Nexus\Mcp\Core\Schema\ClientCapabilities;
 
-->setClientCapabilities(new ClientCapabilities(sampling: []))
+->setClientCapabilities(new ClientCapabilities(elicitation: []))
 ```
 
 ## Logger

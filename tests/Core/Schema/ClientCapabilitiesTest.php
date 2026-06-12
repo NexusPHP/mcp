@@ -35,7 +35,6 @@ final class ClientCapabilitiesTest extends TestCase
         self::assertNull($caps->elicitation);
         self::assertNull($caps->experimental);
         self::assertNull($caps->extensions);
-        self::assertNull($caps->sampling);
     }
 
     public function testFullConstructionExposesAllFields(): void
@@ -44,13 +43,11 @@ final class ClientCapabilitiesTest extends TestCase
             elicitation: ['form' => [], 'url' => []],
             experimental: ['custom' => ['flag' => true]],
             extensions: ['io.modelcontextprotocol/oauth-client-credentials' => ['scope' => 'read']],
-            sampling: ['context' => [], 'tools' => []],
         );
 
         self::assertSame(['form' => [], 'url' => []], $caps->elicitation);
         self::assertSame(['custom' => ['flag' => true]], $caps->experimental);
         self::assertSame(['io.modelcontextprotocol/oauth-client-credentials' => ['scope' => 'read']], $caps->extensions);
-        self::assertSame(['context' => [], 'tools' => []], $caps->sampling);
     }
 
     public function testToArrayMinimalIsEmpty(): void
@@ -71,7 +68,6 @@ final class ClientCapabilitiesTest extends TestCase
             elicitation: ['form' => []],
             experimental: ['x' => []],
             extensions: ['io.example/ext' => []],
-            sampling: ['tools' => []],
         );
 
         self::assertSame(
@@ -79,7 +75,6 @@ final class ClientCapabilitiesTest extends TestCase
                 'elicitation' => ['form' => []],
                 'experimental' => ['x' => []],
                 'extensions' => ['io.example/ext' => []],
-                'sampling' => ['tools' => []],
             ],
             $caps->toArray(),
         );
@@ -106,7 +101,6 @@ final class ClientCapabilitiesTest extends TestCase
             elicitation: ['form' => [], 'url' => []],
             experimental: ['ext' => []],
             extensions: ['acme.ext' => []],
-            sampling: ['context' => [], 'tools' => []],
         );
 
         $json = json_encode($caps);
@@ -116,16 +110,14 @@ final class ClientCapabilitiesTest extends TestCase
         self::assertStringContainsString('"url":{}', $json);
         self::assertStringContainsString('"experimental":{"ext":{}}', $json);
         self::assertStringContainsString('"extensions":{"acme.ext":{}}', $json);
-        self::assertStringContainsString('"context":{}', $json);
-        self::assertStringContainsString('"tools":{}', $json);
         self::assertStringNotContainsString('[]', $json);
     }
 
     public function testToArrayKeepsPureArraysForEmptyObjectSlots(): void
     {
-        $caps = new ClientCapabilities(sampling: []);
+        $caps = new ClientCapabilities(elicitation: []);
 
-        self::assertSame(['sampling' => []], $caps->toArray());
+        self::assertSame(['elicitation' => []], $caps->toArray());
     }
 
     public function testFromArrayEmptyIsAllNull(): void
@@ -135,7 +127,6 @@ final class ClientCapabilitiesTest extends TestCase
         self::assertNull($caps->elicitation);
         self::assertNull($caps->experimental);
         self::assertNull($caps->extensions);
-        self::assertNull($caps->sampling);
     }
 
     public function testFromArrayFullRoundTrip(): void
@@ -144,7 +135,6 @@ final class ClientCapabilitiesTest extends TestCase
             elicitation: ['form' => ['custom' => 1], 'url' => []],
             experimental: ['ext' => ['nested' => 'value']],
             extensions: ['io.example/ext' => ['nested' => 'value']],
-            sampling: ['context' => [], 'tools' => ['x' => 'y']],
         );
 
         $rebuilt = ClientCapabilities::fromArray($original->toArray());
@@ -157,12 +147,10 @@ final class ClientCapabilitiesTest extends TestCase
         $caps = ClientCapabilities::fromArray([
             'elicitation' => [],
             'extensions' => [],
-            'sampling' => [],
         ]);
 
         self::assertSame([], $caps->elicitation);
         self::assertSame([], $caps->extensions);
-        self::assertSame([], $caps->sampling);
     }
 
     public function testFromArrayIgnoresUnknownNestedKeys(): void
@@ -236,21 +224,6 @@ final class ClientCapabilitiesTest extends TestCase
         yield 'experimental value list-keyed' => [
             ['experimental' => ['ext' => ['x']]],
             '"capabilities.experimental.ext" must be a string-keyed object.',
-        ];
-
-        yield 'sampling not an object' => [
-            ['sampling' => 1],
-            '"capabilities.sampling" must be an object, int given.',
-        ];
-
-        yield 'sampling.context not an object' => [
-            ['sampling' => ['context' => 'oops']],
-            '"capabilities.sampling.context" must be an object, string given.',
-        ];
-
-        yield 'sampling.tools not an object' => [
-            ['sampling' => ['tools' => 'oops']],
-            '"capabilities.sampling.tools" must be an object, string given.',
         ];
 
         yield 'extensions not an object' => [

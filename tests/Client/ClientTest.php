@@ -312,7 +312,7 @@ final class ClientTest extends TestCase
 
     public function testDiscoverStampsClientCapabilitiesIntoTheRequestMeta(): void
     {
-        $capabilities = new ClientCapabilities(sampling: []);
+        $capabilities = new ClientCapabilities(elicitation: []);
         $client = new ClientBuilder()
             ->setClientInfo('demo', '1.0.0')
             ->setClientCapabilities($capabilities)

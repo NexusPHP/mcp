@@ -26,7 +26,6 @@ use Nexus\Mcp\Core\Schema\Notification\SubscriptionsAcknowledgedNotification;
 use Nexus\Mcp\Core\Schema\Notification\ToolListChangedNotification;
 use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
 use Nexus\Mcp\Core\Schema\Request\CompleteRequest;
-use Nexus\Mcp\Core\Schema\Request\CreateMessageRequest;
 use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
 use Nexus\Mcp\Core\Schema\Request\ElicitRequest;
 use Nexus\Mcp\Core\Schema\Request\GetPromptRequest;
@@ -57,7 +56,6 @@ final class JsonRpcMethodRegistry
             ListResourcesRequest::getMethod() => ListResourcesRequest::class,
             ReadResourceRequest::getMethod() => ReadResourceRequest::class,
             ListResourceTemplatesRequest::getMethod() => ListResourceTemplatesRequest::class,
-            CreateMessageRequest::getMethod() => CreateMessageRequest::class,
             DiscoverRequest::getMethod() => DiscoverRequest::class,
             SubscriptionsListenRequest::getMethod() => SubscriptionsListenRequest::class,
             CallToolRequest::getMethod() => CallToolRequest::class,

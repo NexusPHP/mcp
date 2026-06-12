@@ -8,9 +8,5 @@
     },
     "extensions": {
         "io.modelcontextprotocol/oauth-client-credentials": {}
-    },
-    "sampling": {
-        "context": {},
-        "tools": {}
     }
 }

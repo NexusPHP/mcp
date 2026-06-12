@@ -22,13 +22,11 @@ use Nexus\Assert\Assert;
  * @phpstan-type ElicitationCapability array{form?: array<string, mixed>, url?: array<string, mixed>}
  * @phpstan-type ExperimentalCapability array<string, array<string, mixed>>
  * @phpstan-type ExtensionsCapability array<string, array<string, mixed>>
- * @phpstan-type SamplingCapability array{context?: array<string, mixed>, tools?: array<string, mixed>}
  *
  * @implements Arrayable<array{
  *   elicitation?: ElicitationCapability,
  *   experimental?: ExperimentalCapability,
  *   extensions?: ExtensionsCapability,
- *   sampling?: SamplingCapability,
  * }>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#clientcapabilities
@@ -39,13 +37,11 @@ final readonly class ClientCapabilities implements Arrayable
      * @param null|ElicitationCapability  $elicitation
      * @param null|ExperimentalCapability $experimental
      * @param null|ExtensionsCapability   $extensions
-     * @param null|SamplingCapability     $sampling
      */
     public function __construct(
         public ?array $elicitation = null,
         public ?array $experimental = null,
         public ?array $extensions = null,
-        public ?array $sampling = null,
     ) {
     }
 
@@ -56,7 +52,6 @@ final readonly class ClientCapabilities implements Arrayable
             elicitation: self::extractElicitation($data),
             experimental: self::extractExperimental($data),
             extensions: self::extractExtensions($data),
-            sampling: self::extractSampling($data),
         );
     }
 
@@ -75,10 +70,6 @@ final readonly class ClientCapabilities implements Arrayable
 
         if (null !== $this->extensions) {
             $data['extensions'] = $this->extensions;
-        }
-
-        if (null !== $this->sampling) {
-            $data['sampling'] = $this->sampling;
         }
 
         return $data;
@@ -189,45 +180,6 @@ final readonly class ClientCapabilities implements Arrayable
         }
 
         return $experimental;
-    }
-
-    /**
-     * @param array<string, mixed> $data
-     *
-     * @return null|SamplingCapability
-     */
-    private static function extractSampling(array $data): ?array
-    {
-        $value = $data['sampling'] ?? null;
-
-        if (null === $value) {
-            return null;
-        }
-
-        Assert::that($value)
-            ->isArray('"capabilities.sampling" must be an object, {type} given.')
-            ->isMap('"capabilities.sampling" must be a string-keyed object.')
-        ;
-
-        $sampling = [];
-
-        if (\array_key_exists('context', $value)) {
-            Assert::that($value['context'])
-                ->isArray('"capabilities.sampling.context" must be an object, {type} given.')
-                ->isMap('"capabilities.sampling.context" must be a string-keyed object.')
-            ;
-            $sampling['context'] = $value['context'];
-        }
-
-        if (\array_key_exists('tools', $value)) {
-            Assert::that($value['tools'])
-                ->isArray('"capabilities.sampling.tools" must be an object, {type} given.')
-                ->isMap('"capabilities.sampling.tools" must be a string-keyed object.')
-            ;
-            $sampling['tools'] = $value['tools'];
-        }
-
-        return $sampling;
     }
 
     /**

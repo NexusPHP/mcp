@@ -20,9 +20,7 @@ use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequestedSchema;
 use Nexus\Mcp\Core\Schema\Elicitation\EnumOption;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\Enum\ElicitAction;
-use Nexus\Mcp\Core\Schema\Enum\IncludeContext;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
-use Nexus\Mcp\Core\Schema\Enum\ToolChoiceMode;
 use Nexus\Mcp\Core\Schema\Error;
 use Nexus\Mcp\Core\Schema\Error\UnknownProtocolError;
 use Nexus\Mcp\Core\Schema\Error\UrlElicitationRequiredErrorPayload;
@@ -37,7 +35,6 @@ use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
 use Nexus\Mcp\Core\Schema\ProtocolVersion;
 use Nexus\Mcp\Core\Schema\Request;
 use Nexus\Mcp\Core\Schema\Request\ClientRequest;
-use Nexus\Mcp\Core\Schema\Request\CreateMessageRequest;
 use Nexus\Mcp\Core\Schema\Request\ElicitRequest;
 use Nexus\Mcp\Core\Schema\Request\PaginatedRequest;
 use Nexus\Mcp\Core\Schema\Request\ServerRequest;
@@ -48,7 +45,6 @@ use Nexus\Mcp\Core\Schema\Resource\ResourceContents;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\CacheableResult;
 use Nexus\Mcp\Core\Schema\Result\ClientResult;
-use Nexus\Mcp\Core\Schema\Result\CreateMessageResult;
 use Nexus\Mcp\Core\Schema\Result\ElicitResult;
 use Nexus\Mcp\Core\Schema\Result\PaginatedResult;
 use Nexus\Mcp\Core\Schema\Result\ServerResult;
@@ -83,7 +79,6 @@ final class SchemaConformanceTest extends TestCase
      * re-modelling off `JsonRpcRequest` (see `ROADMAP.md`).
      */
     private const array ENVELOPE_SPEC_DRIFT = [
-        CreateMessageRequest::class => ['jsonrpc', 'id'],
         ElicitRequest::class => ['jsonrpc', 'id'],
     ];
 
@@ -93,7 +88,6 @@ final class SchemaConformanceTest extends TestCase
      * (see `ROADMAP.md`).
      */
     private const array RESULT_SPEC_DRIFT = [
-        CreateMessageResult::class => ['resultType'],
         ElicitResult::class => ['resultType', '_meta'],
     ];
 
@@ -126,9 +120,7 @@ final class SchemaConformanceTest extends TestCase
         EnumOption::class => self::TS_SCHEMA_FILE_URL,
         CacheScope::class => self::TS_SCHEMA_FILE_URL,
         ElicitAction::class => self::TS_SCHEMA_FILE_URL,
-        IncludeContext::class => self::TS_SCHEMA_FILE_URL,
         ProtocolErrorCode::class => self::JSON_RPC_ERROR_OBJECT_URL,
-        ToolChoiceMode::class => self::TS_SCHEMA_FILE_URL,
         UnknownProtocolError::class => self::JSON_RPC_ERROR_OBJECT_URL,
         UrlElicitationRequiredErrorPayload::class => self::JSON_RPC_ERROR_OBJECT_URL,
         Icons::class => 'https://modelcontextprotocol.io/specification/draft/basic#icons',
@@ -185,7 +177,7 @@ final class SchemaConformanceTest extends TestCase
      * entry's removal.
      */
     private const array DEPRECATED_OMITTED_PROPERTIES = [
-        'ClientCapabilities' => ['roots'],
+        'ClientCapabilities' => ['roots', 'sampling'],
     ];
 
     /**

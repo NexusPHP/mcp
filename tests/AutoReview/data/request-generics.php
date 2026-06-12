@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
 use Nexus\Mcp\Core\Schema\Request\CompleteRequest;
-use Nexus\Mcp\Core\Schema\Request\CreateMessageRequest;
 use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
 use Nexus\Mcp\Core\Schema\Request\ElicitRequest;
 use Nexus\Mcp\Core\Schema\Request\GetPromptRequest;
@@ -33,7 +32,6 @@ assertType('\'prompts/list\'', ListPromptsRequest::getMethod());
 assertType('\'resources/list\'', ListResourcesRequest::getMethod());
 assertType('\'resources/read\'', ReadResourceRequest::getMethod());
 assertType('\'resources/templates/list\'', ListResourceTemplatesRequest::getMethod());
-assertType('\'sampling/createMessage\'', CreateMessageRequest::getMethod());
 assertType('\'server/discover\'', DiscoverRequest::getMethod());
 assertType('\'subscriptions/listen\'', SubscriptionsListenRequest::getMethod());
 assertType('\'tools/call\'', CallToolRequest::getMethod());

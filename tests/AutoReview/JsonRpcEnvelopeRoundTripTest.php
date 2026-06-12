@@ -30,7 +30,6 @@ use Nexus\Mcp\Core\Schema\Notification\SubscriptionsAcknowledgedNotification;
 use Nexus\Mcp\Core\Schema\Notification\ToolListChangedNotification;
 use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
 use Nexus\Mcp\Core\Schema\Request\CompleteRequest;
-use Nexus\Mcp\Core\Schema\Request\CreateMessageRequest;
 use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
 use Nexus\Mcp\Core\Schema\Request\ElicitRequest;
 use Nexus\Mcp\Core\Schema\Request\GetPromptRequest;
@@ -44,7 +43,6 @@ use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Core\Schema\Result\CompleteResult;
-use Nexus\Mcp\Core\Schema\Result\CreateMessageResult;
 use Nexus\Mcp\Core\Schema\Result\DiscoverResult;
 use Nexus\Mcp\Core\Schema\Result\ElicitResult;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
@@ -154,8 +152,6 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
 
         yield 'CompleteRequest' => ['wrapper' => CompleteRequest::class, 'inner' => null];
 
-        yield 'CreateMessageRequest' => ['wrapper' => CreateMessageRequest::class, 'inner' => null, 'encodingPathsDiverge' => true];
-
         yield 'GetPromptRequest' => ['wrapper' => GetPromptRequest::class, 'inner' => null];
 
         yield 'CallToolRequest' => ['wrapper' => CallToolRequest::class, 'inner' => null];
@@ -195,8 +191,6 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
         yield 'JsonRpcResultResponse-CallToolResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => CallToolResult::class];
 
         yield 'JsonRpcResultResponse-CompleteResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => CompleteResult::class];
-
-        yield 'JsonRpcResultResponse-CreateMessageResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => CreateMessageResult::class];
 
         yield 'JsonRpcResultResponse-DiscoverResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => DiscoverResult::class];
 

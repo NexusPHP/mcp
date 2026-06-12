@@ -18,7 +18,6 @@ use Nexus\Mcp\Core\Schema\Annotations;
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\ContentBlock;
 use Nexus\Mcp\Core\Schema\MetaObject;
-use Nexus\Mcp\Core\Schema\Sampling\SamplingMessageContentBlock;
 
 /**
  * Text provided to or from an LLM.
@@ -32,7 +31,7 @@ use Nexus\Mcp\Core\Schema\Sampling\SamplingMessageContentBlock;
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#textcontent
  */
-final readonly class TextContent implements Arrayable, ContentBlock, SamplingMessageContentBlock
+final readonly class TextContent implements Arrayable, ContentBlock
 {
     public const string TYPE = 'text';
 

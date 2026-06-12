@@ -16,8 +16,8 @@ declare(strict_types=1);
  *
  * "Interactive" here means tools that emit server-to-client traffic during
  * execution: `notifications/message` (log lines) and `notifications/progress`
- * (per-step progress reports). Server-initiated requests like
- * `sampling/createMessage` and `elicitation/create` are not yet supported.
+ * (per-step progress reports). The server-initiated `elicitation/create`
+ * request is not yet supported.
  *
  * Spawn from an MCP client (e.g. Claude Desktop) with:
  *

@@ -313,19 +313,6 @@ final class ServerMessageDispatcherTest extends TestCase
      */
     public static function provideServerRejectsServerToClientMethodWithMethodNotFoundCases(): iterable
     {
-        yield 'sampling/createMessage (standalone params)' => [
-            'r-2',
-            [
-                'jsonrpc' => '2.0',
-                'id' => 'r-2',
-                'method' => 'sampling/createMessage',
-                'params' => [
-                    'maxTokens' => 100,
-                    'messages' => [['role' => 'user', 'content' => ['text' => 'hi', 'type' => 'text']]],
-                ],
-            ],
-        ];
-
         yield 'elicitation/create (standalone params)' => [
             'r-3',
             [

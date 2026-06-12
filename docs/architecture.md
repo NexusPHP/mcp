@@ -178,10 +178,6 @@ parent key:
   | `Annotations`, `ToolAnnotations`                                                               | `"annotations"`        |
   | `Icon` (array item under `icons`)                                                              | `"icons"`              |
   | `PromptArgument` (array item under `arguments`)                                                | `"arguments"`          |
-  | `ModelPreferences`                                                                             | `"modelPreferences"`   |
-  | `ModelHint` (array item under `hints`)                                                         | `"hints"`              |
-  | `ToolChoice`                                                                                   | `"toolChoice"`         |
-  | `ToolUseContent`, `ToolResultContent` (shared)                                                 | `"content"`            |
   | `MetaObject`, `RequestMetaObject`                                                              | `"_meta"`              |
   | `RequestId`                                                                                    | `"id"`                 |
   | `ProtocolVersion`                                                                              | `"protocolVersion"`    |
@@ -199,7 +195,7 @@ parent key:
 - **Classes without a fixed wrapping field** use the lowercased space-separated form of their class
   name as the prefix: `text content`, `image content`, `embedded resource`, `resource link`,
   `boolean schema`, `number schema`, `tool`, `prompt`, `resource template`, `prompt message`,
-  `sampling message`, `error response`, et cetera.
+  `error response`, et cetera.
 
 - **`*Request` and `*Notification` classes have no label.** Their messages start with the field name
   directly:
