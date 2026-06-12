@@ -28,7 +28,7 @@ use Nexus\Mcp\Core\Schema\RequestParams\ElicitRequestUrlParams;
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#elicitrequest
  */
-final readonly class ElicitRequest extends JsonRpcRequest implements ServerRequest
+final readonly class ElicitRequest extends JsonRpcRequest implements InputRequest
 {
     public function __construct(RequestId $id, ElicitRequestFormParams|ElicitRequestUrlParams $params)
     {

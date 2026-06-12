@@ -18,6 +18,6 @@ namespace Nexus\Mcp\Core\Schema\Request;
  *
  * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/draft/schema.ts
  */
-interface ServerRequest
+interface InputRequest
 {
 }

@@ -36,8 +36,8 @@ use Nexus\Mcp\Core\Schema\ProtocolVersion;
 use Nexus\Mcp\Core\Schema\Request;
 use Nexus\Mcp\Core\Schema\Request\ClientRequest;
 use Nexus\Mcp\Core\Schema\Request\ElicitRequest;
+use Nexus\Mcp\Core\Schema\Request\InputRequest;
 use Nexus\Mcp\Core\Schema\Request\PaginatedRequest;
-use Nexus\Mcp\Core\Schema\Request\ServerRequest;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\ResourceRequestParams;
 use Nexus\Mcp\Core\Schema\RequestParamsInterface;
@@ -134,8 +134,8 @@ final class SchemaConformanceTest extends TestCase
         EmptyRequestParams::class => self::TS_SCHEMA_FILE_URL,
         ResourceRequestParams::class => self::TS_SCHEMA_FILE_URL,
         ClientRequest::class => self::TS_SCHEMA_FILE_URL,
+        InputRequest::class => self::TS_SCHEMA_FILE_URL,
         PaginatedRequest::class => self::TS_SCHEMA_FILE_URL,
-        ServerRequest::class => self::TS_SCHEMA_FILE_URL,
         ResourceContents::class => self::TS_SCHEMA_FILE_URL,
         CacheableResult::class => self::TS_SCHEMA_FILE_URL,
         ClientResult::class => self::TS_SCHEMA_FILE_URL,

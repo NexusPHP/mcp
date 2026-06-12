@@ -119,9 +119,8 @@ generic `JsonRpcResultResponse<TResult>` splits into 18 per-method response enve
 
 - [ ] Add `resultType` enum + discriminator to the success-response parser.
 - [ ] Add `InputRequiredResult` (`inputRequests` + opaque `requestState`) and
-  `InputResponseRequestParams` (`inputResponses` + `requestState`), keyed off the `InputRequest` marker
-  (renamed from `ServerRequest` under Deprecation cleanup). The client retries by re-issuing the original
-  request, so there is no `tasks/input_response` method.
+  `InputResponseRequestParams` (`inputResponses` + `requestState`), keyed off the `InputRequest` marker.
+  The client retries by re-issuing the original request, so there is no `tasks/input_response` method.
 - [ ] Generate 18 per-method `*ResultResponse` envelope classes.
 - [ ] Delete `UrlElicitationRequiredError` (-32042) entirely. The success-result-based mechanism
   replaces it.
@@ -195,7 +194,7 @@ spec-divergence question.
 - [x] Delete Sampling from core (`sampling/createMessage`, `CreateMessageRequest`,
   `CreateMessageResult`, `SamplingMessage`, the capability slot). Sampling is not shipped, not even as an
   optional extension.
-- [ ] Rename the `ServerRequest` marker interface to `InputRequest`, matching the union the 2026-07-28
+- [x] Rename the `ServerRequest` marker interface to `InputRequest`, matching the union the 2026-07-28
   spec renamed. With Roots and Sampling gone, only `ElicitRequest` implements it. Touches the marker, its
   implementers, the conformance `@see` map, and tests. `ClientRequest` is unchanged.
 - [ ] Re-model `ElicitRequest` off `JsonRpcRequest`. The 2026-07-28 spec defines it as a bare `Request`
