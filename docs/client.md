@@ -190,9 +190,9 @@ Register handlers for server-to-client notifications at build time. A handler im
 `NotificationHandlerInterface`. The dispatch table is keyed by method name.
 
 ```php
-use Nexus\Mcp\Core\Schema\Notification\LoggingMessageNotification;
+use Nexus\Mcp\Core\Schema\Notification\ToolListChangedNotification;
 
-->addNotificationHandler(LoggingMessageNotification::getMethod(), $myLoggingHandler)
+->addNotificationHandler(ToolListChangedNotification::getMethod(), $myHandler)
 ```
 
 A build-time `notifications/progress` handler receives every progress notification whose token is **not**

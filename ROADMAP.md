@@ -186,7 +186,7 @@ greenfield SDK with zero published tags. Omitting them is conformant. This is se
 spec-divergence question.
 
 - [x] Delete Roots (`roots/list`, `notifications/roots/list_changed`, `Root`, `ListRootsResult`, the capability slot).
-- [ ] Delete the residual server-side Logging emission path: `notifications/message`
+- [x] Delete the residual server-side Logging emission path: `notifications/message`
   (`LoggingMessageNotification`), the `logging` capability slot, `LoggingLevelGate`, and the `log()`
   helper on `ServerContext`. Retain the `LoggingLevel` enum and `RequestMetaObject.logLevel` as a
   round-trip-only mirror of the still-present (deprecated) `_meta.io.modelcontextprotocol/logLevel`

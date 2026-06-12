@@ -74,7 +74,7 @@ final class JsonRpcResultResponseTest extends TestCase
             id: new RequestId(id: 99),
             result: new DiscoverResult(
                 supportedVersions: [ProtocolVersion::LATEST_VERSION],
-                capabilities: new ServerCapabilities(logging: []),
+                capabilities: new ServerCapabilities(completions: []),
                 serverInfo: new Implementation(name: 'srv', version: '1.0.0'),
                 ttlMs: 0,
                 cacheScope: CacheScope::Private,
@@ -84,6 +84,6 @@ final class JsonRpcResultResponseTest extends TestCase
         $encoded = json_encode($response);
 
         self::assertIsString($encoded);
-        self::assertStringContainsString('"logging":{}', $encoded, 'Empty capability markers must encode as JSON objects, not arrays.');
+        self::assertStringContainsString('"completions":{}', $encoded, 'Empty capability markers must encode as JSON objects, not arrays.');
     }
 }

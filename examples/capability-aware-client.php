@@ -52,7 +52,6 @@ try {
         'tools' => null !== $capabilities?->tools,
         'resources' => null !== $capabilities?->resources,
         'prompts' => null !== $capabilities?->prompts,
-        'logging' => null !== $capabilities?->logging,
         'completions' => null !== $capabilities?->completions,
     ];
 

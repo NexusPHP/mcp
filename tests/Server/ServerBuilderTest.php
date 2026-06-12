@@ -104,15 +104,15 @@ final class ServerBuilderTest extends TestCase
         new ServerBuilder()->setInstructions('');
     }
 
-    public function testDiscoverOnEmptyServerAdvertisesLoggingOnly(): void
+    public function testDiscoverOnEmptyServerAdvertisesNoCapabilities(): void
     {
         $result = $this->discoverResultFor(new ServerBuilder()->setServerInfo('demo', '1.0.0')->build());
 
-        self::assertSame([], $result->capabilities->logging);
         self::assertNull($result->capabilities->tools);
         self::assertNull($result->capabilities->prompts);
         self::assertNull($result->capabilities->resources);
         self::assertNull($result->capabilities->completions);
+        self::assertSame([], $result->capabilities->toArray());
     }
 
     public function testCapabilitiesIncludeToolsWhenToolRegistered(): void
@@ -868,8 +868,6 @@ final class ServerBuilderTest extends TestCase
         yield 'notifications/cancelled' => ['notifications/cancelled'];
 
         yield 'notifications/elicitation/complete' => ['notifications/elicitation/complete'];
-
-        yield 'notifications/message' => ['notifications/message'];
 
         yield 'notifications/progress' => ['notifications/progress'];
 

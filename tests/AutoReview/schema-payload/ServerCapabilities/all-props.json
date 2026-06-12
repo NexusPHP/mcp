@@ -6,7 +6,6 @@
     "extensions": {
         "io.modelcontextprotocol/tasks": {}
     },
-    "logging": {},
     "prompts": {
         "listChanged": true
     },

@@ -35,7 +35,6 @@ final class ServerCapabilitiesTest extends TestCase
         self::assertNull($caps->completions);
         self::assertNull($caps->experimental);
         self::assertNull($caps->extensions);
-        self::assertNull($caps->logging);
         self::assertNull($caps->prompts);
         self::assertNull($caps->resources);
         self::assertNull($caps->tools);
@@ -47,7 +46,6 @@ final class ServerCapabilitiesTest extends TestCase
             completions: ['custom' => 'value'],
             experimental: ['ext' => ['nested' => 'value']],
             extensions: ['io.modelcontextprotocol/tasks' => ['version' => '1']],
-            logging: ['anything' => 'goes'],
             prompts: ['listChanged' => true],
             resources: ['listChanged' => true, 'subscribe' => false],
             tools: ['listChanged' => true],
@@ -56,7 +54,6 @@ final class ServerCapabilitiesTest extends TestCase
         self::assertSame(['custom' => 'value'], $caps->completions);
         self::assertSame(['ext' => ['nested' => 'value']], $caps->experimental);
         self::assertSame(['io.modelcontextprotocol/tasks' => ['version' => '1']], $caps->extensions);
-        self::assertSame(['anything' => 'goes'], $caps->logging);
         self::assertSame(['listChanged' => true], $caps->prompts);
         self::assertSame(['listChanged' => true, 'subscribe' => false], $caps->resources);
         self::assertSame(['listChanged' => true], $caps->tools);
@@ -80,7 +77,6 @@ final class ServerCapabilitiesTest extends TestCase
             completions: ['c' => 1],
             experimental: ['x' => []],
             extensions: ['io.example/ext' => []],
-            logging: ['l' => 1],
             prompts: ['listChanged' => true],
             resources: ['subscribe' => true],
             tools: ['listChanged' => false],
@@ -91,7 +87,6 @@ final class ServerCapabilitiesTest extends TestCase
                 'completions' => ['c' => 1],
                 'experimental' => ['x' => []],
                 'extensions' => ['io.example/ext' => []],
-                'logging' => ['l' => 1],
                 'prompts' => ['listChanged' => true],
                 'resources' => ['subscribe' => true],
                 'tools' => ['listChanged' => false],
@@ -121,7 +116,6 @@ final class ServerCapabilitiesTest extends TestCase
             completions: [],
             experimental: ['ext' => []],
             extensions: ['acme.ext' => []],
-            logging: [],
             prompts: [],
             resources: [],
             tools: [],
@@ -133,7 +127,6 @@ final class ServerCapabilitiesTest extends TestCase
         self::assertStringContainsString('"completions":{}', $json);
         self::assertStringContainsString('"experimental":{"ext":{}}', $json);
         self::assertStringContainsString('"extensions":{"acme.ext":{}}', $json);
-        self::assertStringContainsString('"logging":{}', $json);
         self::assertStringContainsString('"prompts":{}', $json);
         self::assertStringContainsString('"resources":{}', $json);
         self::assertStringContainsString('"tools":{}', $json);
@@ -161,7 +154,6 @@ final class ServerCapabilitiesTest extends TestCase
         self::assertNull($caps->completions);
         self::assertNull($caps->experimental);
         self::assertNull($caps->extensions);
-        self::assertNull($caps->logging);
         self::assertNull($caps->prompts);
         self::assertNull($caps->resources);
         self::assertNull($caps->tools);
@@ -173,7 +165,6 @@ final class ServerCapabilitiesTest extends TestCase
             completions: ['custom' => 'value'],
             experimental: ['ext' => ['nested' => 'value']],
             extensions: ['io.example/ext' => ['nested' => 'value']],
-            logging: ['anything' => 'goes'],
             prompts: ['listChanged' => true],
             resources: ['listChanged' => true, 'subscribe' => false],
             tools: ['listChanged' => true],
@@ -189,7 +180,6 @@ final class ServerCapabilitiesTest extends TestCase
         $caps = ServerCapabilities::fromArray([
             'completions' => [],
             'extensions' => [],
-            'logging' => [],
             'prompts' => [],
             'resources' => [],
             'tools' => [],
@@ -197,7 +187,6 @@ final class ServerCapabilitiesTest extends TestCase
 
         self::assertSame([], $caps->completions);
         self::assertSame([], $caps->extensions);
-        self::assertSame([], $caps->logging);
         self::assertSame([], $caps->prompts);
         self::assertSame([], $caps->resources);
         self::assertSame([], $caps->tools);
@@ -273,11 +262,6 @@ final class ServerCapabilitiesTest extends TestCase
         yield 'experimental value list-keyed' => [
             ['experimental' => ['ext' => ['x']]],
             '"capabilities.experimental.ext" must be a string-keyed object.',
-        ];
-
-        yield 'logging not an object' => [
-            ['logging' => 1],
-            '"capabilities.logging" must be an object, int given.',
         ];
 
         yield 'prompts not an object' => [

@@ -55,8 +55,7 @@ without completions fails before sending. See
 [examples/capability-aware-client.php](../examples/capability-aware-client.php).
 
 **Stream progress for long tools.** Pass an `onProgress` callback to `callTool()` to receive
-`notifications/progress` while the call is in flight, and register a `LoggingMessageNotification` handler
-to surface the server's log notifications.
+`notifications/progress` while the call is in flight.
 
 **Mind that requests currently have no timeout.** A request to a hung or slow server blocks the calling
 fiber until the transport closes. Per-request timeouts are a planned addition (see [ROADMAP.md](../ROADMAP.md)).

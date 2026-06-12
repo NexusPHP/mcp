@@ -268,7 +268,6 @@ reference.
 | `prompts` | At least one `addPrompt(...)`, `setPromptStore(...)`, or both `prompts/list` and `prompts/get` `replaceRequestHandler(...)`. |
 | `resources` | At least one `addResource(...)` / `addResourceTemplate(...)`, `setResourceStore(...)` / `setResourceTemplateStore(...)`, or both `resources/list` and `resources/read` `replaceRequestHandler(...)`. |
 | `completions` | `setCompletionStore(...)`, or `completion/complete` `replaceRequestHandler(...)`. |
-| `logging` | Always advertised. `$context->log()` emits `notifications/message`, filtered by the gate's minimum level. |
 
 `listChanged` is not advertised on any slot. The per-feature stores are immutable after `build()` returns,
 so there is nothing to notify the client about.
@@ -283,7 +282,6 @@ Every handler closure receives a `ServerContext` as its last argument.
 | `$context->cancellation` | An `Amp\Cancellation` token. Pass it to any `await()` so client `notifications/cancelled` can interrupt long-running work. |
 | `$context->meta` | The request's `_meta` object: the client's `protocolVersion`, `clientInfo`, and `clientCapabilities`, plus `progressToken`. Read client capabilities per request, never inferred from a prior one. |
 | `$context->sessionId` | The transport's session id, if any. `null` for stdio. |
-| `$context->log($level, $data, $logger = null)` | Emits a `notifications/message`. Dropped if below the gate's minimum level (default: `info`). |
 | `$context->reportProgress($progress, $total, $message)` | Emits a `notifications/progress` if the original request carried a `progressToken`. |
 
 ## Lifecycle

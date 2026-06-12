@@ -23,7 +23,6 @@ Nexus\Mcp\
 │   ├── Exception\      Server-side error types
 │   ├── Handler\
 │   │   └── Request\    Built-in server request handlers
-│   ├── Logging\        Logging-level gate consulted before emitting `notifications/message`
 │   ├── Prompt\         Prompt store plus renderer adapters
 │   ├── Resource\       Static and templated resource stores plus reader adapters
 │   ├── Tool\           Tool store plus executor adapters
@@ -33,7 +32,7 @@ Nexus\Mcp\
     ├── Dispatch\       Client-side per-envelope inbound pipeline
     ├── Exception\      Client-side local-misuse errors (not connected, already connected, unadvertised server capability)
     ├── Handler\
-    │   └── Notification\  Built-in client notification handlers (progress routing, logging message)
+    │   └── Notification\  Built-in client notification handlers (progress routing)
     └── Transport\      Client-side transport implementations
 ```
 
@@ -114,17 +113,11 @@ The diagram traces the server. The client shares the request and notification ar
 place: the response-shape fork above. Where the server discards a `result`/`error` envelope, the client
 correlates it to the pending outbound request it is awaiting, resolving on success or rejecting on error,
 and warns on an unknown ("orphan") id. The client is thus both a responder (it routes
-`notifications/progress` to per-call listeners and surfaces `notifications/message`) and a requester (it
+`notifications/progress` to per-call listeners) and a requester (it
 awaits the responses to the calls it makes, gating each *outbound* send on the server's advertised
 capabilities in `Client::sendRequest()`).
 
 A few pieces are worth calling out:
-
-### `LoggingLevelGate`
-
-A single `LoggingLevel` (default `info`), consulted by `ServerContext::log()` before emitting any
-`notifications/message`: a message below the threshold is dropped. The `logging` capability is always
-advertised, so `$context->log()` always has a gate to consult.
 
 ### Coroutine draining
 
@@ -143,7 +136,7 @@ finishes right as the transport closes would lose its response to a race with th
   canonical description, every `@see` link resolves to a real anchor in the spec docs, and every round-trip
   fixture matches the canonical envelope shape.
 - What we have today: server-side covering `server/discover`, tools, prompts, resources (static +
-  templated), completions, and logging. Client-side covering `discover()` plus typed requests for the same
+  templated), and completions. Client-side covering `discover()` plus typed requests for the same
   surface (`tools/call` with streaming progress, the list/read/get/complete methods). Stdio transport on
   both sides. Tool call arguments and results are validated against the tool's declared `inputSchema` /
   `outputSchema` (pluggable via `SchemaValidatorInterface`), and a `structuredContent`-only result is

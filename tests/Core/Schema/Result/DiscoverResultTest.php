@@ -112,13 +112,13 @@ final class DiscoverResultTest extends TestCase
     {
         $result = new DiscoverResult(
             supportedVersions: ['2026-07-28'],
-            capabilities: new ServerCapabilities(logging: []),
+            capabilities: new ServerCapabilities(completions: []),
             serverInfo: new Implementation(name: 'srv', version: '1.0.0'),
             ttlMs: 0,
             cacheScope: CacheScope::Private,
         );
 
-        self::assertStringContainsString('"logging":{}', (string) json_encode($result));
+        self::assertStringContainsString('"completions":{}', (string) json_encode($result));
     }
 
     public function testJsonSerializeMatchesToArrayForNonEmptyCapabilities(): void

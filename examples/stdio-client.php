@@ -16,8 +16,7 @@ declare(strict_types=1);
  * drives it through the typed `Client` surface: handshake, `tools/list`, two
  * `tools/call`s, `resources/read`, and `prompts/list`. The `count_down` call
  * passes an `onProgress` callback, so the server's per-tick progress reports
- * stream back while the call is in flight. Server log notifications stream
- * through a registered `notifications/message` handler.
+ * stream back while the call is in flight.
  *
  * Run with:
  *
@@ -27,10 +26,8 @@ declare(strict_types=1);
 require __DIR__.'/bootstrap.php';
 
 use Nexus\Mcp\Client\ClientBuilder;
-use Nexus\Mcp\Client\Handler\Notification\LoggingMessageNotificationHandler;
 use Nexus\Mcp\Client\Transport\StdioClientTransport;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
-use Nexus\Mcp\Core\Schema\Notification\LoggingMessageNotification;
 use Nexus\Mcp\Core\Schema\Resource\TextResourceContents;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Psr\Log\NullLogger;
@@ -38,16 +35,6 @@ use Psr\Log\NullLogger;
 $client = new ClientBuilder()
     ->setLogger(new NullLogger())
     ->setClientInfo(name: 'nexus-stdio-example-client', version: '0.1.0')
-    ->addNotificationHandler(
-        LoggingMessageNotification::getMethod(),
-        new LoggingMessageNotificationHandler(static function (LoggingMessageNotification $notification): void {
-            $payload = $notification->params;
-            $data = $payload->data;
-            $rendered = is_string($data) ? $data : json_encode($data, \JSON_UNESCAPED_SLASHES | \JSON_THROW_ON_ERROR);
-
-            fwrite(\STDOUT, sprintf("    [server log:%s] %s\n", $payload->level->value, $rendered));
-        }),
-    )
     ->build()
 ;
 

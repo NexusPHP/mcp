@@ -21,7 +21,6 @@ use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\Notification\CancelledNotification;
 use Nexus\Mcp\Core\Schema\Notification\ElicitationCompleteNotification;
-use Nexus\Mcp\Core\Schema\Notification\LoggingMessageNotification;
 use Nexus\Mcp\Core\Schema\Notification\ProgressNotification;
 use Nexus\Mcp\Core\Schema\Notification\PromptListChangedNotification;
 use Nexus\Mcp\Core\Schema\Notification\ResourceListChangedNotification;
@@ -170,8 +169,6 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
 
         // Concrete notifications.
         yield 'CancelledNotification' => ['wrapper' => CancelledNotification::class, 'inner' => null, 'encodingPathsDiverge' => true];
-
-        yield 'LoggingMessageNotification' => ['wrapper' => LoggingMessageNotification::class, 'inner' => null];
 
         yield 'ProgressNotification' => ['wrapper' => ProgressNotification::class, 'inner' => null];
 

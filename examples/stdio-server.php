@@ -15,9 +15,8 @@ declare(strict_types=1);
  * An interactive MCP server speaking line-framed JSON-RPC over STDIN/STDOUT.
  *
  * "Interactive" here means tools that emit server-to-client traffic during
- * execution: `notifications/message` (log lines) and `notifications/progress`
- * (per-step progress reports). The server-initiated `elicitation/create`
- * request is not yet supported.
+ * execution: `notifications/progress` (per-step progress reports). The
+ * server-initiated `elicitation/create` request is not yet supported.
  *
  * Spawn from an MCP client (e.g. Claude Desktop) with:
  *
@@ -35,7 +34,6 @@ require __DIR__.'/bootstrap.php';
 
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
-use Nexus\Mcp\Core\Schema\Enum\LoggingLevel;
 use Nexus\Mcp\Core\Schema\Enum\Role;
 use Nexus\Mcp\Core\Schema\Prompt\Prompt;
 use Nexus\Mcp\Core\Schema\Prompt\PromptArgument;
@@ -71,16 +69,16 @@ $server = new ServerBuilder()
                 ],
                 'required' => ['name'],
             ],
-            description: 'Greets the named person and streams a few log notifications during the work.',
+            description: 'Greets the named person and streams a few progress reports during the work.',
         ),
         static function (?array $args, ServerContext $context): CallToolResult {
             $name = is_string($args['name'] ?? null) ? $args['name'] : 'stranger';
 
-            $context->log(LoggingLevel::Info, sprintf('Preparing greeting for %s...', $name));
+            $context->reportProgress(progress: 0.0, total: 1.0, message: sprintf('Preparing greeting for %s...', $name));
             delay(0.2);
-            $context->log(LoggingLevel::Info, 'Composing the message...');
+            $context->reportProgress(progress: 0.5, total: 1.0, message: 'Composing the message...');
             delay(0.2);
-            $context->log(LoggingLevel::Info, 'Ready to greet.');
+            $context->reportProgress(progress: 1.0, total: 1.0, message: 'Ready to greet.');
 
             return new CallToolResult(content: [
                 new TextContent(text: sprintf('Hello, %s!', $name)),
@@ -98,7 +96,7 @@ $server = new ServerBuilder()
                 ],
                 'required' => ['count'],
             ],
-            description: 'Counts down from N to 1, emitting a log notification and a progress report per tick. Pass `progressToken` in `_meta` to observe the progress stream.',
+            description: 'Counts down from N to 1, emitting a progress report per tick. Pass `progressToken` in `_meta` to observe the progress stream.',
         ),
         static function (?array $args, ServerContext $context): CallToolResult {
             $count = is_int($args['count'] ?? null) ? max(1, min(20, $args['count'])) : 1;
@@ -106,7 +104,6 @@ $server = new ServerBuilder()
             $intervalSeconds = $intervalMs / 1000;
 
             for ($i = 1; $i <= $count; ++$i) {
-                $context->log(LoggingLevel::Info, sprintf('Tick %d of %d', $i, $count));
                 $context->reportProgress(
                     progress: (float) $i,
                     total: (float) $count,

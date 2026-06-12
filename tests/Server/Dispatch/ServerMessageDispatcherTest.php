@@ -20,12 +20,12 @@ use Nexus\Mcp\Core\Handler\AbstractContext;
 use Nexus\Mcp\Core\Handler\HandlerRegistry;
 use Nexus\Mcp\Core\Handler\NotificationHandlerInterface;
 use Nexus\Mcp\Core\Handler\RequestHandlerInterface;
-use Nexus\Mcp\Core\Schema\Enum\LoggingLevel;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Implementation;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
-use Nexus\Mcp\Core\Schema\Notification\LoggingMessageNotification;
+use Nexus\Mcp\Core\Schema\Notification\ProgressNotification;
+use Nexus\Mcp\Core\Schema\ProgressToken;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\DiscoverResult;
@@ -649,7 +649,7 @@ final class ServerMessageDispatcherTest extends TestCase
                         \assert($ctx instanceof ServerContext);
 
                         $captured['sessionId'] = $ctx->sessionId;
-                        $ctx->log(LoggingLevel::Info, 'hello');
+                        $ctx->reportProgress(0.5);
 
                         return new EmptyResult();
                     },
@@ -657,26 +657,33 @@ final class ServerMessageDispatcherTest extends TestCase
             ],
         );
 
-        $dispatcher->dispatch(self::toolsListEnvelope(99), $transport);
+        $envelope = [
+            'jsonrpc' => '2.0',
+            'id' => 99,
+            'method' => 'tools/list',
+            'params' => ['_meta' => RequestMetaObjectFactory::shape(progressToken: new ProgressToken(token: 'tok-1'))],
+        ];
+
+        $dispatcher->dispatch($envelope, $transport);
 
         EventLoop::run();
 
         self::assertSame('sess-xyz', $captured['sessionId']);
 
-        // The notification emitted via $ctx->log() should be tagged with the
-        // originating request id, proving the request-scoped sender binding.
-        $logSend = null;
+        // The notification emitted via $ctx->reportProgress() should be tagged with
+        // the originating request id, proving the request-scoped sender binding.
+        $progressSend = null;
 
         foreach ($transport->sent as $entry) {
-            if ($entry['message'] instanceof LoggingMessageNotification) {
-                $logSend = $entry;
+            if ($entry['message'] instanceof ProgressNotification) {
+                $progressSend = $entry;
 
                 break;
             }
         }
 
-        self::assertNotNull($logSend);
-        self::assertSame(99, $logSend['context']?->relatedRequestId?->id);
+        self::assertNotNull($progressSend);
+        self::assertSame(99, $progressSend['context']?->relatedRequestId?->id);
     }
 
     public function testNotificationWithNoRegisteredHandlerIsSilentlyDropped(): void

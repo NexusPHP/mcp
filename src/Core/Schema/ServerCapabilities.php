@@ -21,7 +21,6 @@ use Nexus\Assert\Assert;
  *
  * @phpstan-type CompletionsCapability array<string, mixed>
  * @phpstan-type ExtensionsCapability array<string, array<string, mixed>>
- * @phpstan-type LoggingCapability array<string, mixed>
  * @phpstan-type PromptsCapability array{listChanged?: bool}
  * @phpstan-type ResourcesCapability array{listChanged?: bool, subscribe?: bool}
  * @phpstan-type ServerExperimentalCapability array<string, array<string, mixed>>
@@ -31,7 +30,6 @@ use Nexus\Assert\Assert;
  *   completions?: CompletionsCapability,
  *   experimental?: ServerExperimentalCapability,
  *   extensions?: ExtensionsCapability,
- *   logging?: LoggingCapability,
  *   prompts?: PromptsCapability,
  *   resources?: ResourcesCapability,
  *   tools?: ToolsCapability,
@@ -45,7 +43,6 @@ final readonly class ServerCapabilities implements Arrayable
      * @param null|CompletionsCapability        $completions
      * @param null|ServerExperimentalCapability $experimental
      * @param null|ExtensionsCapability         $extensions
-     * @param null|LoggingCapability            $logging
      * @param null|PromptsCapability            $prompts
      * @param null|ResourcesCapability          $resources
      * @param null|ToolsCapability              $tools
@@ -54,7 +51,6 @@ final readonly class ServerCapabilities implements Arrayable
         public ?array $completions = null,
         public ?array $experimental = null,
         public ?array $extensions = null,
-        public ?array $logging = null,
         public ?array $prompts = null,
         public ?array $resources = null,
         public ?array $tools = null,
@@ -68,7 +64,6 @@ final readonly class ServerCapabilities implements Arrayable
             completions: self::extractOpenObject($data, 'completions'),
             experimental: self::extractExperimental($data),
             extensions: self::extractExtensions($data),
-            logging: self::extractOpenObject($data, 'logging'),
             prompts: self::extractListChangedOnly($data, 'prompts'),
             resources: self::extractResources($data),
             tools: self::extractListChangedOnly($data, 'tools'),
@@ -90,10 +85,6 @@ final readonly class ServerCapabilities implements Arrayable
 
         if (null !== $this->extensions) {
             $data['extensions'] = $this->extensions;
-        }
-
-        if (null !== $this->logging) {
-            $data['logging'] = $this->logging;
         }
 
         if (null !== $this->prompts) {
