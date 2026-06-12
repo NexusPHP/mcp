@@ -33,7 +33,6 @@ use Nexus\Mcp\Core\Schema\Request\GetPromptRequest;
 use Nexus\Mcp\Core\Schema\Request\ListPromptsRequest;
 use Nexus\Mcp\Core\Schema\Request\ListResourcesRequest;
 use Nexus\Mcp\Core\Schema\Request\ListResourceTemplatesRequest;
-use Nexus\Mcp\Core\Schema\Request\ListRootsRequest;
 use Nexus\Mcp\Core\Schema\Request\ListToolsRequest;
 use Nexus\Mcp\Core\Schema\Request\ReadResourceRequest;
 use Nexus\Mcp\Core\Schema\Request\SubscriptionsListenRequest;
@@ -58,7 +57,6 @@ final class JsonRpcMethodRegistry
             ListResourcesRequest::getMethod() => ListResourcesRequest::class,
             ReadResourceRequest::getMethod() => ReadResourceRequest::class,
             ListResourceTemplatesRequest::getMethod() => ListResourceTemplatesRequest::class,
-            ListRootsRequest::getMethod() => ListRootsRequest::class,
             CreateMessageRequest::getMethod() => CreateMessageRequest::class,
             DiscoverRequest::getMethod() => DiscoverRequest::class,
             SubscriptionsListenRequest::getMethod() => SubscriptionsListenRequest::class,

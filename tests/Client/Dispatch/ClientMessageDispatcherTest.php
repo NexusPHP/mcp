@@ -307,19 +307,21 @@ final class ClientMessageDispatcherTest extends TestCase
         self::assertSame(1, $message->id->id);
     }
 
-    public function testInboundRequestWithHeavyParamsExposesItsProgressTokenToTheContext(): void
+    public function testInboundRequestHandlerReceivesNoProgressTokenEvenWhenMetaCarriesOne(): void
     {
         $outbound = new PendingOutboundRequests();
-        $captured = null;
+        $handled = false;
+        $captured = new ProgressToken(token: 'sentinel');
         $dispatcher = self::buildDispatcher(
             $outbound,
             requestHandlers: [
-                'roots/list' => new ClosureRequestHandler(
-                    static function ($req, $ctx) use (&$captured): EmptyResult {
+                'elicitation/create' => new ClosureRequestHandler(
+                    static function ($req, $ctx) use (&$handled, &$captured): EmptyResult {
                         if (! $ctx instanceof ClientContext) {
                             self::fail('Expected a ClientContext.');
                         }
 
+                        $handled = true;
                         $captured = $ctx->progressToken;
 
                         return new EmptyResult();
@@ -332,14 +334,19 @@ final class ClientMessageDispatcherTest extends TestCase
         $dispatcher->dispatch([
             'jsonrpc' => '2.0',
             'id' => 1,
-            'method' => 'roots/list',
-            'params' => ['_meta' => RequestMetaObjectFactory::shape(new ProgressToken(token: 'p-1'))],
+            'method' => 'elicitation/create',
+            'params' => [
+                'mode' => 'form',
+                'message' => 'Please provide your email.',
+                'requestedSchema' => ['type' => 'object', 'properties' => ['email' => ['type' => 'string']]],
+                '_meta' => RequestMetaObjectFactory::shape(new ProgressToken(token: 'p-1')),
+            ],
         ], $transport);
 
         EventLoop::run();
 
-        self::assertInstanceOf(ProgressToken::class, $captured);
-        self::assertSame('p-1', $captured->token);
+        self::assertTrue($handled);
+        self::assertNull($captured);
     }
 
     public function testInboundRequestForUnknownMethodResponseIsMethodNotFound(): void

@@ -23,7 +23,7 @@ use Nexus\Mcp\Core\Schema\RequestMetaObject;
 /**
  * Builds a canonical `RequestMetaObject` for client-to-server request construction in tests.
  *
- * The client capabilities carry a non-empty `roots` slot so the `toArray()` and
+ * The client capabilities carry a non-empty `experimental` slot so the `toArray()` and
  * `jsonSerialize()` paths agree (no empty-object substitution to reconcile).
  *
  * @internal
@@ -44,7 +44,7 @@ final class RequestMetaObjectFactory
         return new RequestMetaObject(
             protocolVersion: new ProtocolVersion(version: ProtocolVersion::LATEST_VERSION),
             clientInfo: new Implementation(name: self::CLIENT_NAME, version: self::CLIENT_VERSION),
-            clientCapabilities: new ClientCapabilities(roots: ['listChanged' => true]),
+            clientCapabilities: new ClientCapabilities(experimental: ['acme.experimental' => ['enabled' => true]]),
             logLevel: $logLevel,
             progressToken: $progressToken,
             extras: $extras,

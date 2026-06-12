@@ -22,14 +22,12 @@ use Nexus\Assert\Assert;
  * @phpstan-type ElicitationCapability array{form?: array<string, mixed>, url?: array<string, mixed>}
  * @phpstan-type ExperimentalCapability array<string, array<string, mixed>>
  * @phpstan-type ExtensionsCapability array<string, array<string, mixed>>
- * @phpstan-type RootsCapability array{listChanged?: bool}
  * @phpstan-type SamplingCapability array{context?: array<string, mixed>, tools?: array<string, mixed>}
  *
  * @implements Arrayable<array{
  *   elicitation?: ElicitationCapability,
  *   experimental?: ExperimentalCapability,
  *   extensions?: ExtensionsCapability,
- *   roots?: RootsCapability,
  *   sampling?: SamplingCapability,
  * }>
  *
@@ -41,14 +39,12 @@ final readonly class ClientCapabilities implements Arrayable
      * @param null|ElicitationCapability  $elicitation
      * @param null|ExperimentalCapability $experimental
      * @param null|ExtensionsCapability   $extensions
-     * @param null|RootsCapability        $roots
      * @param null|SamplingCapability     $sampling
      */
     public function __construct(
         public ?array $elicitation = null,
         public ?array $experimental = null,
         public ?array $extensions = null,
-        public ?array $roots = null,
         public ?array $sampling = null,
     ) {
     }
@@ -60,7 +56,6 @@ final readonly class ClientCapabilities implements Arrayable
             elicitation: self::extractElicitation($data),
             experimental: self::extractExperimental($data),
             extensions: self::extractExtensions($data),
-            roots: self::extractRoots($data),
             sampling: self::extractSampling($data),
         );
     }
@@ -80,10 +75,6 @@ final readonly class ClientCapabilities implements Arrayable
 
         if (null !== $this->extensions) {
             $data['extensions'] = $this->extensions;
-        }
-
-        if (null !== $this->roots) {
-            $data['roots'] = $this->roots;
         }
 
         if (null !== $this->sampling) {
@@ -198,36 +189,6 @@ final readonly class ClientCapabilities implements Arrayable
         }
 
         return $experimental;
-    }
-
-    /**
-     * @param array<string, mixed> $data
-     *
-     * @return null|RootsCapability
-     */
-    private static function extractRoots(array $data): ?array
-    {
-        $value = $data['roots'] ?? null;
-
-        if (null === $value) {
-            return null;
-        }
-
-        Assert::that($value)
-            ->isArray('"capabilities.roots" must be an object, {type} given.')
-            ->isMap('"capabilities.roots" must be a string-keyed object.')
-        ;
-
-        $roots = [];
-
-        if (\array_key_exists('listChanged', $value)) {
-            Assert::that($value['listChanged'])
-                ->isBool('"capabilities.roots.listChanged" must be a boolean, {type} given.')
-            ;
-            $roots['listChanged'] = $value['listChanged'];
-        }
-
-        return $roots;
     }
 
     /**

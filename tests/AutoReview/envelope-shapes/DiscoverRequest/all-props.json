@@ -10,8 +10,10 @@
                 "version": "1.0.0"
             },
             "io.modelcontextprotocol/clientCapabilities": {
-                "roots": {
-                    "listChanged": true
+                "experimental": {
+                    "acme.experimental": {
+                        "enabled": true
+                    }
                 }
             }
         }

@@ -313,11 +313,6 @@ final class ServerMessageDispatcherTest extends TestCase
      */
     public static function provideServerRejectsServerToClientMethodWithMethodNotFoundCases(): iterable
     {
-        yield 'roots/list (null params)' => [
-            'r-1',
-            ['jsonrpc' => '2.0', 'id' => 'r-1', 'method' => 'roots/list'],
-        ];
-
         yield 'sampling/createMessage (standalone params)' => [
             'r-2',
             [
@@ -357,7 +352,7 @@ final class ServerMessageDispatcherTest extends TestCase
         $transport = new RecordingTransport();
         $dispatcher = self::buildDispatcher(
             requestHandlers: [
-                'roots/list' => new ClosureRequestHandler(
+                'elicitation/create' => new ClosureRequestHandler(
                     static function () use (&$invoked): Result {
                         $invoked = true;
 
@@ -371,8 +366,13 @@ final class ServerMessageDispatcherTest extends TestCase
             [
                 'jsonrpc' => '2.0',
                 'id' => 'r-1',
-                'method' => 'roots/list',
-                'params' => ['_meta' => RequestMetaObjectFactory::shape()],
+                'method' => 'elicitation/create',
+                'params' => [
+                    'mode' => 'form',
+                    'message' => 'Please provide your email.',
+                    'requestedSchema' => ['type' => 'object', 'properties' => ['email' => ['type' => 'string']]],
+                    '_meta' => RequestMetaObjectFactory::shape(),
+                ],
             ],
             $transport,
         );

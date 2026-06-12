@@ -823,8 +823,6 @@ final class ServerBuilderTest extends TestCase
 
         yield 'resources/templates/list' => ['resources/templates/list'];
 
-        yield 'roots/list' => ['roots/list'];
-
         yield 'sampling/createMessage' => ['sampling/createMessage'];
 
         yield 'server/discover' => ['server/discover'];

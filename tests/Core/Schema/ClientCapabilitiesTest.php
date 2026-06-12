@@ -35,7 +35,6 @@ final class ClientCapabilitiesTest extends TestCase
         self::assertNull($caps->elicitation);
         self::assertNull($caps->experimental);
         self::assertNull($caps->extensions);
-        self::assertNull($caps->roots);
         self::assertNull($caps->sampling);
     }
 
@@ -45,14 +44,12 @@ final class ClientCapabilitiesTest extends TestCase
             elicitation: ['form' => [], 'url' => []],
             experimental: ['custom' => ['flag' => true]],
             extensions: ['io.modelcontextprotocol/oauth-client-credentials' => ['scope' => 'read']],
-            roots: ['listChanged' => true],
             sampling: ['context' => [], 'tools' => []],
         );
 
         self::assertSame(['form' => [], 'url' => []], $caps->elicitation);
         self::assertSame(['custom' => ['flag' => true]], $caps->experimental);
         self::assertSame(['io.modelcontextprotocol/oauth-client-credentials' => ['scope' => 'read']], $caps->extensions);
-        self::assertSame(['listChanged' => true], $caps->roots);
         self::assertSame(['context' => [], 'tools' => []], $caps->sampling);
     }
 
@@ -63,9 +60,9 @@ final class ClientCapabilitiesTest extends TestCase
 
     public function testToArrayOmitsNullFields(): void
     {
-        $caps = new ClientCapabilities(roots: ['listChanged' => false]);
+        $caps = new ClientCapabilities(experimental: ['acme' => ['enabled' => false]]);
 
-        self::assertSame(['roots' => ['listChanged' => false]], $caps->toArray());
+        self::assertSame(['experimental' => ['acme' => ['enabled' => false]]], $caps->toArray());
     }
 
     public function testToArrayFull(): void
@@ -74,7 +71,6 @@ final class ClientCapabilitiesTest extends TestCase
             elicitation: ['form' => []],
             experimental: ['x' => []],
             extensions: ['io.example/ext' => []],
-            roots: ['listChanged' => true],
             sampling: ['tools' => []],
         );
 
@@ -83,7 +79,6 @@ final class ClientCapabilitiesTest extends TestCase
                 'elicitation' => ['form' => []],
                 'experimental' => ['x' => []],
                 'extensions' => ['io.example/ext' => []],
-                'roots' => ['listChanged' => true],
                 'sampling' => ['tools' => []],
             ],
             $caps->toArray(),
@@ -92,7 +87,7 @@ final class ClientCapabilitiesTest extends TestCase
 
     public function testJsonSerializeMatchesToArrayWhenNoEmptyObjectSlots(): void
     {
-        $caps = new ClientCapabilities(roots: ['listChanged' => true]);
+        $caps = new ClientCapabilities(experimental: ['acme' => ['enabled' => true]]);
 
         self::assertSame($caps->toArray(), $caps->jsonSerialize());
     }
@@ -111,14 +106,12 @@ final class ClientCapabilitiesTest extends TestCase
             elicitation: ['form' => [], 'url' => []],
             experimental: ['ext' => []],
             extensions: ['acme.ext' => []],
-            roots: [],
             sampling: ['context' => [], 'tools' => []],
         );
 
         $json = json_encode($caps);
 
         self::assertIsString($json);
-        self::assertStringContainsString('"roots":{}', $json);
         self::assertStringContainsString('"form":{}', $json);
         self::assertStringContainsString('"url":{}', $json);
         self::assertStringContainsString('"experimental":{"ext":{}}', $json);
@@ -130,9 +123,9 @@ final class ClientCapabilitiesTest extends TestCase
 
     public function testToArrayKeepsPureArraysForEmptyObjectSlots(): void
     {
-        $caps = new ClientCapabilities(roots: [], sampling: []);
+        $caps = new ClientCapabilities(sampling: []);
 
-        self::assertSame(['roots' => [], 'sampling' => []], $caps->toArray());
+        self::assertSame(['sampling' => []], $caps->toArray());
     }
 
     public function testFromArrayEmptyIsAllNull(): void
@@ -142,7 +135,6 @@ final class ClientCapabilitiesTest extends TestCase
         self::assertNull($caps->elicitation);
         self::assertNull($caps->experimental);
         self::assertNull($caps->extensions);
-        self::assertNull($caps->roots);
         self::assertNull($caps->sampling);
     }
 
@@ -152,7 +144,6 @@ final class ClientCapabilitiesTest extends TestCase
             elicitation: ['form' => ['custom' => 1], 'url' => []],
             experimental: ['ext' => ['nested' => 'value']],
             extensions: ['io.example/ext' => ['nested' => 'value']],
-            roots: ['listChanged' => true],
             sampling: ['context' => [], 'tools' => ['x' => 'y']],
         );
 
@@ -166,30 +157,21 @@ final class ClientCapabilitiesTest extends TestCase
         $caps = ClientCapabilities::fromArray([
             'elicitation' => [],
             'extensions' => [],
-            'roots' => [],
             'sampling' => [],
         ]);
 
         self::assertSame([], $caps->elicitation);
         self::assertSame([], $caps->extensions);
-        self::assertSame([], $caps->roots);
         self::assertSame([], $caps->sampling);
     }
 
     public function testFromArrayIgnoresUnknownNestedKeys(): void
     {
         $caps = ClientCapabilities::fromArray([
-            'roots' => ['listChanged' => true, 'extra' => 'ignored'],
+            'elicitation' => ['form' => [], 'extra' => 'ignored'],
         ]);
 
-        self::assertSame(['listChanged' => true], $caps->roots);
-    }
-
-    public function testFromArrayBoolListChangedRoundTrips(): void
-    {
-        $caps = ClientCapabilities::fromArray(['roots' => ['listChanged' => false]]);
-
-        self::assertSame(['listChanged' => false], $caps->roots);
+        self::assertSame(['form' => []], $caps->elicitation);
     }
 
     public function testFromArrayExtensionsPreservesSettings(): void
@@ -254,21 +236,6 @@ final class ClientCapabilitiesTest extends TestCase
         yield 'experimental value list-keyed' => [
             ['experimental' => ['ext' => ['x']]],
             '"capabilities.experimental.ext" must be a string-keyed object.',
-        ];
-
-        yield 'roots not an object' => [
-            ['roots' => 'oops'],
-            '"capabilities.roots" must be an object, string given.',
-        ];
-
-        yield 'roots list-keyed' => [
-            ['roots' => ['x']],
-            '"capabilities.roots" must be a string-keyed object.',
-        ];
-
-        yield 'roots.listChanged not a boolean' => [
-            ['roots' => ['listChanged' => 'true']],
-            '"capabilities.roots.listChanged" must be a boolean, string given.',
         ];
 
         yield 'sampling not an object' => [

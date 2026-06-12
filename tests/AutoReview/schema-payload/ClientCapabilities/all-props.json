@@ -9,9 +9,6 @@
     "extensions": {
         "io.modelcontextprotocol/oauth-client-credentials": {}
     },
-    "roots": {
-        "listChanged": true
-    },
     "sampling": {
         "context": {},
         "tools": {}

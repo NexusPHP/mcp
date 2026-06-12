@@ -37,7 +37,6 @@ use Nexus\Mcp\Core\Schema\Request\GetPromptRequest;
 use Nexus\Mcp\Core\Schema\Request\ListPromptsRequest;
 use Nexus\Mcp\Core\Schema\Request\ListResourcesRequest;
 use Nexus\Mcp\Core\Schema\Request\ListResourceTemplatesRequest;
-use Nexus\Mcp\Core\Schema\Request\ListRootsRequest;
 use Nexus\Mcp\Core\Schema\Request\ListToolsRequest;
 use Nexus\Mcp\Core\Schema\Request\ReadResourceRequest;
 use Nexus\Mcp\Core\Schema\Request\SubscriptionsListenRequest;
@@ -53,7 +52,6 @@ use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
 use Nexus\Mcp\Core\Schema\Result\ListPromptsResult;
 use Nexus\Mcp\Core\Schema\Result\ListResourcesResult;
 use Nexus\Mcp\Core\Schema\Result\ListResourceTemplatesResult;
-use Nexus\Mcp\Core\Schema\Result\ListRootsResult;
 use Nexus\Mcp\Core\Schema\Result\ListToolsResult;
 use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
 use PHPUnit\Framework\Attributes\CoversNothing;
@@ -168,8 +166,6 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
 
         yield 'ListResourceTemplatesRequest' => ['wrapper' => ListResourceTemplatesRequest::class, 'inner' => null];
 
-        yield 'ListRootsRequest' => ['wrapper' => ListRootsRequest::class, 'inner' => null];
-
         yield 'ListToolsRequest' => ['wrapper' => ListToolsRequest::class, 'inner' => null];
 
         yield 'ElicitRequest' => ['wrapper' => ElicitRequest::class, 'inner' => null];
@@ -213,8 +209,6 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
         yield 'JsonRpcResultResponse-ListResourcesResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => ListResourcesResult::class];
 
         yield 'JsonRpcResultResponse-ListResourceTemplatesResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => ListResourceTemplatesResult::class];
-
-        yield 'JsonRpcResultResponse-ListRootsResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => ListRootsResult::class];
 
         yield 'JsonRpcResultResponse-ListToolsResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => ListToolsResult::class];
 

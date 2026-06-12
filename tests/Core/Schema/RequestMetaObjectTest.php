@@ -37,7 +37,7 @@ final class RequestMetaObjectTest extends TestCase
     {
         $protocolVersion = new ProtocolVersion(version: ProtocolVersion::LATEST_VERSION);
         $clientInfo = new Implementation(name: 'client', version: '1.0.0');
-        $clientCapabilities = new ClientCapabilities(roots: ['listChanged' => true]);
+        $clientCapabilities = new ClientCapabilities(experimental: ['acme.experimental' => ['enabled' => true]]);
         $meta = new RequestMetaObject(
             protocolVersion: $protocolVersion,
             clientInfo: $clientInfo,
@@ -74,14 +74,14 @@ final class RequestMetaObjectTest extends TestCase
         $meta = new RequestMetaObject(
             protocolVersion: new ProtocolVersion(version: ProtocolVersion::LATEST_VERSION),
             clientInfo: new Implementation(name: 'client', version: '1.0.0'),
-            clientCapabilities: new ClientCapabilities(roots: ['listChanged' => true]),
+            clientCapabilities: new ClientCapabilities(experimental: ['acme.experimental' => ['enabled' => true]]),
         );
 
         self::assertSame(
             [
                 RequestMetaObject::PROTOCOL_VERSION_KEY => '2026-07-28',
                 RequestMetaObject::CLIENT_INFO_KEY => ['name' => 'client', 'version' => '1.0.0'],
-                RequestMetaObject::CLIENT_CAPABILITIES_KEY => ['roots' => ['listChanged' => true]],
+                RequestMetaObject::CLIENT_CAPABILITIES_KEY => ['experimental' => ['acme.experimental' => ['enabled' => true]]],
             ],
             $meta->toArray(),
         );
@@ -92,7 +92,7 @@ final class RequestMetaObjectTest extends TestCase
         $meta = new RequestMetaObject(
             protocolVersion: new ProtocolVersion(version: ProtocolVersion::LATEST_VERSION),
             clientInfo: new Implementation(name: 'client', version: '1.0.0'),
-            clientCapabilities: new ClientCapabilities(roots: ['listChanged' => true]),
+            clientCapabilities: new ClientCapabilities(experimental: ['acme.experimental' => ['enabled' => true]]),
             logLevel: LoggingLevel::Warning,
             progressToken: new ProgressToken(token: 42),
             extras: ['vendor' => 'x'],
@@ -102,7 +102,7 @@ final class RequestMetaObjectTest extends TestCase
             [
                 RequestMetaObject::PROTOCOL_VERSION_KEY => '2026-07-28',
                 RequestMetaObject::CLIENT_INFO_KEY => ['name' => 'client', 'version' => '1.0.0'],
-                RequestMetaObject::CLIENT_CAPABILITIES_KEY => ['roots' => ['listChanged' => true]],
+                RequestMetaObject::CLIENT_CAPABILITIES_KEY => ['experimental' => ['acme.experimental' => ['enabled' => true]]],
                 RequestMetaObject::LOG_LEVEL_KEY => 'warning',
                 'progressToken' => 42,
                 'vendor' => 'x',
@@ -116,7 +116,7 @@ final class RequestMetaObjectTest extends TestCase
         $meta = new RequestMetaObject(
             protocolVersion: new ProtocolVersion(version: ProtocolVersion::LATEST_VERSION),
             clientInfo: new Implementation(name: 'client', version: '1.0.0'),
-            clientCapabilities: new ClientCapabilities(roots: ['listChanged' => true]),
+            clientCapabilities: new ClientCapabilities(experimental: ['acme.experimental' => ['enabled' => true]]),
         );
 
         $data = $meta->toArray();
@@ -130,7 +130,7 @@ final class RequestMetaObjectTest extends TestCase
         $meta = RequestMetaObject::fromArray([
             RequestMetaObject::PROTOCOL_VERSION_KEY => '2026-07-28',
             RequestMetaObject::CLIENT_INFO_KEY => ['name' => 'client', 'version' => '1.0.0'],
-            RequestMetaObject::CLIENT_CAPABILITIES_KEY => ['roots' => ['listChanged' => true]],
+            RequestMetaObject::CLIENT_CAPABILITIES_KEY => ['experimental' => ['acme.experimental' => ['enabled' => true]]],
             RequestMetaObject::LOG_LEVEL_KEY => 'info',
             'progressToken' => 'tok-1',
             'vendor' => 'x',
@@ -138,7 +138,7 @@ final class RequestMetaObjectTest extends TestCase
 
         self::assertSame('2026-07-28', $meta->protocolVersion->version);
         self::assertSame('client', $meta->clientInfo->name);
-        self::assertSame(['listChanged' => true], $meta->clientCapabilities->roots);
+        self::assertSame(['acme.experimental' => ['enabled' => true]], $meta->clientCapabilities->experimental);
         self::assertSame(LoggingLevel::Info, $meta->logLevel);
         self::assertNotNull($meta->progressToken);
         self::assertSame('tok-1', $meta->progressToken->token);
@@ -181,7 +181,7 @@ final class RequestMetaObjectTest extends TestCase
         $meta = new RequestMetaObject(
             protocolVersion: new ProtocolVersion(version: ProtocolVersion::LATEST_VERSION),
             clientInfo: new Implementation(name: 'client', version: '1.0.0'),
-            clientCapabilities: new ClientCapabilities(roots: ['listChanged' => true]),
+            clientCapabilities: new ClientCapabilities(experimental: ['acme.experimental' => ['enabled' => true]]),
         );
 
         self::assertSame($meta->toArray(), $meta->jsonSerialize());
@@ -192,7 +192,7 @@ final class RequestMetaObjectTest extends TestCase
         $original = new RequestMetaObject(
             protocolVersion: new ProtocolVersion(version: ProtocolVersion::LATEST_VERSION),
             clientInfo: new Implementation(name: 'client', version: '1.0.0'),
-            clientCapabilities: new ClientCapabilities(roots: ['listChanged' => true]),
+            clientCapabilities: new ClientCapabilities(experimental: ['acme.experimental' => ['enabled' => true]]),
             logLevel: LoggingLevel::Error,
             progressToken: new ProgressToken(token: 7),
             extras: ['key' => 'value'],

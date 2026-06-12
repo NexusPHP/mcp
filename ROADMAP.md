@@ -185,7 +185,7 @@ provider APIs over Sampling, and tool parameters or resource URIs over Roots). T
 greenfield SDK with zero published tags. Omitting them is conformant. This is settled, not an open
 spec-divergence question.
 
-- [ ] Delete Roots (`roots/list`, `notifications/roots/list_changed`, `Root`, `ListRootsResult`, the capability slot).
+- [x] Delete Roots (`roots/list`, `notifications/roots/list_changed`, `Root`, `ListRootsResult`, the capability slot).
 - [ ] Delete the residual server-side Logging emission path: `notifications/message`
   (`LoggingMessageNotification`), the `logging` capability slot, `LoggingLevelGate`, and the `log()`
   helper on `ServerContext`. Retain the `LoggingLevel` enum and `RequestMetaObject.logLevel` as a

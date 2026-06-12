@@ -39,7 +39,6 @@ use Nexus\Mcp\Core\Schema\Request;
 use Nexus\Mcp\Core\Schema\Request\ClientRequest;
 use Nexus\Mcp\Core\Schema\Request\CreateMessageRequest;
 use Nexus\Mcp\Core\Schema\Request\ElicitRequest;
-use Nexus\Mcp\Core\Schema\Request\ListRootsRequest;
 use Nexus\Mcp\Core\Schema\Request\PaginatedRequest;
 use Nexus\Mcp\Core\Schema\Request\ServerRequest;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
@@ -51,7 +50,6 @@ use Nexus\Mcp\Core\Schema\Result\CacheableResult;
 use Nexus\Mcp\Core\Schema\Result\ClientResult;
 use Nexus\Mcp\Core\Schema\Result\CreateMessageResult;
 use Nexus\Mcp\Core\Schema\Result\ElicitResult;
-use Nexus\Mcp\Core\Schema\Result\ListRootsResult;
 use Nexus\Mcp\Core\Schema\Result\PaginatedResult;
 use Nexus\Mcp\Core\Schema\Result\ServerResult;
 use Nexus\Mcp\Tools\McpAnchorSnapshot;
@@ -87,7 +85,6 @@ final class SchemaConformanceTest extends TestCase
     private const array ENVELOPE_SPEC_DRIFT = [
         CreateMessageRequest::class => ['jsonrpc', 'id'],
         ElicitRequest::class => ['jsonrpc', 'id'],
-        ListRootsRequest::class => ['jsonrpc', 'id'],
     ];
 
     /**
@@ -98,7 +95,6 @@ final class SchemaConformanceTest extends TestCase
     private const array RESULT_SPEC_DRIFT = [
         CreateMessageResult::class => ['resultType'],
         ElicitResult::class => ['resultType', '_meta'],
-        ListRootsResult::class => ['resultType', '_meta'],
     ];
 
     /**
@@ -177,6 +173,19 @@ final class SchemaConformanceTest extends TestCase
         'CallToolRequestParams' => ['inputResponses', 'requestState'],
         'GetPromptRequestParams' => ['inputResponses', 'requestState'],
         'ReadResourceRequestParams' => ['inputResponses', 'requestState'],
+    ];
+
+    /**
+     * Optional spec properties the SDK deliberately omits because the feature is
+     * deprecated and deleted from the SDK, while the spec retains the property
+     * through its deprecation window. Keyed by spec def. The property and
+     * array-shape conformance checks skip these keys.
+     * `testDeprecatedOmittedPropertiesStayOmittable` fails the moment any entry
+     * turns required, leaves the spec, or gains a PHP representation, forcing the
+     * entry's removal.
+     */
+    private const array DEPRECATED_OMITTED_PROPERTIES = [
+        'ClientCapabilities' => ['roots'],
     ];
 
     /**
@@ -287,7 +296,11 @@ final class SchemaConformanceTest extends TestCase
             $specPropertyKeys = array_filter(array_keys($specProperties), is_string(...));
             $specRequiredKeys = array_values(array_filter($specRequired, is_string(...)));
             $specOptionalKeys = array_values(array_diff($specPropertyKeys, $specRequiredKeys));
-            $specOptionalKeys = array_values(array_diff($specOptionalKeys, self::DEFERRED_SPEC_PROPERTIES[$schema] ?? []));
+            $specOptionalKeys = array_values(array_diff(
+                $specOptionalKeys,
+                self::DEFERRED_SPEC_PROPERTIES[$schema] ?? [],
+                self::DEPRECATED_OMITTED_PROPERTIES[$schema] ?? [],
+            ));
 
             $findings = [];
 
@@ -664,6 +677,59 @@ final class SchemaConformanceTest extends TestCase
 
                 self::assertFalse($modelled, \sprintf(
                     'Deferred property "%s.%s" now has a PHP representation. Remove its DEFERRED_SPEC_PROPERTIES entry so conformance enforces it.',
+                    $schema,
+                    $key,
+                ));
+            }
+        }
+    }
+
+    public function testDeprecatedOmittedPropertiesStayOmittable(): void
+    {
+        self::generateLatestSchema();
+        self::sortSchemaDefinition();
+
+        foreach (self::DEPRECATED_OMITTED_PROPERTIES as $schema => $keys) {
+            $schemaDef = self::$latestSchema[$schema] ?? null;
+            self::assertIsArray($schemaDef, \sprintf(
+                'Deprecated schema "%s" is no longer in the spec. Remove its DEPRECATED_OMITTED_PROPERTIES entry.',
+                $schema,
+            ));
+
+            $properties = $schemaDef['properties'] ?? [];
+            self::assertIsArray($properties);
+
+            $required = $schemaDef['required'] ?? [];
+            self::assertIsArray($required);
+
+            $schemaClass = self::$sortedSchema['processed_schema'][$schema] ?? null;
+            self::assertIsString($schemaClass, \sprintf('Deprecated schema "%s" has no PHP class.', $schema));
+
+            $reflection = new \ReflectionClass($schemaClass);
+            $constructor = $reflection->getConstructor();
+            $ctorParams = null === $constructor
+                ? []
+                : array_map(static fn(\ReflectionParameter $param) => $param->getName(), $constructor->getParameters());
+
+            foreach ($keys as $key) {
+                self::assertArrayHasKey($key, $properties, \sprintf(
+                    'Deprecated property "%s.%s" is gone from the spec. Remove the DEPRECATED_OMITTED_PROPERTIES entry.',
+                    $schema,
+                    $key,
+                ));
+
+                self::assertNotContains($key, $required, \sprintf(
+                    'Deprecated property "%s.%s" is now required and can no longer be omitted. The SDK must implement it.',
+                    $schema,
+                    $key,
+                ));
+
+                $phpName = self::specKeyToPhpName($key);
+                $modelled = \in_array($phpName, $ctorParams, true)
+                    || ($reflection->hasProperty($phpName) && $reflection->getProperty($phpName)->isPublic());
+
+                self::assertFalse($modelled, \sprintf(
+                    'Deprecated property "%s.%s" now has a PHP representation. Remove its DEPRECATED_OMITTED_PROPERTIES entry so conformance enforces it.',
                     $schema,
                     $key,
                 ));
