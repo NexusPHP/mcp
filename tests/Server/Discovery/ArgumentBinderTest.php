@@ -17,6 +17,7 @@ use Amp\NullCancellation;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Server\Discovery\ArgumentBinder;
+use Nexus\Mcp\Server\Exception\UnsupportedNestedParameterException;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
@@ -24,6 +25,7 @@ use Nexus\Mcp\Tests\Fixtures\Server\Discovery\BackedIntEnum;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\BackedStringEnum;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\Coordinate;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\EmptyDto;
+use Nexus\Mcp\Tests\Fixtures\Server\Discovery\NestedDto;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\PureEnum;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\ReflectedHandlers;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -192,6 +194,18 @@ final class ArgumentBinderTest extends TestCase
         $this->expectExceptionMessageMatches('/must be constructed from an object/');
 
         $this->bind('withCoordinate', ['point' => 'scalar']);
+    }
+
+    public function testRejectsADtoWithANestedObjectParameter(): void
+    {
+        $this->expectException(UnsupportedNestedParameterException::class);
+        $this->expectExceptionMessageIs(\sprintf(
+            '%s declares constructor parameter "$origin" of type "%s", which the binder cannot construct from a value map. Nested object expansion is not supported.',
+            NestedDto::class,
+            Coordinate::class,
+        ));
+
+        $this->bind('withNested', ['box' => ['origin' => ['latitude' => 1.0, 'longitude' => 2.0]]]);
     }
 
     public function testDtoRejectsAMissingRequiredMember(): void

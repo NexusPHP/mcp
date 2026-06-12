@@ -54,7 +54,10 @@ final class AttributeScannerTest extends TestCase
         $tool = self::toolEntry('add')->tool;
 
         self::assertSame('Adds two integers.', $tool->description);
-        self::assertSame(['a', 'b'], array_keys($tool->inputSchema['properties'] ?? []));
+
+        $properties = $tool->inputSchema['properties'] ?? [];
+        self::assertIsArray($properties);
+        self::assertSame(['a', 'b'], array_keys($properties));
         self::assertSame(['a', 'b'], $tool->inputSchema['required'] ?? []);
     }
 
@@ -72,7 +75,9 @@ final class AttributeScannerTest extends TestCase
     {
         $tool = self::toolEntry('greet_user')->tool;
 
-        self::assertSame(['name'], array_keys($tool->inputSchema['properties'] ?? []));
+        $properties = $tool->inputSchema['properties'] ?? [];
+        self::assertIsArray($properties);
+        self::assertSame(['name'], array_keys($properties));
         self::assertSame(['name'], $tool->inputSchema['required'] ?? []);
     }
 

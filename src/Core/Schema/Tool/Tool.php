@@ -24,19 +24,14 @@ use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
 /**
  * Definition for a tool the client can call.
  *
- * @phpstan-type ToolSchemaShape array{
- *   type: 'object',
- *   '$schema'?: non-empty-string,
- *   properties?: array<string, array<string, mixed>>,
- *   required?: list<string>,
- * }
+ * @phpstan-type ToolInputSchemaShape array{type: 'object', ...<string, mixed>}
  *
  * @implements Arrayable<array{
  *   name: non-empty-string,
  *   title?: non-empty-string,
  *   description?: non-empty-string,
- *   inputSchema: array{type: 'object', '$schema'?: non-empty-string, properties?: array<string, array<string, mixed>>, required?: list<string>},
- *   outputSchema?: array{type: 'object', '$schema'?: non-empty-string, properties?: array<string, array<string, mixed>>, required?: list<string>},
+ *   inputSchema: ToolInputSchemaShape,
+ *   outputSchema?: array<string, mixed>,
  *   annotations?: template-type<ToolAnnotations, Arrayable, 'T'>,
  *   icons?: list<template-type<Icon, Arrayable, 'T'>>,
  *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
@@ -52,12 +47,12 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
     public ?string $description;
 
     /**
-     * @var ToolSchemaShape
+     * @var ToolInputSchemaShape
      */
     public array $inputSchema;
 
     /**
-     * @var null|ToolSchemaShape
+     * @var null|array<string, mixed>
      */
     public ?array $outputSchema;
 
@@ -86,8 +81,8 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
         }
 
         $this->description = $description;
-        $this->inputSchema = self::projectSchemaEnvelope($inputSchema, 'tool "inputSchema"');
-        $this->outputSchema = null === $outputSchema ? null : self::projectSchemaEnvelope($outputSchema, 'tool "outputSchema"');
+        $this->inputSchema = self::validateInputSchema($inputSchema);
+        $this->outputSchema = null === $outputSchema ? null : self::validateOutputSchema($outputSchema);
     }
 
     /**
@@ -222,28 +217,45 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
     }
 
     /**
-     * Validates a JSON Schema envelope and projects it to the typed
-     * `ToolSchemaShape`. Per-property values inside `properties` stay opaque
-     * (`array<string, mixed>`) per spec, so the projection narrows their inner
-     * shape only as far as `array<string, mixed>`.
+     * Validates and returns a tool `inputSchema`. The root must be `type: "object"`.
      *
-     * @todo See ROADMAP.md (tool schema relaxation, SEP-2106).
+     * @param array<string, mixed> $schema
+     *
+     * @return ToolInputSchemaShape
+     */
+    private static function validateInputSchema(array $schema): array
+    {
+        Assert::that($schema)->hasOffset('type', 'tool "inputSchema" missing "type".');
+        Assert::that($schema['type'])->isIdentical('object', 'tool "inputSchema" "type" must be {other}, {value} given.');
+        self::assertSchemaKeywords($schema, 'tool "inputSchema"');
+
+        return $schema;
+    }
+
+    /**
+     * Validates and returns a tool `outputSchema`.
+     *
+     * @param array<string, mixed> $schema
+     *
+     * @return array<string, mixed>
+     */
+    private static function validateOutputSchema(array $schema): array
+    {
+        self::assertSchemaKeywords($schema, 'tool "outputSchema"');
+
+        return $schema;
+    }
+
+    /**
+     * Validates the `$schema`, `properties`, and `required` keywords when present.
      *
      * @param array<string, mixed> $schema
      * @param non-empty-string     $context
-     *
-     * @return ToolSchemaShape
      */
-    private static function projectSchemaEnvelope(array $schema, string $context): array
+    private static function assertSchemaKeywords(array $schema, string $context): void
     {
-        Assert::that($schema)->hasOffset('type', \sprintf('%s missing "type".', $context));
-        Assert::that($schema['type'])->isIdentical('object', \sprintf('%s "type" must be {other}, {value} given.', $context));
-
-        $out = ['type' => 'object'];
-
         if (\array_key_exists('$schema', $schema)) {
             Assert::that($schema['$schema'])->isNonEmptyString(\sprintf('%s "$schema" must be a non-empty string, {type} given.', $context));
-            $out['$schema'] = $schema['$schema'];
         }
 
         if (\array_key_exists('properties', $schema)) {
@@ -254,7 +266,6 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
                 ->isArray(\sprintf('%s property entry must be an object, {type} given.', $context))
                 ->isMap(\sprintf('%s property entry must be a string-keyed object.', $context))
             ;
-            $out['properties'] = $schema['properties'];
         }
 
         if (\array_key_exists('required', $schema)) {
@@ -262,9 +273,6 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
                 ->isList(\sprintf('%s "required" must be a list, got non-list array.', $context))
                 ->values()->isString(\sprintf('%s "required" entry must be a string, {type} given.', $context))
             ;
-            $out['required'] = $schema['required'];
         }
-
-        return $out;
     }
 }

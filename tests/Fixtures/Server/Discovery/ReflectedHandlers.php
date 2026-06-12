@@ -104,6 +104,11 @@ final class ReflectedHandlers
         return $thing::class;
     }
 
+    public function withNested(NestedDto $box): string
+    {
+        return (string) $box->origin->latitude;
+    }
+
     public function toolResult(): CallToolResult
     {
         return new CallToolResult(content: [new TextContent(text: 'done')], isError: true);

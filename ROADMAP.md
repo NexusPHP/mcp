@@ -128,23 +128,22 @@ generic `JsonRpcResultResponse<TResult>` splits into 18 per-method response enve
 ### Tool schema relaxation (SEP-2106)
 
 `Tool.inputSchema` and `outputSchema` accept full JSON Schema 2020-12 through an open
-`[key: string]: unknown` slot. Today's `Tool::projectSchemaEnvelope()` keeps only `type`, `$schema`,
-`properties`, and `required`. The migration relaxes it to pass arbitrary top-level keywords through.
+`[key: string]: unknown` slot. Every top-level keyword (`additionalProperties`, `$defs`, `allOf`,
+conditionals) is preserved verbatim. `inputSchema` requires a `type: "object"` root (tool arguments are
+always JSON objects). `outputSchema` carries no such requirement.
 
-This step also resolves two attribute-discovery findings blocked on it:
+This step also resolved two attribute-discovery findings blocked on it:
 
-- `#[InputSchema(definition: ...)]` is documented as a full schema override but is currently truncated
-  to `type`/`$schema`/`properties`/`required` by `projectSchemaEnvelope`, so any other root construct
-  (`additionalProperties`, `$defs`, `allOf`, conditionals) is dropped from the advertised schema. The
-  doc-accuracy slice (narrowing the attribute's PHPDoc so it stops claiming a full override) lands
-  pre-migration. Preserving the full definition is this SEP-2106 work.
-- Once `definition` can carry arbitrary schemas (including a nested-DTO constructor),
-  `ArgumentBinder::construct` must raise a clean SDK exception instead of leaking a raw `\TypeError`
-  when a constructor parameter is itself an expandable class.
+- `#[InputSchema(definition: ...)]` advertises its schema verbatim, and the attribute's PHPDoc no longer
+  claims a narrower override.
+- A `definition` can describe a nested-DTO constructor, so `ArgumentBinder::construct` raises a clean
+  `UnsupportedNestedParameterException` instead of leaking a raw `\TypeError` when a constructor
+  parameter is itself an unexpandable class.
 
-- [ ] Relax `Tool::projectSchemaEnvelope()` to preserve all top-level JSON Schema 2020-12 keywords.
-- [ ] Preserve `#[InputSchema(definition: ...)]` verbatim once the schema root accepts arbitrary keywords.
-- [ ] Raise a clean SDK exception (not `\TypeError`) for an unconstructable nested-DTO constructor
+- [x] Relax tool-schema validation to preserve all top-level JSON Schema 2020-12 keywords (`inputSchema`
+  requires a `type: "object"` root, `outputSchema` does not).
+- [x] Preserve `#[InputSchema(definition: ...)]` verbatim once the schema root accepts arbitrary keywords.
+- [x] Raise a clean SDK exception (not `\TypeError`) for an unconstructable nested-DTO constructor
   parameter reached via the `definition` bypass.
 
 ### Deterministic tool ordering

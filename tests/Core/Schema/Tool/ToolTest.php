@@ -177,18 +177,20 @@ final class ToolTest extends TestCase
         new Tool(name: 'read-file', inputSchema: ['type' => 'object'], icons: [42]);
     }
 
-    public function testConstructorProjectsInputSchemaToCanonicalShape(): void
+    public function testConstructorPreservesArbitraryInputSchemaKeywords(): void
     {
-        $tool = new Tool(name: 'read-file', inputSchema: [
-            'required' => ['path'],
+        $schema = [
             'type' => 'object',
             'properties' => ['path' => ['type' => 'string']],
-        ]);
+            'required' => ['path'],
+            'additionalProperties' => false,
+            '$defs' => ['nonEmpty' => ['type' => 'string', 'minLength' => 1]],
+            'allOf' => [['required' => ['path']]],
+        ];
 
-        self::assertSame(
-            ['type' => 'object', 'properties' => ['path' => ['type' => 'string']], 'required' => ['path']],
-            $tool->inputSchema,
-        );
+        $tool = new Tool(name: 'read-file', inputSchema: $schema);
+
+        self::assertSame($schema, $tool->inputSchema);
     }
 
     /**
@@ -249,12 +251,34 @@ final class ToolTest extends TestCase
         ];
     }
 
-    public function testConstructorRejectsInvalidOutputSchema(): void
+    public function testConstructorAcceptsNonObjectOutputSchemaRoot(): void
+    {
+        $tool = new Tool(
+            name: 'read-file',
+            inputSchema: ['type' => 'object'],
+            outputSchema: ['type' => 'array', 'items' => ['type' => 'string']],
+        );
+
+        self::assertSame(['type' => 'array', 'items' => ['type' => 'string']], $tool->outputSchema);
+    }
+
+    public function testConstructorAcceptsOutputSchemaWithoutType(): void
+    {
+        $tool = new Tool(
+            name: 'read-file',
+            inputSchema: ['type' => 'object'],
+            outputSchema: ['oneOf' => [['type' => 'object'], ['type' => 'array']]],
+        );
+
+        self::assertSame(['oneOf' => [['type' => 'object'], ['type' => 'array']]], $tool->outputSchema);
+    }
+
+    public function testConstructorValidatesOutputSchemaKnownKeywords(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageIs('tool "outputSchema" "type" must be \'object\', \'array\' given.');
+        $this->expectExceptionMessageIs('tool "outputSchema" "properties" must be an object, string given.');
 
-        new Tool(name: 'read-file', inputSchema: ['type' => 'object'], outputSchema: ['type' => 'array']);
+        new Tool(name: 'read-file', inputSchema: ['type' => 'object'], outputSchema: ['properties' => 'oops']);
     }
 
     /**
