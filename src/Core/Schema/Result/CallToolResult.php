@@ -65,10 +65,10 @@ final readonly class CallToolResult extends Result implements ServerResult
             ->isList('"result.content" must be a list, non-list array given.')
             ->values()->isInstanceOf(ContentBlock::class)
         ;
-
-        if (null !== $structuredContent) {
-            Assert::that($structuredContent)->isMap('"result.structuredContent" must be a string-keyed map.');
-        }
+        Assert::that($structuredContent)
+            ->nullOr()
+            ->isMap('"result.structuredContent" must be a string-keyed map or null.')
+        ;
 
         $this->content = $content;
         $this->structuredContent = $structuredContent;

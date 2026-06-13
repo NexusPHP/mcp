@@ -160,7 +160,7 @@ final class CallToolResultTest extends TestCase
     public function testConstructorRejectsListKeyedStructuredContent(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageIs('"result.structuredContent" must be a string-keyed map.');
+        $this->expectExceptionMessageIs('"result.structuredContent" must be a string-keyed map or null.');
 
         // @phpstan-ignore argument.type
         new CallToolResult(content: [], structuredContent: ['v1', 'v2']);

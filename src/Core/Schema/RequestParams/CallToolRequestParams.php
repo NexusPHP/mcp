@@ -55,10 +55,7 @@ final readonly class CallToolRequestParams extends InputResponseRequestParams
         ?string $requestState = null,
     ) {
         IdentifierNameValidator::validate($name, '"params.name"');
-
-        if (null !== $arguments) {
-            Assert::that($arguments)->isMap('"params.arguments" must be a string-keyed map.');
-        }
+        Assert::that($arguments)->nullOr()->isMap('"params.arguments" must be a string-keyed map or null.');
 
         $this->name = $name;
         $this->arguments = $arguments;
