@@ -114,12 +114,6 @@ final readonly class ElicitResult extends Result implements ClientResult
     }
 
     #[\Override]
-    public function jsonSerialize(): array
-    {
-        return $this->toArray();
-    }
-
-    #[\Override]
     protected function getResultType(): string
     {
         return ResultType::Complete->value;

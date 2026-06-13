@@ -127,12 +127,6 @@ final readonly class ListToolsResult extends PaginatedResult implements ServerRe
     }
 
     #[\Override]
-    public function jsonSerialize(): array
-    {
-        return $this->toArray();
-    }
-
-    #[\Override]
     protected function getResultType(): string
     {
         return ResultType::Complete->value;

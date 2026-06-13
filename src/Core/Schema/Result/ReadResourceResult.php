@@ -117,12 +117,6 @@ final readonly class ReadResourceResult extends CacheableResult implements Serve
     }
 
     #[\Override]
-    public function jsonSerialize(): array
-    {
-        return $this->toArray();
-    }
-
-    #[\Override]
     protected function getResultType(): string
     {
         return ResultType::Complete->value;
