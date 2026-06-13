@@ -114,7 +114,7 @@ final class JsonRpcMessageParser
             try {
                 $typed = $resultClass::fromArray($payload);
             } catch (\InvalidArgumentException $e) {
-                throw new InvalidRequestException($id, \sprintf('Invalid %s payload: %s', $resultClass, $e->getMessage()));
+                throw new InvalidRequestException($id, \sprintf('Invalid "result" payload: %s', $e->getMessage()));
             }
 
             return new JsonRpcResultResponse(id: $id, result: $typed);

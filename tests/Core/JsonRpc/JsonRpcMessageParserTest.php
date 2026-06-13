@@ -511,7 +511,7 @@ final class JsonRpcMessageParserTest extends TestCase
             self::fail('Expected InvalidRequestException.');
         } catch (InvalidRequestException $e) {
             self::assertSame(1, $e->requestId?->id);
-            self::assertMatchesRegularExpression('/^Invalid .+EmptyResult payload: "result._meta" must be an object/', $e->getMessage());
+            self::assertSame('Invalid "result" payload: "result._meta" must be an object, string given.', $e->getMessage());
         }
     }
 
@@ -563,7 +563,7 @@ final class JsonRpcMessageParserTest extends TestCase
             self::fail('Expected InvalidRequestException.');
         } catch (InvalidRequestException $e) {
             self::assertSame(1, $e->requestId?->id);
-            self::assertMatchesRegularExpression('/^Invalid .+InputRequiredResult payload: "result.inputRequests" must be an object/', $e->getMessage());
+            self::assertSame('Invalid "result" payload: "result.inputRequests" must be an object, string given.', $e->getMessage());
         }
     }
 
