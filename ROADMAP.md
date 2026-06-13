@@ -120,9 +120,10 @@ generic `JsonRpcResultResponse<TResult>` splits into 18 per-method response enve
 - [x] Add `resultType` enum + discriminator to the success-response parser. A result carrying
   `resultType: "input_required"` decodes to `InputRequiredResult` regardless of the awaited result type.
 - [x] Add `InputRequiredResult` (an `inputRequests` map plus an opaque `requestState`).
-- [ ] Add `InputResponseRequestParams` (`inputResponses` + `requestState`) to the client-initiated
-  request params (`tools/call`, `prompts/get`, `resources/read`), keyed off the `InputResponse` marker.
-  The client retries by re-issuing the original request, so there is no `tasks/input_response` method.
+- [x] Add `InputResponseRequestParams` (an abstract base over `RequestParams` carrying an opaque
+  `inputResponses` map + `requestState`). The `tools/call`, `prompts/get`, and `resources/read` params
+  carry both fields. The client retries by re-issuing the original request, so there is no
+  `tasks/input_response` method.
 - [ ] Generate 18 per-method `*ResultResponse` envelope classes.
 - [ ] Delete `UrlElicitationRequiredError` (-32042) entirely. The success-result-based mechanism
   replaces it.

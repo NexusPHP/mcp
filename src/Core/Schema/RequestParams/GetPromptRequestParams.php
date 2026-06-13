@@ -16,21 +16,22 @@ namespace Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\RequestMetaObject;
-use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
 
 /**
  * Parameters for a `prompts/get` request.
  *
- * @extends RequestParams<array{
+ * @extends InputResponseRequestParams<array{
  *   _meta: template-type<RequestMetaObject, Arrayable, 'T'>,
  *   name: non-empty-string,
  *   arguments?: array<string, string>,
+ *   inputResponses?: array<string, array<string, mixed>>,
+ *   requestState?: string,
  * }>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#getpromptrequestparams
  */
-final readonly class GetPromptRequestParams extends RequestParams
+final readonly class GetPromptRequestParams extends InputResponseRequestParams
 {
     /**
      * @var non-empty-string
@@ -43,10 +44,16 @@ final readonly class GetPromptRequestParams extends RequestParams
     public ?array $arguments;
 
     /**
-     * @param null|array<string, string> $arguments
+     * @param null|array<string, string>               $arguments
+     * @param null|array<string, array<string, mixed>> $inputResponses
      */
-    public function __construct(string $name, RequestMetaObject $meta, ?array $arguments = null)
-    {
+    public function __construct(
+        string $name,
+        RequestMetaObject $meta,
+        ?array $arguments = null,
+        ?array $inputResponses = null,
+        ?string $requestState = null,
+    ) {
         IdentifierNameValidator::validate($name, '"params.name"');
 
         if (null !== $arguments) {
@@ -59,7 +66,7 @@ final readonly class GetPromptRequestParams extends RequestParams
         $this->name = $name;
         $this->arguments = $arguments;
 
-        parent::__construct($meta);
+        parent::__construct(inputResponses: $inputResponses, requestState: $requestState, meta: $meta);
     }
 
     #[\Override]
@@ -80,6 +87,26 @@ final readonly class GetPromptRequestParams extends RequestParams
             $arguments = $data['arguments'];
         }
 
+        $inputResponses = null;
+
+        if (\array_key_exists('inputResponses', $data)) {
+            Assert::that($data['inputResponses'])
+                ->isArray('"params.inputResponses" must be an object, {type} given.')
+                ->isMap('"params.inputResponses" must be a string-keyed object.')
+                ->values()
+                ->isArray('each "params.inputResponses" entry must be an object, {type} given.')
+                ->isMap('each "params.inputResponses" entry must be a string-keyed object.')
+            ;
+            $inputResponses = $data['inputResponses'];
+        }
+
+        $requestState = null;
+
+        if (\array_key_exists('requestState', $data)) {
+            Assert::that($data['requestState'])->isString('"params.requestState" must be a string, {type} given.');
+            $requestState = $data['requestState'];
+        }
+
         Assert::that($data)->hasOffset('_meta', '"params" missing the required "_meta" key.');
         Assert::that($data['_meta'])
             ->isArray('"params._meta" must be an object, {type} given.')
@@ -87,7 +114,7 @@ final readonly class GetPromptRequestParams extends RequestParams
         ;
         $meta = RequestMetaObject::fromArray($data['_meta']);
 
-        return new self(name: $name, meta: $meta, arguments: $arguments);
+        return new self(name: $name, meta: $meta, arguments: $arguments, inputResponses: $inputResponses, requestState: $requestState);
     }
 
     #[\Override]
@@ -100,6 +127,14 @@ final readonly class GetPromptRequestParams extends RequestParams
 
         if (null !== $this->arguments && [] !== $this->arguments) {
             $data['arguments'] = $this->arguments;
+        }
+
+        if (null !== $this->inputResponses) {
+            $data['inputResponses'] = $this->inputResponses;
+        }
+
+        if (null !== $this->requestState) {
+            $data['requestState'] = $this->requestState;
         }
 
         return $data;

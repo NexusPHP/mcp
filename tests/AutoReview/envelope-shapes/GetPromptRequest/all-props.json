@@ -22,6 +22,15 @@
         "name": "code-review",
         "arguments": {
             "topic": "auth"
-        }
+        },
+        "inputResponses": {
+            "github_login": {
+                "action": "accept",
+                "content": {
+                    "name": "octocat"
+                }
+            }
+        },
+        "requestState": "eyJzdGVwIjoyfQ"
     }
 }

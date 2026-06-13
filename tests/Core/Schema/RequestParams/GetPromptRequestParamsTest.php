@@ -17,6 +17,7 @@ use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\ProgressToken;
 use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\GetPromptRequestParams;
+use Nexus\Mcp\Core\Schema\RequestParams\InputResponseRequestParams;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -27,6 +28,7 @@ use PHPUnit\Framework\TestCase;
  * @internal
  */
 #[CoversClass(GetPromptRequestParams::class)]
+#[CoversClass(InputResponseRequestParams::class)]
 #[CoversClass(RequestParams::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
@@ -159,6 +161,52 @@ final class GetPromptRequestParamsTest extends TestCase
         new GetPromptRequestParams(name: 'topic', meta: RequestMetaObjectFactory::create(), arguments: ['k' => 1]);
     }
 
+    public function testConstructionWithInputResponsesAndRequestState(): void
+    {
+        $params = new GetPromptRequestParams(
+            name: 'code-review',
+            meta: RequestMetaObjectFactory::create(),
+            inputResponses: ['github_login' => ['action' => 'accept']],
+            requestState: 'tok',
+        );
+
+        self::assertSame(['github_login' => ['action' => 'accept']], $params->inputResponses);
+        self::assertSame('tok', $params->requestState);
+    }
+
+    public function testToArrayWithInputResponsesAndRequestState(): void
+    {
+        $params = new GetPromptRequestParams(
+            name: 'code-review',
+            meta: RequestMetaObjectFactory::create(),
+            inputResponses: ['github_login' => ['action' => 'accept']],
+            requestState: 'tok',
+        );
+
+        self::assertSame(
+            [
+                '_meta' => RequestMetaObjectFactory::shape(),
+                'name' => 'code-review',
+                'inputResponses' => ['github_login' => ['action' => 'accept']],
+                'requestState' => 'tok',
+            ],
+            $params->toArray(),
+        );
+    }
+
+    public function testFromArrayParsesInputResponseFields(): void
+    {
+        $params = GetPromptRequestParams::fromArray([
+            'name' => 'code-review',
+            'inputResponses' => ['github_login' => ['action' => 'accept']],
+            'requestState' => 'tok',
+            '_meta' => RequestMetaObjectFactory::shape(),
+        ]);
+
+        self::assertSame(['github_login' => ['action' => 'accept']], $params->inputResponses);
+        self::assertSame('tok', $params->requestState);
+    }
+
     /**
      * @param array<string, mixed> $payload
      */
@@ -214,6 +262,31 @@ final class GetPromptRequestParamsTest extends TestCase
         yield '_meta list-keyed' => [
             ['name' => 'topic', '_meta' => ['v']],
             '"params._meta" must be a string-keyed object.',
+        ];
+
+        yield 'inputResponses not an object' => [
+            ['name' => 'topic', 'inputResponses' => 'oops'],
+            '"params.inputResponses" must be an object, string given.',
+        ];
+
+        yield 'inputResponses list-keyed' => [
+            ['name' => 'topic', 'inputResponses' => [['action' => 'accept']]],
+            '"params.inputResponses" must be a string-keyed object.',
+        ];
+
+        yield 'inputResponses entry not an object' => [
+            ['name' => 'topic', 'inputResponses' => ['github_login' => 'oops']],
+            'each "params.inputResponses" entry must be an object, string given.',
+        ];
+
+        yield 'inputResponses entry list-keyed' => [
+            ['name' => 'topic', 'inputResponses' => ['github_login' => ['accept']]],
+            'each "params.inputResponses" entry must be a string-keyed object.',
+        ];
+
+        yield 'requestState not a string' => [
+            ['name' => 'topic', 'requestState' => 42],
+            '"params.requestState" must be a string, int given.',
         ];
     }
 }

@@ -104,6 +104,90 @@ final class ReadResourceRequestParamsTest extends TestCase
         self::assertSame($original->toArray(), ReadResourceRequestParams::fromArray($original->toArray())->toArray());
     }
 
+    public function testConstructionWithInputResponsesAndRequestState(): void
+    {
+        $params = new ReadResourceRequestParams(
+            uri: 'file:///x',
+            meta: RequestMetaObjectFactory::create(),
+            inputResponses: ['github_login' => ['action' => 'accept']],
+            requestState: 'tok',
+        );
+
+        self::assertSame(['github_login' => ['action' => 'accept']], $params->inputResponses);
+        self::assertSame('tok', $params->requestState);
+    }
+
+    public function testToArrayWithInputResponsesAndRequestState(): void
+    {
+        $params = new ReadResourceRequestParams(
+            uri: 'file:///x',
+            meta: RequestMetaObjectFactory::create(),
+            inputResponses: ['github_login' => ['action' => 'accept']],
+            requestState: 'tok',
+        );
+
+        self::assertSame(
+            [
+                '_meta' => RequestMetaObjectFactory::shape(),
+                'uri' => 'file:///x',
+                'inputResponses' => ['github_login' => ['action' => 'accept']],
+                'requestState' => 'tok',
+            ],
+            $params->toArray(),
+        );
+    }
+
+    public function testToArrayOmitsEmptyInputResponses(): void
+    {
+        $params = new ReadResourceRequestParams(uri: 'file:///x', meta: RequestMetaObjectFactory::create(), inputResponses: []);
+
+        self::assertNull($params->inputResponses);
+        self::assertSame(
+            ['_meta' => RequestMetaObjectFactory::shape(), 'uri' => 'file:///x'],
+            $params->toArray(),
+        );
+    }
+
+    public function testFromArrayParsesInputResponseFields(): void
+    {
+        $params = ReadResourceRequestParams::fromArray([
+            'uri' => 'file:///x',
+            'inputResponses' => ['github_login' => ['action' => 'accept']],
+            'requestState' => 'tok',
+            '_meta' => RequestMetaObjectFactory::shape(),
+        ]);
+
+        self::assertSame(['github_login' => ['action' => 'accept']], $params->inputResponses);
+        self::assertSame('tok', $params->requestState);
+    }
+
+    public function testConstructorRejectsListKeyedInputResponses(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs('"params.inputResponses" must be a string-keyed object.');
+
+        // @phpstan-ignore argument.type
+        new ReadResourceRequestParams(uri: 'file:///x', meta: RequestMetaObjectFactory::create(), inputResponses: [['action' => 'accept']]);
+    }
+
+    public function testConstructorRejectsNonObjectInputResponseEntry(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs('each "params.inputResponses" entry must be an object, string given.');
+
+        // @phpstan-ignore argument.type
+        new ReadResourceRequestParams(uri: 'file:///x', meta: RequestMetaObjectFactory::create(), inputResponses: ['github_login' => 'oops']);
+    }
+
+    public function testConstructorRejectsListKeyedInputResponseEntry(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs('each "params.inputResponses" entry must be a string-keyed object.');
+
+        // @phpstan-ignore argument.type
+        new ReadResourceRequestParams(uri: 'file:///x', meta: RequestMetaObjectFactory::create(), inputResponses: ['github_login' => ['accept']]);
+    }
+
     /**
      * @param array<string, mixed> $payload
      */
@@ -144,6 +228,31 @@ final class ReadResourceRequestParamsTest extends TestCase
         yield '_meta list-keyed' => [
             ['uri' => 'file:///x', '_meta' => ['x']],
             '"params._meta" must be a string-keyed object.',
+        ];
+
+        yield 'inputResponses not an object' => [
+            ['uri' => 'file:///x', 'inputResponses' => 'oops'],
+            '"params.inputResponses" must be an object, string given.',
+        ];
+
+        yield 'inputResponses list-keyed' => [
+            ['uri' => 'file:///x', 'inputResponses' => [['action' => 'accept']]],
+            '"params.inputResponses" must be a string-keyed object.',
+        ];
+
+        yield 'inputResponses entry not an object' => [
+            ['uri' => 'file:///x', 'inputResponses' => ['github_login' => 'oops']],
+            'each "params.inputResponses" entry must be an object, string given.',
+        ];
+
+        yield 'inputResponses entry list-keyed' => [
+            ['uri' => 'file:///x', 'inputResponses' => ['github_login' => ['accept']]],
+            'each "params.inputResponses" entry must be a string-keyed object.',
+        ];
+
+        yield 'requestState not a string' => [
+            ['uri' => 'file:///x', 'requestState' => 42],
+            '"params.requestState" must be a string, int given.',
         ];
     }
 }

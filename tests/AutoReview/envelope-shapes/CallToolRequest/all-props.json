@@ -22,6 +22,15 @@
         "name": "read-file",
         "arguments": {
             "path": "src/index.php"
-        }
+        },
+        "inputResponses": {
+            "github_login": {
+                "action": "accept",
+                "content": {
+                    "name": "octocat"
+                }
+            }
+        },
+        "requestState": "eyJzdGVwIjoyfQ"
     }
 }

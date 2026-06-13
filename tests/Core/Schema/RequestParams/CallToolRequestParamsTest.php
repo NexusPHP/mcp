@@ -17,6 +17,7 @@ use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\ProgressToken;
 use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\CallToolRequestParams;
+use Nexus\Mcp\Core\Schema\RequestParams\InputResponseRequestParams;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -27,6 +28,7 @@ use PHPUnit\Framework\TestCase;
  * @internal
  */
 #[CoversClass(CallToolRequestParams::class)]
+#[CoversClass(InputResponseRequestParams::class)]
 #[CoversClass(RequestParams::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
@@ -155,6 +157,90 @@ final class CallToolRequestParamsTest extends TestCase
         new CallToolRequestParams(name: 'read-file', meta: RequestMetaObjectFactory::create(), arguments: ['v1', 'v2']);
     }
 
+    public function testConstructionWithInputResponsesAndRequestState(): void
+    {
+        $params = new CallToolRequestParams(
+            name: 'read-file',
+            meta: RequestMetaObjectFactory::create(),
+            inputResponses: ['github_login' => ['action' => 'accept', 'content' => ['name' => 'octocat']]],
+            requestState: 'tok',
+        );
+
+        self::assertSame(['github_login' => ['action' => 'accept', 'content' => ['name' => 'octocat']]], $params->inputResponses);
+        self::assertSame('tok', $params->requestState);
+    }
+
+    public function testToArrayWithInputResponsesAndRequestState(): void
+    {
+        $params = new CallToolRequestParams(
+            name: 'read-file',
+            meta: RequestMetaObjectFactory::create(),
+            inputResponses: ['github_login' => ['action' => 'accept']],
+            requestState: 'tok',
+        );
+
+        self::assertSame(
+            [
+                '_meta' => RequestMetaObjectFactory::shape(),
+                'name' => 'read-file',
+                'inputResponses' => ['github_login' => ['action' => 'accept']],
+                'requestState' => 'tok',
+            ],
+            $params->toArray(),
+        );
+    }
+
+    public function testToArrayOmitsEmptyInputResponses(): void
+    {
+        $params = new CallToolRequestParams(name: 'read-file', meta: RequestMetaObjectFactory::create(), inputResponses: []);
+
+        self::assertNull($params->inputResponses);
+        self::assertSame(
+            ['_meta' => RequestMetaObjectFactory::shape(), 'name' => 'read-file'],
+            $params->toArray(),
+        );
+    }
+
+    public function testFromArrayParsesInputResponseFields(): void
+    {
+        $params = CallToolRequestParams::fromArray([
+            'name' => 'read-file',
+            'inputResponses' => ['github_login' => ['action' => 'accept']],
+            'requestState' => 'tok',
+            '_meta' => RequestMetaObjectFactory::shape(),
+        ]);
+
+        self::assertSame(['github_login' => ['action' => 'accept']], $params->inputResponses);
+        self::assertSame('tok', $params->requestState);
+    }
+
+    public function testConstructorRejectsListKeyedInputResponses(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs('"params.inputResponses" must be a string-keyed object.');
+
+        // @phpstan-ignore argument.type
+        new CallToolRequestParams(name: 'read-file', meta: RequestMetaObjectFactory::create(), inputResponses: [['action' => 'accept']]);
+    }
+
+    public function testConstructorRejectsNonObjectInputResponseEntry(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs('each "params.inputResponses" entry must be an object, string given.');
+
+        // @phpstan-ignore argument.type
+        new CallToolRequestParams(name: 'read-file', meta: RequestMetaObjectFactory::create(), inputResponses: ['github_login' => 'oops']);
+    }
+
+    public function testConstructorRejectsListKeyedInputResponseEntry(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs('each "params.inputResponses" entry must be a string-keyed object.');
+
+        // @phpstan-ignore argument.type
+        new CallToolRequestParams(name: 'read-file', meta: RequestMetaObjectFactory::create(), inputResponses: ['github_login' => ['accept']]);
+    }
+
     /**
      * @param array<string, mixed> $payload
      */
@@ -200,6 +286,31 @@ final class CallToolRequestParamsTest extends TestCase
         yield '_meta not an object' => [
             ['name' => 'read-file', '_meta' => 'oops'],
             '"params._meta" must be an object, string given.',
+        ];
+
+        yield 'inputResponses not an object' => [
+            ['name' => 'read-file', 'inputResponses' => 'oops'],
+            '"params.inputResponses" must be an object, string given.',
+        ];
+
+        yield 'inputResponses list-keyed' => [
+            ['name' => 'read-file', 'inputResponses' => [['action' => 'accept']]],
+            '"params.inputResponses" must be a string-keyed object.',
+        ];
+
+        yield 'inputResponses entry not an object' => [
+            ['name' => 'read-file', 'inputResponses' => ['github_login' => 'oops']],
+            'each "params.inputResponses" entry must be an object, string given.',
+        ];
+
+        yield 'inputResponses entry list-keyed' => [
+            ['name' => 'read-file', 'inputResponses' => ['github_login' => ['accept']]],
+            'each "params.inputResponses" entry must be a string-keyed object.',
+        ];
+
+        yield 'requestState not a string' => [
+            ['name' => 'read-file', 'requestState' => 42],
+            '"params.requestState" must be a string, int given.',
         ];
     }
 }

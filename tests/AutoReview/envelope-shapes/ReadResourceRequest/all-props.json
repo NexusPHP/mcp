@@ -19,6 +19,15 @@
             "progressToken": "progress-1",
             "vendor.brand": "acme"
         },
-        "uri": "file:///tmp/sample"
+        "uri": "file:///tmp/sample",
+        "inputResponses": {
+            "github_login": {
+                "action": "accept",
+                "content": {
+                    "name": "octocat"
+                }
+            }
+        },
+        "requestState": "eyJzdGVwIjoyfQ"
     }
 }
