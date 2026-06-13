@@ -29,6 +29,7 @@ use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
+use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use Nexus\Mcp\Tests\Fixtures\Core\TestNotification;
 use Nexus\Mcp\Tests\Fixtures\Core\TestRequest;
@@ -511,6 +512,58 @@ final class JsonRpcMessageParserTest extends TestCase
         } catch (InvalidRequestException $e) {
             self::assertSame(1, $e->requestId?->id);
             self::assertMatchesRegularExpression('/^Invalid .+EmptyResult payload: "result._meta" must be an object/', $e->getMessage());
+        }
+    }
+
+    public function testParseDiscriminatesInputRequiredResult(): void
+    {
+        $parser = new JsonRpcMessageParser();
+        $parsed = $parser->parse(
+            ['jsonrpc' => '2.0', 'id' => 7, 'result' => ['resultType' => 'input_required', 'requestState' => 'tok']],
+            EmptyResult::class,
+        );
+
+        if (! $parsed instanceof JsonRpcResultResponse) {
+            self::fail(\sprintf('Expected JsonRpcResultResponse, got %s.', $parsed::class));
+        }
+
+        $result = $parsed->result;
+
+        if (! $result instanceof InputRequiredResult) {
+            self::fail(\sprintf('Expected InputRequiredResult, got %s.', $result::class));
+        }
+
+        self::assertSame('tok', $result->requestState);
+        self::assertSame(7, $parsed->id->id);
+    }
+
+    public function testParseDecodesUnknownResultTypeAsExpectedClass(): void
+    {
+        $parser = new JsonRpcMessageParser();
+        $parsed = $parser->parse(
+            ['jsonrpc' => '2.0', 'id' => 8, 'result' => ['resultType' => 'task']],
+            EmptyResult::class,
+        );
+
+        if (! $parsed instanceof JsonRpcResultResponse) {
+            self::fail(\sprintf('Expected JsonRpcResultResponse, got %s.', $parsed::class));
+        }
+
+        self::assertInstanceOf(EmptyResult::class, $parsed->result);
+    }
+
+    public function testParseWrapsInvalidInputRequiredResultPayloadAsInvalidRequest(): void
+    {
+        try {
+            $parser = new JsonRpcMessageParser();
+            $parser->parse(
+                ['jsonrpc' => '2.0', 'id' => 1, 'result' => ['resultType' => 'input_required', 'inputRequests' => 'bad']],
+                EmptyResult::class,
+            );
+            self::fail('Expected InvalidRequestException.');
+        } catch (InvalidRequestException $e) {
+            self::assertSame(1, $e->requestId?->id);
+            self::assertMatchesRegularExpression('/^Invalid .+InputRequiredResult payload: "result.inputRequests" must be an object/', $e->getMessage());
         }
     }
 

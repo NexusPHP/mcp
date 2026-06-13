@@ -19,6 +19,7 @@ use Nexus\Mcp\Core\Exception\InvalidParamsException;
 use Nexus\Mcp\Core\Exception\InvalidRequestException;
 use Nexus\Mcp\Core\Exception\MethodMisroutedException;
 use Nexus\Mcp\Core\Exception\MethodNotFoundException;
+use Nexus\Mcp\Core\Schema\Enum\ResultType;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcMessage;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
@@ -26,6 +27,7 @@ use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result;
+use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
 
 /**
  * Parses decoded JSON-RPC envelopes into concrete message objects.
@@ -63,7 +65,7 @@ final class JsonRpcMessageParser
      *
      * @return ($result is null
      *     ? JsonRpcErrorResponse|JsonRpcNotification<non-empty-string, array<string, mixed>>|JsonRpcRequest<non-empty-string, array<string, mixed>>|UnparsedResultEnvelope
-     *     : JsonRpcErrorResponse|JsonRpcNotification<non-empty-string, array<string, mixed>>|JsonRpcRequest<non-empty-string, array<string, mixed>>|JsonRpcResultResponse<T>)
+     *     : JsonRpcErrorResponse|JsonRpcNotification<non-empty-string, array<string, mixed>>|JsonRpcRequest<non-empty-string, array<string, mixed>>|JsonRpcResultResponse<InputRequiredResult|T>)
      *
      * @throws AbstractJsonRpcProtocolException
      */
@@ -104,10 +106,15 @@ final class JsonRpcMessageParser
                 throw new InvalidRequestException($id, $e->getMessage());
             }
 
+            $payload = $message['result'];
+            $resultClass = (($payload['resultType'] ?? null) === ResultType::InputRequired->value)
+                ? InputRequiredResult::class
+                : $result;
+
             try {
-                $typed = $result::fromArray($message['result']);
+                $typed = $resultClass::fromArray($payload);
             } catch (\InvalidArgumentException $e) {
-                throw new InvalidRequestException($id, \sprintf('Invalid %s payload: %s', $result, $e->getMessage()));
+                throw new InvalidRequestException($id, \sprintf('Invalid %s payload: %s', $resultClass, $e->getMessage()));
             }
 
             return new JsonRpcResultResponse(id: $id, result: $typed);
