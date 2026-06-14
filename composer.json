@@ -96,10 +96,12 @@
         "lint:typos": "typos && echo 'No typos found.'",
         "lint:typos:fix": "typos --write-changes",
         "mutation:check": [
+            "Nexus\\Mcp\\Tools\\ComposerScripts::cleanInfectionResultCaches",
             "Composer\\Config::disableProcessTimeout",
             "tools/vendor/bin/infection --with-uncovered --static-analysis-tool=phpstan"
         ],
         "mutation:filter": [
+            "Nexus\\Mcp\\Tools\\ComposerScripts::cleanInfectionResultCaches",
             "Composer\\Config::disableProcessTimeout",
             "Nexus\\Mcp\\Tools\\ComposerScripts::runFilteredMutation"
         ],

@@ -24,6 +24,7 @@ final class ComposerScripts
     private const string PHPSTAN_EXTRACTED_DIR = self::PROJECT_ROOT.'/vendor/phpstan/phpstan-phar';
     private const string INTELEPHENSE_INCLUDE_ENTRY = 'vendor/phpstan/phpstan-phar/';
     private const string INFECTION_BIN = self::PROJECT_ROOT.'/tools/vendor/bin/infection';
+    private const string INFECTION_TMP_DIR = self::PROJECT_ROOT.'/build/infection';
     private const array MUTATION_SOURCE_DIRECTORIES = ['src', 'tests'];
     private const string PHPUNIT_CLOVER = self::PROJECT_ROOT.'/build/phpunit/clover.xml';
 
@@ -111,6 +112,16 @@ final class ComposerScripts
         if (0 !== $exitCode) {
             self::fail(\sprintf('brew install failed for: %s', implode(', ', $formulas)));
         }
+    }
+
+    /**
+     * Reclaims the per-mutant PHPUnit result-cache directories that Infection
+     * leaves in its temp dir (one `--cache-directory` per forked mutant).
+     */
+    public static function cleanInfectionResultCaches(): void
+    {
+        self::pruneInfectionResultCaches();
+        register_shutdown_function(self::pruneInfectionResultCaches(...));
     }
 
     /**
@@ -222,6 +233,19 @@ final class ComposerScripts
         sort($report);
 
         self::fail(\sprintf("\nLine coverage is below 100%%. Uncovered statement lines:\n%s", implode("\n", $report)));
+    }
+
+    private static function pruneInfectionResultCaches(): void
+    {
+        $caches = glob(self::INFECTION_TMP_DIR.'/.phpunit.result.cache.*', \GLOB_ONLYDIR);
+
+        if (false === $caches) {
+            return;
+        }
+
+        foreach ($caches as $cache) {
+            self::recursiveDelete($cache);
+        }
     }
 
     /**
