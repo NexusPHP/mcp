@@ -1,0 +1,12 @@
+{
+    "action": "accept",
+    "content": {
+        "email": "user@example.com",
+        "age": 32,
+        "newsletter": true,
+        "topics": [
+            "php",
+            "mcp"
+        ]
+    }
+}

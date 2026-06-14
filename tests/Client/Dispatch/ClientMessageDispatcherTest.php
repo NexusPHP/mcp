@@ -58,7 +58,8 @@ final class ClientMessageDispatcherTest extends TestCase
     {
         $outbound = new PendingOutboundRequests();
         $future = $outbound->register(new RequestId(id: 7), CallToolResultResponse::class);
-        $dispatcher = self::buildDispatcher($outbound);
+        $logger = new ArrayLogger();
+        $dispatcher = self::buildDispatcher($outbound, logger: $logger);
         $transport = new RecordingTransport();
 
         $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 7, 'result' => ['content' => []]], $transport);
@@ -70,6 +71,7 @@ final class ClientMessageDispatcherTest extends TestCase
         self::assertInstanceOf(JsonRpcResultResponse::class, $response);
         self::assertSame(7, $response->id->id);
         self::assertInstanceOf(CallToolResult::class, $response->result);
+        self::assertSame([], $logger->recordsMatching(LogLevel::WARNING, 'Discarding orphan success response for unknown request id.'));
     }
 
     public function testErrorResponseRejectsTheRegisteredFutureWithRemoteCallFailedException(): void
@@ -317,7 +319,7 @@ final class ClientMessageDispatcherTest extends TestCase
         $dispatcher = self::buildDispatcher(
             $outbound,
             requestHandlers: [
-                'elicitation/create' => new ClosureRequestHandler(
+                'tests/test-request' => new ClosureRequestHandler(
                     static function ($req, $ctx) use (&$handled, &$captured): EmptyResult {
                         if (! $ctx instanceof ClientContext) {
                             self::fail('Expected a ClientContext.');
@@ -336,11 +338,8 @@ final class ClientMessageDispatcherTest extends TestCase
         $dispatcher->dispatch([
             'jsonrpc' => '2.0',
             'id' => 1,
-            'method' => 'elicitation/create',
+            'method' => 'tests/test-request',
             'params' => [
-                'mode' => 'form',
-                'message' => 'Please provide your email.',
-                'requestedSchema' => ['type' => 'object', 'properties' => ['email' => ['type' => 'string']]],
                 '_meta' => RequestMetaObjectFactory::shape(new ProgressToken(token: 'p-1')),
             ],
         ], $transport);

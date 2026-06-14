@@ -26,7 +26,6 @@ use Nexus\Mcp\Core\Schema\Notification\ToolListChangedNotification;
 use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
 use Nexus\Mcp\Core\Schema\Request\CompleteRequest;
 use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
-use Nexus\Mcp\Core\Schema\Request\ElicitRequest;
 use Nexus\Mcp\Core\Schema\Request\GetPromptRequest;
 use Nexus\Mcp\Core\Schema\Request\ListPromptsRequest;
 use Nexus\Mcp\Core\Schema\Request\ListResourcesRequest;
@@ -49,7 +48,6 @@ final class JsonRpcMethodRegistry
     {
         return [
             CompleteRequest::getMethod() => CompleteRequest::class,
-            ElicitRequest::getMethod() => ElicitRequest::class,
             GetPromptRequest::getMethod() => GetPromptRequest::class,
             ListPromptsRequest::getMethod() => ListPromptsRequest::class,
             ListResourcesRequest::getMethod() => ListResourcesRequest::class,

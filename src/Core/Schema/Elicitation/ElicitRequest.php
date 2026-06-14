@@ -11,11 +11,12 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Nexus\Mcp\Core\Schema\Request;
+namespace Nexus\Mcp\Core\Schema\Elicitation;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
-use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Core\Schema\Arrayable;
+use Nexus\Mcp\Core\Schema\Request;
+use Nexus\Mcp\Core\Schema\Request\InputRequest;
 use Nexus\Mcp\Core\Schema\RequestParams\ElicitRequestFormParams;
 use Nexus\Mcp\Core\Schema\RequestParams\ElicitRequestUrlParams;
 
@@ -24,15 +25,19 @@ use Nexus\Mcp\Core\Schema\RequestParams\ElicitRequestUrlParams;
  *
  * @property-read ElicitRequestFormParams|ElicitRequestUrlParams $params
  *
- * @extends JsonRpcRequest<'elicitation/create', array<string, mixed>>
+ * @extends Request<'elicitation/create'>
+ * @implements InputRequest<array{
+ *   method: 'elicitation/create',
+ *   params: template-type<ElicitRequestFormParams|ElicitRequestUrlParams, Arrayable, 'T'>,
+ * }>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#elicitrequest
  */
-final readonly class ElicitRequest extends JsonRpcRequest implements InputRequest
+final readonly class ElicitRequest extends Request implements InputRequest
 {
-    public function __construct(RequestId $id, ElicitRequestFormParams|ElicitRequestUrlParams $params)
+    public function __construct(ElicitRequestFormParams|ElicitRequestUrlParams $params)
     {
-        parent::__construct(id: $id, params: $params);
+        parent::__construct(params: $params);
     }
 
     #[\Override]
@@ -44,14 +49,10 @@ final readonly class ElicitRequest extends JsonRpcRequest implements InputReques
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('id', 'missing the required "id" key.');
-        $id = $data['id'];
-        Assert::that($id)->isArrayKey('"id" must be an int or string, {type} given.');
-
-        Assert::that($data)->hasOffset('params', 'missing the required "params" key.');
+        Assert::that($data)->hasOffset('params', 'elicit request is missing the required "params" key.');
         Assert::that($data['params'])
-            ->isArray('"params" must be an object, {type} given.')
-            ->isMap('"params" must be a string-keyed object.')
+            ->isArray('elicit request "params" must be an object, {type} given.')
+            ->isMap('elicit request "params" must be a string-keyed object.')
         ;
 
         $mode = $data['params']['mode'] ?? ElicitRequestFormParams::MODE;
@@ -60,17 +61,24 @@ final readonly class ElicitRequest extends JsonRpcRequest implements InputReques
             ? ElicitRequestUrlParams::fromArray($data['params'])
             : ElicitRequestFormParams::fromArray($data['params']);
 
-        return new self(id: new RequestId(id: $id), params: $params);
+        return new self(params: $params);
     }
 
     #[\Override]
     public function toArray(): array
     {
         return [
-            'jsonrpc' => self::JSONRPC_VERSION,
-            'id' => $this->id->id,
             'method' => static::getMethod(),
             'params' => $this->params->toArray(),
+        ];
+    }
+
+    #[\Override]
+    public function jsonSerialize(): array
+    {
+        return [
+            'method' => static::getMethod(),
+            'params' => $this->params->jsonSerialize(),
         ];
     }
 }

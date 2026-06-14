@@ -14,7 +14,12 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Schema\Result;
 
 use Nexus\Assert\ExpectationFailedException;
+use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequest;
+use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequestedSchema;
+use Nexus\Mcp\Core\Schema\Elicitation\StringSchema;
 use Nexus\Mcp\Core\Schema\MetaObject;
+use Nexus\Mcp\Core\Schema\Request\InputRequest;
+use Nexus\Mcp\Core\Schema\RequestParams\ElicitRequestFormParams;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -31,11 +36,19 @@ use PHPUnit\Framework\TestCase;
 #[Group('core-tests')]
 final class InputRequiredResultTest extends TestCase
 {
-    private const array INPUT_REQUESTS = [
+    /**
+     * The encoded shape produced by `self::inputRequests()`.
+     */
+    private const array INPUT_REQUESTS_WIRE = [
         'github_login' => [
             'method' => 'elicitation/create',
             'params' => [
+                'mode' => 'form',
                 'message' => 'Please provide your GitHub username',
+                'requestedSchema' => [
+                    'type' => 'object',
+                    'properties' => ['name' => ['type' => 'string']],
+                ],
             ],
         ],
     ];
@@ -54,12 +67,13 @@ final class InputRequiredResultTest extends TestCase
 
     public function testToArrayInputRequestsOnly(): void
     {
-        $result = new InputRequiredResult(inputRequests: self::INPUT_REQUESTS);
+        $requests = self::inputRequests();
+        $result = new InputRequiredResult(inputRequests: $requests);
 
-        self::assertSame(self::INPUT_REQUESTS, $result->inputRequests);
+        self::assertSame($requests, $result->inputRequests);
         self::assertNull($result->requestState);
         self::assertSame(
-            ['resultType' => 'input_required', 'inputRequests' => self::INPUT_REQUESTS],
+            ['resultType' => 'input_required', 'inputRequests' => self::INPUT_REQUESTS_WIRE],
             $result->toArray(),
         );
     }
@@ -67,7 +81,7 @@ final class InputRequiredResultTest extends TestCase
     public function testToArrayWithAllFields(): void
     {
         $result = new InputRequiredResult(
-            inputRequests: self::INPUT_REQUESTS,
+            inputRequests: self::inputRequests(),
             requestState: 'tok',
             meta: new MetaObject(extras: ['vendor.brand' => 'acme']),
         );
@@ -76,7 +90,7 @@ final class InputRequiredResultTest extends TestCase
             [
                 '_meta' => ['vendor.brand' => 'acme'],
                 'resultType' => 'input_required',
-                'inputRequests' => self::INPUT_REQUESTS,
+                'inputRequests' => self::INPUT_REQUESTS_WIRE,
                 'requestState' => 'tok',
             ],
             $result->toArray(),
@@ -104,7 +118,7 @@ final class InputRequiredResultTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new InputRequiredResult(
-            inputRequests: self::INPUT_REQUESTS,
+            inputRequests: self::inputRequests(),
             requestState: 'tok',
             meta: new MetaObject(extras: ['vendor.brand' => 'acme']),
         );
@@ -114,14 +128,17 @@ final class InputRequiredResultTest extends TestCase
         self::assertSame($original->toArray(), $rebuilt->toArray());
     }
 
-    public function testFromArrayPreservesInputRequestsVerbatim(): void
+    public function testFromArrayDecodesInputRequests(): void
     {
         $result = InputRequiredResult::fromArray([
             'resultType' => 'input_required',
-            'inputRequests' => self::INPUT_REQUESTS,
+            'inputRequests' => self::INPUT_REQUESTS_WIRE,
         ]);
 
-        self::assertSame(self::INPUT_REQUESTS, $result->inputRequests);
+        self::assertSame(
+            self::INPUT_REQUESTS_WIRE,
+            array_map(static fn(InputRequest $request): array => $request->toArray(), $result->inputRequests ?? []),
+        );
     }
 
     public function testConstructorRejectsResultWithoutInputRequestsOrRequestState(): void
@@ -146,25 +163,25 @@ final class InputRequiredResultTest extends TestCase
         $this->expectExceptionMessageIs('"result.inputRequests" must be a string-keyed object.');
 
         // @phpstan-ignore argument.type
-        new InputRequiredResult(inputRequests: [['method' => 'elicitation/create']]);
+        new InputRequiredResult(inputRequests: [self::elicitRequest()]);
     }
 
-    public function testConstructorRejectsNonObjectInputRequestEntry(): void
+    public function testConstructorRejectsNonInputRequestEntry(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageIs('each "result.inputRequests" entry must be an object, string given.');
+        $this->expectExceptionMessageIs('each "result.inputRequests" entry must be an InputRequest, string given.');
 
         // @phpstan-ignore argument.type
         new InputRequiredResult(inputRequests: ['github_login' => 'oops']);
     }
 
-    public function testConstructorRejectsListKeyedInputRequestEntry(): void
+    public function testConstructorRejectsArrayInputRequestEntry(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageIs('each "result.inputRequests" entry must be a string-keyed object.');
+        $this->expectExceptionMessageIs('each "result.inputRequests" entry must be an InputRequest, array given.');
 
         // @phpstan-ignore argument.type
-        new InputRequiredResult(inputRequests: ['github_login' => ['elicitation/create']]);
+        new InputRequiredResult(inputRequests: ['github_login' => ['method' => 'elicitation/create']]);
     }
 
     public function testFromArrayRejectsResultWithoutInputRequestsOrRequestState(): void
@@ -173,6 +190,17 @@ final class InputRequiredResultTest extends TestCase
         $this->expectExceptionMessageIs('"result" must carry at least one of "inputRequests" or "requestState".');
 
         InputRequiredResult::fromArray(['resultType' => 'input_required']);
+    }
+
+    public function testFromArrayRejectsUnsupportedInputRequestMethod(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('each "result.inputRequests" entry must use a supported input-request method, \'sampling/createMessage\' given.');
+
+        InputRequiredResult::fromArray([
+            'resultType' => 'input_required',
+            'inputRequests' => ['sample' => ['method' => 'sampling/createMessage', 'params' => []]],
+        ]);
     }
 
     /**
@@ -212,6 +240,11 @@ final class InputRequiredResultTest extends TestCase
             'each "result.inputRequests" entry must be a string-keyed object.',
         ];
 
+        yield 'inputRequests entry missing method' => [
+            ['inputRequests' => ['github_login' => ['params' => []]]],
+            'each "result.inputRequests" entry is missing the required "method" key.',
+        ];
+
         yield 'requestState not a string' => [
             ['requestState' => 42],
             '"result.requestState" must be a string, int given.',
@@ -226,5 +259,21 @@ final class InputRequiredResultTest extends TestCase
             ['requestState' => 'tok', '_meta' => ['oops']],
             '"result._meta" must be a string-keyed object.',
         ];
+    }
+
+    /**
+     * @return array<string, ElicitRequest>
+     */
+    private static function inputRequests(): array
+    {
+        return ['github_login' => self::elicitRequest()];
+    }
+
+    private static function elicitRequest(): ElicitRequest
+    {
+        return new ElicitRequest(new ElicitRequestFormParams(
+            message: 'Please provide your GitHub username',
+            requestedSchema: new ElicitRequestedSchema(properties: ['name' => new StringSchema()]),
+        ));
     }
 }

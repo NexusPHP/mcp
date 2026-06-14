@@ -35,7 +35,6 @@ use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
 use Nexus\Mcp\Core\Schema\ProtocolVersion;
 use Nexus\Mcp\Core\Schema\Request;
 use Nexus\Mcp\Core\Schema\Request\ClientRequest;
-use Nexus\Mcp\Core\Schema\Request\ElicitRequest;
 use Nexus\Mcp\Core\Schema\Request\InputRequest;
 use Nexus\Mcp\Core\Schema\Request\PaginatedRequest;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
@@ -45,7 +44,7 @@ use Nexus\Mcp\Core\Schema\Resource\ResourceContents;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\CacheableResult;
 use Nexus\Mcp\Core\Schema\Result\ClientResult;
-use Nexus\Mcp\Core\Schema\Result\ElicitResult;
+use Nexus\Mcp\Core\Schema\Result\InputResponse;
 use Nexus\Mcp\Core\Schema\Result\PaginatedResult;
 use Nexus\Mcp\Core\Schema\Result\ServerResult;
 use Nexus\Mcp\Core\Schema\ResultResponse\GenericResultResponse;
@@ -72,24 +71,6 @@ final class SchemaConformanceTest extends TestCase
         'method' => ['kind' => 'static-method', 'name' => 'getMethod'],
         'resultType' => ['kind' => 'method', 'name' => 'getResultType'],
         'type' => ['kind' => 'constant', 'name' => 'TYPE'],
-    ];
-
-    /**
-     * `JsonRpcRequest` subclasses whose spec def omits the `jsonrpc`/`id`
-     * envelope keys the SDK still serialises, keyed to those keys. Pending
-     * re-modelling off `JsonRpcRequest` (see `ROADMAP.md`).
-     */
-    private const array ENVELOPE_SPEC_DRIFT = [
-        ElicitRequest::class => ['jsonrpc', 'id'],
-    ];
-
-    /**
-     * `Result` subclasses whose spec def omits the `resultType`/`_meta` keys the
-     * SDK still serialises via `Result`. Pending re-modelling off `Result`
-     * (see `ROADMAP.md`).
-     */
-    private const array RESULT_SPEC_DRIFT = [
-        ElicitResult::class => ['resultType', '_meta'],
     ];
 
     /**
@@ -140,6 +121,7 @@ final class SchemaConformanceTest extends TestCase
         ResourceContents::class => self::TS_SCHEMA_FILE_URL,
         CacheableResult::class => self::TS_SCHEMA_FILE_URL,
         ClientResult::class => self::TS_SCHEMA_FILE_URL,
+        InputResponse::class => self::TS_SCHEMA_FILE_URL,
         PaginatedResult::class => self::TS_SCHEMA_FILE_URL,
         ServerResult::class => self::TS_SCHEMA_FILE_URL,
     ];
@@ -496,100 +478,6 @@ final class SchemaConformanceTest extends TestCase
         self::assertSame([], $unaccounted, \sprintf(
             'Schema classes without a 1:1 spec def must be listed in either NON_SCHEMA_ANCHOR_SEE_URLS (with the spec URL their @see should reference) or SEE_ANNOTATION_EXEMPT (PHP-only infrastructure). Unaccounted: %s.',
             implode(', ', $unaccounted),
-        ));
-    }
-
-    public function testJsonRpcEnvelopeStructuralKeysMatchSpecOrAreKnownDrift(): void
-    {
-        self::generateLatestSchema();
-        self::sortSchemaDefinition();
-
-        $drift = [];
-
-        foreach (self::$sortedSchema['processed_schema'] as $basename => $schemaClass) {
-            $reflection = new \ReflectionClass($schemaClass);
-
-            if ($reflection->isAbstract()) {
-                continue;
-            }
-
-            $isRequest = $reflection->isSubclassOf(JsonRpcRequest::class);
-
-            if (! $isRequest && ! $reflection->isSubclassOf(JsonRpcNotification::class)) {
-                continue;
-            }
-
-            $structuralKeys = $isRequest ? ['jsonrpc', 'id'] : ['jsonrpc'];
-
-            $specDef = self::$latestSchema[$basename] ?? null;
-
-            if (! \is_array($specDef)) {
-                continue;
-            }
-
-            $specProperties = $specDef['properties'] ?? [];
-            $specPropertyKeys = \is_array($specProperties)
-                ? array_filter(array_keys($specProperties), is_string(...))
-                : [];
-
-            $missing = array_values(array_filter(
-                $structuralKeys,
-                static fn(string $key): bool => ! \in_array($key, $specPropertyKeys, true),
-            ));
-
-            if ([] !== $missing) {
-                $drift[$schemaClass] = $missing;
-            }
-        }
-
-        ksort($drift);
-
-        self::assertSame(self::ENVELOPE_SPEC_DRIFT, $drift, \sprintf(
-            'JsonRpcRequest/JsonRpcNotification subclasses serialising "jsonrpc"/"id" keys absent from their spec def must be listed in ENVELOPE_SPEC_DRIFT. Untracked: %s.',
-            implode(', ', array_keys(array_diff_key($drift, self::ENVELOPE_SPEC_DRIFT))),
-        ));
-    }
-
-    public function testResultStructuralKeysMatchSpecOrAreKnownDrift(): void
-    {
-        self::generateLatestSchema();
-        self::sortSchemaDefinition();
-
-        $drift = [];
-
-        foreach (self::$sortedSchema['processed_schema'] as $basename => $schemaClass) {
-            $reflection = new \ReflectionClass($schemaClass);
-
-            if ($reflection->isAbstract() || ! $reflection->isSubclassOf(Result::class)) {
-                continue;
-            }
-
-            $specDef = self::$latestSchema[$basename] ?? null;
-
-            if (! \is_array($specDef) || ! isset($specDef['properties'])) {
-                continue;
-            }
-
-            $specProperties = $specDef['properties'];
-            $specPropertyKeys = \is_array($specProperties)
-                ? array_filter(array_keys($specProperties), is_string(...))
-                : [];
-
-            $missing = array_values(array_filter(
-                ['resultType', '_meta'],
-                static fn(string $key): bool => ! \in_array($key, $specPropertyKeys, true),
-            ));
-
-            if ([] !== $missing) {
-                $drift[$schemaClass] = $missing;
-            }
-        }
-
-        ksort($drift);
-
-        self::assertSame(self::RESULT_SPEC_DRIFT, $drift, \sprintf(
-            'Result subclasses serialising "resultType"/"_meta" keys absent from their spec def must be listed in RESULT_SPEC_DRIFT. Untracked: %s.',
-            implode(', ', array_keys(array_diff_key($drift, self::RESULT_SPEC_DRIFT))),
         ));
     }
 
@@ -1020,6 +908,7 @@ final class SchemaConformanceTest extends TestCase
         }
 
         return self::parseShapeAfter($docComment, '/@implements\s+Arrayable\s*<\s*array\{/')
+            ?? self::parseShapeAfter($docComment, '/@implements\s+Input(?:Request|Response)\s*<\s*array\{/')
             ?? self::parseShapeAfter($docComment, '/@extends\s+\w+\s*<\s*[^<>]*?array\{/');
     }
 

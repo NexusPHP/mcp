@@ -811,8 +811,6 @@ final class ServerBuilderTest extends TestCase
     {
         yield 'completion/complete' => ['completion/complete'];
 
-        yield 'elicitation/create' => ['elicitation/create'];
-
         yield 'prompts/get' => ['prompts/get'];
 
         yield 'prompts/list' => ['prompts/list'];

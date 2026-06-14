@@ -14,10 +14,13 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Schema\RequestParams;
 
 use Nexus\Assert\ExpectationFailedException;
+use Nexus\Mcp\Core\Schema\Elicitation\ElicitResult;
+use Nexus\Mcp\Core\Schema\Enum\ElicitAction;
 use Nexus\Mcp\Core\Schema\ProgressToken;
 use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\ReadResourceRequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\ResourceRequestParams;
+use Nexus\Mcp\Core\Schema\Result\InputResponse;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -106,14 +109,15 @@ final class ReadResourceRequestParamsTest extends TestCase
 
     public function testConstructionWithInputResponsesAndRequestState(): void
     {
+        $response = new ElicitResult(action: ElicitAction::Accept);
         $params = new ReadResourceRequestParams(
             uri: 'file:///x',
             meta: RequestMetaObjectFactory::create(),
-            inputResponses: ['github_login' => ['action' => 'accept']],
+            inputResponses: ['github_login' => $response],
             requestState: 'tok',
         );
 
-        self::assertSame(['github_login' => ['action' => 'accept']], $params->inputResponses);
+        self::assertSame(['github_login' => $response], $params->inputResponses);
         self::assertSame('tok', $params->requestState);
     }
 
@@ -122,7 +126,7 @@ final class ReadResourceRequestParamsTest extends TestCase
         $params = new ReadResourceRequestParams(
             uri: 'file:///x',
             meta: RequestMetaObjectFactory::create(),
-            inputResponses: ['github_login' => ['action' => 'accept']],
+            inputResponses: ['github_login' => new ElicitResult(action: ElicitAction::Accept)],
             requestState: 'tok',
         );
 
@@ -157,7 +161,10 @@ final class ReadResourceRequestParamsTest extends TestCase
             '_meta' => RequestMetaObjectFactory::shape(),
         ]);
 
-        self::assertSame(['github_login' => ['action' => 'accept']], $params->inputResponses);
+        self::assertSame(
+            ['github_login' => ['action' => 'accept']],
+            array_map(static fn(InputResponse $response): array => $response->toArray(), $params->inputResponses ?? []),
+        );
         self::assertSame('tok', $params->requestState);
     }
 
@@ -173,7 +180,7 @@ final class ReadResourceRequestParamsTest extends TestCase
     public function testConstructorRejectsNonObjectInputResponseEntry(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageIs('each "params.inputResponses" entry must be an object, string given.');
+        $this->expectExceptionMessageIs('each "params.inputResponses" entry must be an InputResponse, string given.');
 
         // @phpstan-ignore argument.type
         new ReadResourceRequestParams(uri: 'file:///x', meta: RequestMetaObjectFactory::create(), inputResponses: ['github_login' => 'oops']);
@@ -182,7 +189,7 @@ final class ReadResourceRequestParamsTest extends TestCase
     public function testConstructorRejectsListKeyedInputResponseEntry(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageIs('each "params.inputResponses" entry must be a string-keyed object.');
+        $this->expectExceptionMessageIs('each "params.inputResponses" entry must be an InputResponse, array given.');
 
         // @phpstan-ignore argument.type
         new ReadResourceRequestParams(uri: 'file:///x', meta: RequestMetaObjectFactory::create(), inputResponses: ['github_login' => ['accept']]);

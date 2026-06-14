@@ -30,7 +30,6 @@ use Nexus\Mcp\Core\Schema\Notification\ToolListChangedNotification;
 use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
 use Nexus\Mcp\Core\Schema\Request\CompleteRequest;
 use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
-use Nexus\Mcp\Core\Schema\Request\ElicitRequest;
 use Nexus\Mcp\Core\Schema\Request\GetPromptRequest;
 use Nexus\Mcp\Core\Schema\Request\ListPromptsRequest;
 use Nexus\Mcp\Core\Schema\Request\ListResourcesRequest;
@@ -40,7 +39,6 @@ use Nexus\Mcp\Core\Schema\Request\ReadResourceRequest;
 use Nexus\Mcp\Core\Schema\Request\SubscriptionsListenRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result;
-use Nexus\Mcp\Core\Schema\Result\ElicitResult;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Core\Schema\ResultResponse\CallToolResultResponse;
 use Nexus\Mcp\Core\Schema\ResultResponse\CompleteResultResponse;
@@ -163,8 +161,6 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
 
         yield 'ListToolsRequest' => ['wrapper' => ListToolsRequest::class, 'inner' => null];
 
-        yield 'ElicitRequest' => ['wrapper' => ElicitRequest::class, 'inner' => null];
-
         yield 'SubscriptionsListenRequest' => ['wrapper' => SubscriptionsListenRequest::class, 'inner' => null, 'encodingPathsDiverge' => true];
 
         // Concrete notifications.
@@ -185,8 +181,8 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
         yield 'SubscriptionsAcknowledgedNotification' => ['wrapper' => SubscriptionsAcknowledgedNotification::class, 'inner' => null, 'encodingPathsDiverge' => true];
 
         // Result responses. Typed envelopes self-decode via `fromArray`; the
-        // generic writer carries results with no dedicated envelope (`EmptyResult`,
-        // `ElicitResult`) and is reconstructed from its inner result.
+        // generic writer carries results with no dedicated envelope (`EmptyResult`)
+        // and is reconstructed from its inner result.
         yield 'CallToolResult' => ['wrapper' => CallToolResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => null];
 
         yield 'CompleteResult' => ['wrapper' => CompleteResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => null];
@@ -208,8 +204,6 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
         yield 'ListToolsResult' => ['wrapper' => ListToolsResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => null];
 
         yield 'ReadResourceResult' => ['wrapper' => ReadResourceResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => null];
-
-        yield 'ElicitResult' => ['wrapper' => GenericResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => ElicitResult::class];
 
         // Error responses, organised per Error subclass even though
         // `JsonRpcErrorResponse::fromArray` self-dispatches on `code`.

@@ -1,0 +1,108 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * This file is part of the Nexus MCP SDK package.
+ *
+ * (c) 2026 John Paul E. Balandan, CPA <paulbalandan@gmail.com>
+ *
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
+ */
+
+namespace Nexus\Mcp\Core\Schema\Elicitation;
+
+use Nexus\Assert\Assert;
+use Nexus\Mcp\Core\Schema\Enum\ElicitAction;
+use Nexus\Mcp\Core\Schema\Result\InputResponse;
+use Nexus\Mcp\Core\Validation\EnumValueValidator;
+
+/**
+ * The result returned by the client for an `elicitation/create` request.
+ *
+ * @implements InputResponse<array{action: non-empty-string, content?: array<non-empty-string, bool|int|list<string>|string>}>
+ *
+ * @see https://modelcontextprotocol.io/specification/draft/schema#elicitresult
+ */
+final readonly class ElicitResult implements InputResponse
+{
+    /**
+     * @var null|array<non-empty-string, bool|int|list<string>|string>
+     */
+    public ?array $content;
+
+    /**
+     * @param null|array<string, bool|int|list<string>|string> $content
+     */
+    public function __construct(public ElicitAction $action, ?array $content = null)
+    {
+        if (null !== $content) {
+            Assert::that($content)
+                ->isMap('elicit result "content" must be a string-keyed map.')
+                ->keys()->isNonEmptyString('each elicit result "content" key must be a non-empty string.')
+            ;
+
+            foreach ($content as $key => $value) {
+                self::validateValue($key, $value);
+            }
+        }
+
+        $this->content = $content;
+    }
+
+    #[\Override]
+    public static function fromArray(array $data): static
+    {
+        Assert::that($data)->hasOffset('action', 'elicit result is missing the required "action" key.');
+        $action = EnumValueValidator::parse(ElicitAction::class, $data['action'], 'elicit result "action"');
+
+        $content = null;
+
+        if (\array_key_exists('content', $data)) {
+            Assert::that($data['content'])
+                ->isArray('elicit result "content" must be an object, {type} given.')
+                ->isMap('elicit result "content" must be a string-keyed object.')
+            ;
+
+            foreach ($data['content'] as $key => $value) {
+                self::validateValue('content entry '.$key, $value);
+            }
+
+            /** @var array<string, bool|int|list<string>|string> $content */
+            $content = $data['content'];
+        }
+
+        return new self(action: $action, content: $content);
+    }
+
+    #[\Override]
+    public function toArray(): array
+    {
+        $data = ['action' => $this->action->value];
+
+        if (null !== $this->content) {
+            $data['content'] = $this->content;
+        }
+
+        return $data;
+    }
+
+    #[\Override]
+    public function jsonSerialize(): array
+    {
+        return $this->toArray();
+    }
+
+    private static function validateValue(string $context, mixed $value): void
+    {
+        if (\is_string($value) || \is_int($value) || \is_bool($value)) {
+            return;
+        }
+
+        Assert::that($value)
+            ->isList(\sprintf('elicit result "%s" must be a string, int, bool, or list of strings, non-list array given.', $context))
+            ->values()->isString(\sprintf('each elicit result "%s" list entry must be a string, {type} given.', $context))
+        ;
+    }
+}

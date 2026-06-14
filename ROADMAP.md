@@ -45,7 +45,7 @@ Quality and project gates:
   best-practices, design-rationale, attribute-discovery) plus README and community-health files
   (CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, CHANGELOG, VERSIONING, DEPENDENCY_POLICY).
 
-Server-initiated requests (`elicitation/create`) and the HTTP transport are not implemented yet. They
+Server-initiated requests and the HTTP transport are not implemented yet. They
 land with the 2026-07-28 migration below, where `RequestBoundSender::sendRequest()` (a stub today) is
 implemented.
 
@@ -119,8 +119,8 @@ base with one concrete, self-decoding `*ResultResponse` per spec method (nine in
 `tools/call`, `prompts/get`, and `resources/read` accept `InputRequiredResult`.
 
 - [x] Add `InputRequiredResult` (an `inputRequests` map plus an opaque `requestState`).
-- [x] Add `InputResponseRequestParams` (an abstract base over `RequestParams` carrying an opaque
-  `inputResponses` map + `requestState`). The `tools/call`, `prompts/get`, and `resources/read` params
+- [x] Add `InputResponseRequestParams` (an abstract base over `RequestParams` carrying an
+  `inputResponses` map + an opaque `requestState`). The `tools/call`, `prompts/get`, and `resources/read` params
   carry both fields. The client retries by re-issuing the original request, so there is no
   `tasks/input_response` method.
 - [x] Model the nine per-method `*ResultResponse` envelopes: an abstract `JsonRpcResultResponse` base
@@ -219,14 +219,14 @@ spec-divergence question.
 - [x] Rename the `ServerRequest` marker interface to `InputRequest`, matching the union the 2026-07-28
   spec renamed. With Roots and Sampling gone, only `ElicitRequest` implements it. Touches the marker, its
   implementers, the conformance `@see` map, and tests. `ClientRequest` is unchanged.
-- [ ] Re-model `ElicitRequest` off `JsonRpcRequest`. The 2026-07-28 spec defines it as a bare `Request`
-  (`method` + `params`, no `jsonrpc`/`id` envelope), surfaced through the MRTR `InputRequiredResult` flow
-  rather than as a standalone JSON-RPC request. The SDK still serialises the full envelope, pinned by
-  `ENVELOPE_SPEC_DRIFT` in `SchemaConformanceTest` until the re-model lands.
-- [ ] Re-model `ElicitResult` off `Result`. The 2026-07-28 spec defines it as a standalone result
-  (`action` plus optional `content`), not a `Result` subtype, so it carries neither the `resultType`
-  discriminator nor `_meta`. The SDK extends `Result` and serialises both, pinned by `RESULT_SPEC_DRIFT`
-  in `SchemaConformanceTest` until the re-model lands.
+- [x] Re-model `ElicitRequest` off `JsonRpcRequest`. It is now a bare `Request` (`method` + `params`, no
+  `jsonrpc`/`id` envelope) in `Schema\Elicitation`, surfaced through the MRTR `InputRequiredResult` flow
+  rather than as a standalone JSON-RPC request, and `InputRequiredResult.inputRequests` decodes off the
+  `InputRequest` marker. The `ENVELOPE_SPEC_DRIFT` conformance guard (migration scaffolding) is removed.
+- [x] Re-model `ElicitResult` off `Result`. It is now a standalone `Arrayable` (`action` plus optional
+  `content`) in `Schema\Elicitation` implementing the new `InputResponse` marker, carrying neither the
+  `resultType` discriminator nor `_meta`, and `InputResponseRequestParams.inputResponses` decodes off the
+  `InputResponse` marker. The `RESULT_SPEC_DRIFT` conformance guard (migration scaffolding) is removed.
 
 ### TTL on list results
 

@@ -20,6 +20,7 @@ use Nexus\Mcp\Core\Handler\AbstractContext;
 use Nexus\Mcp\Core\Handler\HandlerRegistry;
 use Nexus\Mcp\Core\Handler\NotificationHandlerInterface;
 use Nexus\Mcp\Core\Handler\RequestHandlerInterface;
+use Nexus\Mcp\Core\JsonRpc\JsonRpcMessageParser;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Implementation;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
@@ -39,9 +40,9 @@ use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureNotificationHandler;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureRequestHandler;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
+use Nexus\Mcp\Tests\Fixtures\Core\TestRequest;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LogLevel;
@@ -285,61 +286,37 @@ final class ServerMessageDispatcherTest extends TestCase
         self::assertSame(ProtocolErrorCode::MethodNotFound->value, $message->error->code);
     }
 
-    /**
-     * @param array<string, mixed> $envelope
-     */
-    #[DataProvider('provideServerRejectsServerToClientMethodWithMethodNotFoundCases')]
-    public function testServerRejectsServerToClientMethodWithMethodNotFound(string $expectedId, array $envelope): void
+    public function testServerRejectsNonClientRequestMethodWithMethodNotFound(): void
     {
-        // The parser accepts these methods (they live in the registry), but they are
-        // server-to-client requests with null or standalone params. The dispatcher must
-        // answer MethodNotFound rather than read `->meta` and silently drop the response.
+        // The parser recognises the method (it is registered), but its request type is not a
+        // `ClientRequest`. The server services only `ClientRequest` methods, so the dispatcher
+        // answers MethodNotFound with the id preserved rather than reading `->meta` and silently
+        // dropping the response.
         $transport = new RecordingTransport();
-        $dispatcher = self::buildDispatcher();
+        $dispatcher = self::buildDispatcher(
+            parser: new JsonRpcMessageParser(requests: ['tests/test-request' => TestRequest::class]),
+        );
 
-        $dispatcher->dispatch($envelope, $transport);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 'r-3', 'method' => 'tests/test-request'], $transport);
 
         EventLoop::run();
 
-        self::assertCount(1, $transport->sent, 'A server-bound server-to-client method must draw exactly one response, not a silent drop.');
+        self::assertCount(1, $transport->sent, 'A non-ClientRequest method must draw exactly one response, not a silent drop.');
         $message = $transport->sent[0]['message'];
         self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
-        self::assertSame($expectedId, $message->id?->id);
+        self::assertSame('r-3', $message->id?->id);
         self::assertSame(ProtocolErrorCode::MethodNotFound->value, $message->error->code);
     }
 
-    /**
-     * @return iterable<string, array{string, array<string, mixed>}>
-     */
-    public static function provideServerRejectsServerToClientMethodWithMethodNotFoundCases(): iterable
+    public function testNonClientRequestMethodIsRejectedByDirectionEvenWhenAHandlerIsRegistered(): void
     {
-        yield 'elicitation/create (standalone params)' => [
-            'r-3',
-            [
-                'jsonrpc' => '2.0',
-                'id' => 'r-3',
-                'method' => 'elicitation/create',
-                'params' => [
-                    'mode' => 'form',
-                    'message' => 'Pick',
-                    'requestedSchema' => [
-                        'type' => 'object',
-                        'properties' => ['x' => ['type' => 'string']],
-                    ],
-                ],
-            ],
-        ];
-    }
-
-    public function testServerToClientMethodIsRejectedByDirectionEvenWhenAHandlerIsRegistered(): void
-    {
-        // Registering a server-to-client handler is a misconfiguration. The dispatcher must
-        // reject by direction before the handler runs, not invoke it.
+        // Registering a handler for a non-ClientRequest method is a misconfiguration. The dispatcher
+        // must reject by direction before the handler runs, not invoke it.
         $invoked = false;
         $transport = new RecordingTransport();
         $dispatcher = self::buildDispatcher(
             requestHandlers: [
-                'elicitation/create' => new ClosureRequestHandler(
+                'tests/test-request' => new ClosureRequestHandler(
                     static function () use (&$invoked): Result {
                         $invoked = true;
 
@@ -347,26 +324,14 @@ final class ServerMessageDispatcherTest extends TestCase
                     },
                 ),
             ],
+            parser: new JsonRpcMessageParser(requests: ['tests/test-request' => TestRequest::class]),
         );
 
-        $dispatcher->dispatch(
-            [
-                'jsonrpc' => '2.0',
-                'id' => 'r-1',
-                'method' => 'elicitation/create',
-                'params' => [
-                    'mode' => 'form',
-                    'message' => 'Please provide your email.',
-                    'requestedSchema' => ['type' => 'object', 'properties' => ['email' => ['type' => 'string']]],
-                    '_meta' => RequestMetaObjectFactory::shape(),
-                ],
-            ],
-            $transport,
-        );
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 'r-1', 'method' => 'tests/test-request'], $transport);
 
         EventLoop::run();
 
-        self::assertFalse($invoked, 'A server-to-client method must be rejected by direction before any registered handler runs.');
+        self::assertFalse($invoked, 'A non-ClientRequest method must be rejected by direction before any registered handler runs.');
         self::assertCount(1, $transport->sent);
         $message = $transport->sent[0]['message'];
         self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
@@ -825,11 +790,13 @@ final class ServerMessageDispatcherTest extends TestCase
         array $requestHandlers = [],
         array $notificationHandlers = [],
         ?ArrayLogger $logger = null,
+        ?JsonRpcMessageParser $parser = null,
     ): ServerMessageDispatcher {
         return new ServerMessageDispatcher(
             new HandlerRegistry($requestHandlers, RequestHandlerInterface::class, 'Request handler'),
             new HandlerRegistry($notificationHandlers, NotificationHandlerInterface::class, 'Notification handler'),
             logger: $logger ?? new ArrayLogger(),
+            parser: $parser ?? new JsonRpcMessageParser(),
         );
     }
 

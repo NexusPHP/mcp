@@ -16,6 +16,7 @@ namespace Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams;
+use Nexus\Mcp\Core\Schema\Result\InputResponse;
 
 /**
  * Request params that may carry the client's responses to a prior
@@ -30,12 +31,12 @@ use Nexus\Mcp\Core\Schema\RequestParams;
 abstract readonly class InputResponseRequestParams extends RequestParams
 {
     /**
-     * @var null|array<string, array<string, mixed>>
+     * @var null|array<string, InputResponse>
      */
     public ?array $inputResponses;
 
     /**
-     * @param null|array<string, array<string, mixed>> $inputResponses
+     * @param null|array<string, InputResponse> $inputResponses
      */
     public function __construct(
         ?array $inputResponses,
@@ -48,8 +49,7 @@ abstract readonly class InputResponseRequestParams extends RequestParams
             Assert::that($inputResponses)
                 ->isMap('"params.inputResponses" must be a string-keyed object.')
                 ->values()
-                ->isArray('each "params.inputResponses" entry must be an object, {type} given.')
-                ->isMap('each "params.inputResponses" entry must be a string-keyed object.')
+                ->isInstanceOf(InputResponse::class, 'each "params.inputResponses" entry must be an InputResponse, {type} given.')
             ;
         }
 

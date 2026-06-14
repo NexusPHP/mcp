@@ -14,10 +14,13 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Schema\RequestParams;
 
 use Nexus\Assert\ExpectationFailedException;
+use Nexus\Mcp\Core\Schema\Elicitation\ElicitResult;
+use Nexus\Mcp\Core\Schema\Enum\ElicitAction;
 use Nexus\Mcp\Core\Schema\ProgressToken;
 use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\GetPromptRequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\InputResponseRequestParams;
+use Nexus\Mcp\Core\Schema\Result\InputResponse;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -163,14 +166,15 @@ final class GetPromptRequestParamsTest extends TestCase
 
     public function testConstructionWithInputResponsesAndRequestState(): void
     {
+        $response = new ElicitResult(action: ElicitAction::Accept);
         $params = new GetPromptRequestParams(
             name: 'code-review',
             meta: RequestMetaObjectFactory::create(),
-            inputResponses: ['github_login' => ['action' => 'accept']],
+            inputResponses: ['github_login' => $response],
             requestState: 'tok',
         );
 
-        self::assertSame(['github_login' => ['action' => 'accept']], $params->inputResponses);
+        self::assertSame(['github_login' => $response], $params->inputResponses);
         self::assertSame('tok', $params->requestState);
     }
 
@@ -179,7 +183,7 @@ final class GetPromptRequestParamsTest extends TestCase
         $params = new GetPromptRequestParams(
             name: 'code-review',
             meta: RequestMetaObjectFactory::create(),
-            inputResponses: ['github_login' => ['action' => 'accept']],
+            inputResponses: ['github_login' => new ElicitResult(action: ElicitAction::Accept)],
             requestState: 'tok',
         );
 
@@ -203,7 +207,10 @@ final class GetPromptRequestParamsTest extends TestCase
             '_meta' => RequestMetaObjectFactory::shape(),
         ]);
 
-        self::assertSame(['github_login' => ['action' => 'accept']], $params->inputResponses);
+        self::assertSame(
+            ['github_login' => ['action' => 'accept']],
+            array_map(static fn(InputResponse $response): array => $response->toArray(), $params->inputResponses ?? []),
+        );
         self::assertSame('tok', $params->requestState);
     }
 

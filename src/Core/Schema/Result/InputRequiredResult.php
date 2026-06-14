@@ -15,8 +15,10 @@ namespace Nexus\Mcp\Core\Schema\Result;
 
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Arrayable;
+use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequest;
 use Nexus\Mcp\Core\Schema\Enum\ResultType;
 use Nexus\Mcp\Core\Schema\MetaObject;
+use Nexus\Mcp\Core\Schema\Request\InputRequest;
 use Nexus\Mcp\Core\Schema\Result;
 
 /**
@@ -37,12 +39,12 @@ use Nexus\Mcp\Core\Schema\Result;
 final readonly class InputRequiredResult extends Result implements ServerResult
 {
     /**
-     * @var null|array<string, array<string, mixed>>
+     * @var null|array<string, InputRequest>
      */
     public ?array $inputRequests;
 
     /**
-     * @param null|array<string, array<string, mixed>> $inputRequests
+     * @param null|array<string, InputRequest> $inputRequests
      */
     public function __construct(
         ?array $inputRequests = null,
@@ -59,8 +61,7 @@ final readonly class InputRequiredResult extends Result implements ServerResult
             Assert::that($inputRequests)
                 ->isMap('"result.inputRequests" must be a string-keyed object.')
                 ->values()
-                ->isArray('each "result.inputRequests" entry must be an object, {type} given.')
-                ->isMap('each "result.inputRequests" entry must be a string-keyed object.')
+                ->isInstanceOf(InputRequest::class, 'each "result.inputRequests" entry must be an InputRequest, {type} given.')
             ;
         }
 
@@ -82,7 +83,7 @@ final readonly class InputRequiredResult extends Result implements ServerResult
                 ->isArray('each "result.inputRequests" entry must be an object, {type} given.')
                 ->isMap('each "result.inputRequests" entry must be a string-keyed object.')
             ;
-            $inputRequests = $data['inputRequests'];
+            $inputRequests = array_map(self::decodeInputRequest(...), $data['inputRequests']);
         }
 
         $requestState = null;
@@ -118,7 +119,10 @@ final readonly class InputRequiredResult extends Result implements ServerResult
         $data['resultType'] = self::getResultType();
 
         if (null !== $this->inputRequests) {
-            $data['inputRequests'] = $this->inputRequests;
+            $data['inputRequests'] = array_map(
+                static fn(InputRequest $request): array => $request->toArray(),
+                $this->inputRequests,
+            );
         }
 
         if (null !== $this->requestState) {
@@ -132,5 +136,21 @@ final readonly class InputRequiredResult extends Result implements ServerResult
     protected function getResultType(): string
     {
         return ResultType::InputRequired->value;
+    }
+
+    /**
+     * @param array<string, mixed> $request
+     */
+    private static function decodeInputRequest(array $request): InputRequest
+    {
+        Assert::that($request)->hasOffset('method', 'each "result.inputRequests" entry is missing the required "method" key.');
+
+        return match ($request['method']) {
+            'elicitation/create' => ElicitRequest::fromArray($request),
+            default => throw new \InvalidArgumentException(\sprintf(
+                'each "result.inputRequests" entry must use a supported input-request method, %s given.',
+                var_export($request['method'], true),
+            )),
+        };
     }
 }

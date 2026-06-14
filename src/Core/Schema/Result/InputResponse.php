@@ -11,13 +11,13 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Nexus\Mcp\Core\Schema\Request;
+namespace Nexus\Mcp\Core\Schema\Result;
 
 use Nexus\Mcp\Core\Schema\Arrayable;
 
 /**
- * Marker for a request that a server may send to a client, carried as a bare
- * body inside an `InputRequiredResult`'s `inputRequests` map.
+ * Marker for a client's result to a server-initiated input request, carried as
+ * a bare body inside an `InputResponseRequestParams`'s `inputResponses` map.
  *
  * @template-covariant T of array<string, mixed> = array<string, mixed>
  *
@@ -25,6 +25,6 @@ use Nexus\Mcp\Core\Schema\Arrayable;
  *
  * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/draft/schema.ts
  */
-interface InputRequest extends Arrayable
+interface InputResponse extends Arrayable
 {
 }

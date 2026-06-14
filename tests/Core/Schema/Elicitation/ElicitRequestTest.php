@@ -11,15 +11,13 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Nexus\Mcp\Tests\Core\Schema\Request;
+namespace Nexus\Mcp\Tests\Core\Schema\Elicitation;
 
 use Nexus\Assert\ExpectationFailedException;
+use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequest;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequestedSchema;
 use Nexus\Mcp\Core\Schema\Elicitation\StringSchema;
-use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\Request;
-use Nexus\Mcp\Core\Schema\Request\ElicitRequest;
-use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\ElicitRequestFormParams;
 use Nexus\Mcp\Core\Schema\RequestParams\ElicitRequestUrlParams;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -31,7 +29,6 @@ use PHPUnit\Framework\TestCase;
  * @internal
  */
 #[CoversClass(ElicitRequest::class)]
-#[CoversClass(JsonRpcRequest::class)]
 #[CoversClass(Request::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
@@ -45,7 +42,6 @@ final class ElicitRequestTest extends TestCase
     public function testToArrayWithFormParams(): void
     {
         $req = new ElicitRequest(
-            id: new RequestId(id: 'r-1'),
             params: new ElicitRequestFormParams(
                 message: 'Pick',
                 requestedSchema: new ElicitRequestedSchema(properties: ['x' => new StringSchema()]),
@@ -54,8 +50,6 @@ final class ElicitRequestTest extends TestCase
 
         self::assertSame(
             [
-                'jsonrpc' => '2.0',
-                'id' => 'r-1',
                 'method' => 'elicitation/create',
                 'params' => [
                     'mode' => 'form',
@@ -73,14 +67,11 @@ final class ElicitRequestTest extends TestCase
     public function testToArrayWithUrlParams(): void
     {
         $req = new ElicitRequest(
-            id: new RequestId(id: 7),
             params: new ElicitRequestUrlParams(elicitationId: 'e-1', message: 'Sign in', mode: 'url', url: 'https://example.com'),
         );
 
         self::assertSame(
             [
-                'jsonrpc' => '2.0',
-                'id' => 7,
                 'method' => 'elicitation/create',
                 'params' => [
                     'elicitationId' => 'e-1',
@@ -96,7 +87,6 @@ final class ElicitRequestTest extends TestCase
     public function testJsonSerializeMatchesToArray(): void
     {
         $req = new ElicitRequest(
-            id: new RequestId(id: 'r-1'),
             params: new ElicitRequestFormParams(message: 'Pick', requestedSchema: new ElicitRequestedSchema(properties: ['x' => new StringSchema()])),
         );
 
@@ -106,10 +96,9 @@ final class ElicitRequestTest extends TestCase
     public function testFromArrayDispatchesFormVariant(): void
     {
         $req = ElicitRequest::fromArray([
-            'jsonrpc' => '2.0',
-            'id' => 'r-1',
             'method' => 'elicitation/create',
             'params' => [
+                'mode' => 'form',
                 'message' => 'Pick',
                 'requestedSchema' => [
                     'type' => 'object',
@@ -124,8 +113,6 @@ final class ElicitRequestTest extends TestCase
     public function testFromArrayDispatchesUrlVariant(): void
     {
         $req = ElicitRequest::fromArray([
-            'jsonrpc' => '2.0',
-            'id' => 'r-1',
             'method' => 'elicitation/create',
             'params' => [
                 'elicitationId' => 'e-1',
@@ -141,8 +128,6 @@ final class ElicitRequestTest extends TestCase
     public function testFromArrayDefaultsToFormVariantWhenModeMissing(): void
     {
         $req = ElicitRequest::fromArray([
-            'jsonrpc' => '2.0',
-            'id' => 'r-1',
             'method' => 'elicitation/create',
             'params' => [
                 'message' => 'Pick',
@@ -159,7 +144,6 @@ final class ElicitRequestTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new ElicitRequest(
-            id: new RequestId(id: 'r-1'),
             params: new ElicitRequestUrlParams(elicitationId: 'e-1', message: 'Sign in', mode: 'url', url: 'https://example.com'),
         );
 
@@ -185,33 +169,23 @@ final class ElicitRequestTest extends TestCase
      */
     public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
-        yield 'missing id' => [
-            ['params' => []],
-            'missing the required "id" key.',
-        ];
-
-        yield 'id not int or string' => [
-            ['id' => 1.5, 'params' => []],
-            '"id" must be an int or string, float given.',
-        ];
-
         yield 'missing params' => [
-            ['id' => 'r'],
-            'missing the required "params" key.',
+            ['method' => 'elicitation/create'],
+            'elicit request is missing the required "params" key.',
         ];
 
         yield 'params not an object' => [
-            ['id' => 'r', 'params' => 'oops'],
-            '"params" must be an object, string given.',
+            ['method' => 'elicitation/create', 'params' => 'oops'],
+            'elicit request "params" must be an object, string given.',
         ];
 
         yield 'params list-keyed' => [
-            ['id' => 'r', 'params' => ['x']],
-            '"params" must be a string-keyed object.',
+            ['method' => 'elicitation/create', 'params' => ['x']],
+            'elicit request "params" must be a string-keyed object.',
         ];
 
         yield 'params mode not a string' => [
-            ['id' => 'r', 'params' => ['mode' => 1]],
+            ['method' => 'elicitation/create', 'params' => ['mode' => 1]],
             '"params.mode" must be a string, int given.',
         ];
     }

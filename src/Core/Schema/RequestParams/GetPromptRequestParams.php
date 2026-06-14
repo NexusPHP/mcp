@@ -15,7 +15,9 @@ namespace Nexus\Mcp\Core\Schema\RequestParams;
 
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Arrayable;
+use Nexus\Mcp\Core\Schema\Elicitation\ElicitResult;
 use Nexus\Mcp\Core\Schema\RequestMetaObject;
+use Nexus\Mcp\Core\Schema\Result\InputResponse;
 use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
 
 /**
@@ -44,8 +46,8 @@ final readonly class GetPromptRequestParams extends InputResponseRequestParams
     public ?array $arguments;
 
     /**
-     * @param null|array<string, string>               $arguments
-     * @param null|array<string, array<string, mixed>> $inputResponses
+     * @param null|array<string, string>        $arguments
+     * @param null|array<string, InputResponse> $inputResponses
      */
     public function __construct(
         string $name,
@@ -97,7 +99,7 @@ final readonly class GetPromptRequestParams extends InputResponseRequestParams
                 ->isArray('each "params.inputResponses" entry must be an object, {type} given.')
                 ->isMap('each "params.inputResponses" entry must be a string-keyed object.')
             ;
-            $inputResponses = $data['inputResponses'];
+            $inputResponses = array_map(ElicitResult::fromArray(...), $data['inputResponses']);
         }
 
         $requestState = null;
@@ -114,7 +116,13 @@ final readonly class GetPromptRequestParams extends InputResponseRequestParams
         ;
         $meta = RequestMetaObject::fromArray($data['_meta']);
 
-        return new self(name: $name, meta: $meta, arguments: $arguments, inputResponses: $inputResponses, requestState: $requestState);
+        return new self(
+            name: $name,
+            meta: $meta,
+            arguments: $arguments,
+            inputResponses: $inputResponses,
+            requestState: $requestState,
+        );
     }
 
     #[\Override]
@@ -130,7 +138,10 @@ final readonly class GetPromptRequestParams extends InputResponseRequestParams
         }
 
         if (null !== $this->inputResponses) {
-            $data['inputResponses'] = $this->inputResponses;
+            $data['inputResponses'] = array_map(
+                static fn(InputResponse $response): array => $response->toArray(),
+                $this->inputResponses,
+            );
         }
 
         if (null !== $this->requestState) {

@@ -11,13 +11,11 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Nexus\Mcp\Tests\Core\Schema\Result;
+namespace Nexus\Mcp\Tests\Core\Schema\Elicitation;
 
 use Nexus\Assert\ExpectationFailedException;
+use Nexus\Mcp\Core\Schema\Elicitation\ElicitResult;
 use Nexus\Mcp\Core\Schema\Enum\ElicitAction;
-use Nexus\Mcp\Core\Schema\MetaObject;
-use Nexus\Mcp\Core\Schema\Result;
-use Nexus\Mcp\Core\Schema\Result\ElicitResult;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -27,7 +25,6 @@ use PHPUnit\Framework\TestCase;
  * @internal
  */
 #[CoversClass(ElicitResult::class)]
-#[CoversClass(Result::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
 final class ElicitResultTest extends TestCase
@@ -38,28 +35,24 @@ final class ElicitResultTest extends TestCase
 
         self::assertSame(ElicitAction::Cancel, $result->action);
         self::assertNull($result->content);
-        self::assertSame([], $result->meta->toArray());
     }
 
     public function testToArrayMinimal(): void
     {
         $result = new ElicitResult(action: ElicitAction::Decline);
 
-        self::assertSame(['resultType' => 'complete', 'action' => 'decline'], $result->toArray());
+        self::assertSame(['action' => 'decline'], $result->toArray());
     }
 
-    public function testToArrayWithAllFields(): void
+    public function testToArrayWithContent(): void
     {
         $result = new ElicitResult(
             action: ElicitAction::Accept,
             content: ['email' => 'a@b.com', 'age' => 30, 'opt' => true, 'topics' => ['php', 'mcp']],
-            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame(
             [
-                '_meta' => ['vendor' => 'x'],
-                'resultType' => 'complete',
                 'action' => 'accept',
                 'content' => [
                     'email' => 'a@b.com',
@@ -84,12 +77,10 @@ final class ElicitResultTest extends TestCase
         $result = ElicitResult::fromArray([
             'action' => 'accept',
             'content' => ['email' => 'a@b.com'],
-            '_meta' => ['vendor' => 'x'],
         ]);
 
         self::assertSame(ElicitAction::Accept, $result->action);
         self::assertSame(['email' => 'a@b.com'], $result->content);
-        self::assertSame(['vendor' => 'x'], $result->meta->extras);
     }
 
     public function testFromArrayFullRoundTrip(): void
@@ -97,7 +88,6 @@ final class ElicitResultTest extends TestCase
         $original = new ElicitResult(
             action: ElicitAction::Accept,
             content: ['email' => 'a@b.com', 'count' => 5, 'optIn' => true, 'tags' => ['a']],
-            meta: new MetaObject(extras: ['vendor' => 'x']),
         );
 
         $rebuilt = ElicitResult::fromArray($original->toArray());
@@ -108,7 +98,7 @@ final class ElicitResultTest extends TestCase
     public function testConstructorRejectsListKeyedContent(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageIs('"result.content" must be a string-keyed map.');
+        $this->expectExceptionMessageIs('elicit result "content" must be a string-keyed map.');
 
         // @phpstan-ignore argument.type
         new ElicitResult(action: ElicitAction::Accept, content: ['a']);
@@ -117,7 +107,7 @@ final class ElicitResultTest extends TestCase
     public function testConstructorRejectsEmptyContentKey(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageIs('each "result.content" key must be a non-empty string.');
+        $this->expectExceptionMessageIs('each elicit result "content" key must be a non-empty string.');
 
         new ElicitResult(action: ElicitAction::Accept, content: ['' => 'v']);
     }
@@ -125,7 +115,7 @@ final class ElicitResultTest extends TestCase
     public function testConstructorRejectsNonScalarContentValue(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageIs('"result" "x" must be a string, int, bool, or list of strings, non-list array given.');
+        $this->expectExceptionMessageIs('elicit result "x" must be a string, int, bool, or list of strings, non-list array given.');
 
         // @phpstan-ignore argument.type
         new ElicitResult(action: ElicitAction::Accept, content: ['x' => ['k' => 'v']]);
@@ -134,7 +124,7 @@ final class ElicitResultTest extends TestCase
     public function testConstructorRejectsListWithNonStringEntries(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageIs('each "result" "x" list entry must be a string, int given.');
+        $this->expectExceptionMessageIs('each elicit result "x" list entry must be a string, int given.');
 
         // @phpstan-ignore argument.type
         new ElicitResult(action: ElicitAction::Accept, content: ['x' => [1, 2]]);
@@ -143,8 +133,8 @@ final class ElicitResultTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    #[DataProvider('provideFromArrayRejectsAssertInvalidInputCases')]
-    public function testFromArrayRejectsAssertInvalidInput(array $payload, string $expectedMessage): void
+    #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
+    public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs($expectedMessage);
@@ -155,41 +145,41 @@ final class ElicitResultTest extends TestCase
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
-    public static function provideFromArrayRejectsAssertInvalidInputCases(): iterable
+    public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
         yield 'missing action' => [
             [],
-            '"result" is missing the required "action" key.',
+            'elicit result is missing the required "action" key.',
         ];
 
         yield 'action not a string' => [
             ['action' => 1],
-            '"result.action" must be one of [\'accept\', \'decline\', \'cancel\'], 1 given.',
+            'elicit result "action" must be one of [\'accept\', \'decline\', \'cancel\'], 1 given.',
         ];
 
         yield 'unknown action' => [
             ['action' => 'maybe'],
-            '"result.action" must be one of [\'accept\', \'decline\', \'cancel\'], \'maybe\' given.',
+            'elicit result "action" must be one of [\'accept\', \'decline\', \'cancel\'], \'maybe\' given.',
         ];
 
         yield 'content not an object' => [
             ['action' => 'accept', 'content' => 'oops'],
-            '"result.content" must be an object, string given.',
+            'elicit result "content" must be an object, string given.',
         ];
 
         yield 'content list-keyed' => [
             ['action' => 'accept', 'content' => ['x']],
-            '"result.content" must be a string-keyed object.',
+            'elicit result "content" must be a string-keyed object.',
         ];
 
         yield 'content entry nested object' => [
             ['action' => 'accept', 'content' => ['x' => ['k' => 'v']]],
-            '"result" "content entry x" must be a string, int, bool, or list of strings, non-list array given.',
+            'elicit result "content entry x" must be a string, int, bool, or list of strings, non-list array given.',
         ];
 
         yield 'content entry list with non-string' => [
             ['action' => 'accept', 'content' => ['x' => [1]]],
-            'each "result" "content entry x" list entry must be a string, int given.',
+            'each elicit result "content entry x" list entry must be a string, int given.',
         ];
     }
 }
