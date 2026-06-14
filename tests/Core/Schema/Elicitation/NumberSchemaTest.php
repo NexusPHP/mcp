@@ -145,7 +145,7 @@ final class NumberSchemaTest extends TestCase
     {
         yield 'missing type' => [
             [],
-            'number schema missing the required "type" key.',
+            'number schema is missing the required "type" key.',
         ];
 
         yield 'type not a string' => [

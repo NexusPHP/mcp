@@ -214,7 +214,7 @@ final class JsonRpcErrorResponseTest extends TestCase
     public function testFromArrayRejectsBadIdType(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('JSON-RPC error response id must be an int, string, or null; array given.');
+        $this->expectExceptionMessageIs('"id" must be an int, string, or null, array given.');
 
         JsonRpcErrorResponse::fromArray([
             'jsonrpc' => '2.0',
@@ -226,7 +226,7 @@ final class JsonRpcErrorResponseTest extends TestCase
     public function testFromArrayRejectsMissingErrorCode(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('error response missing the required "code" key.');
+        $this->expectExceptionMessageIs('"error" is missing the required "code" key.');
 
         JsonRpcErrorResponse::fromArray([
             'jsonrpc' => '2.0',
@@ -238,7 +238,7 @@ final class JsonRpcErrorResponseTest extends TestCase
     public function testFromArrayRejectsMissingErrorMessage(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('error response missing the required "message" key.');
+        $this->expectExceptionMessageIs('"error" is missing the required "message" key.');
 
         JsonRpcErrorResponse::fromArray([
             'jsonrpc' => '2.0',
@@ -250,7 +250,7 @@ final class JsonRpcErrorResponseTest extends TestCase
     public function testFromArrayRejectsNonObjectError(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('JSON-RPC error response "error" must be an object, string given.');
+        $this->expectExceptionMessageIs('"error" must be an object, string given.');
 
         JsonRpcErrorResponse::fromArray([
             'jsonrpc' => '2.0',
@@ -262,7 +262,7 @@ final class JsonRpcErrorResponseTest extends TestCase
     public function testFromArrayRejectsNonIntCode(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('error response "code" must be an integer, string given.');
+        $this->expectExceptionMessageIs('"error.code" must be an integer, string given.');
 
         JsonRpcErrorResponse::fromArray([
             'jsonrpc' => '2.0',
@@ -274,7 +274,7 @@ final class JsonRpcErrorResponseTest extends TestCase
     public function testFromArrayRejectsNonStringMessage(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('error response "message" must be a string, int given.');
+        $this->expectExceptionMessageIs('"error.message" must be a string, int given.');
 
         JsonRpcErrorResponse::fromArray([
             'jsonrpc' => '2.0',

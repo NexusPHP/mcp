@@ -77,32 +77,32 @@ final readonly class DiscoverResult extends CacheableResult implements ServerRes
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('supportedVersions', '"result" missing the required "supportedVersions" key.');
+        Assert::that($data)->hasOffset('supportedVersions', '"result" is missing the required "supportedVersions" key.');
         Assert::that($data['supportedVersions'])
             ->isList('"result.supportedVersions" must be a list, {type} given.')
             ->values()->isString('each "result.supportedVersions" must be a string, {type} given.')
         ;
         $supportedVersions = $data['supportedVersions'];
 
-        Assert::that($data)->hasOffset('capabilities', '"result" missing the required "capabilities" key.');
+        Assert::that($data)->hasOffset('capabilities', '"result" is missing the required "capabilities" key.');
         Assert::that($data['capabilities'])
             ->isArray('"result.capabilities" must be an object, {type} given.')
             ->isMap('"result.capabilities" must be a string-keyed object.')
         ;
         $capabilities = ServerCapabilities::fromArray($data['capabilities']);
 
-        Assert::that($data)->hasOffset('serverInfo', '"result" missing the required "serverInfo" key.');
+        Assert::that($data)->hasOffset('serverInfo', '"result" is missing the required "serverInfo" key.');
         Assert::that($data['serverInfo'])
             ->isArray('"result.serverInfo" must be an object, {type} given.')
             ->isMap('"result.serverInfo" must be a string-keyed object.')
         ;
         $serverInfo = Implementation::fromArray($data['serverInfo']);
 
-        Assert::that($data)->hasOffset('ttlMs', '"result" missing the required "ttlMs" key.');
+        Assert::that($data)->hasOffset('ttlMs', '"result" is missing the required "ttlMs" key.');
         $ttlMs = $data['ttlMs'];
         Assert::that($ttlMs)->isInt('"result.ttlMs" must be an integer, {type} given.');
 
-        Assert::that($data)->hasOffset('cacheScope', '"result" missing the required "cacheScope" key.');
+        Assert::that($data)->hasOffset('cacheScope', '"result" is missing the required "cacheScope" key.');
         $cacheScope = EnumValueValidator::parse(CacheScope::class, $data['cacheScope'], '"result.cacheScope"');
 
         $instructions = null;

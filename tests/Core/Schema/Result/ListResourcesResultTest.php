@@ -248,7 +248,7 @@ final class ListResourcesResultTest extends TestCase
     {
         yield 'missing resources' => [
             [],
-            '"result" missing the required "resources" key.',
+            '"result" is missing the required "resources" key.',
         ];
 
         yield 'resources not an array' => [
@@ -268,7 +268,7 @@ final class ListResourcesResultTest extends TestCase
 
         yield 'missing ttlMs' => [
             ['resources' => []],
-            '"result" missing the required "ttlMs" key.',
+            '"result" is missing the required "ttlMs" key.',
         ];
 
         yield 'ttlMs not an integer' => [
@@ -278,7 +278,7 @@ final class ListResourcesResultTest extends TestCase
 
         yield 'missing cacheScope' => [
             ['resources' => [], 'ttlMs' => 0],
-            '"result" missing the required "cacheScope" key.',
+            '"result" is missing the required "cacheScope" key.',
         ];
 
         yield 'cacheScope not a known value' => [

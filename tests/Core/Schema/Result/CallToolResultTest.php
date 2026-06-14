@@ -185,7 +185,7 @@ final class CallToolResultTest extends TestCase
     {
         yield 'missing content' => [
             [],
-            '"result" missing the required "content" key.',
+            '"result" is missing the required "content" key.',
         ];
 
         yield 'content not an array' => [

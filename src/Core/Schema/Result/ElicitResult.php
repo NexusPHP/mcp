@@ -61,7 +61,7 @@ final readonly class ElicitResult extends Result implements ClientResult
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('action', '"result" missing the required "action" key.');
+        Assert::that($data)->hasOffset('action', '"result" is missing the required "action" key.');
         $action = EnumValueValidator::parse(ElicitAction::class, $data['action'], '"result.action"');
 
         $content = null;

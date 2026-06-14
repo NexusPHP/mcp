@@ -62,15 +62,15 @@ final readonly class AudioContent implements Arrayable, ContentBlock
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('type', 'audio content missing the required "type" key.');
+        Assert::that($data)->hasOffset('type', 'audio content is missing the required "type" key.');
         $type = $data['type'];
         Assert::that($type)->isIdentical(self::TYPE, 'audio content "type" must be {other}, {value} given.');
 
-        Assert::that($data)->hasOffset('data', 'audio content missing the required "data" key.');
+        Assert::that($data)->hasOffset('data', 'audio content is missing the required "data" key.');
         $payload = $data['data'];
         Assert::that($payload)->isString('audio content "data" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('mimeType', 'audio content missing the required "mimeType" key.');
+        Assert::that($data)->hasOffset('mimeType', 'audio content is missing the required "mimeType" key.');
         $mimeType = $data['mimeType'];
         Assert::that($mimeType)->isString('audio content "mimeType" must be a string, {type} given.');
 

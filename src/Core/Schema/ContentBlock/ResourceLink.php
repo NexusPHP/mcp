@@ -106,15 +106,15 @@ final readonly class ResourceLink extends BaseMetadata implements Arrayable, Con
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('type', 'resource link missing the required "type" key.');
+        Assert::that($data)->hasOffset('type', 'resource link is missing the required "type" key.');
         $type = $data['type'];
         Assert::that($type)->isIdentical(self::TYPE, 'resource link "type" must be {other}, {value} given.');
 
-        Assert::that($data)->hasOffset('name', 'resource link missing the required "name" key.');
+        Assert::that($data)->hasOffset('name', 'resource link is missing the required "name" key.');
         $name = $data['name'];
         Assert::that($name)->isString('resource link "name" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('uri', 'resource link missing the required "uri" key.');
+        Assert::that($data)->hasOffset('uri', 'resource link is missing the required "uri" key.');
         $uri = $data['uri'];
         Assert::that($uri)->isString('resource link "uri" must be a string, {type} given.');
 

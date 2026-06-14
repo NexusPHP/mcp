@@ -79,7 +79,7 @@ final readonly class CallToolResult extends Result implements ServerResult
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('content', '"result" missing the required "content" key.');
+        Assert::that($data)->hasOffset('content', '"result" is missing the required "content" key.');
         Assert::that($data['content'])
             ->isList('"result.content" must be a list, {type} given.')
             ->values()

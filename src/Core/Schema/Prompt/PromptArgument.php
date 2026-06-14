@@ -54,7 +54,7 @@ final readonly class PromptArgument extends BaseMetadata implements Arrayable
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('name', '"arguments" missing the required "name" key.');
+        Assert::that($data)->hasOffset('name', '"arguments" is missing the required "name" key.');
         $name = $data['name'];
         Assert::that($name)->isString('"arguments.name" must be a string, {type} given.');
 

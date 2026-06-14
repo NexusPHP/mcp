@@ -121,7 +121,7 @@ final class TextContentTest extends TestCase
     {
         yield 'missing type' => [
             ['text' => 'hello'],
-            'text content missing the required "type" key.',
+            'text content is missing the required "type" key.',
         ];
 
         yield 'wrong type literal' => [
@@ -131,7 +131,7 @@ final class TextContentTest extends TestCase
 
         yield 'missing text' => [
             ['type' => 'text'],
-            'text content missing the required "text" key.',
+            'text content is missing the required "text" key.',
         ];
 
         yield 'text not a string' => [

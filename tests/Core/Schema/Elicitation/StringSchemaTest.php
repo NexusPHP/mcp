@@ -179,7 +179,7 @@ final class StringSchemaTest extends TestCase
     {
         yield 'missing type' => [
             [],
-            'string schema missing the required "type" key.',
+            'string schema is missing the required "type" key.',
         ];
 
         yield 'wrong type literal' => [

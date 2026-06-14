@@ -207,7 +207,7 @@ final class ReadResourceRequestParamsTest extends TestCase
     {
         yield 'missing uri' => [
             [],
-            'missing the required "uri" key.',
+            '"params" is missing the required "uri" key.',
         ];
 
         yield 'uri not a string' => [
@@ -217,7 +217,7 @@ final class ReadResourceRequestParamsTest extends TestCase
 
         yield 'missing _meta' => [
             ['uri' => 'file:///x'],
-            '"params" missing the required "_meta" key.',
+            '"params" is missing the required "_meta" key.',
         ];
 
         yield '_meta not an object' => [

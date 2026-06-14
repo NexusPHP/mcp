@@ -39,7 +39,7 @@ final readonly class SubscriptionsAcknowledgedNotificationParams extends Notific
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('notifications', 'missing the required "notifications" key.');
+        Assert::that($data)->hasOffset('notifications', '"params" is missing the required "notifications" key.');
         Assert::that($data['notifications'])
             ->isArray('"params.notifications" must be an object, {type} given.')
             ->isMap('"params.notifications" must be a string-keyed object.')

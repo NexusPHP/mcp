@@ -124,7 +124,7 @@ final class BooleanSchemaTest extends TestCase
     {
         yield 'missing type' => [
             [],
-            'boolean schema missing the required "type" key.',
+            'boolean schema is missing the required "type" key.',
         ];
 
         yield 'wrong type literal' => [

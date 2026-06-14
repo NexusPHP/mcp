@@ -89,7 +89,7 @@ final readonly class Icon implements Arrayable
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('src', '"icons" missing the required "src" key.');
+        Assert::that($data)->hasOffset('src', '"icons" is missing the required "src" key.');
 
         $src = $data['src'];
         Assert::that($src)->isString('"icons.src" must be a string, {type} given.');

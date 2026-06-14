@@ -82,7 +82,7 @@ final readonly class StringSchema implements Arrayable, PrimitiveSchemaDefinitio
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('type', 'string schema missing the required "type" key.');
+        Assert::that($data)->hasOffset('type', 'string schema is missing the required "type" key.');
         $type = $data['type'];
         Assert::that($type)->isIdentical(self::TYPE, 'string schema "type" must be {other}, {value} given.');
 

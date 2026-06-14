@@ -152,7 +152,7 @@ final class ElicitRequestFormParamsTest extends TestCase
 
         yield 'missing message' => [
             ['requestedSchema' => ['type' => 'object', 'properties' => []]],
-            'missing the required "message" key.',
+            '"params" is missing the required "message" key.',
         ];
 
         yield 'message not a string' => [
@@ -162,7 +162,7 @@ final class ElicitRequestFormParamsTest extends TestCase
 
         yield 'missing requestedSchema' => [
             ['message' => 'm'],
-            'missing the required "requestedSchema" key.',
+            '"params" is missing the required "requestedSchema" key.',
         ];
 
         yield 'requestedSchema not an object' => [

@@ -38,7 +38,7 @@ final readonly class ResourceUpdatedNotificationParams extends NotificationParam
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('uri', 'missing the required "uri" key.');
+        Assert::that($data)->hasOffset('uri', '"params" is missing the required "uri" key.');
         $uri = $data['uri'];
         Assert::that($uri)->isString('"params.uri" must be a string, {type} given.');
 

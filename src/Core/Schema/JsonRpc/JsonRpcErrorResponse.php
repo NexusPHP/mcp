@@ -45,23 +45,21 @@ final readonly class JsonRpcErrorResponse implements Arrayable, JsonRpcResponse
     #[\Override]
     public static function fromArray(array $data): static
     {
-        $data += ['id' => null, 'error' => []];
-
-        $id = $data['id'];
-
+        $id = $data['id'] ?? null;
         Assert::that($id)
             ->nullOr()
-            ->isArrayKey('JSON-RPC error response id must be an int, string, or null; {type} given.')
+            ->isArrayKey('"id" must be an int, string, or null, {type} given.')
         ;
 
-        Assert::that($data['error'])
-            ->isArray('JSON-RPC error response "error" must be an object, {type} given.')
-            ->isMap('JSON-RPC error response "error" must be a string-keyed object.')
+        $error = $data['error'] ?? [];
+        Assert::that($error)
+            ->isArray('"error" must be an object, {type} given.')
+            ->isMap('"error" must be a string-keyed object.')
         ;
 
         return new self(
             id: null === $id ? null : new RequestId(id: $id),
-            error: self::parseError($data['error']),
+            error: self::parseError($error),
         );
     }
 
@@ -92,12 +90,12 @@ final readonly class JsonRpcErrorResponse implements Arrayable, JsonRpcResponse
      */
     private static function parseError(array $data): Error
     {
-        Assert::that($data)->hasOffset('code', 'error response missing the required "code" key.');
-        Assert::that($data['code'])->isInt('error response "code" must be an integer, {type} given.');
+        Assert::that($data)->hasOffset('code', '"error" is missing the required "code" key.');
+        Assert::that($data['code'])->isInt('"error.code" must be an integer, {type} given.');
         $code = $data['code'];
 
-        Assert::that($data)->hasOffset('message', 'error response missing the required "message" key.');
-        Assert::that($data['message'])->isString('error response "message" must be a string, {type} given.');
+        Assert::that($data)->hasOffset('message', '"error" is missing the required "message" key.');
+        Assert::that($data['message'])->isString('"error.message" must be a string, {type} given.');
         $message = $data['message'];
 
         $extra = $data['data'] ?? null;

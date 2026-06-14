@@ -51,11 +51,11 @@ final readonly class EmbeddedResource implements Arrayable, ContentBlock
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('type', 'embedded resource missing the required "type" key.');
+        Assert::that($data)->hasOffset('type', 'embedded resource is missing the required "type" key.');
         $type = $data['type'];
         Assert::that($type)->isIdentical(self::TYPE, 'embedded resource "type" must be {other}, {value} given.');
 
-        Assert::that($data)->hasOffset('resource', 'embedded resource missing the required "resource" key.');
+        Assert::that($data)->hasOffset('resource', 'embedded resource is missing the required "resource" key.');
         Assert::that($data['resource'])
             ->isArray('embedded resource "resource" must be an object, {type} given.')
             ->isMap('embedded resource "resource" must be a string-keyed object.')

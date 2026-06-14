@@ -183,7 +183,7 @@ final class TitledMultiSelectEnumSchemaTest extends TestCase
     {
         yield 'missing type' => [
             ['items' => ['anyOf' => []]],
-            'titled multi-select enum schema missing the required "type" key.',
+            'titled multi-select enum schema is missing the required "type" key.',
         ];
 
         yield 'wrong type literal' => [
@@ -193,7 +193,7 @@ final class TitledMultiSelectEnumSchemaTest extends TestCase
 
         yield 'missing items' => [
             ['type' => 'array'],
-            'titled multi-select enum schema missing the required "items" key.',
+            'titled multi-select enum schema is missing the required "items" key.',
         ];
 
         yield 'items not an object' => [

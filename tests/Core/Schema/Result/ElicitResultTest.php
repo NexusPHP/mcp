@@ -159,7 +159,7 @@ final class ElicitResultTest extends TestCase
     {
         yield 'missing action' => [
             [],
-            '"result" missing the required "action" key.',
+            '"result" is missing the required "action" key.',
         ];
 
         yield 'action not a string' => [

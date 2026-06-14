@@ -67,13 +67,13 @@ final readonly class CompleteResult extends Result implements ServerResult
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('completion', '"result" missing the required "completion" key.');
+        Assert::that($data)->hasOffset('completion', '"result" is missing the required "completion" key.');
         Assert::that($data['completion'])
             ->isArray('"result.completion" must be an object, {type} given.')
             ->isMap('"result.completion" must be a string-keyed object.')
         ;
 
-        Assert::that($data['completion'])->hasOffset('values', '"result" missing the required "completion.values" key.');
+        Assert::that($data['completion'])->hasOffset('values', '"result" is missing the required "completion.values" key.');
         Assert::that($data['completion']['values'])
             ->isList('"result.completion.values" must be a list, {type} given.')
             ->values()->isString('each "result.completion.values" must be a string, {type} given.')

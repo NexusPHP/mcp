@@ -160,7 +160,7 @@ final class CompleteResultTest extends TestCase
     {
         yield 'missing completion' => [
             [],
-            '"result" missing the required "completion" key.',
+            '"result" is missing the required "completion" key.',
         ];
 
         yield 'completion not an object' => [
@@ -175,7 +175,7 @@ final class CompleteResultTest extends TestCase
 
         yield 'completion missing values' => [
             ['completion' => []],
-            '"result" missing the required "completion.values" key.',
+            '"result" is missing the required "completion.values" key.',
         ];
 
         yield 'completion values not an array' => [

@@ -164,7 +164,7 @@ final class UntitledMultiSelectEnumSchemaTest extends TestCase
     {
         yield 'missing type' => [
             ['items' => []],
-            'untitled multi-select enum schema missing the required "type" key.',
+            'untitled multi-select enum schema is missing the required "type" key.',
         ];
 
         yield 'wrong type literal' => [
@@ -174,7 +174,7 @@ final class UntitledMultiSelectEnumSchemaTest extends TestCase
 
         yield 'missing items' => [
             ['type' => 'array'],
-            'untitled multi-select enum schema missing the required "items" key.',
+            'untitled multi-select enum schema is missing the required "items" key.',
         ];
 
         yield 'items not an object' => [

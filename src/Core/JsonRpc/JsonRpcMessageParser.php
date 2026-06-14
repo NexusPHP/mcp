@@ -113,10 +113,13 @@ final class JsonRpcMessageParser
 
         if (\array_key_exists('id', $message)) {
             try {
-                Assert::that($message['id'])->isArrayKey('Request "id" must be an int or string, {type} given.');
+                Assert::that($message['id'])->isArrayKey('"id" must be an int or string, {type} given.');
                 $id = new RequestId(id: $message['id']);
             } catch (\InvalidArgumentException $e) {
-                throw new InvalidRequestException(null, $e->getMessage());
+                throw new InvalidRequestException(
+                    null,
+                    \sprintf('Invalid "%s" request: %s', SafeDisplay::sanitise($method), $e->getMessage()),
+                );
             }
 
             $class = $this->requests[$method] ?? null;

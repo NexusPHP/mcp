@@ -176,19 +176,18 @@ legal on all of them, and the decode boundary should treat them alike. Settle on
 
 ### Diagnostic message audit
 
-Exception and `Assert::that(...)` messages should follow the convention documented in the "Diagnostic
-message conventions" section of `docs/architecture.md` uniformly. The parser owns one wrapper prefix per
-envelope kind (`Invalid success response:`, `Invalid error response:`, and the request-side messages),
-and the inner detail it wraps is label-less and field-named (`missing the required "id" key.`,
-`"result" must be an object, {type} given.`). The success-response envelope already follows this. The
-rest of the surface (the error-response envelope, request parsing, the schema `fromArray`/constructors,
-the `Core/Validation/` validators, and the exception classes) has not been swept end to end.
+Exception and `Assert::that(...)` messages follow the convention documented in the "Diagnostic message
+conventions" section of `docs/architecture.md`. The parser owns one wrapper prefix per envelope kind
+(`Invalid success response:`, `Invalid error response:`, `Invalid "{method}" request:`,
+`Invalid "{method}" notification:`), and the inner detail it wraps omits the envelope kind: it is
+field-named and scoped to mirror the matching type-mismatch path (`"error.code" must be an integer,
+{type} given.`, `"params" is missing the required "name" key.`), with envelope-root fields left bare
+(`missing the required "id" key.`). The envelope decode paths (both response sides, request and
+notification parsing) and the schema `fromArray` messages are aligned, and the convention docs cover the
+parser-wrapper layer.
 
-- [ ] Audit every diagnostic message against the convention and align the stragglers. The concrete
-  error-response piece: drop the inner `error response` label the parser's `Invalid error response:`
-  prefix now duplicates, quote the `id`, and recast the prose semicolon in its id message, reaching
-  `Invalid error response: missing the required "code" key.`. Then extend the convention docs to cover
-  the parser-wrapper layer once both envelope sides match.
+- [x] Align the `Core/Validation/` validators (`Rfc3986UriValidator`, `Rfc6570UriTemplateValidator`,
+  `IdentifierNameValidator`) on the convention's `{value} given.` value-mismatch idiom.
 
 ### Deprecation cleanup
 

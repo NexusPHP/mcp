@@ -224,12 +224,12 @@ final class ResourceTest extends TestCase
     {
         yield 'missing name' => [
             ['uri' => 'file:///x'],
-            'resource missing the required "name" key.',
+            'resource is missing the required "name" key.',
         ];
 
         yield 'missing uri' => [
             ['name' => 'my-resource'],
-            'resource missing the required "uri" key.',
+            'resource is missing the required "uri" key.',
         ];
 
         yield 'name not a string' => [

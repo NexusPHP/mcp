@@ -69,7 +69,7 @@ final readonly class UrlElicitationRequiredError implements Arrayable
     public static function fromArray(array $data): static
     {
         $id = $data['id'] ?? null;
-        Assert::that($id)->nullOr()->isArrayKey('"id" must be an int, string, or null; {type} given.');
+        Assert::that($id)->nullOr()->isArrayKey('"id" must be an int, string, or null, {type} given.');
 
         Assert::that($data)->hasOffset('error', 'missing the required "error" key.');
         Assert::that($data['error'])
@@ -79,7 +79,7 @@ final readonly class UrlElicitationRequiredError implements Arrayable
 
         $error = $data['error'];
 
-        Assert::that($error)->hasOffset('data', 'missing the required "data" key.');
+        Assert::that($error)->hasOffset('data', '"error" is missing the required "data" key.');
         Assert::that($error['data'])
             ->isArray('"error.data" must be an object, {type} given.')
             ->isMap('"error.data" must be a string-keyed object.')
@@ -87,7 +87,7 @@ final readonly class UrlElicitationRequiredError implements Arrayable
 
         $payload = $error['data'];
 
-        Assert::that($payload)->hasOffset('elicitations', 'missing the required "elicitations" key.');
+        Assert::that($payload)->hasOffset('elicitations', '"error.data" is missing the required "elicitations" key.');
         Assert::that($payload['elicitations'])
             ->isList('"error.data.elicitations" must be a list, non-list array given.')
             ->values()

@@ -57,7 +57,7 @@ final readonly class BooleanSchema implements Arrayable, PrimitiveSchemaDefiniti
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('type', 'boolean schema missing the required "type" key.');
+        Assert::that($data)->hasOffset('type', 'boolean schema is missing the required "type" key.');
         $type = $data['type'];
         Assert::that($type)->isIdentical(self::TYPE, 'boolean schema "type" must be {other}, {value} given.');
 

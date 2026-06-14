@@ -148,7 +148,7 @@ final class ElicitRequestUrlParamsTest extends TestCase
     {
         yield 'missing elicitationId' => [
             ['message' => 'm', 'mode' => 'url', 'url' => 'https://example.com'],
-            'missing the required "elicitationId" key.',
+            '"params" is missing the required "elicitationId" key.',
         ];
 
         yield 'elicitationId not a string' => [
@@ -158,7 +158,7 @@ final class ElicitRequestUrlParamsTest extends TestCase
 
         yield 'missing message' => [
             ['elicitationId' => 'id', 'mode' => 'url', 'url' => 'https://example.com'],
-            'missing the required "message" key.',
+            '"params" is missing the required "message" key.',
         ];
 
         yield 'message not a string' => [
@@ -168,7 +168,7 @@ final class ElicitRequestUrlParamsTest extends TestCase
 
         yield 'missing mode' => [
             ['elicitationId' => 'id', 'message' => 'm', 'url' => 'https://example.com'],
-            'missing the required "mode" key.',
+            '"params" is missing the required "mode" key.',
         ];
 
         yield 'mode not a string' => [
@@ -178,7 +178,7 @@ final class ElicitRequestUrlParamsTest extends TestCase
 
         yield 'missing url' => [
             ['elicitationId' => 'id', 'message' => 'm', 'mode' => 'url'],
-            'missing the required "url" key.',
+            '"params" is missing the required "url" key.',
         ];
 
         yield 'url not a string' => [

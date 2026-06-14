@@ -99,7 +99,7 @@ final class ElicitationCompleteNotificationParamsTest extends TestCase
     {
         yield 'missing elicitationId' => [
             [],
-            'missing the required "elicitationId" key.',
+            '"params" is missing the required "elicitationId" key.',
         ];
 
         yield 'elicitationId not a string' => [

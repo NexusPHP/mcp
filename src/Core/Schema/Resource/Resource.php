@@ -100,11 +100,11 @@ final readonly class Resource extends BaseMetadata implements Arrayable, Icons
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('name', 'resource missing the required "name" key.');
+        Assert::that($data)->hasOffset('name', 'resource is missing the required "name" key.');
         $name = $data['name'];
         Assert::that($name)->isString('resource "name" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('uri', 'resource missing the required "uri" key.');
+        Assert::that($data)->hasOffset('uri', 'resource is missing the required "uri" key.');
         $uri = $data['uri'];
         Assert::that($uri)->isString('resource "uri" must be a string, {type} given.');
 

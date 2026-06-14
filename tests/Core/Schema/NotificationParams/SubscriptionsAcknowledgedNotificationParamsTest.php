@@ -108,7 +108,7 @@ final class SubscriptionsAcknowledgedNotificationParamsTest extends TestCase
     {
         yield 'missing notifications' => [
             [],
-            'missing the required "notifications" key.',
+            '"params" is missing the required "notifications" key.',
         ];
 
         yield 'notifications not an object' => [

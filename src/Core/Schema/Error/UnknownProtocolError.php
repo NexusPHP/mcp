@@ -42,11 +42,11 @@ final readonly class UnknownProtocolError extends Error
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('code', 'missing the required "code" key.');
-        Assert::that($data['code'])->isInt('"code" must be an integer, {type} given.');
+        Assert::that($data)->hasOffset('code', '"error" is missing the required "code" key.');
+        Assert::that($data['code'])->isInt('"error.code" must be an integer, {type} given.');
 
-        Assert::that($data)->hasOffset('message', 'missing the required "message" key.');
-        Assert::that($data['message'])->isString('"message" must be a string, {type} given.');
+        Assert::that($data)->hasOffset('message', '"error" is missing the required "message" key.');
+        Assert::that($data['message'])->isString('"error.message" must be a string, {type} given.');
 
         return new self(code: $data['code'], message: $data['message'], data: $data['data'] ?? null);
     }

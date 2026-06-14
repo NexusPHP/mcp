@@ -217,12 +217,12 @@ final class ResourceTemplateTest extends TestCase
     {
         yield 'missing name' => [
             ['uriTemplate' => 'file:///tmp/{name}'],
-            'resource template missing the required "name" key.',
+            'resource template is missing the required "name" key.',
         ];
 
         yield 'missing uriTemplate' => [
             ['name' => 'my-template'],
-            'resource template missing the required "uriTemplate" key.',
+            'resource template is missing the required "uriTemplate" key.',
         ];
 
         yield 'name not a string' => [

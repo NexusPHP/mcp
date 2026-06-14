@@ -130,7 +130,7 @@ final class PaginatedRequestParamsTest extends TestCase
 
         yield 'missing _meta' => [
             [],
-            '"params" missing the required "_meta" key.',
+            '"params" is missing the required "_meta" key.',
         ];
 
         yield '_meta not an object' => [

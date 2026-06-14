@@ -59,11 +59,11 @@ final readonly class ProgressNotificationParams extends NotificationParams
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('progressToken', 'missing the required "progressToken" key.');
+        Assert::that($data)->hasOffset('progressToken', '"params" is missing the required "progressToken" key.');
         $progressToken = $data['progressToken'];
         Assert::that($progressToken)->isArrayKey('"params.progressToken" must be an int or string, {type} given.');
 
-        Assert::that($data)->hasOffset('progress', 'missing the required "progress" key.');
+        Assert::that($data)->hasOffset('progress', '"params" is missing the required "progress" key.');
         $progress = self::parseNumber($data['progress'], '"params.progress" must be a number, {type} given.');
 
         $total = $data['total'] ?? null;

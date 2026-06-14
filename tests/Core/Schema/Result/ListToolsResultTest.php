@@ -157,7 +157,7 @@ final class ListToolsResultTest extends TestCase
     {
         yield 'missing tools' => [
             [],
-            '"result" missing the required "tools" key.',
+            '"result" is missing the required "tools" key.',
         ];
 
         yield 'tools not an array' => [
@@ -177,7 +177,7 @@ final class ListToolsResultTest extends TestCase
 
         yield 'missing ttlMs' => [
             ['tools' => []],
-            '"result" missing the required "ttlMs" key.',
+            '"result" is missing the required "ttlMs" key.',
         ];
 
         yield 'ttlMs not an integer' => [
@@ -187,7 +187,7 @@ final class ListToolsResultTest extends TestCase
 
         yield 'missing cacheScope' => [
             ['tools' => [], 'ttlMs' => 0],
-            '"result" missing the required "cacheScope" key.',
+            '"result" is missing the required "cacheScope" key.',
         ];
 
         yield 'cacheScope not a known value' => [

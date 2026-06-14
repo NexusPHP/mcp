@@ -188,7 +188,7 @@ final class ListPromptsResultTest extends TestCase
     {
         yield 'missing prompts' => [
             [],
-            '"result" missing the required "prompts" key.',
+            '"result" is missing the required "prompts" key.',
         ];
 
         yield 'prompts not an array' => [
@@ -208,7 +208,7 @@ final class ListPromptsResultTest extends TestCase
 
         yield 'missing ttlMs' => [
             ['prompts' => []],
-            '"result" missing the required "ttlMs" key.',
+            '"result" is missing the required "ttlMs" key.',
         ];
 
         yield 'ttlMs not an integer' => [
@@ -218,7 +218,7 @@ final class ListPromptsResultTest extends TestCase
 
         yield 'missing cacheScope' => [
             ['prompts' => [], 'ttlMs' => 0],
-            '"result" missing the required "cacheScope" key.',
+            '"result" is missing the required "cacheScope" key.',
         ];
 
         yield 'cacheScope not a known value' => [

@@ -143,7 +143,7 @@ final class AudioContentTest extends TestCase
     {
         yield 'missing type' => [
             ['data' => 'aGVsbG8=', 'mimeType' => 'audio/mp3'],
-            'audio content missing the required "type" key.',
+            'audio content is missing the required "type" key.',
         ];
 
         yield 'wrong type literal' => [
@@ -153,7 +153,7 @@ final class AudioContentTest extends TestCase
 
         yield 'missing data' => [
             ['type' => 'audio', 'mimeType' => 'audio/mp3'],
-            'audio content missing the required "data" key.',
+            'audio content is missing the required "data" key.',
         ];
 
         yield 'data not a string' => [
@@ -163,7 +163,7 @@ final class AudioContentTest extends TestCase
 
         yield 'missing mimeType' => [
             ['type' => 'audio', 'data' => 'aGVsbG8='],
-            'audio content missing the required "mimeType" key.',
+            'audio content is missing the required "mimeType" key.',
         ];
 
         yield 'mimeType not a string' => [

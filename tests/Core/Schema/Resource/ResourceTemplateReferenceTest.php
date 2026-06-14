@@ -106,7 +106,7 @@ final class ResourceTemplateReferenceTest extends TestCase
     {
         yield 'missing type' => [
             ['uri' => 'file:///tmp/{name}'],
-            'resource template reference missing the required "type" key.',
+            'resource template reference is missing the required "type" key.',
         ];
 
         yield 'wrong type literal' => [
@@ -116,7 +116,7 @@ final class ResourceTemplateReferenceTest extends TestCase
 
         yield 'missing uri' => [
             ['type' => 'ref/resource'],
-            'resource template reference missing the required "uri" key.',
+            'resource template reference is missing the required "uri" key.',
         ];
 
         yield 'uri not a string' => [

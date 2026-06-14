@@ -44,11 +44,11 @@ final readonly class TextResourceContents extends ResourceContents
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('uri', 'text resource contents missing the required "uri" key.');
+        Assert::that($data)->hasOffset('uri', 'text resource contents is missing the required "uri" key.');
         $uri = $data['uri'];
         Assert::that($uri)->isString('text resource contents "uri" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('text', 'text resource contents missing the required "text" key.');
+        Assert::that($data)->hasOffset('text', 'text resource contents is missing the required "text" key.');
         $text = $data['text'];
         Assert::that($text)->isString('text resource contents "text" must be a string, {type} given.');
 

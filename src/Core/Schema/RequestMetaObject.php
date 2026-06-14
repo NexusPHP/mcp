@@ -55,12 +55,12 @@ final readonly class RequestMetaObject implements Arrayable
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset(self::PROTOCOL_VERSION_KEY, '"_meta" missing the required "{key}" key.');
+        Assert::that($data)->hasOffset(self::PROTOCOL_VERSION_KEY, '"_meta" is missing the required "{key}" key.');
         $protocolVersion = $data[self::PROTOCOL_VERSION_KEY];
         Assert::that($protocolVersion)->isString(\sprintf('"_meta.%s" must be a string, {type} given.', self::PROTOCOL_VERSION_KEY));
         unset($data[self::PROTOCOL_VERSION_KEY]);
 
-        Assert::that($data)->hasOffset(self::CLIENT_INFO_KEY, '"_meta" missing the required "{key}" key.');
+        Assert::that($data)->hasOffset(self::CLIENT_INFO_KEY, '"_meta" is missing the required "{key}" key.');
         Assert::that($data[self::CLIENT_INFO_KEY])
             ->isArray(\sprintf('"_meta.%s" must be an object, {type} given.', self::CLIENT_INFO_KEY))
             ->isMap(\sprintf('"_meta.%s" must be a string-keyed object.', self::CLIENT_INFO_KEY))
@@ -68,7 +68,7 @@ final readonly class RequestMetaObject implements Arrayable
         $clientInfo = Implementation::fromArray($data[self::CLIENT_INFO_KEY]);
         unset($data[self::CLIENT_INFO_KEY]);
 
-        Assert::that($data)->hasOffset(self::CLIENT_CAPABILITIES_KEY, '"_meta" missing the required "{key}" key.');
+        Assert::that($data)->hasOffset(self::CLIENT_CAPABILITIES_KEY, '"_meta" is missing the required "{key}" key.');
         Assert::that($data[self::CLIENT_CAPABILITIES_KEY])
             ->isArray(\sprintf('"_meta.%s" must be an object, {type} given.', self::CLIENT_CAPABILITIES_KEY))
             ->isMap(\sprintf('"_meta.%s" must be a string-keyed object.', self::CLIENT_CAPABILITIES_KEY))

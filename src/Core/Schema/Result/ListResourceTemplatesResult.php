@@ -66,7 +66,7 @@ final readonly class ListResourceTemplatesResult extends PaginatedResult impleme
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('resourceTemplates', '"result" missing the required "resourceTemplates" key.');
+        Assert::that($data)->hasOffset('resourceTemplates', '"result" is missing the required "resourceTemplates" key.');
         Assert::that($data['resourceTemplates'])
             ->isList('"result.resourceTemplates" must be a list, {type} given.')
             ->values()
@@ -75,11 +75,11 @@ final readonly class ListResourceTemplatesResult extends PaginatedResult impleme
         ;
         $resourceTemplates = array_map(ResourceTemplate::fromArray(...), $data['resourceTemplates']);
 
-        Assert::that($data)->hasOffset('ttlMs', '"result" missing the required "ttlMs" key.');
+        Assert::that($data)->hasOffset('ttlMs', '"result" is missing the required "ttlMs" key.');
         $ttlMs = $data['ttlMs'];
         Assert::that($ttlMs)->isInt('"result.ttlMs" must be an integer, {type} given.');
 
-        Assert::that($data)->hasOffset('cacheScope', '"result" missing the required "cacheScope" key.');
+        Assert::that($data)->hasOffset('cacheScope', '"result" is missing the required "cacheScope" key.');
         $cacheScope = EnumValueValidator::parse(CacheScope::class, $data['cacheScope'], '"result.cacheScope"');
 
         $nextCursor = null;

@@ -57,11 +57,11 @@ final readonly class ElicitRequestFormParams implements Arrayable, ElicitRequest
         $mode = $data['mode'] ?? self::MODE;
         Assert::that($mode)->isString('"params.mode" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('message', 'missing the required "message" key.');
+        Assert::that($data)->hasOffset('message', '"params" is missing the required "message" key.');
         $message = $data['message'];
         Assert::that($message)->isString('"params.message" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('requestedSchema', 'missing the required "requestedSchema" key.');
+        Assert::that($data)->hasOffset('requestedSchema', '"params" is missing the required "requestedSchema" key.');
         Assert::that($data['requestedSchema'])
             ->isArray('"params.requestedSchema" must be an object, {type} given.')
             ->isMap('"params.requestedSchema" must be a string-keyed object.')

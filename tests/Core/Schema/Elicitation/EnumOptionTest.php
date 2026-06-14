@@ -94,7 +94,7 @@ final class EnumOptionTest extends TestCase
     {
         yield 'missing const' => [
             ['title' => 'x'],
-            '"oneOf" missing the required "const" key.',
+            '"oneOf" is missing the required "const" key.',
         ];
 
         yield 'const not a string' => [
@@ -104,7 +104,7 @@ final class EnumOptionTest extends TestCase
 
         yield 'missing title' => [
             ['const' => 'x'],
-            '"oneOf" missing the required "title" key.',
+            '"oneOf" is missing the required "title" key.',
         ];
 
         yield 'title not a string' => [

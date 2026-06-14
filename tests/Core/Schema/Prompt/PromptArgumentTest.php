@@ -144,7 +144,7 @@ final class PromptArgumentTest extends TestCase
     {
         yield 'missing name' => [
             [],
-            '"arguments" missing the required "name" key.',
+            '"arguments" is missing the required "name" key.',
         ];
 
         yield 'name not a string' => [

@@ -68,19 +68,19 @@ final readonly class ElicitRequestUrlParams implements Arrayable, ElicitRequestP
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('elicitationId', 'missing the required "elicitationId" key.');
+        Assert::that($data)->hasOffset('elicitationId', '"params" is missing the required "elicitationId" key.');
         $elicitationId = $data['elicitationId'];
         Assert::that($elicitationId)->isString('"params.elicitationId" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('message', 'missing the required "message" key.');
+        Assert::that($data)->hasOffset('message', '"params" is missing the required "message" key.');
         $message = $data['message'];
         Assert::that($message)->isString('"params.message" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('mode', 'missing the required "mode" key.');
+        Assert::that($data)->hasOffset('mode', '"params" is missing the required "mode" key.');
         $mode = $data['mode'];
         Assert::that($mode)->isString('"params.mode" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('url', 'missing the required "url" key.');
+        Assert::that($data)->hasOffset('url', '"params" is missing the required "url" key.');
         $url = $data['url'];
         Assert::that($url)->isString('"params.url" must be a string, {type} given.');
 

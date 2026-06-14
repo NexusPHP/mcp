@@ -280,7 +280,7 @@ final class CompleteRequestParamsTest extends TestCase
     {
         yield 'missing ref' => [
             ['argument' => ['name' => 'topic', 'value' => 'auth']],
-            'missing the required "ref" key.',
+            '"params" is missing the required "ref" key.',
         ];
 
         yield 'ref not an object' => [
@@ -310,7 +310,7 @@ final class CompleteRequestParamsTest extends TestCase
 
         yield 'missing argument' => [
             ['ref' => ['type' => 'ref/prompt', 'name' => 'code-review']],
-            'missing the required "argument" key.',
+            '"params" is missing the required "argument" key.',
         ];
 
         yield 'argument not an object' => [
@@ -325,7 +325,7 @@ final class CompleteRequestParamsTest extends TestCase
 
         yield 'argument missing name' => [
             ['ref' => ['type' => 'ref/prompt', 'name' => 'code-review'], 'argument' => ['value' => 'auth']],
-            'missing the required "argument.name" key.',
+            '"params.argument" is missing the required "name" key.',
         ];
 
         yield 'argument name not a string' => [
@@ -335,7 +335,7 @@ final class CompleteRequestParamsTest extends TestCase
 
         yield 'argument missing value' => [
             ['ref' => ['type' => 'ref/prompt', 'name' => 'code-review'], 'argument' => ['name' => 'topic']],
-            'missing the required "argument.value" key.',
+            '"params.argument" is missing the required "value" key.',
         ];
 
         yield 'argument value not a string' => [
@@ -370,7 +370,7 @@ final class CompleteRequestParamsTest extends TestCase
 
         yield 'missing _meta' => [
             ['ref' => ['type' => 'ref/prompt', 'name' => 'code-review'], 'argument' => ['name' => 'topic', 'value' => 'auth']],
-            '"params" missing the required "_meta" key.',
+            '"params" is missing the required "_meta" key.',
         ];
 
         yield '_meta not an object' => [

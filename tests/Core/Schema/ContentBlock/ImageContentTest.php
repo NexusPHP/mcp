@@ -143,7 +143,7 @@ final class ImageContentTest extends TestCase
     {
         yield 'missing type' => [
             ['data' => 'aGVsbG8=', 'mimeType' => 'image/png'],
-            'image content missing the required "type" key.',
+            'image content is missing the required "type" key.',
         ];
 
         yield 'wrong type literal' => [
@@ -153,7 +153,7 @@ final class ImageContentTest extends TestCase
 
         yield 'missing data' => [
             ['type' => 'image', 'mimeType' => 'image/png'],
-            'image content missing the required "data" key.',
+            'image content is missing the required "data" key.',
         ];
 
         yield 'data not a string' => [
@@ -163,7 +163,7 @@ final class ImageContentTest extends TestCase
 
         yield 'missing mimeType' => [
             ['type' => 'image', 'data' => 'aGVsbG8='],
-            'image content missing the required "mimeType" key.',
+            'image content is missing the required "mimeType" key.',
         ];
 
         yield 'mimeType not a string' => [

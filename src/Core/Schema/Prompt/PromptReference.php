@@ -43,11 +43,11 @@ final readonly class PromptReference extends BaseMetadata implements Arrayable
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('type', 'prompt reference missing the required "type" key.');
+        Assert::that($data)->hasOffset('type', 'prompt reference is missing the required "type" key.');
         $type = $data['type'];
         Assert::that($type)->isIdentical(self::TYPE, 'prompt reference "type" must be {other}, {value} given.');
 
-        Assert::that($data)->hasOffset('name', 'prompt reference missing the required "name" key.');
+        Assert::that($data)->hasOffset('name', 'prompt reference is missing the required "name" key.');
         $name = $data['name'];
         Assert::that($name)->isString('prompt reference "name" must be a string, {type} given.');
 

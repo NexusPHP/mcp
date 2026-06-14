@@ -252,7 +252,7 @@ final class ElicitRequestedSchemaTest extends TestCase
     {
         yield 'missing type' => [
             ['properties' => []],
-            '"requestedSchema" missing the required "type" key.',
+            '"requestedSchema" is missing the required "type" key.',
         ];
 
         yield 'wrong type literal' => [
@@ -262,7 +262,7 @@ final class ElicitRequestedSchemaTest extends TestCase
 
         yield 'missing properties' => [
             ['type' => 'object'],
-            '"requestedSchema" missing the required "properties" key.',
+            '"requestedSchema" is missing the required "properties" key.',
         ];
 
         yield 'properties not an object' => [

@@ -315,7 +315,7 @@ final class IconTest extends TestCase
     {
         yield 'missing src' => [
             [],
-            '"icons" missing the required "src" key.',
+            '"icons" is missing the required "src" key.',
         ];
 
         yield 'src not a string' => [

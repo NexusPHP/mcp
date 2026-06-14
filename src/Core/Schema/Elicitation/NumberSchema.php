@@ -70,7 +70,7 @@ final readonly class NumberSchema implements Arrayable, PrimitiveSchemaDefinitio
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('type', 'number schema missing the required "type" key.');
+        Assert::that($data)->hasOffset('type', 'number schema is missing the required "type" key.');
         $type = $data['type'];
         Assert::that($type)->isString('number schema "type" must be a string, {type} given.');
 

@@ -72,11 +72,11 @@ final readonly class UntitledSingleSelectEnumSchema implements Arrayable, Single
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('type', 'untitled single select enum schema missing the required "type" key.');
+        Assert::that($data)->hasOffset('type', 'untitled single select enum schema is missing the required "type" key.');
         $type = $data['type'];
         Assert::that($type)->isIdentical(self::TYPE, 'untitled single select enum schema "type" must be {other}, {value} given.');
 
-        Assert::that($data)->hasOffset('enum', 'untitled single select enum schema missing the required "enum" key.');
+        Assert::that($data)->hasOffset('enum', 'untitled single select enum schema is missing the required "enum" key.');
         Assert::that($data['enum'])
             ->isList('untitled single select enum schema "enum" must be a list, non-list array given.')
             ->values()->isString('each untitled single select enum schema "enum" must be a string, {type} given.')

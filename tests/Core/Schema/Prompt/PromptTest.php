@@ -179,7 +179,7 @@ final class PromptTest extends TestCase
     {
         yield 'missing name' => [
             [],
-            'prompt missing the required "name" key.',
+            'prompt is missing the required "name" key.',
         ];
 
         yield 'name not a string' => [

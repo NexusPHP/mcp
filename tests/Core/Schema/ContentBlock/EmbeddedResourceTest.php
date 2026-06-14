@@ -170,7 +170,7 @@ final class EmbeddedResourceTest extends TestCase
     {
         yield 'missing type' => [
             ['resource' => ['uri' => 'file:///x', 'text' => 'hello']],
-            'embedded resource missing the required "type" key.',
+            'embedded resource is missing the required "type" key.',
         ];
 
         yield 'wrong type literal' => [
@@ -180,7 +180,7 @@ final class EmbeddedResourceTest extends TestCase
 
         yield 'missing resource' => [
             ['type' => 'resource'],
-            'embedded resource missing the required "resource" key.',
+            'embedded resource is missing the required "resource" key.',
         ];
 
         yield 'resource not an object' => [

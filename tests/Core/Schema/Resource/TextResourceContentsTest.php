@@ -159,7 +159,7 @@ final class TextResourceContentsTest extends TestCase
     {
         yield 'missing uri' => [
             ['text' => 'hello'],
-            'text resource contents missing the required "uri" key.',
+            'text resource contents is missing the required "uri" key.',
         ];
 
         yield 'uri not a string' => [
@@ -169,7 +169,7 @@ final class TextResourceContentsTest extends TestCase
 
         yield 'missing text' => [
             ['uri' => 'file:///x'],
-            'text resource contents missing the required "text" key.',
+            'text resource contents is missing the required "text" key.',
         ];
 
         yield 'text not a string' => [

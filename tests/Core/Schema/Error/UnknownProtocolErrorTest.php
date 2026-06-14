@@ -85,7 +85,7 @@ final class UnknownProtocolErrorTest extends TestCase
     public function testFromArrayRejectsMissingMessage(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageIs('missing the required "message" key.');
+        $this->expectExceptionMessageIs('"error" is missing the required "message" key.');
 
         UnknownProtocolError::fromArray(['code' => 42]);
     }
@@ -93,7 +93,7 @@ final class UnknownProtocolErrorTest extends TestCase
     public function testFromArrayRejectsNonStringMessage(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageIs('"message" must be a string, int given.');
+        $this->expectExceptionMessageIs('"error.message" must be a string, int given.');
 
         UnknownProtocolError::fromArray(['code' => 42, 'message' => 1]);
     }
@@ -101,7 +101,7 @@ final class UnknownProtocolErrorTest extends TestCase
     public function testFromArrayRejectsMissingCode(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageIs('missing the required "code" key.');
+        $this->expectExceptionMessageIs('"error" is missing the required "code" key.');
 
         UnknownProtocolError::fromArray([]);
     }
@@ -109,7 +109,7 @@ final class UnknownProtocolErrorTest extends TestCase
     public function testFromArrayRejectsNonIntCode(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageIs('"code" must be an integer, string given.');
+        $this->expectExceptionMessageIs('"error.code" must be an integer, string given.');
 
         UnknownProtocolError::fromArray(['code' => 'oops']);
     }

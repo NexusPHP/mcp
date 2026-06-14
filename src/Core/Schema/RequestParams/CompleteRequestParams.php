@@ -78,20 +78,20 @@ final readonly class CompleteRequestParams extends RequestParams
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('ref', 'missing the required "ref" key.');
+        Assert::that($data)->hasOffset('ref', '"params" is missing the required "ref" key.');
         Assert::that($data['ref'])
             ->isArray('"params.ref" must be an object, {type} given.')
             ->isMap('"params.ref" must be a string-keyed object.')
         ;
 
-        Assert::that($data)->hasOffset('argument', 'missing the required "argument" key.');
+        Assert::that($data)->hasOffset('argument', '"params" is missing the required "argument" key.');
         Assert::that($data['argument'])
             ->isArray('"params.argument" must be an object, {type} given.')
             ->isMap('"params.argument" must be a string-keyed object.')
         ;
-        Assert::that($data['argument'])->hasOffset('name', 'missing the required "argument.name" key.');
+        Assert::that($data['argument'])->hasOffset('name', '"params.argument" is missing the required "name" key.');
         Assert::that($data['argument']['name'])->isString('"params.argument.name" must be a string, {type} given.');
-        Assert::that($data['argument'])->hasOffset('value', 'missing the required "argument.value" key.');
+        Assert::that($data['argument'])->hasOffset('value', '"params.argument" is missing the required "value" key.');
         Assert::that($data['argument']['value'])->isString('"params.argument.value" must be a string, {type} given.');
 
         $context = null;
@@ -113,7 +113,7 @@ final readonly class CompleteRequestParams extends RequestParams
             }
         }
 
-        Assert::that($data)->hasOffset('_meta', '"params" missing the required "_meta" key.');
+        Assert::that($data)->hasOffset('_meta', '"params" is missing the required "_meta" key.');
         Assert::that($data['_meta'])
             ->isArray('"params._meta" must be an object, {type} given.')
             ->isMap('"params._meta" must be a string-keyed object.')

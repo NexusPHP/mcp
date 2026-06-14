@@ -231,7 +231,7 @@ final class ResourceLinkTest extends TestCase
     {
         yield 'missing type' => [
             ['name' => 'my-link', 'uri' => 'file:///tmp/x'],
-            'resource link missing the required "type" key.',
+            'resource link is missing the required "type" key.',
         ];
 
         yield 'wrong type literal' => [
@@ -241,7 +241,7 @@ final class ResourceLinkTest extends TestCase
 
         yield 'missing name' => [
             ['type' => 'resource_link', 'uri' => 'file:///tmp/x'],
-            'resource link missing the required "name" key.',
+            'resource link is missing the required "name" key.',
         ];
 
         yield 'name not a string' => [
@@ -251,7 +251,7 @@ final class ResourceLinkTest extends TestCase
 
         yield 'missing uri' => [
             ['type' => 'resource_link', 'name' => 'my-link'],
-            'resource link missing the required "uri" key.',
+            'resource link is missing the required "uri" key.',
         ];
 
         yield 'uri not a string' => [

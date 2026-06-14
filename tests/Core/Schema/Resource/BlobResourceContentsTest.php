@@ -143,7 +143,7 @@ final class BlobResourceContentsTest extends TestCase
     {
         yield 'missing uri' => [
             ['blob' => 'aGVsbG8='],
-            'blob resource contents missing the required "uri" key.',
+            'blob resource contents is missing the required "uri" key.',
         ];
 
         yield 'uri not a string' => [
@@ -153,7 +153,7 @@ final class BlobResourceContentsTest extends TestCase
 
         yield 'missing blob' => [
             ['uri' => 'file:///x'],
-            'blob resource contents missing the required "blob" key.',
+            'blob resource contents is missing the required "blob" key.',
         ];
 
         yield 'blob not a string' => [

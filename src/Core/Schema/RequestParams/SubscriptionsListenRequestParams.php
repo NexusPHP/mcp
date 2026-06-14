@@ -39,14 +39,14 @@ final readonly class SubscriptionsListenRequestParams extends RequestParams
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('notifications', 'missing the required "notifications" key.');
+        Assert::that($data)->hasOffset('notifications', '"params" is missing the required "notifications" key.');
         Assert::that($data['notifications'])
             ->isArray('"params.notifications" must be an object, {type} given.')
             ->isMap('"params.notifications" must be a string-keyed object.')
         ;
         $notifications = SubscriptionFilter::fromArray($data['notifications']);
 
-        Assert::that($data)->hasOffset('_meta', '"params" missing the required "_meta" key.');
+        Assert::that($data)->hasOffset('_meta', '"params" is missing the required "_meta" key.');
         Assert::that($data['_meta'])
             ->isArray('"params._meta" must be an object, {type} given.')
             ->isMap('"params._meta" must be a string-keyed object.')

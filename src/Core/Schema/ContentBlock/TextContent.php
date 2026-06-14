@@ -45,11 +45,11 @@ final readonly class TextContent implements Arrayable, ContentBlock
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('type', 'text content missing the required "type" key.');
+        Assert::that($data)->hasOffset('type', 'text content is missing the required "type" key.');
         $type = $data['type'];
         Assert::that($type)->isIdentical(self::TYPE, 'text content "type" must be {other}, {value} given.');
 
-        Assert::that($data)->hasOffset('text', 'text content missing the required "text" key.');
+        Assert::that($data)->hasOffset('text', 'text content is missing the required "text" key.');
         $text = $data['text'];
         Assert::that($text)->isString('text content "text" must be a string, {type} given.');
 

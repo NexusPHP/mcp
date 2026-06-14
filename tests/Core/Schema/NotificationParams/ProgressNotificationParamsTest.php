@@ -211,7 +211,7 @@ final class ProgressNotificationParamsTest extends TestCase
     {
         yield 'missing progressToken' => [
             ['progress' => 0.5],
-            'missing the required "progressToken" key.',
+            '"params" is missing the required "progressToken" key.',
         ];
 
         yield 'progressToken not int or string' => [
@@ -221,7 +221,7 @@ final class ProgressNotificationParamsTest extends TestCase
 
         yield 'missing progress' => [
             ['progressToken' => 'p-1'],
-            'missing the required "progress" key.',
+            '"params" is missing the required "progress" key.',
         ];
 
         yield 'progress is string' => [

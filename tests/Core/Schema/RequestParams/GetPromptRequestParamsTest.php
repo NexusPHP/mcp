@@ -226,7 +226,7 @@ final class GetPromptRequestParamsTest extends TestCase
     {
         yield 'missing name' => [
             [],
-            'missing the required "name" key.',
+            '"params" is missing the required "name" key.',
         ];
 
         yield 'name not a string' => [
@@ -251,7 +251,7 @@ final class GetPromptRequestParamsTest extends TestCase
 
         yield 'missing _meta' => [
             ['name' => 'topic'],
-            '"params" missing the required "_meta" key.',
+            '"params" is missing the required "_meta" key.',
         ];
 
         yield '_meta not an object' => [

@@ -85,7 +85,7 @@ final readonly class Prompt extends BaseMetadata implements Arrayable, Icons
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('name', 'prompt missing the required "name" key.');
+        Assert::that($data)->hasOffset('name', 'prompt is missing the required "name" key.');
         $name = $data['name'];
         Assert::that($name)->isString('prompt "name" must be a string, {type} given.');
 

@@ -148,7 +148,7 @@ final class TitledSingleSelectEnumSchemaTest extends TestCase
     {
         yield 'missing type' => [
             ['oneOf' => []],
-            'titled single select enum schema missing the required "type" key.',
+            'titled single select enum schema is missing the required "type" key.',
         ];
 
         yield 'wrong type literal' => [
@@ -158,7 +158,7 @@ final class TitledSingleSelectEnumSchemaTest extends TestCase
 
         yield 'missing oneOf' => [
             ['type' => 'string'],
-            'titled single select enum schema missing the required "oneOf" key.',
+            'titled single select enum schema is missing the required "oneOf" key.',
         ];
 
         yield 'oneOf not a list' => [

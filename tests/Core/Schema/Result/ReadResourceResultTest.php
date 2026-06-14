@@ -251,7 +251,7 @@ final class ReadResourceResultTest extends TestCase
     {
         yield 'missing contents' => [
             [],
-            '"result" missing the required "contents" key.',
+            '"result" is missing the required "contents" key.',
         ];
 
         yield 'contents not an array' => [
@@ -276,7 +276,7 @@ final class ReadResourceResultTest extends TestCase
 
         yield 'missing ttlMs' => [
             ['contents' => []],
-            '"result" missing the required "ttlMs" key.',
+            '"result" is missing the required "ttlMs" key.',
         ];
 
         yield 'ttlMs not an integer' => [
@@ -286,7 +286,7 @@ final class ReadResourceResultTest extends TestCase
 
         yield 'missing cacheScope' => [
             ['contents' => [], 'ttlMs' => 0],
-            '"result" missing the required "cacheScope" key.',
+            '"result" is missing the required "cacheScope" key.',
         ];
 
         yield 'cacheScope not a known value' => [

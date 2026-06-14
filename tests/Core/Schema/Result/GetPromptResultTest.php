@@ -163,7 +163,7 @@ final class GetPromptResultTest extends TestCase
     {
         yield 'missing messages' => [
             [],
-            '"result" missing the required "messages" key.',
+            '"result" is missing the required "messages" key.',
         ];
 
         yield 'messages not an array' => [

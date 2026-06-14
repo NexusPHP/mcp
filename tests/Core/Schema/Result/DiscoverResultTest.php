@@ -230,7 +230,7 @@ final class DiscoverResultTest extends TestCase
 
         yield 'missing supportedVersions' => [
             [],
-            '"result" missing the required "supportedVersions" key.',
+            '"result" is missing the required "supportedVersions" key.',
         ];
 
         yield 'supportedVersions not a list' => [
@@ -245,7 +245,7 @@ final class DiscoverResultTest extends TestCase
 
         yield 'missing capabilities' => [
             ['supportedVersions' => ['2026-07-28']],
-            '"result" missing the required "capabilities" key.',
+            '"result" is missing the required "capabilities" key.',
         ];
 
         yield 'capabilities not an object' => [
@@ -260,7 +260,7 @@ final class DiscoverResultTest extends TestCase
 
         yield 'missing serverInfo' => [
             ['supportedVersions' => ['2026-07-28'], 'capabilities' => []],
-            '"result" missing the required "serverInfo" key.',
+            '"result" is missing the required "serverInfo" key.',
         ];
 
         yield 'serverInfo not an object' => [
@@ -275,7 +275,7 @@ final class DiscoverResultTest extends TestCase
 
         yield 'missing ttlMs' => [
             ['supportedVersions' => ['2026-07-28'], 'capabilities' => [], 'serverInfo' => $validInfo],
-            '"result" missing the required "ttlMs" key.',
+            '"result" is missing the required "ttlMs" key.',
         ];
 
         yield 'ttlMs not an integer' => [
@@ -285,7 +285,7 @@ final class DiscoverResultTest extends TestCase
 
         yield 'missing cacheScope' => [
             ['supportedVersions' => ['2026-07-28'], 'capabilities' => [], 'serverInfo' => $validInfo, 'ttlMs' => 0],
-            '"result" missing the required "cacheScope" key.',
+            '"result" is missing the required "cacheScope" key.',
         ];
 
         yield 'cacheScope not a known value' => [

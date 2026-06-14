@@ -66,7 +66,7 @@ final readonly class ReadResourceResult extends CacheableResult implements Serve
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('contents', '"result" missing the required "contents" key.');
+        Assert::that($data)->hasOffset('contents', '"result" is missing the required "contents" key.');
         Assert::that($data['contents'])
             ->isList('"result.contents" must be a list, {type} given.')
             ->values()
@@ -78,11 +78,11 @@ final readonly class ReadResourceResult extends CacheableResult implements Serve
             $data['contents'],
         );
 
-        Assert::that($data)->hasOffset('ttlMs', '"result" missing the required "ttlMs" key.');
+        Assert::that($data)->hasOffset('ttlMs', '"result" is missing the required "ttlMs" key.');
         $ttlMs = $data['ttlMs'];
         Assert::that($ttlMs)->isInt('"result.ttlMs" must be an integer, {type} given.');
 
-        Assert::that($data)->hasOffset('cacheScope', '"result" missing the required "cacheScope" key.');
+        Assert::that($data)->hasOffset('cacheScope', '"result" is missing the required "cacheScope" key.');
         $cacheScope = EnumValueValidator::parse(CacheScope::class, $data['cacheScope'], '"result.cacheScope"');
 
         $meta = new MetaObject();

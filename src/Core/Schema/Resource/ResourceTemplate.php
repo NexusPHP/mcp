@@ -95,11 +95,11 @@ final readonly class ResourceTemplate extends BaseMetadata implements Arrayable,
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('name', 'resource template missing the required "name" key.');
+        Assert::that($data)->hasOffset('name', 'resource template is missing the required "name" key.');
         $name = $data['name'];
         Assert::that($name)->isString('resource template "name" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('uriTemplate', 'resource template missing the required "uriTemplate" key.');
+        Assert::that($data)->hasOffset('uriTemplate', 'resource template is missing the required "uriTemplate" key.');
         $uriTemplate = $data['uriTemplate'];
         Assert::that($uriTemplate)->isString('resource template "uriTemplate" must be a string, {type} given.');
 

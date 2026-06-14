@@ -56,7 +56,7 @@ final class EmptyRequestParamsTest extends TestCase
     public function testFromArrayRequiresMeta(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageIs('"params" missing the required "_meta" key.');
+        $this->expectExceptionMessageIs('"params" is missing the required "_meta" key.');
 
         EmptyRequestParams::fromArray([]);
     }

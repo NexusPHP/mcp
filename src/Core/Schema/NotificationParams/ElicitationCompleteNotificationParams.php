@@ -47,7 +47,7 @@ final readonly class ElicitationCompleteNotificationParams extends NotificationP
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('elicitationId', 'missing the required "elicitationId" key.');
+        Assert::that($data)->hasOffset('elicitationId', '"params" is missing the required "elicitationId" key.');
         $elicitationId = $data['elicitationId'];
         Assert::that($elicitationId)->isString('"params.elicitationId" must be a string, {type} given.');
 

@@ -43,11 +43,11 @@ final class Rfc3986UriValidator
             ->isNonEmptyString(\sprintf('%s must be a non-empty string.', $context))
             ->matchesRegularExpression(
                 '/\A[\x21-\x7E]+\z/',
-                \sprintf('%s must contain only ASCII printable characters (no whitespace or control characters), got {value}.', $context),
+                \sprintf('%s must contain only ASCII printable characters (no whitespace or control characters), {value} given.', $context),
             )
             ->matchesRegularExpression(
                 '/\A[A-Za-z][A-Za-z0-9+.\-]*:(?:\/\/[^\/?#]*)?[^?#]*(?:\?[^#]*)?(?:#.*)?\z/',
-                \sprintf('%s must be a valid RFC 3986 absolute URI, got {value}.', $context),
+                \sprintf('%s must be a valid RFC 3986 absolute URI, {value} given.', $context),
             )
         ;
     }

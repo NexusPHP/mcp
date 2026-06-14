@@ -185,7 +185,7 @@ final class UrlElicitationRequiredErrorTest extends TestCase
     {
         yield 'id not an array key' => [
             ['id' => 1.5, 'error' => []],
-            '"id" must be an int, string, or null; float given.',
+            '"id" must be an int, string, or null, float given.',
         ];
 
         yield 'missing error' => [
@@ -205,7 +205,7 @@ final class UrlElicitationRequiredErrorTest extends TestCase
 
         yield 'error missing data' => [
             ['error' => ['code' => -32042, 'message' => 'm']],
-            'missing the required "data" key.',
+            '"error" is missing the required "data" key.',
         ];
 
         yield 'error data not an object' => [
@@ -220,7 +220,7 @@ final class UrlElicitationRequiredErrorTest extends TestCase
 
         yield 'error data missing elicitations' => [
             ['error' => ['code' => -32042, 'message' => 'm', 'data' => []]],
-            'missing the required "elicitations" key.',
+            '"error.data" is missing the required "elicitations" key.',
         ];
 
         yield 'elicitations not a list' => [

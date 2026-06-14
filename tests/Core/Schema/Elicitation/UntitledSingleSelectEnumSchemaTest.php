@@ -129,7 +129,7 @@ final class UntitledSingleSelectEnumSchemaTest extends TestCase
     {
         yield 'missing type' => [
             ['enum' => ['a']],
-            'untitled single select enum schema missing the required "type" key.',
+            'untitled single select enum schema is missing the required "type" key.',
         ];
 
         yield 'wrong type literal' => [
@@ -139,7 +139,7 @@ final class UntitledSingleSelectEnumSchemaTest extends TestCase
 
         yield 'missing enum' => [
             ['type' => 'string'],
-            'untitled single select enum schema missing the required "enum" key.',
+            'untitled single select enum schema is missing the required "enum" key.',
         ];
 
         yield 'enum not a list' => [

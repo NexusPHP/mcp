@@ -222,7 +222,7 @@ final class RequestMetaObjectTest extends TestCase
 
         yield 'missing protocolVersion' => [
             [],
-            '"_meta" missing the required "io.modelcontextprotocol/protocolVersion" key.',
+            '"_meta" is missing the required "io.modelcontextprotocol/protocolVersion" key.',
         ];
 
         yield 'protocolVersion not a string' => [
@@ -232,7 +232,7 @@ final class RequestMetaObjectTest extends TestCase
 
         yield 'missing clientInfo' => [
             [RequestMetaObject::PROTOCOL_VERSION_KEY => '2026-07-28'],
-            '"_meta" missing the required "io.modelcontextprotocol/clientInfo" key.',
+            '"_meta" is missing the required "io.modelcontextprotocol/clientInfo" key.',
         ];
 
         yield 'clientInfo not an object' => [
@@ -256,7 +256,7 @@ final class RequestMetaObjectTest extends TestCase
                 RequestMetaObject::PROTOCOL_VERSION_KEY => '2026-07-28',
                 RequestMetaObject::CLIENT_INFO_KEY => $validInfo,
             ],
-            '"_meta" missing the required "io.modelcontextprotocol/clientCapabilities" key.',
+            '"_meta" is missing the required "io.modelcontextprotocol/clientCapabilities" key.',
         ];
 
         yield 'clientCapabilities not an object' => [

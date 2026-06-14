@@ -66,7 +66,7 @@ final readonly class GetPromptResult extends Result implements ServerResult
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('messages', '"result" missing the required "messages" key.');
+        Assert::that($data)->hasOffset('messages', '"result" is missing the required "messages" key.');
         Assert::that($data['messages'])->isArray('"result.messages" must be an array, {type} given.');
 
         $messages = [];

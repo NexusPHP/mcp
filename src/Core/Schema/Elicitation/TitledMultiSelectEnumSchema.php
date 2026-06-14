@@ -92,11 +92,11 @@ final readonly class TitledMultiSelectEnumSchema implements Arrayable, MultiSele
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('type', 'titled multi-select enum schema missing the required "type" key.');
+        Assert::that($data)->hasOffset('type', 'titled multi-select enum schema is missing the required "type" key.');
         $type = $data['type'];
         Assert::that($type)->isIdentical(self::TYPE, 'titled multi-select enum schema "type" must be {other}, {value} given.');
 
-        Assert::that($data)->hasOffset('items', 'titled multi-select enum schema missing the required "items" key.');
+        Assert::that($data)->hasOffset('items', 'titled multi-select enum schema is missing the required "items" key.');
         Assert::that($data['items'])
             ->isArray('titled multi-select enum schema "items" must be an object, {type} given.')
             ->isMap('titled multi-select enum schema "items" must be a string-keyed object.')

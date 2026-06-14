@@ -47,11 +47,11 @@ final readonly class EnumOption implements Arrayable
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('const', '"oneOf" missing the required "const" key.');
+        Assert::that($data)->hasOffset('const', '"oneOf" is missing the required "const" key.');
         $const = $data['const'];
         Assert::that($const)->isString('"oneOf.const" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('title', '"oneOf" missing the required "title" key.');
+        Assert::that($data)->hasOffset('title', '"oneOf" is missing the required "title" key.');
         $title = $data['title'];
         Assert::that($title)->isString('"oneOf.title" must be a string, {type} given.');
 

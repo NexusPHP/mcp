@@ -88,11 +88,11 @@ final readonly class LegacyTitledEnumSchema implements Arrayable, EnumSchema
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('type', 'legacy titled enum schema missing the required "type" key.');
+        Assert::that($data)->hasOffset('type', 'legacy titled enum schema is missing the required "type" key.');
         $type = $data['type'];
         Assert::that($type)->isIdentical(self::TYPE, 'legacy titled enum schema "type" must be {other}, {value} given.');
 
-        Assert::that($data)->hasOffset('enum', 'legacy titled enum schema missing the required "enum" key.');
+        Assert::that($data)->hasOffset('enum', 'legacy titled enum schema is missing the required "enum" key.');
         Assert::that($data['enum'])
             ->isList('legacy titled enum schema "enum" must be a list, non-list array given.')
             ->values()->isString('each legacy titled enum schema "enum" must be a string, {type} given.')

@@ -62,15 +62,15 @@ final readonly class ImageContent implements Arrayable, ContentBlock
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('type', 'image content missing the required "type" key.');
+        Assert::that($data)->hasOffset('type', 'image content is missing the required "type" key.');
         $type = $data['type'];
         Assert::that($type)->isIdentical(self::TYPE, 'image content "type" must be {other}, {value} given.');
 
-        Assert::that($data)->hasOffset('data', 'image content missing the required "data" key.');
+        Assert::that($data)->hasOffset('data', 'image content is missing the required "data" key.');
         $payload = $data['data'];
         Assert::that($payload)->isString('image content "data" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('mimeType', 'image content missing the required "mimeType" key.');
+        Assert::that($data)->hasOffset('mimeType', 'image content is missing the required "mimeType" key.');
         $mimeType = $data['mimeType'];
         Assert::that($mimeType)->isString('image content "mimeType" must be a string, {type} given.');
 

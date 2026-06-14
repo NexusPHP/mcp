@@ -77,11 +77,11 @@ final readonly class ElicitRequestedSchema implements Arrayable
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('type', '"requestedSchema" missing the required "type" key.');
+        Assert::that($data)->hasOffset('type', '"requestedSchema" is missing the required "type" key.');
         $type = $data['type'];
         Assert::that($type)->isIdentical(self::TYPE, '"requestedSchema.type" must be {other}, {value} given.');
 
-        Assert::that($data)->hasOffset('properties', '"requestedSchema" missing the required "properties" key.');
+        Assert::that($data)->hasOffset('properties', '"requestedSchema" is missing the required "properties" key.');
         Assert::that($data['properties'])
             ->isArray('"requestedSchema.properties" must be an object, {type} given.')
             ->isMap('"requestedSchema.properties" must be a string-keyed object.')

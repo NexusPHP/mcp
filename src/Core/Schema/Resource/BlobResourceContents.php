@@ -44,11 +44,11 @@ final readonly class BlobResourceContents extends ResourceContents
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('uri', 'blob resource contents missing the required "uri" key.');
+        Assert::that($data)->hasOffset('uri', 'blob resource contents is missing the required "uri" key.');
         $uri = $data['uri'];
         Assert::that($uri)->isString('blob resource contents "uri" must be a string, {type} given.');
 
-        Assert::that($data)->hasOffset('blob', 'blob resource contents missing the required "blob" key.');
+        Assert::that($data)->hasOffset('blob', 'blob resource contents is missing the required "blob" key.');
         $blob = $data['blob'];
         Assert::that($blob)->isString('blob resource contents "blob" must be a string, {type} given.');
 

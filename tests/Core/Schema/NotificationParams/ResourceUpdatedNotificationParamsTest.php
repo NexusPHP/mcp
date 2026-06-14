@@ -117,7 +117,7 @@ final class ResourceUpdatedNotificationParamsTest extends TestCase
     {
         yield 'missing uri' => [
             [],
-            'missing the required "uri" key.',
+            '"params" is missing the required "uri" key.',
         ];
 
         yield 'uri not a string' => [

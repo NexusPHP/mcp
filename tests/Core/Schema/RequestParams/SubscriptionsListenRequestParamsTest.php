@@ -115,7 +115,7 @@ final class SubscriptionsListenRequestParamsTest extends TestCase
     {
         yield 'missing notifications' => [
             ['_meta' => RequestMetaObjectFactory::shape()],
-            'missing the required "notifications" key.',
+            '"params" is missing the required "notifications" key.',
         ];
 
         yield 'notifications not an object' => [
@@ -130,7 +130,7 @@ final class SubscriptionsListenRequestParamsTest extends TestCase
 
         yield 'missing _meta' => [
             ['notifications' => ['toolsListChanged' => true]],
-            '"params" missing the required "_meta" key.',
+            '"params" is missing the required "_meta" key.',
         ];
 
         yield '_meta not an object' => [

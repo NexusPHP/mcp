@@ -148,7 +148,7 @@ final class LegacyTitledEnumSchemaTest extends TestCase
     {
         yield 'missing type' => [
             ['enum' => ['a']],
-            'legacy titled enum schema missing the required "type" key.',
+            'legacy titled enum schema is missing the required "type" key.',
         ];
 
         yield 'wrong type literal' => [
@@ -158,7 +158,7 @@ final class LegacyTitledEnumSchemaTest extends TestCase
 
         yield 'missing enum' => [
             ['type' => 'string'],
-            'legacy titled enum schema missing the required "enum" key.',
+            'legacy titled enum schema is missing the required "enum" key.',
         ];
 
         yield 'enum not a list' => [

@@ -132,7 +132,7 @@ final class PromptReferenceTest extends TestCase
     {
         yield 'missing type' => [
             ['name' => 'my-prompt'],
-            'prompt reference missing the required "type" key.',
+            'prompt reference is missing the required "type" key.',
         ];
 
         yield 'wrong type literal' => [
@@ -142,7 +142,7 @@ final class PromptReferenceTest extends TestCase
 
         yield 'missing name' => [
             ['type' => 'ref/prompt'],
-            'prompt reference missing the required "name" key.',
+            'prompt reference is missing the required "name" key.',
         ];
 
         yield 'name not a string' => [

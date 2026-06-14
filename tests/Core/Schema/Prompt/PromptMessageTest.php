@@ -156,7 +156,7 @@ final class PromptMessageTest extends TestCase
     {
         yield 'missing role' => [
             ['content' => ['type' => 'text', 'text' => 'hi']],
-            'prompt message missing the required "role" key.',
+            'prompt message is missing the required "role" key.',
         ];
 
         yield 'role not a string' => [
@@ -171,7 +171,7 @@ final class PromptMessageTest extends TestCase
 
         yield 'missing content' => [
             ['role' => 'user'],
-            'prompt message missing the required "content" key.',
+            'prompt message is missing the required "content" key.',
         ];
 
         yield 'content not an object' => [
