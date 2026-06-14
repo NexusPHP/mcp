@@ -1,6 +1,6 @@
 # Shared review pre-seed (mcp-sdk)
 
-Repo-wide, review-time constraints shared by the project-local `/adversarial-review` skill and `/simplify` runs. Both read this file and include the "Already-decided" and "Verified-correct" blocks verbatim in every subagent prompt, so every frame respects the same boundaries and skips already-settled ground. Committed to the repo, so it is self-contained for any contributor. When a review settles that something is correct-as-is or deferred, add it here so the next review does not re-litigate it.
+Repo-wide, review-time constraints shared by the project-local `/adversarial-red-team-review` skill and `/simplify` runs. Both read this file and include the "Already-decided" and "Verified-correct" blocks verbatim in every subagent prompt, so every frame respects the same boundaries and skips already-settled ground. Committed to the repo, so it is self-contained for any contributor. When a review settles that something is correct-as-is or deferred, add it here so the next review does not re-litigate it.
 
 ## Already-decided review-time constraints (do NOT re-litigate)
 

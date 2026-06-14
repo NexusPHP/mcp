@@ -1,12 +1,12 @@
 ---
-name: adversarial-review
+name: adversarial-red-team-review
 description: Project-local adversarial review for the Nexus MCP SDK. Spawns four parallel red-team subagents (spec faithfulness, concurrency, mutation gaps, edge-case bug hunt) and pre-seeds each with the repo's durable review conventions so they skip already-decided ground. Use after a non-trivial design landing, before merging hard-to-reverse changes, or when reviewing a phase/subsystem at steady state. Skip for mechanical refactors, formatting, dependency bumps.
 argument-hint: "[optional scope, e.g. 'server runtime', 'transport layer', or a PR number. Defaults to uncommitted working-tree changes]"
 ---
 
 # Adversarial review (mcp-sdk project-local)
 
-This is a project-local skill committed to the repo so any contributor running it gets the same red-team shape. It overrides the user-level `adversarial-review` skill (if any) when invoked from this working tree.
+This is a project-local skill committed to the repo so any contributor running it gets the same red-team shape. It is named `adversarial-red-team-review` so it stays distinct from the user-level `adversarial-review` skill instead of shadowing it.
 
 Goal: spawn fresh, narrowly-scoped subagents that explicitly oppose the in-flight work. The point is to counter the agreement drift that builds up within a single building session. A session that has been collaborating on a design has accumulated context that biases it toward "yes, this works." Asking that same session to "double-check itself" hits the same bias. Fresh adversarial subagents have none of that history.
 
@@ -101,7 +101,7 @@ Each agent prompt MUST include all of the following (in addition to its frame-sp
     > - Do not run `git checkout -- <file>`, `git restore -- <file>` or `--staged`, `git reset` (any mode), `git revert`, `git clean`, `git rm`, or `git mv` against the working tree.
     > - Do not modify, create, or delete files in the working tree.
     > - For inspection, use only `git diff`, `git show`, `git log`, `git cat-file`, `git blame`.
-    > - If you need to run tests against a different state, create an isolated worktree: `git worktree add /tmp/adversarial-review-<random> <ref>`, run tests inside it, then `git worktree remove /tmp/adversarial-review-<random>`. Never mutate the primary working tree.
+    > - If you need to run tests against a different state, create an isolated worktree: `git worktree add /tmp/adversarial-red-team-review-<random> <ref>`, run tests inside it, then `git worktree remove /tmp/adversarial-red-team-review-<random>`. Never mutate the primary working tree.
     > - Do not run the bare full-tree `composer mutation:check` (7+ minutes). For a targeted check use the scoped, static-analysis-enabled form: `composer mutation:check -- --filter="src/Path/To/File.php"` (comma-separate paths to batch a few). Do NOT verify with a raw `tools/vendor/bin/infection --filter=...` lacking `--static-analysis-tool=phpstan`: the SA flag lives in the composer script, not `infection.json5`, so the raw binary misreports every SA-killed mutant as a false escape. An Infection summary line reading `caught by Static Analysis` is a KILL, not an escape.
 
 6. **Ground every finding on the current code and tests, not on hypothesis.** Copy verbatim into every subagent prompt:
