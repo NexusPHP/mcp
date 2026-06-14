@@ -11,29 +11,29 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Nexus\Mcp\Core\Schema\JsonRpc;
+namespace Nexus\Mcp\Core\Schema\ResultResponse;
 
+use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result;
-use Nexus\Mcp\Core\Schema\Result\CallToolResult;
-use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
+use Nexus\Mcp\Core\Schema\Result\CompleteResult;
 
 /**
- * A successful response from the server for a `tools/call` request.
+ * A successful response from the server for a `completion/complete` request.
  *
- * @property-read CallToolResult|InputRequiredResult $result
+ * @property-read CompleteResult $result
  *
  * @extends JsonRpcResultResponse<array{
  *   jsonrpc: '2.0',
  *   id: int|non-empty-string,
- *   result: template-type<CallToolResult|InputRequiredResult, Result, 'T'>,
+ *   result: template-type<CompleteResult, Result, 'T'>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#calltoolresultresponse
+ * @see https://modelcontextprotocol.io/specification/draft/schema#completeresultresponse
  */
-final readonly class CallToolResultResponse extends JsonRpcResultResponse
+final readonly class CompleteResultResponse extends JsonRpcResultResponse
 {
-    public function __construct(RequestId $id, CallToolResult|InputRequiredResult $result)
+    public function __construct(RequestId $id, CompleteResult $result)
     {
         parent::__construct(id: $id, result: $result);
     }
@@ -43,12 +43,9 @@ final readonly class CallToolResultResponse extends JsonRpcResultResponse
     {
         $id = self::parseId($data);
         $payload = self::parseResult($data);
+        self::rejectInputRequired($payload);
 
-        $result = self::isInputRequired($payload)
-            ? InputRequiredResult::fromArray($payload)
-            : CallToolResult::fromArray($payload);
-
-        return new self(id: $id, result: $result);
+        return new self(id: $id, result: CompleteResult::fromArray($payload));
     }
 
     #[\Override]

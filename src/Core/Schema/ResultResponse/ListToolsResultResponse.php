@@ -11,29 +11,29 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Nexus\Mcp\Core\Schema\JsonRpc;
+namespace Nexus\Mcp\Core\Schema\ResultResponse;
 
+use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result;
-use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
-use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
+use Nexus\Mcp\Core\Schema\Result\ListToolsResult;
 
 /**
- * A successful response from the server for a `resources/read` request.
+ * A successful response from the server for a `tools/list` request.
  *
- * @property-read InputRequiredResult|ReadResourceResult $result
+ * @property-read ListToolsResult $result
  *
  * @extends JsonRpcResultResponse<array{
  *   jsonrpc: '2.0',
  *   id: int|non-empty-string,
- *   result: template-type<InputRequiredResult|ReadResourceResult, Result, 'T'>,
+ *   result: template-type<ListToolsResult, Result, 'T'>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#readresourceresultresponse
+ * @see https://modelcontextprotocol.io/specification/draft/schema#listtoolsresultresponse
  */
-final readonly class ReadResourceResultResponse extends JsonRpcResultResponse
+final readonly class ListToolsResultResponse extends JsonRpcResultResponse
 {
-    public function __construct(RequestId $id, InputRequiredResult|ReadResourceResult $result)
+    public function __construct(RequestId $id, ListToolsResult $result)
     {
         parent::__construct(id: $id, result: $result);
     }
@@ -43,12 +43,9 @@ final readonly class ReadResourceResultResponse extends JsonRpcResultResponse
     {
         $id = self::parseId($data);
         $payload = self::parseResult($data);
+        self::rejectInputRequired($payload);
 
-        $result = self::isInputRequired($payload)
-            ? InputRequiredResult::fromArray($payload)
-            : ReadResourceResult::fromArray($payload);
-
-        return new self(id: $id, result: $result);
+        return new self(id: $id, result: ListToolsResult::fromArray($payload));
     }
 
     #[\Override]

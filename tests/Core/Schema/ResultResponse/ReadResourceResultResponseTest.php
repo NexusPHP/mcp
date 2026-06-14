@@ -11,12 +11,12 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Nexus\Mcp\Tests\Core\Schema\JsonRpc;
+namespace Nexus\Mcp\Tests\Core\Schema\ResultResponse;
 
-use Nexus\Mcp\Core\Schema\JsonRpc\CallToolResultResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
-use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
+use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
+use Nexus\Mcp\Core\Schema\ResultResponse\ReadResourceResultResponse;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
@@ -26,25 +26,25 @@ use PHPUnit\Framework\TestCase;
  *
  * @internal
  */
-#[CoversClass(CallToolResultResponse::class)]
+#[CoversClass(ReadResourceResultResponse::class)]
 #[CoversClass(JsonRpcResultResponse::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class CallToolResultResponseTest extends TestCase
+final class ReadResourceResultResponseTest extends TestCase
 {
     public function testRoundTripsTheTypedResult(): void
     {
-        $envelope = ['jsonrpc' => '2.0', 'id' => 1, 'result' => ['resultType' => 'complete', 'content' => []]];
+        $envelope = ['jsonrpc' => '2.0', 'id' => 1, 'result' => ['resultType' => 'complete', 'contents' => [['uri' => 'file:///tmp/sample', 'text' => 'hello']], 'ttlMs' => 0, 'cacheScope' => 'private']];
 
-        $response = CallToolResultResponse::fromArray($envelope);
+        $response = ReadResourceResultResponse::fromArray($envelope);
 
-        self::assertInstanceOf(CallToolResult::class, $response->result);
+        self::assertInstanceOf(ReadResourceResult::class, $response->result);
         self::assertSame($envelope, $response->toArray());
     }
 
     public function testDecodesInputRequiredResult(): void
     {
-        $response = CallToolResultResponse::fromArray([
+        $response = ReadResourceResultResponse::fromArray([
             'jsonrpc' => '2.0',
             'id' => 1,
             'result' => ['resultType' => 'input_required', 'requestState' => 'tok'],

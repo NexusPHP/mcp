@@ -11,29 +11,29 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Nexus\Mcp\Core\Schema\JsonRpc;
+namespace Nexus\Mcp\Core\Schema\ResultResponse;
 
+use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result;
-use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
-use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
+use Nexus\Mcp\Core\Schema\Result\ListPromptsResult;
 
 /**
- * A successful response from the server for a `prompts/get` request.
+ * A successful response from the server for a `prompts/list` request.
  *
- * @property-read GetPromptResult|InputRequiredResult $result
+ * @property-read ListPromptsResult $result
  *
  * @extends JsonRpcResultResponse<array{
  *   jsonrpc: '2.0',
  *   id: int|non-empty-string,
- *   result: template-type<GetPromptResult|InputRequiredResult, Result, 'T'>,
+ *   result: template-type<ListPromptsResult, Result, 'T'>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#getpromptresultresponse
+ * @see https://modelcontextprotocol.io/specification/draft/schema#listpromptsresultresponse
  */
-final readonly class GetPromptResultResponse extends JsonRpcResultResponse
+final readonly class ListPromptsResultResponse extends JsonRpcResultResponse
 {
-    public function __construct(RequestId $id, GetPromptResult|InputRequiredResult $result)
+    public function __construct(RequestId $id, ListPromptsResult $result)
     {
         parent::__construct(id: $id, result: $result);
     }
@@ -43,12 +43,9 @@ final readonly class GetPromptResultResponse extends JsonRpcResultResponse
     {
         $id = self::parseId($data);
         $payload = self::parseResult($data);
+        self::rejectInputRequired($payload);
 
-        $result = self::isInputRequired($payload)
-            ? InputRequiredResult::fromArray($payload)
-            : GetPromptResult::fromArray($payload);
-
-        return new self(id: $id, result: $result);
+        return new self(id: $id, result: ListPromptsResult::fromArray($payload));
     }
 
     #[\Override]

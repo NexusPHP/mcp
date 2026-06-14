@@ -11,11 +11,11 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Nexus\Mcp\Tests\Core\Schema\JsonRpc;
+namespace Nexus\Mcp\Tests\Core\Schema\ResultResponse;
 
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
-use Nexus\Mcp\Core\Schema\JsonRpc\ListResourcesResultResponse;
-use Nexus\Mcp\Core\Schema\Result\ListResourcesResult;
+use Nexus\Mcp\Core\Schema\Result\ListPromptsResult;
+use Nexus\Mcp\Core\Schema\ResultResponse\ListPromptsResultResponse;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
@@ -25,19 +25,19 @@ use PHPUnit\Framework\TestCase;
  *
  * @internal
  */
-#[CoversClass(ListResourcesResultResponse::class)]
+#[CoversClass(ListPromptsResultResponse::class)]
 #[CoversClass(JsonRpcResultResponse::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class ListResourcesResultResponseTest extends TestCase
+final class ListPromptsResultResponseTest extends TestCase
 {
     public function testRoundTripsTheTypedResult(): void
     {
-        $envelope = ['jsonrpc' => '2.0', 'id' => 1, 'result' => ['resultType' => 'complete', 'resources' => [['name' => 'sample', 'uri' => 'file:///tmp/sample']], 'ttlMs' => 0, 'cacheScope' => 'private']];
+        $envelope = ['jsonrpc' => '2.0', 'id' => 1, 'result' => ['resultType' => 'complete', 'prompts' => [['name' => 'code-review']], 'ttlMs' => 0, 'cacheScope' => 'private']];
 
-        $response = ListResourcesResultResponse::fromArray($envelope);
+        $response = ListPromptsResultResponse::fromArray($envelope);
 
-        self::assertInstanceOf(ListResourcesResult::class, $response->result);
+        self::assertInstanceOf(ListPromptsResult::class, $response->result);
         self::assertSame($envelope, $response->toArray());
     }
 
@@ -46,7 +46,7 @@ final class ListResourcesResultResponseTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"result" returned "input_required" for a method that does not support it.');
 
-        ListResourcesResultResponse::fromArray([
+        ListPromptsResultResponse::fromArray([
             'jsonrpc' => '2.0',
             'id' => 1,
             'result' => ['resultType' => 'input_required', 'requestState' => 'tok'],

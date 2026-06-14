@@ -11,11 +11,11 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Nexus\Mcp\Tests\Core\Schema\JsonRpc;
+namespace Nexus\Mcp\Tests\Core\Schema\ResultResponse;
 
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
-use Nexus\Mcp\Core\Schema\JsonRpc\ListToolsResultResponse;
-use Nexus\Mcp\Core\Schema\Result\ListToolsResult;
+use Nexus\Mcp\Core\Schema\Result\CompleteResult;
+use Nexus\Mcp\Core\Schema\ResultResponse\CompleteResultResponse;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
@@ -25,19 +25,19 @@ use PHPUnit\Framework\TestCase;
  *
  * @internal
  */
-#[CoversClass(ListToolsResultResponse::class)]
+#[CoversClass(CompleteResultResponse::class)]
 #[CoversClass(JsonRpcResultResponse::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class ListToolsResultResponseTest extends TestCase
+final class CompleteResultResponseTest extends TestCase
 {
     public function testRoundTripsTheTypedResult(): void
     {
-        $envelope = ['jsonrpc' => '2.0', 'id' => 1, 'result' => ['resultType' => 'complete', 'tools' => [], 'ttlMs' => 0, 'cacheScope' => 'private']];
+        $envelope = ['jsonrpc' => '2.0', 'id' => 1, 'result' => ['resultType' => 'complete', 'completion' => ['values' => []]]];
 
-        $response = ListToolsResultResponse::fromArray($envelope);
+        $response = CompleteResultResponse::fromArray($envelope);
 
-        self::assertInstanceOf(ListToolsResult::class, $response->result);
+        self::assertInstanceOf(CompleteResult::class, $response->result);
         self::assertSame($envelope, $response->toArray());
     }
 
@@ -46,7 +46,7 @@ final class ListToolsResultResponseTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"result" returned "input_required" for a method that does not support it.');
 
-        ListToolsResultResponse::fromArray([
+        CompleteResultResponse::fromArray([
             'jsonrpc' => '2.0',
             'id' => 1,
             'result' => ['resultType' => 'input_required', 'requestState' => 'tok'],

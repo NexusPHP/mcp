@@ -11,28 +11,30 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Nexus\Mcp\Core\Schema\JsonRpc;
+namespace Nexus\Mcp\Core\Schema\ResultResponse;
 
+use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result;
-use Nexus\Mcp\Core\Schema\Result\DiscoverResult;
+use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
+use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
 
 /**
- * A successful response from the server for a `server/discover` request.
+ * A successful response from the server for a `resources/read` request.
  *
- * @property-read DiscoverResult $result
+ * @property-read InputRequiredResult|ReadResourceResult $result
  *
  * @extends JsonRpcResultResponse<array{
  *   jsonrpc: '2.0',
  *   id: int|non-empty-string,
- *   result: template-type<DiscoverResult, Result, 'T'>,
+ *   result: template-type<InputRequiredResult|ReadResourceResult, Result, 'T'>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#discoverresultresponse
+ * @see https://modelcontextprotocol.io/specification/draft/schema#readresourceresultresponse
  */
-final readonly class DiscoverResultResponse extends JsonRpcResultResponse
+final readonly class ReadResourceResultResponse extends JsonRpcResultResponse
 {
-    public function __construct(RequestId $id, DiscoverResult $result)
+    public function __construct(RequestId $id, InputRequiredResult|ReadResourceResult $result)
     {
         parent::__construct(id: $id, result: $result);
     }
@@ -42,9 +44,12 @@ final readonly class DiscoverResultResponse extends JsonRpcResultResponse
     {
         $id = self::parseId($data);
         $payload = self::parseResult($data);
-        self::rejectInputRequired($payload);
 
-        return new self(id: $id, result: DiscoverResult::fromArray($payload));
+        $result = self::isInputRequired($payload)
+            ? InputRequiredResult::fromArray($payload)
+            : ReadResourceResult::fromArray($payload);
+
+        return new self(id: $id, result: $result);
     }
 
     #[\Override]

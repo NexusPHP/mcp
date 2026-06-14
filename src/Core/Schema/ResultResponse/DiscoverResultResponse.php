@@ -11,28 +11,29 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Nexus\Mcp\Core\Schema\JsonRpc;
+namespace Nexus\Mcp\Core\Schema\ResultResponse;
 
+use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result;
-use Nexus\Mcp\Core\Schema\Result\ListPromptsResult;
+use Nexus\Mcp\Core\Schema\Result\DiscoverResult;
 
 /**
- * A successful response from the server for a `prompts/list` request.
+ * A successful response from the server for a `server/discover` request.
  *
- * @property-read ListPromptsResult $result
+ * @property-read DiscoverResult $result
  *
  * @extends JsonRpcResultResponse<array{
  *   jsonrpc: '2.0',
  *   id: int|non-empty-string,
- *   result: template-type<ListPromptsResult, Result, 'T'>,
+ *   result: template-type<DiscoverResult, Result, 'T'>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#listpromptsresultresponse
+ * @see https://modelcontextprotocol.io/specification/draft/schema#discoverresultresponse
  */
-final readonly class ListPromptsResultResponse extends JsonRpcResultResponse
+final readonly class DiscoverResultResponse extends JsonRpcResultResponse
 {
-    public function __construct(RequestId $id, ListPromptsResult $result)
+    public function __construct(RequestId $id, DiscoverResult $result)
     {
         parent::__construct(id: $id, result: $result);
     }
@@ -44,7 +45,7 @@ final readonly class ListPromptsResultResponse extends JsonRpcResultResponse
         $payload = self::parseResult($data);
         self::rejectInputRequired($payload);
 
-        return new self(id: $id, result: ListPromptsResult::fromArray($payload));
+        return new self(id: $id, result: DiscoverResult::fromArray($payload));
     }
 
     #[\Override]

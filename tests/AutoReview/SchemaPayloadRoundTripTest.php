@@ -56,6 +56,7 @@ final class SchemaPayloadRoundTripTest extends AbstractRoundTripTestCase
         'Nexus\\Mcp\\Core\\Schema\\Request\\',
         'Nexus\\Mcp\\Core\\Schema\\RequestParams\\',
         'Nexus\\Mcp\\Core\\Schema\\Result\\',
+        'Nexus\\Mcp\\Core\\Schema\\ResultResponse\\',
     ];
 
     /**

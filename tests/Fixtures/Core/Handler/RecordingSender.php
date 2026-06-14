@@ -14,11 +14,11 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Fixtures\Core\Handler;
 
 use Nexus\Mcp\Core\Handler\SenderInterface;
-use Nexus\Mcp\Core\Schema\JsonRpc\GenericResultResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
+use Nexus\Mcp\Core\Schema\ResultResponse\GenericResultResponse;
 
 /**
  * Records every outbound message in-memory for assertion in tests.

@@ -207,7 +207,7 @@ reply into, and it returns that response. `GenericResultResponse` decodes a bare
 For a vendor reply with its own shape, subclass `JsonRpcResultResponse` with a matching `fromArray()`.
 
 ```php
-use Nexus\Mcp\Core\Schema\JsonRpc\GenericResultResponse;
+use Nexus\Mcp\Core\Schema\ResultResponse\GenericResultResponse;
 
 // $request is your own JsonRpcRequest subclass bound to a vendor method literal, e.g. "acme/snapshot".
 $response = $client->sendRequest($request, GenericResultResponse::class);

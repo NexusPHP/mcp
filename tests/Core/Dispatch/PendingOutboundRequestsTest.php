@@ -15,9 +15,9 @@ namespace Nexus\Mcp\Tests\Core\Dispatch;
 
 use Nexus\Mcp\Core\Dispatch\PendingOutboundRequests;
 use Nexus\Mcp\Core\Exception\DuplicateOutboundRequestIdException;
-use Nexus\Mcp\Core\Schema\JsonRpc\GenericResultResponse;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
+use Nexus\Mcp\Core\Schema\ResultResponse\GenericResultResponse;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;

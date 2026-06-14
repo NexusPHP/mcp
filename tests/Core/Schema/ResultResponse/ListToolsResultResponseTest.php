@@ -11,11 +11,11 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Nexus\Mcp\Tests\Core\Schema\JsonRpc;
+namespace Nexus\Mcp\Tests\Core\Schema\ResultResponse;
 
-use Nexus\Mcp\Core\Schema\JsonRpc\DiscoverResultResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
-use Nexus\Mcp\Core\Schema\Result\DiscoverResult;
+use Nexus\Mcp\Core\Schema\Result\ListToolsResult;
+use Nexus\Mcp\Core\Schema\ResultResponse\ListToolsResultResponse;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
@@ -25,19 +25,19 @@ use PHPUnit\Framework\TestCase;
  *
  * @internal
  */
-#[CoversClass(DiscoverResultResponse::class)]
+#[CoversClass(ListToolsResultResponse::class)]
 #[CoversClass(JsonRpcResultResponse::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class DiscoverResultResponseTest extends TestCase
+final class ListToolsResultResponseTest extends TestCase
 {
     public function testRoundTripsTheTypedResult(): void
     {
-        $envelope = ['jsonrpc' => '2.0', 'id' => 1, 'result' => ['resultType' => 'complete', 'supportedVersions' => ['2026-07-28'], 'capabilities' => [], 'serverInfo' => ['name' => 'test-server', 'version' => '1.0.0'], 'ttlMs' => 0, 'cacheScope' => 'private']];
+        $envelope = ['jsonrpc' => '2.0', 'id' => 1, 'result' => ['resultType' => 'complete', 'tools' => [], 'ttlMs' => 0, 'cacheScope' => 'private']];
 
-        $response = DiscoverResultResponse::fromArray($envelope);
+        $response = ListToolsResultResponse::fromArray($envelope);
 
-        self::assertInstanceOf(DiscoverResult::class, $response->result);
+        self::assertInstanceOf(ListToolsResult::class, $response->result);
         self::assertSame($envelope, $response->toArray());
     }
 
@@ -46,7 +46,7 @@ final class DiscoverResultResponseTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"result" returned "input_required" for a method that does not support it.');
 
-        DiscoverResultResponse::fromArray([
+        ListToolsResultResponse::fromArray([
             'jsonrpc' => '2.0',
             'id' => 1,
             'result' => ['resultType' => 'input_required', 'requestState' => 'tok'],

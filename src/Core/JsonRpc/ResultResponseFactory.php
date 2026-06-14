@@ -13,18 +13,8 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\JsonRpc;
 
-use Nexus\Mcp\Core\Schema\JsonRpc\CallToolResultResponse;
-use Nexus\Mcp\Core\Schema\JsonRpc\CompleteResultResponse;
-use Nexus\Mcp\Core\Schema\JsonRpc\DiscoverResultResponse;
-use Nexus\Mcp\Core\Schema\JsonRpc\GenericResultResponse;
-use Nexus\Mcp\Core\Schema\JsonRpc\GetPromptResultResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
-use Nexus\Mcp\Core\Schema\JsonRpc\ListPromptsResultResponse;
-use Nexus\Mcp\Core\Schema\JsonRpc\ListResourcesResultResponse;
-use Nexus\Mcp\Core\Schema\JsonRpc\ListResourceTemplatesResultResponse;
-use Nexus\Mcp\Core\Schema\JsonRpc\ListToolsResultResponse;
-use Nexus\Mcp\Core\Schema\JsonRpc\ReadResourceResultResponse;
 use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
 use Nexus\Mcp\Core\Schema\Request\CompleteRequest;
 use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
@@ -45,6 +35,16 @@ use Nexus\Mcp\Core\Schema\Result\ListResourcesResult;
 use Nexus\Mcp\Core\Schema\Result\ListResourceTemplatesResult;
 use Nexus\Mcp\Core\Schema\Result\ListToolsResult;
 use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
+use Nexus\Mcp\Core\Schema\ResultResponse\CallToolResultResponse;
+use Nexus\Mcp\Core\Schema\ResultResponse\CompleteResultResponse;
+use Nexus\Mcp\Core\Schema\ResultResponse\DiscoverResultResponse;
+use Nexus\Mcp\Core\Schema\ResultResponse\GenericResultResponse;
+use Nexus\Mcp\Core\Schema\ResultResponse\GetPromptResultResponse;
+use Nexus\Mcp\Core\Schema\ResultResponse\ListPromptsResultResponse;
+use Nexus\Mcp\Core\Schema\ResultResponse\ListResourcesResultResponse;
+use Nexus\Mcp\Core\Schema\ResultResponse\ListResourceTemplatesResultResponse;
+use Nexus\Mcp\Core\Schema\ResultResponse\ListToolsResultResponse;
+use Nexus\Mcp\Core\Schema\ResultResponse\ReadResourceResultResponse;
 
 /**
  * Wraps a handler result in the typed `*ResultResponse` for its request method,
