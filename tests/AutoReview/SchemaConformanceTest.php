@@ -154,6 +154,7 @@ final class SchemaConformanceTest extends TestCase
      *   processed_schema: array<string, class-string>,
      *   internal_schema: array<string, class-string>,
      *   deprecated_schema: list<string>,
+     *   inlined_schema: list<string>,
      *   unprocessed_schema: list<string>,
      * }
      */
@@ -161,6 +162,7 @@ final class SchemaConformanceTest extends TestCase
         'processed_schema' => [],
         'internal_schema' => [],
         'deprecated_schema' => [],
+        'inlined_schema' => [],
         'unprocessed_schema' => [],
     ];
 
@@ -1104,10 +1106,9 @@ final class SchemaConformanceTest extends TestCase
             throw new \RuntimeException('Latest schema is not generated yet.');
         }
 
-        if (
-            ['processed_schema' => [], 'internal_schema' => [], 'deprecated_schema' => [], 'unprocessed_schema' => []] !== self::$sortedSchema
-            && getenv('MCP_FETCH_LATEST_SCHEMA') === false
-        ) {
+        $emptySchema = ['processed_schema' => [], 'internal_schema' => [], 'deprecated_schema' => [], 'inlined_schema' => [], 'unprocessed_schema' => []];
+
+        if ($emptySchema !== self::$sortedSchema && getenv('MCP_FETCH_LATEST_SCHEMA') === false) {
             return;
         }
 

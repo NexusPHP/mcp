@@ -25,6 +25,17 @@ final class McpSchemaProcessor
     public const string LATEST_SCHEMA_TS_PATH = __DIR__.'/../../latest-schema.ts';
 
     /**
+     * Spec defs the SDK represents inline as native PHP types rather than as a dedicated class.
+     */
+    private const array INLINED_SPEC_DEFS = [
+        'JSONValue',
+        'JSONObject',
+        'JSONArray',
+        'InputRequests',
+        'InputResponses',
+    ];
+
+    /**
      * Fetches the upstream `schema.ts` source and saves it locally as a
      * developer reference for inheritance and type aliases that the JSON schema
      * does not preserve. The file is git-ignored.
@@ -93,6 +104,7 @@ final class McpSchemaProcessor
      *   processed_schema: array<string, class-string>,
      *   internal_schema: array<string, class-string>,
      *   deprecated_schema: list<string>,
+     *   inlined_schema: list<string>,
      *   unprocessed_schema: list<string>
      * }
      */
@@ -144,14 +156,17 @@ final class McpSchemaProcessor
         $deprecatedDefs = self::deprecatedSpecDefNames();
 
         $deprecatedSchema = array_intersect($missingFromSpec, $deprecatedDefs);
-        $unprocessedSchema = array_diff($missingFromSpec, $deprecatedDefs);
+        $inlinedSchema = array_intersect($missingFromSpec, self::INLINED_SPEC_DEFS);
+        $unprocessedSchema = array_diff($missingFromSpec, $deprecatedDefs, self::INLINED_SPEC_DEFS);
         sort($deprecatedSchema);
+        sort($inlinedSchema);
         sort($unprocessedSchema);
 
         $sortedSchema = [
             'processed_schema' => $processedSchema,
             'internal_schema' => $internalSchema,
             'deprecated_schema' => $deprecatedSchema,
+            'inlined_schema' => $inlinedSchema,
             'unprocessed_schema' => $unprocessedSchema,
         ];
 
