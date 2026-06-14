@@ -15,10 +15,20 @@ namespace Nexus\Mcp\Tests\AutoReview;
 
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\Error;
+use Nexus\Mcp\Core\Schema\JsonRpc\CallToolResultResponse;
+use Nexus\Mcp\Core\Schema\JsonRpc\CompleteResultResponse;
+use Nexus\Mcp\Core\Schema\JsonRpc\DiscoverResultResponse;
+use Nexus\Mcp\Core\Schema\JsonRpc\GenericResultResponse;
+use Nexus\Mcp\Core\Schema\JsonRpc\GetPromptResultResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
+use Nexus\Mcp\Core\Schema\JsonRpc\ListPromptsResultResponse;
+use Nexus\Mcp\Core\Schema\JsonRpc\ListResourcesResultResponse;
+use Nexus\Mcp\Core\Schema\JsonRpc\ListResourceTemplatesResultResponse;
+use Nexus\Mcp\Core\Schema\JsonRpc\ListToolsResultResponse;
+use Nexus\Mcp\Core\Schema\JsonRpc\ReadResourceResultResponse;
 use Nexus\Mcp\Core\Schema\Notification\CancelledNotification;
 use Nexus\Mcp\Core\Schema\Notification\ElicitationCompleteNotification;
 use Nexus\Mcp\Core\Schema\Notification\ProgressNotification;
@@ -40,18 +50,8 @@ use Nexus\Mcp\Core\Schema\Request\ReadResourceRequest;
 use Nexus\Mcp\Core\Schema\Request\SubscriptionsListenRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result;
-use Nexus\Mcp\Core\Schema\Result\CallToolResult;
-use Nexus\Mcp\Core\Schema\Result\CompleteResult;
-use Nexus\Mcp\Core\Schema\Result\DiscoverResult;
 use Nexus\Mcp\Core\Schema\Result\ElicitResult;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
-use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
-use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
-use Nexus\Mcp\Core\Schema\Result\ListPromptsResult;
-use Nexus\Mcp\Core\Schema\Result\ListResourcesResult;
-use Nexus\Mcp\Core\Schema\Result\ListResourceTemplatesResult;
-use Nexus\Mcp\Core\Schema\Result\ListToolsResult;
-use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Group;
 
@@ -92,15 +92,14 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
 
         foreach (self::concreteSubclasses(Result::class) as $result) {
             $shortName = new \ReflectionClass($result)->getShortName();
-            $expectedDir = 'JsonRpcResultResponse-'.$shortName;
 
-            if (! is_dir(self::fixtureRoot().'/'.$expectedDir)) {
+            if (! is_dir(self::fixtureRoot().'/'.$shortName)) {
                 $missing[] = $result;
             }
         }
 
         self::assertSame([], $missing, \sprintf(
-            'Concrete Result subclasses without a JsonRpcResultResponse fixture set: %s. Add fixtures under envelope-shapes/JsonRpcResultResponse-{ShortName}/ and register in self::registry().',
+            'Concrete Result subclasses without a result-response fixture set: %s. Add fixtures under envelope-shapes/{ResultShortName}/ and register in self::registry().',
             implode(', ', $missing),
         ));
     }
@@ -185,30 +184,32 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
 
         yield 'SubscriptionsAcknowledgedNotification' => ['wrapper' => SubscriptionsAcknowledgedNotification::class, 'inner' => null, 'encodingPathsDiverge' => true];
 
-        // Result responses, parameterized by the inner Result subclass.
-        yield 'JsonRpcResultResponse-CallToolResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => CallToolResult::class];
+        // Result responses. Typed envelopes self-decode via `fromArray`; the
+        // generic writer carries results with no dedicated envelope (`EmptyResult`,
+        // `ElicitResult`) and is reconstructed from its inner result.
+        yield 'CallToolResult' => ['wrapper' => CallToolResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => null];
 
-        yield 'JsonRpcResultResponse-CompleteResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => CompleteResult::class];
+        yield 'CompleteResult' => ['wrapper' => CompleteResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => null];
 
-        yield 'JsonRpcResultResponse-DiscoverResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => DiscoverResult::class];
+        yield 'DiscoverResult' => ['wrapper' => DiscoverResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => null];
 
-        yield 'JsonRpcResultResponse-EmptyResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => EmptyResult::class];
+        yield 'EmptyResult' => ['wrapper' => GenericResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => EmptyResult::class];
 
-        yield 'JsonRpcResultResponse-GetPromptResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => GetPromptResult::class];
+        yield 'GetPromptResult' => ['wrapper' => GetPromptResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => null];
 
-        yield 'JsonRpcResultResponse-InputRequiredResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => InputRequiredResult::class];
+        yield 'InputRequiredResult' => ['wrapper' => CallToolResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => null];
 
-        yield 'JsonRpcResultResponse-ListPromptsResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => ListPromptsResult::class];
+        yield 'ListPromptsResult' => ['wrapper' => ListPromptsResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => null];
 
-        yield 'JsonRpcResultResponse-ListResourcesResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => ListResourcesResult::class];
+        yield 'ListResourcesResult' => ['wrapper' => ListResourcesResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => null];
 
-        yield 'JsonRpcResultResponse-ListResourceTemplatesResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => ListResourceTemplatesResult::class];
+        yield 'ListResourceTemplatesResult' => ['wrapper' => ListResourceTemplatesResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => null];
 
-        yield 'JsonRpcResultResponse-ListToolsResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => ListToolsResult::class];
+        yield 'ListToolsResult' => ['wrapper' => ListToolsResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => null];
 
-        yield 'JsonRpcResultResponse-ReadResourceResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => ReadResourceResult::class];
+        yield 'ReadResourceResult' => ['wrapper' => ReadResourceResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => null];
 
-        yield 'JsonRpcResultResponse-ElicitResult' => ['wrapper' => JsonRpcResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => ElicitResult::class];
+        yield 'ElicitResult' => ['wrapper' => GenericResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => ElicitResult::class];
 
         // Error responses, organised per Error subclass even though
         // `JsonRpcErrorResponse::fromArray` self-dispatches on `code`.
@@ -242,8 +243,8 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
 
         $inner = $entry['inner'];
 
-        if (JsonRpcResultResponse::class === $wrapper) {
-            self::assertIsString($inner, 'JsonRpcResultResponse fixtures must declare an inner Result class.');
+        if (GenericResultResponse::class === $wrapper) {
+            self::assertIsString($inner, 'GenericResultResponse fixtures must declare an inner Result class.');
             self::assertArrayHasKey('id', $decoded);
             self::assertArrayHasKey('result', $decoded);
             self::assertIsArray($decoded['result']);
@@ -252,12 +253,12 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
             $id = $decoded['id'];
 
             if (! \is_int($id) && ! \is_string($id)) {
-                self::fail('JsonRpcResultResponse fixture "id" must be an int or string.');
+                self::fail('GenericResultResponse fixture "id" must be an int or string.');
             }
 
             \assert(is_subclass_of($inner, Result::class));
 
-            return new JsonRpcResultResponse(id: new RequestId(id: $id), result: $inner::fromArray($decoded['result']));
+            return new GenericResultResponse(id: new RequestId(id: $id), result: $inner::fromArray($decoded['result']));
         }
 
         \assert(is_subclass_of($wrapper, Arrayable::class));
@@ -273,7 +274,7 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
         $registered = [];
 
         foreach (self::registry() as $dir => $entry) {
-            if (JsonRpcResultResponse::class === $entry['wrapper'] || JsonRpcErrorResponse::class === $entry['wrapper']) {
+            if (is_subclass_of($entry['wrapper'], JsonRpcResultResponse::class) || JsonRpcErrorResponse::class === $entry['wrapper']) {
                 continue;
             }
 

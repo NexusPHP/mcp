@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Fixtures\Core\Handler;
 
 use Nexus\Mcp\Core\Handler\SenderInterface;
+use Nexus\Mcp\Core\Schema\JsonRpc\GenericResultResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
@@ -47,6 +48,6 @@ final class RecordingSender implements SenderInterface
     {
         $this->requests[] = $request;
 
-        return new JsonRpcResultResponse(id: $request->id, result: new EmptyResult());
+        return new GenericResultResponse(id: $request->id, result: new EmptyResult());
     }
 }

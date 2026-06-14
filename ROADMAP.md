@@ -114,17 +114,22 @@ subscription-replay step depends on `subscriptions/listen` above, so this builds
 
 Every result envelope gains a `resultType` discriminator (`"complete"` vs `"input_required"`). Servers
 that need to ask the client for input mid-request (elicitation) return an `InputRequiredResult` instead
-of throwing the current `UrlElicitationRequiredError`. The single
-generic `JsonRpcResultResponse<TResult>` splits into 18 per-method response envelopes.
+of throwing the current `UrlElicitationRequiredError`. `JsonRpcResultResponse` is an abstract envelope
+base with one concrete, self-decoding `*ResultResponse` per spec method (nine in all). Only
+`tools/call`, `prompts/get`, and `resources/read` accept `InputRequiredResult`.
 
-- [x] Add `resultType` enum + discriminator to the success-response parser. A result carrying
-  `resultType: "input_required"` decodes to `InputRequiredResult` regardless of the awaited result type.
 - [x] Add `InputRequiredResult` (an `inputRequests` map plus an opaque `requestState`).
 - [x] Add `InputResponseRequestParams` (an abstract base over `RequestParams` carrying an opaque
   `inputResponses` map + `requestState`). The `tools/call`, `prompts/get`, and `resources/read` params
   carry both fields. The client retries by re-issuing the original request, so there is no
   `tasks/input_response` method.
-- [ ] Generate 18 per-method `*ResultResponse` envelope classes.
+- [x] Model the nine per-method `*ResultResponse` envelopes: an abstract `JsonRpcResultResponse` base
+  plus `Arrayable` leaves that decode themselves through `fromArray` (the parser delegates with the
+  awaited response class). The base's `resultType` discriminator gates `input_required`: only the three
+  eligible envelopes accept it. `GenericResultResponse` carries results with no dedicated envelope
+  (`EmptyResult`), and `ResultResponseFactory` picks the typed envelope on the send path.
+- [ ] Give `subscriptions/listen` a dedicated `*ResultResponse` once its empty-ack result lands in the
+  schema (its response is currently carried by `GenericResultResponse`).
 - [ ] Delete `UrlElicitationRequiredError` (-32042) entirely. The success-result-based mechanism
   replaces it.
 
@@ -168,6 +173,22 @@ legal on all of them, and the decode boundary should treat them alike. Settle on
 
 - [x] Choose a single optional-string validation rule and align the affected schema classes
   (`Implementation`, `DiscoverResult`, and any peers) on it.
+
+### Diagnostic message audit
+
+Exception and `Assert::that(...)` messages should follow the convention documented in the "Diagnostic
+message conventions" section of `docs/architecture.md` uniformly. The parser owns one wrapper prefix per
+envelope kind (`Invalid success response:`, `Invalid error response:`, and the request-side messages),
+and the inner detail it wraps is label-less and field-named (`missing the required "id" key.`,
+`"result" must be an object, {type} given.`). The success-response envelope already follows this. The
+rest of the surface (the error-response envelope, request parsing, the schema `fromArray`/constructors,
+the `Core/Validation/` validators, and the exception classes) has not been swept end to end.
+
+- [ ] Audit every diagnostic message against the convention and align the stragglers. The concrete
+  error-response piece: drop the inner `error response` label the parser's `Invalid error response:`
+  prefix now duplicates, quote the `id`, and recast the prose semicolon in its id message, reaching
+  `Invalid error response: missing the required "code" key.`. Then extend the convention docs to cover
+  the parser-wrapper layer once both envelope sides match.
 
 ### Deprecation cleanup
 

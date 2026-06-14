@@ -2,7 +2,7 @@
 
 $ignoreErrors = [];
 $ignoreErrors[] = [
-	'rawMessage' => 'Property Nexus\\Mcp\\Core\\Dispatch\\PendingOutboundRequests::$map (array<non-empty-string, array{deferred: Amp\\DeferredFuture<Nexus\\Mcp\\Core\\Schema\\JsonRpc\\JsonRpcResultResponse<Nexus\\Mcp\\Core\\Schema\\Result<array<string, mixed>>>>, result: class-string<Nexus\\Mcp\\Core\\Schema\\Result<array<string, mixed>>>}>) does not accept non-empty-array<non-empty-string, array{deferred: Amp\\DeferredFuture<Nexus\\Mcp\\Core\\Schema\\JsonRpc\\JsonRpcResultResponse<Nexus\\Mcp\\Core\\Schema\\Result<array<string, mixed>>>>|Amp\\DeferredFuture<Nexus\\Mcp\\Core\\Schema\\JsonRpc\\JsonRpcResultResponse<T of Nexus\\Mcp\\Core\\Schema\\Result>>, result: class-string<Nexus\\Mcp\\Core\\Schema\\Result<array<string, mixed>>>|class-string<T of Nexus\\Mcp\\Core\\Schema\\Result>}>.',
+	'rawMessage' => 'Property Nexus\\Mcp\\Core\\Dispatch\\PendingOutboundRequests::$map (array<non-empty-string, array{deferred: Amp\\DeferredFuture<Nexus\\Mcp\\Core\\Schema\\JsonRpc\\JsonRpcResultResponse<array<string, mixed>>>, response: class-string<Nexus\\Mcp\\Core\\Schema\\JsonRpc\\JsonRpcResultResponse<array<string, mixed>>>}>) does not accept non-empty-array<non-empty-string, array{deferred: Amp\\DeferredFuture<Nexus\\Mcp\\Core\\Schema\\JsonRpc\\JsonRpcResultResponse<array<string, mixed>>>|Amp\\DeferredFuture<TResponse of Nexus\\Mcp\\Core\\Schema\\JsonRpc\\JsonRpcResultResponse<array<string, mixed>> = Nexus\\Mcp\\Core\\Schema\\JsonRpc\\JsonRpcResultResponse<array<string, mixed>>>, response: class-string<Nexus\\Mcp\\Core\\Schema\\JsonRpc\\JsonRpcResultResponse<array<string, mixed>>>}>.',
 	'identifier' => 'assign.propertyType',
 	'count' => 1,
 	'path' => __DIR__ . '/src/Core/Dispatch/PendingOutboundRequests.php',

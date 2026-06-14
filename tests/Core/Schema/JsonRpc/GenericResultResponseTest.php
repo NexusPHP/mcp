@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Tests\Core\Schema\JsonRpc;
 
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\Implementation;
+use Nexus\Mcp\Core\Schema\JsonRpc\GenericResultResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\ProtocolVersion;
@@ -29,14 +30,15 @@ use PHPUnit\Framework\TestCase;
 /**
  * @internal
  */
+#[CoversClass(GenericResultResponse::class)]
 #[CoversClass(JsonRpcResultResponse::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class JsonRpcResultResponseTest extends TestCase
+final class GenericResultResponseTest extends TestCase
 {
     public function testToArrayEmitsEnvelopeWithEmptyResult(): void
     {
-        $response = new JsonRpcResultResponse(id: new RequestId(id: 42), result: new EmptyResult());
+        $response = new GenericResultResponse(id: new RequestId(id: 42), result: new EmptyResult());
 
         self::assertSame(
             ['jsonrpc' => '2.0', 'id' => 42, 'result' => ['resultType' => 'complete']],
@@ -46,7 +48,7 @@ final class JsonRpcResultResponseTest extends TestCase
 
     public function testToArrayEmitsEnvelopeWithResultMeta(): void
     {
-        $response = new JsonRpcResultResponse(
+        $response = new GenericResultResponse(
             id: new RequestId(id: 'req-1'),
             result: new EmptyResult(meta: new MetaObject(extras: ['vendor' => 'x'])),
         );
@@ -63,14 +65,14 @@ final class JsonRpcResultResponseTest extends TestCase
 
     public function testJsonSerializeMatchesToArrayForLeafResult(): void
     {
-        $response = new JsonRpcResultResponse(id: new RequestId(id: 1), result: new EmptyResult(meta: new MetaObject(extras: ['vendor' => 'x'])));
+        $response = new GenericResultResponse(id: new RequestId(id: 1), result: new EmptyResult(meta: new MetaObject(extras: ['vendor' => 'x'])));
 
         self::assertSame($response->toArray(), $response->jsonSerialize());
     }
 
     public function testJsonSerializePreservesEmptyObjectMarkersFromInnerResult(): void
     {
-        $response = new JsonRpcResultResponse(
+        $response = new GenericResultResponse(
             id: new RequestId(id: 99),
             result: new DiscoverResult(
                 supportedVersions: [ProtocolVersion::LATEST_VERSION],
@@ -85,5 +87,13 @@ final class JsonRpcResultResponseTest extends TestCase
 
         self::assertIsString($encoded);
         self::assertStringContainsString('"completions":{}', $encoded, 'Empty capability markers must encode as JSON objects, not arrays.');
+    }
+
+    public function testFromArrayDecodesABareSuccessResponseToEmptyResult(): void
+    {
+        $response = GenericResultResponse::fromArray(['jsonrpc' => '2.0', 'id' => 7, 'result' => ['resultType' => 'complete']]);
+
+        self::assertInstanceOf(EmptyResult::class, $response->result);
+        self::assertSame(7, $response->id->id);
     }
 }

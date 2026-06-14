@@ -20,9 +20,9 @@ use Amp\ByteStream\WritableBuffer;
 use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyStartedException;
 use Nexus\Mcp\Core\Exception\TransportNotStartedException;
+use Nexus\Mcp\Core\Schema\JsonRpc\GenericResultResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcMessage;
-use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\Notification\CancelledNotification;
 use Nexus\Mcp\Core\Schema\NotificationParams\CancelledNotificationParams;
 use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
@@ -564,7 +564,7 @@ final class LineDuplexTest extends TestCase
         ];
 
         yield 'response envelope' => [
-            new JsonRpcResultResponse(id: new RequestId(id: 99), result: new EmptyResult()),
+            new GenericResultResponse(id: new RequestId(id: 99), result: new EmptyResult()),
             'a response envelope',
         ];
     }
@@ -638,7 +638,7 @@ final class LineDuplexTest extends TestCase
         ];
 
         yield 'response envelope' => [
-            new JsonRpcResultResponse(id: new RequestId(id: 99), result: new EmptyResult()),
+            new GenericResultResponse(id: new RequestId(id: 99), result: new EmptyResult()),
             'a response envelope',
         ];
     }
@@ -733,7 +733,7 @@ final class LineDuplexTest extends TestCase
         ];
 
         yield 'response envelope' => [
-            new JsonRpcResultResponse(id: new RequestId(id: 99), result: new EmptyResult()),
+            new GenericResultResponse(id: new RequestId(id: 99), result: new EmptyResult()),
             'a response envelope',
         ];
     }

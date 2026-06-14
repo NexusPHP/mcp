@@ -19,15 +19,12 @@ use Nexus\Mcp\Core\Exception\InvalidParamsException;
 use Nexus\Mcp\Core\Exception\InvalidRequestException;
 use Nexus\Mcp\Core\Exception\MethodMisroutedException;
 use Nexus\Mcp\Core\Exception\MethodNotFoundException;
-use Nexus\Mcp\Core\Schema\Enum\ResultType;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcMessage;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\RequestId;
-use Nexus\Mcp\Core\Schema\Result;
-use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
 
 /**
  * Parses decoded JSON-RPC envelopes into concrete message objects.
@@ -57,19 +54,20 @@ final class JsonRpcMessageParser
     }
 
     /**
-     * @template T of Result = Result
+     * @template TResponse of JsonRpcResultResponse<array<string, mixed>> = JsonRpcResultResponse<array<string, mixed>>
      *
-     * @param array<string, mixed> $message Decoded JSON-RPC envelope
-     * @param null|class-string<T> $result  When null, a success response envelope yields an `UnparsedResultEnvelope`
-     *                                      carrying the raw payload. When supplied, it is decoded into `JsonRpcResultResponse<T>`.
+     * @param array<string, mixed>         $message  Decoded JSON-RPC envelope
+     * @param null|class-string<TResponse> $response When null, a success response envelope yields an `UnparsedResultEnvelope`
+     *                                               carrying the raw payload. When supplied, the result payload is decoded
+     *                                               into the response envelope `TResponse`.
      *
-     * @return ($result is null
+     * @return ($response is null
      *     ? JsonRpcErrorResponse|JsonRpcNotification<non-empty-string, array<string, mixed>>|JsonRpcRequest<non-empty-string, array<string, mixed>>|UnparsedResultEnvelope
-     *     : JsonRpcErrorResponse|JsonRpcNotification<non-empty-string, array<string, mixed>>|JsonRpcRequest<non-empty-string, array<string, mixed>>|JsonRpcResultResponse<InputRequiredResult|T>)
+     *     : JsonRpcErrorResponse|JsonRpcNotification<non-empty-string, array<string, mixed>>|JsonRpcRequest<non-empty-string, array<string, mixed>>|TResponse)
      *
      * @throws AbstractJsonRpcProtocolException
      */
-    public function parse(array $message, ?string $result = null): JsonRpcMessage|UnparsedResultEnvelope
+    public function parse(array $message, ?string $response = null): JsonRpcMessage|UnparsedResultEnvelope
     {
         self::assertJsonRpcVersion($message);
 
@@ -86,38 +84,22 @@ final class JsonRpcMessageParser
 
         if (\array_key_exists('result', $message)) {
             try {
-                Assert::that($message)->hasOffset('id', 'Success response must carry an "id".');
-                Assert::that($message['id'])->isArrayKey('Response "id" must be an int or string, {type} given.');
+                Assert::that($message)->hasOffset('id', 'missing the required "id" key.');
+                Assert::that($message['id'])->isArrayKey('"id" must be an int or string, {type} given.');
                 $id = new RequestId(id: $message['id']);
             } catch (\InvalidArgumentException $e) {
-                throw new InvalidRequestException(null, $e->getMessage());
+                throw new InvalidRequestException(null, \sprintf('Invalid success response: %s', $e->getMessage()));
             }
 
-            if (null === $result) {
+            if (null === $response) {
                 return new UnparsedResultEnvelope($id, $message['result']);
             }
 
             try {
-                Assert::that($message['result'])
-                    ->isArray('Success response "result" must be an object, {type} given.')
-                    ->isMap('Success response "result" must be a string-keyed object.')
-                ;
+                return $response::fromArray($message);
             } catch (\InvalidArgumentException $e) {
-                throw new InvalidRequestException($id, $e->getMessage());
+                throw new InvalidRequestException($id, \sprintf('Invalid success response: %s', $e->getMessage()));
             }
-
-            $payload = $message['result'];
-            $resultClass = (($payload['resultType'] ?? null) === ResultType::InputRequired->value)
-                ? InputRequiredResult::class
-                : $result;
-
-            try {
-                $typed = $resultClass::fromArray($payload);
-            } catch (\InvalidArgumentException $e) {
-                throw new InvalidRequestException($id, \sprintf('Invalid "result" payload: %s', $e->getMessage()));
-            }
-
-            return new JsonRpcResultResponse(id: $id, result: $typed);
         }
 
         try {

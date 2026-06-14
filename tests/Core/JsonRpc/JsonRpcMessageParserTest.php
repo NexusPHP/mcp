@@ -21,14 +21,16 @@ use Nexus\Mcp\Core\Exception\MethodNotFoundException;
 use Nexus\Mcp\Core\JsonRpc\JsonRpcMessageParser;
 use Nexus\Mcp\Core\JsonRpc\UnparsedResultEnvelope;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
+use Nexus\Mcp\Core\Schema\JsonRpc\CallToolResultResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
+use Nexus\Mcp\Core\Schema\JsonRpc\ListToolsResultResponse;
 use Nexus\Mcp\Core\Schema\Notification\ToolListChangedNotification;
 use Nexus\Mcp\Core\Schema\ProgressToken;
 use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
-use Nexus\Mcp\Core\Schema\Result\EmptyResult;
+use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use Nexus\Mcp\Tests\Fixtures\Core\TestNotification;
@@ -119,23 +121,19 @@ final class JsonRpcMessageParserTest extends TestCase
         self::assertSame(['vendor' => 'x'], $parsed->params->meta->extras);
     }
 
-    public function testEmptyResultRoundTrip(): void
+    public function testParseDecodesSuccessResponseViaTypedEnvelope(): void
     {
-        $response = new JsonRpcResultResponse(id: new RequestId(id: 42), result: new EmptyResult());
-
-        self::assertSame(
-            ['jsonrpc' => '2.0', 'id' => 42, 'result' => ['resultType' => 'complete']],
-            $response->toArray(),
+        $parser = new JsonRpcMessageParser();
+        $parsed = $parser->parse(
+            ['jsonrpc' => '2.0', 'id' => 42, 'result' => ['content' => []]],
+            CallToolResultResponse::class,
         );
 
-        $parser = new JsonRpcMessageParser();
-        $parsed = $parser->parse($response->toArray(), EmptyResult::class);
-
-        if (! $parsed instanceof JsonRpcResultResponse) {
-            self::fail(\sprintf('Expected JsonRpcResultResponse, got %s.', $parsed::class));
+        if (! $parsed instanceof CallToolResultResponse) {
+            self::fail(\sprintf('Expected CallToolResultResponse, got %s.', $parsed::class));
         }
 
-        self::assertInstanceOf(EmptyResult::class, $parsed->result);
+        self::assertInstanceOf(CallToolResult::class, $parsed->result);
         self::assertSame(42, $parsed->id->id);
     }
 
@@ -347,17 +345,17 @@ final class JsonRpcMessageParserTest extends TestCase
             self::fail('Expected InvalidRequestException.');
         } catch (InvalidRequestException $e) {
             self::assertNull($e->requestId, 'An empty-string id cannot be preserved on the exception.');
-            self::assertSame('"id" must be a non-empty string.', $e->getMessage());
+            self::assertSame('Invalid success response: "id" must be a non-empty string.', $e->getMessage());
         }
     }
 
     public function testParseRejectsEmptyStringIdWithTypedResultAsInvalidRequest(): void
     {
         $this->expectException(InvalidRequestException::class);
-        $this->expectExceptionMessageIs('"id" must be a non-empty string.');
+        $this->expectExceptionMessageIs('Invalid success response: "id" must be a non-empty string.');
 
         $parser = new JsonRpcMessageParser();
-        $parser->parse(['jsonrpc' => '2.0', 'id' => '', 'result' => []], EmptyResult::class);
+        $parser->parse(['jsonrpc' => '2.0', 'id' => '', 'result' => []], CallToolResultResponse::class);
     }
 
     public function testParseRejectsNonScalarRequestIdAsInvalidRequest(): void
@@ -445,7 +443,7 @@ final class JsonRpcMessageParserTest extends TestCase
     public function testParseRejectsMissingIdOnResultEnvelopeEvenWhenResultClassOmitted(): void
     {
         $this->expectException(InvalidRequestException::class);
-        $this->expectExceptionMessageIs('Success response must carry an "id".');
+        $this->expectExceptionMessageIs('Invalid success response: missing the required "id" key.');
 
         $parser = new JsonRpcMessageParser();
         $parser->parse(['jsonrpc' => '2.0', 'result' => ['payload' => 'x']]);
@@ -454,7 +452,7 @@ final class JsonRpcMessageParserTest extends TestCase
     public function testParseRejectsNonScalarIdOnResultEnvelopeEvenWhenResultClassOmitted(): void
     {
         $this->expectException(InvalidRequestException::class);
-        $this->expectExceptionMessageIs('Response "id" must be an int or string, array given.');
+        $this->expectExceptionMessageIs('Invalid success response: "id" must be an int or string, array given.');
 
         $parser = new JsonRpcMessageParser();
         $parser->parse(['jsonrpc' => '2.0', 'id' => [], 'result' => []]);
@@ -473,30 +471,30 @@ final class JsonRpcMessageParserTest extends TestCase
     public function testParseRejectsResultResponseWithMissingId(): void
     {
         $this->expectException(InvalidRequestException::class);
-        $this->expectExceptionMessageIs('Success response must carry an "id".');
+        $this->expectExceptionMessageIs('Invalid success response: missing the required "id" key.');
 
         $parser = new JsonRpcMessageParser();
-        $parser->parse(['jsonrpc' => '2.0', 'result' => []], EmptyResult::class);
+        $parser->parse(['jsonrpc' => '2.0', 'result' => []], CallToolResultResponse::class);
     }
 
     public function testParseRejectsResultResponseWithBadIdType(): void
     {
         $this->expectException(InvalidRequestException::class);
-        $this->expectExceptionMessageIs('Response "id" must be an int or string, array given.');
+        $this->expectExceptionMessageIs('Invalid success response: "id" must be an int or string, array given.');
 
         $parser = new JsonRpcMessageParser();
-        $parser->parse(['jsonrpc' => '2.0', 'id' => [], 'result' => []], EmptyResult::class);
+        $parser->parse(['jsonrpc' => '2.0', 'id' => [], 'result' => []], CallToolResultResponse::class);
     }
 
     public function testParseRejectsResultResponseWithNonObjectResult(): void
     {
         try {
             $parser = new JsonRpcMessageParser();
-            $parser->parse(['jsonrpc' => '2.0', 'id' => 1, 'result' => 'bad'], EmptyResult::class);
+            $parser->parse(['jsonrpc' => '2.0', 'id' => 1, 'result' => 'bad'], CallToolResultResponse::class);
             self::fail('Expected InvalidRequestException.');
         } catch (InvalidRequestException $e) {
             self::assertSame(1, $e->requestId?->id);
-            self::assertStringContainsString('Success response "result" must be an object, string given.', $e->getMessage());
+            self::assertSame('Invalid success response: "result" must be an object, string given.', $e->getMessage());
         }
     }
 
@@ -505,13 +503,13 @@ final class JsonRpcMessageParserTest extends TestCase
         try {
             $parser = new JsonRpcMessageParser();
             $parser->parse(
-                ['jsonrpc' => '2.0', 'id' => 1, 'result' => ['_meta' => 'bad']],
-                EmptyResult::class,
+                ['jsonrpc' => '2.0', 'id' => 1, 'result' => ['content' => [], '_meta' => 'bad']],
+                CallToolResultResponse::class,
             );
             self::fail('Expected InvalidRequestException.');
         } catch (InvalidRequestException $e) {
             self::assertSame(1, $e->requestId?->id);
-            self::assertSame('Invalid "result" payload: "result._meta" must be an object, string given.', $e->getMessage());
+            self::assertSame('Invalid success response: "result._meta" must be an object, string given.', $e->getMessage());
         }
     }
 
@@ -520,7 +518,7 @@ final class JsonRpcMessageParserTest extends TestCase
         $parser = new JsonRpcMessageParser();
         $parsed = $parser->parse(
             ['jsonrpc' => '2.0', 'id' => 7, 'result' => ['resultType' => 'input_required', 'requestState' => 'tok']],
-            EmptyResult::class,
+            CallToolResultResponse::class,
         );
 
         if (! $parsed instanceof JsonRpcResultResponse) {
@@ -541,15 +539,15 @@ final class JsonRpcMessageParserTest extends TestCase
     {
         $parser = new JsonRpcMessageParser();
         $parsed = $parser->parse(
-            ['jsonrpc' => '2.0', 'id' => 8, 'result' => ['resultType' => 'task']],
-            EmptyResult::class,
+            ['jsonrpc' => '2.0', 'id' => 8, 'result' => ['resultType' => 'task', 'content' => []]],
+            CallToolResultResponse::class,
         );
 
         if (! $parsed instanceof JsonRpcResultResponse) {
             self::fail(\sprintf('Expected JsonRpcResultResponse, got %s.', $parsed::class));
         }
 
-        self::assertInstanceOf(EmptyResult::class, $parsed->result);
+        self::assertInstanceOf(CallToolResult::class, $parsed->result);
     }
 
     public function testParseWrapsInvalidInputRequiredResultPayloadAsInvalidRequest(): void
@@ -558,12 +556,27 @@ final class JsonRpcMessageParserTest extends TestCase
             $parser = new JsonRpcMessageParser();
             $parser->parse(
                 ['jsonrpc' => '2.0', 'id' => 1, 'result' => ['resultType' => 'input_required', 'inputRequests' => 'bad']],
-                EmptyResult::class,
+                CallToolResultResponse::class,
             );
             self::fail('Expected InvalidRequestException.');
         } catch (InvalidRequestException $e) {
             self::assertSame(1, $e->requestId?->id);
-            self::assertSame('Invalid "result" payload: "result.inputRequests" must be an object, string given.', $e->getMessage());
+            self::assertSame('Invalid success response: "result.inputRequests" must be an object, string given.', $e->getMessage());
+        }
+    }
+
+    public function testParseRejectsInputRequiredForUnsupportedEnvelope(): void
+    {
+        try {
+            $parser = new JsonRpcMessageParser();
+            $parser->parse(
+                ['jsonrpc' => '2.0', 'id' => 1, 'result' => ['resultType' => 'input_required', 'requestState' => 'tok']],
+                ListToolsResultResponse::class,
+            );
+            self::fail('Expected InvalidRequestException.');
+        } catch (InvalidRequestException $e) {
+            self::assertSame(1, $e->requestId?->id);
+            self::assertSame('Invalid success response: "result" returned "input_required" for a method that does not support it.', $e->getMessage());
         }
     }
 

@@ -16,7 +16,6 @@ namespace Nexus\Mcp\Core\Handler;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
-use Nexus\Mcp\Core\Schema\Result;
 
 /**
  * Outbound message pump used by `AbstractContext` helpers.
@@ -31,7 +30,7 @@ interface SenderInterface
     /**
      * @param JsonRpcRequest<non-empty-string, array<string, mixed>> $request
      *
-     * @return JsonRpcResultResponse<Result<array<string, mixed>>>
+     * @return JsonRpcResultResponse<array<string, mixed>>
      */
     public function sendRequest(JsonRpcRequest $request): JsonRpcResultResponse;
 }

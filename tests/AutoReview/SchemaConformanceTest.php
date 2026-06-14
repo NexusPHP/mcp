@@ -25,6 +25,7 @@ use Nexus\Mcp\Core\Schema\Error;
 use Nexus\Mcp\Core\Schema\Error\UnknownProtocolError;
 use Nexus\Mcp\Core\Schema\Error\UrlElicitationRequiredErrorPayload;
 use Nexus\Mcp\Core\Schema\Icons;
+use Nexus\Mcp\Core\Schema\JsonRpc\GenericResultResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\JsonRpc\UrlElicitationRequiredError;
@@ -149,6 +150,7 @@ final class SchemaConformanceTest extends TestCase
      */
     private const array SEE_ANNOTATION_EXEMPT = [
         Arrayable::class,
+        GenericResultResponse::class,
         RequestParamsInterface::class,
     ];
 

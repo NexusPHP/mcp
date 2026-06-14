@@ -15,7 +15,7 @@ namespace Nexus\Mcp\Tests\Core\Dispatch;
 
 use Nexus\Mcp\Core\Dispatch\PendingOutboundRequests;
 use Nexus\Mcp\Core\Exception\DuplicateOutboundRequestIdException;
-use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
+use Nexus\Mcp\Core\Schema\JsonRpc\GenericResultResponse;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -33,7 +33,7 @@ final class PendingOutboundRequestsTest extends TestCase
     public function testRegisterReturnsAFutureAndIncrementsTheCount(): void
     {
         $pending = new PendingOutboundRequests();
-        $future = $pending->register(new RequestId(id: 1), EmptyResult::class);
+        $future = $pending->register(new RequestId(id: 1), GenericResultResponse::class);
 
         self::assertFalse($future->isComplete());
         self::assertCount(1, $pending);
@@ -42,21 +42,21 @@ final class PendingOutboundRequestsTest extends TestCase
     public function testDuplicateRegisterThrowsDuplicateOutboundRequestIdException(): void
     {
         $pending = new PendingOutboundRequests();
-        $pending->register(new RequestId(id: 1), EmptyResult::class);
+        $pending->register(new RequestId(id: 1), GenericResultResponse::class);
 
         $this->expectException(DuplicateOutboundRequestIdException::class);
         $this->expectExceptionMessageMatches('/^Outbound request id 1 is already pending\./');
 
-        $pending->register(new RequestId(id: 1), EmptyResult::class);
+        $pending->register(new RequestId(id: 1), GenericResultResponse::class);
     }
 
     public function testDuplicateRegisterDoesNotMutateTheMap(): void
     {
         $pending = new PendingOutboundRequests();
-        $pending->register(new RequestId(id: 1), EmptyResult::class);
+        $pending->register(new RequestId(id: 1), GenericResultResponse::class);
 
         try {
-            $pending->register(new RequestId(id: 1), EmptyResult::class);
+            $pending->register(new RequestId(id: 1), GenericResultResponse::class);
         } catch (DuplicateOutboundRequestIdException) {
             // expected
         }
@@ -67,20 +67,20 @@ final class PendingOutboundRequestsTest extends TestCase
     public function testRegisterStringIdEmitsTheValueInTheException(): void
     {
         $pending = new PendingOutboundRequests();
-        $pending->register(new RequestId(id: 'corr-token'), EmptyResult::class);
+        $pending->register(new RequestId(id: 'corr-token'), GenericResultResponse::class);
 
         $this->expectException(DuplicateOutboundRequestIdException::class);
         $this->expectExceptionMessageMatches('/^Outbound request id \'corr-token\' is already pending\\./');
 
-        $pending->register(new RequestId(id: 'corr-token'), EmptyResult::class);
+        $pending->register(new RequestId(id: 'corr-token'), GenericResultResponse::class);
     }
 
     public function testRegisterIntAndStringIdsAreDistinct(): void
     {
         $pending = new PendingOutboundRequests();
 
-        $pending->register(new RequestId(id: 1), EmptyResult::class);
-        $pending->register(new RequestId(id: '1'), EmptyResult::class);
+        $pending->register(new RequestId(id: 1), GenericResultResponse::class);
+        $pending->register(new RequestId(id: '1'), GenericResultResponse::class);
 
         self::assertCount(2, $pending);
     }
@@ -88,8 +88,8 @@ final class PendingOutboundRequestsTest extends TestCase
     public function testResolveCompletesTheFutureWithTheGivenResponse(): void
     {
         $pending = new PendingOutboundRequests();
-        $future = $pending->register(new RequestId(id: 7), EmptyResult::class);
-        $response = new JsonRpcResultResponse(id: new RequestId(id: 7), result: new EmptyResult());
+        $future = $pending->register(new RequestId(id: 7), GenericResultResponse::class);
+        $response = new GenericResultResponse(id: new RequestId(id: 7), result: new EmptyResult());
 
         self::assertTrue($pending->resolve(new RequestId(id: 7), $response));
         self::assertTrue($future->isComplete());
@@ -99,13 +99,13 @@ final class PendingOutboundRequestsTest extends TestCase
     public function testResolveRemovesTheEntry(): void
     {
         $pending = new PendingOutboundRequests();
-        $pending->register(new RequestId(id: 7), EmptyResult::class);
+        $pending->register(new RequestId(id: 7), GenericResultResponse::class);
 
-        $pending->resolve(new RequestId(id: 7), new JsonRpcResultResponse(id: new RequestId(id: 7), result: new EmptyResult()));
+        $pending->resolve(new RequestId(id: 7), new GenericResultResponse(id: new RequestId(id: 7), result: new EmptyResult()));
 
         self::assertCount(0, $pending);
         self::assertFalse(
-            $pending->resolve(new RequestId(id: 7), new JsonRpcResultResponse(id: new RequestId(id: 7), result: new EmptyResult())),
+            $pending->resolve(new RequestId(id: 7), new GenericResultResponse(id: new RequestId(id: 7), result: new EmptyResult())),
             'A second resolve for the same id must report no entry.',
         );
     }
@@ -113,9 +113,9 @@ final class PendingOutboundRequestsTest extends TestCase
     public function testResolveOnUnknownIdReturnsFalseAndDoesNotMutateOtherEntries(): void
     {
         $pending = new PendingOutboundRequests();
-        $pending->register(new RequestId(id: 1), EmptyResult::class);
+        $pending->register(new RequestId(id: 1), GenericResultResponse::class);
 
-        $orphan = new JsonRpcResultResponse(id: new RequestId(id: 999), result: new EmptyResult());
+        $orphan = new GenericResultResponse(id: new RequestId(id: 999), result: new EmptyResult());
         self::assertFalse($pending->resolve(new RequestId(id: 999), $orphan));
         self::assertCount(1, $pending, 'Orphan resolve must leave registered entries alone.');
     }
@@ -123,7 +123,7 @@ final class PendingOutboundRequestsTest extends TestCase
     public function testRejectFailsTheFutureWithTheGivenError(): void
     {
         $pending = new PendingOutboundRequests();
-        $future = $pending->register(new RequestId(id: 3), EmptyResult::class);
+        $future = $pending->register(new RequestId(id: 3), GenericResultResponse::class);
         $error = new \RuntimeException('peer rejected the call');
 
         self::assertTrue($pending->reject(new RequestId(id: 3), $error));
@@ -140,7 +140,7 @@ final class PendingOutboundRequestsTest extends TestCase
     public function testRejectRemovesTheEntry(): void
     {
         $pending = new PendingOutboundRequests();
-        $pending->register(new RequestId(id: 3), EmptyResult::class)->ignore();
+        $pending->register(new RequestId(id: 3), GenericResultResponse::class)->ignore();
 
         $pending->reject(new RequestId(id: 3), new \RuntimeException('boom'));
 
@@ -154,7 +154,7 @@ final class PendingOutboundRequestsTest extends TestCase
     public function testRejectOnUnknownIdReturnsFalseAndDoesNotMutateOtherEntries(): void
     {
         $pending = new PendingOutboundRequests();
-        $pending->register(new RequestId(id: 1), EmptyResult::class);
+        $pending->register(new RequestId(id: 1), GenericResultResponse::class);
 
         self::assertFalse($pending->reject(new RequestId(id: 999), new \RuntimeException('orphan')));
         self::assertCount(1, $pending, 'Orphan reject must leave registered entries alone.');
@@ -163,7 +163,7 @@ final class PendingOutboundRequestsTest extends TestCase
     public function testForgetRemovesTheEntryWithoutCompletingItsFuture(): void
     {
         $pending = new PendingOutboundRequests();
-        $future = $pending->register(new RequestId(id: 3), EmptyResult::class);
+        $future = $pending->register(new RequestId(id: 3), GenericResultResponse::class);
 
         self::assertTrue($pending->forget(new RequestId(id: 3)));
         self::assertCount(0, $pending);
@@ -173,7 +173,7 @@ final class PendingOutboundRequestsTest extends TestCase
     public function testForgetOnUnknownIdReturnsFalseAndDoesNotMutateOtherEntries(): void
     {
         $pending = new PendingOutboundRequests();
-        $pending->register(new RequestId(id: 1), EmptyResult::class);
+        $pending->register(new RequestId(id: 1), GenericResultResponse::class);
 
         self::assertFalse($pending->forget(new RequestId(id: 999)));
         self::assertCount(1, $pending, 'Orphan forget must leave registered entries alone.');
@@ -182,9 +182,9 @@ final class PendingOutboundRequestsTest extends TestCase
     public function testCancelAllFailsEveryPendingFutureWithTheGivenError(): void
     {
         $pending = new PendingOutboundRequests();
-        $a = $pending->register(new RequestId(id: 1), EmptyResult::class);
-        $b = $pending->register(new RequestId(id: 2), EmptyResult::class);
-        $c = $pending->register(new RequestId(id: 'x'), EmptyResult::class);
+        $a = $pending->register(new RequestId(id: 1), GenericResultResponse::class);
+        $b = $pending->register(new RequestId(id: 2), GenericResultResponse::class);
+        $c = $pending->register(new RequestId(id: 'x'), GenericResultResponse::class);
         $error = new \RuntimeException('transport closed');
 
         $pending->cancelAll($error);
@@ -204,8 +204,8 @@ final class PendingOutboundRequestsTest extends TestCase
     public function testCancelAllEmptiesTheMap(): void
     {
         $pending = new PendingOutboundRequests();
-        $pending->register(new RequestId(id: 1), EmptyResult::class)->ignore();
-        $pending->register(new RequestId(id: 2), EmptyResult::class)->ignore();
+        $pending->register(new RequestId(id: 1), GenericResultResponse::class)->ignore();
+        $pending->register(new RequestId(id: 2), GenericResultResponse::class)->ignore();
 
         $pending->cancelAll(new \RuntimeException('transport closed'));
 
@@ -224,11 +224,11 @@ final class PendingOutboundRequestsTest extends TestCase
     public function testAfterCancelAllANewRegisterReturnsAFreshFuture(): void
     {
         $pending = new PendingOutboundRequests();
-        $original = $pending->register(new RequestId(id: 1), EmptyResult::class);
+        $original = $pending->register(new RequestId(id: 1), GenericResultResponse::class);
         $original->ignore();
         $pending->cancelAll(new \RuntimeException('first transport closed'));
 
-        $reborn = $pending->register(new RequestId(id: 1), EmptyResult::class);
+        $reborn = $pending->register(new RequestId(id: 1), GenericResultResponse::class);
 
         self::assertNotSame($original, $reborn, 'The new register must yield a distinct future.');
         self::assertFalse($reborn->isComplete());
@@ -238,47 +238,47 @@ final class PendingOutboundRequestsTest extends TestCase
     public function testResultClassForReturnsTheRegisteredClass(): void
     {
         $pending = new PendingOutboundRequests();
-        $pending->register(new RequestId(id: 1), EmptyResult::class);
+        $pending->register(new RequestId(id: 1), GenericResultResponse::class);
 
-        self::assertSame(EmptyResult::class, $pending->resolveResultClass(new RequestId(id: 1)));
+        self::assertSame(GenericResultResponse::class, $pending->resolveResponseClass(new RequestId(id: 1)));
     }
 
     public function testResultClassForOnUnknownIdReturnsNull(): void
     {
         $pending = new PendingOutboundRequests();
 
-        self::assertNull($pending->resolveResultClass(new RequestId(id: 'never-registered')));
+        self::assertNull($pending->resolveResponseClass(new RequestId(id: 'never-registered')));
     }
 
     public function testResultClassForReturnsNullAfterResolve(): void
     {
         $pending = new PendingOutboundRequests();
-        $pending->register(new RequestId(id: 1), EmptyResult::class);
+        $pending->register(new RequestId(id: 1), GenericResultResponse::class);
 
-        $pending->resolve(new RequestId(id: 1), new JsonRpcResultResponse(id: new RequestId(id: 1), result: new EmptyResult()));
+        $pending->resolve(new RequestId(id: 1), new GenericResultResponse(id: new RequestId(id: 1), result: new EmptyResult()));
 
-        self::assertNull($pending->resolveResultClass(new RequestId(id: 1)), 'A resolved entry leaves no class lookup behind.');
+        self::assertNull($pending->resolveResponseClass(new RequestId(id: 1)), 'A resolved entry leaves no class lookup behind.');
     }
 
     public function testResultClassForReturnsNullAfterReject(): void
     {
         $pending = new PendingOutboundRequests();
-        $pending->register(new RequestId(id: 1), EmptyResult::class)->ignore();
+        $pending->register(new RequestId(id: 1), GenericResultResponse::class)->ignore();
 
         $pending->reject(new RequestId(id: 1), new \RuntimeException('boom'));
 
-        self::assertNull($pending->resolveResultClass(new RequestId(id: 1)), 'A rejected entry leaves no class lookup behind.');
+        self::assertNull($pending->resolveResponseClass(new RequestId(id: 1)), 'A rejected entry leaves no class lookup behind.');
     }
 
     public function testResultClassForReturnsNullAfterCancelAll(): void
     {
         $pending = new PendingOutboundRequests();
-        $pending->register(new RequestId(id: 1), EmptyResult::class)->ignore();
-        $pending->register(new RequestId(id: 2), EmptyResult::class)->ignore();
+        $pending->register(new RequestId(id: 1), GenericResultResponse::class)->ignore();
+        $pending->register(new RequestId(id: 2), GenericResultResponse::class)->ignore();
 
         $pending->cancelAll(new \RuntimeException('transport closed'));
 
-        self::assertNull($pending->resolveResultClass(new RequestId(id: 1)));
-        self::assertNull($pending->resolveResultClass(new RequestId(id: 2)));
+        self::assertNull($pending->resolveResponseClass(new RequestId(id: 1)));
+        self::assertNull($pending->resolveResponseClass(new RequestId(id: 2)));
     }
 }

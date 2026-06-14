@@ -18,7 +18,6 @@ use Amp\Future;
 use Nexus\Mcp\Core\Exception\DuplicateOutboundRequestIdException;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\RequestId;
-use Nexus\Mcp\Core\Schema\Result;
 
 /**
  * Correlates outbound JSON-RPC requests with their inbound responses. Senders
@@ -32,7 +31,7 @@ use Nexus\Mcp\Core\Schema\Result;
 final class PendingOutboundRequests implements \Countable
 {
     /**
-     * @var array<non-empty-string, array{deferred: DeferredFuture<JsonRpcResultResponse<Result<array<string, mixed>>>>, result: class-string<Result<array<string, mixed>>>}>
+     * @var array<non-empty-string, array{deferred: DeferredFuture<JsonRpcResultResponse<array<string, mixed>>>, response: class-string<JsonRpcResultResponse<array<string, mixed>>>}>
      */
     private array $map = [];
 
@@ -40,15 +39,15 @@ final class PendingOutboundRequests implements \Countable
      * Registers an outbound request id and returns the future that resolves
      * once `resolve()` or `reject()` is called for the same id.
      *
-     * @template T of Result
+     * @template TResponse of JsonRpcResultResponse<array<string, mixed>> = JsonRpcResultResponse<array<string, mixed>>
      *
-     * @param class-string<T> $result
+     * @param class-string<TResponse> $response
      *
-     * @return Future<JsonRpcResultResponse<T>>
+     * @return Future<TResponse>
      *
      * @throws DuplicateOutboundRequestIdException
      */
-    public function register(RequestId $id, string $result): Future
+    public function register(RequestId $id, string $response): Future
     {
         $key = self::buildKey($id);
 
@@ -56,20 +55,20 @@ final class PendingOutboundRequests implements \Countable
             throw new DuplicateOutboundRequestIdException($id);
         }
 
-        /** @var DeferredFuture<JsonRpcResultResponse<T>> $deferred */
+        /** @var DeferredFuture<TResponse> $deferred */
         $deferred = new DeferredFuture();
-        $this->map[$key] = ['deferred' => $deferred, 'result' => $result];
+        $this->map[$key] = ['deferred' => $deferred, 'response' => $response];
 
         return $deferred->getFuture();
     }
 
     /**
-     * Returns the `Result` subclass registered for `$id`, or `null` if no
+     * Returns the response envelope class registered for `$id`, or `null` if no
      * entry exists.
      *
-     * @return null|class-string<Result<array<string, mixed>>>
+     * @return null|class-string<JsonRpcResultResponse<array<string, mixed>>>
      */
-    public function resolveResultClass(RequestId $id): ?string
+    public function resolveResponseClass(RequestId $id): ?string
     {
         $key = self::buildKey($id);
 
@@ -77,14 +76,14 @@ final class PendingOutboundRequests implements \Countable
             return null;
         }
 
-        return $this->map[$key]['result'];
+        return $this->map[$key]['response'];
     }
 
     /**
      * Completes the future for `$id` with the given response. Returns false
      * if no entry was registered for that id.
      *
-     * @param JsonRpcResultResponse<Result<array<string, mixed>>> $response
+     * @param JsonRpcResultResponse<array<string, mixed>> $response
      */
     public function resolve(RequestId $id, JsonRpcResultResponse $response): bool
     {

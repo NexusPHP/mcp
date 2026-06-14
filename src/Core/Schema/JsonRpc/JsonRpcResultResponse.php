@@ -13,41 +13,30 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Schema\JsonRpc;
 
+use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Arrayable;
+use Nexus\Mcp\Core\Schema\Enum\ResultType;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result;
 
 /**
  * A successful (non-error) response to a request.
  *
- * @template-covariant T of Result
+ * @template-covariant TEnvelope of array<string, mixed>
+ *
+ * @implements Arrayable<TEnvelope>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#jsonrpcresultresponse
  */
-final readonly class JsonRpcResultResponse implements \JsonSerializable, JsonRpcResponse
+abstract readonly class JsonRpcResultResponse implements Arrayable, JsonRpcResponse
 {
     /**
-     * @param T $result
+     * @param Result<array<string, mixed>> $result
      */
     public function __construct(public RequestId $id, public Result $result)
     {
     }
 
-    /**
-     * @return array{jsonrpc: '2.0', id: int|non-empty-string, result: template-type<T, Arrayable, 'T'>}
-     */
-    public function toArray(): array
-    {
-        return [
-            'jsonrpc' => self::JSONRPC_VERSION,
-            'id' => $this->id->id,
-            'result' => $this->result->toArray(),
-        ];
-    }
-
-    /**
-     * @return array{jsonrpc: '2.0', id: int|non-empty-string, result: array<string, mixed>|\stdClass}
-     */
     #[\Override]
     public function jsonSerialize(): array
     {
@@ -56,5 +45,58 @@ final readonly class JsonRpcResultResponse implements \JsonSerializable, JsonRpc
             'id' => $this->id->id,
             'result' => $this->result->jsonSerialize(),
         ];
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     *
+     * @throws \InvalidArgumentException
+     */
+    protected static function parseId(array $data): RequestId
+    {
+        Assert::that($data)->hasOffset('id', 'missing the required "id" key.');
+        $id = $data['id'];
+        Assert::that($id)->isArrayKey('"id" must be an int or string, {type} given.');
+
+        return new RequestId(id: $id);
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     *
+     * @return array<string, mixed>
+     *
+     * @throws \InvalidArgumentException
+     */
+    protected static function parseResult(array $data): array
+    {
+        Assert::that($data)->hasOffset('result', 'missing the required "result" key.');
+        $result = $data['result'];
+        Assert::that($result)
+            ->isArray('"result" must be an object, {type} given.')
+            ->isMap('"result" must be a string-keyed object.')
+        ;
+
+        return $result;
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    protected static function isInputRequired(array $payload): bool
+    {
+        return ($payload['resultType'] ?? null) === ResultType::InputRequired->value;
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     *
+     * @throws \InvalidArgumentException
+     */
+    protected static function rejectInputRequired(array $payload): void
+    {
+        if (self::isInputRequired($payload)) {
+            throw new \InvalidArgumentException('"result" returned "input_required" for a method that does not support it.');
+        }
     }
 }

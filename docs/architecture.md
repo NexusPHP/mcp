@@ -66,10 +66,11 @@ empty object slot that should encode as `{}` instead of `[]`), the class substit
 registry. The `AbstractRoundTripTestCase` asserts `json_encode($x) === json_encode($x->toArray())` for every
 other class, so drift between the two paths fails the build.
 
-One documented exception: `JsonRpcResultResponse`. A success-response envelope has no method-name or
-discriminator, so the parser needs caller-supplied context (the expected `Result` subclass) to decode it.
-That wrapper therefore has no `fromArray()` and is constructed only via
-`JsonRpcMessageParser::parse(..., resultClass: SomeResult::class)`.
+A success-response envelope carries no method-name, so the parser cannot pick its concrete type from the
+envelope alone. `JsonRpcResultResponse` is therefore an abstract base with one self-decoding
+`*ResultResponse` per method: the awaiter supplies the expected response class and the parser delegates to its `fromArray()`
+(`JsonRpcMessageParser::parse(..., SomeResultResponse::class)`). Results with no dedicated envelope (e.g.
+`EmptyResult`) ride the `@internal` `GenericResultResponse`.
 
 ## The dispatch kernel
 

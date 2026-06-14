@@ -24,6 +24,7 @@ use Nexus\Mcp\Core\Schema\ClientCapabilities;
 use Nexus\Mcp\Core\Schema\Cursor;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
+use Nexus\Mcp\Core\Schema\JsonRpc\ListToolsResultResponse;
 use Nexus\Mcp\Core\Schema\Notification\ProgressNotification;
 use Nexus\Mcp\Core\Schema\Prompt\PromptReference;
 use Nexus\Mcp\Core\Schema\ProtocolVersion;
@@ -41,7 +42,6 @@ use Nexus\Mcp\Core\Schema\RequestParams\PaginatedRequestParams;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Core\Schema\Result\CompleteResult;
 use Nexus\Mcp\Core\Schema\Result\DiscoverResult;
-use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
 use Nexus\Mcp\Core\Schema\Result\ListPromptsResult;
 use Nexus\Mcp\Core\Schema\Result\ListResourcesResult;
@@ -126,7 +126,7 @@ final class ClientTest extends TestCase
         $this->expectException(ClientNotConnectedException::class);
         $this->expectExceptionMessageMatches('/not connected/');
 
-        $client->sendRequest($request, EmptyResult::class);
+        $client->sendRequest($request, ListToolsResultResponse::class);
     }
 
     public function testSendRequestRegistersTheIdAndSendsTheRequestOnTheTransport(): void
@@ -137,7 +137,7 @@ final class ClientTest extends TestCase
 
         $request = new ListToolsRequest(id: new RequestId(id: 1), params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create()));
 
-        $deferredCall = async(static fn() => $client->sendRequest($request, EmptyResult::class));
+        $deferredCall = async(static fn() => $client->sendRequest($request, ListToolsResultResponse::class));
 
         $transport->nextSend()->await();
 
@@ -145,13 +145,13 @@ final class ClientTest extends TestCase
         self::assertSame($request, $transport->sent[0]['message']);
 
         // Drive the inbound response so the future resolves.
-        $transport->emitMessage(['jsonrpc' => '2.0', 'id' => 1, 'result' => []]);
+        $transport->emitMessage(['jsonrpc' => '2.0', 'id' => 1, 'result' => ['tools' => [], 'ttlMs' => 0, 'cacheScope' => 'private']]);
 
         $response = $deferredCall->await();
 
         self::assertInstanceOf(JsonRpcResultResponse::class, $response);
         self::assertSame(1, $response->id->id);
-        self::assertInstanceOf(EmptyResult::class, $response->result);
+        self::assertInstanceOf(ListToolsResult::class, $response->result);
     }
 
     public function testTransportCloseCancelsAllPendingOutboundRequestsWithTransportClosedException(): void
@@ -161,7 +161,7 @@ final class ClientTest extends TestCase
         $client->connect($transport);
 
         $request = new ListToolsRequest(id: new RequestId(id: 1), params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create()));
-        $call = async(static fn() => $client->sendRequest($request, EmptyResult::class));
+        $call = async(static fn() => $client->sendRequest($request, ListToolsResultResponse::class));
         $transport->nextSend()->await();
 
         $transport->close();
@@ -184,7 +184,7 @@ final class ClientTest extends TestCase
         $request = new ListToolsRequest(id: new RequestId(id: 1), params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create()));
 
         try {
-            $client->sendRequest($request, EmptyResult::class);
+            $client->sendRequest($request, ListToolsResultResponse::class);
             self::fail('Expected the transport send failure to propagate.');
         } catch (TransportAlreadyClosedException) {
         }
@@ -192,7 +192,7 @@ final class ClientTest extends TestCase
         // Re-sending the same id surfaces the send failure again only if the
         // failed registration was freed. A leak would raise a duplicate-id error.
         try {
-            $client->sendRequest($request, EmptyResult::class);
+            $client->sendRequest($request, ListToolsResultResponse::class);
             self::fail('Expected the transport send failure to propagate.');
         } catch (TransportAlreadyClosedException $e) {
             self::assertStringContainsString('send-request', $e->getMessage());

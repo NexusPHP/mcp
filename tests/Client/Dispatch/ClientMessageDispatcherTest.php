@@ -25,11 +25,13 @@ use Nexus\Mcp\Core\Handler\NotificationHandlerInterface;
 use Nexus\Mcp\Core\Handler\RequestHandlerInterface;
 use Nexus\Mcp\Core\JsonRpc\JsonRpcMessageParser;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
+use Nexus\Mcp\Core\Schema\JsonRpc\CallToolResultResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\ProgressToken;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result;
+use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Server\Exception\ResourceNotFoundException;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
@@ -55,11 +57,11 @@ final class ClientMessageDispatcherTest extends TestCase
     public function testSuccessResponseResolvesTheRegisteredFuture(): void
     {
         $outbound = new PendingOutboundRequests();
-        $future = $outbound->register(new RequestId(id: 7), EmptyResult::class);
+        $future = $outbound->register(new RequestId(id: 7), CallToolResultResponse::class);
         $dispatcher = self::buildDispatcher($outbound);
         $transport = new RecordingTransport();
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 7, 'result' => []], $transport);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 7, 'result' => ['content' => []]], $transport);
 
         EventLoop::run();
 
@@ -67,13 +69,13 @@ final class ClientMessageDispatcherTest extends TestCase
         $response = $future->await();
         self::assertInstanceOf(JsonRpcResultResponse::class, $response);
         self::assertSame(7, $response->id->id);
-        self::assertInstanceOf(EmptyResult::class, $response->result);
+        self::assertInstanceOf(CallToolResult::class, $response->result);
     }
 
     public function testErrorResponseRejectsTheRegisteredFutureWithRemoteCallFailedException(): void
     {
         $outbound = new PendingOutboundRequests();
-        $future = $outbound->register(new RequestId(id: 1), EmptyResult::class);
+        $future = $outbound->register(new RequestId(id: 1), CallToolResultResponse::class);
         $dispatcher = self::buildDispatcher($outbound);
         $transport = new RecordingTransport();
 
@@ -97,7 +99,7 @@ final class ClientMessageDispatcherTest extends TestCase
     public function testErrorResponseWithNonObjectDataRejectsTheRegisteredFuture(): void
     {
         $outbound = new PendingOutboundRequests();
-        $future = $outbound->register(new RequestId(id: 1), EmptyResult::class);
+        $future = $outbound->register(new RequestId(id: 1), CallToolResultResponse::class);
         $dispatcher = self::buildDispatcher($outbound);
         $transport = new RecordingTransport();
 
@@ -178,7 +180,7 @@ final class ClientMessageDispatcherTest extends TestCase
     public function testSuccessResponseWithMalformedResultPayloadRejectsTheFuture(): void
     {
         $outbound = new PendingOutboundRequests();
-        $future = $outbound->register(new RequestId(id: 1), EmptyResult::class);
+        $future = $outbound->register(new RequestId(id: 1), CallToolResultResponse::class);
         $dispatcher = self::buildDispatcher($outbound);
         $transport = new RecordingTransport();
 

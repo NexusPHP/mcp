@@ -202,14 +202,15 @@ and the build-time handler sees the rest.
 ## The escape hatch: `sendRequest()`
 
 Every standard client-to-server method has a typed wrapper above, so `sendRequest()` is for vendor extension
-methods (or any pre-built request). Pass the request plus the expected `Result` class. It returns the
-`JsonRpcResultResponse<T>` wrapper.
+methods (or any pre-built request). Pass the request plus the `*ResultResponse` envelope class to decode the
+reply into, and it returns that response. `GenericResultResponse` decodes a bare ack into an `EmptyResult`.
+For a vendor reply with its own shape, subclass `JsonRpcResultResponse` with a matching `fromArray()`.
 
 ```php
-use Nexus\Mcp\Core\Schema\Result\EmptyResult;
+use Nexus\Mcp\Core\Schema\JsonRpc\GenericResultResponse;
 
 // $request is your own JsonRpcRequest subclass bound to a vendor method literal, e.g. "acme/snapshot".
-$response = $client->sendRequest($request, EmptyResult::class);
+$response = $client->sendRequest($request, GenericResultResponse::class);
 ```
 
 You supply the `RequestId` yourself when building the request. The auto-incrementing factory backs the typed
