@@ -91,6 +91,12 @@ utility (SEP-2575, changelog item 5) is removed from the protocol entirely.
   Requires a subscription store and a list-changed / resource-updated fanout source to feed the stream.
 - [x] Delete `resources/subscribe` / `resources/unsubscribe` (none of these are implemented today, so
   this is a non-action verified by the migration).
+- [ ] Emit the two lifecycle/capability error responses: an `UnsupportedProtocolVersionError` when a
+  request's `_meta.protocolVersion` is unknown or unsupported (`data` carries `supported` + `requested`), and
+  a `MissingRequiredClientCapabilityError` when a request needs a client capability absent from
+  `_meta.clientCapabilities` (`data` carries `requiredCapabilities`). Each is a `JsonRpcErrorResponse` with a
+  dedicated `Error` payload returned from the request-validation path. These are the last spec defs the SDK
+  has no representation for.
 
 ### Stdio client restart on unexpected server exit
 
