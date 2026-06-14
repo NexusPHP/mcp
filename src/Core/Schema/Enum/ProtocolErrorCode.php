@@ -44,9 +44,4 @@ enum ProtocolErrorCode: int
      * Internal JSON-RPC error.
      */
     case InternalError = -32603;
-
-    /**
-     * Server requires the client to satisfy a URL elicitation before continuing (MCP-specific).
-     */
-    case UrlElicitationRequired = -32042;
 }

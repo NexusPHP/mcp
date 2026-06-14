@@ -63,14 +63,6 @@ final class ErrorFactoryTest extends TestCase
         yield 'internal error' => [ProtocolErrorCode::InternalError, InternalError::class];
     }
 
-    public function testCreateRejectsUrlElicitationRequired(): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageMatches('/^ErrorFactory::create\(\) cannot construct UrlElicitationRequiredErrorPayload\. Instantiate it directly with the required url\/urlError payload\.$/');
-
-        ErrorFactory::create(ProtocolErrorCode::UrlElicitationRequired, 'fallback message');
-    }
-
     public function testCreatePropagatesData(): void
     {
         $data = ['trace_id' => 'abc123'];

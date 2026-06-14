@@ -55,7 +55,7 @@ final class EnumValueValidatorTest extends TestCase
     public function testParseThrowsForUnknownIntValue(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageMatches('/^Test "code" must be one of \[-32700, -32600, -32601, -32602, -32603, -32042\], 0 given\.$/');
+        $this->expectExceptionMessageMatches('/^Test "code" must be one of \[-32700, -32600, -32601, -32602, -32603\], 0 given\.$/');
 
         EnumValueValidator::parse(ProtocolErrorCode::class, 0, 'Test "code"');
     }
@@ -71,7 +71,7 @@ final class EnumValueValidatorTest extends TestCase
     public function testParseRejectsStringValueForIntBackedEnum(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageMatches('/^Test "code" must be one of \\[-32700, -32600, -32601, -32602, -32603, -32042\\], \'-32700\' given\\.$/');
+        $this->expectExceptionMessageMatches('/^Test "code" must be one of \\[-32700, -32600, -32601, -32602, -32603\\], \'-32700\' given\\.$/');
 
         EnumValueValidator::parse(ProtocolErrorCode::class, '-32700', 'Test "code"');
     }

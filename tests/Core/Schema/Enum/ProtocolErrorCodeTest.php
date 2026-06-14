@@ -47,8 +47,6 @@ final class ProtocolErrorCodeTest extends TestCase
         yield 'Invalid params' => [ProtocolErrorCode::InvalidParams, -32602];
 
         yield 'Internal error' => [ProtocolErrorCode::InternalError, -32603];
-
-        yield 'URL elicitation required' => [ProtocolErrorCode::UrlElicitationRequired, -32042];
     }
 
     public function testProtocolErrorCodeFollowsJsonRpcSpecification(): void

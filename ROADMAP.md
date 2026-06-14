@@ -113,10 +113,10 @@ subscription-replay step depends on `subscriptions/listen` above, so this builds
 ### Multi round-trip requests (MRTR)
 
 Every result envelope gains a `resultType` discriminator (`"complete"` vs `"input_required"`). Servers
-that need to ask the client for input mid-request (elicitation) return an `InputRequiredResult` instead
-of throwing the current `UrlElicitationRequiredError`. `JsonRpcResultResponse` is an abstract envelope
-base with one concrete, self-decoding `*ResultResponse` per spec method (nine in all). Only
-`tools/call`, `prompts/get`, and `resources/read` accept `InputRequiredResult`.
+that need to ask the client for input mid-request (elicitation) return an `InputRequiredResult`.
+`JsonRpcResultResponse` is an abstract envelope base with one concrete, self-decoding `*ResultResponse`
+per spec method (nine in all). Only `tools/call`, `prompts/get`, and `resources/read` accept
+`InputRequiredResult`.
 
 - [x] Add `InputRequiredResult` (an `inputRequests` map plus an opaque `requestState`).
 - [x] Add `InputResponseRequestParams` (an abstract base over `RequestParams` carrying an
@@ -130,8 +130,7 @@ base with one concrete, self-decoding `*ResultResponse` per spec method (nine in
   (`EmptyResult`), and `ResultResponseFactory` picks the typed envelope on the send path.
 - [ ] Give `subscriptions/listen` a dedicated `*ResultResponse` once its empty-ack result lands in the
   schema (its response is currently carried by `GenericResultResponse`).
-- [ ] Delete `UrlElicitationRequiredError` (-32042) entirely. The success-result-based mechanism
-  replaces it.
+- [x] Delete `UrlElicitationRequiredError` (-32042) entirely.
 
 ### Tool schema relaxation (SEP-2106)
 

@@ -28,9 +28,6 @@ use Nexus\Mcp\Core\Schema\Error\ParseError;
  */
 final class ErrorFactory
 {
-    /**
-     * @throws \InvalidArgumentException
-     */
     public static function create(ProtocolErrorCode $code, string $message, mixed $data = null): Error
     {
         return match ($code) {
@@ -39,10 +36,6 @@ final class ErrorFactory
             ProtocolErrorCode::MethodNotFound => new MethodNotFoundError(message: $message, data: $data),
             ProtocolErrorCode::InvalidParams => new InvalidParamsError(message: $message, data: $data),
             ProtocolErrorCode::InternalError => new InternalError(message: $message, data: $data),
-            ProtocolErrorCode::UrlElicitationRequired => throw new \InvalidArgumentException(
-                'ErrorFactory::create() cannot construct UrlElicitationRequiredErrorPayload. '
-                .'Instantiate it directly with the required url/urlError payload.',
-            ),
         };
     }
 }

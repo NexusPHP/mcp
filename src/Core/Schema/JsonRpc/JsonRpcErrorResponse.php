@@ -19,7 +19,6 @@ use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Error;
 use Nexus\Mcp\Core\Schema\Error\UnknownProtocolError;
-use Nexus\Mcp\Core\Schema\Error\UrlElicitationRequiredErrorPayload;
 use Nexus\Mcp\Core\Schema\RequestId;
 
 /**
@@ -94,17 +93,8 @@ final readonly class JsonRpcErrorResponse implements Arrayable, JsonRpcResponse
         $message = $data['message'];
 
         $extra = $data['data'] ?? null;
-        $narrow = ['message' => $message];
-
-        if (null !== $extra) {
-            $narrow['data'] = $extra;
-        }
 
         $resolved = ProtocolErrorCode::tryFrom($code);
-
-        if (ProtocolErrorCode::UrlElicitationRequired === $resolved) {
-            return UrlElicitationRequiredErrorPayload::fromArray($narrow);
-        }
 
         if (null === $resolved) {
             return new UnknownProtocolError(code: $code, message: $message, data: $extra);

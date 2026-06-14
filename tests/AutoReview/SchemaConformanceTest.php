@@ -23,11 +23,7 @@ use Nexus\Mcp\Core\Schema\Enum\ElicitAction;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Error;
 use Nexus\Mcp\Core\Schema\Error\UnknownProtocolError;
-use Nexus\Mcp\Core\Schema\Error\UrlElicitationRequiredErrorPayload;
 use Nexus\Mcp\Core\Schema\Icons;
-use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
-use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
-use Nexus\Mcp\Core\Schema\JsonRpc\UrlElicitationRequiredError;
 use Nexus\Mcp\Core\Schema\Notification;
 use Nexus\Mcp\Core\Schema\Notification\ClientNotification;
 use Nexus\Mcp\Core\Schema\Notification\ServerNotification;
@@ -104,9 +100,7 @@ final class SchemaConformanceTest extends TestCase
         ElicitAction::class => self::TS_SCHEMA_FILE_URL,
         ProtocolErrorCode::class => self::JSON_RPC_ERROR_OBJECT_URL,
         UnknownProtocolError::class => self::JSON_RPC_ERROR_OBJECT_URL,
-        UrlElicitationRequiredErrorPayload::class => self::JSON_RPC_ERROR_OBJECT_URL,
         Icons::class => 'https://modelcontextprotocol.io/specification/draft/basic#icons',
-        UrlElicitationRequiredError::class => self::TS_SCHEMA_FILE_URL,
         Notification::class => self::TS_SCHEMA_FILE_URL,
         EmptyNotificationParams::class => self::TS_SCHEMA_FILE_URL,
         ClientNotification::class => self::TS_SCHEMA_FILE_URL,
