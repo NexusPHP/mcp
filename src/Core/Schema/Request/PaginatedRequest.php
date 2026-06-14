@@ -33,6 +33,6 @@ abstract readonly class PaginatedRequest extends JsonRpcRequest
 {
     public function __construct(RequestId $id, PaginatedRequestParams $params)
     {
-        parent::__construct($id, $params);
+        parent::__construct(id: $id, params: $params);
     }
 }

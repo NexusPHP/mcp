@@ -72,7 +72,7 @@ final readonly class CompleteRequestParams extends RequestParams
             \array_key_exists('arguments', $context) ? ['arguments' => $context['arguments']] : []
         );
 
-        parent::__construct($meta);
+        parent::__construct(meta: $meta);
     }
 
     #[\Override]

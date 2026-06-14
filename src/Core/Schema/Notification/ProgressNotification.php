@@ -35,7 +35,7 @@ final readonly class ProgressNotification extends JsonRpcNotification implements
 {
     public function __construct(ProgressNotificationParams $params)
     {
-        parent::__construct($params);
+        parent::__construct(params: $params);
     }
 
     #[\Override]

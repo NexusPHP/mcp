@@ -35,7 +35,7 @@ final readonly class PromptReference extends BaseMetadata implements Arrayable
 
     public function __construct(string $name, ?string $title = null)
     {
-        parent::__construct($name, $title);
+        parent::__construct(name: $name, title: $title);
 
         IdentifierNameValidator::validate($name, 'prompt reference "name"');
     }

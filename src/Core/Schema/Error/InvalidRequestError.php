@@ -34,7 +34,7 @@ final readonly class InvalidRequestError extends Error
 
     public function __construct(string $message, mixed $data = null)
     {
-        parent::__construct(ProtocolErrorCode::InvalidRequest, $message, $data);
+        parent::__construct(code: ProtocolErrorCode::InvalidRequest, message: $message, data: $data);
     }
 
     #[\Override]

@@ -33,7 +33,7 @@ final readonly class EmptyResult extends Result implements ClientResult, ServerR
 {
     public function __construct(MetaObject $meta = new MetaObject())
     {
-        parent::__construct($meta);
+        parent::__construct(meta: $meta);
     }
 
     #[\Override]

@@ -43,7 +43,7 @@ final readonly class PromptArgument extends BaseMetadata implements Arrayable
         ?string $description = null,
         public ?bool $required = null,
     ) {
-        parent::__construct($name, $title);
+        parent::__construct(name: $name, title: $title);
 
         IdentifierNameValidator::validate($name, '"arguments.name"');
         Assert::that($description)->nullOr()->isNonEmptyString('"arguments.description" must be a non-empty string or null.');

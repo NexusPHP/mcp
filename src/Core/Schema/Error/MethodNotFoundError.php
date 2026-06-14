@@ -36,7 +36,7 @@ final readonly class MethodNotFoundError extends Error
 
     public function __construct(string $message, mixed $data = null)
     {
-        parent::__construct(ProtocolErrorCode::MethodNotFound, $message, $data);
+        parent::__construct(code: ProtocolErrorCode::MethodNotFound, message: $message, data: $data);
     }
 
     #[\Override]

@@ -35,6 +35,6 @@ abstract readonly class PaginatedResult extends CacheableResult
         public ?Cursor $nextCursor = null,
         MetaObject $meta = new MetaObject(),
     ) {
-        parent::__construct($ttlMs, $cacheScope, $meta);
+        parent::__construct(ttlMs: $ttlMs, cacheScope: $cacheScope, meta: $meta);
     }
 }

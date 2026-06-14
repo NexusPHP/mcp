@@ -37,7 +37,7 @@ final readonly class ResourceUpdatedNotification extends JsonRpcNotification imp
 {
     public function __construct(ResourceUpdatedNotificationParams $params)
     {
-        parent::__construct($params);
+        parent::__construct(params: $params);
     }
 
     #[\Override]

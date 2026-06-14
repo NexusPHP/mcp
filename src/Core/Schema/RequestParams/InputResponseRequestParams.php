@@ -55,6 +55,6 @@ abstract readonly class InputResponseRequestParams extends RequestParams
 
         $this->inputResponses = $inputResponses;
 
-        parent::__construct($meta);
+        parent::__construct(meta: $meta);
     }
 }

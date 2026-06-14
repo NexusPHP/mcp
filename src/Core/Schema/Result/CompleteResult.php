@@ -61,7 +61,7 @@ final readonly class CompleteResult extends Result implements ServerResult
 
         $this->completion = $normalized;
 
-        parent::__construct($meta);
+        parent::__construct(meta: $meta);
     }
 
     #[\Override]

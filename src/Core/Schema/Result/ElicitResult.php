@@ -55,7 +55,7 @@ final readonly class ElicitResult extends Result implements ClientResult
 
         $this->content = $content;
 
-        parent::__construct($meta);
+        parent::__construct(meta: $meta);
     }
 
     #[\Override]

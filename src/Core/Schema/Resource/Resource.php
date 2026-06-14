@@ -79,7 +79,7 @@ final readonly class Resource extends BaseMetadata implements Arrayable, Icons
         ?array $icons = null,
         public MetaObject $meta = new MetaObject(),
     ) {
-        parent::__construct($name, $title);
+        parent::__construct(name: $name, title: $title);
 
         IdentifierNameValidator::validate($name, 'resource "name"');
         Rfc3986UriValidator::validate($uri, 'resource "uri"');

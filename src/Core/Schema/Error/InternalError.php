@@ -33,7 +33,7 @@ final readonly class InternalError extends Error
 
     public function __construct(string $message, mixed $data = null)
     {
-        parent::__construct(ProtocolErrorCode::InternalError, $message, $data);
+        parent::__construct(code: ProtocolErrorCode::InternalError, message: $message, data: $data);
     }
 
     #[\Override]

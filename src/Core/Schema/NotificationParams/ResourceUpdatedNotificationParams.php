@@ -32,7 +32,7 @@ final readonly class ResourceUpdatedNotificationParams extends NotificationParam
 {
     public function __construct(public string $uri, MetaObject $meta = new MetaObject())
     {
-        parent::__construct($meta);
+        parent::__construct(meta: $meta);
     }
 
     #[\Override]

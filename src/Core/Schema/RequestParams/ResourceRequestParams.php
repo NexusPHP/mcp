@@ -29,6 +29,6 @@ abstract readonly class ResourceRequestParams extends RequestParams
 {
     public function __construct(public string $uri, RequestMetaObject $meta)
     {
-        parent::__construct($meta);
+        parent::__construct(meta: $meta);
     }
 }

@@ -66,7 +66,7 @@ final readonly class InputRequiredResult extends Result implements ServerResult
 
         $this->inputRequests = $inputRequests;
 
-        parent::__construct($meta);
+        parent::__construct(meta: $meta);
     }
 
     #[\Override]

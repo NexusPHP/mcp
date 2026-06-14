@@ -32,7 +32,7 @@ final readonly class ElicitRequest extends JsonRpcRequest implements InputReques
 {
     public function __construct(RequestId $id, ElicitRequestFormParams|ElicitRequestUrlParams $params)
     {
-        parent::__construct($id, $params);
+        parent::__construct(id: $id, params: $params);
     }
 
     #[\Override]

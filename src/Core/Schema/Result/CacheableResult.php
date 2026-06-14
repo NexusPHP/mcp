@@ -36,6 +36,6 @@ abstract readonly class CacheableResult extends Result
     ) {
         Assert::that($this->ttlMs)->isNaturalInt('"result.ttlMs" must be a non-negative integer, {value} given.');
 
-        parent::__construct($meta);
+        parent::__construct(meta: $meta);
     }
 }

@@ -60,7 +60,7 @@ final readonly class ListResourceTemplatesResult extends PaginatedResult impleme
 
         $this->resourceTemplates = $resourceTemplates;
 
-        parent::__construct($ttlMs, $cacheScope, $nextCursor, $meta);
+        parent::__construct(ttlMs: $ttlMs, cacheScope: $cacheScope, nextCursor: $nextCursor, meta: $meta);
     }
 
     #[\Override]

@@ -60,7 +60,7 @@ final readonly class ListToolsResult extends PaginatedResult implements ServerRe
 
         $this->tools = $tools;
 
-        parent::__construct($ttlMs, $cacheScope, $nextCursor, $meta);
+        parent::__construct(ttlMs: $ttlMs, cacheScope: $cacheScope, nextCursor: $nextCursor, meta: $meta);
     }
 
     #[\Override]

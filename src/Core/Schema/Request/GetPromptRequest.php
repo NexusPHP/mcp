@@ -37,7 +37,7 @@ final readonly class GetPromptRequest extends JsonRpcRequest implements ClientRe
 {
     public function __construct(RequestId $id, GetPromptRequestParams $params)
     {
-        parent::__construct($id, $params);
+        parent::__construct(id: $id, params: $params);
     }
 
     #[\Override]

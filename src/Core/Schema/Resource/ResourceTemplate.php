@@ -74,7 +74,7 @@ final readonly class ResourceTemplate extends BaseMetadata implements Arrayable,
         ?array $icons = null,
         public MetaObject $meta = new MetaObject(),
     ) {
-        parent::__construct($name, $title);
+        parent::__construct(name: $name, title: $title);
 
         IdentifierNameValidator::validate($name, 'resource template "name"');
         Rfc6570UriTemplateValidator::validate($uriTemplate, 'resource template "uriTemplate"');

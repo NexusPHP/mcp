@@ -36,7 +36,7 @@ final readonly class ElicitationCompleteNotification extends JsonRpcNotification
 {
     public function __construct(ElicitationCompleteNotificationParams $params)
     {
-        parent::__construct($params);
+        parent::__construct(params: $params);
     }
 
     #[\Override]

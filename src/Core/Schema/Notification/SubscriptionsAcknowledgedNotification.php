@@ -37,7 +37,7 @@ final readonly class SubscriptionsAcknowledgedNotification extends JsonRpcNotifi
 {
     public function __construct(SubscriptionsAcknowledgedNotificationParams $params)
     {
-        parent::__construct($params);
+        parent::__construct(params: $params);
     }
 
     #[\Override]

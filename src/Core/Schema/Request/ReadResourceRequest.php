@@ -37,7 +37,7 @@ final readonly class ReadResourceRequest extends JsonRpcRequest implements Clien
 {
     public function __construct(RequestId $id, ReadResourceRequestParams $params)
     {
-        parent::__construct($id, $params);
+        parent::__construct(id: $id, params: $params);
     }
 
     #[\Override]

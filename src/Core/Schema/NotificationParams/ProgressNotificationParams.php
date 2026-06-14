@@ -53,7 +53,7 @@ final readonly class ProgressNotificationParams extends NotificationParams
 
         $this->message = $message;
 
-        parent::__construct($meta);
+        parent::__construct(meta: $meta);
     }
 
     #[\Override]

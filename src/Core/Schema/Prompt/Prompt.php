@@ -64,7 +64,7 @@ final readonly class Prompt extends BaseMetadata implements Arrayable, Icons
         ?array $icons = null,
         public MetaObject $meta = new MetaObject(),
     ) {
-        parent::__construct($name, $title);
+        parent::__construct(name: $name, title: $title);
 
         IdentifierNameValidator::validate($name, 'prompt "name"');
         Assert::that($description)->nullOr()->isNonEmptyString('prompt "description" must be a non-empty string or null.');

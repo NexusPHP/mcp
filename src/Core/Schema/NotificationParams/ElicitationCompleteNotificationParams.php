@@ -41,7 +41,7 @@ final readonly class ElicitationCompleteNotificationParams extends NotificationP
 
         $this->elicitationId = $elicitationId;
 
-        parent::__construct($meta);
+        parent::__construct(meta: $meta);
     }
 
     #[\Override]

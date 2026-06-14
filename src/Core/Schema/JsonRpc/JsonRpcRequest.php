@@ -36,7 +36,7 @@ abstract readonly class JsonRpcRequest extends Request implements Arrayable, Jso
      */
     public function __construct(public RequestId $id, ?RequestParamsInterface $params = null)
     {
-        parent::__construct($params);
+        parent::__construct(params: $params);
     }
 
     #[\Override]

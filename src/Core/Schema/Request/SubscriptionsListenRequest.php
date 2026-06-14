@@ -39,7 +39,7 @@ final readonly class SubscriptionsListenRequest extends JsonRpcRequest implement
 {
     public function __construct(RequestId $id, SubscriptionsListenRequestParams $params)
     {
-        parent::__construct($id, $params);
+        parent::__construct(id: $id, params: $params);
     }
 
     #[\Override]

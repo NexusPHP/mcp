@@ -40,7 +40,7 @@ final readonly class CancelledNotification extends JsonRpcNotification implement
 {
     public function __construct(CancelledNotificationParams $params)
     {
-        parent::__construct($params);
+        parent::__construct(params: $params);
     }
 
     #[\Override]

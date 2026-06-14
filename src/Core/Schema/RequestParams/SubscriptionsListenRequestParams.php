@@ -33,7 +33,7 @@ final readonly class SubscriptionsListenRequestParams extends RequestParams
 {
     public function __construct(public SubscriptionFilter $notifications, RequestMetaObject $meta)
     {
-        parent::__construct($meta);
+        parent::__construct(meta: $meta);
     }
 
     #[\Override]

@@ -36,7 +36,7 @@ final readonly class UnknownProtocolError extends Error
             );
         }
 
-        parent::__construct($code, $message, $data);
+        parent::__construct(code: $code, message: $message, data: $data);
     }
 
     #[\Override]

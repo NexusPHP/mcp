@@ -71,7 +71,7 @@ final readonly class DiscoverResult extends CacheableResult implements ServerRes
         $this->supportedVersions = $supportedVersions;
         $this->instructions = $instructions;
 
-        parent::__construct($ttlMs, $cacheScope, $meta);
+        parent::__construct(ttlMs: $ttlMs, cacheScope: $cacheScope, meta: $meta);
     }
 
     #[\Override]

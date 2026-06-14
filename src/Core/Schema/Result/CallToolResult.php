@@ -73,7 +73,7 @@ final readonly class CallToolResult extends Result implements ServerResult
         $this->content = $content;
         $this->structuredContent = $structuredContent;
 
-        parent::__construct($meta);
+        parent::__construct(meta: $meta);
     }
 
     #[\Override]

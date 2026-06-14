@@ -58,7 +58,7 @@ final class UrlElicitationRequiredErrorPayloadTest extends TestCase
 
     public function testToArrayIncludesData(): void
     {
-        $payload = new UrlElicitationRequiredErrorPayload('Custom auth challenge', ['elicitations' => []]);
+        $payload = new UrlElicitationRequiredErrorPayload(message: 'Custom auth challenge', data: ['elicitations' => []]);
 
         self::assertSame([
             'code' => -32042,

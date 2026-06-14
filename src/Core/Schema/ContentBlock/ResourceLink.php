@@ -85,7 +85,7 @@ final readonly class ResourceLink extends BaseMetadata implements Arrayable, Con
         ?array $icons = null,
         public MetaObject $meta = new MetaObject(),
     ) {
-        parent::__construct($name, $title);
+        parent::__construct(name: $name, title: $title);
 
         IdentifierNameValidator::validate($name, 'resource link "name"');
         Rfc3986UriValidator::validate($uri, 'resource link "uri"');

@@ -40,7 +40,7 @@ final readonly class DiscoverRequest extends JsonRpcRequest implements ClientReq
 {
     public function __construct(RequestId $id, EmptyRequestParams $params)
     {
-        parent::__construct($id, $params);
+        parent::__construct(id: $id, params: $params);
     }
 
     #[\Override]

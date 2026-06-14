@@ -60,7 +60,7 @@ final readonly class ListPromptsResult extends PaginatedResult implements Server
 
         $this->prompts = $prompts;
 
-        parent::__construct($ttlMs, $cacheScope, $nextCursor, $meta);
+        parent::__construct(ttlMs: $ttlMs, cacheScope: $cacheScope, nextCursor: $nextCursor, meta: $meta);
     }
 
     #[\Override]

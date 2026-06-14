@@ -32,7 +32,7 @@ final readonly class ParseError extends Error
 
     public function __construct(string $message, mixed $data = null)
     {
-        parent::__construct(ProtocolErrorCode::ParseError, $message, $data);
+        parent::__construct(code: ProtocolErrorCode::ParseError, message: $message, data: $data);
     }
 
     #[\Override]

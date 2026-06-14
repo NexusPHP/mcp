@@ -46,7 +46,7 @@ final readonly class CancelledNotificationParams extends NotificationParams
 
         $this->reason = $reason;
 
-        parent::__construct($meta);
+        parent::__construct(meta: $meta);
     }
 
     #[\Override]

@@ -36,7 +36,7 @@ final readonly class ListResourcesRequest extends PaginatedRequest implements Cl
 {
     public function __construct(RequestId $id, PaginatedRequestParams $params)
     {
-        parent::__construct($id, $params);
+        parent::__construct(id: $id, params: $params);
     }
 
     #[\Override]

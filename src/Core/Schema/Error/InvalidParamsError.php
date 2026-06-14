@@ -39,7 +39,7 @@ final readonly class InvalidParamsError extends Error
 
     public function __construct(string $message, mixed $data = null)
     {
-        parent::__construct(ProtocolErrorCode::InvalidParams, $message, $data);
+        parent::__construct(code: ProtocolErrorCode::InvalidParams, message: $message, data: $data);
     }
 
     #[\Override]

@@ -38,7 +38,7 @@ final readonly class TextResourceContents extends ResourceContents
         ?string $mimeType = null,
         MetaObject $meta = new MetaObject(),
     ) {
-        parent::__construct($uri, $mimeType, $meta);
+        parent::__construct(uri: $uri, mimeType: $mimeType, meta: $meta);
     }
 
     #[\Override]

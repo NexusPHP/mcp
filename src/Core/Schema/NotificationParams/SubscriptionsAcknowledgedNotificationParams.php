@@ -33,7 +33,7 @@ final readonly class SubscriptionsAcknowledgedNotificationParams extends Notific
 {
     public function __construct(public SubscriptionFilter $notifications, MetaObject $meta = new MetaObject())
     {
-        parent::__construct($meta);
+        parent::__construct(meta: $meta);
     }
 
     #[\Override]

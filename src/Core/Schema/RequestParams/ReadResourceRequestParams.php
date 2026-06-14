@@ -58,7 +58,7 @@ final readonly class ReadResourceRequestParams extends ResourceRequestParams
 
         $this->inputResponses = $inputResponses;
 
-        parent::__construct($uri, $meta);
+        parent::__construct(uri: $uri, meta: $meta);
     }
 
     #[\Override]

@@ -60,7 +60,7 @@ final readonly class GetPromptResult extends Result implements ServerResult
         $this->messages = $messages;
         $this->description = $description;
 
-        parent::__construct($meta);
+        parent::__construct(meta: $meta);
     }
 
     #[\Override]

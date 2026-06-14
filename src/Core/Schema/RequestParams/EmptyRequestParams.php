@@ -31,7 +31,7 @@ final readonly class EmptyRequestParams extends RequestParams
 {
     public function __construct(RequestMetaObject $meta)
     {
-        parent::__construct($meta);
+        parent::__construct(meta: $meta);
     }
 
     #[\Override]

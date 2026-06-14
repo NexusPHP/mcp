@@ -28,7 +28,7 @@ final readonly class UrlElicitationRequiredErrorPayload extends Error
 {
     public function __construct(string $message = 'URL elicitation required', mixed $data = null)
     {
-        parent::__construct(ProtocolErrorCode::UrlElicitationRequired, $message, $data);
+        parent::__construct(code: ProtocolErrorCode::UrlElicitationRequired, message: $message, data: $data);
     }
 
     #[\Override]

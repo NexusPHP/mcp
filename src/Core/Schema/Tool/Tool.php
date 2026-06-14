@@ -71,7 +71,7 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
         public ?array $icons = null,
         public MetaObject $meta = new MetaObject(),
     ) {
-        parent::__construct($name, $title);
+        parent::__construct(name: $name, title: $title);
 
         IdentifierNameValidator::validate($name, 'tool "name"');
         Assert::that($description)->nullOr()->isNonEmptyString('Tool description must be a non-empty string or null.');

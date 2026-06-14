@@ -37,7 +37,7 @@ final readonly class CallToolRequest extends JsonRpcRequest implements ClientReq
 {
     public function __construct(RequestId $id, CallToolRequestParams $params)
     {
-        parent::__construct($id, $params);
+        parent::__construct(id: $id, params: $params);
     }
 
     #[\Override]
