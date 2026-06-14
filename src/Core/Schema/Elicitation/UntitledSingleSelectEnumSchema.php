@@ -14,12 +14,11 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\Elicitation;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\Schema\Arrayable;
 
 /**
  * Schema for single-selection enumeration without display titles for options.
  *
- * @implements Arrayable<array{
+ * @implements SingleSelectEnumSchema<array{
  *   type: 'string',
  *   enum: list<non-empty-string>,
  *   title?: non-empty-string,
@@ -29,7 +28,7 @@ use Nexus\Mcp\Core\Schema\Arrayable;
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#untitledsingleselectenumschema
  */
-final readonly class UntitledSingleSelectEnumSchema implements Arrayable, SingleSelectEnumSchema
+final readonly class UntitledSingleSelectEnumSchema implements SingleSelectEnumSchema
 {
     public const string TYPE = 'string';
 
@@ -61,8 +60,14 @@ final readonly class UntitledSingleSelectEnumSchema implements Arrayable, Single
             ->isList('untitled single select enum schema "enum" must be a list, non-list array given.')
             ->values()->isNonEmptyString('each untitled single select enum schema "enum" must be a non-empty string.')
         ;
-        Assert::that($title)->nullOr()->isNonEmptyString('untitled single select enum schema "title" must be a non-empty string or null.');
-        Assert::that($description)->nullOr()->isNonEmptyString('untitled single select enum schema "description" must be a non-empty string or null.');
+        Assert::that($title)
+            ->nullOr()
+            ->isNonEmptyString('untitled single select enum schema "title" must be a non-empty string or null.')
+        ;
+        Assert::that($description)
+            ->nullOr()
+            ->isNonEmptyString('untitled single select enum schema "description" must be a non-empty string or null.')
+        ;
 
         $this->enum = $enum;
         $this->title = $title;

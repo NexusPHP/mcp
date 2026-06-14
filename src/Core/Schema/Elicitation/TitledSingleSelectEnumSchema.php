@@ -19,7 +19,7 @@ use Nexus\Mcp\Core\Schema\Arrayable;
 /**
  * Schema for single-selection enumeration with display titles for each option.
  *
- * @implements Arrayable<array{
+ * @implements SingleSelectEnumSchema<array{
  *   type: 'string',
  *   oneOf: list<template-type<EnumOption, Arrayable, 'T'>>,
  *   title?: non-empty-string,
@@ -29,7 +29,7 @@ use Nexus\Mcp\Core\Schema\Arrayable;
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#titledsingleselectenumschema
  */
-final readonly class TitledSingleSelectEnumSchema implements Arrayable, SingleSelectEnumSchema
+final readonly class TitledSingleSelectEnumSchema implements SingleSelectEnumSchema
 {
     public const string TYPE = 'string';
 

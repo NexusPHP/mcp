@@ -14,12 +14,11 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\Elicitation;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\Schema\Arrayable;
 
 /**
  * Schema for a numeric elicitation field.
  *
- * @implements Arrayable<array{
+ * @implements PrimitiveSchemaDefinition<array{
  *   type: 'integer'|'number',
  *   title?: non-empty-string,
  *   description?: non-empty-string,
@@ -30,7 +29,7 @@ use Nexus\Mcp\Core\Schema\Arrayable;
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#numberschema
  */
-final readonly class NumberSchema implements Arrayable, PrimitiveSchemaDefinition
+final readonly class NumberSchema implements PrimitiveSchemaDefinition
 {
     public const string TYPE = 'number';
     public const string TYPE_INTEGER = 'integer';

@@ -14,12 +14,11 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\Elicitation;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\Schema\Arrayable;
 
 /**
  * Schema for multiple-selection enumeration without display titles for options.
  *
- * @implements Arrayable<array{
+ * @implements MultiSelectEnumSchema<array{
  *   type: 'array',
  *   items: array{type: 'string', enum: list<non-empty-string>},
  *   title?: non-empty-string,
@@ -31,7 +30,7 @@ use Nexus\Mcp\Core\Schema\Arrayable;
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#untitledmultiselectenumschema
  */
-final readonly class UntitledMultiSelectEnumSchema implements Arrayable, MultiSelectEnumSchema
+final readonly class UntitledMultiSelectEnumSchema implements MultiSelectEnumSchema
 {
     public const string TYPE = 'array';
     public const string ITEMS_TYPE = 'string';
@@ -57,6 +56,16 @@ final readonly class UntitledMultiSelectEnumSchema implements Arrayable, MultiSe
     public ?array $default;
 
     /**
+     * @var null|int<0, max>
+     */
+    public ?int $minItems;
+
+    /**
+     * @var null|int<0, max>
+     */
+    public ?int $maxItems;
+
+    /**
      * @param list<string>      $items   The inner `enum` values
      * @param null|list<string> $default
      */
@@ -64,18 +73,30 @@ final readonly class UntitledMultiSelectEnumSchema implements Arrayable, MultiSe
         array $items,
         ?string $title = null,
         ?string $description = null,
-        public ?int $minItems = null,
-        public ?int $maxItems = null,
+        ?int $minItems = null,
+        ?int $maxItems = null,
         ?array $default = null,
     ) {
         Assert::that($items)
             ->isList('untitled multi-select enum schema "items" must be a list, non-list array given.')
             ->values()->isNonEmptyString('each untitled multi-select enum schema "items" must be a non-empty string.')
         ;
-        Assert::that($title)->nullOr()->isNonEmptyString('untitled multi-select enum schema "title" must be a non-empty string or null.');
-        Assert::that($description)->nullOr()->isNonEmptyString('untitled multi-select enum schema "description" must be a non-empty string or null.');
-        Assert::that($minItems)->nullOr()->isNaturalInt('untitled multi-select enum schema "minItems" must be a non-negative integer or null.');
-        Assert::that($maxItems)->nullOr()->isNaturalInt('untitled multi-select enum schema "maxItems" must be a non-negative integer or null.');
+        Assert::that($title)
+            ->nullOr()
+            ->isNonEmptyString('untitled multi-select enum schema "title" must be a non-empty string or null.')
+        ;
+        Assert::that($description)
+            ->nullOr()
+            ->isNonEmptyString('untitled multi-select enum schema "description" must be a non-empty string or null.')
+        ;
+        Assert::that($minItems)
+            ->nullOr()
+            ->isNaturalInt('untitled multi-select enum schema "minItems" must be a non-negative integer or null.')
+        ;
+        Assert::that($maxItems)
+            ->nullOr()
+            ->isNaturalInt('untitled multi-select enum schema "maxItems" must be a non-negative integer or null.')
+        ;
 
         if (null !== $default) {
             Assert::that($default)
@@ -88,6 +109,8 @@ final readonly class UntitledMultiSelectEnumSchema implements Arrayable, MultiSe
         $this->title = $title;
         $this->description = $description;
         $this->default = $default;
+        $this->minItems = $minItems;
+        $this->maxItems = $maxItems;
     }
 
     #[\Override]

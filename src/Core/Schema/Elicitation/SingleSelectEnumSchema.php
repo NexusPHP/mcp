@@ -17,6 +17,10 @@ namespace Nexus\Mcp\Core\Schema\Elicitation;
  * Marker for the `SingleSelectEnumSchema` union: `UntitledSingleSelectEnumSchema`
  * and `TitledSingleSelectEnumSchema`.
  *
+ * @template-covariant T of array<string, mixed> = array<string, mixed>
+ *
+ * @extends EnumSchema<T>
+ *
  * @phpstan-sealed UntitledSingleSelectEnumSchema|TitledSingleSelectEnumSchema
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#singleselectenumschema

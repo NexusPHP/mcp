@@ -14,10 +14,11 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\Elicitation;
 
 /**
- * Marker for the `EnumSchema` union of enum-flavored `PrimitiveSchemaDefinition`
- * variants. Members are `UntitledSingleSelectEnumSchema`,
- * `TitledSingleSelectEnumSchema`, `UntitledMultiSelectEnumSchema`,
- * `TitledMultiSelectEnumSchema`, and `LegacyTitledEnumSchema`.
+ * Marker for the `EnumSchema` union of enum-flavored `PrimitiveSchemaDefinition` variants.
+ *
+ * @template-covariant T of array<string, mixed> = array<string, mixed>
+ *
+ * @extends PrimitiveSchemaDefinition<T>
  *
  * @phpstan-sealed SingleSelectEnumSchema|MultiSelectEnumSchema|LegacyTitledEnumSchema
  *

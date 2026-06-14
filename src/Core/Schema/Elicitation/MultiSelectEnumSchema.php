@@ -17,6 +17,10 @@ namespace Nexus\Mcp\Core\Schema\Elicitation;
  * Marker for the `MultiSelectEnumSchema` union: `UntitledMultiSelectEnumSchema`
  * and `TitledMultiSelectEnumSchema`.
  *
+ * @template-covariant T of array<string, mixed> = array<string, mixed>
+ *
+ * @extends EnumSchema<T>
+ *
  * @phpstan-sealed UntitledMultiSelectEnumSchema|TitledMultiSelectEnumSchema
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#multiselectenumschema

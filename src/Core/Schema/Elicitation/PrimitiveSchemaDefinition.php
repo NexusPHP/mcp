@@ -19,7 +19,9 @@ use Nexus\Mcp\Core\Schema\Arrayable;
  * Restricted schema definitions that only allow primitive types
  * without nested objects or arrays.
  *
- * @extends Arrayable<array<string, mixed>>
+ * @template-covariant T of array<string, mixed> = array<string, mixed>
+ *
+ * @extends Arrayable<T>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#primitiveschemadefinition
  */

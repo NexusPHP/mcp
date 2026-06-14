@@ -907,8 +907,7 @@ final class SchemaConformanceTest extends TestCase
             return null;
         }
 
-        return self::parseShapeAfter($docComment, '/@implements\s+Arrayable\s*<\s*array\{/')
-            ?? self::parseShapeAfter($docComment, '/@implements\s+Input(?:Request|Response)\s*<\s*array\{/')
+        return self::parseShapeAfter($docComment, '/@implements\s+\w+\s*<\s*array\{/')
             ?? self::parseShapeAfter($docComment, '/@extends\s+\w+\s*<\s*[^<>]*?array\{/');
     }
 

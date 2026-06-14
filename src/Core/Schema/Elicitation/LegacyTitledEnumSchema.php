@@ -14,12 +14,11 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\Elicitation;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\Schema\Arrayable;
 
 /**
  * Use `TitledSingleSelectEnumSchema` instead. This interface will be removed in a future version.
  *
- * @implements Arrayable<array{
+ * @implements EnumSchema<array{
  *   type: 'string',
  *   enum: list<non-empty-string>,
  *   title?: non-empty-string,
@@ -30,7 +29,7 @@ use Nexus\Mcp\Core\Schema\Arrayable;
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#legacytitledenumschema
  */
-final readonly class LegacyTitledEnumSchema implements Arrayable, EnumSchema
+final readonly class LegacyTitledEnumSchema implements EnumSchema
 {
     public const string TYPE = 'string';
 

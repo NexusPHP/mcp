@@ -14,12 +14,11 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\Elicitation;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\Schema\Arrayable;
 
 /**
  * Schema for a single-line string elicitation field.
  *
- * @implements Arrayable<array{
+ * @implements PrimitiveSchemaDefinition<array{
  *   type: 'string',
  *   title?: non-empty-string,
  *   description?: non-empty-string,
@@ -31,7 +30,7 @@ use Nexus\Mcp\Core\Schema\Arrayable;
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#stringschema
  */
-final readonly class StringSchema implements Arrayable, PrimitiveSchemaDefinition
+final readonly class StringSchema implements PrimitiveSchemaDefinition
 {
     public const string TYPE = 'string';
     public const string FORMAT_DATE = 'date';
@@ -54,18 +53,40 @@ final readonly class StringSchema implements Arrayable, PrimitiveSchemaDefinitio
      */
     public ?string $format;
 
+    /**
+     * @var null|int<0, max>
+     */
+    public ?int $minLength;
+
+    /**
+     * @var null|int<0, max>
+     */
+    public ?int $maxLength;
+
     public function __construct(
         ?string $title = null,
         ?string $description = null,
-        public ?int $minLength = null,
-        public ?int $maxLength = null,
+        ?int $minLength = null,
+        ?int $maxLength = null,
         ?string $format = null,
         public ?string $default = null,
     ) {
-        Assert::that($title)->nullOr()->isNonEmptyString('string schema "title" must be a non-empty string or null.');
-        Assert::that($description)->nullOr()->isNonEmptyString('string schema "description" must be a non-empty string or null.');
-        Assert::that($minLength)->nullOr()->isNaturalInt('string schema "minLength" must be a non-negative integer or null.');
-        Assert::that($maxLength)->nullOr()->isNaturalInt('string schema "maxLength" must be a non-negative integer or null.');
+        Assert::that($title)
+            ->nullOr()
+            ->isNonEmptyString('string schema "title" must be a non-empty string or null.')
+        ;
+        Assert::that($description)
+            ->nullOr()
+            ->isNonEmptyString('string schema "description" must be a non-empty string or null.')
+        ;
+        Assert::that($minLength)
+            ->nullOr()
+            ->isNaturalInt('string schema "minLength" must be a non-negative integer or null.')
+        ;
+        Assert::that($maxLength)
+            ->nullOr()
+            ->isNaturalInt('string schema "maxLength" must be a non-negative integer or null.')
+        ;
         Assert::that($format)
             ->nullOr()
             ->isOneOf(
@@ -77,6 +98,8 @@ final readonly class StringSchema implements Arrayable, PrimitiveSchemaDefinitio
         $this->title = $title;
         $this->description = $description;
         $this->format = $format;
+        $this->minLength = $minLength;
+        $this->maxLength = $maxLength;
     }
 
     #[\Override]
