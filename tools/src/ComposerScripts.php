@@ -203,7 +203,7 @@ final class ComposerScripts
         }
 
         if ([] === $offenders) {
-            echo 'Line coverage is 100%.'.\PHP_EOL;
+            echo "\nLine coverage is 100%.\n";
 
             return;
         }
@@ -221,7 +221,7 @@ final class ComposerScripts
 
         sort($report);
 
-        self::fail(\sprintf("Line coverage is below 100%%. Uncovered statement lines:\n%s", implode(\PHP_EOL, $report)));
+        self::fail(\sprintf("\nLine coverage is below 100%%. Uncovered statement lines:\n%s", implode("\n", $report)));
     }
 
     /**
@@ -311,7 +311,7 @@ final class ComposerScripts
             $newContents = json_encode(
                 $settings,
                 \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_THROW_ON_ERROR,
-            ).\PHP_EOL;
+            )."\n";
         } catch (\JsonException $e) {
             self::fail(\sprintf('Failed to encode settings: %s', $e->getMessage()));
         }
@@ -327,7 +327,7 @@ final class ComposerScripts
 
     private static function fail(string $message): never
     {
-        fwrite(\STDERR, $message.\PHP_EOL);
+        fwrite(\STDERR, $message."\n");
 
         exit(1);
     }
