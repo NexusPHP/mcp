@@ -26,32 +26,66 @@ if (is_file(__DIR__.'/../vendor/autoload.php')) {
 
 putenv('MCP_FETCH_LATEST_SCHEMA=1');
 
+/**
+ * Labels a file `(unchanged)` or `(modified)` by comparing its bytes before and
+ * after the write.
+ */
+$changeLabel = static fn(false|string $before, false|string $after): string => false !== $before && $before === $after
+    ? " \033[33m(unchanged)\033[0m"
+    : " \033[31m(modified)\033[0m";
+
 try {
     echo "\033[36mGenerating schema files...\033[0m\n\n";
 
+    $jsonBefore = @file_get_contents(McpSchemaProcessor::LATEST_SCHEMA_JSON_PATH);
     $latestSchema = McpSchemaProcessor::fetchAndSaveLatestSchema();
+    $jsonAfter = @file_get_contents(McpSchemaProcessor::LATEST_SCHEMA_JSON_PATH);
     echo "\033[32m✓\033[0m Fetched latest MCP schema\n";
-    printf("\033[32m✓\033[0m Saved latest schema to %s\n", realpath(McpSchemaProcessor::LATEST_SCHEMA_JSON_PATH));
+    printf(
+        "\033[32m✓\033[0m Saved latest schema to %s%s\n",
+        realpath(McpSchemaProcessor::LATEST_SCHEMA_JSON_PATH),
+        $changeLabel($jsonBefore, $jsonAfter),
+    );
 
+    $tsBefore = @file_get_contents(McpSchemaProcessor::LATEST_SCHEMA_TS_PATH);
     McpSchemaProcessor::fetchAndSaveLatestSchemaTs();
-    printf("\033[32m✓\033[0m Saved latest schema.ts to %s\n", realpath(McpSchemaProcessor::LATEST_SCHEMA_TS_PATH));
+    $tsAfter = @file_get_contents(McpSchemaProcessor::LATEST_SCHEMA_TS_PATH);
+    printf(
+        "\033[32m✓\033[0m Saved latest schema.ts to %s%s\n",
+        realpath(McpSchemaProcessor::LATEST_SCHEMA_TS_PATH),
+        $changeLabel($tsBefore, $tsAfter),
+    );
+
+    // The sorted file carries a per-run `created_at` timestamp, so compare only
+    // the `sorted_schema` payload to decide whether anything meaningful changed.
+    $sortedRaw = @file_get_contents(McpSchemaProcessor::SORTED_SCHEMA_JSON_PATH);
+    $sortedDecoded = false === $sortedRaw ? null : json_decode($sortedRaw, true);
+    $sortedBefore = is_array($sortedDecoded) && isset($sortedDecoded['sorted_schema']) && is_array($sortedDecoded['sorted_schema'])
+        ? $sortedDecoded['sorted_schema']
+        : null;
 
     $sortedSchema = McpSchemaProcessor::sortAndSaveSchema($latestSchema);
     printf(
         <<<EOT
             \033[32m✓\033[0m Protocol schema classes:
-              - Processed schema  : \033[33m%d\033[0m
-              - Internal schema   : \033[33m%d\033[0m
-              - Deprecated schema : \033[33m%d\033[0m
-              - Unprocessed schema: \033[33m%d\033[0m
+              - Processed schema   : \033[33m%d\033[0m
+              - Internal schema    : \033[33m%d\033[0m
+              - Deprecated schema  : \033[33m%d\033[0m
+              - Inlined schema     : \033[33m%d\033[0m
+              - Unprocessed schema : \033[33m%d\033[0m
 
             EOT,
         count($sortedSchema['processed_schema']),
         count($sortedSchema['internal_schema']),
         count($sortedSchema['deprecated_schema']),
+        count($sortedSchema['inlined_schema']),
         count($sortedSchema['unprocessed_schema']),
     );
-    printf("\033[32m✓\033[0m Saved sorted schema metadata to %s\n", realpath(McpSchemaProcessor::SORTED_SCHEMA_JSON_PATH));
+    printf(
+        "\033[32m✓\033[0m Saved sorted schema metadata to %s%s\n",
+        realpath(McpSchemaProcessor::SORTED_SCHEMA_JSON_PATH),
+        $sortedBefore === $sortedSchema ? " \033[33m(unchanged)\033[0m" : " \033[31m(modified)\033[0m",
+    );
 
     echo "\n\033[32m✓\033[0m Schema generation complete!\n";
 
