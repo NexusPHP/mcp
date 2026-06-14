@@ -22,7 +22,7 @@ use Nexus\Mcp\Core\Schema\RequestParamsInterface;
  * A request that expects a response.
  *
  * @template-covariant TMethod of non-empty-string
- * @template-covariant TEnvelope of array<string, mixed>
+ * @template-covariant TEnvelope of array<string, mixed> = array<string, mixed>
  *
  * @extends Request<TMethod>
  * @implements Arrayable<TEnvelope>
@@ -31,9 +31,6 @@ use Nexus\Mcp\Core\Schema\RequestParamsInterface;
  */
 abstract readonly class JsonRpcRequest extends Request implements Arrayable, JsonRpcMessage
 {
-    /**
-     * @param null|RequestParamsInterface<array<string, mixed>> $params
-     */
     public function __construct(public RequestId $id, ?RequestParamsInterface $params = null)
     {
         parent::__construct(params: $params);

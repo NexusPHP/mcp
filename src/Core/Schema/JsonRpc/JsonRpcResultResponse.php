@@ -22,7 +22,7 @@ use Nexus\Mcp\Core\Schema\Result;
 /**
  * A successful (non-error) response to a request.
  *
- * @template-covariant TEnvelope of array<string, mixed>
+ * @template-covariant TEnvelope of array<string, mixed> = array<string, mixed>
  *
  * @implements Arrayable<TEnvelope>
  *
@@ -30,9 +30,6 @@ use Nexus\Mcp\Core\Schema\Result;
  */
 abstract readonly class JsonRpcResultResponse implements Arrayable, JsonRpcResponse
 {
-    /**
-     * @param Result<array<string, mixed>> $result
-     */
     public function __construct(public RequestId $id, public Result $result)
     {
     }

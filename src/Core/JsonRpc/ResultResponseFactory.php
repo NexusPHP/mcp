@@ -55,10 +55,7 @@ use Nexus\Mcp\Core\Schema\ResultResponse\ReadResourceResultResponse;
 final class ResultResponseFactory
 {
     /**
-     * @param JsonRpcRequest<non-empty-string, array<string, mixed>> $request
-     * @param Result<array<string, mixed>>                           $result
-     *
-     * @return JsonRpcResultResponse<array<string, mixed>>
+     * @param JsonRpcRequest<non-empty-string> $request
      */
     public static function wrap(JsonRpcRequest $request, Result $result): JsonRpcResultResponse
     {

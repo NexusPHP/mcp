@@ -34,18 +34,18 @@ use Nexus\Mcp\Core\Schema\RequestId;
 final class JsonRpcMessageParser
 {
     /**
-     * @var array<non-empty-string, class-string<JsonRpcRequest<non-empty-string, array<string, mixed>>>>
+     * @var array<non-empty-string, class-string<JsonRpcRequest<non-empty-string>>>
      */
     private readonly array $requests;
 
     /**
-     * @var array<non-empty-string, class-string<JsonRpcNotification<non-empty-string, array<string, mixed>>>>
+     * @var array<non-empty-string, class-string<JsonRpcNotification<non-empty-string>>>
      */
     private readonly array $notifications;
 
     /**
-     * @param array<non-empty-string, class-string<JsonRpcRequest<non-empty-string, array<string, mixed>>>>      $requests      Merged over `JsonRpcMethodRegistry::requests()` with caller precedence.
-     * @param array<non-empty-string, class-string<JsonRpcNotification<non-empty-string, array<string, mixed>>>> $notifications Merged over `JsonRpcMethodRegistry::notifications()` with caller precedence.
+     * @param array<non-empty-string, class-string<JsonRpcRequest<non-empty-string>>>      $requests      Merged over `JsonRpcMethodRegistry::requests()` with caller precedence.
+     * @param array<non-empty-string, class-string<JsonRpcNotification<non-empty-string>>> $notifications Merged over `JsonRpcMethodRegistry::notifications()` with caller precedence.
      */
     public function __construct(array $requests = [], array $notifications = [])
     {
@@ -54,7 +54,7 @@ final class JsonRpcMessageParser
     }
 
     /**
-     * @template TResponse of JsonRpcResultResponse<array<string, mixed>> = JsonRpcResultResponse<array<string, mixed>>
+     * @template TResponse of JsonRpcResultResponse = JsonRpcResultResponse
      *
      * @param array<string, mixed>         $message  Decoded JSON-RPC envelope
      * @param null|class-string<TResponse> $response When null, a success response envelope yields an `UnparsedResultEnvelope`
@@ -62,8 +62,8 @@ final class JsonRpcMessageParser
      *                                               into the response envelope `TResponse`.
      *
      * @return ($response is null
-     *     ? JsonRpcErrorResponse|JsonRpcNotification<non-empty-string, array<string, mixed>>|JsonRpcRequest<non-empty-string, array<string, mixed>>|UnparsedResultEnvelope
-     *     : JsonRpcErrorResponse|JsonRpcNotification<non-empty-string, array<string, mixed>>|JsonRpcRequest<non-empty-string, array<string, mixed>>|TResponse)
+     *     ? JsonRpcErrorResponse|JsonRpcNotification<non-empty-string>|JsonRpcRequest<non-empty-string>|UnparsedResultEnvelope
+     *     : JsonRpcErrorResponse|JsonRpcNotification<non-empty-string>|JsonRpcRequest<non-empty-string>|TResponse)
      *
      * @throws AbstractJsonRpcProtocolException
      */

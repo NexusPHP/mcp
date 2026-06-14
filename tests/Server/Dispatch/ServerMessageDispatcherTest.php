@@ -783,8 +783,8 @@ final class ServerMessageDispatcherTest extends TestCase
     }
 
     /**
-     * @param array<non-empty-string, RequestHandlerInterface<non-empty-string, Result<array<string, mixed>>, ServerContext>> $requestHandlers
-     * @param array<non-empty-string, NotificationHandlerInterface<non-empty-string>>                                         $notificationHandlers
+     * @param array<non-empty-string, RequestHandlerInterface<non-empty-string, Result, ServerContext>> $requestHandlers
+     * @param array<non-empty-string, NotificationHandlerInterface<non-empty-string>>                   $notificationHandlers
      */
     private static function buildDispatcher(
         array $requestHandlers = [],
@@ -801,7 +801,7 @@ final class ServerMessageDispatcherTest extends TestCase
     }
 
     /**
-     * @return RequestHandlerInterface<non-empty-string, Result<array<string, mixed>>, AbstractContext>
+     * @return RequestHandlerInterface<non-empty-string, Result, AbstractContext>
      */
     private static function okHandler(): RequestHandlerInterface
     {

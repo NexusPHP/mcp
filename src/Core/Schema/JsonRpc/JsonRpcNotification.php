@@ -20,7 +20,7 @@ use Nexus\Mcp\Core\Schema\Notification;
  * A notification which does not expect a response.
  *
  * @template-covariant TMethod of non-empty-string
- * @template-covariant TEnvelope of array<string, mixed>
+ * @template-covariant TEnvelope of array<string, mixed> = array<string, mixed>
  *
  * @extends Notification<TMethod>
  * @implements Arrayable<TEnvelope>

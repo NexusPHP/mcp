@@ -87,4 +87,4 @@ assertType('Nexus\Mcp\Core\Schema\Result\ListToolsResult', $listTools->result);
 // The generic writer keeps the wide base `Result` type (no per-method narrowing).
 $generic = new GenericResultResponse(id: $id, result: new EmptyResult());
 assertType('Nexus\Mcp\Core\Schema\ResultResponse\GenericResultResponse', $generic);
-assertType('Nexus\Mcp\Core\Schema\Result<array<string, mixed>>', $generic->result);
+assertType('Nexus\Mcp\Core\Schema\Result', $generic->result);

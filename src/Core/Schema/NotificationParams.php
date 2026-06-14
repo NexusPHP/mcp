@@ -16,7 +16,7 @@ namespace Nexus\Mcp\Core\Schema;
 /**
  * Common params for any notification.
  *
- * @template-covariant T of array<string, mixed>
+ * @template-covariant T of array<string, mixed> = array<string, mixed>
  *
  * @implements Arrayable<T>
  *

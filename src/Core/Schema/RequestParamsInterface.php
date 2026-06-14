@@ -18,7 +18,7 @@ namespace Nexus\Mcp\Core\Schema;
  * `RequestParams` base (client-to-server, with required `_meta`) and the
  * standalone server-to-client params both implement it.
  *
- * @template-covariant T of array<string, mixed>
+ * @template-covariant T of array<string, mixed> = array<string, mixed>
  */
 interface RequestParamsInterface extends \JsonSerializable
 {

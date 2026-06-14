@@ -17,7 +17,7 @@ use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 
 /**
- * @template-covariant T of array<string, mixed>
+ * @template-covariant T of array<string, mixed> = array<string, mixed>
  *
  * @implements Arrayable<T>
  *

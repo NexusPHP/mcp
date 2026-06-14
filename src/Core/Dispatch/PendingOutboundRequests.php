@@ -31,7 +31,10 @@ use Nexus\Mcp\Core\Schema\RequestId;
 final class PendingOutboundRequests implements \Countable
 {
     /**
-     * @var array<non-empty-string, array{deferred: DeferredFuture<JsonRpcResultResponse<array<string, mixed>>>, response: class-string<JsonRpcResultResponse<array<string, mixed>>>}>
+     * @var array<non-empty-string, array{
+     *   deferred: DeferredFuture<JsonRpcResultResponse>,
+     *   response: class-string<JsonRpcResultResponse>,
+     * }>
      */
     private array $map = [];
 
@@ -39,7 +42,7 @@ final class PendingOutboundRequests implements \Countable
      * Registers an outbound request id and returns the future that resolves
      * once `resolve()` or `reject()` is called for the same id.
      *
-     * @template TResponse of JsonRpcResultResponse<array<string, mixed>> = JsonRpcResultResponse<array<string, mixed>>
+     * @template TResponse of JsonRpcResultResponse = JsonRpcResultResponse
      *
      * @param class-string<TResponse> $response
      *
@@ -66,7 +69,7 @@ final class PendingOutboundRequests implements \Countable
      * Returns the response envelope class registered for `$id`, or `null` if no
      * entry exists.
      *
-     * @return null|class-string<JsonRpcResultResponse<array<string, mixed>>>
+     * @return null|class-string<JsonRpcResultResponse>
      */
     public function resolveResponseClass(RequestId $id): ?string
     {
@@ -82,8 +85,6 @@ final class PendingOutboundRequests implements \Countable
     /**
      * Completes the future for `$id` with the given response. Returns false
      * if no entry was registered for that id.
-     *
-     * @param JsonRpcResultResponse<array<string, mixed>> $response
      */
     public function resolve(RequestId $id, JsonRpcResultResponse $response): bool
     {

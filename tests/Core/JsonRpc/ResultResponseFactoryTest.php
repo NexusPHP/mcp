@@ -69,9 +69,8 @@ use PHPUnit\Framework\TestCase;
 final class ResultResponseFactoryTest extends TestCase
 {
     /**
-     * @param JsonRpcRequest<non-empty-string, array<string, mixed>> $request
-     * @param Result<array<string, mixed>>                           $result
-     * @param class-string                                           $expectedResponse
+     * @param JsonRpcRequest<non-empty-string> $request
+     * @param class-string                     $expectedResponse
      */
     #[DataProvider('provideWrapSelectsTheEnvelopeCases')]
     public function testWrapSelectsTheEnvelope(JsonRpcRequest $request, Result $result, string $expectedResponse): void
@@ -84,7 +83,7 @@ final class ResultResponseFactoryTest extends TestCase
     }
 
     /**
-     * @return iterable<string, array{JsonRpcRequest<non-empty-string, array<string, mixed>>, Result<array<string, mixed>>, class-string}>
+     * @return iterable<string, array{JsonRpcRequest<non-empty-string>, Result, class-string}>
      */
     public static function provideWrapSelectsTheEnvelopeCases(): iterable
     {

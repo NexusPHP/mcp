@@ -27,9 +27,6 @@ use Nexus\Mcp\Core\Schema\RequestParamsInterface;
  */
 final readonly class TestRequest extends JsonRpcRequest
 {
-    /**
-     * @param null|RequestParamsInterface<array<string, mixed>> $params
-     */
     public function __construct(RequestId $id, ?RequestParamsInterface $params = null)
     {
         parent::__construct($id, $params);

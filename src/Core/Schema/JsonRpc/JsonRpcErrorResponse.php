@@ -28,16 +28,13 @@ use Nexus\Mcp\Core\Schema\RequestId;
  * @implements Arrayable<array{
  *   jsonrpc: '2.0',
  *   id?: int|non-empty-string,
- *   error: template-type<Error<array<string, mixed>>, Arrayable, 'T'>,
+ *   error: template-type<Error, Arrayable, 'T'>,
  * }>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#jsonrpcerrorresponse
  */
 final readonly class JsonRpcErrorResponse implements Arrayable, JsonRpcResponse
 {
-    /**
-     * @param Error<array<string, mixed>> $error
-     */
     public function __construct(public ?RequestId $id, public Error $error)
     {
     }
@@ -85,8 +82,6 @@ final readonly class JsonRpcErrorResponse implements Arrayable, JsonRpcResponse
 
     /**
      * @param array<string, mixed> $data
-     *
-     * @return Error<array<string, mixed>>
      */
     private static function parseError(array $data): Error
     {

@@ -813,8 +813,8 @@ final class ClientMessageDispatcherTest extends TestCase
     }
 
     /**
-     * @param array<non-empty-string, RequestHandlerInterface<non-empty-string, Result<array<string, mixed>>, ClientContext>> $requestHandlers
-     * @param array<non-empty-string, NotificationHandlerInterface<non-empty-string>>                                         $notificationHandlers
+     * @param array<non-empty-string, RequestHandlerInterface<non-empty-string, Result, ClientContext>> $requestHandlers
+     * @param array<non-empty-string, NotificationHandlerInterface<non-empty-string>>                   $notificationHandlers
      */
     private static function buildDispatcher(
         PendingOutboundRequests $outbound,

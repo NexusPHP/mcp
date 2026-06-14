@@ -22,9 +22,6 @@ use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
  */
 abstract readonly class Notification
 {
-    /**
-     * @param NotificationParams<array<string, mixed>> $params
-     */
     public function __construct(public NotificationParams $params = new EmptyNotificationParams())
     {
     }

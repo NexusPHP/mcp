@@ -21,7 +21,7 @@ use Nexus\Mcp\Core\Validation\Rfc3986UriValidator;
 /**
  * The contents of a specific resource or sub-resource.
  *
- * @template T of array<string, mixed>
+ * @template T of array<string, mixed> = array<string, mixed>
  *
  * @implements Arrayable<T>
  *

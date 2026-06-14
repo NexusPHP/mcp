@@ -29,7 +29,7 @@ use Nexus\Mcp\Core\Schema\Resource\TextResourceContents;
  * It is up to the client how best to render embedded resources for the benefit of the LLM and/or the user.
  *
  * @implements Arrayable<array{
- *   resource: template-type<ResourceContents<array<string, mixed>>, Arrayable, 'T'>,
+ *   resource: template-type<ResourceContents, Arrayable, 'T'>,
  *   type: 'resource',
  *   annotations?: template-type<Annotations, Arrayable, 'T'>,
  *   _meta?: template-type<MetaObject, Arrayable, 'T'>,

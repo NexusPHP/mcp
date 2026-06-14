@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Schema\ResultResponse;
 
+use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
@@ -27,7 +28,7 @@ use Nexus\Mcp\Core\Schema\Result\EmptyResult;
  * @extends JsonRpcResultResponse<array{
  *   jsonrpc: '2.0',
  *   id: int|non-empty-string,
- *   result: template-type<Result<array<string, mixed>>, Result, 'T'>,
+ *   result: template-type<Result, Arrayable, 'T'>,
  * }>
  */
 final readonly class GenericResultResponse extends JsonRpcResultResponse

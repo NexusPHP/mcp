@@ -20,9 +20,6 @@ namespace Nexus\Mcp\Core\Schema;
  */
 abstract readonly class Request
 {
-    /**
-     * @param null|RequestParamsInterface<array<string, mixed>> $params
-     */
     public function __construct(public ?RequestParamsInterface $params = null)
     {
     }

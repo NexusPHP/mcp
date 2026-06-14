@@ -26,7 +26,7 @@ use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 final class RecordingNotificationHandler implements NotificationHandlerInterface
 {
     /**
-     * @var list<JsonRpcNotification<non-empty-string, array<string, mixed>>>
+     * @var list<JsonRpcNotification<non-empty-string>>
      */
     public private(set) array $notifications = [];
 

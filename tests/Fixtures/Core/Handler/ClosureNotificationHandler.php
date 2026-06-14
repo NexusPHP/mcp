@@ -26,7 +26,7 @@ use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 final readonly class ClosureNotificationHandler implements NotificationHandlerInterface
 {
     /**
-     * @param \Closure(JsonRpcNotification<non-empty-string, array<string, mixed>>): void $handler
+     * @param \Closure(JsonRpcNotification<non-empty-string>): void $handler
      */
     public function __construct(private \Closure $handler)
     {

@@ -28,7 +28,7 @@ use Nexus\Mcp\Core\Schema\RequestParams\ElicitRequestUrlParams;
  * @implements Arrayable<array{
  *   jsonrpc: '2.0',
  *   id?: int|non-empty-string,
- *   error: template-type<Error<array<string, mixed>>, Arrayable, 'T'>,
+ *   error: template-type<Error, Arrayable, 'T'>,
  * }>
  *
  * @internal
@@ -45,7 +45,6 @@ final readonly class UrlElicitationRequiredError implements Arrayable
     public array $elicitations;
 
     /**
-     * @param Error<array<string, mixed>>  $error
      * @param list<ElicitRequestUrlParams> $elicitations
      */
     public function __construct(

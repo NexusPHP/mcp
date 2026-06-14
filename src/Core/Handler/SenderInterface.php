@@ -23,14 +23,12 @@ use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 interface SenderInterface
 {
     /**
-     * @param JsonRpcNotification<non-empty-string, array<string, mixed>> $notification
+     * @param JsonRpcNotification<non-empty-string> $notification
      */
     public function sendNotification(JsonRpcNotification $notification): void;
 
     /**
-     * @param JsonRpcRequest<non-empty-string, array<string, mixed>> $request
-     *
-     * @return JsonRpcResultResponse<array<string, mixed>>
+     * @param JsonRpcRequest<non-empty-string> $request
      */
     public function sendRequest(JsonRpcRequest $request): JsonRpcResultResponse;
 }
