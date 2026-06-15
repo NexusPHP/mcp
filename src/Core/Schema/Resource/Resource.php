@@ -20,7 +20,6 @@ use Nexus\Mcp\Core\Schema\BaseMetadata;
 use Nexus\Mcp\Core\Schema\Icon;
 use Nexus\Mcp\Core\Schema\Icons;
 use Nexus\Mcp\Core\Schema\MetaObject;
-use Nexus\Mcp\Core\Schema\ParsesNumber;
 use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
 use Nexus\Mcp\Core\Validation\Rfc3986UriValidator;
 
@@ -34,7 +33,7 @@ use Nexus\Mcp\Core\Validation\Rfc3986UriValidator;
  *   description?: non-empty-string,
  *   mimeType?: non-empty-string,
  *   annotations?: template-type<Annotations, Arrayable, 'T'>,
- *   size?: float,
+ *   size?: int,
  *   icons?: list<template-type<Icon, Arrayable, 'T'>>,
  *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
  * }>
@@ -43,8 +42,6 @@ use Nexus\Mcp\Core\Validation\Rfc3986UriValidator;
  */
 final readonly class Resource extends BaseMetadata implements Arrayable, Icons
 {
-    use ParsesNumber;
-
     /**
      * @var non-empty-string
      */
@@ -75,7 +72,7 @@ final readonly class Resource extends BaseMetadata implements Arrayable, Icons
         ?string $description = null,
         ?string $mimeType = null,
         public Annotations $annotations = new Annotations(),
-        public ?float $size = null,
+        public ?int $size = null,
         ?array $icons = null,
         public MetaObject $meta = new MetaObject(),
     ) {
@@ -84,8 +81,14 @@ final readonly class Resource extends BaseMetadata implements Arrayable, Icons
         IdentifierNameValidator::validate($name, 'resource "name"');
         Rfc3986UriValidator::validate($uri, 'resource "uri"');
 
-        Assert::that($description)->nullOr()->isNonEmptyString('resource "description" must be a non-empty string or null.');
-        Assert::that($mimeType)->nullOr()->isNonEmptyString('resource "mimeType" must be a non-empty string or null.');
+        Assert::that($description)
+            ->nullOr()
+            ->isNonEmptyString('resource "description" must be a non-empty string or null.')
+        ;
+        Assert::that($mimeType)
+            ->nullOr()
+            ->isNonEmptyString('resource "mimeType" must be a non-empty string or null.')
+        ;
 
         if (null !== $icons) {
             Assert::that($icons)->values()->isInstanceOf(Icon::class);
@@ -128,10 +131,7 @@ final readonly class Resource extends BaseMetadata implements Arrayable, Icons
         }
 
         $size = $data['size'] ?? null;
-
-        if (null !== $size) {
-            $size = self::parseNumber($size, 'resource "size" must be a number or null, {type} given.');
-        }
+        Assert::that($size)->nullOr()->isInt('resource "size" must be an integer or null, {type} given.');
 
         $icons = null;
 

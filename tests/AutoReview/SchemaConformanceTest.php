@@ -826,11 +826,60 @@ final class SchemaConformanceTest extends TestCase
                     $source,
                 );
             }
+
+            $specScalar = self::specScalarJsonType($specProperties[$key] ?? []);
+
+            if (
+                null !== $specScalar
+                && $type instanceof \ReflectionNamedType
+                && $type->isBuiltin()
+                && \in_array($type->getName(), ['int', 'float', 'string', 'bool'], true)
+            ) {
+                $expectedPhp = self::normaliseJsonType($specScalar);
+
+                if ($type->getName() !== $expectedPhp) {
+                    $findings[] = \sprintf(
+                        '"%s" is spec JSON type "%s" (PHP "%s") but %s is typed "%s".',
+                        $key,
+                        $specScalar,
+                        $expectedPhp,
+                        $source,
+                        $type->getName(),
+                    );
+                }
+            }
         }
 
         sort($findings);
 
         return $findings;
+    }
+
+    /**
+     * Return the property's scalar JSON type ("string", "integer", "number",
+     * or "boolean") with any "null" member stripped, or null when it is not an
+     * unambiguous scalar (ref, union, enum, const, object, array, multi-type).
+     *
+     * @param array<string, mixed> $propertyShape
+     */
+    private static function specScalarJsonType(array $propertyShape): ?string
+    {
+        foreach (['$ref', 'anyOf', 'oneOf', 'allOf', 'enum', 'const'] as $disqualifier) {
+            if (\array_key_exists($disqualifier, $propertyShape)) {
+                return null;
+            }
+        }
+
+        $type = $propertyShape['type'] ?? null;
+
+        if (\is_array($type)) {
+            $type = array_values(array_filter($type, static fn(mixed $member): bool => 'null' !== $member));
+            $type = \count($type) === 1 ? $type[0] : null;
+        }
+
+        return \is_string($type) && \in_array($type, ['string', 'integer', 'number', 'boolean'], true)
+            ? $type
+            : null;
     }
 
     /**

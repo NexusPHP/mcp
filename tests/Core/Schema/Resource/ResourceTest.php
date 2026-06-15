@@ -67,7 +67,7 @@ final class ResourceTest extends TestCase
             description: 'A description.',
             mimeType: 'text/plain',
             annotations: new Annotations(priority: 0.5),
-            size: 1024.0,
+            size: 1024,
             icons: [new Icon(src: 'https://example.com/icon.png')],
             meta: new MetaObject(extras: ['vendor' => 'x']),
         );
@@ -80,7 +80,7 @@ final class ResourceTest extends TestCase
                 'description' => 'A description.',
                 'mimeType' => 'text/plain',
                 'annotations' => ['priority' => 0.5],
-                'size' => 1024.0,
+                'size' => 1024,
                 'icons' => [['src' => 'https://example.com/icon.png']],
                 '_meta' => ['vendor' => 'x'],
             ],
@@ -95,7 +95,7 @@ final class ResourceTest extends TestCase
             uri: 'file:///x',
             title: 'My Resource',
             mimeType: 'text/plain',
-            size: 42.0,
+            size: 42,
             meta: new MetaObject(extras: ['k' => 'v']),
         );
 
@@ -119,7 +119,7 @@ final class ResourceTest extends TestCase
             'description' => 'A description.',
             'mimeType' => 'text/plain',
             'annotations' => ['priority' => 0.5],
-            'size' => 1024.0,
+            'size' => 1024,
             'icons' => [['src' => 'https://example.com/icon.png']],
             '_meta' => ['vendor' => 'x'],
         ]);
@@ -128,22 +128,11 @@ final class ResourceTest extends TestCase
         self::assertSame('A description.', $resource->description);
         self::assertSame('text/plain', $resource->mimeType);
         self::assertSame(0.5, $resource->annotations->priority);
-        self::assertSame(1024.0, $resource->size);
+        self::assertSame(1024, $resource->size);
         self::assertNotNull($resource->icons);
         self::assertCount(1, $resource->icons);
         self::assertSame('https://example.com/icon.png', $resource->icons[0]->src);
         self::assertSame(['vendor' => 'x'], $resource->meta->extras);
-    }
-
-    public function testFromArrayCoercesIntSize(): void
-    {
-        $resource = Resource::fromArray([
-            'name' => 'my-resource',
-            'uri' => 'file:///x',
-            'size' => 1024,
-        ]);
-
-        self::assertSame(1024.0, $resource->size);
     }
 
     public function testFromArrayFullRoundTrip(): void
@@ -155,7 +144,7 @@ final class ResourceTest extends TestCase
             description: 'A description.',
             mimeType: 'text/plain',
             annotations: new Annotations(priority: 0.5),
-            size: 42.0,
+            size: 42,
             icons: [new Icon(src: 'https://example.com/icon.png')],
             meta: new MetaObject(extras: ['vendor' => 'x']),
         );
@@ -267,9 +256,14 @@ final class ResourceTest extends TestCase
             'resource "annotations" must be a string-keyed object.',
         ];
 
-        yield 'size not a number' => [
+        yield 'size not an integer' => [
             ['name' => 'my-resource', 'uri' => 'file:///x', 'size' => 'oops'],
-            'resource "size" must be a number or null, string given.',
+            'resource "size" must be an integer or null, string given.',
+        ];
+
+        yield 'size is a float' => [
+            ['name' => 'my-resource', 'uri' => 'file:///x', 'size' => 10.5],
+            'resource "size" must be an integer or null, float given.',
         ];
 
         yield 'icons not an array' => [

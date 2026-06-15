@@ -55,7 +55,7 @@ final class AsResourceTest extends TestCase
             description: 'A text file.',
             mimeType: 'text/plain',
             annotations: $annotations,
-            size: 1024.0,
+            size: 1024,
             icons: [$icon],
             meta: ['vendor' => 'acme'],
         );
@@ -66,7 +66,7 @@ final class AsResourceTest extends TestCase
         self::assertSame('A text file.', $resource->description);
         self::assertSame('text/plain', $resource->mimeType);
         self::assertSame($annotations, $resource->annotations);
-        self::assertSame(1024.0, $resource->size);
+        self::assertSame(1024, $resource->size);
         self::assertSame([$icon], $resource->icons);
         self::assertSame(['vendor' => 'acme'], $resource->meta);
     }

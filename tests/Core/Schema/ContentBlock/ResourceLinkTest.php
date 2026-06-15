@@ -67,7 +67,7 @@ final class ResourceLinkTest extends TestCase
             description: 'A description.',
             mimeType: 'text/plain',
             annotations: new Annotations(priority: 0.5),
-            size: 1024.0,
+            size: 1024,
             icons: [new Icon(src: 'https://example.com/icon.png')],
             meta: new MetaObject(extras: ['vendor' => 'x']),
         );
@@ -81,7 +81,7 @@ final class ResourceLinkTest extends TestCase
                 'description' => 'A description.',
                 'mimeType' => 'text/plain',
                 'annotations' => ['priority' => 0.5],
-                'size' => 1024.0,
+                'size' => 1024,
                 'icons' => [['src' => 'https://example.com/icon.png']],
                 '_meta' => ['vendor' => 'x'],
             ],
@@ -96,7 +96,7 @@ final class ResourceLinkTest extends TestCase
             uri: 'file:///tmp/x',
             title: 'My Link',
             mimeType: 'text/plain',
-            size: 42.0,
+            size: 42,
             meta: new MetaObject(extras: ['k' => 'v']),
         );
 
@@ -125,7 +125,7 @@ final class ResourceLinkTest extends TestCase
             'description' => 'A description.',
             'mimeType' => 'text/plain',
             'annotations' => ['priority' => 0.5],
-            'size' => 1024.0,
+            'size' => 1024,
             'icons' => [['src' => 'https://example.com/icon.png']],
             '_meta' => ['vendor' => 'x'],
         ]);
@@ -134,23 +134,11 @@ final class ResourceLinkTest extends TestCase
         self::assertSame('A description.', $link->description);
         self::assertSame('text/plain', $link->mimeType);
         self::assertSame(0.5, $link->annotations->priority);
-        self::assertSame(1024.0, $link->size);
+        self::assertSame(1024, $link->size);
         self::assertNotNull($link->icons);
         self::assertCount(1, $link->icons);
         self::assertSame('https://example.com/icon.png', $link->icons[0]->src);
         self::assertSame(['vendor' => 'x'], $link->meta->extras);
-    }
-
-    public function testFromArrayCoercesIntSize(): void
-    {
-        $link = ResourceLink::fromArray([
-            'type' => 'resource_link',
-            'name' => 'my-link',
-            'uri' => 'file:///tmp/x',
-            'size' => 1024,
-        ]);
-
-        self::assertSame(1024.0, $link->size);
     }
 
     public function testFromArrayFullRoundTrip(): void
@@ -162,7 +150,7 @@ final class ResourceLinkTest extends TestCase
             description: 'A description.',
             mimeType: 'text/plain',
             annotations: new Annotations(priority: 0.5),
-            size: 42.0,
+            size: 42,
             icons: [new Icon(src: 'https://example.com/icon.png')],
             meta: new MetaObject(extras: ['vendor' => 'x']),
         );
@@ -284,9 +272,14 @@ final class ResourceLinkTest extends TestCase
             'resource link "annotations" must be a string-keyed object.',
         ];
 
-        yield 'size not a number' => [
+        yield 'size not an integer' => [
             ['type' => 'resource_link', 'name' => 'my-link', 'uri' => 'file:///tmp/x', 'size' => 'oops'],
-            'resource link "size" must be a number or null, string given.',
+            'resource link "size" must be an integer or null, string given.',
+        ];
+
+        yield 'size is a float' => [
+            ['type' => 'resource_link', 'name' => 'my-link', 'uri' => 'file:///tmp/x', 'size' => 10.5],
+            'resource link "size" must be an integer or null, float given.',
         ];
 
         yield 'icons not an array' => [

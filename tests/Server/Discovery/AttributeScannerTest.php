@@ -141,7 +141,7 @@ final class AttributeScannerTest extends TestCase
         self::assertSame('Application configuration.', $resource->description);
         self::assertSame('application/json', $resource->mimeType);
         self::assertSame(0.5, $resource->annotations->priority);
-        self::assertSame(128.0, $resource->size);
+        self::assertSame(128, $resource->size);
         self::assertSame(['cacheable' => true], $resource->meta->extras);
     }
 

@@ -93,7 +93,7 @@ final class DiscoverableServer
         description: 'Application configuration.',
         mimeType: 'application/json',
         annotations: new Annotations(priority: 0.5),
-        size: 128.0,
+        size: 128,
         meta: ['cacheable' => true],
     )]
     public function appConfig(string $uri): string
