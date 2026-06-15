@@ -96,4 +96,16 @@ final class GenericResultResponseTest extends TestCase
         self::assertInstanceOf(EmptyResult::class, $response->result);
         self::assertSame(7, $response->id->id);
     }
+
+    public function testFromArrayRejectsInputRequiredResult(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('"result" returned "input_required" for a method that does not support it.');
+
+        GenericResultResponse::fromArray([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'result' => ['resultType' => 'input_required', 'requestState' => 'tok'],
+        ]);
+    }
 }

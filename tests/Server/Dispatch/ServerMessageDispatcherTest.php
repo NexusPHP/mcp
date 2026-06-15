@@ -31,6 +31,7 @@ use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\DiscoverResult;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
+use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
 use Nexus\Mcp\Core\Schema\ServerCapabilities;
 use Nexus\Mcp\Server\Dispatch\ServerMessageDispatcher;
 use Nexus\Mcp\Server\Exception\ResourceNotFoundException;
@@ -510,6 +511,41 @@ final class ServerMessageDispatcherTest extends TestCase
         $logged = $matches[0]['context']['exception'] ?? null;
         self::assertInstanceOf(\RuntimeException::class, $logged);
         self::assertSame('mysql://root:hunter2@db-prod:3306 unreachable', $logged->getMessage());
+    }
+
+    public function testHandlerReturningMisroutedResultReturnsInternalError(): void
+    {
+        $transport = new RecordingTransport();
+        $logger = new ArrayLogger();
+        $dispatcher = self::buildDispatcher(
+            requestHandlers: [
+                'tools/list' => new ClosureRequestHandler(
+                    static fn(): Result => InputRequiredResult::fromArray([
+                        'resultType' => 'input_required',
+                        'requestState' => 'tok',
+                    ]),
+                ),
+            ],
+            logger: $logger,
+        );
+
+        $dispatcher->dispatch(self::toolsListEnvelope(1), $transport);
+
+        EventLoop::run();
+
+        self::assertCount(1, $transport->sent);
+        $message = $transport->sent[0]['message'];
+        self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
+        self::assertSame(ProtocolErrorCode::InternalError->value, $message->error->code);
+
+        $matches = $logger->recordsMatching(LogLevel::ERROR, 'Uncaught request handler exception.');
+        self::assertCount(1, $matches);
+        $logged = $matches[0]['context']['exception'] ?? null;
+        self::assertInstanceOf(\InvalidArgumentException::class, $logged);
+        self::assertSame(
+            \sprintf('Handler for "tools/list" returned %s, which is not a valid result for that method.', InputRequiredResult::class),
+            $logged->getMessage(),
+        );
     }
 
     public function testTransportSendFailureIsLoggedRatherThanCrashingTheLoop(): void

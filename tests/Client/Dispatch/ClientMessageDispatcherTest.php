@@ -32,6 +32,7 @@ use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
+use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
 use Nexus\Mcp\Core\Schema\ResultResponse\CallToolResultResponse;
 use Nexus\Mcp\Server\Exception\ResourceNotFoundException;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
@@ -309,6 +310,42 @@ final class ClientMessageDispatcherTest extends TestCase
         $message = $transport->sent[0]['message'];
         self::assertInstanceOf(JsonRpcResultResponse::class, $message);
         self::assertSame(1, $message->id->id);
+    }
+
+    public function testInboundHandlerReturningMisroutedResultReturnsInternalError(): void
+    {
+        $outbound = new PendingOutboundRequests();
+        $logger = new ArrayLogger();
+        $dispatcher = self::buildDispatcher(
+            $outbound,
+            requestHandlers: [
+                'tests/test-request' => new ClosureRequestHandler(
+                    static fn(): Result => InputRequiredResult::fromArray([
+                        'resultType' => 'input_required',
+                        'requestState' => 'tok',
+                    ]),
+                ),
+            ],
+            logger: $logger,
+        );
+        $transport = new RecordingTransport();
+
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport);
+        EventLoop::run();
+
+        self::assertCount(1, $transport->sent);
+        $message = $transport->sent[0]['message'];
+        self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
+        self::assertSame(ProtocolErrorCode::InternalError->value, $message->error->code);
+
+        $matches = $logger->recordsMatching(LogLevel::ERROR, 'Uncaught request handler exception.');
+        self::assertCount(1, $matches);
+        $logged = $matches[0]['context']['exception'] ?? null;
+        self::assertInstanceOf(\InvalidArgumentException::class, $logged);
+        self::assertSame(
+            \sprintf('Handler for "tests/test-request" returned %s, which is not a valid result for that method.', InputRequiredResult::class),
+            $logged->getMessage(),
+        );
     }
 
     public function testInboundRequestHandlerReceivesNoProgressTokenEvenWhenMetaCarriesOne(): void

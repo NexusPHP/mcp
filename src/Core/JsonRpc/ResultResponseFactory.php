@@ -28,6 +28,7 @@ use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Core\Schema\Result\CompleteResult;
 use Nexus\Mcp\Core\Schema\Result\DiscoverResult;
+use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
 use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
 use Nexus\Mcp\Core\Schema\Result\ListPromptsResult;
@@ -71,7 +72,12 @@ final class ResultResponseFactory
             $request instanceof ListResourcesRequest && $result instanceof ListResourcesResult => new ListResourcesResultResponse(id: $id, result: $result),
             $request instanceof ListResourceTemplatesRequest && $result instanceof ListResourceTemplatesResult => new ListResourceTemplatesResultResponse(id: $id, result: $result),
             $request instanceof ListToolsRequest && $result instanceof ListToolsResult => new ListToolsResultResponse(id: $id, result: $result),
-            default => new GenericResultResponse(id: $id, result: $result),
+            $result instanceof EmptyResult => new GenericResultResponse(id: $id, result: $result),
+            default => throw new \InvalidArgumentException(\sprintf(
+                'Handler for "%s" returned %s, which is not a valid result for that method.',
+                $request::getMethod(),
+                $result::class,
+            )),
         };
     }
 }

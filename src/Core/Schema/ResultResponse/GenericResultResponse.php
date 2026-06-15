@@ -36,7 +36,11 @@ final readonly class GenericResultResponse extends JsonRpcResultResponse
     #[\Override]
     public static function fromArray(array $data): static
     {
-        return new self(id: self::parseId($data), result: EmptyResult::fromArray(self::parseResult($data)));
+        $id = self::parseId($data);
+        $payload = self::parseResult($data);
+        self::rejectInputRequired($payload);
+
+        return new self(id: $id, result: EmptyResult::fromArray($payload));
     }
 
     #[\Override]

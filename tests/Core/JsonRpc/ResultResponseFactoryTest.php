@@ -213,4 +213,37 @@ final class ResultResponseFactoryTest extends TestCase
             GenericResultResponse::class,
         ];
     }
+
+    /**
+     * @param JsonRpcRequest<non-empty-string> $request
+     */
+    #[DataProvider('provideWrapRejectsMisroutedResultCases')]
+    public function testWrapRejectsMisroutedResult(JsonRpcRequest $request, Result $result, string $expectedMessage): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs($expectedMessage);
+
+        ResultResponseFactory::wrap($request, $result);
+    }
+
+    /**
+     * @return iterable<string, array{JsonRpcRequest<non-empty-string>, Result, string}>
+     */
+    public static function provideWrapRejectsMisroutedResultCases(): iterable
+    {
+        $meta = RequestMetaObjectFactory::create();
+        $id = new RequestId(id: 1);
+
+        yield 'input_required for a method that does not support it' => [
+            new ListToolsRequest(id: $id, params: new PaginatedRequestParams(meta: $meta)),
+            InputRequiredResult::fromArray(['resultType' => 'input_required', 'requestState' => 'tok']),
+            \sprintf('Handler for "tools/list" returned %s, which is not a valid result for that method.', InputRequiredResult::class),
+        ];
+
+        yield 'typed result wrapped for the wrong method' => [
+            new CallToolRequest(id: $id, params: new CallToolRequestParams(name: 'tool', meta: $meta)),
+            ListToolsResult::fromArray(['tools' => [], 'ttlMs' => 0, 'cacheScope' => 'private']),
+            \sprintf('Handler for "tools/call" returned %s, which is not a valid result for that method.', ListToolsResult::class),
+        ];
+    }
 }
