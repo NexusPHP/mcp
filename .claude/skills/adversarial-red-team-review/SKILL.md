@@ -1,6 +1,6 @@
 ---
 name: adversarial-red-team-review
-description: Project-local adversarial review for the Nexus MCP SDK. Spawns four parallel red-team subagents (spec faithfulness, concurrency, mutation gaps, edge-case bug hunt) and pre-seeds each with the repo's durable review conventions so they skip already-decided ground. Use after a non-trivial design landing, before merging hard-to-reverse changes, or when reviewing a phase/subsystem at steady state. Skip for mechanical refactors, formatting, dependency bumps.
+description: Project-local adversarial review for the Nexus MCP SDK. Spawns up to five parallel red-team subagents (spec faithfulness, concurrency, mutation gaps, edge-case bug hunt, verification-gate integrity) and pre-seeds each with the repo's durable review conventions so they skip already-decided ground. Use after a non-trivial design landing, before merging hard-to-reverse changes, or when reviewing a phase/subsystem at steady state. Skip for mechanical refactors, formatting, dependency bumps.
 argument-hint: "[optional scope, e.g. 'server runtime', 'transport layer', or a PR number. Defaults to uncommitted working-tree changes]"
 ---
 
@@ -10,7 +10,7 @@ This is a project-local skill committed to the repo so any contributor running i
 
 Goal: spawn fresh, narrowly-scoped subagents that explicitly oppose the in-flight work. The point is to counter the agreement drift that builds up within a single building session. A session that has been collaborating on a design has accumulated context that biases it toward "yes, this works." Asking that same session to "double-check itself" hits the same bias. Fresh adversarial subagents have none of that history.
 
-If the scope is a small mechanical change (one renamed file, a dependency bump, a typo fix), defer to a single-agent review or skip review entirely. The four-agent shape is for steady-state subsystems or non-trivial design landings.
+If the scope is a small mechanical change (one renamed file, a dependency bump, a typo fix), defer to a single-agent review or skip review entirely. The full multi-frame shape is for steady-state subsystems or non-trivial design landings.
 
 ## Step 1: determine scope
 
@@ -26,7 +26,7 @@ git diff
 
 If the scope is a branch (not just uncommitted), use `git diff <base>...HEAD`.
 
-If the scope is a phase or subsystem ("server runtime", "transport layer", "JSON-RPC parser") rather than a diff, treat it as steady-state: identify the file set via `find src/<area> -name '*.php'` plus matching `tests/<area>`. There is no diff to read in this mode. The four agents review the production code as it stands.
+If the scope is a phase or subsystem ("server runtime", "transport layer", "JSON-RPC parser") rather than a diff, treat it as steady-state: identify the file set via `find src/<area> -name '*.php'` plus matching `tests/<area>`. There is no diff to read in this mode. The selected frames review the production code as it stands.
 
 ## Step 2: brief yourself before briefing the subagents
 
@@ -43,7 +43,7 @@ Identify three to five **design intentions that should NOT be flagged** as bugs 
 
 ## Step 3: durable repo-wide constraints (shared pre-seed)
 
-The repo-wide review-time conventions live in a shared file, [`review-preseed.md`](../review-preseed.md), so this skill and `/simplify` runs stay in lockstep instead of each carrying its own copy. Read it and **include its "Already-decided" and "Verified-correct" blocks verbatim in every subagent prompt** so all four frames respect the same boundaries regardless of which contributor invokes the skill. The file is committed to the repo, so the skill stays self-contained for any contributor. When a review settles that something is correct-as-is or deferred, add it to that file so the next review skips it.
+The repo-wide review-time conventions live in a shared file, [`review-preseed.md`](../review-preseed.md), so this skill and `/simplify` runs stay in lockstep instead of each carrying its own copy. Read it and **include its "Already-decided" and "Verified-correct" blocks verbatim in every subagent prompt** so all selected frames respect the same boundaries regardless of which contributor invokes the skill. The file is committed to the repo, so the skill stays self-contained for any contributor. When a review settles that something is correct-as-is or deferred, add it to that file so the next review skips it.
 
 If the contributor has additional do-not-critique context from the conversation (specific renames, intentional duplication, behaviour covered in conversation), append those under "Session-specific do-not-critique" so the agent sees both.
 
@@ -68,7 +68,7 @@ Map the names verbatim into per-agent prompts where the agent is expected to ver
 
 ## Step 4: choose frames
 
-The four default frames are below. **Pick the ones that fit the scope.** Do not auto-spawn all four for a small diff.
+The five default frames are below. **Pick the ones that fit the scope.** Do not auto-spawn all five for a small diff.
 
 Rule of thumb:
 
@@ -76,8 +76,11 @@ Rule of thumb:
 - **Concurrency / runtime correctness (A2)**: include for `src/Server/`, `src/Client/`, `src/Core/Transport/`.
 - **Test / mutation gaps (A3)**: include whenever a code change ships without a test diff that matches it, or when the change is in a guard/branch-heavy area (parsers, dispatchers, validators).
 - **Edge-case / adversarial-peer bug hunt (A4)**: include for anything that sits on the network/IPC boundary (parsers, transports, framing, dispatch entry points).
+- **Verification-gate integrity (A5)**: include whenever the change touches `src/Core/Schema/`, `tests/AutoReview/`, `infection.json5`, the coverage gate, or the spec-mapping tooling under `tools/`. Also include for every steady-state subsystem review. A harness blind spot is scope-independent, and the steady-state pass is exactly when you want the safety net itself audited rather than assumed.
 
-For a tiny diff (one file, one method), drop to two frames or skip the skill entirely.
+For a tiny diff (one file, one method), drop to one or two frames or skip the skill entirely.
+
+A note on selection: a green gate is not the same as a checked invariant. A conformance test can confirm that every property exists while never comparing its scalar type, so a whole class of drift slips through green. A5 audits the gates themselves rather than trusting them. When the scope touches schema or the AutoReview suite, treat A5 as load-bearing, not optional padding.
 
 ## Step 5: spawn agents in parallel
 
@@ -154,6 +157,8 @@ Hunt for:
 
 - Method coverage gaps. Every spec-defined method has a handler contract? Capabilities advertised only when supported?
 - Required vs optional params drift.
+- Scalar type fidelity. Spec `"type": "integer"` maps to PHP `int`, `"number"` to `float`, `"boolean"` to `bool`, `"string"` to `string`. TypeScript has no integer type, so the JSON schema's `integer` vs `number` split is the authoritative signal: a field is `number` only when upstream annotated it `@TJS-type number` (deliberately float-capable), so an unannotated `integer` is intended as a whole number. Flag any property whose PHP type contradicts its spec scalar, in either direction (a spec `number` typed `int`, or a spec `integer` decoded permissively as `float`).
+- Sibling-class drift. When two classes share a spec shape (for example `Resource` and `ResourceLink`, or peer `*Result` classes), a field that is wrong in one is almost always wrong in both. Read siblings together so a single finding covers the whole family.
 - Error code drift (must use `ProtocolErrorCode` values for the correct failure modes).
 - Notification semantics (notifications MUST NOT produce a response).
 - Cancellation semantics (in-flight only, ignore unknown ids, MUST NOT cancel `initialize`).
@@ -184,9 +189,13 @@ Hunt for:
 
 The repo enforces 100% MSI via Infection. **Do not run the bare full-tree `composer mutation:check`** (7+ min). Predict survivors by reading source and tests, then **verify** any suspect mutation gap with the scoped, static-analysis-enabled command before reporting it: `composer mutation:check -- --filter="src/Path/To/File.php"` (about 30s for one file). Comma-separate a few paths to batch them.
 
+This frame's deliverable is verification, not a bug count. A report of "ran scoped mutation on the changed files, 100% MSI confirmed, no gaps" is a complete and valuable result, not a wasted frame. Its job is to either find a genuine untested path or to certify that the changed code is mutation-tight. Do not manufacture a finding because the frame "should" produce one.
+
 **SA-flag lesson (a real prior mistake, do NOT repeat it).** The repo's gate runs `infection --with-uncovered --static-analysis-tool=phpstan`, so a large share of mutants are killed by PHPStan rather than by a test assertion. That `--static-analysis-tool=phpstan` flag lives in the composer script, NOT in `infection.json5`, so a raw `tools/vendor/bin/infection --filter=<File>.php` invocation silently runs without static analysis and reports every SA-killed mutant as a false escape. A previous run of this skill did exactly that: it reported four "escaped" mutants and an alarming "the released tree is not at 100% MSI" claim, all of which were this artefact. Re-running through `composer mutation:check -- --filter=...` showed every one `caught by Static Analysis`, MSI 100%. Always verify through the composer scoped form (or, only if you must use the raw binary, add `--static-analysis-tool=phpstan`). Treat a `caught by Static Analysis` line as a KILL.
 
-This frame has the highest false-positive rate of all four. The prior session closed six "predicted survivor" findings as won't-fix after running scoped mutation on the implicated files and seeing the predicted mutants killed in milliseconds (often by tests the predictor had not read). Pattern-matching for "this branch looks unguarded" without checking is exactly what produces noise. **Run the tool. If the mutant is killed, drop the finding.**
+**First-run coverage-cache lag (another real artefact, do NOT misread it as a gap).** The FIRST scoped `mutation:check` run immediately after a source file was edited can report untouched, clearly-covered lines as "not covered", dropping overall MSI below 100 while **Covered Code MSI stays 100** (nothing actually escaped). The tell: the flagged lines are ones the diff did not touch, sitting at line numbers shifted by the edit, while the newly edited lines show as covered. Cause: the PHPUnit coverage cache lags one run behind the freshly line-shifted file. Re-run the identical command and it resolves to 100% MSI. So when the only failures are "not covered" on untouched lines and Covered Code MSI is 100, re-run before concluding a real gap exists. Do not file a finding for those phantom-uncovered lines.
+
+This frame has the highest false-positive rate of all five. The prior session closed six "predicted survivor" findings as won't-fix after running scoped mutation on the implicated files and seeing the predicted mutants killed in milliseconds (often by tests the predictor had not read). Pattern-matching for "this branch looks unguarded" without checking is exactly what produces noise. **Run the tool. If the mutant is killed, drop the finding.**
 
 Hunt for the mutator patterns that survive when nothing asserts on them:
 
@@ -225,6 +234,30 @@ Hunt for:
 - Response-to-no-request (orphan envelope handling).
 - Server-initiated request, peer disconnect (pending future cleanup).
 - Logger as attack surface (filling log destinations, injection via newlines in formatted output).
+
+### A5: Verification-gate and harness integrity
+
+A green gate is not proof of correctness. It is proof that the gate ran and did not object. This frame audits whether the repo's own gates actually enforce what they claim, because a gate with a blind spot passes silently while a real defect ships. A conformance test that confirms a property exists but never compares its scalar type, an exclusion list that has outgrown its reason, a mutator ignore that masks an untested path: each stays green while letting a real defect through.
+
+Sources of truth:
+
+1. `tests/AutoReview/SchemaConformanceTest.php` and the rest of `tests/AutoReview/`.
+2. `infection.json5` (mutator ignores, `timeout`, source directories).
+3. The coverage gate (`Nexus\Mcp\Tools\ComposerScripts::checkCoverage`) and what it parses.
+4. `phpstan.dist.neon` plus the baseline file.
+5. `composer.json` scripts: what `test:all` actually chains, and in what order.
+
+Hunt for:
+
+- Presence-without-shape checks. A conformance assertion that confirms a property, method, or key EXISTS but never compares its type, value, or shape against the spec. The scalar-drift miss above is the canonical case. For each AutoReview assertion, ask: if I corrupted the value (wrong scalar type, wrong enum case, wrong nullability), would this test still pass?
+- Exclusion lists that have outgrown their reason. Every `static $exclusions`, `DEPRECATED_OMITTED_PROPERTIES`, `enum_exists(...)` filter, or skipped def in the AutoReview tests. Is each exclusion still justified, or does it now hide a class that should be checked?
+- Mutator ignores in `infection.json5`. Each `ignore` entry: a genuine equivalent mutant, or a suppressed untested path? Name the method and confirm.
+- Stale PHPStan baseline entries. A baseline line whose target code changed, so the suppression now masks a fresh error.
+- Coverage scope holes. Does `checkCoverage` parse every `src/` statement, or are directories excluded? Do `\assert()` lines read as covered only because of how `zend.assertions` is set in CI versus production?
+- Gates that are a no-op for the reviewed change. A round-trip fixture whose payload omits the new field, a data provider that yields zero cases for a new class, a provider filter that silently skips the changed code.
+- Spec-source staleness. Is `latest-schema.json` actually current for the reviewed area, or behind a merged upstream PR? Cross-check the conformance source against the upstream `schema.ts` for the specific defs under review.
+
+Verification is mandatory and concrete. For each suspected blind spot, prove the gate does not catch the defect: in an isolated worktree (per the git-safety rules), introduce the exact wrong shape the gate should reject, run the relevant gate (`composer test:auto-review`, `composer coverage:check`, or the scoped mutation form), and report that it still passed. Naming the gate and the corruption you injected is the proof. A blind spot you cannot demonstrate is a hunch: mark it `UNVERIFIED`.
 
 ## Step 6: triage, then report
 
@@ -279,4 +312,4 @@ Do not assume these skip `.claude/` paths. The no-prose-semicolon hook was obser
 
 Stronger framing produces stronger critique. *"Be sceptical"* is okay. *"Assume this subsystem has at least three real bugs in each frame and find them"* is better at flushing out concerns the agent would otherwise dismiss as nitpicks. Match framing to confidence that real findings exist. Overshoot if anything.
 
-The four-agent shape works precisely because each frame is narrow. Do not stack multiple frames into one agent ("security + performance + API design" all at once produces surface-level critique across the board). If a frame is not applicable to the scope, drop it. Do not merge it into another.
+The multi-frame shape works precisely because each frame is narrow. Do not stack multiple frames into one agent ("security + performance + API design" all at once produces surface-level critique across the board). If a frame is not applicable to the scope, drop it. Do not merge it into another. A5 in particular must stay its own agent: auditing whether the harness is honest is a different reading task from hunting bugs in the code the harness guards, and folding it into A3 dilutes both.
