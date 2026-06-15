@@ -32,7 +32,7 @@ final class NumberSchemaTest extends TestCase
     {
         $schema = new NumberSchema();
 
-        self::assertSame('number', $schema->type);
+        self::assertSame(NumberSchema::TYPE, $schema->type);
         self::assertNull($schema->title);
         self::assertNull($schema->description);
         self::assertNull($schema->minimum);
@@ -42,28 +42,35 @@ final class NumberSchemaTest extends TestCase
 
     public function testConstructionAcceptsIntegerType(): void
     {
-        $schema = new NumberSchema(type: 'integer');
+        $schema = new NumberSchema(type: NumberSchema::TYPE_INTEGER);
 
-        self::assertSame('integer', $schema->type);
+        self::assertSame(NumberSchema::TYPE_INTEGER, $schema->type);
     }
 
     public function testToArrayMinimal(): void
     {
-        self::assertSame(['type' => 'number'], new NumberSchema()->toArray());
+        self::assertSame(['type' => NumberSchema::TYPE], new NumberSchema()->toArray());
     }
 
     public function testToArrayWithAllFields(): void
     {
-        $schema = new NumberSchema(type: 'integer', title: 'Age', description: 'User age', minimum: 0, maximum: 120, default: 30);
+        $schema = new NumberSchema(
+            type: NumberSchema::TYPE,
+            title: 'Rating',
+            description: 'User rating',
+            minimum: 0.5,
+            maximum: 9.9,
+            default: 1.5,
+        );
 
         self::assertSame(
             [
-                'type' => 'integer',
-                'title' => 'Age',
-                'description' => 'User age',
-                'minimum' => 0,
-                'maximum' => 120,
-                'default' => 30,
+                'type' => NumberSchema::TYPE,
+                'title' => 'Rating',
+                'description' => 'User rating',
+                'minimum' => 0.5,
+                'maximum' => 9.9,
+                'default' => 1.5,
             ],
             $schema->toArray(),
         );
@@ -71,15 +78,32 @@ final class NumberSchemaTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $schema = new NumberSchema(title: 'x', minimum: 1);
+        $schema = new NumberSchema(title: 'x', minimum: 1.0);
 
         self::assertSame($schema->toArray(), $schema->jsonSerialize());
     }
 
-    public function testFromArrayParsesAllFields(): void
+    public function testFromArrayParsesFloatBounds(): void
     {
         $schema = NumberSchema::fromArray([
-            'type' => 'integer',
+            'type' => NumberSchema::TYPE,
+            'title' => 'Rating',
+            'description' => 'User rating',
+            'minimum' => 0.5,
+            'maximum' => 9.9,
+            'default' => 1.5,
+        ]);
+
+        self::assertSame(NumberSchema::TYPE, $schema->type);
+        self::assertSame(0.5, $schema->minimum);
+        self::assertSame(9.9, $schema->maximum);
+        self::assertSame(1.5, $schema->default);
+    }
+
+    public function testFromArrayCoercesIntegerBoundsToFloat(): void
+    {
+        $schema = NumberSchema::fromArray([
+            'type' => NumberSchema::TYPE_INTEGER,
             'title' => 'Age',
             'description' => 'User age',
             'minimum' => 0,
@@ -87,15 +111,22 @@ final class NumberSchemaTest extends TestCase
             'default' => 30,
         ]);
 
-        self::assertSame('integer', $schema->type);
-        self::assertSame(0, $schema->minimum);
-        self::assertSame(120, $schema->maximum);
-        self::assertSame(30, $schema->default);
+        self::assertSame(NumberSchema::TYPE_INTEGER, $schema->type);
+        self::assertSame(0.0, $schema->minimum);
+        self::assertSame(120.0, $schema->maximum);
+        self::assertSame(30.0, $schema->default);
     }
 
     public function testFromArrayFullRoundTrip(): void
     {
-        $original = new NumberSchema(type: 'integer', title: 'Age', description: 'desc', minimum: 0, maximum: 120, default: 30);
+        $original = new NumberSchema(
+            type: NumberSchema::TYPE_INTEGER,
+            title: 'Rating',
+            description: 'desc',
+            minimum: 0.5,
+            maximum: 9.9,
+            default: 1.5,
+        );
 
         $rebuilt = NumberSchema::fromArray($original->toArray());
 
@@ -168,19 +199,19 @@ final class NumberSchemaTest extends TestCase
             'number schema "description" must be a string or null, int given.',
         ];
 
-        yield 'minimum not an int' => [
+        yield 'minimum not a number' => [
             ['type' => 'number', 'minimum' => 'x'],
-            'number schema "minimum" must be an int or null, string given.',
+            'number schema "minimum" must be a number or null, string given.',
         ];
 
-        yield 'maximum not an int' => [
+        yield 'maximum not a number' => [
             ['type' => 'number', 'maximum' => 'x'],
-            'number schema "maximum" must be an int or null, string given.',
+            'number schema "maximum" must be a number or null, string given.',
         ];
 
-        yield 'default not an int' => [
+        yield 'default not a number' => [
             ['type' => 'number', 'default' => 'x'],
-            'number schema "default" must be an int or null, string given.',
+            'number schema "default" must be a number or null, string given.',
         ];
     }
 }

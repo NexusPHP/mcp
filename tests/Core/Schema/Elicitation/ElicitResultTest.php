@@ -48,7 +48,7 @@ final class ElicitResultTest extends TestCase
     {
         $result = new ElicitResult(
             action: ElicitAction::Accept,
-            content: ['email' => 'a@b.com', 'age' => 30, 'opt' => true, 'topics' => ['php', 'mcp']],
+            content: ['email' => 'a@b.com', 'age' => 30, 'rating' => 3.5, 'opt' => true, 'topics' => ['php', 'mcp']],
         );
 
         self::assertSame(
@@ -57,6 +57,7 @@ final class ElicitResultTest extends TestCase
                 'content' => [
                     'email' => 'a@b.com',
                     'age' => 30,
+                    'rating' => 3.5,
                     'opt' => true,
                     'topics' => ['php', 'mcp'],
                 ],
@@ -81,6 +82,17 @@ final class ElicitResultTest extends TestCase
 
         self::assertSame(ElicitAction::Accept, $result->action);
         self::assertSame(['email' => 'a@b.com'], $result->content);
+    }
+
+    public function testFromArrayAcceptsFloatContentValue(): void
+    {
+        $result = ElicitResult::fromArray([
+            'action' => 'accept',
+            'content' => ['rating' => 3.5],
+        ]);
+
+        self::assertSame(ElicitAction::Accept, $result->action);
+        self::assertSame(['rating' => 3.5], $result->content);
     }
 
     public function testFromArrayFullRoundTrip(): void
@@ -115,7 +127,7 @@ final class ElicitResultTest extends TestCase
     public function testConstructorRejectsNonScalarContentValue(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageIs('elicit result "x" must be a string, int, bool, or list of strings, non-list array given.');
+        $this->expectExceptionMessageIs('elicit result "x" must be a string, int, float, bool, or list of strings, non-list array given.');
 
         // @phpstan-ignore argument.type
         new ElicitResult(action: ElicitAction::Accept, content: ['x' => ['k' => 'v']]);
@@ -174,7 +186,7 @@ final class ElicitResultTest extends TestCase
 
         yield 'content entry nested object' => [
             ['action' => 'accept', 'content' => ['x' => ['k' => 'v']]],
-            'elicit result "content entry x" must be a string, int, bool, or list of strings, non-list array given.',
+            'elicit result "content entry x" must be a string, int, float, bool, or list of strings, non-list array given.',
         ];
 
         yield 'content entry list with non-string' => [

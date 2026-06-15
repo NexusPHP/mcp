@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\Elicitation;
 
 use Nexus\Assert\Assert;
+use Nexus\Mcp\Core\Schema\ParsesNumber;
 
 /**
  * Schema for a numeric elicitation field.
@@ -22,15 +23,17 @@ use Nexus\Assert\Assert;
  *   type: 'integer'|'number',
  *   title?: non-empty-string,
  *   description?: non-empty-string,
- *   minimum?: int,
- *   maximum?: int,
- *   default?: int,
+ *   minimum?: float,
+ *   maximum?: float,
+ *   default?: float,
  * }>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#numberschema
  */
 final readonly class NumberSchema implements PrimitiveSchemaDefinition
 {
+    use ParsesNumber;
+
     public const string TYPE = 'number';
     public const string TYPE_INTEGER = 'integer';
 
@@ -53,13 +56,19 @@ final readonly class NumberSchema implements PrimitiveSchemaDefinition
         string $type = self::TYPE,
         ?string $title = null,
         ?string $description = null,
-        public ?int $minimum = null,
-        public ?int $maximum = null,
-        public ?int $default = null,
+        public ?float $minimum = null,
+        public ?float $maximum = null,
+        public ?float $default = null,
     ) {
         Assert::that($type)->isOneOf([self::TYPE, self::TYPE_INTEGER], 'number schema "type" must be one of {choices}.');
-        Assert::that($title)->nullOr()->isNonEmptyString('number schema "title" must be a non-empty string or null.');
-        Assert::that($description)->nullOr()->isNonEmptyString('number schema "description" must be a non-empty string or null.');
+        Assert::that($title)
+            ->nullOr()
+            ->isNonEmptyString('number schema "title" must be a non-empty string or null.')
+        ;
+        Assert::that($description)
+            ->nullOr()
+            ->isNonEmptyString('number schema "description" must be a non-empty string or null.')
+        ;
 
         $this->type = $type;
         $this->title = $title;
@@ -80,13 +89,22 @@ final readonly class NumberSchema implements PrimitiveSchemaDefinition
         Assert::that($description)->nullOr()->isString('number schema "description" must be a string or null, {type} given.');
 
         $minimum = $data['minimum'] ?? null;
-        Assert::that($minimum)->nullOr()->isInt('number schema "minimum" must be an int or null, {type} given.');
+
+        if (null !== $minimum) {
+            $minimum = self::parseNumber($minimum, 'number schema "minimum" must be a number or null, {type} given.');
+        }
 
         $maximum = $data['maximum'] ?? null;
-        Assert::that($maximum)->nullOr()->isInt('number schema "maximum" must be an int or null, {type} given.');
+
+        if (null !== $maximum) {
+            $maximum = self::parseNumber($maximum, 'number schema "maximum" must be a number or null, {type} given.');
+        }
 
         $default = $data['default'] ?? null;
-        Assert::that($default)->nullOr()->isInt('number schema "default" must be an int or null, {type} given.');
+
+        if (null !== $default) {
+            $default = self::parseNumber($default, 'number schema "default" must be a number or null, {type} given.');
+        }
 
         return new self(
             type: $type,

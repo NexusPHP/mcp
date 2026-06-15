@@ -21,19 +21,22 @@ use Nexus\Mcp\Core\Validation\EnumValueValidator;
 /**
  * The result returned by the client for an `elicitation/create` request.
  *
- * @implements InputResponse<array{action: non-empty-string, content?: array<non-empty-string, bool|int|list<string>|string>}>
+ * @implements InputResponse<array{
+ *   action: non-empty-string,
+ *   content?: array<non-empty-string, bool|float|int|list<string>|string>,
+ * }>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#elicitresult
  */
 final readonly class ElicitResult implements InputResponse
 {
     /**
-     * @var null|array<non-empty-string, bool|int|list<string>|string>
+     * @var null|array<non-empty-string, bool|float|int|list<string>|string>
      */
     public ?array $content;
 
     /**
-     * @param null|array<string, bool|int|list<string>|string> $content
+     * @param null|array<string, bool|float|int|list<string>|string> $content
      */
     public function __construct(public ElicitAction $action, ?array $content = null)
     {
@@ -69,7 +72,7 @@ final readonly class ElicitResult implements InputResponse
                 self::validateValue('content entry '.$key, $value);
             }
 
-            /** @var array<string, bool|int|list<string>|string> $content */
+            /** @var array<string, bool|float|int|list<string>|string> $content */
             $content = $data['content'];
         }
 
@@ -96,12 +99,12 @@ final readonly class ElicitResult implements InputResponse
 
     private static function validateValue(string $context, mixed $value): void
     {
-        if (\is_string($value) || \is_int($value) || \is_bool($value)) {
+        if (\is_string($value) || \is_int($value) || \is_float($value) || \is_bool($value)) {
             return;
         }
 
         Assert::that($value)
-            ->isList(\sprintf('elicit result "%s" must be a string, int, bool, or list of strings, non-list array given.', $context))
+            ->isList(\sprintf('elicit result "%s" must be a string, int, float, bool, or list of strings, non-list array given.', $context))
             ->values()->isString(\sprintf('each elicit result "%s" list entry must be a string, {type} given.', $context))
         ;
     }
