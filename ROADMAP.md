@@ -96,7 +96,9 @@ utility (SEP-2575, changelog item 5) is removed from the protocol entirely.
   a `MissingRequiredClientCapabilityError` when a request needs a client capability absent from
   `_meta.clientCapabilities` (`data` carries `requiredCapabilities`). Each is a `JsonRpcErrorResponse` with a
   dedicated `Error` payload returned from the request-validation path. These are the last spec defs the SDK
-  has no representation for.
+  has no representation for. Their error-code numbers are still unsettled in the draft (a reserved-band
+  renumbering is under discussion upstream), so this lands once the dated `2026-07-28` schema fixes the
+  values, alongside the spec-reference retargeting below, rather than against the release candidate.
 
 ### Stdio client restart on unexpected server exit
 
@@ -314,10 +316,17 @@ the extensions framework (SEP-2133).
 
 ### OpenTelemetry trace context
 
-W3C Trace Context keys (`traceparent`, `tracestate`, `baggage`) become an explicit allowlist exception
-to the DNS-prefix `_meta` convention. The runtime `_meta` validator needs to permit them unprefixed.
+W3C Trace Context keys (`traceparent`, `tracestate`, `baggage`) are carried as ordinary `_meta` entries.
+They are unprefixed, but the spec's `_meta` key rules make the prefix optional and the names are
+alphanumeric-bounded, so they are valid keys that need no special casing.
 
-- [ ] Allow `traceparent` / `tracestate` / `baggage` unprefixed in `RequestMetaObject` validation.
+- [x] Permit the W3C trace keys in `_meta`. Satisfied by design: the SDK does not enforce `_meta`
+  key-name validation, so any conformant (or unprefixed-but-valid) key already passes through
+  `RequestMetaObject` into `extras`. This matches every official SDK and the conformance suite, none of
+  which validate `_meta` key names on the receive side. If defensive validation is ever wanted, the only
+  form consistent with the robustness principle (conservative in what you send, liberal in what you
+  accept) is producer-side, validating keys the SDK itself emits, never consumer-side rejection. Left out
+  for now.
 
 ### Spec-reference retargeting
 
