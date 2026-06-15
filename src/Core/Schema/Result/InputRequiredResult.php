@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\Result;
 
 use Nexus\Assert\Assert;
+use Nexus\Mcp\Core\JsonRpc\SafeDisplay;
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequest;
 use Nexus\Mcp\Core\Schema\Enum\ResultType;
@@ -149,7 +150,7 @@ final readonly class InputRequiredResult extends Result implements ServerResult
             'elicitation/create' => ElicitRequest::fromArray($request),
             default => throw new \InvalidArgumentException(\sprintf(
                 'each "result.inputRequests" entry must use a supported input-request method, %s given.',
-                var_export($request['method'], true),
+                SafeDisplay::sanitise(var_export($request['method'], true)),
             )),
         };
     }

@@ -203,6 +203,17 @@ final class InputRequiredResultTest extends TestCase
         ]);
     }
 
+    public function testFromArraySanitisesNonScalarInputRequestMethod(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('each "result.inputRequests" entry must use a supported input-request method, array (\x0a  0 => \'nested\',\x0a) given.');
+
+        InputRequiredResult::fromArray([
+            'resultType' => 'input_required',
+            'inputRequests' => ['sample' => ['method' => ['nested']]],
+        ]);
+    }
+
     /**
      * @param array<string, mixed> $payload
      */
