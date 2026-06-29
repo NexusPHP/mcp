@@ -172,11 +172,10 @@ registration order. The migration verifies the property rather than adding new w
 
 ### Optional-string field validation consistency
 
-Optional `?: string` spec fields are modelled two ways. Some narrow to `non-empty-string` and reject `""`
-at the constructor (`Implementation.description` / `title` / `websiteUrl`). Others keep a plain `?string`
-and accept `""` (`DiscoverResult.instructions`). The spec types each as `?: string`, so an empty string is
-legal on all of them, and the decode boundary should treat them alike. Settle on one rule: either reject
-`""` everywhere (empty equals absent) or accept it everywhere as a plain `?string`.
+Optional `?: string` spec fields decode uniformly: each narrows to `non-empty-string` and rejects `""`
+at the constructor, so `Implementation.description` / `title` / `websiteUrl` and
+`DiscoverResult.instructions` all treat an empty string as absent. The spec types each as `?: string`, but
+the decode boundary collapses `""` to null rather than carrying two encodings of "no value".
 
 - [x] Choose a single optional-string validation rule and align the affected schema classes
   (`Implementation`, `DiscoverResult`, and any peers) on it.
@@ -237,12 +236,12 @@ spec-divergence question.
 
 ### TTL on list results
 
-A new `CacheableResult` interface lets servers tell clients how long a list result stays fresh
+A new `CacheableResult` base class lets servers tell clients how long a list result stays fresh
 (`ttlMs` + `cacheScope`). Replaces the `*ListChanged` notification pattern as the primary cache-busting
 mechanism. Today's stores need a way to surface TTL on their list outputs.
 
-- [x] Add `CacheableResult` interface under `Core/Schema/`.
-- [x] Implement on `ListToolsResult`, `ListPromptsResult`, `ListResourcesResult`,
+- [x] Add `CacheableResult` abstract base class under `Core/Schema/`.
+- [x] Extend it on `ListToolsResult`, `ListPromptsResult`, `ListResourcesResult`,
   `ListResourceTemplatesResult`, `ReadResourceResult`, and `DiscoverResult`.
 - [x] Plumb `?int $ttlMs` + `?string $cacheScope` through the per-feature stores and the
   `server/discover` handler.
