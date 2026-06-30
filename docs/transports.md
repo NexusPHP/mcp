@@ -33,8 +33,9 @@ before calling `start()`.
 per session, so the stdio transport returns `null`. Streamable HTTP will populate this once the transport
 lands.
 
-`SendContext` is currently an empty value object. It is the slot through which streamable-HTTP fields
-(`relatedRequestId`, resumption tokens) will arrive without changing the interface shape.
+`SendContext` carries `relatedRequestId`, which ties an out-of-band message (such as a progress
+notification) to the in-flight request that triggered it. Further transport-specific routing fields can
+arrive through the same value object without changing the interface shape.
 
 ## `StdioServerTransport`
 

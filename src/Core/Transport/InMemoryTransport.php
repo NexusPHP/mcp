@@ -76,9 +76,9 @@ final class InMemoryTransport implements TransportInterface
     }
 
     /**
-     * `$context`'s fields (`relatedRequestId`, `resumptionToken`, `onResumptionToken`)
-     * are streamable-HTTP concerns with no in-process equivalent. The parameter is
-     * accepted for `TransportInterface` conformance and intentionally dropped.
+     * `$context`'s `relatedRequestId` is a streamable-HTTP concern with no in-process
+     * equivalent. The parameter is accepted for `TransportInterface` conformance and
+     * intentionally dropped.
      *
      * @throws \InvalidArgumentException
      * @throws TransportAlreadyClosedException

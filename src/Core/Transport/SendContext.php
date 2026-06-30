@@ -20,13 +20,7 @@ use Nexus\Mcp\Core\Schema\RequestId;
  */
 final readonly class SendContext
 {
-    /**
-     * @param null|\Closure(string): void $onResumptionToken
-     */
-    public function __construct(
-        public ?RequestId $relatedRequestId = null,
-        public ?string $resumptionToken = null,
-        public ?\Closure $onResumptionToken = null,
-    ) {
+    public function __construct(public ?RequestId $relatedRequestId = null)
+    {
     }
 }

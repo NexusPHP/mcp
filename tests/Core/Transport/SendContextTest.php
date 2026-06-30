@@ -27,13 +27,11 @@ use PHPUnit\Framework\TestCase;
 #[Group('core-tests')]
 final class SendContextTest extends TestCase
 {
-    public function testDefaultsAllFieldsToNull(): void
+    public function testDefaultsRelatedRequestIdToNull(): void
     {
         $context = new SendContext();
 
         self::assertNull($context->relatedRequestId);
-        self::assertNull($context->resumptionToken);
-        self::assertNull($context->onResumptionToken);
     }
 
     public function testCarriesProvidedRelatedRequestId(): void
@@ -42,20 +40,5 @@ final class SendContextTest extends TestCase
         $context = new SendContext(relatedRequestId: $id);
 
         self::assertSame($id, $context->relatedRequestId);
-    }
-
-    public function testCarriesProvidedResumptionToken(): void
-    {
-        $context = new SendContext(resumptionToken: 'tok-42');
-
-        self::assertSame('tok-42', $context->resumptionToken);
-    }
-
-    public function testCarriesProvidedOnResumptionToken(): void
-    {
-        $callback = static function (string $token): void {};
-        $context = new SendContext(onResumptionToken: $callback);
-
-        self::assertSame($callback, $context->onResumptionToken);
     }
 }

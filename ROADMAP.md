@@ -355,7 +355,7 @@ retarget to the dated pages once the final spec ships.
 
 The `TransportInterface` is already shaped to accommodate streamable HTTP without a breaking change:
 `sessionId()` is optional (stdio returns `null`, HTTP populates it), `SendContext` is a value-object
-slot for transport-specific routing fields (`relatedRequestId`, resumption tokens), and `onDrain` is
+slot for transport-specific routing fields (`relatedRequestId`), and `onDrain` is
 symmetric with `onClose` so streaming responses can flush before the connection closes.
 
 Streamable HTTP lands with the 2026-07-28 migration since the spec's session-management semantics also
