@@ -67,14 +67,13 @@ final class ElicitRequestTest extends TestCase
     public function testToArrayWithUrlParams(): void
     {
         $req = new ElicitRequest(
-            params: new ElicitRequestUrlParams(elicitationId: 'e-1', message: 'Sign in', mode: 'url', url: 'https://example.com'),
+            params: new ElicitRequestUrlParams(message: 'Sign in', mode: 'url', url: 'https://example.com'),
         );
 
         self::assertSame(
             [
                 'method' => 'elicitation/create',
                 'params' => [
-                    'elicitationId' => 'e-1',
                     'message' => 'Sign in',
                     'mode' => 'url',
                     'url' => 'https://example.com',
@@ -115,7 +114,6 @@ final class ElicitRequestTest extends TestCase
         $req = ElicitRequest::fromArray([
             'method' => 'elicitation/create',
             'params' => [
-                'elicitationId' => 'e-1',
                 'message' => 'Sign in',
                 'mode' => 'url',
                 'url' => 'https://example.com',
@@ -144,7 +142,7 @@ final class ElicitRequestTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new ElicitRequest(
-            params: new ElicitRequestUrlParams(elicitationId: 'e-1', message: 'Sign in', mode: 'url', url: 'https://example.com'),
+            params: new ElicitRequestUrlParams(message: 'Sign in', mode: 'url', url: 'https://example.com'),
         );
 
         $rebuilt = ElicitRequest::fromArray($original->toArray());

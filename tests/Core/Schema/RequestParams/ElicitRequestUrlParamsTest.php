@@ -31,13 +31,11 @@ final class ElicitRequestUrlParamsTest extends TestCase
     public function testConstructionMinimal(): void
     {
         $params = new ElicitRequestUrlParams(
-            elicitationId: 'elicit-1',
             message: 'Sign in',
             mode: 'url',
             url: 'https://auth.example.com',
         );
 
-        self::assertSame('elicit-1', $params->elicitationId);
         self::assertSame('Sign in', $params->message);
         self::assertSame('url', $params->mode);
         self::assertSame('https://auth.example.com', $params->url);
@@ -46,7 +44,6 @@ final class ElicitRequestUrlParamsTest extends TestCase
     public function testToArrayMinimal(): void
     {
         $params = new ElicitRequestUrlParams(
-            elicitationId: 'elicit-1',
             message: 'Sign in',
             mode: 'url',
             url: 'https://auth.example.com',
@@ -54,7 +51,6 @@ final class ElicitRequestUrlParamsTest extends TestCase
 
         self::assertSame(
             [
-                'elicitationId' => 'elicit-1',
                 'message' => 'Sign in',
                 'mode' => 'url',
                 'url' => 'https://auth.example.com',
@@ -66,7 +62,6 @@ final class ElicitRequestUrlParamsTest extends TestCase
     public function testJsonSerializeMatchesToArray(): void
     {
         $params = new ElicitRequestUrlParams(
-            elicitationId: 'elicit-1',
             message: 'Sign in',
             mode: 'url',
             url: 'https://auth.example.com',
@@ -78,7 +73,6 @@ final class ElicitRequestUrlParamsTest extends TestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new ElicitRequestUrlParams(
-            elicitationId: 'elicit-1',
             message: 'Sign in',
             mode: 'url',
             url: 'https://auth.example.com',
@@ -89,20 +83,12 @@ final class ElicitRequestUrlParamsTest extends TestCase
         self::assertSame($original->toArray(), $rebuilt->toArray());
     }
 
-    public function testConstructorRejectsEmptyElicitationId(): void
-    {
-        $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageIs('"params.elicitationId" must be a non-empty string.');
-
-        new ElicitRequestUrlParams(elicitationId: '', message: 'm', mode: 'url', url: 'https://example.com');
-    }
-
     public function testConstructorRejectsEmptyMessage(): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"params.message" must be a non-empty string.');
 
-        new ElicitRequestUrlParams(elicitationId: 'id', message: '', mode: 'url', url: 'https://example.com');
+        new ElicitRequestUrlParams(message: '', mode: 'url', url: 'https://example.com');
     }
 
     public function testConstructorRejectsEmptyUrl(): void
@@ -110,7 +96,7 @@ final class ElicitRequestUrlParamsTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"params.url" must be a non-empty string.');
 
-        new ElicitRequestUrlParams(elicitationId: 'id', message: 'm', mode: 'url', url: '');
+        new ElicitRequestUrlParams(message: 'm', mode: 'url', url: '');
     }
 
     public function testConstructorRejectsInvalidUrl(): void
@@ -118,7 +104,7 @@ final class ElicitRequestUrlParamsTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"params.url" must be a valid URL.');
 
-        new ElicitRequestUrlParams(elicitationId: 'id', message: 'm', mode: 'url', url: 'not a url');
+        new ElicitRequestUrlParams(message: 'm', mode: 'url', url: 'not a url');
     }
 
     public function testConstructorRejectsWrongMode(): void
@@ -126,7 +112,7 @@ final class ElicitRequestUrlParamsTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"params.mode" must be \'url\', \'form\' given.');
 
-        new ElicitRequestUrlParams(elicitationId: 'id', message: 'm', mode: 'form', url: 'https://example.com');
+        new ElicitRequestUrlParams(message: 'm', mode: 'form', url: 'https://example.com');
     }
 
     /**
@@ -146,43 +132,33 @@ final class ElicitRequestUrlParamsTest extends TestCase
      */
     public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
-        yield 'missing elicitationId' => [
-            ['message' => 'm', 'mode' => 'url', 'url' => 'https://example.com'],
-            '"params" is missing the required "elicitationId" key.',
-        ];
-
-        yield 'elicitationId not a string' => [
-            ['elicitationId' => 1, 'message' => 'm', 'mode' => 'url', 'url' => 'https://example.com'],
-            '"params.elicitationId" must be a string, int given.',
-        ];
-
         yield 'missing message' => [
-            ['elicitationId' => 'id', 'mode' => 'url', 'url' => 'https://example.com'],
+            ['mode' => 'url', 'url' => 'https://example.com'],
             '"params" is missing the required "message" key.',
         ];
 
         yield 'message not a string' => [
-            ['elicitationId' => 'id', 'message' => 1, 'mode' => 'url', 'url' => 'https://example.com'],
+            ['message' => 1, 'mode' => 'url', 'url' => 'https://example.com'],
             '"params.message" must be a string, int given.',
         ];
 
         yield 'missing mode' => [
-            ['elicitationId' => 'id', 'message' => 'm', 'url' => 'https://example.com'],
+            ['message' => 'm', 'url' => 'https://example.com'],
             '"params" is missing the required "mode" key.',
         ];
 
         yield 'mode not a string' => [
-            ['elicitationId' => 'id', 'message' => 'm', 'mode' => 1, 'url' => 'https://example.com'],
+            ['message' => 'm', 'mode' => 1, 'url' => 'https://example.com'],
             '"params.mode" must be a string, int given.',
         ];
 
         yield 'missing url' => [
-            ['elicitationId' => 'id', 'message' => 'm', 'mode' => 'url'],
+            ['message' => 'm', 'mode' => 'url'],
             '"params" is missing the required "url" key.',
         ];
 
         yield 'url not a string' => [
-            ['elicitationId' => 'id', 'message' => 'm', 'mode' => 'url', 'url' => 1],
+            ['message' => 'm', 'mode' => 'url', 'url' => 1],
             '"params.url" must be a string, int given.',
         ];
     }

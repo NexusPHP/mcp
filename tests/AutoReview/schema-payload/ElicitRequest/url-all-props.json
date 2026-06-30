@@ -1,7 +1,6 @@
 {
     "method": "elicitation/create",
     "params": {
-        "elicitationId": "elicit-xyz",
         "message": "Authorize the application to read your data.",
         "mode": "url",
         "url": "https://auth.example.com/authorize"
