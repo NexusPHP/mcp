@@ -19,7 +19,11 @@ use Nexus\Mcp\Core\Schema\NotificationParams;
 use Nexus\Mcp\Core\Schema\NotificationParams\CancelledNotificationParams;
 
 /**
- * This notification can be sent by either side to indicate that it is cancelling a previously-issued request.
+ * This notification is sent by the client to indicate that it is cancelling a request it previously issued.
+ *
+ * On stdio, the server also sends this notification, solely to terminate a `subscriptions/listen` stream: it
+ * references the ID of the `subscriptions/listen` request that opened the stream. Servers MUST NOT use this
+ * notification to cancel any other request.
  *
  * The request SHOULD still be in-flight, but due to communication latency, it is always possible that this
  * notification MAY arrive after the request has already finished.

@@ -200,6 +200,9 @@ final class SchemaConformanceTest extends TestCase
         /** @var list<class-string> $exclusions */
         static $exclusions = [
             Error::class,
+            // Collapsed single-member union markers: the spec def mirrors the sole member's description, not the union.
+            ClientNotification::class,
+            ClientResult::class,
         ];
 
         yield from self::getProtocolSchemasForTesting(
@@ -314,6 +317,7 @@ final class SchemaConformanceTest extends TestCase
     {
         yield from self::getProtocolSchemasForTesting(
             static fn(string $class, string $basename): bool => ! enum_exists($class)
+                && ! interface_exists($class)
                 && \is_array(self::$latestSchema[$basename] ?? null)
                 && \array_key_exists('type', self::$latestSchema[$basename]),
         );

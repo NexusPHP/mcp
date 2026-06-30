@@ -31,7 +31,7 @@ use Nexus\Mcp\Core\Schema\NotificationParams\ProgressNotificationParams;
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#progressnotification
  */
-final readonly class ProgressNotification extends JsonRpcNotification implements ClientNotification, ServerNotification
+final readonly class ProgressNotification extends JsonRpcNotification implements ServerNotification
 {
     public function __construct(ProgressNotificationParams $params)
     {
