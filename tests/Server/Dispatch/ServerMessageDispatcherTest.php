@@ -22,11 +22,13 @@ use Nexus\Mcp\Core\Handler\NotificationHandlerInterface;
 use Nexus\Mcp\Core\Handler\RequestHandlerInterface;
 use Nexus\Mcp\Core\JsonRpc\JsonRpcMessageParser;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
+use Nexus\Mcp\Core\Schema\Error\UnsupportedProtocolVersionError;
 use Nexus\Mcp\Core\Schema\Implementation;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\Notification\ProgressNotification;
 use Nexus\Mcp\Core\Schema\ProgressToken;
+use Nexus\Mcp\Core\Schema\ProtocolVersion;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\DiscoverResult;
@@ -338,6 +340,84 @@ final class ServerMessageDispatcherTest extends TestCase
         self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
         self::assertSame('r-1', $message->id?->id);
         self::assertSame(ProtocolErrorCode::MethodNotFound->value, $message->error->code);
+    }
+
+    public function testRequestWithUnsupportedProtocolVersionReturnsTypedErrorAndSkipsHandler(): void
+    {
+        $invoked = false;
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher(
+            requestHandlers: [
+                'tools/list' => new ClosureRequestHandler(
+                    static function () use (&$invoked): Result {
+                        $invoked = true;
+
+                        return new EmptyResult();
+                    },
+                ),
+            ],
+        );
+
+        $dispatcher->dispatch(self::toolsListEnvelope(1, protocolVersion: '2025-11-25'), $transport);
+
+        EventLoop::run();
+
+        self::assertFalse($invoked, 'The version gate must reject before the handler runs.');
+        self::assertCount(1, $transport->sent);
+        $message = $transport->sent[0]['message'];
+        self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
+        self::assertSame(1, $message->id?->id);
+
+        $error = $message->error;
+
+        if (! $error instanceof UnsupportedProtocolVersionError) {
+            self::fail('Expected an UnsupportedProtocolVersionError.');
+        }
+
+        self::assertSame(ProtocolErrorCode::UnsupportedProtocolVersion->value, $error->code);
+        self::assertSame('2025-11-25', $error->requested);
+        self::assertSame(ProtocolVersion::SUPPORTED_VERSIONS, $error->supported);
+    }
+
+    public function testServerDiscoverIsGatedByTheProtocolVersionToo(): void
+    {
+        // The version gate is uniform: even server/discover (the version-negotiation probe) is rejected
+        // for an unsupported version. The error's data.supported still lets the client learn the set.
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher(
+            requestHandlers: ['server/discover' => new DiscoverRequestHandler(
+                new Implementation(name: 'test-server', version: '1.0.0'),
+                new ServerCapabilities(),
+            )],
+        );
+
+        $dispatcher->dispatch(self::discoverEnvelope(2, protocolVersion: '2025-11-25'), $transport);
+
+        EventLoop::run();
+
+        self::assertCount(1, $transport->sent);
+        $message = $transport->sent[0]['message'];
+        self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
+        self::assertSame(ProtocolErrorCode::UnsupportedProtocolVersion->value, $message->error->code);
+    }
+
+    public function testUnsupportedProtocolVersionTakesPrecedenceOverMissingHandler(): void
+    {
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher();
+
+        $dispatcher->dispatch(self::toolsListEnvelope(3, protocolVersion: '2025-11-25'), $transport);
+
+        EventLoop::run();
+
+        self::assertCount(1, $transport->sent);
+        $message = $transport->sent[0]['message'];
+        self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
+        self::assertSame(
+            ProtocolErrorCode::UnsupportedProtocolVersion->value,
+            $message->error->code,
+            'The version gate must fire before handler resolution.',
+        );
     }
 
     public function testSuccessfulRequestSendsResultResponse(): void
@@ -847,26 +927,26 @@ final class ServerMessageDispatcherTest extends TestCase
     /**
      * @return array<string, mixed>
      */
-    private static function toolsListEnvelope(int|string $id): array
+    private static function toolsListEnvelope(int|string $id, ?string $protocolVersion = null): array
     {
         return [
             'jsonrpc' => '2.0',
             'id' => $id,
             'method' => 'tools/list',
-            'params' => ['_meta' => RequestMetaObjectFactory::shape()],
+            'params' => ['_meta' => RequestMetaObjectFactory::shape(protocolVersion: $protocolVersion)],
         ];
     }
 
     /**
      * @return array<string, mixed>
      */
-    private static function discoverEnvelope(int|string $id): array
+    private static function discoverEnvelope(int|string $id, ?string $protocolVersion = null): array
     {
         return [
             'jsonrpc' => '2.0',
             'id' => $id,
             'method' => 'server/discover',
-            'params' => ['_meta' => RequestMetaObjectFactory::shape()],
+            'params' => ['_meta' => RequestMetaObjectFactory::shape(protocolVersion: $protocolVersion)],
         ];
     }
 }

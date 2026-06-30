@@ -96,11 +96,16 @@ utility (SEP-2575, changelog item 5) is removed from the protocol entirely.
   (`-32022`), each with a matching `Error` subclass (typed `data` where the spec defines it: `supported` +
   `requested`, `requiredCapabilities`, none) routed through `ErrorFactory` and the generic
   `JsonRpcErrorResponse` envelope.
-- [ ] Emit `UnsupportedProtocolVersionError` and `MissingRequiredClientCapabilityError` from the
-  request-validation path, when a request's `_meta.protocolVersion` is unsupported or a required client
-  capability is absent from `_meta.clientCapabilities`. Deferred until the server reads the per-request
-  `_meta` lifecycle fields for gating (today they are required and parsed but not consumed for it).
-  `HeaderMismatchError` is emitted by the Streamable HTTP header layer (below), not this path.
+- [x] Emit `UnsupportedProtocolVersionError` from the request-validation path: the dispatcher gates every
+  inbound `ClientRequest` (including `server/discover`) on `_meta.protocolVersion`, answering `-32022` with
+  `data.supported` / `data.requested` when the version is not in `ProtocolVersion::SUPPORTED_VERSIONS` (the
+  single set `server/discover` also advertises). A missing or malformed required `_meta` field is already
+  rejected as `-32602` at the parser.
+- [ ] Emit `MissingRequiredClientCapabilityError` (`-32021`) when processing a request requires a client
+  capability absent from `_meta.clientCapabilities`. Held with elicitation serving: the only capability the
+  server can require is `elicitation`, needed only when it issues an `input_required` (`InputRequiredResult`),
+  and that emission path is not built yet. `HeaderMismatchError` is emitted by the Streamable HTTP header
+  layer (below), not this path.
 
 ### Stdio client restart on unexpected server exit
 

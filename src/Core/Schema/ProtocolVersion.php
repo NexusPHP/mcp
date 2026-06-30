@@ -35,6 +35,11 @@ final readonly class ProtocolVersion
     ];
 
     /**
+     * The protocol revisions this server implements, newest first.
+     */
+    public const array SUPPORTED_VERSIONS = [self::LATEST_VERSION];
+
+    /**
      * @var non-empty-string
      */
     public string $version;
