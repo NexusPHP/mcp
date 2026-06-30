@@ -138,8 +138,10 @@ per spec method (nine in all). Only `tools/call`, `prompts/get`, and `resources/
   awaited response class). The base's `resultType` discriminator gates `input_required`: only the three
   eligible envelopes accept it. `GenericResultResponse` carries results with no dedicated envelope
   (`EmptyResult`), and `ResultResponseFactory` picks the typed envelope on the send path.
-- [ ] Give `subscriptions/listen` a dedicated `*ResultResponse` once its empty-ack result lands in the
-  schema (its response is currently carried by `GenericResultResponse`).
+- [ ] Model `SubscriptionsListenResult` (its empty-ack result landed in the schema) and carry it through
+  `GenericResultResponse` (today `EmptyResult`-only). No dedicated `*ResultResponse` is planned: whether the
+  spec wants one for the lone request method that lacks one is the open question in upstream issue #2989, so
+  this is held until that resolves.
 - [x] Delete `UrlElicitationRequiredError` (-32042) entirely.
 
 ### Tool schema relaxation (SEP-2106)
