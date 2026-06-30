@@ -1,0 +1,13 @@
+{
+    "jsonrpc": "2.0",
+    "error": {
+        "code": -32022,
+        "message": "Unsupported protocol version",
+        "data": {
+            "supported": [
+                "DRAFT-2026-v1"
+            ],
+            "requested": "2099-01-01"
+        }
+    }
+}

@@ -316,10 +316,20 @@ final class SchemaConformanceTest extends TestCase
     public static function provideSchemaTypeMatchesPropertiesCases(): iterable
     {
         yield from self::getProtocolSchemasForTesting(
-            static fn(string $class, string $basename): bool => ! enum_exists($class)
-                && ! interface_exists($class)
-                && \is_array(self::$latestSchema[$basename] ?? null)
-                && \array_key_exists('type', self::$latestSchema[$basename]),
+            static function (string $class, string $basename): bool {
+                $definition = self::$latestSchema[$basename] ?? null;
+
+                if (! \is_array($definition) || ! \array_key_exists('type', $definition) || enum_exists($class) || interface_exists($class)) {
+                    return false;
+                }
+
+                // Error-response envelope defs (`error`/`id`/`jsonrpc`) are represented by an `Error`
+                // object carrying the pinned code and typed data, so the envelope shape does not align
+                // with the object. Their round-trip fixtures validate the shape instead.
+                $properties = $definition['properties'] ?? [];
+
+                return ! (is_subclass_of($class, Error::class) && \is_array($properties) && \array_key_exists('error', $properties));
+            },
         );
     }
 

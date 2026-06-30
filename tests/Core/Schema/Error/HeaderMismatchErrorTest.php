@@ -1,0 +1,81 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * This file is part of the Nexus MCP SDK package.
+ *
+ * (c) 2026 John Paul E. Balandan, CPA <paulbalandan@gmail.com>
+ *
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
+ */
+
+namespace Nexus\Mcp\Tests\Core\Schema\Error;
+
+use Nexus\Assert\ExpectationFailedException;
+use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
+use Nexus\Mcp\Core\Schema\Error;
+use Nexus\Mcp\Core\Schema\Error\HeaderMismatchError;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\TestCase;
+
+/**
+ * @internal
+ */
+#[CoversClass(HeaderMismatchError::class)]
+#[CoversClass(Error::class)]
+#[Group('unit-tests')]
+#[Group('core-tests')]
+final class HeaderMismatchErrorTest extends TestCase
+{
+    public function testHasCodeAndDefaultMessage(): void
+    {
+        $error = new HeaderMismatchError();
+
+        self::assertSame(-32020, $error->code);
+        self::assertSame(ProtocolErrorCode::HeaderMismatch->value, $error->code);
+        self::assertSame('Header mismatch', $error->message);
+        self::assertNull($error->data);
+    }
+
+    public function testCanOverrideMessage(): void
+    {
+        $error = new HeaderMismatchError(message: 'The "Mcp-Method" header does not match the request body.');
+
+        self::assertSame('The "Mcp-Method" header does not match the request body.', $error->message);
+    }
+
+    public function testToArrayOmitsData(): void
+    {
+        $error = new HeaderMismatchError(message: 'header mismatch');
+
+        self::assertSame(['code' => -32020, 'message' => 'header mismatch'], $error->toArray());
+    }
+
+    public function testJsonSerializeMatchesToArray(): void
+    {
+        $error = new HeaderMismatchError(message: 'header mismatch');
+
+        self::assertSame($error->toArray(), $error->jsonSerialize());
+    }
+
+    public function testFromArrayUsesDefaultMessage(): void
+    {
+        self::assertSame('Header mismatch', HeaderMismatchError::fromArray([])->message);
+    }
+
+    public function testFromArrayReadsMessage(): void
+    {
+        self::assertSame('boom', HeaderMismatchError::fromArray(['message' => 'boom'])->message);
+    }
+
+    public function testFromArrayRejectsNonStringMessage(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs('error "message" must be a string, int given.');
+
+        HeaderMismatchError::fromArray(['message' => 1]);
+    }
+}

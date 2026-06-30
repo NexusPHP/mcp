@@ -76,7 +76,15 @@ final readonly class JsonRpcErrorResponse implements Arrayable, JsonRpcResponse
     #[\Override]
     public function jsonSerialize(): array
     {
-        return $this->toArray();
+        $envelope = ['jsonrpc' => self::JSONRPC_VERSION];
+
+        if (null !== $this->id) {
+            $envelope['id'] = $this->id->id;
+        }
+
+        $envelope['error'] = $this->error->jsonSerialize();
+
+        return $envelope;
     }
 
     /**

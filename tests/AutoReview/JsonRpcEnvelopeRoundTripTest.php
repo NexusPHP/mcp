@@ -204,6 +204,8 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
 
         // Error responses, organised per Error subclass even though
         // `JsonRpcErrorResponse::fromArray` self-dispatches on `code`.
+        yield 'JsonRpcErrorResponse-HeaderMismatchError' => ['wrapper' => JsonRpcErrorResponse::class, 'inner' => null];
+
         yield 'JsonRpcErrorResponse-InternalError' => ['wrapper' => JsonRpcErrorResponse::class, 'inner' => null];
 
         yield 'JsonRpcErrorResponse-InvalidParamsError' => ['wrapper' => JsonRpcErrorResponse::class, 'inner' => null];
@@ -212,9 +214,13 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
 
         yield 'JsonRpcErrorResponse-MethodNotFoundError' => ['wrapper' => JsonRpcErrorResponse::class, 'inner' => null];
 
+        yield 'JsonRpcErrorResponse-MissingRequiredClientCapabilityError' => ['wrapper' => JsonRpcErrorResponse::class, 'inner' => null, 'encodingPathsDiverge' => true];
+
         yield 'JsonRpcErrorResponse-ParseError' => ['wrapper' => JsonRpcErrorResponse::class, 'inner' => null];
 
         yield 'JsonRpcErrorResponse-UnknownProtocolError' => ['wrapper' => JsonRpcErrorResponse::class, 'inner' => null];
+
+        yield 'JsonRpcErrorResponse-UnsupportedProtocolVersionError' => ['wrapper' => JsonRpcErrorResponse::class, 'inner' => null];
     }
 
     /**

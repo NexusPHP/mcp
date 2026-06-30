@@ -91,14 +91,16 @@ utility (SEP-2575, changelog item 5) is removed from the protocol entirely.
   Requires a subscription store and a list-changed / resource-updated fanout source to feed the stream.
 - [x] Delete `resources/subscribe` / `resources/unsubscribe` (none of these are implemented today, so
   this is a non-action verified by the migration).
-- [ ] Emit the two lifecycle/capability error responses: an `UnsupportedProtocolVersionError` when a
-  request's `_meta.protocolVersion` is unknown or unsupported (`data` carries `supported` + `requested`), and
-  a `MissingRequiredClientCapabilityError` when a request needs a client capability absent from
-  `_meta.clientCapabilities` (`data` carries `requiredCapabilities`). Each is a `JsonRpcErrorResponse` with a
-  dedicated `Error` payload returned from the request-validation path. These are the last spec defs the SDK
-  has no representation for. Their error-code numbers are still unsettled in the draft (a reserved-band
-  renumbering is under discussion upstream), so this lands once the dated `2026-07-28` schema fixes the
-  values, alongside the spec-reference retargeting below, rather than against the release candidate.
+- [x] Represent the lifecycle/capability and header-mismatch error responses: `ProtocolErrorCode` carries
+  `HeaderMismatch` (`-32020`), `MissingRequiredClientCapability` (`-32021`), and `UnsupportedProtocolVersion`
+  (`-32022`), each with a matching `Error` subclass (typed `data` where the spec defines it: `supported` +
+  `requested`, `requiredCapabilities`, none) routed through `ErrorFactory` and the generic
+  `JsonRpcErrorResponse` envelope.
+- [ ] Emit `UnsupportedProtocolVersionError` and `MissingRequiredClientCapabilityError` from the
+  request-validation path, when a request's `_meta.protocolVersion` is unsupported or a required client
+  capability is absent from `_meta.clientCapabilities`. Deferred until the server reads the per-request
+  `_meta` lifecycle fields for gating (today they are required and parsed but not consumed for it).
+  `HeaderMismatchError` is emitted by the Streamable HTTP header layer (below), not this path.
 
 ### Stdio client restart on unexpected server exit
 

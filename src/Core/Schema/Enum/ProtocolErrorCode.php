@@ -44,4 +44,19 @@ enum ProtocolErrorCode: int
      * Internal JSON-RPC error.
      */
     case InternalError = -32603;
+
+    /**
+     * The HTTP header values do not match the request body, or required headers are missing or malformed.
+     */
+    case HeaderMismatch = -32020;
+
+    /**
+     * Processing the request requires a client capability absent from the request's `clientCapabilities`.
+     */
+    case MissingRequiredClientCapability = -32021;
+
+    /**
+     * The request's protocol version is unknown to the server or unsupported.
+     */
+    case UnsupportedProtocolVersion = -32022;
 }

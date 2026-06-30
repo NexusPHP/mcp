@@ -15,11 +15,14 @@ namespace Nexus\Mcp\Core\JsonRpc;
 
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Error;
+use Nexus\Mcp\Core\Schema\Error\HeaderMismatchError;
 use Nexus\Mcp\Core\Schema\Error\InternalError;
 use Nexus\Mcp\Core\Schema\Error\InvalidParamsError;
 use Nexus\Mcp\Core\Schema\Error\InvalidRequestError;
 use Nexus\Mcp\Core\Schema\Error\MethodNotFoundError;
+use Nexus\Mcp\Core\Schema\Error\MissingRequiredClientCapabilityError;
 use Nexus\Mcp\Core\Schema\Error\ParseError;
+use Nexus\Mcp\Core\Schema\Error\UnsupportedProtocolVersionError;
 
 /**
  * Dispatches a `ProtocolErrorCode` to the concrete `Error` subclass for the standard JSON-RPC codes.
@@ -36,6 +39,9 @@ final class ErrorFactory
             ProtocolErrorCode::MethodNotFound => new MethodNotFoundError(message: $message, data: $data),
             ProtocolErrorCode::InvalidParams => new InvalidParamsError(message: $message, data: $data),
             ProtocolErrorCode::InternalError => new InternalError(message: $message, data: $data),
+            ProtocolErrorCode::HeaderMismatch => new HeaderMismatchError(message: $message),
+            ProtocolErrorCode::MissingRequiredClientCapability => MissingRequiredClientCapabilityError::fromArray(['message' => $message, 'data' => $data]),
+            ProtocolErrorCode::UnsupportedProtocolVersion => UnsupportedProtocolVersionError::fromArray(['message' => $message, 'data' => $data]),
         };
     }
 }
