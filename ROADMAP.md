@@ -310,8 +310,9 @@ the extensions framework (SEP-2133).
 - [ ] Extensions framework primitive: `ServerBuilder::enableExtension(...)` (or similar) plus the
   `extensions` capability slot (the slot itself lands with the schema layer).
 - [ ] Tasks (`io.modelcontextprotocol/tasks`): relocate the task layer to `Nexus\Mcp\Extension\Tasks\*`,
-  prune `tasks/list` / `tasks/result` / `tasks/create`, add `tasks/update`, and route the
-  `resultType: "task"` variant through the result discriminator.
+  remove `tasks/list`, replace the blocking `tasks/result` with polling via `tasks/get`, add `tasks/update`
+  for client-to-server input, drop per-request opt-in (servers may return task handles unsolicited), and
+  route the `resultType: "task"` variant through the result discriminator.
 - [ ] MCP Apps (SEP-1865): the `ui://` URI scheme, `text/html;profile=mcp-app`, and the sandboxed
   iframe interaction model.
 - [ ] OAuth client-credentials (`io.modelcontextprotocol/oauth-client-credentials`) and
