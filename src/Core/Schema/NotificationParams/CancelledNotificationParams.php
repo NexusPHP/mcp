@@ -24,7 +24,7 @@ use Nexus\Mcp\Core\Schema\RequestId;
  *
  * @extends NotificationParams<array{
  *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
- *   requestId?: int|non-empty-string,
+ *   requestId: int|non-empty-string,
  *   reason?: non-empty-string,
  * }>
  *
@@ -38,7 +38,7 @@ final readonly class CancelledNotificationParams extends NotificationParams
     public ?string $reason;
 
     public function __construct(
-        public ?RequestId $requestId = null,
+        public RequestId $requestId,
         ?string $reason = null,
         MetaObject $meta = new MetaObject(),
     ) {
@@ -52,12 +52,9 @@ final readonly class CancelledNotificationParams extends NotificationParams
     #[\Override]
     public static function fromArray(array $data): static
     {
-        $requestId = null;
-
-        if (\array_key_exists('requestId', $data)) {
-            Assert::that($data['requestId'])->isArrayKey('"params.requestId" must be an int or string, {type} given.');
-            $requestId = new RequestId(id: $data['requestId']);
-        }
+        Assert::that($data)->hasOffset('requestId', '"params" is missing the required "requestId" key.');
+        Assert::that($data['requestId'])->isArrayKey('"params.requestId" must be an int or string, {type} given.');
+        $requestId = new RequestId(id: $data['requestId']);
 
         $reason = $data['reason'] ?? null;
         Assert::that($reason)->nullOr()->isString('"params.reason" must be a string or null, {type} given.');
@@ -85,9 +82,7 @@ final readonly class CancelledNotificationParams extends NotificationParams
             $data['_meta'] = $meta;
         }
 
-        if (null !== $this->requestId) {
-            $data['requestId'] = $this->requestId->id;
-        }
+        $data['requestId'] = $this->requestId->id;
 
         if (null !== $this->reason) {
             $data['reason'] = $this->reason;

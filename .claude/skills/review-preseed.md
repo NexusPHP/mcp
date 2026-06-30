@@ -8,17 +8,15 @@ Repo-wide, review-time constraints shared by the project-local `/adversarial-red
 
 **Load-bearing patterns that look dead but are not.** Do NOT propose removal of any of these:
 
-1. **`CancelledNotification::jsonSerialize` empty-object substitution.** The override substitutes `\stdClass` for empty `params`. Looks dead because the spec mandates `requestId`. Load-bearing: the PHP constructor permits `new CancelledNotificationParams()` with no `requestId`. Without the `{}` substitution the JSON envelope drops the `params` key entirely and breaks the round-trip `fromArray` guard. Three tests pin this.
+1. **`EnumValueValidator::parse` try/catch on `\TypeError`.** Looks dead because the outer `is_string || is_int` guard prevents wrong scalar types. Load-bearing: with `strict_types=1`, passing a numeric string to an int-backed enum's `tryFrom` throws `TypeError`. The catch converts it to a meaningful `ExpectationFailedException`. Removing the catch leaks raw `TypeError`.
 
-2. **`EnumValueValidator::parse` try/catch on `\TypeError`.** Looks dead because the outer `is_string || is_int` guard prevents wrong scalar types. Load-bearing: with `strict_types=1`, passing a numeric string to an int-backed enum's `tryFrom` throws `TypeError`. The catch converts it to a meaningful `ExpectationFailedException`. Removing the catch leaks raw `TypeError`.
+2. **`Annotations::jsonSerialize` empty-object substitution.** Looks dead because all parent consumers filter the slot when empty. Load-bearing for the direct-encode case: `json_encode(new Annotations())` standalone would emit `[]` instead of `{}` without the substitution.
 
-3. **`Annotations::jsonSerialize` empty-object substitution.** Looks dead because all parent consumers filter the slot when empty. Load-bearing for the direct-encode case: `json_encode(new Annotations())` standalone would emit `[]` instead of `{}` without the substitution.
+3. **`InMemoryTransport` per-envelope `isMap` assertion.** Looks structurally redundant at runtime since `toArray()` returns a string-keyed map by contract. Load-bearing for PHPStan narrowing: `JsonRpcMessage::toArray()` has no declared signature on the interface (reached via soft `assert(method_exists(...))`), so PHPStan types the envelope as `mixed`. The `isMap` chain narrows it to `array<string, mixed>` so downstream `$peer->receive($envelope)` typechecks.
 
-4. **`InMemoryTransport` per-envelope `isMap` assertion.** Looks structurally redundant at runtime since `toArray()` returns a string-keyed map by contract. Load-bearing for PHPStan narrowing: `JsonRpcMessage::toArray()` has no declared signature on the interface (reached via soft `assert(method_exists(...))`), so PHPStan types the envelope as `mixed`. The `isMap` chain narrows it to `array<string, mixed>` so downstream `$peer->receive($envelope)` typechecks.
+4. **`NullLogger` short-circuit pattern.** Do NOT propose `if ($logger instanceof NullLogger) return;` in transport / dispatch log call-sites. `NullLogger::debug()` IS the no-op. An `instanceof NullLogger` check at the call site costs about the same as the no-op method dispatch. Callers should call `$logger->debug(...)` unconditionally and pay no branching cost.
 
-5. **`NullLogger` short-circuit pattern.** Do NOT propose `if ($logger instanceof NullLogger) return;` in transport / dispatch log call-sites. `NullLogger::debug()` IS the no-op. An `instanceof NullLogger` check at the call site costs about the same as the no-op method dispatch. Callers should call `$logger->debug(...)` unconditionally and pay no branching cost.
-
-6. **`JsonRpcMethodRegistry::requests()` and `notifications()` map ordering.** Looks accidental compared to class-name alphabetical. Actually sorted by the evaluated method literal (`completion/complete`, `elicitation/create`, `initialize`, ...) and enforced by `JsonRpcMethodRegistryTest::testRequestsAreSortedByEvaluatedMethodKey`. The PHPDoc on both accessors documents this.
+5. **`JsonRpcMethodRegistry::requests()` and `notifications()` map ordering.** Looks accidental compared to class-name alphabetical. Actually sorted by the evaluated method literal (`completion/complete`, `elicitation/create`, `initialize`, ...) and enforced by `JsonRpcMethodRegistryTest::testRequestsAreSortedByEvaluatedMethodKey`. The PHPDoc on both accessors documents this.
 
 **Deferred initiatives** (flag races / gaps that will matter once these land, but do not flag their absence):
 

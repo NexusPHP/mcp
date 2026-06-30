@@ -1,5 +1,7 @@
 {
     "jsonrpc": "2.0",
     "method": "notifications/cancelled",
-    "params": {}
+    "params": {
+        "requestId": 1
+    }
 }

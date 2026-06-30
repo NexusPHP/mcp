@@ -31,18 +31,13 @@ use PHPUnit\Framework\TestCase;
 #[Group('core-tests')]
 final class CancelledNotificationParamsTest extends TestCase
 {
-    public function testDefaultsAllFieldsToNull(): void
+    public function testDefaultsOptionalFieldsToNull(): void
     {
-        $params = new CancelledNotificationParams();
+        $params = new CancelledNotificationParams(requestId: new RequestId(id: 1));
 
-        self::assertNull($params->requestId);
+        self::assertSame(1, $params->requestId->id);
         self::assertNull($params->reason);
         self::assertSame([], $params->meta->toArray());
-    }
-
-    public function testToArrayWhenAllFieldsAreNull(): void
-    {
-        self::assertSame([], new CancelledNotificationParams()->toArray());
     }
 
     public function testToArrayWithIntRequestId(): void
@@ -137,7 +132,6 @@ final class CancelledNotificationParamsTest extends TestCase
     {
         $params = CancelledNotificationParams::fromArray(['requestId' => 7]);
 
-        self::assertNotNull($params->requestId);
         self::assertSame(7, $params->requestId->id);
         self::assertNull($params->reason);
         self::assertSame([], $params->meta->toArray());
@@ -147,7 +141,6 @@ final class CancelledNotificationParamsTest extends TestCase
     {
         $params = CancelledNotificationParams::fromArray(['requestId' => 'req-9']);
 
-        self::assertNotNull($params->requestId);
         self::assertSame('req-9', $params->requestId->id);
     }
 
@@ -194,13 +187,12 @@ final class CancelledNotificationParamsTest extends TestCase
         self::assertSame($original->toArray(), $reconstructed->toArray());
     }
 
-    public function testFromArrayWithoutRequestIdYieldsNull(): void
+    public function testFromArrayRejectsMissingRequestId(): void
     {
-        $params = CancelledNotificationParams::fromArray([]);
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('"params" is missing the required "requestId" key.');
 
-        self::assertNull($params->requestId);
-        self::assertNull($params->reason);
-        self::assertSame([], $params->meta->toArray());
+        CancelledNotificationParams::fromArray([]);
     }
 
     #[DataProvider('provideFromArrayRejectsNonArrayKeyRequestIdCases')]

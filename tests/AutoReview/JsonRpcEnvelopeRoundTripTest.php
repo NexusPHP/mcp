@@ -163,7 +163,7 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
         yield 'SubscriptionsListenRequest' => ['wrapper' => SubscriptionsListenRequest::class, 'inner' => null, 'encodingPathsDiverge' => true];
 
         // Concrete notifications.
-        yield 'CancelledNotification' => ['wrapper' => CancelledNotification::class, 'inner' => null, 'encodingPathsDiverge' => true];
+        yield 'CancelledNotification' => ['wrapper' => CancelledNotification::class, 'inner' => null];
 
         yield 'ProgressNotification' => ['wrapper' => ProgressNotification::class, 'inner' => null];
 
