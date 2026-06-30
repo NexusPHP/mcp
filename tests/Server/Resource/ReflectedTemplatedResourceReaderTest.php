@@ -53,7 +53,7 @@ final class ReflectedTemplatedResourceReaderTest extends TestCase
         }
 
         self::assertSame('mem://users/42', $contents->uri);
-        self::assertSame('user 42 for session-1', $contents->text);
+        self::assertSame('user 42 for test-client', $contents->text);
     }
 
     public function testBindsBothUriAndTemplateVariable(): void
@@ -98,7 +98,6 @@ final class ReflectedTemplatedResourceReaderTest extends TestCase
             new RequestId(id: 7),
             new NullCancellation(),
             RequestMetaObjectFactory::create(),
-            'session-1',
             new RecordingSender(),
         );
     }

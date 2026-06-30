@@ -133,7 +133,7 @@ final class PromptStoreTest extends TestCase
             'alpha' => new PromptEntry(
                 new Prompt(name: 'alpha'),
                 new ClosurePromptRenderer(static function (?array $arguments, ServerContext $context) use ($alphaResult, &$captured): GetPromptResult {
-                    $captured[] = ['name' => 'alpha', 'arguments' => $arguments, 'sessionId' => $context->sessionId];
+                    $captured[] = ['name' => 'alpha', 'arguments' => $arguments, 'requestId' => $context->requestId->id];
 
                     return $alphaResult;
                 }),
@@ -141,7 +141,7 @@ final class PromptStoreTest extends TestCase
             'beta' => new PromptEntry(
                 new Prompt(name: 'beta'),
                 new ClosurePromptRenderer(static function (?array $arguments, ServerContext $context) use ($betaResult, &$captured): GetPromptResult {
-                    $captured[] = ['name' => 'beta', 'arguments' => $arguments, 'sessionId' => $context->sessionId];
+                    $captured[] = ['name' => 'beta', 'arguments' => $arguments, 'requestId' => $context->requestId->id];
 
                     return $betaResult;
                 }),
@@ -151,8 +151,8 @@ final class PromptStoreTest extends TestCase
         self::assertSame($betaResult, $store->get('beta', ['name' => 'World'], self::makeContext()));
         self::assertSame($alphaResult, $store->get('alpha', null, self::makeContext()));
         self::assertSame([
-            ['name' => 'beta', 'arguments' => ['name' => 'World'], 'sessionId' => null],
-            ['name' => 'alpha', 'arguments' => null, 'sessionId' => null],
+            ['name' => 'beta', 'arguments' => ['name' => 'World'], 'requestId' => 1],
+            ['name' => 'alpha', 'arguments' => null, 'requestId' => 1],
         ], $captured);
     }
 
@@ -194,7 +194,6 @@ final class PromptStoreTest extends TestCase
             new RequestId(id: 1),
             new NullCancellation(),
             RequestMetaObjectFactory::create(),
-            null,
             new RecordingSender(),
         );
     }

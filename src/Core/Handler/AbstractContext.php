@@ -29,7 +29,6 @@ abstract readonly class AbstractContext
         public RequestId $requestId,
         public Cancellation $cancellation,
         public ?ProgressToken $progressToken,
-        public ?string $sessionId,
         protected SenderInterface $sender,
     ) {
     }

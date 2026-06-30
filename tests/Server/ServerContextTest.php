@@ -42,26 +42,23 @@ final class ServerContextTest extends TestCase
         $meta = RequestMetaObjectFactory::create();
         $sender = new RecordingSender();
 
-        $context = new ServerContext($requestId, $cancellation, $meta, 'sess-1', $sender);
+        $context = new ServerContext($requestId, $cancellation, $meta, $sender);
 
         self::assertSame($requestId, $context->requestId);
         self::assertSame($cancellation, $context->cancellation);
         self::assertSame($meta, $context->meta);
-        self::assertSame('sess-1', $context->sessionId);
     }
 
-    public function testAcceptsExtraFreeMetaAndNullSessionId(): void
+    public function testAcceptsExtraFreeMeta(): void
     {
         $context = new ServerContext(
             new RequestId(id: 'req-1'),
             new NullCancellation(),
             RequestMetaObjectFactory::create(),
-            null,
             new RecordingSender(),
         );
 
         self::assertSame(RequestMetaObjectFactory::shape(), $context->meta->toArray());
-        self::assertNull($context->sessionId);
     }
 
     public function testReportProgressSendsNotificationWhenProgressTokenPresent(): void
@@ -72,7 +69,6 @@ final class ServerContextTest extends TestCase
             new RequestId(id: 1),
             new NullCancellation(),
             RequestMetaObjectFactory::create(progressToken: $token),
-            null,
             $sender,
         );
 
@@ -94,7 +90,6 @@ final class ServerContextTest extends TestCase
             new RequestId(id: 1),
             new NullCancellation(),
             RequestMetaObjectFactory::create(progressToken: $token),
-            null,
             $sender,
         );
 
@@ -115,7 +110,6 @@ final class ServerContextTest extends TestCase
             new RequestId(id: 1),
             new NullCancellation(),
             RequestMetaObjectFactory::create(),
-            null,
             $sender,
         );
 

@@ -212,7 +212,6 @@ final class CompletionStoreTest extends TestCase
             new RequestId(id: 99),
             new NullCancellation(),
             RequestMetaObjectFactory::create(),
-            null,
             new RecordingSender(),
         );
     }

@@ -41,14 +41,6 @@ final class InMemoryTransportTest extends TestCase
         self::assertNotSame($a, $b);
     }
 
-    public function testSessionIdIsAlwaysNull(): void
-    {
-        [$a, $b] = InMemoryTransport::createPair();
-
-        self::assertNull($a->getSessionId());
-        self::assertNull($b->getSessionId());
-    }
-
     public function testSendAfterBothStartedDeliversImmediately(): void
     {
         [$server, $client] = InMemoryTransport::createPair();

@@ -35,7 +35,7 @@ foundational mechanism, so the explicit path stays the substrate it builds on. S
 
 ## A transport that is a dumb pipe
 
-The transport contract is intentionally minimal: start, send, close, a session id, and listener setters.
+The transport contract is intentionally minimal: start, send, close, and listener setters.
 It stops at JSON decode plus a shape check and hands the protocol layer a raw envelope. Parsing,
 request/response correlation, and error-response construction all live in the protocol layer (`Server` /
 `Client`), which owns the parser and the pending-request map. This split is shaped around streamable HTTP

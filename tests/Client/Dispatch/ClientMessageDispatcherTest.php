@@ -765,11 +765,11 @@ final class ClientMessageDispatcherTest extends TestCase
         self::assertSame(42, $message->id?->id, 'Fallback id used since the exception carries none.');
     }
 
-    public function testRequestHandlerReceivesContextWithSessionIdAndRequestScopedSender(): void
+    public function testRequestHandlerReceivesClientContextForTheRequest(): void
     {
         $outbound = new PendingOutboundRequests();
-        $transport = new RecordingTransport(sessionId: 'sess-xyz');
-        $captured = ['sessionId' => null];
+        $transport = new RecordingTransport();
+        $captured = ['requestId' => null];
 
         $dispatcher = self::buildDispatcher(
             $outbound,
@@ -780,7 +780,7 @@ final class ClientMessageDispatcherTest extends TestCase
                             self::fail('Expected a ClientContext.');
                         }
 
-                        $captured['sessionId'] = $ctx->sessionId;
+                        $captured['requestId'] = $ctx->requestId->id;
 
                         return new EmptyResult();
                     },
@@ -791,7 +791,7 @@ final class ClientMessageDispatcherTest extends TestCase
         $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 99, 'method' => 'tests/test-request'], $transport);
         EventLoop::run();
 
-        self::assertSame('sess-xyz', $captured['sessionId']);
+        self::assertSame(99, $captured['requestId']);
     }
 
     public function testFlushPendingWithNothingScheduledIsANoOp(): void

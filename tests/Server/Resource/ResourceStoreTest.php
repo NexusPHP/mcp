@@ -153,7 +153,7 @@ final class ResourceStoreTest extends TestCase
             'file:///alpha.txt' => new ResourceEntry(
                 new Resource(name: 'alpha', uri: 'file:///alpha.txt'),
                 new ClosureResourceReader(static function (string $uri, ServerContext $context) use ($alphaResult, &$captured): ReadResourceResult {
-                    $captured[] = ['key' => 'alpha', 'uri' => $uri, 'sessionId' => $context->sessionId];
+                    $captured[] = ['key' => 'alpha', 'uri' => $uri, 'requestId' => $context->requestId->id];
 
                     return $alphaResult;
                 }),
@@ -161,7 +161,7 @@ final class ResourceStoreTest extends TestCase
             'file:///beta.txt' => new ResourceEntry(
                 new Resource(name: 'beta', uri: 'file:///beta.txt'),
                 new ClosureResourceReader(static function (string $uri, ServerContext $context) use ($betaResult, &$captured): ReadResourceResult {
-                    $captured[] = ['key' => 'beta', 'uri' => $uri, 'sessionId' => $context->sessionId];
+                    $captured[] = ['key' => 'beta', 'uri' => $uri, 'requestId' => $context->requestId->id];
 
                     return $betaResult;
                 }),
@@ -171,8 +171,8 @@ final class ResourceStoreTest extends TestCase
         self::assertSame($betaResult, $store->read('file:///beta.txt', self::makeContext()));
         self::assertSame($alphaResult, $store->read('file:///alpha.txt', self::makeContext()));
         self::assertSame([
-            ['key' => 'beta', 'uri' => 'file:///beta.txt', 'sessionId' => null],
-            ['key' => 'alpha', 'uri' => 'file:///alpha.txt', 'sessionId' => null],
+            ['key' => 'beta', 'uri' => 'file:///beta.txt', 'requestId' => 1],
+            ['key' => 'alpha', 'uri' => 'file:///alpha.txt', 'requestId' => 1],
         ], $captured);
     }
 
@@ -215,7 +215,6 @@ final class ResourceStoreTest extends TestCase
             new RequestId(id: 1),
             new NullCancellation(),
             RequestMetaObjectFactory::create(),
-            null,
             new RecordingSender(),
         );
     }

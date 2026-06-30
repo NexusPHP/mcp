@@ -169,7 +169,7 @@ final class ToolStoreTest extends TestCase
             'alpha' => new ToolEntry(
                 self::makeTool('alpha'),
                 new ClosureToolExecutor(static function (?array $arguments, ServerContext $context) use ($alphaResult, &$captured): CallToolResult {
-                    $captured[] = ['name' => 'alpha', 'arguments' => $arguments, 'sessionId' => $context->sessionId];
+                    $captured[] = ['name' => 'alpha', 'arguments' => $arguments, 'requestId' => $context->requestId->id];
 
                     return $alphaResult;
                 }),
@@ -177,7 +177,7 @@ final class ToolStoreTest extends TestCase
             'beta' => new ToolEntry(
                 self::makeTool('beta'),
                 new ClosureToolExecutor(static function (?array $arguments, ServerContext $context) use ($betaResult, &$captured): CallToolResult {
-                    $captured[] = ['name' => 'beta', 'arguments' => $arguments, 'sessionId' => $context->sessionId];
+                    $captured[] = ['name' => 'beta', 'arguments' => $arguments, 'requestId' => $context->requestId->id];
 
                     return $betaResult;
                 }),
@@ -187,8 +187,8 @@ final class ToolStoreTest extends TestCase
         self::assertSame($betaResult, $store->call('beta', ['key' => 'value'], self::makeContext()));
         self::assertSame($alphaResult, $store->call('alpha', null, self::makeContext()));
         self::assertSame([
-            ['name' => 'beta', 'arguments' => ['key' => 'value'], 'sessionId' => null],
-            ['name' => 'alpha', 'arguments' => null, 'sessionId' => null],
+            ['name' => 'beta', 'arguments' => ['key' => 'value'], 'requestId' => 1],
+            ['name' => 'alpha', 'arguments' => null, 'requestId' => 1],
         ], $captured);
     }
 
@@ -353,7 +353,6 @@ final class ToolStoreTest extends TestCase
             new RequestId(id: 1),
             new NullCancellation(),
             RequestMetaObjectFactory::create(),
-            null,
             new RecordingSender(),
         );
     }

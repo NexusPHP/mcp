@@ -72,7 +72,6 @@ final class ClosureToolExecutorTest extends TestCase
             new RequestId(id: 7),
             new NullCancellation(),
             RequestMetaObjectFactory::create(),
-            null,
             new RecordingSender(),
         );
     }

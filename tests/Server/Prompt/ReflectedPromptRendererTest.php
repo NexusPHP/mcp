@@ -133,7 +133,6 @@ final class ReflectedPromptRendererTest extends TestCase
             new RequestId(id: 7),
             new NullCancellation(),
             RequestMetaObjectFactory::create(),
-            'session-1',
             new RecordingSender(),
         );
     }

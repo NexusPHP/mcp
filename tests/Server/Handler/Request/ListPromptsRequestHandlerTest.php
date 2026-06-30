@@ -91,7 +91,6 @@ final class ListPromptsRequestHandlerTest extends TestCase
             new RequestId(id: 1),
             new NullCancellation(),
             RequestMetaObjectFactory::create(),
-            null,
             new RecordingSender(),
         );
     }

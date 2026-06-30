@@ -58,13 +58,6 @@ final class StdioServerTransportTest extends TestCase
         }
     }
 
-    public function testSessionIdIsAlwaysNull(): void
-    {
-        $transport = new StdioServerTransport(new ReadableBuffer(''), new WritableBuffer());
-
-        self::assertNull($transport->getSessionId());
-    }
-
     public function testEmitsDecodedEnvelope(): void
     {
         $transport = self::buildTransportReading(['{"jsonrpc":"2.0","id":1,"method":"server/discover"}'."\n"]);

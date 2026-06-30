@@ -129,7 +129,7 @@ final class ReflectedToolExecutorTest extends TestCase
     {
         $result = self::execute('contextOnly', null);
 
-        self::assertSame('session-1', self::firstText($result));
+        self::assertSame('test-client', self::firstText($result));
     }
 
     /**
@@ -159,7 +159,6 @@ final class ReflectedToolExecutorTest extends TestCase
             new RequestId(id: 7),
             new NullCancellation(),
             RequestMetaObjectFactory::create(),
-            'session-1',
             new RecordingSender(),
         );
     }

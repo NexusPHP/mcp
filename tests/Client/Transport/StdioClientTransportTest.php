@@ -51,13 +51,6 @@ final class StdioClientTransportTest extends TestCase
         new StdioClientTransport([]);
     }
 
-    public function testSessionIdIsAlwaysNull(): void
-    {
-        $transport = self::buildTransport();
-
-        self::assertNull($transport->getSessionId());
-    }
-
     public function testListenerRegistrationReturnsDistinctSubscriptionsPerChannel(): void
     {
         $transport = self::buildTransport();

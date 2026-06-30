@@ -718,18 +718,16 @@ final class ServerMessageDispatcherTest extends TestCase
         self::assertSame('tools/list', $matches[0]['context']['method'] ?? null);
     }
 
-    public function testRequestHandlerReceivesContextWithSessionIdAndRequestScopedSender(): void
+    public function testRequestHandlerReceivesContextWithRequestScopedSender(): void
     {
-        $transport = new RecordingTransport(sessionId: 'sess-xyz');
-        $captured = ['sessionId' => null];
+        $transport = new RecordingTransport();
 
         $dispatcher = self::buildDispatcher(
             requestHandlers: [
                 'tools/list' => new ClosureRequestHandler(
-                    static function ($req, $ctx) use (&$captured): EmptyResult {
+                    static function ($req, $ctx): EmptyResult {
                         \assert($ctx instanceof ServerContext);
 
-                        $captured['sessionId'] = $ctx->sessionId;
                         $ctx->reportProgress(0.5);
 
                         return new EmptyResult();
@@ -748,8 +746,6 @@ final class ServerMessageDispatcherTest extends TestCase
         $dispatcher->dispatch($envelope, $transport);
 
         EventLoop::run();
-
-        self::assertSame('sess-xyz', $captured['sessionId']);
 
         // The notification emitted via $ctx->reportProgress() should be tagged with
         // the originating request id, proving the request-scoped sender binding.

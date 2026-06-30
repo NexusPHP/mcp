@@ -262,13 +262,12 @@ final class ArgumentBinderTest extends TestCase
         );
     }
 
-    private static function makeContext(?string $sessionId = 'session-1'): ServerContext
+    private static function makeContext(): ServerContext
     {
         return new ServerContext(
             new RequestId(id: 7),
             new NullCancellation(),
             RequestMetaObjectFactory::create(),
-            $sessionId,
             new RecordingSender(),
         );
     }

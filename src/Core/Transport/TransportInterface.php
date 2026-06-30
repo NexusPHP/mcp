@@ -58,12 +58,6 @@ interface TransportInterface
     public function close(): void;
 
     /**
-     * Returns the transport-issued session identifier, or null when the
-     * transport carries no session (e.g. stdio).
-     */
-    public function getSessionId(): ?string;
-
-    /**
      * Register an inbound-envelope listener.
      *
      * @param \Closure(array<string, mixed>): void $listener

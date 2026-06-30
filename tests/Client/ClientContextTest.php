@@ -39,11 +39,10 @@ final class ClientContextTest extends TestCase
         $id = new RequestId(id: 42);
         $progressToken = new ProgressToken(token: 'tok-1');
 
-        $context = new ClientContext($id, new NullCancellation(), $progressToken, 'sess-abc', $sender);
+        $context = new ClientContext($id, new NullCancellation(), $progressToken, $sender);
 
         self::assertSame($id, $context->requestId);
         self::assertSame($progressToken, $context->progressToken);
-        self::assertSame('sess-abc', $context->sessionId);
     }
 
     public function testReportProgressDelegatesToTheInheritedSenderWhenAProgressTokenIsSet(): void
@@ -51,7 +50,7 @@ final class ClientContextTest extends TestCase
         $sender = new RecordingSender();
         $progressToken = new ProgressToken(token: 'tok-1');
 
-        $context = new ClientContext(new RequestId(id: 1), new NullCancellation(), $progressToken, null, $sender);
+        $context = new ClientContext(new RequestId(id: 1), new NullCancellation(), $progressToken, $sender);
 
         $context->reportProgress(0.5, 1.0, 'halfway');
 

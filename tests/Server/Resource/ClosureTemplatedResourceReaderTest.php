@@ -42,7 +42,6 @@ final class ClosureTemplatedResourceReaderTest extends TestCase
             new RequestId(id: 42),
             new NullCancellation(),
             RequestMetaObjectFactory::create(),
-            null,
             new RecordingSender(),
         );
 

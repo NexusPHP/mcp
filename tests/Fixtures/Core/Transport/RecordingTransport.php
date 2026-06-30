@@ -64,10 +64,6 @@ final class RecordingTransport implements TransportInterface
      */
     private array $sendWaiters = [];
 
-    public function __construct(private readonly ?string $sessionId = null)
-    {
-    }
-
     #[\Override]
     public function start(): void
     {
@@ -121,12 +117,6 @@ final class RecordingTransport implements TransportInterface
                 $listener();
             }
         }
-    }
-
-    #[\Override]
-    public function getSessionId(): ?string
-    {
-        return $this->sessionId;
     }
 
     #[\Override]

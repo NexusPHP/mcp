@@ -16,7 +16,6 @@ interface TransportInterface
     public function start(): void;
     public function send(JsonRpcMessage $message, ?SendContext $context = null): void;
     public function close(): void;
-    public function getSessionId(): ?string;
 
     public function onMessage(\Closure $listener): SubscriptionInterface;
     public function onError(\Closure $listener): SubscriptionInterface;
@@ -28,10 +27,6 @@ interface TransportInterface
 The four `on*` methods are listener registration. The `Server` registers listeners for `onMessage` (dispatch),
 `onError` (log), `onDrain` (await in-flight coroutines), and `onClose` (resolve the run-future) once,
 before calling `start()`.
-
-`getSessionId()` returns the transport's session identifier when there is one. Stdio servers run one process
-per session, so the stdio transport returns `null`. Streamable HTTP will populate this once the transport
-lands.
 
 `SendContext` carries `relatedRequestId`, which ties an out-of-band message (such as a progress
 notification) to the in-flight request that triggered it. Further transport-specific routing fields can
@@ -222,17 +217,16 @@ eagerly rather than as silently dropped envelopes:
 | `start()` | Called twice | `TransportAlreadyStartedException` |
 | `start()` | Called after `close()` | `TransportAlreadyClosedException` |
 
-### `getSessionId()` and `onError`
+### `onError`
 
-`getSessionId()` returns `null` (no session concept in-process). `onError` accepts listeners for
-`TransportInterface` conformance but never fires (there is no I/O failure surface for an in-process pair).
+`onError` accepts listeners for `TransportInterface` conformance but never fires (there is no I/O failure
+surface for an in-process pair).
 
 ## Streamable HTTP
 
 Not yet shipped. The transport-interface surface above is intentionally shaped to accommodate it without
 breaking changes:
 
-- `getSessionId()` is already optional.
 - `SendContext` exists as the slot for HTTP-specific fields.
 - `onDrain` is symmetric with `onClose` so streaming responses can be flushed cleanly.
 
