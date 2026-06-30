@@ -136,7 +136,7 @@ When the spec defines two structurally similar shapes that differ only in option
 - **Substrate is Revolt + AMPHP v3.** Fibers make the sync-looking signatures honest, and the same machinery serves stdio and the streamable-HTTP SSE writer. Property hooks are avoided on the interface because intelephense does not parse them yet, so auto-composing setter methods achieve the same behaviour while staying IDE-friendly.
 - **Streamable HTTP uses PSR-15.** The HTTP transport exposes `handleRequest(ServerRequestInterface): ResponseInterface`. The SDK does not ship its own HTTP server. The HTTP-only deps are `psr/http-message`, `psr/http-server-handler`, `psr/http-factory`.
 - **Session routing is TS-style.** The HTTP transport is instantiated per session, and the consumer's router resolves `Mcp-Session-Id` to the right transport. Concrete transports may add transport-specific methods (e.g. `handleRequest`) beyond the interface.
-- **Two-layer split: transport plus (Server, Client), with no abstract `Protocol` base.** Correlation and dispatch are shared via composition, not a trait. Protocol-version setters live on a separate `ProtocolVersionAwareInterface` capability interface (stdio does not implement it, the HTTP transport will), gated by `instanceof` at the negotiate step.
+- **Two-layer split: transport plus (Server, Client), with no abstract `Protocol` base.** Correlation and dispatch are shared via composition, not a trait. The protocol version is carried per-request in `_meta` (`io.modelcontextprotocol/protocolVersion`) and read by the protocol layer, not pushed onto the transport.
 
 ## Static analysis and CS gotchas
 
