@@ -34,6 +34,17 @@ set in [`ProtocolErrorCode`](../src/Core/Schema/Enum/ProtocolErrorCode.php):
 | -32602 | `InvalidParams` | The params are invalid, or the named tool / prompt / resource does not exist. |
 | -32603 | `InternalError` | An unexpected server-side failure. |
 
+The 2026-07-28 spec adds three codes in the reserved `-320xx` band for lifecycle and header failures. The
+SDK models them so a peer's error response decodes into the matching `Error` subclass, but it does not emit
+them yet (server-side emission lands with the per-request `_meta` lifecycle gating and the Streamable HTTP
+header layer):
+
+| Code | Name | Meaning |
+| --- | --- | --- |
+| -32020 | `HeaderMismatch` | A request-metadata header disagreed with the message body (Streamable HTTP). |
+| -32021 | `MissingRequiredClientCapability` | The request needs a client capability absent from `_meta.clientCapabilities`. |
+| -32022 | `UnsupportedProtocolVersion` | The request's `_meta.protocolVersion` is not supported. |
+
 ## Server side: handler failures become error responses
 
 When a request handler throws, the server's dispatcher converts the exception into a JSON-RPC error
