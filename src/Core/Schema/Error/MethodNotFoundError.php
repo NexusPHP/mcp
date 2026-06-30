@@ -23,8 +23,10 @@ use Nexus\Mcp\Core\Schema\Error;
  * In MCP, a server returns this error when a client invokes a method the server does not
  * implement — either a genuinely unknown method, or one gated behind a server capability the
  * server did not advertise (e.g., calling `prompts/list` when the `prompts` capability was not
- * advertised). A request that requires a client capability the client did not declare is
- * signalled instead by `MissingRequiredClientCapabilityError` (`-32003`).
+ * advertised).
+ *
+ * A request that requires a client capability the client did not declare is signalled instead
+ * by `MissingRequiredClientCapabilityError` (`-32021`).
  *
  * @extends Error<array{code: -32601, message: non-empty-string, data?: mixed}>
  *

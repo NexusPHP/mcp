@@ -20,8 +20,8 @@ use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
 
 /**
  * An optional notification from the server to the client, informing it that the list of prompts
- * it offers has changed. This may be issued by servers without any previous subscription from
- * the client.
+ * it offers has changed. This is only delivered on a `subscriptions/listen` stream when the
+ * client requested it via the `promptsListChanged` filter field.
  *
  * @property-read EmptyNotificationParams $params
  *
