@@ -865,8 +865,6 @@ final class ServerBuilderTest extends TestCase
     {
         yield 'notifications/cancelled' => ['notifications/cancelled'];
 
-        yield 'notifications/elicitation/complete' => ['notifications/elicitation/complete'];
-
         yield 'notifications/progress' => ['notifications/progress'];
 
         yield 'notifications/prompts/list_changed' => ['notifications/prompts/list_changed'];

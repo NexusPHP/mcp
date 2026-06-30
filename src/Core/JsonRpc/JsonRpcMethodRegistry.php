@@ -16,7 +16,6 @@ namespace Nexus\Mcp\Core\JsonRpc;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\Notification\CancelledNotification;
-use Nexus\Mcp\Core\Schema\Notification\ElicitationCompleteNotification;
 use Nexus\Mcp\Core\Schema\Notification\ProgressNotification;
 use Nexus\Mcp\Core\Schema\Notification\PromptListChangedNotification;
 use Nexus\Mcp\Core\Schema\Notification\ResourceListChangedNotification;
@@ -69,7 +68,6 @@ final class JsonRpcMethodRegistry
     {
         return [
             CancelledNotification::getMethod() => CancelledNotification::class,
-            ElicitationCompleteNotification::getMethod() => ElicitationCompleteNotification::class,
             ProgressNotification::getMethod() => ProgressNotification::class,
             PromptListChangedNotification::getMethod() => PromptListChangedNotification::class,
             ResourceListChangedNotification::getMethod() => ResourceListChangedNotification::class,
