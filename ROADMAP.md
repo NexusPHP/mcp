@@ -257,23 +257,85 @@ mechanism. Today's stores need a way to surface TTL on their list outputs.
 
 ### Streamable HTTP transport
 
-The HTTP transport reshapes around the sessionless / stateless protocol changes, gains a required
-request-metadata header layer (`MCP-Protocol-Version`, `Mcp-Method`, `Mcp-Name`) with anti-spoofing
-cross-checks against body content, adds the `x-mcp-header` mechanism for custom headers sourced from tool
-parameters, drops GET-based SSE entirely, and removes resumable streams. It is built against the release
-candidate's stateless shape, after the schema and protocol layer it carries.
+The HTTP transport is built against the 2026-07-28 stateless shape, after the schema and protocol layer
+it carries. The revision deletes every legacy complication: protocol-level sessions (`Mcp-Session-Id`),
+the standalone GET SSE stream, resumable streams (`Last-Event-ID`), server-initiated JSON-RPC requests,
+and batching. What remains is a POST-only MCP endpoint that answers each request with a single JSON
+object or a request-scoped SSE stream carrying progress notifications followed by the final response.
+Server-to-client interactions (sampling, elicitation, roots) are not transport traffic: they ride the
+MRTR `InputRequiredResult` payload and the client retry. This lands on infrastructure already present:
+`SendContext.relatedRequestId` is the routing key, and `RequestBoundSender::sendRequest()` already
+rejects outbound requests, which the revision makes correct rather than a stub.
 
-- [ ] Streamable HTTP server transport (POST-only MCP endpoint, per-request SSE streams, `Origin`
-  validation, `X-Accel-Buffering: no` on SSE).
-- [ ] Streamable HTTP client transport.
-- [ ] Request-metadata header layer: emit and validate `MCP-Protocol-Version`, `Mcp-Method`, and
-  `Mcp-Name`, rejecting any header-vs-body mismatch (or missing/malformed required header) as
-  `-32001 HeaderMismatch` on HTTP 400. Integers compare numerically, not as strings.
-- [ ] `x-mcp-header` to `Mcp-Param-{Name}` mirroring (client side is mandatory): mirror designated
-  tool-parameter values (primitive types only, `number` banned, any nesting depth) into headers with the
-  `=?base64?…?=` value-encoding for non-ASCII / whitespace / sentinel values, and reject (exclude from
-  `tools/list`) any tool whose `x-mcp-header` violates the field-name / uniqueness / type constraints.
-- [ ] Server-side `Mcp-Param-{Name}` validation against the body, emitting `-32001` on mismatch.
+The work splits into three layers matching the package boundaries, sequenced so the pure logic lands
+first and unblocks both transports.
+
+Shared header core (`Nexus\Mcp\Core\Http`, no PSR dependencies). Pure string and array logic,
+corpus-tested to the spec fixtures, consumed by both transports.
+
+- [ ] `Mcp-Param` / `Mcp-Name` value codec: the `=?base64?…?=` sentinel encode and decode (empty, leading
+  or trailing whitespace, non-ASCII, control characters, and self-encoding of a value that already matches
+  the sentinel), integer-to-decimal and boolean-to-lowercase conversion, and canonical-padded decode.
+- [ ] `x-mcp-header` schema scanner: validate declarations against the field-name token syntax, non-empty,
+  control-character, case-insensitive uniqueness, primitive-type (integer, string, boolean, with `number`
+  not permitted per spec), safe-integer-range, and static-reachability (a `properties`-only chain, never
+  through `items`, composition, conditional, or `$ref`) constraints. Verify the `number` ban against the
+  conformance suite before pinning it, since the TS SDK admits `number` to pass its conformance referee.
+- [ ] Standard-header validation: `MCP-Protocol-Version` cross-checked against the body `_meta` version,
+  `Mcp-Method` required on every request, and `Mcp-Name` cross-checked against `params.name` (`tools/call`,
+  `prompts/get`) or `params.uri` (`resources/read`). Header names compare case-insensitively, values
+  case-sensitively, and integer parameters compare numerically.
+- [ ] Error-to-HTTP-status mapping keyed on origin: transport and protocol errors map to real statuses
+  (`-32700`, `-32600`, envelope-level `-32602`, `-32020`, `-32021`, and `-32022` to 400, and `-32601` to
+  404), while handler-produced errors, including `-32603` and tool errors, ride HTTP 200 with the JSON-RPC
+  error in the body.
+
+Server transport (`Nexus\Mcp\Server`, PSR-15). Adds `psr/http-message`, `psr/http-factory`, and
+`psr/http-server-handler`. Runs on the amphp event loop with amphp/http-server as the reference host.
+PSR-17 factories are constructor-injected, not discovered.
+
+- [ ] `StreamableHttpServerTransport implements TransportInterface`, adding
+  `handleRequest(ServerRequestInterface): ResponseInterface`. Per POST it registers a per-request response
+  sink keyed by the JSON-RPC request id, emits the envelope to the dispatcher, routes outbound messages
+  back by `relatedRequestId` (progress) or response id, and returns a buffered JSON response or a streaming
+  SSE body. Response mode is `auto` (JSON unless a related message arrives mid-call, then a lazy SSE
+  upgrade), `sse`, or `json`.
+- [ ] SSE writer: frames `event: message\ndata: <json>\n\n`, response headers `text/event-stream`,
+  `Cache-Control: no-cache`, `Connection: keep-alive`, and `X-Accel-Buffering: no`, plus periodic
+  keep-alive comment frames on open streams. The body is a streaming `StreamInterface` backed by an amphp
+  queue, and a client disconnect cancels the request.
+- [ ] HTTP conformance edges: `202 Accepted` with no body when a POST produces no outbound message,
+  `405 Method Not Allowed` with an `Allow: POST` header for other methods, an empty or undecodable body
+  answered with `-32700 ParseError` (id key omitted), a defensive `406` when the client accepts neither
+  content type, and a configurable body-size cap answered with `413`.
+- [ ] `Origin` validation as separate middleware returning `403` with an id-less JSON-RPC error, and an
+  optional CORS helper (preflight `OPTIONS` to `204`) for browser clients.
+- [ ] A non-blocking `Server::listen(TransportInterface)` seam that attaches the dispatcher listeners and
+  starts the transport without the close-await that `run()` uses for stdio, so the endpoint can be mounted
+  per request in a PSR-15 stack.
+- [ ] Re-introduce the `ReceiveContext` listener argument across the chain, carrying the originating
+  `ServerRequestInterface` and a later auth-subsystem slot.
+
+Client transport (`Nexus\Mcp\Client`, amphp/http-client). Adds `amphp/http-client`.
+
+- [ ] `StreamableHttpClientTransport implements TransportInterface`: each `send()` is a discrete POST with
+  `Content-Type: application/json`, `Accept: application/json, text/event-stream`, and the
+  `MCP-Protocol-Version`, `Mcp-Method`, and `Mcp-Name` headers computed from the message body. The response
+  content-type selects single-JSON decode or SSE parse, completion is the terminal result or error message
+  plus a read timeout rather than end-of-file alone, and cancelling one request aborts that POST.
+- [ ] `x-mcp-header` mirroring (client mandatory): cache tool input schemas from `tools/list`, exclude any
+  tool whose `x-mcp-header` declarations violate the scanner constraints (logging a warning), and on
+  `tools/call` build the `Mcp-Param-{Name}` headers from the arguments, carried through `SendContext`.
+  Gated on an HTTP-transport marker so stdio is unaffected.
+
+Follow-on milestones.
+
+- [ ] DoS hardening whose natural home is the per-request HTTP model: an in-flight dispatch cap and
+  orphan-response log throttling, alongside the body-size cap above.
+- [ ] `subscriptions/listen` serving over a long-lived SSE stream. The transport already supports
+  long-lived streams structurally. The handler lands when the subscriptions result leg unblocks.
+- [ ] Docs and examples: an amphp/http-server server example, an HTTP client example, and the
+  `docs/transports.md` Streamable HTTP section.
 
 ### Authorization (OAuth 2.1)
 
