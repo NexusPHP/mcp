@@ -226,6 +226,37 @@ final class ServerTest extends TestCase
         self::assertArrayHasKey('result', $clientReceived[0]);
     }
 
+    public function testListenStartsTheTransportWithoutBlocking(): void
+    {
+        $transport = new RecordingTransport();
+        $server = self::buildServer();
+
+        // A blocking call here would hang the test: `listen()` must return once
+        // the transport is started, unlike `run()` which awaits the close signal.
+        $server->listen($transport);
+
+        self::assertTrue($transport->started);
+        self::assertFalse($transport->closed);
+    }
+
+    public function testListenRoutesInboundEnvelopesThroughDispatcher(): void
+    {
+        $transport = new RecordingTransport();
+        $server = self::buildServer();
+
+        $server->listen($transport);
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'server/discover',
+            'params' => ['_meta' => RequestMetaObjectFactory::shape()],
+        ]);
+
+        EventLoop::run();
+
+        self::assertCount(1, $transport->sent);
+    }
+
     private static function buildServer(): Server
     {
         return new ServerBuilder()->setServerInfo('demo', '1.0.0')->build();

@@ -310,7 +310,7 @@ PSR-17 factories are constructor-injected, not discovered.
   content type, and a configurable body-size cap answered with `413`.
 - [ ] `Origin` validation as separate middleware returning `403` with an id-less JSON-RPC error, and an
   optional CORS helper (preflight `OPTIONS` to `204`) for browser clients.
-- [ ] A non-blocking `Server::listen(TransportInterface)` seam that attaches the dispatcher listeners and
+- [x] A non-blocking `Server::listen(TransportInterface)` seam that attaches the dispatcher listeners and
   starts the transport without the close-await that `run()` uses for stdio, so the endpoint can be mounted
   per request in a PSR-15 stack.
 - [ ] Re-introduce the `ReceiveContext` listener argument across the chain, carrying the originating
