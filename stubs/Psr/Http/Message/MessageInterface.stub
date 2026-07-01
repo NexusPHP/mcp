@@ -1,0 +1,11 @@
+<?php
+
+namespace Psr\Http\Message;
+
+interface MessageInterface
+{
+    /**
+     * @return array<string, list<string>>
+     */
+    public function getHeaders(): array;
+}

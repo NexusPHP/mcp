@@ -18,6 +18,8 @@ parameters:
       - tools/vendor/**
   bootstrapFiles:
     - vendor/autoload.php
+  stubFiles:
+    - stubs/Psr/Http/Message/MessageInterface.stub
   exceptions:
     check:
       throwTypeCovariance: true

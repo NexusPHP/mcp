@@ -35,6 +35,7 @@ use Nexus\Mcp\Core\Schema\Result\DiscoverResult;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
 use Nexus\Mcp\Core\Schema\ServerCapabilities;
+use Nexus\Mcp\Core\Transport\SendContext;
 use Nexus\Mcp\Server\Dispatch\ServerMessageDispatcher;
 use Nexus\Mcp\Server\Exception\ResourceNotFoundException;
 use Nexus\Mcp\Server\Handler\Request\DiscoverRequestHandler;
@@ -287,6 +288,9 @@ final class ServerMessageDispatcherTest extends TestCase
         self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
         self::assertSame('req-2', $message->id?->id);
         self::assertSame(ProtocolErrorCode::MethodNotFound->value, $message->error->code);
+        // A framework routing miss carries protocol origin, not handler origin.
+        $context = $transport->sent[0]['context'];
+        self::assertFalse(null !== $context && $context->fromHandler);
     }
 
     public function testServerRejectsNonClientRequestMethodWithMethodNotFound(): void
@@ -558,6 +562,10 @@ final class ServerMessageDispatcherTest extends TestCase
         self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
         self::assertSame(ProtocolErrorCode::InvalidParams->value, $message->error->code);
         self::assertSame(1, $message->id?->id);
+        // A protocol error the handler raised carries handler origin.
+        $context = $transport->sent[0]['context'];
+        self::assertInstanceOf(SendContext::class, $context);
+        self::assertTrue($context->fromHandler);
     }
 
     public function testHandlerThrowingNonMcpExceptionLogsAndReturnsGenericInternalError(): void
@@ -584,6 +592,10 @@ final class ServerMessageDispatcherTest extends TestCase
         self::assertSame('Internal error', $message->error->message);
         self::assertStringNotContainsString('mysql://', $message->error->message);
         self::assertStringNotContainsString('hunter2', $message->error->message);
+        // An uncaught handler exception is a handler-origin error.
+        $context = $transport->sent[0]['context'];
+        self::assertInstanceOf(SendContext::class, $context);
+        self::assertTrue($context->fromHandler);
 
         $matches = $logger->recordsMatching(LogLevel::ERROR, 'Uncaught request handler exception.');
         self::assertCount(1, $matches);

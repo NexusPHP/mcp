@@ -29,8 +29,9 @@ The four `on*` methods are listener registration. The `Server` registers listene
 before calling `start()`.
 
 `SendContext` carries `relatedRequestId`, which ties an out-of-band message (such as a progress
-notification) to the in-flight request that triggered it. Further transport-specific routing fields can
-arrive through the same value object without changing the interface shape.
+notification) to the in-flight request that triggered it, and `fromHandler`, which marks a response a
+request handler produced so a request-scoped transport can map it to a transport-level status. Further
+transport-specific fields can arrive through the same value object without changing the interface shape.
 
 ## `StdioServerTransport`
 

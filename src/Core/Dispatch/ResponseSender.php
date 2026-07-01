@@ -19,6 +19,7 @@ use Nexus\Mcp\Core\JsonRpc\ErrorFactory;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcMessage;
 use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Core\Transport\SendContext;
 use Nexus\Mcp\Core\Transport\TransportInterface;
 use Psr\Log\LoggerInterface;
 
@@ -34,10 +35,10 @@ final readonly class ResponseSender
     {
     }
 
-    public function send(TransportInterface $transport, JsonRpcMessage $message, string $method): void
+    public function send(TransportInterface $transport, JsonRpcMessage $message, string $method, ?SendContext $context = null): void
     {
         try {
-            $transport->send($message);
+            $transport->send($message, $context);
         } catch (TransportAlreadyClosedException $e) {
             $this->logSkippedDelivery($method, $e);
         } catch (\Throwable $e) {

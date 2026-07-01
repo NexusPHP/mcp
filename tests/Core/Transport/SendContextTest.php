@@ -41,4 +41,18 @@ final class SendContextTest extends TestCase
 
         self::assertSame($id, $context->relatedRequestId);
     }
+
+    public function testDefaultsFromHandlerToFalse(): void
+    {
+        $context = new SendContext();
+
+        self::assertFalse($context->fromHandler);
+    }
+
+    public function testCarriesProvidedFromHandlerFlag(): void
+    {
+        $context = new SendContext(fromHandler: true);
+
+        self::assertTrue($context->fromHandler);
+    }
 }

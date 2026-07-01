@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Server\Transport;
 
+use Nexus\Mcp\Core\Exception\InvalidParamsException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyStartedException;
 use Nexus\Mcp\Core\Exception\TransportNotStartedException;
@@ -21,12 +22,15 @@ use Nexus\Mcp\Core\Schema\Error\InternalError;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\Notification\ToolListChangedNotification;
 use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
+use Nexus\Mcp\Core\Schema\ProtocolVersion;
 use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
+use Nexus\Mcp\Server\Server;
 use Nexus\Mcp\Server\ServerBuilder;
 use Nexus\Mcp\Server\Transport\StreamableHttpServerTransport;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
+use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureRequestHandler;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -227,7 +231,7 @@ final class StreamableHttpServerTransportTest extends TestCase
             'id' => 7,
             'method' => 'server/discover',
             'params' => ['_meta' => RequestMetaObjectFactory::shape()],
-        ]));
+        ], self::standardHeaders('server/discover')));
 
         self::assertSame(200, $response->getStatusCode());
         self::assertSame('application/json', $response->getHeaderLine('Content-Type'));
@@ -248,7 +252,7 @@ final class StreamableHttpServerTransportTest extends TestCase
             'id' => 'req-abc',
             'method' => 'server/discover',
             'params' => ['_meta' => RequestMetaObjectFactory::shape()],
-        ]));
+        ], self::standardHeaders('server/discover')));
 
         self::assertSame('req-abc', self::decode($response)['id'] ?? null);
     }
@@ -263,7 +267,7 @@ final class StreamableHttpServerTransportTest extends TestCase
             'id' => 'scope/日本',
             'method' => 'server/discover',
             'params' => ['_meta' => RequestMetaObjectFactory::shape()],
-        ]));
+        ], self::standardHeaders('server/discover')));
 
         $raw = (string) $response->getBody();
         self::assertStringContainsString('scope/日本', $raw);
@@ -280,7 +284,7 @@ final class StreamableHttpServerTransportTest extends TestCase
             'id' => 1,
             'method' => 'server/discover',
             'params' => ['_meta' => RequestMetaObjectFactory::shape()],
-        ]);
+        ], self::standardHeaders('server/discover'));
 
         // Both coroutines start on `async()`, so awaiting them one after the other still runs them concurrently.
         $firstPending = async(static fn(): ResponseInterface => $transport->handle($post));
@@ -289,7 +293,7 @@ final class StreamableHttpServerTransportTest extends TestCase
             'id' => 1,
             'method' => 'server/discover',
             'params' => ['_meta' => RequestMetaObjectFactory::shape()],
-        ])));
+        ], self::standardHeaders('server/discover'))));
 
         $first = $firstPending->await();
         $second = $secondPending->await();
@@ -303,6 +307,123 @@ final class StreamableHttpServerTransportTest extends TestCase
         // Re-keying to distinct internal ids keeps the shared client id from being rejected as a duplicate.
         self::assertArrayHasKey('result', self::decode($first));
         self::assertArrayHasKey('result', self::decode($second));
+    }
+
+    /**
+     * @param array<string, string> $headers
+     * @param array<string, mixed>  $body
+     */
+    #[DataProvider('provideHeaderValidationFailureReturnsHeaderMismatchCases')]
+    public function testHeaderValidationFailureReturnsHeaderMismatch(array $headers, array $body): void
+    {
+        // The mismatch is caught before dispatch, so no listener is attached.
+        $response = self::makeTransport()->handle(self::makePost($body, $headers));
+
+        self::assertSame(400, $response->getStatusCode());
+        self::assertSame(ProtocolErrorCode::HeaderMismatch->value, self::errorPayload($response)['code'] ?? null);
+    }
+
+    /**
+     * @return iterable<string, array{array<string, string>, array<string, mixed>}>
+     */
+    public static function provideHeaderValidationFailureReturnsHeaderMismatchCases(): iterable
+    {
+        $discover = ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'server/discover', 'params' => ['_meta' => RequestMetaObjectFactory::shape()]];
+
+        yield 'the protocol version header is absent' => [
+            ['Mcp-Method' => 'server/discover'],
+            $discover,
+        ];
+
+        yield 'the method header is absent' => [
+            ['MCP-Protocol-Version' => ProtocolVersion::LATEST_VERSION],
+            $discover,
+        ];
+
+        yield 'the method header disagrees with the body' => [
+            ['MCP-Protocol-Version' => ProtocolVersion::LATEST_VERSION, 'Mcp-Method' => 'ping'],
+            $discover,
+        ];
+
+        yield 'the name header disagrees with a tools/call body' => [
+            self::standardHeaders('tools/call', 'wrong'),
+            ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/call', 'params' => ['name' => 'get_weather', '_meta' => RequestMetaObjectFactory::shape()]],
+        ];
+    }
+
+    public function testUnknownMethodRidesHttp404(): void
+    {
+        $transport = self::makeTransport();
+        self::listen($transport);
+
+        $response = self::handle($transport, self::makePost(
+            ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'does/not/exist'],
+            ['MCP-Protocol-Version' => ProtocolVersion::LATEST_VERSION, 'Mcp-Method' => 'does/not/exist'],
+        ));
+
+        self::assertSame(404, $response->getStatusCode());
+        self::assertSame(ProtocolErrorCode::MethodNotFound->value, self::errorPayload($response)['code'] ?? null);
+    }
+
+    public function testEnvelopeLevelInvalidParamsRidesHttp400(): void
+    {
+        $transport = self::makeTransport();
+        self::listen($transport);
+
+        // An empty `_meta` fails request-params decoding inside the parser: an envelope-level -32602.
+        $response = self::handle($transport, self::makePost(
+            ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'server/discover', 'params' => ['_meta' => []]],
+            self::standardHeaders('server/discover'),
+        ));
+
+        self::assertSame(400, $response->getStatusCode());
+        self::assertSame(ProtocolErrorCode::InvalidParams->value, self::errorPayload($response)['code'] ?? null);
+    }
+
+    public function testHandlerProducedProtocolErrorRidesHttp200(): void
+    {
+        // A handler that raises the same -32602 code as the envelope-level case above, but from execution,
+        // so it rides HTTP 200 with the JSON-RPC error in the body.
+        $server = new ServerBuilder()
+            ->setServerInfo('demo', '1.0.0')
+            ->replaceRequestHandler('server/discover', new ClosureRequestHandler(
+                static fn() => throw new InvalidParamsException(null, 'invalid tool arguments'),
+            ))
+            ->build()
+        ;
+
+        $transport = self::makeTransport();
+        self::listen($transport, $server);
+
+        $response = self::handle($transport, self::makePost(
+            ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'server/discover', 'params' => ['_meta' => RequestMetaObjectFactory::shape()]],
+            self::standardHeaders('server/discover'),
+        ));
+
+        self::assertSame(200, $response->getStatusCode());
+        self::assertSame(ProtocolErrorCode::InvalidParams->value, self::errorPayload($response)['code'] ?? null);
+    }
+
+    public function testHandlerExceptionRidesHttp200AsInternalError(): void
+    {
+        $server = new ServerBuilder()
+            ->setServerInfo('demo', '1.0.0')
+            ->replaceRequestHandler('server/discover', new ClosureRequestHandler(
+                static fn() => throw new \RuntimeException('handler boom'),
+            ))
+            ->build()
+        ;
+
+        $transport = self::makeTransport();
+        self::listen($transport, $server);
+
+        $response = self::handle($transport, self::makePost(
+            ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'server/discover', 'params' => ['_meta' => RequestMetaObjectFactory::shape()]],
+            self::standardHeaders('server/discover'),
+        ));
+
+        self::assertSame(200, $response->getStatusCode());
+        self::assertSame(ProtocolErrorCode::InternalError->value, self::errorPayload($response)['code'] ?? null);
     }
 
     public function testSendBeforeStartThrows(): void
@@ -458,20 +579,45 @@ final class StreamableHttpServerTransportTest extends TestCase
         return new StreamableHttpServerTransport($factory, $factory, $logger ?? new ArrayLogger());
     }
 
-    private static function listen(StreamableHttpServerTransport $transport): void
+    private static function listen(StreamableHttpServerTransport $transport, ?Server $server = null): void
     {
-        new ServerBuilder()->setServerInfo('demo', '1.0.0')->build()->listen($transport);
+        ($server ?? new ServerBuilder()->setServerInfo('demo', '1.0.0')->build())->listen($transport);
     }
 
     /**
      * @param array<string, mixed>|string $body
+     * @param array<string, string>       $headers
      */
-    private static function makePost(array|string $body): ServerRequestInterface
+    private static function makePost(array|string $body, array $headers = []): ServerRequestInterface
     {
         $factory = new Psr17Factory();
         $raw = \is_string($body) ? $body : json_encode($body, \JSON_THROW_ON_ERROR);
+        $request = $factory->createServerRequest('POST', 'https://mcp.test/')->withBody($factory->createStream($raw));
 
-        return $factory->createServerRequest('POST', 'https://mcp.test/')->withBody($factory->createStream($raw));
+        foreach ($headers as $name => $value) {
+            $request = $request->withHeader($name, $value);
+        }
+
+        return $request;
+    }
+
+    /**
+     * The standard request-metadata headers a conforming POST carries, matching the request bodies below.
+     *
+     * @return array<string, string>
+     */
+    private static function standardHeaders(string $method, ?string $name = null): array
+    {
+        $headers = [
+            'MCP-Protocol-Version' => ProtocolVersion::LATEST_VERSION,
+            'Mcp-Method' => $method,
+        ];
+
+        if (null !== $name) {
+            $headers['Mcp-Name'] = $name;
+        }
+
+        return $headers;
     }
 
     private static function handle(StreamableHttpServerTransport $transport, ServerRequestInterface $request): ResponseInterface

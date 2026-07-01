@@ -20,7 +20,11 @@ use Nexus\Mcp\Core\Schema\RequestId;
  */
 final readonly class SendContext
 {
-    public function __construct(public ?RequestId $relatedRequestId = null)
+    /**
+     * @param bool $fromHandler Whether a request handler's execution produced the message, letting a
+     *                          request-scoped transport map the response to a transport-level status.
+     */
+    public function __construct(public ?RequestId $relatedRequestId = null, public bool $fromHandler = false)
     {
     }
 }
