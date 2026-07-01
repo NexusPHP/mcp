@@ -351,6 +351,17 @@ retarget to the dated pages once the final spec ships.
   `McpAnchorSnapshot::SPEC_BASE_URL`, to the dated spec, then re-run `composer spec:snapshot-anchors` to
   refresh the anchor snapshot.
 
+## Server ergonomics
+
+Composition-surface quality-of-life items, independent of any spec revision.
+
+- [ ] Make the pagination page size configurable from the fluent `ServerBuilder` path.
+  `AbstractPaginatedStore` fixes `DEFAULT_PAGE_SIZE` at 50. The size is a store constructor parameter, but
+  the `addTool()` / `addPrompt()` / `addResource()` methods build the stores internally without threading a
+  custom value, so today it can only be changed by hand-constructing a store and injecting it through
+  `setToolStore()` and its siblings. Surface it as a builder-level knob (a global default, optionally
+  per-feature).
+
 ## Transports
 
 The `TransportInterface` is already shaped to accommodate streamable HTTP without a breaking change:
