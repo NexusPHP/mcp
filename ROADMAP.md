@@ -294,21 +294,20 @@ Server transport (`Nexus\Mcp\Server`, PSR-15). Adds `psr/http-message`, `psr/htt
 `psr/http-server-handler`. Runs on the amphp event loop with amphp/http-server as the reference host.
 PSR-17 factories are constructor-injected, not discovered.
 
-- [ ] `StreamableHttpServerTransport` implements `RequestHandlerInterface` and `TransportInterface`,
+- [x] `StreamableHttpServerTransport` implements `RequestHandlerInterface` and `TransportInterface`,
   exposing `handle(ServerRequestInterface): ResponseInterface`. Per POST it re-keys the request to a
   transport-internal id (so independent clients cannot collide on a shared JSON-RPC id), registers a
   per-request response sink under that id, emits the envelope to the dispatcher, routes outbound messages
   back by `relatedRequestId` (progress) or response id, restores the client's id on the response, and
-  returns a buffered JSON response or a streaming SSE body. Response mode is `auto` (JSON unless a related
-  message arrives mid-call, then a lazy SSE upgrade), `sse`, or `json`.
-- [ ] SSE writer: frames `event: message\ndata: <json>\n\n`, response headers `text/event-stream`,
-  `Cache-Control: no-cache`, `Connection: keep-alive`, and `X-Accel-Buffering: no`, plus periodic
-  keep-alive comment frames on open streams. The body is a streaming `StreamInterface` backed by an amphp
-  queue, and a client disconnect cancels the request.
-- [ ] HTTP conformance edges: `202 Accepted` with no body when a POST produces no outbound message,
-  `405 Method Not Allowed` with an `Allow: POST` header for other methods, an empty or undecodable body
-  answered with `-32700 ParseError` (id key omitted), a defensive `406` when the client accepts neither
-  content type, and a configurable body-size cap answered with `413`.
+  returns a buffered JSON response or a streaming SSE body. Response mode is `Auto` (JSON unless a related
+  message arrives mid-call, then a lazy SSE upgrade), `Sse`, or `Json`.
+- [x] SSE writer (`SseResponseStream`): frames `event: message\ndata: <json>\n\n`, response headers
+  `text/event-stream`, `Cache-Control: no-cache`, `Connection: keep-alive`, and `X-Accel-Buffering: no`,
+  plus a keep-alive comment frame emitted whenever a read stays idle past the configured interval. The body
+  is a streaming `StreamInterface` fed by the transport. Closing it retires the stream (full handler
+  cancellation waits on the cancellation registry).
+- [ ] A configurable request-body-size cap answered with `413`, whose natural home is the DoS-hardening
+  pass. The `202` / `405` / `-32700` / `406` conformance edges shipped with the transport.
 - [ ] `Origin` validation as separate middleware returning `403` with an id-less JSON-RPC error, and an
   optional CORS helper (preflight `OPTIONS` to `204`) for browser clients.
 - [x] A non-blocking `Server::listen(TransportInterface)` seam that attaches the dispatcher listeners and

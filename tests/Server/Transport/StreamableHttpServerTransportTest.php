@@ -17,17 +17,23 @@ use Nexus\Mcp\Core\Exception\InvalidParamsException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyStartedException;
 use Nexus\Mcp\Core\Exception\TransportNotStartedException;
+use Nexus\Mcp\Core\Handler\AbstractContext;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Error\InternalError;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
+use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\Notification\ToolListChangedNotification;
 use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
+use Nexus\Mcp\Core\Schema\ProgressToken;
 use Nexus\Mcp\Core\Schema\ProtocolVersion;
 use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
+use Nexus\Mcp\Core\Schema\Result;
+use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Server\Server;
 use Nexus\Mcp\Server\ServerBuilder;
+use Nexus\Mcp\Server\Transport\Http\ResponseMode;
 use Nexus\Mcp\Server\Transport\StreamableHttpServerTransport;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureRequestHandler;
@@ -42,6 +48,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LogLevel;
 
 use function Amp\async;
+use function Amp\delay;
 
 /**
  * @internal
@@ -452,7 +459,7 @@ final class StreamableHttpServerTransportTest extends TestCase
 
         $transport->send(new ToolListChangedNotification(params: new EmptyNotificationParams()));
 
-        self::assertCount(1, $logger->recordsMatching(LogLevel::DEBUG, 'Dropping a notification: the JSON response path cannot stream it.'));
+        self::assertCount(1, $logger->recordsMatching(LogLevel::DEBUG, 'Dropping a notification with no related request to stream it to.'));
         self::assertCount(0, $logger->recordsMatching(LogLevel::WARNING, 'Dropping an unexpected server-initiated request.'));
     }
 
@@ -572,11 +579,155 @@ final class StreamableHttpServerTransportTest extends TestCase
         $transport->send(new ToolListChangedNotification(params: new EmptyNotificationParams()));
     }
 
-    private static function makeTransport(?ArrayLogger $logger = null): StreamableHttpServerTransport
+    #[DataProvider('provideRejectsInsufficientAcceptWith406Cases')]
+    public function testRejectsInsufficientAcceptWith406(string $accept): void
+    {
+        $response = self::makeTransport()->handle(self::makePost(
+            ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'server/discover', 'params' => ['_meta' => RequestMetaObjectFactory::shape()]],
+            ['Accept' => $accept],
+        ));
+
+        self::assertSame(406, $response->getStatusCode());
+        self::assertSame('', (string) $response->getBody());
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function provideRejectsInsufficientAcceptWith406Cases(): iterable
+    {
+        yield 'accepts only application/json' => ['application/json'];
+
+        yield 'accepts only text/event-stream' => ['text/event-stream'];
+
+        yield 'accepts neither required type' => ['text/plain'];
+    }
+
+    public function testAcceptHeaderMatchesCaseInsensitively(): void
+    {
+        $transport = self::makeTransport();
+        self::listen($transport);
+
+        $response = self::handle($transport, self::makePost(
+            ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'server/discover', 'params' => ['_meta' => RequestMetaObjectFactory::shape()]],
+            ['Accept' => 'Application/JSON, Text/Event-Stream'] + self::standardHeaders('server/discover'),
+        ));
+
+        self::assertSame(200, $response->getStatusCode());
+        self::assertArrayHasKey('result', self::decode($response));
+    }
+
+    public function testSseModeStreamsProgressThenTheFinalResult(): void
+    {
+        $transport = self::makeTransport(responseMode: ResponseMode::Sse);
+        self::listen($transport, self::progressServer());
+
+        [$response, $body] = self::handleAndRead($transport, self::progressRequest(7));
+
+        self::assertSame(200, $response->getStatusCode());
+        self::assertSame('text/event-stream', $response->getHeaderLine('Content-Type'));
+        self::assertSame('no-cache', $response->getHeaderLine('Cache-Control'));
+        self::assertSame('keep-alive', $response->getHeaderLine('Connection'));
+        self::assertSame('no', $response->getHeaderLine('X-Accel-Buffering'));
+
+        self::assertStringContainsString("event: message\ndata: ", $body);
+        self::assertStringContainsString('notifications/progress', $body);
+        self::assertStringContainsString('"id":7', $body);
+        self::assertStringContainsString('"result"', $body);
+
+        // Closing the fully-read body is a no-op: the stream already ended.
+        $response->getBody()->close();
+    }
+
+    public function testSseStreamSignalsEndOfBodyAfterTheFinalResult(): void
+    {
+        $transport = self::makeTransport(responseMode: ResponseMode::Sse, keepAliveInterval: 0.02);
+        self::listen($transport, self::progressServer());
+
+        $eof = async(static function () use ($transport): string {
+            $body = $transport->handle(self::progressRequest(7))->getBody();
+            $body->read(65536); // drains the progress and final-result frames
+
+            return $body->read(65536); // end-of-body once the stream has ended
+        })->await();
+
+        self::assertSame('', $eof);
+    }
+
+    public function testAutoModeUpgradesToSseWhenProgressArrives(): void
+    {
+        $transport = self::makeTransport(responseMode: ResponseMode::Auto);
+        self::listen($transport, self::progressServer());
+
+        [$response, $body] = self::handleAndRead($transport, self::progressRequest(7));
+
+        self::assertSame(200, $response->getStatusCode());
+        self::assertSame('text/event-stream', $response->getHeaderLine('Content-Type'));
+        self::assertStringContainsString('notifications/progress', $body);
+        self::assertStringContainsString('"result"', $body);
+    }
+
+    public function testJsonModeBuffersAndDropsProgress(): void
+    {
+        $logger = new ArrayLogger();
+        $transport = self::makeTransport($logger, ResponseMode::Json);
+        self::listen($transport, self::progressServer());
+
+        $response = self::handle($transport, self::progressRequest(7));
+
+        self::assertSame(200, $response->getStatusCode());
+        self::assertSame('application/json', $response->getHeaderLine('Content-Type'));
+        self::assertArrayHasKey('result', self::decode($response));
+        self::assertCount(1, $logger->recordsMatching(LogLevel::DEBUG, 'Dropping a notification: the JSON response mode cannot stream it.'));
+    }
+
+    public function testStreamEmitsKeepAliveFramesWhileTheHandlerIsBusy(): void
+    {
+        $transport = self::makeTransport(responseMode: ResponseMode::Sse, keepAliveInterval: 0.01);
+        self::listen($transport, self::progressServer(busyFor: 0.03));
+
+        [, $body] = self::handleAndRead($transport, self::progressRequest(7));
+
+        self::assertStringContainsString(': keep-alive', $body);
+        self::assertStringContainsString('"result"', $body);
+    }
+
+    public function testClosingTheBodyReleasesAnInFlightStream(): void
+    {
+        $logger = new ArrayLogger();
+        $transport = self::makeTransport($logger, ResponseMode::Sse);
+        self::listen($transport, self::progressServer());
+
+        async(static function () use ($transport): void {
+            $response = $transport->handle(self::progressRequest(7));
+            // The client disconnects before consuming the stream.
+            $response->getBody()->close();
+            // Let the queued dispatch coroutine run: its response now has no sink and is discarded.
+            delay(0.01);
+        })->await();
+
+        self::assertCount(1, $logger->recordsMatching(LogLevel::WARNING, 'Discarding an orphan response with no in-flight request.'));
+        self::assertCount(1, $logger->recordsMatching(LogLevel::DEBUG, 'Dropping a notification for a request that is no longer in flight.'));
+    }
+
+    public function testConstructorRejectsNonPositiveKeepAliveInterval(): void
     {
         $factory = new Psr17Factory();
 
-        return new StreamableHttpServerTransport($factory, $factory, $logger ?? new ArrayLogger());
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageMatches('/^The SSE keep-alive interval must be positive, 0 given\.$/');
+
+        new StreamableHttpServerTransport($factory, $factory, keepAliveInterval: 0.0);
+    }
+
+    private static function makeTransport(
+        ?ArrayLogger $logger = null,
+        ResponseMode $responseMode = ResponseMode::Auto,
+        float $keepAliveInterval = 15.0,
+    ): StreamableHttpServerTransport {
+        $factory = new Psr17Factory();
+
+        return new StreamableHttpServerTransport($factory, $factory, $logger ?? new ArrayLogger(), $responseMode, $keepAliveInterval);
     }
 
     private static function listen(StreamableHttpServerTransport $transport, ?Server $server = null): void
@@ -585,6 +736,8 @@ final class StreamableHttpServerTransportTest extends TestCase
     }
 
     /**
+     * Builds a POST, defaulting the required dual `Accept` header when the caller does not set one.
+     *
      * @param array<string, mixed>|string $body
      * @param array<string, string>       $headers
      */
@@ -594,11 +747,64 @@ final class StreamableHttpServerTransportTest extends TestCase
         $raw = \is_string($body) ? $body : json_encode($body, \JSON_THROW_ON_ERROR);
         $request = $factory->createServerRequest('POST', 'https://mcp.test/')->withBody($factory->createStream($raw));
 
+        $headers += ['Accept' => 'application/json, text/event-stream'];
+
         foreach ($headers as $name => $value) {
             $request = $request->withHeader($name, $value);
         }
 
         return $request;
+    }
+
+    /**
+     * Drives a request whose response body must be read on the event loop (an SSE stream), returning the
+     * response together with its fully read body.
+     *
+     * @return array{ResponseInterface, string}
+     */
+    private static function handleAndRead(StreamableHttpServerTransport $transport, ServerRequestInterface $request): array
+    {
+        $response = async(static fn(): ResponseInterface => $transport->handle($request))->await();
+        self::assertInstanceOf(ResponseInterface::class, $response);
+
+        // The SSE body is read on the loop: reading it drives the queued dispatch coroutine to completion.
+        $body = async(static fn(): string => (string) $response->getBody())->await();
+        self::assertIsString($body);
+
+        return [$response, $body];
+    }
+
+    /**
+     * A server whose `server/discover` handler reports one progress update, optionally staying busy after,
+     * then returns an empty result.
+     */
+    private static function progressServer(float $busyFor = 0.0): Server
+    {
+        return new ServerBuilder()
+            ->setServerInfo('demo', '1.0.0')
+            ->replaceRequestHandler('server/discover', new ClosureRequestHandler(
+                static function (JsonRpcRequest $request, AbstractContext $context) use ($busyFor): Result {
+                    $context->reportProgress(0.5, 1.0, 'halfway');
+
+                    if ($busyFor > 0.0) {
+                        delay($busyFor);
+                    }
+
+                    return new EmptyResult();
+                },
+            ))
+            ->build()
+        ;
+    }
+
+    private static function progressRequest(int|string $id): ServerRequestInterface
+    {
+        return self::makePost([
+            'jsonrpc' => '2.0',
+            'id' => $id,
+            'method' => 'server/discover',
+            'params' => ['_meta' => RequestMetaObjectFactory::shape(progressToken: new ProgressToken('tok-1'))],
+        ], self::standardHeaders('server/discover'));
     }
 
     /**
