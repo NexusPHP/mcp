@@ -294,12 +294,13 @@ Server transport (`Nexus\Mcp\Server`, PSR-15). Adds `psr/http-message`, `psr/htt
 `psr/http-server-handler`. Runs on the amphp event loop with amphp/http-server as the reference host.
 PSR-17 factories are constructor-injected, not discovered.
 
-- [ ] `StreamableHttpServerTransport implements TransportInterface`, adding
-  `handleRequest(ServerRequestInterface): ResponseInterface`. Per POST it registers a per-request response
-  sink keyed by the JSON-RPC request id, emits the envelope to the dispatcher, routes outbound messages
-  back by `relatedRequestId` (progress) or response id, and returns a buffered JSON response or a streaming
-  SSE body. Response mode is `auto` (JSON unless a related message arrives mid-call, then a lazy SSE
-  upgrade), `sse`, or `json`.
+- [ ] `StreamableHttpServerTransport` implements `RequestHandlerInterface` and `TransportInterface`,
+  exposing `handle(ServerRequestInterface): ResponseInterface`. Per POST it re-keys the request to a
+  transport-internal id (so independent clients cannot collide on a shared JSON-RPC id), registers a
+  per-request response sink under that id, emits the envelope to the dispatcher, routes outbound messages
+  back by `relatedRequestId` (progress) or response id, restores the client's id on the response, and
+  returns a buffered JSON response or a streaming SSE body. Response mode is `auto` (JSON unless a related
+  message arrives mid-call, then a lazy SSE upgrade), `sse`, or `json`.
 - [ ] SSE writer: frames `event: message\ndata: <json>\n\n`, response headers `text/event-stream`,
   `Cache-Control: no-cache`, `Connection: keep-alive`, and `X-Accel-Buffering: no`, plus periodic
   keep-alive comment frames on open streams. The body is a streaming `StreamInterface` backed by an amphp

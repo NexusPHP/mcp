@@ -33,12 +33,12 @@ final class HttpStatusResolver
     public static function resolve(ProtocolErrorCode $code, bool $fromHandler): int
     {
         if ($fromHandler) {
-            return 200;
+            return HttpStatus::Ok->value;
         }
 
         return match ($code) {
-            ProtocolErrorCode::MethodNotFound => 404,
-            default => 400,
+            ProtocolErrorCode::MethodNotFound => HttpStatus::NotFound->value,
+            default => HttpStatus::BadRequest->value,
         };
     }
 }
