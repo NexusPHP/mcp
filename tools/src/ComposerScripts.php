@@ -227,7 +227,9 @@ final class ComposerScripts
                 $file = substr($file, \strlen($root) + 1);
             }
 
-            $report[] = \sprintf('  %s: %s', $file, implode(', ', $lines));
+            foreach ($lines as $line) {
+                $report[] = \sprintf('  * %s:%s', $file, $line);
+            }
         }
 
         sort($report);
