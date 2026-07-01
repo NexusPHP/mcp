@@ -273,19 +273,19 @@ first and unblocks both transports.
 Shared header core (`Nexus\Mcp\Core\Http`, no PSR dependencies). Pure string and array logic,
 corpus-tested to the spec fixtures, consumed by both transports.
 
-- [ ] `Mcp-Param` / `Mcp-Name` value codec: the `=?base64?…?=` sentinel encode and decode (empty, leading
+- [x] `Mcp-Param` / `Mcp-Name` value codec: the `=?base64?…?=` sentinel encode and decode (empty, leading
   or trailing whitespace, non-ASCII, control characters, and self-encoding of a value that already matches
   the sentinel), integer-to-decimal and boolean-to-lowercase conversion, and canonical-padded decode.
-- [ ] `x-mcp-header` schema scanner: validate declarations against the field-name token syntax, non-empty,
+- [x] `x-mcp-header` schema scanner: validate declarations against the field-name token syntax, non-empty,
   control-character, case-insensitive uniqueness, primitive-type (integer, string, boolean, with `number`
   not permitted per spec), safe-integer-range, and static-reachability (a `properties`-only chain, never
   through `items`, composition, conditional, or `$ref`) constraints. Verify the `number` ban against the
   conformance suite before pinning it, since the TS SDK admits `number` to pass its conformance referee.
-- [ ] Standard-header validation: `MCP-Protocol-Version` cross-checked against the body `_meta` version,
+- [x] Standard-header validation: `MCP-Protocol-Version` cross-checked against the body `_meta` version,
   `Mcp-Method` required on every request, and `Mcp-Name` cross-checked against `params.name` (`tools/call`,
   `prompts/get`) or `params.uri` (`resources/read`). Header names compare case-insensitively, values
   case-sensitively, and integer parameters compare numerically.
-- [ ] Error-to-HTTP-status mapping keyed on origin: transport and protocol errors map to real statuses
+- [x] Error-to-HTTP-status mapping keyed on origin: transport and protocol errors map to real statuses
   (`-32700`, `-32600`, envelope-level `-32602`, `-32020`, `-32021`, and `-32022` to 400, and `-32601` to
   404), while handler-produced errors, including `-32603` and tool errors, ride HTTP 200 with the JSON-RPC
   error in the body.
