@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Dispatch;
 
+use Nexus\Mcp\Core\Transport\ReceiveContext;
 use Nexus\Mcp\Core\Transport\TransportInterface;
 
 /**
@@ -27,7 +28,7 @@ interface MessageDispatcherInterface
      *
      * @param array<string, mixed> $envelope
      */
-    public function dispatch(array $envelope, TransportInterface $transport): void;
+    public function dispatch(array $envelope, TransportInterface $transport, ReceiveContext $context): void;
 
     /**
      * Awaits every in-flight dispatch coroutine spawned by `dispatch()`.

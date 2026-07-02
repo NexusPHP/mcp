@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\AutoReview;
 
-use Nexus\Mcp\Core\Transport\ReceiveContext;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -34,16 +33,6 @@ final class TestCodeTest extends TestCase
         'server-tests',
         'static-analysis',
         'unit-tests',
-    ];
-
-    /**
-     * Concrete source classes that intentionally have no dedicated test class.
-     * Each entry is justified inline so the gate documents the exemption.
-     */
-    private const array SOURCE_CLASSES_WITHOUT_TESTS = [
-        // Empty placeholder VO. Gains typed slots when streamable HTTP transport
-        // lands and gets a test then.
-        ReceiveContext::class,
     ];
 
     /**
@@ -229,21 +218,10 @@ final class TestCodeTest extends TestCase
             }
         }
 
-        if (\in_array($class, self::SOURCE_CLASSES_WITHOUT_TESTS, true)) {
-            self::assertFalse(class_exists($expectedTestClassName), \sprintf(
-                'Class "%s" already has tests via "%s"; remove it from %s::SOURCE_CLASSES_WITHOUT_TESTS.',
-                $class,
-                $expectedTestClassName,
-                self::class,
-            ));
-            self::markTestIncomplete(\sprintf('Class "%s" has no tests yet. Please help to add them.', $class));
-        }
-
         self::assertTrue(class_exists($expectedTestClassName), \sprintf(
-            'Expected test class "%s" for "%s" was not found. Add a test or list the source class in %s::SOURCE_CLASSES_WITHOUT_TESTS with justification.',
+            'Expected test class "%s" for "%s" was not found. Add a same-named test class or reference the source class via #[CoversClass] in some test.',
             $expectedTestClassName,
             $class,
-            self::class,
         ));
     }
 

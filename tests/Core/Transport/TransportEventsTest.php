@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Transport;
 
+use Nexus\Mcp\Core\Transport\ReceiveContext;
 use Nexus\Mcp\Core\Transport\SubscriptionInterface;
 use Nexus\Mcp\Core\Transport\TransportEvents;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -40,7 +41,7 @@ final class TransportEventsTest extends TestCase
             $calls[] = ['second', $envelope];
         });
 
-        $events->emitMessage(['method' => 'tools/list']);
+        $events->emitMessage(['method' => 'tools/list'], new ReceiveContext());
 
         self::assertSame([
             ['first', ['method' => 'tools/list']],
@@ -106,9 +107,9 @@ final class TransportEventsTest extends TestCase
             $calls[] = 'second';
         });
 
-        $events->emitMessage([]);
+        $events->emitMessage([], new ReceiveContext());
         $second->dispose();
-        $events->emitMessage([]);
+        $events->emitMessage([], new ReceiveContext());
 
         self::assertSame(['first', 'second', 'first'], $calls);
     }
@@ -164,7 +165,7 @@ final class TransportEventsTest extends TestCase
     {
         $events = new TransportEvents();
 
-        $events->emitMessage(['method' => 'tools/list']);
+        $events->emitMessage(['method' => 'tools/list'], new ReceiveContext());
         $events->emitError(new \RuntimeException('x'));
         $events->emitDrain();
         $events->emitClose();
@@ -184,8 +185,8 @@ final class TransportEventsTest extends TestCase
             });
         });
 
-        $events->emitMessage(['method' => 'first-emit']);
-        $events->emitMessage(['method' => 'second-emit']);
+        $events->emitMessage(['method' => 'first-emit'], new ReceiveContext());
+        $events->emitMessage(['method' => 'second-emit'], new ReceiveContext());
 
         self::assertSame([
             ['first', ['method' => 'first-emit']],

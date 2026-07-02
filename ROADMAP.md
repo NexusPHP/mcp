@@ -313,8 +313,9 @@ PSR-17 factories are constructor-injected, not discovered.
 - [x] A non-blocking `Server::listen(TransportInterface)` seam that attaches the dispatcher listeners and
   starts the transport without the close-await that `run()` uses for stdio, so the endpoint can be mounted
   per request in a PSR-15 stack.
-- [ ] Re-introduce the `ReceiveContext` listener argument across the chain, carrying the originating
-  `ServerRequestInterface` and a later auth-subsystem slot.
+- [x] Re-introduce the `ReceiveContext` listener argument across the chain, carrying the originating
+  `ServerRequestInterface` and exposing it to request handlers via `ServerContext::$receiveContext`. The
+  auth-subsystem slot is added with the authorization milestone.
 
 Client transport (`Nexus\Mcp\Client`, amphp/http-client). Adds `amphp/http-client`.
 

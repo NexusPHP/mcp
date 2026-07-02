@@ -11,7 +11,8 @@
     ],
     "require": {
         "php": "^8.4",
-        "nexusphp/assert": "^1.0"
+        "nexusphp/assert": "^1.0",
+        "psr/http-message": "^2.0"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,

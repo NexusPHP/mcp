@@ -214,7 +214,7 @@ final class LineDuplex
     }
 
     /**
-     * @param \Closure(array<string, mixed>): void $listener
+     * @param \Closure(array<string, mixed>, ReceiveContext): void $listener
      */
     public function onMessage(\Closure $listener): SubscriptionInterface
     {
@@ -337,7 +337,7 @@ final class LineDuplex
                 '{label} transport received a JSON-RPC envelope.',
                 ['label' => $this->label],
             );
-            $this->events->emitMessage($decodedJson);
+            $this->events->emitMessage($decodedJson, new ReceiveContext());
         } catch (\Throwable $e) {
             $this->events->emitError($e);
         }

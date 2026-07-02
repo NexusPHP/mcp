@@ -22,7 +22,7 @@ namespace Nexus\Mcp\Core\Transport;
 final class TransportEvents
 {
     /**
-     * @var array<int, \Closure(array<string, mixed>): void>
+     * @var array<int, \Closure(array<string, mixed>, ReceiveContext): void>
      */
     private array $messageListeners = [];
 
@@ -49,7 +49,7 @@ final class TransportEvents
     }
 
     /**
-     * @param \Closure(array<string, mixed>): void $listener
+     * @param \Closure(array<string, mixed>, ReceiveContext): void $listener
      */
     public function onMessage(\Closure $listener): SubscriptionInterface
     {
@@ -111,10 +111,10 @@ final class TransportEvents
     /**
      * @param array<string, mixed> $envelope
      */
-    public function emitMessage(array $envelope): void
+    public function emitMessage(array $envelope, ReceiveContext $context): void
     {
         foreach ($this->messageListeners as $listener) {
-            $listener($envelope);
+            $listener($envelope, $context);
         }
     }
 

@@ -60,7 +60,7 @@ interface TransportInterface
     /**
      * Register an inbound-envelope listener.
      *
-     * @param \Closure(array<string, mixed>): void $listener
+     * @param \Closure(array<string, mixed>, ReceiveContext): void $listener
      */
     public function onMessage(\Closure $listener): SubscriptionInterface;
 

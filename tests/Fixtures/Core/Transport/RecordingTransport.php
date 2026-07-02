@@ -16,6 +16,7 @@ namespace Nexus\Mcp\Tests\Fixtures\Core\Transport;
 use Amp\DeferredFuture;
 use Amp\Future;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcMessage;
+use Nexus\Mcp\Core\Transport\ReceiveContext;
 use Nexus\Mcp\Core\Transport\SendContext;
 use Nexus\Mcp\Core\Transport\Subscription;
 use Nexus\Mcp\Core\Transport\SubscriptionInterface;
@@ -40,7 +41,7 @@ final class RecordingTransport implements TransportInterface
     public ?\Throwable $sendError = null;
 
     /**
-     * @var list<\Closure(array<string, mixed>): void>
+     * @var list<\Closure(array<string, mixed>, ReceiveContext): void>
      */
     private array $messageListeners = [];
 
@@ -176,10 +177,12 @@ final class RecordingTransport implements TransportInterface
      *
      * @param array<string, mixed> $envelope
      */
-    public function emitMessage(array $envelope): void
+    public function emitMessage(array $envelope, ?ReceiveContext $context = null): void
     {
+        $context ??= new ReceiveContext();
+
         foreach ($this->messageListeners as $listener) {
-            $listener($envelope);
+            $listener($envelope, $context);
         }
     }
 

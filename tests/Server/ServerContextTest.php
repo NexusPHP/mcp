@@ -19,9 +19,11 @@ use Nexus\Mcp\Core\Schema\Notification\ProgressNotification;
 use Nexus\Mcp\Core\Schema\NotificationParams\ProgressNotificationParams;
 use Nexus\Mcp\Core\Schema\ProgressToken;
 use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Core\Transport\ReceiveContext;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
+use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
@@ -47,6 +49,35 @@ final class ServerContextTest extends TestCase
         self::assertSame($requestId, $context->requestId);
         self::assertSame($cancellation, $context->cancellation);
         self::assertSame($meta, $context->meta);
+    }
+
+    public function testDefaultsToAnEmptyReceiveContext(): void
+    {
+        $context = new ServerContext(
+            new RequestId(id: 1),
+            new NullCancellation(),
+            RequestMetaObjectFactory::create(),
+            new RecordingSender(),
+        );
+
+        self::assertNull($context->receiveContext->request);
+    }
+
+    public function testCarriesTheProvidedReceiveContext(): void
+    {
+        $request = new Psr17Factory()->createServerRequest('POST', 'https://mcp.test/');
+        $receiveContext = new ReceiveContext($request);
+
+        $context = new ServerContext(
+            new RequestId(id: 1),
+            new NullCancellation(),
+            RequestMetaObjectFactory::create(),
+            new RecordingSender(),
+            $receiveContext,
+        );
+
+        self::assertSame($receiveContext, $context->receiveContext);
+        self::assertSame($request, $context->receiveContext->request);
     }
 
     public function testAcceptsExtraFreeMeta(): void

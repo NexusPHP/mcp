@@ -34,6 +34,7 @@ use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
 use Nexus\Mcp\Core\Schema\ResultResponse\CallToolResultResponse;
+use Nexus\Mcp\Core\Transport\ReceiveContext;
 use Nexus\Mcp\Server\Exception\ResourceNotFoundException;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureNotificationHandler;
@@ -63,7 +64,7 @@ final class ClientMessageDispatcherTest extends TestCase
         $dispatcher = self::buildDispatcher($outbound, logger: $logger);
         $transport = new RecordingTransport();
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 7, 'result' => ['content' => []]], $transport);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 7, 'result' => ['content' => []]], $transport, new ReceiveContext());
 
         EventLoop::run();
 
@@ -86,7 +87,7 @@ final class ClientMessageDispatcherTest extends TestCase
             'jsonrpc' => '2.0',
             'id' => 1,
             'error' => ['code' => ProtocolErrorCode::InvalidParams->value, 'message' => 'missing field'],
-        ], $transport);
+        ], $transport, new ReceiveContext());
 
         EventLoop::run();
 
@@ -110,7 +111,7 @@ final class ClientMessageDispatcherTest extends TestCase
             'jsonrpc' => '2.0',
             'id' => 1,
             'error' => ['code' => ProtocolErrorCode::InternalError->value, 'message' => 'boom', 'data' => [1, 2, 3]],
-        ], $transport);
+        ], $transport, new ReceiveContext());
 
         EventLoop::run();
 
@@ -130,7 +131,7 @@ final class ClientMessageDispatcherTest extends TestCase
         $dispatcher = self::buildDispatcher($outbound, logger: $logger);
         $transport = new RecordingTransport();
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 999, 'result' => []], $transport);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 999, 'result' => []], $transport, new ReceiveContext());
 
         EventLoop::run();
 
@@ -150,7 +151,7 @@ final class ClientMessageDispatcherTest extends TestCase
             'jsonrpc' => '2.0',
             'id' => 999,
             'error' => ['code' => -32603, 'message' => 'oops'],
-        ], $transport);
+        ], $transport, new ReceiveContext());
 
         EventLoop::run();
 
@@ -171,7 +172,7 @@ final class ClientMessageDispatcherTest extends TestCase
             'jsonrpc' => '2.0',
             'id' => null,
             'error' => ['code' => -32700, 'message' => 'parse error'],
-        ], $transport);
+        ], $transport, new ReceiveContext());
 
         EventLoop::run();
 
@@ -188,7 +189,7 @@ final class ClientMessageDispatcherTest extends TestCase
         $transport = new RecordingTransport();
 
         // result is not a JSON object - parser will reject.
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'result' => 'not-an-object'], $transport);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'result' => 'not-an-object'], $transport, new ReceiveContext());
 
         EventLoop::run();
 
@@ -205,7 +206,7 @@ final class ClientMessageDispatcherTest extends TestCase
         $transport = new RecordingTransport();
 
         $envelope = ['id' => 1, 'result' => []];
-        $dispatcher->dispatch($envelope, $transport);
+        $dispatcher->dispatch($envelope, $transport, new ReceiveContext());
 
         EventLoop::run();
 
@@ -225,7 +226,7 @@ final class ClientMessageDispatcherTest extends TestCase
         // Response envelope with no pending entry. dispatchResponseEnvelope handles it and must NOT
         // fall through into the request/notification parse branch (which would log a "malformed
         // notification" info entry because the response envelope lacks a method).
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 999, 'result' => []], $transport);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 999, 'result' => []], $transport, new ReceiveContext());
 
         EventLoop::run();
 
@@ -254,11 +255,11 @@ final class ClientMessageDispatcherTest extends TestCase
         $transport = new RecordingTransport();
 
         // First dispatch with id 1 - handler throws.
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
         EventLoop::run();
 
         // Second dispatch with the SAME id 1. The finally block must have released it.
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
         EventLoop::run();
 
         self::assertSame(2, $attempts);
@@ -280,7 +281,7 @@ final class ClientMessageDispatcherTest extends TestCase
         );
         $transport = new RecordingTransport();
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 42, 'method' => 'tests/test-request'], $transport);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 42, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
         EventLoop::run();
 
         self::assertCount(1, $transport->sent);
@@ -302,7 +303,7 @@ final class ClientMessageDispatcherTest extends TestCase
         );
         $transport = new RecordingTransport();
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
 
         EventLoop::run();
 
@@ -330,7 +331,7 @@ final class ClientMessageDispatcherTest extends TestCase
         );
         $transport = new RecordingTransport();
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
         EventLoop::run();
 
         self::assertCount(1, $transport->sent);
@@ -379,7 +380,7 @@ final class ClientMessageDispatcherTest extends TestCase
             'params' => [
                 '_meta' => RequestMetaObjectFactory::shape(new ProgressToken(token: 'p-1')),
             ],
-        ], $transport);
+        ], $transport, new ReceiveContext());
 
         EventLoop::run();
 
@@ -393,7 +394,7 @@ final class ClientMessageDispatcherTest extends TestCase
         $dispatcher = self::buildDispatcher($outbound);
         $transport = new RecordingTransport();
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
 
         EventLoop::run();
 
@@ -421,7 +422,7 @@ final class ClientMessageDispatcherTest extends TestCase
             'jsonrpc' => '2.0',
             'method' => 'notifications/cancelled',
             'params' => ['requestId' => 1],
-        ], $transport);
+        ], $transport, new ReceiveContext());
 
         EventLoop::run();
 
@@ -447,7 +448,7 @@ final class ClientMessageDispatcherTest extends TestCase
             'jsonrpc' => '2.0',
             'method' => 'notifications/cancelled',
             'params' => ['requestId' => 1],
-        ], $transport);
+        ], $transport, new ReceiveContext());
 
         EventLoop::run();
 
@@ -466,8 +467,8 @@ final class ClientMessageDispatcherTest extends TestCase
         );
         $transport = new RecordingTransport();
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport);
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
 
         EventLoop::run();
 
@@ -490,7 +491,7 @@ final class ClientMessageDispatcherTest extends TestCase
             'id' => 1,
             'method' => 'notifications/cancelled',
             'params' => ['requestId' => 1],
-        ], $transport);
+        ], $transport, new ReceiveContext());
 
         EventLoop::run();
 
@@ -507,7 +508,7 @@ final class ClientMessageDispatcherTest extends TestCase
         $transport = new RecordingTransport();
 
         $envelope = ['jsonrpc' => '2.0', 'method' => 'tests/test-request'];
-        $dispatcher->dispatch($envelope, $transport);
+        $dispatcher->dispatch($envelope, $transport, new ReceiveContext());
 
         EventLoop::run();
 
@@ -532,7 +533,7 @@ final class ClientMessageDispatcherTest extends TestCase
 
         // Bad jsonrpc version on a request envelope. Parser raises InvalidRequestException.
         $envelope = ['jsonrpc' => '1.0', 'id' => 7, 'method' => 'tests/test-request'];
-        $dispatcher->dispatch($envelope, $transport);
+        $dispatcher->dispatch($envelope, $transport, new ReceiveContext());
 
         EventLoop::run();
 
@@ -551,7 +552,7 @@ final class ClientMessageDispatcherTest extends TestCase
 
         // Bad jsonrpc version on a notification (no id) envelope.
         $envelope = ['jsonrpc' => '1.0', 'method' => 'notifications/cancelled'];
-        $dispatcher->dispatch($envelope, $transport);
+        $dispatcher->dispatch($envelope, $transport, new ReceiveContext());
 
         EventLoop::run();
 
@@ -573,7 +574,7 @@ final class ClientMessageDispatcherTest extends TestCase
             'jsonrpc' => '2.0',
             'method' => 'notifications/cancelled',
             'params' => ['requestId' => 1],
-        ], $transport);
+        ], $transport, new ReceiveContext());
 
         EventLoop::run();
 
@@ -590,9 +591,9 @@ final class ClientMessageDispatcherTest extends TestCase
         );
         $transport = new RecordingTransport();
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
         EventLoop::run();
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
         EventLoop::run();
 
         self::assertCount(2, $transport->sent);
@@ -613,7 +614,7 @@ final class ClientMessageDispatcherTest extends TestCase
         );
         $transport = new RecordingTransport();
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
         EventLoop::run();
 
         self::assertCount(1, $transport->sent);
@@ -637,7 +638,7 @@ final class ClientMessageDispatcherTest extends TestCase
         );
         $transport = new RecordingTransport();
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
         EventLoop::run();
 
         self::assertCount(1, $transport->sent);
@@ -666,7 +667,7 @@ final class ClientMessageDispatcherTest extends TestCase
         );
         $transport = new RecordingTransport();
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
         EventLoop::run();
 
         self::assertSame([], $transport->sent, 'A closed transport must not receive an InternalError follow-up.');
@@ -692,7 +693,7 @@ final class ClientMessageDispatcherTest extends TestCase
         $transport = new RecordingTransport();
         $transport->sendError = new TransportAlreadyClosedException('send');
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
         EventLoop::run();
 
         self::assertSame([], $logger->messagesAtLevel(LogLevel::ERROR));
@@ -712,7 +713,7 @@ final class ClientMessageDispatcherTest extends TestCase
             logger: $logger,
         );
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
         EventLoop::run();
 
         $matches = $logger->recordsMatching(LogLevel::ERROR, 'Failed to deliver response to transport.');
@@ -733,7 +734,7 @@ final class ClientMessageDispatcherTest extends TestCase
             logger: $logger,
         );
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
         EventLoop::run();
 
         self::assertSame([], $logger->messagesAtLevel(LogLevel::ERROR));
@@ -756,7 +757,7 @@ final class ClientMessageDispatcherTest extends TestCase
         );
         $transport = new RecordingTransport();
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 42, 'method' => 'tests/test-request'], $transport);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 42, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
         EventLoop::run();
 
         self::assertCount(1, $transport->sent);
@@ -788,7 +789,7 @@ final class ClientMessageDispatcherTest extends TestCase
             ],
         );
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 99, 'method' => 'tests/test-request'], $transport);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 99, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
         EventLoop::run();
 
         self::assertSame(99, $captured['requestId']);
@@ -813,7 +814,7 @@ final class ClientMessageDispatcherTest extends TestCase
             requestHandlers: ['tests/test-request' => new ClosureRequestHandler(static fn(): EmptyResult => new EmptyResult())],
         );
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
 
         $dispatcher->flushPending();
 
@@ -839,7 +840,7 @@ final class ClientMessageDispatcherTest extends TestCase
             'jsonrpc' => '2.0',
             'method' => 'notifications/cancelled',
             'params' => ['requestId' => 1],
-        ], $transport);
+        ], $transport, new ReceiveContext());
 
         self::assertSame([], $logger->messagesAtLevel(LogLevel::ERROR));
 

@@ -71,7 +71,7 @@ final class InMemoryTransport implements TransportInterface
         $this->state = TransportState::Running;
 
         foreach ($this->pendingInbound as $envelope) {
-            $this->events->emitMessage($envelope);
+            $this->events->emitMessage($envelope, new ReceiveContext());
         }
     }
 
@@ -164,6 +164,6 @@ final class InMemoryTransport implements TransportInterface
             return;
         }
 
-        $this->events->emitMessage($envelope);
+        $this->events->emitMessage($envelope, new ReceiveContext());
     }
 }

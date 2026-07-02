@@ -33,6 +33,7 @@ use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Server\Server;
 use Nexus\Mcp\Server\ServerBuilder;
+use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Server\Transport\Http\ResponseMode;
 use Nexus\Mcp\Server\Transport\StreamableHttpServerTransport;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
@@ -431,6 +432,38 @@ final class StreamableHttpServerTransportTest extends TestCase
 
         self::assertSame(200, $response->getStatusCode());
         self::assertSame(ProtocolErrorCode::InternalError->value, self::errorPayload($response)['code'] ?? null);
+    }
+
+    public function testRequestHandlerReceivesTheOriginatingHttpRequest(): void
+    {
+        $captured = null;
+        $server = new ServerBuilder()
+            ->setServerInfo('demo', '1.0.0')
+            ->replaceRequestHandler('server/discover', new ClosureRequestHandler(
+                static function (JsonRpcRequest $request, AbstractContext $context) use (&$captured): Result {
+                    $captured = $context;
+
+                    return new EmptyResult();
+                },
+            ))
+            ->build()
+        ;
+
+        $transport = self::makeTransport();
+        self::listen($transport, $server);
+
+        $post = self::makePost(
+            ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'server/discover', 'params' => ['_meta' => RequestMetaObjectFactory::shape()]],
+            self::standardHeaders('server/discover'),
+        );
+
+        self::handle($transport, $post);
+
+        if (! $captured instanceof ServerContext) {
+            self::fail('The request handler was not invoked with a ServerContext.');
+        }
+
+        self::assertSame($post, $captured->receiveContext->request);
     }
 
     public function testSendBeforeStartThrows(): void

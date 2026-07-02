@@ -13,9 +13,17 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Transport;
 
+use Psr\Http\Message\ServerRequestInterface;
+
 /**
  * Transport-supplied context accompanying an inbound JSON-RPC message.
  */
 final readonly class ReceiveContext
 {
+    /**
+     * @param ?ServerRequestInterface $request Originating HTTP request when the transport is request-scoped, null otherwise
+     */
+    public function __construct(public ?ServerRequestInterface $request = null)
+    {
+    }
 }
