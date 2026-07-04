@@ -308,8 +308,13 @@ PSR-17 factories are constructor-injected, not discovered.
   cancellation waits on the cancellation registry).
 - [ ] A configurable request-body-size cap answered with `413`, whose natural home is the DoS-hardening
   pass. The `202` / `405` / `-32700` / `406` conformance edges shipped with the transport.
-- [ ] `Origin` validation as separate middleware returning `403` with an id-less JSON-RPC error, and an
-  optional CORS helper (preflight `OPTIONS` to `204`) for browser clients.
+- [x] `DnsRebindingProtectionMiddleware` (PSR-15): rejects a present-but-unlisted `Origin` with an id-less
+  JSON-RPC error on `403`, while a request without an `Origin` header (non-browser clients) passes through.
+  The allow-list is an exact-origin `list<non-empty-string>`, with `*` for allow-all.
+- [ ] Fold `Host` header validation into the DNS-rebinding middleware (allow-listed hosts) for fuller
+  rebinding protection.
+- [ ] Optional CORS helper (`CorsMiddleware`): preflight `OPTIONS` to `204` plus `Access-Control-*` response
+  headers for browser clients.
 - [x] A non-blocking `Server::listen(TransportInterface)` seam that attaches the dispatcher listeners and
   starts the transport without the close-await that `run()` uses for stdio, so the endpoint can be mounted
   per request in a PSR-15 stack.
