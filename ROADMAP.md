@@ -313,8 +313,11 @@ PSR-17 factories are constructor-injected, not discovered.
   The allow-list is an exact-origin `list<non-empty-string>`, with `*` for allow-all. The middleware also
   carries a beyond-spec, opt-in `Host` allow-list (empty disables it, otherwise the `Host` header must be
   present and listed) for fuller rebinding protection. The spec mandates only the `Origin` check.
-- [ ] Optional CORS helper (`CorsMiddleware`): preflight `OPTIONS` to `204` plus `Access-Control-*` response
-  headers for browser clients.
+- [x] `CorsMiddleware` (PSR-15): a beyond-spec, additive CORS helper for browser clients. An allowed `Origin`
+  is reflected into `Access-Control-Allow-Origin` with a `Vary: Origin`, a preflight `OPTIONS` is answered with
+  `204` plus the negotiated `Access-Control-*` headers (echoing `Access-Control-Request-Headers`), and every
+  other response is decorated. A disallowed or absent `Origin` receives no CORS headers, so rejection stays
+  with the DNS-rebinding gate. The spec does not define CORS for the MCP endpoint.
 - [x] A non-blocking `Server::listen(TransportInterface)` seam that attaches the dispatcher listeners and
   starts the transport without the close-await that `run()` uses for stdio, so the endpoint can be mounted
   per request in a PSR-15 stack.

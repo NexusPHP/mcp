@@ -22,6 +22,7 @@ enum HttpStatus: int
 {
     case Ok = 200;
     case Accepted = 202;
+    case NoContent = 204;
     case BadRequest = 400;
     case Forbidden = 403;
     case NotFound = 404;
