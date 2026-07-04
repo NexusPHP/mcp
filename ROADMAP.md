@@ -310,9 +310,9 @@ PSR-17 factories are constructor-injected, not discovered.
   pass. The `202` / `405` / `-32700` / `406` conformance edges shipped with the transport.
 - [x] `DnsRebindingProtectionMiddleware` (PSR-15): rejects a present-but-unlisted `Origin` with an id-less
   JSON-RPC error on `403`, while a request without an `Origin` header (non-browser clients) passes through.
-  The allow-list is an exact-origin `list<non-empty-string>`, with `*` for allow-all.
-- [ ] Fold `Host` header validation into the DNS-rebinding middleware (allow-listed hosts) for fuller
-  rebinding protection.
+  The allow-list is an exact-origin `list<non-empty-string>`, with `*` for allow-all. The middleware also
+  carries a beyond-spec, opt-in `Host` allow-list (empty disables it, otherwise the `Host` header must be
+  present and listed) for fuller rebinding protection. The spec mandates only the `Origin` check.
 - [ ] Optional CORS helper (`CorsMiddleware`): preflight `OPTIONS` to `204` plus `Access-Control-*` response
   headers for browser clients.
 - [x] A non-blocking `Server::listen(TransportInterface)` seam that attaches the dispatcher listeners and

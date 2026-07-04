@@ -20,6 +20,7 @@ use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 /**
@@ -70,6 +71,53 @@ final class DnsRebindingProtectionMiddlewareTest extends TestCase
         $response = self::middleware(['https://app.test'])->process(self::request('https://evil.test'), $handler);
 
         self::assertFalse($handler->called);
+        self::assertRejectedWith($response, 'The request Origin is not allowed.');
+    }
+
+    public function testAllowsAnAllowlistedHost(): void
+    {
+        $handler = self::recordingHandler();
+
+        $response = self::middleware(['*'], ['mcp.test'])->process(self::request(), $handler);
+
+        self::assertTrue($handler->called);
+        self::assertSame(200, $response->getStatusCode());
+    }
+
+    public function testAllowsAnyHostWhenWildcardConfigured(): void
+    {
+        $handler = self::recordingHandler();
+
+        $response = self::middleware(['*'], ['*'])->process(self::request(), $handler);
+
+        self::assertTrue($handler->called);
+        self::assertSame(200, $response->getStatusCode());
+    }
+
+    public function testRejectsAnUnlistedHostWith403(): void
+    {
+        $handler = self::recordingHandler();
+
+        $response = self::middleware(['*'], ['app.test'])->process(self::request(), $handler);
+
+        self::assertFalse($handler->called);
+        self::assertRejectedWith($response, 'The request Host is not allowed.');
+    }
+
+    public function testRejectsAMissingHostWhenValidationEnabled(): void
+    {
+        $handler = self::recordingHandler();
+
+        $response = self::middleware(['*'], ['mcp.test'])
+            ->process(self::request()->withoutHeader('Host'), $handler)
+        ;
+
+        self::assertFalse($handler->called);
+        self::assertRejectedWith($response, 'The request Host is not allowed.');
+    }
+
+    private static function assertRejectedWith(ResponseInterface $response, string $message): void
+    {
         self::assertSame(403, $response->getStatusCode());
         self::assertSame('application/json', $response->getHeaderLine('Content-Type'));
 
@@ -79,17 +127,18 @@ final class DnsRebindingProtectionMiddlewareTest extends TestCase
         self::assertArrayNotHasKey('id', $payload);
         self::assertIsArray($payload['error'] ?? null);
         self::assertSame(ProtocolErrorCode::InvalidRequest->value, $payload['error']['code'] ?? null);
-        self::assertSame('The request Origin is not allowed.', $payload['error']['message'] ?? null);
+        self::assertSame($message, $payload['error']['message'] ?? null);
     }
 
     /**
      * @param list<non-empty-string> $allowedOrigins
+     * @param list<non-empty-string> $allowedHosts
      */
-    private static function middleware(array $allowedOrigins): DnsRebindingProtectionMiddleware
+    private static function middleware(array $allowedOrigins, array $allowedHosts = []): DnsRebindingProtectionMiddleware
     {
         $factory = new Psr17Factory();
 
-        return new DnsRebindingProtectionMiddleware($allowedOrigins, $factory, $factory);
+        return new DnsRebindingProtectionMiddleware($allowedOrigins, $allowedHosts, $factory, $factory);
     }
 
     private static function request(?string $origin = null): ServerRequestInterface
