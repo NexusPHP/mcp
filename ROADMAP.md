@@ -306,8 +306,10 @@ PSR-17 factories are constructor-injected, not discovered.
   plus a keep-alive comment frame emitted whenever a read stays idle past the configured interval. The body
   is a streaming `StreamInterface` fed by the transport. Closing it retires the stream (full handler
   cancellation waits on the cancellation registry).
-- [ ] A configurable request-body-size cap answered with `413`, whose natural home is the DoS-hardening
-  pass. The `202` / `405` / `-32700` / `406` conformance edges shipped with the transport.
+- [x] `RequestBodySizeLimitMiddleware` (PSR-15): a configurable byte cap answered with an id-less JSON-RPC
+  error on `413`, measured against the buffered body size so the transport is spared stringifying and parsing
+  an oversized payload. A body whose size cannot be determined passes through, leaving a streaming cap to the
+  HTTP server. The `202` / `405` / `-32700` / `406` conformance edges shipped with the transport.
 - [x] `DnsRebindingProtectionMiddleware` (PSR-15): rejects a present-but-unlisted `Origin` with an id-less
   JSON-RPC error on `403`, while a request without an `Origin` header (non-browser clients) passes through.
   The allow-list is an exact-origin `list<non-empty-string>`, with `*` for allow-all. The middleware also
@@ -339,8 +341,8 @@ Client transport (`Nexus\Mcp\Client`, amphp/http-client). Adds `amphp/http-clien
 
 Follow-on milestones.
 
-- [ ] DoS hardening whose natural home is the per-request HTTP model: an in-flight dispatch cap and
-  orphan-response log throttling, alongside the body-size cap above.
+- [ ] Remaining DoS hardening whose natural home is the per-request HTTP model: an in-flight dispatch cap and
+  orphan-response log throttling. The request-body-size cap above already shipped.
 - [ ] `subscriptions/listen` serving over a long-lived SSE stream. The transport already supports
   long-lived streams structurally. The handler lands when the subscriptions result leg unblocks.
 - [ ] Docs and examples: an amphp/http-server server example, an HTTP client example, and the
