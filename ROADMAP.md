@@ -320,6 +320,14 @@ PSR-17 factories are constructor-injected, not discovered.
   `204` plus the negotiated `Access-Control-*` headers (echoing `Access-Control-Request-Headers`), and every
   other response is decorated. A disallowed or absent `Origin` receives no CORS headers, so rejection stays
   with the DNS-rebinding gate. The spec does not define CORS for the MCP endpoint.
+- [x] `MiddlewarePipeline` (PSR-15): a re-entrant `RequestHandlerInterface` that runs middleware outermost-first
+  in front of an inner handler, so operators compose the security middlewares with a plain
+  `new MiddlewarePipeline($transport, ...$middleware)` and no external PSR-15 runner. The transport stays a bare
+  handler, keeping composition and ordering with the operator.
+- [x] `SecuredHttpEndpoint` (PSR-15): a batteries-included `RequestHandlerInterface` that wraps the transport in
+  the recommended security stack from config (CORS then DNS-rebinding then the optional body-size cap). Origin
+  allow-listing is required, so security is on-by-default without the permissive zero-arg defaults the spec and
+  our explicit-config middlewares would otherwise force.
 - [x] A non-blocking `Server::listen(TransportInterface)` seam that attaches the dispatcher listeners and
   starts the transport without the close-await that `run()` uses for stdio, so the endpoint can be mounted
   per request in a PSR-15 stack.
