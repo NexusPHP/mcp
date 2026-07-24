@@ -1,0 +1,9 @@
+{
+    "io.modelcontextprotocol/serverInfo": {
+        "name": "test-server",
+        "version": "1.0.0",
+        "title": "Test Server"
+    },
+    "vendor": "acme",
+    "trace": "abc-123"
+}

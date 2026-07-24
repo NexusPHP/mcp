@@ -78,6 +78,7 @@ final class SchemaConformanceTest extends TestCase
         'io.modelcontextprotocol/clientInfo' => 'clientInfo',
         'io.modelcontextprotocol/clientCapabilities' => 'clientCapabilities',
         'io.modelcontextprotocol/logLevel' => 'logLevel',
+        'io.modelcontextprotocol/serverInfo' => 'serverInfo',
     ];
 
     private const string SCHEMA_ANCHOR_BASE_URL = 'https://modelcontextprotocol.io/specification/draft/schema#';

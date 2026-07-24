@@ -18,7 +18,7 @@ use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\Cursor;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\Enum\ResultType;
-use Nexus\Mcp\Core\Schema\MetaObject;
+use Nexus\Mcp\Core\Schema\ResultMetaObject;
 use Nexus\Mcp\Core\Schema\Tool\Tool;
 use Nexus\Mcp\Core\Validation\EnumValueValidator;
 
@@ -26,7 +26,7 @@ use Nexus\Mcp\Core\Validation\EnumValueValidator;
  * The result returned by the server for a `tools/list` request.
  *
  * @extends PaginatedResult<array{
- *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
+ *   _meta?: template-type<ResultMetaObject, Arrayable, 'T'>,
  *   resultType: non-empty-string,
  *   tools: list<template-type<Tool, Arrayable, 'T'>>,
  *   nextCursor?: non-empty-string,
@@ -51,7 +51,7 @@ final readonly class ListToolsResult extends PaginatedResult implements ServerRe
         int $ttlMs,
         CacheScope $cacheScope,
         ?Cursor $nextCursor = null,
-        MetaObject $meta = new MetaObject(),
+        ResultMetaObject $meta = new ResultMetaObject(),
     ) {
         Assert::that($tools)
             ->isList('"result.tools" must be a list, non-list array given.')
@@ -90,14 +90,14 @@ final readonly class ListToolsResult extends PaginatedResult implements ServerRe
             $nextCursor = new Cursor(cursor: $raw);
         }
 
-        $meta = new MetaObject();
+        $meta = new ResultMetaObject();
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
                 ->isArray('"result._meta" must be an object, {type} given.')
                 ->isMap('"result._meta" must be a string-keyed object.')
             ;
-            $meta = MetaObject::fromArray($data['_meta']);
+            $meta = ResultMetaObject::fromArray($data['_meta']);
         }
 
         return new self(tools: $tools, ttlMs: $ttlMs, cacheScope: $cacheScope, nextCursor: $nextCursor, meta: $meta);

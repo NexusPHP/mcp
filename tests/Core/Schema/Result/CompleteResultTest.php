@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Schema\Result;
 
 use Nexus\Assert\ExpectationFailedException;
-use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\CompleteResult;
+use Nexus\Mcp\Core\Schema\ResultMetaObject;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -50,7 +50,7 @@ final class CompleteResultTest extends TestCase
     {
         $result = new CompleteResult(
             completion: ['values' => ['auth', 'auth-bearer'], 'total' => 2, 'hasMore' => false],
-            meta: new MetaObject(extras: ['vendor.brand' => 'acme']),
+            meta: new ResultMetaObject(extras: ['vendor.brand' => 'acme']),
         );
 
         self::assertSame(
@@ -73,7 +73,7 @@ final class CompleteResultTest extends TestCase
     {
         $result = new CompleteResult(
             completion: ['values' => ['auth'], 'total' => 1, 'hasMore' => false],
-            meta: new MetaObject(extras: ['vendor.brand' => 'acme']),
+            meta: new ResultMetaObject(extras: ['vendor.brand' => 'acme']),
         );
 
         self::assertSame(
@@ -97,7 +97,7 @@ final class CompleteResultTest extends TestCase
     {
         $original = new CompleteResult(
             completion: ['values' => ['auth', 'auth-bearer'], 'total' => 2, 'hasMore' => true],
-            meta: new MetaObject(extras: ['vendor.brand' => 'acme']),
+            meta: new ResultMetaObject(extras: ['vendor.brand' => 'acme']),
         );
 
         $rebuilt = CompleteResult::fromArray($original->toArray());

@@ -30,7 +30,9 @@ a `TransportAlreadyClosedException`.
 Every request the client sends carries the client's identity in its `_meta` block. The SDK stamps three
 namespaced keys onto every outbound request automatically: `io.modelcontextprotocol/protocolVersion`,
 `io.modelcontextprotocol/clientInfo`, and `io.modelcontextprotocol/clientCapabilities`. The server reads the
-client's identity and capabilities from each request's `_meta`.
+client's identity and capabilities from each request's `_meta`. Only `protocolVersion` and
+`clientCapabilities` are required in the envelope, so a server must treat `clientInfo` as optional and must
+not make behavioural or security decisions on it.
 
 ## Client info
 
@@ -98,18 +100,22 @@ the other typed methods directly.
 | --- | --- | --- |
 | `supportedVersions` | `list<string>` | The protocol revisions the server speaks. |
 | `capabilities` | `ServerCapabilities` | Advertised server capabilities. |
-| `serverInfo` | `Implementation` | The server's name, version, title, … |
 | `instructions` | `?string` | Optional model-facing guidance. |
 | `ttlMs` / `cacheScope` | `int` / `CacheScope` | Cache hints, inherited from `CacheableResult`. |
+| `meta` | `ResultMetaObject` | Carries the server's `Implementation` under `serverInfo`, when the server sends one. |
+
+The server's identity rides the result `_meta` rather than the result body, so `serverInfo` is nullable: a
+server may decline to identify itself. The value is self-reported and unverified, so treat it as display and
+logging material, never as a behavioural or security signal.
 
 ```php
 $result = $client->discover();
-echo $result->serverInfo->name, ' ', $result->serverInfo->version, "\n";
+echo $result->meta->serverInfo?->name ?? '(anonymous)', "\n";
 echo 'Protocol versions: ', implode(', ', $result->supportedVersions), "\n";
 ```
 
 After `discover()`, `getServerInfo()` returns the server's `Implementation` block (name, version, title, …).
-It returns `null` before discovery runs.
+It returns `null` before discovery runs, and also when the server identified itself on neither leg.
 
 ```php
 $info = $client->getServerInfo();

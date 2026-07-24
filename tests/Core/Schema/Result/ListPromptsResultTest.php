@@ -16,12 +16,12 @@ namespace Nexus\Mcp\Tests\Core\Schema\Result;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Cursor;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
-use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Prompt\Prompt;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\CacheableResult;
 use Nexus\Mcp\Core\Schema\Result\ListPromptsResult;
 use Nexus\Mcp\Core\Schema\Result\PaginatedResult;
+use Nexus\Mcp\Core\Schema\ResultMetaObject;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -81,7 +81,7 @@ final class ListPromptsResultTest extends TestCase
             ttlMs: 60000,
             cacheScope: CacheScope::Public,
             nextCursor: new Cursor(cursor: 'cur-1'),
-            meta: new MetaObject(extras: ['vendor' => 'x']),
+            meta: new ResultMetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -104,7 +104,7 @@ final class ListPromptsResultTest extends TestCase
             ttlMs: 60000,
             cacheScope: CacheScope::Public,
             nextCursor: new Cursor(cursor: 'cur-1'),
-            meta: new MetaObject(extras: ['k' => 'v']),
+            meta: new ResultMetaObject(extras: ['k' => 'v']),
         );
 
         self::assertSame($result->toArray(), $result->jsonSerialize());
@@ -136,7 +136,7 @@ final class ListPromptsResultTest extends TestCase
             ttlMs: 60000,
             cacheScope: CacheScope::Public,
             nextCursor: new Cursor(cursor: 'cur-1'),
-            meta: new MetaObject(extras: ['vendor' => 'x']),
+            meta: new ResultMetaObject(extras: ['vendor' => 'x']),
         );
 
         $rebuilt = ListPromptsResult::fromArray($original->toArray());

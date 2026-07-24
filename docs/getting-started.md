@@ -97,8 +97,9 @@ Drop this into the client's MCP configuration:
 echo '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{"_meta":{"io.modelcontextprotocol/protocolVersion":"2026-07-28","io.modelcontextprotocol/clientInfo":{"name":"cli","version":"1.0.0"},"io.modelcontextprotocol/clientCapabilities":{}}}}' | php hello.php
 ```
 
-Every request carries a `_meta` block with the client's identity: `io.modelcontextprotocol/protocolVersion`,
-`io.modelcontextprotocol/clientInfo`, and `io.modelcontextprotocol/clientCapabilities`. The server reads JSON-RPC
+Every request carries a `_meta` block with the client's identity: `io.modelcontextprotocol/protocolVersion`
+and `io.modelcontextprotocol/clientCapabilities` are required, `io.modelcontextprotocol/clientInfo` is
+optional. The server reads JSON-RPC
 envelopes one per line on STDIN and writes responses to STDOUT. Useful for scripting smoke tests. Less useful for
 interactive exploration.
 

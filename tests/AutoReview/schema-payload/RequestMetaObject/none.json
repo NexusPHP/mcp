@@ -1,8 +1,4 @@
 {
     "io.modelcontextprotocol/protocolVersion": "2026-07-28",
-    "io.modelcontextprotocol/clientInfo": {
-        "name": "test-client",
-        "version": "1.0.0"
-    },
     "io.modelcontextprotocol/clientCapabilities": {}
 }

@@ -16,11 +16,11 @@ namespace Nexus\Mcp\Tests\Core\Schema\Result;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\Implementation;
-use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\ProtocolVersion;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\CacheableResult;
 use Nexus\Mcp\Core\Schema\Result\DiscoverResult;
+use Nexus\Mcp\Core\Schema\ResultMetaObject;
 use Nexus\Mcp\Core\Schema\ServerCapabilities;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -40,18 +40,15 @@ final class DiscoverResultTest extends TestCase
     public function testConstructionMinimal(): void
     {
         $capabilities = new ServerCapabilities(tools: ['listChanged' => true]);
-        $serverInfo = new Implementation(name: 'srv', version: '1.0.0');
         $result = new DiscoverResult(
             supportedVersions: [ProtocolVersion::LATEST_VERSION],
             capabilities: $capabilities,
-            serverInfo: $serverInfo,
             ttlMs: 0,
             cacheScope: CacheScope::Private,
         );
 
         self::assertSame([ProtocolVersion::LATEST_VERSION], $result->supportedVersions);
         self::assertSame($capabilities, $result->capabilities);
-        self::assertSame($serverInfo, $result->serverInfo);
         self::assertSame(0, $result->ttlMs);
         self::assertSame(CacheScope::Private, $result->cacheScope);
         self::assertNull($result->instructions);
@@ -63,7 +60,6 @@ final class DiscoverResultTest extends TestCase
         $result = new DiscoverResult(
             supportedVersions: ['2026-07-28'],
             capabilities: new ServerCapabilities(tools: ['listChanged' => true]),
-            serverInfo: new Implementation(name: 'srv', version: '1.0.0'),
             ttlMs: 0,
             cacheScope: CacheScope::Private,
         );
@@ -73,7 +69,6 @@ final class DiscoverResultTest extends TestCase
                 'resultType' => 'complete',
                 'supportedVersions' => ['2026-07-28'],
                 'capabilities' => ['tools' => ['listChanged' => true]],
-                'serverInfo' => ['name' => 'srv', 'version' => '1.0.0'],
                 'ttlMs' => 0,
                 'cacheScope' => 'private',
             ],
@@ -86,20 +81,24 @@ final class DiscoverResultTest extends TestCase
         $result = new DiscoverResult(
             supportedVersions: ['2026-07-28', '2025-06-18'],
             capabilities: new ServerCapabilities(tools: ['listChanged' => true]),
-            serverInfo: new Implementation(name: 'srv', version: '1.0.0'),
             ttlMs: 60000,
             cacheScope: CacheScope::Public,
             instructions: 'Be helpful.',
-            meta: new MetaObject(extras: ['vendor' => 'x']),
+            meta: new ResultMetaObject(
+                serverInfo: new Implementation(name: 'srv', version: '1.0.0'),
+                extras: ['vendor' => 'x'],
+            ),
         );
 
         self::assertSame(
             [
-                '_meta' => ['vendor' => 'x'],
+                '_meta' => [
+                    ResultMetaObject::SERVER_INFO_KEY => ['name' => 'srv', 'version' => '1.0.0'],
+                    'vendor' => 'x',
+                ],
                 'resultType' => 'complete',
                 'supportedVersions' => ['2026-07-28', '2025-06-18'],
                 'capabilities' => ['tools' => ['listChanged' => true]],
-                'serverInfo' => ['name' => 'srv', 'version' => '1.0.0'],
                 'instructions' => 'Be helpful.',
                 'ttlMs' => 60000,
                 'cacheScope' => 'public',
@@ -108,12 +107,23 @@ final class DiscoverResultTest extends TestCase
         );
     }
 
+    public function testToArrayOmitsTheServerInfoWhenTheMetaIsEmpty(): void
+    {
+        $result = new DiscoverResult(
+            supportedVersions: ['2026-07-28'],
+            capabilities: new ServerCapabilities(),
+            ttlMs: 0,
+            cacheScope: CacheScope::Private,
+        );
+
+        self::assertArrayNotHasKey('_meta', $result->toArray());
+    }
+
     public function testJsonSerializeSubstitutesEmptyCapabilities(): void
     {
         $result = new DiscoverResult(
             supportedVersions: ['2026-07-28'],
             capabilities: new ServerCapabilities(completions: []),
-            serverInfo: new Implementation(name: 'srv', version: '1.0.0'),
             ttlMs: 0,
             cacheScope: CacheScope::Private,
         );
@@ -126,7 +136,6 @@ final class DiscoverResultTest extends TestCase
         $result = new DiscoverResult(
             supportedVersions: ['2026-07-28'],
             capabilities: new ServerCapabilities(tools: ['listChanged' => true]),
-            serverInfo: new Implementation(name: 'srv', version: '1.0.0'),
             ttlMs: 0,
             cacheScope: CacheScope::Private,
         );
@@ -139,16 +148,35 @@ final class DiscoverResultTest extends TestCase
         $original = new DiscoverResult(
             supportedVersions: ['2026-07-28', '2025-06-18'],
             capabilities: new ServerCapabilities(tools: ['listChanged' => true]),
-            serverInfo: new Implementation(name: 'srv', version: '1.0.0'),
             ttlMs: 60000,
             cacheScope: CacheScope::Public,
             instructions: 'Be helpful.',
-            meta: new MetaObject(extras: ['vendor' => 'x']),
+            meta: new ResultMetaObject(
+                serverInfo: new Implementation(name: 'srv', version: '1.0.0'),
+                extras: ['vendor' => 'x'],
+            ),
         );
 
         $rebuilt = DiscoverResult::fromArray($original->toArray());
 
         self::assertSame($original->toArray(), $rebuilt->toArray());
+    }
+
+    public function testFromArrayParsesTheServerInfoFromMeta(): void
+    {
+        $result = DiscoverResult::fromArray([
+            '_meta' => [ResultMetaObject::SERVER_INFO_KEY => ['name' => 'srv', 'version' => '1.0.0']],
+            'supportedVersions' => ['2026-07-28'],
+            'capabilities' => [],
+            'ttlMs' => 0,
+            'cacheScope' => 'private',
+        ]);
+
+        if (! $result->meta->serverInfo instanceof Implementation) {
+            self::fail('Expected the server info to be parsed from the result "_meta".');
+        }
+
+        self::assertSame('srv', $result->meta->serverInfo->name);
     }
 
     public function testConstructorRejectsNonStringSupportedVersion(): void
@@ -160,7 +188,6 @@ final class DiscoverResultTest extends TestCase
             // @phpstan-ignore argument.type
             supportedVersions: [1],
             capabilities: new ServerCapabilities(),
-            serverInfo: new Implementation(name: 'srv', version: '1.0.0'),
             ttlMs: 0,
             cacheScope: CacheScope::Private,
         );
@@ -174,7 +201,6 @@ final class DiscoverResultTest extends TestCase
         new DiscoverResult(
             supportedVersions: [''],
             capabilities: new ServerCapabilities(),
-            serverInfo: new Implementation(name: 'srv', version: '1.0.0'),
             ttlMs: 0,
             cacheScope: CacheScope::Private,
         );
@@ -188,7 +214,6 @@ final class DiscoverResultTest extends TestCase
         new DiscoverResult(
             supportedVersions: ['2026-07-28'],
             capabilities: new ServerCapabilities(),
-            serverInfo: new Implementation(name: 'srv', version: '1.0.0'),
             ttlMs: 0,
             cacheScope: CacheScope::Private,
             instructions: '',
@@ -203,7 +228,6 @@ final class DiscoverResultTest extends TestCase
         new DiscoverResult(
             supportedVersions: [ProtocolVersion::LATEST_VERSION],
             capabilities: new ServerCapabilities(),
-            serverInfo: new Implementation(name: 'srv', version: '1.0.0'),
             ttlMs: -1,
             cacheScope: CacheScope::Private,
         );
@@ -226,8 +250,6 @@ final class DiscoverResultTest extends TestCase
      */
     public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
-        $validInfo = ['name' => 'srv', 'version' => '1.0.0'];
-
         yield 'missing supportedVersions' => [
             [],
             '"result" is missing the required "supportedVersions" key.',
@@ -258,53 +280,38 @@ final class DiscoverResultTest extends TestCase
             '"result.capabilities" must be a string-keyed object.',
         ];
 
-        yield 'missing serverInfo' => [
-            ['supportedVersions' => ['2026-07-28'], 'capabilities' => []],
-            '"result" is missing the required "serverInfo" key.',
-        ];
-
-        yield 'serverInfo not an object' => [
-            ['supportedVersions' => ['2026-07-28'], 'capabilities' => [], 'serverInfo' => 'oops'],
-            '"result.serverInfo" must be an object, string given.',
-        ];
-
-        yield 'serverInfo list-keyed' => [
-            ['supportedVersions' => ['2026-07-28'], 'capabilities' => [], 'serverInfo' => ['x']],
-            '"result.serverInfo" must be a string-keyed object.',
-        ];
-
         yield 'missing ttlMs' => [
-            ['supportedVersions' => ['2026-07-28'], 'capabilities' => [], 'serverInfo' => $validInfo],
+            ['supportedVersions' => ['2026-07-28'], 'capabilities' => []],
             '"result" is missing the required "ttlMs" key.',
         ];
 
         yield 'ttlMs not an integer' => [
-            ['supportedVersions' => ['2026-07-28'], 'capabilities' => [], 'serverInfo' => $validInfo, 'ttlMs' => 'oops'],
+            ['supportedVersions' => ['2026-07-28'], 'capabilities' => [], 'ttlMs' => 'oops'],
             '"result.ttlMs" must be an integer, string given.',
         ];
 
         yield 'missing cacheScope' => [
-            ['supportedVersions' => ['2026-07-28'], 'capabilities' => [], 'serverInfo' => $validInfo, 'ttlMs' => 0],
+            ['supportedVersions' => ['2026-07-28'], 'capabilities' => [], 'ttlMs' => 0],
             '"result" is missing the required "cacheScope" key.',
         ];
 
         yield 'cacheScope not a known value' => [
-            ['supportedVersions' => ['2026-07-28'], 'capabilities' => [], 'serverInfo' => $validInfo, 'ttlMs' => 0, 'cacheScope' => 'shared'],
+            ['supportedVersions' => ['2026-07-28'], 'capabilities' => [], 'ttlMs' => 0, 'cacheScope' => 'shared'],
             '"result.cacheScope" must be one of [\'public\', \'private\'], \'shared\' given.',
         ];
 
         yield 'instructions not a string' => [
-            ['supportedVersions' => ['2026-07-28'], 'capabilities' => [], 'serverInfo' => $validInfo, 'ttlMs' => 0, 'cacheScope' => 'private', 'instructions' => 1],
+            ['supportedVersions' => ['2026-07-28'], 'capabilities' => [], 'ttlMs' => 0, 'cacheScope' => 'private', 'instructions' => 1],
             '"result.instructions" must be a string, int given.',
         ];
 
         yield 'instructions empty' => [
-            ['supportedVersions' => ['2026-07-28'], 'capabilities' => [], 'serverInfo' => $validInfo, 'ttlMs' => 0, 'cacheScope' => 'private', 'instructions' => ''],
+            ['supportedVersions' => ['2026-07-28'], 'capabilities' => [], 'ttlMs' => 0, 'cacheScope' => 'private', 'instructions' => ''],
             '"result.instructions" must be a non-empty string or null.',
         ];
 
         yield '_meta not an object' => [
-            ['supportedVersions' => ['2026-07-28'], 'capabilities' => [], 'serverInfo' => $validInfo, 'ttlMs' => 0, 'cacheScope' => 'private', '_meta' => 'oops'],
+            ['supportedVersions' => ['2026-07-28'], 'capabilities' => [], 'ttlMs' => 0, 'cacheScope' => 'private', '_meta' => 'oops'],
             '"result._meta" must be an object, string given.',
         ];
     }

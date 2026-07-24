@@ -16,10 +16,10 @@ namespace Nexus\Mcp\Tests\Core\Schema\Result;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Enum\Role;
-use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Prompt\PromptMessage;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
+use Nexus\Mcp\Core\Schema\ResultMetaObject;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -73,7 +73,7 @@ final class GetPromptResultTest extends TestCase
         $result = new GetPromptResult(
             messages: [new PromptMessage(role: Role::User, content: new TextContent(text: 'hi'))],
             description: 'Reviews changes.',
-            meta: new MetaObject(extras: ['vendor' => 'x']),
+            meta: new ResultMetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -97,7 +97,7 @@ final class GetPromptResultTest extends TestCase
         $result = new GetPromptResult(
             messages: [new PromptMessage(role: Role::User, content: new TextContent(text: 'hi'))],
             description: 'desc',
-            meta: new MetaObject(extras: ['k' => 'v']),
+            meta: new ResultMetaObject(extras: ['k' => 'v']),
         );
 
         self::assertSame($result->toArray(), $result->jsonSerialize());
@@ -111,7 +111,7 @@ final class GetPromptResultTest extends TestCase
                 new PromptMessage(role: Role::Assistant, content: new TextContent(text: 'there')),
             ],
             description: 'desc',
-            meta: new MetaObject(extras: ['vendor' => 'x']),
+            meta: new ResultMetaObject(extras: ['vendor' => 'x']),
         );
 
         $rebuilt = GetPromptResult::fromArray($original->toArray());

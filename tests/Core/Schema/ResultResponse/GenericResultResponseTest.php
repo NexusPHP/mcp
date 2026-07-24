@@ -14,13 +14,12 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Schema\ResultResponse;
 
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
-use Nexus\Mcp\Core\Schema\Implementation;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
-use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\ProtocolVersion;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result\DiscoverResult;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
+use Nexus\Mcp\Core\Schema\ResultMetaObject;
 use Nexus\Mcp\Core\Schema\ResultResponse\GenericResultResponse;
 use Nexus\Mcp\Core\Schema\ServerCapabilities;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -50,7 +49,7 @@ final class GenericResultResponseTest extends TestCase
     {
         $response = new GenericResultResponse(
             id: new RequestId(id: 'req-1'),
-            result: new EmptyResult(meta: new MetaObject(extras: ['vendor' => 'x'])),
+            result: new EmptyResult(meta: new ResultMetaObject(extras: ['vendor' => 'x'])),
         );
 
         self::assertSame(
@@ -65,7 +64,7 @@ final class GenericResultResponseTest extends TestCase
 
     public function testJsonSerializeMatchesToArrayForLeafResult(): void
     {
-        $response = new GenericResultResponse(id: new RequestId(id: 1), result: new EmptyResult(meta: new MetaObject(extras: ['vendor' => 'x'])));
+        $response = new GenericResultResponse(id: new RequestId(id: 1), result: new EmptyResult(meta: new ResultMetaObject(extras: ['vendor' => 'x'])));
 
         self::assertSame($response->toArray(), $response->jsonSerialize());
     }
@@ -77,7 +76,6 @@ final class GenericResultResponseTest extends TestCase
             result: new DiscoverResult(
                 supportedVersions: [ProtocolVersion::LATEST_VERSION],
                 capabilities: new ServerCapabilities(completions: []),
-                serverInfo: new Implementation(name: 'srv', version: '1.0.0'),
                 ttlMs: 0,
                 cacheScope: CacheScope::Private,
             ),

@@ -17,11 +17,11 @@ use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequest;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequestedSchema;
 use Nexus\Mcp\Core\Schema\Elicitation\StringSchema;
-use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Request\InputRequest;
 use Nexus\Mcp\Core\Schema\RequestParams\ElicitRequestFormParams;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
+use Nexus\Mcp\Core\Schema\ResultMetaObject;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -83,7 +83,7 @@ final class InputRequiredResultTest extends TestCase
         $result = new InputRequiredResult(
             inputRequests: self::inputRequests(),
             requestState: 'tok',
-            meta: new MetaObject(extras: ['vendor.brand' => 'acme']),
+            meta: new ResultMetaObject(extras: ['vendor.brand' => 'acme']),
         );
 
         self::assertSame(
@@ -120,7 +120,7 @@ final class InputRequiredResultTest extends TestCase
         $original = new InputRequiredResult(
             inputRequests: self::inputRequests(),
             requestState: 'tok',
-            meta: new MetaObject(extras: ['vendor.brand' => 'acme']),
+            meta: new ResultMetaObject(extras: ['vendor.brand' => 'acme']),
         );
 
         $rebuilt = InputRequiredResult::fromArray($original->toArray());

@@ -16,11 +16,11 @@ namespace Nexus\Mcp\Tests\Core\Schema\Result;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Cursor;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
-use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\CacheableResult;
 use Nexus\Mcp\Core\Schema\Result\ListToolsResult;
 use Nexus\Mcp\Core\Schema\Result\PaginatedResult;
+use Nexus\Mcp\Core\Schema\ResultMetaObject;
 use Nexus\Mcp\Core\Schema\Tool\Tool;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -75,7 +75,7 @@ final class ListToolsResultTest extends TestCase
             ttlMs: 60000,
             cacheScope: CacheScope::Public,
             nextCursor: new Cursor(cursor: 'cursor-1'),
-            meta: new MetaObject(extras: ['vendor' => 'x']),
+            meta: new ResultMetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -105,7 +105,7 @@ final class ListToolsResultTest extends TestCase
             ttlMs: 60000,
             cacheScope: CacheScope::Public,
             nextCursor: new Cursor(cursor: 'cursor-1'),
-            meta: new MetaObject(extras: ['vendor' => 'x']),
+            meta: new ResultMetaObject(extras: ['vendor' => 'x']),
         );
 
         $rebuilt = ListToolsResult::fromArray($original->toArray());

@@ -15,12 +15,12 @@ namespace Nexus\Mcp\Tests\Core\Schema\Result;
 
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
-use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Resource\BlobResourceContents;
 use Nexus\Mcp\Core\Schema\Resource\TextResourceContents;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\CacheableResult;
 use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
+use Nexus\Mcp\Core\Schema\ResultMetaObject;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -119,7 +119,7 @@ final class ReadResourceResultTest extends TestCase
             contents: [new TextResourceContents(uri: 'file:///x', text: 'hi')],
             ttlMs: 0,
             cacheScope: CacheScope::Private,
-            meta: new MetaObject(extras: ['vendor' => 'x']),
+            meta: new ResultMetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -140,7 +140,7 @@ final class ReadResourceResultTest extends TestCase
             contents: [new TextResourceContents(uri: 'file:///x', text: 'hi')],
             ttlMs: 0,
             cacheScope: CacheScope::Private,
-            meta: new MetaObject(extras: ['k' => 'v']),
+            meta: new ResultMetaObject(extras: ['k' => 'v']),
         );
 
         self::assertSame($result->toArray(), $result->jsonSerialize());
@@ -201,7 +201,7 @@ final class ReadResourceResultTest extends TestCase
             ],
             ttlMs: 60000,
             cacheScope: CacheScope::Public,
-            meta: new MetaObject(extras: ['vendor' => 'x']),
+            meta: new ResultMetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame($original->toArray(), ReadResourceResult::fromArray($original->toArray())->toArray());

@@ -16,14 +16,14 @@ namespace Nexus\Mcp\Core\Schema\Result;
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\Enum\ResultType;
-use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Result;
+use Nexus\Mcp\Core\Schema\ResultMetaObject;
 
 /**
  * Common result fields.
  *
  * @extends Result<array{
- *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
+ *   _meta?: template-type<ResultMetaObject, Arrayable, 'T'>,
  *   resultType: non-empty-string,
  * }>
  *
@@ -31,7 +31,7 @@ use Nexus\Mcp\Core\Schema\Result;
  */
 final readonly class EmptyResult extends Result implements ClientResult, ServerResult
 {
-    public function __construct(MetaObject $meta = new MetaObject())
+    public function __construct(ResultMetaObject $meta = new ResultMetaObject())
     {
         parent::__construct(meta: $meta);
     }
@@ -39,14 +39,14 @@ final readonly class EmptyResult extends Result implements ClientResult, ServerR
     #[\Override]
     public static function fromArray(array $data): static
     {
-        $meta = new MetaObject();
+        $meta = new ResultMetaObject();
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
                 ->isArray('"result._meta" must be an object, {type} given.')
                 ->isMap('"result._meta" must be a string-keyed object.')
             ;
-            $meta = MetaObject::fromArray($data['_meta']);
+            $meta = ResultMetaObject::fromArray($data['_meta']);
         }
 
         return new self(meta: $meta);

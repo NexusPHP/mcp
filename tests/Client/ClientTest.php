@@ -22,6 +22,7 @@ use Nexus\Mcp\Core\Exception\RemoteCallFailedException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
 use Nexus\Mcp\Core\Schema\ClientCapabilities;
 use Nexus\Mcp\Core\Schema\Cursor;
+use Nexus\Mcp\Core\Schema\Implementation;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\Notification\ProgressNotification;
@@ -47,6 +48,7 @@ use Nexus\Mcp\Core\Schema\Result\ListResourcesResult;
 use Nexus\Mcp\Core\Schema\Result\ListResourceTemplatesResult;
 use Nexus\Mcp\Core\Schema\Result\ListToolsResult;
 use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
+use Nexus\Mcp\Core\Schema\ResultMetaObject;
 use Nexus\Mcp\Core\Schema\ResultResponse\ListToolsResultResponse;
 use Nexus\Mcp\Core\Schema\ServerCapabilities;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
@@ -268,6 +270,11 @@ final class ClientTest extends TestCase
         $sentId = $sentRequest->id->id;
         self::assertSame(1, $sentId, 'Default factory mints the discover request id starting at 1.');
         self::assertSame(ProtocolVersion::LATEST_VERSION, $sentRequest->params->meta->protocolVersion->version);
+
+        if (! $sentRequest->params->meta->clientInfo instanceof Implementation) {
+            self::fail('Expected the client to stamp its own info onto the request "_meta".');
+        }
+
         self::assertSame('demo', $sentRequest->params->meta->clientInfo->name);
         self::assertSame('1.2.3', $sentRequest->params->meta->clientInfo->version);
         self::assertSame([], $sentRequest->params->meta->clientCapabilities->toArray());
@@ -277,7 +284,12 @@ final class ClientTest extends TestCase
         $result = $deferred->await();
 
         self::assertInstanceOf(DiscoverResult::class, $result);
-        self::assertSame('srv', $result->serverInfo->name);
+
+        if (! $result->meta->serverInfo instanceof Implementation) {
+            self::fail('Expected the discover result "_meta" to carry the server info.');
+        }
+
+        self::assertSame('srv', $result->meta->serverInfo->name);
 
         // No notification follows the discover response.
         self::assertCount(1, $transport->sent);
@@ -907,10 +919,12 @@ final class ClientTest extends TestCase
             'jsonrpc' => '2.0',
             'id' => $id,
             'result' => [
+                '_meta' => [
+                    ResultMetaObject::SERVER_INFO_KEY => ['name' => $serverName, 'version' => $serverVersion],
+                ],
                 'supportedVersions' => [ProtocolVersion::LATEST_VERSION],
                 'protocolVersion' => ProtocolVersion::LATEST_VERSION,
                 'capabilities' => $capabilities,
-                'serverInfo' => ['name' => $serverName, 'version' => $serverVersion],
                 'ttlMs' => 0,
                 'cacheScope' => 'private',
             ],

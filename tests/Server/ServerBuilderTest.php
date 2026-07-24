@@ -367,10 +367,10 @@ final class ServerBuilderTest extends TestCase
     {
         $server = new ServerBuilder()->setServerInfo('demo-srv', '2.3.4')->build();
 
-        $result = $this->discoverResultFor($server);
+        $info = $this->serverInfoFor($server);
 
-        self::assertSame('demo-srv', $result->serverInfo->name);
-        self::assertSame('2.3.4', $result->serverInfo->version);
+        self::assertSame('demo-srv', $info->name);
+        self::assertSame('2.3.4', $info->version);
     }
 
     public function testRegisteredToolFlowsThroughBuiltServer(): void
@@ -623,12 +623,13 @@ final class ServerBuilderTest extends TestCase
         ;
 
         $result = $this->discoverResultFor($server);
+        $info = $this->serverInfoFor($server);
 
-        self::assertSame('described-server', $result->serverInfo->name);
-        self::assertSame('2.3.4', $result->serverInfo->version);
-        self::assertSame('Described Server', $result->serverInfo->title);
-        self::assertSame('A server described entirely by attributes.', $result->serverInfo->description);
-        self::assertSame('https://nexus.test', $result->serverInfo->websiteUrl);
+        self::assertSame('described-server', $info->name);
+        self::assertSame('2.3.4', $info->version);
+        self::assertSame('Described Server', $info->title);
+        self::assertSame('A server described entirely by attributes.', $info->description);
+        self::assertSame('https://nexus.test', $info->websiteUrl);
         self::assertSame('Call the tools politely.', $result->instructions);
         self::assertSame([], $result->capabilities->tools);
     }
@@ -641,8 +642,7 @@ final class ServerBuilderTest extends TestCase
             ->build()
         ;
 
-        $result = $this->discoverResultFor($server);
-        $info = $result->serverInfo;
+        $info = $this->serverInfoFor($server);
 
         self::assertSame('explicit-server', $info->name);
         self::assertSame('9.9.9', $info->version);
@@ -660,8 +660,7 @@ final class ServerBuilderTest extends TestCase
             ->build()
         ;
 
-        $result = $this->discoverResultFor($server);
-        $info = $result->serverInfo;
+        $info = $this->serverInfoFor($server);
 
         self::assertSame('Explicit Title', $info->title);
         self::assertSame('Explicit description.', $info->description);
@@ -672,11 +671,10 @@ final class ServerBuilderTest extends TestCase
     public function testAttributeWithoutInstructionsLeavesThemNull(): void
     {
         $source = new #[AsServer(name: 'minimal', version: '1.0.0')] class {};
+        $server = new ServerBuilder()->register($source)->build();
 
-        $result = $this->discoverResultFor(new ServerBuilder()->register($source)->build());
-
-        self::assertNull($result->instructions);
-        self::assertSame('minimal', $result->serverInfo->name);
+        self::assertNull($this->discoverResultFor($server)->instructions);
+        self::assertSame('minimal', $this->serverInfoFor($server)->name);
     }
 
     public function testRegisterRejectsEmptyInstructionsFromAttribute(): void
@@ -699,11 +697,11 @@ final class ServerBuilderTest extends TestCase
             }
         };
 
-        $result = $this->discoverResultFor(
+        $info = $this->serverInfoFor(
             new ServerBuilder()->register(new SelfDescribingServer(), $extra)->build(),
         );
 
-        self::assertSame('described-server', $result->serverInfo->name);
+        self::assertSame('described-server', $info->name);
     }
 
     public function testMultipleServerAttributesAcrossSourcesThrow(): void
@@ -1196,6 +1194,20 @@ final class ServerBuilderTest extends TestCase
         self::assertInstanceOf(DiscoverResult::class, $result);
 
         return $result;
+    }
+
+    /**
+     * The server identity the built server advertises on its `server/discover` result `_meta`.
+     */
+    private function serverInfoFor(Server $server): Implementation
+    {
+        $serverInfo = $this->discoverResultFor($server)->meta->serverInfo;
+
+        if (! $serverInfo instanceof Implementation) {
+            self::fail('Expected the discover result "_meta" to carry the server info.');
+        }
+
+        return $serverInfo;
     }
 
     /**

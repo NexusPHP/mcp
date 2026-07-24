@@ -7,10 +7,6 @@
             "2026-07-28"
         ],
         "capabilities": {},
-        "serverInfo": {
-            "name": "test-server",
-            "version": "1.0.0"
-        },
         "ttlMs": 0,
         "cacheScope": "private"
     }

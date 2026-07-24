@@ -72,8 +72,10 @@ them by what they affect.
 ### Sessionless and stateless protocol
 
 The `initialize` / `notifications/initialized` handshake and the per-session HTTP `Mcp-Session-Id`
-header both disappear. Each request becomes self-describing via required per-request `_meta` fields
-(`protocolVersion`, `clientInfo`, `clientCapabilities`). New methods replace the removed handshake:
+header both disappear. Each request becomes self-describing via per-request `_meta` fields:
+`protocolVersion` and `clientCapabilities` are required, `clientInfo` is optional. The peer identities
+the handshake used to exchange now ride `_meta` on both legs, self-reported and unverified, for display
+and logging rather than for behaviour or security decisions. New methods replace the removed handshake:
 `server/discover` for capability discovery and `subscriptions/listen` for the new mailbox-style
 subscription primitive that replaces today's `resources/subscribe` / `unsubscribe`. The `ping` keepalive
 utility (SEP-2575, changelog item 5) is removed from the protocol entirely.
@@ -91,6 +93,15 @@ utility (SEP-2575, changelog item 5) is removed from the protocol entirely.
   Requires a subscription store and a list-changed / resource-updated fanout source to feed the stream.
 - [x] Delete `resources/subscribe` / `resources/unsubscribe` (none of these are implemented today, so
   this is a non-action verified by the migration).
+- [x] Carry the server identity on result `_meta`: `ResultMetaObject` (the result-side peer of
+  `RequestMetaObject`) holds the optional `io.modelcontextprotocol/serverInfo` key, `Result` and every
+  subclass type their `_meta` slot to it, and `DiscoverResult` drops its body-level `serverInfo` field.
+  `DiscoverRequestHandler` stamps the built server's `Implementation` onto the discover result, and
+  `Client::discover()` reads the identity back off the result `_meta`.
+- [ ] Stamp `io.modelcontextprotocol/serverInfo` onto every outgoing result rather than only
+  `server/discover`, which is what the spec's SHOULD asks for. Needs a dispatch-layer seam: results are
+  readonly value objects with no `with`-style copy, so either the dispatcher rebuilds the `_meta` before
+  wrapping or the identity is injected at the response-encoding boundary. Decide the seam before building.
 - [x] Represent the lifecycle/capability and header-mismatch error responses: `ProtocolErrorCode` carries
   `HeaderMismatch` (`-32020`), `MissingRequiredClientCapability` (`-32021`), and `UnsupportedProtocolVersion`
   (`-32022`), each with a matching `Error` subclass (typed `data` where the spec defines it: `supported` +

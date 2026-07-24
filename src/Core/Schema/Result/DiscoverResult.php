@@ -17,8 +17,7 @@ use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\Enum\ResultType;
-use Nexus\Mcp\Core\Schema\Implementation;
-use Nexus\Mcp\Core\Schema\MetaObject;
+use Nexus\Mcp\Core\Schema\ResultMetaObject;
 use Nexus\Mcp\Core\Schema\ServerCapabilities;
 use Nexus\Mcp\Core\Validation\EnumValueValidator;
 
@@ -26,11 +25,10 @@ use Nexus\Mcp\Core\Validation\EnumValueValidator;
  * The result returned by the server for a `server/discover` request.
  *
  * @extends CacheableResult<array{
- *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
+ *   _meta?: template-type<ResultMetaObject, Arrayable, 'T'>,
  *   resultType: non-empty-string,
  *   supportedVersions: list<non-empty-string>,
  *   capabilities: template-type<ServerCapabilities, Arrayable, 'T'>,
- *   serverInfo: template-type<Implementation, Arrayable, 'T'>,
  *   instructions?: non-empty-string,
  *   ttlMs: int,
  *   cacheScope: value-of<CacheScope>,
@@ -56,11 +54,10 @@ final readonly class DiscoverResult extends CacheableResult implements ServerRes
     public function __construct(
         array $supportedVersions,
         public ServerCapabilities $capabilities,
-        public Implementation $serverInfo,
         int $ttlMs,
         CacheScope $cacheScope,
         ?string $instructions = null,
-        MetaObject $meta = new MetaObject(),
+        ResultMetaObject $meta = new ResultMetaObject(),
     ) {
         Assert::that($supportedVersions)
             ->isList('"result.supportedVersions" must be a list, non-list array given.')
@@ -91,13 +88,6 @@ final readonly class DiscoverResult extends CacheableResult implements ServerRes
         ;
         $capabilities = ServerCapabilities::fromArray($data['capabilities']);
 
-        Assert::that($data)->hasOffset('serverInfo', '"result" is missing the required "serverInfo" key.');
-        Assert::that($data['serverInfo'])
-            ->isArray('"result.serverInfo" must be an object, {type} given.')
-            ->isMap('"result.serverInfo" must be a string-keyed object.')
-        ;
-        $serverInfo = Implementation::fromArray($data['serverInfo']);
-
         Assert::that($data)->hasOffset('ttlMs', '"result" is missing the required "ttlMs" key.');
         $ttlMs = $data['ttlMs'];
         Assert::that($ttlMs)->isInt('"result.ttlMs" must be an integer, {type} given.');
@@ -113,20 +103,19 @@ final readonly class DiscoverResult extends CacheableResult implements ServerRes
             $instructions = $raw;
         }
 
-        $meta = new MetaObject();
+        $meta = new ResultMetaObject();
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
                 ->isArray('"result._meta" must be an object, {type} given.')
                 ->isMap('"result._meta" must be a string-keyed object.')
             ;
-            $meta = MetaObject::fromArray($data['_meta']);
+            $meta = ResultMetaObject::fromArray($data['_meta']);
         }
 
         return new self(
             supportedVersions: $supportedVersions,
             capabilities: $capabilities,
-            serverInfo: $serverInfo,
             ttlMs: $ttlMs,
             cacheScope: $cacheScope,
             instructions: $instructions,
@@ -147,7 +136,6 @@ final readonly class DiscoverResult extends CacheableResult implements ServerRes
         $data['resultType'] = self::getResultType();
         $data['supportedVersions'] = $this->supportedVersions;
         $data['capabilities'] = $this->capabilities->toArray();
-        $data['serverInfo'] = $this->serverInfo->toArray();
 
         if (null !== $this->instructions) {
             $data['instructions'] = $this->instructions;

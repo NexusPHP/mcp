@@ -31,7 +31,7 @@ final class ReflectedHandlers
 {
     public function contextOnly(ServerContext $context): string
     {
-        return $context->meta->clientInfo->name;
+        return $context->meta->clientInfo->name ?? 'anonymous';
     }
 
     public function requiredString(string $name): string
@@ -76,7 +76,7 @@ final class ReflectedHandlers
 
     public function mixedOrder(string $name, ServerContext $context, int $age = 1): string
     {
-        return \sprintf('%s/%s/%d', $name, $context->meta->clientInfo->name, $age);
+        return \sprintf('%s/%s/%d', $name, $context->meta->clientInfo->name ?? 'anonymous', $age);
     }
 
     public function variadicStrings(string ...$tags): string
@@ -250,7 +250,7 @@ final class ReflectedHandlers
 
     public function templatedBinding(string $id, ServerContext $context): string
     {
-        return \sprintf('user %s for %s', $id, $context->meta->clientInfo->name);
+        return \sprintf('user %s for %s', $id, $context->meta->clientInfo->name ?? 'anonymous');
     }
 
     public function templatedUri(string $uri, string $id): string

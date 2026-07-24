@@ -17,9 +17,9 @@ use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\ContentBlock\AudioContent;
 use Nexus\Mcp\Core\Schema\ContentBlock\ImageContent;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
-use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
+use Nexus\Mcp\Core\Schema\ResultMetaObject;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -50,7 +50,7 @@ final class CallToolResultTest extends TestCase
             content: [new TextContent(text: 'hello')],
             structuredContent: ['lines' => 42],
             isError: false,
-            meta: new MetaObject(extras: ['vendor' => 'x']),
+            meta: new ResultMetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertCount(1, $result->content);
@@ -90,7 +90,7 @@ final class CallToolResultTest extends TestCase
             content: [new TextContent(text: 'hi')],
             structuredContent: ['lines' => 42],
             isError: false,
-            meta: new MetaObject(extras: ['vendor' => 'x']),
+            meta: new ResultMetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -132,7 +132,7 @@ final class CallToolResultTest extends TestCase
             content: [new TextContent(text: 'hi')],
             structuredContent: ['lines' => 42],
             isError: true,
-            meta: new MetaObject(extras: ['vendor' => 'x']),
+            meta: new ResultMetaObject(extras: ['vendor' => 'x']),
         );
 
         $rebuilt = CallToolResult::fromArray($original->toArray());

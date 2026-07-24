@@ -18,17 +18,17 @@ use Nexus\Mcp\Core\JsonRpc\ResourceContentsDispatcher;
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\Enum\ResultType;
-use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Resource\BlobResourceContents;
 use Nexus\Mcp\Core\Schema\Resource\ResourceContents;
 use Nexus\Mcp\Core\Schema\Resource\TextResourceContents;
+use Nexus\Mcp\Core\Schema\ResultMetaObject;
 use Nexus\Mcp\Core\Validation\EnumValueValidator;
 
 /**
  * The result returned by the server for a `resources/read` request.
  *
  * @extends CacheableResult<array{
- *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
+ *   _meta?: template-type<ResultMetaObject, Arrayable, 'T'>,
  *   resultType: non-empty-string,
  *   contents: list<template-type<BlobResourceContents|TextResourceContents, Arrayable, 'T'>>,
  *   ttlMs: int,
@@ -51,7 +51,7 @@ final readonly class ReadResourceResult extends CacheableResult implements Serve
         array $contents,
         int $ttlMs,
         CacheScope $cacheScope,
-        MetaObject $meta = new MetaObject(),
+        ResultMetaObject $meta = new ResultMetaObject(),
     ) {
         Assert::that($contents)
             ->isList('"result.contents" must be a list, non-list array given.')
@@ -85,14 +85,14 @@ final readonly class ReadResourceResult extends CacheableResult implements Serve
         Assert::that($data)->hasOffset('cacheScope', '"result" is missing the required "cacheScope" key.');
         $cacheScope = EnumValueValidator::parse(CacheScope::class, $data['cacheScope'], '"result.cacheScope"');
 
-        $meta = new MetaObject();
+        $meta = new ResultMetaObject();
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
                 ->isArray('"result._meta" must be an object, {type} given.')
                 ->isMap('"result._meta" must be a string-keyed object.')
             ;
-            $meta = MetaObject::fromArray($data['_meta']);
+            $meta = ResultMetaObject::fromArray($data['_meta']);
         }
 
         return new self(contents: $contents, ttlMs: $ttlMs, cacheScope: $cacheScope, meta: $meta);

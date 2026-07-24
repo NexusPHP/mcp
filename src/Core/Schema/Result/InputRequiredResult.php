@@ -18,9 +18,9 @@ use Nexus\Mcp\Core\JsonRpc\SafeDisplay;
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequest;
 use Nexus\Mcp\Core\Schema\Enum\ResultType;
-use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Request\InputRequest;
 use Nexus\Mcp\Core\Schema\Result;
+use Nexus\Mcp\Core\Schema\ResultMetaObject;
 
 /**
  * An InputRequiredResult sent by the server to indicate that additional input is needed
@@ -29,7 +29,7 @@ use Nexus\Mcp\Core\Schema\Result;
  * At least one of `inputRequests` or `requestState` MUST be present.
  *
  * @extends Result<array{
- *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
+ *   _meta?: template-type<ResultMetaObject, Arrayable, 'T'>,
  *   resultType: non-empty-string,
  *   inputRequests?: array<string, array<string, mixed>>,
  *   requestState?: string,
@@ -50,7 +50,7 @@ final readonly class InputRequiredResult extends Result implements ServerResult
     public function __construct(
         ?array $inputRequests = null,
         public ?string $requestState = null,
-        MetaObject $meta = new MetaObject(),
+        ResultMetaObject $meta = new ResultMetaObject(),
     ) {
         $inputRequests = [] === $inputRequests ? null : $inputRequests;
 
@@ -94,14 +94,14 @@ final readonly class InputRequiredResult extends Result implements ServerResult
             $requestState = $data['requestState'];
         }
 
-        $meta = new MetaObject();
+        $meta = new ResultMetaObject();
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
                 ->isArray('"result._meta" must be an object, {type} given.')
                 ->isMap('"result._meta" must be a string-keyed object.')
             ;
-            $meta = MetaObject::fromArray($data['_meta']);
+            $meta = ResultMetaObject::fromArray($data['_meta']);
         }
 
         return new self(inputRequests: $inputRequests, requestState: $requestState, meta: $meta);

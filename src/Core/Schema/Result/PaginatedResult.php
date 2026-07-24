@@ -15,7 +15,7 @@ namespace Nexus\Mcp\Core\Schema\Result;
 
 use Nexus\Mcp\Core\Schema\Cursor;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
-use Nexus\Mcp\Core\Schema\MetaObject;
+use Nexus\Mcp\Core\Schema\ResultMetaObject;
 
 /**
  * Common shape for results that paginate via an opaque cursor. Subclasses add their own
@@ -33,7 +33,7 @@ abstract readonly class PaginatedResult extends CacheableResult
         int $ttlMs,
         CacheScope $cacheScope,
         public ?Cursor $nextCursor = null,
-        MetaObject $meta = new MetaObject(),
+        ResultMetaObject $meta = new ResultMetaObject(),
     ) {
         parent::__construct(ttlMs: $ttlMs, cacheScope: $cacheScope, meta: $meta);
     }

@@ -3,6 +3,12 @@
     "id": "req-1",
     "result": {
         "_meta": {
+            "io.modelcontextprotocol/serverInfo": {
+                "name": "test-server",
+                "version": "1.0.0",
+                "title": "Test Server",
+                "description": "A test server."
+            },
             "vendor": "acme"
         },
         "resultType": "complete",
@@ -13,12 +19,6 @@
             "tools": {
                 "listChanged": true
             }
-        },
-        "serverInfo": {
-            "name": "test-server",
-            "version": "1.0.0",
-            "title": "Test Server",
-            "description": "A test server."
         },
         "instructions": "Welcome to the test server.",
         "ttlMs": 300000,

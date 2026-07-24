@@ -280,7 +280,7 @@ Every handler closure receives a `ServerContext` as its last argument.
 | --- | --- |
 | `$context->requestId` | The originating `RequestId`. |
 | `$context->cancellation` | An `Amp\Cancellation` token. Pass it to any `await()` so client `notifications/cancelled` can interrupt long-running work. |
-| `$context->meta` | The request's `_meta` object: the client's `protocolVersion`, `clientInfo`, and `clientCapabilities`, plus `progressToken`. Read client capabilities per request, never inferred from a prior one. |
+| `$context->meta` | The request's `_meta` object: the client's `protocolVersion` and `clientCapabilities`, the optional `clientInfo`, plus `progressToken`. Read client capabilities per request, never inferred from a prior one. |
 | `$context->reportProgress($progress, $total, $message)` | Emits a `notifications/progress` if the original request carried a `progressToken`. |
 
 ## Lifecycle

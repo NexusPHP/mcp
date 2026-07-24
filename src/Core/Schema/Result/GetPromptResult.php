@@ -16,15 +16,15 @@ namespace Nexus\Mcp\Core\Schema\Result;
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\Enum\ResultType;
-use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Prompt\PromptMessage;
 use Nexus\Mcp\Core\Schema\Result;
+use Nexus\Mcp\Core\Schema\ResultMetaObject;
 
 /**
  * The result returned by the server for a `prompts/get` request.
  *
  * @extends Result<array{
- *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
+ *   _meta?: template-type<ResultMetaObject, Arrayable, 'T'>,
  *   resultType: non-empty-string,
  *   description?: non-empty-string,
  *   messages: list<template-type<PromptMessage, Arrayable, 'T'>>,
@@ -47,7 +47,7 @@ final readonly class GetPromptResult extends Result implements ServerResult
     /**
      * @param list<PromptMessage> $messages
      */
-    public function __construct(array $messages, ?string $description = null, MetaObject $meta = new MetaObject())
+    public function __construct(array $messages, ?string $description = null, ResultMetaObject $meta = new ResultMetaObject())
     {
         Assert::that($messages)->isList('"result.messages" must be a list, non-list array given.');
 
@@ -82,14 +82,14 @@ final readonly class GetPromptResult extends Result implements ServerResult
         $description = $data['description'] ?? null;
         Assert::that($description)->nullOr()->isString('"result.description" must be a string or null, {type} given.');
 
-        $meta = new MetaObject();
+        $meta = new ResultMetaObject();
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
                 ->isArray('"result._meta" must be an object, {type} given.')
                 ->isMap('"result._meta" must be a string-keyed object.')
             ;
-            $meta = MetaObject::fromArray($data['_meta']);
+            $meta = ResultMetaObject::fromArray($data['_meta']);
         }
 
         return new self(messages: $messages, description: $description, meta: $meta);

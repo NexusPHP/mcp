@@ -23,7 +23,7 @@ use Nexus\Mcp\Core\Validation\EnumValueValidator;
  *
  * @implements Arrayable<array{
  *   'io.modelcontextprotocol/protocolVersion': non-empty-string,
- *   'io.modelcontextprotocol/clientInfo': template-type<Implementation, Arrayable, 'T'>,
+ *   'io.modelcontextprotocol/clientInfo'?: template-type<Implementation, Arrayable, 'T'>,
  *   'io.modelcontextprotocol/clientCapabilities': template-type<ClientCapabilities, Arrayable, 'T'>,
  *   'io.modelcontextprotocol/logLevel'?: value-of<LoggingLevel>,
  *   progressToken?: int|non-empty-string,
@@ -44,8 +44,8 @@ final readonly class RequestMetaObject implements Arrayable
      */
     public function __construct(
         public ProtocolVersion $protocolVersion,
-        public Implementation $clientInfo,
         public ClientCapabilities $clientCapabilities,
+        public ?Implementation $clientInfo = null,
         public ?LoggingLevel $logLevel = null,
         public ?ProgressToken $progressToken = null,
         public array $extras = [],
@@ -60,14 +60,6 @@ final readonly class RequestMetaObject implements Arrayable
         Assert::that($protocolVersion)->isString(\sprintf('"_meta.%s" must be a string, {type} given.', self::PROTOCOL_VERSION_KEY));
         unset($data[self::PROTOCOL_VERSION_KEY]);
 
-        Assert::that($data)->hasOffset(self::CLIENT_INFO_KEY, '"_meta" is missing the required "{key}" key.');
-        Assert::that($data[self::CLIENT_INFO_KEY])
-            ->isArray(\sprintf('"_meta.%s" must be an object, {type} given.', self::CLIENT_INFO_KEY))
-            ->isMap(\sprintf('"_meta.%s" must be a string-keyed object.', self::CLIENT_INFO_KEY))
-        ;
-        $clientInfo = Implementation::fromArray($data[self::CLIENT_INFO_KEY]);
-        unset($data[self::CLIENT_INFO_KEY]);
-
         Assert::that($data)->hasOffset(self::CLIENT_CAPABILITIES_KEY, '"_meta" is missing the required "{key}" key.');
         Assert::that($data[self::CLIENT_CAPABILITIES_KEY])
             ->isArray(\sprintf('"_meta.%s" must be an object, {type} given.', self::CLIENT_CAPABILITIES_KEY))
@@ -75,6 +67,17 @@ final readonly class RequestMetaObject implements Arrayable
         ;
         $clientCapabilities = ClientCapabilities::fromArray($data[self::CLIENT_CAPABILITIES_KEY]);
         unset($data[self::CLIENT_CAPABILITIES_KEY]);
+
+        $clientInfo = null;
+
+        if (\array_key_exists(self::CLIENT_INFO_KEY, $data)) {
+            Assert::that($data[self::CLIENT_INFO_KEY])
+                ->isArray(\sprintf('"_meta.%s" must be an object, {type} given.', self::CLIENT_INFO_KEY))
+                ->isMap(\sprintf('"_meta.%s" must be a string-keyed object.', self::CLIENT_INFO_KEY))
+            ;
+            $clientInfo = Implementation::fromArray($data[self::CLIENT_INFO_KEY]);
+            unset($data[self::CLIENT_INFO_KEY]);
+        }
 
         $logLevel = null;
 
@@ -95,8 +98,8 @@ final readonly class RequestMetaObject implements Arrayable
 
         return new self(
             protocolVersion: new ProtocolVersion(version: $protocolVersion),
-            clientInfo: $clientInfo,
             clientCapabilities: $clientCapabilities,
+            clientInfo: $clientInfo,
             logLevel: $logLevel,
             progressToken: $progressToken,
             extras: $data,
@@ -109,7 +112,11 @@ final readonly class RequestMetaObject implements Arrayable
         $out = [];
 
         $out[self::PROTOCOL_VERSION_KEY] = $this->protocolVersion->version;
-        $out[self::CLIENT_INFO_KEY] = $this->clientInfo->toArray();
+
+        if (null !== $this->clientInfo) {
+            $out[self::CLIENT_INFO_KEY] = $this->clientInfo->toArray();
+        }
+
         $out[self::CLIENT_CAPABILITIES_KEY] = $this->clientCapabilities->toArray();
 
         if (null !== $this->logLevel) {

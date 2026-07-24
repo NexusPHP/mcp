@@ -23,14 +23,14 @@ use Nexus\Mcp\Core\Schema\ContentBlock\ImageContent;
 use Nexus\Mcp\Core\Schema\ContentBlock\ResourceLink;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Enum\ResultType;
-use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Result;
+use Nexus\Mcp\Core\Schema\ResultMetaObject;
 
 /**
  * The result returned by the server for a `tools/call` request.
  *
  * @extends Result<array{
- *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
+ *   _meta?: template-type<ResultMetaObject, Arrayable, 'T'>,
  *   resultType: non-empty-string,
  *   content: list<template-type<AudioContent|EmbeddedResource|ImageContent|ResourceLink|TextContent, Arrayable, 'T'>>,
  *   structuredContent?: array<string, mixed>,
@@ -59,7 +59,7 @@ final readonly class CallToolResult extends Result implements ServerResult
         array $content,
         ?array $structuredContent = null,
         public ?bool $isError = null,
-        MetaObject $meta = new MetaObject(),
+        ResultMetaObject $meta = new ResultMetaObject(),
     ) {
         Assert::that($content)
             ->isList('"result.content" must be a list, non-list array given.')
@@ -104,14 +104,14 @@ final readonly class CallToolResult extends Result implements ServerResult
         $isError = $data['isError'] ?? null;
         Assert::that($isError)->nullOr()->isBool('"result.isError" must be a bool or null, {type} given.');
 
-        $meta = new MetaObject();
+        $meta = new ResultMetaObject();
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
                 ->isArray('"result._meta" must be an object, {type} given.')
                 ->isMap('"result._meta" must be a string-keyed object.')
             ;
-            $meta = MetaObject::fromArray($data['_meta']);
+            $meta = ResultMetaObject::fromArray($data['_meta']);
         }
 
         return new self(content: $content, structuredContent: $structuredContent, isError: $isError, meta: $meta);

@@ -82,8 +82,8 @@ try {
 
     fwrite(\STDOUT, sprintf(
         "Connected in-process to %s v%s (protocol versions: %s)\n\n",
-        $discoverResult->serverInfo->name,
-        $discoverResult->serverInfo->version,
+        $discoverResult->meta->serverInfo?->name ?? '(anonymous)',
+        $discoverResult->meta->serverInfo?->version ?? '?',
         implode(', ', $discoverResult->supportedVersions),
     ));
 

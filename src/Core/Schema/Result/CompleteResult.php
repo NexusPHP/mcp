@@ -16,14 +16,14 @@ namespace Nexus\Mcp\Core\Schema\Result;
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\Enum\ResultType;
-use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\Result;
+use Nexus\Mcp\Core\Schema\ResultMetaObject;
 
 /**
  * The result returned by the server for a `completion/complete` request.
  *
  * @extends Result<array{
- *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
+ *   _meta?: template-type<ResultMetaObject, Arrayable, 'T'>,
  *   resultType: non-empty-string,
  *   completion: array{values: list<string>, total?: int, hasMore?: bool},
  * }>
@@ -40,7 +40,7 @@ final readonly class CompleteResult extends Result implements ServerResult
     /**
      * @param array{values: list<string>, total?: int, hasMore?: bool} $completion
      */
-    public function __construct(array $completion, MetaObject $meta = new MetaObject())
+    public function __construct(array $completion, ResultMetaObject $meta = new ResultMetaObject())
     {
         Assert::that($completion['values'])
             ->isList('"result.completion.values" must be a list, non-list array given.')
@@ -91,14 +91,14 @@ final readonly class CompleteResult extends Result implements ServerResult
             $completion['hasMore'] = $data['completion']['hasMore'];
         }
 
-        $meta = new MetaObject();
+        $meta = new ResultMetaObject();
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
                 ->isArray('"result._meta" must be an object, {type} given.')
                 ->isMap('"result._meta" must be a string-keyed object.')
             ;
-            $meta = MetaObject::fromArray($data['_meta']);
+            $meta = ResultMetaObject::fromArray($data['_meta']);
         }
 
         return new self(completion: $completion, meta: $meta);

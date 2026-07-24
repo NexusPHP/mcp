@@ -137,6 +137,11 @@ final class RequestMetaObjectTest extends TestCase
         ]);
 
         self::assertSame('2026-07-28', $meta->protocolVersion->version);
+
+        if (! $meta->clientInfo instanceof Implementation) {
+            self::fail('Expected the client info to be parsed.');
+        }
+
         self::assertSame('client', $meta->clientInfo->name);
         self::assertSame(['acme.experimental' => ['enabled' => true]], $meta->clientCapabilities->experimental);
         self::assertSame(LoggingLevel::Info, $meta->logLevel);
@@ -149,13 +154,29 @@ final class RequestMetaObjectTest extends TestCase
     {
         $meta = RequestMetaObject::fromArray([
             RequestMetaObject::PROTOCOL_VERSION_KEY => '2026-07-28',
-            RequestMetaObject::CLIENT_INFO_KEY => ['name' => 'client', 'version' => '1.0.0'],
             RequestMetaObject::CLIENT_CAPABILITIES_KEY => [],
         ]);
 
+        self::assertNull($meta->clientInfo);
         self::assertNull($meta->logLevel);
         self::assertNull($meta->progressToken);
         self::assertSame([], $meta->extras);
+    }
+
+    public function testToArrayOmitsClientInfoWhenNull(): void
+    {
+        $meta = new RequestMetaObject(
+            protocolVersion: new ProtocolVersion(version: ProtocolVersion::LATEST_VERSION),
+            clientCapabilities: new ClientCapabilities(),
+        );
+
+        self::assertSame(
+            [
+                RequestMetaObject::PROTOCOL_VERSION_KEY => '2026-07-28',
+                RequestMetaObject::CLIENT_CAPABILITIES_KEY => [],
+            ],
+            $meta->toArray(),
+        );
     }
 
     public function testJsonSerializeSubstitutesEmptyClientCapabilities(): void
@@ -230,14 +251,10 @@ final class RequestMetaObjectTest extends TestCase
             '"_meta.io.modelcontextprotocol/protocolVersion" must be a string, int given.',
         ];
 
-        yield 'missing clientInfo' => [
-            [RequestMetaObject::PROTOCOL_VERSION_KEY => '2026-07-28'],
-            '"_meta" is missing the required "io.modelcontextprotocol/clientInfo" key.',
-        ];
-
         yield 'clientInfo not an object' => [
             [
                 RequestMetaObject::PROTOCOL_VERSION_KEY => '2026-07-28',
+                RequestMetaObject::CLIENT_CAPABILITIES_KEY => [],
                 RequestMetaObject::CLIENT_INFO_KEY => 'oops',
             ],
             '"_meta.io.modelcontextprotocol/clientInfo" must be an object, string given.',
@@ -246,16 +263,14 @@ final class RequestMetaObjectTest extends TestCase
         yield 'clientInfo list-keyed' => [
             [
                 RequestMetaObject::PROTOCOL_VERSION_KEY => '2026-07-28',
+                RequestMetaObject::CLIENT_CAPABILITIES_KEY => [],
                 RequestMetaObject::CLIENT_INFO_KEY => ['x'],
             ],
             '"_meta.io.modelcontextprotocol/clientInfo" must be a string-keyed object.',
         ];
 
         yield 'missing clientCapabilities' => [
-            [
-                RequestMetaObject::PROTOCOL_VERSION_KEY => '2026-07-28',
-                RequestMetaObject::CLIENT_INFO_KEY => $validInfo,
-            ],
+            [RequestMetaObject::PROTOCOL_VERSION_KEY => '2026-07-28'],
             '"_meta" is missing the required "io.modelcontextprotocol/clientCapabilities" key.',
         ];
 
