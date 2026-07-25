@@ -40,6 +40,7 @@ use Nexus\Mcp\Server\Transport\StreamableHttpServerTransport;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureRequestHandler;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
+use Nexus\Mcp\Tests\Fixtures\Server\Http\RequestIdLog;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -314,6 +315,48 @@ final class StreamableHttpServerTransportTest extends TestCase
         // Re-keying to distinct internal ids keeps the shared client id from being rejected as a duplicate.
         self::assertArrayHasKey('result', self::decode($first));
         self::assertArrayHasKey('result', self::decode($second));
+    }
+
+    public function testInternalRequestIdsAscendFromOneOnTheStreamingPath(): void
+    {
+        // `Sse` answers with the stream straight away, so `handle()` returns without a dispatcher attached.
+        $transport = self::makeTransport(responseMode: ResponseMode::Sse);
+        $log = self::captureInternalIds($transport);
+
+        $transport->handle(self::discoverPost());
+        $transport->handle(self::discoverPost());
+        $transport->handle(self::discoverPost());
+
+        // The exact sequence is the contract: ids must climb, never restart, and never step backwards.
+        self::assertSame([1, 2, 3], $log->ids);
+    }
+
+    public function testInternalRequestIdsAscendFromOneOnTheBufferedPath(): void
+    {
+        // Both dispatch paths mint from the one counter, so each needs its own sequence pinned.
+        $transport = self::makeTransport(start: false);
+        self::listen($transport);
+        $log = self::captureInternalIds($transport);
+
+        self::handle($transport, self::discoverPost());
+        self::handle($transport, self::discoverPost());
+        self::handle($transport, self::discoverPost());
+
+        self::assertSame([1, 2, 3], $log->ids);
+    }
+
+    public function testAReleasedInternalIdIsNeverMintedAgain(): void
+    {
+        // An id must stay spoken for as long as its handler could still send a response, not merely as long
+        // as its sink is registered. Recycling one routes an earlier client's response to a later client.
+        $transport = self::makeTransport(responseMode: ResponseMode::Sse);
+        $log = self::captureInternalIds($transport);
+
+        $body = $transport->handle(self::discoverPost())->getBody();
+        $body->close();                              // a client disconnect retires the sink
+        $transport->handle(self::discoverPost());
+
+        self::assertSame([1, 2], $log->ids, 'The retired id must not be handed to the next request.');
     }
 
     /**
@@ -829,6 +872,23 @@ final class StreamableHttpServerTransportTest extends TestCase
         $this->expectExceptionMessageMatches('/^The SSE keep-alive interval must be positive, 0 given\.$/');
 
         new StreamableHttpServerTransport($factory, $factory, keepAliveInterval: 0.0);
+    }
+
+    /**
+     * Records the transport-internal id of every request emitted to the dispatcher.
+     */
+    private static function captureInternalIds(StreamableHttpServerTransport $transport): RequestIdLog
+    {
+        $log = new RequestIdLog();
+        $transport->onMessage(static function (array $envelope) use ($log): void {
+            $id = $envelope['id'] ?? null;
+
+            if (\is_int($id)) {
+                $log->record($id);
+            }
+        });
+
+        return $log;
     }
 
     /**
