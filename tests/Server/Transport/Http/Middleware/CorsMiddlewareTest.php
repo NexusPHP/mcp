@@ -57,7 +57,7 @@ final class CorsMiddlewareTest extends TestCase
         self::assertSame(204, $response->getStatusCode());
         self::assertSame('https://app.test', $response->getHeaderLine('Access-Control-Allow-Origin'));
         self::assertFalse($response->hasHeader('Access-Control-Allow-Headers'));
-        self::assertSame('Origin', $response->getHeaderLine('Vary'));
+        self::assertSame('Origin, Access-Control-Request-Headers', $response->getHeaderLine('Vary'));
     }
 
     public function testPreflightFromDisallowedOriginReturns204WithoutGrant(): void
@@ -73,7 +73,7 @@ final class CorsMiddlewareTest extends TestCase
         self::assertFalse($response->hasHeader('Access-Control-Allow-Origin'));
         self::assertFalse($response->hasHeader('Access-Control-Allow-Methods'));
         self::assertFalse($response->hasHeader('Access-Control-Max-Age'));
-        self::assertFalse($response->hasHeader('Vary'));
+        self::assertSame('Origin, Access-Control-Request-Headers', $response->getHeaderLine('Vary'), 'A refused preflight is still keyed on the headers it turns on.');
     }
 
     public function testPreflightWithWildcardReflectsRequestOrigin(): void
@@ -123,7 +123,7 @@ final class CorsMiddlewareTest extends TestCase
 
         self::assertTrue($handler->called);
         self::assertFalse($response->hasHeader('Access-Control-Allow-Origin'));
-        self::assertFalse($response->hasHeader('Vary'));
+        self::assertSame('Origin', $response->getHeaderLine('Vary'), 'A refused response is still keyed on Origin.');
     }
 
     public function testPassesThroughRequestWithoutOrigin(): void
@@ -134,7 +134,7 @@ final class CorsMiddlewareTest extends TestCase
 
         self::assertTrue($handler->called);
         self::assertFalse($response->hasHeader('Access-Control-Allow-Origin'));
-        self::assertFalse($response->hasHeader('Vary'));
+        self::assertSame('Origin', $response->getHeaderLine('Vary'), 'An origin-less response is still keyed, so it is not replayed to an allowed origin.');
     }
 
     public function testOptionsWithoutRequestedMethodIsNotPreflight(): void

@@ -329,10 +329,12 @@ PSR-17 factories are constructor-injected, not discovered.
   beyond-spec, opt-in `Host` allow-list (empty disables it, otherwise the `Host` header must be present and
   listed) for fuller rebinding protection. The spec mandates only the `Origin` check.
 - [x] `CorsMiddleware` (PSR-15): a beyond-spec, additive CORS helper for browser clients. An allowed `Origin`
-  is reflected into `Access-Control-Allow-Origin` with a `Vary: Origin`, a preflight `OPTIONS` is answered with
-  `204` plus the negotiated `Access-Control-*` headers (echoing `Access-Control-Request-Headers`), and every
-  other response is decorated. A disallowed or absent `Origin` receives no CORS headers, so rejection stays
-  with the DNS-rebinding gate. The spec does not define CORS for the MCP endpoint.
+  is reflected into `Access-Control-Allow-Origin`, a preflight `OPTIONS` is answered with `204` plus the
+  negotiated `Access-Control-*` headers (echoing `Access-Control-Request-Headers`), and every other response is
+  decorated. A disallowed or absent `Origin` receives no grant, so rejection stays with the DNS-rebinding gate.
+  Every response carries the `Vary` keys it turns on (`Origin`, plus `Access-Control-Request-Headers` on a
+  preflight) whether or not the grant was given, so a shared cache cannot replay one origin's answer to
+  another. The spec does not define CORS for the MCP endpoint.
 - [x] `ParameterHeaderValidationMiddleware` (PSR-15): the spec's server-side `Mcp-Param-{Name}` MUST. On a
   `tools/call` it peeks at the body without consuming it, resolves the named tool's `x-mcp-header` bindings, and
   rejects a header that is absent, malformed, or disagrees with the body argument with `-32020` on `400`, echoing
