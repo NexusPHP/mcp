@@ -314,18 +314,20 @@ PSR-17 factories are constructor-injected, not discovered.
   message arrives mid-call, then a lazy SSE upgrade), `Sse`, or `Json`.
 - [x] SSE writer (`SseResponseStream`): frames `event: message\ndata: <json>\n\n`, response headers
   `text/event-stream`, `Cache-Control: no-cache`, `Connection: keep-alive`, and `X-Accel-Buffering: no`,
-  plus a keep-alive comment frame emitted whenever a read stays idle past the configured interval. The body
-  is a streaming `StreamInterface` fed by the transport. Closing it retires the stream (full handler
-  cancellation waits on the cancellation registry).
+  plus a keep-alive comment frame buffered whenever a read stays idle past the configured interval, so the
+  frame still honours the caller's `$length` and counts towards `tell()`. The body is a streaming
+  `StreamInterface` fed by the transport. Closing it retires the stream (full handler cancellation waits on
+  the cancellation registry).
 - [x] `RequestBodySizeLimitMiddleware` (PSR-15): a configurable byte cap answered with an id-less JSON-RPC
   error on `413`, measured against the buffered body size so the transport is spared stringifying and parsing
   an oversized payload. A body whose size cannot be determined passes through, leaving a streaming cap to the
   HTTP server. The `202` / `405` / `-32700` / `406` conformance edges shipped with the transport.
 - [x] `DnsRebindingProtectionMiddleware` (PSR-15): rejects a present-but-unlisted `Origin` with an id-less
   JSON-RPC error on `403`, while a request without an `Origin` header (non-browser clients) passes through.
-  The allow-list is an exact-origin `list<non-empty-string>`, with `*` for allow-all. The middleware also
-  carries a beyond-spec, opt-in `Host` allow-list (empty disables it, otherwise the `Host` header must be
-  present and listed) for fuller rebinding protection. The spec mandates only the `Origin` check.
+  The allow-list is an exact-origin `list<non-empty-string>`, with `*` for allow-all, matched
+  case-insensitively since RFC 9110 makes a URI's scheme and host so. The middleware also carries a
+  beyond-spec, opt-in `Host` allow-list (empty disables it, otherwise the `Host` header must be present and
+  listed) for fuller rebinding protection. The spec mandates only the `Origin` check.
 - [x] `CorsMiddleware` (PSR-15): a beyond-spec, additive CORS helper for browser clients. An allowed `Origin`
   is reflected into `Access-Control-Allow-Origin` with a `Vary: Origin`, a preflight `OPTIONS` is answered with
   `204` plus the negotiated `Access-Control-*` headers (echoing `Access-Control-Request-Headers`), and every

@@ -18,6 +18,7 @@ use Nexus\Mcp\Server\Transport\Http\Middleware\DnsRebindingProtectionMiddleware;
 use Nexus\Mcp\Tests\Fixtures\Server\Http\RecordingRequestHandler;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
@@ -102,6 +103,59 @@ final class DnsRebindingProtectionMiddlewareTest extends TestCase
 
         self::assertFalse($handler->called);
         self::assertRejectedWith($response, 'The request Host is not allowed.');
+    }
+
+    /**
+     * @param list<non-empty-string> $allowedHosts
+     */
+    #[DataProvider('provideMatchesTheHostCaseInsensitivelyCases')]
+    public function testMatchesTheHostCaseInsensitively(string $host, array $allowedHosts): void
+    {
+        // RFC 9110 makes a URI's host case-insensitive, and some proxies do rewrite its case.
+        $handler = self::recordingHandler();
+
+        $response = self::middleware(['*'], $allowedHosts)
+            ->process(self::request()->withHeader('Host', $host), $handler)
+        ;
+
+        self::assertTrue($handler->called);
+        self::assertSame(200, $response->getStatusCode());
+    }
+
+    /**
+     * @return iterable<string, array{string, list<non-empty-string>}>
+     */
+    public static function provideMatchesTheHostCaseInsensitivelyCases(): iterable
+    {
+        yield 'mixed-case header' => ['MCP.Example.com', ['mcp.example.com']];
+
+        yield 'mixed-case allow-list entry' => ['mcp.example.com', ['MCP.Example.com']];
+
+        yield 'both mixed' => ['MCP.example.COM', ['mcp.EXAMPLE.com']];
+    }
+
+    /**
+     * @param list<non-empty-string> $allowedOrigins
+     */
+    #[DataProvider('provideMatchesTheOriginCaseInsensitivelyCases')]
+    public function testMatchesTheOriginCaseInsensitively(string $origin, array $allowedOrigins): void
+    {
+        $handler = self::recordingHandler();
+
+        $response = self::middleware($allowedOrigins)->process(self::request($origin), $handler);
+
+        self::assertTrue($handler->called);
+        self::assertSame(200, $response->getStatusCode());
+    }
+
+    /**
+     * @return iterable<string, array{string, list<non-empty-string>}>
+     */
+    public static function provideMatchesTheOriginCaseInsensitivelyCases(): iterable
+    {
+        yield 'mixed-case header' => ['HTTPS://App.Test', ['https://app.test']];
+
+        yield 'mixed-case allow-list entry' => ['https://app.test', ['HTTPS://App.Test']];
     }
 
     public function testRejectsAMissingHostWhenValidationEnabled(): void

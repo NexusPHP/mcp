@@ -110,6 +110,30 @@ final class SseResponseStreamTest extends TestCase
         self::assertSame(": keep-alive\n\n", $frame);
     }
 
+    public function testAKeepAliveFrameHonoursTheRequestedLengthAndAdvancesTheOffset(): void
+    {
+        /** @var array{string, string, int} $observed */
+        $observed = async(static function (): array {
+            $stream = new SseResponseStream(0.01, static fn(): null => null);
+            $anchor = EventLoop::delay(1.0, static fn(): null => null);
+
+            try {
+                // A host copying into a fixed buffer must not be handed more bytes than it asked for, and
+                // every byte emitted has to count towards tell().
+                $first = $stream->read(4);
+                $rest = $stream->read(8192);
+
+                return [$first, $rest, $stream->tell()];
+            } finally {
+                EventLoop::cancel($anchor);
+            }
+        })->await();
+
+        self::assertSame(': ke', $observed[0]);
+        self::assertSame("ep-alive\n\n", $observed[1]);
+        self::assertSame(14, $observed[2]);
+    }
+
     public function testEofTogglesAsTheStreamFillsDrainsAndEnds(): void
     {
         $stream = new SseResponseStream(60.0, static fn(): null => null);
