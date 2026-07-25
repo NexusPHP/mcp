@@ -77,6 +77,7 @@ server-returned errors as exceptions:
 | `ServerCapabilityNotSupportedException` | A typed request targets a capability the server did not advertise via `server/discover` (for example `complete()` against a server with no completions). |
 | `RemoteCallFailedException` | The server answered with a JSON-RPC error response. The decoded `Error` (code, message, data) is available on the exception. |
 | `TransportAlreadyClosedException` | The transport closed while a request was in flight (also raised on send-after-close). |
+| `OutboundRequestFailedException` | The transport could not carry the request to completion (connection refused, TLS failure, a stalled read), so no response can arrive. The underlying fault is the exception's `previous`. |
 
 ```php
 use Nexus\Mcp\Client\Exception\ServerCapabilityNotSupportedException;

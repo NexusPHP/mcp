@@ -13,11 +13,13 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Client;
 
+use Amp\TimeoutCancellation;
 use Nexus\Mcp\Client\Client;
 use Nexus\Mcp\Client\ClientBuilder;
 use Nexus\Mcp\Client\Exception\ClientAlreadyConnectedException;
 use Nexus\Mcp\Client\Exception\ClientNotConnectedException;
 use Nexus\Mcp\Client\Exception\ServerCapabilityNotSupportedException;
+use Nexus\Mcp\Core\Exception\OutboundRequestFailedException;
 use Nexus\Mcp\Core\Exception\RemoteCallFailedException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
 use Nexus\Mcp\Core\Schema\ClientCapabilities;
@@ -247,6 +249,55 @@ final class ClientTest extends TestCase
         $matches = $logger->recordsMatching(LogLevel::ERROR, 'Transport error.');
         self::assertCount(1, $matches);
         self::assertSame($error, $matches[0]['context']['exception'] ?? null);
+    }
+
+    public function testAFailedExchangeFailsTheRequestItWasCarrying(): void
+    {
+        $logger = new ArrayLogger();
+        $client = new ClientBuilder()->setLogger($logger)->setClientInfo('demo', '1.0.0')->build();
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+
+        $deferred = async(static fn(): DiscoverResult => $client->discover());
+        $transport->nextSend()->await();
+
+        self::assertCount(1, $transport->sent);
+        $sentRequest = $transport->sent[0]['message'];
+        self::assertInstanceOf(DiscoverRequest::class, $sentRequest);
+
+        $error = new OutboundRequestFailedException($sentRequest->id, new \RuntimeException('connection refused'));
+        $transport->emitError($error);
+
+        try {
+            // Bounded: a client that does not fail the caller leaves this awaiting forever, and the point
+            // of the test is that it must not. Without the bound that reads as a hang, not a failure.
+            $deferred->await(new TimeoutCancellation(1.0));
+            self::fail('Expected the caller to be failed rather than left awaiting a response that cannot arrive.');
+        } catch (OutboundRequestFailedException $e) {
+            self::assertSame($error, $e);
+        }
+
+        self::assertCount(1, $logger->recordsMatching(LogLevel::ERROR, 'Transport error.'), 'The fault is still logged.');
+    }
+
+    public function testAFailedExchangeLeavesOtherRequestsPending(): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+
+        $deferred = async(static fn(): DiscoverResult => $client->discover());
+        $transport->nextSend()->await();
+
+        // A failure naming an id nobody awaits must not disturb the request that is genuinely in flight.
+        $transport->emitError(new OutboundRequestFailedException(new RequestId(id: 99), new \RuntimeException('connection refused')));
+
+        self::assertCount(1, $transport->sent);
+        $sentRequest = $transport->sent[0]['message'];
+        self::assertInstanceOf(DiscoverRequest::class, $sentRequest);
+        $transport->emitMessage(self::discoverResponse($sentRequest->id->id, 'srv', '1.0'));
+
+        self::assertInstanceOf(DiscoverResult::class, $deferred->await());
     }
 
     public function testDiscoverBeforeConnectThrowsClientNotConnectedException(): void

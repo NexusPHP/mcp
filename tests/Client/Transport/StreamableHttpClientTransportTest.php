@@ -16,6 +16,8 @@ namespace Nexus\Mcp\Tests\Client\Transport;
 use Amp\Http\Client\HttpException;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Client\Transport\StreamableHttpClientTransport;
+use Nexus\Mcp\Core\Exception\OutboundRequestFailedException;
+use Nexus\Mcp\Core\Exception\ResponseTooLargeException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyStartedException;
 use Nexus\Mcp\Core\Exception\TransportNotStartedException;
@@ -308,7 +310,33 @@ final class StreamableHttpClientTransportTest extends TestCase
 
         self::exchange($transport, self::discoverRequest());
 
+        self::assertSame(
+            ['The exchange carrying request 1 failed before a response arrived.'],
+            $faults->messages,
+        );
+
+        $fault = $faults->readFault();
+
+        if (! $fault instanceof OutboundRequestFailedException) {
+            self::fail('Expected the failure to name the request it was carrying.');
+        }
+
+        self::assertSame(1, $fault->requestId->id, 'The caller awaiting this id is the one to fail.');
+        self::assertInstanceOf(HttpException::class, $fault->getPrevious(), 'The underlying fault stays reachable.');
+    }
+
+    public function testReportsANotificationFailureUncorrelated(): void
+    {
+        // A notification has no id and so no caller awaiting a response. Wrapping it would name a request
+        // that does not exist.
+        $http = new RecordingHttpClient()->willFail(new HttpException('connection refused'));
+        $transport = self::makeTransport($http);
+        $faults = self::captureFaults($transport);
+
+        self::exchange($transport, new ToolListChangedNotification(params: new EmptyNotificationParams()));
+
         self::assertSame(['connection refused'], $faults->messages);
+        self::assertInstanceOf(HttpException::class, $faults->readFault());
     }
 
     /**
@@ -326,6 +354,11 @@ final class StreamableHttpClientTransportTest extends TestCase
 
         self::assertSame([], $received->envelopes, 'The protocol layer must not see a payload it cannot parse.');
         self::assertCount(1, $faults->messages);
+        self::assertInstanceOf(
+            OutboundRequestFailedException::class,
+            $faults->readFault(),
+            'A buffered body that cannot be read is the whole answer, so its caller can never be served.',
+        );
     }
 
     /**
@@ -338,6 +371,28 @@ final class StreamableHttpClientTransportTest extends TestCase
         yield 'json that is not an object' => ['[1, 2]'];
 
         yield 'json scalar' => ['42'];
+    }
+
+    public function testAnUnreadableStreamFrameDoesNotEndTheExchange(): void
+    {
+        // Unlike a buffered body, one bad frame is not the whole answer: the response may still follow.
+        $http = new RecordingHttpClient()->willAnswerStream([
+            "data: {\"jsonrpc\":\n\n",
+            'data: '.json_encode(self::resultEnvelope(), \JSON_THROW_ON_ERROR)."\n\n",
+        ]);
+        $transport = self::makeTransport($http);
+        $received = self::captureMessages($transport);
+        $faults = self::captureFaults($transport);
+
+        self::exchange($transport, self::discoverRequest());
+
+        self::assertSame([self::resultEnvelope()], $received->envelopes, 'The frame after the bad one still arrives.');
+        self::assertCount(1, $faults->messages);
+        self::assertNotInstanceOf(
+            OutboundRequestFailedException::class,
+            $faults->readFault(),
+            'The exchange read on, so the caller is not failed.',
+        );
     }
 
     public function testSendBeforeStartThrows(): void
@@ -405,6 +460,45 @@ final class StreamableHttpClientTransportTest extends TestCase
         self::assertSame([self::resultEnvelope()], $received->envelopes, 'A response already on the way must still land.');
     }
 
+    public function testAbandonsABufferedBodyThatOutgrowsTheResponseCap(): void
+    {
+        // amphp buffers to PHP_INT_MAX by default, so an oversized reply would be held whole in memory.
+        $http = new RecordingHttpClient()->willAnswerJson(str_repeat('a', 512));
+        $transport = new StreamableHttpClientTransport('https://mcp.test/mcp', $http, maxResponseBytes: 64);
+        $transport->start();
+        $received = self::captureMessages($transport);
+        $faults = self::captureFaults($transport);
+
+        self::exchange($transport, self::discoverRequest());
+
+        self::assertSame([], $received->envelopes);
+        $fault = $faults->readFault();
+
+        if (! $fault instanceof OutboundRequestFailedException) {
+            self::fail('An abandoned response must still fail the request it was carrying.');
+        }
+
+        self::assertInstanceOf(ResponseTooLargeException::class, $fault->getPrevious());
+    }
+
+    public function testAbandonsAStreamFrameThatOutgrowsTheResponseCap(): void
+    {
+        $http = new RecordingHttpClient()->willAnswerStream(['data: '.str_repeat('a', 512)]);
+        $transport = new StreamableHttpClientTransport('https://mcp.test/mcp', $http, maxResponseBytes: 64);
+        $transport->start();
+        $faults = self::captureFaults($transport);
+
+        self::exchange($transport, self::discoverRequest());
+
+        $fault = $faults->readFault();
+
+        if (! $fault instanceof OutboundRequestFailedException) {
+            self::fail('An abandoned stream must still fail the request it was carrying.');
+        }
+
+        self::assertInstanceOf(ResponseTooLargeException::class, $fault->getPrevious());
+    }
+
     public function testDrainRunsBeforeTheTransportIsMarkedClosed(): void
     {
         $transport = self::makeTransport(new RecordingHttpClient()->willAcceptNotification());
@@ -466,6 +560,26 @@ final class StreamableHttpClientTransportTest extends TestCase
         yield 'zero' => [0.0];
 
         yield 'negative' => [-1.0];
+    }
+
+    #[DataProvider('provideRejectsANonPositiveMaxResponseSizeCases')]
+    public function testRejectsANonPositiveMaxResponseSize(int $maxResponseBytes, string $expected): void
+    {
+        // A cap of zero or less rejects every response, including the ones the client asked for.
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs($expected);
+
+        new StreamableHttpClientTransport('https://mcp.test/mcp', new RecordingHttpClient(), maxResponseBytes: $maxResponseBytes);
+    }
+
+    /**
+     * @return iterable<string, array{int, string}>
+     */
+    public static function provideRejectsANonPositiveMaxResponseSizeCases(): iterable
+    {
+        yield 'zero' => [0, 'Streamable HTTP client maximum response size must be a positive integer, 0 given.'];
+
+        yield 'negative' => [-1, 'Streamable HTTP client maximum response size must be a positive integer, -1 given.'];
     }
 
     public function testDisablesTheTransferTimeoutAndAppliesTheReadTimeout(): void

@@ -361,10 +361,16 @@ ends on its own.
 [examples/http-client.php](../examples/http-client.php) drives the server example over the network, including
 the mid-call progress stream and a mirrored `Mcp-Param-Tenant` header.
 
-> **Known gap.** A single exchange can fail (connection refused, undecodable body, read timeout) while the
-> transport stays healthy. Today that is reported through `onError` but is not correlated back to the waiting
-> caller, so `sendRequest()` keeps blocking. Per-request timeouts and correlated rejection are tracked on the
-> roadmap.
+When one exchange fails while the transport stays healthy (connection refused, TLS failure, an undecodable
+buffered body, a read stalled past `readTimeout`), the failure names the request it was carrying, so the
+client fails that one caller with an `OutboundRequestFailedException` instead of leaving it awaiting a
+response that can no longer arrive. Other in-flight requests are untouched, and a notification, having no
+caller, is reported as it stands. Inside an SSE stream a single unreadable frame is reported but does not end
+the exchange, since a later frame may still carry the response.
+
+> **Known gap.** An exchange that *completes* without ever delivering its response (a server that closes the
+> stream early, or answers `202` to a request) leaves its caller waiting: nothing failed, so there is nothing
+> to correlate. Per-request timeouts are the general answer and are tracked on the roadmap.
 
 ## See also
 

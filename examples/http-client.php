@@ -109,9 +109,9 @@ function renderText(CallToolResult $result): string
 /**
  * Fails fast when nothing is listening.
  *
- * A request the transport cannot complete leaves the caller awaiting a response
- * that will never arrive, so without this probe an unreachable endpoint reads as
- * a hang rather than an error.
+ * The transport reports an unreachable endpoint on its own, but only once the
+ * connect attempts run out. Probing first turns that wait into an immediate
+ * answer that names the thing to start.
  */
 function requireReachable(string $endpoint): void
 {

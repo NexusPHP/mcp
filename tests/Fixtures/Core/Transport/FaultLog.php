@@ -25,8 +25,22 @@ final class FaultLog
      */
     public private(set) array $messages = [];
 
+    /**
+     * @var list<\Throwable>
+     */
+    public private(set) array $faults = [];
+
     public function record(\Throwable $fault): void
     {
         $this->messages[] = $fault->getMessage();
+        $this->faults[] = $fault;
+    }
+
+    /**
+     * The fault recorded at `$index`.
+     */
+    public function readFault(int $index = 0): \Throwable
+    {
+        return $this->faults[$index] ?? throw new \OutOfBoundsException(\sprintf('No fault was recorded at index %d.', $index));
     }
 }

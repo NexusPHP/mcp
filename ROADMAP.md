@@ -376,6 +376,10 @@ Client transport (`Nexus\Mcp\Client`, amphp/http-client). Adds `amphp/http-clien
   that must exceed the server's keep-alive interval. `close()` cancels in-flight POSTs rather than awaiting
   them, since a `subscriptions/listen` stream never ends, and a cancellation at shutdown is not reported as a
   fault.
+- [x] Correlated failure: an exchange that raises is reported as an `OutboundRequestFailedException` naming
+  the request it carried, so the client fails that one caller rather than leaving it awaiting a response that
+  can no longer arrive. A notification carries no id and no caller, so its failure is reported unwrapped, and
+  one unreadable frame mid-stream is reported without ending the exchange.
 - [ ] Per-request cancellation, so abandoning one request aborts only that POST. `TransportInterface` has no
   cancel seam yet, so this lands with the cancellation registry.
 - [x] `x-mcp-header` mirroring (client mandatory): `listTools()` scans each tool's `inputSchema`, caches the
@@ -397,8 +401,9 @@ Follow-on milestones.
   orphan-response log throttling. The request-body-size cap above already shipped.
 - [ ] `subscriptions/listen` serving over a long-lived SSE stream. The transport already supports
   long-lived streams structurally. The handler lands when the subscriptions result leg unblocks.
-- [ ] Correlated rejection of a failed exchange, so a POST that never completes surfaces to the waiting
-  caller instead of leaving `sendRequest()` blocked. `PendingOutboundRequests::reject()` is the seam.
+- [ ] Per-request timeouts, so a caller is released from an exchange that completed without ever delivering
+  its response. A failure that raises is already correlated back to its caller via
+  `OutboundRequestFailedException`, but an exchange that ends cleanly and empty raises nothing to correlate.
 
 ### Authorization (OAuth 2.1)
 

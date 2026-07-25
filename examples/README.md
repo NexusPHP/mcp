@@ -100,8 +100,8 @@ php examples/http-client.php                 # terminal 2
 Unlike the stdio pair, the client does not spawn the server: an HTTP server is a
 long-lived process you start yourself. Pass a different endpoint as the client's
 one argument (`php examples/http-client.php http://127.0.0.1:9000/mcp`) to point
-it elsewhere. The client probes the port first, so an unreachable endpoint
-reports an error instead of waiting on a response that cannot arrive.
+it elsewhere. The client probes the port first, so an unreachable endpoint says
+so at once rather than after the connect attempts run out.
 
 The SDK ships no HTTP server of its own. `StreamableHttpServerTransport` is a
 PSR-15 handler, and [PsrHttpAdapter.php](PsrHttpAdapter.php) binds it to
