@@ -267,6 +267,11 @@ counterpart to `run()`: it attaches the dispatcher's listeners and starts the tr
 the HTTP host owns the loop. Calling `handle()` on a transport that is not running answers `503` rather than
 suspending on a response that can never arrive.
 
+[examples/http-server.php](../examples/http-server.php) is a working mount, with
+[examples/PsrHttpAdapter.php](../examples/PsrHttpAdapter.php) as the host binding for `amphp/http-server`.
+Any PSR-15 host works. What a host must get right is the SSE body: pipe it frame by frame rather than
+buffering it, or the progress reports arrive only once the call they describe has finished.
+
 ### Response modes
 
 | Mode | Behaviour |
@@ -352,6 +357,9 @@ Two settings are worth knowing:
 
 `close()` cancels in-flight POSTs rather than awaiting them, because a `subscriptions/listen` stream never
 ends on its own.
+
+[examples/http-client.php](../examples/http-client.php) drives the server example over the network, including
+the mid-call progress stream and a mirrored `Mcp-Param-Tenant` header.
 
 > **Known gap.** A single exchange can fail (connection refused, undecodable body, read timeout) while the
 > transport stays healthy. Today that is reported through `onError` but is not correlated back to the waiting

@@ -206,6 +206,19 @@ advertise a longer TTL on their `*/list` results:
 ->setToolStore(new ToolStore($entries, ttlMs: 60_000, cacheScope: CacheScope::Public))
 ```
 
+`$entries` is what `addTool()` would have built: a map of tool name to `ToolEntry`, each pairing a `Tool`
+with its executor. `PromptEntry`, `ResourceEntry`, and `ResourceTemplateEntry` do the same for the other
+stores. Building a store yourself is also how you hand the same instance to something else that needs it,
+such as the `Mcp-Param-{Name}` validation on
+[`SecuredHttpEndpoint`](transports.md#securing-the-endpoint).
+
+```php
+use Nexus\Mcp\Server\Tool\ClosureToolExecutor;
+use Nexus\Mcp\Server\Tool\ToolEntry;
+
+$entries = ['greet' => new ToolEntry($greetTool, new ClosureToolExecutor($greetExecutor))];
+```
+
 ## Custom stores
 
 Completions are served entirely by a store you provide:

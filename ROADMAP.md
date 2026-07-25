@@ -385,6 +385,11 @@ Client transport (`Nexus\Mcp\Client`, amphp/http-client). Adds `amphp/http-clien
   ignores. The listing filter is gated on `ParameterHeaderMirroringInterface` so a stdio user does not lose a
   usable tool to an annotation that does not apply. `disconnect()` clears the cache, which belongs to the
   connection that served it.
+- [x] Docs and examples: the `docs/transports.md` Streamable HTTP sections for both legs, the `x-mcp-header`
+  mirroring rules in `docs/client.md`, and the runnable `examples/http-server.php` / `examples/http-client.php`
+  pair. `examples/PsrHttpAdapter.php` binds the PSR-15 endpoint to `amphp/http-server` (a dev dependency,
+  since the SDK ships no HTTP server) and pipes an SSE body frame by frame rather than buffering it, which is
+  the one thing a host must get right.
 
 Follow-on milestones.
 
@@ -392,8 +397,8 @@ Follow-on milestones.
   orphan-response log throttling. The request-body-size cap above already shipped.
 - [ ] `subscriptions/listen` serving over a long-lived SSE stream. The transport already supports
   long-lived streams structurally. The handler lands when the subscriptions result leg unblocks.
-- [ ] Docs and examples: an amphp/http-server server example, an HTTP client example, and the
-  `docs/transports.md` Streamable HTTP section.
+- [ ] Correlated rejection of a failed exchange, so a POST that never completes surfaces to the waiting
+  caller instead of leaving `sendRequest()` blocked. `PendingOutboundRequests::reject()` is the seam.
 
 ### Authorization (OAuth 2.1)
 

@@ -15,6 +15,8 @@ autoloader, an uncaught-exception handler, and `ExampleLogger`) lives in
 | `in-memory` | Runs a server and client in a single process over `InMemoryTransport::createPair()`, with no subprocess. The pattern for embedding a server in a host application or exercising one in tests. | [in-memory.php](in-memory.php) |
 | `completions-and-templates` | RFC 6570 templated resources (`users://{userId}`) and `completion/complete` for both a template argument and a prompt argument, server and client in one process. | [completions-and-templates.php](completions-and-templates.php) |
 | `capability-aware-client` | Spawns `stdio-server`, prints the negotiated `ServerCapabilities`, and shows `ServerCapabilityNotSupportedException` raised when calling an unadvertised capability (`completion/complete`). | [capability-aware-client.php](capability-aware-client.php) |
+| `http-server` | Streamable HTTP MCP server bound to a socket by `amphp/http-server`, behind `SecuredHttpEndpoint`. One tool reports progress (answered as an SSE stream), one declares `x-mcp-header` (validated against the mirrored header). | [http-server.php](http-server.php) |
+| `http-client` | Streamable HTTP MCP client driving `http-server` over the network: one POST per message, progress parsed from the SSE stream mid-call, and an argument mirrored into `Mcp-Param-Tenant`. | [http-client.php](http-client.php) |
 
 ## Running an example
 
@@ -87,6 +89,29 @@ php examples/capability-aware-client.php
 Spawns `stdio-server`, prints the negotiated `ServerCapabilities`, then attempts an
 unadvertised capability so you can see the client gate it with
 `ServerCapabilityNotSupportedException` before anything reaches the transport.
+
+### Streamable HTTP (two terminals)
+
+```bash
+php examples/http-server.php                 # terminal 1, listens on 127.0.0.1:8931
+php examples/http-client.php                 # terminal 2
+```
+
+Unlike the stdio pair, the client does not spawn the server: an HTTP server is a
+long-lived process you start yourself. Pass a different endpoint as the client's
+one argument (`php examples/http-client.php http://127.0.0.1:9000/mcp`) to point
+it elsewhere. The client probes the port first, so an unreachable endpoint
+reports an error instead of waiting on a response that cannot arrive.
+
+The SDK ships no HTTP server of its own. `StreamableHttpServerTransport` is a
+PSR-15 handler, and [PsrHttpAdapter.php](PsrHttpAdapter.php) binds it to
+`amphp/http-server`, which is a dev dependency of this repo rather than of the
+SDK. Swap that adapter for your own framework's PSR-15 entry point and the
+server code is unchanged. It also pipes an SSE body frame by frame instead of
+buffering it, which is what lets progress reports arrive mid-call.
+
+MCP Inspector can drive the endpoint too. Choose **Streamable HTTP** as the
+transport and enter `http://127.0.0.1:8931/mcp`.
 
 ## Logs go to STDERR
 
