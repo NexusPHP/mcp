@@ -36,7 +36,7 @@ final class StandardHeaders
      *
      * @param array<string, mixed> $body Encoded JSON-RPC request envelope
      *
-     * @return array<string, string>
+     * @return array<non-empty-string, string>
      */
     public static function build(array $body): array
     {

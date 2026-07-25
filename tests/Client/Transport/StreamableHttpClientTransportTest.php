@@ -1,0 +1,548 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * This file is part of the Nexus MCP SDK package.
+ *
+ * (c) 2026 John Paul E. Balandan, CPA <paulbalandan@gmail.com>
+ *
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
+ */
+
+namespace Nexus\Mcp\Tests\Client\Transport;
+
+use Amp\Http\Client\HttpException;
+use Nexus\Assert\ExpectationFailedException;
+use Nexus\Mcp\Client\Transport\StreamableHttpClientTransport;
+use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
+use Nexus\Mcp\Core\Exception\TransportAlreadyStartedException;
+use Nexus\Mcp\Core\Exception\TransportNotStartedException;
+use Nexus\Mcp\Core\Http\HeaderValueCodec;
+use Nexus\Mcp\Core\Schema\Error\InternalError;
+use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
+use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcMessage;
+use Nexus\Mcp\Core\Schema\Notification\ToolListChangedNotification;
+use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
+use Nexus\Mcp\Core\Schema\ProtocolVersion;
+use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
+use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
+use Nexus\Mcp\Core\Schema\Request\ReadResourceRequest;
+use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Core\Schema\RequestParams\CallToolRequestParams;
+use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
+use Nexus\Mcp\Core\Schema\RequestParams\ReadResourceRequestParams;
+use Nexus\Mcp\Tests\Fixtures\Client\Http\RecordingHttpClient;
+use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
+use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
+use Nexus\Mcp\Tests\Fixtures\Core\Transport\EnvelopeLog;
+use Nexus\Mcp\Tests\Fixtures\Core\Transport\FaultLog;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\TestCase;
+use Psr\Log\LogLevel;
+
+use function Amp\ByteStream\buffer;
+use function Amp\delay;
+
+/**
+ * @internal
+ */
+#[CoversClass(StreamableHttpClientTransport::class)]
+#[Group('unit-tests')]
+#[Group('client-tests')]
+final class StreamableHttpClientTransportTest extends TestCase
+{
+    public function testPostsTheEnvelopeWithTheRequiredHeaders(): void
+    {
+        $http = new RecordingHttpClient()->willAnswerJson(self::resultEnvelope());
+        $transport = self::makeTransport($http);
+
+        self::exchange($transport, self::discoverRequest());
+
+        self::assertCount(1, $http->requests);
+        $request = $http->readRequest();
+        self::assertSame('POST', $request->getMethod());
+        self::assertSame('https://mcp.test/mcp', (string) $request->getUri());
+        self::assertSame('application/json', $request->getHeader('Content-Type'));
+        self::assertSame('application/json, text/event-stream', $request->getHeader('Accept'));
+        self::assertSame(ProtocolVersion::LATEST_VERSION, $request->getHeader('MCP-Protocol-Version'));
+        self::assertSame('server/discover', $request->getHeader('Mcp-Method'));
+        self::assertSame(self::discoverRequest()->toArray(), $http->readSentEnvelope());
+    }
+
+    public function testMirrorsTheToolNameIntoTheNameHeader(): void
+    {
+        $http = new RecordingHttpClient()->willAnswerJson(self::resultEnvelope());
+        $transport = self::makeTransport($http);
+
+        self::exchange($transport, new CallToolRequest(
+            id: new RequestId(id: 1),
+            params: new CallToolRequestParams(name: 'get_weather', meta: RequestMetaObjectFactory::create()),
+        ));
+
+        self::assertSame('tools/call', $http->readRequest()->getHeader('Mcp-Method'));
+        self::assertSame('get_weather', $http->readRequest()->getHeader('Mcp-Name'));
+    }
+
+    public function testEmitsABufferedJsonResponse(): void
+    {
+        $http = new RecordingHttpClient()->willAnswerJson(self::resultEnvelope());
+        $transport = self::makeTransport($http);
+        $received = self::captureMessages($transport);
+
+        self::exchange($transport, self::discoverRequest());
+
+        self::assertSame([self::resultEnvelope()], $received->envelopes);
+    }
+
+    public function testEmitsAnErrorResponseSoThePendingRequestCanReject(): void
+    {
+        // A 400 HeaderMismatch still carries the id, so it must reach the protocol layer rather than be
+        // swallowed as a transport fault.
+        $envelope = ['jsonrpc' => '2.0', 'id' => 1, 'error' => ['code' => -32020, 'message' => 'Header mismatch']];
+        $http = new RecordingHttpClient()->willAnswerJson($envelope, status: 400);
+        $transport = self::makeTransport($http);
+        $received = self::captureMessages($transport);
+
+        self::exchange($transport, self::discoverRequest());
+
+        self::assertSame([$envelope], $received->envelopes);
+    }
+
+    public function testEmitsEveryFrameOfAnSseResponse(): void
+    {
+        $progress = ['jsonrpc' => '2.0', 'method' => 'notifications/progress', 'params' => ['progressToken' => 'p-1', 'progress' => 0.5]];
+        $http = new RecordingHttpClient()->willAnswerStream([
+            self::frame($progress),
+            self::frame(self::resultEnvelope()),
+        ]);
+        $transport = self::makeTransport($http);
+        $received = self::captureMessages($transport);
+        $faults = self::captureFaults($transport);
+
+        self::exchange($transport, self::discoverRequest());
+
+        self::assertSame([$progress, self::resultEnvelope()], $received->envelopes);
+        self::assertSame([], $faults->messages, 'A consumed stream must not also be buffered as a body.');
+    }
+
+    public function testAssemblesAnSseFrameSplitAcrossChunks(): void
+    {
+        $frame = self::frame(self::resultEnvelope());
+        $http = new RecordingHttpClient()->willAnswerStream([
+            substr($frame, 0, 12),
+            substr($frame, 12),
+        ]);
+        $transport = self::makeTransport($http);
+        $received = self::captureMessages($transport);
+
+        self::exchange($transport, self::discoverRequest());
+
+        self::assertSame([self::resultEnvelope()], $received->envelopes);
+    }
+
+    public function testIgnoresAKeepAliveComment(): void
+    {
+        $http = new RecordingHttpClient()->willAnswerStream([": keep-alive\n\n", self::frame(self::resultEnvelope())]);
+        $transport = self::makeTransport($http);
+        $received = self::captureMessages($transport);
+
+        self::exchange($transport, self::discoverRequest());
+
+        self::assertSame([self::resultEnvelope()], $received->envelopes);
+    }
+
+    public function testSentinelEncodesAResourceUriOutsideTheHeaderSafeSet(): void
+    {
+        // A tool name is constrained to the MCP identifier set, so a resource URI is the value that actually
+        // reaches the sentinel path. It must survive as a plain-ASCII header value.
+        $http = new RecordingHttpClient()->willAnswerJson(self::resultEnvelope());
+        $transport = self::makeTransport($http);
+        $uri = 'file:///tmp/notes 世界.txt';
+
+        self::exchange($transport, new ReadResourceRequest(
+            id: new RequestId(id: 1),
+            params: new ReadResourceRequestParams(uri: $uri, meta: RequestMetaObjectFactory::create()),
+        ));
+
+        $header = $http->readRequest()->getHeader('Mcp-Name');
+        self::assertSame(\sprintf('=?base64?%s?=', base64_encode($uri)), $header);
+        self::assertSame($uri, HeaderValueCodec::decode($header), 'The server must be able to decode it back to the body value.');
+    }
+
+    public function testDropsAnOutboundResponseTheSpecForbidsAClientFromSending(): void
+    {
+        // "The body of the HTTP POST MUST be a single JSON-RPC request or notification. The client MUST NOT
+        // send JSON-RPC responses."
+        $logger = new ArrayLogger();
+        $http = new RecordingHttpClient();
+        $transport = self::makeTransport($http, logger: $logger);
+
+        self::exchange($transport, new JsonRpcErrorResponse(id: new RequestId(id: 1), error: new InternalError(message: 'boom')));
+
+        self::assertSame([], $http->requests, 'A response must never reach the endpoint.');
+        $matches = $logger->recordsMatching(LogLevel::WARNING, '{label} transport dropped an outbound response, which a client must not send.');
+        self::assertCount(1, $matches);
+        self::assertSame(['label' => 'Streamable HTTP client'], $matches[0]['context']);
+    }
+
+    public function testKeepsSlashesAndUnicodeUnescapedInTheBody(): void
+    {
+        $http = new RecordingHttpClient()->willAnswerJson(self::resultEnvelope());
+        $transport = self::makeTransport($http);
+        $uri = 'file:///tmp/世界.txt';
+
+        self::exchange($transport, new ReadResourceRequest(
+            id: new RequestId(id: 1),
+            params: new ReadResourceRequestParams(uri: $uri, meta: RequestMetaObjectFactory::create()),
+        ));
+
+        $body = buffer($http->readRequest()->getBody()->getContent());
+        self::assertStringContainsString($uri, $body);
+        self::assertStringNotContainsString('file:\\/\\/', $body, 'Slashes stay unescaped.');
+        self::assertStringNotContainsString('\\u4e16', $body, 'Non-ASCII stays unescaped.');
+    }
+
+    public function testDetectsAnUppercaseContentType(): void
+    {
+        // RFC 9110 makes the media type case-insensitive, so a shouting server still gets parsed as a stream.
+        $http = new RecordingHttpClient()->willAnswerStreamWithContentType('TEXT/EVENT-STREAM', [self::frame(self::resultEnvelope())]);
+        $transport = self::makeTransport($http);
+        $received = self::captureMessages($transport);
+
+        self::exchange($transport, self::discoverRequest());
+
+        self::assertSame([self::resultEnvelope()], $received->envelopes);
+    }
+
+    /**
+     * Both malformed shapes are exercised inside a stream: an undecodable payload and a decodable one that
+     * is not an envelope. Each is caught per frame, so the stream survives either.
+     */
+    #[DataProvider('provideKeepsReadingAfterAMalformedFrameCases')]
+    public function testKeepsReadingAfterAMalformedFrame(string $payload): void
+    {
+        $http = new RecordingHttpClient()->willAnswerStream([
+            \sprintf("event: message\ndata: %s\n\n", $payload),
+            self::frame(self::resultEnvelope()),
+        ]);
+        $transport = self::makeTransport($http);
+        $received = self::captureMessages($transport);
+        $faults = self::captureFaults($transport);
+
+        self::exchange($transport, self::discoverRequest());
+
+        self::assertSame([self::resultEnvelope()], $received->envelopes, 'The frame after the bad one still arrives.');
+        self::assertCount(1, $faults->messages);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function provideKeepsReadingAfterAMalformedFrameCases(): iterable
+    {
+        yield 'undecodable json' => ['{not json'];
+
+        yield 'json that is not an envelope' => ['[1, 2]'];
+    }
+
+    public function testCloseCancelsAnOpenStreamWithoutReportingAFault(): void
+    {
+        // A `subscriptions/listen` stream never ends, so shutdown has to abort it rather than await it.
+        $http = new RecordingHttpClient()->willAnswerOpenStream([self::frame(self::resultEnvelope())]);
+        $transport = self::makeTransport($http);
+        $received = self::captureMessages($transport);
+        $faults = self::captureFaults($transport);
+
+        $transport->send(self::discoverRequest());
+        delay(0.05);
+        self::assertSame([self::resultEnvelope()], $received->envelopes, 'The frames already sent arrive.');
+
+        $transport->close();
+
+        self::assertSame([], $faults->messages, 'Cancelling at shutdown is not a transport fault.');
+    }
+
+    public function testCloseSignalsCloseEvenWhenADrainListenerThrows(): void
+    {
+        $transport = self::makeTransport(new RecordingHttpClient());
+        $closed = false;
+        $transport->onDrain(static function (): void {
+            throw new \RuntimeException('drain boom');
+        });
+        $transport->onClose(static function () use (&$closed): void {
+            $closed = true;
+        });
+
+        try {
+            $transport->close();
+        } catch (\RuntimeException) {
+            // The drain fault propagates, but shutdown must still complete.
+        }
+
+        self::assertTrue($closed);
+    }
+
+    public function testEmitsNothingForAnAcceptedNotification(): void
+    {
+        $http = new RecordingHttpClient()->willAcceptNotification();
+        $transport = self::makeTransport($http);
+        $received = self::captureMessages($transport);
+        $faults = self::captureFaults($transport);
+
+        self::exchange($transport, new ToolListChangedNotification(params: new EmptyNotificationParams()));
+
+        self::assertSame([], $received->envelopes);
+        self::assertSame([], $faults->messages, 'A bodiless 202 is not a fault.');
+        self::assertCount(1, $http->requests, 'The notification is still POSTed.');
+    }
+
+    public function testReportsATransportFailureThroughOnError(): void
+    {
+        $http = new RecordingHttpClient()->willFail(new HttpException('connection refused'));
+        $transport = self::makeTransport($http);
+        $faults = self::captureFaults($transport);
+
+        self::exchange($transport, self::discoverRequest());
+
+        self::assertSame(['connection refused'], $faults->messages);
+    }
+
+    /**
+     * @param array<string, mixed>|string $body
+     */
+    #[DataProvider('provideReportsAnUndecodablePayloadThroughOnErrorCases')]
+    public function testReportsAnUndecodablePayloadThroughOnError(array|string $body): void
+    {
+        $http = new RecordingHttpClient()->willAnswerJson($body);
+        $transport = self::makeTransport($http);
+        $received = self::captureMessages($transport);
+        $faults = self::captureFaults($transport);
+
+        self::exchange($transport, self::discoverRequest());
+
+        self::assertSame([], $received->envelopes, 'The protocol layer must not see a payload it cannot parse.');
+        self::assertCount(1, $faults->messages);
+    }
+
+    /**
+     * @return iterable<string, array{array<string, mixed>|string}>
+     */
+    public static function provideReportsAnUndecodablePayloadThroughOnErrorCases(): iterable
+    {
+        yield 'not json' => ['{"jsonrpc":'];
+
+        yield 'json that is not an object' => ['[1, 2]'];
+
+        yield 'json scalar' => ['42'];
+    }
+
+    public function testSendBeforeStartThrows(): void
+    {
+        $this->expectException(TransportNotStartedException::class);
+
+        self::makeTransport(new RecordingHttpClient(), start: false)->send(self::discoverRequest());
+    }
+
+    public function testSendAfterCloseThrows(): void
+    {
+        $transport = self::makeTransport(new RecordingHttpClient());
+        $transport->close();
+
+        $this->expectException(TransportAlreadyClosedException::class);
+
+        $transport->send(self::discoverRequest());
+    }
+
+    public function testStartTwiceThrows(): void
+    {
+        $transport = self::makeTransport(new RecordingHttpClient());
+
+        $this->expectException(TransportAlreadyStartedException::class);
+
+        $transport->start();
+    }
+
+    public function testStartAfterCloseThrows(): void
+    {
+        $transport = self::makeTransport(new RecordingHttpClient());
+        $transport->close();
+
+        $this->expectException(TransportAlreadyClosedException::class);
+
+        $transport->start();
+    }
+
+    public function testCloseDrainsThenSignalsCloseAndIsIdempotent(): void
+    {
+        $transport = self::makeTransport(new RecordingHttpClient());
+        $order = [];
+        $transport->onDrain(static function () use (&$order): void {
+            $order[] = 'drain';
+        });
+        $transport->onClose(static function () use (&$order): void {
+            $order[] = 'close';
+        });
+
+        $transport->close();
+        $transport->close();
+
+        self::assertSame(['drain', 'close'], $order);
+    }
+
+    public function testCloseAwaitsAnInFlightExchange(): void
+    {
+        $http = new RecordingHttpClient()->willAnswerJson(self::resultEnvelope());
+        $transport = self::makeTransport($http);
+        $received = self::captureMessages($transport);
+
+        $transport->send(self::discoverRequest());
+        $transport->close();
+
+        self::assertSame([self::resultEnvelope()], $received->envelopes, 'A response already on the way must still land.');
+    }
+
+    public function testDrainRunsBeforeTheTransportIsMarkedClosed(): void
+    {
+        $transport = self::makeTransport(new RecordingHttpClient()->willAcceptNotification());
+        $sendFaults = new FaultLog();
+
+        $transport->onDrain(static function () use ($transport, $sendFaults): void {
+            try {
+                $transport->send(new ToolListChangedNotification(params: new EmptyNotificationParams()));
+            } catch (\Throwable $e) {
+                $sendFaults->record($e);
+            }
+        });
+
+        $transport->close();
+
+        self::assertSame(
+            [],
+            $sendFaults->messages,
+            'Draining exists so a listener can settle an exchange, which it cannot do once sends are refused.',
+        );
+    }
+
+    public function testStartLogsTheEndpoint(): void
+    {
+        $logger = new ArrayLogger();
+        self::makeTransport(new RecordingHttpClient(), logger: $logger);
+
+        $matches = $logger->recordsMatching(LogLevel::INFO, '{label} transport started. Endpoint: {endpoint}.');
+        self::assertCount(1, $matches);
+        self::assertSame(
+            ['label' => 'Streamable HTTP client', 'endpoint' => 'https://mcp.test/mcp'],
+            $matches[0]['context'],
+        );
+    }
+
+    public function testRejectsAnEmptyEndpoint(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs('Streamable HTTP client endpoint must be a non-empty string.');
+
+        // @phpstan-ignore argument.type
+        new StreamableHttpClientTransport('', new RecordingHttpClient());
+    }
+
+    #[DataProvider('provideRejectsANonPositiveReadTimeoutCases')]
+    public function testRejectsANonPositiveReadTimeout(float $timeout): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageMatches('/^Streamable HTTP client read timeout must be positive, /');
+
+        new StreamableHttpClientTransport('https://mcp.test/mcp', new RecordingHttpClient(), readTimeout: $timeout);
+    }
+
+    /**
+     * @return iterable<string, array{float}>
+     */
+    public static function provideRejectsANonPositiveReadTimeoutCases(): iterable
+    {
+        yield 'zero' => [0.0];
+
+        yield 'negative' => [-1.0];
+    }
+
+    public function testDisablesTheTransferTimeoutAndAppliesTheReadTimeout(): void
+    {
+        // amphp defaults the transfer timeout to 10s, which would sever a long-lived stream mid-flight.
+        $http = new RecordingHttpClient()->willAnswerJson(self::resultEnvelope());
+        $transport = new StreamableHttpClientTransport('https://mcp.test/mcp', $http, readTimeout: 45.0);
+        $transport->start();
+
+        self::exchange($transport, self::discoverRequest());
+
+        self::assertSame(0.0, $http->readRequest()->getTransferTimeout());
+        self::assertSame(45.0, $http->readRequest()->getInactivityTimeout());
+    }
+
+    /**
+     * Drives one complete round trip. `send()` detaches the POST, so the loop has to turn before the
+     * response is emitted. `close()` cannot do the driving: it cancels in-flight exchanges.
+     */
+    private static function exchange(StreamableHttpClientTransport $transport, JsonRpcMessage $message): void
+    {
+        $transport->send($message);
+        delay(0.05);
+    }
+
+    private static function makeTransport(
+        RecordingHttpClient $http,
+        bool $start = true,
+        ?ArrayLogger $logger = null,
+    ): StreamableHttpClientTransport {
+        $transport = new StreamableHttpClientTransport('https://mcp.test/mcp', $http, $logger ?? new ArrayLogger());
+
+        if ($start) {
+            $transport->start();
+        }
+
+        return $transport;
+    }
+
+    private static function captureFaults(StreamableHttpClientTransport $transport): FaultLog
+    {
+        $log = new FaultLog();
+        $transport->onError(static function (\Throwable $fault) use ($log): void {
+            $log->record($fault);
+        });
+
+        return $log;
+    }
+
+    private static function captureMessages(StreamableHttpClientTransport $transport): EnvelopeLog
+    {
+        $log = new EnvelopeLog();
+        $transport->onMessage(static function (array $envelope) use ($log): void {
+            $log->record($envelope);
+        });
+
+        return $log;
+    }
+
+    private static function discoverRequest(): DiscoverRequest
+    {
+        return new DiscoverRequest(id: new RequestId(id: 1), params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create()));
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function resultEnvelope(): array
+    {
+        return ['jsonrpc' => '2.0', 'id' => 1, 'result' => ['resultType' => 'complete']];
+    }
+
+    /**
+     * @param array<string, mixed> $envelope
+     */
+    private static function frame(array $envelope): string
+    {
+        return \sprintf("event: message\ndata: %s\n\n", json_encode($envelope, \JSON_THROW_ON_ERROR));
+    }
+}

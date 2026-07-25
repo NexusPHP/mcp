@@ -361,11 +361,23 @@ PSR-17 factories are constructor-injected, not discovered.
 
 Client transport (`Nexus\Mcp\Client`, amphp/http-client). Adds `amphp/http-client`.
 
-- [ ] `StreamableHttpClientTransport implements TransportInterface`: each `send()` is a discrete POST with
-  `Content-Type: application/json`, `Accept: application/json, text/event-stream`, and the
-  `MCP-Protocol-Version`, `Mcp-Method`, and `Mcp-Name` headers computed from the message body. The response
-  content-type selects single-JSON decode or SSE parse, completion is the terminal result or error message
-  plus a read timeout rather than end-of-file alone, and cancelling one request aborts that POST.
+- [x] `SseFrameParser` (`Core/Http`, pure): incremental SSE framing, absorbing response chunks and yielding
+  whole frames. LF, CRLF, and bare-CR terminators, a chunk ending mid-CRLF, multi-line `data`, and the
+  comment lines the spec has servers emit as keep-alives and clients ignore.
+- [x] `StandardHeaders::build()`: the client-side counterpart to the validator, deriving
+  `MCP-Protocol-Version`, `Mcp-Method`, and `Mcp-Name` from the envelope so header and body agree by
+  construction. A `Mcp-Name` outside the header-safe set (a resource URI, since tool names are constrained to
+  the identifier set) carries the `=?base64?…?=` sentinel.
+- [x] `StreamableHttpClientTransport implements TransportInterface`: each `send()` is a discrete POST with
+  `Content-Type: application/json`, `Accept: application/json, text/event-stream`, and the standard headers
+  computed from the message body. The response content-type selects single-JSON decode or SSE parse, and an
+  outbound response is dropped with a warning since the spec forbids a client from sending one. amphp's
+  10-second transfer timeout is disabled (it would sever a long-lived stream) in favour of a read timeout
+  that must exceed the server's keep-alive interval. `close()` cancels in-flight POSTs rather than awaiting
+  them, since a `subscriptions/listen` stream never ends, and a cancellation at shutdown is not reported as a
+  fault.
+- [ ] Per-request cancellation, so abandoning one request aborts only that POST. `TransportInterface` has no
+  cancel seam yet, so this lands with the cancellation registry.
 - [ ] `x-mcp-header` mirroring (client mandatory): cache tool input schemas from `tools/list`, exclude any
   tool whose `x-mcp-header` declarations violate the scanner constraints (logging a warning), and on
   `tools/call` build the `Mcp-Param-{Name}` headers from the arguments, carried through `SendContext`.
