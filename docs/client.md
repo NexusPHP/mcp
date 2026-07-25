@@ -4,6 +4,10 @@ The `Client` class drives the client side of an MCP session over a `TransportInt
 fluent `ClientBuilder`, connect it to a transport, then issue typed requests. Each request is self-contained,
 so typed calls can start as soon as the transport is connected.
 
+The SDK ships two client transports: `StdioClientTransport`, which launches the server as a subprocess, and
+`StreamableHttpClientTransport`, which POSTs to a remote MCP endpoint. Everything below is identical on both,
+apart from [mirrored tool parameters](#mirrored-tool-parameters-over-http), which are HTTP-only.
+
 ```php
 use Nexus\Mcp\Client\ClientBuilder;
 use Nexus\Mcp\Client\Transport\StdioClientTransport;
@@ -190,6 +194,32 @@ $result = $client->callTool(
 
 The callback signature is `\Closure(float $progress, ?float $total, ?string $message): void`.
 
+### Mirrored tool parameters over HTTP
+
+A server may annotate a tool parameter with `x-mcp-header` in its `inputSchema`, asking clients to mirror that
+argument into an `Mcp-Param-{Name}` HTTP header so gateways can route or rate-limit on it without parsing the
+body. Supporting this is mandatory for a client on the Streamable HTTP transport, and the SDK does it for you:
+
+- `listTools()` scans each tool's `inputSchema` and caches its declarations.
+- `callTool()` extracts the annotated arguments, encodes them, and sends them as `Mcp-Param-{Name}` headers.
+  An argument that is absent or `null` sends no header, which is what the server expects.
+
+Two consequences worth knowing:
+
+**A tool with invalid declarations disappears from `listTools()`.** The spec requires a client to exclude a
+tool it cannot mirror rather than call it unmirrored, since the server would reject the call anyway. The tool
+is dropped and a warning is logged naming the tool and the reason, so check your logger if a tool you expect
+is missing. Declarations are invalid when they are empty, are not a valid HTTP field-name token, collide
+case-insensitively, sit on a `number` parameter, or sit somewhere not reachable through a plain `properties`
+chain.
+
+**Only `listTools()` populates the cache.** Calling a tool you never listed sends no mirrored headers, and the
+server answers `-32020 HeaderMismatch`. Call `listTools()` first, which is also the spec's prescribed recovery
+from that error. `disconnect()` clears the cache, since it described the server you just left.
+
+None of this applies on stdio: that transport may ignore the annotations entirely, so the listing is passed
+through untouched and no tool is dropped.
+
 ## Notification handlers
 
 Register handlers for server-to-client notifications at build time. A handler implements
@@ -237,5 +267,6 @@ methods above. The capability gate covers exactly the methods behind the typed r
 
 - **[Getting started](getting-started.md)**: install + minimal server.
 - **[Server API](server.md)**: the symmetric builder reference.
-- **[Transports](transports.md)**: `StdioClientTransport` (subprocess launcher) and the in-memory paired transport.
+- **[Transports](transports.md)**: `StdioClientTransport` (subprocess launcher),
+  `StreamableHttpClientTransport` (one POST per message), and the in-memory paired transport.
 - **[Architecture](architecture.md)**: dispatch kernel, layering, spec compliance.

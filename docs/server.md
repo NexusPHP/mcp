@@ -16,7 +16,9 @@ $server = new ServerBuilder()
 $server->run(new StdioServerTransport());
 ```
 
-`Server::run()` returns when the transport closes (stdin EOF for the stdio transport).
+`Server::run()` returns when the transport closes (stdin EOF for the stdio transport). A request-scoped
+transport such as [Streamable HTTP](transports.md#streamablehttpservertransport) uses `Server::listen()`
+instead, which attaches the dispatcher and returns so the HTTP host keeps driving the loop.
 
 ## Server info
 
@@ -301,5 +303,6 @@ Every handler closure receives a `ServerContext` as its last argument.
 - **[Getting started](getting-started.md)**: install + minimal server.
 - **[Attribute discovery](attribute-discovery.md)**: declare features with `#[AsTool]` and friends.
 - **[Client API](client.md)**: the symmetric client-side reference.
-- **[Transports](transports.md)**: `StdioServerTransport` contract.
+- **[Transports](transports.md)**: the `StdioServerTransport` and `StreamableHttpServerTransport` contracts,
+  plus the PSR-15 middleware stack that secures the HTTP endpoint.
 - **[Architecture](architecture.md)**: dispatch kernel, layering, spec compliance.

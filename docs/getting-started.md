@@ -117,8 +117,8 @@ routes server diagnostics to a PSR-3 logger on STDERR.
   completions, custom request handlers, and the request/notification lifecycle.
 - **[Client API](client.md)**: `ClientBuilder` + `Client` reference covering `server/discover`, the typed
   request methods, and streaming progress from `callTool`.
-- **[Transports](transports.md)**: what `StdioServerTransport` does and doesn't guarantee. What's coming
-  for streamable HTTP.
+- **[Transports](transports.md)**: what each transport does and doesn't guarantee, stdio and Streamable
+  HTTP alike.
 - **[Error handling](error-handling.md)**: the exception model, JSON-RPC error codes, and which calls throw what.
 - **[Best practices](best-practices.md)**: conventions for servers and clients.
 - **[Architecture](architecture.md)**: namespacing, layering rules, dispatch kernel, spec-compliance notes.

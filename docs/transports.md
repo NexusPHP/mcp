@@ -1,8 +1,16 @@
 # Transports
 
-A transport is the bytes-in / bytes-out layer between an MCP server and its client. The SDK ships one
-production transport today (`StdioServerTransport`) plus an in-memory pair for tests
-(`InMemoryTransport::createPair()`).
+A transport is the bytes-in / bytes-out layer between an MCP server and its client. The SDK ships two
+production bindings, stdio and Streamable HTTP, on both the server and the client side, plus an in-memory
+pair for tests (`InMemoryTransport::createPair()`).
+
+| Transport | Side | Shape |
+| --- | --- | --- |
+| [`StdioServerTransport`](#stdioservertransport) | server | Long-lived, newline-delimited JSON over STDIN/STDOUT. Driven by `Server::run()`. |
+| [`StdioClientTransport`](#stdioclienttransport) | client | Launches the server as a subprocess and speaks the same framing. |
+| [`StreamableHttpServerTransport`](#streamablehttpservertransport) | server | Request-scoped PSR-15 handler. One POST per message. Driven by `Server::listen()`. |
+| [`StreamableHttpClientTransport`](#streamablehttpclienttransport) | client | One POST per outbound message, answered by a JSON object or an SSE stream. |
+| [`InMemoryTransport`](#inmemorytransport-test-only) | both | Test double pair, no I/O. |
 
 ## The contract
 
@@ -28,10 +36,18 @@ The four `on*` methods are listener registration. The `Server` registers listene
 `onError` (log), `onDrain` (await in-flight coroutines), and `onClose` (resolve the run-future) once,
 before calling `start()`.
 
-`SendContext` carries `relatedRequestId`, which ties an out-of-band message (such as a progress
-notification) to the in-flight request that triggered it, and `fromHandler`, which marks a response a
-request handler produced so a request-scoped transport can map it to a transport-level status. Further
-transport-specific fields can arrive through the same value object without changing the interface shape.
+`SendContext` carries three slots, all of which a transport is free to ignore:
+
+- `relatedRequestId` ties an out-of-band message (such as a progress notification) to the in-flight request
+  that triggered it, so a request-scoped transport can route it onto the right response stream.
+- `fromHandler` marks a response a request handler produced, so a request-scoped transport can map it to a
+  transport-level status (a handler error rides HTTP 200 with the JSON-RPC error in the body, a protocol
+  error gets a real status).
+- `headers` carries transport headers the protocol layer computed, currently the `Mcp-Param-{Name}` mirrors
+  a `tools/call` derives from its arguments. Stdio ignores them.
+
+Further transport-specific fields can arrive through the same value object without changing the interface
+shape.
 
 ## `StdioServerTransport`
 
@@ -223,13 +239,124 @@ eagerly rather than as silently dropped envelopes:
 `onError` accepts listeners for `TransportInterface` conformance but never fires (there is no I/O failure
 surface for an in-process pair).
 
-## Streamable HTTP
+## `StreamableHttpServerTransport`
 
-Not yet shipped. The transport-interface surface above is intentionally shaped to accommodate it without
-breaking changes:
+The Streamable HTTP binding is request-scoped: the client sends every JSON-RPC message as its own HTTP POST
+to a single MCP endpoint, and the server answers each one with a JSON object or a request-scoped SSE stream.
+The SDK does not ship an HTTP server. The transport is a
+[PSR-15 `RequestHandlerInterface`](https://www.php-fig.org/psr/psr-15/), so you mount it in whatever host you
+already run.
 
-- `SendContext` exists as the slot for HTTP-specific fields.
-- `onDrain` is symmetric with `onClose` so streaming responses can be flushed cleanly.
+```php
+use Nexus\Mcp\Server\ServerBuilder;
+use Nexus\Mcp\Server\Transport\StreamableHttpServerTransport;
+use Nyholm\Psr7\Factory\Psr17Factory;
+
+$factory = new Psr17Factory();
+$transport = new StreamableHttpServerTransport($factory, $factory);
+
+$server = new ServerBuilder()->setServerInfo('demo', '1.0.0')->build();
+$server->listen($transport);   // attaches the dispatcher, does not block
+
+// Then, per inbound HTTP request:
+$response = $transport->handle($request);
+```
+
+PSR-17 factories are constructor-injected, never discovered. `Server::listen()` is the non-blocking
+counterpart to `run()`: it attaches the dispatcher's listeners and starts the transport, then returns, because
+the HTTP host owns the loop. Calling `handle()` on a transport that is not running answers `503` rather than
+suspending on a response that can never arrive.
+
+### Response modes
+
+| Mode | Behaviour |
+| --- | --- |
+| `ResponseMode::Auto` (default) | Buffered JSON, upgraded to SSE the moment a progress notification arrives mid-call. |
+| `ResponseMode::Json` | Always buffered. A notification that would need streaming is dropped with a debug log. |
+| `ResponseMode::Sse` | Always a stream, opened immediately. |
+
+An SSE response carries `Cache-Control: no-cache`, `Connection: keep-alive`, and `X-Accel-Buffering: no` (which
+stops nginx and friends buffering events), plus a `: keep-alive` comment frame whenever a read stays idle past
+`keepAliveInterval` (default 15s). Closing the response body is the spec's cancellation signal and retires the
+stream.
+
+### Securing the endpoint
+
+The spec requires `Origin` validation and recommends localhost binding and authentication. Those live in
+PSR-15 middleware rather than the transport, so you compose only what you need. `SecuredHttpEndpoint` bundles
+the recommended stack:
+
+```php
+use Nexus\Mcp\Server\Transport\Http\SecuredHttpEndpoint;
+
+$endpoint = new SecuredHttpEndpoint(
+    $transport,
+    allowedOrigins: ['https://app.example.com'],   // required, or ['*'] to allow any
+    responseFactory: $factory,
+    streamFactory: $factory,
+    allowedHosts: ['mcp.example.com'],             // optional, beyond-spec
+    maxBodyBytes: 1_048_576,                       // optional
+    toolStore: $tools,                             // required if any tool declares x-mcp-header
+);
+```
+
+Origin allow-listing has no default, so the endpoint cannot be stood up permissively by accident. The
+middlewares run outermost-first in this order:
+
+| Middleware | Answers | Notes |
+| --- | --- | --- |
+| `CorsMiddleware` | `204` to a preflight | Beyond-spec. Reflects an allowed `Origin`, and always emits the `Vary` keys it turns on so a shared cache cannot replay one origin's answer to another. |
+| `DnsRebindingProtectionMiddleware` | `403` | The spec's `Origin` MUST. Also carries an opt-in `Host` allow-list. Both match case-insensitively. |
+| `ParameterHeaderValidationMiddleware` | `400` `-32020` | The spec's server-side `Mcp-Param-{Name}` MUST. Added only when you pass a tool store. |
+| `RequestBodySizeLimitMiddleware` | `413` | Added only when you pass a cap. Measures the buffered body, so a streaming body whose size is unknown passes through to the host's own limit. |
+
+To compose your own order, or to add middleware of your own, use `MiddlewarePipeline` directly:
+
+```php
+use Nexus\Mcp\Server\Transport\Http\MiddlewarePipeline;
+
+$endpoint = new MiddlewarePipeline($transport, $myAuth, $myRateLimit, $cors);
+```
+
+It is re-entrant, so one instance serves concurrent requests: each `handle()` recurses over a fresh immutable
+tail rather than mutating a shared cursor.
+
+## `StreamableHttpClientTransport`
+
+Each `send()` is a discrete POST. The response content-type decides how it is read: `application/json` is
+buffered and decoded once, `text/event-stream` is parsed frame by frame as it arrives, so progress
+notifications surface before the final result.
+
+```php
+use Nexus\Mcp\Client\ClientBuilder;
+use Nexus\Mcp\Client\Transport\StreamableHttpClientTransport;
+
+$transport = new StreamableHttpClientTransport('https://mcp.example.com/mcp');
+
+$client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+$client->connect($transport);
+```
+
+The transport computes the required request-metadata headers from the message body itself, so header and body
+cannot disagree: `MCP-Protocol-Version`, `Mcp-Method`, and `Mcp-Name` (base64 sentinel-encoded when the value
+is not header-safe, which in practice means a resource URI). It also merges the `Mcp-Param-{Name}` headers the
+client mirrored from a `tools/call`, see [Client API](client.md).
+
+Two settings are worth knowing:
+
+- **`readTimeout`** (default 30s) bounds how long a response may stall. It **must exceed the server's SSE
+  keep-alive interval**, or a quiet long-lived stream is torn down between keep-alives. amphp's own 10-second
+  transfer timeout is disabled outright, since it would sever a healthy stream mid-flight.
+- **`client`** accepts any `Amp\Http\Client\DelegateHttpClient`, which is the seam for interceptors, custom
+  TLS, or a test double. It defaults to the amphp default client.
+
+`close()` cancels in-flight POSTs rather than awaiting them, because a `subscriptions/listen` stream never
+ends on its own.
+
+> **Known gap.** A single exchange can fail (connection refused, undecodable body, read timeout) while the
+> transport stays healthy. Today that is reported through `onError` but is not correlated back to the waiting
+> caller, so `sendRequest()` keeps blocking. Per-request timeouts and correlated rejection are tracked on the
+> roadmap.
 
 ## See also
 
