@@ -76,7 +76,7 @@ final class JsonRpcMessageParser
                 return JsonRpcErrorResponse::fromArray($message);
             } catch (\InvalidArgumentException $e) {
                 throw new InvalidRequestException(
-                    self::extractRequestId($message),
+                    EnvelopeRequestId::recover($message),
                     \sprintf('Invalid error response: %s', $e->getMessage()),
                 );
             }
@@ -106,7 +106,7 @@ final class JsonRpcMessageParser
             Assert::that($message)->hasOffset('method', 'JSON-RPC envelope must carry a "method" (request or notification), an "error" (error response), or a "result" (success response).');
             Assert::that($message['method'])->isNonEmptyString('JSON-RPC envelope "method" must be a non-empty string, {type} given.');
         } catch (\InvalidArgumentException $e) {
-            throw new InvalidRequestException(self::extractRequestId($message), $e->getMessage());
+            throw new InvalidRequestException(EnvelopeRequestId::recover($message), $e->getMessage());
         }
 
         $method = $message['method'];
@@ -180,31 +180,13 @@ final class JsonRpcMessageParser
 
         if (JsonRpcMessage::JSONRPC_VERSION !== $version) {
             throw new InvalidRequestException(
-                self::extractRequestId($message),
+                EnvelopeRequestId::recover($message),
                 \sprintf(
                     'Invalid JSON-RPC version: expected "%s", got %s.',
                     JsonRpcMessage::JSONRPC_VERSION,
                     null === $version ? 'null' : SafeDisplay::sanitise(var_export($version, true)),
                 ),
             );
-        }
-    }
-
-    /**
-     * @param array<string, mixed> $message
-     */
-    private static function extractRequestId(array $message): ?RequestId
-    {
-        $id = $message['id'] ?? null;
-
-        if (! \is_int($id) && ! \is_string($id)) {
-            return null;
-        }
-
-        try {
-            return new RequestId(id: $id);
-        } catch (\InvalidArgumentException) {
-            return null;
         }
     }
 }
