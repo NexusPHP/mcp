@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Http;
 
 use Nexus\Mcp\Core\Http\HeaderValueCodec;
-use Nexus\Mcp\Core\Http\StandardHeaderValidator;
+use Nexus\Mcp\Core\Http\StandardHeaders;
 use Nexus\Mcp\Core\Schema\Error\HeaderMismatchError;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -24,10 +24,10 @@ use PHPUnit\Framework\TestCase;
 /**
  * @internal
  */
-#[CoversClass(StandardHeaderValidator::class)]
+#[CoversClass(StandardHeaders::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class StandardHeaderValidatorTest extends TestCase
+final class StandardHeadersTest extends TestCase
 {
     private const string VERSION_ABSENT = 'The MCP-Protocol-Version header is required but absent.';
     private const string VERSION_MISMATCH = 'The MCP-Protocol-Version header does not match the request body protocol version.';
@@ -44,7 +44,7 @@ final class StandardHeaderValidatorTest extends TestCase
     #[DataProvider('provideValidateAcceptsCases')]
     public function testValidateAccepts(array $headers, array $body): void
     {
-        self::assertNull(StandardHeaderValidator::validate($headers, $body));
+        self::assertNull(StandardHeaders::validate($headers, $body));
     }
 
     /**
@@ -77,6 +77,13 @@ final class StandardHeaderValidatorTest extends TestCase
             self::makeBody('tools/list'),
         ];
 
+        // `Mcp-Name` is defined only for tools/call, prompts/get, and resources/read. A server must not
+        // expect it elsewhere, so a stray one is ignored rather than decoded and rejected.
+        yield 'a stray malformed name on a method that defines none' => [
+            ['mcp-protocol-version' => '2026-07-28', 'mcp-method' => 'tools/list', 'mcp-name' => '=?base64?not-base64!?='],
+            self::makeBody('tools/list'),
+        ];
+
         yield 'an encoded name matching a non-ASCII body value' => [
             ['mcp-protocol-version' => '2026-07-28', 'mcp-method' => 'tools/call', 'mcp-name' => HeaderValueCodec::encode('wörld')],
             self::makeBody('tools/call', ['name' => 'wörld']),
@@ -105,7 +112,7 @@ final class StandardHeaderValidatorTest extends TestCase
     #[DataProvider('provideValidateRejectsCases')]
     public function testValidateRejects(array $headers, array $body, string $expectedMessage): void
     {
-        $error = StandardHeaderValidator::validate($headers, $body);
+        $error = StandardHeaders::validate($headers, $body);
 
         self::assertInstanceOf(HeaderMismatchError::class, $error);
         self::assertSame($expectedMessage, $error->message);
@@ -181,6 +188,82 @@ final class StandardHeaderValidatorTest extends TestCase
             self::makeBody('tools/call', ['name' => 'bar']),
             self::METHOD_MISMATCH,
         ];
+    }
+
+    /**
+     * @param array<string, mixed>  $body
+     * @param array<string, string> $expected
+     */
+    #[DataProvider('provideBuildMirrorsTheBodyCases')]
+    public function testBuildMirrorsTheBody(array $body, array $expected): void
+    {
+        self::assertSame($expected, StandardHeaders::build($body));
+    }
+
+    /**
+     * @return iterable<string, array{array<string, mixed>, array<string, string>}>
+     */
+    public static function provideBuildMirrorsTheBodyCases(): iterable
+    {
+        yield 'a method carrying no name' => [
+            self::makeBody('tools/list'),
+            ['MCP-Protocol-Version' => '2026-07-28', 'Mcp-Method' => 'tools/list'],
+        ];
+
+        yield 'tools/call mirrors params.name' => [
+            self::makeBody('tools/call', ['name' => 'get_weather']),
+            ['MCP-Protocol-Version' => '2026-07-28', 'Mcp-Method' => 'tools/call', 'Mcp-Name' => 'get_weather'],
+        ];
+
+        yield 'prompts/get mirrors params.name' => [
+            self::makeBody('prompts/get', ['name' => 'greeting']),
+            ['MCP-Protocol-Version' => '2026-07-28', 'Mcp-Method' => 'prompts/get', 'Mcp-Name' => 'greeting'],
+        ];
+
+        yield 'resources/read mirrors params.uri' => [
+            self::makeBody('resources/read', ['uri' => 'file:///etc/cfg']),
+            ['MCP-Protocol-Version' => '2026-07-28', 'Mcp-Method' => 'resources/read', 'Mcp-Name' => 'file:///etc/cfg'],
+        ];
+
+        yield 'a name outside the header-safe set is sentinel-encoded' => [
+            self::makeBody('tools/call', ['name' => 'Hello, 世界']),
+            [
+                'MCP-Protocol-Version' => '2026-07-28',
+                'Mcp-Method' => 'tools/call',
+                'Mcp-Name' => '=?base64?SGVsbG8sIOS4lueVjA==?=',
+            ],
+        ];
+
+        yield 'a name the body does not carry is omitted' => [
+            self::makeBody('tools/call'),
+            ['MCP-Protocol-Version' => '2026-07-28', 'Mcp-Method' => 'tools/call'],
+        ];
+
+        yield 'a non-string name is omitted' => [
+            self::makeBody('tools/call', ['name' => 42]),
+            ['MCP-Protocol-Version' => '2026-07-28', 'Mcp-Method' => 'tools/call'],
+        ];
+
+        // A notification's `_meta` carries no protocol version, so there is nothing to mirror.
+        yield 'a body without a protocol version omits the header' => [
+            self::makeBody('tools/list', version: null),
+            ['Mcp-Method' => 'tools/list'],
+        ];
+
+        yield 'a body without a method omits the header' => [
+            self::makeBody(null),
+            ['MCP-Protocol-Version' => '2026-07-28'],
+        ];
+
+        yield 'an empty body mirrors nothing' => [[], []];
+    }
+
+    public function testBuildProducesHeadersItsOwnValidatorAccepts(): void
+    {
+        // The two directions are one contract: anything build() emits must survive validate().
+        $body = self::makeBody('resources/read', ['uri' => 'file:///tmp/note with spaces.txt']);
+
+        self::assertNull(StandardHeaders::validate(StandardHeaders::build($body), $body));
     }
 
     /**

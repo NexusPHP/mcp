@@ -17,18 +17,50 @@ use Nexus\Mcp\Core\Schema\Error\HeaderMismatchError;
 use Nexus\Mcp\Core\Schema\RequestMetaObject;
 
 /**
- * Cross-checks the standard request headers (`MCP-Protocol-Version`, `Mcp-Method`, `Mcp-Name`) against
- * the request body.
+ * Builds and cross-checks the standard request headers (`MCP-Protocol-Version`, `Mcp-Method`, `Mcp-Name`)
+ * against the request body.
  *
  * @internal
  *
  * @see https://modelcontextprotocol.io/specification/draft/basic/transports/streamable-http#request-metadata
  */
-final class StandardHeaderValidator
+final class StandardHeaders
 {
-    private const string PROTOCOL_VERSION_HEADER = 'mcp-protocol-version';
-    private const string METHOD_HEADER = 'mcp-method';
-    private const string NAME_HEADER = 'mcp-name';
+    private const string PROTOCOL_VERSION_HEADER = 'MCP-Protocol-Version';
+    private const string METHOD_HEADER = 'Mcp-Method';
+    private const string NAME_HEADER = 'Mcp-Name';
+
+    /**
+     * Builds the standard headers mirroring an outbound request envelope. A header whose source value the
+     * body does not carry is omitted, since the client has nothing to mirror.
+     *
+     * @param array<string, mixed> $body Encoded JSON-RPC request envelope
+     *
+     * @return array<string, string>
+     */
+    public static function build(array $body): array
+    {
+        $headers = [];
+        $version = self::readVersion($body);
+
+        if (null !== $version) {
+            $headers[self::PROTOCOL_VERSION_HEADER] = $version;
+        }
+
+        $method = self::readString($body, 'method');
+
+        if (null !== $method) {
+            $headers[self::METHOD_HEADER] = $method;
+        }
+
+        $source = self::readName($body);
+
+        if (null !== $source) {
+            $headers[self::NAME_HEADER] = HeaderValueCodec::encode($source);
+        }
+
+        return $headers;
+    }
 
     /**
      * Validates the standard headers a request carries against its body. Returns the mismatch to reject
@@ -52,13 +84,13 @@ final class StandardHeaderValidator
      */
     private static function checkVersion(array $headers, array $body): ?HeaderMismatchError
     {
-        $header = $headers[self::PROTOCOL_VERSION_HEADER] ?? null;
+        $header = self::readLine($headers, self::PROTOCOL_VERSION_HEADER);
 
         if (null === $header) {
             return new HeaderMismatchError('The MCP-Protocol-Version header is required but absent.');
         }
 
-        $bodyVersion = self::readString($body, 'params', '_meta', RequestMetaObject::PROTOCOL_VERSION_KEY);
+        $bodyVersion = self::readVersion($body);
 
         if (null !== $bodyVersion && $header !== $bodyVersion) {
             return new HeaderMismatchError('The MCP-Protocol-Version header does not match the request body protocol version.');
@@ -73,7 +105,7 @@ final class StandardHeaderValidator
      */
     private static function checkMethod(array $headers, array $body): ?HeaderMismatchError
     {
-        $header = $headers[self::METHOD_HEADER] ?? null;
+        $header = self::readLine($headers, self::METHOD_HEADER);
 
         if (null === $header) {
             return new HeaderMismatchError('The Mcp-Method header is required but absent.');
@@ -94,18 +126,12 @@ final class StandardHeaderValidator
      */
     private static function checkName(array $headers, array $body): ?HeaderMismatchError
     {
-        $field = match (self::readString($body, 'method')) {
-            'tools/call', 'prompts/get' => 'name',
-            'resources/read' => 'uri',
-            default => null,
-        };
-
-        if (null === $field) {
+        if (self::resolveNameField($body) === null) {
             return null;
         }
 
-        $source = self::readString($body, 'params', $field);
-        $header = $headers[self::NAME_HEADER] ?? null;
+        $source = self::readName($body);
+        $header = self::readLine($headers, self::NAME_HEADER);
 
         if (null === $header) {
             // A missing source value is a params fault. Only reject when the body actually carries one.
@@ -125,6 +151,48 @@ final class StandardHeaderValidator
         }
 
         return null;
+    }
+
+    /**
+     * @param array<string, string> $headers Keys already lowercased
+     */
+    private static function readLine(array $headers, string $name): ?string
+    {
+        return $headers[strtolower($name)] ?? null;
+    }
+
+    /**
+     * @param array<string, mixed> $body
+     */
+    private static function readVersion(array $body): ?string
+    {
+        return self::readString($body, 'params', '_meta', RequestMetaObject::PROTOCOL_VERSION_KEY);
+    }
+
+    /**
+     * The body value `Mcp-Name` mirrors, or null when the method carries none.
+     *
+     * @param array<string, mixed> $body
+     */
+    private static function readName(array $body): ?string
+    {
+        $field = self::resolveNameField($body);
+
+        return null === $field ? null : self::readString($body, 'params', $field);
+    }
+
+    /**
+     * The `params` key `Mcp-Name` mirrors for the body's method.
+     *
+     * @param array<string, mixed> $body
+     */
+    private static function resolveNameField(array $body): ?string
+    {
+        return match (self::readString($body, 'method')) {
+            'tools/call', 'prompts/get' => 'name',
+            'resources/read' => 'uri',
+            default => null,
+        };
     }
 
     /**

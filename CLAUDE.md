@@ -46,6 +46,10 @@ Docs sync: after any change that renames, deletes, moves, or adds a top-level bu
 - `Nexus\Mcp\Core\JsonRpc\*`: JSON-RPC envelope behaviour (parser, guards). The envelope-parsing guard lives here, not under `Schema\`, even though schema classes consume it.
 - `Nexus\Mcp\Core\Exception\*`: every SDK exception implements the `McpExceptionInterface` marker so consumers can `catch (McpExceptionInterface $e)`.
 
+### Method naming
+
+- **Methods are verb-first**, private helpers included: `readLine()`, `resolveNameField()`, `resolveBindings()`, not `line()`, `nameField()`, `bindingsFor()`. A noun name reads as a property accessor and hides that the call does work. Interface-mandated names (`list()`, `call()`) are exempt, as is anything a third-party contract fixes.
+
 ### PHPDoc style
 
 - **Prefer native phpdoc tags over `@phpstan-*` variants** across the codebase. Use `@return`, `@param`, `@var`, `@implements`, `@extends`, `@throws`, `@template`, etc. Reach for `@phpstan-*` only when there is no native equivalent (`@phpstan-assert`, `@phpstan-consistent-constructor`, `@phpstan-type`, `@phpstan-import-type`, `@phpstan-ignore`).
