@@ -44,7 +44,7 @@ final class ParameterHeaders
      * @param list<ParameterHeaderBinding> $bindings
      * @param array<string, mixed>         $arguments
      *
-     * @return array<string, string>
+     * @return array<non-empty-string, string>
      */
     public static function build(array $bindings, array $arguments): array
     {

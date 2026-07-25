@@ -378,10 +378,13 @@ Client transport (`Nexus\Mcp\Client`, amphp/http-client). Adds `amphp/http-clien
   fault.
 - [ ] Per-request cancellation, so abandoning one request aborts only that POST. `TransportInterface` has no
   cancel seam yet, so this lands with the cancellation registry.
-- [ ] `x-mcp-header` mirroring (client mandatory): cache tool input schemas from `tools/list`, exclude any
-  tool whose `x-mcp-header` declarations violate the scanner constraints (logging a warning), and on
-  `tools/call` build the `Mcp-Param-{Name}` headers from the arguments, carried through `SendContext`.
-  Gated on an HTTP-transport marker so stdio is unaffected.
+- [x] `x-mcp-header` mirroring (client mandatory): `listTools()` scans each tool's `inputSchema`, caches the
+  bindings, and drops a tool whose declarations violate the scanner constraints with a warning, since the spec
+  has a client exclude what it cannot mirror. `callTool()` builds the `Mcp-Param-{Name}` headers from the
+  arguments and carries them through `SendContext`, which the HTTP transport merges into the POST and stdio
+  ignores. The listing filter is gated on `ParameterHeaderMirroringInterface` so a stdio user does not lose a
+  usable tool to an annotation that does not apply. `disconnect()` clears the cache, which belongs to the
+  connection that served it.
 
 Follow-on milestones.
 

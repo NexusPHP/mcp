@@ -23,7 +23,9 @@ use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
 use Nexus\Mcp\Core\Schema\ClientCapabilities;
 use Nexus\Mcp\Core\Schema\Cursor;
 use Nexus\Mcp\Core\Schema\Implementation;
+use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcMessage;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
+use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\Notification\ProgressNotification;
 use Nexus\Mcp\Core\Schema\Prompt\PromptReference;
@@ -51,6 +53,9 @@ use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
 use Nexus\Mcp\Core\Schema\ResultMetaObject;
 use Nexus\Mcp\Core\Schema\ResultResponse\ListToolsResultResponse;
 use Nexus\Mcp\Core\Schema\ServerCapabilities;
+use Nexus\Mcp\Core\Transport\SendContext;
+use Nexus\Mcp\Core\Transport\TransportInterface;
+use Nexus\Mcp\Tests\Fixtures\Client\Http\MirroringRecordingTransport;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureNotificationHandler;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
@@ -874,6 +879,208 @@ final class ClientTest extends TestCase
         $transport->close();
 
         self::assertSame(['unsolicited'], $delivered);
+    }
+
+    public function testListToolsExcludesAToolWhoseDeclarationsAreInvalid(): void
+    {
+        // "Clients using the Streamable HTTP transport MUST reject tool definitions where any x-mcp-header
+        // value violates these constraints ... the client MUST exclude the invalid tool."
+        $logger = new ArrayLogger();
+        $transport = new MirroringRecordingTransport();
+        $client = self::connectMirroring($transport, $logger);
+
+        $result = self::listToolsWithDeclarations($client, $transport);
+
+        self::assertCount(1, $result->tools);
+        self::assertSame('good', $result->tools[0]->name);
+
+        $matches = $logger->recordsMatching(LogLevel::WARNING, 'Excluding tool {tool} from the listing: its "x-mcp-header" declarations are invalid.');
+        self::assertCount(1, $matches);
+        self::assertSame('bad', $matches[0]['context']['tool'] ?? null);
+        self::assertIsString($matches[0]['context']['reason'] ?? null);
+    }
+
+    public function testListToolsKeepsEveryToolOnATransportThatDoesNotMirror(): void
+    {
+        // Stdio may ignore the annotations entirely, so an invalid one must not cost the user a usable tool.
+        $logger = new ArrayLogger();
+        $transport = new RecordingTransport();
+        $client = self::connectMirroring($transport, $logger);
+
+        $result = self::listToolsWithDeclarations($client, $transport);
+
+        self::assertCount(2, $result->tools);
+        self::assertSame([], $logger->recordsMatching(LogLevel::WARNING, 'Excluding tool {tool} from the listing: its "x-mcp-header" declarations are invalid.'));
+    }
+
+    public function testCallToolMirrorsAnnotatedArgumentsIntoHeaders(): void
+    {
+        $transport = new MirroringRecordingTransport();
+        $client = self::connectMirroring($transport);
+        self::listToolsWithDeclarations($client, $transport);
+
+        self::callToolAndSettle($client, $transport, ['region' => 'us-west1', 'query' => 'SELECT 1']);
+
+        self::assertSame(['Mcp-Param-Region' => 'us-west1'], self::lastContext($transport)->headers);
+    }
+
+    public function testCallToolOmitsAHeaderWhoseArgumentIsAbsent(): void
+    {
+        $transport = new MirroringRecordingTransport();
+        $client = self::connectMirroring($transport);
+        self::listToolsWithDeclarations($client, $transport);
+
+        self::callToolAndSettle($client, $transport, ['query' => 'SELECT 1']);
+
+        self::assertSame([], self::lastContext($transport)->headers);
+    }
+
+    public function testCallToolSendsNoHeadersForAToolItNeverListed(): void
+    {
+        // Nothing cached means nothing to mirror. The server answers HeaderMismatch and the client retries
+        // after a fresh tools/list, which is the recovery the spec describes.
+        $transport = new MirroringRecordingTransport();
+        $client = self::connectMirroring($transport);
+
+        self::callToolAndSettle($client, $transport, ['region' => 'us-west1']);
+
+        self::assertSame([], self::lastContext($transport)->headers);
+    }
+
+    public function testReconnectingDiscardsTheCachedBindings(): void
+    {
+        $transport = new MirroringRecordingTransport();
+        $client = self::connectMirroring($transport);
+        self::listToolsWithDeclarations($client, $transport);
+
+        $client->disconnect();
+        $fresh = new MirroringRecordingTransport();
+        $client->connect($fresh);
+
+        self::callToolAndSettle($client, $fresh, ['region' => 'us-west1']);
+
+        self::assertSame([], self::lastContext($fresh)->headers, 'The bindings belonged to the previous server.');
+    }
+
+    public function testCallToolSendsNoHeadersOnATransportThatDoesNotMirror(): void
+    {
+        $transport = new RecordingTransport();
+        $client = self::connectMirroring($transport);
+        self::listToolsWithDeclarations($client, $transport);
+
+        self::callToolAndSettle($client, $transport, ['region' => 'us-west1']);
+
+        self::assertSame([], self::lastContext($transport)->headers);
+    }
+
+    private static function connectMirroring(TransportInterface $transport, ?ArrayLogger $logger = null): Client
+    {
+        $client = new ClientBuilder()
+            ->setClientInfo('demo', '1.0.0')
+            ->setLogger($logger ?? new ArrayLogger())
+            ->build()
+        ;
+        $client->connect($transport);
+
+        return $client;
+    }
+
+    /**
+     * Drives one `tools/list`, answering with a valid and an invalid `x-mcp-header` declaration.
+     */
+    private static function listToolsWithDeclarations(Client $client, MirroringRecordingTransport|RecordingTransport $transport): ListToolsResult
+    {
+        $deferred = async(static fn(): ListToolsResult => $client->listTools());
+        $transport->nextSend()->await();
+
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => self::lastRequestId($transport),
+            'result' => [
+                'tools' => [
+                    [
+                        'name' => 'bad',
+                        // `number` is not a permitted x-mcp-header type. Listed first, so skipping it must
+                        // not also skip what follows.
+                        'inputSchema' => [
+                            'type' => 'object',
+                            'properties' => ['size' => ['type' => 'number', 'x-mcp-header' => 'Size']],
+                        ],
+                    ],
+                    [
+                        'name' => 'good',
+                        'inputSchema' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'region' => ['type' => 'string', 'x-mcp-header' => 'Region'],
+                                'query' => ['type' => 'string'],
+                            ],
+                        ],
+                    ],
+                ],
+                'ttlMs' => 0,
+                'cacheScope' => 'private',
+            ],
+        ]);
+
+        $result = $deferred->await();
+        \assert($result instanceof ListToolsResult);
+
+        return $result;
+    }
+
+    /**
+     * @param array<string, mixed> $arguments
+     */
+    private static function callToolAndSettle(Client $client, MirroringRecordingTransport|RecordingTransport $transport, array $arguments): void
+    {
+        $deferred = async(static fn() => $client->callTool('good', $arguments));
+        $transport->nextSend()->await();
+
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => self::lastRequestId($transport),
+            'result' => ['content' => [], 'resultType' => 'complete'],
+        ]);
+
+        $deferred->await();
+    }
+
+    private static function lastContext(MirroringRecordingTransport|RecordingTransport $transport): SendContext
+    {
+        $context = self::lastSent($transport)['context'];
+
+        if (! $context instanceof SendContext) {
+            self::fail('The tool call carried no send context.');
+        }
+
+        return $context;
+    }
+
+    private static function lastRequestId(MirroringRecordingTransport|RecordingTransport $transport): int|string
+    {
+        $request = self::lastSent($transport)['message'];
+
+        if (! $request instanceof JsonRpcRequest) {
+            self::fail('The transport last recorded something other than a request.');
+        }
+
+        return $request->id->id;
+    }
+
+    /**
+     * @return array{message: JsonRpcMessage, context: ?SendContext}
+     */
+    private static function lastSent(MirroringRecordingTransport|RecordingTransport $transport): array
+    {
+        $sent = $transport->sent;
+        $last = end($sent);
+
+        if (false === $last) {
+            self::fail('The transport recorded no message.');
+        }
+
+        return $last;
     }
 
     /**

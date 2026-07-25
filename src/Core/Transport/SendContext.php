@@ -21,10 +21,15 @@ use Nexus\Mcp\Core\Schema\RequestId;
 final readonly class SendContext
 {
     /**
-     * @param bool $fromHandler Whether a request handler's execution produced the message, letting a
-     *                          request-scoped transport map the response to a transport-level status.
+     * @param bool                            $fromHandler Whether a request handler's execution produced the message, letting a
+     *                                                     request-scoped transport map the response to a transport-level status.
+     * @param array<non-empty-string, string> $headers     Transport headers the protocol layer computed for this message. A
+     *                                                     transport that carries no headers ignores them.
      */
-    public function __construct(public ?RequestId $relatedRequestId = null, public bool $fromHandler = false)
-    {
+    public function __construct(
+        public ?RequestId $relatedRequestId = null,
+        public bool $fromHandler = false,
+        public array $headers = [],
+    ) {
     }
 }
