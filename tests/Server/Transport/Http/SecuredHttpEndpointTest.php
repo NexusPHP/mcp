@@ -13,8 +13,11 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Server\Transport\Http;
 
+use Nexus\Mcp\Core\Schema\Tool\Tool;
+use Nexus\Mcp\Server\Tool\ToolStoreInterface;
 use Nexus\Mcp\Server\Transport\Http\SecuredHttpEndpoint;
 use Nexus\Mcp\Tests\Fixtures\Server\Http\RecordingRequestHandler;
+use Nexus\Mcp\Tests\Fixtures\Server\Tool\PagedToolStore;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
@@ -90,6 +93,39 @@ final class SecuredHttpEndpointTest extends TestCase
         self::assertSame(200, $response->getStatusCode());
     }
 
+    public function testValidatesParameterHeadersWhenAToolStoreIsGiven(): void
+    {
+        $handler = self::handler();
+
+        $response = self::endpoint($handler, ['*'], toolStore: self::toolStore())->handle(self::toolCall('us-east1'));
+
+        self::assertFalse($handler->called);
+        self::assertSame(400, $response->getStatusCode());
+    }
+
+    public function testOmitsParameterHeaderValidationByDefault(): void
+    {
+        $handler = self::handler();
+
+        $response = self::endpoint($handler, ['*'])->handle(self::toolCall('us-east1'));
+
+        self::assertTrue($handler->called);
+        self::assertSame(200, $response->getStatusCode());
+    }
+
+    public function testAnswersRebindingAheadOfParameterHeaderValidation(): void
+    {
+        // The cheap origin gate must run before the body is peeked at.
+        $handler = self::handler();
+
+        $response = self::endpoint($handler, ['https://app.test'], toolStore: self::toolStore())
+            ->handle(self::toolCall('us-east1')->withHeader('Origin', 'https://evil.test'))
+        ;
+
+        self::assertFalse($handler->called);
+        self::assertSame(403, $response->getStatusCode());
+    }
+
     /**
      * @param list<non-empty-string> $allowedOrigins
      * @param list<non-empty-string> $allowedHosts
@@ -99,10 +135,39 @@ final class SecuredHttpEndpointTest extends TestCase
         array $allowedOrigins,
         array $allowedHosts = [],
         ?int $maxBodyBytes = null,
+        ?ToolStoreInterface $toolStore = null,
     ): SecuredHttpEndpoint {
         $factory = new Psr17Factory();
 
-        return new SecuredHttpEndpoint($handler, $allowedOrigins, $factory, $factory, $allowedHosts, $maxBodyBytes);
+        return new SecuredHttpEndpoint($handler, $allowedOrigins, $factory, $factory, $allowedHosts, $maxBodyBytes, $toolStore);
+    }
+
+    private static function toolStore(): ToolStoreInterface
+    {
+        return new PagedToolStore([[
+            new Tool(name: 'echo', inputSchema: [
+                'type' => 'object',
+                'properties' => ['region' => ['type' => 'string', 'x-mcp-header' => 'Region']],
+            ]),
+        ]]);
+    }
+
+    /**
+     * A `tools/call` whose `Mcp-Param-Region` header disagrees with its body argument.
+     */
+    private static function toolCall(string $header): ServerRequestInterface
+    {
+        $factory = new Psr17Factory();
+
+        return $factory->createServerRequest('POST', 'https://mcp.test/')
+            ->withHeader('Mcp-Param-Region', $header)
+            ->withBody($factory->createStream(json_encode([
+                'jsonrpc' => '2.0',
+                'id' => 1,
+                'method' => 'tools/call',
+                'params' => ['name' => 'echo', 'arguments' => ['region' => 'eu-west1']],
+            ], \JSON_THROW_ON_ERROR)))
+        ;
     }
 
     private static function handler(): RecordingRequestHandler

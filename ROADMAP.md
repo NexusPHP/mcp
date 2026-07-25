@@ -331,14 +331,23 @@ PSR-17 factories are constructor-injected, not discovered.
   `204` plus the negotiated `Access-Control-*` headers (echoing `Access-Control-Request-Headers`), and every
   other response is decorated. A disallowed or absent `Origin` receives no CORS headers, so rejection stays
   with the DNS-rebinding gate. The spec does not define CORS for the MCP endpoint.
+- [x] `ParameterHeaderValidationMiddleware` (PSR-15): the spec's server-side `Mcp-Param-{Name}` MUST. On a
+  `tools/call` it peeks at the body without consuming it, resolves the named tool's `x-mcp-header` bindings, and
+  rejects a header that is absent, malformed, or disagrees with the body argument with `-32020` on `400`, echoing
+  the request id. Bindings come from paging `ToolStoreInterface::list()` once and caching the scan, so a store
+  whose tool set changes after the first `tools/call` outlives the cache. A tool whose own declarations violate
+  the scanner constraints is skipped with a warning, since a conforming client already excluded it from its
+  listing.
 - [x] `MiddlewarePipeline` (PSR-15): a re-entrant `RequestHandlerInterface` that runs middleware outermost-first
   in front of an inner handler, so operators compose the security middlewares with a plain
   `new MiddlewarePipeline($transport, ...$middleware)` and no external PSR-15 runner. The transport stays a bare
   handler, keeping composition and ordering with the operator.
 - [x] `SecuredHttpEndpoint` (PSR-15): a batteries-included `RequestHandlerInterface` that wraps the transport in
-  the recommended security stack from config (CORS then DNS-rebinding then the optional body-size cap). Origin
-  allow-listing is required, so security is on-by-default without the permissive zero-arg defaults the spec and
-  our explicit-config middlewares would otherwise force.
+  the recommended security stack from config (CORS, then DNS-rebinding, then the optional parameter-header
+  validation, then the optional body-size cap). Origin allow-listing is required, so security is on-by-default
+  without the permissive zero-arg defaults the spec and our explicit-config middlewares would otherwise force.
+  Passing the served tool store lights up the `Mcp-Param-{Name}` validation, which a server declaring
+  `x-mcp-header` must do.
 - [x] A non-blocking `Server::listen(TransportInterface)` seam that attaches the dispatcher listeners and
   starts the transport without the close-await that `run()` uses for stdio, so the endpoint can be mounted
   per request in a PSR-15 stack.
