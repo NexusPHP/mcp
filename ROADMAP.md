@@ -494,18 +494,15 @@ Composition-surface quality-of-life items, independent of any spec revision.
 
 ## Transports
 
-The `TransportInterface` is already shaped to accommodate streamable HTTP without a breaking change:
-`SendContext` is a value-object slot for transport-specific routing fields (`relatedRequestId`), and
-`onDrain` is symmetric with `onClose` so streaming responses can flush before the connection closes.
-
-Streamable HTTP lands with the 2026-07-28 migration since the spec's session-management semantics also
-move on that revision.
+`TransportInterface` accommodates both transports without a breaking change: `SendContext` is a value-object
+slot for transport-specific routing fields (`relatedRequestId`, `fromHandler`, `headers`), and `onDrain` is
+symmetric with `onClose` so streaming responses can flush before the connection closes.
 
 - [x] `Nexus\Mcp\Server\Transport\StdioServerTransport`.
 - [x] `Nexus\Mcp\Core\Transport\InMemoryTransport` (test-only paired transports).
 - [x] `Nexus\Mcp\Client\Transport\StdioClientTransport` (subprocess launcher).
-- [ ] Streamable HTTP server transport (lands with the 2026-07-28 migration).
-- [ ] Streamable HTTP client transport.
+- [x] `Nexus\Mcp\Server\Transport\StreamableHttpServerTransport` (PSR-15 handler, mounted by the host).
+- [x] `Nexus\Mcp\Client\Transport\StreamableHttpClientTransport` (one POST per message).
 
 ## Language compatibility
 
