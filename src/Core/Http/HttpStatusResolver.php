@@ -28,9 +28,10 @@ use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 final class HttpStatusResolver
 {
     /**
-     * @param bool $fromHandler Whether the error was produced by a request handler (rides HTTP 200)
+     * @param ?ProtocolErrorCode $code        The error's code, or `null` when it falls outside the spec-defined set
+     * @param bool               $fromHandler Whether the error was produced by a request handler (rides HTTP 200)
      */
-    public static function resolve(ProtocolErrorCode $code, bool $fromHandler): int
+    public static function resolve(?ProtocolErrorCode $code, bool $fromHandler): int
     {
         if ($fromHandler) {
             return HttpStatus::Ok->value;

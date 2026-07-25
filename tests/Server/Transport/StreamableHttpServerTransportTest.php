@@ -20,6 +20,7 @@ use Nexus\Mcp\Core\Exception\TransportNotStartedException;
 use Nexus\Mcp\Core\Handler\AbstractContext;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Error\InternalError;
+use Nexus\Mcp\Core\Schema\Error\UnknownProtocolError;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\Notification\ToolListChangedNotification;
@@ -174,7 +175,6 @@ final class StreamableHttpServerTransportTest extends TestCase
     public function testValidNotificationIsEmittedAndAcceptedWith202(): void
     {
         $transport = self::makeTransport();
-        $transport->start();
 
         $received = [];
         $transport->onMessage(static function (array $envelope) use (&$received): void {
@@ -200,7 +200,6 @@ final class StreamableHttpServerTransportTest extends TestCase
     {
         $logger = new ArrayLogger();
         $transport = self::makeTransport($logger);
-        $transport->start();
 
         $emitted = false;
         $transport->onMessage(static function () use (&$emitted): void {
@@ -231,7 +230,7 @@ final class StreamableHttpServerTransportTest extends TestCase
 
     public function testPostRequestReturnsBufferedJsonResult(): void
     {
-        $transport = self::makeTransport();
+        $transport = self::makeTransport(start: false);
         self::listen($transport);
 
         $response = self::handle($transport, self::makePost([
@@ -252,7 +251,7 @@ final class StreamableHttpServerTransportTest extends TestCase
 
     public function testStringClientIdIsRestoredOnTheResponse(): void
     {
-        $transport = self::makeTransport();
+        $transport = self::makeTransport(start: false);
         self::listen($transport);
 
         $response = self::handle($transport, self::makePost([
@@ -267,7 +266,7 @@ final class StreamableHttpServerTransportTest extends TestCase
 
     public function testResponseBodyLeavesSlashesAndUnicodeUnescaped(): void
     {
-        $transport = self::makeTransport();
+        $transport = self::makeTransport(start: false);
         self::listen($transport);
 
         $response = self::handle($transport, self::makePost([
@@ -284,7 +283,7 @@ final class StreamableHttpServerTransportTest extends TestCase
 
     public function testConcurrentRequestsSharingAClientIdDoNotCollide(): void
     {
-        $transport = self::makeTransport();
+        $transport = self::makeTransport(start: false);
         self::listen($transport);
 
         $post = self::makePost([
@@ -361,7 +360,7 @@ final class StreamableHttpServerTransportTest extends TestCase
 
     public function testUnknownMethodRidesHttp404(): void
     {
-        $transport = self::makeTransport();
+        $transport = self::makeTransport(start: false);
         self::listen($transport);
 
         $response = self::handle($transport, self::makePost(
@@ -375,7 +374,7 @@ final class StreamableHttpServerTransportTest extends TestCase
 
     public function testEnvelopeLevelInvalidParamsRidesHttp400(): void
     {
-        $transport = self::makeTransport();
+        $transport = self::makeTransport(start: false);
         self::listen($transport);
 
         // An empty `_meta` fails request-params decoding inside the parser: an envelope-level -32602.
@@ -400,7 +399,7 @@ final class StreamableHttpServerTransportTest extends TestCase
             ->build()
         ;
 
-        $transport = self::makeTransport();
+        $transport = self::makeTransport(start: false);
         self::listen($transport, $server);
 
         $response = self::handle($transport, self::makePost(
@@ -422,7 +421,7 @@ final class StreamableHttpServerTransportTest extends TestCase
             ->build()
         ;
 
-        $transport = self::makeTransport();
+        $transport = self::makeTransport(start: false);
         self::listen($transport, $server);
 
         $response = self::handle($transport, self::makePost(
@@ -449,7 +448,7 @@ final class StreamableHttpServerTransportTest extends TestCase
             ->build()
         ;
 
-        $transport = self::makeTransport();
+        $transport = self::makeTransport(start: false);
         self::listen($transport, $server);
 
         $post = self::makePost(
@@ -466,17 +465,102 @@ final class StreamableHttpServerTransportTest extends TestCase
         self::assertSame($post, $captured->receiveContext->request);
     }
 
+    public function testRequestBeforeStartIsRefusedWith503(): void
+    {
+        // Nothing is listening, so no dispatch would resolve the request. The endpoint must answer rather
+        // than suspend on a response that cannot arrive.
+        $response = self::makeTransport(start: false)->handle(self::discoverPost());
+
+        self::assertSame(503, $response->getStatusCode());
+        self::assertSame(ProtocolErrorCode::InternalError->value, self::errorPayload($response)['code'] ?? null);
+        self::assertArrayNotHasKey('id', self::decode($response));
+    }
+
+    public function testRequestAfterCloseIsRefusedWith503(): void
+    {
+        $transport = self::makeTransport(start: false);
+        self::listen($transport);
+        $transport->close();
+
+        $response = $transport->handle(self::discoverPost());
+
+        self::assertSame(503, $response->getStatusCode());
+        self::assertSame(ProtocolErrorCode::InternalError->value, self::errorPayload($response)['code'] ?? null);
+    }
+
+    public function testNotificationBeforeStartIsRefusedWith503(): void
+    {
+        // A 202 would tell the client the notification was accepted when nothing consumed it.
+        $response = self::makeTransport(start: false)->handle(self::makePost([
+            'jsonrpc' => '2.0',
+            'method' => 'notifications/tools/list_changed',
+        ]));
+
+        self::assertSame(503, $response->getStatusCode());
+    }
+
+    public function testNotificationMethodSentAsRequestIsAnsweredRatherThanLeftPending(): void
+    {
+        // The dispatcher rejects the envelope. Were that rejection silent, this POST would never resolve.
+        $transport = self::makeTransport(start: false);
+        self::listen($transport);
+
+        $response = self::handle($transport, self::makePost([
+            'jsonrpc' => '2.0',
+            'id' => 'n-1',
+            'method' => 'notifications/tools/list_changed',
+            'params' => ['_meta' => RequestMetaObjectFactory::shape()],
+        ], self::standardHeaders('notifications/tools/list_changed')));
+
+        self::assertSame(400, $response->getStatusCode());
+        self::assertSame(ProtocolErrorCode::InvalidRequest->value, self::errorPayload($response)['code'] ?? null);
+        self::assertSame('n-1', self::decode($response)['id'] ?? null, 'The client id must be restored on the response.');
+    }
+
+    public function testResponseCarryingANonSpecErrorCodeResolvesToBadRequest(): void
+    {
+        // Error::$code is a plain int, so a consumer-sent code outside ProtocolErrorCode must not strand
+        // the awaiting request.
+        $transport = self::makeTransport();
+        $internalId = null;
+        $transport->onMessage(static function (array $envelope) use (&$internalId): void {
+            $internalId = $envelope['id'] ?? null;
+        });
+
+        $pending = async(static fn(): ResponseInterface => $transport->handle(self::discoverPost()));
+        delay(0.01);
+
+        self::assertIsInt($internalId);
+        $transport->send(new JsonRpcErrorResponse(
+            id: new RequestId(id: $internalId),
+            error: new UnknownProtocolError(code: -32000, message: 'boom'),
+        ));
+
+        $response = $pending->await();
+        self::assertInstanceOf(ResponseInterface::class, $response);
+
+        self::assertSame(400, $response->getStatusCode());
+        self::assertSame(-32000, self::errorPayload($response)['code'] ?? null);
+    }
+
+    public function testNonPostIsAnsweredEvenWhenTheEndpointIsNotAccepting(): void
+    {
+        // The method check is pure HTTP and does not depend on the transport serving MCP traffic.
+        $response = self::makeTransport(start: false)->handle(new Psr17Factory()->createServerRequest('GET', 'https://mcp.test/'));
+
+        self::assertSame(405, $response->getStatusCode());
+    }
+
     public function testSendBeforeStartThrows(): void
     {
         $this->expectException(TransportNotStartedException::class);
 
-        self::makeTransport()->send(new ToolListChangedNotification(params: new EmptyNotificationParams()));
+        self::makeTransport(start: false)->send(new ToolListChangedNotification(params: new EmptyNotificationParams()));
     }
 
     public function testSendAfterCloseThrows(): void
     {
         $transport = self::makeTransport();
-        $transport->start();
         $transport->close();
 
         $this->expectException(TransportAlreadyClosedException::class);
@@ -488,7 +572,6 @@ final class StreamableHttpServerTransportTest extends TestCase
     {
         $logger = new ArrayLogger();
         $transport = self::makeTransport($logger);
-        $transport->start();
 
         $transport->send(new ToolListChangedNotification(params: new EmptyNotificationParams()));
 
@@ -500,7 +583,6 @@ final class StreamableHttpServerTransportTest extends TestCase
     {
         $logger = new ArrayLogger();
         $transport = self::makeTransport($logger);
-        $transport->start();
 
         $transport->send(new DiscoverRequest(
             id: new RequestId(id: 1),
@@ -514,7 +596,6 @@ final class StreamableHttpServerTransportTest extends TestCase
     {
         $logger = new ArrayLogger();
         $transport = self::makeTransport($logger);
-        $transport->start();
 
         $transport->send(new JsonRpcErrorResponse(id: null, error: new InternalError(message: 'boom')));
 
@@ -527,7 +608,6 @@ final class StreamableHttpServerTransportTest extends TestCase
     {
         $logger = new ArrayLogger();
         $transport = self::makeTransport($logger);
-        $transport->start();
 
         $transport->send(new JsonRpcErrorResponse(id: new RequestId(id: $id), error: new InternalError(message: 'boom')));
 
@@ -547,7 +627,7 @@ final class StreamableHttpServerTransportTest extends TestCase
 
     public function testStartTwiceThrows(): void
     {
-        $transport = self::makeTransport();
+        $transport = self::makeTransport(start: false);
         $transport->start();
 
         $this->expectException(TransportAlreadyStartedException::class);
@@ -557,7 +637,7 @@ final class StreamableHttpServerTransportTest extends TestCase
 
     public function testStartAfterCloseThrows(): void
     {
-        $transport = self::makeTransport();
+        $transport = self::makeTransport(start: false);
         $transport->start();
         $transport->close();
 
@@ -569,7 +649,6 @@ final class StreamableHttpServerTransportTest extends TestCase
     public function testCloseDrainsBeforeSignallingCloseAndIsIdempotent(): void
     {
         $transport = self::makeTransport();
-        $transport->start();
 
         $order = [];
         $transport->onDrain(static function () use (&$order): void {
@@ -589,7 +668,6 @@ final class StreamableHttpServerTransportTest extends TestCase
     public function testCloseSignalsCloseEvenWhenADrainListenerThrows(): void
     {
         $transport = self::makeTransport();
-        $transport->start();
 
         $closed = false;
         $transport->onDrain(static function (): void {
@@ -638,7 +716,7 @@ final class StreamableHttpServerTransportTest extends TestCase
 
     public function testAcceptHeaderMatchesCaseInsensitively(): void
     {
-        $transport = self::makeTransport();
+        $transport = self::makeTransport(start: false);
         self::listen($transport);
 
         $response = self::handle($transport, self::makePost(
@@ -652,7 +730,7 @@ final class StreamableHttpServerTransportTest extends TestCase
 
     public function testSseModeStreamsProgressThenTheFinalResult(): void
     {
-        $transport = self::makeTransport(responseMode: ResponseMode::Sse);
+        $transport = self::makeTransport(responseMode: ResponseMode::Sse, start: false);
         self::listen($transport, self::progressServer());
 
         [$response, $body] = self::handleAndRead($transport, self::progressRequest(7));
@@ -674,7 +752,7 @@ final class StreamableHttpServerTransportTest extends TestCase
 
     public function testSseStreamSignalsEndOfBodyAfterTheFinalResult(): void
     {
-        $transport = self::makeTransport(responseMode: ResponseMode::Sse, keepAliveInterval: 0.02);
+        $transport = self::makeTransport(responseMode: ResponseMode::Sse, keepAliveInterval: 0.02, start: false);
         self::listen($transport, self::progressServer());
 
         $eof = async(static function () use ($transport): string {
@@ -689,7 +767,7 @@ final class StreamableHttpServerTransportTest extends TestCase
 
     public function testAutoModeUpgradesToSseWhenProgressArrives(): void
     {
-        $transport = self::makeTransport(responseMode: ResponseMode::Auto);
+        $transport = self::makeTransport(responseMode: ResponseMode::Auto, start: false);
         self::listen($transport, self::progressServer());
 
         [$response, $body] = self::handleAndRead($transport, self::progressRequest(7));
@@ -703,7 +781,7 @@ final class StreamableHttpServerTransportTest extends TestCase
     public function testJsonModeBuffersAndDropsProgress(): void
     {
         $logger = new ArrayLogger();
-        $transport = self::makeTransport($logger, ResponseMode::Json);
+        $transport = self::makeTransport($logger, ResponseMode::Json, start: false);
         self::listen($transport, self::progressServer());
 
         $response = self::handle($transport, self::progressRequest(7));
@@ -716,7 +794,7 @@ final class StreamableHttpServerTransportTest extends TestCase
 
     public function testStreamEmitsKeepAliveFramesWhileTheHandlerIsBusy(): void
     {
-        $transport = self::makeTransport(responseMode: ResponseMode::Sse, keepAliveInterval: 0.01);
+        $transport = self::makeTransport(responseMode: ResponseMode::Sse, keepAliveInterval: 0.01, start: false);
         self::listen($transport, self::progressServer(busyFor: 0.03));
 
         [, $body] = self::handleAndRead($transport, self::progressRequest(7));
@@ -728,7 +806,7 @@ final class StreamableHttpServerTransportTest extends TestCase
     public function testClosingTheBodyReleasesAnInFlightStream(): void
     {
         $logger = new ArrayLogger();
-        $transport = self::makeTransport($logger, ResponseMode::Sse);
+        $transport = self::makeTransport($logger, ResponseMode::Sse, start: false);
         self::listen($transport, self::progressServer());
 
         async(static function () use ($transport): void {
@@ -753,19 +831,42 @@ final class StreamableHttpServerTransportTest extends TestCase
         new StreamableHttpServerTransport($factory, $factory, keepAliveInterval: 0.0);
     }
 
+    /**
+     * @param bool $start Whether to start the transport, which `handle()` requires. Pass `false` when the
+     *                    caller attaches a server with `listen()`, which starts it.
+     */
     private static function makeTransport(
         ?ArrayLogger $logger = null,
         ResponseMode $responseMode = ResponseMode::Auto,
         float $keepAliveInterval = 15.0,
+        bool $start = true,
     ): StreamableHttpServerTransport {
         $factory = new Psr17Factory();
+        $transport = new StreamableHttpServerTransport($factory, $factory, $logger ?? new ArrayLogger(), $responseMode, $keepAliveInterval);
 
-        return new StreamableHttpServerTransport($factory, $factory, $logger ?? new ArrayLogger(), $responseMode, $keepAliveInterval);
+        if ($start) {
+            $transport->start();
+        }
+
+        return $transport;
     }
 
     private static function listen(StreamableHttpServerTransport $transport, ?Server $server = null): void
     {
         ($server ?? new ServerBuilder()->setServerInfo('demo', '1.0.0')->build())->listen($transport);
+    }
+
+    /**
+     * A well-formed `server/discover` POST, headers included.
+     */
+    private static function discoverPost(): ServerRequestInterface
+    {
+        return self::makePost([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'server/discover',
+            'params' => ['_meta' => RequestMetaObjectFactory::shape()],
+        ], self::standardHeaders('server/discover'));
     }
 
     /**

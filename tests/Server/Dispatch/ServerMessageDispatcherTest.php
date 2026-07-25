@@ -186,7 +186,7 @@ final class ServerMessageDispatcherTest extends TestCase
         self::assertInstanceOf(MethodMisroutedException::class, $matches[0]['context']['exception'] ?? null);
     }
 
-    public function testNotificationMethodSentAsRequestIsDroppedAndLoggedNotAnsweredWithError(): void
+    public function testNotificationMethodSentAsRequestIsAnsweredWithInvalidRequestEchoingTheId(): void
     {
         $transport = new RecordingTransport();
         $logger = new ArrayLogger();
@@ -197,7 +197,17 @@ final class ServerMessageDispatcherTest extends TestCase
 
         EventLoop::run();
 
-        self::assertSame([], $transport->sent, 'JSON-RPC 2.0 §4.1 forbids responses to notifications, even when the envelope carries an id.');
+        self::assertCount(1, $transport->sent);
+        $message = $transport->sent[0]['message'];
+        self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
+
+        if (! $message->id instanceof RequestId) {
+            self::fail('An envelope that carried an id is a request, so the error response must echo it.');
+        }
+
+        self::assertSame(7, $message->id->id);
+        self::assertSame(ProtocolErrorCode::InvalidRequest->value, $message->error->code);
+        self::assertStringContainsString('"notifications/cancelled"', $message->error->message);
 
         $matches = $logger->recordsMatching(
             LogLevel::WARNING,

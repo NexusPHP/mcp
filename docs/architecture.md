@@ -91,9 +91,9 @@ JsonRpcMessageParser::parse()        ← classifies request/notification, raises
    │
    ├── parse failed
    │     │
-   │     ├── misrouted method                      → behaviour follows the method's intended shape, not the envelope's:
+   │     ├── misrouted method                      → behaviour follows the envelope's shape, not the method's:
    │     │       ├── request method sent without id     → `InvalidRequest` error with `id: null` per §5
-   │     │       └── notification method sent with id   → drop silently per §4.1 (WARN-log only)
+   │     │       └── notification method sent with id   → `InvalidRequest` error echoing the id per §5
    │     ├── parse error on notification shape          → drop silently per §4.1
    │     └── parse error on request shape               → send an `InvalidRequest` error response
    │
@@ -110,10 +110,15 @@ JsonRpcMessageParser::parse()        ← classifies request/notification, raises
 The protocol is stateless: every inbound request dispatches immediately, carrying the client's identity and
 capabilities in its `_meta`, which the server-side handler reads through `ServerContext::$meta`.
 
-The diagram traces the server. The client shares the request and notification arms but diverges in one
-place: the response-shape fork above. Where the server discards a `result`/`error` envelope, the client
-correlates it to the pending outbound request it is awaiting, resolving on success or rejecting on error,
-and warns on an unknown ("orphan") id. The client is thus both a responder (it routes
+The diagram traces the server. The client shares the request and notification arms but diverges in two
+places. The first is the response-shape fork above: where the server discards a `result`/`error` envelope,
+the client correlates it to the pending outbound request it is awaiting, resolving on success or rejecting
+on error, and warns on an unknown ("orphan") id.
+
+The second is the misrouted-method arm. The client never answers a misrouted envelope, whatever shape it
+arrived in, because the spec gives it no reply to send: *"servers do not initiate JSON-RPC requests and
+clients do not send JSON-RPC responses"*. The server's §5 obligation to answer an envelope carrying an id
+therefore has no client-side counterpart, and the client drops with a warning instead. The client is thus both a responder (it routes
 `notifications/progress` to per-call listeners) and a requester (it
 awaits the responses to the calls it makes, gating each *outbound* send on the server's advertised
 capabilities in `Client::sendRequest()`).

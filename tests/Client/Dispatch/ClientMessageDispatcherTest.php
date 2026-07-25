@@ -495,7 +495,7 @@ final class ClientMessageDispatcherTest extends TestCase
 
         EventLoop::run();
 
-        self::assertSame([], $transport->sent, 'Misrouted notification-sent-as-request must be dropped silently (no response).');
+        self::assertSame([], $transport->sent, 'A client sends no JSON-RPC responses, so it has no reply to offer. The server answers this case per §5.');
         $matches = $logger->recordsMatching(LogLevel::WARNING, 'Rejecting envelope whose method was sent under the wrong JSON-RPC shape.');
         self::assertCount(1, $matches);
     }
