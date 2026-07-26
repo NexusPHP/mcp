@@ -1271,6 +1271,27 @@ final class ClientTest extends TestCase
         self::assertSame([], self::lastContext($fresh)->headers, 'The bindings belonged to the previous server.');
     }
 
+    public function testRelistingAToolWhoseDeclarationsTurnedInvalidDropsItsBindings(): void
+    {
+        // The tool stays callable by name, so bindings the earlier listing cached would keep mirroring
+        // headers for a tool this listing excludes.
+        $transport = new MirroringRecordingTransport();
+        $client = self::connectMirroring($transport);
+        self::listToolsWithDeclarations($client, $transport);
+
+        self::driveToolListing($client, $transport, [[
+            'name' => 'good',
+            'inputSchema' => [
+                'type' => 'object',
+                'properties' => ['region' => ['type' => 'number', 'x-mcp-header' => 'Region']],
+            ],
+        ]]);
+
+        self::callToolAndSettle($client, $transport, ['region' => 'us-west1']);
+
+        self::assertSame([], self::lastContext($transport)->headers, 'The declarations no longer hold, so nothing may be mirrored.');
+    }
+
     public function testCallToolSendsNoHeadersOnATransportThatDoesNotMirror(): void
     {
         $transport = new RecordingTransport();
@@ -1319,37 +1340,43 @@ final class ClientTest extends TestCase
      */
     private static function listToolsWithDeclarations(Client $client, MirroringRecordingTransport|RecordingTransport $transport): ListToolsResult
     {
+        return self::driveToolListing($client, $transport, [
+            [
+                'name' => 'bad',
+                // `number` is not a permitted x-mcp-header type. Listed first, so skipping it must
+                // not also skip what follows.
+                'inputSchema' => [
+                    'type' => 'object',
+                    'properties' => ['size' => ['type' => 'number', 'x-mcp-header' => 'Size']],
+                ],
+            ],
+            [
+                'name' => 'good',
+                'inputSchema' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'region' => ['type' => 'string', 'x-mcp-header' => 'Region'],
+                        'query' => ['type' => 'string'],
+                    ],
+                ],
+            ],
+        ]);
+    }
+
+    /**
+     * Drives one `tools/list`, answering with the given tool definitions.
+     *
+     * @param list<array<string, mixed>> $tools
+     */
+    private static function driveToolListing(Client $client, MirroringRecordingTransport|RecordingTransport $transport, array $tools): ListToolsResult
+    {
         $deferred = async(static fn(): ListToolsResult => $client->listTools());
         $transport->nextSend()->await();
 
         $transport->emitMessage([
             'jsonrpc' => '2.0',
             'id' => self::lastRequestId($transport),
-            'result' => [
-                'tools' => [
-                    [
-                        'name' => 'bad',
-                        // `number` is not a permitted x-mcp-header type. Listed first, so skipping it must
-                        // not also skip what follows.
-                        'inputSchema' => [
-                            'type' => 'object',
-                            'properties' => ['size' => ['type' => 'number', 'x-mcp-header' => 'Size']],
-                        ],
-                    ],
-                    [
-                        'name' => 'good',
-                        'inputSchema' => [
-                            'type' => 'object',
-                            'properties' => [
-                                'region' => ['type' => 'string', 'x-mcp-header' => 'Region'],
-                                'query' => ['type' => 'string'],
-                            ],
-                        ],
-                    ],
-                ],
-                'ttlMs' => 0,
-                'cacheScope' => 'private',
-            ],
+            'result' => ['tools' => $tools, 'ttlMs' => 0, 'cacheScope' => 'private'],
         ]);
 
         $result = $deferred->await();
