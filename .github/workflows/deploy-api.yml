@@ -21,7 +21,7 @@ jobs:
     name: Build API documentation
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    if: github.repository == 'NexusPHP/mcp-sdk'
+    if: github.repository == 'NexusPHP/mcp'
     permissions:
       contents: read
 

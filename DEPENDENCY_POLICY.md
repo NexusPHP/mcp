@@ -1,6 +1,6 @@
 # Dependency and Version Support Policy
 
-This document states how `nexusphp/mcp-sdk` manages its PHP version floor, its runtime and development
+This document states how `nexusphp/mcp` manages its PHP version floor, its runtime and development
 dependencies, and the cadence of security and version updates. It complements [SECURITY.md](SECURITY.md)
 (vulnerability reporting) and [ROADMAP.md](ROADMAP.md) (release sequencing).
 

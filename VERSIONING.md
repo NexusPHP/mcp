@@ -1,6 +1,6 @@
 # Versioning Policy
 
-This document states how `nexusphp/mcp-sdk` assigns version numbers, what counts as a breaking change,
+This document states how `nexusphp/mcp` assigns version numbers, what counts as a breaking change,
 and how deprecations and MCP spec revisions are handled. It complements
 [DEPENDENCY_POLICY.md](DEPENDENCY_POLICY.md) (PHP floor and dependency cadence), [CHANGELOG.md](CHANGELOG.md)
 (the per-release record), and [ROADMAP.md](ROADMAP.md) (release sequencing).
@@ -23,7 +23,7 @@ A `0.x` minor is the breaking-change vehicle before 1.0. Composer's caret operat
 `^0.2` resolves to `>=0.2.0 <0.3.0`, so it will **not** silently upgrade you across a minor. Pin with `^0.2`
 (or tighter) and read [CHANGELOG.md](CHANGELOG.md) before moving to the next minor.
 
-Through `0.x` the project ships only the single umbrella package `nexusphp/mcp-sdk`. The split into
+Through `0.x` the project ships only the single umbrella package `nexusphp/mcp`. The split into
 per-component packages is a 1.0-era change. See [ROADMAP.md](ROADMAP.md).
 
 ## From 1.0 onward

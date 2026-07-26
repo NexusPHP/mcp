@@ -8,7 +8,7 @@
 ## Install
 
 ```bash
-composer require nexusphp/mcp-sdk
+composer require nexusphp/mcp
 ```
 
 The SDK targets MCP spec **2026-07-28** and runs on [AMPHP](https://amphp.org) and

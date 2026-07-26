@@ -6,9 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html) from `1.0.0` onward. While
 in `0.x`, minor releases may include breaking changes.
 
-## [Unreleased](https://github.com/NexusPHP/mcp-sdk/commits/1.x)
+## [Unreleased](https://github.com/NexusPHP/mcp/commits/1.x)
 
-## [v0.5.0](https://github.com/NexusPHP/mcp-sdk/compare/v0.4.0...v0.5.0) - 2026-06-01
+## [v0.5.0](https://github.com/NexusPHP/mcp/compare/v0.4.0...v0.5.0) - 2026-06-01
 
 ### Added
 
@@ -37,7 +37,7 @@ in `0.x`, minor releases may include breaking changes.
   writing to an already-closed transport), the pending-request entry was never freed, slowly growing the
   correlation map. The client now releases the registration before propagating the send failure.
 
-## [v0.4.0](https://github.com/NexusPHP/mcp-sdk/compare/v0.3.0...v0.4.0) - 2026-05-30
+## [v0.4.0](https://github.com/NexusPHP/mcp/compare/v0.3.0...v0.4.0) - 2026-05-30
 
 ### Added
 
@@ -75,7 +75,7 @@ in `0.x`, minor releases may include breaking changes.
 - The static `Server::builder()` / `Client::builder()` factories. Construct the builders directly with
   `new ServerBuilder()` / `new ClientBuilder()`.
 
-## [v0.3.0](https://github.com/NexusPHP/mcp-sdk/compare/v0.2.0...v0.3.0) - 2026-05-25
+## [v0.3.0](https://github.com/NexusPHP/mcp/compare/v0.2.0...v0.3.0) - 2026-05-25
 
 ### Added
 
@@ -99,7 +99,7 @@ in `0.x`, minor releases may include breaking changes.
   parent and skips exported shell-function values. An empty array still inherits the full parent
   environment. A non-empty array is passed verbatim.
 
-## [v0.2.0](https://github.com/NexusPHP/mcp-sdk/compare/v0.1.0...v0.2.0) - 2026-05-24
+## [v0.2.0](https://github.com/NexusPHP/mcp/compare/v0.1.0...v0.2.0) - 2026-05-24
 
 ### Fixed
 
@@ -116,7 +116,7 @@ in `0.x`, minor releases may include breaking changes.
 
 - `HandlerRegistry::methods()`, an unused accessor returning the registered method names.
 
-## [v0.1.0](https://github.com/NexusPHP/mcp-sdk/releases/tag/v0.1.0) - 2026-05-23
+## [v0.1.0](https://github.com/NexusPHP/mcp/releases/tag/v0.1.0) - 2026-05-23
 
 ### Added
 

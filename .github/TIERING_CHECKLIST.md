@@ -12,7 +12,7 @@ Based on [SEP-1730: SDKs Tiering System](https://github.com/modelcontextprotocol
 
 ## How tiering works (SEP-1730)
 
-The tiering system covers **both official and community-driven SDKs**, so `nexusphp/mcp-sdk` is eligible. Tiers are **request-based**: self-assess, open an issue in `modelcontextprotocol/modelcontextprotocol` with supporting evidence, pass the automated conformance suite, then the SDK Working Group approves and makes the final assignment.
+The tiering system covers **both official and community-driven SDKs**, so `nexusphp/mcp` is eligible. Tiers are **request-based**: self-assess, open an issue in `modelcontextprotocol/modelcontextprotocol` with supporting evidence, pass the automated conformance suite, then the SDK Working Group approves and makes the final assignment.
 
 - **Conformance is the gate.** Scored against **applicable required tests only**: the spec version the SDK targets, excluding pending/skipped tests, experimental-feature tests, and legacy back-compat tests (unless legacy support is claimed). The actual `tier-check` tool diverges from this wording in several places (target-version filter off by default, draft scenarios non-scoring, SLA metrics reworded): see "Drift: SEP mandates vs conformance repo".
 - **Relegation.** An SDK drops a tier if conformance tests on its latest stable release fail continuously for 4 weeks. (Not implemented by the tool, which is a point-in-time scorer. See Drift.)
@@ -40,7 +40,7 @@ The tiering system covers **both official and community-driven SDKs**, so `nexus
   - Reference: [Conformance Test Suite](https://github.com/modelcontextprotocol/conformance). Exact scenarios in "Conformance suite: scenarios to pass" below
   - Threshold: server `>= 24 of 30`, client `>= 15 of 18` (the carried-forward date-versioned set that scores even under `--spec-version draft`)
   - Evidence/Notes: not run. Server-mode conformance needs the Streamable HTTP transport (phase 5). Client-mode can run our client as a subprocess
-  - Run: `conformance tier-check --repo NexusPHP/mcp-sdk --conformance-server-url <url> --client-cmd "<cmd>" --spec-version draft --output json`
+  - Run: `conformance tier-check --repo NexusPHP/mcp --conformance-server-url <url> --client-cmd "<cmd>" --spec-version draft --output json`
 
 ### Implementation Timeline
 
@@ -228,12 +228,12 @@ The tiering system covers **both official and community-driven SDKs**, so `nexus
 
 - [x] **Package Published on Packagist**
   - Reference: Composer registry
-  - Package Name: `nexusphp/mcp-sdk`
-  - Link: https://packagist.org/packages/nexusphp/mcp-sdk
+  - Package Name: `nexusphp/mcp`
+  - Link: https://packagist.org/packages/nexusphp/mcp
   - Evidence/Notes: published. Latest v0.5.0. Umbrella package only during 0.x. Component packages split at v1.0
 
 - [x] **GitHub Repository Properly Configured**
-  - Repository URL: https://github.com/NexusPHP/mcp-sdk
+  - Repository URL: https://github.com/NexusPHP/mcp
   - Topics: `mcp`, `mcp-sdk`, `model-context-protocol` (set). Consider adding `php` / `php-sdk`
   - Description: "PHP SDK for the MCP specification" (set, clear)
   - Evidence/Notes: verified 2026-05-30: public, description set, 3 topics set
@@ -246,13 +246,13 @@ The tiering system covers **both official and community-driven SDKs**, so `nexus
 
 - [ ] **Run Tiering Assessment Tool**
   - Reference: [SDK Tier Assessment Tool](https://github.com/modelcontextprotocol/conformance) (build first: `npm ci && npm run build` in `../mcp-conformance`)
-  - Command (policy only, no conformance): `node dist/index.js tier-check --repo NexusPHP/mcp-sdk --skip-conformance --output json`
+  - Command (policy only, no conformance): `node dist/index.js tier-check --repo NexusPHP/mcp --skip-conformance --output json`
   - Output/Evidence: _________________________
   - Date Run: _________
 
 - [ ] **Run Full Conformance Tests**
   - Reference: [MCP Conformance Framework](https://github.com/modelcontextprotocol/conformance). Scenario lists + run commands in "Conformance suite: scenarios to pass"
-  - Command: `node dist/index.js tier-check --repo NexusPHP/mcp-sdk --conformance-server-url <url> --client-cmd "<cmd>" --spec-version draft --output json`
+  - Command: `node dist/index.js tier-check --repo NexusPHP/mcp --conformance-server-url <url> --client-cmd "<cmd>" --spec-version draft --output json`
   - Conformance Version: v0.2.0-alpha.0
   - Server Test Results: _________________________ (target 30/30 scored, plus 17 draft-only informational)
   - Client Test Results: _________________________ (target 18/18 scored, plus 17 draft-only informational)
@@ -355,7 +355,7 @@ One scenario (`authorization-server-metadata-endpoint`) via a separate `conforma
 ### Running tier-check
 
 ```bash
-conformance tier-check --repo NexusPHP/mcp-sdk \
+conformance tier-check --repo NexusPHP/mcp \
   --conformance-server-url http://localhost:PORT/mcp \
   --client-cmd "php examples/conformance-client.php" \
   --spec-version draft --output json

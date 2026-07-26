@@ -1,5 +1,5 @@
 {
-    "name": "nexusphp/mcp-core-sdk",
+    "name": "nexusphp/mcp-core",
     "description": "PHP SDK for the MCP specification - core component.",
     "license": "MIT",
     "type": "library",

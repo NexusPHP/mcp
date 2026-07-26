@@ -1,5 +1,5 @@
 {
-    "name": "nexusphp/mcp-sdk",
+    "name": "nexusphp/mcp",
     "description": "PHP SDK for the MCP specification",
     "license": "MIT",
     "type": "library",
@@ -15,8 +15,8 @@
         }
     ],
     "support": {
-        "issues": "https://github.com/NexusPHP/mcp-sdk/issues",
-        "source": "https://github.com/NexusPHP/mcp-sdk.git"
+        "issues": "https://github.com/NexusPHP/mcp/issues",
+        "source": "https://github.com/NexusPHP/mcp.git"
     },
     "require": {
         "php": "^8.4",
@@ -48,9 +48,10 @@
         "phpunit/phpunit": "^11.5 || ^12.5 || ^13.0"
     },
     "replace": {
-        "nexusphp/mcp-client-sdk": "self.version",
-        "nexusphp/mcp-core-sdk": "self.version",
-        "nexusphp/mcp-server-sdk": "self.version"
+        "nexusphp/mcp-client": "self.version",
+        "nexusphp/mcp-core": "self.version",
+        "nexusphp/mcp-sdk": "self.version",
+        "nexusphp/mcp-server": "self.version"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,

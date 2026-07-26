@@ -73,12 +73,12 @@ jobs:
 
       - name: Run mutation testing on full codebase (push)
         if: github.event_name == 'push'
-        run: composer mutation:check
+        run: composer mutation:check -- --ansi
         env:
           INFECTION_DASHBOARD_API_KEY: ${{ secrets.INFECTION_DASHBOARD_API_KEY }}
 
       - name: Run mutation testing on changed files (pull request)
         if: github.event_name == 'pull_request'
-        run: composer mutation:filter
+        run: composer mutation:filter -- --ansi
         env:
           INFECTION_DASHBOARD_API_KEY: ${{ secrets.INFECTION_DASHBOARD_API_KEY }}
