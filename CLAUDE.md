@@ -20,16 +20,17 @@ For spec-driven work, do **NOT** introduce types, params, or response shapes tha
 
 ## Workflow gates
 
-Every change must survive the full gate suite before it is done (`composer test:all`, or `composer test:with-untracked` mid-development when changes are unstaged or untracked, which swaps the full-tree mutation step for the diff-based one). For fast iteration, the single-concern scripts are enough (`composer test:core` / `test:client` / `test:server` / `test:auto-review` / `test:stan`).
+Every change must survive the gate suite before it is done. That suite is **`composer test:with-untracked`**: it covers unstaged and untracked work, and its mutation step is the diff-based one. `composer test:all` is the same chain with full-tree mutation instead, which pushes it past 7 minutes. Reserve it for the maintainer to run when they want it, and do not reach for it or offer it as a pre-merge sweep. For fast iteration, the single-concern scripts are enough (`composer test:core` / `test:client` / `test:server` / `test:auto-review` / `test:stan`).
 
 Mutation testing:
 
 - **Default during iteration: skip mutation.** A code change needs only `cs:check` + `phpstan:check` + the relevant test suite. Mutation is not part of the inner loop.
-- **`composer mutation:filter`** (diff-based against `origin/1.x`, picks up untracked files) is the preferred run when one is actually needed. **`composer mutation:check`** is full-tree and takes 7+ minutes, so reserve it for pre-merge verification, `infection.json5` changes, or suspected cross-file interactions. The bottleneck is per-mutant forked PHPUnit, so do not propose PCOV or `infection.json5` perf tweaks.
+- **`composer mutation:filter`** (diff-based against `origin/1.x`, picks up untracked files) is the run to reach for when one is needed, and it is what `test:with-untracked` invokes.
+- **Scoped, never bare:** `composer mutation:check -- --filter="path/to/File.php"` (the `--` passes args through to Infection, and paths comma-separate to batch). This is the authoritative per-file check. Bare `composer mutation:check` is full-tree at 7+ minutes and belongs to the maintainer, same as `test:all`. The bottleneck is per-mutant forked PHPUnit, so do not propose PCOV or `infection.json5` perf tweaks.
+- A scoped `--filter` run mutates the **whole** file, not just the changed lines, so it surfaces mutants on pre-existing committed code. Check `git diff origin/1.x` on the line before treating an escapee as newly introduced.
 - Both enforce **100% MSI** and **100% Covered Code MSI** (`minMsi` / `minCoveredMsi` in [infection.json5](infection.json5)). Escaped mutants fail the build, so improve the tests rather than adding ignores.
-- One file in isolation: `composer mutation:check -- --filter="path/to/File.php"` (the `--` passes args through to Infection).
 
-Line coverage is a separate gate, not an Infection metric. `composer coverage:check` parses the Clover report `test:unit` emits and fails on any uncovered `src/` statement line. Infection's MSI cannot stand in for it: a line that generates no mutant (e.g. a plain assignment from a consumed method call) stays invisible to MSI even when no test exercises it. The gate runs inside `test:all` / `test:with-untracked` right after `test:unit`, and in the `unit-tests` CI workflow. The PHPUnit-running CI workflows set `zend.assertions=1` (PHPUnit's recommended dev config) so structural `\assert()` lines are exercised. Under the production default `-1` those lines strip to nothing and read as uncovered.
+Line coverage is a separate gate, not an Infection metric. `composer coverage:check` parses the Clover report `test:unit` emits and fails on any uncovered `src/` statement line. Infection's MSI cannot stand in for it: a line that generates no mutant (e.g. a plain assignment from a consumed method call) stays invisible to MSI even when no test exercises it. The gate runs inside `test:with-untracked` right after `test:unit`, and in the `unit-tests` CI workflow. The PHPUnit-running CI workflows set `zend.assertions=1` (PHPUnit's recommended dev config) so structural `\assert()` lines are exercised. Under the production default `-1` those lines strip to nothing and read as uncovered.
 
 Docs sync: after any change that renames, deletes, moves, or adds a top-level building block (class, trait, enum, namespace, interface, public method, file location), grep `docs/`, `ROADMAP.md`, and the project memories for the old symbol and update them, then run `composer lint:docs`. Skip only for purely internal changes (private body, test-only, comment-only).
 
@@ -183,8 +184,7 @@ When `mutation:check` reports surviving mutants, categorise before writing tests
 - **Investigate the code before adjusting tooling.** A surviving or timed-out mutant means some code has no observable effect any test asserts on. Two patterns recur:
   - *Reachable but unexercised behaviour* → add a test. Common with defensive validation where the happy path is covered but the failure path isn't.
   - *Structurally unreachable code* → remove it. Common with defensive `Assert::isMap` calls inside helpers fed by schema-typed input. Widen the helper's input type (`array<string, mixed>` → `array<array-key, mixed>`) and do strict typing at the outermost call site.
-
-  Bumping `infection.json5`'s `timeout` is a last resort, only justified after confirming the slow mutants don't represent dead/untested code.
+- **A timed-out mutant is a defect, not a result.** Infection scores a timeout as a kill, so MSI can read 100% while `T` marks are present. Never report such a run as green, and never raise `infection.json5`'s `timeout` to make one go away. A timeout means some mutated path does not terminate, usually because something outlives the work it bounds. Fix that. The worked precedent is [RequestDeadline](src/Client/Dispatch/RequestDeadline.php), where timeouts plus an intermittent whole-suite hang traced to a referenced `EventLoop::delay()` watcher (see [Load-bearing patterns](#load-bearing-patterns) item 6).
 
 ## Load-bearing patterns
 

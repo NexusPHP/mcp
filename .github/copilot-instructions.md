@@ -23,11 +23,11 @@ All code is managed under the unified namespace `Nexus\Mcp\` with the directory 
 # Install all dependencies (run from repo root)
 composer update  # composer.lock is not committed; update is the standard setup command
 
-# Run all tests (includes code style, static analysis, automatic review, full-tree mutation)
-composer test:all
-
-# Same suite, but the mutation step is diff-based (use during iteration with unstaged/untracked changes)
+# Run the gate suite (code style, static analysis, automatic review, coverage, diff-based mutation)
 composer test:with-untracked
+
+# Same suite with full-tree mutation instead. 7+ minutes, so run it deliberately, not by default
+composer test:all
 
 # Run automatic code review tests (conformance tests and architecture checks)
 composer test:auto-review
