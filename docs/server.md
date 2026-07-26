@@ -39,17 +39,26 @@ The server stamps this identity onto the `_meta` of every result it sends, under
 self-reported and unverified, so clients are told to treat it as display and logging material rather than as a
 behavioural signal.
 
-Disclosure is on by default. `setServerInfoDisclosure(false)` turns it off, and `build()` still requires
-`setServerInfo()` and still validates the identity, it just never sends it. Because the identity rides `_meta`
-alone, turning disclosure off withholds the identity from `server/discover` as well.
+`setServerInfoDisclosure()` controls how much of it travels, via `Nexus\Mcp\Server\ServerInfoDisclosure`:
+
+| Case | `server/discover` | Every other result |
+| --- | --- | --- |
+| `Full` (default) | The whole block | The whole block |
+| `NameAndVersion` | The whole block | Only `name` and `version` |
+| `None` | Nothing | Nothing |
+
+`NameAndVersion` suits a server with icons and descriptions: the client collects those once at discovery
+rather than on every response. `build()` requires `setServerInfo()` under all three, `None` simply never
+sends what it validated.
 
 ```php
 ->setServerInfo(name: 'my-server', version: '1.0.0')
-->setServerInfoDisclosure(false)
+->setServerInfoDisclosure(ServerInfoDisclosure::NameAndVersion)
 ```
 
 A handler that sets `serverInfo` on the result's `_meta` itself keeps what it set: the stamp fills an empty
-slot rather than overwriting one. That is what lets a proxy forward the identity of the server it fronts.
+slot rather than overwriting one. That is what lets a proxy forward the identity of the server it fronts, and
+it is also how `server/discover` keeps the full block while other results are trimmed.
 
 ## Instructions
 

@@ -103,9 +103,11 @@ utility (SEP-2575, changelog item 5) is removed from the protocol entirely.
   its own (a proxy forwarding an upstream server's, in the typed slot or among the `_meta` extras, which
   `ResultMetaObject::declaresServerInfo()` answers). The schema layer contributes only the rebuild itself:
   `Result::rebuildWithMeta()`, implemented field-by-field by each concrete result.
-  `ServerBuilder::setServerInfoDisclosure()` is the spec's "unless specifically configured not to do so"
-  opt-out. Since the identity rides `_meta` alone, turning it off withholds the identity from
-  `server/discover` too.
+  `ServerBuilder::setServerInfoDisclosure()` takes a `ServerInfoDisclosure` (`Full`, `NameAndVersion`,
+  `None`), where `None` is the spec's "unless specifically configured not to do so" opt-out and
+  `NameAndVersion` keeps icons and descriptions off every response but the `server/discover` one. Discovery
+  holds the full block because `DiscoverRequestHandler` declares it on its own result, which the
+  already-declared rule then leaves alone.
 - [x] Represent the lifecycle/capability and header-mismatch error responses: `ProtocolErrorCode` carries
   `HeaderMismatch` (`-32020`), `MissingRequiredClientCapability` (`-32021`), and `UnsupportedProtocolVersion`
   (`-32022`), each with a matching `Error` subclass (typed `data` where the spec defines it: `supported` +

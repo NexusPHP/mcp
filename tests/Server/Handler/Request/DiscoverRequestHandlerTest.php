@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Tests\Server\Handler\Request;
 
 use Amp\NullCancellation;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
+use Nexus\Mcp\Core\Schema\Implementation;
 use Nexus\Mcp\Core\Schema\ProtocolVersion;
 use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
@@ -49,7 +50,22 @@ final class DiscoverRequestHandlerTest extends TestCase
         self::assertNull($result->instructions);
         self::assertSame(0, $result->ttlMs);
         self::assertSame(CacheScope::Private, $result->cacheScope);
-        self::assertNull($result->meta->serverInfo, 'The identity is stamped downstream, not by this handler.');
+        self::assertNull($result->meta->serverInfo, 'No identity was configured, so none is advertised.');
+    }
+
+    public function testAdvertisesTheFullIdentityOnTheResultMeta(): void
+    {
+        $serverInfo = new Implementation(name: 'test-server', version: '2.0.0', title: 'Test Server');
+        $handler = new DiscoverRequestHandler(
+            new ServerCapabilities(),
+            meta: new ResultMetaObject(extras: ['vendor' => 'x']),
+            serverInfo: $serverInfo,
+        );
+
+        $result = $handler->handle(self::makeRequest(), self::makeContext());
+
+        self::assertSame($serverInfo, $result->meta->serverInfo);
+        self::assertSame(['vendor' => 'x'], $result->meta->extras);
     }
 
     public function testPropagatesInstructionsTtlCacheScopeAndMeta(): void

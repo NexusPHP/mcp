@@ -47,6 +47,7 @@ use Nexus\Mcp\Server\Resource\ResourceTemplateStoreInterface;
 use Nexus\Mcp\Server\Server;
 use Nexus\Mcp\Server\ServerBuilder;
 use Nexus\Mcp\Server\ServerContext;
+use Nexus\Mcp\Server\ServerInfoDisclosure;
 use Nexus\Mcp\Server\Tool\ToolStoreInterface;
 use Nexus\Mcp\Server\Validation\SchemaValidatorInterface;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
@@ -390,11 +391,11 @@ final class ServerBuilderTest extends TestCase
         self::assertSame('demo-srv', $result->meta->serverInfo?->name);
     }
 
-    public function testTurningOffServerInfoDisclosureLeavesTheIdentityOffEveryResult(): void
+    public function testDisclosingNoServerInfoLeavesTheIdentityOffEveryResult(): void
     {
         $server = new ServerBuilder()
             ->setServerInfo('demo-srv', '2.3.4')
-            ->setServerInfoDisclosure(false)
+            ->setServerInfoDisclosure(ServerInfoDisclosure::None)
             ->build()
         ;
 
@@ -404,16 +405,49 @@ final class ServerBuilderTest extends TestCase
         self::assertArrayNotHasKey('_meta', $result->toArray());
     }
 
-    public function testServerInfoDisclosureIsOnByDefaultAndReSettable(): void
+    public function testServerInfoDisclosureIsFullByDefaultAndResettable(): void
     {
         $server = new ServerBuilder()
             ->setServerInfo('demo-srv', '2.3.4')
-            ->setServerInfoDisclosure(false)
-            ->setServerInfoDisclosure(true)
+            ->setServerInfoDisclosure(ServerInfoDisclosure::None)
+            ->setServerInfoDisclosure(ServerInfoDisclosure::Full)
             ->build()
         ;
 
         self::assertSame('demo-srv', $this->serverInfoFor($server)->name);
+    }
+
+    public function testNameAndVersionDisclosureTrimsTheIdentityOnResultsOtherThanDiscover(): void
+    {
+        $server = new ServerBuilder()
+            ->setServerInfo('demo-srv', '2.3.4', title: 'Demo', description: 'A demo.', websiteUrl: 'https://example.com')
+            ->setServerInfoDisclosure(ServerInfoDisclosure::NameAndVersion)
+            ->addTool(
+                new Tool(name: 'echo', inputSchema: ['type' => 'object']),
+                static fn(?array $args, $ctx): CallToolResult => new CallToolResult(content: [new TextContent(text: 'echo')]),
+            )
+            ->build()
+        ;
+
+        self::assertSame(
+            ['name' => 'demo-srv', 'version' => '2.3.4'],
+            $this->dispatch($server, 'tools/list')->meta->serverInfo?->toArray(),
+        );
+    }
+
+    public function testDiscoverCarriesTheFullIdentityEvenWhenOtherResultsAreTrimmed(): void
+    {
+        // The rich fields are display material a client collects once, at discovery.
+        $server = new ServerBuilder()
+            ->setServerInfo('demo-srv', '2.3.4', title: 'Demo', description: 'A demo.')
+            ->setServerInfoDisclosure(ServerInfoDisclosure::NameAndVersion)
+            ->build()
+        ;
+
+        $info = $this->serverInfoFor($server);
+
+        self::assertSame('Demo', $info->title);
+        self::assertSame('A demo.', $info->description);
     }
 
     public function testRegisteredToolFlowsThroughBuiltServer(): void
