@@ -65,12 +65,13 @@ final class RecordingHttpClient implements DelegateHttpClient
     }
 
     /**
-     * Queues an SSE response whose media type is spelled exactly as given, so casing can be exercised.
+     * Queues a response whose media type is spelled exactly as given, so content-type sniffing can be
+     * exercised.
      *
      * @param non-empty-string $contentType
      * @param list<string>     $chunks
      */
-    public function willAnswerStreamWithContentType(string $contentType, array $chunks): self
+    public function willAnswerWithContentType(string $contentType, array $chunks): self
     {
         return $this->willAnswer(200, ['content-type' => $contentType], $chunks);
     }

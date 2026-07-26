@@ -211,13 +211,28 @@ final class StreamableHttpClientTransportTest extends TestCase
     public function testDetectsAnUppercaseContentType(): void
     {
         // RFC 9110 makes the media type case-insensitive, so a shouting server still gets parsed as a stream.
-        $http = new RecordingHttpClient()->willAnswerStreamWithContentType('TEXT/EVENT-STREAM', [self::frame(self::resultEnvelope())]);
+        $http = new RecordingHttpClient()->willAnswerWithContentType('TEXT/EVENT-STREAM', [self::frame(self::resultEnvelope())]);
         $transport = self::makeTransport($http);
         $received = self::captureMessages($transport);
 
         self::exchange($transport, self::discoverRequest());
 
         self::assertSame([self::resultEnvelope()], $received->envelopes);
+    }
+
+    public function testReadsAJsonBodyWhoseContentTypeParameterNamesAStream(): void
+    {
+        // The media type is the head of the value, so an event-stream spelling inside a parameter is not one.
+        $http = new RecordingHttpClient()->willAnswerWithContentType(
+            'application/json; note="text/event-stream"',
+            [json_encode(self::resultEnvelope(), \JSON_THROW_ON_ERROR)],
+        );
+        $transport = self::makeTransport($http);
+        $received = self::captureMessages($transport);
+
+        self::exchange($transport, self::discoverRequest());
+
+        self::assertSame([self::resultEnvelope()], $received->envelopes, 'A buffered body must be read as one.');
     }
 
     /**
