@@ -34,6 +34,23 @@ Required before `build()`.
 )
 ```
 
+The server stamps this identity onto the `_meta` of every result it sends, under the
+`io.modelcontextprotocol/serverInfo` key, which is where the spec asks servers to identify themselves. It is
+self-reported and unverified, so clients are told to treat it as display and logging material rather than as a
+behavioural signal.
+
+Disclosure is on by default. `setServerInfoDisclosure(false)` turns it off, and `build()` still requires
+`setServerInfo()` and still validates the identity, it just never sends it. Because the identity rides `_meta`
+alone, turning disclosure off withholds the identity from `server/discover` as well.
+
+```php
+->setServerInfo(name: 'my-server', version: '1.0.0')
+->setServerInfoDisclosure(false)
+```
+
+A handler that sets `serverInfo` on the result's `_meta` itself keeps what it set: the stamp fills an empty
+slot rather than overwriting one. That is what lets a proxy forward the identity of the server it fronts.
+
 ## Instructions
 
 Optional. Advertised to the client via `server/discover`. Use it to give models guidance about how to use

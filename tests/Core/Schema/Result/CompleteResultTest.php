@@ -69,6 +69,21 @@ final class CompleteResultTest extends TestCase
         );
     }
 
+    public function testRebuildingWithNewMetaKeepsEveryOtherField(): void
+    {
+        $result = new CompleteResult(
+            completion: ['values' => ['auth'], 'total' => 1, 'hasMore' => false],
+            meta: new ResultMetaObject(extras: ['vendor.brand' => 'acme']),
+        );
+
+        $rebuilt = $result->rebuildWithMeta(new ResultMetaObject(extras: ['replaced' => true]));
+
+        self::assertSame(
+            ['_meta' => ['replaced' => true]] + $result->toArray(),
+            $rebuilt->toArray(),
+        );
+    }
+
     public function testToArrayWithAllFields(): void
     {
         $result = new CompleteResult(

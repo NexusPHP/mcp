@@ -41,14 +41,8 @@ abstract class AbstractRoundTripTestCase extends TestCase
     #[DataProvider('provideFixtureRoundTripsToCanonicalShapeCases')]
     public function testFixtureRoundTripsToCanonicalShape(string $dir, array $entry, string $fixturePath): void
     {
-        $jsonString = file_get_contents($fixturePath);
-        self::assertIsString($jsonString, \sprintf('Could not read fixture "%s".', $fixturePath));
-
-        $jsonString = rtrim(str_replace("\r\n", "\n", $jsonString), "\n");
-
-        $decoded = json_decode($jsonString, true, flags: \JSON_THROW_ON_ERROR);
-        self::assertIsArray($decoded, \sprintf('Fixture "%s" must decode to a JSON object.', $fixturePath));
-        self::assertStringKeyed($decoded, $fixturePath);
+        $jsonString = self::readFixture($fixturePath);
+        $decoded = self::decodeFixture($jsonString, $fixturePath);
 
         $instance = static::reconstruct($entry, $decoded);
 
@@ -176,6 +170,30 @@ abstract class AbstractRoundTripTestCase extends TestCase
      * @param array<string, mixed> $decoded
      */
     abstract protected static function reconstruct(array $entry, array $decoded): \JsonSerializable;
+
+    /**
+     * Reads a fixture, normalising line endings and the trailing newline so the
+     * string compares byte-for-byte against a `JSON_PRETTY_PRINT` re-encode.
+     */
+    protected static function readFixture(string $fixturePath): string
+    {
+        $jsonString = file_get_contents($fixturePath);
+        self::assertIsString($jsonString, \sprintf('Could not read fixture "%s".', $fixturePath));
+
+        return rtrim(str_replace("\r\n", "\n", $jsonString), "\n");
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected static function decodeFixture(string $jsonString, string $fixturePath): array
+    {
+        $decoded = json_decode($jsonString, true, flags: \JSON_THROW_ON_ERROR);
+        self::assertIsArray($decoded, \sprintf('Fixture "%s" must decode to a JSON object.', $fixturePath));
+        self::assertStringKeyed($decoded, $fixturePath);
+
+        return $decoded;
+    }
 
     /**
      * Asserts the decoded fixture is a string-keyed map (a JSON object). PHPUnit

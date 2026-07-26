@@ -51,6 +51,17 @@ final readonly class ResultMetaObject implements Arrayable
         return new self(serverInfo: $serverInfo, extras: $data);
     }
 
+    /**
+     * Whether a server identity is present, in the typed slot or among the extras
+     * a directly constructed instance may still carry it in.
+     *
+     * @internal
+     */
+    public function declaresServerInfo(): bool
+    {
+        return null !== $this->serverInfo || \array_key_exists(self::SERVER_INFO_KEY, $this->extras);
+    }
+
     #[\Override]
     public function toArray(): array
     {

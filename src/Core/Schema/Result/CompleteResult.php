@@ -121,6 +121,12 @@ final readonly class CompleteResult extends Result implements ServerResult
     }
 
     #[\Override]
+    public function rebuildWithMeta(ResultMetaObject $meta): static
+    {
+        return new self(completion: $this->completion, meta: $meta);
+    }
+
+    #[\Override]
     protected function getResultType(): string
     {
         return ResultType::Complete->value;

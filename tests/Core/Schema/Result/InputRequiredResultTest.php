@@ -78,6 +78,22 @@ final class InputRequiredResultTest extends TestCase
         );
     }
 
+    public function testRebuildingWithNewMetaKeepsEveryOtherField(): void
+    {
+        $result = new InputRequiredResult(
+            inputRequests: self::inputRequests(),
+            requestState: 'tok',
+            meta: new ResultMetaObject(extras: ['vendor.brand' => 'acme']),
+        );
+
+        $rebuilt = $result->rebuildWithMeta(new ResultMetaObject(extras: ['replaced' => true]));
+
+        self::assertSame(
+            ['_meta' => ['replaced' => true]] + $result->toArray(),
+            $rebuilt->toArray(),
+        );
+    }
+
     public function testToArrayWithAllFields(): void
     {
         $result = new InputRequiredResult(

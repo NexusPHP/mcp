@@ -133,6 +133,18 @@ final readonly class ListPromptsResult extends PaginatedResult implements Server
     }
 
     #[\Override]
+    public function rebuildWithMeta(ResultMetaObject $meta): static
+    {
+        return new self(
+            prompts: $this->prompts,
+            ttlMs: $this->ttlMs,
+            cacheScope: $this->cacheScope,
+            nextCursor: $this->nextCursor,
+            meta: $meta,
+        );
+    }
+
+    #[\Override]
     protected function getResultType(): string
     {
         return ResultType::Complete->value;

@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Tests\AutoReview;
 
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\Error;
+use Nexus\Mcp\Core\Schema\Implementation;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
@@ -39,6 +40,7 @@ use Nexus\Mcp\Core\Schema\Request\SubscriptionsListenRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
+use Nexus\Mcp\Core\Schema\ResultMetaObject;
 use Nexus\Mcp\Core\Schema\ResultResponse\CallToolResultResponse;
 use Nexus\Mcp\Core\Schema\ResultResponse\CompleteResultResponse;
 use Nexus\Mcp\Core\Schema\ResultResponse\DiscoverResultResponse;
@@ -50,6 +52,7 @@ use Nexus\Mcp\Core\Schema\ResultResponse\ListResourceTemplatesResultResponse;
 use Nexus\Mcp\Core\Schema\ResultResponse\ListToolsResultResponse;
 use Nexus\Mcp\Core\Schema\ResultResponse\ReadResourceResultResponse;
 use PHPUnit\Framework\Attributes\CoversNothing;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
@@ -99,6 +102,47 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
             'Concrete Result subclasses without a result-response fixture set: %s. Add fixtures under envelope-shapes/{ResultShortName}/ and register in self::registry().',
             implode(', ', $missing),
         ));
+    }
+
+    /**
+     * @param class-string<Result> $resultClass
+     */
+    #[DataProvider('provideEveryResultSurvivesAMetaRebuildCases')]
+    public function testEveryResultSurvivesAMetaRebuild(string $resultClass, string $fixturePath): void
+    {
+        $decoded = self::decodeFixture(self::readFixture($fixturePath), $fixturePath);
+        self::assertArrayHasKey('result', $decoded);
+        self::assertIsArray($decoded['result']);
+        self::assertStringKeyed($decoded['result'], $fixturePath);
+
+        $result = $resultClass::fromArray($decoded['result']);
+        $serverInfo = new Implementation(name: 'stamped-server', version: '1.0.0');
+
+        $payload = $result->toArray();
+        unset($payload['_meta']);
+
+        $rebuilt = $result->rebuildWithMeta(new ResultMetaObject(serverInfo: $serverInfo));
+
+        self::assertSame(
+            ['_meta' => [ResultMetaObject::SERVER_INFO_KEY => $serverInfo->toArray()]] + $payload,
+            $rebuilt->toArray(),
+            \sprintf(
+                'Rebuilding %s with a new `_meta` dropped or reordered part of the result. Its rebuildWithMeta() must carry every field the constructor takes.',
+                $resultClass,
+            ),
+        );
+    }
+
+    /**
+     * @return iterable<string, array{class-string<Result>, string}>
+     */
+    public static function provideEveryResultSurvivesAMetaRebuildCases(): iterable
+    {
+        foreach (self::concreteSubclasses(Result::class) as $resultClass) {
+            $shortName = new \ReflectionClass($resultClass)->getShortName();
+
+            yield $shortName => [$resultClass, self::fixtureRoot().'/'.$shortName.'/all-props.json'];
+        }
     }
 
     public function testEveryConcreteErrorHasErrorResponseFixtures(): void

@@ -68,6 +68,12 @@ final readonly class EmptyResult extends Result implements ClientResult, ServerR
     }
 
     #[\Override]
+    public function rebuildWithMeta(ResultMetaObject $meta): static
+    {
+        return new self(meta: $meta);
+    }
+
+    #[\Override]
     protected function getResultType(): string
     {
         return ResultType::Complete->value;

@@ -46,6 +46,15 @@ final class EmptyResultTest extends TestCase
         self::assertSame(['_meta' => ['vendor' => 'x'], 'resultType' => 'complete'], $result->toArray());
     }
 
+    public function testRebuildingWithNewMetaKeepsEveryOtherField(): void
+    {
+        $result = new EmptyResult(meta: new ResultMetaObject(extras: ['vendor' => 'x']));
+
+        $rebuilt = $result->rebuildWithMeta(new ResultMetaObject(extras: ['replaced' => true]));
+
+        self::assertSame(['_meta' => ['replaced' => true]] + $result->toArray(), $rebuilt->toArray());
+    }
+
     public function testFromArrayWithoutMetaYieldsNullMeta(): void
     {
         self::assertSame([], EmptyResult::fromArray([])->meta->toArray());

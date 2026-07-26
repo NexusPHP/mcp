@@ -74,6 +74,24 @@ final class ListPromptsResultTest extends TestCase
         );
     }
 
+    public function testRebuildingWithNewMetaKeepsEveryOtherField(): void
+    {
+        $result = new ListPromptsResult(
+            prompts: [new Prompt(name: 'a')],
+            ttlMs: 60000,
+            cacheScope: CacheScope::Public,
+            nextCursor: new Cursor(cursor: 'cur-1'),
+            meta: new ResultMetaObject(extras: ['vendor' => 'x']),
+        );
+
+        $rebuilt = $result->rebuildWithMeta(new ResultMetaObject(extras: ['replaced' => true]));
+
+        self::assertSame(
+            ['_meta' => ['replaced' => true]] + $result->toArray(),
+            $rebuilt->toArray(),
+        );
+    }
+
     public function testToArrayWithMetaAndNextCursor(): void
     {
         $result = new ListPromptsResult(

@@ -138,6 +138,27 @@ final class ResultMetaObjectTest extends TestCase
         self::assertSame($original->toArray(), ResultMetaObject::fromArray($original->toArray())->toArray());
     }
 
+    public function testDeclaresServerInfoSeesTheTypedSlot(): void
+    {
+        $meta = new ResultMetaObject(serverInfo: new Implementation(name: 'server', version: '1.0.0'));
+
+        self::assertTrue($meta->declaresServerInfo());
+    }
+
+    public function testDeclaresServerInfoSeesTheKeyAmongTheExtras(): void
+    {
+        // `fromArray` hoists the key into the typed slot, but a directly constructed instance
+        // can still carry it here, and `toArray` would drop it in favour of a later stamp.
+        $meta = new ResultMetaObject(extras: [ResultMetaObject::SERVER_INFO_KEY => ['name' => 'x', 'version' => '1']]);
+
+        self::assertTrue($meta->declaresServerInfo());
+    }
+
+    public function testDeclaresServerInfoIsFalseWhenNeitherCarriesIt(): void
+    {
+        self::assertFalse(new ResultMetaObject(extras: ['vendor' => 'x'])->declaresServerInfo());
+    }
+
     public function testJsonSerializeMatchesToArrayWhenPopulated(): void
     {
         $meta = new ResultMetaObject(serverInfo: new Implementation(name: 'server', version: '1.0.0'));

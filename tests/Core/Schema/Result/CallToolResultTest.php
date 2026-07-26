@@ -84,6 +84,23 @@ final class CallToolResultTest extends TestCase
         );
     }
 
+    public function testRebuildingWithNewMetaKeepsEveryOtherField(): void
+    {
+        $result = new CallToolResult(
+            content: [new TextContent(text: 'hi')],
+            structuredContent: ['lines' => 42],
+            isError: false,
+            meta: new ResultMetaObject(extras: ['vendor' => 'x']),
+        );
+
+        $rebuilt = $result->rebuildWithMeta(new ResultMetaObject(extras: ['replaced' => true]));
+
+        self::assertSame(
+            ['_meta' => ['replaced' => true]] + $result->toArray(),
+            $rebuilt->toArray(),
+        );
+    }
+
     public function testToArrayWithAllFields(): void
     {
         $result = new CallToolResult(

@@ -34,6 +34,7 @@ use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\DiscoverResult;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
+use Nexus\Mcp\Core\Schema\ResultMetaObject;
 use Nexus\Mcp\Core\Schema\ServerCapabilities;
 use Nexus\Mcp\Core\Transport\ReceiveContext;
 use Nexus\Mcp\Core\Transport\SendContext;
@@ -401,10 +402,7 @@ final class ServerMessageDispatcherTest extends TestCase
         // for an unsupported version. The error's data.supported still lets the client learn the set.
         $transport = new RecordingTransport();
         $dispatcher = self::buildDispatcher(
-            requestHandlers: ['server/discover' => new DiscoverRequestHandler(
-                new Implementation(name: 'test-server', version: '1.0.0'),
-                new ServerCapabilities(),
-            )],
+            requestHandlers: ['server/discover' => new DiscoverRequestHandler(new ServerCapabilities())],
         );
 
         $dispatcher->dispatch(self::discoverEnvelope(2, protocolVersion: '2025-11-25'), $transport, new ReceiveContext());
@@ -440,10 +438,7 @@ final class ServerMessageDispatcherTest extends TestCase
     {
         $transport = new RecordingTransport();
         $dispatcher = self::buildDispatcher(
-            requestHandlers: ['server/discover' => new DiscoverRequestHandler(
-                new Implementation(name: 'test-server', version: '1.0.0'),
-                new ServerCapabilities(),
-            )],
+            requestHandlers: ['server/discover' => new DiscoverRequestHandler(new ServerCapabilities())],
         );
 
         $dispatcher->dispatch(self::discoverEnvelope(1), $transport, new ReceiveContext());
@@ -455,6 +450,97 @@ final class ServerMessageDispatcherTest extends TestCase
         self::assertInstanceOf(JsonRpcResultResponse::class, $message);
         self::assertSame(1, $message->id->id);
         self::assertInstanceOf(DiscoverResult::class, $message->result);
+    }
+
+    public function testStampsTheConfiguredServerIdentityOnTheResult(): void
+    {
+        $serverInfo = new Implementation(name: 'test-server', version: '1.0.0');
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher(
+            requestHandlers: ['tools/list' => self::okHandler()],
+            serverInfo: $serverInfo,
+        );
+
+        $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
+
+        EventLoop::run();
+
+        self::assertSame($serverInfo, self::sentResult($transport)->meta->serverInfo);
+    }
+
+    public function testStampsTheServerIdentityOnAResultThatCarriesOtherMetaEntries(): void
+    {
+        $serverInfo = new Implementation(name: 'test-server', version: '1.0.0');
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher(
+            requestHandlers: ['tools/list' => new ClosureRequestHandler(
+                static fn(): EmptyResult => new EmptyResult(new ResultMetaObject(extras: ['vendor' => 'x'])),
+            )],
+            serverInfo: $serverInfo,
+        );
+
+        $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
+
+        EventLoop::run();
+
+        self::assertSame(
+            [ResultMetaObject::SERVER_INFO_KEY => ['name' => 'test-server', 'version' => '1.0.0'], 'vendor' => 'x'],
+            self::sentResult($transport)->meta->toArray(),
+        );
+    }
+
+    public function testLeavesAnIdentityTheHandlerCarriedAmongTheMetaExtras(): void
+    {
+        // A proxy forwarding an upstream `_meta` verbatim holds the identity as a raw extras key
+        // rather than in the typed slot, and `toArray` would drop it in favour of the stamp.
+        $forwarded = [ResultMetaObject::SERVER_INFO_KEY => ['name' => 'upstream-server', 'version' => '9.9.9']];
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher(
+            requestHandlers: ['tools/list' => new ClosureRequestHandler(
+                static fn(): EmptyResult => new EmptyResult(new ResultMetaObject(extras: $forwarded)),
+            )],
+            serverInfo: new Implementation(name: 'test-server', version: '1.0.0'),
+        );
+
+        $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
+
+        EventLoop::run();
+
+        self::assertSame($forwarded, self::sentResult($transport)->meta->toArray());
+    }
+
+    public function testLeavesAnIdentityTheHandlerDeclaredItselfUntouched(): void
+    {
+        // A handler that names an identity of its own (a proxy forwarding an upstream server's) knows
+        // something the dispatcher does not, so the configured identity must not overwrite it.
+        $upstream = new Implementation(name: 'upstream-server', version: '9.9.9');
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher(
+            requestHandlers: ['tools/list' => new ClosureRequestHandler(
+                static fn(): EmptyResult => new EmptyResult(new ResultMetaObject(serverInfo: $upstream)),
+            )],
+            serverInfo: new Implementation(name: 'test-server', version: '1.0.0'),
+        );
+
+        $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
+
+        EventLoop::run();
+
+        self::assertSame($upstream, self::sentResult($transport)->meta->serverInfo);
+    }
+
+    public function testDisclosesNoServerIdentityWhenNoneIsConfigured(): void
+    {
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher(requestHandlers: ['tools/list' => self::okHandler()]);
+
+        $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
+
+        EventLoop::run();
+
+        $result = self::sentResult($transport);
+        self::assertNull($result->meta->serverInfo);
+        self::assertArrayNotHasKey('_meta', $result->toArray());
     }
 
     public function testSecondRequestWithSameInFlightIdIsRejectedSynchronouslyWithInvalidRequest(): void
@@ -958,13 +1044,30 @@ final class ServerMessageDispatcherTest extends TestCase
         array $notificationHandlers = [],
         ?ArrayLogger $logger = null,
         ?JsonRpcMessageParser $parser = null,
+        ?Implementation $serverInfo = null,
     ): ServerMessageDispatcher {
         return new ServerMessageDispatcher(
             new HandlerRegistry($requestHandlers, RequestHandlerInterface::class, 'Request handler'),
             new HandlerRegistry($notificationHandlers, NotificationHandlerInterface::class, 'Notification handler'),
             logger: $logger ?? new ArrayLogger(),
             parser: $parser ?? new JsonRpcMessageParser(),
+            serverInfo: $serverInfo,
         );
+    }
+
+    /**
+     * Reads the single result the transport was handed.
+     */
+    private static function sentResult(RecordingTransport $transport): Result
+    {
+        self::assertCount(1, $transport->sent);
+        $message = $transport->sent[0]['message'];
+
+        if (! $message instanceof JsonRpcResultResponse) {
+            self::fail(\sprintf('Expected a result response, got %s.', $message::class));
+        }
+
+        return $message->result;
     }
 
     /**

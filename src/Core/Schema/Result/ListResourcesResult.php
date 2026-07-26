@@ -136,6 +136,18 @@ final readonly class ListResourcesResult extends PaginatedResult implements Serv
     }
 
     #[\Override]
+    public function rebuildWithMeta(ResultMetaObject $meta): static
+    {
+        return new self(
+            resources: $this->resources,
+            ttlMs: $this->ttlMs,
+            cacheScope: $this->cacheScope,
+            nextCursor: $this->nextCursor,
+            meta: $meta,
+        );
+    }
+
+    #[\Override]
     protected function getResultType(): string
     {
         return ResultType::Complete->value;

@@ -127,6 +127,18 @@ final readonly class ListToolsResult extends PaginatedResult implements ServerRe
     }
 
     #[\Override]
+    public function rebuildWithMeta(ResultMetaObject $meta): static
+    {
+        return new self(
+            tools: $this->tools,
+            ttlMs: $this->ttlMs,
+            cacheScope: $this->cacheScope,
+            nextCursor: $this->nextCursor,
+            meta: $meta,
+        );
+    }
+
+    #[\Override]
     protected function getResultType(): string
     {
         return ResultType::Complete->value;

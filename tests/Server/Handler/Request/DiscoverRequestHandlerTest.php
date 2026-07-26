@@ -15,7 +15,6 @@ namespace Nexus\Mcp\Tests\Server\Handler\Request;
 
 use Amp\NullCancellation;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
-use Nexus\Mcp\Core\Schema\Implementation;
 use Nexus\Mcp\Core\Schema\ProtocolVersion;
 use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
@@ -38,31 +37,24 @@ use PHPUnit\Framework\TestCase;
 #[Group('server-tests')]
 final class DiscoverRequestHandlerTest extends TestCase
 {
-    public function testAdvertisesLatestProtocolVersionCapabilitiesAndServerInfo(): void
+    public function testAdvertisesLatestProtocolVersionAndCapabilities(): void
     {
-        $serverInfo = new Implementation(name: 'test-server', version: '2.0.0');
         $capabilities = new ServerCapabilities(tools: ['listChanged' => true]);
-        $handler = new DiscoverRequestHandler($serverInfo, $capabilities);
+        $handler = new DiscoverRequestHandler($capabilities);
 
         $result = $handler->handle(self::makeRequest(), self::makeContext());
 
         self::assertSame([ProtocolVersion::LATEST_VERSION], $result->supportedVersions);
         self::assertSame($capabilities, $result->capabilities);
-        self::assertSame($serverInfo, $result->meta->serverInfo);
         self::assertNull($result->instructions);
         self::assertSame(0, $result->ttlMs);
         self::assertSame(CacheScope::Private, $result->cacheScope);
-        self::assertSame(
-            [ResultMetaObject::SERVER_INFO_KEY => ['name' => 'test-server', 'version' => '2.0.0']],
-            $result->meta->toArray(),
-        );
+        self::assertNull($result->meta->serverInfo, 'The identity is stamped downstream, not by this handler.');
     }
 
     public function testPropagatesInstructionsTtlCacheScopeAndMeta(): void
     {
-        $serverInfo = new Implementation(name: 'test-server', version: '2.0.0');
         $handler = new DiscoverRequestHandler(
-            $serverInfo,
             new ServerCapabilities(),
             'Use the tools wisely.',
             5_000,
@@ -75,14 +67,7 @@ final class DiscoverRequestHandlerTest extends TestCase
         self::assertSame('Use the tools wisely.', $result->instructions);
         self::assertSame(5_000, $result->ttlMs);
         self::assertSame(CacheScope::Public, $result->cacheScope);
-        self::assertSame($serverInfo, $result->meta->serverInfo);
-        self::assertSame(
-            [
-                ResultMetaObject::SERVER_INFO_KEY => ['name' => 'test-server', 'version' => '2.0.0'],
-                'vendor' => 'x',
-            ],
-            $result->meta->toArray(),
-        );
+        self::assertSame(['vendor' => 'x'], $result->meta->toArray());
     }
 
     private static function makeRequest(): DiscoverRequest

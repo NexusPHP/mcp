@@ -68,6 +68,24 @@ final class ListToolsResultTest extends TestCase
         );
     }
 
+    public function testRebuildingWithNewMetaKeepsEveryOtherField(): void
+    {
+        $result = new ListToolsResult(
+            tools: [new Tool(name: 'read-file', inputSchema: ['type' => 'object'])],
+            ttlMs: 60000,
+            cacheScope: CacheScope::Public,
+            nextCursor: new Cursor(cursor: 'cursor-1'),
+            meta: new ResultMetaObject(extras: ['vendor' => 'x']),
+        );
+
+        $rebuilt = $result->rebuildWithMeta(new ResultMetaObject(extras: ['replaced' => true]));
+
+        self::assertSame(
+            ['_meta' => ['replaced' => true]] + $result->toArray(),
+            $rebuilt->toArray(),
+        );
+    }
+
     public function testToArrayWithAllFields(): void
     {
         $result = new ListToolsResult(

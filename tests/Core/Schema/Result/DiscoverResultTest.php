@@ -76,6 +76,25 @@ final class DiscoverResultTest extends TestCase
         );
     }
 
+    public function testRebuildingWithNewMetaKeepsEveryOtherField(): void
+    {
+        $result = new DiscoverResult(
+            supportedVersions: ['2026-07-28', '2025-06-18'],
+            capabilities: new ServerCapabilities(tools: ['listChanged' => true]),
+            ttlMs: 60000,
+            cacheScope: CacheScope::Public,
+            instructions: 'Be helpful.',
+            meta: new ResultMetaObject(extras: ['vendor' => 'x']),
+        );
+
+        $rebuilt = $result->rebuildWithMeta(new ResultMetaObject(extras: ['replaced' => true]));
+
+        self::assertSame(
+            ['_meta' => ['replaced' => true]] + $result->toArray(),
+            $rebuilt->toArray(),
+        );
+    }
+
     public function testToArrayWithAllFields(): void
     {
         $result = new DiscoverResult(

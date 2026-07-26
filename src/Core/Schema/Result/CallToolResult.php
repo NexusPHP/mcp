@@ -145,6 +145,17 @@ final readonly class CallToolResult extends Result implements ServerResult
     }
 
     #[\Override]
+    public function rebuildWithMeta(ResultMetaObject $meta): static
+    {
+        return new self(
+            content: $this->content,
+            structuredContent: $this->structuredContent,
+            isError: $this->isError,
+            meta: $meta,
+        );
+    }
+
+    #[\Override]
     protected function getResultType(): string
     {
         return ResultType::Complete->value;

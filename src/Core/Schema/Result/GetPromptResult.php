@@ -120,6 +120,16 @@ final readonly class GetPromptResult extends Result implements ServerResult
     }
 
     #[\Override]
+    public function rebuildWithMeta(ResultMetaObject $meta): static
+    {
+        return new self(
+            messages: $this->messages,
+            description: $this->description,
+            meta: $meta,
+        );
+    }
+
+    #[\Override]
     protected function getResultType(): string
     {
         return ResultType::Complete->value;

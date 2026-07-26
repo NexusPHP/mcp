@@ -95,13 +95,17 @@ utility (SEP-2575, changelog item 5) is removed from the protocol entirely.
   this is a non-action verified by the migration).
 - [x] Carry the server identity on result `_meta`: `ResultMetaObject` (the result-side peer of
   `RequestMetaObject`) holds the optional `io.modelcontextprotocol/serverInfo` key, `Result` and every
-  subclass type their `_meta` slot to it, and `DiscoverResult` drops its body-level `serverInfo` field.
-  `DiscoverRequestHandler` stamps the built server's `Implementation` onto the discover result, and
+  subclass type their `_meta` slot to it, `DiscoverResult` drops its body-level `serverInfo` field, and
   `Client::discover()` reads the identity back off the result `_meta`.
-- [ ] Stamp `io.modelcontextprotocol/serverInfo` onto every outgoing result rather than only
-  `server/discover`, which is what the spec's SHOULD asks for. Needs a dispatch-layer seam: results are
-  readonly value objects with no `with`-style copy, so either the dispatcher rebuilds the `_meta` before
-  wrapping or the identity is injected at the response-encoding boundary. Decide the seam before building.
+- [x] Stamp `io.modelcontextprotocol/serverInfo` onto every outgoing result, not only `server/discover`,
+  which is what the spec's SHOULD asks for. `ServerMessageDispatcher` owns the policy: it rebuilds the
+  `_meta` of every handler result before wrapping, skipping any result that already declares an identity of
+  its own (a proxy forwarding an upstream server's, in the typed slot or among the `_meta` extras, which
+  `ResultMetaObject::declaresServerInfo()` answers). The schema layer contributes only the rebuild itself:
+  `Result::rebuildWithMeta()`, implemented field-by-field by each concrete result.
+  `ServerBuilder::setServerInfoDisclosure()` is the spec's "unless specifically configured not to do so"
+  opt-out. Since the identity rides `_meta` alone, turning it off withholds the identity from
+  `server/discover` too.
 - [x] Represent the lifecycle/capability and header-mismatch error responses: `ProtocolErrorCode` carries
   `HeaderMismatch` (`-32020`), `MissingRequiredClientCapability` (`-32021`), and `UnsupportedProtocolVersion`
   (`-32022`), each with a matching `Error` subclass (typed `data` where the spec defines it: `supported` +

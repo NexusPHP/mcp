@@ -35,6 +35,13 @@ abstract readonly class Result implements Arrayable
     }
 
     /**
+     * Returns a new instance of this result carrying the given `_meta` in place of its own.
+     *
+     * @internal
+     */
+    abstract public function rebuildWithMeta(ResultMetaObject $meta): static;
+
+    /**
      * @return non-empty-string
      */
     abstract protected function getResultType(): string;

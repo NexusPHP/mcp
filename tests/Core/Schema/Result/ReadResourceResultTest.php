@@ -113,6 +113,23 @@ final class ReadResourceResultTest extends TestCase
         );
     }
 
+    public function testRebuildingWithNewMetaKeepsEveryOtherField(): void
+    {
+        $result = new ReadResourceResult(
+            contents: [new TextResourceContents(uri: 'file:///x', text: 'hi')],
+            ttlMs: 60000,
+            cacheScope: CacheScope::Public,
+            meta: new ResultMetaObject(extras: ['vendor' => 'x']),
+        );
+
+        $rebuilt = $result->rebuildWithMeta(new ResultMetaObject(extras: ['replaced' => true]));
+
+        self::assertSame(
+            ['_meta' => ['replaced' => true]] + $result->toArray(),
+            $rebuilt->toArray(),
+        );
+    }
+
     public function testToArrayIncludesMeta(): void
     {
         $result = new ReadResourceResult(

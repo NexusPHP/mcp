@@ -373,6 +373,49 @@ final class ServerBuilderTest extends TestCase
         self::assertSame('2.3.4', $info->version);
     }
 
+    public function testServerInfoRidesTheMetaOfAResultOtherThanDiscover(): void
+    {
+        // The spec asks for the identity on every response, not only on the discovery probe.
+        $server = new ServerBuilder()
+            ->setServerInfo('demo-srv', '2.3.4')
+            ->addTool(
+                new Tool(name: 'echo', inputSchema: ['type' => 'object']),
+                static fn(?array $args, $ctx): CallToolResult => new CallToolResult(content: [new TextContent(text: 'echo')]),
+            )
+            ->build()
+        ;
+
+        $result = $this->dispatch($server, 'tools/list');
+
+        self::assertSame('demo-srv', $result->meta->serverInfo?->name);
+    }
+
+    public function testTurningOffServerInfoDisclosureLeavesTheIdentityOffEveryResult(): void
+    {
+        $server = new ServerBuilder()
+            ->setServerInfo('demo-srv', '2.3.4')
+            ->setServerInfoDisclosure(false)
+            ->build()
+        ;
+
+        $result = $this->discoverResultFor($server);
+
+        self::assertNull($result->meta->serverInfo);
+        self::assertArrayNotHasKey('_meta', $result->toArray());
+    }
+
+    public function testServerInfoDisclosureIsOnByDefaultAndReSettable(): void
+    {
+        $server = new ServerBuilder()
+            ->setServerInfo('demo-srv', '2.3.4')
+            ->setServerInfoDisclosure(false)
+            ->setServerInfoDisclosure(true)
+            ->build()
+        ;
+
+        self::assertSame('demo-srv', $this->serverInfoFor($server)->name);
+    }
+
     public function testRegisteredToolFlowsThroughBuiltServer(): void
     {
         $server = new ServerBuilder()

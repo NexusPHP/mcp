@@ -157,6 +157,19 @@ final readonly class DiscoverResult extends CacheableResult implements ServerRes
     }
 
     #[\Override]
+    public function rebuildWithMeta(ResultMetaObject $meta): static
+    {
+        return new self(
+            supportedVersions: $this->supportedVersions,
+            capabilities: $this->capabilities,
+            ttlMs: $this->ttlMs,
+            cacheScope: $this->cacheScope,
+            instructions: $this->instructions,
+            meta: $meta,
+        );
+    }
+
+    #[\Override]
     protected function getResultType(): string
     {
         return ResultType::Complete->value;

@@ -117,6 +117,17 @@ final readonly class ReadResourceResult extends CacheableResult implements Serve
     }
 
     #[\Override]
+    public function rebuildWithMeta(ResultMetaObject $meta): static
+    {
+        return new self(
+            contents: $this->contents,
+            ttlMs: $this->ttlMs,
+            cacheScope: $this->cacheScope,
+            meta: $meta,
+        );
+    }
+
+    #[\Override]
     protected function getResultType(): string
     {
         return ResultType::Complete->value;

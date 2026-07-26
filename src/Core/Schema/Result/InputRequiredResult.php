@@ -134,6 +134,16 @@ final readonly class InputRequiredResult extends Result implements ServerResult
     }
 
     #[\Override]
+    public function rebuildWithMeta(ResultMetaObject $meta): static
+    {
+        return new self(
+            inputRequests: $this->inputRequests,
+            requestState: $this->requestState,
+            meta: $meta,
+        );
+    }
+
+    #[\Override]
     protected function getResultType(): string
     {
         return ResultType::InputRequired->value;
