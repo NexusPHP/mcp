@@ -237,14 +237,14 @@ final class StreamableHttpClientTransportTest extends TestCase
 
     /**
      * Both malformed shapes are exercised inside a stream: an undecodable payload and a decodable one that
-     * is not an envelope. Each is caught per frame, so the stream survives either.
+     * is not an envelope. Each is caught per frame, so the stream survives either. The good frame shares the
+     * bad one's chunk, so recovery has to happen within the batch rather than on the next read.
      */
     #[DataProvider('provideKeepsReadingAfterAMalformedFrameCases')]
     public function testKeepsReadingAfterAMalformedFrame(string $payload): void
     {
         $http = new RecordingHttpClient()->willAnswerStream([
-            \sprintf("event: message\ndata: %s\n\n", $payload),
-            self::frame(self::resultEnvelope()),
+            \sprintf("event: message\ndata: %s\n\n", $payload).self::frame(self::resultEnvelope()),
         ]);
         $transport = self::makeTransport($http);
         $received = self::captureMessages($transport);
@@ -264,6 +264,28 @@ final class StreamableHttpClientTransportTest extends TestCase
         yield 'undecodable json' => ['{not json'];
 
         yield 'json that is not an envelope' => ['[1, 2]'];
+    }
+
+    public function testAListenerFaultOnAFrameIsNotMistakenForAnUnreadableOne(): void
+    {
+        // The protocol layer's parser rejects an envelope with `InvalidArgumentException`, the very type the
+        // per-frame guard catches, so only the decode may sit inside it.
+        $http = new RecordingHttpClient()->willAnswerStream([self::frame(self::resultEnvelope())]);
+        $transport = self::makeTransport($http);
+        $faults = self::captureFaults($transport);
+        $transport->onMessage(static function (): void {
+            throw new \InvalidArgumentException('the protocol layer rejected this envelope');
+        });
+
+        self::exchange($transport, self::discoverRequest());
+
+        $fault = $faults->readFault();
+
+        if (! $fault instanceof OutboundRequestFailedException) {
+            self::fail('A listener fault must fail the request it carried rather than read on as if the frame were unreadable.');
+        }
+
+        self::assertSame('the protocol layer rejected this envelope', $fault->getPrevious()?->getMessage());
     }
 
     public function testCloseCancelsAnOpenStreamWithoutReportingAFault(): void
@@ -465,6 +487,8 @@ final class StreamableHttpClientTransportTest extends TestCase
 
     public function testCloseAwaitsAnInFlightExchange(): void
     {
+        // Cancelling the lifetime first is what lets the await terminate, so `close()` is the only thing
+        // driving this exchange to completion.
         $http = new RecordingHttpClient()->willAnswerJson(self::resultEnvelope());
         $transport = self::makeTransport($http);
         $received = self::captureMessages($transport);
