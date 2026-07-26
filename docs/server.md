@@ -78,6 +78,30 @@ NOT write to STDOUT outside of the JSON-RPC stream. Target STDERR or a file.
 ->setLogger($psrLogger)
 ```
 
+## In-flight dispatch cap
+
+Optional and off by default. Without it, a peer that sends faster than handlers finish accumulates one
+coroutine per message until the process runs out of memory. `setMaxInFlightDispatches()` bounds that.
+
+```php
+->setMaxInFlightDispatches(64)
+```
+
+Past the cap, a request is answered `-32000` (`SdkErrorCode::Overloaded`) and a notification is dropped
+without a reply, because JSON-RPC 2.0 §4.1 forbids answering one. Shedding happens before the request id is
+claimed, so the server holds no state for a shed request and a retry is never rejected as a duplicate.
+
+Pick a number from what your handlers cost, not from request rate: the cap counts handlers running
+concurrently, and it releases as each one finishes. The budget is shared, so a registered notification
+handler occupies a slot for as long as it runs. A notification whose method has no handler costs nothing.
+
+Over Streamable HTTP a shed request carries `503 Service Unavailable` under the default `ResponseMode::Auto`
+and under `ResponseMode::Json`. Under `ResponseMode::Sse` it carries `200` with the error in a stream frame,
+as every dispatcher-produced error does there: an SSE response commits its status when the stream opens,
+before any frame exists. Front a proxy that keys on `503` with `Auto` or `Json`.
+
+This composes with `RequestBodySizeLimitMiddleware`, which caps a single body rather than concurrency.
+
 ## Tools
 
 ```php

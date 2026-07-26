@@ -16,8 +16,10 @@ namespace Nexus\Mcp\Tests\Server;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Cursor;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
+use Nexus\Mcp\Core\Schema\Enum\SdkErrorCode;
 use Nexus\Mcp\Core\Schema\Icon;
 use Nexus\Mcp\Core\Schema\Implementation;
+use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\Prompt\Prompt;
 use Nexus\Mcp\Core\Schema\Resource\Resource;
@@ -389,6 +391,38 @@ final class ServerBuilderTest extends TestCase
         $result = $this->dispatch($server, 'tools/list');
 
         self::assertSame('demo-srv', $result->meta->serverInfo?->name);
+    }
+
+    public function testSetMaxInFlightDispatchesRejectsANonPositiveCap(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('Maximum in-flight dispatches must be a positive integer or null, 0 given.');
+
+        new ServerBuilder()->setMaxInFlightDispatches(0);
+    }
+
+    public function testTheInFlightCapReachesTheDispatcher(): void
+    {
+        // `listen()` attaches without awaiting close, so both envelopes are dispatched before the
+        // loop turns and the second one meets a saturated dispatcher.
+        $server = new ServerBuilder()
+            ->setServerInfo('demo', '1.0.0')
+            ->setMaxInFlightDispatches(1)
+            ->build()
+        ;
+
+        $transport = new RecordingTransport();
+        $server->listen($transport);
+
+        $transport->emitMessage(self::discoverEnvelope(1));
+        $transport->emitMessage(self::discoverEnvelope(2));
+
+        EventLoop::run();
+
+        self::assertCount(2, $transport->sent);
+        $shed = $transport->sent[0]['message'];
+        self::assertInstanceOf(JsonRpcErrorResponse::class, $shed);
+        self::assertSame(SdkErrorCode::Overloaded->value, $shed->error->code);
     }
 
     public function testDisclosingNoServerInfoLeavesTheIdentityOffEveryResult(): void
@@ -1235,6 +1269,19 @@ final class ServerBuilderTest extends TestCase
         );
         self::assertInstanceOf(ListResourceTemplatesResult::class, $withEntry);
         self::assertSame(['mem://{id}'], array_map(static fn(ResourceTemplate $template): string => $template->uriTemplate, $withEntry->resourceTemplates));
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function discoverEnvelope(int $id): array
+    {
+        return [
+            'jsonrpc' => '2.0',
+            'id' => $id,
+            'method' => 'server/discover',
+            'params' => ['_meta' => RequestMetaObjectFactory::shape()],
+        ];
     }
 
     /**

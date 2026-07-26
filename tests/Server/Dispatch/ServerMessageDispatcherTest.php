@@ -22,6 +22,7 @@ use Nexus\Mcp\Core\Handler\NotificationHandlerInterface;
 use Nexus\Mcp\Core\Handler\RequestHandlerInterface;
 use Nexus\Mcp\Core\JsonRpc\JsonRpcMessageParser;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
+use Nexus\Mcp\Core\Schema\Enum\SdkErrorCode;
 use Nexus\Mcp\Core\Schema\Error\UnsupportedProtocolVersionError;
 use Nexus\Mcp\Core\Schema\Implementation;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
@@ -62,6 +63,8 @@ use Revolt\EventLoop;
 #[Group('server-tests')]
 final class ServerMessageDispatcherTest extends TestCase
 {
+    private const string ORPHAN_LOG_MESSAGE = 'Discarded {count} response envelope(s) so far (server has no outbound-request correlation).';
+
     public function testInboundResultResponseEnvelopeIsLoggedAndDropped(): void
     {
         $transport = new RecordingTransport();
@@ -74,12 +77,9 @@ final class ServerMessageDispatcherTest extends TestCase
         EventLoop::run();
 
         self::assertSame([], $transport->sent);
-        $matches = $logger->recordsMatching(
-            LogLevel::WARNING,
-            'Discarding response envelope (server has no outbound-request correlation).',
-        );
+        $matches = $logger->recordsMatching(LogLevel::WARNING, self::ORPHAN_LOG_MESSAGE);
         self::assertCount(1, $matches);
-        self::assertSame(['envelope' => $envelope], $matches[0]['context']);
+        self::assertSame(['count' => 1], $matches[0]['context']);
     }
 
     public function testInboundErrorResponseEnvelopeIsLoggedAndDropped(): void
@@ -94,12 +94,26 @@ final class ServerMessageDispatcherTest extends TestCase
         EventLoop::run();
 
         self::assertSame([], $transport->sent);
-        $matches = $logger->recordsMatching(
-            LogLevel::WARNING,
-            'Discarding response envelope (server has no outbound-request correlation).',
-        );
+        $matches = $logger->recordsMatching(LogLevel::WARNING, self::ORPHAN_LOG_MESSAGE);
         self::assertCount(1, $matches);
-        self::assertSame(['envelope' => $envelope], $matches[0]['context']);
+        self::assertSame(['count' => 1], $matches[0]['context']);
+    }
+
+    public function testAnOrphanResponseStormIsLoggedOnceNotOncePerEnvelope(): void
+    {
+        $transport = new RecordingTransport();
+        $logger = new ArrayLogger();
+        $dispatcher = self::buildDispatcher(logger: $logger);
+
+        for ($i = 0; $i < 25; ++$i) {
+            $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => $i, 'result' => []], $transport, new ReceiveContext());
+        }
+
+        EventLoop::run();
+
+        $matches = $logger->recordsMatching(LogLevel::WARNING, self::ORPHAN_LOG_MESSAGE);
+        self::assertCount(1, $matches);
+        self::assertSame(['count' => 1], $matches[0]['context']);
     }
 
     public function testMalformedResponseEnvelopeIsDroppedNotAnsweredWithError(): void
@@ -114,12 +128,7 @@ final class ServerMessageDispatcherTest extends TestCase
         EventLoop::run();
 
         self::assertSame([], $transport->sent, 'A response envelope must not provoke another response, even when malformed.');
-        $matches = $logger->recordsMatching(
-            LogLevel::WARNING,
-            'Discarding response envelope (server has no outbound-request correlation).',
-        );
-        self::assertCount(1, $matches);
-        self::assertSame(['envelope' => $envelope], $matches[0]['context']);
+        self::assertCount(1, $logger->recordsMatching(LogLevel::WARNING, self::ORPHAN_LOG_MESSAGE));
         self::assertSame([], $logger->messagesAtLevel(LogLevel::INFO), 'Response envelopes must not fall through to the notification-drop log.');
     }
 
@@ -541,6 +550,110 @@ final class ServerMessageDispatcherTest extends TestCase
         $result = self::sentResult($transport);
         self::assertNull($result->meta->serverInfo);
         self::assertArrayNotHasKey('_meta', $result->toArray());
+    }
+
+    public function testRequestPastTheInFlightCapIsShedAsOverloaded(): void
+    {
+        // `async()` schedules without running, so both envelopes are dispatched before the loop turns
+        // and the second one meets a saturated dispatcher.
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher(requestHandlers: ['tools/list' => self::okHandler()], maxInFlight: 1);
+
+        $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
+        $dispatcher->dispatch(self::toolsListEnvelope(2), $transport, new ReceiveContext());
+
+        EventLoop::run();
+
+        self::assertCount(2, $transport->sent);
+        $shed = $transport->sent[0]['message'];
+        self::assertInstanceOf(JsonRpcErrorResponse::class, $shed);
+        self::assertSame(2, $shed->id?->id, 'The shed response must answer the request that was refused.');
+        self::assertSame(SdkErrorCode::Overloaded->value, $shed->error->code);
+        self::assertSame('Server overloaded', $shed->error->message);
+    }
+
+    public function testAShedRequestLeavesItsIdFreeForARetry(): void
+    {
+        // Shedding happens before the id is claimed, so retrying under the same id is not a duplicate.
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher(requestHandlers: ['tools/list' => self::okHandler()], maxInFlight: 1);
+
+        $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
+        $dispatcher->dispatch(self::toolsListEnvelope(2), $transport, new ReceiveContext());
+
+        EventLoop::run();
+
+        $dispatcher->dispatch(self::toolsListEnvelope(2), $transport, new ReceiveContext());
+
+        EventLoop::run();
+
+        self::assertCount(3, $transport->sent);
+        self::assertInstanceOf(JsonRpcResultResponse::class, $transport->sent[2]['message']);
+    }
+
+    public function testRequestsUpToTheCapAreDispatchedNormally(): void
+    {
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher(requestHandlers: ['tools/list' => self::okHandler()], maxInFlight: 2);
+
+        $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
+        $dispatcher->dispatch(self::toolsListEnvelope(2), $transport, new ReceiveContext());
+
+        EventLoop::run();
+
+        self::assertCount(2, $transport->sent);
+        self::assertInstanceOf(JsonRpcResultResponse::class, $transport->sent[0]['message']);
+        self::assertInstanceOf(JsonRpcResultResponse::class, $transport->sent[1]['message']);
+    }
+
+    public function testNoCapIsAppliedByDefault(): void
+    {
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher(requestHandlers: ['tools/list' => self::okHandler()]);
+
+        $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
+        $dispatcher->dispatch(self::toolsListEnvelope(2), $transport, new ReceiveContext());
+
+        EventLoop::run();
+
+        self::assertCount(2, $transport->sent);
+        self::assertInstanceOf(JsonRpcResultResponse::class, $transport->sent[0]['message']);
+        self::assertInstanceOf(JsonRpcResultResponse::class, $transport->sent[1]['message']);
+    }
+
+    public function testNotificationPastTheInFlightCapIsShedWithoutAResponse(): void
+    {
+        $handled = false;
+        $transport = new RecordingTransport();
+        $logger = new ArrayLogger();
+        $dispatcher = self::buildDispatcher(
+            requestHandlers: ['tools/list' => self::okHandler()],
+            notificationHandlers: [
+                'notifications/cancelled' => new ClosureNotificationHandler(static function () use (&$handled): void {
+                    $handled = true;
+                }),
+            ],
+            logger: $logger,
+            maxInFlight: 1,
+        );
+
+        $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
+        $dispatcher->dispatch(
+            ['jsonrpc' => '2.0', 'method' => 'notifications/cancelled', 'params' => ['requestId' => 9]],
+            $transport,
+            new ReceiveContext(),
+        );
+
+        EventLoop::run();
+
+        self::assertFalse($handled, 'A shed notification must not reach its handler.');
+        self::assertCount(1, $transport->sent, 'JSON-RPC 2.0 §4.1 forbids answering a notification.');
+        $matches = $logger->recordsMatching(
+            LogLevel::WARNING,
+            'Shed {count} notification(s) so far. The server is at its in-flight dispatch cap.',
+        );
+        self::assertCount(1, $matches);
+        self::assertSame(['count' => 1], $matches[0]['context']);
     }
 
     public function testSecondRequestWithSameInFlightIdIsRejectedSynchronouslyWithInvalidRequest(): void
@@ -1038,6 +1151,7 @@ final class ServerMessageDispatcherTest extends TestCase
     /**
      * @param array<non-empty-string, RequestHandlerInterface<non-empty-string, Result, ServerContext>> $requestHandlers
      * @param array<non-empty-string, NotificationHandlerInterface<non-empty-string>>                   $notificationHandlers
+     * @param null|positive-int                                                                         $maxInFlight
      */
     private static function buildDispatcher(
         array $requestHandlers = [],
@@ -1045,6 +1159,7 @@ final class ServerMessageDispatcherTest extends TestCase
         ?ArrayLogger $logger = null,
         ?JsonRpcMessageParser $parser = null,
         ?Implementation $serverInfo = null,
+        ?int $maxInFlight = null,
     ): ServerMessageDispatcher {
         return new ServerMessageDispatcher(
             new HandlerRegistry($requestHandlers, RequestHandlerInterface::class, 'Request handler'),
@@ -1052,6 +1167,7 @@ final class ServerMessageDispatcherTest extends TestCase
             logger: $logger ?? new ArrayLogger(),
             parser: $parser ?? new JsonRpcMessageParser(),
             serverInfo: $serverInfo,
+            maxInFlight: $maxInFlight,
         );
     }
 

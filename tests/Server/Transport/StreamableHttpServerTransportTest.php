@@ -19,6 +19,7 @@ use Nexus\Mcp\Core\Exception\TransportAlreadyStartedException;
 use Nexus\Mcp\Core\Exception\TransportNotStartedException;
 use Nexus\Mcp\Core\Handler\AbstractContext;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
+use Nexus\Mcp\Core\Schema\Enum\SdkErrorCode;
 use Nexus\Mcp\Core\Schema\Error\InternalError;
 use Nexus\Mcp\Core\Schema\Error\UnknownProtocolError;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
@@ -560,6 +561,37 @@ final class StreamableHttpServerTransportTest extends TestCase
         self::assertSame('n-1', self::decode($response)['id'] ?? null, 'The client id must be restored on the response.');
     }
 
+    public function testAShedRequestCarriesServiceUnavailable(): void
+    {
+        // The one path where the in-flight cap meets the status resolver end to end.
+        $transport = self::makeTransport(start: false);
+        self::listen($transport, new ServerBuilder()
+            ->setServerInfo('demo', '1.0.0')
+            ->setMaxInFlightDispatches(1)
+            ->replaceRequestHandler(
+                DiscoverRequest::getMethod(),
+                new ClosureRequestHandler(static function (): EmptyResult {
+                    delay(0.05);
+
+                    return new EmptyResult();
+                }),
+            )
+            ->build());
+
+        $occupied = async(static fn(): ResponseInterface => $transport->handle(self::discoverPost()));
+        delay(0.01);
+        $shed = $transport->handle(self::makePost([
+            'jsonrpc' => '2.0',
+            'id' => 2,
+            'method' => 'server/discover',
+            'params' => ['_meta' => RequestMetaObjectFactory::shape()],
+        ], self::standardHeaders('server/discover')));
+        $occupied->await();
+
+        self::assertSame(503, $shed->getStatusCode());
+        self::assertSame(SdkErrorCode::Overloaded->value, self::errorPayload($shed)['code'] ?? null);
+    }
+
     public function testResponseCarryingANonSpecErrorCodeResolvesToBadRequest(): void
     {
         // Error::$code is a plain int, so a consumer-sent code outside ProtocolErrorCode must not strand
@@ -576,14 +608,14 @@ final class StreamableHttpServerTransportTest extends TestCase
         self::assertIsInt($internalId);
         $transport->send(new JsonRpcErrorResponse(
             id: new RequestId(id: $internalId),
-            error: new UnknownProtocolError(code: -32000, message: 'boom'),
+            error: new UnknownProtocolError(code: -32001, message: 'boom'),
         ));
 
         $response = $pending->await();
         self::assertInstanceOf(ResponseInterface::class, $response);
 
         self::assertSame(400, $response->getStatusCode());
-        self::assertSame(-32000, self::errorPayload($response)['code'] ?? null);
+        self::assertSame(-32001, self::errorPayload($response)['code'] ?? null);
     }
 
     public function testNonPostIsAnsweredEvenWhenTheEndpointIsNotAccepting(): void

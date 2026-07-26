@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Tests\Core\Http;
 
 use Nexus\Mcp\Core\Http\HttpStatusResolver;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
+use Nexus\Mcp\Core\Schema\Enum\SdkErrorCode;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -29,36 +30,42 @@ use PHPUnit\Framework\TestCase;
 final class HttpStatusResolverTest extends TestCase
 {
     #[DataProvider('provideResolveCases')]
-    public function testResolve(ProtocolErrorCode $code, bool $fromHandler, int $expected): void
+    public function testResolve(int $code, bool $fromHandler, int $expected): void
     {
         self::assertSame($expected, HttpStatusResolver::resolve($code, $fromHandler));
     }
 
     /**
-     * @return iterable<string, array{ProtocolErrorCode, bool, int}>
+     * @return iterable<string, array{int, bool, int}>
      */
     public static function provideResolveCases(): iterable
     {
-        yield 'pre-dispatch parse error' => [ProtocolErrorCode::ParseError, false, 400];
+        yield 'pre-dispatch parse error' => [ProtocolErrorCode::ParseError->value, false, 400];
 
-        yield 'pre-dispatch invalid request' => [ProtocolErrorCode::InvalidRequest, false, 400];
+        yield 'pre-dispatch invalid request' => [ProtocolErrorCode::InvalidRequest->value, false, 400];
 
-        yield 'pre-dispatch invalid params' => [ProtocolErrorCode::InvalidParams, false, 400];
+        yield 'pre-dispatch invalid params' => [ProtocolErrorCode::InvalidParams->value, false, 400];
 
-        yield 'pre-dispatch header mismatch' => [ProtocolErrorCode::HeaderMismatch, false, 400];
+        yield 'pre-dispatch header mismatch' => [ProtocolErrorCode::HeaderMismatch->value, false, 400];
 
-        yield 'pre-dispatch missing required client capability' => [ProtocolErrorCode::MissingRequiredClientCapability, false, 400];
+        yield 'pre-dispatch missing required client capability' => [ProtocolErrorCode::MissingRequiredClientCapability->value, false, 400];
 
-        yield 'pre-dispatch unsupported protocol version' => [ProtocolErrorCode::UnsupportedProtocolVersion, false, 400];
+        yield 'pre-dispatch unsupported protocol version' => [ProtocolErrorCode::UnsupportedProtocolVersion->value, false, 400];
 
-        yield 'pre-dispatch internal error defaults to 400' => [ProtocolErrorCode::InternalError, false, 400];
+        yield 'pre-dispatch internal error defaults to 400' => [ProtocolErrorCode::InternalError->value, false, 400];
 
-        yield 'pre-dispatch method not found' => [ProtocolErrorCode::MethodNotFound, false, 404];
+        yield 'pre-dispatch method not found' => [ProtocolErrorCode::MethodNotFound->value, false, 404];
 
-        yield 'handler error rides 200 regardless of code' => [ProtocolErrorCode::InternalError, true, 200];
+        yield 'a shed request is retryable, not the caller\'s fault' => [SdkErrorCode::Overloaded->value, false, 503];
 
-        yield 'handler error ignores a method-not-found code' => [ProtocolErrorCode::MethodNotFound, true, 200];
+        yield 'an unrecognised code defaults to 400' => [-32001, false, 400];
 
-        yield 'handler error ignores a parse-error code' => [ProtocolErrorCode::ParseError, true, 200];
+        yield 'handler error rides 200 regardless of code' => [ProtocolErrorCode::InternalError->value, true, 200];
+
+        yield 'handler error ignores a method-not-found code' => [ProtocolErrorCode::MethodNotFound->value, true, 200];
+
+        yield 'handler error ignores an overloaded code' => [SdkErrorCode::Overloaded->value, true, 200];
+
+        yield 'handler error ignores a parse-error code' => [ProtocolErrorCode::ParseError->value, true, 200];
     }
 }

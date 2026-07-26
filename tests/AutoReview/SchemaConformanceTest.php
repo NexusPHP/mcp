@@ -21,6 +21,7 @@ use Nexus\Mcp\Core\Schema\Elicitation\EnumOption;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\Enum\ElicitAction;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
+use Nexus\Mcp\Core\Schema\Enum\SdkErrorCode;
 use Nexus\Mcp\Core\Schema\Error;
 use Nexus\Mcp\Core\Schema\Error\UnknownProtocolError;
 use Nexus\Mcp\Core\Schema\Icons;
@@ -100,6 +101,7 @@ final class SchemaConformanceTest extends TestCase
         CacheScope::class => self::TS_SCHEMA_FILE_URL,
         ElicitAction::class => self::TS_SCHEMA_FILE_URL,
         ProtocolErrorCode::class => self::JSON_RPC_ERROR_OBJECT_URL,
+        SdkErrorCode::class => self::JSON_RPC_ERROR_OBJECT_URL,
         UnknownProtocolError::class => self::JSON_RPC_ERROR_OBJECT_URL,
         Icons::class => 'https://modelcontextprotocol.io/specification/draft/basic#icons',
         Notification::class => self::TS_SCHEMA_FILE_URL,

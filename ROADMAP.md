@@ -403,8 +403,14 @@ Client transport (`Nexus\Mcp\Client`, amphp/http-client). Adds `amphp/http-clien
 
 Follow-on milestones.
 
-- [ ] Remaining DoS hardening whose natural home is the per-request HTTP model: an in-flight dispatch cap and
-  orphan-response log throttling. The request-body-size cap above already shipped.
+- [x] Remaining DoS hardening whose natural home is the per-request HTTP model.
+  `ServerBuilder::setMaxInFlightDispatches()` caps how many messages the dispatcher runs at once, counted off
+  `PendingCoroutines`: past the cap a request is shed with `-32000` (`SdkErrorCode::Overloaded`, which the
+  Streamable HTTP transport answers `503`) before its id is claimed, so a retry is not a duplicate, and a
+  notification is dropped outright since JSON-RPC 2.0 §4.1 forbids answering one. The cap is off by default,
+  matching the opt-in shape of the request-body-size cap. Orphan-response and shed-notification logging both
+  run through `LogThrottle`, which admits the first occurrence and every hundredth after it and never echoes
+  the envelope, so a flood cannot amplify into one structured log record per message.
 - [ ] `subscriptions/listen` serving over a long-lived SSE stream. The transport already supports
   long-lived streams structurally. The handler lands when the subscriptions result leg unblocks.
 - [x] Per-request timeouts: every request carries an idle deadline that each progress notification restarts,
