@@ -368,9 +368,9 @@ response that can no longer arrive. Other in-flight requests are untouched, and 
 caller, is reported as it stands. Inside an SSE stream a single unreadable frame is reported but does not end
 the exchange, since a later frame may still carry the response.
 
-> **Known gap.** An exchange that *completes* without ever delivering its response (a server that closes the
-> stream early, or answers `202` to a request) leaves its caller waiting: nothing failed, so there is nothing
-> to correlate. Per-request timeouts are the general answer and are tracked on the roadmap.
+An exchange that *completes* without ever delivering its response (a server that closes the stream early, or
+answers `202` to a request) raises nothing to correlate. The client's
+[request deadline](client.md#request-timeouts) covers that case, and every other way a peer can go silent.
 
 ## See also
 

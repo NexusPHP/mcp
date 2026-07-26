@@ -21,6 +21,7 @@ use Nexus\Mcp\Client\Exception\ClientNotConnectedException;
 use Nexus\Mcp\Client\Exception\ServerCapabilityNotSupportedException;
 use Nexus\Mcp\Core\Exception\OutboundRequestFailedException;
 use Nexus\Mcp\Core\Exception\RemoteCallFailedException;
+use Nexus\Mcp\Core\Exception\RequestTimeoutException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
 use Nexus\Mcp\Core\Schema\ClientCapabilities;
 use Nexus\Mcp\Core\Schema\Cursor;
@@ -29,6 +30,7 @@ use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcMessage;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
+use Nexus\Mcp\Core\Schema\Notification\CancelledNotification;
 use Nexus\Mcp\Core\Schema\Notification\ProgressNotification;
 use Nexus\Mcp\Core\Schema\Prompt\PromptReference;
 use Nexus\Mcp\Core\Schema\ProtocolVersion;
@@ -47,6 +49,7 @@ use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Core\Schema\Result\CompleteResult;
 use Nexus\Mcp\Core\Schema\Result\DiscoverResult;
 use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
+use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
 use Nexus\Mcp\Core\Schema\Result\ListPromptsResult;
 use Nexus\Mcp\Core\Schema\Result\ListResourcesResult;
 use Nexus\Mcp\Core\Schema\Result\ListResourceTemplatesResult;
@@ -67,6 +70,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LogLevel;
+use Revolt\EventLoop;
 
 use function Amp\async;
 use function Amp\delay;
@@ -298,6 +302,260 @@ final class ClientTest extends TestCase
         $transport->emitMessage(self::discoverResponse($sentRequest->id->id, 'srv', '1.0'));
 
         self::assertInstanceOf(DiscoverResult::class, $deferred->await());
+    }
+
+    public function testARequestThatGoesUnansweredTimesOut(): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->setRequestTimeout(0.05)->build();
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+
+        try {
+            self::awaitPastDeadline(static fn(): DiscoverResult => $client->discover(), 0.05);
+            self::fail('Expected the deadline to release the caller.');
+        } catch (RequestTimeoutException $e) {
+            self::assertSame('Request 1 went unanswered for 0.05 seconds.', $e->getMessage());
+            self::assertSame(1, $e->requestId->id);
+        }
+
+        // The peer is told to stop working on a result nobody will read.
+        self::assertCount(2, $transport->sent);
+        $cancelled = $transport->sent[1]['message'];
+        self::assertInstanceOf(CancelledNotification::class, $cancelled);
+        self::assertSame(1, $cancelled->params->requestId->id);
+        self::assertSame('The request timed out.', $cancelled->params->reason);
+    }
+
+    public function testATimedOutRequestReleasesItsCorrelationSlot(): void
+    {
+        $logger = new ArrayLogger();
+        $client = new ClientBuilder()->setLogger($logger)->setClientInfo('demo', '1.0.0')->setRequestTimeout(0.05)->build();
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+
+        try {
+            self::awaitPastDeadline(static fn(): DiscoverResult => $client->discover(), 0.05);
+        } catch (RequestTimeoutException) {
+            // Expected: the assertion below is about what the timeout left behind.
+        }
+
+        $transport->emitMessage(self::discoverResponse(1));
+
+        self::assertCount(
+            1,
+            $logger->recordsMatching(LogLevel::WARNING, 'Discarding orphan success response for unknown request id.'),
+            'A response arriving after the timeout has no awaiter left to receive it.',
+        );
+    }
+
+    public function testASettledRequestLeavesNoTimerArmed(): void
+    {
+        $client = new ClientBuilder()
+            ->setClientInfo('demo', '1.0.0')
+            ->setRequestTimeout(30.0)
+            ->setMaxRequestTimeout(60.0)
+            ->build()
+        ;
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+
+        $quiescent = \count(EventLoop::getIdentifiers());
+
+        $deferred = async(static fn(): DiscoverResult => $client->discover());
+        $transport->nextSend()->await();
+        $transport->emitMessage(self::discoverResponse(1));
+        $deferred->await();
+
+        // Both deadlines outlive the response by minutes, so leaving either armed would hold the event
+        // loop open long after the client has nothing left to do.
+        self::assertCount($quiescent, EventLoop::getIdentifiers());
+    }
+
+    public function testATimeoutIsReportedEvenWhenTheCancellationCannotBeSent(): void
+    {
+        $logger = new ArrayLogger();
+        $client = new ClientBuilder()->setLogger($logger)->setClientInfo('demo', '1.0.0')->setRequestTimeout(0.05)->build();
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+
+        $deferred = async(static fn(): DiscoverResult => $client->discover());
+        $transport->nextSend()->await();
+
+        // The transport dies between the request going out and the deadline elapsing.
+        $transport->sendError = new TransportAlreadyClosedException(operation: 'send');
+
+        // A deadline is never the loop's work, so the loop needs work of its own to reach one.
+        delay(0.1);
+
+        try {
+            $deferred->await();
+            self::fail('Expected the timeout to surface even though the peer could not be told.');
+        } catch (RequestTimeoutException $e) {
+            self::assertSame(1, $e->requestId->id);
+        }
+
+        $matches = $logger->recordsMatching(LogLevel::WARNING, 'Could not tell the server that request {id} was abandoned.');
+        self::assertCount(1, $matches);
+        self::assertSame(1, $matches[0]['context']['id'] ?? null);
+    }
+
+    public function testATimeoutCanBeDisabled(): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->setRequestTimeout(null)->build();
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+
+        $deferred = async(static fn(): DiscoverResult => $client->discover());
+        $transport->nextSend()->await();
+
+        delay(0.1);
+        $transport->emitMessage(self::discoverResponse(1));
+
+        self::assertInstanceOf(DiscoverResult::class, $deferred->await());
+        self::assertCount(1, $transport->sent, 'No cancellation is sent for a request that was never abandoned.');
+    }
+
+    public function testSendRequestTimeoutOverridesTheClientDefault(): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->setRequestTimeout(10.0)->build();
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+
+        $request = new ListToolsRequest(id: new RequestId(id: 1), params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create()));
+
+        $this->expectException(RequestTimeoutException::class);
+        $this->expectExceptionMessageIs('Request 1 went unanswered for 0.05 seconds.');
+
+        self::awaitPastDeadline(
+            static fn(): JsonRpcResultResponse => $client->sendRequest($request, ListToolsResultResponse::class, timeout: 0.05),
+            0.05,
+        );
+    }
+
+    public function testSendRequestTimeoutWidensTheCeilingItExceeds(): void
+    {
+        $client = new ClientBuilder()
+            ->setClientInfo('demo', '1.0.0')
+            ->setRequestTimeout(0.01)
+            ->setMaxRequestTimeout(0.05)
+            ->build()
+        ;
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+
+        $request = new ListToolsRequest(id: new RequestId(id: 1), params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create()));
+
+        // A ceiling shorter than the override would cut the caller short of the deadline it asked for.
+        $this->expectException(RequestTimeoutException::class);
+        $this->expectExceptionMessageIs('Request 1 went unanswered for 0.2 seconds.');
+
+        self::awaitPastDeadline(
+            static fn(): JsonRpcResultResponse => $client->sendRequest($request, ListToolsResultResponse::class, timeout: 0.2),
+            0.2,
+        );
+    }
+
+    /**
+     * @param mixed $arguments Out-of-contract arguments, so the params constructor rejects them
+     */
+    public function testACallToolThatThrowsBeforeDispatchLeavesNoTimerArmed(mixed $arguments = [1, 2, 3]): void
+    {
+        $client = new ClientBuilder()
+            ->setClientInfo('demo', '1.0.0')
+            ->setRequestTimeout(30.0)
+            ->setMaxRequestTimeout(60.0)
+            ->build()
+        ;
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+        self::discover($client, $transport);
+
+        $quiescent = \count(EventLoop::getIdentifiers());
+
+        $fault = null;
+
+        try {
+            // @phpstan-ignore argument.type (an int-keyed list drives the runtime guard PHPStan rejects statically)
+            $client->callTool('slow', $arguments, static fn(): null => null);
+        } catch (\Throwable $e) {
+            $fault = $e;
+        }
+
+        self::assertInstanceOf(\InvalidArgumentException::class, $fault, 'The params constructor rejects an int-keyed argument map.');
+
+        // The deadline arms on construction, before the request is even built, so a throw in between must
+        // still disarm it rather than hold the loop open for the ceiling.
+        self::assertCount($quiescent, EventLoop::getIdentifiers());
+    }
+
+    public function testProgressKeepsALongCallAlivePastTheIdleTimeout(): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->setRequestTimeout(0.1)->build();
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+        self::discover($client, $transport);
+
+        $deferred = async(static fn(): CallToolResult|InputRequiredResult => $client->callTool('slow', null, static fn(): null => null));
+        $transport->nextSend()->await();
+
+        self::assertCount(2, $transport->sent);
+        $request = $transport->sent[1]['message'];
+        self::assertInstanceOf(CallToolRequest::class, $request);
+        $progressToken = $request->params->meta->progressToken;
+        self::assertNotNull($progressToken);
+
+        // Three quiet windows in a row, each shorter than the deadline but longer in sum.
+        for ($tick = 0; $tick < 3; ++$tick) {
+            delay(0.07);
+            $transport->emitMessage([
+                'jsonrpc' => '2.0',
+                'method' => 'notifications/progress',
+                'params' => ['progressToken' => $progressToken->token, 'progress' => (float) $tick],
+            ]);
+            delay(0.01);
+        }
+
+        $transport->emitMessage(['jsonrpc' => '2.0', 'id' => $request->id->id, 'result' => ['content' => []]]);
+
+        self::assertInstanceOf(CallToolResult::class, $deferred->await());
+    }
+
+    public function testTheCeilingAbandonsACallThatKeepsReportingProgress(): void
+    {
+        $client = new ClientBuilder()
+            ->setClientInfo('demo', '1.0.0')
+            ->setRequestTimeout(0.1)
+            ->setMaxRequestTimeout(0.15)
+            ->build()
+        ;
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+        self::discover($client, $transport);
+
+        $deferred = async(static fn(): CallToolResult|InputRequiredResult => $client->callTool('endless', null, static fn(): null => null));
+        $transport->nextSend()->await();
+
+        self::assertCount(2, $transport->sent);
+        $request = $transport->sent[1]['message'];
+        self::assertInstanceOf(CallToolRequest::class, $request);
+        $progressToken = $request->params->meta->progressToken;
+        self::assertNotNull($progressToken);
+
+        for ($tick = 0; $tick < 4; ++$tick) {
+            delay(0.06);
+            $transport->emitMessage([
+                'jsonrpc' => '2.0',
+                'method' => 'notifications/progress',
+                'params' => ['progressToken' => $progressToken->token, 'progress' => (float) $tick],
+            ]);
+        }
+
+        try {
+            $deferred->await();
+            self::fail('Expected the ceiling to abandon the call however much progress arrived.');
+        } catch (RequestTimeoutException $e) {
+            self::assertSame('Request 2 went unanswered for 0.15 seconds.', $e->getMessage());
+        }
     }
 
     public function testDiscoverBeforeConnectThrowsClientNotConnectedException(): void
@@ -1022,6 +1280,26 @@ final class ClientTest extends TestCase
         self::callToolAndSettle($client, $transport, ['region' => 'us-west1']);
 
         self::assertSame([], self::lastContext($transport)->headers);
+    }
+
+    /**
+     * Runs a call its deadline is expected to abandon, keeping the event loop busy until well past it. A
+     * deadline is never the loop's own work, so reaching one takes a transport holding I/O open, which is
+     * what a request in flight has and what these in-memory fixtures do not.
+     *
+     * @template TReturn
+     *
+     * @param \Closure(): TReturn $call
+     *
+     * @return TReturn
+     */
+    private static function awaitPastDeadline(\Closure $call, float $deadline): mixed
+    {
+        $future = async($call);
+
+        delay($deadline * 2);
+
+        return $future->await();
     }
 
     private static function connectMirroring(TransportInterface $transport, ?ArrayLogger $logger = null): Client

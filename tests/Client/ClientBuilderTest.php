@@ -27,6 +27,7 @@ use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureRequestHandler;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
@@ -73,6 +74,52 @@ final class ClientBuilderTest extends TestCase
         $returned = $builder->setLogger(new ArrayLogger());
 
         self::assertSame($builder, $returned);
+    }
+
+    public function testSetRequestTimeoutIsFluent(): void
+    {
+        $builder = new ClientBuilder();
+
+        $returned = $builder->setRequestTimeout(30.0);
+
+        self::assertSame($builder, $returned);
+    }
+
+    public function testSetMaxRequestTimeoutIsFluent(): void
+    {
+        $builder = new ClientBuilder();
+
+        $returned = $builder->setMaxRequestTimeout(30.0);
+
+        self::assertSame($builder, $returned);
+    }
+
+    #[DataProvider('provideRejectsANonPositiveRequestTimeoutCases')]
+    public function testRejectsANonPositiveRequestTimeout(float $seconds): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageMatches('/^The request timeout must be positive or null, /');
+
+        new ClientBuilder()->setRequestTimeout($seconds);
+    }
+
+    #[DataProvider('provideRejectsANonPositiveRequestTimeoutCases')]
+    public function testRejectsANonPositiveMaxRequestTimeout(float $seconds): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageMatches('/^The maximum request timeout must be positive or null, /');
+
+        new ClientBuilder()->setMaxRequestTimeout($seconds);
+    }
+
+    /**
+     * @return iterable<string, array{float}>
+     */
+    public static function provideRejectsANonPositiveRequestTimeoutCases(): iterable
+    {
+        yield 'zero' => [0.0];
+
+        yield 'negative' => [-1.0];
     }
 
     public function testSetRequestIdFactoryIsFluent(): void

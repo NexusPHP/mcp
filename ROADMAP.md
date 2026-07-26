@@ -401,9 +401,11 @@ Follow-on milestones.
   orphan-response log throttling. The request-body-size cap above already shipped.
 - [ ] `subscriptions/listen` serving over a long-lived SSE stream. The transport already supports
   long-lived streams structurally. The handler lands when the subscriptions result leg unblocks.
-- [ ] Per-request timeouts, so a caller is released from an exchange that completed without ever delivering
-  its response. A failure that raises is already correlated back to its caller via
-  `OutboundRequestFailedException`, but an exchange that ends cleanly and empty raises nothing to correlate.
+- [x] Per-request timeouts: every request carries an idle deadline that each progress notification restarts,
+  plus a ceiling that ignores progress. On expiry the client frees the correlation slot, sends
+  `notifications/cancelled`, and throws `RequestTimeoutException`. Both bounds are configurable on
+  `ClientBuilder` and disabled with `null`, and `sendRequest()` takes a per-request override. This covers the
+  silent peer that raises nothing for `OutboundRequestFailedException` to correlate.
 
 ### Authorization (OAuth 2.1)
 
