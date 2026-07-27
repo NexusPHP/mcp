@@ -26,6 +26,7 @@ use Nexus\Mcp\Core\Schema\Resource\Resource;
 use Nexus\Mcp\Core\Schema\Resource\ResourceTemplate;
 use Nexus\Mcp\Core\Schema\Resource\TextResourceContents;
 use Nexus\Mcp\Core\Schema\Result;
+use Nexus\Mcp\Core\Schema\Result\CacheableResult;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Core\Schema\Result\CompleteResult;
 use Nexus\Mcp\Core\Schema\Result\DiscoverResult;
@@ -532,6 +533,81 @@ final class ServerBuilderTest extends TestCase
         self::assertInstanceOf(CallToolResult::class, $result);
         self::assertNull($result->isError);
         self::assertSame(['n' => 'not-an-int'], $result->structuredContent);
+    }
+
+    public function testPageSizeReachesEveryBuilderAssembledStore(): void
+    {
+        $server = self::registerFeatureTriples(new ServerBuilder()->setServerInfo('demo', '1.0.0'))
+            ->setPageSize(2)
+            ->build()
+        ;
+
+        $tools = $this->dispatch($server, 'tools/list');
+        self::assertInstanceOf(ListToolsResult::class, $tools);
+        self::assertCount(2, $tools->tools);
+        self::assertNotNull($tools->nextCursor);
+
+        $prompts = $this->dispatch($server, 'prompts/list');
+        self::assertInstanceOf(ListPromptsResult::class, $prompts);
+        self::assertCount(2, $prompts->prompts);
+        self::assertNotNull($prompts->nextCursor);
+
+        $resources = $this->dispatch($server, 'resources/list');
+        self::assertInstanceOf(ListResourcesResult::class, $resources);
+        self::assertCount(2, $resources->resources);
+        self::assertNotNull($resources->nextCursor);
+
+        $templates = $this->dispatch($server, 'resources/templates/list');
+        self::assertInstanceOf(ListResourceTemplatesResult::class, $templates);
+        self::assertCount(2, $templates->resourceTemplates);
+        self::assertNotNull($templates->nextCursor);
+    }
+
+    public function testCacheHintsReachEveryBuilderAssembledStore(): void
+    {
+        $server = self::registerFeatureTriples(new ServerBuilder()->setServerInfo('demo', '1.0.0'))
+            ->setTtlMs(60_000)
+            ->setCacheScope(CacheScope::Public)
+            ->build()
+        ;
+
+        foreach (['tools/list', 'prompts/list', 'resources/list', 'resources/templates/list'] as $method) {
+            $result = $this->dispatch($server, $method);
+
+            if (! $result instanceof CacheableResult) {
+                self::fail(\sprintf('"%s" did not return a cacheable result.', $method));
+            }
+
+            self::assertSame(60_000, $result->ttlMs, \sprintf('"%s" did not carry the builder TTL.', $method));
+            self::assertSame(CacheScope::Public, $result->cacheScope, \sprintf('"%s" did not carry the builder cache scope.', $method));
+        }
+    }
+
+    #[DataProvider('provideSetPageSizeRejectsANonPositiveSizeCases')]
+    public function testSetPageSizeRejectsANonPositiveSize(int $pageSize): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs(\sprintf('Store page size must be a positive integer, %d given.', $pageSize));
+
+        new ServerBuilder()->setPageSize($pageSize);
+    }
+
+    /**
+     * @return iterable<string, array{int}>
+     */
+    public static function provideSetPageSizeRejectsANonPositiveSizeCases(): iterable
+    {
+        yield 'zero' => [0];
+
+        yield 'negative' => [-1];
+    }
+
+    public function testSetTtlMsRejectsANegativeTtl(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('Store TTL must be a non-negative integer, -1 given.');
+
+        new ServerBuilder()->setTtlMs(-1);
     }
 
     public function testRegisteredPromptFlowsThroughBuiltServer(): void
@@ -1332,6 +1408,35 @@ final class ServerBuilderTest extends TestCase
         }
 
         return $serverInfo;
+    }
+
+    /**
+     * Registers three entries of every paginated feature, so a page size of two leaves a remainder.
+     */
+    private static function registerFeatureTriples(ServerBuilder $builder): ServerBuilder
+    {
+        foreach (['alpha', 'beta', 'gamma'] as $name) {
+            $builder
+                ->addTool(
+                    new Tool(name: $name, inputSchema: ['type' => 'object']),
+                    static fn(?array $args, $ctx): CallToolResult => new CallToolResult(content: []),
+                )
+                ->addPrompt(
+                    new Prompt(name: $name),
+                    static fn(?array $args, $ctx): GetPromptResult => new GetPromptResult(messages: []),
+                )
+                ->addResource(
+                    new Resource(name: $name, uri: \sprintf('mem://%s', $name)),
+                    static fn(string $uri, $ctx): ReadResourceResult => new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private),
+                )
+                ->addResourceTemplate(
+                    new ResourceTemplate(name: $name, uriTemplate: \sprintf('mem://%s/{path}', $name)),
+                    static fn(string $uri, array $bindings, $ctx): ReadResourceResult => new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private),
+                )
+            ;
+        }
+
+        return $builder;
     }
 
     /**

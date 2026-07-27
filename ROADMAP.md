@@ -499,12 +499,9 @@ retarget to the dated pages once the final spec ships.
 
 Composition-surface quality-of-life items, independent of any spec revision.
 
-- [ ] Make the pagination page size configurable from the fluent `ServerBuilder` path.
-  `AbstractPaginatedStore` fixes `DEFAULT_PAGE_SIZE` at 50. The size is a store constructor parameter, but
-  the `addTool()` / `addPrompt()` / `addResource()` methods build the stores internally without threading a
-  custom value, so today it can only be changed by hand-constructing a store and injecting it through
-  `setToolStore()` and its siblings. Surface it as a builder-level knob (a global default, optionally
-  per-feature).
+- [x] Make the paginated-store settings configurable from the fluent `ServerBuilder` path. `setPageSize()`,
+  `setTtlMs()`, and `setCacheScope()` supply the defaults for every store the builder assembles from its
+  `add*()` entries. A store injected through `setToolStore()` and its siblings keeps its own values.
 
 ## Transports
 

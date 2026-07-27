@@ -248,9 +248,17 @@ be a `\Closure` or a `ResourceReaderInterface` / `TemplatedResourceReaderInterfa
 `ReadResourceResult` and the `*/list` results require two cache hints the server returns to the client:
 `ttlMs` (how many milliseconds the client MAY treat the response as fresh, `0` meaning re-fetch every time)
 and `cacheScope` (`CacheScope::Public` for a response any shared cache MAY serve to any user, or
-`CacheScope::Private` for one only the requesting user's client MAY cache). The built-in stores emit
-`ttlMs: 0` / `CacheScope::Private` by default and accept `ttlMs:` / `cacheScope:` constructor arguments to
-advertise a longer TTL on their `*/list` results:
+`CacheScope::Private` for one only the requesting user's client MAY cache). Both default to `ttlMs: 0` and
+`CacheScope::Private`. `setTtlMs()` and `setCacheScope()` change them for every store the builder assembles
+from its `add*()` entries:
+
+```php
+->setTtlMs(60_000)
+->setCacheScope(CacheScope::Public)
+```
+
+To vary them per feature, build that store yourself and pass it through the matching setter. A store
+supplied that way keeps its own values and ignores the builder-level defaults:
 
 ```php
 ->setToolStore(new ToolStore($entries, ttlMs: 60_000, cacheScope: CacheScope::Public))
@@ -268,6 +276,19 @@ use Nexus\Mcp\Server\Tool\ToolEntry;
 
 $entries = ['greet' => new ToolEntry($greetTool, new ClosureToolExecutor($greetExecutor))];
 ```
+
+## Pagination
+
+The `*/list` results are paginated. Each built-in store returns at most 50 entries per page and, when more
+remain, a `nextCursor` the client passes back to fetch the next page. `setPageSize()` changes that for every
+store the builder assembles from its `add*()` entries:
+
+```php
+->setPageSize(200)
+```
+
+The size must be a positive integer. As with the cache hints, a store supplied through `setToolStore()` and
+its siblings keeps its own page size.
 
 ## Custom stores
 
