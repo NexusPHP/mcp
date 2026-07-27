@@ -360,7 +360,7 @@ final class ClientTest extends TestCase
         $transport = new RecordingTransport();
         $client->connect($transport);
 
-        $quiescent = \count(EventLoop::getIdentifiers());
+        $quiescent = EventLoop::getIdentifiers();
 
         $deferred = async(static fn(): DiscoverResult => $client->discover());
         $transport->nextSend()->await();
@@ -369,7 +369,7 @@ final class ClientTest extends TestCase
 
         // Both deadlines outlive the response by minutes, so leaving either armed would hold the event
         // loop open long after the client has nothing left to do.
-        self::assertCount($quiescent, EventLoop::getIdentifiers());
+        self::assertSame([], array_values(array_diff(EventLoop::getIdentifiers(), $quiescent)));
     }
 
     public function testATimeoutIsReportedEvenWhenTheCancellationCannotBeSent(): void
@@ -471,7 +471,7 @@ final class ClientTest extends TestCase
         $client->connect($transport);
         self::discover($client, $transport);
 
-        $quiescent = \count(EventLoop::getIdentifiers());
+        $quiescent = EventLoop::getIdentifiers();
 
         $fault = null;
 
@@ -486,7 +486,7 @@ final class ClientTest extends TestCase
 
         // The deadline arms on construction, before the request is even built, so a throw in between must
         // still disarm it rather than hold the loop open for the ceiling.
-        self::assertCount($quiescent, EventLoop::getIdentifiers());
+        self::assertSame([], array_values(array_diff(EventLoop::getIdentifiers(), $quiescent)));
     }
 
     public function testProgressKeepsALongCallAlivePastTheIdleTimeout(): void
