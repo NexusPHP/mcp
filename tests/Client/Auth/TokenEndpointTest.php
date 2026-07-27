@@ -214,6 +214,34 @@ final class TokenEndpointTest extends TestCase
         self::assertSame(['files:read'], $token->scopes);
     }
 
+    public function testRefreshKeepsTheEarlierRefreshTokenWhenTheResponseRotatesNone(): void
+    {
+        $http = new RecordingHttpClient()->willAnswerJson(self::tokenResponse());
+
+        $token = new TokenEndpoint($http)->refresh(
+            self::metadata(),
+            new ClientRegistration('the-client', self::ISSUER),
+            new AccessToken('the-old-token', refreshToken: 'the-refresh-token'),
+            new ResourceIdentifier(self::RESOURCE),
+        );
+
+        self::assertSame('the-refresh-token', $token->refreshToken);
+    }
+
+    public function testRefreshTakesTheRotatedRefreshTokenOverTheEarlierOne(): void
+    {
+        $http = new RecordingHttpClient()->willAnswerJson(self::tokenResponse(['refresh_token' => 'the-rotated-token']));
+
+        $token = new TokenEndpoint($http)->refresh(
+            self::metadata(),
+            new ClientRegistration('the-client', self::ISSUER),
+            new AccessToken('the-old-token', refreshToken: 'the-refresh-token'),
+            new ResourceIdentifier(self::RESOURCE),
+        );
+
+        self::assertSame('the-rotated-token', $token->refreshToken);
+    }
+
     public function testRefreshRejectsATokenWithNoRefreshToken(): void
     {
         $this->expectException(ExpectationFailedException::class);

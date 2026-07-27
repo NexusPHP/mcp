@@ -244,6 +244,19 @@ final class AuthorizationCoordinatorTest extends TestCase
         self::assertSame('the-renewed-token', $store->read(self::RESOURCE, self::ISSUER)?->value);
     }
 
+    public function testASecondRenewalRedeemsARefreshTokenTheServerDidNotRotate(): void
+    {
+        $http = self::scriptFullFlow(tokenOverrides: ['expires_in' => 1, 'refresh_token' => 'the-refresh-token'])
+            ->willAnswerJson(['access_token' => 'the-renewed-token', 'token_type' => 'Bearer', 'expires_in' => 1])
+            ->willAnswerJson(['access_token' => 'the-re-renewed-token', 'token_type' => 'Bearer'])
+        ;
+        $coordinator = self::coordinator($http, new ScriptedUserAuthorization());
+        $coordinator->authorize(self::resource());
+        $coordinator->fetchToken(self::resource());
+
+        self::assertSame('the-re-renewed-token', $coordinator->fetchToken(self::resource())?->value);
+    }
+
     public function testFetchTokenDropsASpentTokenThatCannotBeRenewed(): void
     {
         $store = new InMemoryTokenStore();
