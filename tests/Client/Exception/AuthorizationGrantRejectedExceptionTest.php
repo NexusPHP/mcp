@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Client\Exception;
 
 use Nexus\Mcp\Client\Exception\AuthorizationGrantRejectedException;
-use Nexus\Mcp\Client\Exception\TokenRequestFailedException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
@@ -23,7 +22,6 @@ use PHPUnit\Framework\TestCase;
  * @internal
  */
 #[CoversClass(AuthorizationGrantRejectedException::class)]
-#[CoversClass(TokenRequestFailedException::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
 final class AuthorizationGrantRejectedExceptionTest extends TestCase

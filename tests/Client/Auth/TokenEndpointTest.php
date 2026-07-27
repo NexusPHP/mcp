@@ -263,7 +263,7 @@ final class TokenEndpointTest extends TestCase
             400,
         );
 
-        $this->expectException(TokenRequestFailedException::class);
+        $this->expectException(AuthorizationGrantRejectedException::class);
         $this->expectExceptionMessageIs('The token request failed with "invalid_grant": The code has expired.');
 
         self::exchange($http);
@@ -289,33 +289,34 @@ final class TokenEndpointTest extends TestCase
         self::exchange($http);
     }
 
+    /**
+     * @param class-string<\Throwable> $expected
+     */
     #[DataProvider('provideAGrantRejectionIsToldApartFromAFatalFailureCases')]
-    public function testAGrantRejectionIsToldApartFromAFatalFailure(string $error, bool $rejectsTheGrant): void
+    public function testAGrantRejectionIsToldApartFromAFatalFailure(string $error, string $expected): void
     {
         $http = new RecordingHttpClient()->willAnswerJson(['error' => $error], 400);
 
-        try {
-            self::exchange($http);
-            self::fail('The token request should have failed.');
-        } catch (TokenRequestFailedException $e) {
-            self::assertSame($rejectsTheGrant, $e instanceof AuthorizationGrantRejectedException);
-        }
+        $this->expectException($expected);
+        $this->expectExceptionMessageIs(\sprintf('The token request failed with "%s".', $error));
+
+        self::exchange($http);
     }
 
     /**
-     * @return iterable<string, array{string, bool}>
+     * @return iterable<string, array{string, class-string<\Throwable>}>
      */
     public static function provideAGrantRejectionIsToldApartFromAFatalFailureCases(): iterable
     {
-        yield 'a revoked or lapsed grant' => ['invalid_grant', true];
+        yield 'a revoked or lapsed grant' => ['invalid_grant', AuthorizationGrantRejectedException::class];
 
-        yield 'a scope reaching past the grant' => ['invalid_scope', true];
+        yield 'a scope reaching past the grant' => ['invalid_scope', AuthorizationGrantRejectedException::class];
 
-        yield 'a client the server does not know' => ['invalid_client', false];
+        yield 'a client the server does not know' => ['invalid_client', TokenRequestFailedException::class];
 
-        yield 'a malformed request' => ['invalid_request', false];
+        yield 'a malformed request' => ['invalid_request', TokenRequestFailedException::class];
 
-        yield 'a server fault' => ['server_error', false];
+        yield 'a server fault' => ['server_error', TokenRequestFailedException::class];
     }
 
     public function testANonBearerTokenTypeIsRefused(): void
