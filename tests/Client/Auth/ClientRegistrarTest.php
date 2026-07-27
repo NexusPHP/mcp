@@ -21,9 +21,10 @@ use Nexus\Mcp\Client\Auth\InMemoryClientRegistrationStore;
 use Nexus\Mcp\Client\Exception\AuthorizationServerMismatchException;
 use Nexus\Mcp\Client\Exception\ClientRegistrationFailedException;
 use Nexus\Mcp\Client\Exception\ClientRegistrationRequiredException;
-use Nexus\Mcp\Client\Exception\InsecureAuthorizationEndpointException;
+use Nexus\Mcp\Client\Exception\UntrustedAuthorizationMetadataException;
 use Nexus\Mcp\Core\Auth\ApplicationType;
 use Nexus\Mcp\Core\Auth\AuthorizationServerMetadata;
+use Nexus\Mcp\Core\Auth\ResourceIdentifier;
 use Nexus\Mcp\Core\Auth\TokenEndpointAuthMethod;
 use Nexus\Mcp\Tests\Fixtures\Client\Http\RecordingHttpClient;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -42,6 +43,7 @@ use function Amp\ByteStream\buffer;
 final class ClientRegistrarTest extends TestCase
 {
     private const string ISSUER = 'https://auth.example.com';
+    private const string RESOURCE = 'https://mcp.example.com/mcp';
     private const string CIMD_URL = 'https://app.example.com/oauth/client.json';
 
     public function testPreRegisteredCredentialsWinOverEveryOtherMechanism(): void
@@ -88,16 +90,6 @@ final class ClientRegistrarTest extends TestCase
         self::resolve(new RecordingHttpClient(), self::metadata(cimdSupported: true), self::options(clientIdMetadataDocumentUrl: self::CIMD_URL), $store);
 
         self::assertNull($store->read(self::ISSUER));
-    }
-
-    public function testAnInsecureMetadataDocumentUrlIsRefused(): void
-    {
-        $this->expectException(InsecureAuthorizationEndpointException::class);
-        $this->expectExceptionMessageIs('The Client ID Metadata Document URL must be served over HTTPS or from a loopback host, "http://app.example.com/client.json" given.');
-
-        self::resolve(new RecordingHttpClient(), self::metadata(cimdSupported: true), self::options(
-            clientIdMetadataDocumentUrl: 'http://app.example.com/client.json',
-        ));
     }
 
     #[DataProvider('provideAMetadataDocumentUrlIsSkippedWhenTheServerDoesNotSupportItCases')]
@@ -282,8 +274,8 @@ final class ClientRegistrarTest extends TestCase
 
     public function testAnInsecureRegistrationEndpointIsRefused(): void
     {
-        $this->expectException(InsecureAuthorizationEndpointException::class);
-        $this->expectExceptionMessageIs('The registration endpoint must be served over HTTPS or from a loopback host, "http://auth.example.com/register" given.');
+        $this->expectException(UntrustedAuthorizationMetadataException::class);
+        $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the registration endpoint "http://auth.example.com/register" is not served over HTTPS.');
 
         self::resolve(new RecordingHttpClient(), self::metadata(registrationEndpoint: 'http://auth.example.com/register'), self::options());
     }
@@ -303,6 +295,7 @@ final class ClientRegistrarTest extends TestCase
         new ClientRegistrar($http, new InMemoryClientRegistrationStore(), 2.5)->resolve(
             self::metadata(registrationEndpoint: 'https://auth.example.com/register'),
             self::options(),
+            new ResourceIdentifier(self::RESOURCE),
         );
 
         self::assertSame(2.5, $http->readRequest()->getTransferTimeout());
@@ -315,7 +308,7 @@ final class ClientRegistrarTest extends TestCase
         AuthorizationOptions $options,
         ?InMemoryClientRegistrationStore $store = null,
     ): ClientRegistration {
-        return new ClientRegistrar($http, $store ?? new InMemoryClientRegistrationStore())->resolve($metadata, $options);
+        return new ClientRegistrar($http, $store ?? new InMemoryClientRegistrationStore())->resolve($metadata, $options, new ResourceIdentifier(self::RESOURCE));
     }
 
     /**

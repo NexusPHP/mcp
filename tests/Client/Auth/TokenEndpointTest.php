@@ -21,8 +21,8 @@ use Nexus\Mcp\Client\Auth\ClientRegistration;
 use Nexus\Mcp\Client\Auth\PkcePair;
 use Nexus\Mcp\Client\Auth\TokenEndpoint;
 use Nexus\Mcp\Client\Exception\AuthorizationGrantRejectedException;
-use Nexus\Mcp\Client\Exception\InsecureAuthorizationEndpointException;
 use Nexus\Mcp\Client\Exception\TokenRequestFailedException;
+use Nexus\Mcp\Client\Exception\UntrustedAuthorizationMetadataException;
 use Nexus\Mcp\Core\Auth\AuthorizationServerMetadata;
 use Nexus\Mcp\Core\Auth\ResourceIdentifier;
 use Nexus\Mcp\Core\Auth\ScopeSet;
@@ -366,8 +366,8 @@ final class TokenEndpointTest extends TestCase
 
     public function testAnInsecureTokenEndpointIsRefused(): void
     {
-        $this->expectException(InsecureAuthorizationEndpointException::class);
-        $this->expectExceptionMessageIs('The token endpoint must be served over HTTPS or from a loopback host, "http://auth.example.com/token" given.');
+        $this->expectException(UntrustedAuthorizationMetadataException::class);
+        $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the token endpoint "http://auth.example.com/token" is not served over HTTPS.');
 
         self::exchange(new RecordingHttpClient(), metadata: new AuthorizationServerMetadata(
             self::ISSUER,

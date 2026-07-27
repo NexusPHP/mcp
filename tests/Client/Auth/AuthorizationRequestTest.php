@@ -17,7 +17,7 @@ use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Client\Auth\AuthorizationRedirect;
 use Nexus\Mcp\Client\Auth\AuthorizationRequest;
 use Nexus\Mcp\Client\Auth\PkcePair;
-use Nexus\Mcp\Client\Exception\InsecureAuthorizationEndpointException;
+use Nexus\Mcp\Client\Exception\UntrustedAuthorizationMetadataException;
 use Nexus\Mcp\Core\Auth\AuthorizationServerMetadata;
 use Nexus\Mcp\Core\Auth\ResourceIdentifier;
 use Nexus\Mcp\Core\Auth\ScopeSet;
@@ -137,8 +137,8 @@ final class AuthorizationRequestTest extends TestCase
 
     public function testBuildRefusesAnInsecureAuthorizationEndpoint(): void
     {
-        $this->expectException(InsecureAuthorizationEndpointException::class);
-        $this->expectExceptionMessageIs('The authorization endpoint must be served over HTTPS or from a loopback host, "http://auth.example.com/authorize" given.');
+        $this->expectException(UntrustedAuthorizationMetadataException::class);
+        $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the authorization endpoint "http://auth.example.com/authorize" is not served over HTTPS.');
 
         self::build(new ScopeSet(), 'http://auth.example.com/authorize');
     }

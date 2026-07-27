@@ -19,6 +19,7 @@ use Nexus\Mcp\Client\Auth\InsufficientScopePolicy;
 use Nexus\Mcp\Client\Exception\InsecureAuthorizationEndpointException;
 use Nexus\Mcp\Core\Auth\ApplicationType;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
@@ -44,6 +45,7 @@ final class AuthorizationOptionsTest extends TestCase
             true,
             ['files:read'],
             InsufficientScopePolicy::Fail,
+            2.5,
         );
 
         self::assertSame('Example MCP Client', $options->clientName);
@@ -55,6 +57,7 @@ final class AuthorizationOptionsTest extends TestCase
         self::assertTrue($options->requestOfflineAccess);
         self::assertSame(['files:read'], $options->defaultScopes);
         self::assertSame(InsufficientScopePolicy::Fail, $options->onInsufficientScope);
+        self::assertSame(2.5, $options->timeout);
     }
 
     public function testARemoteCleartextRedirectUriIsRefused(): void
@@ -73,6 +76,32 @@ final class AuthorizationOptionsTest extends TestCase
         );
     }
 
+    #[DataProvider('provideAMetadataDocumentUrlOffTheSpecsShapeIsRefusedCases')]
+    public function testAMetadataDocumentUrlOffTheSpecsShapeIsRefused(string $url): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs(\sprintf(
+            'The Client ID Metadata Document URL must be an HTTPS URL carrying a path component, "%s" given.',
+            $url,
+        ));
+
+        new AuthorizationOptions('Example MCP Client', 'http://localhost:3000/callback', $url);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function provideAMetadataDocumentUrlOffTheSpecsShapeIsRefusedCases(): iterable
+    {
+        yield 'cleartext is refused' => ['http://app.example.com/client.json'];
+
+        yield 'loopback earns no exemption' => ['http://localhost:3000/client.json'];
+
+        yield 'a bare host carries no path' => ['https://app.example.com'];
+
+        yield 'a root path is no path' => ['https://app.example.com/'];
+    }
+
     public function testItDefaultsToANativePublicClient(): void
     {
         $options = new AuthorizationOptions('Example MCP Client', 'http://localhost:3000/callback');
@@ -84,5 +113,6 @@ final class AuthorizationOptionsTest extends TestCase
         self::assertFalse($options->requestOfflineAccess);
         self::assertSame([], $options->defaultScopes);
         self::assertSame(InsufficientScopePolicy::Reauthorize, $options->onInsufficientScope);
+        self::assertSame(10.0, $options->timeout);
     }
 }

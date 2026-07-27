@@ -16,13 +16,13 @@ namespace Nexus\Mcp\Tests\Client\Auth;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Client\Auth\MetadataDiscovery;
 use Nexus\Mcp\Client\Exception\AuthorizationDiscoveryFailedException;
-use Nexus\Mcp\Client\Exception\InsecureAuthorizationEndpointException;
 use Nexus\Mcp\Client\Exception\PkceNotSupportedException;
 use Nexus\Mcp\Client\Exception\UntrustedAuthorizationMetadataException;
 use Nexus\Mcp\Core\Auth\ResourceIdentifier;
 use Nexus\Mcp\Core\Auth\WwwAuthenticateChallenge;
 use Nexus\Mcp\Tests\Fixtures\Client\Http\RecordingHttpClient;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
@@ -129,15 +129,46 @@ final class MetadataDiscoveryTest extends TestCase
         new MetadataDiscovery($http)->discoverResource(new ResourceIdentifier(self::RESOURCE));
     }
 
-    public function testAnInsecureAdvertisedUrlIsRefused(): void
+    #[DataProvider('provideAnAdvertisedUrlOffTheMcpServersOriginIsRefusedCases')]
+    public function testAnAdvertisedUrlOffTheMcpServersOriginIsRefused(string $advertised, string $origin): void
     {
-        $this->expectException(InsecureAuthorizationEndpointException::class);
-        $this->expectExceptionMessageIs('The protected resource metadata URL must be served over HTTPS or from a loopback host, "http://mcp.example.com/prm" given.');
+        $this->expectException(UntrustedAuthorizationMetadataException::class);
+        $this->expectExceptionMessageIs(\sprintf(
+            'The authorization metadata cannot be trusted because the advertised protected resource metadata URL "%s" is served from "%s" rather than by the MCP server it describes.',
+            $advertised,
+            $origin,
+        ));
 
         new MetadataDiscovery(new RecordingHttpClient())->discoverResource(
             new ResourceIdentifier(self::RESOURCE),
-            new WwwAuthenticateChallenge('Bearer', ['resource_metadata' => 'http://mcp.example.com/prm']),
+            new WwwAuthenticateChallenge('Bearer', ['resource_metadata' => $advertised]),
         );
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function provideAnAdvertisedUrlOffTheMcpServersOriginIsRefusedCases(): iterable
+    {
+        yield 'cleartext downgrades the origin' => ['http://mcp.example.com/prm', 'http://mcp.example.com'];
+
+        yield 'another host is another origin' => ['https://attacker.example.com/prm', 'https://attacker.example.com'];
+
+        yield 'another port is another origin' => ['https://mcp.example.com:8443/prm', 'https://mcp.example.com:8443'];
+
+        yield 'a loopback address reaches past the public internet' => ['http://127.0.0.1:6379/prm', 'http://127.0.0.1:6379'];
+    }
+
+    public function testAnAdvertisedUrlSpellingTheDefaultPortSharesTheOrigin(): void
+    {
+        $http = new RecordingHttpClient()->willAnswerJson(self::resourceDocument());
+
+        new MetadataDiscovery($http)->discoverResource(
+            new ResourceIdentifier(self::RESOURCE),
+            new WwwAuthenticateChallenge('Bearer', ['resource_metadata' => 'https://mcp.example.com:443/prm']),
+        );
+
+        self::assertSame('https://mcp.example.com/prm', (string) $http->readRequest()->getUri());
     }
 
     public function testAResourceDocumentThatIsNotAJsonObjectIsRefused(): void
@@ -154,7 +185,7 @@ final class MetadataDiscoveryTest extends TestCase
     {
         $http = new RecordingHttpClient()->willAnswerJson(self::serverDocument());
 
-        $metadata = new MetadataDiscovery($http)->discoverServer(self::ISSUER);
+        $metadata = new MetadataDiscovery($http)->discoverServer(self::ISSUER, new ResourceIdentifier(self::RESOURCE));
 
         self::assertSame(self::ISSUER, $metadata->issuer);
         self::assertSame('https://auth.example.com/token', $metadata->tokenEndpoint);
@@ -171,7 +202,7 @@ final class MetadataDiscoveryTest extends TestCase
             ->willAnswerJson(self::serverDocument())
         ;
 
-        new MetadataDiscovery($http)->discoverServer(self::ISSUER);
+        new MetadataDiscovery($http)->discoverServer(self::ISSUER, new ResourceIdentifier(self::RESOURCE));
 
         self::assertCount(2, $http->requests);
         self::assertSame(
@@ -188,7 +219,7 @@ final class MetadataDiscoveryTest extends TestCase
             ->willAnswerJson(self::serverDocument(['issuer' => 'https://auth.example.com/tenant1']))
         ;
 
-        new MetadataDiscovery($http)->discoverServer('https://auth.example.com/tenant1');
+        new MetadataDiscovery($http)->discoverServer('https://auth.example.com/tenant1', new ResourceIdentifier(self::RESOURCE));
 
         self::assertSame([
             'https://auth.example.com/.well-known/oauth-authorization-server/tenant1',
@@ -204,7 +235,33 @@ final class MetadataDiscoveryTest extends TestCase
         $this->expectException(UntrustedAuthorizationMetadataException::class);
         $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the document served for "https://auth.example.com" names the issuer "https://honest.example".');
 
-        new MetadataDiscovery($http)->discoverServer(self::ISSUER);
+        new MetadataDiscovery($http)->discoverServer(self::ISSUER, new ResourceIdentifier(self::RESOURCE));
+    }
+
+    public function testACleartextIssuerIsNeverProbed(): void
+    {
+        $http = new RecordingHttpClient();
+
+        $this->expectException(UntrustedAuthorizationMetadataException::class);
+        $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the authorization server metadata URL "http://auth.example.com/.well-known/oauth-authorization-server" is not served over HTTPS.');
+
+        try {
+            new MetadataDiscovery($http)->discoverServer('http://auth.example.com', new ResourceIdentifier(self::RESOURCE));
+        } finally {
+            self::assertSame([], $http->requests);
+        }
+    }
+
+    public function testALoopbackMcpServerMayNameACleartextIssuer(): void
+    {
+        $http = new RecordingHttpClient()->willAnswerJson(self::serverDocument(['issuer' => 'http://localhost:9000']));
+
+        $metadata = new MetadataDiscovery($http)->discoverServer(
+            'http://localhost:9000',
+            new ResourceIdentifier('http://localhost:9000/mcp'),
+        );
+
+        self::assertSame('http://localhost:9000', $metadata->issuer);
     }
 
     public function testAServerAdvertisingNoCodeChallengeMethodsIsRefused(): void
@@ -216,7 +273,7 @@ final class MetadataDiscoveryTest extends TestCase
         $this->expectException(PkceNotSupportedException::class);
         $this->expectExceptionMessageIs('The authorization server "https://auth.example.com" does not advertise the S256 code challenge method, so authorization cannot proceed.');
 
-        new MetadataDiscovery($http)->discoverServer(self::ISSUER);
+        new MetadataDiscovery($http)->discoverServer(self::ISSUER, new ResourceIdentifier(self::RESOURCE));
     }
 
     public function testAServerAdvertisingOnlyPlainIsRefused(): void
@@ -226,7 +283,7 @@ final class MetadataDiscoveryTest extends TestCase
         $this->expectException(PkceNotSupportedException::class);
         $this->expectExceptionMessageIs('The authorization server "https://auth.example.com" does not advertise the S256 code challenge method, so authorization cannot proceed.');
 
-        new MetadataDiscovery($http)->discoverServer(self::ISSUER);
+        new MetadataDiscovery($http)->discoverServer(self::ISSUER, new ResourceIdentifier(self::RESOURCE));
     }
 
     public function testExhaustingEveryServerCandidateIsReported(): void
@@ -239,7 +296,7 @@ final class MetadataDiscoveryTest extends TestCase
         $this->expectException(AuthorizationDiscoveryFailedException::class);
         $this->expectExceptionMessageIs('No authorization server metadata was served for "https://auth.example.com". Probed: https://auth.example.com/.well-known/oauth-authorization-server, https://auth.example.com/.well-known/openid-configuration.');
 
-        new MetadataDiscovery($http)->discoverServer(self::ISSUER);
+        new MetadataDiscovery($http)->discoverServer(self::ISSUER, new ResourceIdentifier(self::RESOURCE));
     }
 
     public function testAMissIsDrainedSoItsConnectionIsReleased(): void
@@ -270,7 +327,7 @@ final class MetadataDiscoveryTest extends TestCase
     {
         $http = new RecordingHttpClient()->willAnswerJson(self::serverDocument());
 
-        new MetadataDiscovery($http, 2.5)->discoverServer(self::ISSUER);
+        new MetadataDiscovery($http, 2.5)->discoverServer(self::ISSUER, new ResourceIdentifier(self::RESOURCE));
 
         self::assertSame(2.5, $http->readRequest()->getTransferTimeout());
         self::assertSame(2.5, $http->readRequest()->getInactivityTimeout());
