@@ -134,6 +134,30 @@ final class WellKnownUriTest extends TestCase
         ];
     }
 
+    public function testAResourceQueryIsKeptOnTheWellKnownUrl(): void
+    {
+        self::assertSame([
+            'https://mcp.example.com/.well-known/oauth-protected-resource/mcp?tenant=acme',
+            'https://mcp.example.com/.well-known/oauth-protected-resource?tenant=acme',
+        ], WellKnownUri::forProtectedResource('https://mcp.example.com/mcp?tenant=acme'));
+    }
+
+    public function testAnIssuerQueryIsDroppedBecauseTheSpecForbidsOne(): void
+    {
+        self::assertSame([
+            'https://auth.example.com/.well-known/oauth-authorization-server',
+            'https://auth.example.com/.well-known/openid-configuration',
+        ], WellKnownUri::forAuthorizationServer('https://auth.example.com?tenant=acme'));
+    }
+
+    public function testARootResourceKeepsItsQueryOnTheWellKnownUrl(): void
+    {
+        self::assertSame(
+            ['https://mcp.example.com/.well-known/oauth-protected-resource?tenant=acme'],
+            WellKnownUri::forProtectedResource('https://mcp.example.com?tenant=acme'),
+        );
+    }
+
     #[DataProvider('provideRejectedUrisCases')]
     public function testRejectedUris(string $uri): void
     {
