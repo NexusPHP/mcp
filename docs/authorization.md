@@ -133,8 +133,9 @@ both confidentially. They are credentials.
 ### Scopes and step-up
 
 Scope selection follows the spec's priority: the `scope` a challenge names wins, otherwise the resource's
-`scopes_supported`, otherwise the parameter is omitted entirely. `offline_access` is added only when the
-authorization server lists it, which is what gets a refresh token issued.
+`scopes_supported`, otherwise the parameter is omitted entirely. `offline_access` is added only when you pass
+`requestOfflineAccess: true` *and* the authorization server lists it. That is what gets a refresh token issued,
+and a refresh token outlives the session, so asking for one stays your call.
 
 A `403` carrying `error="insufficient_scope"` triggers a step-up. The SDK unions the challenged scopes with
 those already granted, so a fresh grant never costs permissions other operations depend on, and retries.

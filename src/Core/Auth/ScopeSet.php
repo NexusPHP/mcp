@@ -63,10 +63,15 @@ final readonly class ScopeSet
         return new self([...$this->values, ...$other->values]);
     }
 
+    public function contains(string $scope): bool
+    {
+        return \in_array($scope, $this->values, true);
+    }
+
     public function containsAll(self $other): bool
     {
         foreach ($other->values as $value) {
-            if (! \in_array($value, $this->values, true)) {
+            if (! $this->contains($value)) {
                 return false;
             }
         }

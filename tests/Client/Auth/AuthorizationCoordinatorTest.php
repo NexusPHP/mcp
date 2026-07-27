@@ -127,11 +127,12 @@ final class AuthorizationCoordinatorTest extends TestCase
         self::assertSame(['files:write', 'files:read'], $user->readRequestedScopes());
     }
 
-    public function testOfflineAccessIsRequestedWhenTheServerOffersIt(): void
+    public function testOfflineAccessIsRequestedWhenItIsAskedForAndTheServerOffersIt(): void
     {
         $user = new ScriptedUserAuthorization();
+        $http = self::scriptFullFlow(serverOverrides: ['scopes_supported' => ['files:read', 'offline_access']]);
 
-        self::coordinator(self::scriptFullFlow(serverOverrides: ['scopes_supported' => ['files:read', 'offline_access']]), $user)->authorize(self::resource());
+        self::coordinator($http, $user, offlineAccess: true)->authorize(self::resource());
 
         self::assertSame(['offline_access'], $user->readRequestedScopes());
     }
@@ -139,8 +140,19 @@ final class AuthorizationCoordinatorTest extends TestCase
     public function testOfflineAccessIsNotRequestedWhenTheServerDoesNotOfferIt(): void
     {
         $user = new ScriptedUserAuthorization();
+        $http = self::scriptFullFlow(serverOverrides: ['scopes_supported' => ['files:read']]);
 
-        self::coordinator(self::scriptFullFlow(serverOverrides: ['scopes_supported' => ['files:read']]), $user)->authorize(self::resource());
+        self::coordinator($http, $user, offlineAccess: true)->authorize(self::resource());
+
+        self::assertSame([], $user->readRequestedScopes());
+    }
+
+    public function testOfflineAccessIsNotRequestedUnlessItIsAskedFor(): void
+    {
+        $user = new ScriptedUserAuthorization();
+        $http = self::scriptFullFlow(serverOverrides: ['scopes_supported' => ['files:read', 'offline_access']]);
+
+        self::coordinator($http, $user)->authorize(self::resource());
 
         self::assertSame([], $user->readRequestedScopes());
     }
@@ -312,6 +324,7 @@ final class AuthorizationCoordinatorTest extends TestCase
         ScriptedUserAuthorization $user,
         ?InMemoryTokenStore $tokens = null,
         ?ArrayLogger $logger = null,
+        bool $offlineAccess = false,
     ): AuthorizationCoordinator {
         return new AuthorizationCoordinator(
             new MetadataDiscovery($http),
@@ -319,7 +332,11 @@ final class AuthorizationCoordinatorTest extends TestCase
             new TokenEndpoint($http),
             $user,
             $tokens ?? new InMemoryTokenStore(),
-            new AuthorizationOptions('Example MCP Client', 'http://localhost:3000/callback'),
+            new AuthorizationOptions(
+                'Example MCP Client',
+                'http://localhost:3000/callback',
+                requestOfflineAccess: $offlineAccess,
+            ),
             $logger ?? new ArrayLogger(),
         );
     }

@@ -40,6 +40,7 @@ final class AuthorizationOptionsTest extends TestCase
             $preRegistered,
             ApplicationType::Web,
             5,
+            true,
         );
 
         self::assertSame('Example MCP Client', $options->clientName);
@@ -48,6 +49,7 @@ final class AuthorizationOptionsTest extends TestCase
         self::assertSame($preRegistered, $options->preRegistered);
         self::assertSame(ApplicationType::Web, $options->applicationType);
         self::assertSame(5, $options->maxScopeUpgrades);
+        self::assertTrue($options->requestOfflineAccess);
     }
 
     public function testARemoteCleartextRedirectUriIsRefused(): void
@@ -74,5 +76,6 @@ final class AuthorizationOptionsTest extends TestCase
         self::assertNull($options->preRegistered);
         self::assertSame(ApplicationType::Native, $options->applicationType);
         self::assertSame(2, $options->maxScopeUpgrades);
+        self::assertFalse($options->requestOfflineAccess);
     }
 }

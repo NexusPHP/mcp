@@ -443,7 +443,7 @@ Client (required for client-mode conformance):
   insufficient_scope with scope accumulation, and a retry cap.
 - [x] Resource Indicators (RFC 8707): send and validate the `resource` parameter.
 - [x] Issuer validation (RFC 9207): validate the authorization-response `iss` and the AS-metadata issuer.
-- [x] Refresh: request `offline_access` and use the refresh-token grant when supported.
+- [x] Refresh: opt into `offline_access` and use the refresh-token grant when supported.
 - [x] Authorization-server migration: re-register on AS change without credential reuse.
 
 Server (resource server, not conformance-scored but part of the auth spec):
