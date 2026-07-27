@@ -98,6 +98,15 @@ final class RecordingHttpClient implements DelegateHttpClient
     }
 
     /**
+     * Queues a response carrying a `WWW-Authenticate` challenge, the way a protected MCP server answers a
+     * request it will not serve.
+     */
+    public function willChallenge(int $status, string $challenge, string $body = '{}'): self
+    {
+        return $this->willAnswer($status, ['content-type' => 'application/json', 'www-authenticate' => $challenge], [$body]);
+    }
+
+    /**
      * Queues a bodiless `202 Accepted`, the answer to a notification POST.
      */
     public function willAcceptNotification(): self
