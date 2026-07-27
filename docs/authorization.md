@@ -147,6 +147,10 @@ A `403` carrying `error="insufficient_scope"` triggers a step-up. The SDK unions
 those already granted, so a fresh grant never costs permissions other operations depend on, and retries.
 `maxScopeUpgrades` caps how many rounds that may take (default `2`) before the `403` is returned to the caller.
 
+A challenge that names no scope the token is missing, including one that names no scope at all, is returned
+rather than retried. Asking again would produce the same token and the same `403`, and the only thing the
+round trip would buy the user is a second consent screen.
+
 A `401` re-authorizes once, and carries the rejected token's scopes into the new grant for the same reason. A
 second `401` on the token that came back is taken as the server's answer and returned to the caller.
 

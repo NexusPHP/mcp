@@ -157,6 +157,44 @@ final class AuthorizedHttpClientTest extends TestCase
         self::assertSame('Bearer the-wider-token', $http->readRequest(7)->getHeader('Authorization'));
     }
 
+    public function testAScopeChallengeNamingNothingTheTokenLacksIsReturned(): void
+    {
+        $http = new RecordingHttpClient()
+            ->willChallenge(401, self::CHALLENGE)
+            ->willAnswerJson(self::resourceDocument())
+            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson(['client_id' => 'the-client'])
+            ->willAnswerJson(['access_token' => 'the-access-token', 'token_type' => 'Bearer', 'scope' => 'files:read'])
+            ->willChallenge(403, 'Bearer error="insufficient_scope", scope="files:read"')
+        ;
+        $user = new ScriptedUserAuthorization();
+        $logger = new ArrayLogger();
+
+        $response = self::client($http, $user, logger: $logger)->request(self::mcpRequest(), new NullCancellation());
+
+        self::assertSame(403, $response->getStatus());
+        self::assertCount(6, $http->requests);
+        self::assertCount(1, $user->redirects);
+        self::assertSame(
+            [['level' => LogLevel::WARNING, 'message' => 'The scope challenge from {resource} asks for nothing the token lacks.', 'context' => [
+                'resource' => self::RESOURCE,
+            ]]],
+            $logger->recordsMatching(LogLevel::WARNING, 'The scope challenge from {resource} asks for nothing the token lacks.'),
+        );
+    }
+
+    public function testAScopeChallengeNamingNoScopeAtAllIsReturned(): void
+    {
+        $http = self::scriptChallengeAndFlow()->willChallenge(403, 'Bearer error="insufficient_scope"');
+        $user = new ScriptedUserAuthorization();
+
+        $response = self::client($http, $user)->request(self::mcpRequest(), new NullCancellation());
+
+        self::assertSame(403, $response->getStatus());
+        self::assertCount(6, $http->requests);
+        self::assertCount(1, $user->redirects);
+    }
+
     public function testAForbiddenAnswerThatIsNotAScopeChallengeIsReturned(): void
     {
         $http = self::scriptChallengeAndFlow()->willChallenge(403, 'Bearer error="invalid_token"');
