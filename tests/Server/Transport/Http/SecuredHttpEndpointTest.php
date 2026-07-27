@@ -13,9 +13,12 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Server\Transport\Http;
 
+use Nexus\Mcp\Core\Auth\VerifiedAccessToken;
 use Nexus\Mcp\Core\Schema\Tool\Tool;
 use Nexus\Mcp\Server\Tool\ToolStoreInterface;
+use Nexus\Mcp\Server\Transport\Http\Middleware\BearerAuthenticationMiddleware;
 use Nexus\Mcp\Server\Transport\Http\SecuredHttpEndpoint;
+use Nexus\Mcp\Tests\Fixtures\Server\Auth\ScriptedAccessTokenValidator;
 use Nexus\Mcp\Tests\Fixtures\Server\Http\RecordingRequestHandler;
 use Nexus\Mcp\Tests\Fixtures\Server\Tool\PagedToolStore;
 use Nyholm\Psr7\Factory\Psr17Factory;
@@ -23,6 +26,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Log\NullLogger;
 
 /**
  * @internal
@@ -126,6 +130,44 @@ final class SecuredHttpEndpointTest extends TestCase
         self::assertSame(403, $response->getStatusCode());
     }
 
+    public function testAnUnauthenticatedRequestIsTurnedAwayBeforeTheHandler(): void
+    {
+        $handler = self::handler();
+
+        $response = self::endpoint($handler, ['https://app.test'], authentication: self::authentication())
+            ->handle(self::request(null))
+        ;
+
+        self::assertSame(401, $response->getStatusCode());
+        self::assertStringStartsWith('Bearer ', $response->getHeaderLine('WWW-Authenticate'));
+        self::assertFalse($handler->called);
+    }
+
+    public function testAnAuthenticatedRequestReachesTheHandler(): void
+    {
+        $handler = self::handler();
+
+        $response = self::endpoint($handler, ['https://app.test'], authentication: self::authentication())
+            ->handle(self::request(null)->withHeader('Authorization', 'Bearer the-token'))
+        ;
+
+        self::assertSame(200, $response->getStatusCode());
+        self::assertTrue($handler->called);
+    }
+
+    public function testADisallowedOriginIsRejectedBeforeAuthentication(): void
+    {
+        $handler = self::handler();
+
+        $response = self::endpoint($handler, ['https://app.test'], authentication: self::authentication())
+            ->handle(self::request('https://evil.test'))
+        ;
+
+        self::assertSame(403, $response->getStatusCode());
+        self::assertSame('', $response->getHeaderLine('WWW-Authenticate'));
+        self::assertFalse($handler->called);
+    }
+
     /**
      * @param list<non-empty-string> $allowedOrigins
      * @param list<non-empty-string> $allowedHosts
@@ -136,10 +178,31 @@ final class SecuredHttpEndpointTest extends TestCase
         array $allowedHosts = [],
         ?int $maxBodyBytes = null,
         ?ToolStoreInterface $toolStore = null,
+        ?BearerAuthenticationMiddleware $authentication = null,
     ): SecuredHttpEndpoint {
         $factory = new Psr17Factory();
 
-        return new SecuredHttpEndpoint($handler, $allowedOrigins, $factory, $factory, $allowedHosts, $maxBodyBytes, $toolStore);
+        return new SecuredHttpEndpoint(
+            $handler,
+            $allowedOrigins,
+            $factory,
+            $factory,
+            $allowedHosts,
+            $maxBodyBytes,
+            $toolStore,
+            new NullLogger(),
+            $authentication,
+        );
+    }
+
+    private static function authentication(): BearerAuthenticationMiddleware
+    {
+        return new BearerAuthenticationMiddleware(
+            new ScriptedAccessTokenValidator(['the-token' => new VerifiedAccessToken(['https://mcp.test/'])]),
+            'https://mcp.test/',
+            'https://mcp.test/.well-known/oauth-protected-resource',
+            new Psr17Factory(),
+        );
     }
 
     private static function toolStore(): ToolStoreInterface
