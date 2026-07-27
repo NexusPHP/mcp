@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Transport;
 
+use Nexus\Mcp\Core\Auth\VerifiedAccessToken;
 use Psr\Http\Message\ServerRequestInterface;
 
 /**
@@ -21,9 +22,10 @@ use Psr\Http\Message\ServerRequestInterface;
 final readonly class ReceiveContext
 {
     /**
-     * @param ?ServerRequestInterface $request Originating HTTP request when the transport is request-scoped, null otherwise
+     * @param ?ServerRequestInterface $request  Originating HTTP request when the transport is request-scoped, null otherwise
+     * @param ?VerifiedAccessToken    $authInfo Bearer token the request was authorized with, null when the endpoint is unprotected
      */
-    public function __construct(public ?ServerRequestInterface $request = null)
+    public function __construct(public ?ServerRequestInterface $request = null, public ?VerifiedAccessToken $authInfo = null)
     {
     }
 }

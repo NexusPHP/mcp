@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Server\Transport;
 
+use Nexus\Mcp\Core\Auth\VerifiedAccessToken;
 use Nexus\Mcp\Core\Exception\InvalidParamsException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyStartedException;
@@ -33,6 +34,7 @@ use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
+use Nexus\Mcp\Core\Transport\ReceiveContext;
 use Nexus\Mcp\Server\Server;
 use Nexus\Mcp\Server\ServerBuilder;
 use Nexus\Mcp\Server\ServerContext;
@@ -172,6 +174,61 @@ final class StreamableHttpServerTransportTest extends TestCase
         yield 'empty string id' => [''];
 
         yield 'array id' => [[1]];
+    }
+
+    public function testTheValidatedTokenReachesHandlersOnTheReceiveContext(): void
+    {
+        $transport = self::makeTransport();
+        $token = new VerifiedAccessToken(['https://mcp.test/'], ['files:read']);
+
+        $contexts = [];
+        $transport->onMessage(static function (array $envelope, ReceiveContext $context) use (&$contexts): void {
+            $contexts[] = $context;
+        });
+
+        $transport->handle(self::makePost([
+            'jsonrpc' => '2.0',
+            'method' => 'notifications/tools/list_changed',
+        ])->withAttribute(VerifiedAccessToken::REQUEST_ATTRIBUTE, $token));
+
+        self::assertCount(1, $contexts);
+        self::assertSame($token, $contexts[0]->authInfo);
+    }
+
+    public function testAnUnprotectedEndpointCarriesNoTokenOnTheReceiveContext(): void
+    {
+        $transport = self::makeTransport();
+
+        $contexts = [];
+        $transport->onMessage(static function (array $envelope, ReceiveContext $context) use (&$contexts): void {
+            $contexts[] = $context;
+        });
+
+        $transport->handle(self::makePost([
+            'jsonrpc' => '2.0',
+            'method' => 'notifications/tools/list_changed',
+        ]));
+
+        self::assertCount(1, $contexts);
+        self::assertNull($contexts[0]->authInfo);
+    }
+
+    public function testAnAttributeThatIsNotATokenIsIgnored(): void
+    {
+        $transport = self::makeTransport();
+
+        $contexts = [];
+        $transport->onMessage(static function (array $envelope, ReceiveContext $context) use (&$contexts): void {
+            $contexts[] = $context;
+        });
+
+        $transport->handle(self::makePost([
+            'jsonrpc' => '2.0',
+            'method' => 'notifications/tools/list_changed',
+        ])->withAttribute(VerifiedAccessToken::REQUEST_ATTRIBUTE, 'not-a-token'));
+
+        self::assertCount(1, $contexts);
+        self::assertNull($contexts[0]->authInfo);
     }
 
     public function testValidNotificationIsEmittedAndAcceptedWith202(): void

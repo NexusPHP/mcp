@@ -448,9 +448,9 @@ Client (required for client-mode conformance):
 
 Server (resource server, not conformance-scored but part of the auth spec):
 
-- [ ] 401 challenge with `WWW-Authenticate` carrying the `resource_metadata` URL.
+- [x] 401 challenge with `WWW-Authenticate` carrying the `resource_metadata` URL.
 - [ ] Serve a Protected Resource Metadata document.
-- [ ] Bearer-token validation bound to this resource.
+- [x] Bearer-token validation bound to this resource.
 
 The OAuth-related official extensions (client-credentials and enterprise-managed authorization) are
 covered in the "Official extensions" block below, built on this subsystem.
