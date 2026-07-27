@@ -11,7 +11,7 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Nexus\Mcp\Core\Auth;
+namespace Nexus\Mcp\Client\Auth;
 
 /**
  * Builds the well-known metadata URLs an MCP client probes, in the priority order the spec fixes.

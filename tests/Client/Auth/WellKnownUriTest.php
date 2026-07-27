@@ -11,9 +11,9 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Nexus\Mcp\Tests\Core\Auth;
+namespace Nexus\Mcp\Tests\Client\Auth;
 
-use Nexus\Mcp\Core\Auth\WellKnownUri;
+use Nexus\Mcp\Client\Auth\WellKnownUri;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -24,7 +24,7 @@ use PHPUnit\Framework\TestCase;
  */
 #[CoversClass(WellKnownUri::class)]
 #[Group('unit-tests')]
-#[Group('core-tests')]
+#[Group('client-tests')]
 final class WellKnownUriTest extends TestCase
 {
     /**

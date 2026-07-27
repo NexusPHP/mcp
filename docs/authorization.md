@@ -236,7 +236,7 @@ Clients find your authorization server by reading a metadata document. Route
 `ProtectedResourceMetadataHandler` at both well-known paths and name the same URL in the middleware above:
 
 ```php
-use Nexus\Mcp\Server\Auth\ProtectedResourceMetadataHandler;
+use Nexus\Mcp\Server\Transport\Http\ProtectedResourceMetadataHandler;
 
 $metadata = new ProtectedResourceMetadataHandler(
     'https://mcp.example.com/mcp',

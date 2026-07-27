@@ -11,9 +11,9 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Nexus\Mcp\Tests\Server\Auth;
+namespace Nexus\Mcp\Tests\Server\Transport\Http;
 
-use Nexus\Mcp\Server\Auth\ProtectedResourceMetadataHandler;
+use Nexus\Mcp\Server\Transport\Http\ProtectedResourceMetadataHandler;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
