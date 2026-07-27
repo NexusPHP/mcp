@@ -16,8 +16,8 @@ namespace Nexus\Mcp\Core\Auth;
 use Nexus\Assert\Assert;
 
 /**
- * Reads typed fields out of a decoded OAuth metadata document, treating an absent field as `null` and a
- * present field of the wrong type as a fault.
+ * Reads typed fields out of a decoded OAuth JSON document, treating an absent field as `null` and a present
+ * field of the wrong type as a fault.
  *
  * @internal
  */
@@ -75,6 +75,21 @@ final class MetadataReader
         }
 
         return $values;
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    public static function readInt(array $data, string $key, string $label): ?int
+    {
+        if (! \array_key_exists($key, $data)) {
+            return null;
+        }
+
+        $value = $data[$key];
+        Assert::that($value)->isInt(\sprintf('%s "%s" must be an integer, {type} given.', $label, $key));
+
+        return $value;
     }
 
     /**

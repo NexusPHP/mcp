@@ -123,6 +123,42 @@ final class MetadataReaderTest extends TestCase
         MetadataReader::readStringList(['scopes_supported' => ['files:read', 42]], 'scopes_supported', self::LABEL);
     }
 
+    public function testReadIntReturnsNullWhenTheFieldIsAbsent(): void
+    {
+        self::assertNull(MetadataReader::readInt([], 'expires_in', self::LABEL));
+    }
+
+    public function testReadIntReturnsThePresentValue(): void
+    {
+        self::assertSame(3600, MetadataReader::readInt(['expires_in' => 3600], 'expires_in', self::LABEL));
+    }
+
+    public function testReadIntKeepsAZeroLifetimeDistinctFromAnAbsentOne(): void
+    {
+        self::assertSame(0, MetadataReader::readInt(['expires_in' => 0], 'expires_in', self::LABEL));
+    }
+
+    #[DataProvider('provideReadIntRejectsANonIntegerCases')]
+    public function testReadIntRejectsANonInteger(mixed $value, string $type): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs(\sprintf('Test Metadata "expires_in" must be an integer, %s given.', $type));
+
+        MetadataReader::readInt(['expires_in' => $value], 'expires_in', self::LABEL);
+    }
+
+    /**
+     * @return iterable<string, array{mixed, string}>
+     */
+    public static function provideReadIntRejectsANonIntegerCases(): iterable
+    {
+        yield 'a numeric string is not an integer' => ['3600', 'string'];
+
+        yield 'a float is not an integer' => [3600.0, 'float'];
+
+        yield 'null is not an integer' => [null, 'null'];
+    }
+
     public function testReadBoolReturnsNullWhenTheFieldIsAbsent(): void
     {
         self::assertNull(MetadataReader::readBool([], 'client_id_metadata_document_supported', self::LABEL));

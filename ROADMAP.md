@@ -438,7 +438,7 @@ Client (required for client-mode conformance):
 - [ ] Registration: Dynamic Client Registration with `application_type`, Client ID Metadata Document
   (CIMD), and a pre-registered-credentials fallback when there is no registration endpoint.
 - [x] PKCE (S256) on the authorization request.
-- [ ] Token-endpoint auth: `client_secret_basic`, `client_secret_post`, and `none` (public client).
+- [x] Token-endpoint auth: `client_secret_basic`, `client_secret_post`, and `none` (public client).
 - [ ] Scope handling: select from `WWW-Authenticate` / `scopes_supported` / omit, step-up on a 403
   insufficient_scope with scope accumulation, and a retry cap.
 - [ ] Resource Indicators (RFC 8707): send and validate the `resource` parameter.
