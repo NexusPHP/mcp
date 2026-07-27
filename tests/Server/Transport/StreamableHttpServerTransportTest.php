@@ -195,6 +195,48 @@ final class StreamableHttpServerTransportTest extends TestCase
         self::assertSame($token, $contexts[0]->authInfo);
     }
 
+    public function testTheValidatedTokenReachesHandlersOfABufferedRequest(): void
+    {
+        $transport = self::makeTransport(start: false);
+        $token = new VerifiedAccessToken(['https://mcp.test/'], ['files:read']);
+
+        $contexts = [];
+        self::listen($transport);
+        $transport->onMessage(static function (array $envelope, ReceiveContext $context) use (&$contexts): void {
+            $contexts[] = $context;
+        });
+
+        self::handle($transport, self::makePost([
+            'jsonrpc' => '2.0',
+            'id' => 7,
+            'method' => 'server/discover',
+            'params' => ['_meta' => RequestMetaObjectFactory::shape()],
+        ], self::standardHeaders('server/discover'))->withAttribute(VerifiedAccessToken::REQUEST_ATTRIBUTE, $token));
+
+        self::assertCount(1, $contexts);
+        self::assertSame($token, $contexts[0]->authInfo);
+    }
+
+    public function testTheValidatedTokenReachesHandlersOfAStreamedRequest(): void
+    {
+        $transport = self::makeTransport(responseMode: ResponseMode::Sse, start: false);
+        $token = new VerifiedAccessToken(['https://mcp.test/'], ['files:read']);
+
+        $contexts = [];
+        self::listen($transport, self::progressServer());
+        $transport->onMessage(static function (array $envelope, ReceiveContext $context) use (&$contexts): void {
+            $contexts[] = $context;
+        });
+
+        self::handleAndRead(
+            $transport,
+            self::progressRequest(7)->withAttribute(VerifiedAccessToken::REQUEST_ATTRIBUTE, $token),
+        );
+
+        self::assertCount(1, $contexts);
+        self::assertSame($token, $contexts[0]->authInfo);
+    }
+
     public function testAnUnprotectedEndpointCarriesNoTokenOnTheReceiveContext(): void
     {
         $transport = self::makeTransport();
