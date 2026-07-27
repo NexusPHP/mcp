@@ -8,6 +8,7 @@ on:
       - .github/workflows/code-style.yml
       - src/**
       - tests/**
+      - tools/**
       - composer.json
       - .php-cs-fixer.dist.php
   pull_request:
@@ -17,6 +18,7 @@ on:
       - .github/workflows/code-style.yml
       - src/**
       - tests/**
+      - tools/**
       - composer.json
       - .php-cs-fixer.dist.php
 

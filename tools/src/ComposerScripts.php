@@ -182,6 +182,10 @@ final class ComposerScripts
             self::fail(\sprintf('Cannot read coverage report at %s.', self::PHPUNIT_CLOVER));
         }
 
+        if ('' === $contents) {
+            self::fail(\sprintf('Coverage report at %s is empty.', self::PHPUNIT_CLOVER));
+        }
+
         $dom = new \DOMDocument();
         $previous = libxml_use_internal_errors(true);
         $loaded = $dom->loadXML($contents);

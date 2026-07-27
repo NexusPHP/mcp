@@ -8,6 +8,7 @@ on:
       - .github/workflows/static-analysis.yml
       - src/**
       - tests/**
+      - tools/**
       - composer.json
       - phpstan.dist.neon
       - phpstan-baseline.php
@@ -18,6 +19,7 @@ on:
       - .github/workflows/static-analysis.yml
       - src/**
       - tests/**
+      - tools/**
       - composer.json
       - phpstan.dist.neon
       - phpstan-baseline.php
