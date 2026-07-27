@@ -53,7 +53,6 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LogLevel;
-use Revolt\EventLoop;
 
 /**
  * @internal
@@ -74,7 +73,7 @@ final class ServerMessageDispatcherTest extends TestCase
         $envelope = ['jsonrpc' => '2.0', 'id' => 1, 'result' => []];
         $dispatcher->dispatch($envelope, $transport, new ReceiveContext());
 
-        EventLoop::run();
+        $dispatcher->flushPending();
 
         self::assertSame([], $transport->sent);
         $matches = $logger->recordsMatching(LogLevel::WARNING, self::ORPHAN_LOG_MESSAGE);
@@ -91,7 +90,7 @@ final class ServerMessageDispatcherTest extends TestCase
         $envelope = ['jsonrpc' => '2.0', 'id' => 1, 'error' => ['code' => -32603, 'message' => 'oops']];
         $dispatcher->dispatch($envelope, $transport, new ReceiveContext());
 
-        EventLoop::run();
+        $dispatcher->flushPending();
 
         self::assertSame([], $transport->sent);
         $matches = $logger->recordsMatching(LogLevel::WARNING, self::ORPHAN_LOG_MESSAGE);
@@ -109,7 +108,7 @@ final class ServerMessageDispatcherTest extends TestCase
             $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => $i, 'result' => []], $transport, new ReceiveContext());
         }
 
-        EventLoop::run();
+        $dispatcher->flushPending();
 
         $matches = $logger->recordsMatching(LogLevel::WARNING, self::ORPHAN_LOG_MESSAGE);
         self::assertCount(1, $matches);
@@ -125,7 +124,7 @@ final class ServerMessageDispatcherTest extends TestCase
         $envelope = ['jsonrpc' => '2.0', 'result' => 'opaque-string'];
         $dispatcher->dispatch($envelope, $transport, new ReceiveContext());
 
-        EventLoop::run();
+        $dispatcher->flushPending();
 
         self::assertSame([], $transport->sent, 'A response envelope must not provoke another response, even when malformed.');
         self::assertCount(1, $logger->recordsMatching(LogLevel::WARNING, self::ORPHAN_LOG_MESSAGE));
@@ -139,7 +138,7 @@ final class ServerMessageDispatcherTest extends TestCase
 
         $dispatcher->dispatch(['jsonrpc' => '1.0', 'id' => 7, 'method' => 'tools/list'], $transport, new ReceiveContext());
 
-        EventLoop::run();
+        $dispatcher->flushPending();
 
         self::assertCount(1, $transport->sent);
         $message = $transport->sent[0]['message'];
@@ -157,7 +156,7 @@ final class ServerMessageDispatcherTest extends TestCase
         $envelope = ['jsonrpc' => '1.0'];
         $dispatcher->dispatch($envelope, $transport, new ReceiveContext());
 
-        EventLoop::run();
+        $dispatcher->flushPending();
 
         self::assertSame([], $transport->sent, 'JSON-RPC 2.0 §4.1 forbids responses to notifications.');
         $matches = $logger->recordsMatching(
@@ -178,7 +177,7 @@ final class ServerMessageDispatcherTest extends TestCase
         $envelope = ['jsonrpc' => '2.0', 'method' => 'tools/list'];
         $dispatcher->dispatch($envelope, $transport, new ReceiveContext());
 
-        EventLoop::run();
+        $dispatcher->flushPending();
 
         self::assertCount(1, $transport->sent);
         $message = $transport->sent[0]['message'];
@@ -205,7 +204,7 @@ final class ServerMessageDispatcherTest extends TestCase
         $envelope = ['jsonrpc' => '2.0', 'id' => 7, 'method' => 'notifications/cancelled'];
         $dispatcher->dispatch($envelope, $transport, new ReceiveContext());
 
-        EventLoop::run();
+        $dispatcher->flushPending();
 
         self::assertCount(1, $transport->sent);
         $message = $transport->sent[0]['message'];
@@ -237,7 +236,7 @@ final class ServerMessageDispatcherTest extends TestCase
         $envelope = ['jsonrpc' => '2.0', 'method' => 'notifications/vendor/unknown'];
         $dispatcher->dispatch($envelope, $transport, new ReceiveContext());
 
-        EventLoop::run();
+        $dispatcher->flushPending();
 
         self::assertSame([], $transport->sent);
         $matches = $logger->recordsMatching(
@@ -261,7 +260,7 @@ final class ServerMessageDispatcherTest extends TestCase
         ];
         $dispatcher->dispatch($envelope, $transport, new ReceiveContext());
 
-        EventLoop::run();
+        $dispatcher->flushPending();
 
         self::assertSame([], $transport->sent);
         $matches = $logger->recordsMatching(
@@ -283,7 +282,7 @@ final class ServerMessageDispatcherTest extends TestCase
             new ReceiveContext(),
         );
 
-        EventLoop::run();
+        $dispatcher->flushPending();
 
         self::assertCount(1, $transport->sent);
         $message = $transport->sent[0]['message'];
@@ -303,7 +302,7 @@ final class ServerMessageDispatcherTest extends TestCase
 
         $dispatcher->dispatch(self::toolsListEnvelope('req-2'), $transport, new ReceiveContext());
 
-        EventLoop::run();
+        $dispatcher->flushPending();
 
         self::assertCount(1, $transport->sent);
         $message = $transport->sent[0]['message'];
@@ -328,7 +327,7 @@ final class ServerMessageDispatcherTest extends TestCase
 
         $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 'r-3', 'method' => 'tests/test-request'], $transport, new ReceiveContext());
 
-        EventLoop::run();
+        $dispatcher->flushPending();
 
         self::assertCount(1, $transport->sent, 'A non-ClientRequest method must draw exactly one response, not a silent drop.');
         $message = $transport->sent[0]['message'];
@@ -358,7 +357,7 @@ final class ServerMessageDispatcherTest extends TestCase
 
         $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 'r-1', 'method' => 'tests/test-request'], $transport, new ReceiveContext());
 
-        EventLoop::run();
+        $dispatcher->flushPending();
 
         self::assertFalse($invoked, 'A non-ClientRequest method must be rejected by direction before any registered handler runs.');
         self::assertCount(1, $transport->sent);
@@ -386,7 +385,7 @@ final class ServerMessageDispatcherTest extends TestCase
 
         $dispatcher->dispatch(self::toolsListEnvelope(1, protocolVersion: '2025-11-25'), $transport, new ReceiveContext());
 
-        EventLoop::run();
+        $dispatcher->flushPending();
 
         self::assertFalse($invoked, 'The version gate must reject before the handler runs.');
         self::assertCount(1, $transport->sent);
@@ -416,7 +415,7 @@ final class ServerMessageDispatcherTest extends TestCase
 
         $dispatcher->dispatch(self::discoverEnvelope(2, protocolVersion: '2025-11-25'), $transport, new ReceiveContext());
 
-        EventLoop::run();
+        $dispatcher->flushPending();
 
         self::assertCount(1, $transport->sent);
         $message = $transport->sent[0]['message'];
@@ -431,7 +430,7 @@ final class ServerMessageDispatcherTest extends TestCase
 
         $dispatcher->dispatch(self::toolsListEnvelope(3, protocolVersion: '2025-11-25'), $transport, new ReceiveContext());
 
-        EventLoop::run();
+        $dispatcher->flushPending();
 
         self::assertCount(1, $transport->sent);
         $message = $transport->sent[0]['message'];
@@ -452,7 +451,7 @@ final class ServerMessageDispatcherTest extends TestCase
 
         $dispatcher->dispatch(self::discoverEnvelope(1), $transport, new ReceiveContext());
 
-        EventLoop::run();
+        $dispatcher->flushPending();
 
         self::assertCount(1, $transport->sent);
         $message = $transport->sent[0]['message'];
@@ -472,7 +471,7 @@ final class ServerMessageDispatcherTest extends TestCase
 
         $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
 
-        EventLoop::run();
+        $dispatcher->flushPending();
 
         self::assertSame($serverInfo, self::sentResult($transport)->meta->serverInfo);
     }
@@ -490,7 +489,7 @@ final class ServerMessageDispatcherTest extends TestCase
 
         $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
 
-        EventLoop::run();
+        $dispatcher->flushPending();
 
         self::assertSame(
             [ResultMetaObject::SERVER_INFO_KEY => ['name' => 'test-server', 'version' => '1.0.0'], 'vendor' => 'x'],
@@ -513,7 +512,7 @@ final class ServerMessageDispatcherTest extends TestCase
 
         $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
 
-        EventLoop::run();
+        $dispatcher->flushPending();
 
         self::assertSame($forwarded, self::sentResult($transport)->meta->toArray());
     }
@@ -533,7 +532,7 @@ final class ServerMessageDispatcherTest extends TestCase
 
         $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
 
-        EventLoop::run();
+        $dispatcher->flushPending();
 
         self::assertSame($upstream, self::sentResult($transport)->meta->serverInfo);
     }
@@ -545,7 +544,7 @@ final class ServerMessageDispatcherTest extends TestCase
 
         $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
 
-        EventLoop::run();
+        $dispatcher->flushPending();
 
         $result = self::sentResult($transport);
         self::assertNull($result->meta->serverInfo);
@@ -562,7 +561,7 @@ final class ServerMessageDispatcherTest extends TestCase
         $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
         $dispatcher->dispatch(self::toolsListEnvelope(2), $transport, new ReceiveContext());
 
-        EventLoop::run();
+        $dispatcher->flushPending();
 
         self::assertCount(2, $transport->sent);
         $shed = $transport->sent[0]['message'];
@@ -581,11 +580,11 @@ final class ServerMessageDispatcherTest extends TestCase
         $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
         $dispatcher->dispatch(self::toolsListEnvelope(2), $transport, new ReceiveContext());
 
-        EventLoop::run();
+        $dispatcher->flushPending();
 
         $dispatcher->dispatch(self::toolsListEnvelope(2), $transport, new ReceiveContext());
 
-        EventLoop::run();
+        $dispatcher->flushPending();
 
         self::assertCount(3, $transport->sent);
         self::assertInstanceOf(JsonRpcResultResponse::class, $transport->sent[2]['message']);
@@ -599,7 +598,7 @@ final class ServerMessageDispatcherTest extends TestCase
         $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
         $dispatcher->dispatch(self::toolsListEnvelope(2), $transport, new ReceiveContext());
 
-        EventLoop::run();
+        $dispatcher->flushPending();
 
         self::assertCount(2, $transport->sent);
         self::assertInstanceOf(JsonRpcResultResponse::class, $transport->sent[0]['message']);
@@ -614,7 +613,7 @@ final class ServerMessageDispatcherTest extends TestCase
         $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
         $dispatcher->dispatch(self::toolsListEnvelope(2), $transport, new ReceiveContext());
 
-        EventLoop::run();
+        $dispatcher->flushPending();
 
         self::assertCount(2, $transport->sent);
         self::assertInstanceOf(JsonRpcResultResponse::class, $transport->sent[0]['message']);
@@ -644,7 +643,7 @@ final class ServerMessageDispatcherTest extends TestCase
             new ReceiveContext(),
         );
 
-        EventLoop::run();
+        $dispatcher->flushPending();
 
         self::assertFalse($handled, 'A shed notification must not reach its handler.');
         self::assertCount(1, $transport->sent, 'JSON-RPC 2.0 §4.1 forbids answering a notification.');
@@ -665,7 +664,7 @@ final class ServerMessageDispatcherTest extends TestCase
 
         $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
         $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
-        EventLoop::run();
+        $dispatcher->flushPending();
 
         self::assertCount(2, $transport->sent);
 
@@ -689,9 +688,9 @@ final class ServerMessageDispatcherTest extends TestCase
         );
 
         $dispatcher->dispatch(self::toolsListEnvelope('x'), $transport, new ReceiveContext());
-        EventLoop::run();
+        $dispatcher->flushPending();
         $dispatcher->dispatch(self::toolsListEnvelope('x'), $transport, new ReceiveContext());
-        EventLoop::run();
+        $dispatcher->flushPending();
 
         self::assertCount(2, $transport->sent);
         self::assertInstanceOf(JsonRpcResultResponse::class, $transport->sent[0]['message']);
@@ -717,9 +716,9 @@ final class ServerMessageDispatcherTest extends TestCase
         );
 
         $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
-        EventLoop::run();
+        $dispatcher->flushPending();
         $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
-        EventLoop::run();
+        $dispatcher->flushPending();
 
         self::assertCount(2, $transport->sent);
 
@@ -745,7 +744,7 @@ final class ServerMessageDispatcherTest extends TestCase
 
         $dispatcher->dispatch(self::toolsListEnvelope('incoming-id'), $transport, new ReceiveContext());
 
-        EventLoop::run();
+        $dispatcher->flushPending();
 
         self::assertCount(1, $transport->sent);
         $message = $transport->sent[0]['message'];
@@ -766,7 +765,7 @@ final class ServerMessageDispatcherTest extends TestCase
 
         $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
 
-        EventLoop::run();
+        $dispatcher->flushPending();
 
         self::assertCount(1, $transport->sent);
         $message = $transport->sent[0]['message'];
@@ -794,7 +793,7 @@ final class ServerMessageDispatcherTest extends TestCase
 
         $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
 
-        EventLoop::run();
+        $dispatcher->flushPending();
 
         self::assertCount(1, $transport->sent);
         $message = $transport->sent[0]['message'];
@@ -834,7 +833,7 @@ final class ServerMessageDispatcherTest extends TestCase
 
         $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
 
-        EventLoop::run();
+        $dispatcher->flushPending();
 
         self::assertCount(1, $transport->sent);
         $message = $transport->sent[0]['message'];
@@ -863,7 +862,7 @@ final class ServerMessageDispatcherTest extends TestCase
 
         $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
 
-        EventLoop::run();
+        $dispatcher->flushPending();
 
         $matches = $logger->recordsMatching(LogLevel::ERROR, 'Failed to deliver response to transport.');
         self::assertCount(1, $matches);
@@ -883,7 +882,7 @@ final class ServerMessageDispatcherTest extends TestCase
 
         $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
 
-        EventLoop::run();
+        $dispatcher->flushPending();
 
         self::assertSame([], $logger->messagesAtLevel(LogLevel::ERROR), 'Closed transport must not produce error-level logs.');
         $matches = $logger->recordsMatching(LogLevel::INFO, 'Skipping response delivery. Transport is closed.');
@@ -907,7 +906,7 @@ final class ServerMessageDispatcherTest extends TestCase
 
         $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
 
-        EventLoop::run();
+        $dispatcher->flushPending();
 
         self::assertSame([], $transport->sent, 'A closed transport must not receive an InternalError follow-up.');
         self::assertSame([], $logger->messagesAtLevel(LogLevel::ERROR));
@@ -933,7 +932,7 @@ final class ServerMessageDispatcherTest extends TestCase
 
         $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
 
-        EventLoop::run();
+        $dispatcher->flushPending();
 
         self::assertSame([], $logger->messagesAtLevel(LogLevel::ERROR));
         $matches = $logger->recordsMatching(LogLevel::INFO, 'Skipping response delivery. Transport is closed.');
@@ -968,7 +967,7 @@ final class ServerMessageDispatcherTest extends TestCase
 
         $dispatcher->dispatch($envelope, $transport, new ReceiveContext());
 
-        EventLoop::run();
+        $dispatcher->flushPending();
 
         // The notification emitted via $ctx->reportProgress() should be tagged with
         // the originating request id, proving the request-scoped sender binding.
@@ -1008,7 +1007,7 @@ final class ServerMessageDispatcherTest extends TestCase
 
         $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, $receiveContext);
 
-        EventLoop::run();
+        $dispatcher->flushPending();
 
         self::assertSame($receiveContext, $captured);
     }
@@ -1029,7 +1028,7 @@ final class ServerMessageDispatcherTest extends TestCase
             new ReceiveContext(),
         );
 
-        EventLoop::run();
+        $dispatcher->flushPending();
 
         self::assertSame([], $transport->sent);
         self::assertSame([], $logger->messagesAtLevel(LogLevel::ERROR));
@@ -1058,7 +1057,7 @@ final class ServerMessageDispatcherTest extends TestCase
             new ReceiveContext(),
         );
 
-        EventLoop::run();
+        $dispatcher->flushPending();
 
         self::assertSame([], $transport->sent);
         $matches = $logger->recordsMatching(LogLevel::ERROR, 'Uncaught notification handler exception.');
@@ -1089,7 +1088,7 @@ final class ServerMessageDispatcherTest extends TestCase
             new ReceiveContext(),
         );
 
-        EventLoop::run();
+        $dispatcher->flushPending();
 
         self::assertSame(1, $invocations);
         self::assertSame([], $transport->sent);
