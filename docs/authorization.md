@@ -138,14 +138,13 @@ interface ClientRegistrationStoreInterface
 ```
 
 Tokens are keyed by the MCP server, and registrations by the issuer. Each `AccessToken` carries the `issuer`
-that minted it, so a store written in one process is usable in the next without repeating discovery first:
-hand back a stored token and the SDK presents it straight away. That stamp is also what makes an authorization
-server change safe. Once discovery has run and found the resource has moved, a token stamped with the former
-issuer is dropped rather than refreshed at the new one. A stored token is presented before any discovery has
-happened, so if the resource moved between processes the first request spends a `401` before the client
-notices and re-authorizes. A registration the authorization server stops recognising is dropped from the
-store rather than presented again, so an expired one heals on the next request instead of bricking the
-client. Store both confidentially. They are credentials.
+that minted it, which is what makes an authorization server change safe: a token stamped with an issuer the
+resource no longer names is dropped rather than presented or refreshed at the new one. Reading a token back
+from a store therefore costs one discovery round trip before the first request goes out, because the SDK must
+not send a token to a server other than the one that issued it, and until discovery has run it cannot tell.
+Later requests in the same process present the stored token directly. A registration the authorization server
+stops recognising is dropped from the store rather than presented again, so an expired one heals on the next
+request instead of bricking the client. Store both confidentially. They are credentials.
 
 ### Scopes and step-up
 

@@ -571,16 +571,21 @@ final class AuthorizedHttpClientTest extends TestCase
         self::assertSame('Bearer the-renewed-token', $http->readRequest(4)->getHeader('Authorization'));
     }
 
-    public function testATokenLapsingOneSecondPastTheLeewayIsStillPresented(): void
+    public function testATokenWellClearOfTheLeewayIsPresentedAsItIs(): void
     {
         $tokens = new InMemoryTokenStore();
-        $tokens->write(self::RESOURCE, new AccessToken('the-stored-token', 'https://auth.test', time() + 31, 'the-refresh-token'));
-        $http = new RecordingHttpClient()->willAnswerJson(['ok' => true]);
+        // A lifetime near the leeway would flip if the wall clock ticked between the write and the read.
+        $tokens->write(self::RESOURCE, new AccessToken('the-stored-token', 'https://auth.test', time() + 3600, 'the-refresh-token'));
+        $http = new RecordingHttpClient()
+            ->willAnswerJson(self::resourceDocument())
+            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson(['ok' => true])
+        ;
 
         self::client($http, null, $tokens)->request(self::mcpRequest(), new NullCancellation());
 
-        self::assertCount(1, $http->requests);
-        self::assertSame('Bearer the-stored-token', $http->readRequest()->getHeader('Authorization'));
+        self::assertCount(3, $http->requests);
+        self::assertSame('Bearer the-stored-token', $http->readRequest(2)->getHeader('Authorization'));
     }
 
     public function testATokenLapsingAtTheLeewayIsRenewedInstead(): void

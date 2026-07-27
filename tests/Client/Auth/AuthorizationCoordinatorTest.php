@@ -267,16 +267,57 @@ final class AuthorizationCoordinatorTest extends TestCase
         self::assertNull(self::coordinator(new RecordingHttpClient(), new ScriptedUserAuthorization())->fetchToken(new NullCancellation()));
     }
 
-    public function testFetchTokenPresentsAStoreNoAuthorizationInThisProcessFilled(): void
+    public function testAStoredTokenIsCheckedAgainstTheResourceBeforeItIsPresented(): void
     {
         $store = new InMemoryTokenStore();
         $store->write(self::RESOURCE, new AccessToken('from-an-earlier-run', self::ISSUER));
-        $http = new RecordingHttpClient();
+        $http = self::scriptDiscoveryOnly();
 
         $coordinator = self::coordinator($http, new ScriptedUserAuthorization(), $store);
 
         self::assertSame('from-an-earlier-run', $coordinator->fetchToken(new NullCancellation())?->value);
-        self::assertSame([], $http->requests);
+        self::assertCount(2, $http->requests);
+    }
+
+    public function testAChallengeSteersTheRecoveryWhenAStoredTokenCouldNotBeChecked(): void
+    {
+        $store = new InMemoryTokenStore();
+        $store->write(self::RESOURCE, new AccessToken('from-an-earlier-run', self::ISSUER));
+        $http = new RecordingHttpClient()
+            // The well-known probes miss, so the stored token cannot be checked and is not presented.
+            ->willAnswerJson([], 404)
+            ->willAnswerJson([], 404)
+            // Only the URL the challenge advertises serves the document.
+            ->willAnswerJson(self::resourceDocument())
+            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson(['client_id' => 'the-registered-client'])
+            ->willAnswerJson(['access_token' => 'the-new-token', 'token_type' => 'Bearer'])
+        ;
+        $coordinator = self::coordinator($http, new ScriptedUserAuthorization(), $store);
+
+        self::assertNull($coordinator->fetchToken(new NullCancellation()));
+
+        $token = $coordinator->reauthorize(
+            null,
+            new WwwAuthenticateChallenge('Bearer', ['resource_metadata' => 'https://mcp.example.com/custom/prm']),
+            new NullCancellation(),
+        );
+
+        // Holding an unchecked token must not swallow the challenge that says where to check it.
+        self::assertSame('the-new-token', $token->value);
+        self::assertSame('https://mcp.example.com/custom/prm', (string) $http->readRequest(2)->getUri());
+    }
+
+    public function testAStoredTokenIsCheckedOnlyOnce(): void
+    {
+        $store = new InMemoryTokenStore();
+        $store->write(self::RESOURCE, new AccessToken('from-an-earlier-run', self::ISSUER));
+        $http = self::scriptDiscoveryOnly();
+        $coordinator = self::coordinator($http, new ScriptedUserAuthorization(), $store);
+        $coordinator->fetchToken(new NullCancellation());
+
+        self::assertSame('from-an-earlier-run', $coordinator->fetchToken(new NullCancellation())?->value);
+        self::assertCount(2, $http->requests);
     }
 
     public function testASpentTokenFromAServerTheResourceLeftIsDroppedRatherThanRenewed(): void
@@ -529,7 +570,7 @@ final class AuthorizationCoordinatorTest extends TestCase
 
         self::assertNull($coordinator->fetchToken(new NullCancellation()));
 
-        $message = 'Renewing the token for {resource} found no metadata to renew it against. {reason}';
+        $message = 'The token for {resource} could not be checked against any metadata. {reason}';
         self::assertSame(
             [['level' => LogLevel::INFO, 'message' => $message, 'context' => [
                 'resource' => self::RESOURCE,
@@ -593,6 +634,36 @@ final class AuthorizationCoordinatorTest extends TestCase
         self::coordinator($http, $user)->reauthorize(null, null, new NullCancellation());
 
         self::assertSame(['files:read'], $user->readRequestedScopes());
+    }
+
+    public function testAUsableTokenIsHandedOutWhileAnotherCallerIsStillAuthorizing(): void
+    {
+        $gate = new DeferredFuture();
+        $http = self::scriptFullFlow()->willAnswerJson(
+            ['access_token' => 'the-wide-token', 'token_type' => 'Bearer'],
+            gate: $gate->getFuture(),
+        );
+        $coordinator = self::coordinator($http, new ScriptedUserAuthorization());
+        $presented = $coordinator->reauthorize(null, null, new NullCancellation());
+
+        $order = [];
+        $upgrade = async(static function () use ($coordinator, $presented, &$order): void {
+            $coordinator->upgradeScopes($presented, new ScopeSet(['files:admin']), null, new NullCancellation());
+            $order[] = 'upgrade';
+        });
+        delay(0);
+        $fetch = async(static function () use ($coordinator, &$order): void {
+            $coordinator->fetchToken(new NullCancellation());
+            $order[] = 'fetch';
+        });
+        delay(0);
+        $gate->complete();
+        $upgrade->await();
+        $fetch->await();
+
+        // The step-up holds the lock until the gate opens, and a token that is already usable must not queue
+        // behind it.
+        self::assertSame(['fetch', 'upgrade'], $order);
     }
 
     public function testAStepUpJoinerReachingPastTheRunningGrantAsksForItsOwn(): void
