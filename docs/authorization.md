@@ -167,9 +167,14 @@ refuse every prompt, including the one a `401` provokes, throw from your `UserAu
 A `401` re-authorizes once, and carries the rejected token's scopes into the new grant for the same reason. A
 second `401` on the token that came back is taken as the server's answer and returned to the caller.
 
-Concurrent requests that all hit a `401` share one flow. The first runs discovery, registration and the
-browser round trip, and the rest wait on its result rather than opening a second consent screen or registering
-a second client. Renewals share the same way, so a rotating refresh token is redeemed once instead of raced.
+Everything that writes the token runs one at a time per `AuthorizedHttpClient`, renewals included. Concurrent requests
+that all hit a `401` therefore see one flow: the first runs discovery, registration and the browser round
+trip, and the rest take the token it obtained rather than opening a second consent screen, registering a
+second client, or racing to redeem one rotating refresh token. A caller that waited its turn only takes
+another's token when it covers what that caller was refused for, so a step-up reaching past the running grant
+still asks for its own. Two MCP servers never wait on each other. That lock lives on the client, not on the
+store, so two `AuthorizedHttpClient` instances built for the *same* MCP server and handed the same token
+store can still both authorize. Build one per MCP server.
 
 What discovery finds is kept for the life of the client, so a step-up goes straight back to the token endpoint
 instead of re-reading both metadata documents. A `401` drops it again, since a fresh challenge is the one
