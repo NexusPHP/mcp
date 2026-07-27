@@ -136,8 +136,10 @@ notices and re-authorizes. Store both confidentially. They are credentials.
 
 ### Scopes and step-up
 
-Scope selection follows the spec's priority: the `scope` a challenge names wins, otherwise the resource's
-`scopes_supported`, otherwise the parameter is omitted entirely. `offline_access` is added only when you pass
+Scope selection follows the spec's priority: the `scope` a challenge names wins, otherwise `defaultScopes` if
+you declared any, otherwise the resource's `scopes_supported`, otherwise the parameter is omitted entirely.
+Declaring `defaultScopes` is how you avoid asking for everything a resource happens to advertise when your
+client only needs part of it. `offline_access` is added only when you pass
 `requestOfflineAccess: true` *and* the authorization server lists it. That is what gets a refresh token issued,
 and a refresh token outlives the session, so asking for one stays your call.
 

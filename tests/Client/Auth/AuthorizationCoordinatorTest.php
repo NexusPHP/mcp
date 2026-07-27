@@ -108,6 +108,37 @@ final class AuthorizationCoordinatorTest extends TestCase
         self::assertSame([], $user->readRequestedScopes());
     }
 
+    public function testTheDeclaredScopesStandInForEverythingTheResourceAdvertises(): void
+    {
+        $user = new ScriptedUserAuthorization();
+        $http = self::scriptFullFlow(['scopes_supported' => ['files:read', 'files:write', 'files:admin']]);
+
+        self::coordinator($http, $user, defaultScopes: ['files:read'])->authorize(self::resource());
+
+        self::assertSame(['files:read'], $user->readRequestedScopes());
+    }
+
+    public function testTheDeclaredScopesAreRequestedWhenTheResourceAdvertisesNone(): void
+    {
+        $user = new ScriptedUserAuthorization();
+
+        self::coordinator(self::scriptFullFlow(), $user, defaultScopes: ['files:read'])->authorize(self::resource());
+
+        self::assertSame(['files:read'], $user->readRequestedScopes());
+    }
+
+    public function testAChallengeOutranksTheDeclaredScopes(): void
+    {
+        $user = new ScriptedUserAuthorization();
+
+        self::coordinator(self::scriptFullFlow(), $user, defaultScopes: ['files:read'])->authorize(
+            self::resource(),
+            new WwwAuthenticateChallenge('Bearer', ['scope' => 'files:write']),
+        );
+
+        self::assertSame(['files:write'], $user->readRequestedScopes());
+    }
+
     public function testAdditionalScopesAreAccumulatedOntoTheSelection(): void
     {
         $user = new ScriptedUserAuthorization();
@@ -546,12 +577,16 @@ final class AuthorizationCoordinatorTest extends TestCase
         return new ResourceIdentifier(self::RESOURCE);
     }
 
+    /**
+     * @param list<non-empty-string> $defaultScopes
+     */
     private static function coordinator(
         RecordingHttpClient $http,
         ScriptedUserAuthorization $user,
         ?InMemoryTokenStore $tokens = null,
         ?ArrayLogger $logger = null,
         bool $offlineAccess = false,
+        array $defaultScopes = [],
     ): AuthorizationCoordinator {
         return new AuthorizationCoordinator(
             new MetadataDiscovery($http),
@@ -563,6 +598,7 @@ final class AuthorizationCoordinatorTest extends TestCase
                 'Example MCP Client',
                 'http://localhost:3000/callback',
                 requestOfflineAccess: $offlineAccess,
+                defaultScopes: $defaultScopes,
             ),
             $logger ?? new ArrayLogger(),
         );
