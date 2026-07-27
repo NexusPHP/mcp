@@ -151,6 +151,11 @@ A challenge that names no scope the token is missing, including one that names n
 rather than retried. Asking again would produce the same token and the same `403`, and the only thing the
 round trip would buy the user is a second consent screen.
 
+Pass `onInsufficientScope: InsufficientScopePolicy::Fail` to be told instead of asked. The SDK then raises
+`InsufficientScopeException` naming the scopes the server wants, without running discovery or opening a
+consent screen, which is what an unattended process usually wants. That covers the `403` path only. To refuse
+every prompt, including the one a `401` provokes, throw from your `UserAuthorizationInterface` instead.
+
 A `401` re-authorizes once, and carries the rejected token's scopes into the new grant for the same reason. A
 second `401` on the token that came back is taken as the server's answer and returned to the caller.
 
@@ -292,6 +297,7 @@ Every exception below implements `McpExceptionInterface`.
 | `AuthorizationDeniedException` | The authorization server answered with an OAuth error. |
 | `TokenRequestFailedException` | The token endpoint refused the request. |
 | `AuthorizationGrantRejectedException` | The token endpoint refused the request because the grant is spent. |
+| `InsufficientScopeException` | The server wants scopes the token lacks, and the client is set to report rather than ask. |
 
 `AuthorizationGrantRejectedException` extends `TokenRequestFailedException` and is raised for the RFC 6749
 codes that mean granting again would help: `invalid_grant` and `invalid_scope`. That is the split the SDK acts

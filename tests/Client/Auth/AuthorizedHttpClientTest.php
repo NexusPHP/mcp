@@ -19,6 +19,8 @@ use Amp\NullCancellation;
 use Nexus\Mcp\Client\Auth\AuthorizationOptions;
 use Nexus\Mcp\Client\Auth\AuthorizedHttpClient;
 use Nexus\Mcp\Client\Auth\InMemoryTokenStore;
+use Nexus\Mcp\Client\Auth\InsufficientScopePolicy;
+use Nexus\Mcp\Client\Exception\InsufficientScopeException;
 use Nexus\Mcp\Tests\Fixtures\Client\Auth\ScriptedUserAuthorization;
 use Nexus\Mcp\Tests\Fixtures\Client\Http\RecordingHttpClient;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
@@ -193,6 +195,34 @@ final class AuthorizedHttpClientTest extends TestCase
         self::assertSame(403, $response->getStatus());
         self::assertCount(6, $http->requests);
         self::assertCount(1, $user->redirects);
+    }
+
+    public function testTheFailPolicyReportsTheChallengedScopesInsteadOfAskingForThem(): void
+    {
+        $http = self::scriptChallengeAndFlow()->willChallenge(403, 'Bearer error="insufficient_scope", scope="files:write files:admin"');
+        $user = new ScriptedUserAuthorization();
+
+        $this->expectException(InsufficientScopeException::class);
+        $this->expectExceptionMessageIs('The MCP server requires the scope "files:write files:admin", which the token does not carry.');
+
+        self::client($http, $user, policy: InsufficientScopePolicy::Fail)->request(self::mcpRequest(), new NullCancellation());
+    }
+
+    public function testTheFailPolicyOpensNoSecondConsentScreen(): void
+    {
+        $http = self::scriptChallengeAndFlow()->willChallenge(403, 'Bearer error="insufficient_scope", scope="files:write"');
+        $user = new ScriptedUserAuthorization();
+
+        try {
+            self::client($http, $user, policy: InsufficientScopePolicy::Fail)->request(self::mcpRequest(), new NullCancellation());
+            self::fail('The insufficient-scope answer should have surfaced.');
+        } catch (InsufficientScopeException $e) {
+            self::assertSame(['files:write'], $e->required);
+        }
+
+        self::assertCount(1, $user->redirects);
+        self::assertCount(6, $http->requests);
+        self::assertTrue($http->drainedBodies[5] ?? false);
     }
 
     public function testAForbiddenAnswerThatIsNotAScopeChallengeIsReturned(): void
@@ -376,10 +406,16 @@ final class AuthorizedHttpClientTest extends TestCase
         ?InMemoryTokenStore $tokens = null,
         ?ArrayLogger $logger = null,
         int $maxScopeUpgrades = 2,
+        InsufficientScopePolicy $policy = InsufficientScopePolicy::Reauthorize,
     ): AuthorizedHttpClient {
         return new AuthorizedHttpClient(
             self::RESOURCE,
-            new AuthorizationOptions('Example MCP Client', 'http://localhost:3000/callback', maxScopeUpgrades: $maxScopeUpgrades),
+            new AuthorizationOptions(
+                'Example MCP Client',
+                'http://localhost:3000/callback',
+                maxScopeUpgrades: $maxScopeUpgrades,
+                onInsufficientScope: $policy,
+            ),
             $user ?? new ScriptedUserAuthorization(),
             $http,
             $tokens,
