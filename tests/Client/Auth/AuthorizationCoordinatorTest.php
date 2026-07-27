@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Client\Auth;
 
+use Amp\DeferredFuture;
 use Nexus\Mcp\Client\Auth\AccessToken;
 use Nexus\Mcp\Client\Auth\AuthorizationCoordinator;
 use Nexus\Mcp\Client\Auth\AuthorizationOptions;
@@ -33,6 +34,9 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LogLevel;
+
+use function Amp\async;
+use function Amp\delay;
 
 /**
  * @internal
@@ -293,6 +297,82 @@ final class AuthorizationCoordinatorTest extends TestCase
         self::assertNull($store->read(self::RESOURCE, self::ISSUER));
     }
 
+    public function testConcurrentAuthorizationsRunOneFlowAndPromptOnce(): void
+    {
+        $gate = new DeferredFuture();
+        $http = new RecordingHttpClient()
+            ->willAnswerJson(self::resourceDocument(), gate: $gate->getFuture())
+            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson(['client_id' => 'the-registered-client'])
+            ->willAnswerJson(['access_token' => 'the-access-token', 'token_type' => 'Bearer'])
+        ;
+        $user = new ScriptedUserAuthorization();
+        $coordinator = self::coordinator($http, $user);
+
+        $first = async(static fn(): AccessToken => $coordinator->authorize(self::resource()));
+        $second = async(static fn(): AccessToken => $coordinator->authorize(self::resource()));
+        delay(0);
+        $gate->complete();
+
+        self::assertSame($first->await(), $second->await());
+        self::assertCount(1, $user->redirects);
+        self::assertCount(4, $http->requests);
+    }
+
+    public function testConcurrentRenewalsRedeemTheRefreshTokenOnce(): void
+    {
+        $gate = new DeferredFuture();
+        $http = self::scriptFullFlow(tokenOverrides: ['expires_in' => 1, 'refresh_token' => 'the-refresh-token'])
+            ->willAnswerJson(['access_token' => 'the-renewed-token', 'token_type' => 'Bearer'], gate: $gate->getFuture())
+        ;
+        $store = new InMemoryTokenStore();
+        $coordinator = self::coordinator($http, new ScriptedUserAuthorization(), $store);
+        $coordinator->authorize(self::resource());
+
+        $first = async(static fn(): ?AccessToken => $coordinator->fetchToken(self::resource()));
+        $second = async(static fn(): ?AccessToken => $coordinator->fetchToken(self::resource()));
+        delay(0);
+        $gate->complete();
+
+        $firstToken = $first->await();
+        $secondToken = $second->await();
+        $renewed = $store->read(self::RESOURCE, self::ISSUER);
+
+        self::assertSame('the-renewed-token', $renewed?->value);
+        self::assertSame($renewed, $firstToken);
+        self::assertSame($renewed, $secondToken);
+        self::assertCount(5, $http->requests);
+    }
+
+    public function testCallersAskingForDifferentScopesDoNotShareOneGrant(): void
+    {
+        $gate = new DeferredFuture();
+        $http = self::scriptFullFlow()
+            ->willAnswerJson(['access_token' => 'the-narrow-token', 'token_type' => 'Bearer'], gate: $gate->getFuture())
+            ->willAnswerJson(['access_token' => 'the-wide-token', 'token_type' => 'Bearer'])
+        ;
+        $user = new ScriptedUserAuthorization();
+        $coordinator = self::coordinator($http, $user);
+
+        // Warming discovery and the registration leaves the token endpoint as the only leg still to run.
+        $coordinator->authorize(self::resource());
+
+        $first = async(static fn(): AccessToken => $coordinator->authorize(self::resource()));
+        $second = async(static fn(): AccessToken => $coordinator->authorize(
+            self::resource(),
+            null,
+            new ScopeSet(['files:admin']),
+        ));
+        delay(0);
+        $gate->complete();
+
+        $first->await();
+        $second->await();
+
+        self::assertCount(3, $user->redirects);
+        self::assertSame(['files:admin'], $user->readRequestedScopes(2));
+    }
+
     public function testReadGrantedScopesReportsWhatTheStoredTokenCarries(): void
     {
         $http = self::scriptFullFlow(['scopes_supported' => ['files:read', 'files:write']]);
@@ -398,21 +478,37 @@ final class AuthorizationCoordinatorTest extends TestCase
         array $tokenOverrides = [],
     ): RecordingHttpClient {
         return new RecordingHttpClient()
-            ->willAnswerJson([
-                'resource' => self::RESOURCE,
-                'authorization_servers' => [self::ISSUER],
-                ...$resourceOverrides,
-            ])
-            ->willAnswerJson([
-                'issuer' => self::ISSUER,
-                'authorization_endpoint' => 'https://auth.example.com/authorize',
-                'token_endpoint' => 'https://auth.example.com/token',
-                'registration_endpoint' => 'https://auth.example.com/register',
-                'code_challenge_methods_supported' => ['S256'],
-                ...$serverOverrides,
-            ])
+            ->willAnswerJson(self::resourceDocument($resourceOverrides))
+            ->willAnswerJson(self::serverDocument($serverOverrides))
             ->willAnswerJson(['client_id' => 'the-registered-client'])
             ->willAnswerJson(['access_token' => 'the-access-token', 'token_type' => 'Bearer', ...$tokenOverrides])
         ;
+    }
+
+    /**
+     * @param array<string, mixed> $overrides
+     *
+     * @return array<string, mixed>
+     */
+    private static function resourceDocument(array $overrides = []): array
+    {
+        return ['resource' => self::RESOURCE, 'authorization_servers' => [self::ISSUER], ...$overrides];
+    }
+
+    /**
+     * @param array<string, mixed> $overrides
+     *
+     * @return array<string, mixed>
+     */
+    private static function serverDocument(array $overrides = []): array
+    {
+        return [
+            'issuer' => self::ISSUER,
+            'authorization_endpoint' => 'https://auth.example.com/authorize',
+            'token_endpoint' => 'https://auth.example.com/token',
+            'registration_endpoint' => 'https://auth.example.com/register',
+            'code_challenge_methods_supported' => ['S256'],
+            ...$overrides,
+        ];
     }
 }

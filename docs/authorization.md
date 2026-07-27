@@ -144,6 +144,10 @@ those already granted, so a fresh grant never costs permissions other operations
 A `401` re-authorizes once, and carries the rejected token's scopes into the new grant for the same reason. A
 second `401` on the token that came back is taken as the server's answer and returned to the caller.
 
+Concurrent requests that all hit a `401` share one flow. The first runs discovery, registration and the
+browser round trip, and the rest wait on its result rather than opening a second consent screen or registering
+a second client. Renewals share the same way, so a rotating refresh token is redeemed once instead of raced.
+
 ## Server
 
 ### Validating tokens

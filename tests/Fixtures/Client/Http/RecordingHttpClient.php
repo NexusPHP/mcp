@@ -16,6 +16,7 @@ namespace Nexus\Mcp\Tests\Fixtures\Client\Http;
 use Amp\ByteStream\ReadableIterableStream;
 use Amp\Cancellation;
 use Amp\DeferredFuture;
+use Amp\Future;
 use Amp\Http\Client\DelegateHttpClient;
 use Amp\Http\Client\HttpException;
 use Amp\Http\Client\Request;
@@ -44,21 +45,24 @@ final class RecordingHttpClient implements DelegateHttpClient
     public private(set) array $drainedBodies = [];
 
     /**
-     * @var list<array{status: int, headers: array<non-empty-string, string>, chunks: list<string>, open?: bool}|HttpException>
+     * @var list<array{status: int, headers: array<non-empty-string, string>, chunks: list<string>, open?: bool, gate?: Future<mixed>}|HttpException>
      */
     private array $script = [];
 
     /**
-     * Queues a buffered JSON response.
+     * Queues a buffered JSON response, optionally withheld until `$gate` completes, which parks the caller
+     * mid-flow so a second one can be let in behind it.
      *
      * @param array<string, mixed>|string $body
+     * @param ?Future<mixed>              $gate
      */
-    public function willAnswerJson(array|string $body, int $status = 200): self
+    public function willAnswerJson(array|string $body, int $status = 200, ?Future $gate = null): self
     {
         return $this->willAnswer(
             $status,
             ['content-type' => 'application/json'],
             [\is_string($body) ? $body : json_encode($body, \JSON_THROW_ON_ERROR)],
+            $gate,
         );
     }
 
@@ -146,6 +150,8 @@ final class RecordingHttpClient implements DelegateHttpClient
             throw new HttpException('The script queued no answer for this request.');
         }
 
+        ($step['gate'] ?? null)?->await();
+
         $body = ($step['open'] ?? false)
             ? self::openStream($step['chunks'])
             : $this->trackDrain(\count($this->requests) - 1, $step['chunks']);
@@ -206,10 +212,17 @@ final class RecordingHttpClient implements DelegateHttpClient
     /**
      * @param array<non-empty-string, string> $headers
      * @param list<string>                    $chunks
+     * @param ?Future<mixed>                  $gate
      */
-    private function willAnswer(int $status, array $headers, array $chunks): self
+    private function willAnswer(int $status, array $headers, array $chunks, ?Future $gate = null): self
     {
-        $this->script[] = ['status' => $status, 'headers' => $headers, 'chunks' => $chunks];
+        $step = ['status' => $status, 'headers' => $headers, 'chunks' => $chunks];
+
+        if (null !== $gate) {
+            $step['gate'] = $gate;
+        }
+
+        $this->script[] = $step;
 
         return $this;
     }
