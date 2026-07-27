@@ -21,6 +21,7 @@ use Nexus\Mcp\Client\Auth\ClientRegistration;
 use Nexus\Mcp\Client\Auth\PkcePair;
 use Nexus\Mcp\Client\Auth\TokenEndpoint;
 use Nexus\Mcp\Client\Exception\AuthorizationGrantRejectedException;
+use Nexus\Mcp\Client\Exception\ClientRegistrationRejectedException;
 use Nexus\Mcp\Client\Exception\MalformedAuthorizationResponseException;
 use Nexus\Mcp\Client\Exception\TokenRequestFailedException;
 use Nexus\Mcp\Client\Exception\UntrustedAuthorizationMetadataException;
@@ -299,7 +300,6 @@ final class TokenEndpointTest extends TestCase
         $http = new RecordingHttpClient()->willAnswerJson(['error' => $error], 400);
 
         $this->expectException($expected);
-        $this->expectExceptionMessageIs(\sprintf('The token request failed with "%s".', $error));
 
         self::exchange($http);
     }
@@ -313,11 +313,24 @@ final class TokenEndpointTest extends TestCase
 
         yield 'a scope reaching past the grant' => ['invalid_scope', AuthorizationGrantRejectedException::class];
 
-        yield 'a client the server does not know' => ['invalid_client', TokenRequestFailedException::class];
+        yield 'a client the server does not know' => ['invalid_client', ClientRegistrationRejectedException::class];
 
         yield 'a malformed request' => ['invalid_request', TokenRequestFailedException::class];
 
         yield 'a server fault' => ['server_error', TokenRequestFailedException::class];
+    }
+
+    public function testAnUnknownClientIsToldApartByItsMessage(): void
+    {
+        $http = new RecordingHttpClient()->willAnswerJson(
+            ['error' => 'invalid_client', 'error_description' => 'The registration has lapsed.'],
+            401,
+        );
+
+        $this->expectException(ClientRegistrationRejectedException::class);
+        $this->expectExceptionMessageIs('The authorization server does not recognise the client identifier presented to it, so the client must register again: The registration has lapsed.');
+
+        self::exchange($http);
     }
 
     public function testANonBearerTokenTypeIsRefused(): void

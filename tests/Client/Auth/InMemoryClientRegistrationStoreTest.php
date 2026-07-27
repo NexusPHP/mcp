@@ -62,4 +62,23 @@ final class InMemoryClientRegistrationStoreTest extends TestCase
         self::assertSame('first', $store->read(self::ISSUER)?->clientId);
         self::assertSame('second', $store->read('https://other.example.com')?->clientId);
     }
+
+    public function testForgettingARegistrationLeavesNothingBehind(): void
+    {
+        $store = new InMemoryClientRegistrationStore();
+        $store->write(self::ISSUER, new ClientRegistration('the-client', self::ISSUER));
+
+        $store->forget(self::ISSUER);
+
+        self::assertNull($store->read(self::ISSUER));
+    }
+
+    public function testForgettingARegistrationThatWasNeverWrittenIsHarmless(): void
+    {
+        $store = new InMemoryClientRegistrationStore();
+
+        $store->forget(self::ISSUER);
+
+        self::assertNull($store->read(self::ISSUER));
+    }
 }

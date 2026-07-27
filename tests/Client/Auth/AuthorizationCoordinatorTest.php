@@ -22,6 +22,7 @@ use Nexus\Mcp\Client\Auth\InMemoryClientRegistrationStore;
 use Nexus\Mcp\Client\Auth\InMemoryTokenStore;
 use Nexus\Mcp\Client\Auth\MetadataDiscovery;
 use Nexus\Mcp\Client\Auth\TokenEndpoint;
+use Nexus\Mcp\Client\Exception\ClientRegistrationRejectedException;
 use Nexus\Mcp\Client\Exception\InvalidAuthorizationResponseException;
 use Nexus\Mcp\Client\Exception\TokenRequestFailedException;
 use Nexus\Mcp\Core\Auth\ResourceIdentifier;
@@ -229,7 +230,7 @@ final class AuthorizationCoordinatorTest extends TestCase
 
         $coordinator->fetchToken();
 
-        $message = 'The refresh token for {resource} could not be redeemed, so a new authorization is needed. {reason}';
+        $message = 'The token for {resource} could not be renewed, so a new authorization is needed. {reason}';
         self::assertSame(
             [['level' => LogLevel::INFO, 'message' => $message, 'context' => [
                 'resource' => self::RESOURCE,
@@ -438,7 +439,7 @@ final class AuthorizationCoordinatorTest extends TestCase
     public function testARefreshFailureThatIsNotAGrantRejectionSurfacesAndKeepsTheToken(): void
     {
         $http = self::scriptFullFlow(tokenOverrides: ['expires_in' => 1, 'refresh_token' => 'the-refresh-token'])
-            ->willAnswerJson(['error' => 'invalid_client'], 400)
+            ->willAnswerJson(['error' => 'server_error'], 500)
         ;
         $store = new InMemoryTokenStore();
         $coordinator = self::coordinator($http, new ScriptedUserAuthorization(), $store);
@@ -448,10 +449,51 @@ final class AuthorizationCoordinatorTest extends TestCase
             $coordinator->fetchToken();
             self::fail('The refusal should have surfaced.');
         } catch (TokenRequestFailedException $e) {
-            self::assertSame('The token request failed with "invalid_client".', $e->getMessage());
+            self::assertSame('The token request failed with "server_error".', $e->getMessage());
         }
 
         self::assertSame('the-access-token', $store->read(self::RESOURCE)?->value);
+    }
+
+    public function testARenewalRefusedForAnUnknownClientDropsTheRegistration(): void
+    {
+        $http = self::scriptFullFlow(tokenOverrides: ['expires_in' => 1, 'refresh_token' => 'the-refresh-token'])
+            ->willAnswerJson(['error' => 'invalid_client'], 401)
+            ->willAnswerJson(self::resourceDocument())
+            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson(['client_id' => 'the-second-client'])
+            ->willAnswerJson(['access_token' => 'the-second-token', 'token_type' => 'Bearer'])
+        ;
+        $registrations = new InMemoryClientRegistrationStore();
+        $coordinator = self::coordinator($http, new ScriptedUserAuthorization(), registrations: $registrations);
+        $coordinator->reauthorize(null, null);
+
+        self::assertNull($coordinator->fetchToken());
+
+        $coordinator->reauthorize(null, null);
+
+        self::assertSame('https://auth.example.com/register', (string) $http->readRequest(7)->getUri());
+        self::assertSame('the-second-client', $registrations->read(self::ISSUER)?->clientId);
+    }
+
+    public function testACodeExchangeRefusedForAnUnknownClientDropsTheRegistrationAndSurfaces(): void
+    {
+        $http = self::scriptFullFlow()->willAnswerJson(['error' => 'invalid_client'], 401);
+        $registrations = new InMemoryClientRegistrationStore();
+        $coordinator = self::coordinator($http, new ScriptedUserAuthorization(), registrations: $registrations);
+        $coordinator->reauthorize(null, null);
+
+        try {
+            $coordinator->upgradeScopes(null, new ScopeSet(['files:admin']), null);
+            self::fail('The refusal should have surfaced.');
+        } catch (ClientRegistrationRejectedException $e) {
+            self::assertSame(
+                'The authorization server does not recognise the client identifier presented to it, so the client must register again.',
+                $e->getMessage(),
+            );
+        }
+
+        self::assertNull($registrations->read(self::ISSUER));
     }
 
     public function testASpentTokenThatCannotBeRenewedStillLeavesItsScopesToTheNextGrant(): void
@@ -699,6 +741,7 @@ final class AuthorizationCoordinatorTest extends TestCase
         ScriptedUserAuthorization $user,
         ?InMemoryTokenStore $tokens = null,
         ?ArrayLogger $logger = null,
+        ?InMemoryClientRegistrationStore $registrations = null,
         bool $offlineAccess = false,
         array $defaultScopes = [],
         string $resource = self::RESOURCE,
@@ -706,7 +749,7 @@ final class AuthorizationCoordinatorTest extends TestCase
         return new AuthorizationCoordinator(
             new ResourceIdentifier($resource),
             new MetadataDiscovery($http),
-            new ClientRegistrar($http, new InMemoryClientRegistrationStore()),
+            new ClientRegistrar($http, $registrations ?? new InMemoryClientRegistrationStore()),
             new TokenEndpoint($http),
             $user,
             $tokens ?? new InMemoryTokenStore(),

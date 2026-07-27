@@ -123,6 +123,7 @@ interface ClientRegistrationStoreInterface
 {
     public function read(string $issuer): ?ClientRegistration;
     public function write(string $issuer, ClientRegistration $registration): void;
+    public function forget(string $issuer): void;
 }
 ```
 
@@ -132,7 +133,9 @@ hand back a stored token and the SDK presents it straight away. That stamp is al
 server change safe. Once discovery has run and found the resource has moved, a token stamped with the former
 issuer is dropped rather than refreshed at the new one. A stored token is presented before any discovery has
 happened, so if the resource moved between processes the first request spends a `401` before the client
-notices and re-authorizes. Store both confidentially. They are credentials.
+notices and re-authorizes. A registration the authorization server stops recognising is dropped from the
+store rather than presented again, so an expired one heals on the next request instead of bricking the
+client. Store both confidentially. They are credentials.
 
 ### Scopes and step-up
 
@@ -308,8 +311,11 @@ Every exception below implements `McpExceptionInterface`.
 | `AuthorizationServerMismatchException` | Supplied credentials belong to a different authorization server. |
 | `InvalidAuthorizationResponseException` | The response failed `state`, `iss`, or code validation. |
 | `AuthorizationDeniedException` | The authorization server answered with an OAuth error. |
-| `TokenRequestFailedException` | The token endpoint refused the request. |
+| `TokenRequestFailedException` | The token endpoint refused the request on terms granting again will not clear. |
 | `AuthorizationGrantRejectedException` | The token endpoint refused the request because the grant is spent. |
+| `ClientRegistrationRejectedException` | The token endpoint does not recognise the client identifier presented to it. |
+| `MalformedAuthorizationResponseException` | An authorization or metadata endpoint answered with something other than a JSON object. |
+| `RedirectRefusedException` | A response arrived from a URL other than the one the request was sent to. |
 | `InsufficientScopeException` | The server wants scopes the token lacks, and the client is set to report rather than ask. |
 
 `AuthorizationGrantRejectedException` extends `TokenRequestFailedException` and is raised for the RFC 6749

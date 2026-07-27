@@ -303,6 +303,25 @@ final class ClientRegistrarTest extends TestCase
         self::assertSame(2.5, $http->readRequest()->getInactivityTimeout());
     }
 
+    public function testForgettingARegistrationSendsTheNextResolutionBackToTheRegistrationEndpoint(): void
+    {
+        $store = new InMemoryClientRegistrationStore();
+        $http = new RecordingHttpClient()
+            ->willAnswerJson(['client_id' => 'first'])
+            ->willAnswerJson(['client_id' => 'second'])
+        ;
+        $registrar = new ClientRegistrar($http, $store);
+        $metadata = self::metadata(registrationEndpoint: 'https://auth.example.com/register');
+        $registrar->resolve($metadata, self::options(), new ResourceIdentifier(self::RESOURCE));
+
+        $registrar->forget(self::ISSUER);
+
+        self::assertSame(
+            'second',
+            $registrar->resolve($metadata, self::options(), new ResourceIdentifier(self::RESOURCE))->clientId,
+        );
+    }
+
     private static function resolve(
         RecordingHttpClient $http,
         AuthorizationServerMetadata $metadata,
