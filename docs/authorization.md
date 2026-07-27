@@ -61,18 +61,19 @@ custom TLS) applies to discovery, registration, and token requests as well.
 The SDK cannot open a browser, and it ships no HTTP server to catch the redirect. That one leg is yours:
 
 ```php
+use Amp\ByteStream;
+use Amp\Cancellation;
 use Nexus\Mcp\Client\Auth\AuthorizationCallback;
 use Nexus\Mcp\Client\Auth\AuthorizationRedirect;
 use Nexus\Mcp\Client\Auth\UserAuthorizationInterface;
 
 final class ConsoleUserAuthorization implements UserAuthorizationInterface
 {
-    public function authorize(AuthorizationRedirect $redirect): AuthorizationCallback
+    public function authorize(AuthorizationRedirect $redirect, Cancellation $cancellation): AuthorizationCallback
     {
-        echo "Open this URL to authorize:\n", $redirect->url, "\n";
-        echo "Paste the URL you were redirected to: ";
+        ByteStream\getStdout()->write("Open this URL to authorize:\n".$redirect->url."\nPaste the URL you were redirected to: ");
 
-        return new AuthorizationCallback(trim((string) fgets(\STDIN)));
+        return new AuthorizationCallback(trim((string) ByteStream\getStdin()->read($cancellation)));
     }
 }
 ```
@@ -80,6 +81,10 @@ final class ConsoleUserAuthorization implements UserAuthorizationInterface
 An implementation only opens `$redirect->url` and reports where the user-agent landed. The SDK owns the PKCE
 pair, the `state` value, the expected issuer, and every validation of the response, so a callback that answers
 a different request, names a different issuer, or carries an error is rejected before the code is redeemed.
+
+Read the answer without blocking the event loop. A bare `fgets(\STDIN)` halts every fiber in the process,
+including the SSE streams the transport is holding open. `$cancellation` fires when the request that needs the
+token is abandoned, so honouring it is what lets a client shut down while a consent screen is still open.
 
 A host that runs a loopback listener returns `new AuthorizationCallback((string) $request->getUri())` instead
 of prompting.

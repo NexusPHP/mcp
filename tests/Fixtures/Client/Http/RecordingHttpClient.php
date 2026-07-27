@@ -45,6 +45,13 @@ final class RecordingHttpClient implements DelegateHttpClient
     public private(set) array $drainedBodies = [];
 
     /**
+     * The cancellation each request was handed, keyed by request index.
+     *
+     * @var list<Cancellation>
+     */
+    public private(set) array $cancellations = [];
+
+    /**
      * @var list<array{status: int, headers: array<non-empty-string, string>, chunks: list<string>, open?: bool, gate?: Future<mixed>, answeredFrom?: string}|HttpException>
      */
     private array $script = [];
@@ -156,6 +163,7 @@ final class RecordingHttpClient implements DelegateHttpClient
     public function request(Request $request, Cancellation $cancellation): Response
     {
         $this->requests[] = $request;
+        $this->cancellations[] = $cancellation;
         $step = array_shift($this->script);
 
         if ($step instanceof HttpException) {

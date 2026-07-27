@@ -73,6 +73,25 @@ final class AuthorizedHttpClientTest extends TestCase
         self::assertSame('Bearer the-access-token', $http->readRequest(5)->getHeader('Authorization'));
     }
 
+    public function testEveryLegOfTheFlowIsBoundedByTheRequestsOwnCancellation(): void
+    {
+        $http = new RecordingHttpClient()
+            ->willChallenge(401, self::CHALLENGE)
+            ->willAnswerJson(self::resourceDocument())
+            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson(['client_id' => 'the-client'])
+            ->willAnswerJson(['access_token' => 'the-access-token', 'token_type' => 'Bearer'])
+            ->willAnswerJson(['ok' => true])
+        ;
+        $user = new ScriptedUserAuthorization();
+        $cancellation = new NullCancellation();
+
+        self::client($http, $user)->request(self::mcpRequest(), $cancellation);
+
+        self::assertSame(array_fill(0, 6, $cancellation), $http->cancellations);
+        self::assertSame([$cancellation], $user->cancellations);
+    }
+
     public function testTheChallengeSteersDiscoveryToTheAdvertisedUrl(): void
     {
         $http = new RecordingHttpClient()

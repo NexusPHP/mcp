@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Client\Auth;
 
 use Amp\Http\Client\Request;
+use Amp\NullCancellation;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Client\Auth\AccessToken;
 use Nexus\Mcp\Client\Auth\AuthorizationRedirect;
@@ -193,6 +194,7 @@ final class TokenEndpointTest extends TestCase
             new ClientRegistration('the-client', self::ISSUER),
             new AccessToken('the-old-token', self::ISSUER, refreshToken: 'the-refresh-token', scopes: ['files:read']),
             new ResourceIdentifier(self::RESOURCE),
+            new NullCancellation(),
         );
 
         self::assertSame([
@@ -212,6 +214,7 @@ final class TokenEndpointTest extends TestCase
             new ClientRegistration('the-client', self::ISSUER),
             new AccessToken('the-old-token', self::ISSUER, refreshToken: 'the-refresh-token', scopes: ['files:read']),
             new ResourceIdentifier(self::RESOURCE),
+            new NullCancellation(),
         );
 
         self::assertSame(['files:read'], $token->scopes);
@@ -226,6 +229,7 @@ final class TokenEndpointTest extends TestCase
             new ClientRegistration('the-client', self::ISSUER),
             new AccessToken('the-old-token', self::ISSUER, refreshToken: 'the-refresh-token'),
             new ResourceIdentifier(self::RESOURCE),
+            new NullCancellation(),
         );
 
         self::assertSame('the-refresh-token', $token->refreshToken);
@@ -240,6 +244,7 @@ final class TokenEndpointTest extends TestCase
             new ClientRegistration('the-client', self::ISSUER),
             new AccessToken('the-old-token', self::ISSUER, refreshToken: 'the-refresh-token'),
             new ResourceIdentifier(self::RESOURCE),
+            new NullCancellation(),
         );
 
         self::assertSame('the-rotated-token', $token->refreshToken);
@@ -255,6 +260,7 @@ final class TokenEndpointTest extends TestCase
             new ClientRegistration('the-client', self::ISSUER),
             new AccessToken('the-old-token', self::ISSUER),
             new ResourceIdentifier(self::RESOURCE),
+            new NullCancellation(),
         );
     }
 
@@ -410,6 +416,7 @@ final class TokenEndpointTest extends TestCase
             'the-code',
             self::REDIRECT_URI,
             new ResourceIdentifier(self::RESOURCE),
+            new NullCancellation(),
         );
     }
 

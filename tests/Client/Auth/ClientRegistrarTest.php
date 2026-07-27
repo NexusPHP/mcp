@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Client\Auth;
 
+use Amp\NullCancellation;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Client\Auth\AuthorizationOptions;
 use Nexus\Mcp\Client\Auth\ClientRegistrar;
@@ -297,6 +298,7 @@ final class ClientRegistrarTest extends TestCase
             self::metadata(registrationEndpoint: 'https://auth.example.com/register'),
             self::options(),
             new ResourceIdentifier(self::RESOURCE),
+            new NullCancellation(),
         );
 
         self::assertSame(2.5, $http->readRequest()->getTransferTimeout());
@@ -312,13 +314,13 @@ final class ClientRegistrarTest extends TestCase
         ;
         $registrar = new ClientRegistrar($http, $store);
         $metadata = self::metadata(registrationEndpoint: 'https://auth.example.com/register');
-        $registrar->resolve($metadata, self::options(), new ResourceIdentifier(self::RESOURCE));
+        $registrar->resolve($metadata, self::options(), new ResourceIdentifier(self::RESOURCE), new NullCancellation());
 
         $registrar->forget(self::ISSUER);
 
         self::assertSame(
             'second',
-            $registrar->resolve($metadata, self::options(), new ResourceIdentifier(self::RESOURCE))->clientId,
+            $registrar->resolve($metadata, self::options(), new ResourceIdentifier(self::RESOURCE), new NullCancellation())->clientId,
         );
     }
 
@@ -328,7 +330,7 @@ final class ClientRegistrarTest extends TestCase
         AuthorizationOptions $options,
         ?InMemoryClientRegistrationStore $store = null,
     ): ClientRegistration {
-        return new ClientRegistrar($http, $store ?? new InMemoryClientRegistrationStore())->resolve($metadata, $options, new ResourceIdentifier(self::RESOURCE));
+        return new ClientRegistrar($http, $store ?? new InMemoryClientRegistrationStore())->resolve($metadata, $options, new ResourceIdentifier(self::RESOURCE), new NullCancellation());
     }
 
     /**

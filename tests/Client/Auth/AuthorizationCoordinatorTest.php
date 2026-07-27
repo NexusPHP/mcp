@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Client\Auth;
 
 use Amp\DeferredFuture;
+use Amp\NullCancellation;
 use Nexus\Mcp\Client\Auth\AccessToken;
 use Nexus\Mcp\Client\Auth\AuthorizationCoordinator;
 use Nexus\Mcp\Client\Auth\AuthorizationOptions;
@@ -56,7 +57,7 @@ final class AuthorizationCoordinatorTest extends TestCase
         $http = self::scriptFullFlow();
         $user = new ScriptedUserAuthorization();
 
-        $token = self::coordinator($http, $user)->reauthorize(null, null);
+        $token = self::coordinator($http, $user)->reauthorize(null, null, new NullCancellation());
 
         self::assertSame('the-access-token', $token->value);
         self::assertSame([
@@ -72,7 +73,7 @@ final class AuthorizationCoordinatorTest extends TestCase
     {
         $store = new InMemoryTokenStore();
 
-        self::coordinator(self::scriptFullFlow(), new ScriptedUserAuthorization(), $store)->reauthorize(null, null);
+        self::coordinator(self::scriptFullFlow(), new ScriptedUserAuthorization(), $store)->reauthorize(null, null, new NullCancellation());
 
         $token = $store->read(self::RESOURCE);
         self::assertSame('the-access-token', $token?->value);
@@ -86,6 +87,7 @@ final class AuthorizationCoordinatorTest extends TestCase
         self::coordinator(self::scriptFullFlow(['scopes_supported' => ['files:read']]), $user)->reauthorize(
             null,
             new WwwAuthenticateChallenge('Bearer', ['scope' => 'files:write']),
+            new NullCancellation(),
         );
 
         self::assertSame(['files:write'], $user->readRequestedScopes());
@@ -95,7 +97,7 @@ final class AuthorizationCoordinatorTest extends TestCase
     {
         $user = new ScriptedUserAuthorization();
 
-        self::coordinator(self::scriptFullFlow(['scopes_supported' => ['files:read', 'files:write']]), $user)->reauthorize(null, null);
+        self::coordinator(self::scriptFullFlow(['scopes_supported' => ['files:read', 'files:write']]), $user)->reauthorize(null, null, new NullCancellation());
 
         self::assertSame(['files:read', 'files:write'], $user->readRequestedScopes());
     }
@@ -104,7 +106,7 @@ final class AuthorizationCoordinatorTest extends TestCase
     {
         $user = new ScriptedUserAuthorization();
 
-        self::coordinator(self::scriptFullFlow(), $user)->reauthorize(null, null);
+        self::coordinator(self::scriptFullFlow(), $user)->reauthorize(null, null, new NullCancellation());
 
         self::assertSame([], $user->readRequestedScopes());
     }
@@ -114,7 +116,7 @@ final class AuthorizationCoordinatorTest extends TestCase
         $user = new ScriptedUserAuthorization();
         $http = self::scriptFullFlow(['scopes_supported' => ['files:read', 'files:write', 'files:admin']]);
 
-        self::coordinator($http, $user, defaultScopes: ['files:read'])->reauthorize(null, null);
+        self::coordinator($http, $user, defaultScopes: ['files:read'])->reauthorize(null, null, new NullCancellation());
 
         self::assertSame(['files:read'], $user->readRequestedScopes());
     }
@@ -123,7 +125,7 @@ final class AuthorizationCoordinatorTest extends TestCase
     {
         $user = new ScriptedUserAuthorization();
 
-        self::coordinator(self::scriptFullFlow(), $user, defaultScopes: ['files:read'])->reauthorize(null, null);
+        self::coordinator(self::scriptFullFlow(), $user, defaultScopes: ['files:read'])->reauthorize(null, null, new NullCancellation());
 
         self::assertSame(['files:read'], $user->readRequestedScopes());
     }
@@ -135,6 +137,7 @@ final class AuthorizationCoordinatorTest extends TestCase
         self::coordinator(self::scriptFullFlow(), $user, defaultScopes: ['files:read'])->reauthorize(
             null,
             new WwwAuthenticateChallenge('Bearer', ['scope' => 'files:write']),
+            new NullCancellation(),
         );
 
         self::assertSame(['files:write'], $user->readRequestedScopes());
@@ -144,7 +147,7 @@ final class AuthorizationCoordinatorTest extends TestCase
     {
         $user = new ScriptedUserAuthorization();
 
-        self::coordinator(self::scriptFullFlow(['scopes_supported' => ['files:read']]), $user)->upgradeScopes(null, new ScopeSet(['files:write']), null);
+        self::coordinator(self::scriptFullFlow(['scopes_supported' => ['files:read']]), $user)->upgradeScopes(null, new ScopeSet(['files:write']), null, new NullCancellation());
 
         self::assertSame(['files:read', 'files:write'], $user->readRequestedScopes());
     }
@@ -159,6 +162,7 @@ final class AuthorizationCoordinatorTest extends TestCase
         self::coordinator(self::scriptFullFlow(), $user, $store)->reauthorize(
             $refused,
             new WwwAuthenticateChallenge('Bearer', ['scope' => 'files:write']),
+            new NullCancellation(),
         );
 
         self::assertSame(['files:write', 'files:read'], $user->readRequestedScopes());
@@ -169,7 +173,7 @@ final class AuthorizationCoordinatorTest extends TestCase
         $user = new ScriptedUserAuthorization();
         $http = self::scriptFullFlow(serverOverrides: ['scopes_supported' => ['files:read', 'offline_access']]);
 
-        self::coordinator($http, $user, offlineAccess: true)->reauthorize(null, null);
+        self::coordinator($http, $user, offlineAccess: true)->reauthorize(null, null, new NullCancellation());
 
         self::assertSame(['offline_access'], $user->readRequestedScopes());
     }
@@ -179,7 +183,7 @@ final class AuthorizationCoordinatorTest extends TestCase
         $user = new ScriptedUserAuthorization();
         $http = self::scriptFullFlow(serverOverrides: ['scopes_supported' => ['files:read']]);
 
-        self::coordinator($http, $user, offlineAccess: true)->reauthorize(null, null);
+        self::coordinator($http, $user, offlineAccess: true)->reauthorize(null, null, new NullCancellation());
 
         self::assertSame([], $user->readRequestedScopes());
     }
@@ -189,7 +193,7 @@ final class AuthorizationCoordinatorTest extends TestCase
         $user = new ScriptedUserAuthorization();
         $http = self::scriptFullFlow(serverOverrides: ['scopes_supported' => ['files:read', 'offline_access']]);
 
-        self::coordinator($http, $user)->reauthorize(null, null);
+        self::coordinator($http, $user)->reauthorize(null, null, new NullCancellation());
 
         self::assertSame([], $user->readRequestedScopes());
     }
@@ -201,14 +205,14 @@ final class AuthorizationCoordinatorTest extends TestCase
 
         $this->expectException(InvalidAuthorizationResponseException::class);
 
-        self::coordinator($http, $user)->reauthorize(null, null);
+        self::coordinator($http, $user)->reauthorize(null, null, new NullCancellation());
     }
 
     public function testAuthorizeLogsTheServerItAuthorizedAgainst(): void
     {
         $logger = new ArrayLogger();
 
-        self::coordinator(self::scriptFullFlow(), new ScriptedUserAuthorization(), logger: $logger)->reauthorize(null, null);
+        self::coordinator(self::scriptFullFlow(), new ScriptedUserAuthorization(), logger: $logger)->reauthorize(null, null, new NullCancellation());
 
         self::assertSame(
             [['level' => LogLevel::INFO, 'message' => 'Authorized {resource} at {issuer}.', 'context' => [
@@ -226,9 +230,9 @@ final class AuthorizationCoordinatorTest extends TestCase
         ;
         $logger = new ArrayLogger();
         $coordinator = self::coordinator($http, new ScriptedUserAuthorization(), logger: $logger);
-        $coordinator->reauthorize(null, null);
+        $coordinator->reauthorize(null, null, new NullCancellation());
 
-        $coordinator->fetchToken();
+        $coordinator->fetchToken(new NullCancellation());
 
         $message = 'The token for {resource} could not be renewed, so a new authorization is needed. {reason}';
         self::assertSame(
@@ -244,23 +248,23 @@ final class AuthorizationCoordinatorTest extends TestCase
     {
         $store = new InMemoryTokenStore();
         $coordinator = self::coordinator(self::scriptFullFlow(tokenOverrides: ['expires_in' => 30]), new ScriptedUserAuthorization(), $store);
-        $coordinator->reauthorize(null, null);
+        $coordinator->reauthorize(null, null, new NullCancellation());
 
-        self::assertNull($coordinator->fetchToken());
+        self::assertNull($coordinator->fetchToken(new NullCancellation()));
     }
 
     public function testATokenLapsingBeyondTheLeewayIsStillUsable(): void
     {
         $store = new InMemoryTokenStore();
         $coordinator = self::coordinator(self::scriptFullFlow(tokenOverrides: ['expires_in' => 90]), new ScriptedUserAuthorization(), $store);
-        $coordinator->reauthorize(null, null);
+        $coordinator->reauthorize(null, null, new NullCancellation());
 
-        self::assertSame('the-access-token', $coordinator->fetchToken()?->value);
+        self::assertSame('the-access-token', $coordinator->fetchToken(new NullCancellation())?->value);
     }
 
     public function testFetchTokenReturnsNullBeforeAnyAuthorization(): void
     {
-        self::assertNull(self::coordinator(new RecordingHttpClient(), new ScriptedUserAuthorization())->fetchToken());
+        self::assertNull(self::coordinator(new RecordingHttpClient(), new ScriptedUserAuthorization())->fetchToken(new NullCancellation()));
     }
 
     public function testFetchTokenPresentsAStoreNoAuthorizationInThisProcessFilled(): void
@@ -271,7 +275,7 @@ final class AuthorizationCoordinatorTest extends TestCase
 
         $coordinator = self::coordinator($http, new ScriptedUserAuthorization(), $store);
 
-        self::assertSame('from-an-earlier-run', $coordinator->fetchToken()?->value);
+        self::assertSame('from-an-earlier-run', $coordinator->fetchToken(new NullCancellation())?->value);
         self::assertSame([], $http->requests);
     }
 
@@ -281,7 +285,7 @@ final class AuthorizationCoordinatorTest extends TestCase
         $http = self::scriptDiscoveryOnly();
         $coordinator = self::coordinator($http, new ScriptedUserAuthorization(), $store);
 
-        self::assertNull($coordinator->fetchToken());
+        self::assertNull($coordinator->fetchToken(new NullCancellation()));
         self::assertNull($store->read(self::RESOURCE));
         self::assertCount(2, $http->requests);
     }
@@ -295,7 +299,7 @@ final class AuthorizationCoordinatorTest extends TestCase
             new ScriptedUserAuthorization(),
             self::storeHoldingATokenFromAFormerServer(),
             $logger,
-        )->fetchToken();
+        )->fetchToken(new NullCancellation());
 
         $message = 'The token for {resource} was issued by {issuer}, which no longer serves it.';
         self::assertSame(
@@ -310,18 +314,18 @@ final class AuthorizationCoordinatorTest extends TestCase
     public function testFetchTokenReturnsTheStoredToken(): void
     {
         $coordinator = self::coordinator(self::scriptFullFlow(), new ScriptedUserAuthorization());
-        $coordinator->reauthorize(null, null);
+        $coordinator->reauthorize(null, null, new NullCancellation());
 
-        self::assertSame('the-access-token', $coordinator->fetchToken()?->value);
+        self::assertSame('the-access-token', $coordinator->fetchToken(new NullCancellation())?->value);
     }
 
     public function testFetchTokenKeepsAnUnexpiredToken(): void
     {
         $store = new InMemoryTokenStore();
         $coordinator = self::coordinator(self::scriptFullFlow(tokenOverrides: ['expires_in' => 3600]), new ScriptedUserAuthorization(), $store);
-        $coordinator->reauthorize(null, null);
+        $coordinator->reauthorize(null, null, new NullCancellation());
 
-        self::assertSame('the-access-token', $coordinator->fetchToken()?->value);
+        self::assertSame('the-access-token', $coordinator->fetchToken(new NullCancellation())?->value);
     }
 
     public function testFetchTokenRenewsASpentTokenWithItsRefreshToken(): void
@@ -331,9 +335,9 @@ final class AuthorizationCoordinatorTest extends TestCase
         ;
         $store = new InMemoryTokenStore();
         $coordinator = self::coordinator($http, new ScriptedUserAuthorization(), $store);
-        $coordinator->reauthorize(null, null);
+        $coordinator->reauthorize(null, null, new NullCancellation());
 
-        self::assertSame('the-renewed-token', $coordinator->fetchToken()?->value);
+        self::assertSame('the-renewed-token', $coordinator->fetchToken(new NullCancellation())?->value);
         self::assertSame('the-renewed-token', $store->read(self::RESOURCE)?->value);
     }
 
@@ -344,19 +348,19 @@ final class AuthorizationCoordinatorTest extends TestCase
             ->willAnswerJson(['access_token' => 'the-re-renewed-token', 'token_type' => 'Bearer'])
         ;
         $coordinator = self::coordinator($http, new ScriptedUserAuthorization());
-        $coordinator->reauthorize(null, null);
-        $coordinator->fetchToken();
+        $coordinator->reauthorize(null, null, new NullCancellation());
+        $coordinator->fetchToken(new NullCancellation());
 
-        self::assertSame('the-re-renewed-token', $coordinator->fetchToken()?->value);
+        self::assertSame('the-re-renewed-token', $coordinator->fetchToken(new NullCancellation())?->value);
     }
 
     public function testFetchTokenDropsASpentTokenThatCannotBeRenewed(): void
     {
         $store = new InMemoryTokenStore();
         $coordinator = self::coordinator(self::scriptFullFlow(tokenOverrides: ['expires_in' => 1]), new ScriptedUserAuthorization(), $store);
-        $coordinator->reauthorize(null, null);
+        $coordinator->reauthorize(null, null, new NullCancellation());
 
-        self::assertNull($coordinator->fetchToken());
+        self::assertNull($coordinator->fetchToken(new NullCancellation()));
         self::assertNull($store->read(self::RESOURCE));
     }
 
@@ -367,9 +371,9 @@ final class AuthorizationCoordinatorTest extends TestCase
         ;
         $store = new InMemoryTokenStore();
         $coordinator = self::coordinator($http, new ScriptedUserAuthorization(), $store);
-        $coordinator->reauthorize(null, null);
+        $coordinator->reauthorize(null, null, new NullCancellation());
 
-        self::assertNull($coordinator->fetchToken());
+        self::assertNull($coordinator->fetchToken(new NullCancellation()));
         self::assertNull($store->read(self::RESOURCE));
     }
 
@@ -385,8 +389,8 @@ final class AuthorizationCoordinatorTest extends TestCase
         $user = new ScriptedUserAuthorization();
         $coordinator = self::coordinator($http, $user);
 
-        $first = async(static fn(): AccessToken => $coordinator->reauthorize(null, null));
-        $second = async(static fn(): AccessToken => $coordinator->reauthorize(null, null));
+        $first = async(static fn(): AccessToken => $coordinator->reauthorize(null, null, new NullCancellation()));
+        $second = async(static fn(): AccessToken => $coordinator->reauthorize(null, null, new NullCancellation()));
         delay(0);
         $gate->complete();
 
@@ -403,10 +407,10 @@ final class AuthorizationCoordinatorTest extends TestCase
         ;
         $store = new InMemoryTokenStore();
         $coordinator = self::coordinator($http, new ScriptedUserAuthorization(), $store);
-        $coordinator->reauthorize(null, null);
+        $coordinator->reauthorize(null, null, new NullCancellation());
 
-        $first = async(static fn(): ?AccessToken => $coordinator->fetchToken());
-        $second = async(static fn(): ?AccessToken => $coordinator->fetchToken());
+        $first = async(static fn(): ?AccessToken => $coordinator->fetchToken(new NullCancellation()));
+        $second = async(static fn(): ?AccessToken => $coordinator->fetchToken(new NullCancellation()));
         delay(0);
         $gate->complete();
 
@@ -424,7 +428,7 @@ final class AuthorizationCoordinatorTest extends TestCase
     {
         $http = self::scriptFullFlow(['scopes_supported' => ['files:read', 'files:write']]);
         $coordinator = self::coordinator($http, new ScriptedUserAuthorization());
-        $coordinator->reauthorize(null, null);
+        $coordinator->reauthorize(null, null, new NullCancellation());
 
         self::assertSame(['files:read', 'files:write'], $coordinator->readGrantedScopes()->values);
     }
@@ -443,10 +447,10 @@ final class AuthorizationCoordinatorTest extends TestCase
         ;
         $store = new InMemoryTokenStore();
         $coordinator = self::coordinator($http, new ScriptedUserAuthorization(), $store);
-        $coordinator->reauthorize(null, null);
+        $coordinator->reauthorize(null, null, new NullCancellation());
 
         try {
-            $coordinator->fetchToken();
+            $coordinator->fetchToken(new NullCancellation());
             self::fail('The refusal should have surfaced.');
         } catch (TokenRequestFailedException $e) {
             self::assertSame('The token request failed with "server_error".', $e->getMessage());
@@ -466,11 +470,11 @@ final class AuthorizationCoordinatorTest extends TestCase
         ;
         $registrations = new InMemoryClientRegistrationStore();
         $coordinator = self::coordinator($http, new ScriptedUserAuthorization(), registrations: $registrations);
-        $coordinator->reauthorize(null, null);
+        $coordinator->reauthorize(null, null, new NullCancellation());
 
-        self::assertNull($coordinator->fetchToken());
+        self::assertNull($coordinator->fetchToken(new NullCancellation()));
 
-        $coordinator->reauthorize(null, null);
+        $coordinator->reauthorize(null, null, new NullCancellation());
 
         self::assertSame('https://auth.example.com/register', (string) $http->readRequest(7)->getUri());
         self::assertSame('the-second-client', $registrations->read(self::ISSUER)?->clientId);
@@ -481,10 +485,10 @@ final class AuthorizationCoordinatorTest extends TestCase
         $http = self::scriptFullFlow()->willAnswerJson(['error' => 'invalid_client'], 401);
         $registrations = new InMemoryClientRegistrationStore();
         $coordinator = self::coordinator($http, new ScriptedUserAuthorization(), registrations: $registrations);
-        $coordinator->reauthorize(null, null);
+        $coordinator->reauthorize(null, null, new NullCancellation());
 
         try {
-            $coordinator->upgradeScopes(null, new ScopeSet(['files:admin']), null);
+            $coordinator->upgradeScopes(null, new ScopeSet(['files:admin']), null, new NullCancellation());
             self::fail('The refusal should have surfaced.');
         } catch (ClientRegistrationRejectedException $e) {
             self::assertSame(
@@ -505,11 +509,11 @@ final class AuthorizationCoordinatorTest extends TestCase
         ;
         $user = new ScriptedUserAuthorization();
         $coordinator = self::coordinator($http, $user);
-        $coordinator->reauthorize(null, null);
+        $coordinator->reauthorize(null, null, new NullCancellation());
 
-        self::assertNull($coordinator->fetchToken());
+        self::assertNull($coordinator->fetchToken(new NullCancellation()));
 
-        $coordinator->reauthorize(null, null);
+        $coordinator->reauthorize(null, null, new NullCancellation());
 
         self::assertSame(['files:read'], $user->readRequestedScopes(1));
     }
@@ -523,7 +527,7 @@ final class AuthorizationCoordinatorTest extends TestCase
 
         $coordinator = self::coordinator($http, new ScriptedUserAuthorization(), $store, $logger);
 
-        self::assertNull($coordinator->fetchToken());
+        self::assertNull($coordinator->fetchToken(new NullCancellation()));
 
         $message = 'Renewing the token for {resource} found no metadata to renew it against. {reason}';
         self::assertSame(
@@ -553,9 +557,9 @@ final class AuthorizationCoordinatorTest extends TestCase
         $theirs = self::coordinator($theirHttp, $user, $store, resource: $other);
         $ours = self::coordinator(self::scriptFullFlow(), $user, $store);
 
-        $first = async(static fn(): AccessToken => $theirs->reauthorize(null, null));
+        $first = async(static fn(): AccessToken => $theirs->reauthorize(null, null, new NullCancellation()));
         delay(0);
-        $second = async(static fn(): AccessToken => $ours->reauthorize(null, null));
+        $second = async(static fn(): AccessToken => $ours->reauthorize(null, null, new NullCancellation()));
 
         $second->await();
 
@@ -575,6 +579,7 @@ final class AuthorizationCoordinatorTest extends TestCase
         self::coordinator(self::scriptFullFlow(), $user, defaultScopes: ['files:read'])->reauthorize(
             null,
             new WwwAuthenticateChallenge('Bearer', ['scope' => '']),
+            new NullCancellation(),
         );
 
         self::assertSame(['files:read'], $user->readRequestedScopes());
@@ -585,7 +590,7 @@ final class AuthorizationCoordinatorTest extends TestCase
         $user = new ScriptedUserAuthorization();
         $http = self::scriptFullFlow(['scopes_supported' => ['files:read', 'offline_access']]);
 
-        self::coordinator($http, $user)->reauthorize(null, null);
+        self::coordinator($http, $user)->reauthorize(null, null, new NullCancellation());
 
         self::assertSame(['files:read'], $user->readRequestedScopes());
     }
@@ -601,10 +606,10 @@ final class AuthorizationCoordinatorTest extends TestCase
         $coordinator = self::coordinator($http, $user);
 
         // Warming discovery and the registration leaves the token endpoint as the only leg still to run.
-        $presented = $coordinator->reauthorize(null, null);
+        $presented = $coordinator->reauthorize(null, null, new NullCancellation());
 
-        $first = async(static fn(): AccessToken => $coordinator->upgradeScopes($presented, new ScopeSet(['files:read']), null));
-        $second = async(static fn(): AccessToken => $coordinator->upgradeScopes($presented, new ScopeSet(['files:admin']), null));
+        $first = async(static fn(): AccessToken => $coordinator->upgradeScopes($presented, new ScopeSet(['files:read']), null, new NullCancellation()));
+        $second = async(static fn(): AccessToken => $coordinator->upgradeScopes($presented, new ScopeSet(['files:admin']), null, new NullCancellation()));
         delay(0);
         $gate->complete();
 
@@ -626,10 +631,10 @@ final class AuthorizationCoordinatorTest extends TestCase
         ;
         $user = new ScriptedUserAuthorization();
         $coordinator = self::coordinator($http, $user);
-        $presented = $coordinator->reauthorize(null, null);
+        $presented = $coordinator->reauthorize(null, null, new NullCancellation());
 
-        $first = async(static fn(): AccessToken => $coordinator->upgradeScopes($presented, new ScopeSet(['files:admin']), null));
-        $second = async(static fn(): AccessToken => $coordinator->upgradeScopes($presented, new ScopeSet(['files:admin']), null));
+        $first = async(static fn(): AccessToken => $coordinator->upgradeScopes($presented, new ScopeSet(['files:admin']), null, new NullCancellation()));
+        $second = async(static fn(): AccessToken => $coordinator->upgradeScopes($presented, new ScopeSet(['files:admin']), null, new NullCancellation()));
         delay(0);
         $gate->complete();
 
@@ -647,9 +652,9 @@ final class AuthorizationCoordinatorTest extends TestCase
         ;
         $user = new ScriptedUserAuthorization();
         $coordinator = self::coordinator($http, $user, $store);
-        $refused = $coordinator->reauthorize(null, null);
+        $refused = $coordinator->reauthorize(null, null, new NullCancellation());
 
-        self::assertSame('the-second-token', $coordinator->reauthorize($refused, null)->value);
+        self::assertSame('the-second-token', $coordinator->reauthorize($refused, null, new NullCancellation())->value);
         self::assertSame(['files:read', 'files:write'], $user->readRequestedScopes(1));
     }
 
@@ -659,7 +664,7 @@ final class AuthorizationCoordinatorTest extends TestCase
         $refused = new AccessToken('from-an-earlier-run', self::ISSUER);
         $store->write(self::RESOURCE, $refused);
 
-        self::coordinator(self::scriptFullFlow(), new ScriptedUserAuthorization(), $store)->reauthorize($refused, null);
+        self::coordinator(self::scriptFullFlow(), new ScriptedUserAuthorization(), $store)->reauthorize($refused, null, new NullCancellation());
 
         self::assertSame('the-access-token', $store->read(self::RESOURCE)?->value);
     }
@@ -672,9 +677,9 @@ final class AuthorizationCoordinatorTest extends TestCase
             ->willAnswerJson(['access_token' => 'the-second-token', 'token_type' => 'Bearer'])
         ;
         $coordinator = self::coordinator($http, new ScriptedUserAuthorization());
-        $refused = $coordinator->reauthorize(null, null);
+        $refused = $coordinator->reauthorize(null, null, new NullCancellation());
 
-        self::assertSame('the-second-token', $coordinator->reauthorize($refused, null)->value);
+        self::assertSame('the-second-token', $coordinator->reauthorize($refused, null, new NullCancellation())->value);
         self::assertCount(7, $http->requests);
     }
 
@@ -682,11 +687,11 @@ final class AuthorizationCoordinatorTest extends TestCase
     {
         $http = self::scriptFullFlow()->willAnswerJson(['access_token' => 'the-second-token', 'token_type' => 'Bearer']);
         $coordinator = self::coordinator($http, new ScriptedUserAuthorization());
-        $presented = $coordinator->reauthorize(null, null);
+        $presented = $coordinator->reauthorize(null, null, new NullCancellation());
 
         self::assertSame(
             'the-second-token',
-            $coordinator->upgradeScopes($presented, new ScopeSet(['files:admin']), null)->value,
+            $coordinator->upgradeScopes($presented, new ScopeSet(['files:admin']), null, new NullCancellation())->value,
         );
         self::assertCount(5, $http->requests);
     }
@@ -706,9 +711,9 @@ final class AuthorizationCoordinatorTest extends TestCase
         ;
         $store = new InMemoryTokenStore();
         $coordinator = self::coordinator($http, new ScriptedUserAuthorization(), $store);
-        $coordinator->reauthorize(null, null);
+        $coordinator->reauthorize(null, null, new NullCancellation());
 
-        self::assertNull($coordinator->fetchToken());
+        self::assertNull($coordinator->fetchToken(new NullCancellation()));
         self::assertNull($store->read(self::RESOURCE));
     }
 

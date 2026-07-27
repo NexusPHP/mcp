@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Fixtures\Client\Auth;
 
+use Amp\Cancellation;
 use Nexus\Mcp\Client\Auth\AuthorizationCallback;
 use Nexus\Mcp\Client\Auth\AuthorizationRedirect;
 use Nexus\Mcp\Client\Auth\UserAuthorizationInterface;
@@ -31,6 +32,13 @@ final class ScriptedUserAuthorization implements UserAuthorizationInterface
     public private(set) array $redirects = [];
 
     /**
+     * The cancellation each redirect was handed.
+     *
+     * @var list<Cancellation>
+     */
+    public private(set) array $cancellations = [];
+
+    /**
      * @param array<string, string> $parameters Callback parameters beyond the echoed `state`
      */
     public function __construct(private readonly array $parameters = ['code' => 'the-code'])
@@ -38,9 +46,10 @@ final class ScriptedUserAuthorization implements UserAuthorizationInterface
     }
 
     #[\Override]
-    public function authorize(AuthorizationRedirect $redirect): AuthorizationCallback
+    public function authorize(AuthorizationRedirect $redirect, Cancellation $cancellation): AuthorizationCallback
     {
         $this->redirects[] = $redirect;
+        $this->cancellations[] = $cancellation;
 
         return new AuthorizationCallback('http://localhost:3000/callback?'.http_build_query([
             'state' => $redirect->state,

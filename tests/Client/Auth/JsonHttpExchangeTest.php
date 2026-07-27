@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Client\Auth;
 
 use Amp\Http\Client\Request;
+use Amp\NullCancellation;
 use Nexus\Mcp\Client\Auth\JsonHttpExchange;
 use Nexus\Mcp\Client\Exception\MalformedAuthorizationResponseException;
 use Nexus\Mcp\Client\Exception\RedirectRefusedException;
@@ -38,7 +39,7 @@ final class JsonHttpExchangeTest extends TestCase
     {
         $http = new RecordingHttpClient()->willAnswerJson(['issuer' => 'https://auth.example.com'], 201);
 
-        [$status, $payload] = new JsonHttpExchange($http)->send(new Request(self::URL));
+        [$status, $payload] = new JsonHttpExchange($http)->send(new Request(self::URL), new NullCancellation());
 
         self::assertSame(201, $status);
         self::assertSame('{"issuer":"https:\/\/auth.example.com"}', $payload);
@@ -49,7 +50,7 @@ final class JsonHttpExchangeTest extends TestCase
     {
         $http = new RecordingHttpClient()->willAnswerJson([]);
 
-        new JsonHttpExchange($http, 2.5)->send(new Request(self::URL));
+        new JsonHttpExchange($http, 2.5)->send(new Request(self::URL), new NullCancellation());
 
         self::assertSame(2.5, $http->readRequest()->getTransferTimeout());
         self::assertSame(2.5, $http->readRequest()->getInactivityTimeout());
@@ -59,7 +60,7 @@ final class JsonHttpExchangeTest extends TestCase
     {
         $http = new RecordingHttpClient()->willAnswerJson([]);
 
-        new JsonHttpExchange($http)->send(new Request(self::URL));
+        new JsonHttpExchange($http)->send(new Request(self::URL), new NullCancellation());
 
         self::assertSame(10.0, $http->readRequest()->getTransferTimeout());
     }
@@ -71,7 +72,7 @@ final class JsonHttpExchangeTest extends TestCase
         $this->expectException(RedirectRefusedException::class);
         $this->expectExceptionMessageIs('The request to "https://auth.example.com/token" was answered from "http://127.0.0.1:6379/token" after a redirect. Credentials are never carried across one.');
 
-        new JsonHttpExchange($http)->send(new Request(self::URL));
+        new JsonHttpExchange($http)->send(new Request(self::URL), new NullCancellation());
     }
 
     public function testAnOversizedAnswerIsRefused(): void
@@ -81,7 +82,7 @@ final class JsonHttpExchangeTest extends TestCase
         $this->expectException(ResponseTooLargeException::class);
         $this->expectExceptionMessageIs('The response exceeded the 65536 byte limit the client accepts.');
 
-        new JsonHttpExchange($http)->send(new Request(self::URL));
+        new JsonHttpExchange($http)->send(new Request(self::URL), new NullCancellation());
     }
 
     public function testAnAnswerAtTheByteCapIsRead(): void
@@ -89,7 +90,7 @@ final class JsonHttpExchangeTest extends TestCase
         $payload = str_pad('{"a":"', JsonHttpExchange::MAX_RESPONSE_BYTES - 2, 'x').'"}';
         $http = new RecordingHttpClient()->willAnswerJson($payload);
 
-        self::assertSame($payload, new JsonHttpExchange($http)->send(new Request(self::URL))[1]);
+        self::assertSame($payload, new JsonHttpExchange($http)->send(new Request(self::URL), new NullCancellation())[1]);
     }
 
     public function testEveryMemberOfADecodedObjectIsReturned(): void
