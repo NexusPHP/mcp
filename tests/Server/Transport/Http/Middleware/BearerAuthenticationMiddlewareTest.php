@@ -76,6 +76,34 @@ final class BearerAuthenticationMiddlewareTest extends TestCase
         );
     }
 
+    #[DataProvider('provideARequestPresentingNoBearerCredentialIsChallengedWithoutAnErrorCodeCases')]
+    public function testARequestPresentingNoBearerCredentialIsChallengedWithoutAnErrorCode(string $header): void
+    {
+        $handler = self::handler();
+
+        $response = self::middleware()->process(self::request(null)->withHeader('Authorization', $header), $handler);
+
+        // RFC 6750 section 3 puts an unsupported authentication method with a request that carried no
+        // credentials at all, and asks that neither be told an error code.
+        self::assertSame(401, $response->getStatusCode());
+        self::assertFalse($handler->called);
+        self::assertSame(['resource_metadata' => self::METADATA_URL], self::readChallenge($response));
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function provideARequestPresentingNoBearerCredentialIsChallengedWithoutAnErrorCodeCases(): iterable
+    {
+        yield 'an empty Authorization header' => [''];
+
+        yield 'another scheme' => ['Basic dXNlcjpwYXNz'];
+
+        yield 'another scheme carrying no credential' => ['Negotiate'];
+
+        yield 'a scheme merely starting with the word' => ['BearerToken abc'];
+    }
+
     #[DataProvider('provideAnUnreadableAuthorizationHeaderIsAnInvalidRequestCases')]
     public function testAnUnreadableAuthorizationHeaderIsAnInvalidRequest(string $header): void
     {
@@ -96,15 +124,13 @@ final class BearerAuthenticationMiddlewareTest extends TestCase
      */
     public static function provideAnUnreadableAuthorizationHeaderIsAnInvalidRequestCases(): iterable
     {
-        yield 'an empty Authorization header' => [''];
-
-        yield 'another scheme' => ['Basic dXNlcjpwYXNz'];
-
         yield 'the scheme with no token' => ['Bearer '];
 
         yield 'the scheme with only spaces' => ['Bearer    '];
 
-        yield 'a scheme merely starting with the word' => ['BearerToken abc'];
+        yield 'the scheme and nothing after it' => ['Bearer'];
+
+        yield 'the scheme cased differently and carrying no token' => ['BEARER  '];
     }
 
     #[DataProvider('provideTheSchemeIsMatchedCaseInsensitivelyCases')]
@@ -141,6 +167,24 @@ final class BearerAuthenticationMiddlewareTest extends TestCase
 
         self::assertSame(400, $response->getStatusCode());
         self::assertFalse($handler->called);
+    }
+
+    public function testABearerCredentialSmuggledBesideAnotherSchemeIsRefused(): void
+    {
+        $handler = self::handler();
+        $request = self::request(null)
+            ->withHeader('Authorization', 'Basic dXNlcjpwYXNz')
+            ->withAddedHeader('Authorization', 'Bearer the-token')
+        ;
+
+        $response = self::middleware()->process($request, $handler);
+
+        self::assertSame(400, $response->getStatusCode());
+        self::assertFalse($handler->called);
+        self::assertSame(
+            ['resource_metadata' => self::METADATA_URL, 'error' => 'invalid_request'],
+            self::readChallenge($response),
+        );
     }
 
     public function testAnUnrecognisedTokenIsChallengedAsInvalid(): void

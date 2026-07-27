@@ -26,7 +26,6 @@ use Nexus\Mcp\Client\Exception\MalformedAuthorizationResponseException;
 use Nexus\Mcp\Client\Exception\UntrustedAuthorizationMetadataException;
 use Nexus\Mcp\Core\Auth\ApplicationType;
 use Nexus\Mcp\Core\Auth\AuthorizationServerMetadata;
-use Nexus\Mcp\Core\Auth\ResourceIdentifier;
 use Nexus\Mcp\Core\Auth\TokenEndpointAuthMethod;
 use Nexus\Mcp\Tests\Fixtures\Client\Http\RecordingHttpClient;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -45,7 +44,6 @@ use function Amp\ByteStream\buffer;
 final class ClientRegistrarTest extends TestCase
 {
     private const string ISSUER = 'https://auth.example.com';
-    private const string RESOURCE = 'https://mcp.example.com/mcp';
     private const string CIMD_URL = 'https://app.example.com/oauth/client.json';
 
     public function testPreRegisteredCredentialsWinOverEveryOtherMechanism(): void
@@ -277,7 +275,7 @@ final class ClientRegistrarTest extends TestCase
     public function testAnInsecureRegistrationEndpointIsRefused(): void
     {
         $this->expectException(UntrustedAuthorizationMetadataException::class);
-        $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the registration endpoint "http://auth.example.com/register" is not served over HTTPS.');
+        $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the registration endpoint "http://auth.example.com/register" is not an absolute HTTPS URL.');
 
         self::resolve(new RecordingHttpClient(), self::metadata(registrationEndpoint: 'http://auth.example.com/register'), self::options());
     }
@@ -297,7 +295,6 @@ final class ClientRegistrarTest extends TestCase
         new ClientRegistrar($http, new InMemoryClientRegistrationStore(), 2.5)->resolve(
             self::metadata(registrationEndpoint: 'https://auth.example.com/register'),
             self::options(),
-            new ResourceIdentifier(self::RESOURCE),
             new NullCancellation(),
         );
 
@@ -314,13 +311,13 @@ final class ClientRegistrarTest extends TestCase
         ;
         $registrar = new ClientRegistrar($http, $store);
         $metadata = self::metadata(registrationEndpoint: 'https://auth.example.com/register');
-        $registrar->resolve($metadata, self::options(), new ResourceIdentifier(self::RESOURCE), new NullCancellation());
+        $registrar->resolve($metadata, self::options(), new NullCancellation());
 
         $registrar->forget(self::ISSUER);
 
         self::assertSame(
             'second',
-            $registrar->resolve($metadata, self::options(), new ResourceIdentifier(self::RESOURCE), new NullCancellation())->clientId,
+            $registrar->resolve($metadata, self::options(), new NullCancellation())->clientId,
         );
     }
 
@@ -330,7 +327,7 @@ final class ClientRegistrarTest extends TestCase
         AuthorizationOptions $options,
         ?InMemoryClientRegistrationStore $store = null,
     ): ClientRegistration {
-        return new ClientRegistrar($http, $store ?? new InMemoryClientRegistrationStore())->resolve($metadata, $options, new ResourceIdentifier(self::RESOURCE), new NullCancellation());
+        return new ClientRegistrar($http, $store ?? new InMemoryClientRegistrationStore())->resolve($metadata, $options, new NullCancellation());
     }
 
     /**

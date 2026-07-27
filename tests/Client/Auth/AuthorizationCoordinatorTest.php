@@ -69,6 +69,18 @@ final class AuthorizationCoordinatorTest extends TestCase
         self::assertCount(1, $user->redirects);
     }
 
+    public function testTheFirstAuthorizationServerTheResourcePublishesIsTheOneProbed(): void
+    {
+        $http = self::scriptFullFlow(['authorization_servers' => [self::ISSUER, 'https://spare-auth.example.com']]);
+
+        self::coordinator($http, new ScriptedUserAuthorization())->reauthorize(null, null, new NullCancellation());
+
+        self::assertSame(
+            'https://auth.example.com/.well-known/oauth-authorization-server',
+            (string) $http->readRequest(1)->getUri(),
+        );
+    }
+
     public function testAuthorizeStampsTheIssuerOnTheStoredToken(): void
     {
         $store = new InMemoryTokenStore();
@@ -465,6 +477,62 @@ final class AuthorizationCoordinatorTest extends TestCase
         self::assertCount(5, $http->requests);
     }
 
+    public function testATokenAnotherCallerRenewedIsStillCheckedBeforeItIsHandedOn(): void
+    {
+        $gate = new DeferredFuture();
+        $http = self::scriptFullFlow(tokenOverrides: ['expires_in' => 1, 'refresh_token' => 'the-refresh-token'])
+            // The renewal the first caller drives lands already spent, so handing it to the second caller
+            // unchecked would present a token that lapsed before it was ever sent.
+            ->willAnswerJson(['access_token' => 'the-spent-renewal', 'token_type' => 'Bearer', 'expires_in' => 1], gate: $gate->getFuture())
+            ->willAnswerJson(['access_token' => 'the-usable-renewal', 'token_type' => 'Bearer'])
+        ;
+        $coordinator = self::coordinator($http, new ScriptedUserAuthorization());
+        $coordinator->reauthorize(null, null, new NullCancellation());
+
+        $first = async(static fn(): ?AccessToken => $coordinator->fetchToken(new NullCancellation()));
+        $second = async(static fn(): ?AccessToken => $coordinator->fetchToken(new NullCancellation()));
+        delay(0);
+        $gate->complete();
+
+        $firstToken = $first->await();
+        $secondToken = $second->await();
+
+        if (! $firstToken instanceof AccessToken || ! $secondToken instanceof AccessToken) {
+            self::fail('Both callers should have been handed a token.');
+        }
+
+        self::assertSame('the-spent-renewal', $firstToken->value);
+        self::assertSame('the-usable-renewal', $secondToken->value);
+    }
+
+    public function testATokenAnotherProcessWroteIsCheckedAgainstTheIssuerDiscoveryFound(): void
+    {
+        $store = new InMemoryTokenStore();
+        $coordinator = self::coordinator(self::scriptDiscoveryOnly(), new ScriptedUserAuthorization(), $store);
+        $store->write(self::RESOURCE, new AccessToken('from-this-process', self::ISSUER));
+        $coordinator->fetchToken(new NullCancellation());
+
+        // A store shared with another process can be written behind this coordinator's back, long after
+        // discovery settled what the resource is protected by.
+        $store->write(self::RESOURCE, new AccessToken('from-another-process', self::FORMER_ISSUER));
+
+        self::assertNull($coordinator->fetchToken(new NullCancellation()));
+        self::assertNull($store->read(self::RESOURCE));
+    }
+
+    public function testAStepUpDoesNotStandDownForATokenDiscoveryHasNeverChecked(): void
+    {
+        $store = new InMemoryTokenStore();
+        $store->write(self::RESOURCE, new AccessToken('from-an-earlier-run', self::ISSUER, scopes: ['files:read', 'files:write']));
+        $coordinator = self::coordinator(self::scriptFullFlow(), new ScriptedUserAuthorization(), $store);
+
+        // The held token names the challenged scope, but nothing has confirmed it is even for this
+        // resource, so it cannot stand in for the grant the step-up asks for.
+        $token = $coordinator->upgradeScopes(null, new ScopeSet(['files:write']), null, new NullCancellation());
+
+        self::assertSame('the-access-token', $token->value);
+    }
+
     public function testReadGrantedScopesReportsWhatTheStoredTokenCarries(): void
     {
         $http = self::scriptFullFlow(['scopes_supported' => ['files:read', 'files:write']]);
@@ -767,18 +835,30 @@ final class AuthorizationCoordinatorTest extends TestCase
         self::assertCount(5, $http->requests);
     }
 
-    public function testReadGrantedScopesIsEmptyWhenNothingWasEverGranted(): void
+    public function testARenewalAGatewayBrokeSurfacesAndKeepsTheRefreshToken(): void
     {
-        self::assertSame(
-            [],
-            self::coordinator(new RecordingHttpClient(), new ScriptedUserAuthorization())->readGrantedScopes()->values,
-        );
+        $http = self::scriptFullFlow(tokenOverrides: ['expires_in' => 1, 'refresh_token' => 'the-refresh-token'])
+            ->willAnswerJson('<html>Bad Gateway</html>', 502)
+        ;
+        $store = new InMemoryTokenStore();
+        $coordinator = self::coordinator($http, new ScriptedUserAuthorization(), $store);
+        $coordinator->reauthorize(null, null, new NullCancellation());
+
+        try {
+            $coordinator->fetchToken(new NullCancellation());
+            self::fail('The gateway failure should have surfaced.');
+        } catch (TokenRequestFailedException $e) {
+            self::assertSame('The token request failed with "invalid_request": The token endpoint answered 502 with a body that is not a JSON object.', $e->getMessage());
+        }
+
+        // The gateway said nothing about the grant, so the refresh token it never reached is still good.
+        self::assertSame('the-refresh-token', $store->read(self::RESOURCE)?->refreshToken);
     }
 
     public function testARenewalAnsweredWithSomethingOtherThanJsonYieldsRatherThanThrowing(): void
     {
         $http = self::scriptFullFlow(tokenOverrides: ['expires_in' => 1, 'refresh_token' => 'the-refresh-token'])
-            ->willAnswerJson('<html>Bad Gateway</html>', 502)
+            ->willAnswerJson('<html>All good, honest</html>')
         ;
         $store = new InMemoryTokenStore();
         $coordinator = self::coordinator($http, new ScriptedUserAuthorization(), $store);

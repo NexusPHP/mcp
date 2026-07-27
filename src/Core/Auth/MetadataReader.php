@@ -24,6 +24,18 @@ use Nexus\Assert\Assert;
 final class MetadataReader
 {
     /**
+     * Characters an error field may carry. Everything outside it is dropped rather than rendered.
+     *
+     * @see https://datatracker.ietf.org/doc/html/rfc6749#appendix-A.7
+     */
+    private const string ERROR_FIELD_GRAMMAR = '/[^\x20\x21\x23-\x5B\x5D-\x7E]/';
+
+    /**
+     * Characters an error field is carried to, past which it is truncated.
+     */
+    private const int MAX_ERROR_FIELD_LENGTH = 200;
+
+    /**
      * @param array<string, mixed> $data
      *
      * @return ?non-empty-string
@@ -51,6 +63,28 @@ final class MetadataReader
         Assert::that($value)->not()->isNull(\sprintf('%s must carry a "%s" value.', $label, $key));
 
         return $value;
+    }
+
+    /**
+     * Reads an RFC 6749 error field, which ends up in an exception message and a log record. A carriage
+     * return there would forge a second record and an ANSI escape would rewrite the terminal reading it, so
+     * the value is held to the grammar the RFC fixes and to a length a record can carry.
+     *
+     * @param array<array-key, mixed> $data
+     *
+     * @return ?non-empty-string
+     */
+    public static function readErrorField(array $data, string $key, string $label): ?string
+    {
+        if (! \array_key_exists($key, $data)) {
+            return null;
+        }
+
+        $value = $data[$key];
+        Assert::that($value)->isNonEmptyString(\sprintf('%s "%s" must be a non-empty string, {type} given.', $label, $key));
+        $held = substr((string) preg_replace(self::ERROR_FIELD_GRAMMAR, '', $value), 0, self::MAX_ERROR_FIELD_LENGTH);
+
+        return '' === $held ? null : $held;
     }
 
     /**

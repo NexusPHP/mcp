@@ -34,11 +34,6 @@ final readonly class ResourceIdentifier
      */
     public string $origin;
 
-    /**
-     * The lowercased host of the MCP server.
-     */
-    public string $host;
-
     public function __construct(string $uri)
     {
         $canonical = self::canonicalise($uri);
@@ -48,7 +43,7 @@ final readonly class ResourceIdentifier
             $uri,
         ));
 
-        [$this->value, $this->origin, $this->host] = $canonical;
+        [$this->value, $this->origin] = $canonical;
     }
 
     /**
@@ -84,7 +79,7 @@ final readonly class ResourceIdentifier
      * Lowercases the scheme and host and drops a bare root path, or returns `null` when the URI is not a
      * usable resource identifier.
      *
-     * @return null|array{string, string, string} The canonical identifier, its origin and its host
+     * @return null|array{string, string} The canonical identifier and its origin
      */
     private static function canonicalise(string $uri): ?array
     {
@@ -108,7 +103,6 @@ final readonly class ResourceIdentifier
         return [
             $origin.('/' === $path ? '' : $path).(isset($parts['query']) ? '?'.$parts['query'] : ''),
             $origin,
-            $host,
         ];
     }
 

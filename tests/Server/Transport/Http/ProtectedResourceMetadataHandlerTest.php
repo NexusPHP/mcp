@@ -175,6 +175,10 @@ final class ProtectedResourceMetadataHandlerTest extends TestCase
         yield 'a resource with a trailing slash' => ['https://mcp.test/mcp/'];
 
         yield 'a nested resource' => ['https://mcp.test/tenant/one/mcp'];
+
+        yield 'a resource carrying a query' => ['https://mcp.test/mcp?tenant=one'];
+
+        yield 'a resource at the root carrying a query' => ['https://mcp.test?tenant=one'];
     }
 
     /**

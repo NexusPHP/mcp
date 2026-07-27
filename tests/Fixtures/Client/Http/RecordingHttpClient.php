@@ -52,7 +52,7 @@ final class RecordingHttpClient implements DelegateHttpClient
     public private(set) array $cancellations = [];
 
     /**
-     * @var list<array{status: int, headers: array<non-empty-string, string>, chunks: list<string>, open?: bool, gate?: Future<mixed>, answeredFrom?: string}|HttpException>
+     * @var list<array{status: int, headers: array<non-empty-string, string>, chunks: list<string>, open?: bool, fails?: HttpException, gate?: Future<mixed>, hops?: non-empty-list<string>}|HttpException>
      */
     private array $script = [];
 
@@ -118,6 +118,22 @@ final class RecordingHttpClient implements DelegateHttpClient
     }
 
     /**
+     * Queues a challenge whose body fails partway through being read, the way a malformed chunked encoding
+     * or an inactivity timeout mid-drain does.
+     */
+    public function willChallengeWithAnUnreadableBody(int $status, string $challenge, HttpException $failure): self
+    {
+        $this->script[] = [
+            'status' => $status,
+            'headers' => ['content-type' => 'application/json', 'www-authenticate' => $challenge],
+            'chunks' => [],
+            'fails' => $failure,
+        ];
+
+        return $this;
+    }
+
+    /**
      * Queues a bodiless `202 Accepted`, the answer to a notification POST.
      */
     public function willAcceptNotification(): self
@@ -151,11 +167,24 @@ final class RecordingHttpClient implements DelegateHttpClient
      */
     public function willAnswerFrom(string $url, array $body = []): self
     {
+        return $this->willAnswerAfterHops([$url], $body);
+    }
+
+    /**
+     * Queues the answer a client that follows redirects returns after passing through `$hops`, named in the
+     * order it requested them. Each becomes a response in the chain the answer carries, so a caller that
+     * walks it back sees every URL the request visited rather than only the last.
+     *
+     * @param non-empty-list<string> $hops
+     * @param array<string, mixed>   $body
+     */
+    public function willAnswerAfterHops(array $hops, array $body = []): self
+    {
         return $this->willAnswer(
             200,
             ['content-type' => 'application/json'],
             [json_encode($body, \JSON_THROW_ON_ERROR)],
-            answeredFrom: $url,
+            hops: $hops,
         );
     }
 
@@ -176,11 +205,24 @@ final class RecordingHttpClient implements DelegateHttpClient
 
         ($step['gate'] ?? null)?->await();
 
-        $body = ($step['open'] ?? false)
-            ? self::openStream($step['chunks'])
-            : $this->trackDrain(\count($this->requests) - 1, $step['chunks']);
+        $failure = $step['fails'] ?? null;
+        $body = match (true) {
+            $step['open'] ?? false => self::openStream($step['chunks']),
+            null !== $failure => self::failPartway($step['chunks'], $failure),
+            default => $this->trackDrain(\count($this->requests) - 1, $step['chunks']),
+        };
 
-        $answeredFrom = $step['answeredFrom'] ?? null;
+        $chain = [$request];
+
+        foreach ($step['hops'] ?? [] as $hop) {
+            $chain[] = new Request($hop, $request->getMethod());
+        }
+
+        $previous = null;
+
+        foreach (\array_slice($chain, 0, -1) as $redirected) {
+            $previous = new Response('2', 302, null, [], new ReadableIterableStream([]), $redirected, null, $previous);
+        }
 
         return new Response(
             '2',
@@ -188,7 +230,9 @@ final class RecordingHttpClient implements DelegateHttpClient
             null,
             $step['headers'],
             new ReadableIterableStream($body),
-            null === $answeredFrom ? $request : new Request($answeredFrom, $request->getMethod()),
+            end($chain),
+            null,
+            $previous,
         );
     }
 
@@ -232,6 +276,20 @@ final class RecordingHttpClient implements DelegateHttpClient
     }
 
     /**
+     * Yields the chunks, then fails the way a body the parser cannot finish reading does.
+     *
+     * @param list<string> $chunks
+     *
+     * @return \Traversable<int, string>
+     */
+    private static function failPartway(array $chunks, HttpException $failure): \Traversable
+    {
+        yield from $chunks;
+
+        throw $failure;
+    }
+
+    /**
      * Yields the chunks, then suspends forever. A read past the end unblocks only when the caller cancels,
      * which is how a real long-lived stream behaves.
      *
@@ -251,13 +309,14 @@ final class RecordingHttpClient implements DelegateHttpClient
      * @param array<non-empty-string, string> $headers
      * @param list<string>                    $chunks
      * @param ?Future<mixed>                  $gate
+     * @param ?non-empty-list<string>         $hops
      */
     private function willAnswer(
         int $status,
         array $headers,
         array $chunks,
         ?Future $gate = null,
-        ?string $answeredFrom = null,
+        ?array $hops = null,
     ): self {
         $step = ['status' => $status, 'headers' => $headers, 'chunks' => $chunks];
 
@@ -265,8 +324,8 @@ final class RecordingHttpClient implements DelegateHttpClient
             $step['gate'] = $gate;
         }
 
-        if (null !== $answeredFrom) {
-            $step['answeredFrom'] = $answeredFrom;
+        if (null !== $hops) {
+            $step['hops'] = $hops;
         }
 
         $this->script[] = $step;

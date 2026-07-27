@@ -187,4 +187,49 @@ final class MetadataReaderTest extends TestCase
 
         MetadataReader::readBool(['client_id_metadata_document_supported' => 'true'], 'client_id_metadata_document_supported', self::LABEL);
     }
+
+    #[DataProvider('provideReadErrorFieldCases')]
+    public function testReadErrorField(string $value, ?string $expected): void
+    {
+        self::assertSame($expected, MetadataReader::readErrorField(['error_description' => $value], 'error_description', self::LABEL));
+    }
+
+    /**
+     * @return iterable<string, array{string, ?string}>
+     */
+    public static function provideReadErrorFieldCases(): iterable
+    {
+        yield 'a plain description is carried through' => ['The code has expired.', 'The code has expired.'];
+
+        yield 'a carriage return that would forge a log record is dropped' => [
+            "Denied.\r\n[2026-07-28] CRITICAL: the operator approved everything",
+            'Denied.[2026-07-28] CRITICAL: the operator approved everything',
+        ];
+
+        yield 'an ANSI escape that would rewrite the terminal is dropped' => ["Denied.\e[2K\e[1G Approved.", 'Denied.[2K[1G Approved.'];
+
+        yield 'a NUL is dropped' => ["Denied\0.", 'Denied.'];
+
+        yield 'the quote and backslash the grammar excludes are dropped' => ['He said "no" \\ twice.', 'He said no  twice.'];
+
+        yield 'a description longer than a record carries is truncated' => [
+            str_repeat('a', 250),
+            str_repeat('a', 200),
+        ];
+
+        yield 'a description of nothing but forbidden bytes names nothing' => ["\r\n\t", null];
+    }
+
+    public function testReadErrorFieldTreatsAnAbsentKeyAsNamingNothing(): void
+    {
+        self::assertNull(MetadataReader::readErrorField([], 'error_description', self::LABEL));
+    }
+
+    public function testReadErrorFieldRejectsANonString(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs('Test Metadata "error_description" must be a non-empty string, int given.');
+
+        MetadataReader::readErrorField(['error_description' => 5], 'error_description', self::LABEL);
+    }
 }

@@ -98,6 +98,18 @@ final class TokenEndpointTest extends TestCase
         self::assertLessThanOrEqual(time() + 3600, $token->expiresAt);
     }
 
+    public function testExchangeCodeHoldsAnAbsurdLifetimeToOneTheClockCanCarry(): void
+    {
+        $http = new RecordingHttpClient()->willAnswerJson(self::tokenResponse(['expires_in' => \PHP_INT_MAX]));
+
+        $before = time();
+        $token = self::exchange($http);
+
+        self::assertNotNull($token->expiresAt);
+        self::assertGreaterThanOrEqual($before + 315_360_000, $token->expiresAt);
+        self::assertLessThanOrEqual(time() + 315_360_000, $token->expiresAt);
+    }
+
     public function testExchangeCodeLeavesTheExpiryUnknownWhenTheServerNamesNoLifetime(): void
     {
         $http = new RecordingHttpClient()->willAnswerJson(self::tokenResponse());
@@ -277,6 +289,39 @@ final class TokenEndpointTest extends TestCase
         self::exchange($http);
     }
 
+    public function testAnErrorStatusWithABodyThatIsNotJsonIsNotReadAsARefusedGrant(): void
+    {
+        $http = new RecordingHttpClient()->willAnswerJson('<html>Bad Gateway</html>', 502);
+
+        $this->expectException(TokenRequestFailedException::class);
+        $this->expectExceptionMessageIs('The token request failed with "invalid_request": The token endpoint answered 502 with a body that is not a JSON object.');
+
+        self::exchange($http);
+    }
+
+    public function testASuccessWithABodyThatIsNotJsonIsStillMalformed(): void
+    {
+        $http = new RecordingHttpClient()->willAnswerJson('<html>All good, honest</html>');
+
+        $this->expectException(MalformedAuthorizationResponseException::class);
+        $this->expectExceptionMessageIs('The token endpoint answered with a payload that is not a JSON object.');
+
+        self::exchange($http);
+    }
+
+    public function testAnErrorDescriptionCannotForgeALogRecord(): void
+    {
+        $http = new RecordingHttpClient()->willAnswerJson(
+            ['error' => 'invalid_grant', 'error_description' => "Expired.\r\n[2026-07-28] CRITICAL: approved"],
+            400,
+        );
+
+        $this->expectException(AuthorizationGrantRejectedException::class);
+        $this->expectExceptionMessageIs('The token request failed with "invalid_grant": Expired.[2026-07-28] CRITICAL: approved');
+
+        self::exchange($http);
+    }
+
     public function testAnErrorResponseWithNoErrorCodeFallsBackToInvalidRequest(): void
     {
         $http = new RecordingHttpClient()->willAnswerJson([], 400);
@@ -387,7 +432,7 @@ final class TokenEndpointTest extends TestCase
     public function testAnInsecureTokenEndpointIsRefused(): void
     {
         $this->expectException(UntrustedAuthorizationMetadataException::class);
-        $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the token endpoint "http://auth.example.com/token" is not served over HTTPS.');
+        $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the token endpoint "http://auth.example.com/token" is not an absolute HTTPS URL.');
 
         self::exchange(new RecordingHttpClient(), metadata: new AuthorizationServerMetadata(
             self::ISSUER,

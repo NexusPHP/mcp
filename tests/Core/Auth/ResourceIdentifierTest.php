@@ -170,28 +170,25 @@ final class ResourceIdentifierTest extends TestCase
         yield 'a URL carrying userinfo is never trusted' => ['https://evil@mcp.example.com/prm', false];
     }
 
-    #[DataProvider('provideTheOriginAndHostAreExposedCases')]
-    public function testTheOriginAndHostAreExposed(string $uri, string $origin, string $host): void
+    #[DataProvider('provideTheOriginIsExposedCases')]
+    public function testTheOriginIsExposed(string $uri, string $origin): void
     {
-        $resource = new ResourceIdentifier($uri);
-
-        self::assertSame($origin, $resource->origin);
-        self::assertSame($host, $resource->host);
+        self::assertSame($origin, new ResourceIdentifier($uri)->origin);
     }
 
     /**
-     * @return iterable<string, array{string, string, string}>
+     * @return iterable<string, array{string, string}>
      */
-    public static function provideTheOriginAndHostAreExposedCases(): iterable
+    public static function provideTheOriginIsExposedCases(): iterable
     {
-        yield 'a path is not part of the origin' => ['https://mcp.example.com/mcp', 'https://mcp.example.com', 'mcp.example.com'];
+        yield 'a path is not part of the origin' => ['https://mcp.example.com/mcp', 'https://mcp.example.com'];
 
-        yield 'the default port is elided' => ['https://mcp.example.com:443/mcp', 'https://mcp.example.com', 'mcp.example.com'];
+        yield 'the default port is elided' => ['https://mcp.example.com:443/mcp', 'https://mcp.example.com'];
 
-        yield 'a non-default port is kept' => ['https://mcp.example.com:8443/mcp', 'https://mcp.example.com:8443', 'mcp.example.com'];
+        yield 'a non-default port is kept' => ['https://mcp.example.com:8443/mcp', 'https://mcp.example.com:8443'];
 
-        yield 'the host is lowercased' => ['https://MCP.Example.com/mcp', 'https://mcp.example.com', 'mcp.example.com'];
+        yield 'the host is lowercased' => ['https://MCP.Example.com/mcp', 'https://mcp.example.com'];
 
-        yield 'a query is not part of the origin' => ['https://mcp.example.com/mcp?a=b', 'https://mcp.example.com', 'mcp.example.com'];
+        yield 'a query is not part of the origin' => ['https://mcp.example.com/mcp?a=b', 'https://mcp.example.com'];
     }
 }

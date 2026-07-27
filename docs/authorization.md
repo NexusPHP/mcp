@@ -306,13 +306,24 @@ These are not optional, and they are the checks implementations most often skip:
 - **`state`.** Sent on every authorization request and verified on the response.
 - **Resource indicators.** The canonical server URI travels on both the authorization and the token request,
   and a metadata document naming a different resource is rejected.
-- **HTTPS.** Every authorization endpoint is required to be HTTPS. A URL the operator configured may be
-  loopback so a local development authorization server stays reachable. A URL an MCP server or an
-  authorization server advertised may be loopback only when the MCP server is itself on loopback, so a peer
-  on the public internet cannot steer the client at an address it could not otherwise reach.
-- **Same origin.** The `resource_metadata` URL a challenge advertises must share the MCP server's origin.
-- **No redirects.** Nothing read from an answer that arrived from a URL other than the one it was sent to is
-  trusted, on the authorization legs and on the MCP request alike.
+- **HTTPS.** Every authorization server URL is required to be HTTPS, with no exemption: the issuer, the
+  metadata URLs derived from it, and the authorization, token, and registration endpoints it publishes. The
+  redirect URI is the one URL the spec lets address a loopback listener over plain HTTP, so a local
+  development callback keeps working. This checks the transport a URL names, not where it leads. An HTTPS
+  URL naming a private-network or link-local address is admitted, so an operator who needs those blocked
+  should block them in the HTTP client handed to the decorator.
+- **No fragment.** An authorization server URL carrying a fragment is refused, because the `state` and
+  `code_challenge` this client appends to the authorization endpoint would land in the fragment and never
+  reach the server.
+- **Same origin.** The Protected Resource Metadata document is read only from the MCP server's own origin,
+  which is what binds it to the server it describes. A `resource_metadata` URL that a challenge advertises
+  off that origin is dropped, and the well-known URLs are probed in its place. That leg follows the MCP
+  server's own scheme, so a loopback MCP server reached over plain HTTP serves its metadata over plain HTTP
+  too.
+- **No redirects.** On the authorization legs, nothing read from an answer that arrived from a URL other than
+  the one it was sent to is trusted. On the MCP request the rule applies whenever a token was attached: every
+  hop of the chain is walked back, and one that left the MCP server's origin is refused even where the chain
+  ended back on it. A request the decorator sent no token with is left alone, redirects and all.
 - **Audience binding.** Server-side, a token whose audience does not name this server is refused. Client-side,
   a token is sent only to the origin it was obtained for.
 - **Bearer tokens only.** A token of any other type is refused rather than sent as one.
@@ -324,9 +335,9 @@ Every exception below implements `McpExceptionInterface`.
 | Exception | Raised when |
 | --- | --- |
 | `AuthorizationDiscoveryFailedException` | No probed URL served the metadata document. |
-| `UntrustedAuthorizationMetadataException` | A document named a resource or issuer other than the one it was served for. |
+| `UntrustedAuthorizationMetadataException` | A document named a resource or issuer other than the one it was served for, or an authorization server URL is not HTTPS or carries a fragment. |
 | `PkceNotSupportedException` | The authorization server does not advertise `S256`. |
-| `InsecureAuthorizationEndpointException` | An endpoint would be contacted over plain HTTP from a non-loopback host. |
+| `InsecureAuthorizationEndpointException` | The configured redirect URI is plain HTTP on a non-loopback host. |
 | `ClientRegistrationRequiredException` | The server offers no registration mechanism the client can use. |
 | `ClientRegistrationFailedException` | Dynamic Client Registration was refused, or granted on unusable terms. |
 | `AuthorizationServerMismatchException` | Supplied credentials belong to a different authorization server. |

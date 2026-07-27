@@ -138,17 +138,27 @@ final class AuthorizationRequestTest extends TestCase
     public function testBuildRefusesAnInsecureAuthorizationEndpoint(): void
     {
         $this->expectException(UntrustedAuthorizationMetadataException::class);
-        $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the authorization endpoint "http://auth.example.com/authorize" is not served over HTTPS.');
+        $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the authorization endpoint "http://auth.example.com/authorize" is not an absolute HTTPS URL.');
 
         self::build(new ScopeSet(), 'http://auth.example.com/authorize');
     }
 
     public function testBuildRefusesANonHttpAuthorizationEndpoint(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('The authorization endpoint must be an absolute URL, "javascript:alert(1)//" given.');
+        $this->expectException(UntrustedAuthorizationMetadataException::class);
+        $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the authorization endpoint "javascript:alert(1)//" is not an absolute HTTPS URL.');
 
         self::build(new ScopeSet(), 'javascript:alert(1)//');
+    }
+
+    public function testBuildRefusesAnAuthorizationEndpointCarryingAFragment(): void
+    {
+        $this->expectException(UntrustedAuthorizationMetadataException::class);
+        $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the authorization endpoint "https://auth.example.com/authorize#done" carries a fragment.');
+
+        // A fragment would swallow the `state` and `code_challenge` this builder appends, leaving the
+        // authorization server to answer a request it never saw either of.
+        self::build(new ScopeSet(), 'https://auth.example.com/authorize#done');
     }
 
     /**

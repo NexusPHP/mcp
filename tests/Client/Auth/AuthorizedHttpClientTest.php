@@ -116,19 +116,56 @@ final class AuthorizedHttpClientTest extends TestCase
 
     public function testATokenThatFollowedARedirectOffTheMcpServerIsReported(): void
     {
-        $http = new RecordingHttpClient()
-            ->willChallenge(401, self::CHALLENGE)
-            ->willAnswerJson(self::resourceDocument())
-            ->willAnswerJson(self::serverDocument())
-            ->willAnswerJson(['client_id' => 'the-client'])
-            ->willAnswerJson(['access_token' => 'the-access-token', 'token_type' => 'Bearer'])
-            ->willAnswerFrom('http://127.0.0.1:1/mcp')
-        ;
+        $http = self::scriptChallengeAndFlow()->willAnswerFrom('http://127.0.0.1:1/mcp');
 
         $this->expectException(RedirectRefusedException::class);
         $this->expectExceptionMessageIs('The request to "https://127.0.0.1:1/mcp" was answered from "http://127.0.0.1:1/mcp" after a redirect. Credentials are never carried across one.');
 
         self::client($http)->request(self::mcpRequest(), new NullCancellation());
+    }
+
+    public function testATokenCarriedThroughCleartextAndBackIsReported(): void
+    {
+        // amphp strips credentials only when the authority changes, and an authority carries no scheme, so
+        // the middle hop takes the token over cleartext while the chain still ends where it started.
+        $http = self::scriptChallengeAndFlow()->willAnswerAfterHops([
+            'http://127.0.0.1:1/mcp',
+            'https://127.0.0.1:1/mcp?ok=1',
+        ], ['ok' => true]);
+
+        $this->expectException(RedirectRefusedException::class);
+        $this->expectExceptionMessageIs('The request to "https://127.0.0.1:1/mcp" was answered from "http://127.0.0.1:1/mcp" after a redirect. Credentials are never carried across one.');
+
+        self::client($http)->request(self::mcpRequest(), new NullCancellation());
+    }
+
+    public function testARefusedRedirectIsDrainedSoItsConnectionIsReleased(): void
+    {
+        $http = self::scriptChallengeAndFlow()->willAnswerFrom('http://127.0.0.1:1/mcp');
+
+        try {
+            self::client($http)->request(self::mcpRequest(), new NullCancellation());
+            self::fail('The redirect should have been refused.');
+        } catch (RedirectRefusedException) {
+            self::assertTrue($http->drainedBodies[5] ?? false);
+        }
+    }
+
+    public function testAChallengeFromAnotherOriginIsReturnedRatherThanActedOn(): void
+    {
+        $http = new RecordingHttpClient()->willChallenge(
+            401,
+            'Bearer resource_metadata="https://attacker.example.com/prm", scope="admin:everything"',
+        );
+
+        $response = self::client($http)->request(
+            new Request('https://attacker.example.com/mcp', 'POST', '{}'),
+            new NullCancellation(),
+        );
+
+        self::assertSame(401, $response->getStatus());
+        // Nothing followed the challenge: no discovery, no consent screen, no token exchange.
+        self::assertCount(1, $http->requests);
     }
 
     public function testAnUnauthenticatedRequestThatFollowedARedirectIsLeftAlone(): void
@@ -259,12 +296,75 @@ final class AuthorizedHttpClientTest extends TestCase
     {
         $http = self::scriptChallengeAndFlow()->willChallenge(403, 'Bearer error="insufficient_scope"');
         $user = new ScriptedUserAuthorization();
+        $logger = new ArrayLogger();
 
-        $response = self::client($http, $user)->request(self::mcpRequest(), new NullCancellation());
+        $response = self::client($http, $user, logger: $logger)->request(self::mcpRequest(), new NullCancellation());
 
         self::assertSame(403, $response->getStatus());
         self::assertCount(6, $http->requests);
         self::assertCount(1, $user->redirects);
+        self::assertSame(
+            [['level' => LogLevel::WARNING, 'message' => 'The scope challenge from {resource} names {scopes}.', 'context' => [
+                'resource' => self::RESOURCE,
+                'scopes' => 'no scope at all',
+            ]]],
+            $logger->recordsMatching(LogLevel::WARNING, 'The scope challenge from {resource} names {scopes}.'),
+        );
+    }
+
+    public function testASecondScopeChallengeAsksForWhatTheFirstOneDidAsWell(): void
+    {
+        $http = new RecordingHttpClient()
+            ->willChallenge(401, self::CHALLENGE)
+            ->willAnswerJson(self::resourceDocument())
+            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson(['client_id' => 'the-client'])
+            ->willAnswerJson(['access_token' => 'token-1', 'token_type' => 'Bearer', 'scope' => 'files:read'])
+            ->willChallenge(403, 'Bearer error="insufficient_scope", scope="files:write"')
+            ->willAnswerJson(['access_token' => 'token-2', 'token_type' => 'Bearer', 'scope' => 'files:read'])
+            ->willChallenge(403, 'Bearer error="insufficient_scope", scope="files:admin"')
+            ->willAnswerJson(['access_token' => 'token-3', 'token_type' => 'Bearer'])
+            ->willAnswerJson(['ok' => true])
+        ;
+        $user = new ScriptedUserAuthorization();
+
+        $response = self::client($http, $user)->request(self::mcpRequest(), new NullCancellation());
+
+        self::assertSame(200, $response->getStatus());
+        self::assertCount(10, $http->requests);
+        // The server granted neither challenged scope, so only the accumulation carries `files:write` into
+        // the second consent screen.
+        self::assertSame(['files:write', 'files:read'], $user->readRequestedScopes(1));
+        self::assertSame(['files:admin', 'files:write', 'files:read'], $user->readRequestedScopes(2));
+    }
+
+    public function testAScopeTheTokenLostToANarrowerGrantIsAskedForAgain(): void
+    {
+        $http = new RecordingHttpClient()
+            ->willChallenge(401, self::CHALLENGE)
+            ->willAnswerJson(self::resourceDocument())
+            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson(['client_id' => 'the-client'])
+            ->willAnswerJson(['access_token' => 'the-wide-token', 'token_type' => 'Bearer', 'scope' => 'files:admin'])
+            ->willAnswerJson(['ok' => true])
+            ->willChallenge(401, self::CHALLENGE)
+            ->willAnswerJson(self::resourceDocument())
+            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson(['access_token' => 'the-narrow-token', 'token_type' => 'Bearer', 'scope' => 'files:read'])
+            ->willChallenge(403, 'Bearer error="insufficient_scope", scope="files:admin"')
+            ->willAnswerJson(['access_token' => 'the-widened-token', 'token_type' => 'Bearer', 'scope' => 'files:read files:admin'])
+            ->willAnswerJson(['ok' => true])
+        ;
+        $client = self::client($http);
+        $client->request(self::mcpRequest(), new NullCancellation());
+
+        // The second grant came back narrower than the first, so what the client was granted at some point
+        // no longer says anything about what the refused token carried.
+        $response = $client->request(self::mcpRequest(), new NullCancellation());
+
+        self::assertSame(200, $response->getStatus());
+        self::assertCount(13, $http->requests);
+        self::assertSame('Bearer the-widened-token', $http->readRequest(12)->getHeader('Authorization'));
     }
 
     public function testTheFailPolicyReportsTheChallengedScopesInsteadOfAskingForThem(): void
@@ -529,6 +629,23 @@ final class AuthorizedHttpClientTest extends TestCase
 
         self::assertSame(200, $response->getStatus());
         self::assertFalse($http->drainedBodies[0] ?? false);
+    }
+
+    public function testAChallengeBodyThatFailsPartwayThroughIsGivenUpOnButStillAuthorizes(): void
+    {
+        $http = new RecordingHttpClient()
+            ->willChallengeWithAnUnreadableBody(401, self::CHALLENGE, new HttpException('Invalid hexadecimal chunk size.'))
+            ->willAnswerJson(self::resourceDocument())
+            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson(['client_id' => 'the-client'])
+            ->willAnswerJson(['access_token' => 'the-access-token', 'token_type' => 'Bearer'])
+            ->willAnswerJson(['ok' => true])
+        ;
+
+        $response = self::client($http)->request(self::mcpRequest(), new NullCancellation());
+
+        self::assertSame(200, $response->getStatus());
+        self::assertSame('Bearer the-access-token', $http->readRequest(5)->getHeader('Authorization'));
     }
 
     public function testTheCallerRequestIsNotMutatedByTheRetry(): void

@@ -16,7 +16,6 @@ namespace Nexus\Mcp\Tests\Client\Auth;
 use Nexus\Mcp\Client\Auth\SecureEndpoint;
 use Nexus\Mcp\Client\Exception\InsecureAuthorizationEndpointException;
 use Nexus\Mcp\Client\Exception\UntrustedAuthorizationMetadataException;
-use Nexus\Mcp\Core\Auth\ResourceIdentifier;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -109,114 +108,71 @@ final class SecureEndpointTest extends TestCase
         yield 'a scheme with no host is not an endpoint' => ['file:///tmp/token'];
     }
 
-    public function testAnAdvertisedHttpsUrlIsAccepted(): void
+    #[DataProvider('provideAnAuthorizationServerUrlOverHttpsIsAcceptedCases')]
+    public function testAnAuthorizationServerUrlOverHttpsIsAccepted(string $url): void
     {
         $this->expectNotToPerformAssertions();
 
-        SecureEndpoint::verifyAdvertised('https://auth.example.com/token', 'token endpoint', self::resource());
-    }
-
-    #[DataProvider('provideAnAdvertisedCleartextUrlIsRefusedForARemoteMcpServerCases')]
-    public function testAnAdvertisedCleartextUrlIsRefusedForARemoteMcpServer(string $url): void
-    {
-        $this->expectException(UntrustedAuthorizationMetadataException::class);
-        $this->expectExceptionMessageIs(\sprintf(
-            'The authorization metadata cannot be trusted because the token endpoint "%s" is not served over HTTPS.',
-            $url,
-        ));
-
-        SecureEndpoint::verifyAdvertised($url, 'token endpoint', self::resource());
+        SecureEndpoint::verifyAuthorizationServerUrl($url, 'token endpoint');
     }
 
     /**
      * @return iterable<string, array{string}>
      */
-    public static function provideAnAdvertisedCleartextUrlIsRefusedForARemoteMcpServerCases(): iterable
+    public static function provideAnAuthorizationServerUrlOverHttpsIsAcceptedCases(): iterable
     {
-        yield 'a remote cleartext host is refused' => ['http://auth.example.com/token'];
+        yield 'a public host is accepted' => ['https://auth.example.com/token'];
 
-        yield 'the loopback exemption an operator earns is not inherited' => ['http://127.0.0.1:6379/token'];
+        yield 'an uppercase scheme is accepted' => ['HTTPS://auth.example.com/token'];
 
-        yield 'nor is it inherited by name' => ['http://localhost:6379/token'];
+        yield 'a query is left alone' => ['https://auth.example.com/token?tenant=a'];
 
-        yield 'a link-local address is refused' => ['http://169.254.169.254/token'];
+        // Where the URL leads is the operator's business. This guard is about the transport it names.
+        yield 'a loopback address over HTTPS is accepted' => ['https://127.0.0.1:9000/token'];
+
+        yield 'a private-network address over HTTPS is accepted' => ['https://10.0.0.5:8443/token'];
     }
 
-    public function testALoopbackMcpServerLetsAnAdvertisedLoopbackUrlThrough(): void
-    {
-        $this->expectNotToPerformAssertions();
-
-        SecureEndpoint::verifyAdvertised(
-            'http://127.0.0.1:9000/token',
-            'token endpoint',
-            self::resource('http://localhost:9000/mcp'),
-        );
-    }
-
-    public function testALoopbackMcpServerStillRefusesAnAdvertisedRemoteCleartextUrl(): void
-    {
-        $this->expectException(UntrustedAuthorizationMetadataException::class);
-        $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the token endpoint "http://auth.example.com/token" is not served over HTTPS.');
-
-        SecureEndpoint::verifyAdvertised(
-            'http://auth.example.com/token',
-            'token endpoint',
-            self::resource('http://localhost:9000/mcp'),
-        );
-    }
-
-    #[DataProvider('provideTheSameOriginIsAcceptedCases')]
-    public function testTheSameOriginIsAccepted(string $url, string $resource): void
-    {
-        $this->expectNotToPerformAssertions();
-
-        SecureEndpoint::verifySameOrigin($url, 'advertised metadata URL', self::resource($resource));
-    }
-
-    /**
-     * @return iterable<string, array{string, string}>
-     */
-    public static function provideTheSameOriginIsAcceptedCases(): iterable
-    {
-        yield 'another path on the same origin' => ['https://mcp.example.com/prm', 'https://mcp.example.com/mcp'];
-
-        yield 'the default HTTPS port spelled out' => ['https://mcp.example.com:443/prm', 'https://mcp.example.com/mcp'];
-
-        yield 'the default HTTP port spelled out' => ['http://mcp.example.com:80/prm', 'http://mcp.example.com/mcp'];
-
-        yield 'the host cased differently' => ['https://MCP.Example.com/prm', 'https://mcp.example.com/mcp'];
-
-        yield 'a matching non-default port' => ['https://mcp.example.com:8443/prm', 'https://mcp.example.com:8443/mcp'];
-    }
-
-    #[DataProvider('provideACrossOriginUrlIsRefusedCases')]
-    public function testACrossOriginUrlIsRefused(string $url, string $resource): void
+    #[DataProvider('provideAnAuthorizationServerUrlThatIsNotHttpsIsRefusedCases')]
+    public function testAnAuthorizationServerUrlThatIsNotHttpsIsRefused(string $url): void
     {
         $this->expectException(UntrustedAuthorizationMetadataException::class);
         $this->expectExceptionMessageIs(\sprintf(
-            'The authorization metadata cannot be trusted because the advertised metadata URL "%s" is not served by the MCP server it describes.',
+            'The authorization metadata cannot be trusted because the token endpoint "%s" is not an absolute HTTPS URL.',
             $url,
         ));
 
-        SecureEndpoint::verifySameOrigin($url, 'advertised metadata URL', self::resource($resource));
+        SecureEndpoint::verifyAuthorizationServerUrl($url, 'token endpoint');
     }
 
     /**
-     * @return iterable<string, array{string, string}>
+     * @return iterable<string, array{string}>
      */
-    public static function provideACrossOriginUrlIsRefusedCases(): iterable
+    public static function provideAnAuthorizationServerUrlThatIsNotHttpsIsRefusedCases(): iterable
     {
-        yield 'another host' => ['https://attacker.example.com/prm', 'https://mcp.example.com/mcp'];
+        yield 'a remote cleartext host is refused' => ['http://auth.example.com/token'];
 
-        yield 'another scheme' => ['http://mcp.example.com/prm', 'https://mcp.example.com/mcp'];
+        // The spec exempts only the redirect URI from HTTPS, so an authorization server on loopback earns
+        // nothing from the MCP server also being there.
+        yield 'a loopback address earns no exemption' => ['http://127.0.0.1:9000/token'];
 
-        yield 'a port the MCP server does not answer on' => ['https://mcp.example.com:8443/prm', 'https://mcp.example.com/mcp'];
+        yield 'nor does loopback by name' => ['http://localhost:9000/token'];
 
-        yield 'no port where the MCP server names one' => ['https://mcp.example.com/prm', 'https://mcp.example.com:8443/mcp'];
+        yield 'a non-HTTP scheme is refused' => ['ftp://auth.example.com/token'];
 
-        yield 'two different non-default ports' => ['https://mcp.example.com:8443/prm', 'https://mcp.example.com:9443/mcp'];
+        yield 'a URL that is not absolute is refused' => ['/token'];
 
-        yield 'a URL that is not absolute is not the same origin' => ['/prm', 'https://mcp.example.com/mcp'];
+        yield 'an empty string is refused' => [''];
+
+        yield 'a scheme with no host is refused' => ['file:///tmp/token'];
+    }
+
+    public function testAnAuthorizationServerUrlCarryingAFragmentIsRefused(): void
+    {
+        $this->expectException(UntrustedAuthorizationMetadataException::class);
+        $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the authorization endpoint "https://auth.example.com/authorize#done" carries a fragment.');
+
+        SecureEndpoint::verifyAuthorizationServerUrl('https://auth.example.com/authorize#done', 'authorization endpoint');
     }
 
     public function testAnHttpsMetadataDocumentUrlWithAPathIsAccepted(): void
@@ -252,8 +208,11 @@ final class SecureEndpointTest extends TestCase
         yield 'a root path is no path' => ['https://app.example.com/'];
     }
 
-    private static function resource(string $uri = 'https://mcp.example.com/mcp'): ResourceIdentifier
+    public function testAMetadataDocumentUrlThatIsNotAbsoluteIsRefused(): void
     {
-        return new ResourceIdentifier($uri);
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('The Client ID Metadata Document URL must be an absolute URL, "client.json" given.');
+
+        SecureEndpoint::verifyClientIdMetadataDocumentUrl('client.json');
     }
 }
