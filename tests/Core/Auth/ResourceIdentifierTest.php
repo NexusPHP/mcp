@@ -139,4 +139,59 @@ final class ResourceIdentifierTest extends TestCase
 
         yield 'another scheme does not name the resource' => [['http://mcp.example.com/mcp'], false];
     }
+
+    #[DataProvider('provideSharesOriginWithCases')]
+    public function testSharesOriginWith(string $uri, bool $expected): void
+    {
+        self::assertSame($expected, new ResourceIdentifier('https://mcp.example.com/mcp')->sharesOriginWith($uri));
+    }
+
+    /**
+     * @return iterable<string, array{string, bool}>
+     */
+    public static function provideSharesOriginWithCases(): iterable
+    {
+        yield 'another path on the same origin' => ['https://mcp.example.com/.well-known/prm', true];
+
+        yield 'the same URL' => ['https://mcp.example.com/mcp', true];
+
+        yield 'the default port spelled out' => ['https://mcp.example.com:443/prm', true];
+
+        yield 'the host cased differently' => ['https://MCP.Example.com/prm', true];
+
+        yield 'another host' => ['https://attacker.example.com/prm', false];
+
+        yield 'another scheme' => ['http://mcp.example.com/prm', false];
+
+        yield 'a non-default port' => ['https://mcp.example.com:8443/prm', false];
+
+        yield 'a relative URL names no origin' => ['/prm', false];
+
+        yield 'a URL carrying userinfo is never trusted' => ['https://evil@mcp.example.com/prm', false];
+    }
+
+    #[DataProvider('provideTheOriginAndHostAreExposedCases')]
+    public function testTheOriginAndHostAreExposed(string $uri, string $origin, string $host): void
+    {
+        $resource = new ResourceIdentifier($uri);
+
+        self::assertSame($origin, $resource->origin);
+        self::assertSame($host, $resource->host);
+    }
+
+    /**
+     * @return iterable<string, array{string, string, string}>
+     */
+    public static function provideTheOriginAndHostAreExposedCases(): iterable
+    {
+        yield 'a path is not part of the origin' => ['https://mcp.example.com/mcp', 'https://mcp.example.com', 'mcp.example.com'];
+
+        yield 'the default port is elided' => ['https://mcp.example.com:443/mcp', 'https://mcp.example.com', 'mcp.example.com'];
+
+        yield 'a non-default port is kept' => ['https://mcp.example.com:8443/mcp', 'https://mcp.example.com:8443', 'mcp.example.com'];
+
+        yield 'the host is lowercased' => ['https://MCP.Example.com/mcp', 'https://mcp.example.com', 'mcp.example.com'];
+
+        yield 'a query is not part of the origin' => ['https://mcp.example.com/mcp?a=b', 'https://mcp.example.com', 'mcp.example.com'];
+    }
 }

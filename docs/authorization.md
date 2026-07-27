@@ -53,6 +53,11 @@ Nothing happens until the server challenges. On the first `401` the decorator re
 header, discovers the authorization server, obtains a token, and replays the request with it. Later requests
 present the stored token directly.
 
+The token goes only to the origin the decorator was built for, so handing the same client a request aimed
+somewhere else sends it unauthenticated rather than leaking the credential. If an answer arrives from a
+different origin than the request was sent to, which is what an HTTP client that follows redirects will do,
+the response is refused with `RedirectRefusedException` instead of trusted.
+
 The inner client carries the authorization traffic too, so an interceptor placed on it (proxy, logging,
 custom TLS) applies to discovery, registration, and token requests as well.
 

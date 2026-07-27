@@ -22,6 +22,7 @@ use Nexus\Mcp\Client\Auth\AuthorizedHttpClient;
 use Nexus\Mcp\Client\Auth\InMemoryTokenStore;
 use Nexus\Mcp\Client\Auth\InsufficientScopePolicy;
 use Nexus\Mcp\Client\Exception\InsufficientScopeException;
+use Nexus\Mcp\Client\Exception\RedirectRefusedException;
 use Nexus\Mcp\Tests\Fixtures\Client\Auth\ScriptedUserAuthorization;
 use Nexus\Mcp\Tests\Fixtures\Client\Http\RecordingHttpClient;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
@@ -90,6 +91,50 @@ final class AuthorizedHttpClientTest extends TestCase
 
         self::assertSame(array_fill(0, 6, $cancellation), $http->cancellations);
         self::assertSame([$cancellation], $user->cancellations);
+    }
+
+    public function testATokenIsNeverSentToAnotherOrigin(): void
+    {
+        $http = new RecordingHttpClient()
+            ->willChallenge(401, self::CHALLENGE)
+            ->willAnswerJson(self::resourceDocument())
+            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson(['client_id' => 'the-client'])
+            ->willAnswerJson(['access_token' => 'the-access-token', 'token_type' => 'Bearer'])
+            ->willAnswerJson(['ok' => true])
+            ->willAnswerJson(['ok' => true])
+        ;
+        $client = self::client($http);
+        $client->request(self::mcpRequest(), new NullCancellation());
+
+        $client->request(new Request('https://attacker.example.com/mcp', 'POST', '{}'), new NullCancellation());
+
+        self::assertSame('Bearer the-access-token', $http->readRequest(5)->getHeader('Authorization'));
+        self::assertNull($http->readRequest(6)->getHeader('Authorization'));
+    }
+
+    public function testATokenThatFollowedARedirectOffTheMcpServerIsReported(): void
+    {
+        $http = new RecordingHttpClient()
+            ->willChallenge(401, self::CHALLENGE)
+            ->willAnswerJson(self::resourceDocument())
+            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson(['client_id' => 'the-client'])
+            ->willAnswerJson(['access_token' => 'the-access-token', 'token_type' => 'Bearer'])
+            ->willAnswerFrom('http://127.0.0.1:1/mcp')
+        ;
+
+        $this->expectException(RedirectRefusedException::class);
+        $this->expectExceptionMessageIs('The request to "https://127.0.0.1:1/mcp" was answered from "http://127.0.0.1:1/mcp" after a redirect. Credentials are never carried across one.');
+
+        self::client($http)->request(self::mcpRequest(), new NullCancellation());
+    }
+
+    public function testAnUnauthenticatedRequestThatFollowedARedirectIsLeftAlone(): void
+    {
+        $http = new RecordingHttpClient()->willAnswerFrom('https://elsewhere.example.com/mcp', ['ok' => true]);
+
+        self::assertSame(200, self::client($http)->request(self::mcpRequest(), new NullCancellation())->getStatus());
     }
 
     public function testTheChallengeSteersDiscoveryToTheAdvertisedUrl(): void

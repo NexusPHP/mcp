@@ -134,13 +134,12 @@ final class MetadataDiscoveryTest extends TestCase
     }
 
     #[DataProvider('provideAnAdvertisedUrlOffTheMcpServersOriginIsRefusedCases')]
-    public function testAnAdvertisedUrlOffTheMcpServersOriginIsRefused(string $advertised, string $origin): void
+    public function testAnAdvertisedUrlOffTheMcpServersOriginIsRefused(string $advertised): void
     {
         $this->expectException(UntrustedAuthorizationMetadataException::class);
         $this->expectExceptionMessageIs(\sprintf(
-            'The authorization metadata cannot be trusted because the advertised protected resource metadata URL "%s" is served from "%s" rather than by the MCP server it describes.',
+            'The authorization metadata cannot be trusted because the advertised protected resource metadata URL "%s" is not served by the MCP server it describes.',
             $advertised,
-            $origin,
         ));
 
         new MetadataDiscovery(new RecordingHttpClient())->discoverResource(
@@ -151,17 +150,17 @@ final class MetadataDiscoveryTest extends TestCase
     }
 
     /**
-     * @return iterable<string, array{string, string}>
+     * @return iterable<string, array{string}>
      */
     public static function provideAnAdvertisedUrlOffTheMcpServersOriginIsRefusedCases(): iterable
     {
-        yield 'cleartext downgrades the origin' => ['http://mcp.example.com/prm', 'http://mcp.example.com'];
+        yield 'cleartext downgrades the origin' => ['http://mcp.example.com/prm'];
 
-        yield 'another host is another origin' => ['https://attacker.example.com/prm', 'https://attacker.example.com'];
+        yield 'another host is another origin' => ['https://attacker.example.com/prm'];
 
-        yield 'another port is another origin' => ['https://mcp.example.com:8443/prm', 'https://mcp.example.com:8443'];
+        yield 'another port is another origin' => ['https://mcp.example.com:8443/prm'];
 
-        yield 'a loopback address reaches past the public internet' => ['http://127.0.0.1:6379/prm', 'http://127.0.0.1:6379'];
+        yield 'a loopback address reaches past the public internet' => ['http://127.0.0.1:6379/prm'];
     }
 
     public function testAnAdvertisedUrlSpellingTheDefaultPortSharesTheOrigin(): void

@@ -35,7 +35,7 @@ final class SecureEndpointTest extends TestCase
     {
         $this->expectNotToPerformAssertions();
 
-        SecureEndpoint::verify($url, 'token endpoint');
+        SecureEndpoint::verifyRedirectUri($url);
     }
 
     /**
@@ -63,11 +63,11 @@ final class SecureEndpointTest extends TestCase
     {
         $this->expectException(InsecureAuthorizationEndpointException::class);
         $this->expectExceptionMessageIs(\sprintf(
-            'The token endpoint must be served over HTTPS or from a loopback host, "%s" given.',
+            'The redirect URI must be served over HTTPS or from a loopback host, "%s" given.',
             $url,
         ));
 
-        SecureEndpoint::verify($url, 'token endpoint');
+        SecureEndpoint::verifyRedirectUri($url);
     }
 
     /**
@@ -92,9 +92,9 @@ final class SecureEndpointTest extends TestCase
     public function testMalformedUrls(string $url): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs(\sprintf('The token endpoint must be an absolute URL, "%s" given.', $url));
+        $this->expectExceptionMessageIs(\sprintf('The redirect URI must be an absolute URL, "%s" given.', $url));
 
-        SecureEndpoint::verify($url, 'token endpoint');
+        SecureEndpoint::verifyRedirectUri($url);
     }
 
     /**
@@ -190,52 +190,33 @@ final class SecureEndpointTest extends TestCase
     }
 
     #[DataProvider('provideACrossOriginUrlIsRefusedCases')]
-    public function testACrossOriginUrlIsRefused(string $url, string $resource, string $origin): void
+    public function testACrossOriginUrlIsRefused(string $url, string $resource): void
     {
         $this->expectException(UntrustedAuthorizationMetadataException::class);
         $this->expectExceptionMessageIs(\sprintf(
-            'The authorization metadata cannot be trusted because the advertised metadata URL "%s" is served from "%s" rather than by the MCP server it describes.',
+            'The authorization metadata cannot be trusted because the advertised metadata URL "%s" is not served by the MCP server it describes.',
             $url,
-            $origin,
         ));
 
         SecureEndpoint::verifySameOrigin($url, 'advertised metadata URL', self::resource($resource));
     }
 
     /**
-     * @return iterable<string, array{string, string, string}>
+     * @return iterable<string, array{string, string}>
      */
     public static function provideACrossOriginUrlIsRefusedCases(): iterable
     {
-        yield 'another host' => [
-            'https://attacker.example.com/prm',
-            'https://mcp.example.com/mcp',
-            'https://attacker.example.com',
-        ];
+        yield 'another host' => ['https://attacker.example.com/prm', 'https://mcp.example.com/mcp'];
 
-        yield 'another scheme' => [
-            'http://mcp.example.com/prm',
-            'https://mcp.example.com/mcp',
-            'http://mcp.example.com',
-        ];
+        yield 'another scheme' => ['http://mcp.example.com/prm', 'https://mcp.example.com/mcp'];
 
-        yield 'a port the MCP server does not answer on' => [
-            'https://mcp.example.com:8443/prm',
-            'https://mcp.example.com/mcp',
-            'https://mcp.example.com:8443',
-        ];
+        yield 'a port the MCP server does not answer on' => ['https://mcp.example.com:8443/prm', 'https://mcp.example.com/mcp'];
 
-        yield 'no port where the MCP server names one' => [
-            'https://mcp.example.com/prm',
-            'https://mcp.example.com:8443/mcp',
-            'https://mcp.example.com',
-        ];
+        yield 'no port where the MCP server names one' => ['https://mcp.example.com/prm', 'https://mcp.example.com:8443/mcp'];
 
-        yield 'two different non-default ports' => [
-            'https://mcp.example.com:8443/prm',
-            'https://mcp.example.com:9443/mcp',
-            'https://mcp.example.com:8443',
-        ];
+        yield 'two different non-default ports' => ['https://mcp.example.com:8443/prm', 'https://mcp.example.com:9443/mcp'];
+
+        yield 'a URL that is not absolute is not the same origin' => ['/prm', 'https://mcp.example.com/mcp'];
     }
 
     public function testAnHttpsMetadataDocumentUrlWithAPathIsAccepted(): void

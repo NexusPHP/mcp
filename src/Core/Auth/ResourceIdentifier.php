@@ -28,6 +28,17 @@ final readonly class ResourceIdentifier
 {
     public string $value;
 
+    /**
+     * The scheme, host and non-default port of the MCP server, which is what a token and a metadata document
+     * are bound to.
+     */
+    public string $origin;
+
+    /**
+     * The lowercased host of the MCP server.
+     */
+    public string $host;
+
     public function __construct(string $uri)
     {
         $canonical = self::canonicalise($uri);
@@ -37,7 +48,18 @@ final readonly class ResourceIdentifier
             $uri,
         ));
 
-        $this->value = $canonical;
+        [$this->value, $this->origin, $this->host] = $canonical;
+    }
+
+    /**
+     * Reports whether a URL is served from the same origin as this MCP server, which is what binds a token
+     * and a metadata document to it.
+     */
+    public function sharesOriginWith(string $uri): bool
+    {
+        $canonical = self::canonicalise($uri);
+
+        return null !== $canonical && $canonical[1] === $this->origin;
     }
 
     /**
@@ -48,7 +70,9 @@ final readonly class ResourceIdentifier
     public function matchesAudience(array $audience): bool
     {
         foreach ($audience as $value) {
-            if (self::canonicalise($value) === $this->value) {
+            $canonical = self::canonicalise($value);
+
+            if (null !== $canonical && $canonical[0] === $this->value) {
                 return true;
             }
         }
@@ -59,8 +83,10 @@ final readonly class ResourceIdentifier
     /**
      * Lowercases the scheme and host and drops a bare root path, or returns `null` when the URI is not a
      * usable resource identifier.
+     *
+     * @return null|array{string, string, string} The canonical identifier, its origin and its host
      */
-    private static function canonicalise(string $uri): ?string
+    private static function canonicalise(string $uri): ?array
     {
         $parts = parse_url($uri);
 
@@ -75,16 +101,15 @@ final readonly class ResourceIdentifier
         }
 
         $scheme = strtolower($parts['scheme']);
+        $host = strtolower($parts['host']);
         $path = $parts['path'] ?? '';
+        $origin = \sprintf('%s://%s%s', $scheme, $host, self::renderPort($scheme, $parts['port'] ?? null));
 
-        return \sprintf(
-            '%s://%s%s%s%s',
-            $scheme,
-            strtolower($parts['host']),
-            self::renderPort($scheme, $parts['port'] ?? null),
-            '/' === $path ? '' : $path,
-            isset($parts['query']) ? '?'.$parts['query'] : '',
-        );
+        return [
+            $origin.('/' === $path ? '' : $path).(isset($parts['query']) ? '?'.$parts['query'] : ''),
+            $origin,
+            $host,
+        ];
     }
 
     /**
