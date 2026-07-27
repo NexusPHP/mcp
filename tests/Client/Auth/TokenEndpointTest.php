@@ -189,7 +189,7 @@ final class TokenEndpointTest extends TestCase
         new TokenEndpoint($http)->refresh(
             self::metadata(),
             new ClientRegistration('the-client', self::ISSUER),
-            new AccessToken('the-old-token', refreshToken: 'the-refresh-token', scopes: ['files:read']),
+            new AccessToken('the-old-token', self::ISSUER, refreshToken: 'the-refresh-token', scopes: ['files:read']),
             new ResourceIdentifier(self::RESOURCE),
         );
 
@@ -208,7 +208,7 @@ final class TokenEndpointTest extends TestCase
         $token = new TokenEndpoint($http)->refresh(
             self::metadata(),
             new ClientRegistration('the-client', self::ISSUER),
-            new AccessToken('the-old-token', refreshToken: 'the-refresh-token', scopes: ['files:read']),
+            new AccessToken('the-old-token', self::ISSUER, refreshToken: 'the-refresh-token', scopes: ['files:read']),
             new ResourceIdentifier(self::RESOURCE),
         );
 
@@ -222,7 +222,7 @@ final class TokenEndpointTest extends TestCase
         $token = new TokenEndpoint($http)->refresh(
             self::metadata(),
             new ClientRegistration('the-client', self::ISSUER),
-            new AccessToken('the-old-token', refreshToken: 'the-refresh-token'),
+            new AccessToken('the-old-token', self::ISSUER, refreshToken: 'the-refresh-token'),
             new ResourceIdentifier(self::RESOURCE),
         );
 
@@ -236,7 +236,7 @@ final class TokenEndpointTest extends TestCase
         $token = new TokenEndpoint($http)->refresh(
             self::metadata(),
             new ClientRegistration('the-client', self::ISSUER),
-            new AccessToken('the-old-token', refreshToken: 'the-refresh-token'),
+            new AccessToken('the-old-token', self::ISSUER, refreshToken: 'the-refresh-token'),
             new ResourceIdentifier(self::RESOURCE),
         );
 
@@ -251,7 +251,7 @@ final class TokenEndpointTest extends TestCase
         new TokenEndpoint(new RecordingHttpClient())->refresh(
             self::metadata(),
             new ClientRegistration('the-client', self::ISSUER),
-            new AccessToken('the-old-token'),
+            new AccessToken('the-old-token', self::ISSUER),
             new ResourceIdentifier(self::RESOURCE),
         );
     }

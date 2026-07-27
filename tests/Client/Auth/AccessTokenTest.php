@@ -28,9 +28,10 @@ final class AccessTokenTest extends TestCase
 {
     public function testItCarriesEveryIssuedField(): void
     {
-        $token = new AccessToken('the-value', 1_800_000_000, 'the-refresh-token', ['files:read']);
+        $token = new AccessToken('the-value', 'https://auth.example.com', 1_800_000_000, 'the-refresh-token', ['files:read']);
 
         self::assertSame('the-value', $token->value);
+        self::assertSame('https://auth.example.com', $token->issuer);
         self::assertSame(1_800_000_000, $token->expiresAt);
         self::assertSame('the-refresh-token', $token->refreshToken);
         self::assertSame(['files:read'], $token->scopes);
@@ -38,7 +39,7 @@ final class AccessTokenTest extends TestCase
 
     public function testAnUnadornedTokenHasNoExpiryRefreshOrScopes(): void
     {
-        $token = new AccessToken('the-value');
+        $token = new AccessToken('the-value', 'https://auth.example.com');
 
         self::assertNull($token->expiresAt);
         self::assertNull($token->refreshToken);

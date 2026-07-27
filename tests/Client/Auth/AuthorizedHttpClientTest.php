@@ -257,8 +257,35 @@ final class AuthorizedHttpClientTest extends TestCase
             $client->request(self::mcpRequest(), new NullCancellation());
             self::fail('The failed discovery should have surfaced.');
         } catch (HttpException) {
-            self::assertNull($store->read(self::RESOURCE, 'https://auth.test'));
+            self::assertNull($store->read(self::RESOURCE));
         }
+    }
+
+    public function testAFreshChallengeFollowsTheResourceToAnotherAuthorizationServer(): void
+    {
+        $http = self::scriptChallengeAndFlow()
+            ->willAnswerJson(['ok' => true])
+            ->willChallenge(401, self::CHALLENGE)
+            ->willAnswerJson(['resource' => self::RESOURCE, 'authorization_servers' => ['https://successor.test']])
+            ->willAnswerJson([
+                'issuer' => 'https://successor.test',
+                'authorization_endpoint' => 'https://successor.test/authorize',
+                'token_endpoint' => 'https://successor.test/token',
+                'registration_endpoint' => 'https://successor.test/register',
+                'code_challenge_methods_supported' => ['S256'],
+            ])
+            ->willAnswerJson(['client_id' => 'the-successor-client'])
+            ->willAnswerJson(['access_token' => 'the-successor-token', 'token_type' => 'Bearer'])
+            ->willAnswerJson(['ok' => true])
+        ;
+        $store = new InMemoryTokenStore();
+        $client = self::client($http, tokens: $store);
+
+        $client->request(self::mcpRequest(), new NullCancellation());
+        $client->request(self::mcpRequest(), new NullCancellation());
+
+        self::assertSame('https://successor.test', $store->read(self::RESOURCE)?->issuer);
+        self::assertSame('https://successor.test/token', (string) $http->readRequest(10)->getUri());
     }
 
     public function testTheChallengeBodyIsDrainedSoItsConnectionIsReleased(): void
@@ -302,7 +329,7 @@ final class AuthorizedHttpClientTest extends TestCase
 
         self::client(self::scriptChallengeAndFlow()->willAnswerJson(['ok' => true]), tokens: $store)->request(self::mcpRequest(), new NullCancellation());
 
-        self::assertSame('the-access-token', $store->read(self::RESOURCE, 'https://auth.test')?->value);
+        self::assertSame('the-access-token', $store->read(self::RESOURCE)?->value);
     }
 
     private static function client(

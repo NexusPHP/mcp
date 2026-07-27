@@ -114,9 +114,9 @@ Both stores default to memory, so a restart authorizes again. Implement the inte
 ```php
 interface TokenStoreInterface
 {
-    public function read(string $resource, string $issuer): ?AccessToken;
-    public function write(string $resource, string $issuer, AccessToken $token): void;
-    public function forget(string $resource, string $issuer): void;
+    public function read(string $resource): ?AccessToken;
+    public function write(string $resource, AccessToken $token): void;
+    public function forget(string $resource): void;
 }
 
 interface ClientRegistrationStoreInterface
@@ -126,9 +126,13 @@ interface ClientRegistrationStoreInterface
 }
 ```
 
-Tokens are keyed by the MCP server *and* the issuer, and registrations by the issuer alone. That is what makes
-an authorization server change safe: nothing issued by the old server is ever presented to the new one. Store
-both confidentially. They are credentials.
+Tokens are keyed by the MCP server, and registrations by the issuer. Each `AccessToken` carries the `issuer`
+that minted it, so a store written in one process is usable in the next without repeating discovery first:
+hand back a stored token and the SDK presents it straight away. That stamp is also what makes an authorization
+server change safe. Once discovery has run and found the resource has moved, a token stamped with the former
+issuer is dropped rather than refreshed at the new one. A stored token is presented before any discovery has
+happened, so if the resource moved between processes the first request spends a `401` before the client
+notices and re-authorizes. Store both confidentially. They are credentials.
 
 ### Scopes and step-up
 
