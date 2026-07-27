@@ -13,9 +13,10 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Client\Auth;
 
-use Nexus\Assert\ExpectationFailedException;
+use Nexus\Mcp\Client\Auth\JsonHttpExchange;
 use Nexus\Mcp\Client\Auth\MetadataDiscovery;
 use Nexus\Mcp\Client\Exception\AuthorizationDiscoveryFailedException;
+use Nexus\Mcp\Client\Exception\MalformedAuthorizationResponseException;
 use Nexus\Mcp\Client\Exception\PkceNotSupportedException;
 use Nexus\Mcp\Client\Exception\UntrustedAuthorizationMetadataException;
 use Nexus\Mcp\Core\Auth\ResourceIdentifier;
@@ -175,7 +176,7 @@ final class MetadataDiscoveryTest extends TestCase
     {
         $http = new RecordingHttpClient()->willAnswerJson('"not-an-object"');
 
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(MalformedAuthorizationResponseException::class);
         $this->expectExceptionMessageIs('The protected resource metadata URL answered with a payload that is not a JSON object.');
 
         new MetadataDiscovery($http)->discoverResource(new ResourceIdentifier(self::RESOURCE));
@@ -314,7 +315,19 @@ final class MetadataDiscoveryTest extends TestCase
     public function testAnOversizedMissStillFallsThroughToTheNextCandidate(): void
     {
         $http = new RecordingHttpClient()
-            ->willAnswer404WithBody(str_repeat('x', 9000))
+            ->willAnswer404WithBody(str_repeat('x', JsonHttpExchange::MAX_RESPONSE_BYTES + 1))
+            ->willAnswerJson(self::resourceDocument())
+        ;
+
+        $metadata = new MetadataDiscovery($http)->discoverResource(new ResourceIdentifier(self::RESOURCE));
+
+        self::assertSame(self::RESOURCE, $metadata->resource->value);
+    }
+
+    public function testAnOversizedDocumentFallsThroughToTheNextCandidate(): void
+    {
+        $http = new RecordingHttpClient()
+            ->willAnswerJson(str_repeat('x', JsonHttpExchange::MAX_RESPONSE_BYTES + 1))
             ->willAnswerJson(self::resourceDocument())
         ;
 

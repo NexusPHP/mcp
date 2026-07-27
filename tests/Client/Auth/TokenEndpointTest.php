@@ -21,6 +21,7 @@ use Nexus\Mcp\Client\Auth\ClientRegistration;
 use Nexus\Mcp\Client\Auth\PkcePair;
 use Nexus\Mcp\Client\Auth\TokenEndpoint;
 use Nexus\Mcp\Client\Exception\AuthorizationGrantRejectedException;
+use Nexus\Mcp\Client\Exception\MalformedAuthorizationResponseException;
 use Nexus\Mcp\Client\Exception\TokenRequestFailedException;
 use Nexus\Mcp\Client\Exception\UntrustedAuthorizationMetadataException;
 use Nexus\Mcp\Core\Auth\AuthorizationServerMetadata;
@@ -350,7 +351,7 @@ final class TokenEndpointTest extends TestCase
     {
         $http = new RecordingHttpClient()->willAnswerJson('"not-an-object"');
 
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(MalformedAuthorizationResponseException::class);
         $this->expectExceptionMessageIs('The token endpoint answered with a payload that is not a JSON object.');
 
         self::exchange($http);

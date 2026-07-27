@@ -21,6 +21,7 @@ use Nexus\Mcp\Client\Auth\InMemoryClientRegistrationStore;
 use Nexus\Mcp\Client\Exception\AuthorizationServerMismatchException;
 use Nexus\Mcp\Client\Exception\ClientRegistrationFailedException;
 use Nexus\Mcp\Client\Exception\ClientRegistrationRequiredException;
+use Nexus\Mcp\Client\Exception\MalformedAuthorizationResponseException;
 use Nexus\Mcp\Client\Exception\UntrustedAuthorizationMetadataException;
 use Nexus\Mcp\Core\Auth\ApplicationType;
 use Nexus\Mcp\Core\Auth\AuthorizationServerMetadata;
@@ -266,7 +267,7 @@ final class ClientRegistrarTest extends TestCase
     {
         $http = new RecordingHttpClient()->willAnswerJson('"not-an-object"');
 
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(MalformedAuthorizationResponseException::class);
         $this->expectExceptionMessageIs('The registration endpoint answered with a payload that is not a JSON object.');
 
         self::resolve($http, self::metadata(registrationEndpoint: 'https://auth.example.com/register'), self::options());

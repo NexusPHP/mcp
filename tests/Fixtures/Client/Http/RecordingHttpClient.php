@@ -45,7 +45,7 @@ final class RecordingHttpClient implements DelegateHttpClient
     public private(set) array $drainedBodies = [];
 
     /**
-     * @var list<array{status: int, headers: array<non-empty-string, string>, chunks: list<string>, open?: bool, gate?: Future<mixed>}|HttpException>
+     * @var list<array{status: int, headers: array<non-empty-string, string>, chunks: list<string>, open?: bool, gate?: Future<mixed>, answeredFrom?: string}|HttpException>
      */
     private array $script = [];
 
@@ -136,6 +136,22 @@ final class RecordingHttpClient implements DelegateHttpClient
         return $this->willAnswer(404, ['content-type' => 'application/json'], [$body]);
     }
 
+    /**
+     * Queues the answer a client that follows redirects returns: the response names the URL it was finally
+     * answered from rather than the one the caller sent to.
+     *
+     * @param array<string, mixed> $body
+     */
+    public function willAnswerFrom(string $url, array $body = []): self
+    {
+        return $this->willAnswer(
+            200,
+            ['content-type' => 'application/json'],
+            [json_encode($body, \JSON_THROW_ON_ERROR)],
+            answeredFrom: $url,
+        );
+    }
+
     #[\Override]
     public function request(Request $request, Cancellation $cancellation): Response
     {
@@ -156,7 +172,16 @@ final class RecordingHttpClient implements DelegateHttpClient
             ? self::openStream($step['chunks'])
             : $this->trackDrain(\count($this->requests) - 1, $step['chunks']);
 
-        return new Response('2', $step['status'], null, $step['headers'], new ReadableIterableStream($body), $request);
+        $answeredFrom = $step['answeredFrom'] ?? null;
+
+        return new Response(
+            '2',
+            $step['status'],
+            null,
+            $step['headers'],
+            new ReadableIterableStream($body),
+            null === $answeredFrom ? $request : new Request($answeredFrom, $request->getMethod()),
+        );
     }
 
     /**
@@ -214,12 +239,21 @@ final class RecordingHttpClient implements DelegateHttpClient
      * @param list<string>                    $chunks
      * @param ?Future<mixed>                  $gate
      */
-    private function willAnswer(int $status, array $headers, array $chunks, ?Future $gate = null): self
-    {
+    private function willAnswer(
+        int $status,
+        array $headers,
+        array $chunks,
+        ?Future $gate = null,
+        ?string $answeredFrom = null,
+    ): self {
         $step = ['status' => $status, 'headers' => $headers, 'chunks' => $chunks];
 
         if (null !== $gate) {
             $step['gate'] = $gate;
+        }
+
+        if (null !== $answeredFrom) {
+            $step['answeredFrom'] = $answeredFrom;
         }
 
         $this->script[] = $step;
