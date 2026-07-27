@@ -33,7 +33,7 @@ final class McpAnchorSnapshot
     private const array SPEC_PAGES = [
         'schema',
         'basic',
-        'basic/lifecycle',
+        'basic/versioning',
         'server/tools',
     ];
 
@@ -45,7 +45,7 @@ final class McpAnchorSnapshot
      */
     private const array EXTRA_VALID_ANCHORS = [
         'basic' => ['_meta', 'icons'],
-        'basic/lifecycle' => ['protocol-version-negotiation'],
+        'basic/versioning' => ['protocol-version-negotiation'],
         'server/tools' => ['tool-names'],
     ];
 

@@ -18,7 +18,7 @@ use Nexus\Assert\Assert;
 /**
  * A revision of the Model Context Protocol identified by its release date.
  *
- * @see https://modelcontextprotocol.io/specification/draft/basic/lifecycle#protocol-version-negotiation
+ * @see https://modelcontextprotocol.io/specification/draft/basic/versioning#protocol-version-negotiation
  */
 final readonly class ProtocolVersion
 {

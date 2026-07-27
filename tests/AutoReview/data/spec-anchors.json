@@ -4,7 +4,7 @@
             "_meta",
             "icons"
         ],
-        "https://modelcontextprotocol.io/specification/draft/basic/lifecycle": [
+        "https://modelcontextprotocol.io/specification/draft/basic/versioning": [
             "protocol-version-negotiation"
         ],
         "https://modelcontextprotocol.io/specification/draft/schema": [

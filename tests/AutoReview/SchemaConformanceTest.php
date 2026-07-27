@@ -108,7 +108,7 @@ final class SchemaConformanceTest extends TestCase
         EmptyNotificationParams::class => self::TS_SCHEMA_FILE_URL,
         ClientNotification::class => self::TS_SCHEMA_FILE_URL,
         ServerNotification::class => self::TS_SCHEMA_FILE_URL,
-        ProtocolVersion::class => 'https://modelcontextprotocol.io/specification/draft/basic/lifecycle#protocol-version-negotiation',
+        ProtocolVersion::class => 'https://modelcontextprotocol.io/specification/draft/basic/versioning#protocol-version-negotiation',
         Request::class => self::TS_SCHEMA_FILE_URL,
         EmptyRequestParams::class => self::TS_SCHEMA_FILE_URL,
         ResourceRequestParams::class => self::TS_SCHEMA_FILE_URL,
