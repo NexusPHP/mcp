@@ -435,7 +435,7 @@ Client (required for client-mode conformance):
 
 - [ ] Discovery: Protected Resource Metadata via the `WWW-Authenticate` `resource_metadata` URL, then
   Authorization Server metadata (RFC 8414 and OpenID `.well-known`), including the RFC 8414 path suffix.
-- [ ] Registration: Dynamic Client Registration with `application_type`, Client ID Metadata Document
+- [x] Registration: Dynamic Client Registration with `application_type`, Client ID Metadata Document
   (CIMD), and a pre-registered-credentials fallback when there is no registration endpoint.
 - [x] PKCE (S256) on the authorization request.
 - [x] Token-endpoint auth: `client_secret_basic`, `client_secret_post`, and `none` (public client).
@@ -444,7 +444,7 @@ Client (required for client-mode conformance):
 - [ ] Resource Indicators (RFC 8707): send and validate the `resource` parameter.
 - [ ] Issuer validation (RFC 9207): validate the authorization-response `iss` and the AS-metadata issuer.
 - [ ] Refresh: request `offline_access` and use the refresh-token grant when supported.
-- [ ] Authorization-server migration: re-register on AS change without credential reuse.
+- [x] Authorization-server migration: re-register on AS change without credential reuse.
 
 Server (resource server, not conformance-scored but part of the auth spec):
 
