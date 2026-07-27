@@ -105,7 +105,9 @@ Clients are identified in one of three ways, and the SDK walks them in the order
    advertises `client_id_metadata_document_supported`, and it needs no registration at all.
 3. **Dynamic Client Registration.** Used when the server publishes a `registration_endpoint`. The SDK declares
    `application_type` (defaulting to `native`, which is what loopback redirect URIs need) and stores the
-   resulting identifier against the issuer that minted it.
+   resulting identifier against the issuer that minted it. Two clients sharing one registration store may
+   both register against the same authorization server at once, since nothing outside a single client can
+   serialise them. Both registrations are valid and the store keeps the last.
 
 When none of the three applies, `ClientRegistrationRequiredException` says so rather than failing obscurely.
 
@@ -304,9 +306,15 @@ These are not optional, and they are the checks implementations most often skip:
 - **`state`.** Sent on every authorization request and verified on the response.
 - **Resource indicators.** The canonical server URI travels on both the authorization and the token request,
   and a metadata document naming a different resource is rejected.
-- **HTTPS.** Every authorization endpoint is required to be HTTPS. Loopback hosts are exempt so a local
-  development authorization server stays reachable.
-- **Audience binding.** Server-side, a token whose audience does not name this server is refused.
+- **HTTPS.** Every authorization endpoint is required to be HTTPS. A URL the operator configured may be
+  loopback so a local development authorization server stays reachable. A URL an MCP server or an
+  authorization server advertised may be loopback only when the MCP server is itself on loopback, so a peer
+  on the public internet cannot steer the client at an address it could not otherwise reach.
+- **Same origin.** The `resource_metadata` URL a challenge advertises must share the MCP server's origin.
+- **No redirects.** Nothing read from an answer that arrived from a URL other than the one it was sent to is
+  trusted, on the authorization legs and on the MCP request alike.
+- **Audience binding.** Server-side, a token whose audience does not name this server is refused. Client-side,
+  a token is sent only to the origin it was obtained for.
 - **Bearer tokens only.** A token of any other type is refused rather than sent as one.
 
 ## Errors
