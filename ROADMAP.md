@@ -433,7 +433,7 @@ it). It depends on the HTTP client transport above and is built after it.
 
 Client (required for client-mode conformance):
 
-- [ ] Discovery: Protected Resource Metadata via the `WWW-Authenticate` `resource_metadata` URL, then
+- [x] Discovery: Protected Resource Metadata via the `WWW-Authenticate` `resource_metadata` URL, then
   Authorization Server metadata (RFC 8414 and OpenID `.well-known`), including the RFC 8414 path suffix.
 - [x] Registration: Dynamic Client Registration with `application_type`, Client ID Metadata Document
   (CIMD), and a pre-registered-credentials fallback when there is no registration endpoint.
@@ -441,8 +441,8 @@ Client (required for client-mode conformance):
 - [x] Token-endpoint auth: `client_secret_basic`, `client_secret_post`, and `none` (public client).
 - [ ] Scope handling: select from `WWW-Authenticate` / `scopes_supported` / omit, step-up on a 403
   insufficient_scope with scope accumulation, and a retry cap.
-- [ ] Resource Indicators (RFC 8707): send and validate the `resource` parameter.
-- [ ] Issuer validation (RFC 9207): validate the authorization-response `iss` and the AS-metadata issuer.
+- [x] Resource Indicators (RFC 8707): send and validate the `resource` parameter.
+- [x] Issuer validation (RFC 9207): validate the authorization-response `iss` and the AS-metadata issuer.
 - [ ] Refresh: request `offline_access` and use the refresh-token grant when supported.
 - [x] Authorization-server migration: re-register on AS change without credential reuse.
 

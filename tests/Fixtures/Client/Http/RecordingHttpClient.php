@@ -36,6 +36,14 @@ final class RecordingHttpClient implements DelegateHttpClient
     public private(set) array $requests = [];
 
     /**
+     * Whether the body of the answer at each index was read to its end, keyed by request index. A body that
+     * was never drained leaves no entry, which is how amphp decides to tear the connection down.
+     *
+     * @var array<int, bool>
+     */
+    public private(set) array $drainedBodies = [];
+
+    /**
      * @var list<array{status: int, headers: array<non-empty-string, string>, chunks: list<string>, open?: bool}|HttpException>
      */
     private array $script = [];
@@ -107,6 +115,14 @@ final class RecordingHttpClient implements DelegateHttpClient
         return $this;
     }
 
+    /**
+     * Queues a miss whose body is larger than a caller is willing to drain.
+     */
+    public function willAnswer404WithBody(string $body): self
+    {
+        return $this->willAnswer(404, ['content-type' => 'application/json'], [$body]);
+    }
+
     #[\Override]
     public function request(Request $request, Cancellation $cancellation): Response
     {
@@ -121,7 +137,9 @@ final class RecordingHttpClient implements DelegateHttpClient
             throw new HttpException('The script queued no answer for this request.');
         }
 
-        $body = ($step['open'] ?? false) ? self::openStream($step['chunks']) : $step['chunks'];
+        $body = ($step['open'] ?? false)
+            ? self::openStream($step['chunks'])
+            : $this->trackDrain(\count($this->requests) - 1, $step['chunks']);
 
         return new Response('2', $step['status'], null, $step['headers'], new ReadableIterableStream($body), $request);
     }
@@ -144,6 +162,20 @@ final class RecordingHttpClient implements DelegateHttpClient
         $decoded = json_decode(buffer($this->readRequest($index)->getBody()->getContent()), associative: true, flags: \JSON_THROW_ON_ERROR);
 
         return \is_array($decoded) ? array_filter($decoded, is_string(...), \ARRAY_FILTER_USE_KEY) : [];
+    }
+
+    /**
+     * Yields the chunks, then records that the consumer read the body to its end.
+     *
+     * @param list<string> $chunks
+     *
+     * @return \Traversable<int, string>
+     */
+    private function trackDrain(int $index, array $chunks): \Traversable
+    {
+        yield from $chunks;
+
+        $this->drainedBodies[$index] = true;
     }
 
     /**
