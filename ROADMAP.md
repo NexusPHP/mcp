@@ -395,6 +395,11 @@ Client transport (`Nexus\Mcp\Client`, amphp/http-client). Adds `amphp/http-clien
   ignores. The listing filter is gated on `ParameterHeaderMirroringInterface` so a stdio user does not lose a
   usable tool to an annotation that does not apply. `disconnect()` clears the cache, which belongs to the
   connection that served it.
+- [x] `HeaderMismatch` recovery on the client: a `-32020` rejection re-lists the tool, walking pages until
+  the listing yields it, then retries the call exactly once. A second mismatch propagates to the caller, and
+  any other error code propagates without a retry. Each leg carries its own request deadline. The cache
+  satisfies the spec's optimistic-use rule on its own, since it is rebuilt on every `tools/list`, never
+  expires, and is consulted without a staleness check.
 - [x] Docs and examples: the `docs/transports.md` Streamable HTTP sections for both legs, the `x-mcp-header`
   mirroring rules in `docs/client.md`, and the runnable `examples/http-server.php` / `examples/http-client.php`
   pair. `examples/PsrHttpAdapter.php` binds the PSR-15 endpoint to `amphp/http-server` (a dev dependency,

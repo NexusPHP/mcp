@@ -25,6 +25,7 @@ use Nexus\Mcp\Core\Exception\RequestTimeoutException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
 use Nexus\Mcp\Core\Schema\ClientCapabilities;
 use Nexus\Mcp\Core\Schema\Cursor;
+use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Implementation;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcMessage;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
@@ -1246,14 +1247,181 @@ final class ClientTest extends TestCase
 
     public function testCallToolSendsNoHeadersForAToolItNeverListed(): void
     {
-        // Nothing cached means nothing to mirror. The server answers HeaderMismatch and the client retries
-        // after a fresh tools/list, which is the recovery the spec describes.
+        // Nothing cached means nothing to mirror. The server answers success here, so the
+        // header-mismatch recovery never engages.
         $transport = new MirroringRecordingTransport();
         $client = self::connectMirroring($transport);
 
         self::callToolAndSettle($client, $transport, ['region' => 'us-west1']);
 
         self::assertSame([], self::lastContext($transport)->headers);
+    }
+
+    public function testCallToolRefreshesBindingsAndRetriesAfterAHeaderMismatch(): void
+    {
+        $transport = new MirroringRecordingTransport();
+        $client = self::connectMirroring($transport);
+        self::listToolsWithDeclarations($client, $transport);
+
+        $call = async(static fn() => $client->callTool('good', ['region' => 'us-west1']));
+
+        $transport->nextSend()->await();
+        self::assertSame(['Mcp-Param-Region' => 'us-west1'], self::lastContext($transport)->headers);
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => self::lastRequestId($transport),
+            'error' => ['code' => ProtocolErrorCode::HeaderMismatch->value, 'message' => 'Header mismatch'],
+        ]);
+
+        // The re-listing renames the header, so the retry must carry the new one.
+        $transport->nextSend()->await();
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => self::lastRequestId($transport),
+            'result' => [
+                'tools' => [[
+                    'name' => 'good',
+                    'inputSchema' => [
+                        'type' => 'object',
+                        'properties' => ['region' => ['type' => 'string', 'x-mcp-header' => 'Zone']],
+                    ],
+                ]],
+                'ttlMs' => 0,
+                'cacheScope' => 'private',
+            ],
+        ]);
+
+        $transport->nextSend()->await();
+        self::assertSame(['Mcp-Param-Zone' => 'us-west1'], self::lastContext($transport)->headers);
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => self::lastRequestId($transport),
+            'result' => ['content' => [], 'resultType' => 'complete'],
+        ]);
+
+        self::assertInstanceOf(CallToolResult::class, $call->await());
+    }
+
+    public function testCallToolPropagatesAnErrorThatIsNotAHeaderMismatch(): void
+    {
+        $transport = new MirroringRecordingTransport();
+        $client = self::connectMirroring($transport);
+        self::listToolsWithDeclarations($client, $transport);
+
+        $call = async(static fn() => $client->callTool('good', ['region' => 'us-west1']));
+
+        $transport->nextSend()->await();
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => self::lastRequestId($transport),
+            'error' => ['code' => ProtocolErrorCode::InternalError->value, 'message' => 'Boom'],
+        ]);
+
+        try {
+            $call->await();
+            self::fail('The internal error should have propagated.');
+        } catch (RemoteCallFailedException $e) {
+            self::assertSame('Boom', $e->getMessage());
+        }
+
+        self::assertSame(1, self::countRequests($transport, CallToolRequest::class), 'Only a header mismatch triggers a retry.');
+    }
+
+    public function testCallToolRetriesOnlyOnceOnARepeatedHeaderMismatch(): void
+    {
+        $transport = new MirroringRecordingTransport();
+        $client = self::connectMirroring($transport);
+        self::listToolsWithDeclarations($client, $transport);
+
+        $call = async(static fn() => $client->callTool('good', ['region' => 'us-west1']));
+
+        foreach ([true, false] as $refreshes) {
+            self::settleHeaderMismatch($transport);
+
+            if (! $refreshes) {
+                continue;
+            }
+
+            $transport->nextSend()->await();
+            $transport->emitMessage([
+                'jsonrpc' => '2.0',
+                'id' => self::lastRequestId($transport),
+                'result' => ['tools' => [], 'ttlMs' => 0, 'cacheScope' => 'private'],
+            ]);
+        }
+
+        try {
+            $call->await();
+            self::fail('The repeated header mismatch should have propagated.');
+        } catch (RemoteCallFailedException $e) {
+            self::assertSame('Header mismatch', $e->getMessage());
+        }
+
+        self::assertSame(2, self::countRequests($transport, CallToolRequest::class), 'One call plus exactly one retry.');
+    }
+
+    public function testHeaderMismatchRefreshStopsAtThePageHoldingTheTool(): void
+    {
+        $transport = new MirroringRecordingTransport();
+        $client = self::connectMirroring($transport);
+        self::listToolsWithDeclarations($client, $transport);
+
+        $call = async(static fn() => $client->callTool('good', ['region' => 'us-west1']));
+        self::settleHeaderMismatch($transport);
+
+        // The tool is on this page, which still advertises another. The walk must not fetch it.
+        $transport->nextSend()->await();
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => self::lastRequestId($transport),
+            'result' => [
+                'tools' => [self::toolListedUnder('good', 'Zone')],
+                'nextCursor' => 'page-2',
+                'ttlMs' => 0,
+                'cacheScope' => 'private',
+            ],
+        ]);
+
+        self::settleToolCall($transport);
+        $call->await();
+
+        self::assertSame(2, self::countRequests($transport, ListToolsRequest::class), 'The opening listing plus one refresh page.');
+    }
+
+    public function testHeaderMismatchRefreshWalksToThePageHoldingTheTool(): void
+    {
+        $transport = new MirroringRecordingTransport();
+        $client = self::connectMirroring($transport);
+        self::listToolsWithDeclarations($client, $transport);
+
+        $call = async(static fn() => $client->callTool('good', ['region' => 'us-west1']));
+        self::settleHeaderMismatch($transport);
+
+        $transport->nextSend()->await();
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => self::lastRequestId($transport),
+            'result' => [
+                'tools' => [self::toolListedUnder('other', 'Other')],
+                'nextCursor' => 'page-2',
+                'ttlMs' => 0,
+                'cacheScope' => 'private',
+            ],
+        ]);
+
+        $transport->nextSend()->await();
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => self::lastRequestId($transport),
+            'result' => ['tools' => [self::toolListedUnder('good', 'Zone')], 'ttlMs' => 0, 'cacheScope' => 'private'],
+        ]);
+
+        $transport->nextSend()->await();
+        self::assertSame(['Mcp-Param-Zone' => 'us-west1'], self::lastContext($transport)->headers);
+        self::settleToolCall($transport, awaitSend: false);
+        $call->await();
+
+        self::assertSame(3, self::countRequests($transport, ListToolsRequest::class), 'The opening listing plus both refresh pages.');
     }
 
     public function testReconnectingDiscardsTheCachedBindings(): void
@@ -1411,6 +1579,61 @@ final class ClientTest extends TestCase
         }
 
         return $context;
+    }
+
+    private static function settleHeaderMismatch(MirroringRecordingTransport|RecordingTransport $transport): void
+    {
+        $transport->nextSend()->await();
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => self::lastRequestId($transport),
+            'error' => ['code' => ProtocolErrorCode::HeaderMismatch->value, 'message' => 'Header mismatch'],
+        ]);
+    }
+
+    private static function settleToolCall(MirroringRecordingTransport|RecordingTransport $transport, bool $awaitSend = true): void
+    {
+        if ($awaitSend) {
+            $transport->nextSend()->await();
+        }
+
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => self::lastRequestId($transport),
+            'result' => ['content' => [], 'resultType' => 'complete'],
+        ]);
+    }
+
+    /**
+     * One `tools/list` entry for a tool whose single `region` argument mirrors into the given header.
+     *
+     * @return array<string, mixed>
+     */
+    private static function toolListedUnder(string $name, string $header): array
+    {
+        return [
+            'name' => $name,
+            'inputSchema' => [
+                'type' => 'object',
+                'properties' => ['region' => ['type' => 'string', 'x-mcp-header' => $header]],
+            ],
+        ];
+    }
+
+    /**
+     * @param class-string $request
+     */
+    private static function countRequests(MirroringRecordingTransport|RecordingTransport $transport, string $request): int
+    {
+        $count = 0;
+
+        foreach ($transport->sent as $entry) {
+            if ($entry['message'] instanceof $request) {
+                ++$count;
+            }
+        }
+
+        return $count;
     }
 
     private static function lastRequestId(MirroringRecordingTransport|RecordingTransport $transport): int|string

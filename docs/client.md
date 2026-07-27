@@ -244,6 +244,8 @@ body. Supporting this is mandatory for a client on the Streamable HTTP transport
 - `listTools()` scans each tool's `inputSchema` and caches its declarations.
 - `callTool()` extracts the annotated arguments, encodes them, and sends them as `Mcp-Param-{Name}` headers.
   An argument that is absent or `null` sends no header, which is what the server expects.
+- A `-32020 HeaderMismatch` rejection re-lists the tool and retries the call once, so a cached schema that
+  has fallen behind the server's recovers on its own.
 
 Two consequences worth knowing:
 
@@ -254,9 +256,11 @@ is missing. Declarations are invalid when they are empty, are not a valid HTTP f
 case-insensitively, sit on a `number` parameter, or sit somewhere not reachable through a plain `properties`
 chain.
 
-**Only `listTools()` populates the cache.** Calling a tool you never listed sends no mirrored headers, and the
-server answers `-32020 HeaderMismatch`. Call `listTools()` first, which is also the spec's prescribed recovery
-from that error. `disconnect()` clears the cache, since it described the server you just left.
+**Only `listTools()` populates the cache.** Calling a tool you never listed sends no mirrored headers, so the
+server answers `-32020 HeaderMismatch` and the client recovers by listing and retrying. That costs an extra
+round trip each time, so call `listTools()` first when you can. A second mismatch on the retry propagates to
+you, as does any other error code. `disconnect()` clears the cache, since it described the server you just
+left.
 
 None of this applies on stdio: that transport may ignore the annotations entirely, so the listing is passed
 through untouched and no tool is dropped.
