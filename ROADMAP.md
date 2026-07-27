@@ -455,6 +455,21 @@ Server (resource server, not conformance-scored but part of the auth spec):
 The OAuth-related official extensions (client-credentials and enterprise-managed authorization) are
 covered in the "Official extensions" block below, built on this subsystem.
 
+Ecosystem practices worth adopting, drawn from a comparison against the official TypeScript and PHP
+SDKs.
+
+- [ ] Wire the `modelcontextprotocol/conformance` suite into CI against a checked-in
+  expected-failures baseline, and publish the client and server scores. The baseline turns "which
+  scenarios fail" into a reviewable diff rather than tribal knowledge, and it is what makes the
+  tiering claims in `.github/TIERING_CHECKLIST.md` auditable.
+- [ ] Establish the optional-dependency pattern for anything cryptographic: a `suggest` entry rather
+  than a `require`, guarded by `class_exists` with an actionable message naming the package to
+  install. This is the shape a shipped JWT or JWKS access-token validator would need, since the SDK
+  will not take a crypto dependency.
+- [ ] Grow the authorization documentation into runnable ground: per-provider recipes (Keycloak,
+  Entra, Auth0, Okta) and a dockerised end-to-end example, so a reader can stand a protected server
+  up rather than assemble one from the reference.
+
 ### Official extensions
 
 The SDK fully supports the official MCP extensions. They are built as the final block of the migration,
