@@ -17,6 +17,7 @@ use Amp\Http\Client\HttpException;
 use Amp\Http\Client\Request;
 use Amp\Http\Client\Response;
 use Amp\NullCancellation;
+use Nexus\Mcp\Client\Auth\AccessToken;
 use Nexus\Mcp\Client\Auth\AuthorizationOptions;
 use Nexus\Mcp\Client\Auth\AuthorizedHttpClient;
 use Nexus\Mcp\Client\Auth\InMemoryTokenStore;
@@ -510,20 +511,24 @@ final class AuthorizedHttpClientTest extends TestCase
         self::assertTrue($http->drainedBodies[0] ?? false);
     }
 
-    public function testAnOversizedChallengeBodyStillAuthorizes(): void
+    public function testAChallengeBodyAtTheDrainCapIsStillRead(): void
     {
-        $http = new RecordingHttpClient()
-            ->willChallenge(401, self::CHALLENGE, str_repeat('x', 9000))
-            ->willAnswerJson(self::resourceDocument())
-            ->willAnswerJson(self::serverDocument())
-            ->willAnswerJson(['client_id' => 'the-client'])
-            ->willAnswerJson(['access_token' => 'the-access-token', 'token_type' => 'Bearer'])
-            ->willAnswerJson(['ok' => true])
-        ;
+        $http = self::scriptChallengeAndFlow(str_repeat('x', 8192))->willAnswerJson(['ok' => true]);
 
         $response = self::client($http)->request(self::mcpRequest(), new NullCancellation());
 
         self::assertSame(200, $response->getStatus());
+        self::assertTrue($http->drainedBodies[0] ?? false);
+    }
+
+    public function testAnOversizedChallengeBodyIsGivenUpOnButStillAuthorizes(): void
+    {
+        $http = self::scriptChallengeAndFlow(str_repeat('x', 8193))->willAnswerJson(['ok' => true]);
+
+        $response = self::client($http)->request(self::mcpRequest(), new NullCancellation());
+
+        self::assertSame(200, $response->getStatus());
+        self::assertFalse($http->drainedBodies[0] ?? false);
     }
 
     public function testTheCallerRequestIsNotMutatedByTheRetry(): void
@@ -543,6 +548,80 @@ final class AuthorizedHttpClientTest extends TestCase
         self::client(self::scriptChallengeAndFlow()->willAnswerJson(['ok' => true]), tokens: $store)->request(self::mcpRequest(), new NullCancellation());
 
         self::assertSame('the-access-token', $store->read(self::RESOURCE)?->value);
+    }
+
+    public function testAStoredTokenPastItsLifetimeIsRenewedBeforeTheRequestIsSent(): void
+    {
+        $tokens = new InMemoryTokenStore();
+        $tokens->write(self::RESOURCE, new AccessToken('the-stored-token', 'https://auth.test', time() - 1, 'the-refresh-token'));
+        $http = new RecordingHttpClient()
+            ->willAnswerJson(self::resourceDocument())
+            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson(['client_id' => 'the-client'])
+            ->willAnswerJson(['access_token' => 'the-renewed-token', 'token_type' => 'Bearer'])
+            ->willAnswerJson(['ok' => true])
+        ;
+        $user = new ScriptedUserAuthorization();
+
+        $response = self::client($http, $user, $tokens)->request(self::mcpRequest(), new NullCancellation());
+
+        self::assertSame(200, $response->getStatus());
+        self::assertSame([], $user->redirects);
+        self::assertSame('https://auth.test/token', (string) $http->readRequest(3)->getUri());
+        self::assertSame('Bearer the-renewed-token', $http->readRequest(4)->getHeader('Authorization'));
+    }
+
+    public function testATokenLapsingOneSecondPastTheLeewayIsStillPresented(): void
+    {
+        $tokens = new InMemoryTokenStore();
+        $tokens->write(self::RESOURCE, new AccessToken('the-stored-token', 'https://auth.test', time() + 31, 'the-refresh-token'));
+        $http = new RecordingHttpClient()->willAnswerJson(['ok' => true]);
+
+        self::client($http, null, $tokens)->request(self::mcpRequest(), new NullCancellation());
+
+        self::assertCount(1, $http->requests);
+        self::assertSame('Bearer the-stored-token', $http->readRequest()->getHeader('Authorization'));
+    }
+
+    public function testATokenLapsingAtTheLeewayIsRenewedInstead(): void
+    {
+        $tokens = new InMemoryTokenStore();
+        $tokens->write(self::RESOURCE, new AccessToken('the-stored-token', 'https://auth.test', time() + 30, 'the-refresh-token'));
+        $http = new RecordingHttpClient()
+            ->willAnswerJson(self::resourceDocument())
+            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson(['client_id' => 'the-client'])
+            ->willAnswerJson(['access_token' => 'the-renewed-token', 'token_type' => 'Bearer'])
+            ->willAnswerJson(['ok' => true])
+        ;
+
+        self::client($http, null, $tokens)->request(self::mcpRequest(), new NullCancellation());
+
+        self::assertCount(5, $http->requests);
+        self::assertSame('Bearer the-renewed-token', $http->readRequest(4)->getHeader('Authorization'));
+    }
+
+    public function testAChallengeFollowingAScopeUpgradeIsTheServersAnswer(): void
+    {
+        $http = new RecordingHttpClient()
+            ->willChallenge(401, self::CHALLENGE)
+            ->willAnswerJson(self::resourceDocument())
+            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson(['client_id' => 'the-client'])
+            ->willAnswerJson(['access_token' => 'the-first-token', 'token_type' => 'Bearer'])
+            ->willChallenge(403, 'Bearer error="insufficient_scope", scope="files:write"')
+            ->willAnswerJson(['access_token' => 'the-second-token', 'token_type' => 'Bearer', 'scope' => 'files:write'])
+            ->willChallenge(401, self::CHALLENGE)
+        ;
+        $user = new ScriptedUserAuthorization();
+
+        $response = self::client($http, $user)->request(self::mcpRequest(), new NullCancellation());
+
+        // One re-authorization is spent on the first `401`, so the `401` that follows the step-up is taken
+        // as the server's answer rather than as a third grant.
+        self::assertSame(401, $response->getStatus());
+        self::assertCount(2, $user->redirects);
+        self::assertCount(8, $http->requests);
     }
 
     private static function client(
@@ -578,10 +657,10 @@ final class AuthorizedHttpClientTest extends TestCase
      * Queues the challenge and the four authorization exchanges that answer it. The caller queues what the
      * retried MCP request is answered with.
      */
-    private static function scriptChallengeAndFlow(): RecordingHttpClient
+    private static function scriptChallengeAndFlow(string $challengeBody = '{}'): RecordingHttpClient
     {
         return new RecordingHttpClient()
-            ->willChallenge(401, self::CHALLENGE)
+            ->willChallenge(401, self::CHALLENGE, $challengeBody)
             ->willAnswerJson(self::resourceDocument())
             ->willAnswerJson(self::serverDocument())
             ->willAnswerJson(['client_id' => 'the-client'])

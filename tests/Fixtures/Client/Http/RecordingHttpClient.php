@@ -223,6 +223,11 @@ final class RecordingHttpClient implements DelegateHttpClient
     {
         yield from $chunks;
 
+        // Emitting one more chunk parks this generator until the consumer asks for it, so a consumer that
+        // gives up after the last real chunk never reaches the line below. Recording straight after the
+        // chunks would instead mark an abandoned body drained.
+        yield '';
+
         $this->drainedBodies[$index] = true;
     }
 
