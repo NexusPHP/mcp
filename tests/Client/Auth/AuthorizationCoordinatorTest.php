@@ -1,0 +1,342 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * This file is part of the Nexus MCP SDK package.
+ *
+ * (c) 2026 John Paul E. Balandan, CPA <paulbalandan@gmail.com>
+ *
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
+ */
+
+namespace Nexus\Mcp\Tests\Client\Auth;
+
+use Nexus\Mcp\Client\Auth\AccessToken;
+use Nexus\Mcp\Client\Auth\AuthorizationCoordinator;
+use Nexus\Mcp\Client\Auth\AuthorizationOptions;
+use Nexus\Mcp\Client\Auth\ClientRegistrar;
+use Nexus\Mcp\Client\Auth\InMemoryClientRegistrationStore;
+use Nexus\Mcp\Client\Auth\InMemoryTokenStore;
+use Nexus\Mcp\Client\Auth\MetadataDiscovery;
+use Nexus\Mcp\Client\Auth\TokenEndpoint;
+use Nexus\Mcp\Client\Exception\InvalidAuthorizationResponseException;
+use Nexus\Mcp\Core\Auth\ResourceIdentifier;
+use Nexus\Mcp\Core\Auth\ScopeSet;
+use Nexus\Mcp\Core\Auth\WwwAuthenticateChallenge;
+use Nexus\Mcp\Tests\Fixtures\Client\Auth\ScriptedUserAuthorization;
+use Nexus\Mcp\Tests\Fixtures\Client\Http\RecordingHttpClient;
+use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\TestCase;
+use Psr\Log\LogLevel;
+
+/**
+ * @internal
+ */
+#[CoversClass(AuthorizationCoordinator::class)]
+#[Group('unit-tests')]
+#[Group('client-tests')]
+final class AuthorizationCoordinatorTest extends TestCase
+{
+    private const string RESOURCE = 'https://mcp.example.com/mcp';
+    private const string ISSUER = 'https://auth.example.com';
+
+    public function testAuthorizeWalksDiscoveryRegistrationAndTheTokenExchange(): void
+    {
+        $http = self::scriptFullFlow();
+        $user = new ScriptedUserAuthorization();
+
+        $token = self::coordinator($http, $user)->authorize(self::resource());
+
+        self::assertSame('the-access-token', $token->value);
+        self::assertSame([
+            'https://mcp.example.com/.well-known/oauth-protected-resource/mcp',
+            'https://auth.example.com/.well-known/oauth-authorization-server',
+            'https://auth.example.com/register',
+            'https://auth.example.com/token',
+        ], array_map(static fn($request): string => (string) $request->getUri(), $http->requests));
+        self::assertCount(1, $user->redirects);
+    }
+
+    public function testAuthorizeStoresTheTokenAgainstTheIssuer(): void
+    {
+        $store = new InMemoryTokenStore();
+
+        self::coordinator(self::scriptFullFlow(), new ScriptedUserAuthorization(), $store)->authorize(self::resource());
+
+        self::assertSame('the-access-token', $store->read(self::RESOURCE, self::ISSUER)?->value);
+    }
+
+    public function testTheChallengeScopeOutranksTheAdvertisedScopes(): void
+    {
+        $user = new ScriptedUserAuthorization();
+
+        self::coordinator(self::scriptFullFlow(['scopes_supported' => ['files:read']]), $user)->authorize(
+            self::resource(),
+            new WwwAuthenticateChallenge('Bearer', ['scope' => 'files:write']),
+        );
+
+        self::assertSame(['files:write'], $user->readRequestedScopes());
+    }
+
+    public function testTheAdvertisedScopesAreRequestedWhenNoChallengeNamesAny(): void
+    {
+        $user = new ScriptedUserAuthorization();
+
+        self::coordinator(self::scriptFullFlow(['scopes_supported' => ['files:read', 'files:write']]), $user)->authorize(self::resource());
+
+        self::assertSame(['files:read', 'files:write'], $user->readRequestedScopes());
+    }
+
+    public function testNoScopeIsRequestedWhenNothingAdvertisesAny(): void
+    {
+        $user = new ScriptedUserAuthorization();
+
+        self::coordinator(self::scriptFullFlow(), $user)->authorize(self::resource());
+
+        self::assertSame([], $user->readRequestedScopes());
+    }
+
+    public function testAdditionalScopesAreAccumulatedOntoTheSelection(): void
+    {
+        $user = new ScriptedUserAuthorization();
+
+        self::coordinator(self::scriptFullFlow(['scopes_supported' => ['files:read']]), $user)->authorize(
+            self::resource(),
+            null,
+            new ScopeSet(['files:write']),
+        );
+
+        self::assertSame(['files:read', 'files:write'], $user->readRequestedScopes());
+    }
+
+    public function testAlreadyGrantedScopesSurviveAStepUp(): void
+    {
+        $store = new InMemoryTokenStore();
+        $store->write(self::RESOURCE, self::ISSUER, new AccessToken('the-old-token', scopes: ['files:read']));
+        $user = new ScriptedUserAuthorization();
+
+        self::coordinator(self::scriptFullFlow(), $user, $store)->authorize(
+            self::resource(),
+            new WwwAuthenticateChallenge('Bearer', ['scope' => 'files:write']),
+        );
+
+        self::assertSame(['files:write', 'files:read'], $user->readRequestedScopes());
+    }
+
+    public function testOfflineAccessIsRequestedWhenTheServerOffersIt(): void
+    {
+        $user = new ScriptedUserAuthorization();
+
+        self::coordinator(self::scriptFullFlow(serverOverrides: ['scopes_supported' => ['files:read', 'offline_access']]), $user)->authorize(self::resource());
+
+        self::assertSame(['offline_access'], $user->readRequestedScopes());
+    }
+
+    public function testOfflineAccessIsNotRequestedWhenTheServerDoesNotOfferIt(): void
+    {
+        $user = new ScriptedUserAuthorization();
+
+        self::coordinator(self::scriptFullFlow(serverOverrides: ['scopes_supported' => ['files:read']]), $user)->authorize(self::resource());
+
+        self::assertSame([], $user->readRequestedScopes());
+    }
+
+    public function testAFailedResponseValidationAbortsBeforeTheTokenExchange(): void
+    {
+        $http = self::scriptFullFlow();
+        $user = new ScriptedUserAuthorization(['error' => 'access_denied', 'iss' => 'https://attacker.example']);
+
+        $this->expectException(InvalidAuthorizationResponseException::class);
+
+        self::coordinator($http, $user)->authorize(self::resource());
+    }
+
+    public function testAuthorizeLogsTheServerItAuthorizedAgainst(): void
+    {
+        $logger = new ArrayLogger();
+
+        self::coordinator(self::scriptFullFlow(), new ScriptedUserAuthorization(), logger: $logger)->authorize(self::resource());
+
+        self::assertSame(
+            [['level' => LogLevel::INFO, 'message' => 'Authorized {resource} at {issuer}.', 'context' => [
+                'resource' => self::RESOURCE,
+                'issuer' => self::ISSUER,
+            ]]],
+            $logger->recordsMatching(LogLevel::INFO, 'Authorized {resource} at {issuer}.'),
+        );
+    }
+
+    public function testARefusedRefreshIsLoggedWithItsReason(): void
+    {
+        $http = self::scriptFullFlow(tokenOverrides: ['expires_in' => 1, 'refresh_token' => 'the-refresh-token'])
+            ->willAnswerJson(['error' => 'invalid_grant'], 400)
+        ;
+        $logger = new ArrayLogger();
+        $coordinator = self::coordinator($http, new ScriptedUserAuthorization(), logger: $logger);
+        $coordinator->authorize(self::resource());
+
+        $coordinator->fetchToken(self::resource());
+
+        $message = 'The refresh token for {resource} was refused, so a new authorization is needed. {reason}';
+        self::assertSame(
+            [['level' => LogLevel::INFO, 'message' => $message, 'context' => [
+                'resource' => self::RESOURCE,
+                'reason' => 'The token request failed with "invalid_grant".',
+            ]]],
+            $logger->recordsMatching(LogLevel::INFO, $message),
+        );
+    }
+
+    public function testATokenLapsingInsideTheLeewayIsTreatedAsSpent(): void
+    {
+        $store = new InMemoryTokenStore();
+        $coordinator = self::coordinator(self::scriptFullFlow(tokenOverrides: ['expires_in' => 30]), new ScriptedUserAuthorization(), $store);
+        $coordinator->authorize(self::resource());
+
+        self::assertNull($coordinator->fetchToken(self::resource()));
+    }
+
+    public function testATokenLapsingBeyondTheLeewayIsStillUsable(): void
+    {
+        $store = new InMemoryTokenStore();
+        $coordinator = self::coordinator(self::scriptFullFlow(tokenOverrides: ['expires_in' => 90]), new ScriptedUserAuthorization(), $store);
+        $coordinator->authorize(self::resource());
+
+        self::assertSame('the-access-token', $coordinator->fetchToken(self::resource())?->value);
+    }
+
+    public function testFetchTokenReturnsNullBeforeAnyAuthorization(): void
+    {
+        self::assertNull(self::coordinator(new RecordingHttpClient(), new ScriptedUserAuthorization())->fetchToken(self::resource()));
+    }
+
+    public function testFetchTokenReturnsTheStoredToken(): void
+    {
+        $coordinator = self::coordinator(self::scriptFullFlow(), new ScriptedUserAuthorization());
+        $coordinator->authorize(self::resource());
+
+        self::assertSame('the-access-token', $coordinator->fetchToken(self::resource())?->value);
+    }
+
+    public function testFetchTokenKeepsAnUnexpiredToken(): void
+    {
+        $store = new InMemoryTokenStore();
+        $coordinator = self::coordinator(self::scriptFullFlow(tokenOverrides: ['expires_in' => 3600]), new ScriptedUserAuthorization(), $store);
+        $coordinator->authorize(self::resource());
+
+        self::assertSame('the-access-token', $coordinator->fetchToken(self::resource())?->value);
+    }
+
+    public function testFetchTokenRenewsASpentTokenWithItsRefreshToken(): void
+    {
+        $http = self::scriptFullFlow(tokenOverrides: ['expires_in' => 1, 'refresh_token' => 'the-refresh-token'])
+            ->willAnswerJson(['access_token' => 'the-renewed-token', 'token_type' => 'Bearer'])
+        ;
+        $store = new InMemoryTokenStore();
+        $coordinator = self::coordinator($http, new ScriptedUserAuthorization(), $store);
+        $coordinator->authorize(self::resource());
+
+        self::assertSame('the-renewed-token', $coordinator->fetchToken(self::resource())?->value);
+        self::assertSame('the-renewed-token', $store->read(self::RESOURCE, self::ISSUER)?->value);
+    }
+
+    public function testFetchTokenDropsASpentTokenThatCannotBeRenewed(): void
+    {
+        $store = new InMemoryTokenStore();
+        $coordinator = self::coordinator(self::scriptFullFlow(tokenOverrides: ['expires_in' => 1]), new ScriptedUserAuthorization(), $store);
+        $coordinator->authorize(self::resource());
+
+        self::assertNull($coordinator->fetchToken(self::resource()));
+        self::assertNull($store->read(self::RESOURCE, self::ISSUER));
+    }
+
+    public function testFetchTokenDropsATokenWhoseRefreshIsRefused(): void
+    {
+        $http = self::scriptFullFlow(tokenOverrides: ['expires_in' => 1, 'refresh_token' => 'the-refresh-token'])
+            ->willAnswerJson(['error' => 'invalid_grant'], 400)
+        ;
+        $store = new InMemoryTokenStore();
+        $coordinator = self::coordinator($http, new ScriptedUserAuthorization(), $store);
+        $coordinator->authorize(self::resource());
+
+        self::assertNull($coordinator->fetchToken(self::resource()));
+        self::assertNull($store->read(self::RESOURCE, self::ISSUER));
+    }
+
+    public function testDiscardDropsTheStoredToken(): void
+    {
+        $store = new InMemoryTokenStore();
+        $coordinator = self::coordinator(self::scriptFullFlow(), new ScriptedUserAuthorization(), $store);
+        $coordinator->authorize(self::resource());
+
+        $coordinator->discard(self::resource());
+
+        self::assertNull($store->read(self::RESOURCE, self::ISSUER));
+        self::assertNull($coordinator->fetchToken(self::resource()));
+    }
+
+    public function testDiscardIsHarmlessBeforeAnyAuthorization(): void
+    {
+        $store = new InMemoryTokenStore();
+        $store->write(self::RESOURCE, self::ISSUER, new AccessToken('untouched'));
+
+        self::coordinator(new RecordingHttpClient(), new ScriptedUserAuthorization(), $store)->discard(self::resource());
+
+        self::assertSame('untouched', $store->read(self::RESOURCE, self::ISSUER)?->value);
+    }
+
+    private static function resource(): ResourceIdentifier
+    {
+        return new ResourceIdentifier(self::RESOURCE);
+    }
+
+    private static function coordinator(
+        RecordingHttpClient $http,
+        ScriptedUserAuthorization $user,
+        ?InMemoryTokenStore $tokens = null,
+        ?ArrayLogger $logger = null,
+    ): AuthorizationCoordinator {
+        return new AuthorizationCoordinator(
+            new MetadataDiscovery($http),
+            new ClientRegistrar($http, new InMemoryClientRegistrationStore()),
+            new TokenEndpoint($http),
+            $user,
+            $tokens ?? new InMemoryTokenStore(),
+            new AuthorizationOptions('Example MCP Client', 'http://localhost:3000/callback'),
+            $logger ?? new ArrayLogger(),
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $resourceOverrides
+     * @param array<string, mixed> $serverOverrides
+     * @param array<string, mixed> $tokenOverrides
+     */
+    private static function scriptFullFlow(
+        array $resourceOverrides = [],
+        array $serverOverrides = [],
+        array $tokenOverrides = [],
+    ): RecordingHttpClient {
+        return new RecordingHttpClient()
+            ->willAnswerJson([
+                'resource' => self::RESOURCE,
+                'authorization_servers' => [self::ISSUER],
+                ...$resourceOverrides,
+            ])
+            ->willAnswerJson([
+                'issuer' => self::ISSUER,
+                'authorization_endpoint' => 'https://auth.example.com/authorize',
+                'token_endpoint' => 'https://auth.example.com/token',
+                'registration_endpoint' => 'https://auth.example.com/register',
+                'code_challenge_methods_supported' => ['S256'],
+                ...$serverOverrides,
+            ])
+            ->willAnswerJson(['client_id' => 'the-registered-client'])
+            ->willAnswerJson(['access_token' => 'the-access-token', 'token_type' => 'Bearer', ...$tokenOverrides])
+        ;
+    }
+}
