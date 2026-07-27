@@ -136,12 +136,19 @@ notices and re-authorizes. Store both confidentially. They are credentials.
 
 ### Scopes and step-up
 
-Scope selection follows the spec's priority: the `scope` a challenge names wins, otherwise `defaultScopes` if
-you declared any, otherwise the resource's `scopes_supported`, otherwise the parameter is omitted entirely.
-Declaring `defaultScopes` is how you avoid asking for everything a resource happens to advertise when your
-client only needs part of it. `offline_access` is added only when you pass
-`requestOfflineAccess: true` *and* the authorization server lists it. That is what gets a refresh token issued,
-and a refresh token outlives the session, so asking for one stays your call.
+Scope selection starts from the `scope` a challenge names, falling back to `defaultScopes` if you declared any,
+then to the resource's `scopes_supported`, and omitting the parameter entirely if none of those names anything.
+The first two rungs are the spec's; `defaultScopes` is an extra tier the SDK adds so you can avoid asking for
+everything a resource happens to advertise when your client only needs part of it. Since servers *should* name
+a `scope` in the challenge, `defaultScopes` mostly bites against servers that omit it. Whatever the baseline,
+the scopes already granted are unioned on top, and they survive a token being dropped, so re-authorizing never
+narrows what the client may do.
+
+`offline_access` is decided by the client alone: it is stripped from that union and added back only when you
+pass `requestOfflineAccess: true` *and* the authorization server lists it, so a resource cannot talk you into
+holding a refresh token. That is what gets a refresh token issued, and a refresh token outlives the session, so
+asking for one stays your call. Asking for it also sends `prompt=consent`, because a server that can answer
+silently from a prior grant generally will, and a silent answer carries no refresh token.
 
 A `403` carrying `error="insufficient_scope"` triggers a step-up. The SDK unions the challenged scopes with
 those already granted, so a fresh grant never costs permissions other operations depend on, and retries.
@@ -153,8 +160,9 @@ round trip would buy the user is a second consent screen.
 
 Pass `onInsufficientScope: InsufficientScopePolicy::Fail` to be told instead of asked. The SDK then raises
 `InsufficientScopeException` naming the scopes the server wants, without running discovery or opening a
-consent screen, which is what an unattended process usually wants. That covers the `403` path only. To refuse
-every prompt, including the one a `401` provokes, throw from your `UserAuthorizationInterface` instead.
+consent screen, which is what an unattended process usually wants. It is raised for every insufficient-scope
+answer, including ones `maxScopeUpgrades` would otherwise have swallowed. That covers the `403` path only. To
+refuse every prompt, including the one a `401` provokes, throw from your `UserAuthorizationInterface` instead.
 
 A `401` re-authorizes once, and carries the rejected token's scopes into the new grant for the same reason. A
 second `401` on the token that came back is taken as the server's answer and returned to the caller.

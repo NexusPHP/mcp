@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Tests\Client\Auth;
 
 use Nexus\Mcp\Client\Auth\AuthorizationOptions;
 use Nexus\Mcp\Client\Auth\ClientRegistration;
+use Nexus\Mcp\Client\Auth\InsufficientScopePolicy;
 use Nexus\Mcp\Client\Exception\InsecureAuthorizationEndpointException;
 use Nexus\Mcp\Core\Auth\ApplicationType;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -42,6 +43,7 @@ final class AuthorizationOptionsTest extends TestCase
             5,
             true,
             ['files:read'],
+            InsufficientScopePolicy::Fail,
         );
 
         self::assertSame('Example MCP Client', $options->clientName);
@@ -52,6 +54,7 @@ final class AuthorizationOptionsTest extends TestCase
         self::assertSame(5, $options->maxScopeUpgrades);
         self::assertTrue($options->requestOfflineAccess);
         self::assertSame(['files:read'], $options->defaultScopes);
+        self::assertSame(InsufficientScopePolicy::Fail, $options->onInsufficientScope);
     }
 
     public function testARemoteCleartextRedirectUriIsRefused(): void
@@ -80,5 +83,6 @@ final class AuthorizationOptionsTest extends TestCase
         self::assertSame(2, $options->maxScopeUpgrades);
         self::assertFalse($options->requestOfflineAccess);
         self::assertSame([], $options->defaultScopes);
+        self::assertSame(InsufficientScopePolicy::Reauthorize, $options->onInsufficientScope);
     }
 }

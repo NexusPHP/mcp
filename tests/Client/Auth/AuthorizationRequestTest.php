@@ -67,6 +67,18 @@ final class AuthorizationRequestTest extends TestCase
         self::assertSame('acme', self::readQuery($redirect->url)['tenant'] ?? null);
     }
 
+    public function testBuildForcesAConsentScreenWhenItAsksForOfflineAccess(): void
+    {
+        $redirect = self::build(new ScopeSet(['files:read', 'offline_access']));
+
+        self::assertSame('consent', self::readQuery($redirect->url)['prompt'] ?? null);
+    }
+
+    public function testBuildLeavesTheConsentScreenToTheServerOtherwise(): void
+    {
+        self::assertArrayNotHasKey('prompt', self::readQuery(self::build(new ScopeSet(['files:read']))->url));
+    }
+
     public function testBuildRecordsTheIssuerToValidateTheResponseAgainst(): void
     {
         self::assertSame('https://auth.example.com', self::build(new ScopeSet())->expectedIssuer);
@@ -99,6 +111,7 @@ final class AuthorizationRequestTest extends TestCase
 
         self::assertNotSame($first->state, $second->state);
         self::assertNotSame($first->pkce->verifier, $second->pkce->verifier);
+        self::assertSame(64, \strlen($first->state));
     }
 
     public function testBuildDerivesTheChallengeFromTheVerifierItRecorded(): void

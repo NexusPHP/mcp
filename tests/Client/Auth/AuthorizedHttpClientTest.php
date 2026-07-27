@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Tests\Client\Auth;
 
 use Amp\Http\Client\HttpException;
 use Amp\Http\Client\Request;
+use Amp\Http\Client\Response;
 use Amp\NullCancellation;
 use Nexus\Mcp\Client\Auth\AuthorizationOptions;
 use Nexus\Mcp\Client\Auth\AuthorizedHttpClient;
@@ -28,6 +29,8 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LogLevel;
+
+use function Amp\async;
 
 /**
  * @internal
@@ -157,6 +160,7 @@ final class AuthorizedHttpClientTest extends TestCase
         self::assertSame(['files:write'], $user->readRequestedScopes(1));
         self::assertCount(8, $http->requests);
         self::assertSame('Bearer the-wider-token', $http->readRequest(7)->getHeader('Authorization'));
+        self::assertTrue($http->drainedBodies[5] ?? false);
     }
 
     public function testAScopeChallengeNamingNothingTheTokenLacksIsReturned(): void
@@ -178,10 +182,11 @@ final class AuthorizedHttpClientTest extends TestCase
         self::assertCount(6, $http->requests);
         self::assertCount(1, $user->redirects);
         self::assertSame(
-            [['level' => LogLevel::WARNING, 'message' => 'The scope challenge from {resource} asks for nothing the token lacks.', 'context' => [
+            [['level' => LogLevel::WARNING, 'message' => 'The scope challenge from {resource} names {scopes}.', 'context' => [
                 'resource' => self::RESOURCE,
+                'scopes' => 'files:read',
             ]]],
-            $logger->recordsMatching(LogLevel::WARNING, 'The scope challenge from {resource} asks for nothing the token lacks.'),
+            $logger->recordsMatching(LogLevel::WARNING, 'The scope challenge from {resource} names {scopes}.'),
         );
     }
 
@@ -223,6 +228,82 @@ final class AuthorizedHttpClientTest extends TestCase
         self::assertCount(1, $user->redirects);
         self::assertCount(6, $http->requests);
         self::assertTrue($http->drainedBodies[5] ?? false);
+    }
+
+    public function testTheFailPolicyIsNotDefeatedByAnExhaustedUpgradeBudget(): void
+    {
+        $http = self::scriptChallengeAndFlow()->willChallenge(403, 'Bearer error="insufficient_scope", scope="files:write"');
+
+        $this->expectException(InsufficientScopeException::class);
+
+        self::client($http, maxScopeUpgrades: 0, policy: InsufficientScopePolicy::Fail)
+            ->request(self::mcpRequest(), new NullCancellation())
+        ;
+    }
+
+    public function testTheFailPolicyStillReportsAChallengeNamingNothingNew(): void
+    {
+        $http = new RecordingHttpClient()
+            ->willChallenge(401, self::CHALLENGE)
+            ->willAnswerJson(self::resourceDocument())
+            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson(['client_id' => 'the-client'])
+            ->willAnswerJson(['access_token' => 'the-access-token', 'token_type' => 'Bearer', 'scope' => 'files:read'])
+            ->willChallenge(403, 'Bearer error="insufficient_scope", scope="files:read"')
+        ;
+
+        $this->expectException(InsufficientScopeException::class);
+        $this->expectExceptionMessageIs('The MCP server requires the scope "files:read", which the token does not carry.');
+
+        self::client($http, policy: InsufficientScopePolicy::Fail)->request(self::mcpRequest(), new NullCancellation());
+    }
+
+    public function testALapsedTokenLeavesItsScopesToTheGrantThatReplacesIt(): void
+    {
+        $http = new RecordingHttpClient()
+            ->willChallenge(401, self::CHALLENGE)
+            ->willAnswerJson(self::resourceDocument())
+            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson(['client_id' => 'the-client'])
+            ->willAnswerJson(['access_token' => 'token-1', 'token_type' => 'Bearer', 'scope' => 'files:read', 'expires_in' => 1])
+            ->willAnswerJson(['ok' => true])
+            ->willChallenge(401, self::CHALLENGE)
+            ->willAnswerJson(self::resourceDocument())
+            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson(['access_token' => 'token-2', 'token_type' => 'Bearer'])
+            ->willAnswerJson(['ok' => true])
+        ;
+        $user = new ScriptedUserAuthorization();
+        $client = self::client($http, $user);
+
+        $client->request(self::mcpRequest(), new NullCancellation());
+        $client->request(self::mcpRequest(), new NullCancellation());
+
+        self::assertSame(['files:read'], $user->readRequestedScopes(1));
+    }
+
+    public function testConcurrentChallengesOpenOneConsentScreen(): void
+    {
+        $http = new RecordingHttpClient()
+            ->willChallenge(401, self::CHALLENGE)
+            ->willChallenge(401, self::CHALLENGE)
+            ->willAnswerJson(self::resourceDocument())
+            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson(['client_id' => 'the-client'])
+            ->willAnswerJson(['access_token' => 'the-access-token', 'token_type' => 'Bearer'])
+            ->willAnswerJson(['ok' => true])
+            ->willAnswerJson(['ok' => true])
+        ;
+        $user = new ScriptedUserAuthorization();
+        $client = self::client($http, $user);
+
+        $first = async(static fn(): Response => $client->request(self::mcpRequest(), new NullCancellation()));
+        $second = async(static fn(): Response => $client->request(self::mcpRequest(), new NullCancellation()));
+
+        $first->await();
+        $second->await();
+
+        self::assertCount(1, $user->redirects);
     }
 
     public function testAForbiddenAnswerThatIsNotAScopeChallengeIsReturned(): void

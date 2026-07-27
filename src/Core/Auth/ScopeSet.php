@@ -23,6 +23,13 @@ namespace Nexus\Mcp\Core\Auth;
 final readonly class ScopeSet
 {
     /**
+     * The scope that asks an authorization server for a refresh token.
+     *
+     * @see https://openid.net/specs/openid-connect-core-1_0.html#OfflineAccess
+     */
+    public const string OFFLINE_ACCESS = 'offline_access';
+
+    /**
      * @var list<non-empty-string>
      */
     public array $values;
@@ -66,6 +73,14 @@ final readonly class ScopeSet
     public function contains(string $scope): bool
     {
         return \in_array($scope, $this->values, true);
+    }
+
+    /**
+     * This set with one value removed, whether or not it was present.
+     */
+    public function without(string $scope): self
+    {
+        return new self(array_values(array_filter($this->values, static fn(string $value): bool => $value !== $scope)));
     }
 
     public function containsAll(self $other): bool

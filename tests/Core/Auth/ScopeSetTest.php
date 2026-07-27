@@ -111,4 +111,14 @@ final class ScopeSetTest extends TestCase
     {
         self::assertSame('files:read files:write', new ScopeSet(['files:read', 'files:write'])->toParameter());
     }
+
+    public function testWithoutDropsTheNamedScope(): void
+    {
+        self::assertSame(['files:read'], new ScopeSet(['files:read', 'offline_access'])->without('offline_access')->values);
+    }
+
+    public function testWithoutLeavesASetThatNeverHeldItAlone(): void
+    {
+        self::assertSame(['files:read'], new ScopeSet(['files:read'])->without('offline_access')->values);
+    }
 }

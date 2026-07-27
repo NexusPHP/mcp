@@ -2,7 +2,7 @@
 locale = "en-gb"
 
 extend-ignore-words-re = [
-    "(?i)^(un)?(initializ|serializ|normaliz|optimiz|authoriz|contextualiz)(e|es|ed|er|ations?)$",
+    "(?i)^(un)?(initializ|serializ|normaliz|optimiz|authoriz|contextualiz)(e|es|ed|er|ing|ations?)$",
     "(?i)^(colors?|flavor(ed)?)$",
     "(?i)^fibers?$",
 ]
