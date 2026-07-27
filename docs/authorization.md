@@ -273,6 +273,13 @@ Every exception below implements `McpExceptionInterface`.
 | `InvalidAuthorizationResponseException` | The response failed `state`, `iss`, or code validation. |
 | `AuthorizationDeniedException` | The authorization server answered with an OAuth error. |
 | `TokenRequestFailedException` | The token endpoint refused the request. |
+| `AuthorizationGrantRejectedException` | The token endpoint refused the request because the grant is spent. |
+
+`AuthorizationGrantRejectedException` extends `TokenRequestFailedException` and is raised for the RFC 6749
+codes that mean granting again would help: `invalid_grant` and `invalid_scope`. That is the split the SDK acts
+on. A refresh that hits one of those drops the stored token and re-authorizes, while `invalid_client`,
+`unsupported_grant_type`, `server_error` and the rest surface to you with the token left alone, because no
+number of browser round trips fixes a misconfigured client or an authorization server that is down.
 
 ## See also
 

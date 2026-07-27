@@ -20,6 +20,7 @@ use Nexus\Mcp\Client\Auth\AuthorizationRedirect;
 use Nexus\Mcp\Client\Auth\ClientRegistration;
 use Nexus\Mcp\Client\Auth\PkcePair;
 use Nexus\Mcp\Client\Auth\TokenEndpoint;
+use Nexus\Mcp\Client\Exception\AuthorizationGrantRejectedException;
 use Nexus\Mcp\Client\Exception\InsecureAuthorizationEndpointException;
 use Nexus\Mcp\Client\Exception\TokenRequestFailedException;
 use Nexus\Mcp\Core\Auth\AuthorizationServerMetadata;
@@ -286,6 +287,35 @@ final class TokenEndpointTest extends TestCase
         $this->expectExceptionMessageIs('The token request failed with "server_error".');
 
         self::exchange($http);
+    }
+
+    #[DataProvider('provideAGrantRejectionIsToldApartFromAFatalFailureCases')]
+    public function testAGrantRejectionIsToldApartFromAFatalFailure(string $error, bool $rejectsTheGrant): void
+    {
+        $http = new RecordingHttpClient()->willAnswerJson(['error' => $error], 400);
+
+        try {
+            self::exchange($http);
+            self::fail('The token request should have failed.');
+        } catch (TokenRequestFailedException $e) {
+            self::assertSame($rejectsTheGrant, $e instanceof AuthorizationGrantRejectedException);
+        }
+    }
+
+    /**
+     * @return iterable<string, array{string, bool}>
+     */
+    public static function provideAGrantRejectionIsToldApartFromAFatalFailureCases(): iterable
+    {
+        yield 'a revoked or lapsed grant' => ['invalid_grant', true];
+
+        yield 'a scope reaching past the grant' => ['invalid_scope', true];
+
+        yield 'a client the server does not know' => ['invalid_client', false];
+
+        yield 'a malformed request' => ['invalid_request', false];
+
+        yield 'a server fault' => ['server_error', false];
     }
 
     public function testANonBearerTokenTypeIsRefused(): void

@@ -22,6 +22,7 @@ use Nexus\Mcp\Client\Auth\InMemoryTokenStore;
 use Nexus\Mcp\Client\Auth\MetadataDiscovery;
 use Nexus\Mcp\Client\Auth\TokenEndpoint;
 use Nexus\Mcp\Client\Exception\InvalidAuthorizationResponseException;
+use Nexus\Mcp\Client\Exception\TokenRequestFailedException;
 use Nexus\Mcp\Core\Auth\ResourceIdentifier;
 use Nexus\Mcp\Core\Auth\ScopeSet;
 use Nexus\Mcp\Core\Auth\WwwAuthenticateChallenge;
@@ -316,6 +317,25 @@ final class AuthorizationCoordinatorTest extends TestCase
         $coordinator->discard(self::resource());
 
         self::assertSame([], $coordinator->readGrantedScopes(self::resource())->values);
+    }
+
+    public function testARefreshFailureThatIsNotAGrantRejectionSurfacesAndKeepsTheToken(): void
+    {
+        $http = self::scriptFullFlow(tokenOverrides: ['expires_in' => 1, 'refresh_token' => 'the-refresh-token'])
+            ->willAnswerJson(['error' => 'invalid_client'], 400)
+        ;
+        $store = new InMemoryTokenStore();
+        $coordinator = self::coordinator($http, new ScriptedUserAuthorization(), $store);
+        $coordinator->authorize(self::resource());
+
+        try {
+            $coordinator->fetchToken(self::resource());
+            self::fail('The refusal should have surfaced.');
+        } catch (TokenRequestFailedException $e) {
+            self::assertSame('The token request failed with "invalid_client".', $e->getMessage());
+        }
+
+        self::assertSame('the-access-token', $store->read(self::RESOURCE, self::ISSUER)?->value);
     }
 
     public function testDiscardDropsTheStoredToken(): void
