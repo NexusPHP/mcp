@@ -437,7 +437,7 @@ Client (required for client-mode conformance):
   Authorization Server metadata (RFC 8414 and OpenID `.well-known`), including the RFC 8414 path suffix.
 - [ ] Registration: Dynamic Client Registration with `application_type`, Client ID Metadata Document
   (CIMD), and a pre-registered-credentials fallback when there is no registration endpoint.
-- [ ] PKCE (S256) on the authorization request.
+- [x] PKCE (S256) on the authorization request.
 - [ ] Token-endpoint auth: `client_secret_basic`, `client_secret_post`, and `none` (public client).
 - [ ] Scope handling: select from `WWW-Authenticate` / `scopes_supported` / omit, step-up on a 403
   insufficient_scope with scope accumulation, and a retry cap.
