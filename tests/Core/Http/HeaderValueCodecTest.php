@@ -88,6 +88,10 @@ final class HeaderValueCodecTest extends TestCase
 
         yield 'the sentinel suffix without the prefix passes through' => ['abc?=', 'abc?='];
 
+        yield 'an uppercase sentinel prefix is a literal value' => ['=?BASE64?SGVsbG8=?=', '=?BASE64?SGVsbG8=?='];
+
+        yield 'a mixed-case sentinel prefix is a literal value' => ['=?Base64?SGVsbG8=?=', '=?Base64?SGVsbG8=?='];
+
         yield 'an empty payload decodes to an empty string' => ['=?base64??=', ''];
 
         yield 'a non-ASCII payload round-trips' => ['=?base64?SGVsbG8sIOS4lueVjA==?=', 'Hello, 世界'];
