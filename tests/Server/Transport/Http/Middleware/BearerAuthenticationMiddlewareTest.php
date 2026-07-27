@@ -62,17 +62,11 @@ final class BearerAuthenticationMiddlewareTest extends TestCase
         self::assertSame('the-subject', $token->subject);
     }
 
-    #[DataProvider('provideAMissingTokenIsChallengedCases')]
-    public function testAMissingTokenIsChallenged(?string $header): void
+    public function testARequestCarryingNoCredentialsIsChallenged(): void
     {
         $handler = self::handler();
-        $request = self::request(null);
 
-        if (null !== $header) {
-            $request = $request->withHeader('Authorization', $header);
-        }
-
-        $response = self::middleware()->process($request, $handler);
+        $response = self::middleware()->process(self::request(null), $handler);
 
         self::assertSame(401, $response->getStatusCode());
         self::assertFalse($handler->called);
@@ -82,13 +76,26 @@ final class BearerAuthenticationMiddlewareTest extends TestCase
         );
     }
 
-    /**
-     * @return iterable<string, array{?string}>
-     */
-    public static function provideAMissingTokenIsChallengedCases(): iterable
+    #[DataProvider('provideAnUnreadableAuthorizationHeaderIsAnInvalidRequestCases')]
+    public function testAnUnreadableAuthorizationHeaderIsAnInvalidRequest(string $header): void
     {
-        yield 'no Authorization header' => [null];
+        $handler = self::handler();
 
+        $response = self::middleware()->process(self::request(null)->withHeader('Authorization', $header), $handler);
+
+        self::assertSame(400, $response->getStatusCode());
+        self::assertFalse($handler->called);
+        self::assertSame(
+            ['resource_metadata' => self::METADATA_URL, 'error' => 'invalid_request'],
+            self::readChallenge($response),
+        );
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function provideAnUnreadableAuthorizationHeaderIsAnInvalidRequestCases(): iterable
+    {
         yield 'an empty Authorization header' => [''];
 
         yield 'another scheme' => ['Basic dXNlcjpwYXNz'];
@@ -132,7 +139,7 @@ final class BearerAuthenticationMiddlewareTest extends TestCase
 
         $response = self::middleware()->process($request, $handler);
 
-        self::assertSame(401, $response->getStatusCode());
+        self::assertSame(400, $response->getStatusCode());
         self::assertFalse($handler->called);
     }
 
