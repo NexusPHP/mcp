@@ -292,6 +292,32 @@ final class AuthorizationCoordinatorTest extends TestCase
         self::assertNull($store->read(self::RESOURCE, self::ISSUER));
     }
 
+    public function testReadGrantedScopesReportsWhatTheStoredTokenCarries(): void
+    {
+        $http = self::scriptFullFlow(['scopes_supported' => ['files:read', 'files:write']]);
+        $coordinator = self::coordinator($http, new ScriptedUserAuthorization());
+        $coordinator->authorize(self::resource());
+
+        self::assertSame(['files:read', 'files:write'], $coordinator->readGrantedScopes(self::resource())->values);
+    }
+
+    public function testReadGrantedScopesIsEmptyBeforeAnyAuthorization(): void
+    {
+        $coordinator = self::coordinator(new RecordingHttpClient(), new ScriptedUserAuthorization());
+
+        self::assertSame([], $coordinator->readGrantedScopes(self::resource())->values);
+    }
+
+    public function testReadGrantedScopesIsEmptyOnceTheTokenIsDiscarded(): void
+    {
+        $http = self::scriptFullFlow(['scopes_supported' => ['files:read']]);
+        $coordinator = self::coordinator($http, new ScriptedUserAuthorization());
+        $coordinator->authorize(self::resource());
+        $coordinator->discard(self::resource());
+
+        self::assertSame([], $coordinator->readGrantedScopes(self::resource())->values);
+    }
+
     public function testDiscardDropsTheStoredToken(): void
     {
         $store = new InMemoryTokenStore();

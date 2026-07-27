@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Client\Auth;
 
+use Amp\Http\Client\HttpException;
 use Amp\Http\Client\Request;
 use Amp\NullCancellation;
 use Nexus\Mcp\Client\Auth\AuthorizationOptions;
@@ -219,7 +220,7 @@ final class AuthorizedHttpClientTest extends TestCase
         );
     }
 
-    public function testARejectedTokenTakesItsGrantedScopesWithIt(): void
+    public function testARejectedTokenCarriesItsGrantedScopesIntoTheNextOne(): void
     {
         $http = new RecordingHttpClient()
             ->willChallenge(401, self::CHALLENGE)
@@ -240,7 +241,26 @@ final class AuthorizedHttpClientTest extends TestCase
         $client->request(self::mcpRequest(), new NullCancellation());
         $client->request(self::mcpRequest(), new NullCancellation());
 
-        self::assertSame([], $user->readRequestedScopes(1));
+        self::assertSame(['files:read'], $user->readRequestedScopes(1));
+    }
+
+    public function testARejectedTokenIsDroppedEvenWhenReauthorizingFails(): void
+    {
+        $http = self::scriptChallengeAndFlow()
+            ->willAnswerJson(['ok' => true])
+            ->willChallenge(401, self::CHALLENGE)
+            ->willFail(new HttpException('The network is gone.'))
+        ;
+        $store = new InMemoryTokenStore();
+        $client = self::client($http, tokens: $store);
+        $client->request(self::mcpRequest(), new NullCancellation());
+
+        try {
+            $client->request(self::mcpRequest(), new NullCancellation());
+            self::fail('The failed discovery should have surfaced.');
+        } catch (HttpException) {
+            self::assertNull($store->read(self::RESOURCE, 'https://auth.test'));
+        }
     }
 
     public function testTheChallengeBodyIsDrainedSoItsConnectionIsReleased(): void
