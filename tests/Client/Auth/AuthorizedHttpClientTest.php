@@ -140,11 +140,10 @@ final class AuthorizedHttpClientTest extends TestCase
 
     public function testAnInsufficientScopeChallengeStepsTheScopesUpAndRetries(): void
     {
-        // The client identifier is already stored by the first round, so the step-up re-registers nothing.
+        // The first round stores the client identifier and what discovery found, so the step-up repeats
+        // neither and goes straight back to the token endpoint.
         $http = self::scriptChallengeAndFlow()
             ->willChallenge(403, 'Bearer error="insufficient_scope", scope="files:write"')
-            ->willAnswerJson(self::resourceDocument())
-            ->willAnswerJson(self::serverDocument())
             ->willAnswerJson(['access_token' => 'the-wider-token', 'token_type' => 'Bearer'])
             ->willAnswerJson(['ok' => true])
         ;
@@ -154,7 +153,8 @@ final class AuthorizedHttpClientTest extends TestCase
 
         self::assertSame(200, $response->getStatus());
         self::assertSame(['files:write'], $user->readRequestedScopes(1));
-        self::assertSame('Bearer the-wider-token', $http->readRequest(9)->getHeader('Authorization'));
+        self::assertCount(8, $http->requests);
+        self::assertSame('Bearer the-wider-token', $http->readRequest(7)->getHeader('Authorization'));
     }
 
     public function testAForbiddenAnswerThatIsNotAScopeChallengeIsReturned(): void
@@ -181,8 +181,6 @@ final class AuthorizedHttpClientTest extends TestCase
     {
         $http = self::scriptChallengeAndFlow()
             ->willChallenge(403, 'Bearer error="insufficient_scope", scope="files:write"')
-            ->willAnswerJson(self::resourceDocument())
-            ->willAnswerJson(self::serverDocument())
             ->willAnswerJson(['access_token' => 'the-wider-token', 'token_type' => 'Bearer'])
             ->willChallenge(403, 'Bearer error="insufficient_scope", scope="files:admin"')
         ;

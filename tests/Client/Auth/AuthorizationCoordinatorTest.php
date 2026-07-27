@@ -394,7 +394,7 @@ final class AuthorizationCoordinatorTest extends TestCase
         $http = self::scriptFullFlow(['scopes_supported' => ['files:read']]);
         $coordinator = self::coordinator($http, new ScriptedUserAuthorization());
         $coordinator->authorize(self::resource());
-        $coordinator->discard(self::resource());
+        $coordinator->discardToken(self::resource());
 
         self::assertSame([], $coordinator->readGrantedScopes(self::resource())->values);
     }
@@ -418,26 +418,52 @@ final class AuthorizationCoordinatorTest extends TestCase
         self::assertSame('the-access-token', $store->read(self::RESOURCE, self::ISSUER)?->value);
     }
 
-    public function testDiscardDropsTheStoredToken(): void
+    public function testDiscardTokenIsHarmlessBeforeAnyAuthorization(): void
+    {
+        $store = new InMemoryTokenStore();
+        $store->write(self::RESOURCE, self::ISSUER, new AccessToken('untouched'));
+
+        self::coordinator(new RecordingHttpClient(), new ScriptedUserAuthorization(), $store)->discardToken(self::resource());
+
+        self::assertSame('untouched', $store->read(self::RESOURCE, self::ISSUER)?->value);
+    }
+
+    public function testDiscardTokenDropsTheStoredToken(): void
     {
         $store = new InMemoryTokenStore();
         $coordinator = self::coordinator(self::scriptFullFlow(), new ScriptedUserAuthorization(), $store);
         $coordinator->authorize(self::resource());
 
-        $coordinator->discard(self::resource());
+        $coordinator->discardToken(self::resource());
 
         self::assertNull($store->read(self::RESOURCE, self::ISSUER));
         self::assertNull($coordinator->fetchToken(self::resource()));
     }
 
-    public function testDiscardIsHarmlessBeforeAnyAuthorization(): void
+    public function testDiscardDiscoveryMakesTheNextAuthorizationReadTheMetadataAfresh(): void
     {
-        $store = new InMemoryTokenStore();
-        $store->write(self::RESOURCE, self::ISSUER, new AccessToken('untouched'));
+        $http = self::scriptFullFlow()
+            ->willAnswerJson(self::resourceDocument())
+            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson(['access_token' => 'the-second-token', 'token_type' => 'Bearer'])
+        ;
+        $coordinator = self::coordinator($http, new ScriptedUserAuthorization());
+        $coordinator->authorize(self::resource());
 
-        self::coordinator(new RecordingHttpClient(), new ScriptedUserAuthorization(), $store)->discard(self::resource());
+        $coordinator->discardDiscovery(self::resource());
 
-        self::assertSame('untouched', $store->read(self::RESOURCE, self::ISSUER)?->value);
+        self::assertSame('the-second-token', $coordinator->authorize(self::resource())->value);
+        self::assertCount(7, $http->requests);
+    }
+
+    public function testASecondAuthorizationReusesWhatDiscoveryAlreadyFound(): void
+    {
+        $http = self::scriptFullFlow()->willAnswerJson(['access_token' => 'the-second-token', 'token_type' => 'Bearer']);
+        $coordinator = self::coordinator($http, new ScriptedUserAuthorization());
+        $coordinator->authorize(self::resource());
+
+        self::assertSame('the-second-token', $coordinator->authorize(self::resource())->value);
+        self::assertCount(5, $http->requests);
     }
 
     private static function resource(): ResourceIdentifier

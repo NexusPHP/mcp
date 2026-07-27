@@ -148,6 +148,10 @@ Concurrent requests that all hit a `401` share one flow. The first runs discover
 browser round trip, and the rest wait on its result rather than opening a second consent screen or registering
 a second client. Renewals share the same way, so a rotating refresh token is redeemed once instead of raced.
 
+What discovery finds is kept for the life of the client, so a step-up goes straight back to the token endpoint
+instead of re-reading both metadata documents. A `401` drops it again, since a fresh challenge is the one
+moment the server gets to name a different authorization server.
+
 ## Server
 
 ### Validating tokens
