@@ -77,10 +77,10 @@ if ! curl -s --max-time 2 -o /dev/null "$SERVER_URL"; then
     exit 1
 fi
 
-echo "Running the conformance suite (referee ${CONFORMANCE_VERSION}, spec ${SPEC_VERSION})..."
+echo "Running the conformance suite (referee conformance@${CONFORMANCE_VERSION}, spec ${SPEC_VERSION})..."
 # `-o` is what persists per-scenario checks.json files. Without it the referee
 # only prints, and there is nothing for score.php to read.
-npx -y "@modelcontextprotocol/conformance@${CONFORMANCE_VERSION}" server \
+npx -y -q "@modelcontextprotocol/conformance@${CONFORMANCE_VERSION}" server \
     --url "$SERVER_URL" \
     --spec-version "$SPEC_VERSION" \
     --expected-failures ./conformance/expected-failures.yaml \
