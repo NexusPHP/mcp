@@ -21,6 +21,7 @@ $finder = Finder::create()
     ->files()
     ->in([
         __DIR__.'/api/src',
+        __DIR__.'/conformance',
         __DIR__.'/examples',
         __DIR__.'/src',
         __DIR__.'/tests',

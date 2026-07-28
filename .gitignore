@@ -3,6 +3,7 @@
 /.venv/
 /build/
 /composer.lock
+/conformance/results/
 /latest-schema.json
 /latest-schema.ts
 /phpstan.neon

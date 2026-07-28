@@ -4,9 +4,9 @@ Based on [SEP-1730: SDKs Tiering System](https://github.com/modelcontextprotocol
 
 **Target Tier**: Tier 2 (only Tier 3 is claimable pre-1.0, per "How tiering works" below)
 
-**Target spec**: the draft (`DRAFT-2026-v1`, becomes `2026-07-28`). We aim for the latest spec, not the interim 2025-11-25. See "Conformance suite: scenarios to pass" for the exact server/client tests and the draft-vs-scored caveat.
+**Target spec**: `2026-07-28`, which the SDK implements exclusively. See "Conformance suite: scenarios to pass" for the measured standing and for why a tier percentage is upstream-blocked.
 
-**Last Updated**: 2026-05-30
+**Last Updated**: 2026-07-28
 
 ---
 
@@ -38,9 +38,9 @@ The tiering system covers **both official and community-driven SDKs**, so `nexus
 
 - [ ] **80% Conformance Tests Pass**
   - Reference: [Conformance Test Suite](https://github.com/modelcontextprotocol/conformance). Exact scenarios in "Conformance suite: scenarios to pass" below
-  - Threshold: server `>= 24 of 30`, client `>= 15 of 18` (the carried-forward date-versioned set that scores even under `--spec-version draft`)
-  - Evidence/Notes: not run. Server-mode conformance needs the Streamable HTTP transport (phase 5). Client-mode can run our client as a subprocess
-  - Run: `conformance tier-check --repo NexusPHP/mcp --conformance-server-url <url> --client-cmd "<cmd>" --spec-version draft --output json`
+  - Threshold: 80% of the scored set, which is upstream-blocked. `tier-check` scores only over `DATED_SPEC_VERSIONS`, and that still ends at 2025-11-25, so the scenarios this SDK passes do not yet count toward a tier number
+  - Evidence/Notes: server mode runs and is measured. First run 2026-07-28: **76 of 97 checks, 25 of 40 scenarios** at `--spec-version 2026-07-28 --suite all`. Client mode is not run yet
+  - Run: `composer conformance:server` then `composer conformance:score`
 
 ### Implementation Timeline
 
@@ -95,16 +95,16 @@ The tiering system covers **both official and community-driven SDKs**, so `nexus
 
 - [ ] **100% Conformance Tests Pass**
   - Reference: [Conformance Test Suite](https://github.com/modelcontextprotocol/conformance). Exact scenarios in "Conformance suite: scenarios to pass" below
-  - Conformance Version: v0.2.0-alpha.0 (HEAD `bcfd400`, mapped 2026-05-30)
+  - Conformance Version: pinned in [`conformance/run-server.sh`](../conformance/run-server.sh)
   - Threshold: server `30 of 30`, client `18 of 18` today. The draft-only scenarios (17 server + 17 client) flip to scoring once upstream dates the version, at which point they also become Tier 1 blockers
   - Evidence/Notes: _________________________
   - Conformance Score: ___%
 
 - [ ] **Conformance example server + client**
   - Reference: not a standalone SEP-1730 requirement. This is the harness behind the conformance score above. Mirror the canonical fixtures in the conformance repo's [`everything-server.ts`](https://github.com/modelcontextprotocol/conformance/blob/main/examples/servers/typescript/everything-server.ts), per [SDK_INTEGRATION.md](https://github.com/modelcontextprotocol/conformance/blob/main/SDK_INTEGRATION.md)
-  - Location: `examples/conformance-server.php` + `examples/conformance-client.php` (planned)
-  - Canonical fixtures + the full server/client capability contract: see "Conformance suite: scenarios to pass" below (verified against `everything-server.ts` / `everything-client.ts` at v0.2.0-alpha.0). Route the client off the harness scenario names, not the stale keys in `everything-client.ts`
-  - Evidence/Notes: not started
+  - Location: `conformance/server.php` (built) + `conformance/client.php` (planned)
+  - Canonical fixtures + the full server/client capability contract: see "Conformance suite: scenarios to pass" below. Route the client off the harness scenario names, not the stale keys in `everything-client.ts`
+  - Evidence/Notes: the server half is built and running. `conformance/EverythingServer.php` registers every capability through attribute discovery, and `conformance/README.md` documents the run and bump procedure. The client half is not started
 
 ### Implementation Timeline
 
@@ -256,7 +256,7 @@ The tiering system covers **both official and community-driven SDKs**, so `nexus
   - Conformance Version: v0.2.0-alpha.0
   - Server Test Results: _________________________ (target 30/30 scored, plus 17 draft-only informational)
   - Client Test Results: _________________________ (target 18/18 scored, plus 17 draft-only informational)
-  - Baseline File: `conformance-baseline.yml`
+  - Baseline File: `conformance/expected-failures.yaml`
   - Evidence/Notes: _________________________
 
 ### Submission Readiness
@@ -277,9 +277,11 @@ The tiering system covers **both official and community-driven SDKs**, so `nexus
 
 ## Conformance suite: scenarios to pass
 
-> Mapped against `modelcontextprotocol/conformance` **v0.2.0-alpha.0** (HEAD `bcfd400`) on 2026-05-30, verified with `node dist/index.js list`. Local checkout at `../mcp-conformance`. See "Drift" below for where the tooling diverges from SEP-1730.
+> The scenario inventory below was mapped against `modelcontextprotocol/conformance` **v0.2.0-alpha.0** on 2026-05-30 and has since drifted. The suite is now actually run, so treat `conformance/` as the source of truth for what passes: the referee version is pinned in [`conformance/run-server.sh`](../conformance/run-server.sh), what fails is listed in [`conformance/expected-failures.yaml`](../conformance/expected-failures.yaml), and `composer conformance:score` prints the current number. See "Drift" below for where the tooling diverges from SEP-1730.
 
-**Target spec: the draft (`DRAFT-2026-v1`), not the interim 2025-11-25.** We aim for the latest spec, so the conformance target is `--spec-version draft`. `DRAFT-2026-v1` is the symbolic id for the revision that becomes `2026-07-28` (no dated identifier exists upstream yet). This matches "Tier 2 lands with v1.0.0 and the 2026-07-28 migration."
+**Target spec: `--spec-version 2026-07-28`.** The SDK implements that revision only. The referee filters scenarios by a `removedIn` field, so pinning the version is also what drops the 2025-era scenarios for features the SDK deliberately does not implement (`initialize`, `logging/setLevel`, sampling, `resources/subscribe`) rather than failing them. `draft` is an accepted alias for the same version.
+
+**Server-mode standing, first measured 2026-07-28:** 76 of 97 checks, 25 of 40 scenarios, at `--suite all`. The remainder is three gaps, each named in the baseline: server-side MRTR is not built (12 scenarios), `-32021` and `-32022` are modelled but never emitted, and the SEP-2243 custom-header scenario needs a `ToolStore` the endpoint and `ServerBuilder::register()` cannot currently share. Client mode is not run yet.
 
 ### Scoring model (verified against the tooling)
 
@@ -289,7 +291,7 @@ The tiering system covers **both official and community-driven SDKs**, so `nexus
 - **Extension** scenarios (tagged `extension`: OAuth client-credentials, enterprise-managed-auth) do not score.
 - **Pending** scenarios (`pendingClientScenariosList`) are not in the scenario map, so they run only via `--suite pending`.
 
-**The catch when targeting draft.** Because draft-tagged scenarios are non-scoring, running `--spec-version draft` produces the *same* tier percentage as `--spec-version 2025-11-25`: the denominator is the carried-forward date-versioned set (30 server, 18 client). The draft-only scenarios (the actual v1.0 SEP work) run and report pass/fail but do not move the tier number until upstream dates the version (renames their `introducedIn` from `DRAFT-2026-v1` to `2026-07-28` and adds it to `DATED_SPEC_VERSIONS`). For v1.0 we implement and pass them regardless: they are the substance of the migration and flip to scoring at the date bump.
+**The catch, and it is upstream's to resolve.** Verified again on 2026-07-28 against the published referee: `src/types.ts` still reads `DATED_SPEC_VERSIONS = ['2025-03-26', '2025-06-18', '2025-11-25']` with `2026-07-28` held as `DRAFT_PROTOCOL_VERSION`, and `src/tier-check/output.ts` sets `TIER_SPEC_VERSIONS = DATED_SPEC_VERSIONS`. So the scored denominator is the 2025 lifecycle this SDK does not implement, and the scenarios it does pass do not count. **A tier percentage is therefore not reachable for us until upstream dates the revision**, which it has not done despite the date having passed. That blocks the tier number, not the conformance run: the 2026-07-28 pass rate above is real, measured, and the thing to report. It flips to scoring at the date bump with no work on our side.
 
 Inverted naming: **server-mode** scenarios are `ClientScenario` objects under `src/scenarios/server/` (the harness acts as a client against your server, over Streamable HTTP at `POST /mcp`). **Client-mode** scenarios run your client as a subprocess.
 
@@ -319,14 +321,14 @@ conformance server --url http://localhost:PORT/mcp --suite all --spec-version dr
 
 **Pending (4, run only via `--suite pending`):** `json-schema-2020-12` (SEP-1613/2106), `server-sse-polling` (SEP-1699), `http-header-validation`, `http-custom-header-server-validation` (SEP-2243).
 
-Canonical fixtures our `examples/conformance-server.php` must expose (from `everything-server.ts`): identity `{name: mcp-conformance-test-server, version: 1.0.0}`, endpoint `POST /mcp` (plus `GET`/`DELETE`), capabilities `tools.listChanged`, `resources.subscribe`+`listChanged`, `prompts.listChanged`, `logging`, `completions`. Tools: `test_simple_text`, `test_image_content`, `test_audio_content`, `test_embedded_resource`, `test_multiple_content_types`, `test_tool_with_logging`, `test_tool_with_progress`, `test_error_handling`, `test_sampling`, `test_elicitation`, `test_elicitation_sep1034_defaults`, `test_elicitation_sep1330_enums`, `json_schema_2020_12_tool`. Resources: `test://static-text`, `test://static-binary`, `test://template/{id}/data`, `test://watched-resource` (plus subscribe/unsubscribe). Prompts: `test_simple_prompt`, `test_prompt_with_arguments`, `test_prompt_with_embedded_resource`, `test_prompt_with_image`. The draft-only scenarios add the stateless lifecycle (`server/discover`, `subscriptions/listen`), TTL hints, `-32602` errors, and the MRTR `resultType` / `inputRequests` / `requestState` flow. The README's `test_dynamic_*` fixtures are stale (absent from current source). Do not implement them.
+Canonical fixtures our `conformance/EverythingServer.php` must expose (from `everything-server.ts`): identity `{name: mcp-conformance-test-server, version: 1.0.0}`, endpoint `POST /mcp` (plus `GET`/`DELETE`), capabilities `tools.listChanged`, `resources.subscribe`+`listChanged`, `prompts.listChanged`, `logging`, `completions`. Tools: `test_simple_text`, `test_image_content`, `test_audio_content`, `test_embedded_resource`, `test_multiple_content_types`, `test_tool_with_logging`, `test_tool_with_progress`, `test_error_handling`, `test_sampling`, `test_elicitation`, `test_elicitation_sep1034_defaults`, `test_elicitation_sep1330_enums`, `json_schema_2020_12_tool`. Resources: `test://static-text`, `test://static-binary`, `test://template/{id}/data`, `test://watched-resource` (plus subscribe/unsubscribe). Prompts: `test_simple_prompt`, `test_prompt_with_arguments`, `test_prompt_with_embedded_resource`, `test_prompt_with_image`. The draft-only scenarios add the stateless lifecycle (`server/discover`, `subscriptions/listen`), TTL hints, `-32602` errors, and the MRTR `resultType` / `inputRequests` / `requestState` flow. The README's `test_dynamic_*` fixtures are stale (absent from current source). Do not implement them.
 
 ### Client-mode (draft): 35 scenarios
 
 Provide a client entry that reads the server URL as its last argv and routes on `MCP_CONFORMANCE_SCENARIO`, then:
 
 ```bash
-conformance client --command "php examples/conformance-client.php" --suite all --spec-version draft -o ./results
+conformance client --command "php conformance/client.php" --suite all --spec-version draft -o ./results
 ```
 
 `--spec-version draft` excludes the 3 OAuth `extension` scenarios and the 2 `2025-03-26` back-compat scenarios. `--suite core` runs exactly the 18 scored scenarios.
@@ -346,7 +348,7 @@ conformance client --command "php examples/conformance-client.php" --suite all -
 
 **Extension (3, `--suite extensions` only, never scored):** `auth/client-credentials-jwt`, `auth/client-credentials-basic`, `auth/enterprise-managed-authorization`.
 
-Capabilities our `examples/conformance-client.php` must implement. For the 18 carried-forward: Streamable HTTP client transport, `initialize` + `tools/list` + `tools/call`, an elicitation client capability that applies schema defaults for omitted fields, a full OAuth 2.1 client (PKCE, PRM + AS metadata discovery, DCR + CIMD, scope handling incl. step-up and retry-cap, token-endpoint auth basic/post/none, RFC 8707 `resource`, pre-registered creds), and SSE retry/reconnect with `Last-Event-ID`. For the draft-only set additionally: per-request `_meta` + protocol-version header, MRTR `input_required` result handling (echo `requestState`, fulfill `inputRequests`), `Mcp-Method` / `Mcp-Name` + `x-mcp-header` propagation, no-network `$ref` dereferencing, and draft OAuth (issuer validation, `offline_access`, AS migration). Subprocess contract: the harness spawns `<command> <serverUrl>` (shell-parsed), sets `MCP_CONFORMANCE_SCENARIO` (= scenario name, route on this), `MCP_CONFORMANCE_PROTOCOL_VERSION`, and `MCP_CONFORMANCE_CONTEXT` (JSON, auth credentials). Exit 0 = pass, non-zero = fail (tolerated only for negative scenarios). 30s default timeout. Route on the registry scenario names above, not the stale keys baked into `everything-client.ts`.
+Capabilities our `conformance/client.php` must implement. For the 18 carried-forward: Streamable HTTP client transport, `initialize` + `tools/list` + `tools/call`, an elicitation client capability that applies schema defaults for omitted fields, a full OAuth 2.1 client (PKCE, PRM + AS metadata discovery, DCR + CIMD, scope handling incl. step-up and retry-cap, token-endpoint auth basic/post/none, RFC 8707 `resource`, pre-registered creds), and SSE retry/reconnect with `Last-Event-ID`. For the draft-only set additionally: per-request `_meta` + protocol-version header, MRTR `input_required` result handling (echo `requestState`, fulfill `inputRequests`), `Mcp-Method` / `Mcp-Name` + `x-mcp-header` propagation, no-network `$ref` dereferencing, and draft OAuth (issuer validation, `offline_access`, AS migration). Subprocess contract: the harness spawns `<command> <serverUrl>` (shell-parsed), sets `MCP_CONFORMANCE_SCENARIO` (= scenario name, route on this), `MCP_CONFORMANCE_PROTOCOL_VERSION`, and `MCP_CONFORMANCE_CONTEXT` (JSON, auth credentials). Exit 0 = pass, non-zero = fail (tolerated only for negative scenarios). 30s default timeout. Route on the registry scenario names above, not the stale keys baked into `everything-client.ts`.
 
 ### Authorization-server mode
 
@@ -357,7 +359,7 @@ One scenario (`authorization-server-metadata-endpoint`) via a separate `conforma
 ```bash
 conformance tier-check --repo NexusPHP/mcp \
   --conformance-server-url http://localhost:PORT/mcp \
-  --client-cmd "php examples/conformance-client.php" \
+  --client-cmd "php conformance/client.php" \
   --spec-version draft --output json
 ```
 

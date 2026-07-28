@@ -1,0 +1,87 @@
+name: Conformance
+
+on:
+  push:
+    branches:
+      - 1.x
+    paths:
+      - .github/workflows/conformance.yml
+      - conformance/**
+      - src/**
+      - composer.json
+  pull_request:
+    branches:
+      - 1.x
+    paths:
+      - .github/workflows/conformance.yml
+      - conformance/**
+      - src/**
+      - composer.json
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  server-conformance:
+    name: Server mode
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      # The referee is a Node CLI. It is pinned in conformance/run-server.sh rather
+      # than here, so the version and the baseline it was reconciled against move
+      # together in one file. The referee itself declares no engine constraint, so
+      # this tracks the active Node LTS.
+      - name: Set up Node
+        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
+        with:
+          node-version: '24'
+
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: composer-8.4-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            composer-8.4-
+            composer-
+
+      - name: Install dependencies
+        run: composer update --ansi
+
+      # Blocking, and safe to be: the run exits 0 when the only failures are the
+      # ones conformance/expected-failures.yaml already accounts for, and exits 1
+      # both on a new failure and on a baselined scenario that has started passing.
+      - name: Run the conformance suite
+        run: ./conformance/run-server.sh --suite all
+
+      - name: Publish the score
+        if: always()
+        run: composer conformance:score >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload the raw results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: conformance-results
+          path: conformance/results/
+          retention-days: 14

@@ -1,0 +1,69 @@
+# Conformance scenarios this SDK does not pass yet.
+#
+# The referee exits 0 when the only failures are listed here, 1 on an unlisted
+# failure, and 1 on a *stale* entry: a listed scenario that has started passing.
+# That last rule is the point. It forces the list to burn down instead of rot.
+#
+# Baselined against the referee pinned in run-server.sh, at
+# `--spec-version 2026-07-28 --suite all`. Bump the pin and reconcile this file
+# in the same change, never separately.
+#
+# Entries are bare scenario names. Per-check granularity is `scenario:check-id`,
+# and mind the space: `- scenario:check-id` is a string, `- scenario: check-id`
+# is a mapping and is not what the referee reads. Wholesale and per-check
+# entries for one scenario are contradictory and rejected.
+#
+# Every entry names what will retire it.
+
+server:
+  # Server-side MRTR (SEP-2322) is not built. `InputRequiredResult` is modelled in
+  # Core/Schema and the client consumes it, but no server path emits it and
+  # `ToolExecutorInterface::execute()` returns `CallToolResult` only. Retired by the
+  # "Multi round-trip requests (MRTR)" serving work in ROADMAP.md.
+  - input-required-result-basic-elicitation
+  - input-required-result-basic-sampling
+  - input-required-result-basic-list-roots
+  - input-required-result-request-state
+  - input-required-result-multiple-input-requests
+  - input-required-result-multi-round
+  - input-required-result-non-tool-request
+  - input-required-result-result-type
+  - input-required-result-tampered-state
+  - input-required-result-capability-check
+
+  # The same MRTR gap, reached through SHOULD-level checks rather than MUSTs. The
+  # referee's exit code treats an unmet SHOULD exactly like a failure. Both want the
+  # server to re-request via `InputRequiredResult` instead of answering with an
+  # error, which is the serving half that does not exist.
+  - input-required-result-missing-input-response
+  - input-required-result-ignore-extra-params
+
+  # An unmet SHOULD, and a genuinely small one: the -32602 for an unknown resource
+  # is correct and its two MUST checks pass, but SEP-2164 also says `error.data.uri`
+  # SHOULD echo the URI that was not found, and the SDK sends no `data` at all.
+  - sep-2164-resource-not-found:sep-2164-data-uri
+
+  # Three checks inside an otherwise-passing scenario (22 of 25 pass).
+  #
+  # The first is a defect: `server/discover` rejects an unknown protocol version on
+  # format grounds with -32602 before the version-support check runs, so the spec's
+  # UnsupportedProtocolVersionError (-32022, carrying data.supported and
+  # data.requested) is never emitted. The error class itself is correct and unused.
+  #
+  # The other two need the server to refuse a request that requires a client
+  # capability the client did not declare. `MissingRequiredClientCapabilityError`
+  # (-32021) is modelled but only ever decoded, never raised: no handler-reachable
+  # path can emit it.
+  - server-stateless:sep-2575-server-unsupported-version-error
+  - server-stateless:sep-2575-server-rejects-undeclared-capability
+  - server-stateless:sep-2575-missing-capability-http-400
+
+  # A `pending` scenario, so it is outside the active and draft suites and only
+  # runs under `--suite all`. `ParameterHeaderValidationMiddleware` needs the same
+  # ToolStore the server serves, but `ServerBuilder::build()` takes `setToolStore()`
+  # in preference to the tools `register()` collected, so a fixture built by
+  # attribute discovery cannot also hand its store to `SecuredHttpEndpoint`.
+  # Retired by giving the two a way to compose.
+  - http-custom-header-server-validation
+
+client: []

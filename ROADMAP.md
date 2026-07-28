@@ -165,6 +165,11 @@ per spec method (nine in all). Only `tools/call`, `prompts/get`, and `resources/
   spec wants one for the lone request method that lacks one is the open question in upstream issue #2989, so
   this is held until that resolves.
 - [x] Delete `UrlElicitationRequiredError` (-32042) entirely.
+- [ ] Serve the server half. `InputRequiredResult` is modelled and the client consumes it, but no
+  server path emits one: `ToolExecutorInterface::execute()` returns `CallToolResult` only, and the
+  `tools/call`, `prompts/get`, and `resources/read` handlers cannot carry `inputResponses` or
+  `requestState` back into a handler. This is the largest block in the conformance baseline, at 12
+  scenarios.
 
 ### Tool schema relaxation (SEP-2106)
 
@@ -471,10 +476,40 @@ covered in the "Official extensions" block below, built on this subsystem.
 Ecosystem practices worth adopting, drawn from a comparison against the official TypeScript and PHP
 SDKs.
 
-- [ ] Wire the `modelcontextprotocol/conformance` suite into CI against a checked-in
-  expected-failures baseline, and publish the client and server scores. The baseline turns "which
-  scenarios fail" into a reviewable diff rather than tribal knowledge, and it is what makes the
-  tiering claims in `.github/TIERING_CHECKLIST.md` auditable.
+- [x] Run the `modelcontextprotocol/conformance` suite in CI against a checked-in
+  expected-failures baseline, and publish the server score. The harness lives in `conformance/`: a
+  pinned referee, an attribute-discovered fixture, a baseline whose stale entries fail the build, and
+  a scorer that counts an unmet SHOULD against the total. Server mode runs at
+  `--spec-version 2026-07-28` and stands at 76 of 97 checks. The 21 that remain are the three gaps
+  below, each named in the baseline.
+- [ ] Run the conformance suite in client mode. Needs a scenario-keyed client fixture plus a runner,
+  on the same pinned referee. At 2026-07-28 the denominator is `tools_call`, `request-metadata`, the
+  MRTR client leg, the three SEP-2243 header scenarios, `json-schema-ref-no-deref`, and the OAuth
+  block, which is the bulk and is already built.
+
+Defects the first conformance run surfaced, smallest first. The first three are invisible to the
+suite today and so are not in the baseline.
+
+- [ ] A missing required `prompts/get` argument answers `-32603 Internal error` rather than
+  `-32602`. The argument binder's failure escapes as an unhandled exception instead of being
+  converted at the handler boundary.
+- [ ] `examples/attribute-discovery.php` calls `ServerContext::log()`, which no longer exists: the
+  logging emission path was deleted at the 2026-07-28 cut and the example was not updated, so the
+  `weather` tool fatals on its first call. `examples/` is outside the PHPStan paths, which is why
+  this rotted unnoticed.
+- [ ] Empty object slots ship as `[]` rather than `{}`. Pattern A substitutes `\stdClass` inside
+  `jsonSerialize()`, but transports encode `$message->toArray()` and `json_encode` the plain array,
+  so the substitution never runs on the send path. Live example: `server/discover` answers
+  `"capabilities":{"tools":[]}`. Reproduce with
+  `new ServerCapabilities(tools: [])`, comparing `toArray()` against `jsonSerialize()`.
+- [ ] `UnsupportedProtocolVersionError` (-32022) is never emitted. An unknown protocol version is
+  rejected on format grounds with `-32602` before the support check runs, so the modelled error, and
+  its required `data.supported` and `data.requested`, go unused.
+- [ ] `MissingRequiredClientCapabilityError` (-32021) is never raised. It is only ever decoded, and
+  no handler-reachable path can emit it, so a request needing an undeclared client capability is
+  served rather than refused.
+- [ ] SEP-2164 says a resource-not-found error SHOULD carry `error.data.uri`. The code and the empty
+  contents rule are both right, but no `data` is sent.
 - [ ] Establish the optional-dependency pattern for anything cryptographic: a `suggest` entry rather
   than a `require`, guarded by `class_exists` with an actionable message naming the package to
   install. This is the shape a shipped JWT or JWKS access-token validator would need, since the SDK

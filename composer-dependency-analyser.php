@@ -17,6 +17,7 @@ use ShipMonk\ComposerDependencyAnalyser\Config\ErrorType;
 return new Configuration()
     ->disableComposerAutoloadPathScan()
     ->addPathToScan(__DIR__.'/src', isDev: false)
+    ->addPathToScan(__DIR__.'/conformance', isDev: true)
     ->addPathToScan(__DIR__.'/examples', isDev: true)
     ->addPathToScan(__DIR__.'/tests', isDev: true)
     ->addPathToExclude(__DIR__.'/tests/AutoReview/data')
