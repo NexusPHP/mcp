@@ -169,6 +169,41 @@ final class ClientCapabilitiesTest extends TestCase
         self::assertSame(['io.example/ext' => ['setting' => 'value']], $caps->extensions);
     }
 
+    public function testFromArrayKeepsCapabilitiesOutsideTheNamedSet(): void
+    {
+        // The spec: "this is not a closed set: any client can define its own, additional capabilities."
+        $caps = ClientCapabilities::fromArray([
+            'elicitation' => [],
+            'sampling' => ['tools' => []],
+            'roots' => [],
+        ]);
+
+        self::assertSame(['sampling' => ['tools' => []], 'roots' => []], $caps->extras);
+        self::assertSame([], $caps->elicitation);
+    }
+
+    public function testExtrasSurviveTheRoundTripInDeclarationOrder(): void
+    {
+        $caps = new ClientCapabilities(elicitation: [], extras: ['sampling' => []]);
+
+        self::assertSame(['elicitation' => [], 'sampling' => []], $caps->toArray());
+        self::assertSame($caps->toArray(), ClientCapabilities::fromArray($caps->toArray())->toArray());
+    }
+
+    public function testAnExtraNeverOverwritesANamedCapability(): void
+    {
+        $caps = new ClientCapabilities(elicitation: ['form' => []], extras: ['elicitation' => 'clobbered']);
+
+        self::assertSame(['elicitation' => ['form' => []]], $caps->toArray());
+    }
+
+    public function testJsonEncodeEmitsAnEmptyExtraAsAnObject(): void
+    {
+        $caps = new ClientCapabilities(extras: ['sampling' => []]);
+
+        self::assertSame('{"sampling":{}}', json_encode($caps, \JSON_THROW_ON_ERROR));
+    }
+
     /**
      * @param array<string, mixed> $payload
      */

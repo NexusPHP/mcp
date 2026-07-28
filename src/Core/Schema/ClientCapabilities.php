@@ -27,6 +27,7 @@ use Nexus\Assert\Assert;
  *   elicitation?: ElicitationCapability,
  *   experimental?: ExperimentalCapability,
  *   extensions?: ExtensionsCapability,
+ *   ...<string, mixed>,
  * }>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#clientcapabilities
@@ -37,21 +38,30 @@ final readonly class ClientCapabilities implements Arrayable
      * @param null|ElicitationCapability  $elicitation
      * @param null|ExperimentalCapability $experimental
      * @param null|ExtensionsCapability   $extensions
+     * @param array<string, mixed>        $extras       Capabilities outside the set this schema names
      */
     public function __construct(
         public ?array $elicitation = null,
         public ?array $experimental = null,
         public ?array $extensions = null,
+        public array $extras = [],
     ) {
     }
 
     #[\Override]
     public static function fromArray(array $data): static
     {
+        $elicitation = self::extractElicitation($data);
+        $experimental = self::extractExperimental($data);
+        $extensions = self::extractExtensions($data);
+
+        unset($data['elicitation'], $data['experimental'], $data['extensions']);
+
         return new self(
-            elicitation: self::extractElicitation($data),
-            experimental: self::extractExperimental($data),
-            extensions: self::extractExtensions($data),
+            elicitation: $elicitation,
+            experimental: $experimental,
+            extensions: $extensions,
+            extras: $data,
         );
     }
 
@@ -71,6 +81,8 @@ final readonly class ClientCapabilities implements Arrayable
         if (null !== $this->extensions) {
             $data['extensions'] = $this->extensions;
         }
+
+        $data += $this->extras;
 
         return $data;
     }
