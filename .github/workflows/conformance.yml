@@ -90,6 +90,12 @@ jobs:
           git diff --exit-code -- conformance/badges/ \
             || { echo "::error::conformance/badges/ is stale. Run 'composer conformance:badge' and commit the result."; exit 1; }
 
+      # The fixture admits both spellings of the loopback authority, but the run above
+      # reaches it by only one, and the Origin check is the only thing that tells them
+      # apart. Scoring runs first, so this leaves the published number untouched.
+      - name: Re-run the origin-sensitive scenario as localhost
+        run: URL_HOST=localhost composer conformance:server -- --scenario dns-rebinding-protection
+
       - name: Upload the raw results
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

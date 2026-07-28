@@ -39,6 +39,8 @@ use Nexus\Mcp\Server\Transport\Http\SecuredHttpEndpoint;
 use Nexus\Mcp\Server\Transport\StreamableHttpServerTransport;
 use Nyholm\Psr7\Factory\Psr17Factory;
 
+use function Amp\trapSignal;
+
 /**
  * Reads an environment variable, falling back when it is unset or empty.
  */
@@ -127,6 +129,13 @@ $httpServer->start(new PsrHttpAdapter($endpoint, $psr17, $psr17), new DefaultErr
 
 fwrite(\STDERR, sprintf("Conformance server listening on http://%s\n", $address));
 
-// The runner script owns this process's lifetime and terminates it with a signal,
-// so there is nothing to wait on but the loop itself.
-new DeferredFuture()->getFuture()->await();
+// With ext-pcntl loaded, Revolt's loop consumes a signal no callback is registered for, so
+// an untrapped Ctrl-C leaves the fixture running and squatting the port.
+if (defined('SIGINT')) {
+    trapSignal([\SIGINT, \SIGTERM]);
+} else {
+    // ext-pcntl absent, so there is no signal to trap. Ctrl-C ends the process.
+    new DeferredFuture()->getFuture()->await();
+}
+
+$httpServer->stop();

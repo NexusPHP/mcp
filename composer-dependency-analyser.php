@@ -21,7 +21,8 @@ return new Configuration()
     ->addPathToScan(__DIR__.'/examples', isDev: true)
     ->addPathToScan(__DIR__.'/tests', isDev: true)
     ->addPathToExclude(__DIR__.'/tests/AutoReview/data')
-    // The example reads `SIGINT` / `SIGTERM` behind a `defined()` guard and falls back when
-    // ext-pcntl is absent, so requiring the extension would over-constrain a `composer install`.
+    // These read `SIGINT` / `SIGTERM` behind a `defined()` guard and fall back when ext-pcntl
+    // is absent, so requiring the extension would over-constrain a `composer install`.
     ->ignoreErrorsOnExtensionAndPath('ext-pcntl', __DIR__.'/examples/http-server.php', [ErrorType::SHADOW_DEPENDENCY])
+    ->ignoreErrorsOnExtensionAndPath('ext-pcntl', __DIR__.'/conformance/server.php', [ErrorType::SHADOW_DEPENDENCY])
 ;

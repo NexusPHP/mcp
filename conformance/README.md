@@ -39,6 +39,22 @@ Needs Node (for `npx`) and a free port. `PORT` and `HOST` override the default `
 Results land in `results/`, which is gitignored. The referee declares no engine constraint, so any
 maintained Node works. CI tracks the active LTS.
 
+`URL_HOST` overrides only the authority the referee reaches the fixture by, leaving the bind address
+to `HOST`. The fixture admits both spellings of loopback, and `dns-rebinding-protection` is the one
+scenario that can tell them apart, since it sends an `Origin` matching whichever spelling the URL
+carried. Deriving both from `HOST` would mean a run never exercises the other one, so CI re-runs that
+scenario with `URL_HOST=localhost`:
+
+```bash
+URL_HOST=localhost ./conformance/run-server.sh --scenario dns-rebinding-protection
+```
+
+Running [`server.php`](server.php) by hand rather than through the script is fine, and Ctrl-C stops
+it. That takes an explicit `trapSignal()`: with ext-pcntl loaded, Revolt's loop consumes a signal
+that no callback is registered for, so an untrapped fixture ignores Ctrl-C and goes on squatting the
+port. `run-server.sh` refuses to start on a taken port rather than silently scoring a stale
+listener, so a leaked one announces itself on the next run.
+
 None of this runs inside `composer test:with-untracked`. The gate suite is hermetic and offline, and
 conformance is neither. The harness sources are still held to the repo's standards though: `conformance/`
 is in the PHPStan paths (as is `examples/`), the PHP-CS-Fixer finder, and the dependency analyser, so a

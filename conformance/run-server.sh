@@ -29,7 +29,12 @@ SPEC_VERSION="2026-07-28"
 
 HOST="${HOST:-127.0.0.1}"
 PORT="${PORT:-3000}"
-SERVER_URL="http://${HOST}:${PORT}/mcp"
+
+# The authority the referee reaches the fixture by, which defaults to the address it
+# binds. Keeping the two separable is what lets a run exercise the other spelling of
+# loopback against the same listener, since only the Origin check tells them apart.
+URL_HOST="${URL_HOST:-$HOST}"
+SERVER_URL="http://${URL_HOST}:${PORT}/mcp"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(dirname "$SCRIPT_DIR")"
