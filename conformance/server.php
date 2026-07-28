@@ -100,15 +100,22 @@ $transport = new StreamableHttpServerTransport(
 // host, so attaching the dispatcher must not block.
 $server->listen($transport);
 
+// Both spellings of the loopback authority. The runner reaches the endpoint by whichever
+// one its URL carries, and the DNS-rebinding scenario sends a matching Origin, so the two
+// lists have to admit the same set or the accepted-Origin check fails on one spelling only.
+$authorities = [$address, sprintf('localhost:%d', $port)];
+$origins = [];
+
+foreach ($authorities as $authority) {
+    $origins[] = sprintf('http://%s', $authority);
+}
+
 $endpoint = new SecuredHttpEndpoint(
     $transport,
-    // The referee drives the server from its own process rather than a browser, so
-    // it sends no Origin. The DNS-rebinding scenario asserts that a *mismatched*
-    // Origin is refused, which this list still does.
-    allowedOrigins: [sprintf('http://%s', $address)],
+    allowedOrigins: $origins,
     responseFactory: $psr17,
     streamFactory: $psr17,
-    allowedHosts: [$address, sprintf('localhost:%d', $port)],
+    allowedHosts: $authorities,
     maxBodyBytes: 1_048_576,
     toolStore: $builder->getToolStore(),
     logger: $logger,
