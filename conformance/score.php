@@ -112,7 +112,6 @@ foreach ($findCheckFiles($resultsDir) as $checkFile) {
         }
 
         ++$counts[$status];
-        ++$totals[$status];
 
         if ('FAILURE' === $status || 'WARNING' === $status) {
             $id = is_string($check['id'] ?? null) ? $check['id'] : '(unnamed check)';
@@ -133,7 +132,13 @@ if ([] === $scenarios) {
 
 $scenariosPassed = 0;
 
+// Totalled from the deduplicated scenarios, so re-running a leg into an existing
+// results directory supersedes the earlier run rather than being added to it.
 foreach ($scenarios as $scenario) {
+    foreach ($scenario['counts'] as $status => $count) {
+        $totals[$status] += $count;
+    }
+
     if (0 === $scenario['counts']['FAILURE'] && 0 === $scenario['counts']['WARNING']) {
         ++$scenariosPassed;
     }
