@@ -39,7 +39,7 @@ The tiering system covers **both official and community-driven SDKs**, so `nexus
 - [ ] **80% Conformance Tests Pass**
   - Reference: [Conformance Test Suite](https://github.com/modelcontextprotocol/conformance). Exact scenarios in "Conformance suite: scenarios to pass" below
   - Threshold: 80% of the scored set, which is the carried-forward scenarios (see "Scoring model" below). Server **20 of 20**, client **15 of 15**: both legs pass outright
-  - Evidence/Notes: both modes run and are measured at `--spec-version 2026-07-28 --suite all`. As of 2026-07-28: server **102 of 106 checks**, client **327 of 332**, combined **429 of 438 (97.9%)**
+  - Evidence/Notes: both modes run and are measured at `--spec-version 2026-07-28 --suite all`. As of 2026-07-28: server **102 of 106 checks**, client **332 of 332**, combined **434 of 438 (99.1%)**
   - Run: `composer conformance:server` then `composer conformance:score`
 
 ### Implementation Timeline
@@ -316,7 +316,7 @@ Two rules differ from `composer conformance:score` and both matter when reading 
 | Client: Auth | 3/3 | 14/14 | 14/14 (100%) | |
 | Client total | | | **15/15 (100%)** | `pass` |
 
-Both legs pass the tier-scored set outright, and the informational bucket reads server 20 of 20 and client auth 25 of 25 at `2026-07-28`. The one client scenario short of the badge figure is `sep-2322-client-request-state`, which is 2026-07-28-only and so sits outside the tier denominator.
+Both legs pass the tier-scored set outright, and the informational bucket reads server 20 of 20 and client core 7 of 7 and auth 25 of 25 at `2026-07-28`. The client leg now passes every scenario at every version, so the tier figure and the badge figure agree on it.
 
 Two things keep these numbers apart from the badge figures. `tier-check` runs **server** conformance at the referee's default `--suite active`, so the draft and pending scenarios stay out of the tier denominator: the four MRTR scenarios this SDK fails are among them and do not count against the tier. Client conformance it runs at `--suite all`.
 
@@ -375,7 +375,7 @@ conformance client --command "php conformance/client.php" --suite all --spec-ver
 
 `--spec-version draft` excludes the 3 OAuth `extension` scenarios and the 2 `2025-03-26` back-compat scenarios. `--suite core` runs exactly the 18 scored scenarios.
 
-**Scored (15 carried-forward, measured at `--spec-version 2026-07-28`):** Tier 1 = all 15, Tier 2 = at least 12 of 15 (`pass_rate >= 0.80`). The SDK passes 12, exactly on the threshold. The remaining 17 scenarios the suite runs were introduced at 2026-07-28 and are informational.
+**Scored (15 carried-forward, measured at `--spec-version 2026-07-28`):** Tier 1 = all 15, Tier 2 = at least 12 of 15 (`pass_rate >= 0.80`). The SDK passes all 15. The remaining 17 scenarios the suite runs were introduced at 2026-07-28 and are informational.
 
 - Core (4): `initialize`, `tools_call`, `elicitation-sep1034-client-defaults`, `sse-retry`
 - OAuth (14): `auth/metadata-default`, `-var1`, `-var2`, `-var3`, `auth/basic-cimd`, `auth/scope-from-www-authenticate`, `-from-scopes-supported`, `-omitted-when-undefined`, `-step-up`, `-retry-limit`, `auth/token-endpoint-auth-basic`, `-post`, `-none`, `auth/pre-registration`

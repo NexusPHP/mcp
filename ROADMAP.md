@@ -494,10 +494,10 @@ SDKs.
   `--spec-version 2026-07-28` and stands at 102 of 106 checks. The 4 that remain all need an input
   request this SDK does not model, named in the baseline.
 - [x] Run the conformance suite in client mode, on the same pinned referee and baseline.
-  `conformance/client.php` routes on the scenario name the referee supplies. Stands at 327 of 332
-  checks, 31 of 32 scenarios. The whole OAuth block passes, as do the SEP-2243 header scenarios
-  (`http-custom-headers` 18 of 18), `request-metadata`, `tools_call`, and
-  `json-schema-ref-no-deref`.
+  `conformance/client.php` routes on the scenario name the referee supplies. Stands at 332 of 332
+  checks, 32 of 32 scenarios, so its half of the baseline is empty. That covers the whole OAuth
+  block, the SEP-2243 header scenarios (`http-custom-headers` 18 of 18), client-side MRTR,
+  `request-metadata`, `tools_call`, and `json-schema-ref-no-deref`.
 
 Defects the first conformance runs surfaced, smallest first. The three marked as unseen by the suite
 are not in the baseline.

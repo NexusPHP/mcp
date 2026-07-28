@@ -42,6 +42,15 @@ use Nexus\Mcp\Client\Auth\ClientRegistration;
 use Nexus\Mcp\Client\Client;
 use Nexus\Mcp\Client\ClientBuilder;
 use Nexus\Mcp\Client\Transport\StreamableHttpClientTransport;
+use Nexus\Mcp\Core\Schema\Elicitation\BooleanSchema;
+use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequest;
+use Nexus\Mcp\Core\Schema\Elicitation\ElicitResult;
+use Nexus\Mcp\Core\Schema\Elicitation\NumberSchema;
+use Nexus\Mcp\Core\Schema\Enum\ElicitAction;
+use Nexus\Mcp\Core\Schema\RequestParams\ElicitRequestFormParams;
+use Nexus\Mcp\Core\Schema\Result\CallToolResult;
+use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
+use Nexus\Mcp\Core\Schema\Result\InputResponse;
 
 /** @var array<string, Closure(string): void> $scenarios */
 $scenarios = [];
@@ -171,6 +180,78 @@ $register('json-schema-ref-no-deref', static function (string $serverUrl) use ($
         // Listing is the whole test: the advertised tool carries a network `$ref`
         // that the client must pass through rather than fetch.
         $client->listTools();
+    } finally {
+        $client->disconnect();
+    }
+});
+
+/**
+ * Accepts every input a server asked for, answering each field from its declared type.
+ *
+ * @return array<string, InputResponse>
+ */
+$acceptInputRequests = static function (InputRequiredResult $result): array {
+    $responses = [];
+
+    foreach ($result->inputRequests ?? [] as $name => $request) {
+        if (! $request instanceof ElicitRequest || ! $request->params instanceof ElicitRequestFormParams) {
+            throw new RuntimeException(sprintf('The "%s" input request is not a form elicitation.', $name));
+        }
+
+        $content = [];
+
+        foreach ($request->params->requestedSchema->properties as $field => $definition) {
+            $content[$field] = match (true) {
+                $definition instanceof BooleanSchema => true,
+                $definition instanceof NumberSchema => 1,
+                default => 'conformance',
+            };
+        }
+
+        $responses[$name] = new ElicitResult(ElicitAction::Accept, $content);
+    }
+
+    return $responses;
+};
+
+$register('sep-2322-client-request-state', static function (string $serverUrl) use ($connect, $acceptInputRequests): void {
+    $client = $connect($serverUrl);
+
+    /** Fails loudly rather than skipping a round, which would read as a passing scenario. */
+    $demandInput = static function (CallToolResult|InputRequiredResult $result, string $tool): InputRequiredResult {
+        if (! $result instanceof InputRequiredResult) {
+            throw new RuntimeException(sprintf('The "%s" tool answered without asking for input.', $tool));
+        }
+
+        return $result;
+    };
+
+    try {
+        $client->listTools();
+
+        // The state this round carries is opaque, so the answer echoes it back untouched under a
+        // fresh JSON-RPC id, which `Client` mints per request.
+        $stateful = $demandInput($client->callTool(name: 'test_mrtr_echo_state'), 'test_mrtr_echo_state');
+
+        // Between the two rounds, so a call of its own proves the pending round leaks nothing into it.
+        $client->callTool(name: 'test_mrtr_unrelated');
+
+        $client->callTool(
+            name: 'test_mrtr_echo_state',
+            inputResponses: $acceptInputRequests($stateful),
+            requestState: $stateful->requestState,
+        );
+
+        // This round carries no state, and answering it must not invent one.
+        $stateless = $demandInput($client->callTool(name: 'test_mrtr_no_state'), 'test_mrtr_no_state');
+        $client->callTool(
+            name: 'test_mrtr_no_state',
+            inputResponses: $acceptInputRequests($stateless),
+            requestState: $stateless->requestState,
+        );
+
+        // A result naming no `resultType` is complete, so there is nothing here to answer.
+        $client->callTool(name: 'test_mrtr_no_result_type');
     } finally {
         $client->disconnect();
     }

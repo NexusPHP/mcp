@@ -105,6 +105,10 @@ An unmet SHOULD arrives as a `WARNING`, and the referee's exit code treats it ex
 [`score.php`](score.php) does the same, so the reported number cannot flatter the SDK by quietly
 ignoring them.
 
+The client leg passes whole, so its half of the file is an empty list rather than an absent key. The
+referee reads the key either way, and keeping it there makes admitting a new failure a deliberate
+edit instead of a new section nobody reviews.
+
 ## Bumping the referee
 
 Change `CONFORMANCE_VERSION` in [`run-server.sh`](run-server.sh) and [`run-client.sh`](run-client.sh),

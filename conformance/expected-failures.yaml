@@ -34,8 +34,4 @@ server:
   - input-required-result-multiple-input-requests
   - input-required-result-capability-check
 
-client:
-  # The MRTR round trip is driven through `Client::callTool()`'s `inputResponses`
-  # and `requestState`, which now exist, but the harness registers no handler for
-  # this scenario yet.
-  - sep-2322-client-request-state
+client: []
