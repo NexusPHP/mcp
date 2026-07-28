@@ -85,10 +85,10 @@
             "Nexus\\Mcp\\Tools\\ComposerScripts::installDocLinters"
         ],
         "post-autoload-dump": [
-            "@composer update --working-dir=tools"
+            "@composer update --working-dir=tools --ansi"
         ],
         "api:docs": [
-            "@composer update --working-dir=api",
+            "@composer update --working-dir=api --ansi",
             "api/vendor/bin/apigen src --output=api/docs --config=api/apigen.neon"
         ],
         "arch:check": "tools/vendor/bin/structarmed analyse src",

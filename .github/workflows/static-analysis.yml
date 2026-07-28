@@ -77,7 +77,7 @@ jobs:
         run: composer audit --ansi --abandoned=report
 
       - name: Run PHPStan
-        run: composer phpstan:check
+        run: composer phpstan:check -- --ansi
 
       - name: Run PHPStan type inference tests
         run: composer test:stan
