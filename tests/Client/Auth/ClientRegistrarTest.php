@@ -286,6 +286,14 @@ final class ClientRegistrarTest extends TestCase
         self::resolve(new RecordingHttpClient(), self::metadata(registrationEndpoint: 'http://auth.example.com/register'), self::options());
     }
 
+    public function testALoopbackRegistrationEndpointIsRefusedUnlessOptedIn(): void
+    {
+        $this->expectException(UntrustedAuthorizationMetadataException::class);
+        $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the registration endpoint "http://127.0.0.1:9000/register" is not an absolute HTTPS URL.');
+
+        self::resolve(new RecordingHttpClient(), self::metadata(registrationEndpoint: 'http://127.0.0.1:9000/register'), self::options());
+    }
+
     public function testAServerOfferingNoMechanismIsRefused(): void
     {
         $this->expectException(ClientRegistrationRequiredException::class);

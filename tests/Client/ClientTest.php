@@ -25,6 +25,8 @@ use Nexus\Mcp\Core\Exception\RequestTimeoutException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
 use Nexus\Mcp\Core\Schema\ClientCapabilities;
 use Nexus\Mcp\Core\Schema\Cursor;
+use Nexus\Mcp\Core\Schema\Elicitation\ElicitResult;
+use Nexus\Mcp\Core\Schema\Enum\ElicitAction;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Implementation;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcMessage;
@@ -1045,6 +1047,95 @@ final class ClientTest extends TestCase
         $result = $deferred->await();
         self::assertInstanceOf(CallToolResult::class, $result);
         self::assertSame([], $result->content);
+    }
+
+    public function testCallToolCarriesInputResponsesAndRequestStateBackToTheServer(): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+        self::discover($client, $transport);
+
+        $answer = new ElicitResult(action: ElicitAction::Accept, content: ['name' => 'Paul']);
+
+        $deferred = async(static fn() => $client->callTool(
+            name: 'greet',
+            inputResponses: ['user_name' => $answer],
+            requestState: 'opaque-state-from-the-server',
+        ));
+        $transport->nextSend()->await();
+
+        self::assertCount(2, $transport->sent);
+        $request = $transport->sent[1]['message'];
+        self::assertInstanceOf(CallToolRequest::class, $request);
+        self::assertSame(['user_name' => $answer], $request->params->inputResponses);
+        self::assertSame('opaque-state-from-the-server', $request->params->requestState);
+
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => $request->id->id,
+            'result' => ['content' => []],
+        ]);
+
+        self::assertInstanceOf(CallToolResult::class, $deferred->await());
+    }
+
+    public function testCallToolCarriesInputResponsesAlongsideAProgressToken(): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+        self::discover($client, $transport);
+
+        $answer = new ElicitResult(action: ElicitAction::Decline);
+
+        $deferred = async(static fn() => $client->callTool(
+            name: 'greet',
+            onProgress: static fn(): null => null,
+            inputResponses: ['user_name' => $answer],
+            requestState: 'state-with-progress',
+        ));
+        $transport->nextSend()->await();
+
+        self::assertCount(2, $transport->sent);
+        $request = $transport->sent[1]['message'];
+        self::assertInstanceOf(CallToolRequest::class, $request);
+        self::assertSame(['user_name' => $answer], $request->params->inputResponses);
+        self::assertSame('state-with-progress', $request->params->requestState);
+        self::assertNotNull($request->params->meta->progressToken, 'The progress path must still mint a token.');
+
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => $request->id->id,
+            'result' => ['content' => []],
+        ]);
+
+        self::assertInstanceOf(CallToolResult::class, $deferred->await());
+    }
+
+    public function testCallToolOmitsInputResponsesAndRequestStateWhenNotAnswering(): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+        self::discover($client, $transport);
+
+        $deferred = async(static fn() => $client->callTool('greet'));
+        $transport->nextSend()->await();
+
+        self::assertCount(2, $transport->sent);
+        $request = $transport->sent[1]['message'];
+        self::assertInstanceOf(CallToolRequest::class, $request);
+        self::assertNull($request->params->inputResponses);
+        self::assertNull($request->params->requestState);
+
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => $request->id->id,
+            'result' => ['content' => []],
+        ]);
+
+        self::assertInstanceOf(CallToolResult::class, $deferred->await());
     }
 
     public function testCallToolWithProgressMintsTokenIntoMetaAndStreamsToCallback(): void

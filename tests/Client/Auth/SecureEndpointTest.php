@@ -152,8 +152,9 @@ final class SecureEndpointTest extends TestCase
     {
         yield 'a remote cleartext host is refused' => ['http://auth.example.com/token'];
 
-        // The spec exempts only the redirect URI from HTTPS, so an authorization server on loopback earns
-        // nothing from the MCP server also being there.
+        // The spec exempts only the redirect URI from HTTPS, so by default an authorization server on
+        // loopback earns nothing from the MCP server also being there. Opting in changes that, which the
+        // cases below cover.
         yield 'a loopback address earns no exemption' => ['http://127.0.0.1:9000/token'];
 
         yield 'nor does loopback by name' => ['http://localhost:9000/token'];
@@ -165,6 +166,67 @@ final class SecureEndpointTest extends TestCase
         yield 'an empty string is refused' => [''];
 
         yield 'a scheme with no host is refused' => ['file:///tmp/token'];
+    }
+
+    #[DataProvider('provideAnAuthorizationServerUrlOverCleartextLoopbackIsAcceptedWhenOptedInCases')]
+    public function testAnAuthorizationServerUrlOverCleartextLoopbackIsAcceptedWhenOptedIn(string $url): void
+    {
+        $this->expectNotToPerformAssertions();
+
+        SecureEndpoint::verifyAuthorizationServerUrl($url, 'token endpoint', true);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function provideAnAuthorizationServerUrlOverCleartextLoopbackIsAcceptedWhenOptedInCases(): iterable
+    {
+        yield 'loopback by address' => ['http://127.0.0.1:9000/token'];
+
+        yield 'loopback by name' => ['http://localhost:9000/token'];
+
+        yield 'loopback over IPv6' => ['http://[::1]:9000/token'];
+
+        yield 'anywhere in 127.0.0.0/8' => ['http://127.9.9.9:9000/token'];
+
+        yield 'an uppercase scheme still resolves' => ['HTTP://LOCALHOST:9000/token'];
+    }
+
+    #[DataProvider('provideOptingIntoLoopbackAdmitsNothingElseCases')]
+    public function testOptingIntoLoopbackAdmitsNothingElse(string $url): void
+    {
+        $this->expectException(UntrustedAuthorizationMetadataException::class);
+        $this->expectExceptionMessageIs(\sprintf(
+            'The authorization metadata cannot be trusted because the token endpoint "%s" is not an absolute HTTPS URL.',
+            $url,
+        ));
+
+        SecureEndpoint::verifyAuthorizationServerUrl($url, 'token endpoint', true);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function provideOptingIntoLoopbackAdmitsNothingElseCases(): iterable
+    {
+        yield 'a remote cleartext host is still refused' => ['http://auth.example.com/token'];
+
+        // A private-network address is not loopback: it leaves the host.
+        yield 'a private-network address is still refused' => ['http://10.0.0.5:8443/token'];
+
+        yield 'a host merely starting with the loopback name is still refused' => ['http://localhost.evil.example.com/token'];
+
+        yield 'a non-HTTP scheme is still refused' => ['ftp://127.0.0.1:9000/token'];
+
+        yield 'a URL that is not absolute is still refused' => ['/token'];
+    }
+
+    public function testOptingIntoLoopbackStillRefusesAFragment(): void
+    {
+        $this->expectException(UntrustedAuthorizationMetadataException::class);
+        $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the authorization endpoint "http://127.0.0.1:9000/authorize#done" carries a fragment.');
+
+        SecureEndpoint::verifyAuthorizationServerUrl('http://127.0.0.1:9000/authorize#done', 'authorization endpoint', true);
     }
 
     public function testAnAuthorizationServerUrlCarryingAFragmentIsRefused(): void

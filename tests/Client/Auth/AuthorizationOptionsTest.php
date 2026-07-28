@@ -46,6 +46,7 @@ final class AuthorizationOptionsTest extends TestCase
             ['files:read'],
             InsufficientScopePolicy::Fail,
             2.5,
+            true,
         );
 
         self::assertSame('Example MCP Client', $options->clientName);
@@ -58,6 +59,7 @@ final class AuthorizationOptionsTest extends TestCase
         self::assertSame(['files:read'], $options->defaultScopes);
         self::assertSame(InsufficientScopePolicy::Fail, $options->onInsufficientScope);
         self::assertSame(2.5, $options->timeout);
+        self::assertTrue($options->allowInsecureLoopback);
     }
 
     public function testARemoteCleartextRedirectUriIsRefused(): void
@@ -114,5 +116,7 @@ final class AuthorizationOptionsTest extends TestCase
         self::assertSame([], $options->defaultScopes);
         self::assertSame(InsufficientScopePolicy::Reauthorize, $options->onInsufficientScope);
         self::assertSame(10.0, $options->timeout);
+        // A cleartext authorization server is opt-in, never the default.
+        self::assertFalse($options->allowInsecureLoopback);
     }
 }

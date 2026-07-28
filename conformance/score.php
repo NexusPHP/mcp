@@ -40,7 +40,7 @@ if (! is_dir($resultsDir)) {
     exit(1);
 }
 
-/** @return list<string> */
+/** @var Closure(string): list<string> $findCheckFiles */
 $findCheckFiles = static function (string $dir): array {
     $iterator = new RecursiveIteratorIterator(
         new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS | FilesystemIterator::UNIX_PATHS),
@@ -67,6 +67,17 @@ $scenarioName = static function (string $checkFile): string {
     $dir = basename(dirname($checkFile));
 
     return preg_replace('/-\d{4}-\d{2}-\d{2}T[\d.-]+Z?$/', '', $dir) ?? $dir;
+};
+
+/**
+ * Each runner writes under `results/<mode>/`, so the two modes can be scored
+ * together without one overwriting the other.
+ */
+$modeOf = static function (string $checkFile) use ($resultsDir): string {
+    $relative = trim(str_replace($resultsDir, '', $checkFile), '/');
+    $mode = strtok($relative, '/');
+
+    return in_array($mode, ['server', 'client'], true) ? $mode : 'unknown';
 };
 
 $scenarios = [];
@@ -105,7 +116,7 @@ foreach ($findCheckFiles($resultsDir) as $checkFile) {
 
     // A later run of the same scenario supersedes an earlier one, and the file
     // list is sorted, so the newest timestamp wins.
-    $scenarios[$name] = ['counts' => $counts, 'failures' => $failures];
+    $scenarios[$name] = ['mode' => $modeOf($checkFile), 'counts' => $counts, 'failures' => $failures];
 }
 
 if ([] === $scenarios) {
@@ -136,20 +147,37 @@ if ($asJson) {
     exit(0);
 }
 
-echo "## Conformance score\n\n";
+$modes = [];
+
+foreach ($scenarios as $scenario) {
+    $modes[$scenario['mode']] = true;
+}
+
+ksort($modes);
+$heading = implode(' and ', array_keys($modes));
+
+printf("## Conformance score (%s)\n\n", '' === $heading ? 'no mode' : $heading);
 printf("**Scenarios passed:** %d / %d\n", $scenariosPassed, count($scenarios));
 printf("**Checks passed:** %d / %d (%.1f%%)\n", $totals['SUCCESS'], $scored, $rate * 100);
 printf("**Unmet SHOULD checks:** %d (counted against the score)\n", $totals['WARNING']);
 printf("**Skipped checks:** %d (excluded from the denominator)\n\n", $totals['SKIPPED']);
 
-echo "| Scenario | Pass | Fail | Warn | Skip | Not passing |\n";
-echo "| --- | ---: | ---: | ---: | ---: | --- |\n";
+echo "| Mode | Scenario | Pass | Fail | Warn | Skip | Not passing |\n";
+echo "| --- | --- | ---: | ---: | ---: | ---: | --- |\n";
 
-ksort($scenarios);
+$rows = [];
 
 foreach ($scenarios as $name => $scenario) {
+    $rows[] = ['name' => $name] + $scenario;
+}
+
+usort($rows, static fn(array $a, array $b): int => [$a['mode'], $a['name']] <=> [$b['mode'], $b['name']]);
+
+foreach ($rows as $scenario) {
+    $name = $scenario['name'];
     printf(
-        "| `%s` | %d | %d | %d | %d | %s |\n",
+        "| %s | `%s` | %d | %d | %d | %d | %s |\n",
+        $scenario['mode'],
         $name,
         $scenario['counts']['SUCCESS'],
         $scenario['counts']['FAILURE'],

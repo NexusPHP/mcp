@@ -39,7 +39,7 @@ The tiering system covers **both official and community-driven SDKs**, so `nexus
 - [ ] **80% Conformance Tests Pass**
   - Reference: [Conformance Test Suite](https://github.com/modelcontextprotocol/conformance). Exact scenarios in "Conformance suite: scenarios to pass" below
   - Threshold: 80% of the scored set, which is upstream-blocked. `tier-check` scores only over `DATED_SPEC_VERSIONS`, and that still ends at 2025-11-25, so the scenarios this SDK passes do not yet count toward a tier number
-  - Evidence/Notes: server mode runs and is measured. First run 2026-07-28: **76 of 97 checks, 25 of 40 scenarios** at `--spec-version 2026-07-28 --suite all`. Client mode is not run yet
+  - Evidence/Notes: both modes run and are measured at `--spec-version 2026-07-28 --suite all`. As of 2026-07-28: server **76 of 97 checks**, client **289 of 304**, combined **365 of 401 (91.0%)**
   - Run: `composer conformance:server` then `composer conformance:score`
 
 ### Implementation Timeline
@@ -281,7 +281,10 @@ The tiering system covers **both official and community-driven SDKs**, so `nexus
 
 **Target spec: `--spec-version 2026-07-28`.** The SDK implements that revision only. The referee filters scenarios by a `removedIn` field, so pinning the version is also what drops the 2025-era scenarios for features the SDK deliberately does not implement (`initialize`, `logging/setLevel`, sampling, `resources/subscribe`) rather than failing them. `draft` is an accepted alias for the same version.
 
-**Server-mode standing, first measured 2026-07-28:** 76 of 97 checks, 25 of 40 scenarios, at `--suite all`. The remainder is three gaps, each named in the baseline: server-side MRTR is not built (12 scenarios), `-32021` and `-32022` are modelled but never emitted, and the SEP-2243 custom-header scenario needs a `ToolStore` the endpoint and `ServerBuilder::register()` cannot currently share. Client mode is not run yet.
+**Standing, first measured 2026-07-28**, both legs at `--suite all`:
+
+- **Server mode:** 76 of 97 checks, 25 of 40 scenarios. The remainder is three gaps, each named in the baseline: server-side MRTR is not built (12 scenarios), `-32021` and `-32022` are modelled but never emitted, and the SEP-2243 custom-header scenario needs a `ToolStore` the endpoint and `ServerBuilder::register()` cannot currently share.
+- **Client mode:** 289 of 304 checks, 25 of 32 scenarios. The OAuth block passes almost entirely, as do the SEP-2243 header scenarios. What remains is five OAuth scenarios each missing one obligation, plus the MRTR client leg and one unmet SHOULD, all named individually in the baseline.
 
 ### Scoring model (verified against the tooling)
 

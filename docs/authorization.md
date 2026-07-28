@@ -119,6 +119,26 @@ new AuthorizationOptions(
 );
 ```
 
+### Talking to a local authorization server
+
+The spec exempts only the redirect URI from HTTPS, so an authorization server on `http://localhost` is
+refused by default even when the MCP server is local too. That is correct for production and useless for
+development, where the authorization server is usually a container on a loopback port. Opt out for those
+runs:
+
+```php
+new AuthorizationOptions(
+    clientName: 'Example MCP Client',
+    redirectUri: 'http://127.0.0.1:8765/callback',
+    allowInsecureLoopback: true,
+);
+```
+
+It admits cleartext on `localhost`, `127.0.0.0/8`, and `[::1]`, and nothing else. A remote cleartext host
+is still refused, so is a private-network address, and so is a URL carrying a fragment. Never set it in
+production: it is the difference between a token that cannot leave the machine and one an observer on the
+network can read.
+
 ### Persisting tokens and registrations
 
 Both stores default to memory, so a restart authorizes again. Implement the interfaces to outlive the process:
@@ -306,12 +326,13 @@ These are not optional, and they are the checks implementations most often skip:
 - **`state`.** Sent on every authorization request and verified on the response.
 - **Resource indicators.** The canonical server URI travels on both the authorization and the token request,
   and a metadata document naming a different resource is rejected.
-- **HTTPS.** Every authorization server URL is required to be HTTPS, with no exemption: the issuer, the
-  metadata URLs derived from it, and the authorization, token, and registration endpoints it publishes. The
-  redirect URI is the one URL the spec lets address a loopback listener over plain HTTP, so a local
-  development callback keeps working. This checks the transport a URL names, not where it leads. An HTTPS
-  URL naming a private-network or link-local address is admitted, so an operator who needs those blocked
-  should block them in the HTTP client handed to the decorator.
+- **HTTPS.** Every authorization server URL is required to be HTTPS: the issuer, the metadata URLs derived
+  from it, and the authorization, token, and registration endpoints it publishes. The redirect URI is the
+  one URL the spec lets address a loopback listener over plain HTTP, so a local development callback keeps
+  working. This checks the transport a URL names, not where it leads. An HTTPS URL naming a
+  private-network or link-local address is admitted, so an operator who needs those blocked should block
+  them in the HTTP client handed to the decorator. See
+  [Talking to a local authorization server](#talking-to-a-local-authorization-server) for the one opt-out.
 - **No fragment.** An authorization server URL carrying a fragment is refused, because the `state` and
   `code_challenge` this client appends to the authorization endpoint would land in the fragment and never
   reach the server.

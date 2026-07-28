@@ -440,6 +440,17 @@ final class TokenEndpointTest extends TestCase
         ));
     }
 
+    public function testALoopbackTokenEndpointIsRefusedUnlessOptedIn(): void
+    {
+        $this->expectException(UntrustedAuthorizationMetadataException::class);
+        $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the token endpoint "http://127.0.0.1:9000/token" is not an absolute HTTPS URL.');
+
+        self::exchange(new RecordingHttpClient(), metadata: new AuthorizationServerMetadata(
+            self::ISSUER,
+            tokenEndpoint: 'http://127.0.0.1:9000/token',
+        ));
+    }
+
     private static function exchange(
         RecordingHttpClient $http,
         ?ClientRegistration $registration = null,

@@ -160,7 +160,7 @@ optional `Cursor` for pagination.
 | `readResource(string $uri)` | `resources/read` | `ReadResourceResult\|InputRequiredResult` |
 | `getPrompt(string $name, ?array $arguments = null)` | `prompts/get` | `GetPromptResult\|InputRequiredResult` |
 | `complete(PromptReference\|ResourceTemplateReference $ref, array $argument, ?array $context = null)` | `completion/complete` | `CompleteResult` |
-| `callTool(string $name, ?array $arguments = null, ?\Closure $onProgress = null)` | `tools/call` | `CallToolResult\|InputRequiredResult` |
+| `callTool(string $name, ?array $arguments = null, ?\Closure $onProgress = null, ?array $inputResponses = null, ?string $requestState = null)` | `tools/call` | `CallToolResult\|InputRequiredResult` |
 | `discover()` | `server/discover` | `DiscoverResult` |
 
 ```php
@@ -192,22 +192,36 @@ if ($result instanceof InputRequiredResult) {
 }
 ```
 
-To answer, re-send the request with the collected values through `sendRequest()`, since the typed helpers
-take no `inputResponses` argument:
+To answer a tool call, call it again with the collected values and the `requestState` it handed you:
+
+```php
+$answered = $client->callTool(
+    name: 'book_flight',
+    arguments: ['destination' => 'Cebu'],
+    inputResponses: ['seat' => new ElicitResult(action: ElicitAction::Accept, content: ['seat' => '14C'])],
+    requestState: $result->requestState,
+);
+```
+
+Keep `arguments` the same as the first call. The server is resuming that request, not being given a new
+one, and `requestState` must go back exactly as it arrived: it is opaque, and a server is entitled to
+reject a modified one.
+
+`readResource()` and `getPrompt()` take no such arguments, so answering those two means building the
+request yourself and sending it through `sendRequest()`:
 
 ```php
 $response = $client->sendRequest(
-    new CallToolRequest(
+    new ReadResourceRequest(
         id: $requestId,
-        params: new CallToolRequestParams(
-            name: 'book_flight',
-            arguments: ['destination' => 'Cebu'],
-            inputResponses: ['seat' => new ElicitResult(action: ElicitAction::Accept, content: ['seat' => '14C'])],
+        params: new ReadResourceRequestParams(
+            uri: 'file:///report.csv',
+            inputResponses: ['passphrase' => new ElicitResult(action: ElicitAction::Accept, content: ['passphrase' => 'hunter2'])],
             requestState: $result->requestState,
             meta: $meta,
         ),
     ),
-    CallToolResultResponse::class,
+    ReadResourceResultResponse::class,
 );
 ```
 

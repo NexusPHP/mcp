@@ -143,6 +143,14 @@ final class AuthorizationRequestTest extends TestCase
         self::build(new ScopeSet(), 'http://auth.example.com/authorize');
     }
 
+    public function testBuildRefusesALoopbackAuthorizationEndpointUnlessOptedIn(): void
+    {
+        $this->expectException(UntrustedAuthorizationMetadataException::class);
+        $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the authorization endpoint "http://127.0.0.1:9000/authorize" is not an absolute HTTPS URL.');
+
+        self::build(new ScopeSet(), 'http://127.0.0.1:9000/authorize');
+    }
+
     public function testBuildRefusesANonHttpAuthorizationEndpoint(): void
     {
         $this->expectException(UntrustedAuthorizationMetadataException::class);

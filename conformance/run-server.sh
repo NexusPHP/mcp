@@ -81,5 +81,5 @@ npx -y "@modelcontextprotocol/conformance@${CONFORMANCE_VERSION}" server \
     --url "$SERVER_URL" \
     --spec-version "$SPEC_VERSION" \
     --expected-failures ./conformance/expected-failures.yaml \
-    --output-dir ./conformance/results \
+    --output-dir ./conformance/results/server \
     "$@"

@@ -482,13 +482,29 @@ SDKs.
   a scorer that counts an unmet SHOULD against the total. Server mode runs at
   `--spec-version 2026-07-28` and stands at 76 of 97 checks. The 21 that remain are the three gaps
   below, each named in the baseline.
-- [ ] Run the conformance suite in client mode. Needs a scenario-keyed client fixture plus a runner,
-  on the same pinned referee. At 2026-07-28 the denominator is `tools_call`, `request-metadata`, the
-  MRTR client leg, the three SEP-2243 header scenarios, `json-schema-ref-no-deref`, and the OAuth
-  block, which is the bulk and is already built.
+- [x] Run the conformance suite in client mode, on the same pinned referee and baseline.
+  `conformance/client.php` routes on the scenario name the referee supplies. Stands at 289 of 304
+  checks, 25 of 32 scenarios. The OAuth block passes almost entirely, as do the SEP-2243 header
+  scenarios (`http-custom-headers` 18 of 18), `tools_call`, and `json-schema-ref-no-deref`.
 
-Defects the first conformance run surfaced, smallest first. The first three are invisible to the
-suite today and so are not in the baseline.
+Defects the first conformance runs surfaced, smallest first. The three marked as unseen by the suite
+are not in the baseline.
+
+- [x] `SecureEndpoint::verifyAuthorizationServerUrl()` admitted no loopback, while the sibling
+  `verifyRedirectUri()` did, so an authorization server on `http://localhost` was unusable. That
+  covered the conformance referee's mock and every local development setup, and accounted for 22 of
+  the 32 client scenarios. `AuthorizationOptions::$allowInsecureLoopback` now opts in, defaulting to
+  off so production stays strict.
+- [x] `Client::callTool()` takes `inputResponses` and `requestState`, so the typed surface can
+  complete an MRTR round trip rather than forcing callers onto `sendRequest()`.
+- [ ] When a server rejects the requested protocol version with `-32022`, the client does not retry
+  with a version the error named as supported. SEP-2575 says it SHOULD. The version is a readonly
+  property and every typed method stamps it into a request that is already built by the time the
+  rejection arrives, so a retry means rebuilding the request at dispatch level.
+- [ ] Five OAuth scenarios still miss one obligation each, listed individually in the conformance
+  baseline: the `metadata-var2` discovery layout, the CIMD client-id SHOULD, scope step-up making no
+  second authorization request, pre-registration making no token request, and SEP-2352
+  re-registration on an authorization-server change.
 
 - [ ] A missing required `prompts/get` argument answers `-32603 Internal error` rather than
   `-32602`. The argument binder's failure escapes as an unhandled exception instead of being

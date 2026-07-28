@@ -66,4 +66,40 @@ server:
   # Retired by giving the two a way to compose.
   - http-custom-header-server-validation
 
-client: []
+client:
+  # These five are the residue of the OAuth block, and each needs its own look.
+  # They are NOT the old loopback blocker, which is gone: every other auth
+  # scenario now passes outright. Each of these gets most of the way and misses
+  # one specific obligation, so they are listed individually rather than as a
+  # group.
+  #
+  # Stops after Protected Resource Metadata, like the whole block used to. The
+  # var2 metadata layout is evidently one discovery does not follow.
+  - auth/metadata-var2
+  # SHOULD use a URL-based client ID when the server advertises
+  # `client_id_metadata_document_supported`. The harness supplies no
+  # `clientIdMetadataDocumentUrl`, and a CIMD URL must be HTTPS, so this may not
+  # be reachable from a loopback harness at all.
+  - auth/basic-cimd:cimd-client-id-used
+  # No second authorization request is made on a 403 insufficient_scope, so the
+  # scope union on re-authorization cannot be observed either.
+  - auth/scope-step-up
+  # No token request is made. The harness passes the MCP server URL as the
+  # pre-registered `issuer`, which is not the authorization server's issuer, so
+  # this is more likely the harness than the SDK.
+  - auth/pre-registration
+  # SEP-2352 says the client MUST re-register when PRM `authorization_servers`
+  # changes. No registration request is seen at the new server.
+  - auth/authorization-server-migration:sep-2352-reregister-on-as-change
+
+  # The MRTR round trip is driven through `Client::callTool()`'s `inputResponses`
+  # and `requestState`, which now exist, but the harness registers no handler for
+  # this scenario yet.
+  - sep-2322-client-request-state
+
+  # An unmet SHOULD. When a server rejects the requested protocol version with
+  # `-32022`, the client should retry using one the error named as supported. It
+  # does not: the version is a readonly property and every typed method stamps it
+  # into a request that is already built by the time the rejection arrives, so a
+  # retry means rebuilding the request at dispatch level.
+  - request-metadata:sep-2575-client-retry-supported-version
