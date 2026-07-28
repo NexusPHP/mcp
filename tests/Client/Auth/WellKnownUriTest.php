@@ -144,6 +144,31 @@ final class WellKnownUriTest extends TestCase
         ], WellKnownUri::forProtectedResource('https://mcp.example.com/mcp?tenant=acme'));
     }
 
+    /**
+     * @param non-empty-string $uri
+     */
+    #[DataProvider('provideOriginOfCases')]
+    public function testOriginOf(string $uri, string $expected): void
+    {
+        self::assertSame($expected, WellKnownUri::originOf($uri));
+    }
+
+    /**
+     * @return iterable<string, array{non-empty-string, string}>
+     */
+    public static function provideOriginOfCases(): iterable
+    {
+        yield 'a path is dropped' => ['https://mcp.example.com/mcp', 'https://mcp.example.com'];
+
+        yield 'a query is dropped' => ['https://mcp.example.com/mcp?tenant=acme', 'https://mcp.example.com'];
+
+        yield 'a port is kept' => ['http://localhost:3000/mcp', 'http://localhost:3000'];
+
+        yield 'the scheme and host are lowercased' => ['HTTPS://MCP.Example.COM/mcp', 'https://mcp.example.com'];
+
+        yield 'an origin is already one' => ['https://mcp.example.com', 'https://mcp.example.com'];
+    }
+
     public function testAnIssuerQueryIsDroppedBecauseTheSpecForbidsOne(): void
     {
         self::assertSame([

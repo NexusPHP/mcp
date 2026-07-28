@@ -119,6 +119,44 @@ final class MetadataDiscoveryTest extends TestCase
         new MetadataDiscovery($http)->discoverResource(new ResourceIdentifier(self::RESOURCE), null, new NullCancellation());
     }
 
+    public function testTheRootDocumentMayNameTheOriginRatherThanTheEndpoint(): void
+    {
+        // RFC 9728 assigns the origin-root well-known URL to the resource at the origin, so the document
+        // it serves names that origin. Refusing it would make the fallback unreachable by construction.
+        $http = new RecordingHttpClient()
+            ->willAnswerJson([], 404)
+            ->willAnswerJson(self::resourceDocument(['resource' => 'https://mcp.example.com']))
+        ;
+
+        $metadata = new MetadataDiscovery($http)->discoverResource(new ResourceIdentifier(self::RESOURCE), null, new NullCancellation());
+
+        self::assertSame('https://mcp.example.com', $metadata->resource->value);
+    }
+
+    public function testADocumentNamingAnotherOriginsRootIsStillRefused(): void
+    {
+        $http = new RecordingHttpClient()
+            ->willAnswerJson([], 404)
+            ->willAnswerJson(self::resourceDocument(['resource' => 'https://attacker.example']))
+        ;
+
+        $this->expectException(UntrustedAuthorizationMetadataException::class);
+        $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the document served for "https://mcp.example.com/mcp" names the resource "https://attacker.example".');
+
+        new MetadataDiscovery($http)->discoverResource(new ResourceIdentifier(self::RESOURCE), null, new NullCancellation());
+    }
+
+    public function testASiblingPathOnTheSameOriginIsStillRefused(): void
+    {
+        // Origin tolerance is exactly the origin, not any path under it.
+        $http = new RecordingHttpClient()->willAnswerJson(self::resourceDocument(['resource' => 'https://mcp.example.com/other']));
+
+        $this->expectException(UntrustedAuthorizationMetadataException::class);
+        $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the document served for "https://mcp.example.com/mcp" names the resource "https://mcp.example.com/other".');
+
+        new MetadataDiscovery($http)->discoverResource(new ResourceIdentifier(self::RESOURCE), null, new NullCancellation());
+    }
+
     public function testExhaustingEveryResourceCandidateIsReported(): void
     {
         $http = new RecordingHttpClient()

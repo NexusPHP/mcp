@@ -69,14 +69,39 @@ final class ExampleLogger extends AbstractLogger
             }
 
             $replacements[sprintf('{%s}', $key)] = match (true) {
-                $value instanceof Throwable => $value::class.': '.$value->getMessage(),
+                $value instanceof Throwable => self::describeThrowable($value),
                 is_scalar($value) || $value instanceof Stringable => (string) $value,
                 default => json_encode($value, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES),
             };
         }
 
         $rendered = strtr((string) $message, $replacements);
+        $trailing = [];
+
+        foreach ($replacements as $token => $value) {
+            if (! str_contains((string) $message, $token)) {
+                $trailing[] = sprintf('%s=%s', trim($token, '{}'), $value);
+            }
+        }
+
+        if ([] !== $trailing) {
+            $rendered .= ' '.implode(' ', $trailing);
+        }
 
         fwrite(\STDERR, sprintf("[%s] %s: %s\n", date(\DATE_RFC3339), $name, $rendered));
+    }
+
+    /**
+     * The exception and every cause behind it, newest first.
+     */
+    private static function describeThrowable(Throwable $exception): string
+    {
+        $chain = [];
+
+        for ($link = $exception; null !== $link; $link = $link->getPrevious()) {
+            $chain[] = $link::class.': '.$link->getMessage();
+        }
+
+        return implode(' <- ', $chain);
     }
 }

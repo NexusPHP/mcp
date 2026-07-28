@@ -494,8 +494,8 @@ SDKs.
   `--spec-version 2026-07-28` and stands at 102 of 106 checks. The 4 that remain all need an input
   request this SDK does not model, named in the baseline.
 - [x] Run the conformance suite in client mode, on the same pinned referee and baseline.
-  `conformance/client.php` routes on the scenario name the referee supplies. Stands at 290 of 304
-  checks, 26 of 32 scenarios. The OAuth block passes almost entirely, as do the SEP-2243 header
+  `conformance/client.php` routes on the scenario name the referee supplies. Stands at 300 of 310
+  checks, 27 of 32 scenarios. The OAuth block passes almost entirely, as do the SEP-2243 header
   scenarios (`http-custom-headers` 18 of 18), `request-metadata`, `tools_call`, and
   `json-schema-ref-no-deref`.
 
@@ -514,10 +514,15 @@ are not in the baseline.
   carries the `Error` it was built from, so `data.supported` survives to the dispatch layer, which
   rebuilds the request from its own `toArray()` under a restamped `_meta` and a fresh id. A rejection
   naming no version this SDK speaks propagates untouched, and the retry is not itself retried.
-- [ ] Five OAuth scenarios still miss one obligation each, listed individually in the conformance
-  baseline: the `metadata-var2` discovery layout, the CIMD client-id SHOULD, scope step-up making no
-  second authorization request, pre-registration making no token request, and SEP-2352
-  re-registration on an authorization-server change.
+- [x] `metadata-var2` stopped after Protected Resource Metadata. When the path-scoped well-known URL
+  404s, discovery falls back to the origin-root one, and RFC 9728 assigns that URL to the resource at
+  the origin, so the document it serves names the origin rather than the path-scoped endpoint.
+  `MetadataDiscovery` refused it and aborted, making the fallback unreachable by construction. It now
+  accepts a document naming either the resource or its origin, and still refuses any other origin.
+- [ ] Four OAuth scenarios still miss one obligation each, listed individually in the conformance
+  baseline: the CIMD client-id SHOULD, scope step-up making no second authorization request,
+  pre-registration making no token request (an unbindable pre-registered credential, see the baseline), and
+  SEP-2352 re-registration on an authorization-server change.
 
 - [x] A missing required `prompts/get` argument answered `-32603 Internal error` rather than
   `-32602`. `ArgumentBinder::bind()` now converts the assertion failure into an
