@@ -512,11 +512,12 @@ are not in the baseline.
 - [x] `examples/attribute-discovery.php` called `ServerContext::log()`, which no longer exists, so the
   `weather` tool fataled on its first call. It reports progress instead. `examples/` is now in the
   PHPStan paths alongside `conformance/`, which is what stops the next one rotting unnoticed.
-- [ ] Empty object slots ship as `[]` rather than `{}`. Pattern A substitutes `\stdClass` inside
-  `jsonSerialize()`, but transports encode `$message->toArray()` and `json_encode` the plain array,
-  so the substitution never runs on the send path. Live example: `server/discover` answers
-  `"capabilities":{"tools":[]}`. Reproduce with
-  `new ServerCapabilities(tools: [])`, comparing `toArray()` against `jsonSerialize()`.
+- [x] Empty object slots shipped as `[]` rather than `{}` over Streamable HTTP. Pattern A substitutes
+  `\stdClass` inside `jsonSerialize()`, but both HTTP transports encoded `$message->toArray()` and
+  `json_encode`d the plain array, so the substitution never ran on the send path. Every client request
+  carried `"io.modelcontextprotocol/clientCapabilities":[]`, and `server/discover` answered
+  `"capabilities":[]`. Both transports and the three rejecting middlewares now encode the message
+  itself, which is what stdio already did.
 - [ ] `UnsupportedProtocolVersionError` (-32022) is never emitted. An unknown protocol version is
   rejected on format grounds with `-32602` before the support check runs, so the modelled error, and
   its required `data.supported` and `data.requested`, go unused.

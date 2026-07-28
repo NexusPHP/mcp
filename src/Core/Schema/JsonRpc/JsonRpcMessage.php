@@ -28,4 +28,13 @@ interface JsonRpcMessage extends \JsonSerializable
      * @return array<string, mixed>
      */
     public function toArray(): array;
+
+    /**
+     * The encoded form of the envelope, with `\stdClass` substituted for the empty-object slots
+     * nested inside it so `json_encode` emits `{}` rather than `[]`.
+     *
+     * @return array<string, mixed>
+     */
+    #[\Override]
+    public function jsonSerialize(): array;
 }

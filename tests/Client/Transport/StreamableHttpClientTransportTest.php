@@ -22,6 +22,7 @@ use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyStartedException;
 use Nexus\Mcp\Core\Exception\TransportNotStartedException;
 use Nexus\Mcp\Core\Http\HeaderValueCodec;
+use Nexus\Mcp\Core\Schema\ClientCapabilities;
 use Nexus\Mcp\Core\Schema\Error\InternalError;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcMessage;
@@ -32,6 +33,7 @@ use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
 use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
 use Nexus\Mcp\Core\Schema\Request\ReadResourceRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams\CallToolRequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\ReadResourceRequestParams;
@@ -217,6 +219,25 @@ final class StreamableHttpClientTransportTest extends TestCase
         self::assertStringContainsString($uri, $body);
         self::assertStringNotContainsString('file:\\/\\/', $body, 'Slashes stay unescaped.');
         self::assertStringNotContainsString('\\u4e16', $body, 'Non-ASCII stays unescaped.');
+    }
+
+    public function testAnEmptyObjectSlotIsPostedAsAnObjectNotAnArray(): void
+    {
+        $http = new RecordingHttpClient()->willAnswerJson(self::resultEnvelope());
+        $transport = self::makeTransport($http);
+
+        self::exchange($transport, new DiscoverRequest(
+            id: new RequestId(id: 1),
+            params: new EmptyRequestParams(meta: new RequestMetaObject(
+                protocolVersion: new ProtocolVersion(version: ProtocolVersion::LATEST_VERSION),
+                clientCapabilities: new ClientCapabilities(),
+            )),
+        ));
+
+        self::assertStringContainsString(
+            \sprintf('"%s":{}', RequestMetaObject::CLIENT_CAPABILITIES_KEY),
+            buffer($http->readRequest()->getBody()->getContent()),
+        );
     }
 
     public function testDetectsAnUppercaseContentType(): void

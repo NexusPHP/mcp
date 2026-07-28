@@ -73,6 +73,11 @@ empty object slot that should encode as `{}` instead of `[]`), the class substit
 registry. The `AbstractRoundTripTestCase` asserts `json_encode($x) === json_encode($x->toArray())` for every
 other class, so drift between the two paths fails the build.
 
+Which path a caller takes is not a free choice. Everything that encodes a message for a peer reads
+`jsonSerialize()`, so the substitution survives to the other end. `toArray()` is the round-trip form, used
+where the envelope stays a PHP array: the in-memory transport handing it to its peer, and `StandardHeaders`
+reading values back out of it to mirror into request headers.
+
 A success-response envelope carries no method-name, so the parser cannot pick its concrete type from the
 envelope alone. `JsonRpcResultResponse` is therefore an abstract base with one self-decoding
 `*ResultResponse` per method: the awaiter supplies the expected response class and the parser delegates to its `fromArray()`

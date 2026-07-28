@@ -365,6 +365,16 @@ final class StreamableHttpServerTransportTest extends TestCase
         self::assertSame('req-abc', self::decode($response)['id'] ?? null);
     }
 
+    public function testResponseBodyEncodesAnEmptyObjectSlotAsAnObjectNotAnArray(): void
+    {
+        $transport = self::makeTransport(start: false);
+        self::listen($transport);
+
+        $response = self::handle($transport, self::discoverPost());
+
+        self::assertStringContainsString('"capabilities":{}', (string) $response->getBody());
+    }
+
     public function testResponseBodyLeavesSlashesAndUnicodeUnescaped(): void
     {
         $transport = self::makeTransport(start: false);
