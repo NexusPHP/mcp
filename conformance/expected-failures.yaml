@@ -38,26 +38,6 @@ server:
   - input-required-result-missing-input-response
   - input-required-result-ignore-extra-params
 
-  # An unmet SHOULD, and a genuinely small one: the -32602 for an unknown resource
-  # is correct and its two MUST checks pass, but SEP-2164 also says `error.data.uri`
-  # SHOULD echo the URI that was not found, and the SDK sends no `data` at all.
-  - sep-2164-resource-not-found:sep-2164-data-uri
-
-  # Three checks inside an otherwise-passing scenario (22 of 25 pass).
-  #
-  # The first is a defect: `server/discover` rejects an unknown protocol version on
-  # format grounds with -32602 before the version-support check runs, so the spec's
-  # UnsupportedProtocolVersionError (-32022, carrying data.supported and
-  # data.requested) is never emitted. The error class itself is correct and unused.
-  #
-  # The other two need the server to refuse a request that requires a client
-  # capability the client did not declare. `MissingRequiredClientCapabilityError`
-  # (-32021) is modelled but only ever decoded, never raised: no handler-reachable
-  # path can emit it.
-  - server-stateless:sep-2575-server-unsupported-version-error
-  - server-stateless:sep-2575-server-rejects-undeclared-capability
-  - server-stateless:sep-2575-missing-capability-http-400
-
   # A `pending` scenario, so it is outside the active and draft suites and only
   # runs under `--suite all`. `ParameterHeaderValidationMiddleware` needs the same
   # ToolStore the server serves, but `ServerBuilder::build()` takes `setToolStore()`

@@ -11,6 +11,7 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
+use Nexus\Mcp\Core\Schema\ClientCapabilities;
 use Nexus\Mcp\Core\Schema\ContentBlock\AudioContent;
 use Nexus\Mcp\Core\Schema\ContentBlock\EmbeddedResource;
 use Nexus\Mcp\Core\Schema\ContentBlock\ImageContent;
@@ -27,6 +28,7 @@ use Nexus\Mcp\Server\Attribute\AsResourceTemplate;
 use Nexus\Mcp\Server\Attribute\AsServer;
 use Nexus\Mcp\Server\Attribute\AsTool;
 use Nexus\Mcp\Server\Attribute\InputSchema;
+use Nexus\Mcp\Server\Exception\MissingRequiredClientCapabilityException;
 use Nexus\Mcp\Server\ServerContext;
 
 /**
@@ -128,16 +130,20 @@ final class EverythingServer
 
     /**
      * The `server-stateless` scenario calls this to prove the server refuses work
-     * needing a client capability the client never declared. The SDK has no way to
-     * raise `-32021` from a handler yet, so this reports what it saw and the two
-     * checks that assert the rejection stay baselined.
+     * needing a client capability the client never declared.
      */
     #[AsTool(name: 'test_missing_capability', description: 'Needs the sampling client capability.')]
     public function missingCapability(ServerContext $context): string
     {
-        $declared = array_keys($context->meta->clientCapabilities->toArray());
+        // Sampling is outside the capability set this SDK models, so it arrives as an extra.
+        if (! array_key_exists('sampling', $context->meta->clientCapabilities->extras)) {
+            throw new MissingRequiredClientCapabilityException(
+                new ClientCapabilities(extras: ['sampling' => []]),
+                $context->requestId,
+            );
+        }
 
-        return sprintf('Client declared: %s.', [] === $declared ? 'nothing' : implode(', ', $declared));
+        return 'Sampling is available.';
     }
 
     /**
