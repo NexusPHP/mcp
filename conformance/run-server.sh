@@ -47,7 +47,7 @@ fi
 # Spawn PHP directly rather than through a wrapper, so SERVER_PID is the listener
 # itself. Killing a wrapper leaves the real server running and squatting the port.
 echo "Starting conformance fixture on ${HOST}:${PORT}..."
-HOST="$HOST" PORT="$PORT" php conformance/server.php &
+HOST="$HOST" PORT="$PORT" php -d zend.assertions=0 conformance/server.php &
 SERVER_PID=$!
 
 cleanup() {

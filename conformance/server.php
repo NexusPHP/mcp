@@ -12,7 +12,8 @@ declare(strict_types=1);
  */
 
 /**
- * Serves `EverythingServer` over Streamable HTTP for the conformance referee.
+ * Serves `EverythingServer` and `MultiRoundServer` over Streamable HTTP for the
+ * conformance referee.
  *
  * The endpoint answers on every path, so the referee's `--url` may end in
  * `/mcp` or anything else. Bind address comes from `HOST` and `PORT`.
@@ -25,6 +26,7 @@ declare(strict_types=1);
 
 require __DIR__.'/bootstrap.php';
 require __DIR__.'/EverythingServer.php';
+require __DIR__.'/MultiRoundServer.php';
 
 use Amp\DeferredFuture;
 use Amp\Http\Server\DefaultErrorHandler;
@@ -74,7 +76,7 @@ $completeArgument = static function (string $value, ?array $arguments, ServerCon
 
 $builder = new ServerBuilder()
     ->setLogger($logger)
-    ->register(new EverythingServer())
+    ->register(new EverythingServer(), new MultiRoundServer())
     ->setCompletionStore(new CompletionStore(
         promptCompletions: [
             'test_prompt_with_arguments' => ['arg1' => $completeArgument, 'arg2' => $completeArgument],

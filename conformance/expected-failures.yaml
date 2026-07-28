@@ -16,27 +16,23 @@
 # Every entry names what will retire it.
 
 server:
-  # Server-side MRTR (SEP-2322) is not built. `InputRequiredResult` is modelled in
-  # Core/Schema and the client consumes it, but no server path emits it and
-  # `ToolExecutorInterface::execute()` returns `CallToolResult` only. Retired by the
-  # "Multi round-trip requests (MRTR)" serving work in ROADMAP.md.
-  - input-required-result-basic-elicitation
+  # Server-side MRTR (SEP-2322) is served, and these four are what remains. Each needs
+  # the server to emit an `InputRequest` for `sampling/createMessage` or `roots/list`.
+  # The spec's `InputRequest` union is closed to `CreateMessageRequest | ListRootsRequest
+  # | ElicitRequest`, and `latest-schema.ts` marks the first two `@deprecated` as of
+  # 2026-07-28 (SEP-2577) while leaving `ElicitRequest` unmarked. This SDK dropped both
+  # under that deprecation, so it can ask for elicitation and nothing else.
+  #
+  # `capability-check` is the same gap seen from the other side: the referee declares
+  # `sampling` and no `elicitation`, then requires an `InputRequiredResult` naming
+  # sampling. An elicitation-only server has nothing it may ask that client for.
+  #
+  # Retired by deciding whether to model the two deprecated request types as
+  # `InputRequest` payloads. See ROADMAP.md.
   - input-required-result-basic-sampling
   - input-required-result-basic-list-roots
-  - input-required-result-request-state
   - input-required-result-multiple-input-requests
-  - input-required-result-multi-round
-  - input-required-result-non-tool-request
-  - input-required-result-result-type
-  - input-required-result-tampered-state
   - input-required-result-capability-check
-
-  # The same MRTR gap, reached through SHOULD-level checks rather than MUSTs. The
-  # referee's exit code treats an unmet SHOULD exactly like a failure. Both want the
-  # server to re-request via `InputRequiredResult` instead of answering with an
-  # error, which is the serving half that does not exist.
-  - input-required-result-missing-input-response
-  - input-required-result-ignore-extra-params
 
 client:
   # These five are the residue of the OAuth block, and each needs its own look.

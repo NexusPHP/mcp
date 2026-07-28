@@ -158,19 +158,20 @@ finishes right as the transport closes would lose its response to a race with th
   (`tools/call` with streaming progress, the list/read/get/complete methods). Both transports, stdio and
   Streamable HTTP, on both sides, the latter with its PSR-15 security stack. OAuth 2.1 on both sides: the
   client authorizes and re-authorizes itself, the server validates bearer tokens and publishes its protected
-  resource metadata. Attribute discovery via `#[AsTool]` and friends. The receiving half of the
-  input-required flow, so a client recognises an `InputRequiredResult`, collects what it asks for, and
-  answers by calling again with `inputResponses` and the `requestState` it carried. Tool call
+  resource metadata. Attribute discovery via `#[AsTool]` and friends. Both halves of the
+  input-required flow: a client recognises an `InputRequiredResult`, collects what it asks for, and
+  answers by calling again with `inputResponses` and the `requestState` it carried, while a tool, prompt
+  or resource handler may return one to ask, reading the answers back off `ServerContext`. Tool call
   arguments and results are validated against the tool's declared `inputSchema` / `outputSchema` (pluggable
   via `SchemaValidatorInterface`), and a `structuredContent`-only result is mirrored into a `TextContent`
   block for backwards compatibility.
-- What we do not have yet: tasks, MCP Apps, the serving half of `subscriptions/listen` (its request and
-  notification classes are registered, so a peer's envelopes decode, but no built-in handler answers one),
-  and the serving half of the input-required flow. `InputRequiredResult` is modelled and the client consumes
-  it, but no server path emits one: `ToolExecutorInterface::execute()` returns a `CallToolResult` only, and
-  the three eligible handlers cannot carry `inputResponses` or `requestState` back into a handler.
+- What we do not have yet: tasks, MCP Apps, and the serving half of `subscriptions/listen` (its request and
+  notification classes are registered, so a peer's envelopes decode, but no built-in handler answers one).
 - What we deliberately omit: sampling, roots, and logging. SEP-2596 deprecated them, and the spec tells new
-  implementations not to adopt a deprecated feature, so a greenfield SDK carries none of them.
+  implementations not to adopt a deprecated feature, so a greenfield SDK carries none of them. One
+  consequence reaches the input-required flow: the spec's `InputRequest` union is
+  `CreateMessageRequest | ListRootsRequest | ElicitRequest`, and only the last is undeprecated, so a server
+  built on this SDK can ask for elicitation and nothing else.
 
 ## Diagnostic message conventions
 

@@ -166,11 +166,20 @@ per spec method (nine in all). Only `tools/call`, `prompts/get`, and `resources/
   spec wants one for the lone request method that lacks one is the open question in upstream issue #2989, so
   this is held until that resolves.
 - [x] Delete `UrlElicitationRequiredError` (-32042) entirely.
-- [ ] Serve the server half. `InputRequiredResult` is modelled and the client consumes it, but no
-  server path emits one: `ToolExecutorInterface::execute()` returns `CallToolResult` only, and the
-  `tools/call`, `prompts/get`, and `resources/read` handlers cannot carry `inputResponses` or
-  `requestState` back into a handler. This is the largest block in the conformance baseline, at 12
-  scenarios.
+- [x] Serve the server half. The tool executor, prompt renderer, and resource reader contracts (and the
+  stores, handlers, and closure and attribute-discovered adapters behind them) return
+  `<Result>|InputRequiredResult`, and `ServerContext` carries the `inputResponses` and `requestState` the
+  dispatcher reads off `InputResponseRequestParams`. `RequestStateSigner` mints and checks the continuation
+  token, since the client echoes it back unverified and a handler must be able to tell its own state from a
+  forged one. Eight of the twelve conformance scenarios pass.
+- [ ] Ask for input the two deprecated ways. The spec's `InputRequest` union is
+  `CreateMessageRequest | ListRootsRequest | ElicitRequest`, and `latest-schema.ts` marks the first two
+  `@deprecated` as of 2026-07-28 (SEP-2577) while leaving `ElicitRequest` unmarked. This SDK dropped both
+  under that deprecation, so a handler can ask for elicitation and nothing else. That leaves four
+  conformance scenarios failing (`basic-sampling`, `basic-list-roots`, `multiple-input-requests`, and
+  `capability-check`, the last of which declares `sampling` and no `elicitation`). Retired by deciding
+  whether to model the two as `InputRequest` payload types without readopting them as dispatchable methods.
+  No upstream issue tracks the conflict.
 
 ### Tool schema relaxation (SEP-2106)
 
@@ -482,8 +491,8 @@ SDKs.
   expected-failures baseline, and publish the server score. The harness lives in `conformance/`: a
   pinned referee, an attribute-discovered fixture, a baseline whose stale entries fail the build, and
   a scorer that counts an unmet SHOULD against the total. Server mode runs at
-  `--spec-version 2026-07-28` and stands at 89 of 101 checks. The 12 that remain are the server half
-  of MRTR, named in the baseline.
+  `--spec-version 2026-07-28` and stands at 102 of 106 checks. The 4 that remain all need an input
+  request this SDK does not model, named in the baseline.
 - [x] Run the conformance suite in client mode, on the same pinned referee and baseline.
   `conformance/client.php` routes on the scenario name the referee supplies. Stands at 290 of 304
   checks, 26 of 32 scenarios. The OAuth block passes almost entirely, as do the SEP-2243 header

@@ -113,7 +113,13 @@ final class ReflectedPromptRendererTest extends TestCase
     {
         $renderer = new ReflectedPromptRenderer(new ReflectedHandlers(), new \ReflectionMethod(ReflectedHandlers::class, $method));
 
-        return $renderer->render($arguments, self::makeContext());
+        $result = $renderer->render($arguments, self::makeContext());
+
+        if (! $result instanceof GetPromptResult) {
+            self::fail('Expected a GetPromptResult.');
+        }
+
+        return $result;
     }
 
     private static function firstMessage(GetPromptResult $result): PromptMessage

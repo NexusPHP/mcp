@@ -20,6 +20,7 @@ use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\CallToolRequestParams;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
+use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
 use Nexus\Mcp\Core\Schema\ResultMetaObject;
 use Nexus\Mcp\Core\Schema\Tool\Tool;
 use Nexus\Mcp\Server\Exception\ToolNotFoundException;
@@ -67,6 +68,24 @@ final class CallToolRequestHandlerTest extends TestCase
         self::assertSame(['arguments' => ['x' => 1], 'requestId' => 99], $captured);
     }
 
+    public function testPassesAnInputRequiredResultStraightThrough(): void
+    {
+        $asked = new InputRequiredResult(requestState: 'state-1');
+        $store = new ToolStore([
+            'ask' => new ToolEntry(
+                new Tool(name: 'ask', inputSchema: ['type' => 'object']),
+                new ClosureToolExecutor(static fn(?array $arguments, ServerContext $context): InputRequiredResult => $asked),
+            ),
+        ]);
+
+        $result = new CallToolRequestHandler($store)->handle(
+            new CallToolRequest(id: new RequestId(id: 42), params: new CallToolRequestParams(name: 'ask', meta: RequestMetaObjectFactory::create())),
+            self::makeContext(),
+        );
+
+        self::assertSame($asked, $result, 'A tool awaiting input has no content to back-fill.');
+    }
+
     public function testReturnsResultFromStoreUnchanged(): void
     {
         $expected = new CallToolResult(content: []);
@@ -82,6 +101,10 @@ final class CallToolRequestHandlerTest extends TestCase
             new CallToolRequest(id: new RequestId(id: 1), params: new CallToolRequestParams(name: 'echo', meta: RequestMetaObjectFactory::create())),
             self::makeContext(),
         );
+
+        if (! $result instanceof CallToolResult) {
+            self::fail('Expected a CallToolResult.');
+        }
 
         self::assertSame($expected, $result);
     }
@@ -106,6 +129,10 @@ final class CallToolRequestHandlerTest extends TestCase
             new CallToolRequest(id: new RequestId(id: 1), params: new CallToolRequestParams(name: 'report', meta: RequestMetaObjectFactory::create())),
             self::makeContext(),
         );
+
+        if (! $result instanceof CallToolResult) {
+            self::fail('Expected a CallToolResult.');
+        }
 
         self::assertCount(1, $result->content);
         $block = $result->content[0];
@@ -139,6 +166,10 @@ final class CallToolRequestHandlerTest extends TestCase
             self::makeContext(),
         );
 
+        if (! $result instanceof CallToolResult) {
+            self::fail('Expected a CallToolResult.');
+        }
+
         self::assertSame($expected, $result);
     }
 
@@ -160,6 +191,10 @@ final class CallToolRequestHandlerTest extends TestCase
             new CallToolRequest(id: new RequestId(id: 1), params: new CallToolRequestParams(name: 'report', meta: RequestMetaObjectFactory::create())),
             self::makeContext(),
         );
+
+        if (! $result instanceof CallToolResult) {
+            self::fail('Expected a CallToolResult.');
+        }
 
         self::assertTrue($result->isError);
         self::assertCount(1, $result->content);
@@ -222,6 +257,10 @@ final class CallToolRequestHandlerTest extends TestCase
             self::makeContext(),
         );
 
+        if (! $result instanceof CallToolResult) {
+            self::fail('Expected a CallToolResult.');
+        }
+
         self::assertTrue($result->isError);
         self::assertCount(1, $result->content);
         $block = $result->content[0];
@@ -272,6 +311,10 @@ final class CallToolRequestHandlerTest extends TestCase
             self::makeContext(),
         );
 
+        if (! $result instanceof CallToolResult) {
+            self::fail('Expected a CallToolResult.');
+        }
+
         self::assertTrue($result->isError);
         self::assertNull($result->structuredContent);
         self::assertCount(1, $result->content);
@@ -310,6 +353,10 @@ final class CallToolRequestHandlerTest extends TestCase
             new CallToolRequest(id: new RequestId(id: 1), params: new CallToolRequestParams(name: 'flaky', meta: RequestMetaObjectFactory::create())),
             self::makeContext(),
         );
+
+        if (! $result instanceof CallToolResult) {
+            self::fail('Expected a CallToolResult.');
+        }
 
         self::assertTrue($result->isError);
         self::assertCount(1, $result->content);

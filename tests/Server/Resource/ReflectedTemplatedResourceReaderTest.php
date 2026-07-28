@@ -78,7 +78,13 @@ final class ReflectedTemplatedResourceReaderTest extends TestCase
     {
         $reader = new ReflectedTemplatedResourceReader(new ReflectedHandlers(), new \ReflectionMethod(ReflectedHandlers::class, $method));
 
-        return $reader->read($uri, $bindings, self::makeContext());
+        $result = $reader->read($uri, $bindings, self::makeContext());
+
+        if (! $result instanceof ReadResourceResult) {
+            self::fail('Expected a ReadResourceResult.');
+        }
+
+        return $result;
     }
 
     private static function firstText(ReadResourceResult $result): string

@@ -139,7 +139,13 @@ final class ReflectedToolExecutorTest extends TestCase
     {
         $executor = new ReflectedToolExecutor(new ReflectedHandlers(), new \ReflectionMethod(ReflectedHandlers::class, $method));
 
-        return $executor->execute($arguments, self::makeContext());
+        $result = $executor->execute($arguments, self::makeContext());
+
+        if (! $result instanceof CallToolResult) {
+            self::fail('Expected a CallToolResult.');
+        }
+
+        return $result;
     }
 
     private static function firstText(CallToolResult $result): string

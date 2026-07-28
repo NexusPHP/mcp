@@ -15,6 +15,9 @@ namespace Nexus\Mcp\Tests\Server;
 
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Cursor;
+use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequest;
+use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequestedSchema;
+use Nexus\Mcp\Core\Schema\Elicitation\StringSchema;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\Enum\SdkErrorCode;
 use Nexus\Mcp\Core\Schema\Icon;
@@ -22,6 +25,7 @@ use Nexus\Mcp\Core\Schema\Implementation;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\Prompt\Prompt;
+use Nexus\Mcp\Core\Schema\RequestParams\ElicitRequestFormParams;
 use Nexus\Mcp\Core\Schema\Resource\Resource;
 use Nexus\Mcp\Core\Schema\Resource\ResourceTemplate;
 use Nexus\Mcp\Core\Schema\Resource\TextResourceContents;
@@ -32,6 +36,7 @@ use Nexus\Mcp\Core\Schema\Result\CompleteResult;
 use Nexus\Mcp\Core\Schema\Result\DiscoverResult;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
+use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
 use Nexus\Mcp\Core\Schema\Result\ListPromptsResult;
 use Nexus\Mcp\Core\Schema\Result\ListResourcesResult;
 use Nexus\Mcp\Core\Schema\Result\ListResourceTemplatesResult;
@@ -1249,6 +1254,86 @@ final class ServerBuilderTest extends TestCase
         $builder->build();
 
         self::assertSame($builder->getToolStore(), $builder->getToolStore());
+    }
+
+    public function testAToolMayAnswerWithAnInputRequiredResult(): void
+    {
+        $server = new ServerBuilder()
+            ->setServerInfo('demo', '1.0.0')
+            ->addTool(
+                new Tool(name: 'ask', inputSchema: ['type' => 'object']),
+                static fn(?array $args, ServerContext $ctx): InputRequiredResult => new InputRequiredResult(
+                    inputRequests: ['who' => new ElicitRequest(params: new ElicitRequestFormParams(
+                        message: 'Who are you?',
+                        requestedSchema: new ElicitRequestedSchema(properties: ['name' => new StringSchema()]),
+                    ))],
+                    requestState: 'state-1',
+                ),
+            )
+            ->build()
+        ;
+
+        $result = $this->dispatch($server, 'tools/call', ['name' => 'ask', 'arguments' => []]);
+
+        if (! $result instanceof InputRequiredResult) {
+            self::fail('Expected an InputRequiredResult.');
+        }
+
+        self::assertSame('state-1', $result->requestState);
+        self::assertSame(['who'], array_keys($result->inputRequests ?? []));
+        self::assertSame('input_required', $result->toArray()['resultType']);
+    }
+
+    public function testTheClientsInputResponsesAndRequestStateReachTheExecutor(): void
+    {
+        $seen = null;
+        $server = new ServerBuilder()
+            ->setServerInfo('demo', '1.0.0')
+            ->addTool(
+                new Tool(name: 'ask', inputSchema: ['type' => 'object']),
+                static function (?array $args, ServerContext $ctx) use (&$seen): CallToolResult {
+                    $seen = [$ctx->inputResponses, $ctx->requestState];
+
+                    return new CallToolResult(content: []);
+                },
+            )
+            ->build()
+        ;
+
+        $this->dispatch($server, 'tools/call', [
+            'name' => 'ask',
+            'arguments' => [],
+            'inputResponses' => ['who' => ['action' => 'accept', 'content' => ['name' => 'Ada']]],
+            'requestState' => 'state-1',
+        ]);
+
+        if (! \is_array($seen)) {
+            self::fail('The executor was never reached.');
+        }
+
+        self::assertSame('state-1', $seen[1]);
+        self::assertSame(['who'], array_keys($seen[0] ?? []));
+    }
+
+    public function testAToolCallWithoutMrtrFieldsLeavesThemNullOnTheContext(): void
+    {
+        $seen = null;
+        $server = new ServerBuilder()
+            ->setServerInfo('demo', '1.0.0')
+            ->addTool(
+                new Tool(name: 'ask', inputSchema: ['type' => 'object']),
+                static function (?array $args, ServerContext $ctx) use (&$seen): CallToolResult {
+                    $seen = [$ctx->inputResponses, $ctx->requestState];
+
+                    return new CallToolResult(content: []);
+                },
+            )
+            ->build()
+        ;
+
+        $this->dispatch($server, 'tools/call', ['name' => 'ask', 'arguments' => []]);
+
+        self::assertSame([null, null], $seen);
     }
 
     public function testCustomPromptStoreReplacesEntriesAndAdvertisesCapability(): void

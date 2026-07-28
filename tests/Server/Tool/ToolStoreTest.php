@@ -20,6 +20,7 @@ use Nexus\Mcp\Core\Schema\Cursor;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
+use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
 use Nexus\Mcp\Core\Schema\Tool\Tool;
 use Nexus\Mcp\Server\AbstractPaginatedStore;
 use Nexus\Mcp\Server\Exception\InvalidCursorException;
@@ -304,6 +305,20 @@ final class ToolStoreTest extends TestCase
         ]);
 
         self::assertSame($result, $store->call('report', null, self::makeContext()));
+    }
+
+    public function testCallSkipsOutputValidationForAnInputRequiredResult(): void
+    {
+        // The output schema demands an `n` property, which a result still awaiting input cannot carry.
+        $asked = new InputRequiredResult(requestState: 'state-1');
+        $store = new ToolStore([
+            'report' => new ToolEntry(
+                self::makeToolWithOutputSchema('report'),
+                new ClosureToolExecutor(static fn(?array $arguments, ServerContext $context): InputRequiredResult => $asked),
+            ),
+        ]);
+
+        self::assertSame($asked, $store->call('report', null, self::makeContext()));
     }
 
     private static function makeTool(string $name): Tool
