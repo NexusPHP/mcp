@@ -404,6 +404,28 @@ final class ServerMessageDispatcherTest extends TestCase
         self::assertSame(ProtocolVersion::SUPPORTED_VERSIONS, $error->supported);
     }
 
+    public function testAVersionThatIsNotADateStillReachesTheVersionGate(): void
+    {
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher();
+
+        $dispatcher->dispatch(self::toolsListEnvelope(1, protocolVersion: 'v999.0.0'), $transport, new ReceiveContext());
+
+        $dispatcher->flushPending();
+
+        self::assertCount(1, $transport->sent);
+        $message = $transport->sent[0]['message'];
+        self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
+
+        $error = $message->error;
+
+        if (! $error instanceof UnsupportedProtocolVersionError) {
+            self::fail('Expected an UnsupportedProtocolVersionError.');
+        }
+
+        self::assertSame('v999.0.0', $error->requested);
+    }
+
     public function testServerDiscoverIsGatedByTheProtocolVersionToo(): void
     {
         // The version gate is uniform: even server/discover (the version-negotiation probe) is rejected

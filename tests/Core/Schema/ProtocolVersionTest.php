@@ -65,19 +65,19 @@ final class ProtocolVersionTest extends TestCase
         new ProtocolVersion(version: '');
     }
 
-    #[DataProvider('provideMalformedVersionIsRejectedCases')]
-    public function testMalformedVersionIsRejected(string $version): void
+    /**
+     * @param non-empty-string $version
+     */
+    #[DataProvider('provideAnUnrecognisedVersionIsAcceptedCases')]
+    public function testAnUnrecognisedVersionIsAccepted(string $version): void
     {
-        $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageIs('"protocolVersion" must be in the format "YYYY-MM-DD".');
-
-        new ProtocolVersion(version: $version);
+        self::assertSame($version, new ProtocolVersion(version: $version)->version);
     }
 
     /**
-     * @return iterable<string, array{string}>
+     * @return iterable<string, array{non-empty-string}>
      */
-    public static function provideMalformedVersionIsRejectedCases(): iterable
+    public static function provideAnUnrecognisedVersionIsAcceptedCases(): iterable
     {
         yield 'two-digit year' => ['25-11-25'];
 
@@ -90,5 +90,7 @@ final class ProtocolVersionTest extends TestCase
         yield 'underscores instead of dashes' => ['2025_11_25'];
 
         yield 'free-form text' => ['latest'];
+
+        yield 'semver' => ['v999.0.0'];
     }
 }

@@ -46,10 +46,9 @@ final readonly class ProtocolVersion
 
     public function __construct(string $version)
     {
-        Assert::that($version)
-            ->isNonEmptyString('"protocolVersion" must be a non-empty string.')
-            ->matchesRegularExpression('/\A\d{4}-\d{2}-\d{2}\z/', '"protocolVersion" must be in the format "YYYY-MM-DD".')
-        ;
+        // The spec types this as a plain string, and a version the server does not recognise must reach
+        // the support check so it is answered with -32022 rather than rejected as malformed params.
+        Assert::that($version)->isNonEmptyString('"protocolVersion" must be a non-empty string.');
 
         $this->version = $version;
     }
