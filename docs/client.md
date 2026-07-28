@@ -39,6 +39,11 @@ client's identity and capabilities from each request's `_meta`. Only `protocolVe
 `clientCapabilities` are required in the envelope, so a server must treat `clientInfo` as optional and must
 not make behavioural or security decisions on it.
 
+A server that will not serve the stamped version answers `-32022` naming the versions it accepts. The client
+retries once, restamping the request with the first of those this SDK also speaks. When the rejection names
+none, or the retry is rejected in turn, the error reaches the caller as a `RemoteCallFailedException` whose
+`error` is the `UnsupportedProtocolVersionError`, carrying `supported` and `requested`.
+
 ## Client info
 
 Required before `build()`. Stamped into every request's `_meta`.

@@ -67,6 +67,7 @@ use Nexus\Mcp\Tests\Fixtures\Client\Http\MirroringRecordingTransport;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureNotificationHandler;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
+use Nexus\Mcp\Tests\Fixtures\Core\TestRequest;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -690,6 +691,125 @@ final class ClientTest extends TestCase
         }
 
         self::assertNull($client->getServerCapabilities(), 'A failed discover must not cache capabilities.');
+    }
+
+    public function testRetriesWithAVersionTheRejectionNamedAsSupported(): void
+    {
+        $logger = new ArrayLogger();
+        $client = new ClientBuilder()->setLogger($logger)->setClientInfo('demo', '1.0.0')->build();
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+
+        $deferred = async(static fn() => $client->discover());
+        $transport->nextSend()->await();
+        self::assertCount(1, $transport->sent);
+        $first = $transport->sent[0]['message'];
+        self::assertInstanceOf(DiscoverRequest::class, $first);
+
+        $transport->emitMessage(self::unsupportedVersionResponse($first->id->id, [ProtocolVersion::LATEST_VERSION]));
+        $transport->nextSend()->await();
+
+        self::assertCount(2, $transport->sent);
+        $retry = $transport->sent[1]['message'];
+        self::assertInstanceOf(DiscoverRequest::class, $retry);
+        self::assertNotSame($first->id->id, $retry->id->id, 'The retry claims a fresh request id.');
+        self::assertSame(ProtocolVersion::LATEST_VERSION, $retry->params->meta->protocolVersion->version);
+
+        $matches = $logger->recordsMatching(
+            LogLevel::INFO,
+            'Retrying request {id} as {retry}: the server does not support {requested}.',
+        );
+        self::assertCount(1, $matches);
+        self::assertSame(
+            ['id' => $first->id->id, 'retry' => $retry->id->id, 'requested' => 'Unsupported protocol version'],
+            $matches[0]['context'],
+        );
+
+        $transport->emitMessage(self::discoverResponse($retry->id->id));
+
+        $deferred->await();
+    }
+
+    public function testDoesNotRetryWhenTheRejectionNamesNoVersionThisSdkSpeaks(): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+
+        $deferred = async(static fn() => $client->discover());
+        $transport->nextSend()->await();
+        self::assertCount(1, $transport->sent);
+        $first = $transport->sent[0]['message'];
+        self::assertInstanceOf(DiscoverRequest::class, $first);
+
+        $transport->emitMessage(self::unsupportedVersionResponse($first->id->id, ['1999-01-01']));
+
+        try {
+            $deferred->await();
+            self::fail('Expected RemoteCallFailedException.');
+        } catch (RemoteCallFailedException $e) {
+            self::assertSame(ProtocolErrorCode::UnsupportedProtocolVersion->value, $e->getCode());
+        }
+
+        self::assertCount(1, $transport->sent, 'No mutually supported version means no retry.');
+    }
+
+    public function testTheRetryIsNotItselfRetried(): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+
+        $deferred = async(static fn() => $client->discover());
+        $transport->nextSend()->await();
+        self::assertCount(1, $transport->sent);
+        $first = $transport->sent[0]['message'];
+        self::assertInstanceOf(DiscoverRequest::class, $first);
+
+        $transport->emitMessage(self::unsupportedVersionResponse($first->id->id, [ProtocolVersion::LATEST_VERSION]));
+        $transport->nextSend()->await();
+        self::assertCount(2, $transport->sent);
+        $retry = $transport->sent[1]['message'];
+        self::assertInstanceOf(DiscoverRequest::class, $retry);
+
+        $transport->emitMessage(self::unsupportedVersionResponse($retry->id->id, [ProtocolVersion::LATEST_VERSION]));
+
+        try {
+            $deferred->await();
+            self::fail('Expected RemoteCallFailedException.');
+        } catch (RemoteCallFailedException $e) {
+            self::assertSame(ProtocolErrorCode::UnsupportedProtocolVersion->value, $e->getCode());
+        }
+
+        self::assertCount(2, $transport->sent, 'One retry, not a loop.');
+    }
+
+    public function testAnErrorThatIsNotAVersionRejectionIsNotRetried(): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+
+        $deferred = async(static fn() => $client->discover());
+        $transport->nextSend()->await();
+        self::assertCount(1, $transport->sent);
+        $first = $transport->sent[0]['message'];
+        self::assertInstanceOf(DiscoverRequest::class, $first);
+
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => $first->id->id,
+            'error' => ['code' => -32603, 'message' => 'peer refused'],
+        ]);
+
+        try {
+            $deferred->await();
+            self::fail('Expected RemoteCallFailedException.');
+        } catch (RemoteCallFailedException $e) {
+            self::assertSame('peer refused', $e->getMessage());
+        }
+
+        self::assertCount(1, $transport->sent);
     }
 
     public function testDrainFiresFlushPendingOnTheDispatcher(): void
@@ -1560,6 +1680,48 @@ final class ClientTest extends TestCase
         self::callToolAndSettle($client, $transport, ['region' => 'us-west1']);
 
         self::assertSame([], self::lastContext($transport)->headers);
+    }
+
+    public function testARequestCarryingNoTypedParamsIsNotRetried(): void
+    {
+        // `sendRequest()` takes any `JsonRpcRequest`, and a subclass may leave `params` null. Such a
+        // request carries no `_meta` to restamp, so there is nothing to renegotiate.
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+
+        $request = new TestRequest(new RequestId(id: 'no-params'));
+        $deferred = async(static fn() => $client->sendRequest($request, ListToolsResultResponse::class));
+        $transport->nextSend()->await();
+
+        $transport->emitMessage(self::unsupportedVersionResponse('no-params', [ProtocolVersion::LATEST_VERSION]));
+
+        try {
+            $deferred->await();
+            self::fail('Expected RemoteCallFailedException.');
+        } catch (RemoteCallFailedException $e) {
+            self::assertSame(ProtocolErrorCode::UnsupportedProtocolVersion->value, $e->getCode());
+        }
+
+        self::assertCount(1, $transport->sent);
+    }
+
+    /**
+     * @param list<string> $supported
+     *
+     * @return array<string, mixed>
+     */
+    private static function unsupportedVersionResponse(int|string $id, array $supported): array
+    {
+        return [
+            'jsonrpc' => '2.0',
+            'id' => $id,
+            'error' => [
+                'code' => ProtocolErrorCode::UnsupportedProtocolVersion->value,
+                'message' => 'Unsupported protocol version',
+                'data' => ['supported' => $supported, 'requested' => ProtocolVersion::LATEST_VERSION],
+            ],
+        ];
     }
 
     /**

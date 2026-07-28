@@ -68,10 +68,3 @@ client:
   # and `requestState`, which now exist, but the harness registers no handler for
   # this scenario yet.
   - sep-2322-client-request-state
-
-  # An unmet SHOULD. When a server rejects the requested protocol version with
-  # `-32022`, the client should retry using one the error named as supported. It
-  # does not: the version is a readonly property and every typed method stamps it
-  # into a request that is already built by the time the rejection arrives, so a
-  # retry means rebuilding the request at dispatch level.
-  - request-metadata:sep-2575-client-retry-supported-version

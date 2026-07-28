@@ -21,7 +21,7 @@ use Nexus\Mcp\Core\Schema\Error;
  */
 final class RemoteCallFailedException extends \RuntimeException implements McpExceptionInterface
 {
-    public function __construct(Error $error)
+    public function __construct(public readonly Error $error)
     {
         parent::__construct($error->message, $error->code);
     }

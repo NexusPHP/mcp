@@ -485,9 +485,10 @@ SDKs.
   `--spec-version 2026-07-28` and stands at 89 of 101 checks. The 12 that remain are the server half
   of MRTR, named in the baseline.
 - [x] Run the conformance suite in client mode, on the same pinned referee and baseline.
-  `conformance/client.php` routes on the scenario name the referee supplies. Stands at 289 of 304
-  checks, 25 of 32 scenarios. The OAuth block passes almost entirely, as do the SEP-2243 header
-  scenarios (`http-custom-headers` 18 of 18), `tools_call`, and `json-schema-ref-no-deref`.
+  `conformance/client.php` routes on the scenario name the referee supplies. Stands at 290 of 304
+  checks, 26 of 32 scenarios. The OAuth block passes almost entirely, as do the SEP-2243 header
+  scenarios (`http-custom-headers` 18 of 18), `request-metadata`, `tools_call`, and
+  `json-schema-ref-no-deref`.
 
 Defects the first conformance runs surfaced, smallest first. The three marked as unseen by the suite
 are not in the baseline.
@@ -499,10 +500,11 @@ are not in the baseline.
   off so production stays strict.
 - [x] `Client::callTool()` takes `inputResponses` and `requestState`, so the typed surface can
   complete an MRTR round trip rather than forcing callers onto `sendRequest()`.
-- [ ] When a server rejects the requested protocol version with `-32022`, the client does not retry
-  with a version the error named as supported. SEP-2575 says it SHOULD. The version is a readonly
-  property and every typed method stamps it into a request that is already built by the time the
-  rejection arrives, so a retry means rebuilding the request at dispatch level.
+- [x] When a server rejects the requested protocol version with `-32022`, the client retries once with
+  a version the error named as supported, as SEP-2575 says it SHOULD. `RemoteCallFailedException` now
+  carries the `Error` it was built from, so `data.supported` survives to the dispatch layer, which
+  rebuilds the request from its own `toArray()` under a restamped `_meta` and a fresh id. A rejection
+  naming no version this SDK speaks propagates untouched, and the retry is not itself retried.
 - [ ] Five OAuth scenarios still miss one obligation each, listed individually in the conformance
   baseline: the `metadata-var2` discovery layout, the CIMD client-id SHOULD, scope step-up making no
   second authorization request, pre-registration making no token request, and SEP-2352
