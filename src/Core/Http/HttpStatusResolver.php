@@ -34,6 +34,12 @@ final class HttpStatusResolver
      */
     public static function resolve(int $code, bool $fromHandler): int
     {
+        // The spec pins this one to 400 wherever it was raised, and only a handler can know that
+        // serving the request needs a capability the client withheld.
+        if (ProtocolErrorCode::MissingRequiredClientCapability->value === $code) {
+            return HttpStatus::BadRequest->value;
+        }
+
         if ($fromHandler) {
             return HttpStatus::Ok->value;
         }
