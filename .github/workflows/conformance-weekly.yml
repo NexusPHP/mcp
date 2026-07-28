@@ -78,7 +78,7 @@ jobs:
         continue-on-error: true
         env:
           CONFORMANCE_VERSION: ${{ steps.referee.outputs.version }}
-        run: ./conformance/run-${{ matrix.mode }}.sh --suite all
+        run: composer conformance:${{ matrix.mode }} -- --suite all
 
       # No badge check here. The badges record the score at the pinned referee, and
       # this job deliberately runs a different one.
@@ -86,11 +86,25 @@ jobs:
         if: always()
         run: composer conformance:score >> "$GITHUB_STEP_SUMMARY"
 
+      # Scored above, so the published number stays the one the suite produced. Only
+      # the Origin check distinguishes the two spellings of loopback, and the suite
+      # reaches the fixture by one of them.
+      - name: Re-run the origin-sensitive scenario as localhost
+        id: localhost
+        if: matrix.mode == 'server'
+        continue-on-error: true
+        env:
+          CONFORMANCE_VERSION: ${{ steps.referee.outputs.version }}
+          URL_HOST: localhost
+        run: composer conformance:server -- --scenario dns-rebinding-protection
+
       - name: Report
         env:
           NEWEST: ${{ steps.referee.outputs.version }}
           PINNED: ${{ steps.referee.outputs.pinned }}
           OUTCOME: ${{ steps.suite.outcome }}
+          # `skipped` in client mode, where the step does not run at all.
+          LOCALHOST_OUTCOME: ${{ steps.localhost.outcome }}
         run: |
           STATUS=0
 
@@ -104,6 +118,12 @@ jobs:
           if [ "${OUTCOME}" != "success" ]; then
             echo "::error::The suite did not pass at ${NEWEST}. The uploaded results say which scenarios moved."
             echo "**The suite did not pass at** \`${NEWEST}\`." >> "$GITHUB_STEP_SUMMARY"
+            STATUS=1
+          fi
+
+          if [ "${LOCALHOST_OUTCOME}" != "success" ] && [ "${LOCALHOST_OUTCOME}" != "skipped" ]; then
+            echo "::error::dns-rebinding-protection did not pass at ${NEWEST} when the fixture was reached as localhost."
+            echo "**dns-rebinding-protection did not pass when reached as localhost.**" >> "$GITHUB_STEP_SUMMARY"
             STATUS=1
           fi
 
