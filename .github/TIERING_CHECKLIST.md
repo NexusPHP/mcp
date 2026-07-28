@@ -4,7 +4,7 @@ Based on [SEP-1730: SDKs Tiering System](https://github.com/modelcontextprotocol
 
 **Target Tier**: Tier 2 (only Tier 3 is claimable pre-1.0, per "How tiering works" below)
 
-**Target spec**: `2026-07-28`, which the SDK implements exclusively. See "Conformance suite: scenarios to pass" for the measured standing and for why a tier percentage is upstream-blocked.
+**Target spec**: `2026-07-28`, which the SDK implements exclusively. See "Conformance suite: scenarios to pass" for the measured standing and for which scenarios the tier percentage is scored over.
 
 **Last Updated**: 2026-07-28
 
@@ -38,8 +38,8 @@ The tiering system covers **both official and community-driven SDKs**, so `nexus
 
 - [ ] **80% Conformance Tests Pass**
   - Reference: [Conformance Test Suite](https://github.com/modelcontextprotocol/conformance). Exact scenarios in "Conformance suite: scenarios to pass" below
-  - Threshold: 80% of the scored set, which is upstream-blocked. `tier-check` scores only over `DATED_SPEC_VERSIONS`, and that still ends at 2025-11-25, so the scenarios this SDK passes do not yet count toward a tier number
-  - Evidence/Notes: both modes run and are measured at `--spec-version 2026-07-28 --suite all`. As of 2026-07-28: server **76 of 97 checks**, client **289 of 304**, combined **365 of 401 (91.0%)**
+  - Threshold: 80% of the scored set, which is the carried-forward scenarios (see "Scoring model" below). Server **20 of 20**, client **12 of 15**: both legs clear the threshold, the client one exactly
+  - Evidence/Notes: both modes run and are measured at `--spec-version 2026-07-28 --suite all`. As of 2026-07-28: server **102 of 106 checks**, client **290 of 304**, combined **392 of 410 (95.6%)**
   - Run: `composer conformance:server` then `composer conformance:score`
 
 ### Implementation Timeline
@@ -246,16 +246,16 @@ The tiering system covers **both official and community-driven SDKs**, so `nexus
 
 - [ ] **Run Tiering Assessment Tool**
   - Reference: [SDK Tier Assessment Tool](https://github.com/modelcontextprotocol/conformance) (build first: `npm ci && npm run build` in `../mcp-conformance`)
-  - Command (policy only, no conformance): `node dist/index.js tier-check --repo NexusPHP/mcp --skip-conformance --output json`
+  - Command (policy only, no conformance): `GITHUB_TOKEN="$(gh auth token)" npx -y @modelcontextprotocol/conformance@<pin> tier-check --repo NexusPHP/mcp --skip-conformance --output json`
   - Output/Evidence: _________________________
   - Date Run: _________
 
 - [ ] **Run Full Conformance Tests**
   - Reference: [MCP Conformance Framework](https://github.com/modelcontextprotocol/conformance). Scenario lists + run commands in "Conformance suite: scenarios to pass"
-  - Command: `node dist/index.js tier-check --repo NexusPHP/mcp --conformance-server-url <url> --client-cmd "<cmd>" --spec-version draft --output json`
-  - Conformance Version: v0.2.0-alpha.0
-  - Server Test Results: _________________________ (target 30/30 scored, plus 17 draft-only informational)
-  - Client Test Results: _________________________ (target 18/18 scored, plus 17 draft-only informational)
+  - Command: `GITHUB_TOKEN="$(gh auth token)" npx -y @modelcontextprotocol/conformance@<pin> tier-check --repo NexusPHP/mcp --conformance-server-url <url> --client-cmd "php conformance/client.php" --spec-version 2026-07-28 --output json`
+  - Conformance Version: the pin in [`conformance/run-server.sh`](../conformance/run-server.sh)
+  - Server Test Results: _________________________ (target 20/20 scored)
+  - Client Test Results: _________________________ (target 15/15 scored)
   - Baseline File: `conformance/expected-failures.yaml`
   - Evidence/Notes: _________________________
 
@@ -281,20 +281,59 @@ The tiering system covers **both official and community-driven SDKs**, so `nexus
 
 **Target spec: `--spec-version 2026-07-28`.** The SDK implements that revision only. The referee filters scenarios by a `removedIn` field, so pinning the version is also what drops the 2025-era scenarios for features the SDK deliberately does not implement (`initialize`, `logging/setLevel`, sampling, `resources/subscribe`) rather than failing them. `draft` is an accepted alias for the same version.
 
-**Standing, first measured 2026-07-28**, both legs at `--suite all`:
+**Standing, measured 2026-07-28**, both legs at `--suite all`:
 
-- **Server mode:** 76 of 97 checks, 25 of 40 scenarios. The remainder is three gaps, each named in the baseline: server-side MRTR is not built (12 scenarios), `-32021` and `-32022` are modelled but never emitted, and the SEP-2243 custom-header scenario needs a `ToolStore` the endpoint and `ServerBuilder::register()` cannot currently share.
-- **Client mode:** 289 of 304 checks, 25 of 32 scenarios. The OAuth block passes almost entirely, as do the SEP-2243 header scenarios. What remains is five OAuth scenarios each missing one obligation, plus the MRTR client leg and one unmet SHOULD, all named individually in the baseline.
+- **Server mode:** 102 of 106 checks. The four failures all need an input request this SDK does not model: the spec's `InputRequest` union is `CreateMessageRequest | ListRootsRequest | ElicitRequest`, and `latest-schema.ts` marks the first two `@deprecated` as of 2026-07-28 (SEP-2577). Named in the baseline.
+- **Client mode:** 290 of 304 checks. What remains is five OAuth scenarios each missing one obligation, plus the MRTR client leg, all named individually in the baseline.
 
-### Scoring model (verified against the tooling)
+### Scoring model (verified against the pinned referee)
 
-`tier-check` computes the tier percentage over **date-versioned, active scenarios only**. Three exclusions apply to the denominator:
+`tier-check` runs from the pinned referee, so the assessment needs no source checkout:
 
-- **Draft-only** scenarios (tagged `DRAFT-2026-v1`) do not score. They run and are reported, but `pass_rate` ignores them (`src/sdk-runner/index.ts` `NON_SCORING_TAGS`).
-- **Extension** scenarios (tagged `extension`: OAuth client-credentials, enterprise-managed-auth) do not score.
-- **Pending** scenarios (`pendingClientScenariosList`) are not in the scenario map, so they run only via `--suite pending`.
+```bash
+GITHUB_TOKEN="$(gh auth token)" npx -y @modelcontextprotocol/conformance@<pin> tier-check \
+  --repo NexusPHP/mcp \
+  --conformance-server-url http://127.0.0.1:3000/ \
+  --client-cmd "php conformance/client.php" \
+  --spec-version 2026-07-28
+```
 
-**The catch, and it is upstream's to resolve.** Verified again on 2026-07-28 against the published referee: `src/types.ts` still reads `DATED_SPEC_VERSIONS = ['2025-03-26', '2025-06-18', '2025-11-25']` with `2026-07-28` held as `DRAFT_PROTOCOL_VERSION`, and `src/tier-check/output.ts` sets `TIER_SPEC_VERSIONS = DATED_SPEC_VERSIONS`. So the scored denominator is the 2025 lifecycle this SDK does not implement, and the scenarios it does pass do not count. **A tier percentage is therefore not reachable for us until upstream dates the revision**, which it has not done despite the date having passed. That blocks the tier number, not the conformance run: the 2026-07-28 pass rate above is real, measured, and the thing to report. It flips to scoring at the date bump with no work on our side.
+Boot `php conformance/server.php` first. `--skip-conformance` gives the repository-health half on its own.
+
+A scenario counts toward the tier percentage only when it is live at one of the **2025 dated versions** (`2025-03-26`, `2025-06-18`, `2025-11-25`). Scenarios live only at `2026-07-28`, and those tagged `extension`, land in a separate bucket the report prints under "Informational (not scored for tier)". So the carried-forward scenarios this SDK passes do count, while the ones the 2026-07-28 revision introduced do not.
+
+Two rules differ from `composer conformance:score` and both matter when reading a tier number:
+
+- The tier scorer counts **scenarios**, not checks, and treats a scenario as passed when it has no `FAILURE`. An unmet SHOULD (`WARNING`) does not fail it. `conformance:score` counts checks and holds a `WARNING` against the total, so it reports the stricter figure.
+- A scenario in the expected list that did not run is scored as failed.
+
+**Tier split at `--spec-version 2026-07-28`**, as `tier-check` reports it:
+
+| Leg | 2025-06-18 | 2025-11-25 | Tier-scored | Status |
+| --- | --- | --- | --- | --- |
+| Server | 18/18 | 20/20 | **20/20 (100%)** | `pass` |
+| Client: Core | 1/1 | 1/1 | 1/1 | |
+| Client: Auth | 3/3 | 11/14 | 11/14 (79%) | |
+| Client total | | | **12/15 (80%)** | `partial` |
+
+The client leg sits exactly on the 80% threshold, one scenario from `fail`, and reads 11 of 15 under the stricter check-level rule `composer conformance:score` applies. The three not passing are `auth/metadata-var2`, `auth/pre-registration`, and `auth/scope-step-up`. Clearing any one of them moves the leg to 87%.
+
+Two things keep this number apart from the badge figure. `tier-check` runs **server** conformance at the referee's default `--suite active`, so the draft and pending scenarios stay out of the tier denominator: the four MRTR scenarios this SDK fails are among them and do not count against the tier. Client conformance it runs at `--suite all`.
+
+### The deterministic gate
+
+Tier 2 is met when all four hold. Tier 1 additionally requires 100% on both conformance legs, a triage compliance rate of at least 90%, every P0 closed within 7 days, an SDK release within 30 days of the latest spec release, and no missing issue labels.
+
+| Requirement | Standing |
+| --- | --- |
+| Server conformance at or above 80% | 100% |
+| Client conformance at or above 80% | 80% |
+| Every P0 resolved within 14 days | No P0 issues, and no open issues |
+| A stable release | **Not met.** Latest is `v0.5.0` |
+
+The stable release is the only outstanding Tier 2 requirement. It lands with `v1.0.0` and the final dated spec. `tier-check` accordingly reports **Tier 3** today, with `Stable Release` as the single failing repository-health check.
+
+The other health checks already pass: `Labels` at 12 of 12 required, `Triage` at 100% within two business days, and `P0 Resolution` with none open. `Policy Signals` reports partial, and the one artefact genuinely absent is `BREAKING_CHANGES.md`. The rest of its misses are alternative paths to files this repository keeps elsewhere (`DEPENDENCY_POLICY.md`, `ROADMAP.md`, and `VERSIONING.md` at the root rather than under `docs/`, and `.github/dependabot.yml` in place of a Renovate config).
 
 Inverted naming: **server-mode** scenarios are `ClientScenario` objects under `src/scenarios/server/` (the harness acts as a client against your server, over Streamable HTTP at `POST /mcp`). **Client-mode** scenarios run your client as a subprocess.
 
@@ -306,7 +345,7 @@ Stand up a Streamable-HTTP server at `POST /mcp` mirroring the `everything-serve
 conformance server --url http://localhost:PORT/mcp --suite all --spec-version draft -o ./results
 ```
 
-**Scored today (30, carried-forward, what `tier-check` counts even under draft):** Tier 1 = all 30, Tier 2 = at least 24 of 30 (`pass_rate >= 0.80`).
+**Scored (20 carried-forward, as `tier-check` counts them):** Tier 1 = all 20, Tier 2 = at least 16 of 20 (`pass_rate >= 0.80`). The SDK passes all 20. Scenarios introduced at 2026-07-28 are informational. Read the split off a `tier-check` run rather than from the inventory below, which predates it.
 
 - Lifecycle / utility (4): `server-initialize`, `ping`, `logging-set-level`, `completion-complete`
 - Tools (11): `tools-list`, `tools-call-simple-text`, `-image`, `-audio`, `-embedded-resource`, `-mixed-content`, `-with-logging`, `-error`, `-with-progress`, `-sampling`, `-elicitation`
@@ -336,7 +375,7 @@ conformance client --command "php conformance/client.php" --suite all --spec-ver
 
 `--spec-version draft` excludes the 3 OAuth `extension` scenarios and the 2 `2025-03-26` back-compat scenarios. `--suite core` runs exactly the 18 scored scenarios.
 
-**Scored today (18, carried-forward):** Tier 1 = all 18, Tier 2 = at least 15 of 18 (`pass_rate >= 0.80`).
+**Scored (15 carried-forward, measured at `--spec-version 2026-07-28`):** Tier 1 = all 15, Tier 2 = at least 12 of 15 (`pass_rate >= 0.80`). The SDK passes 12, exactly on the threshold. The remaining 17 scenarios the suite runs were introduced at 2026-07-28 and are informational.
 
 - Core (4): `initialize`, `tools_call`, `elicitation-sep1034-client-defaults`, `sse-retry`
 - OAuth (14): `auth/metadata-default`, `-var1`, `-var2`, `-var3`, `auth/basic-cimd`, `auth/scope-from-www-authenticate`, `-from-scopes-supported`, `-omitted-when-undefined`, `-step-up`, `-retry-limit`, `auth/token-endpoint-auth-basic`, `-post`, `-none`, `auth/pre-registration`

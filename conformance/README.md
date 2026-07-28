@@ -51,9 +51,16 @@ revision only, and the referee filters scenarios by a `removedIn` field, so pinn
 also what drops the 2025-era scenarios for features this SDK deliberately does not implement
 (`initialize`, `logging/setLevel`, sampling, `resources/subscribe`) instead of failing them.
 
-A tier percentage from the suite's own `tier-check` is not reachable yet, and that is upstream's
-state rather than a gap here: its `DATED_SPEC_VERSIONS` still ends at `2025-11-25`, and it scores
-only over dated versions. When upstream dates 2026-07-28, these scenarios begin to count.
+The SEP-1730 tier percentage is scored over a narrower set than the badges report, and the referee's own
+`tier-check` is what computes it. A scenario counts only when it is live at one of the 2025 dated
+versions, so the ones the 2026-07-28 revision introduced are reported as informational. The tier scorer
+also counts scenarios rather than checks and tolerates an unmet SHOULD, so it reads higher than
+`composer conformance:score` does, and it runs server conformance at the referee's default
+`--suite active`, which leaves the draft and pending scenarios out of the denominator entirely.
+
+As it stands: server 20 of 20 (100%), client 12 of 15 (80%), verdict Tier 3 with the stable release the
+only failing check. See [.github/TIERING_CHECKLIST.md](../.github/TIERING_CHECKLIST.md) for the gate and
+the command to reproduce it.
 
 ## The README badges
 
@@ -69,7 +76,7 @@ regenerates and diffs them, and a stale file fails the build rather than quietly
 nobody measured.
 
 The number is the check pass rate at `--spec-version 2026-07-28`. It is **not** the SEP-1730 tier
-percentage, which is computed over a different, older denominator and is upstream-blocked (see above).
+percentage, which is computed over a narrower denominator and a more forgiving rule (see above).
 
 ## The baseline
 
