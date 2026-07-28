@@ -46,15 +46,31 @@ use Psr\Log\NullLogger;
 
 use function Amp\async;
 
-/** @param list<string> $candidates */
-$prefixCompletion = static fn(array $candidates): Closure => static function (string $value) use ($candidates): CompleteResult {
-    $matched = array_values(array_filter(
-        $candidates,
-        static fn(string $candidate): bool => str_starts_with($candidate, $value),
-    ));
+/**
+ * Builds a completion callback that suggests whichever candidates start with what
+ * has been typed so far.
+ *
+ * A named function rather than a closure, so the `@param` binds to something: on a
+ * closure assignment the docblock documents the variable, not the signature.
+ *
+ * @param list<string> $candidates
+ *
+ * @return Closure(string, ?array<string, string>, ServerContext): CompleteResult
+ */
+function prefixCompletion(array $candidates): Closure
+{
+    return static function (string $value) use ($candidates): CompleteResult {
+        $matched = [];
 
-    return new CompleteResult(completion: ['values' => $matched]);
-};
+        foreach ($candidates as $candidate) {
+            if (str_starts_with($candidate, $value)) {
+                $matched[] = $candidate;
+            }
+        }
+
+        return new CompleteResult(completion: ['values' => $matched]);
+    };
+}
 
 [$serverSide, $clientSide] = InMemoryTransport::createPair();
 
@@ -106,10 +122,10 @@ $server = new ServerBuilder()
     )
     ->setCompletionStore(new CompletionStore(
         promptCompletions: [
-            'greet' => ['style' => $prefixCompletion(['casual', 'cheerful', 'formal', 'enthusiastic'])],
+            'greet' => ['style' => prefixCompletion(['casual', 'cheerful', 'formal', 'enthusiastic'])],
         ],
         templateCompletions: [
-            'users://{userId}' => ['userId' => $prefixCompletion(['alice', 'alex', 'bob'])],
+            'users://{userId}' => ['userId' => prefixCompletion(['alice', 'alex', 'bob'])],
         ],
     ))
     ->build()
@@ -137,9 +153,16 @@ try {
 
     fwrite(\STDOUT, "=== resources/read users://alice (matched against the template) ===\n");
 
-    foreach ($client->readResource('users://alice')->contents as $content) {
-        if ($content instanceof TextResourceContents) {
-            fwrite(\STDOUT, $content->text."\n");
+    // A read can answer `InputRequiredResult` instead, when the server needs something
+    // from the user first. This one never does, so the branch is a guard rather than a
+    // second code path. See docs/client.md for what answering it looks like.
+    $resource = $client->readResource('users://alice');
+
+    if ($resource instanceof ReadResourceResult) {
+        foreach ($resource->contents as $content) {
+            if ($content instanceof TextResourceContents) {
+                fwrite(\STDOUT, $content->text."\n");
+            }
         }
     }
 
@@ -152,9 +175,13 @@ try {
 
     fwrite(\STDOUT, "=== prompts/get greet (style='formal') ===\n");
 
-    foreach ($client->getPrompt('greet', ['style' => 'formal'])->messages as $message) {
-        if ($message->content instanceof TextContent) {
-            fwrite(\STDOUT, '    '.$message->content->text."\n");
+    $prompt = $client->getPrompt('greet', ['style' => 'formal']);
+
+    if ($prompt instanceof GetPromptResult) {
+        foreach ($prompt->messages as $message) {
+            if ($message->content instanceof TextContent) {
+                fwrite(\STDOUT, '    '.$message->content->text."\n");
+            }
         }
     }
 } finally {

@@ -30,6 +30,8 @@ use Nexus\Mcp\Client\Transport\StdioClientTransport;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Resource\TextResourceContents;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
+use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
+use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
 use Psr\Log\NullLogger;
 
 $client = new ClientBuilder()
@@ -48,8 +50,8 @@ try {
     fwrite(\STDOUT, "=== Discovery ===\n");
     fwrite(\STDOUT, sprintf(
         "Connected to %s v%s (protocol versions: %s)\n\n",
-        $discoverResult->meta->serverInfo?->name ?? '(anonymous)',
-        $discoverResult->meta->serverInfo?->version ?? '?',
+        $discoverResult->meta->serverInfo->name ?? '(anonymous)',
+        $discoverResult->meta->serverInfo->version ?? '?',
         implode(', ', $discoverResult->supportedVersions),
     ));
 
@@ -78,9 +80,16 @@ try {
 
     fwrite(\STDOUT, "=== resources/read example://about ===\n");
 
-    foreach ($client->readResource('example://about')->contents as $content) {
-        if ($content instanceof TextResourceContents) {
-            fwrite(\STDOUT, $content->text."\n");
+    // A read can answer `InputRequiredResult` instead, when the server needs something
+    // from the user first. This one never does, so the branch is a guard rather than a
+    // second code path. See docs/client.md for what answering it looks like.
+    $about = $client->readResource('example://about');
+
+    if ($about instanceof ReadResourceResult) {
+        foreach ($about->contents as $content) {
+            if ($content instanceof TextResourceContents) {
+                fwrite(\STDOUT, $content->text."\n");
+            }
         }
     }
 
@@ -93,8 +102,14 @@ try {
     $client->disconnect();
 }
 
-function renderText(CallToolResult $result): string
+function renderText(CallToolResult|InputRequiredResult $result): string
 {
+    // A tool can ask for input before it will finish. These tools never do, so this
+    // says so rather than branching. docs/client.md covers answering one.
+    if ($result instanceof InputRequiredResult) {
+        return '(the server asked for input first)';
+    }
+
     foreach ($result->content as $block) {
         if ($block instanceof TextContent) {
             return $block->text;

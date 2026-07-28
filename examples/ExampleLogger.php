@@ -38,20 +38,26 @@ final class ExampleLogger extends AbstractLogger
         LogLevel::DEBUG => 7,
     ];
 
-    private string $minLevel;
+    /**
+     * Severity index at or below which a record is written.
+     */
+    private int $threshold;
 
     public function __construct()
     {
         $debug = in_array(strtolower((string) getenv('DEBUG')), ['1', 'true', 'on', 'yes'], true);
-        $this->minLevel = $debug ? LogLevel::DEBUG : LogLevel::INFO;
+        $this->threshold = $debug ? self::SEVERITY[LogLevel::DEBUG] : self::SEVERITY[LogLevel::INFO];
     }
 
     #[Override]
     public function log($level, string|Stringable $message, array $context = []): void
     {
-        $level = (string) $level;
+        // PSR-3 types the level as `mixed`, so an unrecognised one is possible and
+        // is written rather than dropped: losing a diagnostic is worse than an odd label.
+        $name = is_string($level) ? $level : '(unknown level)';
+        $severity = self::SEVERITY[$name] ?? self::SEVERITY[LogLevel::ERROR];
 
-        if (self::SEVERITY[$level] > self::SEVERITY[$this->minLevel]) {
+        if ($severity > $this->threshold) {
             return;
         }
 
@@ -71,6 +77,6 @@ final class ExampleLogger extends AbstractLogger
 
         $rendered = strtr((string) $message, $replacements);
 
-        fwrite(\STDERR, sprintf("[%s] %s: %s\n", date(\DATE_RFC3339), $level, $rendered));
+        fwrite(\STDERR, sprintf("[%s] %s: %s\n", date(\DATE_RFC3339), $name, $rendered));
     }
 }

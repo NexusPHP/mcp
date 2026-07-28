@@ -82,8 +82,8 @@ try {
 
     fwrite(\STDOUT, sprintf(
         "Connected in-process to %s v%s (protocol versions: %s)\n\n",
-        $discoverResult->meta->serverInfo?->name ?? '(anonymous)',
-        $discoverResult->meta->serverInfo?->version ?? '?',
+        $discoverResult->meta->serverInfo->name ?? '(anonymous)',
+        $discoverResult->meta->serverInfo->version ?? '?',
         implode(', ', $discoverResult->supportedVersions),
     ));
 
@@ -94,11 +94,16 @@ try {
     }
 
     fwrite(\STDOUT, "\n=== tools/call add (a=2, b=3) ===\n");
+    // A tool can answer `InputRequiredResult` instead, when it needs something from
+    // the user before it can finish. This one never does, so the branch is a guard
+    // rather than a second code path. docs/client.md covers answering one.
     $result = $client->callTool(name: 'add', arguments: ['a' => 2, 'b' => 3]);
 
-    foreach ($result->content as $block) {
-        if ($block instanceof TextContent) {
-            fwrite(\STDOUT, sprintf("    result: %s\n", $block->text));
+    if ($result instanceof CallToolResult) {
+        foreach ($result->content as $block) {
+            if ($block instanceof TextContent) {
+                fwrite(\STDOUT, sprintf("    result: %s\n", $block->text));
+            }
         }
     }
 } finally {

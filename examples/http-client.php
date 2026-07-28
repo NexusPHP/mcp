@@ -35,8 +35,10 @@ use Nexus\Mcp\Client\ClientBuilder;
 use Nexus\Mcp\Client\Transport\StreamableHttpClientTransport;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
+use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
 
-$endpoint = $argv[1] ?? 'http://127.0.0.1:8931/mcp';
+$argument = $argv[1] ?? '';
+$endpoint = '' !== $argument ? $argument : 'http://127.0.0.1:8931/mcp';
 
 requireReachable($endpoint);
 
@@ -62,8 +64,8 @@ try {
     fwrite(\STDOUT, "=== Discovery ===\n");
     fwrite(\STDOUT, sprintf(
         "Connected to %s v%s over %s\n\n",
-        $discoverResult->meta->serverInfo?->name ?? '(anonymous)',
-        $discoverResult->meta->serverInfo?->version ?? '?',
+        $discoverResult->meta->serverInfo->name ?? '(anonymous)',
+        $discoverResult->meta->serverInfo->version ?? '?',
         $endpoint,
     ));
 
@@ -95,8 +97,14 @@ try {
     $client->disconnect();
 }
 
-function renderText(CallToolResult $result): string
+function renderText(CallToolResult|InputRequiredResult $result): string
 {
+    // A tool can ask for input before it will finish. These tools never do, so this
+    // says so rather than branching. docs/client.md covers answering one.
+    if ($result instanceof InputRequiredResult) {
+        return '(the server asked for input first)';
+    }
+
     foreach ($result->content as $block) {
         if ($block instanceof TextContent) {
             return $block->text;
@@ -116,7 +124,8 @@ function renderText(CallToolResult $result): string
 function requireReachable(string $endpoint): void
 {
     $host = parse_url($endpoint, \PHP_URL_HOST);
-    $port = parse_url($endpoint, \PHP_URL_PORT) ?? ('https' === parse_url($endpoint, \PHP_URL_SCHEME) ? 443 : 80);
+    $port = parse_url($endpoint, \PHP_URL_PORT);
+    $port = is_int($port) ? $port : ('https' === parse_url($endpoint, \PHP_URL_SCHEME) ? 443 : 80);
 
     if (! is_string($host)) {
         fwrite(\STDERR, sprintf("Not a usable endpoint URL: %s\n", $endpoint));

@@ -775,7 +775,7 @@ final class ClientTest extends TestCase
 
         $this->expectException(ServerCapabilityNotSupportedException::class);
         $this->expectExceptionMessageIs(\sprintf(
-            'Request method "%s" requires a server capability that was not advertised during initialize.',
+            'Request method "%s" requires a server capability that was not advertised by server/discover.',
             $method,
         ));
 

@@ -31,7 +31,7 @@ final class ServerCapabilityNotSupportedExceptionTest extends TestCase
         $exception = new ServerCapabilityNotSupportedException('tools/call');
 
         self::assertSame(
-            'Request method "tools/call" requires a server capability that was not advertised during initialize.',
+            'Request method "tools/call" requires a server capability that was not advertised by server/discover.',
             $exception->getMessage(),
         );
     }

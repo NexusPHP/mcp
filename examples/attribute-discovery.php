@@ -26,7 +26,6 @@ declare(strict_types=1);
 require __DIR__.'/bootstrap.php';
 
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
-use Nexus\Mcp\Core\Schema\Enum\LoggingLevel;
 use Nexus\Mcp\Core\Schema\Enum\Role;
 use Nexus\Mcp\Core\Schema\Prompt\PromptMessage;
 use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
@@ -54,7 +53,10 @@ final class Concierge
     #[AsTool(description: 'Returns a canned weather report for a city.')]
     public function weather(string $city, ServerContext $context, string $unit = 'celsius'): string
     {
-        $context->log(LoggingLevel::Info, sprintf('Looking up weather for %s.', $city));
+        // `ServerContext` is injected rather than exposed to the client, so it never
+        // appears in the generated `inputSchema`. Progress is the one out-of-band
+        // signal a handler can raise: logging was removed from the protocol at 2026-07-28.
+        $context->reportProgress(progress: 1.0, total: 1.0, message: sprintf('Looking up weather for %s.', $city));
 
         $temperature = 'fahrenheit' === $unit ? '72 °F' : '22 °C';
 

@@ -509,10 +509,9 @@ are not in the baseline.
 - [ ] A missing required `prompts/get` argument answers `-32603 Internal error` rather than
   `-32602`. The argument binder's failure escapes as an unhandled exception instead of being
   converted at the handler boundary.
-- [ ] `examples/attribute-discovery.php` calls `ServerContext::log()`, which no longer exists: the
-  logging emission path was deleted at the 2026-07-28 cut and the example was not updated, so the
-  `weather` tool fatals on its first call. `examples/` is outside the PHPStan paths, which is why
-  this rotted unnoticed.
+- [x] `examples/attribute-discovery.php` called `ServerContext::log()`, which no longer exists, so the
+  `weather` tool fataled on its first call. It reports progress instead. `examples/` is now in the
+  PHPStan paths alongside `conformance/`, which is what stops the next one rotting unnoticed.
 - [ ] Empty object slots ship as `[]` rather than `{}`. Pattern A substitutes `\stdClass` inside
   `jsonSerialize()`, but transports encode `$message->toArray()` and `json_encode` the plain array,
   so the substitution never runs on the send path. Live example: `server/discover` answers

@@ -68,12 +68,12 @@ final readonly class PsrHttpAdapter implements AmpRequestHandler
         $body = $response->getBody();
 
         if (! self::isEventStream($response)) {
-            return new AmpResponse($response->getStatusCode(), $response->getHeaders(), (string) $body);
+            return new AmpResponse($response->getStatusCode(), self::headers($response), (string) $body);
         }
 
         $ampResponse = new AmpResponse(
             $response->getStatusCode(),
-            $response->getHeaders(),
+            self::headers($response),
             new ReadableIterableStream(self::readFrames($body)),
         );
 
@@ -82,6 +82,25 @@ final readonly class PsrHttpAdapter implements AmpRequestHandler
         $ampResponse->onDispose($body->close(...));
 
         return $ampResponse;
+    }
+
+    /**
+     * PSR-7 admits an empty header name where `amphp/http-server` does not, so the
+     * slot is dropped rather than passed along.
+     *
+     * @return array<non-empty-string, list<string>>
+     */
+    private static function headers(ResponseInterface $response): array
+    {
+        $headers = [];
+
+        foreach ($response->getHeaders() as $name => $values) {
+            if ('' !== $name) {
+                $headers[$name] = $values;
+            }
+        }
+
+        return $headers;
     }
 
     /**
