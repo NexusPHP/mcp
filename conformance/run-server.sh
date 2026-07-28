@@ -13,10 +13,13 @@
 
 set -euo pipefail
 
-# Pinned deliberately. Bump this and reconcile expected-failures.yaml in the same
-# change, never separately: a new referee release routinely adds scenarios and
-# checks, and an unpinned run turns that into unexplained CI failures.
-CONFORMANCE_VERSION="0.2.0-alpha.10"
+# The referee version, overridable by the weekly drift job.
+#
+# Bump it and reconcile expected-failures.yaml in the same change: a new release
+# routinely adds scenarios and checks.
+#
+# npm's `latest` tag is the older 0.1.x line. The 2026-07-28 scenarios ship under `alpha`.
+CONFORMANCE_VERSION="${CONFORMANCE_VERSION:-0.2.0-alpha.10}"
 
 # The SDK targets MCP 2026-07-28 only. The referee filters scenarios by the
 # `removedIn` field, so this is also what drops the 2025-era scenarios for

@@ -1,0 +1,122 @@
+name: Conformance (upstream drift)
+
+# Runs both conformance legs against the newest published referee rather than the
+# version pinned in conformance/run-*.sh, so a release that adds or changes
+# scenarios surfaces here instead of inside an unrelated pull request.
+#
+# A failure is a signal, not a regression: it means upstream moved. Reconcile by
+# bumping the pin and conformance/expected-failures.yaml together.
+
+on:
+  schedule:
+    - cron: '0 6 * * 1' # Mondays 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  drift:
+    name: ${{ matrix.mode }} mode
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: github.repository == 'NexusPHP/mcp'
+
+    strategy:
+      fail-fast: false
+      matrix:
+        mode:
+          - server
+          - client
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+
+      - name: Install dependencies
+        run: composer update --ansi
+
+      # The `alpha` tag, not `latest`: npm's `latest` still points at the older 0.1.x
+      # line, which predates every 2026-07-28 scenario. Resolving it to a concrete
+      # version here keeps the run reproducible and names it in the log.
+      - name: Resolve the newest referee
+        id: referee
+        run: |
+          VERSION="$(npm view @modelcontextprotocol/conformance@alpha version)"
+          PINNED="$(sed -n 's/^CONFORMANCE_VERSION=.*:-\(.*\)}"$/\1/p' conformance/run-server.sh)"
+
+          if [ -z "${PINNED}" ]; then
+            echo "::error::Could not read CONFORMANCE_VERSION out of conformance/run-server.sh."
+            exit 1
+          fi
+
+          echo "Pinned: ${PINNED}"
+          echo "Newest: ${VERSION}"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "pinned=${PINNED}" >> "$GITHUB_OUTPUT"
+
+      # Failure is handled by the report step below, not here.
+      - name: Run the conformance suite
+        id: suite
+        continue-on-error: true
+        env:
+          CONFORMANCE_VERSION: ${{ steps.referee.outputs.version }}
+        run: ./conformance/run-${{ matrix.mode }}.sh --suite all
+
+      # No badge check here. The badges record the score at the pinned referee, and
+      # this job deliberately runs a different one.
+      - name: Publish the score
+        if: always()
+        run: composer conformance:score >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Report
+        env:
+          NEWEST: ${{ steps.referee.outputs.version }}
+          PINNED: ${{ steps.referee.outputs.pinned }}
+          OUTCOME: ${{ steps.suite.outcome }}
+        run: |
+          STATUS=0
+
+          # A published release fails the job even when the suite still passes at it.
+          if [ "${PINNED}" != "${NEWEST}" ]; then
+            echo "::error::A newer referee is published: ${NEWEST} (pinned ${PINNED}). Bump CONFORMANCE_VERSION in conformance/run-server.sh and run-client.sh, and reconcile conformance/expected-failures.yaml in the same change."
+            echo "**A newer referee is published:** \`${NEWEST}\` (pinned \`${PINNED}\`)." >> "$GITHUB_STEP_SUMMARY"
+            STATUS=1
+          fi
+
+          if [ "${OUTCOME}" != "success" ]; then
+            echo "::error::The suite did not pass at ${NEWEST}. The uploaded results say which scenarios moved."
+            echo "**The suite did not pass at** \`${NEWEST}\`." >> "$GITHUB_STEP_SUMMARY"
+            STATUS=1
+          fi
+
+          if [ "${STATUS}" -eq 0 ]; then
+            echo "The pin is current and the suite passes at \`${NEWEST}\`." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          exit "${STATUS}"
+
+      - name: Upload the raw results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: conformance-drift-${{ matrix.mode }}
+          path: conformance/results/
+          retention-days: 14

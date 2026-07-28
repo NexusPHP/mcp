@@ -12,6 +12,13 @@ over Streamable HTTP, and checks every response against the spec.
 composer conformance:server            # server mode, active suite
 composer conformance:client            # client mode
 composer conformance:score             # score the last run
+composer conformance:badge             # rewrite the README score badges
+```
+
+To try a different referee without editing the pin:
+
+```bash
+CONFORMANCE_VERSION=0.2.0-alpha.9 ./conformance/run-server.sh --suite all
 ```
 
 Both runners pass arguments straight through to the referee:
@@ -77,9 +84,30 @@ ignoring them.
 
 ## Bumping the referee
 
-Change `CONFORMANCE_VERSION` in [`run-server.sh`](run-server.sh) and reconcile
-`expected-failures.yaml` **in the same change**. A new release routinely adds scenarios and checks,
-so bumping alone turns that into unexplained CI failures, and reconciling alone hides a regression.
+Change `CONFORMANCE_VERSION` in [`run-server.sh`](run-server.sh) and [`run-client.sh`](run-client.sh),
+and reconcile `expected-failures.yaml` **in the same change**. A new release routinely adds scenarios
+and checks, so bumping alone turns that into unexplained CI failures, and reconciling alone hides a
+regression.
+
+Take the version from npm's **`alpha`** tag. `latest` still points at the older `0.1.x` line, which
+predates every 2026-07-28 scenario, so tracking it would be a downgrade:
+
+```bash
+npm view @modelcontextprotocol/conformance@alpha version
+```
+
+You do not have to watch for releases yourself. `.github/workflows/conformance-weekly.yml` runs both
+legs every Monday against whatever `alpha` currently resolves to, overriding the pin through the
+`CONFORMANCE_VERSION` environment variable. It fails on either of two things, and says which:
+
+- **A newer version is published.** This fails even when the suite still passes at it, because
+  adopting one is a deliberate bump plus a baseline reconcile rather than something to drift into.
+- **The suite no longer passes** at that version, which names the scenarios that moved. The uploaded
+  results artefact has the detail.
+
+Neither is a regression in this SDK on its own. The fix for both is the bump-and-reconcile above, and
+the job goes green once the pin catches up. It does not touch the badges, which record the score at
+the pinned version.
 
 ## The fixture
 
