@@ -9,6 +9,7 @@ parameters:
   level: 10
   tmpDir: build/phpstan
   paths:
+    - conformance
     - src
     - tests
     - tools

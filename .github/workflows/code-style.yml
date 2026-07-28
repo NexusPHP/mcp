@@ -6,6 +6,7 @@ on:
       - 1.x
     paths:
       - .github/workflows/code-style.yml
+      - conformance/**
       - src/**
       - tests/**
       - tools/**
@@ -16,6 +17,7 @@ on:
       - 1.x
     paths:
       - .github/workflows/code-style.yml
+      - conformance/**
       - src/**
       - tests/**
       - tools/**

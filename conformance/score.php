@@ -29,10 +29,10 @@ declare(strict_types=1);
  *     php conformance/score.php --json     # machine-readable
  */
 
-require __DIR__.'/../vendor/autoload.php';
+require __DIR__.'/bootstrap.php';
 
 $resultsDir = __DIR__.'/results';
-$asJson = in_array('--json', $argv, true);
+$asJson = in_array('--json', conformanceArguments(), true);
 
 if (! is_dir($resultsDir)) {
     fwrite(\STDERR, "No conformance/results/ directory. Run ./conformance/run-server.sh first.\n");

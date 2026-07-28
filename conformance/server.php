@@ -37,8 +37,18 @@ use Nexus\Mcp\Server\Transport\Http\SecuredHttpEndpoint;
 use Nexus\Mcp\Server\Transport\StreamableHttpServerTransport;
 use Nyholm\Psr7\Factory\Psr17Factory;
 
-$host = (string) (getenv('HOST') ?: '127.0.0.1');
-$port = (int) (getenv('PORT') ?: '3000');
+/**
+ * Reads an environment variable, falling back when it is unset or empty.
+ */
+function conformanceEnv(string $name, string $fallback): string
+{
+    $value = getenv($name);
+
+    return is_string($value) && '' !== $value ? $value : $fallback;
+}
+
+$host = conformanceEnv('HOST', '127.0.0.1');
+$port = (int) conformanceEnv('PORT', '3000');
 $address = sprintf('%s:%d', $host, $port);
 
 $logger = new ExampleLogger();

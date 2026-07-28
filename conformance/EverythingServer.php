@@ -162,7 +162,7 @@ final class EverythingServer
     #[AsTool(name: 'test_logging_tool', description: 'Would log if the request asked for logs.')]
     public function loggingTool(ServerContext $context): string
     {
-        return sprintf('Requested log level: %s.', $context->meta->logLevel?->value ?? 'none');
+        return sprintf('Requested log level: %s.', $context->meta->logLevel->value ?? 'none');
     }
 
     /**
@@ -170,6 +170,8 @@ final class EverythingServer
      * schema from the signature for every other tool, but this scenario asserts the
      * server preserves `$schema`, `$defs`, and `additionalProperties` verbatim, so
      * the schema is supplied rather than derived.
+     *
+     * @param null|array<string, mixed> $arguments
      */
     #[AsTool(name: 'json_schema_2020_12_tool', description: 'Tool with JSON Schema 2020-12 features')]
     #[InputSchema(definition: [

@@ -20,3 +20,28 @@ declare(strict_types=1);
 
 require __DIR__.'/../examples/bootstrap.php';
 require __DIR__.'/../examples/PsrHttpAdapter.php';
+
+/**
+ * The command-line arguments, read from `$_SERVER` rather than `$argv` because
+ * the latter exists only when `register_argc_argv` is on.
+ *
+ * @return list<string>
+ */
+function conformanceArguments(): array
+{
+    $arguments = $_SERVER['argv'] ?? [];
+
+    if (! is_array($arguments)) {
+        return [];
+    }
+
+    $strings = [];
+
+    foreach ($arguments as $argument) {
+        if (is_string($argument)) {
+            $strings[] = $argument;
+        }
+    }
+
+    return $strings;
+}

@@ -35,6 +35,7 @@ require __DIR__.'/bootstrap.php';
 require __DIR__.'/HeadlessUserAuthorization.php';
 
 use Amp\Http\Client\HttpClientBuilder;
+use Nexus\Assert\Assert;
 use Nexus\Mcp\Client\Auth\AuthorizationOptions;
 use Nexus\Mcp\Client\Auth\AuthorizedHttpClient;
 use Nexus\Mcp\Client\Auth\ClientRegistration;
@@ -51,6 +52,9 @@ $register = static function (string $name, Closure $handler) use (&$scenarios): 
 
 /** Connects a plain client to the referee's mock, with no authorization. */
 $connect = static function (string $serverUrl): Client {
+    // The URL arrives from argv, so this is the boundary where it earns its type.
+    Assert::that($serverUrl)->isNonEmptyString('The conformance runner must supply a server URL.');
+
     $client = new ClientBuilder()
         ->setLogger(new ExampleLogger())
         ->setClientInfo(name: 'nexus-mcp-conformance-client', version: '1.0.0')
@@ -178,6 +182,8 @@ $register('json-schema-ref-no-deref', static function (string $serverUrl) use ($
  * anything the client chooses, so one handler covers the whole block.
  */
 $authorize = static function (string $serverUrl): void {
+    Assert::that($serverUrl)->isNonEmptyString('The conformance runner must supply a server URL.');
+
     $raw = getenv('MCP_CONFORMANCE_CONTEXT');
     $context = is_string($raw) && '' !== $raw ? json_decode($raw, true, 512, \JSON_THROW_ON_ERROR) : [];
     $context = is_array($context) ? $context : [];
@@ -254,10 +260,11 @@ foreach ([
     $register($authScenario, $authorize);
 }
 
+$arguments = conformanceArguments();
 $scenario = getenv('MCP_CONFORMANCE_SCENARIO');
-$serverUrl = $argv[count($argv) - 1] ?? '';
+$serverUrl = 1 < count($arguments) ? $arguments[count($arguments) - 1] : '';
 
-if (! is_string($scenario) || '' === $scenario || '' === $serverUrl || $serverUrl === $argv[0]) {
+if (! is_string($scenario) || '' === $scenario || '' === $serverUrl) {
     fwrite(\STDERR, "Usage: MCP_CONFORMANCE_SCENARIO=<scenario> php conformance/client.php <server-url>\n");
     fwrite(\STDERR, "The conformance runner sets that variable and appends the URL.\n\nRegistered scenarios:\n");
 

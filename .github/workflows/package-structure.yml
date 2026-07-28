@@ -6,6 +6,7 @@ on:
       - 1.x
     paths:
       - .github/workflows/package-structure.yml
+      - conformance/**
       - src/**
       - tests/**
       - structarmed.php
@@ -17,6 +18,7 @@ on:
       - 1.x
     paths:
       - .github/workflows/package-structure.yml
+      - conformance/**
       - src/**
       - tests/**
       - structarmed.php

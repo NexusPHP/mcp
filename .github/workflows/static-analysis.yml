@@ -6,6 +6,7 @@ on:
       - 1.x
     paths:
       - .github/workflows/static-analysis.yml
+      - conformance/**
       - src/**
       - tests/**
       - tools/**
@@ -17,6 +18,7 @@ on:
       - 1.x
     paths:
       - .github/workflows/static-analysis.yml
+      - conformance/**
       - src/**
       - tests/**
       - tools/**

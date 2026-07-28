@@ -33,7 +33,9 @@ Results land in `results/`, which is gitignored. The referee declares no engine 
 maintained Node works. CI tracks the active LTS.
 
 None of this runs inside `composer test:with-untracked`. The gate suite is hermetic and offline, and
-conformance is neither.
+conformance is neither. The harness sources are still held to the repo's standards though: `conformance/`
+is in the PHPStan paths, the PHP-CS-Fixer finder, and the dependency analyser, so a fixture that stops
+type-checking fails the normal gates rather than waiting for a conformance run.
 
 ## What is being targeted
 
