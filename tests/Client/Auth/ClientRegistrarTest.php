@@ -70,6 +70,48 @@ final class ClientRegistrarTest extends TestCase
         ));
     }
 
+    public function testUnboundCredentialsTakeTheDiscoveredIssuer(): void
+    {
+        // Credentials issued out of band name no server of their own, so discovery names it for them.
+        $http = new RecordingHttpClient();
+
+        $registration = self::resolve($http, self::metadata(), self::options(
+            preRegistered: new ClientRegistration('pre-registered', clientSecret: 'the-secret'),
+        ));
+
+        self::assertSame(self::ISSUER, $registration->issuer);
+        self::assertSame('pre-registered', $registration->clientId);
+        self::assertSame('the-secret', $registration->clientSecret);
+        self::assertSame([], $http->requests, 'Supplied credentials need no registration request.');
+    }
+
+    public function testUnboundCredentialsCarryingASecretDefaultToBasicAuthentication(): void
+    {
+        $registration = self::resolve(new RecordingHttpClient(), self::metadata(), self::options(
+            preRegistered: new ClientRegistration('pre-registered', clientSecret: 'the-secret'),
+        ));
+
+        self::assertSame(TokenEndpointAuthMethod::ClientSecretBasic, $registration->tokenEndpointAuthMethod);
+    }
+
+    public function testUnboundCredentialsWithoutASecretStayUnauthenticated(): void
+    {
+        $registration = self::resolve(new RecordingHttpClient(), self::metadata(), self::options(
+            preRegistered: new ClientRegistration('pre-registered'),
+        ));
+
+        self::assertSame(TokenEndpointAuthMethod::None, $registration->tokenEndpointAuthMethod);
+    }
+
+    public function testAnExplicitAuthMethodOnUnboundCredentialsIsKept(): void
+    {
+        $registration = self::resolve(new RecordingHttpClient(), self::metadata(), self::options(
+            preRegistered: new ClientRegistration('pre-registered', clientSecret: 'the-secret', tokenEndpointAuthMethod: TokenEndpointAuthMethod::ClientSecretPost),
+        ));
+
+        self::assertSame(TokenEndpointAuthMethod::ClientSecretPost, $registration->tokenEndpointAuthMethod);
+    }
+
     public function testAMetadataDocumentUrlIsUsedAsTheClientIdentifier(): void
     {
         $http = new RecordingHttpClient();

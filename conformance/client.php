@@ -196,9 +196,10 @@ $authorize = static function (string $serverUrl): void {
         new AuthorizationOptions(
             clientName: 'Nexus MCP SDK conformance client',
             redirectUri: 'http://127.0.0.1:8765/callback',
-            // Supplied only by the scenarios that issue credentials out of band.
+            // Supplied only by the scenarios that issue credentials out of band. They name no
+            // authorization server, so the registration stays unbound until discovery names one.
             preRegistered: null !== $clientId
-                ? new ClientRegistration(clientId: $clientId, issuer: $serverUrl, clientSecret: $clientSecret)
+                ? new ClientRegistration(clientId: $clientId, clientSecret: $clientSecret)
                 : null,
             requestOfflineAccess: true,
             // The referee's mock authorization server runs on plain HTTP over

@@ -43,14 +43,6 @@ client:
   # No second authorization request is made on a 403 insufficient_scope, so the
   # scope union on re-authorization cannot be observed either.
   - auth/scope-step-up
-  # No token request is made, and the cause is ours. The scenario supplies only a
-  # `client_id` and `client_secret`, since credentials issued out of band say nothing
-  # about which authorization server the client will discover. `ClientRegistration`
-  # requires an issuer, so `client.php` fabricates one from the MCP server URL, and
-  # `ClientRegistrar` then correctly refuses to use credentials bound to one issuer
-  # against another. Retired by letting a registration be unbound, or by binding it
-  # after discovery.
-  - auth/pre-registration
   # SEP-2352 says the client MUST re-register when PRM `authorization_servers`
   # changes. No registration request is seen at the new server.
   - auth/authorization-server-migration:sep-2352-reregister-on-as-change

@@ -494,8 +494,8 @@ SDKs.
   `--spec-version 2026-07-28` and stands at 102 of 106 checks. The 4 that remain all need an input
   request this SDK does not model, named in the baseline.
 - [x] Run the conformance suite in client mode, on the same pinned referee and baseline.
-  `conformance/client.php` routes on the scenario name the referee supplies. Stands at 300 of 310
-  checks, 27 of 32 scenarios. The OAuth block passes almost entirely, as do the SEP-2243 header
+  `conformance/client.php` routes on the scenario name the referee supplies. Stands at 308 of 317
+  checks, 28 of 32 scenarios. The OAuth block passes almost entirely, as do the SEP-2243 header
   scenarios (`http-custom-headers` 18 of 18), `request-metadata`, `tools_call`, and
   `json-schema-ref-no-deref`.
 
@@ -519,9 +519,14 @@ are not in the baseline.
   the origin, so the document it serves names the origin rather than the path-scoped endpoint.
   `MetadataDiscovery` refused it and aborted, making the fallback unreachable by construction. It now
   accepts a document naming either the resource or its origin, and still refuses any other origin.
-- [ ] Four OAuth scenarios still miss one obligation each, listed individually in the conformance
-  baseline: the CIMD client-id SHOULD, scope step-up making no second authorization request,
-  pre-registration making no token request (an unbindable pre-registered credential, see the baseline), and
+- [x] `auth/pre-registration` made no token request. Credentials issued out of band name no authorization
+  server, but `ClientRegistration` required an issuer, so the conformance client fabricated one from the
+  MCP server URL and `ClientRegistrar` correctly refused to carry credentials across issuers. The issuer
+  is now nullable: an unbound registration takes the issuer discovery names, and picks up RFC 7591's
+  `client_secret_basic` default when it carries a secret and the caller named no method. A registration
+  that does name an issuer is still refused anywhere else.
+- [ ] Three OAuth scenarios still miss one obligation each, listed individually in the conformance
+  baseline: the CIMD client-id SHOULD, scope step-up making no second authorization request, and
   SEP-2352 re-registration on an authorization-server change.
 
 - [x] A missing required `prompts/get` argument answered `-32603 Internal error` rather than
