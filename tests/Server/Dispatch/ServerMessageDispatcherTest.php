@@ -772,6 +772,8 @@ final class ServerMessageDispatcherTest extends TestCase
         self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
         self::assertSame(ProtocolErrorCode::InvalidParams->value, $message->error->code);
         self::assertSame(1, $message->id?->id);
+        // SEP-2164: the error data echoes the URI that was not found.
+        self::assertSame(['uri' => 'file:///missing'], $message->error->toArray()['data'] ?? null);
         // A protocol error the handler raised carries handler origin.
         $context = $transport->sent[0]['context'];
         self::assertInstanceOf(SendContext::class, $context);

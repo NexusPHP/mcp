@@ -21,10 +21,14 @@ use Nexus\Mcp\Core\Schema\RequestId;
  */
 abstract class AbstractJsonRpcProtocolException extends \RuntimeException implements JsonRpcProtocolExceptionInterface
 {
+    /**
+     * @param mixed $errorData Payload for the error response's `data` slot, omitted when null
+     */
     public function __construct(
         public readonly ?RequestId $requestId,
         string $message,
         ?\Throwable $previous = null,
+        public readonly mixed $errorData = null,
     ) {
         parent::__construct($message, previous: $previous);
     }

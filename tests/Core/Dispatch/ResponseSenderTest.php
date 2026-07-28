@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Dispatch;
 
 use Nexus\Mcp\Core\Dispatch\ResponseSender;
+use Nexus\Mcp\Core\Exception\InvalidParamsException;
 use Nexus\Mcp\Core\Exception\MethodNotFoundException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
@@ -93,5 +94,21 @@ final class ResponseSenderTest extends TestCase
         $response = ResponseSender::buildErrorResponse(new MethodNotFoundException('vendor/x'), new RequestId(id: 99));
 
         self::assertSame(99, $response->id?->id);
+    }
+
+    public function testToErrorResponseCarriesTheExceptionErrorData(): void
+    {
+        $exception = new InvalidParamsException(null, 'Unknown resource.', errorData: ['uri' => 'file:///missing.txt']);
+
+        $response = ResponseSender::buildErrorResponse($exception, null);
+
+        self::assertSame(['uri' => 'file:///missing.txt'], $response->error->toArray()['data'] ?? null);
+    }
+
+    public function testToErrorResponseOmitsDataWhenTheExceptionCarriesNone(): void
+    {
+        $response = ResponseSender::buildErrorResponse(new MethodNotFoundException('vendor/x'), null);
+
+        self::assertArrayNotHasKey('data', $response->error->toArray());
     }
 }

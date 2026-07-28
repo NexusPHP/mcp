@@ -53,4 +53,12 @@ final class ResourceNotFoundExceptionTest extends TestCase
     {
         self::assertSame(ProtocolErrorCode::InvalidParams, ResourceNotFoundException::getErrorCode());
     }
+
+    public function testEchoesTheUriInTheErrorData(): void
+    {
+        // SEP-2164: a resource-not-found error SHOULD carry the URI that was not found.
+        $e = new ResourceNotFoundException('file:///missing');
+
+        self::assertSame(['uri' => 'file:///missing'], $e->errorData);
+    }
 }
