@@ -72,7 +72,7 @@ jobs:
       # ones conformance/expected-failures.yaml already accounts for, and exits 1
       # both on a new failure and on a baselined scenario that has started passing.
       - name: Run the conformance suite
-        run: ./conformance/run-server.sh --suite all
+        run: composer conformance:server -- --suite all
 
       # Each job runs on its own runner, so this only ever sees the mode that job
       # ran. score.php names the mode in its heading, so two summaries stay
@@ -139,7 +139,7 @@ jobs:
       # The referee is the server here, so nothing needs starting first: it stands
       # up a mock per scenario and spawns the client once per scenario.
       - name: Run the conformance suite
-        run: ./conformance/run-client.sh --suite all
+        run: composer conformance:client -- --suite all
 
       # Each job runs on its own runner, so this only ever sees the mode that job
       # ran. score.php names the mode in its heading, so two summaries stay
