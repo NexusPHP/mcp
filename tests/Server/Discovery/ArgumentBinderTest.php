@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Tests\Server\Discovery;
 
 use Amp\NullCancellation;
 use Nexus\Assert\ExpectationFailedException;
+use Nexus\Mcp\Core\Exception\InvalidParamsException;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Server\Discovery\ArgumentBinder;
 use Nexus\Mcp\Server\Exception\UnsupportedNestedParameterException;
@@ -77,7 +78,7 @@ final class ArgumentBinderTest extends TestCase
 
     public function testThrowsWhenRequiredValueMissing(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(InvalidParamsException::class);
         $this->expectExceptionMessageIs('The "name" argument is required.');
 
         $this->bind('requiredString', []);
@@ -149,7 +150,7 @@ final class ArgumentBinderTest extends TestCase
 
     public function testRejectsANonListVariadicValue(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(InvalidParamsException::class);
         $this->expectExceptionMessageIs('The "tags" argument must be a list, string given.');
 
         $this->bind('variadicStrings', ['tags' => 'solo']);
@@ -190,7 +191,7 @@ final class ArgumentBinderTest extends TestCase
 
     public function testRejectsANonObjectDtoValue(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(InvalidParamsException::class);
         $this->expectExceptionMessageMatches('/must be constructed from an object/');
 
         $this->bind('withCoordinate', ['point' => 'scalar']);
@@ -210,7 +211,7 @@ final class ArgumentBinderTest extends TestCase
 
     public function testDtoRejectsAMissingRequiredMember(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(InvalidParamsException::class);
         $this->expectExceptionMessageIs('The "longitude" argument is required.');
 
         $this->bind('withCoordinate', ['point' => ['latitude' => 1.0]]);
@@ -218,7 +219,7 @@ final class ArgumentBinderTest extends TestCase
 
     public function testRejectsUnknownBackedEnumValue(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(InvalidParamsException::class);
         $this->expectExceptionMessageIs('Parameter "$color" must be one of [\'a\', \'b\'], \'zzz\' given.');
 
         $this->bind('backedString', ['color' => 'zzz']);
@@ -226,7 +227,7 @@ final class ArgumentBinderTest extends TestCase
 
     public function testCatchesTypeErrorWhenIntBackedEnumGetsString(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(InvalidParamsException::class);
         $this->expectExceptionMessageIs('Parameter "$level" must be one of [1, 2], \'2\' given.');
 
         $this->bind('backedInt', ['level' => '2']);
@@ -234,7 +235,7 @@ final class ArgumentBinderTest extends TestCase
 
     public function testRejectsUnknownPureEnumCaseName(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(InvalidParamsException::class);
         $this->expectExceptionMessageIs('Parameter "$flag" must be one of [\'Yes\', \'No\'], \'Nope\' given.');
 
         $this->bind('pureCase', ['flag' => 'Nope']);
@@ -242,10 +243,24 @@ final class ArgumentBinderTest extends TestCase
 
     public function testRejectsPureEnumValueOfNonStringType(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(InvalidParamsException::class);
         $this->expectExceptionMessageIs('Parameter "$flag" must be one of [\'Yes\', \'No\'], 5 given.');
 
         $this->bind('pureCase', ['flag' => 5]);
+    }
+
+    public function testABindingFailureCarriesTheRequestIdAndTheOriginalCause(): void
+    {
+        try {
+            $this->bind('requiredString', []);
+        } catch (InvalidParamsException $e) {
+            self::assertSame(7, $e->requestId?->id);
+            self::assertInstanceOf(ExpectationFailedException::class, $e->getPrevious());
+
+            return;
+        }
+
+        self::fail('Expected an InvalidParamsException.');
     }
 
     /**
