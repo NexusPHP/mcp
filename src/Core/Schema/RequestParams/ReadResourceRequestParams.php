@@ -14,16 +14,16 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\RequestParams;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitResult;
-use Nexus\Mcp\Core\Schema\RequestMetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\Result\InputResponse;
 
 /**
  * Parameters for a `resources/read` request.
  *
  * @extends ResourceRequestParams<array{
- *   _meta: template-type<RequestMetaObject, Arrayable, 'T'>,
+ *   _meta: template-type<RequestMetaObject, MetaObject, 'T'>,
  *   uri: string,
  *   inputResponses?: array<string, array<string, mixed>>,
  *   requestState?: string,

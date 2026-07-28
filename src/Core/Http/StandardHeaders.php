@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Http;
 
 use Nexus\Mcp\Core\Schema\Error\HeaderMismatchError;
-use Nexus\Mcp\Core\Schema\RequestMetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\RequestMetaObject;
 
 /**
  * Builds and cross-checks the standard request headers (`MCP-Protocol-Version`, `Mcp-Method`, `Mcp-Name`)

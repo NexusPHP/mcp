@@ -16,7 +16,7 @@ namespace Nexus\Mcp\Tests\Core\Schema\Tool;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\BaseMetadata;
 use Nexus\Mcp\Core\Schema\Icon;
-use Nexus\Mcp\Core\Schema\MetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\PayloadMetaObject;
 use Nexus\Mcp\Core\Schema\Tool\Tool;
 use Nexus\Mcp\Core\Schema\Tool\ToolAnnotations;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -70,7 +70,7 @@ final class ToolTest extends TestCase
             outputSchema: ['type' => 'object', 'properties' => ['content' => ['type' => 'string']]],
             annotations: new ToolAnnotations(readOnlyHint: true),
             icons: [new Icon(src: 'https://example.com/icon.png')],
-            meta: new MetaObject(extras: ['vendor' => 'x']),
+            meta: new PayloadMetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -145,7 +145,7 @@ final class ToolTest extends TestCase
             outputSchema: ['type' => 'object', 'properties' => ['content' => ['type' => 'string']]],
             annotations: new ToolAnnotations(title: 'Read File', readOnlyHint: true),
             icons: [new Icon(src: 'https://example.com/icon.png')],
-            meta: new MetaObject(extras: ['vendor' => 'x']),
+            meta: new PayloadMetaObject(extras: ['vendor' => 'x']),
         );
 
         $rebuilt = Tool::fromArray($original->toArray());

@@ -16,7 +16,7 @@ namespace Nexus\Mcp\Tests\Core\Schema\ContentBlock;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Annotations;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
-use Nexus\Mcp\Core\Schema\MetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\PayloadMetaObject;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -54,7 +54,7 @@ final class TextContentTest extends TestCase
         $content = new TextContent(
             text: 'hello',
             annotations: new Annotations(priority: 0.5),
-            meta: new MetaObject(extras: ['vendor' => 'x']),
+            meta: new PayloadMetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -70,7 +70,7 @@ final class TextContentTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $content = new TextContent(text: 'hello', meta: new MetaObject(extras: ['k' => 'v']));
+        $content = new TextContent(text: 'hello', meta: new PayloadMetaObject(extras: ['k' => 'v']));
 
         self::assertSame($content->toArray(), $content->jsonSerialize());
     }
@@ -94,7 +94,7 @@ final class TextContentTest extends TestCase
         $original = new TextContent(
             text: 'hello',
             annotations: new Annotations(priority: 0.5),
-            meta: new MetaObject(extras: ['vendor' => 'x']),
+            meta: new PayloadMetaObject(extras: ['vendor' => 'x']),
         );
 
         $rebuilt = TextContent::fromArray($original->toArray());

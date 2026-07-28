@@ -19,6 +19,7 @@ use Nexus\Mcp\Core\Schema\BaseMetadata;
 use Nexus\Mcp\Core\Schema\Icon;
 use Nexus\Mcp\Core\Schema\Icons;
 use Nexus\Mcp\Core\Schema\MetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\PayloadMetaObject;
 use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
 
 /**
@@ -30,7 +31,7 @@ use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
  *   description?: non-empty-string,
  *   arguments?: list<template-type<PromptArgument, Arrayable, 'T'>>,
  *   icons?: list<template-type<Icon, Arrayable, 'T'>>,
- *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
+ *   _meta?: template-type<PayloadMetaObject, MetaObject, 'T'>,
  * }>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#prompt
@@ -62,7 +63,7 @@ final readonly class Prompt extends BaseMetadata implements Arrayable, Icons
         ?string $description = null,
         ?array $arguments = null,
         ?array $icons = null,
-        public MetaObject $meta = new MetaObject(),
+        public PayloadMetaObject $meta = new PayloadMetaObject(),
     ) {
         parent::__construct(name: $name, title: $title);
 
@@ -119,14 +120,14 @@ final readonly class Prompt extends BaseMetadata implements Arrayable, Icons
             $icons = array_map(Icon::fromArray(...), $data['icons']);
         }
 
-        $meta = new MetaObject();
+        $meta = new PayloadMetaObject();
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
                 ->isArray('prompt "_meta" must be an object, {type} given.')
                 ->isMap('prompt "_meta" must be a string-keyed object.')
             ;
-            $meta = MetaObject::fromArray($data['_meta']);
+            $meta = PayloadMetaObject::fromArray($data['_meta']);
         }
 
         return new self(

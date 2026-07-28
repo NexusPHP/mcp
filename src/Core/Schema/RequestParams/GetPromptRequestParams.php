@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\RequestParams;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitResult;
-use Nexus\Mcp\Core\Schema\RequestMetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\Result\InputResponse;
 use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
 
@@ -24,7 +24,7 @@ use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
  * Parameters for a `prompts/get` request.
  *
  * @extends InputResponseRequestParams<array{
- *   _meta: template-type<RequestMetaObject, Arrayable, 'T'>,
+ *   _meta: template-type<RequestMetaObject, MetaObject, 'T'>,
  *   name: non-empty-string,
  *   arguments?: array<string, string>,
  *   inputResponses?: array<string, array<string, mixed>>,

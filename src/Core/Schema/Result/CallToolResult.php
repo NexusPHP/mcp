@@ -23,14 +23,15 @@ use Nexus\Mcp\Core\Schema\ContentBlock\ImageContent;
 use Nexus\Mcp\Core\Schema\ContentBlock\ResourceLink;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Enum\ResultType;
+use Nexus\Mcp\Core\Schema\MetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\ResultMetaObject;
 use Nexus\Mcp\Core\Schema\Result;
-use Nexus\Mcp\Core\Schema\ResultMetaObject;
 
 /**
  * The result returned by the server for a `tools/call` request.
  *
  * @extends Result<array{
- *   _meta?: template-type<ResultMetaObject, Arrayable, 'T'>,
+ *   _meta?: template-type<ResultMetaObject, MetaObject, 'T'>,
  *   resultType: non-empty-string,
  *   content: list<template-type<AudioContent|EmbeddedResource|ImageContent|ResourceLink|TextContent, Arrayable, 'T'>>,
  *   structuredContent?: array<string, mixed>,

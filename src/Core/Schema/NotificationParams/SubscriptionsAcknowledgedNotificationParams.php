@@ -16,6 +16,7 @@ namespace Nexus\Mcp\Core\Schema\NotificationParams;
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\MetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\NotificationMetaObject;
 use Nexus\Mcp\Core\Schema\NotificationParams;
 use Nexus\Mcp\Core\Schema\SubscriptionFilter;
 
@@ -23,7 +24,7 @@ use Nexus\Mcp\Core\Schema\SubscriptionFilter;
  * Parameters for a `notifications/subscriptions/acknowledged` notification.
  *
  * @extends NotificationParams<array{
- *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
+ *   _meta?: template-type<NotificationMetaObject, MetaObject, 'T'>,
  *   notifications: template-type<SubscriptionFilter, Arrayable, 'T'>,
  * }>
  *
@@ -31,7 +32,7 @@ use Nexus\Mcp\Core\Schema\SubscriptionFilter;
  */
 final readonly class SubscriptionsAcknowledgedNotificationParams extends NotificationParams
 {
-    public function __construct(public SubscriptionFilter $notifications, MetaObject $meta = new MetaObject())
+    public function __construct(public SubscriptionFilter $notifications, NotificationMetaObject $meta = new NotificationMetaObject())
     {
         parent::__construct(meta: $meta);
     }
@@ -46,14 +47,14 @@ final readonly class SubscriptionsAcknowledgedNotificationParams extends Notific
         ;
         $notifications = SubscriptionFilter::fromArray($data['notifications']);
 
-        $meta = new MetaObject();
+        $meta = new NotificationMetaObject();
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
                 ->isArray('"params._meta" must be an object, {type} given.')
                 ->isMap('"params._meta" must be a string-keyed object.')
             ;
-            $meta = MetaObject::fromArray($data['_meta']);
+            $meta = NotificationMetaObject::fromArray($data['_meta']);
         }
 
         return new self(notifications: $notifications, meta: $meta);

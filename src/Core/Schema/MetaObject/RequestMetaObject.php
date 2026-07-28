@@ -11,17 +11,23 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Nexus\Mcp\Core\Schema;
+namespace Nexus\Mcp\Core\Schema\MetaObject;
 
 use Nexus\Assert\Assert;
+use Nexus\Mcp\Core\Schema\Arrayable;
+use Nexus\Mcp\Core\Schema\ClientCapabilities;
 use Nexus\Mcp\Core\Schema\Enum\LoggingLevel;
+use Nexus\Mcp\Core\Schema\Implementation;
+use Nexus\Mcp\Core\Schema\MetaObject;
+use Nexus\Mcp\Core\Schema\ProgressToken;
+use Nexus\Mcp\Core\Schema\ProtocolVersion;
 use Nexus\Mcp\Core\Validation\EnumValueValidator;
 
 /**
  * Extends `MetaObject` with additional request-specific fields.
  * All key naming rules from `MetaObject` apply.
  *
- * @implements Arrayable<array{
+ * @extends MetaObject<array{
  *   'io.modelcontextprotocol/protocolVersion': non-empty-string,
  *   'io.modelcontextprotocol/clientInfo'?: template-type<Implementation, Arrayable, 'T'>,
  *   'io.modelcontextprotocol/clientCapabilities': template-type<ClientCapabilities, Arrayable, 'T'>,
@@ -32,7 +38,7 @@ use Nexus\Mcp\Core\Validation\EnumValueValidator;
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#requestmetaobject
  */
-final readonly class RequestMetaObject implements Arrayable
+final readonly class RequestMetaObject extends MetaObject
 {
     public const string PROTOCOL_VERSION_KEY = 'io.modelcontextprotocol/protocolVersion';
     public const string CLIENT_INFO_KEY = 'io.modelcontextprotocol/clientInfo';
@@ -48,8 +54,9 @@ final readonly class RequestMetaObject implements Arrayable
         public ?Implementation $clientInfo = null,
         public ?LoggingLevel $logLevel = null,
         public ?ProgressToken $progressToken = null,
-        public array $extras = [],
+        array $extras = [],
     ) {
+        parent::__construct(extras: $extras);
     }
 
     #[\Override]

@@ -14,8 +14,8 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\NotificationParams;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\MetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\NotificationMetaObject;
 use Nexus\Mcp\Core\Schema\NotificationParams;
 use Nexus\Mcp\Core\Schema\ParsesNumber;
 use Nexus\Mcp\Core\Schema\ProgressToken;
@@ -24,7 +24,7 @@ use Nexus\Mcp\Core\Schema\ProgressToken;
  * Parameters for a `notifications/progress` notification.
  *
  * @extends NotificationParams<array{
- *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
+ *   _meta?: template-type<NotificationMetaObject, MetaObject, 'T'>,
  *   progressToken: int|non-empty-string,
  *   progress: float,
  *   total?: float,
@@ -47,7 +47,7 @@ final readonly class ProgressNotificationParams extends NotificationParams
         public float $progress,
         public ?float $total = null,
         ?string $message = null,
-        MetaObject $meta = new MetaObject(),
+        NotificationMetaObject $meta = new NotificationMetaObject(),
     ) {
         Assert::that($message)->nullOr()->isNonEmptyString('"params.message" must be a non-empty string or null.');
 
@@ -75,14 +75,14 @@ final readonly class ProgressNotificationParams extends NotificationParams
         $message = $data['message'] ?? null;
         Assert::that($message)->nullOr()->isString('"params.message" must be a string or null, {type} given.');
 
-        $meta = new MetaObject();
+        $meta = new NotificationMetaObject();
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
                 ->isArray('"params._meta" must be an object, {type} given.')
                 ->isMap('"params._meta" must be a string-keyed object.')
             ;
-            $meta = MetaObject::fromArray($data['_meta']);
+            $meta = NotificationMetaObject::fromArray($data['_meta']);
         }
 
         return new self(

@@ -36,11 +36,13 @@ namespace Nexus\Mcp\Core\Schema;
  * - Unless empty, MUST start and end with an alphanumeric character (`[a-z0-9A-Z]`).
  * - Interior characters may be alphanumeric, hyphens (`-`), underscores (`_`), or dots (`.`).
  *
- * @implements Arrayable<array<string, mixed>>
+ * @template-covariant T of array<string, mixed> = array<string, mixed>
+ *
+ * @implements Arrayable<T>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#metaobject
  */
-final readonly class MetaObject implements Arrayable
+abstract readonly class MetaObject implements Arrayable
 {
     /**
      * @param array<string, mixed> $extras
@@ -50,20 +52,10 @@ final readonly class MetaObject implements Arrayable
     }
 
     #[\Override]
-    public static function fromArray(array $data): static
-    {
-        return new self(extras: $data);
-    }
-
-    #[\Override]
-    public function toArray(): array
-    {
-        return $this->extras;
-    }
-
-    #[\Override]
     public function jsonSerialize(): array|\stdClass
     {
-        return [] === $this->extras ? new \stdClass() : $this->extras;
+        $out = $this->toArray();
+
+        return [] === $out ? new \stdClass() : $out;
     }
 }

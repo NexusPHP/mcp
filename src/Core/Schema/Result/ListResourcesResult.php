@@ -18,15 +18,16 @@ use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\Cursor;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\Enum\ResultType;
+use Nexus\Mcp\Core\Schema\MetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\ResultMetaObject;
 use Nexus\Mcp\Core\Schema\Resource\Resource;
-use Nexus\Mcp\Core\Schema\ResultMetaObject;
 use Nexus\Mcp\Core\Validation\EnumValueValidator;
 
 /**
  * The result returned by the server for a `resources/list` request.
  *
  * @extends PaginatedResult<array{
- *   _meta?: template-type<ResultMetaObject, Arrayable, 'T'>,
+ *   _meta?: template-type<ResultMetaObject, MetaObject, 'T'>,
  *   resultType: non-empty-string,
  *   resources: list<template-type<Resource, Arrayable, 'T'>>,
  *   nextCursor?: non-empty-string,

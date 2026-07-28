@@ -14,15 +14,15 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\RequestParams;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\Schema\Arrayable;
-use Nexus\Mcp\Core\Schema\RequestMetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams;
 
 /**
  * Default request params for methods that carry no typed fields beyond `_meta`.
  *
  * @extends RequestParams<array{
- *   _meta: template-type<RequestMetaObject, Arrayable, 'T'>,
+ *   _meta: template-type<RequestMetaObject, MetaObject, 'T'>,
  * }>
  *
  * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/draft/schema.ts

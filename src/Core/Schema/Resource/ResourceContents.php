@@ -15,7 +15,7 @@ namespace Nexus\Mcp\Core\Schema\Resource;
 
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Arrayable;
-use Nexus\Mcp\Core\Schema\MetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\PayloadMetaObject;
 use Nexus\Mcp\Core\Validation\Rfc3986UriValidator;
 
 /**
@@ -42,7 +42,7 @@ abstract readonly class ResourceContents implements Arrayable
     public function __construct(
         string $uri,
         ?string $mimeType = null,
-        public MetaObject $meta = new MetaObject(),
+        public PayloadMetaObject $meta = new PayloadMetaObject(),
     ) {
         Rfc3986UriValidator::validate($uri, 'resource contents "uri"');
         Assert::that($mimeType)->nullOr()->isNonEmptyString('resource contents "mimeType" must be a non-empty string or null.');

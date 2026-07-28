@@ -11,9 +11,10 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Nexus\Mcp\Tests\Core\Schema;
+namespace Nexus\Mcp\Tests\Core\Schema\MetaObject;
 
 use Nexus\Mcp\Core\Schema\MetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\PayloadMetaObject;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
@@ -21,56 +22,57 @@ use PHPUnit\Framework\TestCase;
 /**
  * @internal
  */
+#[CoversClass(PayloadMetaObject::class)]
 #[CoversClass(MetaObject::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class MetaObjectTest extends TestCase
+final class PayloadMetaObjectTest extends TestCase
 {
     public function testDefaultsToEmptyExtras(): void
     {
-        $meta = new MetaObject();
+        $meta = new PayloadMetaObject();
 
         self::assertSame([], $meta->extras);
     }
 
     public function testCapturesExtras(): void
     {
-        $meta = new MetaObject(extras: ['vendor' => 'x', 'trace-id' => 123]);
+        $meta = new PayloadMetaObject(extras: ['vendor' => 'x', 'trace-id' => 123]);
 
         self::assertSame(['vendor' => 'x', 'trace-id' => 123], $meta->extras);
     }
 
     public function testFromArrayPopulatesExtras(): void
     {
-        $meta = MetaObject::fromArray(['foo' => 1, 'bar' => ['nested' => true]]);
+        $meta = PayloadMetaObject::fromArray(['foo' => 1, 'bar' => ['nested' => true]]);
 
         self::assertSame(['foo' => 1, 'bar' => ['nested' => true]], $meta->extras);
     }
 
     public function testToArrayEmitsExtrasVerbatim(): void
     {
-        $meta = new MetaObject(extras: ['a' => 1]);
+        $meta = new PayloadMetaObject(extras: ['a' => 1]);
 
         self::assertSame(['a' => 1], $meta->toArray());
     }
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $meta = new MetaObject(extras: ['a' => 1]);
+        $meta = new PayloadMetaObject(extras: ['a' => 1]);
 
         self::assertSame($meta->toArray(), $meta->jsonSerialize());
     }
 
     public function testRoundTripPreservesExtras(): void
     {
-        $original = new MetaObject(extras: ['key' => 'value', 'num' => 42]);
+        $original = new PayloadMetaObject(extras: ['key' => 'value', 'num' => 42]);
 
-        self::assertSame($original->toArray(), MetaObject::fromArray($original->toArray())->toArray());
+        self::assertSame($original->toArray(), PayloadMetaObject::fromArray($original->toArray())->toArray());
     }
 
     public function testJsonSerializeSubstitutesStdClassWhenEmpty(): void
     {
-        $meta = new MetaObject();
+        $meta = new PayloadMetaObject();
 
         self::assertInstanceOf(\stdClass::class, $meta->jsonSerialize());
         self::assertSame('{}', json_encode($meta));

@@ -201,7 +201,7 @@ parent key:
   | `Annotations`, `ToolAnnotations`                                                               | `"annotations"`        |
   | `Icon` (array item under `icons`)                                                              | `"icons"`              |
   | `PromptArgument` (array item under `arguments`)                                                | `"arguments"`          |
-  | `MetaObject`, `RequestMetaObject`                                                              | `"_meta"`              |
+  | `MetaObject` and its `MetaObject\*` subclasses                                                 | `"_meta"`              |
   | `RequestId`                                                                                    | `"id"`                 |
   | `ProtocolVersion`                                                                              | `"protocolVersion"`    |
   | `Cursor`                                                                                       | `"cursor"`             |

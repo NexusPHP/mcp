@@ -16,9 +16,9 @@ namespace Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Assert\Assert;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\JsonRpc\MessageDiscriminator;
-use Nexus\Mcp\Core\Schema\Arrayable;
+use Nexus\Mcp\Core\Schema\MetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\Prompt\PromptReference;
-use Nexus\Mcp\Core\Schema\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\Resource\ResourceTemplateReference;
 
@@ -26,7 +26,7 @@ use Nexus\Mcp\Core\Schema\Resource\ResourceTemplateReference;
  * Parameters for a `completion/complete` request.
  *
  * @extends RequestParams<array{
- *   _meta: template-type<RequestMetaObject, Arrayable, 'T'>,
+ *   _meta: template-type<RequestMetaObject, MetaObject, 'T'>,
  *   ref: array<string, mixed>,
  *   argument: array{name: string, value: string},
  *   context?: array{arguments?: array<string, string>},

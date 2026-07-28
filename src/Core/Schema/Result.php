@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Schema;
 
+use Nexus\Mcp\Core\Schema\MetaObject\ResultMetaObject;
+
 /**
  * Common result fields.
  *

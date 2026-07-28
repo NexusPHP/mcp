@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Schema\Result;
 
 use Nexus\Assert\ExpectationFailedException;
+use Nexus\Mcp\Core\Schema\MetaObject\ResultMetaObject;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\CompleteResult;
-use Nexus\Mcp\Core\Schema\ResultMetaObject;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;

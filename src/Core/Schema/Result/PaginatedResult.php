@@ -15,7 +15,7 @@ namespace Nexus\Mcp\Core\Schema\Result;
 
 use Nexus\Mcp\Core\Schema\Cursor;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
-use Nexus\Mcp\Core\Schema\ResultMetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\ResultMetaObject;
 
 /**
  * Common shape for results that paginate via an opaque cursor. Subclasses add their own

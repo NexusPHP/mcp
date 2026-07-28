@@ -25,6 +25,7 @@ use Nexus\Mcp\Core\Schema\Enum\SdkErrorCode;
 use Nexus\Mcp\Core\Schema\Error;
 use Nexus\Mcp\Core\Schema\Error\UnknownProtocolError;
 use Nexus\Mcp\Core\Schema\Icons;
+use Nexus\Mcp\Core\Schema\MetaObject\PayloadMetaObject;
 use Nexus\Mcp\Core\Schema\Notification;
 use Nexus\Mcp\Core\Schema\Notification\ClientNotification;
 use Nexus\Mcp\Core\Schema\Notification\ServerNotification;
@@ -80,6 +81,7 @@ final class SchemaConformanceTest extends TestCase
         'io.modelcontextprotocol/clientCapabilities' => 'clientCapabilities',
         'io.modelcontextprotocol/logLevel' => 'logLevel',
         'io.modelcontextprotocol/serverInfo' => 'serverInfo',
+        'io.modelcontextprotocol/subscriptionId' => 'subscriptionId',
     ];
 
     private const string SCHEMA_ANCHOR_BASE_URL = 'https://modelcontextprotocol.io/specification/draft/schema#';
@@ -130,6 +132,7 @@ final class SchemaConformanceTest extends TestCase
     private const array SEE_ANNOTATION_EXEMPT = [
         Arrayable::class,
         GenericResultResponse::class,
+        PayloadMetaObject::class,
         RequestParamsInterface::class,
     ];
 

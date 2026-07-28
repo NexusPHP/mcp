@@ -20,6 +20,7 @@ use Nexus\Mcp\Core\Schema\BaseMetadata;
 use Nexus\Mcp\Core\Schema\Icon;
 use Nexus\Mcp\Core\Schema\Icons;
 use Nexus\Mcp\Core\Schema\MetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\PayloadMetaObject;
 use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
 use Nexus\Mcp\Core\Validation\Rfc3986UriValidator;
 
@@ -35,7 +36,7 @@ use Nexus\Mcp\Core\Validation\Rfc3986UriValidator;
  *   annotations?: template-type<Annotations, Arrayable, 'T'>,
  *   size?: int,
  *   icons?: list<template-type<Icon, Arrayable, 'T'>>,
- *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
+ *   _meta?: template-type<PayloadMetaObject, MetaObject, 'T'>,
  * }>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#resource
@@ -74,7 +75,7 @@ final readonly class Resource extends BaseMetadata implements Arrayable, Icons
         public Annotations $annotations = new Annotations(),
         public ?int $size = null,
         ?array $icons = null,
-        public MetaObject $meta = new MetaObject(),
+        public PayloadMetaObject $meta = new PayloadMetaObject(),
     ) {
         parent::__construct(name: $name, title: $title);
 
@@ -145,14 +146,14 @@ final readonly class Resource extends BaseMetadata implements Arrayable, Icons
             $icons = array_map(Icon::fromArray(...), $data['icons']);
         }
 
-        $meta = new MetaObject();
+        $meta = new PayloadMetaObject();
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
                 ->isArray('resource "_meta" must be an object, {type} given.')
                 ->isMap('resource "_meta" must be a string-keyed object.')
             ;
-            $meta = MetaObject::fromArray($data['_meta']);
+            $meta = PayloadMetaObject::fromArray($data['_meta']);
         }
 
         return new self(

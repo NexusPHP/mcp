@@ -14,8 +14,8 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\Resource;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\MetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\PayloadMetaObject;
 
 /**
  * Binary resource contents. The `blob` payload carries a base64-encoded
@@ -25,7 +25,7 @@ use Nexus\Mcp\Core\Schema\MetaObject;
  *   uri: non-empty-string,
  *   blob: string,
  *   mimeType?: non-empty-string,
- *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
+ *   _meta?: template-type<PayloadMetaObject, MetaObject, 'T'>,
  * }>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#blobresourcecontents
@@ -36,7 +36,7 @@ final readonly class BlobResourceContents extends ResourceContents
         string $uri,
         public string $blob,
         ?string $mimeType = null,
-        MetaObject $meta = new MetaObject(),
+        PayloadMetaObject $meta = new PayloadMetaObject(),
     ) {
         parent::__construct(uri: $uri, mimeType: $mimeType, meta: $meta);
     }
@@ -55,14 +55,14 @@ final readonly class BlobResourceContents extends ResourceContents
         $mimeType = $data['mimeType'] ?? null;
         Assert::that($mimeType)->nullOr()->isString('blob resource contents "mimeType" must be a string or null, {type} given.');
 
-        $meta = new MetaObject();
+        $meta = new PayloadMetaObject();
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
                 ->isArray('blob resource contents "_meta" must be an object, {type} given.')
                 ->isMap('blob resource contents "_meta" must be a string-keyed object.')
             ;
-            $meta = MetaObject::fromArray($data['_meta']);
+            $meta = PayloadMetaObject::fromArray($data['_meta']);
         }
 
         return new self(uri: $uri, blob: $blob, mimeType: $mimeType, meta: $meta);

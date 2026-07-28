@@ -17,7 +17,8 @@ use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\Enum\ResultType;
-use Nexus\Mcp\Core\Schema\ResultMetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\ResultMetaObject;
 use Nexus\Mcp\Core\Schema\ServerCapabilities;
 use Nexus\Mcp\Core\Validation\EnumValueValidator;
 
@@ -25,7 +26,7 @@ use Nexus\Mcp\Core\Validation\EnumValueValidator;
  * The result returned by the server for a `server/discover` request.
  *
  * @extends CacheableResult<array{
- *   _meta?: template-type<ResultMetaObject, Arrayable, 'T'>,
+ *   _meta?: template-type<ResultMetaObject, MetaObject, 'T'>,
  *   resultType: non-empty-string,
  *   supportedVersions: list<non-empty-string>,
  *   capabilities: template-type<ServerCapabilities, Arrayable, 'T'>,

@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Schema\Notification;
 
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
-use Nexus\Mcp\Core\Schema\MetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\NotificationMetaObject;
 use Nexus\Mcp\Core\Schema\Notification;
 use Nexus\Mcp\Core\Schema\Notification\CancelledNotification;
 use Nexus\Mcp\Core\Schema\NotificationParams\CancelledNotificationParams;
@@ -57,7 +57,7 @@ final class CancelledNotificationTest extends TestCase
         $notification = new CancelledNotification(params: new CancelledNotificationParams(
             requestId: new RequestId(id: 'req-1'),
             reason: 'user aborted',
-            meta: new MetaObject(extras: ['vendor' => 'x']),
+            meta: new NotificationMetaObject(extras: ['vendor' => 'x']),
         ));
 
         self::assertSame(
@@ -89,7 +89,7 @@ final class CancelledNotificationTest extends TestCase
         $notification = new CancelledNotification(params: new CancelledNotificationParams(
             requestId: new RequestId(id: 1),
             reason: 'because',
-            meta: new MetaObject(extras: ['k' => 'v']),
+            meta: new NotificationMetaObject(extras: ['k' => 'v']),
         ));
 
         self::assertSame($notification->toArray(), $notification->jsonSerialize());
@@ -109,7 +109,7 @@ final class CancelledNotificationTest extends TestCase
         $original = new CancelledNotification(params: new CancelledNotificationParams(
             requestId: new RequestId(id: 'req-3'),
             reason: 'timeout',
-            meta: new MetaObject(extras: ['vendor' => 'x']),
+            meta: new NotificationMetaObject(extras: ['vendor' => 'x']),
         ));
 
         $rebuilt = CancelledNotification::fromArray($original->toArray());

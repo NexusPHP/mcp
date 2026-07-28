@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Schema;
 
+use Nexus\Mcp\Core\Schema\MetaObject\NotificationMetaObject;
+
 /**
  * Common params for any notification.
  *
@@ -24,7 +26,7 @@ namespace Nexus\Mcp\Core\Schema;
  */
 abstract readonly class NotificationParams implements Arrayable
 {
-    public function __construct(public MetaObject $meta = new MetaObject())
+    public function __construct(public NotificationMetaObject $meta = new NotificationMetaObject())
     {
     }
 

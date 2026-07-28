@@ -14,16 +14,16 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\Result;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\Enum\ResultType;
+use Nexus\Mcp\Core\Schema\MetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\ResultMetaObject;
 use Nexus\Mcp\Core\Schema\Result;
-use Nexus\Mcp\Core\Schema\ResultMetaObject;
 
 /**
  * Common result fields.
  *
  * @extends Result<array{
- *   _meta?: template-type<ResultMetaObject, Arrayable, 'T'>,
+ *   _meta?: template-type<ResultMetaObject, MetaObject, 'T'>,
  *   resultType: non-empty-string,
  * }>
  *

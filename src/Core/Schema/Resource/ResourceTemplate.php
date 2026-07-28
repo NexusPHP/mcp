@@ -20,6 +20,7 @@ use Nexus\Mcp\Core\Schema\BaseMetadata;
 use Nexus\Mcp\Core\Schema\Icon;
 use Nexus\Mcp\Core\Schema\Icons;
 use Nexus\Mcp\Core\Schema\MetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\PayloadMetaObject;
 use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
 use Nexus\Mcp\Core\Validation\Rfc6570UriTemplateValidator;
 
@@ -34,7 +35,7 @@ use Nexus\Mcp\Core\Validation\Rfc6570UriTemplateValidator;
  *   mimeType?: non-empty-string,
  *   annotations?: template-type<Annotations, Arrayable, 'T'>,
  *   icons?: list<template-type<Icon, Arrayable, 'T'>>,
- *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
+ *   _meta?: template-type<PayloadMetaObject, MetaObject, 'T'>,
  * }>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#resourcetemplate
@@ -72,7 +73,7 @@ final readonly class ResourceTemplate extends BaseMetadata implements Arrayable,
         ?string $mimeType = null,
         public Annotations $annotations = new Annotations(),
         ?array $icons = null,
-        public MetaObject $meta = new MetaObject(),
+        public PayloadMetaObject $meta = new PayloadMetaObject(),
     ) {
         parent::__construct(name: $name, title: $title);
 
@@ -134,14 +135,14 @@ final readonly class ResourceTemplate extends BaseMetadata implements Arrayable,
             $icons = array_map(Icon::fromArray(...), $data['icons']);
         }
 
-        $meta = new MetaObject();
+        $meta = new PayloadMetaObject();
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
                 ->isArray('resource template "_meta" must be an object, {type} given.')
                 ->isMap('resource template "_meta" must be a string-keyed object.')
             ;
-            $meta = MetaObject::fromArray($data['_meta']);
+            $meta = PayloadMetaObject::fromArray($data['_meta']);
         }
 
         return new self(

@@ -15,7 +15,8 @@ namespace Nexus\Mcp\Core\Schema\RequestParams;
 
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Arrayable;
-use Nexus\Mcp\Core\Schema\RequestMetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\SubscriptionFilter;
 
@@ -23,7 +24,7 @@ use Nexus\Mcp\Core\Schema\SubscriptionFilter;
  * Parameters for a `subscriptions/listen` request.
  *
  * @extends RequestParams<array{
- *   _meta: template-type<RequestMetaObject, Arrayable, 'T'>,
+ *   _meta: template-type<RequestMetaObject, MetaObject, 'T'>,
  *   notifications: template-type<SubscriptionFilter, Arrayable, 'T'>,
  * }>
  *

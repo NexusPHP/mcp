@@ -16,9 +16,9 @@ namespace Nexus\Mcp\Tests\Fixtures\Core\Schema;
 use Nexus\Mcp\Core\Schema\ClientCapabilities;
 use Nexus\Mcp\Core\Schema\Enum\LoggingLevel;
 use Nexus\Mcp\Core\Schema\Implementation;
+use Nexus\Mcp\Core\Schema\MetaObject\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\ProgressToken;
 use Nexus\Mcp\Core\Schema\ProtocolVersion;
-use Nexus\Mcp\Core\Schema\RequestMetaObject;
 
 /**
  * Builds a canonical `RequestMetaObject` for client-to-server request construction in tests.

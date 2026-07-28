@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\NotificationParams;
 
-use Nexus\Mcp\Core\Schema\MetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\NotificationMetaObject;
 use Nexus\Mcp\Core\Schema\NotificationParams;
 use Nexus\Mcp\Core\Schema\NotificationParams\CancelledNotificationParams;
 use Nexus\Mcp\Core\Schema\RequestId;
@@ -74,7 +74,7 @@ final class CancelledNotificationParamsTest extends TestCase
 
     public function testToArrayIncludesMeta(): void
     {
-        $params = new CancelledNotificationParams(requestId: new RequestId(id: 1), meta: new MetaObject(extras: ['vendor' => 'x']));
+        $params = new CancelledNotificationParams(requestId: new RequestId(id: 1), meta: new NotificationMetaObject(extras: ['vendor' => 'x']));
 
         self::assertSame(
             ['_meta' => ['vendor' => 'x'], 'requestId' => 1],
@@ -87,7 +87,7 @@ final class CancelledNotificationParamsTest extends TestCase
         $params = new CancelledNotificationParams(
             requestId: new RequestId(id: 'req-1'),
             reason: 'timeout',
-            meta: new MetaObject(extras: ['vendor' => 'x']),
+            meta: new NotificationMetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -108,7 +108,7 @@ final class CancelledNotificationParamsTest extends TestCase
         $params = new CancelledNotificationParams(
             requestId: new RequestId(id: 1),
             reason: 'cancelled',
-            meta: new MetaObject(extras: ['k' => 'v']),
+            meta: new NotificationMetaObject(extras: ['k' => 'v']),
         );
 
         self::assertSame(
@@ -122,7 +122,7 @@ final class CancelledNotificationParamsTest extends TestCase
         $params = new CancelledNotificationParams(
             requestId: new RequestId(id: 1),
             reason: 'cancelled',
-            meta: new MetaObject(extras: ['k' => 'v']),
+            meta: new NotificationMetaObject(extras: ['k' => 'v']),
         );
 
         self::assertSame($params->toArray(), $params->jsonSerialize());
@@ -179,7 +179,7 @@ final class CancelledNotificationParamsTest extends TestCase
         $original = new CancelledNotificationParams(
             requestId: new RequestId(id: 'id-7'),
             reason: 'because',
-            meta: new MetaObject(extras: ['a' => 'b']),
+            meta: new NotificationMetaObject(extras: ['a' => 'b']),
         );
 
         $reconstructed = CancelledNotificationParams::fromArray($original->toArray());

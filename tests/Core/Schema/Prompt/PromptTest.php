@@ -16,7 +16,7 @@ namespace Nexus\Mcp\Tests\Core\Schema\Prompt;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\BaseMetadata;
 use Nexus\Mcp\Core\Schema\Icon;
-use Nexus\Mcp\Core\Schema\MetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\PayloadMetaObject;
 use Nexus\Mcp\Core\Schema\Prompt\Prompt;
 use Nexus\Mcp\Core\Schema\Prompt\PromptArgument;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -60,7 +60,7 @@ final class PromptTest extends TestCase
             description: 'Reviews changes against the project guidelines.',
             arguments: [new PromptArgument(name: 'topic', title: 'Topic')],
             icons: [new Icon(src: 'https://example.com/icon.png')],
-            meta: new MetaObject(extras: ['vendor' => 'x']),
+            meta: new PayloadMetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -78,7 +78,7 @@ final class PromptTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $prompt = new Prompt(name: 'code-review', title: 'Code Review', meta: new MetaObject(extras: ['k' => 'v']));
+        $prompt = new Prompt(name: 'code-review', title: 'Code Review', meta: new PayloadMetaObject(extras: ['k' => 'v']));
 
         self::assertSame($prompt->toArray(), $prompt->jsonSerialize());
     }
@@ -120,7 +120,7 @@ final class PromptTest extends TestCase
             description: 'desc',
             arguments: [new PromptArgument(name: 'topic', required: true)],
             icons: [new Icon(src: 'https://example.com/icon.png')],
-            meta: new MetaObject(extras: ['vendor' => 'x']),
+            meta: new PayloadMetaObject(extras: ['vendor' => 'x']),
         );
 
         $rebuilt = Prompt::fromArray($original->toArray());

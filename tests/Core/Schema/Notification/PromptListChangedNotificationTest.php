@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Schema\Notification;
 
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
-use Nexus\Mcp\Core\Schema\MetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\NotificationMetaObject;
 use Nexus\Mcp\Core\Schema\Notification;
 use Nexus\Mcp\Core\Schema\Notification\PromptListChangedNotification;
 use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
@@ -52,7 +52,7 @@ final class PromptListChangedNotificationTest extends TestCase
 
     public function testToArrayIncludesParamsWithMeta(): void
     {
-        $notification = new PromptListChangedNotification(params: new EmptyNotificationParams(meta: new MetaObject(extras: ['vendor' => 'x'])));
+        $notification = new PromptListChangedNotification(params: new EmptyNotificationParams(meta: new NotificationMetaObject(extras: ['vendor' => 'x'])));
 
         self::assertSame(
             [
@@ -66,7 +66,7 @@ final class PromptListChangedNotificationTest extends TestCase
 
     public function testToArrayPreservesKeyOrderStartingWithJsonRpc(): void
     {
-        $notification = new PromptListChangedNotification(params: new EmptyNotificationParams(meta: new MetaObject(extras: ['k' => 'v'])));
+        $notification = new PromptListChangedNotification(params: new EmptyNotificationParams(meta: new NotificationMetaObject(extras: ['k' => 'v'])));
 
         self::assertSame(
             ['jsonrpc', 'method', 'params'],
@@ -76,7 +76,7 @@ final class PromptListChangedNotificationTest extends TestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $notification = new PromptListChangedNotification(params: new EmptyNotificationParams(meta: new MetaObject(extras: ['k' => 'v'])));
+        $notification = new PromptListChangedNotification(params: new EmptyNotificationParams(meta: new NotificationMetaObject(extras: ['k' => 'v'])));
 
         self::assertSame($notification->toArray(), $notification->jsonSerialize());
     }

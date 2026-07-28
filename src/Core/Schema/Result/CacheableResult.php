@@ -15,8 +15,8 @@ namespace Nexus\Mcp\Core\Schema\Result;
 
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
+use Nexus\Mcp\Core\Schema\MetaObject\ResultMetaObject;
 use Nexus\Mcp\Core\Schema\Result;
-use Nexus\Mcp\Core\Schema\ResultMetaObject;
 
 /**
  * A result that supports a time-to-live (TTL) hint for client-side caching.

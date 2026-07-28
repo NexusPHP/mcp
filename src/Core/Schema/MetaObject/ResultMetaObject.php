@@ -11,27 +11,30 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Nexus\Mcp\Core\Schema;
+namespace Nexus\Mcp\Core\Schema\MetaObject;
 
 use Nexus\Assert\Assert;
+use Nexus\Mcp\Core\Schema\Implementation;
+use Nexus\Mcp\Core\Schema\MetaObject;
 
 /**
  * Extends `MetaObject` with additional result-specific fields.
  * All key naming rules from `MetaObject` apply.
  *
- * @implements Arrayable<array<string, mixed>>
+ * @extends MetaObject<array<string, mixed>>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#resultmetaobject
  */
-final readonly class ResultMetaObject implements Arrayable
+final readonly class ResultMetaObject extends MetaObject
 {
     public const string SERVER_INFO_KEY = 'io.modelcontextprotocol/serverInfo';
 
     /**
      * @param array<string, mixed> $extras
      */
-    public function __construct(public ?Implementation $serverInfo = null, public array $extras = [])
+    public function __construct(public ?Implementation $serverInfo = null, array $extras = [])
     {
+        parent::__construct(extras: $extras);
     }
 
     #[\Override]
@@ -74,13 +77,5 @@ final readonly class ResultMetaObject implements Arrayable
         $out += $this->extras;
 
         return $out;
-    }
-
-    #[\Override]
-    public function jsonSerialize(): array|\stdClass
-    {
-        $out = $this->toArray();
-
-        return [] === $out ? new \stdClass() : $out;
     }
 }

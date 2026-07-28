@@ -18,6 +18,7 @@ use Nexus\Mcp\Core\Schema\Annotations;
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\ContentBlock;
 use Nexus\Mcp\Core\Schema\MetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\PayloadMetaObject;
 
 /**
  * An image provided to or from an LLM.
@@ -27,7 +28,7 @@ use Nexus\Mcp\Core\Schema\MetaObject;
  *   mimeType: non-empty-string,
  *   type: 'image',
  *   annotations?: template-type<Annotations, Arrayable, 'T'>,
- *   _meta?: template-type<MetaObject, Arrayable, 'T'>,
+ *   _meta?: template-type<PayloadMetaObject, MetaObject, 'T'>,
  * }>
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#imagecontent
@@ -50,7 +51,7 @@ final readonly class ImageContent implements Arrayable, ContentBlock
         string $data,
         string $mimeType,
         public Annotations $annotations = new Annotations(),
-        public MetaObject $meta = new MetaObject(),
+        public PayloadMetaObject $meta = new PayloadMetaObject(),
     ) {
         Assert::that($data)->isNonEmptyString('image content "data" must be a non-empty string.');
         Assert::that($mimeType)->isNonEmptyString('image content "mimeType" must be a non-empty string.');
@@ -84,14 +85,14 @@ final readonly class ImageContent implements Arrayable, ContentBlock
             $annotations = Annotations::fromArray($data['annotations']);
         }
 
-        $meta = new MetaObject();
+        $meta = new PayloadMetaObject();
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
                 ->isArray('image content "_meta" must be an object, {type} given.')
                 ->isMap('image content "_meta" must be a string-keyed object.')
             ;
-            $meta = MetaObject::fromArray($data['_meta']);
+            $meta = PayloadMetaObject::fromArray($data['_meta']);
         }
 
         return new self(data: $payload, mimeType: $mimeType, annotations: $annotations, meta: $meta);

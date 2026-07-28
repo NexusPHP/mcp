@@ -93,7 +93,12 @@ utility (SEP-2575, changelog item 5) is removed from the protocol entirely.
   Requires a subscription store and a list-changed / resource-updated fanout source to feed the stream.
 - [x] Delete `resources/subscribe` / `resources/unsubscribe` (none of these are implemented today, so
   this is a non-action verified by the migration).
-- [x] Carry the server identity on result `_meta`: `ResultMetaObject` (the result-side peer of
+- [x] Complete the `_meta` family: `MetaObject` is the abstract base under `Core/Schema/`, with its
+  concrete subclasses in `Core/Schema/MetaObject/` (`PayloadMetaObject` for the `_meta` of a payload nested
+  inside an envelope, plus `RequestMetaObject`, `ResultMetaObject`, and `NotificationMetaObject`, which
+  carries the optional `io.modelcontextprotocol/subscriptionId`). Each envelope slot types its `_meta` to
+  the matching subclass.
+- [x] Carry the server identity on result `_meta`: `ResultMetaObject` (the result-side sibling of
   `RequestMetaObject`) holds the optional `io.modelcontextprotocol/serverInfo` key, `Result` and every
   subclass type their `_meta` slot to it, `DiscoverResult` drops its body-level `serverInfo` field, and
   `Client::discover()` reads the identity back off the result `_meta`.

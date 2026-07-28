@@ -16,15 +16,16 @@ namespace Nexus\Mcp\Core\Schema\Result;
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\Enum\ResultType;
+use Nexus\Mcp\Core\Schema\MetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\ResultMetaObject;
 use Nexus\Mcp\Core\Schema\Prompt\PromptMessage;
 use Nexus\Mcp\Core\Schema\Result;
-use Nexus\Mcp\Core\Schema\ResultMetaObject;
 
 /**
  * The result returned by the server for a `prompts/get` request.
  *
  * @extends Result<array{
- *   _meta?: template-type<ResultMetaObject, Arrayable, 'T'>,
+ *   _meta?: template-type<ResultMetaObject, MetaObject, 'T'>,
  *   resultType: non-empty-string,
  *   description?: non-empty-string,
  *   messages: list<template-type<PromptMessage, Arrayable, 'T'>>,

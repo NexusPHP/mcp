@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Schema\NotificationParams;
 
 use Nexus\Assert\ExpectationFailedException;
-use Nexus\Mcp\Core\Schema\MetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\NotificationMetaObject;
 use Nexus\Mcp\Core\Schema\NotificationParams;
 use Nexus\Mcp\Core\Schema\NotificationParams\SubscriptionsAcknowledgedNotificationParams;
 use Nexus\Mcp\Core\Schema\SubscriptionFilter;
@@ -51,7 +51,7 @@ final class SubscriptionsAcknowledgedNotificationParamsTest extends TestCase
     {
         $params = new SubscriptionsAcknowledgedNotificationParams(
             notifications: new SubscriptionFilter(toolsListChanged: true),
-            meta: new MetaObject(extras: ['vendor' => 'x']),
+            meta: new NotificationMetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -64,7 +64,7 @@ final class SubscriptionsAcknowledgedNotificationParamsTest extends TestCase
     {
         $params = new SubscriptionsAcknowledgedNotificationParams(
             notifications: new SubscriptionFilter(toolsListChanged: true),
-            meta: new MetaObject(extras: ['k' => 'v']),
+            meta: new NotificationMetaObject(extras: ['k' => 'v']),
         );
 
         self::assertSame($params->toArray(), $params->jsonSerialize());
@@ -81,7 +81,7 @@ final class SubscriptionsAcknowledgedNotificationParamsTest extends TestCase
     {
         $original = new SubscriptionsAcknowledgedNotificationParams(
             notifications: new SubscriptionFilter(toolsListChanged: true, resourceSubscriptions: ['file:///x']),
-            meta: new MetaObject(extras: ['vendor' => 'x']),
+            meta: new NotificationMetaObject(extras: ['vendor' => 'x']),
         );
 
         $rebuilt = SubscriptionsAcknowledgedNotificationParams::fromArray($original->toArray());
