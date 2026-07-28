@@ -39,7 +39,7 @@ The 2026-07-28 spec adds three codes in the reserved `-320xx` band for lifecycle
 | Code | Name | Meaning | Emitted by the SDK |
 | --- | --- | --- | --- |
 | -32020 | `HeaderMismatch` | A request-metadata header disagreed with the message body (Streamable HTTP). | Yes, by `ParameterHeaderValidationMiddleware`, which answers `400` before the transport reads the body. |
-| -32021 | `MissingRequiredClientCapability` | The request needs a client capability absent from `_meta.clientCapabilities`. | Not yet. Decoded from a peer, never sent. |
+| -32021 | `MissingRequiredClientCapability` | The request needs a client capability absent from `_meta.clientCapabilities`. | Yes, when a handler raises `MissingRequiredClientCapabilityException`. Only a handler knows what serving its request needs. |
 | -32022 | `UnsupportedProtocolVersion` | The request's `_meta.protocolVersion` is not supported. | Yes, by the server dispatcher, which rejects the request before it reaches a handler. |
 
 Every one of them decodes into the matching `Error` subclass, so a peer's error response is typed whether or
@@ -62,6 +62,12 @@ response rather than letting it escape:
   code via `getErrorCode()`. `InvalidParamsException` maps to -32602, `MethodNotFoundException` to -32601, and
   the not-found exceptions (`ToolNotFoundException`, `PromptNotFoundException`, `ResourceNotFoundException`,
   `InvalidCursorException`) map to -32602 (the named entity is treated as an invalid parameter).
+- Any of them may also carry an `errorData` payload, which becomes the error response's `data` slot and is
+  omitted when null. `ResourceNotFoundException` uses it for SEP-2164's `data.uri`, and
+  `MissingRequiredClientCapabilityException` for the `data.requiredCapabilities` its code requires.
+- A handler that needs a client capability the request did not declare raises
+  `MissingRequiredClientCapabilityException` with the `ClientCapabilities` it wanted. That answers -32021,
+  and the Streamable HTTP transport pins it to `400` even though handler-raised errors otherwise ride `200`.
 - Any other `\Throwable` from a handler becomes a generic -32603 `InternalError`, so a handler bug never
   leaks a stack trace or internal message to the client. The original throwable is logged server-side at
   the dispatcher.

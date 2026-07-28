@@ -118,10 +118,11 @@ utility (SEP-2575, changelog item 5) is removed from the protocol entirely.
   `data.supported` / `data.requested` when the version is not in `ProtocolVersion::SUPPORTED_VERSIONS` (the
   single set `server/discover` also advertises). A missing or malformed required `_meta` field is already
   rejected as `-32602` at the parser.
-- [ ] Emit `MissingRequiredClientCapabilityError` (`-32021`) when processing a request requires a client
-  capability absent from `_meta.clientCapabilities`. Held with elicitation serving: the only capability the
-  server can require is `elicitation`, needed only when it issues an `input_required` (`InputRequiredResult`),
-  and that emission path is not built yet. `HeaderMismatchError` is emitted by the Streamable HTTP header
+- [x] Emit `MissingRequiredClientCapabilityError` (`-32021`) when processing a request requires a client
+  capability absent from `_meta.clientCapabilities`. A handler raises
+  `MissingRequiredClientCapabilityException` with the `ClientCapabilities` it needed, since only the handler
+  knows what serving its request takes. `HttpStatusResolver` pins the code to `400` even though a
+  handler-raised error otherwise rides `200`. `HeaderMismatchError` is emitted by the Streamable HTTP header
   layer (below), not this path.
 
 ### Stdio client restart on unexpected server exit
@@ -480,7 +481,7 @@ SDKs.
   expected-failures baseline, and publish the server score. The harness lives in `conformance/`: a
   pinned referee, an attribute-discovered fixture, a baseline whose stale entries fail the build, and
   a scorer that counts an unmet SHOULD against the total. Server mode runs at
-  `--spec-version 2026-07-28` and stands at 76 of 97 checks. The 21 that remain are the three gaps
+  `--spec-version 2026-07-28` and stands at 80 of 97 checks. The 17 that remain are the gaps
   below, each named in the baseline.
 - [x] Run the conformance suite in client mode, on the same pinned referee and baseline.
   `conformance/client.php` routes on the scenario name the referee supplies. Stands at 289 of 304
@@ -506,9 +507,10 @@ are not in the baseline.
   second authorization request, pre-registration making no token request, and SEP-2352
   re-registration on an authorization-server change.
 
-- [ ] A missing required `prompts/get` argument answers `-32603 Internal error` rather than
-  `-32602`. The argument binder's failure escapes as an unhandled exception instead of being
-  converted at the handler boundary.
+- [x] A missing required `prompts/get` argument answered `-32603 Internal error` rather than
+  `-32602`. `ArgumentBinder::bind()` now converts the assertion failure into an
+  `InvalidParamsException`, keeping the original message and cause, so every reflected prompt,
+  resource, and tool handler reports a binding fault as invalid params.
 - [x] `examples/attribute-discovery.php` called `ServerContext::log()`, which no longer exists, so the
   `weather` tool fataled on its first call. It reports progress instead. `examples/` is now in the
   PHPStan paths alongside `conformance/`, which is what stops the next one rotting unnoticed.
@@ -518,14 +520,20 @@ are not in the baseline.
   carried `"io.modelcontextprotocol/clientCapabilities":[]`, and `server/discover` answered
   `"capabilities":[]`. Both transports and the three rejecting middlewares now encode the message
   itself, which is what stdio already did.
-- [ ] `UnsupportedProtocolVersionError` (-32022) is never emitted. An unknown protocol version is
-  rejected on format grounds with `-32602` before the support check runs, so the modelled error, and
-  its required `data.supported` and `data.requested`, go unused.
-- [ ] `MissingRequiredClientCapabilityError` (-32021) is never raised. It is only ever decoded, and
-  no handler-reachable path can emit it, so a request needing an undeclared client capability is
-  served rather than refused.
-- [ ] SEP-2164 says a resource-not-found error SHOULD carry `error.data.uri`. The code and the empty
-  contents rule are both right, but no `data` is sent.
+- [x] `UnsupportedProtocolVersionError` (-32022) was never emitted for a version that is not a date.
+  `ProtocolVersion` enforced a `YYYY-MM-DD` format the spec does not define, so an unrecognised
+  version was rejected as malformed params before the support check ran. The constructor now takes
+  any non-empty string, and the dispatcher's version gate answers -32022 with `data.supported` and
+  `data.requested` as before.
+- [x] `MissingRequiredClientCapabilityError` (-32021) was never raised. `MissingRequiredClientCapabilityException`
+  gives a handler a way to refuse, and `HttpStatusResolver` pins the code to HTTP 400.
+- [x] `ClientCapabilities` silently dropped every key outside the three it names, despite the spec (and
+  its own docblock) saying the set is open. It now keeps them in `extras`, the same shape `MetaObject`
+  uses, so a client declaring `sampling` or `roots` round-trips instead of vanishing. This is what lets
+  a handler require a capability the SEP-2596 cleanup removed from the named set.
+- [x] SEP-2164 says a resource-not-found error SHOULD carry `error.data.uri`. Protocol exceptions now
+  carry an optional `errorData` payload that `ResponseSender` passes to `ErrorFactory`, and
+  `ResourceNotFoundException` fills it with the URI.
 - [ ] Establish the optional-dependency pattern for anything cryptographic: a `suggest` entry rather
   than a `require`, guarded by `class_exists` with an actionable message naming the package to
   install. This is the shape a shipped JWT or JWKS access-token validator would need, since the SDK
