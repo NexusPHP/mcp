@@ -368,6 +368,7 @@ Every handler closure receives a `ServerContext` as its last argument.
 | `$context->cancellation` | An `Amp\Cancellation` token. Pass it to any `await()` so client `notifications/cancelled` can interrupt long-running work. |
 | `$context->meta` | The request's `_meta` object: the client's `protocolVersion` and `clientCapabilities`, the optional `clientInfo`, plus `progressToken`. Read client capabilities per request, never inferred from a prior one. |
 | `$context->reportProgress($progress, $total, $message)` | Emits a `notifications/progress` if the original request carried a `progressToken`. |
+| `$context->receiveContext` | What the transport knew about the delivery. Over Streamable HTTP that is `request` (the PSR-7 `ServerRequestInterface`) and `authInfo` (the `VerifiedAccessToken` an authentication middleware verified, see [authorization](authorization.md#reading-the-token-in-a-handler)). Both are `null` over stdio. |
 
 ## Lifecycle
 

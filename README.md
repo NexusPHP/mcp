@@ -10,8 +10,8 @@
 
 > [!IMPORTANT]
 > Pre-v1.0.0. Through `0.x` the project ships the single umbrella package
-> `nexusphp/mcp`, and minor releases may carry breaking changes until `1.0.0`. The stdio transport
-> is implemented. Streamable HTTP lands with the 2026-07-28 migration.
+> `nexusphp/mcp`, and minor releases may carry breaking changes until `1.0.0`. Both transports, stdio and
+> Streamable HTTP, are implemented on both sides.
 
 A PHP SDK for the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/docs/getting-started/intro),
 tracking spec revision **2026-07-28**. It provides both sides of an MCP session: a server for exposing
@@ -67,7 +67,7 @@ $server = new ServerBuilder()
         executor: static function (?array $args, ServerContext $context): CallToolResult {
             $name = is_string($args['name'] ?? null) ? $args['name'] : 'stranger';
 
-            return new CallToolResult([new TextContent(text: sprintf('Hello, %s!', $name))]);
+            return new CallToolResult(content: [new TextContent(text: sprintf('Hello, %s!', $name))]);
         },
     )
     ->build()
@@ -93,13 +93,14 @@ See [Getting started](docs/getting-started.md) for the client side and a full wa
   friends, registered via `ServerBuilder::register()`.
 - [Client API](docs/client.md): `ClientBuilder` and `Client` reference (handshake, typed requests,
   streaming progress).
-- [Transports](docs/transports.md): the stdio transport and the in-memory paired transport.
+- [Transports](docs/transports.md): the stdio and Streamable HTTP transports, the PSR-15 middleware stack
+  that secures the HTTP endpoint, and the in-memory paired transport.
 - [Authorization](docs/authorization.md): the OAuth 2.1 client and resource-server halves.
 - [Error handling](docs/error-handling.md): the exception model and JSON-RPC error codes.
 - [Best practices](docs/best-practices.md): conventions the SDK is shaped to reward.
 - [Architecture](docs/architecture.md): layering, dispatch kernel, spec-compliance notes.
 - [Design rationale](docs/design-rationale.md): why the SDK is shaped this way.
-- [API reference](https://nexusphp.github.io/mcp-sdk/): the generated class-level reference for the public
+- [API reference](https://nexusphp.github.io/mcp/): the generated class-level reference for the public
   `Nexus\Mcp\` API, published to GitHub Pages.
 - [Examples](examples/): runnable demo server and client.
 

@@ -57,9 +57,12 @@ without completions fails before sending. See
 **Stream progress for long tools.** Pass an `onProgress` callback to `callTool()` to receive
 `notifications/progress` while the call is in flight.
 
-**Mind that requests currently have no timeout.** A request to a hung or slow server blocks the calling
-fiber until the transport closes. Per-request timeouts are a planned addition (see [ROADMAP.md](../ROADMAP.md)).
-Until then, close the transport to unblock a stuck call.
+**Bound the calls that need a different deadline.** Every request already carries one: `setRequestTimeout()`
+defaults to 60 seconds of silence, restarted by each progress notification, and `setMaxRequestTimeout()` caps
+the total. A call that legitimately runs long takes a per-request override, `sendRequest($request, $response,
+timeout: 900.0)`, rather than a wider default for everything. A lapsed deadline raises
+`RequestTimeoutException` and tells the server to stop working on the request. See
+[request timeouts](client.md#request-timeouts).
 
 ## Both sides
 

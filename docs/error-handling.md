@@ -34,16 +34,23 @@ set in [`ProtocolErrorCode`](../src/Core/Schema/Enum/ProtocolErrorCode.php):
 | -32602 | `InvalidParams` | The params are invalid, or the named tool / prompt / resource does not exist. |
 | -32603 | `InternalError` | An unexpected server-side failure. |
 
-The 2026-07-28 spec adds three codes in the reserved `-320xx` band for lifecycle and header failures. The
-SDK models them so a peer's error response decodes into the matching `Error` subclass, but it does not emit
-them yet (server-side emission lands with the per-request `_meta` lifecycle gating and the Streamable HTTP
-header layer):
+The 2026-07-28 spec adds three codes in the reserved `-320xx` band for lifecycle and header failures:
+
+| Code | Name | Meaning | Emitted by the SDK |
+| --- | --- | --- | --- |
+| -32020 | `HeaderMismatch` | A request-metadata header disagreed with the message body (Streamable HTTP). | Yes, by `ParameterHeaderValidationMiddleware`, which answers `400` before the transport reads the body. |
+| -32021 | `MissingRequiredClientCapability` | The request needs a client capability absent from `_meta.clientCapabilities`. | Not yet. Decoded from a peer, never sent. |
+| -32022 | `UnsupportedProtocolVersion` | The request's `_meta.protocolVersion` is not supported. | Yes, by the server dispatcher, which rejects the request before it reaches a handler. |
+
+Every one of them decodes into the matching `Error` subclass, so a peer's error response is typed whether or
+not this SDK is the side that sends it.
+
+The SDK also defines its own code outside the spec's bands, in
+[`SdkErrorCode`](../src/Core/Schema/Enum/SdkErrorCode.php):
 
 | Code | Name | Meaning |
 | --- | --- | --- |
-| -32020 | `HeaderMismatch` | A request-metadata header disagreed with the message body (Streamable HTTP). |
-| -32021 | `MissingRequiredClientCapability` | The request needs a client capability absent from `_meta.clientCapabilities`. |
-| -32022 | `UnsupportedProtocolVersion` | The request's `_meta.protocolVersion` is not supported. |
+| -32000 | `Overloaded` | The server is at its in-flight dispatch cap and shed the request. See [`setMaxInFlightDispatches()`](server.md#in-flight-dispatch-cap). |
 
 ## Server side: handler failures become error responses
 

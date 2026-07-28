@@ -30,8 +30,10 @@ polymorphic `supports()` walk or a runtime reflection scan. There is no service 
 access to shared services. Dependencies are constructor-injected. The trade is a little more typing at
 setup for a surface that an IDE and a static analyser can both follow end to end.
 
-Attribute-based discovery (`#[AsTool]` and friends) is a deliberate, sequenced addition rather than a
-foundational mechanism, so the explicit path stays the substrate it builds on. See [ROADMAP.md](../ROADMAP.md).
+Attribute-based discovery (`#[AsTool]` and friends, registered through `ServerBuilder::register()`) is sugar
+over that surface, not a foundational mechanism: it calls the same `add*` / `set*` methods, so the explicit
+path stays the substrate and the two compose freely. See
+[attribute discovery](attribute-discovery.md).
 
 ## A transport that is a dumb pipe
 
@@ -82,6 +84,9 @@ Some omissions are choices, not gaps:
   types on purpose.
 - **No umbrella capability registry.** Each feature has its own constructor-injected store rather than a
   combined registry, so adding a feature mirrors an existing shape instead of growing a god object.
+- **No sampling, roots, or logging.** SEP-2596 deprecated all three, and the spec tells new implementations
+  not to adopt a deprecated feature. A greenfield SDK carries none of them rather than shipping surface it
+  would have to remove.
 - **No back-compat for superseded spec revisions.** The SDK tracks one protocol revision at a time. The
   2026-07-28 migration is a single coordinated cut with no compatibility shim, because carrying two
   protocols permanently would cost more than the one-time port (see [ROADMAP.md](../ROADMAP.md)).

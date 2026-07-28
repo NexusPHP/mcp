@@ -302,6 +302,7 @@ $endpoint = new SecuredHttpEndpoint(
     allowedHosts: ['mcp.example.com'],             // optional, beyond-spec
     maxBodyBytes: 1_048_576,                       // optional
     toolStore: $tools,                             // required if any tool declares x-mcp-header
+    authentication: $bearerMiddleware,             // optional, makes this an OAuth resource server
 );
 ```
 
@@ -312,6 +313,7 @@ middlewares run outermost-first in this order:
 | --- | --- | --- |
 | `CorsMiddleware` | `204` to a preflight | Beyond-spec. Reflects an allowed `Origin`, and always emits the `Vary` keys it turns on so a shared cache cannot replay one origin's answer to another. |
 | `DnsRebindingProtectionMiddleware` | `403` | The spec's `Origin` MUST. Also carries an opt-in `Host` allow-list. Both match case-insensitively. |
+| Your `authentication` middleware | `401` | Added only when you pass one. `BearerAuthenticationMiddleware` is the bundled implementation. It runs before anything reads the body, so an unauthorized request is turned away unparsed. See [authorization](authorization.md). |
 | `ParameterHeaderValidationMiddleware` | `400` `-32020` | The spec's server-side `Mcp-Param-{Name}` MUST. Added only when you pass a tool store. |
 | `RequestBodySizeLimitMiddleware` | `413` | Added only when you pass a cap. Measures the buffered body, so a streaming body whose size is unknown passes through to the host's own limit. |
 

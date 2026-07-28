@@ -8,17 +8,21 @@ that drives every inbound JSON-RPC message, and what the SDK does and does not c
 ```text
 Nexus\Mcp\
 ├── Core\               Protocol primitives shared by both peers. Depends on no other Mcp namespace
+│   ├── Auth\           Authorization vocabulary both peers read: metadata documents, verified tokens, resource identifiers
 │   ├── Dispatch\       Shared dispatch contract and in-flight correlation primitives
 │   ├── Exception\      McpExceptionInterface marker plus concrete protocol error types
 │   ├── Handler\        Handler interfaces, the method-to-handler registry, and the abstract context base
-│   │   └── Request\    Built-in request handlers shared by both peers
+│   ├── Http\           HTTP vocabulary shared by both sides: status codes, header codecs, Mcp-Param binding and validation
 │   ├── JsonRpc\        Envelope parser, method registry, parser-state value objects
 │   ├── Schema\         Types only (value objects, enums, interfaces). No behaviour
 │   ├── Transport\      Transport contract, lifecycle event keys, shared line-framed duplex, in-memory paired transports for tests
 │   ├── UriTemplate\    RFC 6570 expansion plus matching
 │   └── Validation\     URI templates, RFC 3339, enum-value coercion
 ├── Server\             Server-side composition. Depends on Core only
+│   ├── Attribute\      #[AsTool], #[AsPrompt], #[AsResource], #[AsResourceTemplate], #[AsServer]
+│   ├── Auth\           Resource-server side: the access-token validator contract
 │   ├── Completion\     Completion store contract
+│   ├── Discovery\      Attribute scanner behind ServerBuilder::register()
 │   ├── Dispatch\       Server-side per-envelope inbound pipeline
 │   ├── Exception\      Server-side error types
 │   ├── Handler\
@@ -27,8 +31,11 @@ Nexus\Mcp\
 │   ├── Resource\       Static and templated resource stores plus reader adapters
 │   ├── Tool\           Tool store plus executor adapters
 │   ├── Transport\      Server-side transport implementations
-│   └── Validation\      Pluggable JSON Schema validator contract plus the opis-backed default
+│   │   └── Http\       Streamable HTTP endpoint composition
+│   │       └── Middleware\  PSR-15 middleware: CORS, DNS rebinding, bearer auth, parameter headers, body size
+│   └── Validation\     Pluggable JSON Schema validator contract plus the opis-backed default
 └── Client\             Client-side composition. Depends on Core only
+    ├── Auth\           OAuth 2.1 client: metadata discovery, registration, token endpoint, the authorizing HTTP decorator
     ├── Dispatch\       Client-side per-envelope inbound pipeline
     ├── Exception\      Client-side local-misuse errors (not connected, already connected, unadvertised server capability)
     ├── Handler\
@@ -141,14 +148,20 @@ finishes right as the transport closes would lose its response to a race with th
 - Auto-review tests (`tests/AutoReview/`) verify every PHP class with a spec counterpart matches the
   canonical description, every `@see` link resolves to a real anchor in the spec docs, and every round-trip
   fixture matches the canonical envelope shape.
-- What we have today: server-side covering `server/discover`, tools, prompts, resources (static +
-  templated), and completions. Client-side covering `discover()` plus typed requests for the same
-  surface (`tools/call` with streaming progress, the list/read/get/complete methods). Stdio transport on
-  both sides. Tool call arguments and results are validated against the tool's declared `inputSchema` /
-  `outputSchema` (pluggable via `SchemaValidatorInterface`), and a `structuredContent`-only result is
-  mirrored into a `TextContent` block for backwards compatibility.
-- What we do not have yet: streamable HTTP transport, sampling, elicitation, tasks, OAuth, MCP Apps. These
-  land across subsequent phases.
+- What we have today: server-side handlers covering `server/discover`, tools, prompts, resources (static +
+  templated), and completions. Client-side covering `discover()` plus typed requests for the same surface
+  (`tools/call` with streaming progress, the list/read/get/complete methods). Both transports, stdio and
+  Streamable HTTP, on both sides, the latter with its PSR-15 security stack. OAuth 2.1 on both sides: the
+  client authorizes and re-authorizes itself, the server validates bearer tokens and publishes its protected
+  resource metadata. Attribute discovery via `#[AsTool]` and friends. The input-required flow, so a handler
+  can answer `elicitation/create` requests inside an `InputRequiredResult` rather than finishing. Tool call
+  arguments and results are validated against the tool's declared `inputSchema` / `outputSchema` (pluggable
+  via `SchemaValidatorInterface`), and a `structuredContent`-only result is mirrored into a `TextContent`
+  block for backwards compatibility.
+- What we do not have yet: tasks, MCP Apps, and the serving half of `subscriptions/listen` (its request and
+  notification classes are registered, so a peer's envelopes decode, but no built-in handler answers one).
+- What we deliberately omit: sampling, roots, and logging. SEP-2596 deprecated them, and the spec tells new
+  implementations not to adopt a deprecated feature, so a greenfield SDK carries none of them.
 
 ## Diagnostic message conventions
 
@@ -236,7 +249,7 @@ scope in the inner message.
    instead of `\sprintf`, so the comparand renders via `var_export` at exception-render time.
 6. Bare `new ExpectationFailedException($template, $context)` constructions pre-`var_export` value
    tokens in the context array to match Assert's auto-rendering. Example from
-   `MessageDiscriminator::unknownType`:
+   `MessageDiscriminator::buildUnknownTypeError()`:
 
    ```php
    return new ExpectationFailedException(

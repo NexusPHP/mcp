@@ -99,7 +99,7 @@ MCP schema types map directly to the [MCP specification](https://modelcontextpro
 
 The `Server/` subdirectory under `Nexus\Mcp\Server\` depends on `Core`. It defines:
 
-- Handler interfaces that consumers implement (e.g., `ToolHandlerInterface`)
+- Handler interfaces that consumers implement (`ToolExecutorInterface`, `PromptRendererInterface`, `ResourceReaderInterface`, `TemplatedResourceReaderInterface`)
 - A `Server` class that connects transports to protocol handling
 - Transport implementations (stdio, Streamable HTTP)
 

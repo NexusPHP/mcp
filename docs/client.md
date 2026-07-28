@@ -27,9 +27,10 @@ foreach ($client->listTools()->tools as $tool) {
 $transport->close();
 ```
 
-`connect()` is non-blocking: it attaches the listener chain and starts the transport. There is no
-`Client::close()`. Shut the session down by closing the transport, which cancels any pending requests with
-a `TransportAlreadyClosedException`.
+`connect()` is non-blocking: it attaches the listener chain and starts the transport. Shut the session down
+with `Client::disconnect()`, which closes the transport and detaches it so a later `connect()` can run, or
+by closing the transport directly. Either way pending requests are cancelled with a
+`TransportAlreadyClosedException`. `disconnect()` is a no-op when the client is not connected.
 
 Every request the client sends carries the client's identity in its `_meta` block. The SDK stamps three
 namespaced keys onto every outbound request automatically: `io.modelcontextprotocol/protocolVersion`,
@@ -156,10 +157,10 @@ optional `Cursor` for pagination.
 | `listResources(?Cursor $cursor = null)` | `resources/list` | `ListResourcesResult` |
 | `listResourceTemplates(?Cursor $cursor = null)` | `resources/templates/list` | `ListResourceTemplatesResult` |
 | `listPrompts(?Cursor $cursor = null)` | `prompts/list` | `ListPromptsResult` |
-| `readResource(string $uri)` | `resources/read` | `ReadResourceResult` |
-| `getPrompt(string $name, ?array $arguments = null)` | `prompts/get` | `GetPromptResult` |
+| `readResource(string $uri)` | `resources/read` | `ReadResourceResult\|InputRequiredResult` |
+| `getPrompt(string $name, ?array $arguments = null)` | `prompts/get` | `GetPromptResult\|InputRequiredResult` |
 | `complete(PromptReference\|ResourceTemplateReference $ref, array $argument, ?array $context = null)` | `completion/complete` | `CompleteResult` |
-| `callTool(string $name, ?array $arguments = null, ?\Closure $onProgress = null)` | `tools/call` | `CallToolResult` |
+| `callTool(string $name, ?array $arguments = null, ?\Closure $onProgress = null)` | `tools/call` | `CallToolResult\|InputRequiredResult` |
 | `discover()` | `server/discover` | `DiscoverResult` |
 
 ```php
@@ -175,6 +176,40 @@ capability: `tools/*` needs `tools`, `resources/*` needs `resources`, `prompts/*
 `ServerCapabilityNotSupportedException` before anything reaches the transport. Before discovery there are no
 advertised capabilities to gate against, so requests pass through. Check `getServerCapabilities()` when you
 need to branch on what the server supports.
+
+### When the server asks for input first
+
+`callTool()`, `readResource()` and `getPrompt()` can answer with an `InputRequiredResult` instead of the
+result you asked for: the server needs something from the user before it can finish. Branch on the type
+rather than assuming the happy path.
+
+```php
+$result = $client->callTool('book_flight', ['destination' => 'Cebu']);
+
+if ($result instanceof InputRequiredResult) {
+    // $result->inputRequests is a map of field name to InputRequest describing what to collect.
+    // $result->requestState, when present, is opaque and must be echoed back verbatim.
+}
+```
+
+To answer, re-send the request with the collected values through `sendRequest()`, since the typed helpers
+take no `inputResponses` argument:
+
+```php
+$response = $client->sendRequest(
+    new CallToolRequest(
+        id: $requestId,
+        params: new CallToolRequestParams(
+            name: 'book_flight',
+            arguments: ['destination' => 'Cebu'],
+            inputResponses: ['seat' => new ElicitResult(action: ElicitAction::Accept, content: ['seat' => '14C'])],
+            requestState: $result->requestState,
+            meta: $meta,
+        ),
+    ),
+    CallToolResultResponse::class,
+);
+```
 
 ### Streaming progress from `callTool`
 
@@ -305,7 +340,7 @@ methods above. The capability gate covers exactly the methods behind the typed r
 2. **`connect($transport)`** attaches the listener chain, starts the transport, and returns immediately.
 3. **Typed requests** correlate inbound responses to awaiting callers by `RequestId`. Optionally call
    `discover()` first to learn the server's identity and capabilities.
-4. **Shutdown** is `($transport)->close()`. Pending requests are cancelled with
+4. **Shutdown** is `disconnect()`, or `($transport)->close()` directly. Pending requests are cancelled with
    `TransportAlreadyClosedException`. In-flight notification handlers drain before the close listeners fire.
 
 ## See also
