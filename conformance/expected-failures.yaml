@@ -35,18 +35,6 @@ server:
   - input-required-result-capability-check
 
 client:
-  # SHOULD use a URL-based client ID when the server advertises
-  # `client_id_metadata_document_supported`. The harness supplies no
-  # `clientIdMetadataDocumentUrl`, and a CIMD URL must be HTTPS, so this may not
-  # be reachable from a loopback harness at all.
-  - auth/basic-cimd:cimd-client-id-used
-  # No second authorization request is made on a 403 insufficient_scope, so the
-  # scope union on re-authorization cannot be observed either.
-  - auth/scope-step-up
-  # SEP-2352 says the client MUST re-register when PRM `authorization_servers`
-  # changes. No registration request is seen at the new server.
-  - auth/authorization-server-migration:sep-2352-reregister-on-as-change
-
   # The MRTR round trip is driven through `Client::callTool()`'s `inputResponses`
   # and `requestState`, which now exist, but the harness registers no handler for
   # this scenario yet.

@@ -177,59 +177,74 @@ $register('json-schema-ref-no-deref', static function (string $serverUrl) use ($
 });
 
 /*
- * Every OAuth scenario runs the same client. What differs between them lives in
- * the referee's mock authorization server and in the context it supplies, not in
- * anything the client chooses, so one handler covers the whole block.
+ * The `client_id` the CIMD scenario expects to see. The referee compares the string and never
+ * fetches the document, so nothing has to serve it. It is carried by every OAuth scenario because
+ * `ClientRegistrar` reaches for it only where the authorization server advertises
+ * `client_id_metadata_document_supported`, which makes the priority order it sits in observable.
  */
-$authorize = static function (string $serverUrl): void {
-    Assert::that($serverUrl)->isNonEmptyString('The conformance runner must supply a server URL.');
+$clientIdMetadataDocumentUrl = 'https://conformance-test.local/client-metadata.json';
 
-    $raw = getenv('MCP_CONFORMANCE_CONTEXT');
-    $context = is_string($raw) && '' !== $raw ? json_decode($raw, true, 512, \JSON_THROW_ON_ERROR) : [];
-    $context = is_array($context) ? $context : [];
+/*
+ * Every OAuth scenario runs the same client, and what differs between them lives in the referee's
+ * mock authorization server and in the context it supplies. What the client does once it holds a
+ * token is the exception, so that part is the argument.
+ */
+$withAuthorization = static function (Closure $exercise) use ($clientIdMetadataDocumentUrl): Closure {
+    return static function (string $serverUrl) use ($exercise, $clientIdMetadataDocumentUrl): void {
+        Assert::that($serverUrl)->isNonEmptyString('The conformance runner must supply a server URL.');
 
-    $clientId = is_string($context['client_id'] ?? null) ? $context['client_id'] : null;
-    $clientSecret = is_string($context['client_secret'] ?? null) ? $context['client_secret'] : null;
+        $raw = getenv('MCP_CONFORMANCE_CONTEXT');
+        $context = is_string($raw) && '' !== $raw ? json_decode($raw, true, 512, \JSON_THROW_ON_ERROR) : [];
+        $context = is_array($context) ? $context : [];
 
-    $http = new AuthorizedHttpClient(
-        $serverUrl,
-        new AuthorizationOptions(
-            clientName: 'Nexus MCP SDK conformance client',
-            redirectUri: 'http://127.0.0.1:8765/callback',
-            // Supplied only by the scenarios that issue credentials out of band. They name no
-            // authorization server, so the registration stays unbound until discovery names one.
-            preRegistered: null !== $clientId
-                ? new ClientRegistration(clientId: $clientId, clientSecret: $clientSecret)
-                : null,
-            requestOfflineAccess: true,
-            // The referee's mock authorization server runs on plain HTTP over
-            // loopback, which the spec does not exempt, so the harness opts in.
-            allowInsecureLoopback: true,
-        ),
-        new HeadlessUserAuthorization(),
-        HttpClientBuilder::buildDefault(),
-        logger: new ExampleLogger(),
-    );
+        $clientId = is_string($context['client_id'] ?? null) ? $context['client_id'] : null;
+        $clientSecret = is_string($context['client_secret'] ?? null) ? $context['client_secret'] : null;
 
-    $client = new ClientBuilder()
-        ->setLogger(new ExampleLogger())
-        ->setClientInfo(name: 'nexus-mcp-conformance-client', version: '1.0.0')
-        ->build()
-    ;
+        $http = new AuthorizedHttpClient(
+            $serverUrl,
+            new AuthorizationOptions(
+                clientName: 'Nexus MCP SDK conformance client',
+                redirectUri: 'http://127.0.0.1:8765/callback',
+                clientIdMetadataDocumentUrl: $clientIdMetadataDocumentUrl,
+                // Supplied only by the scenarios that issue credentials out of band. They name no
+                // authorization server, so the registration stays unbound until discovery names one.
+                preRegistered: null !== $clientId
+                    ? new ClientRegistration(clientId: $clientId, clientSecret: $clientSecret)
+                    : null,
+                requestOfflineAccess: true,
+                // The referee's mock authorization server runs on plain HTTP over
+                // loopback, which the spec does not exempt, so the harness opts in.
+                allowInsecureLoopback: true,
+            ),
+            new HeadlessUserAuthorization(),
+            HttpClientBuilder::buildDefault(),
+            logger: new ExampleLogger(),
+        );
 
-    $client->connect(new StreamableHttpClientTransport(
-        endpoint: $serverUrl,
-        client: $http,
-        logger: new ExampleLogger(),
-        readTimeout: 30.0,
-    ));
+        $client = new ClientBuilder()
+            ->setLogger(new ExampleLogger())
+            ->setClientInfo(name: 'nexus-mcp-conformance-client', version: '1.0.0')
+            ->build()
+        ;
 
-    try {
-        $client->listTools();
-    } finally {
-        $client->disconnect();
-    }
+        $client->connect(new StreamableHttpClientTransport(
+            endpoint: $serverUrl,
+            client: $http,
+            logger: new ExampleLogger(),
+            readTimeout: 30.0,
+        ));
+
+        try {
+            $exercise($client);
+        } finally {
+            $client->disconnect();
+        }
+    };
 };
+
+$authorize = $withAuthorization(static function (Client $client): void {
+    $client->listTools();
+});
 
 foreach ([
     'auth/basic-cimd',
@@ -241,7 +256,6 @@ foreach ([
     'auth/scope-from-www-authenticate',
     'auth/scope-from-scopes-supported',
     'auth/scope-omitted-when-undefined',
-    'auth/scope-step-up',
     'auth/scope-retry-limit',
     'auth/token-endpoint-auth-basic',
     'auth/token-endpoint-auth-post',
@@ -249,7 +263,6 @@ foreach ([
     'auth/pre-registration',
     'auth/offline-access-scope',
     'auth/offline-access-not-supported',
-    'auth/authorization-server-migration',
     'auth/iss-supported',
     'auth/iss-not-advertised',
     'auth/iss-supported-missing',
@@ -260,6 +273,24 @@ foreach ([
 ] as $authScenario) {
     $register($authScenario, $authorize);
 }
+
+/*
+ * Listing needs only the scope the first challenge named. Calling a tool is what the mock guards
+ * behind a second one, so the insufficient-scope answer that drives a step-up has to be provoked.
+ */
+$register('auth/scope-step-up', $withAuthorization(static function (Client $client): void {
+    $client->listTools();
+    $client->callTool(name: 'test-tool');
+}));
+
+/*
+ * The resource names its new authorization server only after one request has already succeeded
+ * against the old one, so the migration is invisible to a client that stops after the first.
+ */
+$register('auth/authorization-server-migration', $withAuthorization(static function (Client $client): void {
+    $client->listTools();
+    $client->listTools();
+}));
 
 $arguments = conformanceArguments();
 $scenario = getenv('MCP_CONFORMANCE_SCENARIO');

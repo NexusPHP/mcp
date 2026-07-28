@@ -141,6 +141,13 @@ The OAuth scenarios need consent granted without a browser, and the referee's mo
 server grants it on the first request, so following the authorization URL once with redirects
 disabled and reading `Location` yields the callback the SDK expects.
 
+One authorized client serves the whole OAuth block, since what varies between those scenarios lives
+in the referee's mock rather than in anything the client chooses. Two of them are the exception and
+carry their own handler, because the obligation under test is only reachable after the first
+request succeeds: a step-up challenge answers a `tools/call`, and an authorization-server change is
+announced to the request that follows the one it accepted. The Client ID Metadata Document URL is a
+third such detail, hardcoded because the referee compares the string and never fetches it.
+
 ### Deliberate exceptions on the server side
 
 Two things sit outside the attribute-discovered fixture:

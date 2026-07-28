@@ -38,8 +38,8 @@ The tiering system covers **both official and community-driven SDKs**, so `nexus
 
 - [ ] **80% Conformance Tests Pass**
   - Reference: [Conformance Test Suite](https://github.com/modelcontextprotocol/conformance). Exact scenarios in "Conformance suite: scenarios to pass" below
-  - Threshold: 80% of the scored set, which is the carried-forward scenarios (see "Scoring model" below). Server **20 of 20**, client **12 of 15**: both legs clear the threshold, the client one exactly
-  - Evidence/Notes: both modes run and are measured at `--spec-version 2026-07-28 --suite all`. As of 2026-07-28: server **102 of 106 checks**, client **290 of 304**, combined **392 of 410 (95.6%)**
+  - Threshold: 80% of the scored set, which is the carried-forward scenarios (see "Scoring model" below). Server **20 of 20**, client **15 of 15**: both legs pass outright
+  - Evidence/Notes: both modes run and are measured at `--spec-version 2026-07-28 --suite all`. As of 2026-07-28: server **102 of 106 checks**, client **327 of 332**, combined **429 of 438 (97.9%)**
   - Run: `composer conformance:server` then `composer conformance:score`
 
 ### Implementation Timeline
@@ -313,12 +313,12 @@ Two rules differ from `composer conformance:score` and both matter when reading 
 | --- | --- | --- | --- | --- |
 | Server | 18/18 | 20/20 | **20/20 (100%)** | `pass` |
 | Client: Core | 1/1 | 1/1 | 1/1 | |
-| Client: Auth | 3/3 | 11/14 | 11/14 (79%) | |
-| Client total | | | **12/15 (80%)** | `partial` |
+| Client: Auth | 3/3 | 14/14 | 14/14 (100%) | |
+| Client total | | | **15/15 (100%)** | `pass` |
 
-The client leg sits exactly on the 80% threshold, one scenario from `fail`, and reads 11 of 15 under the stricter check-level rule `composer conformance:score` applies. The three not passing are `auth/metadata-var2`, `auth/pre-registration`, and `auth/scope-step-up`. Clearing any one of them moves the leg to 87%.
+Both legs pass the tier-scored set outright, and the informational bucket reads server 20 of 20 and client auth 25 of 25 at `2026-07-28`. The one client scenario short of the badge figure is `sep-2322-client-request-state`, which is 2026-07-28-only and so sits outside the tier denominator.
 
-Two things keep this number apart from the badge figure. `tier-check` runs **server** conformance at the referee's default `--suite active`, so the draft and pending scenarios stay out of the tier denominator: the four MRTR scenarios this SDK fails are among them and do not count against the tier. Client conformance it runs at `--suite all`.
+Two things keep these numbers apart from the badge figures. `tier-check` runs **server** conformance at the referee's default `--suite active`, so the draft and pending scenarios stay out of the tier denominator: the four MRTR scenarios this SDK fails are among them and do not count against the tier. Client conformance it runs at `--suite all`.
 
 ### The deterministic gate
 
@@ -327,7 +327,7 @@ Tier 2 is met when all four hold. Tier 1 additionally requires 100% on both conf
 | Requirement | Standing |
 | --- | --- |
 | Server conformance at or above 80% | 100% |
-| Client conformance at or above 80% | 80% |
+| Client conformance at or above 80% | 100% |
 | Every P0 resolved within 14 days | No P0 issues, and no open issues |
 | A stable release | **Not met.** Latest is `v0.5.0` |
 

@@ -494,9 +494,9 @@ SDKs.
   `--spec-version 2026-07-28` and stands at 102 of 106 checks. The 4 that remain all need an input
   request this SDK does not model, named in the baseline.
 - [x] Run the conformance suite in client mode, on the same pinned referee and baseline.
-  `conformance/client.php` routes on the scenario name the referee supplies. Stands at 308 of 317
-  checks, 28 of 32 scenarios. The OAuth block passes almost entirely, as do the SEP-2243 header
-  scenarios (`http-custom-headers` 18 of 18), `request-metadata`, `tools_call`, and
+  `conformance/client.php` routes on the scenario name the referee supplies. Stands at 327 of 332
+  checks, 31 of 32 scenarios. The whole OAuth block passes, as do the SEP-2243 header scenarios
+  (`http-custom-headers` 18 of 18), `request-metadata`, `tools_call`, and
   `json-schema-ref-no-deref`.
 
 Defects the first conformance runs surfaced, smallest first. The three marked as unseen by the suite
@@ -525,9 +525,12 @@ are not in the baseline.
   is now nullable: an unbound registration takes the issuer discovery names, and picks up RFC 7591's
   `client_secret_basic` default when it carries a secret and the caller named no method. A registration
   that does name an issuer is still refused anywhere else.
-- [ ] Three OAuth scenarios still miss one obligation each, listed individually in the conformance
-  baseline: the CIMD client-id SHOULD, scope step-up making no second authorization request, and
-  SEP-2352 re-registration on an authorization-server change.
+- [x] Three OAuth scenarios each missed one obligation, and all three were gaps in the conformance
+  client rather than in the SDK. `AuthorizationOptions` now carries the Client ID Metadata Document
+  URL the CIMD scenario compares against, so the URL-based `client_id` is reached at all. The
+  step-up challenge rides on a `tools/call`, which the fixture never made, and an
+  authorization-server change is announced only after one request has already succeeded, so the
+  fixture now makes a second one. The OAuth block is at 181 of 181 checks.
 
 - [x] A missing required `prompts/get` argument answered `-32603 Internal error` rather than
   `-32602`. `ArgumentBinder::bind()` now converts the assertion failure into an
