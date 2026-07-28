@@ -306,6 +306,26 @@ $endpoint = new SecuredHttpEndpoint(
 );
 ```
 
+The `toolStore` must be the one the server serves, or the middleware validates headers against a different
+set of tools. `ServerBuilder::getToolStore()` returns it whether you supplied it through `setToolStore()` or
+the builder assembled it from `addTool()` and `register()` entries:
+
+```php
+$builder = new ServerBuilder()->setServerInfo('demo', '1.0.0')->register(new WeatherTools());
+$server = $builder->build();
+
+$endpoint = new SecuredHttpEndpoint(
+    $transport,
+    allowedOrigins: ['https://app.example.com'],
+    responseFactory: $factory,
+    streamFactory: $factory,
+    toolStore: $builder->getToolStore(),
+);
+```
+
+It returns `null` when the server exposes no tools, which is what the `toolStore` argument already means, so
+an unconditional call is safe.
+
 Origin allow-listing has no default, so the endpoint cannot be stood up permissively by accident. The
 middlewares run outermost-first in this order:
 

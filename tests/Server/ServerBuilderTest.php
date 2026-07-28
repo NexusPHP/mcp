@@ -51,6 +51,7 @@ use Nexus\Mcp\Server\Server;
 use Nexus\Mcp\Server\ServerBuilder;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Server\ServerInfoDisclosure;
+use Nexus\Mcp\Server\Tool\ToolStore;
 use Nexus\Mcp\Server\Tool\ToolStoreInterface;
 use Nexus\Mcp\Server\Validation\SchemaValidatorInterface;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
@@ -1198,6 +1199,56 @@ final class ServerBuilderTest extends TestCase
         );
         self::assertInstanceOf(ListToolsResult::class, $withEntry);
         self::assertSame(['custom_tool'], array_map(static fn(Tool $tool): string => $tool->name, $withEntry->tools));
+    }
+
+    public function testToolStoreIsNullWhenNoToolsAreRegistered(): void
+    {
+        self::assertNull(new ServerBuilder()->setServerInfo('demo', '1.0.0')->getToolStore());
+    }
+
+    public function testToolStoreAssemblesTheRegisteredEntries(): void
+    {
+        $store = new ServerBuilder()
+            ->setServerInfo('demo', '1.0.0')
+            ->addTool(
+                new Tool(name: 'entry_tool', inputSchema: ['type' => 'object']),
+                static fn(?array $args, $ctx): CallToolResult => new CallToolResult(content: []),
+            )
+            ->getToolStore()
+        ;
+
+        if (! $store instanceof ToolStoreInterface) {
+            self::fail('Expected a tool store.');
+        }
+
+        self::assertSame(['entry_tool'], array_map(static fn(Tool $tool): string => $tool->name, $store->list(null)->tools));
+    }
+
+    public function testToolStoreReturnsTheSuppliedStoreUntouched(): void
+    {
+        $store = new ToolStore(entries: [], pageSize: 10);
+
+        self::assertSame(
+            $store,
+            new ServerBuilder()->setServerInfo('demo', '1.0.0')->setToolStore($store)->getToolStore(),
+        );
+    }
+
+    public function testTheServedToolStoreIsTheSameInstanceTheAccessorReturns(): void
+    {
+        // `SecuredHttpEndpoint` validates `Mcp-Param-{Name}` against this store, so it must be the one
+        // the request handlers serve rather than a second copy.
+        $builder = new ServerBuilder()
+            ->setServerInfo('demo', '1.0.0')
+            ->addTool(
+                new Tool(name: 'entry_tool', inputSchema: ['type' => 'object']),
+                static fn(?array $args, $ctx): CallToolResult => new CallToolResult(content: []),
+            )
+        ;
+
+        $builder->build();
+
+        self::assertSame($builder->getToolStore(), $builder->getToolStore());
     }
 
     public function testCustomPromptStoreReplacesEntriesAndAdvertisesCapability(): void

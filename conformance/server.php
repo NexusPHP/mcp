@@ -72,7 +72,7 @@ $completeArgument = static function (string $value, ?array $arguments, ServerCon
     return new CompleteResult(completion: ['values' => $matches, 'total' => count($matches), 'hasMore' => false]);
 };
 
-$server = new ServerBuilder()
+$builder = new ServerBuilder()
     ->setLogger($logger)
     ->register(new EverythingServer())
     ->setCompletionStore(new CompletionStore(
@@ -83,8 +83,9 @@ $server = new ServerBuilder()
             'test://template/{id}/data' => ['id' => $completeArgument],
         ],
     ))
-    ->build()
 ;
+
+$server = $builder->build();
 
 $transport = new StreamableHttpServerTransport(
     responseFactory: $psr17,
@@ -107,6 +108,7 @@ $endpoint = new SecuredHttpEndpoint(
     streamFactory: $psr17,
     allowedHosts: [$address, sprintf('localhost:%d', $port)],
     maxBodyBytes: 1_048_576,
+    toolStore: $builder->getToolStore(),
     logger: $logger,
 );
 

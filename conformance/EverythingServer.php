@@ -147,6 +147,31 @@ final class EverythingServer
     }
 
     /**
+     * The `http-custom-header-server-validation` scenario mirrors `message` into
+     * `Mcp-Param-Message` and asserts the server checks the two agree. `x-mcp-header`
+     * sits on the property rather than the tool, so the schema is supplied rather
+     * than derived from the signature.
+     *
+     * @param string $message Echoed back, and mirrored into `Mcp-Param-Message`.
+     */
+    #[AsTool(name: 'test_custom_header_param', description: 'Echoes a parameter that is also carried as a custom header.')]
+    #[InputSchema(definition: [
+        'type' => 'object',
+        'properties' => [
+            'message' => [
+                'type' => 'string',
+                'description' => 'Echoed back, and mirrored into `Mcp-Param-Message`.',
+                'x-mcp-header' => 'Message',
+            ],
+        ],
+        'required' => ['message'],
+    ])]
+    public function customHeaderParam(string $message): string
+    {
+        return sprintf('Received: %s', $message);
+    }
+
+    /**
      * The `server-stateless` scenario opens this call's response stream and asserts
      * the server sends nothing on it but that call's own frames.
      */

@@ -363,7 +363,8 @@ PSR-17 factories are constructor-injected, not discovered.
   validation, then the optional body-size cap). Origin allow-listing is required, so security is on-by-default
   without the permissive zero-arg defaults the spec and our explicit-config middlewares would otherwise force.
   Passing the served tool store lights up the `Mcp-Param-{Name}` validation, which a server declaring
-  `x-mcp-header` must do.
+  `x-mcp-header` must do. `ServerBuilder::getToolStore()` hands over that store, whether `setToolStore()`
+  supplied it or the builder assembled it from `addTool()` and `register()` entries.
 - [x] A non-blocking `Server::listen(TransportInterface)` seam that attaches the dispatcher listeners and
   starts the transport without the close-await that `run()` uses for stdio, so the endpoint can be mounted
   per request in a PSR-15 stack.
@@ -481,8 +482,8 @@ SDKs.
   expected-failures baseline, and publish the server score. The harness lives in `conformance/`: a
   pinned referee, an attribute-discovered fixture, a baseline whose stale entries fail the build, and
   a scorer that counts an unmet SHOULD against the total. Server mode runs at
-  `--spec-version 2026-07-28` and stands at 80 of 97 checks. The 17 that remain are the gaps
-  below, each named in the baseline.
+  `--spec-version 2026-07-28` and stands at 89 of 101 checks. The 12 that remain are the server half
+  of MRTR, named in the baseline.
 - [x] Run the conformance suite in client mode, on the same pinned referee and baseline.
   `conformance/client.php` routes on the scenario name the referee supplies. Stands at 289 of 304
   checks, 25 of 32 scenarios. The OAuth block passes almost entirely, as do the SEP-2243 header
