@@ -16,6 +16,7 @@ namespace Nexus\Mcp\Tests\Core\Schema\MetaObject;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Implementation;
 use Nexus\Mcp\Core\Schema\MetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\GenericResultMetaObject;
 use Nexus\Mcp\Core\Schema\MetaObject\ResultMetaObject;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -25,15 +26,16 @@ use PHPUnit\Framework\TestCase;
 /**
  * @internal
  */
+#[CoversClass(GenericResultMetaObject::class)]
 #[CoversClass(ResultMetaObject::class)]
 #[CoversClass(MetaObject::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class ResultMetaObjectTest extends TestCase
+final class GenericResultMetaObjectTest extends TestCase
 {
     public function testDefaultsToNoServerInfoAndEmptyExtras(): void
     {
-        $meta = new ResultMetaObject();
+        $meta = new GenericResultMetaObject();
 
         self::assertNull($meta->serverInfo);
         self::assertSame([], $meta->extras);
@@ -42,7 +44,7 @@ final class ResultMetaObjectTest extends TestCase
     public function testConstructionCapturesAllFields(): void
     {
         $serverInfo = new Implementation(name: 'server', version: '1.0.0');
-        $meta = new ResultMetaObject(serverInfo: $serverInfo, extras: ['vendor' => 'x']);
+        $meta = new GenericResultMetaObject(serverInfo: $serverInfo, extras: ['vendor' => 'x']);
 
         self::assertSame($serverInfo, $meta->serverInfo);
         self::assertSame(['vendor' => 'x'], $meta->extras);
@@ -50,7 +52,7 @@ final class ResultMetaObjectTest extends TestCase
 
     public function testToArrayEmitsTheNamespacedServerInfoKey(): void
     {
-        $meta = new ResultMetaObject(serverInfo: new Implementation(name: 'server', version: '1.0.0'));
+        $meta = new GenericResultMetaObject(serverInfo: new Implementation(name: 'server', version: '1.0.0'));
 
         self::assertSame(
             [ResultMetaObject::SERVER_INFO_KEY => ['name' => 'server', 'version' => '1.0.0']],
@@ -60,7 +62,7 @@ final class ResultMetaObjectTest extends TestCase
 
     public function testToArrayEmitsExtrasAlongsideServerInfo(): void
     {
-        $meta = new ResultMetaObject(
+        $meta = new GenericResultMetaObject(
             serverInfo: new Implementation(name: 'server', version: '1.0.0'),
             extras: ['vendor' => 'x'],
         );
@@ -76,14 +78,14 @@ final class ResultMetaObjectTest extends TestCase
 
     public function testToArrayOmitsServerInfoWhenNull(): void
     {
-        $meta = new ResultMetaObject(extras: ['vendor' => 'x']);
+        $meta = new GenericResultMetaObject(extras: ['vendor' => 'x']);
 
         self::assertSame(['vendor' => 'x'], $meta->toArray());
     }
 
     public function testFromArrayParsesServerInfoAndExtras(): void
     {
-        $meta = ResultMetaObject::fromArray([
+        $meta = GenericResultMetaObject::fromArray([
             ResultMetaObject::SERVER_INFO_KEY => ['name' => 'server', 'version' => '2.1.0'],
             'vendor' => 'x',
         ]);
@@ -99,7 +101,7 @@ final class ResultMetaObjectTest extends TestCase
 
     public function testFromArrayLeavesServerInfoNullWhenAbsent(): void
     {
-        $meta = ResultMetaObject::fromArray(['vendor' => 'x']);
+        $meta = GenericResultMetaObject::fromArray(['vendor' => 'x']);
 
         self::assertNull($meta->serverInfo);
         self::assertSame(['vendor' => 'x'], $meta->extras);
@@ -111,7 +113,7 @@ final class ResultMetaObjectTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs($message);
 
-        ResultMetaObject::fromArray([ResultMetaObject::SERVER_INFO_KEY => $value]);
+        GenericResultMetaObject::fromArray([ResultMetaObject::SERVER_INFO_KEY => $value]);
     }
 
     /**
@@ -132,17 +134,17 @@ final class ResultMetaObjectTest extends TestCase
 
     public function testRoundTripPreservesAllFields(): void
     {
-        $original = new ResultMetaObject(
+        $original = new GenericResultMetaObject(
             serverInfo: new Implementation(name: 'server', version: '1.0.0'),
             extras: ['key' => 'value', 'num' => 42],
         );
 
-        self::assertSame($original->toArray(), ResultMetaObject::fromArray($original->toArray())->toArray());
+        self::assertSame($original->toArray(), GenericResultMetaObject::fromArray($original->toArray())->toArray());
     }
 
     public function testDeclaresServerInfoSeesTheTypedSlot(): void
     {
-        $meta = new ResultMetaObject(serverInfo: new Implementation(name: 'server', version: '1.0.0'));
+        $meta = new GenericResultMetaObject(serverInfo: new Implementation(name: 'server', version: '1.0.0'));
 
         self::assertTrue($meta->declaresServerInfo());
     }
@@ -151,26 +153,26 @@ final class ResultMetaObjectTest extends TestCase
     {
         // `fromArray` hoists the key into the typed slot, but a directly constructed instance
         // can still carry it here, and `toArray` would drop it in favour of a later stamp.
-        $meta = new ResultMetaObject(extras: [ResultMetaObject::SERVER_INFO_KEY => ['name' => 'x', 'version' => '1']]);
+        $meta = new GenericResultMetaObject(extras: [ResultMetaObject::SERVER_INFO_KEY => ['name' => 'x', 'version' => '1']]);
 
         self::assertTrue($meta->declaresServerInfo());
     }
 
     public function testDeclaresServerInfoIsFalseWhenNeitherCarriesIt(): void
     {
-        self::assertFalse(new ResultMetaObject(extras: ['vendor' => 'x'])->declaresServerInfo());
+        self::assertFalse(new GenericResultMetaObject(extras: ['vendor' => 'x'])->declaresServerInfo());
     }
 
     public function testJsonSerializeMatchesToArrayWhenPopulated(): void
     {
-        $meta = new ResultMetaObject(serverInfo: new Implementation(name: 'server', version: '1.0.0'));
+        $meta = new GenericResultMetaObject(serverInfo: new Implementation(name: 'server', version: '1.0.0'));
 
         self::assertSame($meta->toArray(), $meta->jsonSerialize());
     }
 
     public function testJsonSerializeSubstitutesStdClassWhenEmpty(): void
     {
-        $meta = new ResultMetaObject();
+        $meta = new GenericResultMetaObject();
 
         self::assertInstanceOf(\stdClass::class, $meta->jsonSerialize());
         self::assertSame('{}', json_encode($meta));

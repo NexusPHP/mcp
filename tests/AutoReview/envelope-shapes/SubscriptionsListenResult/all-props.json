@@ -1,0 +1,11 @@
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "_meta": {
+            "io.modelcontextprotocol/subscriptionId": 42,
+            "vendor.brand": "acme"
+        },
+        "resultType": "complete"
+    }
+}

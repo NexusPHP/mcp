@@ -17,7 +17,7 @@ use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequest;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequestedSchema;
 use Nexus\Mcp\Core\Schema\Elicitation\StringSchema;
-use Nexus\Mcp\Core\Schema\MetaObject\ResultMetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\GenericResultMetaObject;
 use Nexus\Mcp\Core\Schema\Request\InputRequest;
 use Nexus\Mcp\Core\Schema\RequestParams\ElicitRequestFormParams;
 use Nexus\Mcp\Core\Schema\Result;
@@ -83,10 +83,10 @@ final class InputRequiredResultTest extends TestCase
         $result = new InputRequiredResult(
             inputRequests: self::inputRequests(),
             requestState: 'tok',
-            meta: new ResultMetaObject(extras: ['vendor.brand' => 'acme']),
+            meta: new GenericResultMetaObject(extras: ['vendor.brand' => 'acme']),
         );
 
-        $rebuilt = $result->rebuildWithMeta(new ResultMetaObject(extras: ['replaced' => true]));
+        $rebuilt = $result->rebuildWithMeta(new GenericResultMetaObject(extras: ['replaced' => true]));
 
         self::assertSame(
             ['_meta' => ['replaced' => true]] + $result->toArray(),
@@ -99,7 +99,7 @@ final class InputRequiredResultTest extends TestCase
         $result = new InputRequiredResult(
             inputRequests: self::inputRequests(),
             requestState: 'tok',
-            meta: new ResultMetaObject(extras: ['vendor.brand' => 'acme']),
+            meta: new GenericResultMetaObject(extras: ['vendor.brand' => 'acme']),
         );
 
         self::assertSame(
@@ -136,7 +136,7 @@ final class InputRequiredResultTest extends TestCase
         $original = new InputRequiredResult(
             inputRequests: self::inputRequests(),
             requestState: 'tok',
-            meta: new ResultMetaObject(extras: ['vendor.brand' => 'acme']),
+            meta: new GenericResultMetaObject(extras: ['vendor.brand' => 'acme']),
         );
 
         $rebuilt = InputRequiredResult::fromArray($original->toArray());

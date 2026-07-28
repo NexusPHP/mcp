@@ -17,7 +17,7 @@ use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\ContentBlock\AudioContent;
 use Nexus\Mcp\Core\Schema\ContentBlock\ImageContent;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
-use Nexus\Mcp\Core\Schema\MetaObject\ResultMetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\GenericResultMetaObject;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -50,7 +50,7 @@ final class CallToolResultTest extends TestCase
             content: [new TextContent(text: 'hello')],
             structuredContent: ['lines' => 42],
             isError: false,
-            meta: new ResultMetaObject(extras: ['vendor' => 'x']),
+            meta: new GenericResultMetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertCount(1, $result->content);
@@ -90,10 +90,10 @@ final class CallToolResultTest extends TestCase
             content: [new TextContent(text: 'hi')],
             structuredContent: ['lines' => 42],
             isError: false,
-            meta: new ResultMetaObject(extras: ['vendor' => 'x']),
+            meta: new GenericResultMetaObject(extras: ['vendor' => 'x']),
         );
 
-        $rebuilt = $result->rebuildWithMeta(new ResultMetaObject(extras: ['replaced' => true]));
+        $rebuilt = $result->rebuildWithMeta(new GenericResultMetaObject(extras: ['replaced' => true]));
 
         self::assertSame(
             ['_meta' => ['replaced' => true]] + $result->toArray(),
@@ -107,7 +107,7 @@ final class CallToolResultTest extends TestCase
             content: [new TextContent(text: 'hi')],
             structuredContent: ['lines' => 42],
             isError: false,
-            meta: new ResultMetaObject(extras: ['vendor' => 'x']),
+            meta: new GenericResultMetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -149,7 +149,7 @@ final class CallToolResultTest extends TestCase
             content: [new TextContent(text: 'hi')],
             structuredContent: ['lines' => 42],
             isError: true,
-            meta: new ResultMetaObject(extras: ['vendor' => 'x']),
+            meta: new GenericResultMetaObject(extras: ['vendor' => 'x']),
         );
 
         $rebuilt = CallToolResult::fromArray($original->toArray());

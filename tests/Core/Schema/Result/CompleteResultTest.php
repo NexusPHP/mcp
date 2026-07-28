@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Schema\Result;
 
 use Nexus\Assert\ExpectationFailedException;
-use Nexus\Mcp\Core\Schema\MetaObject\ResultMetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\GenericResultMetaObject;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\CompleteResult;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -50,7 +50,7 @@ final class CompleteResultTest extends TestCase
     {
         $result = new CompleteResult(
             completion: ['values' => ['auth', 'auth-bearer'], 'total' => 2, 'hasMore' => false],
-            meta: new ResultMetaObject(extras: ['vendor.brand' => 'acme']),
+            meta: new GenericResultMetaObject(extras: ['vendor.brand' => 'acme']),
         );
 
         self::assertSame(
@@ -73,10 +73,10 @@ final class CompleteResultTest extends TestCase
     {
         $result = new CompleteResult(
             completion: ['values' => ['auth'], 'total' => 1, 'hasMore' => false],
-            meta: new ResultMetaObject(extras: ['vendor.brand' => 'acme']),
+            meta: new GenericResultMetaObject(extras: ['vendor.brand' => 'acme']),
         );
 
-        $rebuilt = $result->rebuildWithMeta(new ResultMetaObject(extras: ['replaced' => true]));
+        $rebuilt = $result->rebuildWithMeta(new GenericResultMetaObject(extras: ['replaced' => true]));
 
         self::assertSame(
             ['_meta' => ['replaced' => true]] + $result->toArray(),
@@ -88,7 +88,7 @@ final class CompleteResultTest extends TestCase
     {
         $result = new CompleteResult(
             completion: ['values' => ['auth'], 'total' => 1, 'hasMore' => false],
-            meta: new ResultMetaObject(extras: ['vendor.brand' => 'acme']),
+            meta: new GenericResultMetaObject(extras: ['vendor.brand' => 'acme']),
         );
 
         self::assertSame(
@@ -112,7 +112,7 @@ final class CompleteResultTest extends TestCase
     {
         $original = new CompleteResult(
             completion: ['values' => ['auth', 'auth-bearer'], 'total' => 2, 'hasMore' => true],
-            meta: new ResultMetaObject(extras: ['vendor.brand' => 'acme']),
+            meta: new GenericResultMetaObject(extras: ['vendor.brand' => 'acme']),
         );
 
         $rebuilt = CompleteResult::fromArray($original->toArray());

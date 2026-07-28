@@ -19,6 +19,7 @@ use Nexus\Mcp\Core\Schema\Cursor;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\Enum\ResultType;
 use Nexus\Mcp\Core\Schema\MetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\GenericResultMetaObject;
 use Nexus\Mcp\Core\Schema\MetaObject\ResultMetaObject;
 use Nexus\Mcp\Core\Schema\Resource\ResourceTemplate;
 use Nexus\Mcp\Core\Validation\EnumValueValidator;
@@ -52,7 +53,7 @@ final readonly class ListResourceTemplatesResult extends PaginatedResult impleme
         int $ttlMs,
         CacheScope $cacheScope,
         ?Cursor $nextCursor = null,
-        ResultMetaObject $meta = new ResultMetaObject(),
+        ResultMetaObject $meta = new GenericResultMetaObject(),
     ) {
         Assert::that($resourceTemplates)
             ->isList('"result.resourceTemplates" must be a list, non-list array given.')
@@ -91,14 +92,14 @@ final readonly class ListResourceTemplatesResult extends PaginatedResult impleme
             $nextCursor = new Cursor(cursor: $raw);
         }
 
-        $meta = new ResultMetaObject();
+        $meta = new GenericResultMetaObject();
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
                 ->isArray('"result._meta" must be an object, {type} given.')
                 ->isMap('"result._meta" must be a string-keyed object.')
             ;
-            $meta = ResultMetaObject::fromArray($data['_meta']);
+            $meta = GenericResultMetaObject::fromArray($data['_meta']);
         }
 
         return new self(

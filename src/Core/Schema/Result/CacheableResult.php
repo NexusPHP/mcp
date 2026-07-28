@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Core\Schema\Result;
 
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
+use Nexus\Mcp\Core\Schema\MetaObject\GenericResultMetaObject;
 use Nexus\Mcp\Core\Schema\MetaObject\ResultMetaObject;
 use Nexus\Mcp\Core\Schema\Result;
 
@@ -32,7 +33,7 @@ abstract readonly class CacheableResult extends Result
     public function __construct(
         public int $ttlMs,
         public CacheScope $cacheScope,
-        ResultMetaObject $meta = new ResultMetaObject(),
+        ResultMetaObject $meta = new GenericResultMetaObject(),
     ) {
         Assert::that($this->ttlMs)->isNaturalInt('"result.ttlMs" must be a non-negative integer, {value} given.');
 

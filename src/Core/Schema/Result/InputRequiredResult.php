@@ -18,6 +18,7 @@ use Nexus\Mcp\Core\JsonRpc\SafeDisplay;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequest;
 use Nexus\Mcp\Core\Schema\Enum\ResultType;
 use Nexus\Mcp\Core\Schema\MetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\GenericResultMetaObject;
 use Nexus\Mcp\Core\Schema\MetaObject\ResultMetaObject;
 use Nexus\Mcp\Core\Schema\Request\InputRequest;
 use Nexus\Mcp\Core\Schema\Result;
@@ -50,7 +51,7 @@ final readonly class InputRequiredResult extends Result implements ServerResult
     public function __construct(
         ?array $inputRequests = null,
         public ?string $requestState = null,
-        ResultMetaObject $meta = new ResultMetaObject(),
+        ResultMetaObject $meta = new GenericResultMetaObject(),
     ) {
         $inputRequests = [] === $inputRequests ? null : $inputRequests;
 
@@ -94,14 +95,14 @@ final readonly class InputRequiredResult extends Result implements ServerResult
             $requestState = $data['requestState'];
         }
 
-        $meta = new ResultMetaObject();
+        $meta = new GenericResultMetaObject();
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
                 ->isArray('"result._meta" must be an object, {type} given.')
                 ->isMap('"result._meta" must be a string-keyed object.')
             ;
-            $meta = ResultMetaObject::fromArray($data['_meta']);
+            $meta = GenericResultMetaObject::fromArray($data['_meta']);
         }
 
         return new self(inputRequests: $inputRequests, requestState: $requestState, meta: $meta);

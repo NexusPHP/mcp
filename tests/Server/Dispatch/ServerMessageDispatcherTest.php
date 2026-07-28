@@ -27,6 +27,7 @@ use Nexus\Mcp\Core\Schema\Error\UnsupportedProtocolVersionError;
 use Nexus\Mcp\Core\Schema\Implementation;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
+use Nexus\Mcp\Core\Schema\MetaObject\GenericResultMetaObject;
 use Nexus\Mcp\Core\Schema\MetaObject\ResultMetaObject;
 use Nexus\Mcp\Core\Schema\Notification\ProgressNotification;
 use Nexus\Mcp\Core\Schema\ProgressToken;
@@ -504,7 +505,7 @@ final class ServerMessageDispatcherTest extends TestCase
         $transport = new RecordingTransport();
         $dispatcher = self::buildDispatcher(
             requestHandlers: ['tools/list' => new ClosureRequestHandler(
-                static fn(): EmptyResult => new EmptyResult(new ResultMetaObject(extras: ['vendor' => 'x'])),
+                static fn(): EmptyResult => new EmptyResult(new GenericResultMetaObject(extras: ['vendor' => 'x'])),
             )],
             serverInfo: $serverInfo,
         );
@@ -527,7 +528,7 @@ final class ServerMessageDispatcherTest extends TestCase
         $transport = new RecordingTransport();
         $dispatcher = self::buildDispatcher(
             requestHandlers: ['tools/list' => new ClosureRequestHandler(
-                static fn(): EmptyResult => new EmptyResult(new ResultMetaObject(extras: $forwarded)),
+                static fn(): EmptyResult => new EmptyResult(new GenericResultMetaObject(extras: $forwarded)),
             )],
             serverInfo: new Implementation(name: 'test-server', version: '1.0.0'),
         );
@@ -547,7 +548,7 @@ final class ServerMessageDispatcherTest extends TestCase
         $transport = new RecordingTransport();
         $dispatcher = self::buildDispatcher(
             requestHandlers: ['tools/list' => new ClosureRequestHandler(
-                static fn(): EmptyResult => new EmptyResult(new ResultMetaObject(serverInfo: $upstream)),
+                static fn(): EmptyResult => new EmptyResult(new GenericResultMetaObject(serverInfo: $upstream)),
             )],
             serverInfo: new Implementation(name: 'test-server', version: '1.0.0'),
         );

@@ -16,7 +16,7 @@ namespace Nexus\Mcp\Tests\Core\Schema\Result;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Cursor;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
-use Nexus\Mcp\Core\Schema\MetaObject\ResultMetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\GenericResultMetaObject;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\CacheableResult;
 use Nexus\Mcp\Core\Schema\Result\ListToolsResult;
@@ -75,10 +75,10 @@ final class ListToolsResultTest extends TestCase
             ttlMs: 60000,
             cacheScope: CacheScope::Public,
             nextCursor: new Cursor(cursor: 'cursor-1'),
-            meta: new ResultMetaObject(extras: ['vendor' => 'x']),
+            meta: new GenericResultMetaObject(extras: ['vendor' => 'x']),
         );
 
-        $rebuilt = $result->rebuildWithMeta(new ResultMetaObject(extras: ['replaced' => true]));
+        $rebuilt = $result->rebuildWithMeta(new GenericResultMetaObject(extras: ['replaced' => true]));
 
         self::assertSame(
             ['_meta' => ['replaced' => true]] + $result->toArray(),
@@ -93,7 +93,7 @@ final class ListToolsResultTest extends TestCase
             ttlMs: 60000,
             cacheScope: CacheScope::Public,
             nextCursor: new Cursor(cursor: 'cursor-1'),
-            meta: new ResultMetaObject(extras: ['vendor' => 'x']),
+            meta: new GenericResultMetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -123,7 +123,7 @@ final class ListToolsResultTest extends TestCase
             ttlMs: 60000,
             cacheScope: CacheScope::Public,
             nextCursor: new Cursor(cursor: 'cursor-1'),
-            meta: new ResultMetaObject(extras: ['vendor' => 'x']),
+            meta: new GenericResultMetaObject(extras: ['vendor' => 'x']),
         );
 
         $rebuilt = ListToolsResult::fromArray($original->toArray());

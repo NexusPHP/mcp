@@ -24,6 +24,7 @@ use Nexus\Mcp\Core\Schema\Request\ListResourcesRequest;
 use Nexus\Mcp\Core\Schema\Request\ListResourceTemplatesRequest;
 use Nexus\Mcp\Core\Schema\Request\ListToolsRequest;
 use Nexus\Mcp\Core\Schema\Request\ReadResourceRequest;
+use Nexus\Mcp\Core\Schema\Request\SubscriptionsListenRequest;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Core\Schema\Result\CompleteResult;
@@ -36,6 +37,7 @@ use Nexus\Mcp\Core\Schema\Result\ListResourcesResult;
 use Nexus\Mcp\Core\Schema\Result\ListResourceTemplatesResult;
 use Nexus\Mcp\Core\Schema\Result\ListToolsResult;
 use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
+use Nexus\Mcp\Core\Schema\Result\SubscriptionsListenResult;
 use Nexus\Mcp\Core\Schema\ResultResponse\CallToolResultResponse;
 use Nexus\Mcp\Core\Schema\ResultResponse\CompleteResultResponse;
 use Nexus\Mcp\Core\Schema\ResultResponse\DiscoverResultResponse;
@@ -46,6 +48,7 @@ use Nexus\Mcp\Core\Schema\ResultResponse\ListResourcesResultResponse;
 use Nexus\Mcp\Core\Schema\ResultResponse\ListResourceTemplatesResultResponse;
 use Nexus\Mcp\Core\Schema\ResultResponse\ListToolsResultResponse;
 use Nexus\Mcp\Core\Schema\ResultResponse\ReadResourceResultResponse;
+use Nexus\Mcp\Core\Schema\ResultResponse\SubscriptionsListenResultResponse;
 
 /**
  * Wraps a handler result in the typed `*ResultResponse` for its request method,
@@ -72,6 +75,7 @@ final class ResultResponseFactory
             $request instanceof ListResourcesRequest && $result instanceof ListResourcesResult => new ListResourcesResultResponse(id: $id, result: $result),
             $request instanceof ListResourceTemplatesRequest && $result instanceof ListResourceTemplatesResult => new ListResourceTemplatesResultResponse(id: $id, result: $result),
             $request instanceof ListToolsRequest && $result instanceof ListToolsResult => new ListToolsResultResponse(id: $id, result: $result),
+            $request instanceof SubscriptionsListenRequest && $result instanceof SubscriptionsListenResult => new SubscriptionsListenResultResponse(id: $id, result: $result),
             $result instanceof EmptyResult => new GenericResultResponse(id: $id, result: $result),
             default => throw new \InvalidArgumentException(\sprintf(
                 'Handler for "%s" returned %s, which is not a valid result for that method.',

@@ -16,7 +16,7 @@ namespace Nexus\Mcp\Tests\Core\Schema\Result;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Cursor;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
-use Nexus\Mcp\Core\Schema\MetaObject\ResultMetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\GenericResultMetaObject;
 use Nexus\Mcp\Core\Schema\Prompt\Prompt;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\CacheableResult;
@@ -81,10 +81,10 @@ final class ListPromptsResultTest extends TestCase
             ttlMs: 60000,
             cacheScope: CacheScope::Public,
             nextCursor: new Cursor(cursor: 'cur-1'),
-            meta: new ResultMetaObject(extras: ['vendor' => 'x']),
+            meta: new GenericResultMetaObject(extras: ['vendor' => 'x']),
         );
 
-        $rebuilt = $result->rebuildWithMeta(new ResultMetaObject(extras: ['replaced' => true]));
+        $rebuilt = $result->rebuildWithMeta(new GenericResultMetaObject(extras: ['replaced' => true]));
 
         self::assertSame(
             ['_meta' => ['replaced' => true]] + $result->toArray(),
@@ -99,7 +99,7 @@ final class ListPromptsResultTest extends TestCase
             ttlMs: 60000,
             cacheScope: CacheScope::Public,
             nextCursor: new Cursor(cursor: 'cur-1'),
-            meta: new ResultMetaObject(extras: ['vendor' => 'x']),
+            meta: new GenericResultMetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -122,7 +122,7 @@ final class ListPromptsResultTest extends TestCase
             ttlMs: 60000,
             cacheScope: CacheScope::Public,
             nextCursor: new Cursor(cursor: 'cur-1'),
-            meta: new ResultMetaObject(extras: ['k' => 'v']),
+            meta: new GenericResultMetaObject(extras: ['k' => 'v']),
         );
 
         self::assertSame($result->toArray(), $result->jsonSerialize());
@@ -154,7 +154,7 @@ final class ListPromptsResultTest extends TestCase
             ttlMs: 60000,
             cacheScope: CacheScope::Public,
             nextCursor: new Cursor(cursor: 'cur-1'),
-            meta: new ResultMetaObject(extras: ['vendor' => 'x']),
+            meta: new GenericResultMetaObject(extras: ['vendor' => 'x']),
         );
 
         $rebuilt = ListPromptsResult::fromArray($original->toArray());

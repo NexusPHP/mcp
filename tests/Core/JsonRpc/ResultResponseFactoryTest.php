@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Tests\Core\JsonRpc;
 
 use Nexus\Mcp\Core\JsonRpc\ResultResponseFactory;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
+use Nexus\Mcp\Core\Schema\MetaObject\SubscriptionsListenResultMetaObject;
 use Nexus\Mcp\Core\Schema\Prompt\PromptReference;
 use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
 use Nexus\Mcp\Core\Schema\Request\CompleteRequest;
@@ -25,6 +26,7 @@ use Nexus\Mcp\Core\Schema\Request\ListResourcesRequest;
 use Nexus\Mcp\Core\Schema\Request\ListResourceTemplatesRequest;
 use Nexus\Mcp\Core\Schema\Request\ListToolsRequest;
 use Nexus\Mcp\Core\Schema\Request\ReadResourceRequest;
+use Nexus\Mcp\Core\Schema\Request\SubscriptionsListenRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\CallToolRequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\CompleteRequestParams;
@@ -32,6 +34,7 @@ use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\GetPromptRequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\PaginatedRequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\ReadResourceRequestParams;
+use Nexus\Mcp\Core\Schema\RequestParams\SubscriptionsListenRequestParams;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Core\Schema\Result\CompleteResult;
@@ -44,6 +47,7 @@ use Nexus\Mcp\Core\Schema\Result\ListResourcesResult;
 use Nexus\Mcp\Core\Schema\Result\ListResourceTemplatesResult;
 use Nexus\Mcp\Core\Schema\Result\ListToolsResult;
 use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
+use Nexus\Mcp\Core\Schema\Result\SubscriptionsListenResult;
 use Nexus\Mcp\Core\Schema\ResultResponse\CallToolResultResponse;
 use Nexus\Mcp\Core\Schema\ResultResponse\CompleteResultResponse;
 use Nexus\Mcp\Core\Schema\ResultResponse\DiscoverResultResponse;
@@ -54,6 +58,8 @@ use Nexus\Mcp\Core\Schema\ResultResponse\ListResourcesResultResponse;
 use Nexus\Mcp\Core\Schema\ResultResponse\ListResourceTemplatesResultResponse;
 use Nexus\Mcp\Core\Schema\ResultResponse\ListToolsResultResponse;
 use Nexus\Mcp\Core\Schema\ResultResponse\ReadResourceResultResponse;
+use Nexus\Mcp\Core\Schema\ResultResponse\SubscriptionsListenResultResponse;
+use Nexus\Mcp\Core\Schema\SubscriptionFilter;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -207,6 +213,20 @@ final class ResultResponseFactoryTest extends TestCase
             ListToolsResultResponse::class,
         ];
 
+        yield 'subscriptions/listen' => [
+            new SubscriptionsListenRequest(
+                id: $id,
+                params: new SubscriptionsListenRequestParams(
+                    notifications: new SubscriptionFilter(toolsListChanged: true),
+                    meta: $meta,
+                ),
+            ),
+            new SubscriptionsListenResult(
+                new SubscriptionsListenResultMetaObject(subscriptionId: $id),
+            ),
+            SubscriptionsListenResultResponse::class,
+        ];
+
         yield 'untyped result falls back to the generic writer' => [
             $callTool,
             new EmptyResult(),
@@ -244,6 +264,12 @@ final class ResultResponseFactoryTest extends TestCase
             new CallToolRequest(id: $id, params: new CallToolRequestParams(name: 'tool', meta: $meta)),
             ListToolsResult::fromArray(['tools' => [], 'ttlMs' => 0, 'cacheScope' => 'private']),
             \sprintf('Handler for "tools/call" returned %s, which is not a valid result for that method.', ListToolsResult::class),
+        ];
+
+        yield 'subscription ack wrapped for the wrong method' => [
+            new ListToolsRequest(id: $id, params: new PaginatedRequestParams(meta: $meta)),
+            new SubscriptionsListenResult(new SubscriptionsListenResultMetaObject(subscriptionId: $id)),
+            \sprintf('Handler for "tools/list" returned %s, which is not a valid result for that method.', SubscriptionsListenResult::class),
         ];
     }
 }

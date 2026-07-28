@@ -16,6 +16,7 @@ namespace Nexus\Mcp\Core\Schema\Result;
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Enum\ResultType;
 use Nexus\Mcp\Core\Schema\MetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\GenericResultMetaObject;
 use Nexus\Mcp\Core\Schema\MetaObject\ResultMetaObject;
 use Nexus\Mcp\Core\Schema\Result;
 
@@ -40,7 +41,7 @@ final readonly class CompleteResult extends Result implements ServerResult
     /**
      * @param array{values: list<string>, total?: int, hasMore?: bool} $completion
      */
-    public function __construct(array $completion, ResultMetaObject $meta = new ResultMetaObject())
+    public function __construct(array $completion, ResultMetaObject $meta = new GenericResultMetaObject())
     {
         Assert::that($completion['values'])
             ->isList('"result.completion.values" must be a list, non-list array given.')
@@ -91,14 +92,14 @@ final readonly class CompleteResult extends Result implements ServerResult
             $completion['hasMore'] = $data['completion']['hasMore'];
         }
 
-        $meta = new ResultMetaObject();
+        $meta = new GenericResultMetaObject();
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
                 ->isArray('"result._meta" must be an object, {type} given.')
                 ->isMap('"result._meta" must be a string-keyed object.')
             ;
-            $meta = ResultMetaObject::fromArray($data['_meta']);
+            $meta = GenericResultMetaObject::fromArray($data['_meta']);
         }
 
         return new self(completion: $completion, meta: $meta);

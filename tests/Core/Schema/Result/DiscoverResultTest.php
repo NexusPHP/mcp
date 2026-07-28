@@ -16,6 +16,7 @@ namespace Nexus\Mcp\Tests\Core\Schema\Result;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\Implementation;
+use Nexus\Mcp\Core\Schema\MetaObject\GenericResultMetaObject;
 use Nexus\Mcp\Core\Schema\MetaObject\ResultMetaObject;
 use Nexus\Mcp\Core\Schema\ProtocolVersion;
 use Nexus\Mcp\Core\Schema\Result;
@@ -84,10 +85,10 @@ final class DiscoverResultTest extends TestCase
             ttlMs: 60000,
             cacheScope: CacheScope::Public,
             instructions: 'Be helpful.',
-            meta: new ResultMetaObject(extras: ['vendor' => 'x']),
+            meta: new GenericResultMetaObject(extras: ['vendor' => 'x']),
         );
 
-        $rebuilt = $result->rebuildWithMeta(new ResultMetaObject(extras: ['replaced' => true]));
+        $rebuilt = $result->rebuildWithMeta(new GenericResultMetaObject(extras: ['replaced' => true]));
 
         self::assertSame(
             ['_meta' => ['replaced' => true]] + $result->toArray(),
@@ -103,7 +104,7 @@ final class DiscoverResultTest extends TestCase
             ttlMs: 60000,
             cacheScope: CacheScope::Public,
             instructions: 'Be helpful.',
-            meta: new ResultMetaObject(
+            meta: new GenericResultMetaObject(
                 serverInfo: new Implementation(name: 'srv', version: '1.0.0'),
                 extras: ['vendor' => 'x'],
             ),
@@ -170,7 +171,7 @@ final class DiscoverResultTest extends TestCase
             ttlMs: 60000,
             cacheScope: CacheScope::Public,
             instructions: 'Be helpful.',
-            meta: new ResultMetaObject(
+            meta: new GenericResultMetaObject(
                 serverInfo: new Implementation(name: 'srv', version: '1.0.0'),
                 extras: ['vendor' => 'x'],
             ),

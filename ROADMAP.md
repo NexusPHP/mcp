@@ -94,10 +94,11 @@ utility (SEP-2575, changelog item 5) is removed from the protocol entirely.
 - [x] Delete `resources/subscribe` / `resources/unsubscribe` (none of these are implemented today, so
   this is a non-action verified by the migration).
 - [x] Complete the `_meta` family: `MetaObject` is the abstract base under `Core/Schema/`, with its
-  concrete subclasses in `Core/Schema/MetaObject/` (`PayloadMetaObject` for the `_meta` of a payload nested
-  inside an envelope, plus `RequestMetaObject`, `ResultMetaObject`, and `NotificationMetaObject`, which
-  carries the optional `io.modelcontextprotocol/subscriptionId`). Each envelope slot types its `_meta` to
-  the matching subclass.
+  concrete subclasses in `Core/Schema/MetaObject/`. `PayloadMetaObject` carries the `_meta` of a payload
+  nested inside an envelope, `RequestMetaObject` and `NotificationMetaObject` the request and notification
+  slots (the latter holding the optional `io.modelcontextprotocol/subscriptionId`), and `ResultMetaObject`
+  is itself an abstract base over `GenericResultMetaObject` and `SubscriptionsListenResultMetaObject`. Each
+  slot types its `_meta` to the matching class, and every concrete one is `final`.
 - [x] Carry the server identity on result `_meta`: `ResultMetaObject` (the result-side sibling of
   `RequestMetaObject`) holds the optional `io.modelcontextprotocol/serverInfo` key, `Result` and every
   subclass type their `_meta` slot to it, `DiscoverResult` drops its body-level `serverInfo` field, and
@@ -166,10 +167,10 @@ per spec method (nine in all). Only `tools/call`, `prompts/get`, and `resources/
   awaited response class). The base's `resultType` discriminator gates `input_required`: only the three
   eligible envelopes accept it. `GenericResultResponse` carries results with no dedicated envelope
   (`EmptyResult`), and `ResultResponseFactory` picks the typed envelope on the send path.
-- [ ] Model `SubscriptionsListenResult` (its empty-ack result landed in the schema) and carry it through
-  `GenericResultResponse` (today `EmptyResult`-only). No dedicated `*ResultResponse` is planned: whether the
-  spec wants one for the lone request method that lacks one is the open question in upstream issue #2989, so
-  this is held until that resolves.
+- [x] Model `SubscriptionsListenResult` and its dedicated `SubscriptionsListenResultResponse` envelope, with
+  `SubscriptionsListenResultMetaObject` carrying the required `io.modelcontextprotocol/subscriptionId`.
+  `ResultResponseFactory` routes the pair, and because the result's `_meta` is required and names the stream,
+  `rebuildWithMeta` keeps that identity when the dispatcher stamps `serverInfo` over it.
 - [x] Delete `UrlElicitationRequiredError` (-32042) entirely.
 - [x] Serve the server half. The tool executor, prompt renderer, and resource reader contracts (and the
   stores, handlers, and closure and attribute-discovered adapters behind them) return

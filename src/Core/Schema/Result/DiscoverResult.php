@@ -18,6 +18,7 @@ use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\Enum\ResultType;
 use Nexus\Mcp\Core\Schema\MetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\GenericResultMetaObject;
 use Nexus\Mcp\Core\Schema\MetaObject\ResultMetaObject;
 use Nexus\Mcp\Core\Schema\ServerCapabilities;
 use Nexus\Mcp\Core\Validation\EnumValueValidator;
@@ -58,7 +59,7 @@ final readonly class DiscoverResult extends CacheableResult implements ServerRes
         int $ttlMs,
         CacheScope $cacheScope,
         ?string $instructions = null,
-        ResultMetaObject $meta = new ResultMetaObject(),
+        ResultMetaObject $meta = new GenericResultMetaObject(),
     ) {
         Assert::that($supportedVersions)
             ->isList('"result.supportedVersions" must be a list, non-list array given.')
@@ -104,14 +105,14 @@ final readonly class DiscoverResult extends CacheableResult implements ServerRes
             $instructions = $raw;
         }
 
-        $meta = new ResultMetaObject();
+        $meta = new GenericResultMetaObject();
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
                 ->isArray('"result._meta" must be an object, {type} given.')
                 ->isMap('"result._meta" must be a string-keyed object.')
             ;
-            $meta = ResultMetaObject::fromArray($data['_meta']);
+            $meta = GenericResultMetaObject::fromArray($data['_meta']);
         }
 
         return new self(

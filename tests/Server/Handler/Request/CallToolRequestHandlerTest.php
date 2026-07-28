@@ -16,7 +16,7 @@ namespace Nexus\Mcp\Tests\Server\Handler\Request;
 use Amp\NullCancellation;
 use Nexus\Mcp\Core\Exception\InvalidParamsException;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
-use Nexus\Mcp\Core\Schema\MetaObject\ResultMetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\GenericResultMetaObject;
 use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\CallToolRequestParams;
@@ -119,7 +119,7 @@ final class CallToolRequestHandlerTest extends TestCase
                     content: [],
                     structuredContent: $structured,
                     isError: false,
-                    meta: new ResultMetaObject(extras: ['vendor' => 'x']),
+                    meta: new GenericResultMetaObject(extras: ['vendor' => 'x']),
                 )),
             ),
         ]);

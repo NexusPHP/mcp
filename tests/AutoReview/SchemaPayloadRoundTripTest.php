@@ -70,10 +70,10 @@ final class SchemaPayloadRoundTripTest extends AbstractRoundTripTestCase
     private const array ENCODING_PATHS_DIVERGE = [
         'Annotations' => true,
         'ClientCapabilities' => true,
+        'GenericResultMetaObject' => true,
         'NotificationMetaObject' => true,
         'PayloadMetaObject' => true,
         'RequestMetaObject' => true,
-        'ResultMetaObject' => true,
         'ServerCapabilities' => true,
         'SubscriptionFilter' => true,
         'ToolAnnotations' => true,

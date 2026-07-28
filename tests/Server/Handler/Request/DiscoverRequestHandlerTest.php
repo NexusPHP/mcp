@@ -16,7 +16,7 @@ namespace Nexus\Mcp\Tests\Server\Handler\Request;
 use Amp\NullCancellation;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\Implementation;
-use Nexus\Mcp\Core\Schema\MetaObject\ResultMetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\GenericResultMetaObject;
 use Nexus\Mcp\Core\Schema\ProtocolVersion;
 use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
@@ -58,7 +58,7 @@ final class DiscoverRequestHandlerTest extends TestCase
         $serverInfo = new Implementation(name: 'test-server', version: '2.0.0', title: 'Test Server');
         $handler = new DiscoverRequestHandler(
             new ServerCapabilities(),
-            meta: new ResultMetaObject(extras: ['vendor' => 'x']),
+            meta: new GenericResultMetaObject(extras: ['vendor' => 'x']),
             serverInfo: $serverInfo,
         );
 
@@ -75,7 +75,7 @@ final class DiscoverRequestHandlerTest extends TestCase
             'Use the tools wisely.',
             5_000,
             CacheScope::Public,
-            new ResultMetaObject(extras: ['vendor' => 'x']),
+            new GenericResultMetaObject(extras: ['vendor' => 'x']),
         );
 
         $result = $handler->handle(self::makeRequest(), self::makeContext());

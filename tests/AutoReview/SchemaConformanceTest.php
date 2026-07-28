@@ -25,6 +25,7 @@ use Nexus\Mcp\Core\Schema\Enum\SdkErrorCode;
 use Nexus\Mcp\Core\Schema\Error;
 use Nexus\Mcp\Core\Schema\Error\UnknownProtocolError;
 use Nexus\Mcp\Core\Schema\Icons;
+use Nexus\Mcp\Core\Schema\MetaObject\GenericResultMetaObject;
 use Nexus\Mcp\Core\Schema\MetaObject\PayloadMetaObject;
 use Nexus\Mcp\Core\Schema\Notification;
 use Nexus\Mcp\Core\Schema\Notification\ClientNotification;
@@ -132,6 +133,7 @@ final class SchemaConformanceTest extends TestCase
     private const array SEE_ANNOTATION_EXEMPT = [
         Arrayable::class,
         GenericResultResponse::class,
+        GenericResultMetaObject::class,
         PayloadMetaObject::class,
         RequestParamsInterface::class,
     ];

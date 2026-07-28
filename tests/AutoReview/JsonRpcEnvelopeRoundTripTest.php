@@ -20,7 +20,7 @@ use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
-use Nexus\Mcp\Core\Schema\MetaObject\ResultMetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\GenericResultMetaObject;
 use Nexus\Mcp\Core\Schema\Notification\CancelledNotification;
 use Nexus\Mcp\Core\Schema\Notification\ProgressNotification;
 use Nexus\Mcp\Core\Schema\Notification\PromptListChangedNotification;
@@ -51,6 +51,7 @@ use Nexus\Mcp\Core\Schema\ResultResponse\ListResourcesResultResponse;
 use Nexus\Mcp\Core\Schema\ResultResponse\ListResourceTemplatesResultResponse;
 use Nexus\Mcp\Core\Schema\ResultResponse\ListToolsResultResponse;
 use Nexus\Mcp\Core\Schema\ResultResponse\ReadResourceResultResponse;
+use Nexus\Mcp\Core\Schema\ResultResponse\SubscriptionsListenResultResponse;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -121,15 +122,33 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
         $payload = $result->toArray();
         unset($payload['_meta']);
 
-        $rebuilt = $result->rebuildWithMeta(new ResultMetaObject(serverInfo: $serverInfo));
+        $rebuilt = $result->rebuildWithMeta(new GenericResultMetaObject(serverInfo: $serverInfo));
+
+        $rebuiltPayload = $rebuilt->toArray();
+        unset($rebuiltPayload['_meta']);
 
         self::assertSame(
-            ['_meta' => [ResultMetaObject::SERVER_INFO_KEY => $serverInfo->toArray()]] + $payload,
-            $rebuilt->toArray(),
+            $payload,
+            $rebuiltPayload,
             \sprintf(
                 'Rebuilding %s with a new `_meta` dropped or reordered part of the result. Its rebuildWithMeta() must carry every field the constructor takes.',
                 $resultClass,
             ),
+        );
+
+        self::assertInstanceOf(
+            $result->meta::class,
+            $rebuilt->meta,
+            \sprintf(
+                'Rebuilding %s widened its `_meta` type. A result whose method names a narrower `_meta` must rebuild into that same type.',
+                $resultClass,
+            ),
+        );
+
+        self::assertSame(
+            $serverInfo->toArray(),
+            $rebuilt->meta->serverInfo?->toArray(),
+            \sprintf('Rebuilding %s did not carry the stamped server identity.', $resultClass),
         );
     }
 
@@ -245,6 +264,8 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
         yield 'ListToolsResult' => ['wrapper' => ListToolsResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => null];
 
         yield 'ReadResourceResult' => ['wrapper' => ReadResourceResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => null];
+
+        yield 'SubscriptionsListenResult' => ['wrapper' => SubscriptionsListenResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => null];
 
         // Error responses, organised per Error subclass even though
         // `JsonRpcErrorResponse::fromArray` self-dispatches on `code`.

@@ -24,6 +24,7 @@ use Nexus\Mcp\Core\Schema\ContentBlock\ResourceLink;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Enum\ResultType;
 use Nexus\Mcp\Core\Schema\MetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\GenericResultMetaObject;
 use Nexus\Mcp\Core\Schema\MetaObject\ResultMetaObject;
 use Nexus\Mcp\Core\Schema\Result;
 
@@ -60,7 +61,7 @@ final readonly class CallToolResult extends Result implements ServerResult
         array $content,
         ?array $structuredContent = null,
         public ?bool $isError = null,
-        ResultMetaObject $meta = new ResultMetaObject(),
+        ResultMetaObject $meta = new GenericResultMetaObject(),
     ) {
         Assert::that($content)
             ->isList('"result.content" must be a list, non-list array given.')
@@ -105,14 +106,14 @@ final readonly class CallToolResult extends Result implements ServerResult
         $isError = $data['isError'] ?? null;
         Assert::that($isError)->nullOr()->isBool('"result.isError" must be a bool or null, {type} given.');
 
-        $meta = new ResultMetaObject();
+        $meta = new GenericResultMetaObject();
 
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
                 ->isArray('"result._meta" must be an object, {type} given.')
                 ->isMap('"result._meta" must be a string-keyed object.')
             ;
-            $meta = ResultMetaObject::fromArray($data['_meta']);
+            $meta = GenericResultMetaObject::fromArray($data['_meta']);
         }
 
         return new self(content: $content, structuredContent: $structuredContent, isError: $isError, meta: $meta);

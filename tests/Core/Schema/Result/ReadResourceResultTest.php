@@ -15,7 +15,7 @@ namespace Nexus\Mcp\Tests\Core\Schema\Result;
 
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
-use Nexus\Mcp\Core\Schema\MetaObject\ResultMetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\GenericResultMetaObject;
 use Nexus\Mcp\Core\Schema\Resource\BlobResourceContents;
 use Nexus\Mcp\Core\Schema\Resource\TextResourceContents;
 use Nexus\Mcp\Core\Schema\Result;
@@ -119,10 +119,10 @@ final class ReadResourceResultTest extends TestCase
             contents: [new TextResourceContents(uri: 'file:///x', text: 'hi')],
             ttlMs: 60000,
             cacheScope: CacheScope::Public,
-            meta: new ResultMetaObject(extras: ['vendor' => 'x']),
+            meta: new GenericResultMetaObject(extras: ['vendor' => 'x']),
         );
 
-        $rebuilt = $result->rebuildWithMeta(new ResultMetaObject(extras: ['replaced' => true]));
+        $rebuilt = $result->rebuildWithMeta(new GenericResultMetaObject(extras: ['replaced' => true]));
 
         self::assertSame(
             ['_meta' => ['replaced' => true]] + $result->toArray(),
@@ -136,7 +136,7 @@ final class ReadResourceResultTest extends TestCase
             contents: [new TextResourceContents(uri: 'file:///x', text: 'hi')],
             ttlMs: 0,
             cacheScope: CacheScope::Private,
-            meta: new ResultMetaObject(extras: ['vendor' => 'x']),
+            meta: new GenericResultMetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -157,7 +157,7 @@ final class ReadResourceResultTest extends TestCase
             contents: [new TextResourceContents(uri: 'file:///x', text: 'hi')],
             ttlMs: 0,
             cacheScope: CacheScope::Private,
-            meta: new ResultMetaObject(extras: ['k' => 'v']),
+            meta: new GenericResultMetaObject(extras: ['k' => 'v']),
         );
 
         self::assertSame($result->toArray(), $result->jsonSerialize());
@@ -218,7 +218,7 @@ final class ReadResourceResultTest extends TestCase
             ],
             ttlMs: 60000,
             cacheScope: CacheScope::Public,
-            meta: new ResultMetaObject(extras: ['vendor' => 'x']),
+            meta: new GenericResultMetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame($original->toArray(), ReadResourceResult::fromArray($original->toArray())->toArray());

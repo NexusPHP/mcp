@@ -16,7 +16,7 @@ namespace Nexus\Mcp\Tests\Core\Schema\Result;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Enum\Role;
-use Nexus\Mcp\Core\Schema\MetaObject\ResultMetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\GenericResultMetaObject;
 use Nexus\Mcp\Core\Schema\Prompt\PromptMessage;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
@@ -73,10 +73,10 @@ final class GetPromptResultTest extends TestCase
         $result = new GetPromptResult(
             messages: [new PromptMessage(role: Role::User, content: new TextContent(text: 'hi'))],
             description: 'Reviews changes.',
-            meta: new ResultMetaObject(extras: ['vendor' => 'x']),
+            meta: new GenericResultMetaObject(extras: ['vendor' => 'x']),
         );
 
-        $rebuilt = $result->rebuildWithMeta(new ResultMetaObject(extras: ['replaced' => true]));
+        $rebuilt = $result->rebuildWithMeta(new GenericResultMetaObject(extras: ['replaced' => true]));
 
         self::assertSame(
             ['_meta' => ['replaced' => true]] + $result->toArray(),
@@ -89,7 +89,7 @@ final class GetPromptResultTest extends TestCase
         $result = new GetPromptResult(
             messages: [new PromptMessage(role: Role::User, content: new TextContent(text: 'hi'))],
             description: 'Reviews changes.',
-            meta: new ResultMetaObject(extras: ['vendor' => 'x']),
+            meta: new GenericResultMetaObject(extras: ['vendor' => 'x']),
         );
 
         self::assertSame(
@@ -113,7 +113,7 @@ final class GetPromptResultTest extends TestCase
         $result = new GetPromptResult(
             messages: [new PromptMessage(role: Role::User, content: new TextContent(text: 'hi'))],
             description: 'desc',
-            meta: new ResultMetaObject(extras: ['k' => 'v']),
+            meta: new GenericResultMetaObject(extras: ['k' => 'v']),
         );
 
         self::assertSame($result->toArray(), $result->jsonSerialize());
@@ -127,7 +127,7 @@ final class GetPromptResultTest extends TestCase
                 new PromptMessage(role: Role::Assistant, content: new TextContent(text: 'there')),
             ],
             description: 'desc',
-            meta: new ResultMetaObject(extras: ['vendor' => 'x']),
+            meta: new GenericResultMetaObject(extras: ['vendor' => 'x']),
         );
 
         $rebuilt = GetPromptResult::fromArray($original->toArray());

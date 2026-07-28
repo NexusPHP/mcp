@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Schema;
 
+use Nexus\Mcp\Core\Schema\MetaObject\GenericResultMetaObject;
 use Nexus\Mcp\Core\Schema\MetaObject\ResultMetaObject;
 
 /**
@@ -26,7 +27,7 @@ use Nexus\Mcp\Core\Schema\MetaObject\ResultMetaObject;
  */
 abstract readonly class Result implements Arrayable
 {
-    public function __construct(public ResultMetaObject $meta = new ResultMetaObject())
+    public function __construct(public ResultMetaObject $meta = new GenericResultMetaObject())
     {
     }
 

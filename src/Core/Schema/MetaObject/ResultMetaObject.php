@@ -25,7 +25,7 @@ use Nexus\Mcp\Core\Schema\MetaObject;
  *
  * @see https://modelcontextprotocol.io/specification/draft/schema#resultmetaobject
  */
-final readonly class ResultMetaObject extends MetaObject
+abstract readonly class ResultMetaObject extends MetaObject
 {
     public const string SERVER_INFO_KEY = 'io.modelcontextprotocol/serverInfo';
 
@@ -35,23 +35,6 @@ final readonly class ResultMetaObject extends MetaObject
     public function __construct(public ?Implementation $serverInfo = null, array $extras = [])
     {
         parent::__construct(extras: $extras);
-    }
-
-    #[\Override]
-    public static function fromArray(array $data): static
-    {
-        $serverInfo = null;
-
-        if (\array_key_exists(self::SERVER_INFO_KEY, $data)) {
-            Assert::that($data[self::SERVER_INFO_KEY])
-                ->isArray(\sprintf('"_meta.%s" must be an object, {type} given.', self::SERVER_INFO_KEY))
-                ->isMap(\sprintf('"_meta.%s" must be a string-keyed object.', self::SERVER_INFO_KEY))
-            ;
-            $serverInfo = Implementation::fromArray($data[self::SERVER_INFO_KEY]);
-            unset($data[self::SERVER_INFO_KEY]);
-        }
-
-        return new self(serverInfo: $serverInfo, extras: $data);
     }
 
     /**
@@ -77,5 +60,28 @@ final readonly class ResultMetaObject extends MetaObject
         $out += $this->extras;
 
         return $out;
+    }
+
+    /**
+     * Splits the typed server identity out of a raw `_meta` map, leaving the rest as extras.
+     *
+     * @param array<string, mixed> $data
+     *
+     * @return array{null|Implementation, array<string, mixed>}
+     */
+    protected static function splitServerInfo(array $data): array
+    {
+        $serverInfo = null;
+
+        if (\array_key_exists(self::SERVER_INFO_KEY, $data)) {
+            Assert::that($data[self::SERVER_INFO_KEY])
+                ->isArray(\sprintf('"_meta.%s" must be an object, {type} given.', self::SERVER_INFO_KEY))
+                ->isMap(\sprintf('"_meta.%s" must be a string-keyed object.', self::SERVER_INFO_KEY))
+            ;
+            $serverInfo = Implementation::fromArray($data[self::SERVER_INFO_KEY]);
+            unset($data[self::SERVER_INFO_KEY]);
+        }
+
+        return [$serverInfo, $data];
     }
 }
