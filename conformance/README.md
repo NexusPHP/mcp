@@ -48,6 +48,22 @@ A tier percentage from the suite's own `tier-check` is not reachable yet, and th
 state rather than a gap here: its `DATED_SPEC_VERSIONS` still ends at `2025-11-25`, and it scores
 only over dated versions. When upstream dates 2026-07-28, these scenarios begin to count.
 
+## The README badges
+
+`conformance/badges/server.json` and `client.json` are shields.io endpoint payloads, committed and read
+straight off the default branch by the README. Regenerate them from the last run with:
+
+```bash
+composer conformance:badge
+```
+
+Only the modes the run covered are rewritten, so scoring a client run cannot blank the server badge. CI
+regenerates and diffs them, and a stale file fails the build rather than quietly advertising a score
+nobody measured.
+
+The number is the check pass rate at `--spec-version 2026-07-28`. It is **not** the SEP-1730 tier
+percentage, which is computed over a different, older denominator and is upstream-blocked (see above).
+
 ## The baseline
 
 [`expected-failures.yaml`](expected-failures.yaml) lists what does not pass yet. The referee exits 0

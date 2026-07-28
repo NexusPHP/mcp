@@ -27,12 +27,18 @@ declare(strict_types=1);
  *
  *     php conformance/score.php            # markdown table
  *     php conformance/score.php --json     # machine-readable
+ *     php conformance/score.php --badge    # rewrite conformance/badges/<mode>.json
+ *
+ * The badge files are committed, and CI regenerates them and fails when they differ
+ * from the run, so the README badges cannot drift away from the measured score.
  */
 
 require __DIR__.'/bootstrap.php';
 
 $resultsDir = __DIR__.'/results';
-$asJson = in_array('--json', conformanceArguments(), true);
+$arguments = conformanceArguments();
+$asJson = in_array('--json', $arguments, true);
+$writeBadges = in_array('--badge', $arguments, true);
 
 if (! is_dir($resultsDir)) {
     fwrite(\STDERR, "No conformance/results/ directory. Run ./conformance/run-server.sh first.\n");
@@ -135,6 +141,57 @@ foreach ($scenarios as $scenario) {
 
 $scored = $totals['SUCCESS'] + $totals['FAILURE'] + $totals['WARNING'];
 $rate = $scored > 0 ? $totals['SUCCESS'] / $scored : 0.0;
+
+if ($writeBadges) {
+    $perMode = [];
+
+    foreach ($scenarios as $scenario) {
+        $mode = $scenario['mode'];
+        $perMode[$mode] ??= ['passed' => 0, 'scored' => 0];
+        $perMode[$mode]['passed'] += $scenario['counts']['SUCCESS'];
+        $perMode[$mode]['scored'] += $scenario['counts']['SUCCESS']
+            + $scenario['counts']['FAILURE']
+            + $scenario['counts']['WARNING'];
+    }
+
+    $badgeDir = __DIR__.'/badges';
+
+    if (! is_dir($badgeDir) && ! mkdir($badgeDir, 0o755, true) && ! is_dir($badgeDir)) {
+        fwrite(\STDERR, "Could not create conformance/badges/.\n");
+
+        exit(1);
+    }
+
+    // Only the modes this run actually covered are rewritten. Each CI job runs one
+    // mode, so touching the other would blank a badge that is still accurate.
+    foreach ($perMode as $mode => $tally) {
+        if ('unknown' === $mode || 0 === $tally['scored']) {
+            continue;
+        }
+
+        $percent = (int) round($tally['passed'] / $tally['scored'] * 100);
+        $badge = [
+            'schemaVersion' => 1,
+            'label' => sprintf('conformance (%s)', $mode),
+            'message' => sprintf('%d/%d (%d%%)', $tally['passed'], $tally['scored'], $percent),
+            'color' => match (true) {
+                $percent >= 95 => 'brightgreen',
+                $percent >= 85 => 'green',
+                $percent >= 70 => 'yellow',
+                default => 'orange',
+            },
+        ];
+
+        file_put_contents(
+            sprintf('%s/%s.json', $badgeDir, $mode),
+            json_encode($badge, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES)."\n",
+        );
+
+        printf("Wrote conformance/badges/%s.json (%s).\n", $mode, $badge['message']);
+    }
+
+    exit(0);
+}
 
 if ($asJson) {
     echo json_encode([

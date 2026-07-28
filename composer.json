@@ -92,6 +92,7 @@
             "api/vendor/bin/apigen src --output=api/docs --config=api/apigen.neon"
         ],
         "arch:check": "tools/vendor/bin/structarmed analyse src",
+        "conformance:badge": "@php conformance/score.php --badge",
         "conformance:client": "conformance/run-client.sh",
         "conformance:score": "@php conformance/score.php",
         "conformance:server": "conformance/run-server.sh",
@@ -159,6 +160,7 @@
     "scripts-descriptions": {
         "api:docs": "Generates the public API reference with ApiGen",
         "arch:check": "Checks architecture layer boundaries with StructArmed",
+        "conformance:badge": "Rewrites the committed README score badges from the last run",
         "conformance:client": "Runs the MCP conformance suite in client mode (needs Node)",
         "conformance:score": "Aggregates the last conformance run into a score report",
         "conformance:server": "Runs the MCP conformance suite in server mode (needs Node and a free port)",
