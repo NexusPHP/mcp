@@ -30,7 +30,7 @@ use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
  *   result: template-type<GetPromptResult|InputRequiredResult, Result, 'T'>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#getpromptresultresponse
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#getpromptresultresponse
  */
 final readonly class GetPromptResultResponse extends JsonRpcResultResponse
 {

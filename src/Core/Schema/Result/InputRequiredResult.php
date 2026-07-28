@@ -36,7 +36,7 @@ use Nexus\Mcp\Core\Schema\Result;
  *   requestState?: string,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#inputrequiredresult
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#inputrequiredresult
  */
 final readonly class InputRequiredResult extends Result implements ServerResult
 {

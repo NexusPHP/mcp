@@ -31,7 +31,7 @@ use Nexus\Mcp\Core\Schema\Error;
  *
  * @extends Error<array{code: -32602, message: non-empty-string, data?: mixed}>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#invalidparamserror
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#invalidparamserror
  */
 final readonly class InvalidParamsError extends Error
 {

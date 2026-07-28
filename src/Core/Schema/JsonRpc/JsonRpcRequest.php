@@ -27,7 +27,7 @@ use Nexus\Mcp\Core\Schema\RequestParamsInterface;
  * @extends Request<TMethod>
  * @implements Arrayable<TEnvelope>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#jsonrpcrequest
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#jsonrpcrequest
  */
 abstract readonly class JsonRpcRequest extends Request implements Arrayable, JsonRpcMessage
 {

@@ -39,7 +39,7 @@ use Nexus\Mcp\Core\Schema\Result;
  *   isError?: bool,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#calltoolresult
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#calltoolresult
  */
 final readonly class CallToolResult extends Result implements ServerResult
 {

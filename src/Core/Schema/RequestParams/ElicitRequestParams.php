@@ -24,7 +24,7 @@ use Nexus\Mcp\Core\Schema\RequestParamsInterface;
  *
  * @phpstan-sealed ElicitRequestUrlParams|ElicitRequestFormParams
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#elicitrequestparams
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#elicitrequestparams
  */
 interface ElicitRequestParams extends RequestParamsInterface
 {

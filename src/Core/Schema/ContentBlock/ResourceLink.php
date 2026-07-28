@@ -43,7 +43,7 @@ use Nexus\Mcp\Core\Validation\Rfc3986UriValidator;
  *   _meta?: template-type<PayloadMetaObject, MetaObject, 'T'>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#resourcelink
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#resourcelink
  */
 final readonly class ResourceLink extends BaseMetadata implements Arrayable, ContentBlock, Icons
 {

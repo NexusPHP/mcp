@@ -18,7 +18,7 @@ use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
 /**
  * @template-covariant TMethod of non-empty-string
  *
- * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/draft/schema.ts
+ * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2026-07-28/schema.ts
  */
 abstract readonly class Notification
 {

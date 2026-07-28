@@ -29,7 +29,7 @@ use Nexus\Mcp\Core\Schema\Result\ListResourceTemplatesResult;
  *   result: template-type<ListResourceTemplatesResult, Result, 'T'>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#listresourcetemplatesresultresponse
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#listresourcetemplatesresultresponse
  */
 final readonly class ListResourceTemplatesResultResponse extends JsonRpcResultResponse
 {

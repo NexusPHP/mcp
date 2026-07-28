@@ -31,7 +31,7 @@ use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
  *   params?: template-type<EmptyNotificationParams, NotificationParams, 'T'>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#promptlistchangednotification
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#promptlistchangednotification
  */
 final readonly class PromptListChangedNotification extends JsonRpcNotification implements ServerNotification
 {

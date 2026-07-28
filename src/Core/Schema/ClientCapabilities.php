@@ -30,7 +30,7 @@ use Nexus\Assert\Assert;
  *   ...<string, mixed>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#clientcapabilities
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#clientcapabilities
  */
 final readonly class ClientCapabilities implements Arrayable
 {

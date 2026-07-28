@@ -31,7 +31,7 @@ use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
  *   params?: template-type<EmptyNotificationParams, NotificationParams, 'T'>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#toollistchangednotification
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#toollistchangednotification
  */
 final readonly class ToolListChangedNotification extends JsonRpcNotification implements ServerNotification
 {

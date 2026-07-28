@@ -17,7 +17,7 @@ namespace Nexus\Mcp\Core\Schema;
  * Marker for a content block that can be embedded in a prompt message or tool
  * call result. Each variant carries its own `type` discriminator.
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#contentblock
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#contentblock
  */
 interface ContentBlock
 {

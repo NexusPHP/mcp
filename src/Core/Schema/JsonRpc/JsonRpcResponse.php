@@ -18,7 +18,7 @@ namespace Nexus\Mcp\Core\Schema\JsonRpc;
  *
  * @phpstan-sealed JsonRpcResultResponse|JsonRpcErrorResponse
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#jsonrpcresponse
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#jsonrpcresponse
  */
 interface JsonRpcResponse extends JsonRpcMessage
 {

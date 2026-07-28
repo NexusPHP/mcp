@@ -23,7 +23,7 @@ use Nexus\Mcp\Core\Schema\MetaObject\ResultMetaObject;
  *
  * @implements Arrayable<T>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#result
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#result
  */
 abstract readonly class Result implements Arrayable
 {

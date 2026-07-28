@@ -27,7 +27,7 @@ use Nexus\Mcp\Core\Schema\RequestParams\PaginatedRequestParams;
  *
  * @extends JsonRpcRequest<TMethod, TEnvelope>
  *
- * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/draft/schema.ts
+ * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2026-07-28/schema.ts
  */
 abstract readonly class PaginatedRequest extends JsonRpcRequest
 {

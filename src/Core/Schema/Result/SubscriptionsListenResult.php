@@ -33,7 +33,7 @@ use Nexus\Mcp\Core\Schema\Result;
  *   resultType: non-empty-string,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#subscriptionslistenresult
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#subscriptionslistenresult
  */
 final readonly class SubscriptionsListenResult extends Result implements ServerResult
 {

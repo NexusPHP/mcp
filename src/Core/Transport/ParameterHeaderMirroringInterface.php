@@ -21,7 +21,7 @@ namespace Nexus\Mcp\Core\Transport;
  * arguments of a `tools/call` into `Mcp-Param-{Name}` headers. A transport without the marker (stdio) may
  * ignore the annotations entirely, so the client leaves its tool listing untouched.
  *
- * @see https://modelcontextprotocol.io/specification/draft/basic/transports/streamable-http#custom-headers-from-tool-parameters
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/streamable-http#custom-headers-from-tool-parameters
  */
 interface ParameterHeaderMirroringInterface extends TransportInterface
 {

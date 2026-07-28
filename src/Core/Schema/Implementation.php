@@ -27,7 +27,7 @@ use Nexus\Assert\Assert;
  *   icons?: list<template-type<Icon, Arrayable, 'T'>>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#implementation
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#implementation
  */
 final readonly class Implementation extends BaseMetadata implements Arrayable, Icons
 {

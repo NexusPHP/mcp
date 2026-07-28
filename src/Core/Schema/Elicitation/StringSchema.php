@@ -28,7 +28,7 @@ use Nexus\Assert\Assert;
  *   default?: string,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#stringschema
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#stringschema
  */
 final readonly class StringSchema implements PrimitiveSchemaDefinition
 {

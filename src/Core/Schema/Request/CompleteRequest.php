@@ -31,7 +31,7 @@ use Nexus\Mcp\Core\Schema\RequestParams\CompleteRequestParams;
  *   params: template-type<CompleteRequestParams, RequestParams, 'T'>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#completerequest
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#completerequest
  */
 final readonly class CompleteRequest extends JsonRpcRequest implements ClientRequest
 {

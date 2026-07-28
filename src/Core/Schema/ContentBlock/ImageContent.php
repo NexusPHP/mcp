@@ -31,7 +31,7 @@ use Nexus\Mcp\Core\Schema\MetaObject\PayloadMetaObject;
  *   _meta?: template-type<PayloadMetaObject, MetaObject, 'T'>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#imagecontent
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#imagecontent
  */
 final readonly class ImageContent implements Arrayable, ContentBlock
 {

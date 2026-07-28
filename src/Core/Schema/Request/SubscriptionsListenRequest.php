@@ -33,7 +33,7 @@ use Nexus\Mcp\Core\Schema\RequestParams\SubscriptionsListenRequestParams;
  *   params: template-type<SubscriptionsListenRequestParams, RequestParams, 'T'>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#subscriptionslistenrequest
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#subscriptionslistenrequest
  */
 final readonly class SubscriptionsListenRequest extends JsonRpcRequest implements ClientRequest
 {

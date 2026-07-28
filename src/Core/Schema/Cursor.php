@@ -18,7 +18,7 @@ use Nexus\Assert\Assert;
 /**
  * An opaque token used to represent a cursor for pagination.
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#cursor
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#cursor
  */
 final readonly class Cursor
 {

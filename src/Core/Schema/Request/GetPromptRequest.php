@@ -31,7 +31,7 @@ use Nexus\Mcp\Core\Schema\RequestParams\GetPromptRequestParams;
  *   params: template-type<GetPromptRequestParams, RequestParams, 'T'>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#getpromptrequest
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#getpromptrequest
  */
 final readonly class GetPromptRequest extends JsonRpcRequest implements ClientRequest
 {

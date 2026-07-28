@@ -22,7 +22,7 @@ namespace Nexus\Mcp\Tools;
  */
 final class McpAnchorSnapshot
 {
-    public const string SPEC_BASE_URL = 'https://modelcontextprotocol.io/specification/draft';
+    public const string SPEC_BASE_URL = 'https://modelcontextprotocol.io/specification/2026-07-28';
     public const string SNAPSHOT_PATH = __DIR__.'/../../tests/AutoReview/data/spec-anchors.json';
 
     /**

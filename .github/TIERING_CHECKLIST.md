@@ -47,7 +47,7 @@ The tiering system covers **both official and community-driven SDKs**, so `nexus
 - [ ] **New Protocol Features Within 6 Months**
   - Reference: SEP-1730 Tier 2 requirement
   - Currently implemented: 2025-11-25 (stdio). Target: the draft (`DRAFT-2026-v1` / `2026-07-28`), adopted at v1.0
-  - Next Spec Release: 2026-07-28 (RC tag `2026-07-28-RC` cut 2026-05-29, final pending)
+  - Next Spec Release: 2026-07-28 (dated tag published 2026-07-28)
   - Evidence/Notes: forward commitment, assessed once we publish a stable release
 
 ### Maintenance & Issue Management
@@ -110,7 +110,7 @@ The tiering system covers **both official and community-driven SDKs**, so `nexus
 
 - [ ] **New Protocol Features Before Spec Release**
   - Reference: SEP-1730 Tier 1 requirement, "before the new spec version release" (timeline agreed per release by feature complexity, not a fixed window)
-  - Context: the 2026-07-28 RC-to-final window is ~10 weeks (RC tag `2026-07-28-RC` published 2026-05-29, content locked 2026-05-21). Tier 1 requires building against the RC, not waiting for the final tag
+  - Context: the 2026-07-28 RC-to-final window ran ~9 weeks (RC tag cut 2026-05-29, dated tag published 2026-07-28). Tier 1 requires building against the RC, not waiting for the final tag, which is what this SDK did
   - Next Spec Release: 2026-07-28
   - Evidence/Notes: _________________________
 
@@ -461,7 +461,7 @@ SEP-2484 meta-drift: the repo has no SEP-status field, so it cannot mechanically
 - **Conformance Test Framework**: https://github.com/modelcontextprotocol/conformance (mapped at v0.2.0-alpha.0, local clone `../mcp-conformance`)
 - **SDK Integration Guide**: https://github.com/modelcontextprotocol/conformance/blob/main/SDK_INTEGRATION.md
 - **Tiering Assessment Tool**: https://github.com/modelcontextprotocol/conformance/blob/main/.claude/skills/mcp-sdk-tier-audit/README.md (skill docs are stale vs the 0.2.0 code, see "Drift")
-- **MCP Spec (draft, target)**: https://modelcontextprotocol.io/specification/draft
+- **MCP Spec (2026-07-28, target)**: https://modelcontextprotocol.io/specification/2026-07-28
 - **MCP Spec (2025-11-25, currently implemented)**: https://modelcontextprotocol.io/specification/2025-11-25
 
 ### General Notes

@@ -51,13 +51,11 @@ implemented.
 
 ## MCP 2026-07-28 migration
 
-The next MCP spec revision, dated **2026-07-28**, reshapes the protocol significantly. Its release
-candidate is published (the `2026-07-28-RC` tag, 2026-05-29, content frozen 2026-05-21) and the final
-spec is due 2026-07-28. The SDK builds this migration against the frozen release candidate
-(`schema/draft/`), re-syncing field-level fix-ups as they land. The work is staged foundation-first: the
-schema and protocol layer, then the Streamable HTTP transport that carries it, then the extension
-framework. The **v1.0.0 release is reserved for the final dated `2026-07-28` spec**, so the SDK does not
-ship a stable major against a draft that can still shift.
+The MCP spec revision dated **2026-07-28** reshapes the protocol significantly. It is published (the
+dated `2026-07-28` tag), and the SDK builds this migration against it, re-syncing field-level fix-ups as
+they land. The work is staged foundation-first: the schema and protocol layer, then the Streamable HTTP
+transport that carries it, then the extension framework. The **v1.0.0 release is reserved for this
+revision**, so the SDK does not ship a stable major against a draft that can still shift.
 
 **No backward-compatibility layer with 2025-11-25.** The migration ships as the v1.0.0 major version
 bump, and major versions are the SDK's contract for breaking changes. v0.x consumers have already
@@ -606,17 +604,16 @@ alphanumeric-bounded, so they are valid keys that need no special casing.
 
 ### Spec-reference retargeting
 
-The schema generator tracks the release candidate: `McpSchemaProcessor` fetches the RC draft schema
-(`schema/draft/` at the `2026-07-28-RC` tag) into the local `latest-schema.json` / `latest-schema.ts`
-references. The `@see` tags across `src/` and the `SchemaConformanceTest` anchor constants point at the
-`specification/draft/` docs pages, because the dated `2026-07-28` spec pages are not published yet. They
-retarget to the dated pages once the final spec ships.
+The schema generator and every spec reference track the dated release: `McpSchemaProcessor` fetches
+`schema/2026-07-28/` into the local `latest-schema.json` / `latest-schema.ts` references, and the `@see`
+tags across `src/` plus the `SchemaConformanceTest` and `McpAnchorSnapshot` constants point at the
+`specification/2026-07-28/` docs pages.
 
-- [ ] Repoint the `@see` URLs in `src/` from `specification/draft/...` (and the `schema/draft/schema.ts`
-  blob link) to the dated `2026-07-28` pages once published.
-- [ ] Update `SchemaConformanceTest`'s `SCHEMA_ANCHOR_BASE_URL` and `TS_SCHEMA_FILE_URL`, plus
-  `McpAnchorSnapshot::SPEC_BASE_URL`, to the dated spec, then re-run `composer spec:snapshot-anchors` to
-  refresh the anchor snapshot.
+- [x] Repoint the `@see` URLs in `src/` and the `schema/2026-07-28/schema.ts` blob link at the dated pages.
+  Almost a prefix swap, with one page moved between the draft and the dated release:
+  `basic/utilities/mrtr` is now `basic/patterns/mrtr`.
+- [x] Update `SchemaConformanceTest`'s `SCHEMA_ANCHOR_BASE_URL` and `TS_SCHEMA_FILE_URL`, plus
+  `McpAnchorSnapshot::SPEC_BASE_URL`, to the dated spec, and refresh the anchor snapshot.
 
 ## Server ergonomics
 

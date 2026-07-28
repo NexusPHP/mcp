@@ -25,7 +25,7 @@ use Nexus\Mcp\Core\Schema\RequestParams;
  *   _meta: template-type<RequestMetaObject, MetaObject, 'T'>,
  * }>
  *
- * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/draft/schema.ts
+ * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2026-07-28/schema.ts
  */
 final readonly class EmptyRequestParams extends RequestParams
 {

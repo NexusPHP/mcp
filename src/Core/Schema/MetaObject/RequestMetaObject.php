@@ -36,7 +36,7 @@ use Nexus\Mcp\Core\Validation\EnumValueValidator;
  *   ...<string, mixed>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#requestmetaobject
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#requestmetaobject
  */
 final readonly class RequestMetaObject extends MetaObject
 {

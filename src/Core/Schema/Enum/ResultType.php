@@ -21,7 +21,7 @@ namespace Nexus\Mcp\Core\Schema\Enum;
  * input_required - the request requires additional input and the result contains an `InputRequiredResult`
  * object with instructions for the client to provide additional input before retrying the original request.
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#resulttype
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#resulttype
  */
 enum ResultType: string
 {

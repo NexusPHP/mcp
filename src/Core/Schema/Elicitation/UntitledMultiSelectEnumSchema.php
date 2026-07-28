@@ -28,7 +28,7 @@ use Nexus\Assert\Assert;
  *   default?: list<string>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#untitledmultiselectenumschema
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#untitledmultiselectenumschema
  */
 final readonly class UntitledMultiSelectEnumSchema implements MultiSelectEnumSchema
 {

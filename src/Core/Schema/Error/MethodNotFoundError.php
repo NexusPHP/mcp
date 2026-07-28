@@ -30,7 +30,7 @@ use Nexus\Mcp\Core\Schema\Error;
  *
  * @extends Error<array{code: -32601, message: non-empty-string, data?: mixed}>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#methodnotfounderror
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#methodnotfounderror
  */
 final readonly class MethodNotFoundError extends Error
 {

@@ -22,7 +22,7 @@ use Nexus\Mcp\Core\Schema\MetaObject\NotificationMetaObject;
  *
  * @implements Arrayable<T>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#notificationparams
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#notificationparams
  */
 abstract readonly class NotificationParams implements Arrayable
 {

@@ -24,7 +24,7 @@ use Nexus\Mcp\Core\Schema\Error;
  *
  * @extends Error<array{code: -32020, message: non-empty-string, data?: mixed}>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#headermismatcherror
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#headermismatcherror
  */
 final readonly class HeaderMismatchError extends Error
 {

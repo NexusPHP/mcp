@@ -29,7 +29,7 @@ use Nexus\Mcp\Core\Schema\Result;
  *   completion: array{values: list<string>, total?: int, hasMore?: bool},
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#completeresult
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#completeresult
  */
 final readonly class CompleteResult extends Result implements ServerResult
 {

@@ -25,7 +25,7 @@ use Nexus\Mcp\Core\Schema\Notification;
  * @extends Notification<TMethod>
  * @implements Arrayable<TEnvelope>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#jsonrpcnotification
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#jsonrpcnotification
  */
 abstract readonly class JsonRpcNotification extends Notification implements Arrayable, JsonRpcMessage
 {

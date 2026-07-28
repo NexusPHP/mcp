@@ -26,7 +26,7 @@ use Nexus\Mcp\Core\Schema\Result\InputResponse;
  *
  * @extends RequestParams<T>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#inputresponserequestparams
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#inputresponserequestparams
  */
 abstract readonly class InputResponseRequestParams extends RequestParams
 {

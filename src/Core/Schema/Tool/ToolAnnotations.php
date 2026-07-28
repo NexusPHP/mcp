@@ -34,7 +34,7 @@ use Nexus\Mcp\Core\Schema\Arrayable;
  *   openWorldHint?: bool,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#toolannotations
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#toolannotations
  */
 final readonly class ToolAnnotations implements Arrayable
 {

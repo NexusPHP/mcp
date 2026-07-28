@@ -26,7 +26,7 @@ use Nexus\Mcp\Core\Schema\Result;
  *
  * @extends Result<T>
  *
- * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/draft/schema.ts
+ * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2026-07-28/schema.ts
  */
 abstract readonly class CacheableResult extends Result
 {

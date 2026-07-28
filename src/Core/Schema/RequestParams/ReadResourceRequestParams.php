@@ -29,7 +29,7 @@ use Nexus\Mcp\Core\Schema\Result\InputResponse;
  *   requestState?: string,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#readresourcerequestparams
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#readresourcerequestparams
  */
 final readonly class ReadResourceRequestParams extends ResourceRequestParams
 {

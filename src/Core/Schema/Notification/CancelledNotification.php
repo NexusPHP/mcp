@@ -38,7 +38,7 @@ use Nexus\Mcp\Core\Schema\NotificationParams\CancelledNotificationParams;
  *   params: template-type<CancelledNotificationParams, NotificationParams, 'T'>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#cancellednotification
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#cancellednotification
  */
 final readonly class CancelledNotification extends JsonRpcNotification implements ClientNotification, ServerNotification
 {

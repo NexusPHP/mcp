@@ -30,7 +30,7 @@ use Nexus\Mcp\Core\Schema\Result\SubscriptionsListenResult;
  *   result: template-type<SubscriptionsListenResult, Result, 'T'>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#subscriptionslistenresultresponse
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#subscriptionslistenresultresponse
  */
 final readonly class SubscriptionsListenResultResponse extends JsonRpcResultResponse
 {

@@ -31,7 +31,7 @@ use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
  *   requestState?: string,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#calltoolrequestparams
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#calltoolrequestparams
  */
 final readonly class CallToolRequestParams extends InputResponseRequestParams
 {

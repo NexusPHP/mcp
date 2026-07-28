@@ -23,7 +23,7 @@ namespace Nexus\Mcp\Core\Schema\Elicitation;
  *
  * @phpstan-sealed UntitledMultiSelectEnumSchema|TitledMultiSelectEnumSchema
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#multiselectenumschema
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#multiselectenumschema
  */
 interface MultiSelectEnumSchema extends EnumSchema
 {

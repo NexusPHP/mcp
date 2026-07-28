@@ -26,7 +26,7 @@ use Nexus\Mcp\Core\Validation\EnumValueValidator;
  *   content?: array<non-empty-string, bool|float|int|list<string>|string>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#elicitresult
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#elicitresult
  */
 final readonly class ElicitResult implements InputResponse
 {

@@ -28,7 +28,7 @@ use Nexus\Mcp\Core\Schema\Result;
  *   resultType: non-empty-string,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#emptyresult
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#emptyresult
  */
 final readonly class EmptyResult extends Result implements ClientResult, ServerResult
 {

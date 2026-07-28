@@ -24,7 +24,7 @@ use Nexus\Mcp\Core\Schema\Enum\SdkErrorCode;
  *
  * @internal
  *
- * @see https://modelcontextprotocol.io/specification/draft/basic/index#error-codes
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/basic/index#error-codes
  */
 final class HttpStatusResolver
 {

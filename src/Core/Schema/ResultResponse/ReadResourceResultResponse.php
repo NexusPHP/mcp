@@ -30,7 +30,7 @@ use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
  *   result: template-type<InputRequiredResult|ReadResourceResult, Result, 'T'>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#readresourceresultresponse
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#readresourceresultresponse
  */
 final readonly class ReadResourceResultResponse extends JsonRpcResultResponse
 {

@@ -29,7 +29,7 @@ use Nexus\Mcp\Core\Schema\Result\CompleteResult;
  *   result: template-type<CompleteResult, Result, 'T'>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#completeresultresponse
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#completeresultresponse
  */
 final readonly class CompleteResultResponse extends JsonRpcResultResponse
 {

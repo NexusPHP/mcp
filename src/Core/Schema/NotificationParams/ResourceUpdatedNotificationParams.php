@@ -26,7 +26,7 @@ use Nexus\Mcp\Core\Schema\NotificationParams;
  *   uri: string,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#resourceupdatednotificationparams
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#resourceupdatednotificationparams
  */
 final readonly class ResourceUpdatedNotificationParams extends NotificationParams
 {

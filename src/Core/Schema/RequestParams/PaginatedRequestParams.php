@@ -27,7 +27,7 @@ use Nexus\Mcp\Core\Schema\RequestParams;
  *   cursor?: non-empty-string,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#paginatedrequestparams
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#paginatedrequestparams
  */
 final readonly class PaginatedRequestParams extends RequestParams
 {

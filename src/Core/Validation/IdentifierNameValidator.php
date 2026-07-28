@@ -24,7 +24,7 @@ use Nexus\Assert\ExpectationFailedException;
  *
  * @internal
  *
- * @see https://modelcontextprotocol.io/specification/draft/server/tools#tool-names
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/server/tools#tool-names
  * @see https://github.com/modelcontextprotocol/modelcontextprotocol/issues/986
  */
 final class IdentifierNameValidator

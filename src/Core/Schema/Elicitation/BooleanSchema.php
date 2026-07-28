@@ -25,7 +25,7 @@ use Nexus\Assert\Assert;
  *   default?: bool,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#booleanschema
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#booleanschema
  */
 final readonly class BooleanSchema implements PrimitiveSchemaDefinition
 {

@@ -29,7 +29,7 @@ use Nexus\Mcp\Core\Schema\Result\DiscoverResult;
  *   result: template-type<DiscoverResult, Result, 'T'>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#discoverresultresponse
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#discoverresultresponse
  */
 final readonly class DiscoverResultResponse extends JsonRpcResultResponse
 {

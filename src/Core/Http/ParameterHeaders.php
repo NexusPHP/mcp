@@ -20,7 +20,7 @@ use Nexus\Mcp\Core\Schema\Error\HeaderMismatchError;
  *
  * @internal
  *
- * @see https://modelcontextprotocol.io/specification/draft/basic/transports/streamable-http#custom-headers-from-tool-parameters
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/streamable-http#custom-headers-from-tool-parameters
  */
 final class ParameterHeaders
 {

@@ -31,7 +31,7 @@ use Nexus\Mcp\Core\Schema\RequestParams\ReadResourceRequestParams;
  *   params: template-type<ReadResourceRequestParams, RequestParams, 'T'>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#readresourcerequest
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#readresourcerequest
  */
 final readonly class ReadResourceRequest extends JsonRpcRequest implements ClientRequest
 {

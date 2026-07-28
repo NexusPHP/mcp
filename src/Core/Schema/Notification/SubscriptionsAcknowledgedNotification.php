@@ -35,7 +35,7 @@ use Nexus\Mcp\Core\Schema\NotificationParams\SubscriptionsAcknowledgedNotificati
  *   params: template-type<SubscriptionsAcknowledgedNotificationParams, NotificationParams, 'T'>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#subscriptionsacknowledgednotification
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#subscriptionsacknowledgednotification
  */
 final readonly class SubscriptionsAcknowledgedNotification extends JsonRpcNotification implements ServerNotification
 {

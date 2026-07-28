@@ -34,7 +34,7 @@ use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
  *   params: template-type<EmptyRequestParams, RequestParams, 'T'>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#discoverrequest
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#discoverrequest
  */
 final readonly class DiscoverRequest extends JsonRpcRequest implements ClientRequest
 {

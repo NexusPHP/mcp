@@ -28,7 +28,7 @@ use Nexus\Mcp\Core\Schema\RequestId;
  *   reason?: non-empty-string,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#cancellednotificationparams
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#cancellednotificationparams
  */
 final readonly class CancelledNotificationParams extends NotificationParams
 {

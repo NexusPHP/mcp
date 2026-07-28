@@ -1,13 +1,13 @@
 {
     "anchors": {
-        "https://modelcontextprotocol.io/specification/draft/basic": [
+        "https://modelcontextprotocol.io/specification/2026-07-28/basic": [
             "_meta",
             "icons"
         ],
-        "https://modelcontextprotocol.io/specification/draft/basic/versioning": [
+        "https://modelcontextprotocol.io/specification/2026-07-28/basic/versioning": [
             "protocol-version-negotiation"
         ],
-        "https://modelcontextprotocol.io/specification/draft/schema": [
+        "https://modelcontextprotocol.io/specification/2026-07-28/schema": [
             "annotations",
             "audiocontent",
             "blobresourcecontents",
@@ -148,7 +148,7 @@
             "untitledmultiselectenumschema",
             "untitledsingleselectenumschema"
         ],
-        "https://modelcontextprotocol.io/specification/draft/server/tools": [
+        "https://modelcontextprotocol.io/specification/2026-07-28/server/tools": [
             "tool",
             "tool-names"
         ]

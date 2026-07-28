@@ -28,7 +28,7 @@ use Nexus\Mcp\Core\Validation\Iso8601DateTimeValidator;
  *   lastModified?: string,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#annotations
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#annotations
  */
 final readonly class Annotations implements Arrayable
 {

@@ -28,7 +28,7 @@ use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
  *   required?: bool,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#promptargument
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#promptargument
  */
 final readonly class PromptArgument extends BaseMetadata implements Arrayable
 {

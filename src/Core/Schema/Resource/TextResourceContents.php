@@ -28,7 +28,7 @@ use Nexus\Mcp\Core\Schema\MetaObject\PayloadMetaObject;
  *   _meta?: template-type<PayloadMetaObject, MetaObject, 'T'>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#textresourcecontents
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#textresourcecontents
  */
 final readonly class TextResourceContents extends ResourceContents
 {

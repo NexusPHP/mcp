@@ -23,7 +23,7 @@ use Nexus\Mcp\Core\Schema\RequestId;
  *
  * @extends MetaObject<array<string, mixed>>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#notificationmetaobject
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#notificationmetaobject
  */
 final readonly class NotificationMetaObject extends MetaObject
 {

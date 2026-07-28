@@ -29,7 +29,7 @@ use Nexus\Mcp\Core\Schema\Result\ListPromptsResult;
  *   result: template-type<ListPromptsResult, Result, 'T'>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#listpromptsresultresponse
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#listpromptsresultresponse
  */
 final readonly class ListPromptsResultResponse extends JsonRpcResultResponse
 {

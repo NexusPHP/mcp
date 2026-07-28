@@ -18,7 +18,7 @@ use Nexus\Assert\Assert;
 /**
  * A uniquely identifying ID for a request in JSON-RPC.
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#requestid
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#requestid
  */
 final readonly class RequestId
 {

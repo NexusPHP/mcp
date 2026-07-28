@@ -29,7 +29,7 @@ use Nexus\Mcp\Core\Schema\Result\ListToolsResult;
  *   result: template-type<ListToolsResult, Result, 'T'>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#listtoolsresultresponse
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#listtoolsresultresponse
  */
 final readonly class ListToolsResultResponse extends JsonRpcResultResponse
 {

@@ -85,9 +85,9 @@ final class SchemaConformanceTest extends TestCase
         'io.modelcontextprotocol/subscriptionId' => 'subscriptionId',
     ];
 
-    private const string SCHEMA_ANCHOR_BASE_URL = 'https://modelcontextprotocol.io/specification/draft/schema#';
+    private const string SCHEMA_ANCHOR_BASE_URL = 'https://modelcontextprotocol.io/specification/2026-07-28/schema#';
     private const string JSON_RPC_ERROR_OBJECT_URL = 'https://www.jsonrpc.org/specification#error_object';
-    private const string TS_SCHEMA_FILE_URL = 'https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/draft/schema.ts';
+    private const string TS_SCHEMA_FILE_URL = 'https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2026-07-28/schema.ts';
 
     /**
      * Schema classes whose `@see` cannot be the default 1:1 schema-anchor URL,
@@ -106,12 +106,12 @@ final class SchemaConformanceTest extends TestCase
         ProtocolErrorCode::class => self::JSON_RPC_ERROR_OBJECT_URL,
         SdkErrorCode::class => self::JSON_RPC_ERROR_OBJECT_URL,
         UnknownProtocolError::class => self::JSON_RPC_ERROR_OBJECT_URL,
-        Icons::class => 'https://modelcontextprotocol.io/specification/draft/basic#icons',
+        Icons::class => 'https://modelcontextprotocol.io/specification/2026-07-28/basic#icons',
         Notification::class => self::TS_SCHEMA_FILE_URL,
         EmptyNotificationParams::class => self::TS_SCHEMA_FILE_URL,
         ClientNotification::class => self::TS_SCHEMA_FILE_URL,
         ServerNotification::class => self::TS_SCHEMA_FILE_URL,
-        ProtocolVersion::class => 'https://modelcontextprotocol.io/specification/draft/basic/versioning#protocol-version-negotiation',
+        ProtocolVersion::class => 'https://modelcontextprotocol.io/specification/2026-07-28/basic/versioning#protocol-version-negotiation',
         Request::class => self::TS_SCHEMA_FILE_URL,
         EmptyRequestParams::class => self::TS_SCHEMA_FILE_URL,
         ResourceRequestParams::class => self::TS_SCHEMA_FILE_URL,

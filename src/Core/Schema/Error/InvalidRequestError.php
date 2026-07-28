@@ -26,7 +26,7 @@ use Nexus\Mcp\Core\Schema\Error;
  *
  * @extends Error<array{code: -32600, message: non-empty-string, data?: mixed}>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#invalidrequesterror
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#invalidrequesterror
  */
 final readonly class InvalidRequestError extends Error
 {

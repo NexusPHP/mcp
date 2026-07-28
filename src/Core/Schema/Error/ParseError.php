@@ -24,7 +24,7 @@ use Nexus\Mcp\Core\Schema\Error;
  *
  * @extends Error<array{code: -32700, message: non-empty-string, data?: mixed}>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#parseerror
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#parseerror
  */
 final readonly class ParseError extends Error
 {

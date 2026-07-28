@@ -40,7 +40,7 @@ namespace Nexus\Mcp\Core\Schema;
  *
  * @implements Arrayable<T>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#metaobject
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#metaobject
  */
 abstract readonly class MetaObject implements Arrayable
 {

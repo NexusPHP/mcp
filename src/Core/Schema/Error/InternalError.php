@@ -25,7 +25,7 @@ use Nexus\Mcp\Core\Schema\Error;
  *
  * @extends Error<array{code: -32603, message: non-empty-string, data?: mixed}>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#internalerror
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#internalerror
  */
 final readonly class InternalError extends Error
 {

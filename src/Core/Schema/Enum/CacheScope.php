@@ -17,7 +17,7 @@ namespace Nexus\Mcp\Core\Schema\Enum;
  * Indicates the intended scope of the cached response, analogous to HTTP
  * `Cache-Control: public` vs `Cache-Control: private`.
  *
- * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/draft/schema.ts
+ * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2026-07-28/schema.ts
  */
 enum CacheScope: string
 {

@@ -21,7 +21,7 @@ use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
  *
  * @implements Arrayable<T>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#error
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#error
  */
 abstract readonly class Error implements Arrayable
 {

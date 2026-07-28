@@ -21,7 +21,7 @@ namespace Nexus\Mcp\Core\Schema\Enum;
  * The counterpart holding spec-defined codes is `ProtocolErrorCode`.
  *
  * @see https://www.jsonrpc.org/specification#error_object
- * @see https://modelcontextprotocol.io/specification/draft/basic/index#error-codes
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/basic/index#error-codes
  */
 enum SdkErrorCode: int
 {

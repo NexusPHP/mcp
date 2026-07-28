@@ -27,7 +27,7 @@ use Nexus\Assert\Assert;
  *   default?: string,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#legacytitledenumschema
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#legacytitledenumschema
  */
 final readonly class LegacyTitledEnumSchema implements EnumSchema
 {

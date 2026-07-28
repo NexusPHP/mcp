@@ -36,7 +36,7 @@ use Nexus\Mcp\Core\Schema\Resource\TextResourceContents;
  *   _meta?: template-type<PayloadMetaObject, MetaObject, 'T'>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#embeddedresource
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#embeddedresource
  */
 final readonly class EmbeddedResource implements Arrayable, ContentBlock
 {

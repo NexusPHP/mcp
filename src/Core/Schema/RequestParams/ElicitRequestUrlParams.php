@@ -22,7 +22,7 @@ use Nexus\Mcp\Core\Schema\Arrayable;
  * @implements Arrayable<array{message: non-empty-string, mode: 'url', url: non-empty-string}>
  * @implements ElicitRequestParams<array{message: non-empty-string, mode: 'url', url: non-empty-string}>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#elicitrequesturlparams
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#elicitrequesturlparams
  */
 final readonly class ElicitRequestUrlParams implements Arrayable, ElicitRequestParams
 {

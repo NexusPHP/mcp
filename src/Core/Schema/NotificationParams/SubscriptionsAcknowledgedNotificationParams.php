@@ -28,7 +28,7 @@ use Nexus\Mcp\Core\Schema\SubscriptionFilter;
  *   notifications: template-type<SubscriptionFilter, Arrayable, 'T'>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#subscriptionsacknowledgednotificationparams
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#subscriptionsacknowledgednotificationparams
  */
 final readonly class SubscriptionsAcknowledgedNotificationParams extends NotificationParams
 {

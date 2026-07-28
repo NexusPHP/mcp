@@ -36,7 +36,7 @@ use Nexus\Mcp\Core\Validation\EnumValueValidator;
  *   cacheScope: value-of<CacheScope>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#listresourcesresult
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#listresourcesresult
  */
 final readonly class ListResourcesResult extends PaginatedResult implements ServerResult
 {

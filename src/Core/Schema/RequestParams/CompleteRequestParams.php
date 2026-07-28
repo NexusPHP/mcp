@@ -32,7 +32,7 @@ use Nexus\Mcp\Core\Schema\Resource\ResourceTemplateReference;
  *   context?: array{arguments?: array<string, string>},
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#completerequestparams
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#completerequestparams
  */
 final readonly class CompleteRequestParams extends RequestParams
 {

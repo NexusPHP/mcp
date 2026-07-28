@@ -32,7 +32,7 @@ use Nexus\Mcp\Core\Schema\Result;
  *   messages: list<template-type<PromptMessage, Arrayable, 'T'>>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#getpromptresult
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#getpromptresult
  */
 final readonly class GetPromptResult extends Result implements ServerResult
 {

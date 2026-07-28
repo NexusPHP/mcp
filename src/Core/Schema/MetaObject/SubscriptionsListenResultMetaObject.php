@@ -21,7 +21,7 @@ use Nexus\Mcp\Core\Schema\RequestId;
  * Extends `ResultMetaObject` with the subscription-stream identifier carried by a
  * `SubscriptionsListenResult`. All key naming rules from `MetaObject` apply.
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#subscriptionslistenresultmetaobject
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#subscriptionslistenresultmetaobject
  */
 final readonly class SubscriptionsListenResultMetaObject extends ResultMetaObject
 {

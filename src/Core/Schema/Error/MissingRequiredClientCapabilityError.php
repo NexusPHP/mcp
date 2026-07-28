@@ -29,7 +29,7 @@ use Nexus\Mcp\Core\Schema\Error;
  *   data: array{requiredCapabilities: template-type<ClientCapabilities, Arrayable, 'T'>},
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#missingrequiredclientcapabilityerror
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#missingrequiredclientcapabilityerror
  */
 final readonly class MissingRequiredClientCapabilityError extends Error
 {

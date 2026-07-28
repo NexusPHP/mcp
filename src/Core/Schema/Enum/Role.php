@@ -16,7 +16,7 @@ namespace Nexus\Mcp\Core\Schema\Enum;
 /**
  * The sender or recipient of messages and data in a conversation.
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#role
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#role
  */
 enum Role: string
 {

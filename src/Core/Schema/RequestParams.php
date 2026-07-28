@@ -23,7 +23,7 @@ use Nexus\Mcp\Core\Schema\MetaObject\RequestMetaObject;
  * @implements Arrayable<T>
  * @implements RequestParamsInterface<T>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#requestparams
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#requestparams
  */
 abstract readonly class RequestParams implements Arrayable, RequestParamsInterface
 {

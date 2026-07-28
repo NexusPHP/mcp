@@ -19,7 +19,7 @@ namespace Nexus\Mcp\Core\Http;
  *
  * @internal
  *
- * @see https://modelcontextprotocol.io/specification/draft/basic/transports/streamable-http#value-encoding
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/streamable-http#value-encoding
  */
 final class HeaderValueCodec
 {

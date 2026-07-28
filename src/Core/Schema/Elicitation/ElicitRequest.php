@@ -31,7 +31,7 @@ use Nexus\Mcp\Core\Schema\RequestParams\ElicitRequestUrlParams;
  *   params: template-type<ElicitRequestFormParams|ElicitRequestUrlParams, Arrayable, 'T'>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#elicitrequest
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#elicitrequest
  */
 final readonly class ElicitRequest extends Request implements InputRequest
 {

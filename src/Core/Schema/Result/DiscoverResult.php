@@ -36,7 +36,7 @@ use Nexus\Mcp\Core\Validation\EnumValueValidator;
  *   cacheScope: value-of<CacheScope>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#discoverresult
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#discoverresult
  */
 final readonly class DiscoverResult extends CacheableResult implements ServerResult
 {

@@ -26,7 +26,7 @@ use Nexus\Assert\Assert;
  *   default?: string,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#untitledsingleselectenumschema
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#untitledsingleselectenumschema
  */
 final readonly class UntitledSingleSelectEnumSchema implements SingleSelectEnumSchema
 {

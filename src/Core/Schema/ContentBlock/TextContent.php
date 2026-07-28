@@ -30,7 +30,7 @@ use Nexus\Mcp\Core\Schema\MetaObject\PayloadMetaObject;
  *   _meta?: template-type<PayloadMetaObject, MetaObject, 'T'>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#textcontent
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#textcontent
  */
 final readonly class TextContent implements Arrayable, ContentBlock
 {

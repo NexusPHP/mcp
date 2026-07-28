@@ -38,7 +38,7 @@ use Nexus\Mcp\Core\Validation\Rfc6570UriTemplateValidator;
  *   _meta?: template-type<PayloadMetaObject, MetaObject, 'T'>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#resourcetemplate
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#resourcetemplate
  */
 final readonly class ResourceTemplate extends BaseMetadata implements Arrayable, Icons
 {

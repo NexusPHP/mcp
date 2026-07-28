@@ -18,10 +18,10 @@ namespace Nexus\Mcp\Tools;
  */
 final class McpSchemaProcessor
 {
-    public const string LATEST_SCHEMA_JSON_URL = 'https://raw.githubusercontent.com/modelcontextprotocol/modelcontextprotocol/main/schema/draft/schema.json';
+    public const string LATEST_SCHEMA_JSON_URL = 'https://raw.githubusercontent.com/modelcontextprotocol/modelcontextprotocol/main/schema/2026-07-28/schema.json';
     public const string LATEST_SCHEMA_JSON_PATH = __DIR__.'/../../latest-schema.json';
     public const string SORTED_SCHEMA_JSON_PATH = __DIR__.'/../../sorted-schema.json';
-    public const string LATEST_SCHEMA_TS_URL = 'https://raw.githubusercontent.com/modelcontextprotocol/modelcontextprotocol/main/schema/draft/schema.ts';
+    public const string LATEST_SCHEMA_TS_URL = 'https://raw.githubusercontent.com/modelcontextprotocol/modelcontextprotocol/main/schema/2026-07-28/schema.ts';
     public const string LATEST_SCHEMA_TS_PATH = __DIR__.'/../../latest-schema.ts';
 
     /**

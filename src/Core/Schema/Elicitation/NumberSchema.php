@@ -28,7 +28,7 @@ use Nexus\Mcp\Core\Schema\ParsesNumber;
  *   default?: float,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#numberschema
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#numberschema
  */
 final readonly class NumberSchema implements PrimitiveSchemaDefinition
 {

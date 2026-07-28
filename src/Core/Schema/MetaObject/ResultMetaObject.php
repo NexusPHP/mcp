@@ -23,7 +23,7 @@ use Nexus\Mcp\Core\Schema\MetaObject;
  *
  * @extends MetaObject<array<string, mixed>>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#resultmetaobject
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#resultmetaobject
  */
 abstract readonly class ResultMetaObject extends MetaObject
 {

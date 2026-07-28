@@ -26,7 +26,7 @@ use Nexus\Mcp\Core\Schema\Result;
  *
  * @implements Arrayable<TEnvelope>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#jsonrpcresultresponse
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#jsonrpcresultresponse
  */
 abstract readonly class JsonRpcResultResponse implements Arrayable, JsonRpcResponse
 {

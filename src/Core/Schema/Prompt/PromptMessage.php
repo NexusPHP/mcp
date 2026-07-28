@@ -34,7 +34,7 @@ use Nexus\Mcp\Core\Validation\EnumValueValidator;
  *   role: 'assistant'|'user',
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#promptmessage
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#promptmessage
  */
 final readonly class PromptMessage implements Arrayable
 {

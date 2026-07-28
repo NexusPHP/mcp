@@ -27,7 +27,7 @@ use Nexus\Mcp\Core\Schema\Arrayable;
  *   default?: string,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#titledsingleselectenumschema
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#titledsingleselectenumschema
  */
 final readonly class TitledSingleSelectEnumSchema implements SingleSelectEnumSchema
 {

@@ -28,7 +28,7 @@ use Nexus\Assert\Assert;
  *   resourceSubscriptions?: list<string>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#subscriptionfilter
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#subscriptionfilter
  */
 final readonly class SubscriptionFilter implements Arrayable
 {

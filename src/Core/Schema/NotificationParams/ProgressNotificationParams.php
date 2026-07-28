@@ -31,7 +31,7 @@ use Nexus\Mcp\Core\Schema\ProgressToken;
  *   message?: non-empty-string,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#progressnotificationparams
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#progressnotificationparams
  */
 final readonly class ProgressNotificationParams extends NotificationParams
 {

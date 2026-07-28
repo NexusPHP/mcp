@@ -23,7 +23,7 @@ use Nexus\Mcp\Core\Schema\Arrayable;
  *
  * @extends Arrayable<T>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#primitiveschemadefinition
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#primitiveschemadefinition
  */
 interface PrimitiveSchemaDefinition extends Arrayable
 {

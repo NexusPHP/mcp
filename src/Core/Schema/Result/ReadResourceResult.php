@@ -37,7 +37,7 @@ use Nexus\Mcp\Core\Validation\EnumValueValidator;
  *   cacheScope: value-of<CacheScope>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#readresourceresult
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#readresourceresult
  */
 final readonly class ReadResourceResult extends CacheableResult implements ServerResult
 {

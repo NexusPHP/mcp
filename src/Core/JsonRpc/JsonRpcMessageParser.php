@@ -29,7 +29,7 @@ use Nexus\Mcp\Core\Schema\RequestId;
 /**
  * Parses decoded JSON-RPC envelopes into concrete message objects.
  *
- * @see https://modelcontextprotocol.io/specification/draft/basic
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/basic
  */
 final class JsonRpcMessageParser
 {

@@ -25,7 +25,7 @@ use Nexus\Mcp\Core\Validation\Rfc6570UriTemplateValidator;
  *   uri: non-empty-string,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#resourcetemplatereference
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#resourcetemplatereference
  */
 final readonly class ResourceTemplateReference implements Arrayable
 {

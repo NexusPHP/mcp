@@ -28,7 +28,7 @@ use Nexus\Mcp\Core\Schema\Error;
  *   data: array{supported: list<string>, requested: string},
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#unsupportedprotocolversionerror
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#unsupportedprotocolversionerror
  */
 final readonly class UnsupportedProtocolVersionError extends Error
 {

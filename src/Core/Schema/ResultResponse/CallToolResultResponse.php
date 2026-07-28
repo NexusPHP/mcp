@@ -30,7 +30,7 @@ use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
  *   result: template-type<CallToolResult|InputRequiredResult, Result, 'T'>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#calltoolresultresponse
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#calltoolresultresponse
  */
 final readonly class CallToolResultResponse extends JsonRpcResultResponse
 {

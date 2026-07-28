@@ -30,7 +30,7 @@ use Nexus\Mcp\Core\Schema\RequestParams\PaginatedRequestParams;
  *   params: template-type<PaginatedRequestParams, RequestParams, 'T'>,
  * }>
  *
- * @see https://modelcontextprotocol.io/specification/draft/schema#listresourcetemplatesrequest
+ * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#listresourcetemplatesrequest
  */
 final readonly class ListResourceTemplatesRequest extends PaginatedRequest implements ClientRequest
 {
