@@ -290,6 +290,16 @@ final class ElicitRequestedSchemaTest extends TestCase
             '"requestedSchema.primitiveSchema" has unknown "type" \'object\'.',
         ];
 
+        yield 'multi-select items not an object' => [
+            ['type' => 'object', 'properties' => ['x' => ['type' => 'array', 'items' => 'oops']]],
+            '"requestedSchema.items" must be an object, string given.',
+        ];
+
+        yield 'multi-select items list-keyed' => [
+            ['type' => 'object', 'properties' => ['x' => ['type' => 'array', 'items' => ['string']]]],
+            '"requestedSchema" multi-select "items" must be a string-keyed object.',
+        ];
+
         yield 'required not a list' => [
             ['type' => 'object', 'properties' => [], 'required' => ['k' => 'v']],
             '"requestedSchema.required" must be a list, non-list array given.',

@@ -20,6 +20,7 @@ use Amp\NullCancellation;
 use Nexus\Mcp\Client\Auth\AccessToken;
 use Nexus\Mcp\Client\Auth\AuthorizationOptions;
 use Nexus\Mcp\Client\Auth\AuthorizedHttpClient;
+use Nexus\Mcp\Client\Auth\InMemoryClientRegistrationStore;
 use Nexus\Mcp\Client\Auth\InMemoryTokenStore;
 use Nexus\Mcp\Client\Auth\InsufficientScopePolicy;
 use Nexus\Mcp\Client\Exception\InsufficientScopeException;
@@ -667,6 +668,15 @@ final class AuthorizedHttpClientTest extends TestCase
         self::assertSame('the-access-token', $store->read(self::RESOURCE)?->value);
     }
 
+    public function testASuppliedRegistrationStoreIsUsed(): void
+    {
+        $store = new InMemoryClientRegistrationStore();
+
+        self::client(self::scriptChallengeAndFlow()->willAnswerJson(['ok' => true]), registrations: $store)->request(self::mcpRequest(), new NullCancellation());
+
+        self::assertSame('the-client', $store->read('https://auth.test')?->clientId);
+    }
+
     public function testAStoredTokenPastItsLifetimeIsRenewedBeforeTheRequestIsSent(): void
     {
         $tokens = new InMemoryTokenStore();
@@ -750,6 +760,7 @@ final class AuthorizedHttpClientTest extends TestCase
         RecordingHttpClient $http,
         ?ScriptedUserAuthorization $user = null,
         ?InMemoryTokenStore $tokens = null,
+        ?InMemoryClientRegistrationStore $registrations = null,
         ?ArrayLogger $logger = null,
         int $maxScopeUpgrades = 2,
         InsufficientScopePolicy $policy = InsufficientScopePolicy::Reauthorize,
@@ -765,7 +776,7 @@ final class AuthorizedHttpClientTest extends TestCase
             $user ?? new ScriptedUserAuthorization(),
             $http,
             $tokens,
-            null,
+            $registrations,
             $logger ?? new ArrayLogger(),
         );
     }

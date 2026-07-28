@@ -35,6 +35,7 @@ use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\CallToolRequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\ReadResourceRequestParams;
+use Nexus\Mcp\Core\Transport\SendContext;
 use Nexus\Mcp\Tests\Fixtures\Client\Http\RecordingHttpClient;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
@@ -87,6 +88,16 @@ final class StreamableHttpClientTransportTest extends TestCase
 
         self::assertSame('tools/call', $http->readRequest()->getHeader('Mcp-Method'));
         self::assertSame('get_weather', $http->readRequest()->getHeader('Mcp-Name'));
+    }
+
+    public function testTheHeadersOnTheSendContextAreCarriedByThePost(): void
+    {
+        $http = new RecordingHttpClient()->willAnswerJson(self::resultEnvelope());
+        $transport = self::makeTransport($http);
+
+        self::exchange($transport, self::discoverRequest(), new SendContext(headers: ['Mcp-Param-Region' => 'us-west1']));
+
+        self::assertSame('us-west1', $http->readRequest()->getHeader('Mcp-Param-Region'));
     }
 
     public function testEmitsABufferedJsonResponse(): void
@@ -485,6 +496,19 @@ final class StreamableHttpClientTransportTest extends TestCase
         self::assertSame(['drain', 'close'], $order);
     }
 
+    public function testCloseBeforeStartStillSignalsClose(): void
+    {
+        $transport = self::makeTransport(new RecordingHttpClient(), start: false);
+        $closed = false;
+        $transport->onClose(static function () use (&$closed): void {
+            $closed = true;
+        });
+
+        $transport->close();
+
+        self::assertTrue($closed, 'A transport that never started holds no lifetime to cancel.');
+    }
+
     public function testCloseAwaitsAnInFlightExchange(): void
     {
         // Cancelling the lifetime first is what lets the await terminate, so `close()` is the only thing
@@ -638,9 +662,9 @@ final class StreamableHttpClientTransportTest extends TestCase
      * Drives one complete round trip. `send()` detaches the POST, so the loop has to turn before the
      * response is emitted. `close()` cannot do the driving: it cancels in-flight exchanges.
      */
-    private static function exchange(StreamableHttpClientTransport $transport, JsonRpcMessage $message): void
+    private static function exchange(StreamableHttpClientTransport $transport, JsonRpcMessage $message, ?SendContext $context = null): void
     {
-        $transport->send($message);
+        $transport->send($message, $context);
         delay(0.05);
     }
 

@@ -19,12 +19,15 @@ use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
 /**
- * PSR-15 middleware double that records its label on entry, then delegates to the next handler.
+ * PSR-15 middleware double that records its label on entry, then delegates to the next handler. A pipeline
+ * runs each middleware once per request, so the double refuses a re-entry while its own is still in flight.
  *
  * @internal
  */
 final class RecordingMiddleware implements MiddlewareInterface
 {
+    private bool $inFlight = false;
+
     public function __construct(private readonly string $label, private readonly CallLog $log)
     {
     }
@@ -32,8 +35,17 @@ final class RecordingMiddleware implements MiddlewareInterface
     #[\Override]
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $this->log->record($this->label);
+        if ($this->inFlight) {
+            throw new \LogicException(\sprintf('The "%s" middleware was entered again before it returned.', $this->label));
+        }
 
-        return $handler->handle($request);
+        $this->log->record($this->label);
+        $this->inFlight = true;
+
+        try {
+            return $handler->handle($request);
+        } finally {
+            $this->inFlight = false;
+        }
     }
 }

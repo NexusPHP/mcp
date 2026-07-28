@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Transport;
 
-use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyStartedException;
 use Nexus\Mcp\Core\Exception\TransportNotStartedException;
@@ -80,7 +79,6 @@ final class InMemoryTransport implements TransportInterface
      * equivalent. The parameter is accepted for `TransportInterface` conformance and
      * intentionally dropped.
      *
-     * @throws \InvalidArgumentException
      * @throws TransportAlreadyClosedException
      * @throws TransportNotStartedException
      */
@@ -93,12 +91,7 @@ final class InMemoryTransport implements TransportInterface
             TransportState::Running => null,
         };
 
-        \assert(method_exists($message, 'toArray'), 'In-memory transport requires a JsonRpcMessage exposing toArray().');
-
-        $envelope = $message->toArray();
-        Assert::that($envelope)->isMap('In-memory transport: toArray() must return a string-keyed object.');
-
-        $this->peer?->receive($envelope);
+        $this->peer?->receive($message->toArray());
     }
 
     #[\Override]

@@ -125,6 +125,7 @@ final class ClientRegistrarTest extends TestCase
         self::resolve($http, self::metadata(registrationEndpoint: 'https://auth.example.com/register'), self::options());
 
         $request = $http->readRequest();
+        $body = buffer($request->getBody()->getContent());
         self::assertSame('POST', $request->getMethod());
         self::assertSame('https://auth.example.com/register', (string) $request->getUri());
         self::assertSame('application/json', $request->getHeader('Content-Type'));
@@ -135,7 +136,12 @@ final class ClientRegistrarTest extends TestCase
             'response_types' => ['code'],
             'token_endpoint_auth_method' => 'none',
             'application_type' => 'native',
-        ], json_decode(buffer($request->getBody()->getContent()), true, flags: \JSON_THROW_ON_ERROR));
+        ], json_decode($body, true, flags: \JSON_THROW_ON_ERROR));
+        self::assertStringContainsString(
+            '"redirect_uris":["http://localhost:3000/callback"]',
+            $body,
+            'The URLs the client registers are sent unescaped.',
+        );
     }
 
     public function testDynamicRegistrationDeclaresTheConfiguredApplicationType(): void

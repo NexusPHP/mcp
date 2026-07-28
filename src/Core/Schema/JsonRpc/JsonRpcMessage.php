@@ -23,4 +23,9 @@ namespace Nexus\Mcp\Core\Schema\JsonRpc;
 interface JsonRpcMessage extends \JsonSerializable
 {
     public const string JSONRPC_VERSION = '2.0';
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function toArray(): array;
 }
