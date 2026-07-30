@@ -6,7 +6,7 @@ Based on [SEP-1730: SDKs Tiering System](https://github.com/modelcontextprotocol
 
 **Target spec**: `2026-07-28`, which the SDK implements exclusively. See "Conformance suite: scenarios to pass" for the measured standing and for which scenarios the tier percentage is scored over.
 
-**Last Updated**: 2026-07-28
+**Last Updated**: 2026-07-29
 
 ---
 
@@ -46,7 +46,7 @@ The tiering system covers **both official and community-driven SDKs**, so `nexus
 
 - [ ] **New Protocol Features Within 6 Months**
   - Reference: SEP-1730 Tier 2 requirement
-  - Currently implemented: 2025-11-25 (stdio). Target: the draft (`DRAFT-2026-v1` / `2026-07-28`), adopted at v1.0
+  - Currently implemented: 2025-11-25 (stdio). Target: the dated `2026-07-28` release, adopted at v1.0
   - Next Spec Release: 2026-07-28 (dated tag published 2026-07-28)
   - Evidence/Notes: forward commitment, assessed once we publish a stable release
 
@@ -96,15 +96,15 @@ The tiering system covers **both official and community-driven SDKs**, so `nexus
 - [ ] **100% Conformance Tests Pass**
   - Reference: [Conformance Test Suite](https://github.com/modelcontextprotocol/conformance). Exact scenarios in "Conformance suite: scenarios to pass" below
   - Conformance Version: pinned in [`conformance/run-server.sh`](../conformance/run-server.sh)
-  - Threshold: server `30 of 30`, client `18 of 18` today. The draft-only scenarios (17 server + 17 client) flip to scoring once upstream dates the version, at which point they also become Tier 1 blockers
+  - Threshold: server `30 of 30`, client `18 of 18` today. Upstream has now dated the version, but the pinned referee still scores only the 2025-dated set, so the 2026-07-28 scenarios (17 server + 17 client) stay informational until a referee release adds `2026-07-28` to its dated list. They become Tier 1 blockers at that point
   - Evidence/Notes: _________________________
   - Conformance Score: ___%
 
 - [ ] **Conformance example server + client**
   - Reference: not a standalone SEP-1730 requirement. This is the harness behind the conformance score above. Mirror the canonical fixtures in the conformance repo's [`everything-server.ts`](https://github.com/modelcontextprotocol/conformance/blob/main/examples/servers/typescript/everything-server.ts), per [SDK_INTEGRATION.md](https://github.com/modelcontextprotocol/conformance/blob/main/SDK_INTEGRATION.md)
-  - Location: `conformance/server.php` (built) + `conformance/client.php` (planned)
+  - Location: `conformance/server.php` + `conformance/client.php`, both built
   - Canonical fixtures + the full server/client capability contract: see "Conformance suite: scenarios to pass" below. Route the client off the harness scenario names, not the stale keys in `everything-client.ts`
-  - Evidence/Notes: the server half is built and running. `conformance/EverythingServer.php` registers every capability through attribute discovery, and `conformance/README.md` documents the run and bump procedure. The client half is not started
+  - Evidence/Notes: both halves are built and running. `conformance/EverythingServer.php` registers every server capability through attribute discovery, `conformance/client.php` is a scenario-name to closure registry covering the client leg, and `conformance/README.md` documents the run and bump procedure
 
 ### Implementation Timeline
 
@@ -342,7 +342,7 @@ Inverted naming: **server-mode** scenarios are `ClientScenario` objects under `s
 Stand up a Streamable-HTTP server at `POST /mcp` mirroring the `everything-server.ts` fixtures, then:
 
 ```bash
-conformance server --url http://localhost:PORT/mcp --suite all --spec-version draft -o ./results
+conformance server --url http://localhost:PORT/mcp --suite all --spec-version 2026-07-28 -o ./results
 ```
 
 **Scored (20 carried-forward, as `tier-check` counts them):** Tier 1 = all 20, Tier 2 = at least 16 of 20 (`pass_rate >= 0.80`). The SDK passes all 20. Scenarios introduced at 2026-07-28 are informational. Read the split off a `tier-check` run rather than from the inventory below, which predates it.
@@ -370,7 +370,7 @@ Canonical fixtures our `conformance/EverythingServer.php` must expose (from `eve
 Provide a client entry that reads the server URL as its last argv and routes on `MCP_CONFORMANCE_SCENARIO`, then:
 
 ```bash
-conformance client --command "php conformance/client.php" --suite all --spec-version draft -o ./results
+conformance client --command "php conformance/client.php" --suite all --spec-version 2026-07-28 -o ./results
 ```
 
 `--spec-version draft` excludes the 3 OAuth `extension` scenarios and the 2 `2025-03-26` back-compat scenarios. `--suite core` runs exactly the 18 scored scenarios.

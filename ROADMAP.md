@@ -45,9 +45,10 @@ Quality and project gates:
   best-practices, design-rationale, attribute-discovery) plus README and community-health files
   (CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, CHANGELOG, VERSIONING, DEPENDENCY_POLICY).
 
-Server-initiated requests and the HTTP transport are not implemented yet. They
-land with the 2026-07-28 migration below, where `RequestBoundSender::sendRequest()` (a stub today) is
-implemented.
+The HTTP transport lands with the 2026-07-28 migration below. Server-initiated requests do not: the
+revision removes them, replacing the `ServerRequest` union with `InputRequest`, whose members ride an
+`InputRequiredResult` payload rather than travelling as dispatchable JSON-RPC requests. So
+`RequestBoundSender::sendRequest()` rejecting outbound requests is the finished behaviour, not a stub.
 
 ## MCP 2026-07-28 migration
 
@@ -436,8 +437,15 @@ Follow-on milestones.
   matching the opt-in shape of the request-body-size cap. Orphan-response and shed-notification logging both
   run through `LogThrottle`, which admits the first occurrence and every hundredth after it and never echoes
   the envelope, so a flood cannot amplify into one structured log record per message.
-- [ ] `subscriptions/listen` serving over a long-lived SSE stream. The transport already supports
-  long-lived streams structurally. The handler lands when the subscriptions result leg unblocks.
+- [ ] `subscriptions/listen` serving over a long-lived SSE stream. The streaming half is already in place:
+  `SseResponseStream::read()` buffers a keep-alive comment frame instead of ending when the interval
+  expires, so a stream stays open indefinitely, no max duration bounds a request, `routeNotification`
+  already keys off `SendContext.relatedRequestId` (which `RequestBoundSender` binds to the listen request's
+  id), and `routeResponse` ends the stream after pushing the final frame, matching the spec's graceful
+  closure. What is missing is disconnect-to-cancel: `SseResponseStream::close()` reaches
+  `releaseStream()`, which only drops the sink, so a client that closes the stream leaves the held-open
+  handler running with its notifications discarded. Routing that into a request-cancellation registry is the
+  prerequisite, and it serves the stdio path (`notifications/cancelled`) at the same time.
 - [x] Per-request timeouts: every request carries an idle deadline that each progress notification restarts,
   plus a ceiling that ignores progress. On expiry the client frees the correlation slot, sends
   `notifications/cancelled`, and throws `RequestTimeoutException`. Both bounds are configurable on

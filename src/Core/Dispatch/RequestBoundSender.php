@@ -17,7 +17,6 @@ use Nexus\Mcp\Core\Exception\OutboundRequestsNotSupportedException;
 use Nexus\Mcp\Core\Handler\SenderInterface;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
-use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Transport\SendContext;
 use Nexus\Mcp\Core\Transport\TransportInterface;
@@ -43,12 +42,10 @@ final readonly class RequestBoundSender implements SenderInterface
     }
 
     /**
-     * @todo See ROADMAP.md (server-initiated requests).
-     *
-     * @return never
+     * The spec defines no server-initiated request, so this always rejects.
      */
     #[\Override]
-    public function sendRequest(JsonRpcRequest $request): JsonRpcResultResponse
+    public function sendRequest(JsonRpcRequest $request): never
     {
         throw new OutboundRequestsNotSupportedException($this->requestId);
     }
