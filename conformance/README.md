@@ -74,7 +74,7 @@ also counts scenarios rather than checks and tolerates an unmet SHOULD, so it re
 `composer conformance:score` does, and it runs server conformance at the referee's default
 `--suite active`, which leaves the draft and pending scenarios out of the denominator entirely.
 
-As it stands: server 20 of 20 (100%), client 12 of 15 (80%), verdict Tier 3 with the stable release the
+As it stands: server 20 of 20 (100%), client 15 of 15 (100%), verdict Tier 3 with the stable release the
 only failing check. See [.github/TIERING_CHECKLIST.md](../.github/TIERING_CHECKLIST.md) for the gate and
 the command to reproduce it.
 
