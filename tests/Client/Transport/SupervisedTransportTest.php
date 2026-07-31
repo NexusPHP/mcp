@@ -1,0 +1,833 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * This file is part of the Nexus MCP SDK package.
+ *
+ * (c) 2026 John Paul E. Balandan, CPA <paulbalandan@gmail.com>
+ *
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
+ */
+
+namespace Nexus\Mcp\Tests\Client\Transport;
+
+use Nexus\Mcp\Client\Transport\SupervisedTransport;
+use Nexus\Mcp\Core\Exception\SupervisionExhaustedException;
+use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
+use Nexus\Mcp\Core\Exception\TransportAlreadyStartedException;
+use Nexus\Mcp\Core\Exception\TransportNotStartedException;
+use Nexus\Mcp\Core\Schema\Notification\ToolListChangedNotification;
+use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
+use Nexus\Mcp\Core\Transport\SupervisableTransportInterface;
+use Nexus\Mcp\Tests\Fixtures\Client\Transport\SupervisableRecordingTransport;
+use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\TestCase;
+use Psr\Log\LogLevel;
+use Revolt\EventLoop;
+
+/**
+ * @internal
+ */
+#[CoversClass(SupervisedTransport::class)]
+#[Group('unit-tests')]
+#[Group('client-tests')]
+final class SupervisedTransportTest extends TestCase
+{
+    /**
+     * @var list<SupervisedTransport>
+     */
+    private array $built = [];
+
+    /**
+     * A supervisor left open keeps an armed respawn watcher in the process-global event loop, which the
+     * next test would run. Closing cancels it.
+     */
+    #[\Override]
+    protected function tearDown(): void
+    {
+        foreach ($this->built as $transport) {
+            $transport->close();
+        }
+
+        $this->built = [];
+    }
+
+    public function testNonPositiveMaxRestartsThrows(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('maxRestarts must be a positive integer, 0 given.');
+
+        new SupervisedTransport(static fn(): SupervisableTransportInterface => new SupervisableRecordingTransport(), maxRestarts: 0);
+    }
+
+    public function testNegativeRestartDelayThrows(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('restartDelay must not be negative, -1.0 given.');
+
+        new SupervisedTransport(static fn(): SupervisableTransportInterface => new SupervisableRecordingTransport(), restartDelay: -1.0);
+    }
+
+    public function testAFailedFirstStartLeavesTheTransportRetryable(): void
+    {
+        $spawned = [];
+        $attempts = 0;
+
+        $transport = $this->built[] = new SupervisedTransport(
+            static function () use (&$spawned, &$attempts): SupervisableTransportInterface {
+                $inner = new SupervisableRecordingTransport();
+
+                if (1 === ++$attempts) {
+                    $inner->startError = new \RuntimeException('cannot start');
+                }
+
+                $spawned[] = $inner;
+
+                return $inner;
+            },
+            restartDelay: 0.0,
+        );
+
+        $closes = 0;
+        $transport->onClose(static function () use (&$closes): void {
+            ++$closes;
+        });
+
+        try {
+            $transport->start();
+        } catch (\Throwable) {
+            // Asserted by testStartFailureOnTheFirstConnectionPropagates.
+        }
+
+        // A transport that never started is neither running nor closed, so the caller may try again.
+        $transport->start();
+
+        self::assertTrue(self::connectionAt($spawned, 1)->started);
+        self::assertSame(0, $closes, 'A launch that never succeeded owes the caller no close.');
+    }
+
+    public function testSupervisionSurvivesAThrowingCloseListener(): void
+    {
+        $spawned = [];
+        $transport = $this->buildTransport($spawned);
+
+        $subscription = $transport->onClose(static function (): void {
+            throw new \RuntimeException('listener blew up');
+        });
+
+        $transport->start();
+
+        try {
+            // The status lands first, so the close this instance emits is the one that throws. The real
+            // transport catches what its exit listeners raise, so mirror that here.
+            self::connectionAt($spawned, 0)->emitUnexpectedExit(streamClosesFirst: false);
+        } catch (\RuntimeException) {
+            // Expected: TransportInterface documents that a throw aborts the listener chain.
+        }
+
+        EventLoop::run();
+
+        // The replacement's close would throw the same way, and teardown is not the assertion.
+        $subscription->dispose();
+
+        self::assertCount(2, $spawned, 'A throwing listener must not silently disable supervision.');
+    }
+
+    public function testStartSpawnsAndStartsTheFirstConnection(): void
+    {
+        $spawned = [];
+        $transport = $this->buildTransport($spawned);
+
+        $transport->start();
+
+        self::assertCount(1, $spawned);
+        self::assertTrue(self::connectionAt($spawned, 0)->started);
+    }
+
+    public function testStartTwiceThrows(): void
+    {
+        $spawned = [];
+        $transport = $this->buildTransport($spawned);
+        $transport->start();
+
+        $this->expectException(TransportAlreadyStartedException::class);
+        $this->expectExceptionMessageIs(SupervisedTransport::class.' has already been started.');
+
+        $transport->start();
+    }
+
+    public function testStartAfterCloseThrows(): void
+    {
+        $spawned = [];
+        $transport = $this->buildTransport($spawned);
+        $transport->start();
+        $transport->close();
+
+        $this->expectException(TransportAlreadyClosedException::class);
+        $this->expectExceptionMessageIs('Cannot start on a closed transport.');
+
+        $transport->start();
+    }
+
+    public function testSendBeforeStartThrows(): void
+    {
+        $spawned = [];
+        $transport = $this->buildTransport($spawned);
+
+        $this->expectException(TransportNotStartedException::class);
+        $this->expectExceptionMessageIs('Cannot send before start() has been called.');
+
+        $transport->send(self::notification());
+    }
+
+    public function testSendAfterCloseThrows(): void
+    {
+        $spawned = [];
+        $transport = $this->buildTransport($spawned);
+        $transport->start();
+        $transport->close();
+
+        $this->expectException(TransportAlreadyClosedException::class);
+        $this->expectExceptionMessageIs('Cannot send on a closed transport.');
+
+        $transport->send(self::notification());
+    }
+
+    public function testSendRoutesToTheCurrentConnection(): void
+    {
+        $spawned = [];
+        $transport = $this->buildTransport($spawned);
+        $transport->start();
+
+        $transport->send(self::notification());
+
+        self::assertCount(1, self::connectionAt($spawned, 0)->sent);
+    }
+
+    public function testSendBetweenDeathAndRespawnIsRefused(): void
+    {
+        $spawned = [];
+        $transport = $this->buildTransport($spawned);
+        $transport->start();
+
+        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+
+        $this->expectException(TransportAlreadyClosedException::class);
+        $this->expectExceptionMessageIs('Cannot send on a closed transport.');
+
+        $transport->send(self::notification());
+    }
+
+    public function testUnexpectedExitRespawnsAndSendRoutesToTheReplacement(): void
+    {
+        $spawned = [];
+        $transport = $this->buildTransport($spawned);
+        $transport->start();
+
+        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+        EventLoop::run();
+
+        self::assertCount(2, $spawned);
+        self::assertTrue(self::connectionAt($spawned, 1)->started);
+
+        $transport->send(self::notification());
+
+        self::assertSame([], self::connectionAt($spawned, 0)->sent);
+        self::assertCount(1, self::connectionAt($spawned, 1)->sent);
+    }
+
+    public function testListenersRegisterOnceAndSurviveRespawn(): void
+    {
+        $spawned = [];
+        $transport = $this->buildTransport($spawned);
+
+        $envelopes = [];
+        $transport->onMessage(static function (array $envelope) use (&$envelopes): void {
+            $envelopes[] = $envelope;
+        });
+
+        $transport->start();
+        self::connectionAt($spawned, 0)->emitMessage(['first' => true]);
+
+        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+        EventLoop::run();
+
+        self::connectionAt($spawned, 1)->emitMessage(['second' => true]);
+
+        self::assertSame([['first' => true], ['second' => true]], $envelopes);
+    }
+
+    public function testErrorAndDrainForwardFromTheCurrentConnection(): void
+    {
+        $spawned = [];
+        $transport = $this->buildTransport($spawned);
+
+        $errors = [];
+        $drains = 0;
+        $transport->onError(static function (\Throwable $e) use (&$errors): void {
+            $errors[] = $e;
+        });
+        $transport->onDrain(static function () use (&$drains): void {
+            ++$drains;
+        });
+
+        $transport->start();
+
+        $failure = new \RuntimeException('boom');
+        self::connectionAt($spawned, 0)->emitError($failure);
+        self::connectionAt($spawned, 0)->emitDrain();
+
+        self::assertSame([$failure], $errors);
+        self::assertSame(1, $drains);
+    }
+
+    public function testEachConnectionEndsWithExactlyOneCloseEmission(): void
+    {
+        $spawned = [];
+        $transport = $this->buildTransport($spawned);
+
+        $closes = 0;
+        $transport->onClose(static function () use (&$closes): void {
+            ++$closes;
+        });
+
+        $transport->start();
+
+        // The fixture fires its close listeners *and* the exit signal, as a dying subprocess does.
+        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+        EventLoop::run();
+
+        self::assertSame(1, $closes, 'A peer death raises two signals but ends one connection.');
+    }
+
+    public function testClosingAfterARespawnEndsTheReplacementToo(): void
+    {
+        $spawned = [];
+        $transport = $this->buildTransport($spawned);
+
+        $closes = 0;
+        $transport->onClose(static function () use (&$closes): void {
+            ++$closes;
+        });
+
+        $transport->start();
+        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+        EventLoop::run();
+        $transport->close();
+
+        self::assertSame(2, $closes, 'One close per connection: the peer that died and the one that replaced it.');
+    }
+
+    public function testCloseClosesTheCurrentConnectionAndForwardsItsDrain(): void
+    {
+        $spawned = [];
+        $transport = $this->buildTransport($spawned);
+
+        $drains = 0;
+        $transport->onDrain(static function () use (&$drains): void {
+            ++$drains;
+        });
+
+        $transport->start();
+        $transport->close();
+
+        // Client maps onDrain to flushPending(), so losing it turns a graceful shutdown into an abrupt one.
+        self::assertSame(1, $drains);
+    }
+
+    public function testASupersededConnectionIsClosedNotJustForgotten(): void
+    {
+        $spawned = [];
+        $transport = $this->buildTransport($spawned);
+        $transport->start();
+
+        // Model a peer whose exit status lands while its streams are still held open elsewhere.
+        self::connectionAt($spawned, 0)->emitUnexpectedExit(streamClosesFirst: false);
+        EventLoop::run();
+
+        self::assertTrue(
+            self::connectionAt($spawned, 0)->closed,
+            'A replaced connection must be closed, or its read loop stays parked and leaks.',
+        );
+    }
+
+    public function testAPeerThatThrowsOnCloseStillReportsTheCloseAndIsReleased(): void
+    {
+        $spawned = [];
+        $transport = $this->buildTransport($spawned);
+
+        $closes = 0;
+        $transport->onClose(static function () use (&$closes): void {
+            ++$closes;
+        });
+
+        $transport->start();
+        self::connectionAt($spawned, 0)->closeError = new \RuntimeException('drain failed');
+
+        try {
+            $transport->close();
+        } catch (\RuntimeException) {
+            // The peer's failure propagates, but not before the caller has been told.
+        }
+
+        self::assertSame(1, $closes, 'A peer failing on the way down must not swallow the close signal.');
+
+        // Released regardless, or the next send() would route to a peer that is already gone.
+        $this->expectException(TransportAlreadyClosedException::class);
+        $transport->send(self::notification());
+    }
+
+    public function testAThrowingCloseListenerStillReleasesThePeer(): void
+    {
+        $spawned = [];
+        $transport = $this->buildTransport($spawned);
+
+        $subscription = $transport->onClose(static function (): void {
+            throw new \RuntimeException('listener blew up');
+        });
+
+        $transport->start();
+
+        try {
+            $transport->close();
+        } catch (\RuntimeException) {
+            // Expected: the listener chain aborts, but the peer must still come down.
+        }
+
+        $subscription->dispose();
+
+        self::assertTrue(self::connectionAt($spawned, 0)->closed, 'A listener must not be able to leak the peer.');
+    }
+
+    public function testAFailedStartOwesNoCloseWhenTheTransportIsLaterClosed(): void
+    {
+        $inner = new SupervisableRecordingTransport();
+        $inner->startError = new \RuntimeException('cannot start');
+
+        $transport = $this->built[] = new SupervisedTransport(static fn(): SupervisableTransportInterface => $inner);
+
+        $closes = 0;
+        $transport->onClose(static function () use (&$closes): void {
+            ++$closes;
+        });
+
+        try {
+            $transport->start();
+        } catch (\Throwable) {
+            // Asserted by testStartFailureOnTheFirstConnectionPropagates.
+        }
+
+        $transport->close();
+
+        self::assertSame(0, $closes, 'A connection that never started owes the caller no close.');
+    }
+
+    public function testAThrowingErrorListenerStillClosesTheExhaustedTransport(): void
+    {
+        $spawned = [];
+        $transport = $this->buildTransport($spawned, maxRestarts: 1);
+
+        $transport->onError(static function (\Throwable $e): void {
+            if ($e instanceof SupervisionExhaustedException) {
+                throw new \RuntimeException('listener blew up');
+            }
+        });
+
+        $transport->start();
+
+        try {
+            for ($i = 0; $i < 2; ++$i) {
+                self::connectionAt($spawned, $i)->emitUnexpectedExit();
+                EventLoop::run();
+            }
+        } catch (\RuntimeException) {
+            // Expected: the error chain aborts, but supervision must still shut down.
+        }
+
+        $this->expectException(TransportAlreadyClosedException::class);
+        $transport->send(self::notification());
+    }
+
+    public function testExplicitCloseStopsSupervision(): void
+    {
+        $spawned = [];
+        $transport = $this->buildTransport($spawned);
+        $transport->start();
+
+        $transport->close();
+        EventLoop::run();
+
+        self::assertTrue(self::connectionAt($spawned, 0)->closed);
+        self::assertCount(1, $spawned, 'An intentional close must not respawn the peer.');
+    }
+
+    public function testClosingFromACloseListenerCancelsTheRespawn(): void
+    {
+        $spawned = [];
+        $transport = $this->buildTransport($spawned);
+
+        $transport->onClose(static function () use (&$transport): void {
+            // An application that treats a lost connection as terminal. The peer's death has already
+            // been reported at this point, so supervision must not spawn a replacement behind its back.
+            $transport->close();
+        });
+
+        $transport->start();
+        self::connectionAt($spawned, 0)->emitUnexpectedExit(streamClosesFirst: false);
+        EventLoop::run();
+
+        self::assertCount(1, $spawned);
+    }
+
+    public function testCloseIsIdempotent(): void
+    {
+        $spawned = [];
+        $transport = $this->buildTransport($spawned);
+
+        $closes = 0;
+        $transport->onClose(static function () use (&$closes): void {
+            ++$closes;
+        });
+
+        $transport->start();
+        $transport->close();
+        $transport->close();
+
+        self::assertSame(1, $closes);
+    }
+
+    public function testCloseBeforeStartEmitsNoCloseEvent(): void
+    {
+        $spawned = [];
+        $transport = $this->buildTransport($spawned);
+
+        $closes = 0;
+        $transport->onClose(static function () use (&$closes): void {
+            ++$closes;
+        });
+
+        $transport->close();
+
+        self::assertSame(0, $closes);
+        self::assertSame([], $spawned);
+    }
+
+    public function testCloseDuringTheRespawnDelayCancelsIt(): void
+    {
+        $spawned = [];
+        $transport = $this->buildTransport($spawned, restartDelay: 0.05);
+        $transport->start();
+
+        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+        $transport->close();
+        EventLoop::run();
+
+        self::assertCount(1, $spawned, 'A close during the backoff window must cancel the pending respawn.');
+    }
+
+    public function testASupersededConnectionCannotEmitThroughTheDecorator(): void
+    {
+        $spawned = [];
+        $transport = $this->buildTransport($spawned);
+
+        $envelopes = [];
+        $closes = 0;
+        $transport->onMessage(static function (array $envelope) use (&$envelopes): void {
+            $envelopes[] = $envelope;
+        });
+        $transport->onClose(static function () use (&$closes): void {
+            ++$closes;
+        });
+
+        $transport->start();
+        $dead = self::connectionAt($spawned, 0);
+        $dead->emitUnexpectedExit();
+        EventLoop::run();
+
+        $dead->emitMessage(['late' => true]);
+        $dead->emitClose();
+
+        self::assertSame([], $envelopes, 'A dead connection must not deliver messages after its replacement is live.');
+        self::assertSame(1, $closes, 'A dead connection must not re-close the live one.');
+    }
+
+    public function testServedMessageResetsTheRestartBudget(): void
+    {
+        $spawned = [];
+        $logger = new ArrayLogger();
+        $transport = $this->buildTransport($spawned, maxRestarts: 1, logger: $logger);
+        $transport->start();
+
+        for ($i = 0; $i < 4; ++$i) {
+            self::connectionAt($spawned, $i)->emitMessage(['served' => $i]);
+            self::connectionAt($spawned, $i)->emitUnexpectedExit();
+            EventLoop::run();
+        }
+
+        self::assertCount(5, $spawned, 'A connection that served a message clears the consecutive-failure count.');
+
+        // Every death followed a served message, so each respawn is the first attempt again.
+        $attempts = array_map(
+            static fn(array $record): mixed => $record['context']['attempt'] ?? null,
+            $logger->recordsMatching(
+                LogLevel::WARNING,
+                '{label} transport respawning the peer after an unexpected exit (code {exitCode}), attempt {attempt} of {budget}.',
+            ),
+        );
+
+        self::assertSame([1, 1, 1, 1], $attempts);
+    }
+
+    public function testExhaustedBudgetRaisesAndCloses(): void
+    {
+        $spawned = [];
+        $logger = new ArrayLogger();
+        $transport = $this->buildTransport($spawned, maxRestarts: 2, logger: $logger);
+
+        $errors = [];
+        $transport->onError(static function (\Throwable $e) use (&$errors): void {
+            $errors[] = $e;
+        });
+
+        $transport->start();
+
+        // Three deaths with no message in between: two respawns, then the budget is spent.
+        for ($i = 0; $i < 3; ++$i) {
+            self::connectionAt($spawned, $i)->emitUnexpectedExit();
+            EventLoop::run();
+        }
+
+        self::assertCount(3, $spawned);
+        self::assertCount(1, $errors);
+        self::assertInstanceOf(SupervisionExhaustedException::class, $errors[0]);
+        self::assertSame(2, $errors[0]->restarts);
+        self::assertSame(
+            'Gave up supervising the peer after 2 restart attempt(s) without a served message.',
+            $errors[0]->getMessage(),
+        );
+
+        $this->expectException(TransportAlreadyClosedException::class);
+        $transport->send(self::notification());
+    }
+
+    public function testExhaustedBudgetIsLogged(): void
+    {
+        $spawned = [];
+        $logger = new ArrayLogger();
+        $transport = $this->buildTransport($spawned, maxRestarts: 1, logger: $logger);
+        $transport->start();
+
+        for ($i = 0; $i < 2; ++$i) {
+            self::connectionAt($spawned, $i)->emitUnexpectedExit();
+            EventLoop::run();
+        }
+
+        $matches = $logger->recordsMatching(LogLevel::ERROR, '{label} transport exhausted its restart budget of {budget}.');
+        self::assertCount(1, $matches);
+        self::assertSame(['label' => 'Supervised client', 'budget' => 1], $matches[0]['context']);
+    }
+
+    public function testRespawnIsLogged(): void
+    {
+        $spawned = [];
+        $logger = new ArrayLogger();
+        $transport = $this->buildTransport($spawned, logger: $logger);
+        $transport->start();
+
+        self::connectionAt($spawned, 0)->emitUnexpectedExit(exitCode: 9);
+        EventLoop::run();
+
+        $matches = $logger->recordsMatching(
+            LogLevel::WARNING,
+            '{label} transport respawning the peer after an unexpected exit (code {exitCode}), attempt {attempt} of {budget}.',
+        );
+        self::assertCount(1, $matches);
+        self::assertSame(
+            ['label' => 'Supervised client', 'exitCode' => 9, 'attempt' => 1, 'budget' => 3],
+            $matches[0]['context'],
+        );
+    }
+
+    public function testUnknownExitCodeIsLoggedAsUnknown(): void
+    {
+        $spawned = [];
+        $logger = new ArrayLogger();
+        $transport = $this->buildTransport($spawned, logger: $logger);
+        $transport->start();
+
+        self::connectionAt($spawned, 0)->emitUnexpectedExit(exitCode: null);
+        EventLoop::run();
+
+        $matches = $logger->recordsMatching(
+            LogLevel::WARNING,
+            '{label} transport respawning the peer after an unexpected exit (code {exitCode}), attempt {attempt} of {budget}.',
+        );
+        self::assertCount(1, $matches);
+        self::assertSame('unknown', $matches[0]['context']['exitCode'] ?? null);
+    }
+
+    public function testAFactoryThatCannotMintAReplacementSpendsBudget(): void
+    {
+        $spawned = [];
+        $attempts = 0;
+        $failure = new \RuntimeException('cannot spawn');
+
+        $transport = new SupervisedTransport(
+            static function () use (&$spawned, &$attempts, $failure): SupervisableTransportInterface {
+                ++$attempts;
+
+                if ($attempts > 1) {
+                    throw $failure;
+                }
+
+                $inner = new SupervisableRecordingTransport();
+                $spawned[] = $inner;
+
+                return $inner;
+            },
+            maxRestarts: 2,
+            restartDelay: 0.0,
+        );
+
+        $errors = [];
+        $transport->onError(static function (\Throwable $e) use (&$errors): void {
+            $errors[] = $e;
+        });
+
+        $transport->start();
+        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+        EventLoop::run();
+
+        self::assertSame(3, $attempts, 'Each failed mint spends one unit of budget.');
+        self::assertSame([$failure, $failure], \array_slice($errors, 0, 2));
+        self::assertSame(
+            [SupervisionExhaustedException::class],
+            array_map(get_debug_type(...), \array_slice($errors, 2)),
+        );
+    }
+
+    public function testDefaultRestartBudgetIsThree(): void
+    {
+        $spawned = [];
+        $logger = new ArrayLogger();
+        $transport = $this->built[] = new SupervisedTransport(
+            static function () use (&$spawned): SupervisableTransportInterface {
+                $inner = new SupervisableRecordingTransport();
+                $spawned[] = $inner;
+
+                return $inner;
+            },
+            restartDelay: 0.0,
+            logger: $logger,
+        );
+
+        $transport->start();
+        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+        EventLoop::run();
+
+        $matches = $logger->recordsMatching(
+            LogLevel::WARNING,
+            '{label} transport respawning the peer after an unexpected exit (code {exitCode}), attempt {attempt} of {budget}.',
+        );
+        self::assertSame(3, $matches[0]['context']['budget'] ?? null);
+    }
+
+    public function testAConnectionAbandonedDuringStartIsReleased(): void
+    {
+        $spawned = [];
+        $attempts = 0;
+
+        $transport = $this->built[] = new SupervisedTransport(
+            static function () use (&$spawned, &$attempts): SupervisableTransportInterface {
+                $inner = new SupervisableRecordingTransport();
+
+                if (1 === ++$attempts) {
+                    $inner->startError = new \RuntimeException('cannot start');
+                }
+
+                $spawned[] = $inner;
+
+                return $inner;
+            },
+            maxRestarts: 3,
+            restartDelay: 0.0,
+        );
+
+        $envelopes = [];
+        $transport->onMessage(static function (array $envelope) use (&$envelopes): void {
+            $envelopes[] = $envelope;
+        });
+
+        // The first connection is minted but throws out of start(), so the caller never sees it.
+        try {
+            $transport->start();
+        } catch (\Throwable) {
+            // Asserted by testStartFailureOnTheFirstConnectionPropagates.
+        }
+
+        self::connectionAt($spawned, 0)->emitMessage(['orphaned' => true]);
+
+        self::assertSame([], $envelopes, 'A connection abandoned during start() must not still reach the caller.');
+    }
+
+    public function testStartFailureOnTheFirstConnectionPropagates(): void
+    {
+        $inner = new SupervisableRecordingTransport();
+        $inner->startError = new \RuntimeException('cannot start');
+
+        $transport = $this->built[] = new SupervisedTransport(static fn(): SupervisableTransportInterface => $inner);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessageIs('cannot start');
+
+        $transport->start();
+    }
+
+    /**
+     * @param list<SupervisableRecordingTransport> $spawned
+     */
+    private static function connectionAt(array $spawned, int $index): SupervisableRecordingTransport
+    {
+        $inner = $spawned[$index] ?? null;
+
+        if (! $inner instanceof SupervisableRecordingTransport) {
+            self::fail(\sprintf('Expected a spawned connection at index %d, got %d in all.', $index, \count($spawned)));
+        }
+
+        return $inner;
+    }
+
+    /**
+     * @param list<SupervisableRecordingTransport> $spawned
+     */
+    private function buildTransport(
+        array &$spawned,
+        int $maxRestarts = 3,
+        float $restartDelay = 0.0,
+        ?ArrayLogger $logger = null,
+    ): SupervisedTransport {
+        $factory = static function () use (&$spawned): SupervisableTransportInterface {
+            $inner = new SupervisableRecordingTransport();
+            $spawned[] = $inner;
+
+            return $inner;
+        };
+
+        $transport = null === $logger
+            ? new SupervisedTransport($factory, $maxRestarts, $restartDelay)
+            : new SupervisedTransport($factory, $maxRestarts, $restartDelay, $logger);
+
+        $this->built[] = $transport;
+
+        return $transport;
+    }
+
+    private static function notification(): ToolListChangedNotification
+    {
+        return new ToolListChangedNotification(new EmptyNotificationParams());
+    }
+}

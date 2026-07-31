@@ -10,6 +10,7 @@ pair for tests (`InMemoryTransport::createPair()`).
 | [`StdioClientTransport`](#stdioclienttransport) | client | Launches the server as a subprocess and speaks the same framing. |
 | [`StreamableHttpServerTransport`](#streamablehttpservertransport) | server | Request-scoped PSR-15 handler. One POST per message. Driven by `Server::listen()`. |
 | [`StreamableHttpClientTransport`](#streamablehttpclienttransport) | client | One POST per outbound message, answered by a JSON object or an SSE stream. |
+| [`SupervisedTransport`](#supervisedtransport) | client | Decorator. Respawns a supervisable peer that exits unexpectedly. |
 | [`InMemoryTransport`](#inmemorytransport-test-only) | both | Test double pair, no I/O. |
 
 ## The contract
@@ -146,16 +147,64 @@ Behaviour:
   wrapper that ignores `SIGTERM`, so `SIGKILL` is the only signal guaranteed to terminate the child.
 - **Unexpected exit**: this transport also implements
   [`SupervisableTransportInterface`](../src/Core/Transport/SupervisableTransportInterface.php), so
-  `onUnexpectedExit(fn (int $exitCode) => ...)` reports a teardown nobody asked for, whether the
+  `onUnexpectedExit(fn (?int $exitCode) => ...)` reports a teardown nobody asked for, whether the
   subprocess exited on its own or stopped serving and was killed. Calling `close()` notifies nobody. The
   transport is spent once this fires, so a supervisor respawns by building a fresh
   `StdioClientTransport`, not by restarting this one.
 
   ```php
-  $transport->onUnexpectedExit(static function (int $exitCode) use ($logger): void {
-      $logger->warning('MCP server died with code {code}.', ['code' => $exitCode]);
+  $transport->onUnexpectedExit(static function (?int $exitCode) use ($logger): void {
+      $logger->warning('MCP server died with code {code}.', ['code' => $exitCode ?? 'unknown']);
   });
   ```
+
+  The exit code is `null` when the peer ended without reporting a status.
+
+## `SupervisedTransport`
+
+Wraps a factory that mints one `SupervisableTransportInterface` per connection and respawns the peer when
+a connection ends without `close()` having been called. It is itself a plain `TransportInterface`, so a
+`Client` connects to it exactly as it would to the transport it supervises.
+
+```php
+$transport = new SupervisedTransport(
+    static fn(): SupervisableTransportInterface => new StdioClientTransport(['php', 'server.php']),
+    maxRestarts: 3,
+    restartDelay: 0.1,
+    logger: $logger,
+);
+
+$client->connect($transport);
+```
+
+A factory is required rather than an instance because a transport is spent once its peer dies: the
+line-framed duplex underneath it is single-use.
+
+- **Listeners**: register once on the `SupervisedTransport` and survive every respawn. It re-binds them to
+  each new connection, so nothing downstream is aware the peer changed.
+- **Close semantics**: each *connection* ends with one `onClose()` emission, so a supervised transport
+  emits close more than once over its life. That emission is what rejects the requests that were in flight
+  when the peer died. They are not retried, and a `send()` issued between a death and its replacement is
+  refused with `TransportAlreadyClosedException`.
+- **Restart budget**: `maxRestarts` counts *consecutive* respawns. Any inbound message from a replacement
+  clears the count, so the budget bounds a crash loop rather than the lifetime of a healthy connection.
+  Spending it emits a `SupervisionExhaustedException` through `onError()` and then closes for good.
+- **Intentional close**: `close()` stops supervision permanently and cancels a pending respawn, so shutting
+  down never races a restart.
+
+No re-handshake is needed after a respawn. This protocol revision is sessionless: every request carries its
+own identity and capabilities in `_meta`, so a fresh peer serves the next request without further protocol
+setup.
+
+Two limits are worth knowing before reaching for it:
+
+- **Client-side caches are not invalidated.** A respawn reaches `Client` as a close, not as a
+  `disconnect()`, so the `serverInfo`, `serverCapabilities` and parameter-header bindings recorded from the
+  previous peer survive into the replacement. That is correct when the same command comes back serving the
+  same thing, and stale when a peer restarts with a different capability set.
+- **Only `TransportInterface` is forwarded.** The decorator is not itself a `ParameterHeaderMirroringInterface`
+  or `CancellableTransportInterface`, so wrapping a transport that implements one of those hides it from the
+  `instanceof` checks in `Client` and `Server`. Supervise transports whose capabilities you do not depend on.
 
 ## `InMemoryTransport` (test only)
 

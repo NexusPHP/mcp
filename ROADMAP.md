@@ -137,16 +137,17 @@ utility (SEP-2575, changelog item 5) is removed from the protocol entirely.
 
 The lifecycle "Unexpected Termination" rule: when the stdio server process exits unexpectedly, the client
 SHOULD restart it, retry the now-lost in-flight requests against the fresh process, and re-establish any
-active `subscriptions/listen` streams. The client already surfaces the loss (a subprocess exit closes the
-transport and `PendingOutboundRequests::cancelAll` rejects every in-flight request) and already supports
-manual reconnect, but it does not restart the process or replay subscriptions. Supervision stays out of the
-dumb-pipe transport and lands as a `SupervisedTransport` decorator that owns the subprocess command, tells
-an unexpected crash from an intentional close via the captured exit code, and respawns. The
-subscription-replay step depends on `subscriptions/listen` above, so this builds after it.
+active `subscriptions/listen` streams. Supervision stays out of the dumb-pipe transport: `StdioClientTransport`
+reports a teardown nobody asked for through `SupervisableTransportInterface::onUnexpectedExit()`, and the
+`SupervisedTransport` decorator holds a per-connection factory and respawns against it. Restarting is
+enough on its own because the protocol is sessionless, so a fresh peer needs no handshake replayed.
 
-- [ ] Capture the subprocess exit code (`Process::join()`) so an unexpected exit is distinguishable from an
+What remains is the request-level recovery, both halves of which cross the transport boundary and need a
+client-side seam. The subscription-replay step also depends on `subscriptions/listen`.
+
+- [x] Capture the subprocess exit code (`Process::join()`) so an unexpected exit is distinguishable from an
   intentional close.
-- [ ] `SupervisedTransport` decorator that respawns the subprocess on unexpected exit and re-emits the
+- [x] `SupervisedTransport` decorator that respawns the subprocess on unexpected exit and re-emits the
   listener chain to an unchanged `Client`.
 - [ ] Re-establish active `subscriptions/listen` streams after restart.
 - [ ] Optional opt-in retry of the lost in-flight requests against the fresh process.
