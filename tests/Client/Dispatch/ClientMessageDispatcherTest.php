@@ -481,7 +481,7 @@ final class ClientMessageDispatcherTest extends TestCase
         self::assertInstanceOf(JsonRpcResultResponse::class, $transport->sent[1]['message']);
     }
 
-    public function testMisroutedMethodAsRequestSendsInvalidRequestErrorResponse(): void
+    public function testNotificationMethodSentAsRequestIsDroppedAndLogged(): void
     {
         $outbound = new PendingOutboundRequests();
         $logger = new ArrayLogger();
@@ -503,7 +503,7 @@ final class ClientMessageDispatcherTest extends TestCase
         self::assertCount(1, $matches);
     }
 
-    public function testRequestMethodSentAsNotificationLogsWarnAndSendsInvalidRequestWithNullId(): void
+    public function testRequestMethodSentAsNotificationIsDroppedAndLogged(): void
     {
         $outbound = new PendingOutboundRequests();
         $logger = new ArrayLogger();
@@ -515,11 +515,7 @@ final class ClientMessageDispatcherTest extends TestCase
 
         $dispatcher->flushPending();
 
-        self::assertCount(1, $transport->sent);
-        $message = $transport->sent[0]['message'];
-        self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
-        self::assertNull($message->id);
-        self::assertSame(ProtocolErrorCode::InvalidRequest->value, $message->error->code);
+        self::assertSame([], $transport->sent, 'A client sends no JSON-RPC responses, so it has no reply to offer whatever shape the envelope arrived in.');
 
         $matches = $logger->recordsMatching(LogLevel::WARNING, 'Rejecting envelope whose method was sent under the wrong JSON-RPC shape.');
         self::assertCount(1, $matches);

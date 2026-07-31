@@ -183,7 +183,7 @@ final class ServerMessageDispatcherTest extends TestCase
         self::assertInstanceOf(AbstractJsonRpcProtocolException::class, $matches[0]['context']['exception'] ?? null);
     }
 
-    public function testRequestMethodSentAsNotificationLogsWarnAndSendsInvalidRequestWithNullId(): void
+    public function testRequestMethodSentAsNotificationIsDroppedAndLoggedNotAnsweredWithError(): void
     {
         $transport = new RecordingTransport();
         $logger = new ArrayLogger();
@@ -194,12 +194,7 @@ final class ServerMessageDispatcherTest extends TestCase
 
         $dispatcher->flushPending();
 
-        self::assertCount(1, $transport->sent);
-        $message = $transport->sent[0]['message'];
-        self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
-        self::assertNull($message->id, 'Misrouted request envelope carried no id, so the response uses null per JSON-RPC 2.0 §5.');
-        self::assertSame(ProtocolErrorCode::InvalidRequest->value, $message->error->code);
-        self::assertStringContainsString('"tools/list"', $message->error->message);
+        self::assertSame([], $transport->sent, 'An envelope without an id is a notification whatever method it names, and JSON-RPC 2.0 §4.1 forbids answering one.');
 
         $matches = $logger->recordsMatching(
             LogLevel::WARNING,

@@ -103,13 +103,9 @@ inbound envelope (array)
    ▼
 JsonRpcMessageParser::parse()        ← classifies request/notification, raises typed protocol exceptions
    │
-   ├── parse failed
-   │     │
-   │     ├── misrouted method                      → behaviour follows the envelope's shape, not the method's:
-   │     │       ├── request method sent without id     → `InvalidRequest` error with the `id` key omitted
-   │     │       └── notification method sent with id   → `InvalidRequest` error echoing the id per §5
-   │     ├── parse error on notification shape          → drop silently per §4.1
-   │     └── parse error on request shape               → send an `InvalidRequest` error response
+   ├── parse failed                                → the envelope's `id` decides, never the method it names:
+   │     ├── no `id`  (a notification per §4.1)         → drop, log, answer nothing
+   │     └── has `id` (a request per §4.1)              → `InvalidRequest` error per §5, echoing that id
    │
    └── parse succeeded
          │
@@ -124,9 +120,14 @@ JsonRpcMessageParser::parse()        ← classifies request/notification, raises
 The protocol is stateless: every inbound request dispatches immediately, carrying the client's identity and
 capabilities in its `_meta`, which the server-side handler reads through `ServerContext::$meta`.
 
-That first misrouted arm is where MCP narrows JSON-RPC rather than following it. §5 mandates a null `id` on
-a response whose request id could not be recovered, but MCP types `RequestId` as `int | non-empty-string`,
-so `JsonRpcErrorResponse` drops the key instead of emitting `"id": null`. The frame goes out as
+A misrouted method (a request method sent without an `id`, or a notification method sent with one) takes
+that same fork. The method name never overrides the envelope: `tools/list` without an `id` is a
+notification and goes unanswered, while `notifications/cancelled` with an `id` is a request and is answered
+with an error echoing it.
+
+On the answering side, MCP narrows JSON-RPC rather than following it. §5 mandates a null `id` when the
+request id could not be recovered, but MCP types `RequestId` as `int | non-empty-string`, so
+`JsonRpcErrorResponse` drops the key instead of emitting `"id": null`. Such a frame goes out as
 `{"jsonrpc":"2.0","error":{…}}`, and a test pins that encoding.
 
 The diagram traces the server. The client shares the request and notification arms but diverges in two
