@@ -375,7 +375,7 @@ $register('auth/authorization-server-migration', $withAuthorization(static funct
 
 $arguments = conformanceArguments();
 $scenario = getenv('MCP_CONFORMANCE_SCENARIO');
-$serverUrl = 1 < count($arguments) ? $arguments[count($arguments) - 1] : '';
+$serverUrl = count($arguments) > 1 ? $arguments[count($arguments) - 1] : '';
 
 if (! is_string($scenario) || '' === $scenario || '' === $serverUrl) {
     fwrite(\STDERR, "Usage: MCP_CONFORMANCE_SCENARIO=<scenario> php conformance/client.php <server-url>\n");

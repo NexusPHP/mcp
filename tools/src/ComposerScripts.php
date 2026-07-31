@@ -268,7 +268,7 @@ final class ComposerScripts
             ...self::MUTATION_SOURCE_DIRECTORIES,
         ])));
 
-        if (! \is_string($output) || '' === trim($output)) {
+        if (! \is_string($output) || trim($output) === '') {
             return [];
         }
 
@@ -290,7 +290,7 @@ final class ComposerScripts
     {
         $output = shell_exec(\sprintf('command -v %s 2>/dev/null', escapeshellarg($command)));
 
-        return \is_string($output) && '' !== trim($output);
+        return \is_string($output) && trim($output) !== '';
     }
 
     private static function recursiveDelete(string $directory): void
@@ -350,7 +350,7 @@ final class ComposerScripts
             return;
         }
 
-        if (false === file_put_contents(self::VSCODE_SETTINGS_JSON, $newContents)) {
+        if (file_put_contents(self::VSCODE_SETTINGS_JSON, $newContents) === false) {
             self::fail(\sprintf('Cannot write to %s.', self::VSCODE_SETTINGS_JSON));
         }
     }

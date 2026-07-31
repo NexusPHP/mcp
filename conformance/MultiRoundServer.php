@@ -74,7 +74,7 @@ final class MultiRoundServer
             return self::ask('confirm', 'Please confirm', 'ok', new BooleanSchema(), $this->states->sign('confirm'));
         }
 
-        if (null === $this->states->verify($state)) {
+        if ($this->states->verify($state) === null) {
             throw new InvalidParamsException($context->requestId, 'The "requestState" failed its integrity check.');
         }
 
@@ -116,7 +116,7 @@ final class MultiRoundServer
             return self::ask('confirm', 'Please confirm', 'ok', new BooleanSchema(), $this->states->sign('confirm'));
         }
 
-        if (null === $this->states->verify($state)) {
+        if ($this->states->verify($state) === null) {
             throw new InvalidParamsException($context->requestId, 'The "requestState" failed its integrity check.');
         }
 

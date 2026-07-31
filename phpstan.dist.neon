@@ -39,3 +39,7 @@ parameters:
   treatPhpDocTypesAsCertain: false
   editorUrl: 'vscode://file/%%file%%:%%line%%'
   editorUrlTitle: '%%relFile%%:%%line%%'
+
+rules:
+  - Nexus\Mcp\Tools\PHPStan\NoAssignmentInControlFlowExpressionRule
+  - Nexus\Mcp\Tools\PHPStan\NoFunctionCallYodaComparisonRule

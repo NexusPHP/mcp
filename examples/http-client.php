@@ -125,7 +125,7 @@ function requireReachable(string $endpoint): void
 {
     $host = parse_url($endpoint, \PHP_URL_HOST);
     $port = parse_url($endpoint, \PHP_URL_PORT);
-    $port = is_int($port) ? $port : ('https' === parse_url($endpoint, \PHP_URL_SCHEME) ? 443 : 80);
+    $port = is_int($port) ? $port : (parse_url($endpoint, \PHP_URL_SCHEME) === 'https' ? 443 : 80);
 
     if (! is_string($host)) {
         fwrite(\STDERR, sprintf("Not a usable endpoint URL: %s\n", $endpoint));
