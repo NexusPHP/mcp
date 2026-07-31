@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tools\PHPStan;
 
 use PhpParser\Node;
-use PhpParser\NodeFinder;
 use PHPStan\Analyser\Scope;
 use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
@@ -66,10 +65,10 @@ final class NoAssignmentInControlFlowExpressionRule implements Rule
         }
 
         return match (true) {
-            $node instanceof Node\Stmt\While_ => self::containsAssignment([$node->cond]) ? 'while' : null,
-            $node instanceof Node\Stmt\If_ => self::containsAssignment([$node->cond]) ? 'if' : null,
-            $node instanceof Node\Stmt\ElseIf_ => self::containsAssignment([$node->cond]) ? 'elseif' : null,
-            $node instanceof Node\Stmt\Foreach_ => self::containsAssignment(
+            $node instanceof Node\Stmt\While_ => AssignmentFinder::findsAssignment([$node->cond]) ? 'while' : null,
+            $node instanceof Node\Stmt\If_ => AssignmentFinder::findsAssignment([$node->cond]) ? 'if' : null,
+            $node instanceof Node\Stmt\ElseIf_ => AssignmentFinder::findsAssignment([$node->cond]) ? 'elseif' : null,
+            $node instanceof Node\Stmt\Foreach_ => AssignmentFinder::findsAssignment(
                 array_values(array_filter([$node->expr, $node->keyVar, $node->valueVar])),
             ) ? 'foreach' : null,
             default => null,
@@ -79,18 +78,5 @@ final class NoAssignmentInControlFlowExpressionRule implements Rule
     private static function isAssignment(?Node $node): bool
     {
         return $node instanceof Node\Expr\Assign || $node instanceof Node\Expr\AssignOp;
-    }
-
-    /**
-     * @param list<Node> $nodes
-     */
-    private static function containsAssignment(array $nodes): bool
-    {
-        $found = new NodeFinder()->findFirst(
-            $nodes,
-            static fn(Node $node): bool => self::isAssignment($node),
-        );
-
-        return null !== $found;
     }
 }
