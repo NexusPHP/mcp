@@ -338,6 +338,40 @@ A build-time `notifications/progress` handler receives every progress notificati
 claimed by an in-flight `callTool(onProgress:)`. The two coexist: per-call `onProgress` takes its own token,
 and the build-time handler sees the rest.
 
+## Subscriptions
+
+`listen()` opens a `subscriptions/listen` stream and routes every notification the server tags with that
+stream's id to the given callback. It returns as soon as the request is away, so the caller is not blocked
+for the life of the stream.
+
+```php
+use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
+use Nexus\Mcp\Core\Schema\SubscriptionFilter;
+
+$stream = $client->listen(
+    new SubscriptionFilter(toolsListChanged: true, resourcesListChanged: true),
+    static function (JsonRpcNotification $notification): void {
+        // Only what this stream asked for arrives here.
+    },
+);
+
+$stream->close();
+```
+
+The filter names what the stream wants. The server honours the intersection of the requested set and what it
+supports, and MUST NOT push a type that was not asked for.
+
+- **Routing is per stream, and most-specific wins.** A notification carrying a subscription id goes to that
+  stream's callback and to nothing else. One arriving untagged, or naming a stream this client does not hold,
+  falls through to the build-time notification handler for its method. This mirrors how a per-call
+  `onProgress` claims its token ahead of the build-time `notifications/progress` handler.
+- **`close()` ends the stream** by sending the `notifications/cancelled` the spec requires and retiring the
+  correlation slot. It is idempotent, and the server answers an abrupt close with nothing.
+- **`await()` blocks until the *server* tears the stream down**, returning the empty result the spec calls
+  graceful closure. A stream the client closed carries no response, so do not await one.
+- **No deadline applies.** A listen request legitimately never returns, so it is exempt from the request
+  timeouts that bound every other call.
+
 ## The escape hatch: `sendRequest()`
 
 Every standard client-to-server method has a typed wrapper above, so `sendRequest()` is for vendor extension
@@ -353,9 +387,11 @@ $response = $client->sendRequest($request, GenericResultResponse::class);
 ```
 
 You supply the `RequestId` yourself when building the request. The auto-incrementing factory backs the typed
-methods above. The capability gate covers exactly the methods behind the typed requests above, so a
+methods above. The capability gate covers the methods behind the typed requests above, so a
 `tools/list` against a server that advertised no `tools` throws `ServerCapabilityNotSupportedException`
-(see [Typed requests](#typed-requests)). A vendor method like `acme/snapshot` passes through ungated.
+(see [Typed requests](#typed-requests)). A vendor method like `acme/snapshot` passes through ungated, and so
+does `listen()`: the spec defines no capability for `subscriptions/listen`, so a server that does not serve
+it answers `-32601` and the failure arrives as a remote error rather than a local one.
 
 ## Lifecycle
 

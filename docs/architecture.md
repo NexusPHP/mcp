@@ -42,6 +42,7 @@ Nexus\Mcp\
     ├── Exception\      Client-side local-misuse errors (not connected, already connected, unadvertised server capability)
     ├── Handler\
     │   └── Notification\  Built-in client notification handlers (progress routing)
+    ├── Subscription\   Open `subscriptions/listen` streams and their per-stream notification routing
     └── Transport\      Client-side transport implementations
 ```
 

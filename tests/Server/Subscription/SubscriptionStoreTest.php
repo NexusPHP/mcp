@@ -17,6 +17,7 @@ use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
 use Nexus\Mcp\Core\Handler\SenderInterface;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
+use Nexus\Mcp\Core\Schema\Notification\CancelledNotification;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\SubscriptionFilter;
 use Nexus\Mcp\Server\Exception\SubscriptionLimitReachedException;
@@ -300,6 +301,24 @@ final class SubscriptionStoreTest extends TestCase
         $store->close($entry);
 
         self::assertTrue($entry->closed->isComplete());
+    }
+
+    public function testTheTeardownCancellationCarriesTheSubscriptionId(): void
+    {
+        $store = new SubscriptionStore(toolsListChanged: true);
+        $sender = new RecordingSender();
+        $entry = $store->open(new RequestId(id: 1), new SubscriptionFilter(toolsListChanged: true), $sender);
+
+        $store->close($entry);
+        delay(0.0);
+
+        $cancellation = $sender->notifications[1] ?? null;
+        self::assertInstanceOf(CancelledNotification::class, $cancellation);
+        self::assertSame(
+            1,
+            $cancellation->params->meta->subscriptionId?->id,
+            'The spec has the server tag every notification delivered on a stream with that stream id.',
+        );
     }
 
     public function testCloseAllReleasesEveryStream(): void

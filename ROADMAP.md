@@ -93,6 +93,9 @@ utility (SEP-2575, changelog item 5) is removed from the protocol entirely.
   in-memory stores gained runtime mutation (`Mutable*StoreInterface`) plus an `onListChanged()` seam
   (`ListChangeSourceInterface`) the builder routes to the matching emit, and `listChanged` / `subscribe` are
   advertised only when both a subscription store and a change-reporting feature store are present.
+- [x] Call `subscriptions/listen` client-side: `Client::listen()` opens a stream and returns a
+  `SubscriptionStream` handle, and the dispatcher routes each subscription-tagged notification to the stream
+  that asked for it ahead of the build-time handler for its method.
 - [x] Delete `resources/subscribe` / `resources/unsubscribe` (none of these are implemented today, so
   this is a non-action verified by the migration).
 - [x] Complete the `_meta` family: `MetaObject` is the abstract base under `Core/Schema/`, with its

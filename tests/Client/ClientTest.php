@@ -19,6 +19,7 @@ use Nexus\Mcp\Client\ClientBuilder;
 use Nexus\Mcp\Client\Exception\ClientAlreadyConnectedException;
 use Nexus\Mcp\Client\Exception\ClientNotConnectedException;
 use Nexus\Mcp\Client\Exception\ServerCapabilityNotSupportedException;
+use Nexus\Mcp\Client\Exception\SubscriptionClosedException;
 use Nexus\Mcp\Core\Exception\OutboundRequestFailedException;
 use Nexus\Mcp\Core\Exception\RemoteCallFailedException;
 use Nexus\Mcp\Core\Exception\RequestTimeoutException;
@@ -33,7 +34,9 @@ use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcMessage;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
+use Nexus\Mcp\Core\Schema\MetaObject\NotificationMetaObject;
 use Nexus\Mcp\Core\Schema\MetaObject\ResultMetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\SubscriptionsListenResultMetaObject;
 use Nexus\Mcp\Core\Schema\Notification\CancelledNotification;
 use Nexus\Mcp\Core\Schema\Notification\ProgressNotification;
 use Nexus\Mcp\Core\Schema\Prompt\PromptReference;
@@ -47,6 +50,7 @@ use Nexus\Mcp\Core\Schema\Request\ListResourcesRequest;
 use Nexus\Mcp\Core\Schema\Request\ListResourceTemplatesRequest;
 use Nexus\Mcp\Core\Schema\Request\ListToolsRequest;
 use Nexus\Mcp\Core\Schema\Request\ReadResourceRequest;
+use Nexus\Mcp\Core\Schema\Request\SubscriptionsListenRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\PaginatedRequestParams;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
@@ -61,6 +65,7 @@ use Nexus\Mcp\Core\Schema\Result\ListToolsResult;
 use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
 use Nexus\Mcp\Core\Schema\ResultResponse\ListToolsResultResponse;
 use Nexus\Mcp\Core\Schema\ServerCapabilities;
+use Nexus\Mcp\Core\Schema\SubscriptionFilter;
 use Nexus\Mcp\Core\Transport\SendContext;
 use Nexus\Mcp\Core\Transport\TransportInterface;
 use Nexus\Mcp\Tests\Fixtures\Client\Http\MirroringRecordingTransport;
@@ -1704,6 +1709,288 @@ final class ClientTest extends TestCase
         }
 
         self::assertCount(1, $transport->sent);
+    }
+
+    public function testListenSendsTheSubscriptionRequestAndReturnsImmediately(): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+
+        $stream = $client->listen(new SubscriptionFilter(toolsListChanged: true), static function (): void {});
+
+        self::assertCount(1, $transport->sent);
+        $request = $transport->sent[0]['message'];
+        self::assertInstanceOf(SubscriptionsListenRequest::class, $request);
+        self::assertSame('subscriptions/listen', $request::getMethod());
+        self::assertSame($request->id->id, $stream->subscriptionId->id);
+        self::assertTrue($request->params->notifications->toolsListChanged);
+    }
+
+    public function testListenRoutesTaggedNotificationsToItsOwnListener(): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+
+        $seen = [];
+        $stream = $client->listen(
+            new SubscriptionFilter(toolsListChanged: true),
+            static function (JsonRpcNotification $notification) use (&$seen): void {
+                $seen[] = $notification::getMethod();
+            },
+        );
+
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'method' => 'notifications/tools/list_changed',
+            'params' => ['_meta' => [NotificationMetaObject::SUBSCRIPTION_ID_KEY => $stream->subscriptionId->id]],
+        ]);
+        EventLoop::run();
+
+        self::assertSame(['notifications/tools/list_changed'], $seen);
+    }
+
+    public function testAnUntaggedNotificationDoesNotReachASubscriptionListener(): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+
+        $seen = [];
+        $client->listen(new SubscriptionFilter(toolsListChanged: true), static function () use (&$seen): void {
+            $seen[] = true;
+        });
+
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'method' => 'notifications/tools/list_changed',
+            'params' => [],
+        ]);
+        EventLoop::run();
+
+        self::assertSame([], $seen, 'Only the stream that asked for a notification receives it.');
+    }
+
+    public function testClosingAStreamCancelsItAndStopsRoutingToIt(): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+
+        $seen = [];
+        $stream = $client->listen(new SubscriptionFilter(toolsListChanged: true), static function () use (&$seen): void {
+            $seen[] = true;
+        });
+
+        $stream->close();
+
+        $cancellation = $transport->sent[1]['message'] ?? null;
+        self::assertInstanceOf(CancelledNotification::class, $cancellation);
+        self::assertSame($stream->subscriptionId->id, $cancellation->params->requestId->id);
+
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'method' => 'notifications/tools/list_changed',
+            'params' => ['_meta' => [NotificationMetaObject::SUBSCRIPTION_ID_KEY => $stream->subscriptionId->id]],
+        ]);
+        EventLoop::run();
+
+        self::assertSame([], $seen, 'A closed stream must stop receiving notifications.');
+    }
+
+    public function testListenBeforeConnectThrows(): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+
+        $this->expectException(ClientNotConnectedException::class);
+
+        $client->listen(new SubscriptionFilter(toolsListChanged: true), static function (): void {});
+    }
+
+    public function testAFailedSendReleasesBothSubscriptionSlots(): void
+    {
+        $logger = new ArrayLogger();
+        $client = new ClientBuilder()
+            ->setClientInfo('demo', '1.0.0')
+            ->setLogger($logger)
+            ->setRequestIdFactory(static fn(): int => 7)
+            ->build()
+        ;
+        $transport = new RecordingTransport();
+        $transport->sendError = new \RuntimeException('pipe is gone');
+        $client->connect($transport);
+
+        $seen = [];
+
+        $propagated = null;
+
+        try {
+            $client->listen(new SubscriptionFilter(toolsListChanged: true), static function () use (&$seen): void {
+                $seen[] = true;
+            });
+        } catch (\RuntimeException $e) {
+            $propagated = $e->getMessage();
+        }
+
+        // Asserted outside the try: PHPUnit's failure exceptions extend RuntimeException, so a fail()
+        // inside it would be caught by the arm above and reported as the wrong thing.
+        self::assertSame('pipe is gone', $propagated);
+
+        // The correlation slot is free, so a late answer for that id reads as an orphan.
+        $transport->emitMessage(['jsonrpc' => '2.0', 'id' => 7, 'error' => ['code' => -32603, 'message' => 'too late']]);
+
+        // And the notification route is free, so nothing reaches the abandoned listener.
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'method' => 'notifications/tools/list_changed',
+            'params' => ['_meta' => [NotificationMetaObject::SUBSCRIPTION_ID_KEY => 7]],
+        ]);
+        EventLoop::run();
+
+        self::assertCount(1, $logger->recordsMatching(LogLevel::WARNING, 'Discarding orphan error response for unknown request id.'));
+        self::assertSame([], $seen);
+    }
+
+    public function testClosingAStreamReleasesItsCorrelationSlot(): void
+    {
+        $logger = new ArrayLogger();
+        $client = new ClientBuilder()
+            ->setClientInfo('demo', '1.0.0')
+            ->setLogger($logger)
+            ->setRequestIdFactory(static fn(): int => 7)
+            ->build()
+        ;
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+
+        $stream = $client->listen(new SubscriptionFilter(toolsListChanged: true), static function (): void {});
+        $stream->close();
+
+        // A server that answers anyway is answering a stream the client already retired.
+        $transport->emitMessage(['jsonrpc' => '2.0', 'id' => 7, 'error' => ['code' => -32603, 'message' => 'too late']]);
+        EventLoop::run();
+
+        self::assertCount(1, $logger->recordsMatching(LogLevel::WARNING, 'Discarding orphan error response for unknown request id.'));
+    }
+
+    public function testARefusedSubscriptionDoesNotCrashTheLoopWhenNobodyAwaits(): void
+    {
+        $client = new ClientBuilder()
+            ->setClientInfo('demo', '1.0.0')
+            ->setRequestIdFactory(static fn(): int => 7)
+            ->build()
+        ;
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+
+        $stream = $client->listen(new SubscriptionFilter(toolsListChanged: true), static function (): void {});
+        $transport->emitMessage(['jsonrpc' => '2.0', 'id' => 7, 'error' => ['code' => -32603, 'message' => 'no subscriptions here']]);
+        EventLoop::run();
+
+        // Dropping the last reference destroys the future. An unconsumed error there reaches the loop as an
+        // UnhandledFutureError and takes the whole run down.
+        unset($stream);
+        gc_collect_cycles();
+        EventLoop::run();
+
+        $this->expectNotToPerformAssertions();
+    }
+
+    public function testAServerEndedStreamReleasesItsNotificationRoute(): void
+    {
+        $client = new ClientBuilder()
+            ->setClientInfo('demo', '1.0.0')
+            ->setRequestIdFactory(static fn(): int => 7)
+            ->build()
+        ;
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+
+        $seen = [];
+        $client->listen(new SubscriptionFilter(toolsListChanged: true), static function () use (&$seen): void {
+            $seen[] = true;
+        });
+
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => 7,
+            'result' => ['_meta' => [SubscriptionsListenResultMetaObject::SUBSCRIPTION_ID_KEY => 7]],
+        ]);
+        EventLoop::run();
+
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'method' => 'notifications/tools/list_changed',
+            'params' => ['_meta' => [NotificationMetaObject::SUBSCRIPTION_ID_KEY => 7]],
+        ]);
+        EventLoop::run();
+
+        self::assertSame([], $seen, 'A stream the server ended must not keep routing to its callback.');
+    }
+
+    public function testClosingAStreamWhoseTransportIsGoneDoesNotThrow(): void
+    {
+        $logger = new ArrayLogger();
+        $client = new ClientBuilder()
+            ->setClientInfo('demo', '1.0.0')
+            ->setLogger($logger)
+            ->setRequestIdFactory(static fn(): int => 7)
+            ->build()
+        ;
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+
+        $stream = $client->listen(new SubscriptionFilter(toolsListChanged: true), static function (): void {});
+
+        // Every real transport refuses a send once its peer is gone, which the recording double does not
+        // model on its own.
+        $transport->sendError = new TransportAlreadyClosedException(operation: 'send');
+
+        // A `finally { $stream->close(); }` must not raise over the failure that caused the teardown.
+        $stream->close();
+
+        $matches = $logger->recordsMatching(LogLevel::DEBUG, 'Could not tell the server that subscription {id} was closed.');
+        self::assertCount(1, $matches);
+        self::assertSame(7, $matches[0]['context']['id'] ?? null);
+        self::assertInstanceOf(TransportAlreadyClosedException::class, $matches[0]['context']['exception'] ?? null);
+    }
+
+    public function testAServerAnsweredStreamSendsNoCancellationOnClose(): void
+    {
+        $client = new ClientBuilder()
+            ->setClientInfo('demo', '1.0.0')
+            ->setRequestIdFactory(static fn(): int => 7)
+            ->build()
+        ;
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+
+        $stream = $client->listen(new SubscriptionFilter(toolsListChanged: true), static function (): void {});
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => 7,
+            'result' => ['_meta' => [SubscriptionsListenResultMetaObject::SUBSCRIPTION_ID_KEY => 7]],
+        ]);
+        EventLoop::run();
+
+        $stream->close();
+
+        // The spec has a cancellation name a request that SHOULD still be in flight.
+        self::assertCount(1, $transport->sent, 'A stream the server already answered has nothing left to cancel.');
+    }
+
+    public function testAwaitingAClosedStreamThrowsRatherThanBlocking(): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+
+        $stream = $client->listen(new SubscriptionFilter(toolsListChanged: true), static function (): void {});
+        $stream->close();
+
+        $this->expectException(SubscriptionClosedException::class);
+        $stream->await();
     }
 
     /**
