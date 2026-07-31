@@ -106,7 +106,7 @@ JsonRpcMessageParser::parse()        ← classifies request/notification, raises
    ├── parse failed
    │     │
    │     ├── misrouted method                      → behaviour follows the envelope's shape, not the method's:
-   │     │       ├── request method sent without id     → `InvalidRequest` error with `id: null` per §5
+   │     │       ├── request method sent without id     → `InvalidRequest` error with the `id` key omitted
    │     │       └── notification method sent with id   → `InvalidRequest` error echoing the id per §5
    │     ├── parse error on notification shape          → drop silently per §4.1
    │     └── parse error on request shape               → send an `InvalidRequest` error response
@@ -123,6 +123,11 @@ JsonRpcMessageParser::parse()        ← classifies request/notification, raises
 
 The protocol is stateless: every inbound request dispatches immediately, carrying the client's identity and
 capabilities in its `_meta`, which the server-side handler reads through `ServerContext::$meta`.
+
+That first misrouted arm is where MCP narrows JSON-RPC rather than following it. §5 mandates a null `id` on
+a response whose request id could not be recovered, but MCP types `RequestId` as `int | non-empty-string`,
+so `JsonRpcErrorResponse` drops the key instead of emitting `"id": null`. The frame goes out as
+`{"jsonrpc":"2.0","error":{…}}`, and a test pins that encoding.
 
 The diagram traces the server. The client shares the request and notification arms but diverges in two
 places. The first is the response-shape fork above: where the server discards a `result`/`error` envelope,
