@@ -28,7 +28,7 @@ final class LogThrottle
     private int $count = 0;
 
     /**
-     * @param positive-int $interval
+     * @param int<1, max> $interval
      */
     public function __construct(private readonly int $interval = 100)
     {

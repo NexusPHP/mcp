@@ -149,7 +149,7 @@ final class ClientRegistrarTest extends TestCase
     }
 
     /**
-     * @return iterable<string, array{?bool, ?string}>
+     * @return iterable<string, array{null|bool, null|string}>
      */
     public static function provideAMetadataDocumentUrlIsSkippedWhenTheServerDoesNotSupportItCases(): iterable
     {
@@ -387,7 +387,7 @@ final class ClientRegistrarTest extends TestCase
     }
 
     /**
-     * @param ?non-empty-string $registrationEndpoint
+     * @param null|non-empty-string $registrationEndpoint
      */
     private static function metadata(?bool $cimdSupported = null, ?string $registrationEndpoint = null): AuthorizationServerMetadata
     {

@@ -35,7 +35,7 @@ final class RecordingTransport implements CancellableTransportInterface
     public private(set) bool $closed = false;
 
     /**
-     * @var list<array{message: JsonRpcMessage, context: ?SendContext}>
+     * @var list<array{message: JsonRpcMessage, context: null|SendContext}>
      */
     public private(set) array $sent = [];
 

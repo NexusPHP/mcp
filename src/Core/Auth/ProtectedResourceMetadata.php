@@ -31,9 +31,9 @@ final readonly class ProtectedResourceMetadata
     public array $authorizationServers;
 
     /**
-     * @param list<non-empty-string>  $authorizationServers
-     * @param ?list<non-empty-string> $bearerMethodsSupported
-     * @param ?non-empty-string       $resourceName
+     * @param list<non-empty-string>      $authorizationServers
+     * @param null|list<non-empty-string> $bearerMethodsSupported
+     * @param null|non-empty-string       $resourceName
      */
     public function __construct(
         public ResourceIdentifier $resource,

@@ -29,9 +29,9 @@ final readonly class VerifiedAccessToken
     /**
      * @param list<string>           $audience  Resources the token was issued for, at least one of which must be this server
      * @param list<non-empty-string> $scopes    Scopes the token was granted
-     * @param ?string                $subject   Resource owner the token acts for, absent when the client acts for itself
-     * @param ?string                $clientId  OAuth client the token was issued to
-     * @param ?int                   $expiresAt Unix timestamp the token expires at
+     * @param null|string            $subject   Resource owner the token acts for, absent when the client acts for itself
+     * @param null|string            $clientId  OAuth client the token was issued to
+     * @param null|int               $expiresAt Unix timestamp the token expires at
      */
     public function __construct(
         public array $audience,

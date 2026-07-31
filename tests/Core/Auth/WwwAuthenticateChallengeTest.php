@@ -169,7 +169,7 @@ final class WwwAuthenticateChallengeTest extends TestCase
     }
 
     /**
-     * @param ?array{string, array<string, string>} $expected
+     * @param null|array{string, array<string, string>} $expected
      */
     #[DataProvider('provideFindBearerCases')]
     public function testFindBearer(string $header, ?array $expected): void
@@ -190,7 +190,7 @@ final class WwwAuthenticateChallengeTest extends TestCase
     }
 
     /**
-     * @return iterable<string, array{string, ?array{string, array<string, string>}}>
+     * @return iterable<string, array{string, null|array{string, array<string, string>}}>
      */
     public static function provideFindBearerCases(): iterable
     {

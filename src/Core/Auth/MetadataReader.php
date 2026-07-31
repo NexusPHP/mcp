@@ -38,7 +38,7 @@ final class MetadataReader
     /**
      * @param array<string, mixed> $data
      *
-     * @return ?non-empty-string
+     * @return null|non-empty-string
      */
     public static function readString(array $data, string $key, string $label): ?string
     {
@@ -72,7 +72,7 @@ final class MetadataReader
      *
      * @param array<array-key, mixed> $data
      *
-     * @return ?non-empty-string
+     * @return null|non-empty-string
      */
     public static function readErrorField(array $data, string $key, string $label): ?string
     {
@@ -90,7 +90,7 @@ final class MetadataReader
     /**
      * @param array<string, mixed> $data
      *
-     * @return ?list<non-empty-string>
+     * @return null|list<non-empty-string>
      */
     public static function readStringList(array $data, string $key, string $label): ?array
     {

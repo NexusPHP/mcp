@@ -59,7 +59,7 @@ final class LineDuplex
     private array $sideChannelCompletions = [];
 
     /**
-     * @var array<int, ?\Fiber<mixed, mixed, mixed, mixed>>
+     * @var array<int, null|\Fiber<mixed, mixed, mixed, mixed>>
      */
     private array $sideChannelFibers = [];
 

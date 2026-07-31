@@ -78,7 +78,7 @@ final class HeaderValueCodecTest extends TestCase
     }
 
     /**
-     * @return iterable<string, array{string, ?string}>
+     * @return iterable<string, array{string, null|string}>
      */
     public static function provideDecodeCases(): iterable
     {

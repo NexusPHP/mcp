@@ -27,11 +27,11 @@ final readonly class AuthorizationServerMetadata
     private const string LABEL = 'Authorization Server Metadata';
 
     /**
-     * @param non-empty-string        $issuer
-     * @param ?non-empty-string       $authorizationEndpoint
-     * @param ?non-empty-string       $tokenEndpoint
-     * @param ?non-empty-string       $registrationEndpoint
-     * @param ?list<non-empty-string> $codeChallengeMethodsSupported
+     * @param non-empty-string            $issuer
+     * @param null|non-empty-string       $authorizationEndpoint
+     * @param null|non-empty-string       $tokenEndpoint
+     * @param null|non-empty-string       $registrationEndpoint
+     * @param null|list<non-empty-string> $codeChallengeMethodsSupported
      */
     public function __construct(
         public string $issuer,

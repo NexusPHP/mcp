@@ -183,7 +183,7 @@ final class ProtectedResourceMetadataHandlerTest extends TestCase
 
     /**
      * @param list<non-empty-string> $scopesSupported
-     * @param ?non-empty-string      $resourceName
+     * @param null|non-empty-string  $resourceName
      */
     private static function handler(array $scopesSupported = [], ?string $resourceName = null): ProtectedResourceMetadataHandler
     {

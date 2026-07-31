@@ -1349,7 +1349,7 @@ final class ServerMessageDispatcherTest extends TestCase
     /**
      * @param array<non-empty-string, RequestHandlerInterface<non-empty-string, Result, ServerContext>> $requestHandlers
      * @param array<non-empty-string, NotificationHandlerInterface<non-empty-string>>                   $notificationHandlers
-     * @param null|positive-int                                                                         $maxInFlight
+     * @param null|int<1, max>                                                                          $maxInFlight
      */
     private static function buildDispatcher(
         array $requestHandlers = [],

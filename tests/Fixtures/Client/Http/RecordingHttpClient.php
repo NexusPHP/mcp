@@ -61,7 +61,7 @@ final class RecordingHttpClient implements DelegateHttpClient
      * mid-flow so a second one can be let in behind it.
      *
      * @param array<string, mixed>|string $body
-     * @param ?Future<mixed>              $gate
+     * @param null|Future<mixed>          $gate
      */
     public function willAnswerJson(array|string $body, int $status = 200, ?Future $gate = null): self
     {
@@ -308,8 +308,8 @@ final class RecordingHttpClient implements DelegateHttpClient
     /**
      * @param array<non-empty-string, string> $headers
      * @param list<string>                    $chunks
-     * @param ?Future<mixed>                  $gate
-     * @param ?non-empty-list<string>         $hops
+     * @param null|Future<mixed>              $gate
+     * @param null|non-empty-list<string>     $hops
      */
     private function willAnswer(
         int $status,

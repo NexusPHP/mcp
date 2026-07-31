@@ -195,7 +195,7 @@ final class MetadataReaderTest extends TestCase
     }
 
     /**
-     * @return iterable<string, array{string, ?string}>
+     * @return iterable<string, array{string, null|string}>
      */
     public static function provideReadErrorFieldCases(): iterable
     {

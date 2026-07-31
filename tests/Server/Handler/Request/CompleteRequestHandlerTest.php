@@ -146,7 +146,7 @@ final class CompleteRequestHandlerTest extends TestCase
      *     ref: PromptReference|ResourceTemplateReference,
      *     argumentName: string,
      *     argumentValue: string,
-     *     contextArguments: ?array<string, string>,
+     *     contextArguments: null|array<string, string>,
      *     context: ServerContext,
      * }
      */

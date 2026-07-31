@@ -32,7 +32,7 @@ final class MirroringRecordingTransport implements ParameterHeaderMirroringInter
     public private(set) RecordingTransport $recorder;
 
     /**
-     * @var list<array{message: JsonRpcMessage, context: ?SendContext}>
+     * @var list<array{message: JsonRpcMessage, context: null|SendContext}>
      */
     public array $sent {
         get => $this->recorder->sent;

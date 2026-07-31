@@ -47,7 +47,7 @@ final class ScopeSetTest extends TestCase
     }
 
     /**
-     * @return iterable<string, array{?string, list<non-empty-string>}>
+     * @return iterable<string, array{null|string, list<non-empty-string>}>
      */
     public static function provideParseCases(): iterable
     {

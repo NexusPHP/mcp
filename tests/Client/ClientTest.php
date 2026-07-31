@@ -1901,7 +1901,7 @@ final class ClientTest extends TestCase
     }
 
     /**
-     * @return array{message: JsonRpcMessage, context: ?SendContext}
+     * @return array{message: JsonRpcMessage, context: null|SendContext}
      */
     private static function lastSent(MirroringRecordingTransport|RecordingTransport $transport): array
     {
