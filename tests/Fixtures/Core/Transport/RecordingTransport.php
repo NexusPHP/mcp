@@ -16,11 +16,12 @@ namespace Nexus\Mcp\Tests\Fixtures\Core\Transport;
 use Amp\DeferredFuture;
 use Amp\Future;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcMessage;
+use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Core\Transport\CancellableTransportInterface;
 use Nexus\Mcp\Core\Transport\ReceiveContext;
 use Nexus\Mcp\Core\Transport\SendContext;
 use Nexus\Mcp\Core\Transport\Subscription;
 use Nexus\Mcp\Core\Transport\SubscriptionInterface;
-use Nexus\Mcp\Core\Transport\TransportInterface;
 
 /**
  * In-memory implementation of `TransportInterface` for tests. Records every
@@ -28,7 +29,7 @@ use Nexus\Mcp\Core\Transport\TransportInterface;
  *
  * @internal
  */
-final class RecordingTransport implements TransportInterface
+final class RecordingTransport implements CancellableTransportInterface
 {
     public private(set) bool $started = false;
     public private(set) bool $closed = false;
@@ -59,6 +60,11 @@ final class RecordingTransport implements TransportInterface
      * @var list<\Closure(): void>
      */
     private array $drainListeners = [];
+
+    /**
+     * @var list<\Closure(RequestId): void>
+     */
+    private array $cancelListeners = [];
 
     /**
      * @var list<DeferredFuture<mixed>>
@@ -170,6 +176,29 @@ final class RecordingTransport implements TransportInterface
                 static fn(\Closure $candidate): bool => $candidate !== $listener,
             ));
         });
+    }
+
+    #[\Override]
+    public function onCancel(\Closure $listener): SubscriptionInterface
+    {
+        $this->cancelListeners[] = $listener;
+
+        return new Subscription(function () use ($listener): void {
+            $this->cancelListeners = array_values(array_filter(
+                $this->cancelListeners,
+                static fn(\Closure $candidate): bool => $candidate !== $listener,
+            ));
+        });
+    }
+
+    /**
+     * Drives the registered `onCancel` listeners, standing in for a peer abandoning a request.
+     */
+    public function emitCancel(RequestId $id): void
+    {
+        foreach ($this->cancelListeners as $listener) {
+            $listener($id);
+        }
     }
 
     /**

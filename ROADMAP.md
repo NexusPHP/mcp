@@ -86,10 +86,13 @@ utility (SEP-2575, changelog item 5) is removed from the protocol entirely.
 - [x] Implement `server/discover` request method.
 - [x] Add the `subscriptions/listen` schema classes: the request and its params, the `SubscriptionFilter`
   opt-in object, and `SubscriptionsAcknowledgedNotification` with its params, registered in the method registry.
-- [ ] Serve `subscriptions/listen` server-side: a handler that returns the empty result response (leaving
-  the dispatcher's result-send path unchanged) and emits `SubscriptionsAcknowledgedNotification` as the
-  first stream message, tagged with the server-minted `io.modelcontextprotocol/subscriptionId` `_meta` key.
-  Requires a subscription store and a list-changed / resource-updated fanout source to feed the stream.
+- [x] Serve `subscriptions/listen` server-side: `SubscriptionStore` holds the open streams and fans the four
+  event types out to the ones that asked, acknowledging each stream before it becomes visible to any emit and
+  tagging every message with `io.modelcontextprotocol/subscriptionId`. The handler holds the request open and
+  answers the empty result on graceful teardown. Announcements coalesce per event-loop tick. The four
+  in-memory stores gained runtime mutation (`Mutable*StoreInterface`) plus an `onListChanged()` seam
+  (`ListChangeSourceInterface`) the builder routes to the matching emit, and `listChanged` / `subscribe` are
+  advertised only when both a subscription store and a change-reporting feature store are present.
 - [x] Delete `resources/subscribe` / `resources/unsubscribe` (none of these are implemented today, so
   this is a non-action verified by the migration).
 - [x] Complete the `_meta` family: `MetaObject` is the abstract base under `Core/Schema/`, with its
@@ -407,8 +410,10 @@ Client transport (`Nexus\Mcp\Client`, amphp/http-client). Adds `amphp/http-clien
   the request it carried, so the client fails that one caller rather than leaving it awaiting a response that
   can no longer arrive. A notification carries no id and no caller, so its failure is reported unwrapped, and
   one unreadable frame mid-stream is reported without ending the exchange.
-- [ ] Per-request cancellation, so abandoning one request aborts only that POST. `TransportInterface` has no
-  cancel seam yet, so this lands with the cancellation registry.
+- [ ] Per-request cancellation of the client's own *outbound* requests, so abandoning one aborts only that
+  POST. `StreamableHttpClientTransport` shares one `DeferredCancellation` across every exchange, so today
+  only `close()` cancels and it cancels all of them. Unrelated to the inbound half, where a peer's
+  `notifications/cancelled` already cancels a request the client is serving.
 - [x] `x-mcp-header` mirroring (client mandatory): `listTools()` scans each tool's `inputSchema`, caches the
   bindings, and drops a tool whose declarations violate the scanner constraints with a warning, since the spec
   has a client exclude what it cannot mirror. `callTool()` builds the `Mcp-Param-{Name}` headers from the
@@ -437,15 +442,17 @@ Follow-on milestones.
   matching the opt-in shape of the request-body-size cap. Orphan-response and shed-notification logging both
   run through `LogThrottle`, which admits the first occurrence and every hundredth after it and never echoes
   the envelope, so a flood cannot amplify into one structured log record per message.
-- [ ] `subscriptions/listen` serving over a long-lived SSE stream. The streaming half is already in place:
+- [x] `subscriptions/listen` serving over a long-lived SSE stream. The streaming half was already in place:
   `SseResponseStream::read()` buffers a keep-alive comment frame instead of ending when the interval
   expires, so a stream stays open indefinitely, no max duration bounds a request, `routeNotification`
   already keys off `SendContext.relatedRequestId` (which `RequestBoundSender` binds to the listen request's
   id), and `routeResponse` ends the stream after pushing the final frame, matching the spec's graceful
-  closure. What is missing is disconnect-to-cancel: `SseResponseStream::close()` reaches
-  `releaseStream()`, which only drops the sink, so a client that closes the stream leaves the held-open
-  handler running with its notifications discarded. Routing that into a request-cancellation registry is the
-  prerequisite, and it serves the stdio path (`notifications/cancelled`) at the same time.
+  closure. Disconnect-to-cancel closed the gap: `releaseStream()` reports the abandoned request through
+  `CancellableTransportInterface::onCancel()`, which `Server` routes into the per-request cancellation now
+  held by `PendingInboundRequests`, so a dropped client stops its handler instead of leaving it running. The
+  same cancellation serves the stdio path, where a default `notifications/cancelled` handler fires it. Over
+  Streamable HTTP that notification is ignored: the spec makes closing the response stream the signal there,
+  and a client's request id names a different id space from the one the transport dispatches under.
 - [x] Per-request timeouts: every request carries an idle deadline that each progress notification restarts,
   plus a ceiling that ignores progress. On expiry the client frees the correlation slot, sends
   `notifications/cancelled`, and throws `RequestTimeoutException`. Both bounds are configurable on

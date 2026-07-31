@@ -16,14 +16,11 @@ namespace Nexus\Mcp\Tests\Server\Tool;
 use Amp\NullCancellation;
 use Nexus\Mcp\Core\Exception\InvalidParamsException;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
-use Nexus\Mcp\Core\Schema\Cursor;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
 use Nexus\Mcp\Core\Schema\Tool\Tool;
-use Nexus\Mcp\Server\AbstractPaginatedStore;
-use Nexus\Mcp\Server\Exception\InvalidCursorException;
 use Nexus\Mcp\Server\Exception\ToolNotFoundException;
 use Nexus\Mcp\Server\Exception\ToolOutputValidationException;
 use Nexus\Mcp\Server\ServerContext;
@@ -40,7 +37,6 @@ use PHPUnit\Framework\TestCase;
  * @internal
  */
 #[CoversClass(ToolStore::class)]
-#[CoversClass(AbstractPaginatedStore::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
 final class ToolStoreTest extends TestCase
@@ -99,24 +95,6 @@ final class ToolStoreTest extends TestCase
         self::assertNull($second->nextCursor);
     }
 
-    public function testListAfterLastItemReturnsEmptyPage(): void
-    {
-        $store = new ToolStore(self::makeEntries('only'), pageSize: 1);
-
-        $page = $store->list(new Cursor(cursor: 'only'));
-
-        self::assertSame([], $page->tools);
-        self::assertNull($page->nextCursor);
-    }
-
-    public function testListWithEmptyStoreReturnsEmptyPage(): void
-    {
-        $page = new ToolStore()->list(null);
-
-        self::assertSame([], $page->tools);
-        self::assertNull($page->nextCursor);
-    }
-
     public function testConstructorRejectsNonPositivePageSize(): void
     {
         $this->expectException(\InvalidArgumentException::class);
@@ -133,32 +111,29 @@ final class ToolStoreTest extends TestCase
         new ToolStore(ttlMs: -1);
     }
 
-    public function testConstructorRejectsIntegerEntryKey(): void
+    public function testConstructorRejectsAnEntryKeyThatDoesNotMatchItsName(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageMatches('/^Tool store entry key must be a non-empty string\.$/');
+        $this->expectExceptionMessageIs('Tool store entry key "\'mismatch\'" must match its tool name "\'one\'".');
 
-        // @phpstan-ignore argument.type
-        new ToolStore([1 => new ToolEntry(self::makeTool('one'), self::makeExecutor())]);
+        new ToolStore(['mismatch' => new ToolEntry(self::makeTool('one'), self::makeExecutor())]);
     }
 
-    public function testConstructorRejectsEmptyStringEntryKey(): void
+    public function testAnAllDigitNameIsServedDespiteBecomingAnIntegerKey(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageMatches('/^Tool store entry key must be a non-empty string\.$/');
+        // The name rules permit all digits, and PHP turns such a key into an int. Pagination must still
+        // mint a cursor that names the entry rather than its position.
+        $store = new ToolStore(['123' => new ToolEntry(self::makeTool('123'), self::makeExecutor()), 'beta' => new ToolEntry(self::makeTool('beta'), self::makeExecutor())], pageSize: 1);
 
-        // @phpstan-ignore argument.type
-        new ToolStore(['' => new ToolEntry(self::makeTool('one'), self::makeExecutor())]);
-    }
+        $first = $store->list(null);
+        self::assertNotNull($first->nextCursor);
+        self::assertSame('123', $first->nextCursor->cursor);
 
-    public function testListRejectsCursorThatMatchesNoEntry(): void
-    {
-        $store = new ToolStore(self::makeEntries('alpha'));
-
-        $this->expectException(InvalidCursorException::class);
-        $this->expectExceptionMessageMatches('/^Cursor "missing" does not match any registered entry\.$/');
-
-        $store->list(new Cursor(cursor: 'missing'));
+        $second = $store->list($first->nextCursor);
+        self::assertSame(
+            ['beta'],
+            array_map(static fn(Tool $e): string => $e->name, $second->tools),
+        );
     }
 
     public function testCallInvokesTheExecutorMatchingTheName(): void
@@ -319,6 +294,86 @@ final class ToolStoreTest extends TestCase
         ]);
 
         self::assertSame($asked, $store->call('report', null, self::makeContext()));
+    }
+
+    public function testAddToolRegistersItAndAnnouncesTheChange(): void
+    {
+        $store = new ToolStore(self::makeEntries('alpha'));
+        $changes = 0;
+        $store->onListChanged(static function () use (&$changes): void { ++$changes; });
+
+        $store->addTool(self::makeTool('beta'), self::makeExecutor());
+
+        self::assertSame(
+            ['alpha', 'beta'],
+            array_map(static fn(Tool $tool): string => $tool->name, $store->list(null)->tools),
+        );
+        self::assertSame(1, $changes);
+    }
+
+    public function testAddToolReplacesAToolOfTheSameName(): void
+    {
+        $store = new ToolStore(self::makeEntries('alpha'));
+        $changes = 0;
+        $store->onListChanged(static function () use (&$changes): void { ++$changes; });
+
+        $store->addTool(new Tool(name: 'alpha', title: 'Renamed', inputSchema: ['type' => 'object']), self::makeExecutor());
+
+        $tools = $store->list(null)->tools;
+        self::assertCount(1, $tools);
+        self::assertSame('Renamed', $tools[0]->title);
+        self::assertSame(1, $changes);
+    }
+
+    public function testRemoveToolDropsItAndAnnouncesTheChange(): void
+    {
+        $store = new ToolStore(self::makeEntries('alpha', 'beta'));
+        $changes = 0;
+        $store->onListChanged(static function () use (&$changes): void { ++$changes; });
+
+        self::assertTrue($store->removeTool('alpha'));
+        self::assertSame(
+            ['beta'],
+            array_map(static fn(Tool $tool): string => $tool->name, $store->list(null)->tools),
+        );
+        self::assertSame(1, $changes);
+    }
+
+    public function testRemoveToolIsSilentWhenNoToolMatches(): void
+    {
+        $store = new ToolStore(self::makeEntries('alpha'));
+        $changes = 0;
+        $store->onListChanged(static function () use (&$changes): void { ++$changes; });
+
+        self::assertFalse($store->removeTool('missing'));
+        self::assertCount(1, $store->list(null)->tools);
+        self::assertSame(0, $changes);
+    }
+
+    public function testEveryRegisteredListenerHearsAChange(): void
+    {
+        $store = new ToolStore();
+        $heard = [];
+        $store->onListChanged(static function () use (&$heard): void { $heard[] = 'first'; });
+        $store->onListChanged(static function () use (&$heard): void { $heard[] = 'second'; });
+
+        $store->addTool(self::makeTool('alpha'), self::makeExecutor());
+
+        self::assertSame(['first', 'second'], $heard);
+    }
+
+    public function testAnAddedToolIsCallable(): void
+    {
+        $store = new ToolStore();
+        $store->addTool(self::makeTool('alpha'), self::makeExecutorReturning(new CallToolResult(content: [])));
+
+        $result = $store->call('alpha', null, self::makeContext());
+
+        if (! $result instanceof CallToolResult) {
+            self::fail('Expected a tool result.');
+        }
+
+        self::assertSame([], $result->content);
     }
 
     private static function makeTool(string $name): Tool

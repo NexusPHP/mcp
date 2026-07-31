@@ -13,7 +13,9 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Client;
 
+use Amp\CancelledException;
 use Nexus\Mcp\Client\ClientBuilder;
+use Nexus\Mcp\Core\Handler\AbstractContext;
 use Nexus\Mcp\Core\Schema\ClientCapabilities;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\ProtocolVersion;
@@ -32,6 +34,7 @@ use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
 use function Amp\async;
+use function Amp\delay;
 
 /**
  * @internal
@@ -186,6 +189,69 @@ final class ClientBuilderTest extends TestCase
         self::assertInstanceOf(JsonRpcResultResponse::class, $response);
         self::assertSame(7, $response->id->id);
         self::assertSame($marker, $response->result);
+    }
+
+    public function testAnInboundCancellationStopsARequestTheClientIsServing(): void
+    {
+        $seen = [];
+        $client = new ClientBuilder()
+            ->setClientInfo('demo', '1.0.0')
+            ->addRequestHandler('server/discover', new ClosureRequestHandler(
+                static function ($request, AbstractContext $context) use (&$seen): EmptyResult {
+                    try {
+                        delay(1.0, cancellation: $context->cancellation);
+                    } catch (CancelledException) {
+                        $seen[] = 'cancelled';
+                    }
+
+                    return new EmptyResult();
+                },
+            ))
+            ->build()
+        ;
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => 7,
+            'method' => 'server/discover',
+            'params' => ['_meta' => RequestMetaObjectFactory::shape()],
+        ]);
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'method' => 'notifications/cancelled',
+            'params' => ['requestId' => 7],
+        ]);
+        $client->disconnect();
+
+        self::assertSame(['cancelled'], $seen, 'A peer cancelling a request the client serves must reach the handler.');
+        self::assertSame([], $transport->sent, 'The spec forbids answering a request once its cancellation was requested.');
+    }
+
+    public function testACustomCancelledNotificationHandlerReplacesTheBuiltInOne(): void
+    {
+        $seen = [];
+        $client = new ClientBuilder()
+            ->setClientInfo('demo', '1.0.0')
+            ->addNotificationHandler('notifications/cancelled', new ClosureNotificationHandler(
+                static function () use (&$seen): void {
+                    $seen[] = 'custom';
+                },
+            ))
+            ->build()
+        ;
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'method' => 'notifications/cancelled',
+            'params' => ['requestId' => 7],
+        ]);
+        $client->disconnect();
+
+        self::assertSame(['custom'], $seen);
     }
 
     public function testBuildDefaultsToIncrementingIntegerRequestIdFactoryWhenNoneIsSet(): void

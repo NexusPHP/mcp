@@ -14,13 +14,10 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Server\Prompt;
 
 use Amp\NullCancellation;
-use Nexus\Mcp\Core\Schema\Cursor;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\Prompt\Prompt;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
-use Nexus\Mcp\Server\AbstractPaginatedStore;
-use Nexus\Mcp\Server\Exception\InvalidCursorException;
 use Nexus\Mcp\Server\Exception\PromptNotFoundException;
 use Nexus\Mcp\Server\Prompt\ClosurePromptRenderer;
 use Nexus\Mcp\Server\Prompt\PromptEntry;
@@ -36,7 +33,6 @@ use PHPUnit\Framework\TestCase;
  * @internal
  */
 #[CoversClass(PromptStore::class)]
-#[CoversClass(AbstractPaginatedStore::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
 final class PromptStoreTest extends TestCase
@@ -70,24 +66,6 @@ final class PromptStoreTest extends TestCase
         self::assertNull($second->nextCursor);
     }
 
-    public function testListAfterLastItemReturnsEmptyPage(): void
-    {
-        $store = new PromptStore(self::makeEntries('only'), pageSize: 1);
-
-        $page = $store->list(new Cursor(cursor: 'only'));
-
-        self::assertSame([], $page->prompts);
-        self::assertNull($page->nextCursor);
-    }
-
-    public function testListWithEmptyStoreReturnsEmptyPage(): void
-    {
-        $page = new PromptStore()->list(null);
-
-        self::assertSame([], $page->prompts);
-        self::assertNull($page->nextCursor);
-    }
-
     public function testConstructorRejectsNonPositivePageSize(): void
     {
         $this->expectException(\InvalidArgumentException::class);
@@ -96,32 +74,37 @@ final class PromptStoreTest extends TestCase
         new PromptStore([], 0);
     }
 
-    public function testConstructorRejectsIntegerEntryKey(): void
+    public function testConstructorRejectsNegativeTtl(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageMatches('/^Prompt store entry key must be a non-empty string\.$/');
+        $this->expectExceptionMessageIs('Prompt store TTL must be a non-negative integer, -1 given.');
 
-        // @phpstan-ignore argument.type
-        new PromptStore([1 => new PromptEntry(new Prompt(name: 'one'), self::makeRenderer())]);
+        new PromptStore(ttlMs: -1);
     }
 
-    public function testConstructorRejectsEmptyStringEntryKey(): void
+    public function testConstructorRejectsAnEntryKeyThatDoesNotMatchItsName(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageMatches('/^Prompt store entry key must be a non-empty string\.$/');
+        $this->expectExceptionMessageIs('Prompt store entry key "\'mismatch\'" must match its prompt name "\'one\'".');
 
-        // @phpstan-ignore argument.type
-        new PromptStore(['' => new PromptEntry(new Prompt(name: 'one'), self::makeRenderer())]);
+        new PromptStore(['mismatch' => new PromptEntry(new Prompt(name: 'one'), self::makeRenderer())]);
     }
 
-    public function testListRejectsCursorThatMatchesNoEntry(): void
+    public function testAnAllDigitNameIsServedDespiteBecomingAnIntegerKey(): void
     {
-        $store = new PromptStore(self::makeEntries('alpha'));
+        // The name rules permit all digits, and PHP turns such a key into an int. Pagination must still
+        // mint a cursor that names the entry rather than its position.
+        $store = new PromptStore(['123' => new PromptEntry(new Prompt(name: '123'), self::makeRenderer()), 'beta' => new PromptEntry(new Prompt(name: 'beta'), self::makeRenderer())], pageSize: 1);
 
-        $this->expectException(InvalidCursorException::class);
-        $this->expectExceptionMessageMatches('/^Cursor "missing" does not match any registered entry\.$/');
+        $first = $store->list(null);
+        self::assertNotNull($first->nextCursor);
+        self::assertSame('123', $first->nextCursor->cursor);
 
-        $store->list(new Cursor(cursor: 'missing'));
+        $second = $store->list($first->nextCursor);
+        self::assertSame(
+            ['beta'],
+            array_map(static fn(Prompt $e): string => $e->name, $second->prompts),
+        );
     }
 
     public function testGetInvokesTheRendererMatchingTheName(): void
@@ -164,6 +147,83 @@ final class PromptStoreTest extends TestCase
         $this->expectExceptionMessageMatches('/^No prompt registered under name "missing"\.$/');
 
         $store->get('missing', null, self::makeContext());
+    }
+
+    public function testAddPromptRegistersItAndAnnouncesTheChange(): void
+    {
+        $store = new PromptStore(self::makeEntries('alpha'));
+        $changes = 0;
+        $store->onListChanged(static function () use (&$changes): void { ++$changes; });
+
+        $store->addPrompt(new Prompt(name: 'beta'), self::makeRenderer());
+
+        self::assertSame(
+            ['alpha', 'beta'],
+            array_map(static fn(Prompt $prompt): string => $prompt->name, $store->list(null)->prompts),
+        );
+        self::assertSame(1, $changes);
+    }
+
+    public function testAddPromptReplacesAPromptOfTheSameName(): void
+    {
+        $store = new PromptStore(self::makeEntries('alpha'));
+
+        $store->addPrompt(new Prompt(name: 'alpha', title: 'Renamed'), self::makeRenderer());
+
+        $prompts = $store->list(null)->prompts;
+        self::assertCount(1, $prompts);
+        self::assertSame('Renamed', $prompts[0]->title);
+    }
+
+    public function testRemovePromptDropsItAndAnnouncesTheChange(): void
+    {
+        $store = new PromptStore(self::makeEntries('alpha', 'beta'));
+        $changes = 0;
+        $store->onListChanged(static function () use (&$changes): void { ++$changes; });
+
+        self::assertTrue($store->removePrompt('alpha'));
+        self::assertSame(
+            ['beta'],
+            array_map(static fn(Prompt $prompt): string => $prompt->name, $store->list(null)->prompts),
+        );
+        self::assertSame(1, $changes);
+    }
+
+    public function testRemovePromptIsSilentWhenNoPromptMatches(): void
+    {
+        $store = new PromptStore(self::makeEntries('alpha'));
+        $changes = 0;
+        $store->onListChanged(static function () use (&$changes): void { ++$changes; });
+
+        self::assertFalse($store->removePrompt('missing'));
+        self::assertCount(1, $store->list(null)->prompts);
+        self::assertSame(0, $changes);
+    }
+
+    public function testEveryRegisteredListenerHearsAChange(): void
+    {
+        $store = new PromptStore();
+        $heard = [];
+        $store->onListChanged(static function () use (&$heard): void { $heard[] = 'first'; });
+        $store->onListChanged(static function () use (&$heard): void { $heard[] = 'second'; });
+
+        $store->addPrompt(new Prompt(name: 'alpha'), self::makeRenderer());
+
+        self::assertSame(['first', 'second'], $heard);
+    }
+
+    public function testAnAddedPromptIsRenderable(): void
+    {
+        $store = new PromptStore();
+        $store->addPrompt(new Prompt(name: 'alpha'), self::makeRenderer());
+
+        $result = $store->get('alpha', null, self::makeContext());
+
+        if (! $result instanceof GetPromptResult) {
+            self::fail('Expected a prompt result.');
+        }
+
+        self::assertSame([], $result->messages);
     }
 
     /**

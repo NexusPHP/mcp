@@ -33,8 +33,11 @@ use Amp\Http\Server\DefaultErrorHandler;
 use Amp\Http\Server\SocketHttpServer;
 use Nexus\Mcp\Core\Schema\Result\CompleteResult;
 use Nexus\Mcp\Server\Completion\CompletionStore;
+use Nexus\Mcp\Server\Prompt\MutablePromptStoreInterface;
 use Nexus\Mcp\Server\ServerBuilder;
 use Nexus\Mcp\Server\ServerContext;
+use Nexus\Mcp\Server\Subscription\SubscriptionStore;
+use Nexus\Mcp\Server\Tool\MutableToolStoreInterface;
 use Nexus\Mcp\Server\Transport\Http\SecuredHttpEndpoint;
 use Nexus\Mcp\Server\Transport\StreamableHttpServerTransport;
 use Nyholm\Psr7\Factory\Psr17Factory;
@@ -76,9 +79,10 @@ $completeArgument = static function (string $value, ?array $arguments, ServerCon
     return new CompleteResult(completion: ['values' => $matches, 'total' => count($matches), 'hasMore' => false]);
 };
 
+$everythingServer = new EverythingServer();
 $builder = new ServerBuilder()
     ->setLogger($logger)
-    ->register(new EverythingServer(), new MultiRoundServer())
+    ->register($everythingServer, new MultiRoundServer())
     ->setCompletionStore(new CompletionStore(
         promptCompletions: [
             'test_prompt_with_arguments' => ['arg1' => $completeArgument, 'arg2' => $completeArgument],
@@ -89,7 +93,23 @@ $builder = new ServerBuilder()
     ))
 ;
 
+$subscriptions = new SubscriptionStore(
+    toolsListChanged: true,
+    promptsListChanged: true,
+    resourcesListChanged: true,
+    resourceSubscriptions: true,
+);
+
+$builder->setSubscriptionStore($subscriptions);
+
 $server = $builder->build();
+
+$toolStore = $builder->getToolStore();
+$promptStore = $builder->getPromptStore();
+
+if ($toolStore instanceof MutableToolStoreInterface && $promptStore instanceof MutablePromptStoreInterface) {
+    $everythingServer->useStores($toolStore, $promptStore);
+}
 
 $transport = new StreamableHttpServerTransport(
     responseFactory: $psr17,

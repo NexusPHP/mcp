@@ -273,6 +273,10 @@ the peer can stop working on a result nobody will read, and throws `RequestTimeo
 request and the deadline that fired. A response arriving afterwards has no awaiter left and is discarded as
 an orphan.
 
+In the other direction, an inbound `notifications/cancelled` cancels the request the client is serving under
+that id, and the response is then suppressed, the same as on the server. Register your own
+`notifications/cancelled` handler to replace that behaviour.
+
 The idle timer restarting on progress is what makes a long tool call safe under a short default: a call that
 reports progress stays alive indefinitely, up to the ceiling. That only applies to a call that asked for
 progress, since only then does the SDK mint a token to match notifications against:

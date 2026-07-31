@@ -13,13 +13,17 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Server;
 
+use Nexus\Mcp\Core\Handler\AbstractContext;
 use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
+use Nexus\Mcp\Core\Schema\Result;
+use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Core\Transport\InMemoryTransport;
 use Nexus\Mcp\Server\Server;
 use Nexus\Mcp\Server\ServerBuilder;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
+use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureRequestHandler;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -29,6 +33,7 @@ use Psr\Log\LogLevel;
 use Revolt\EventLoop;
 
 use function Amp\async;
+use function Amp\delay;
 
 /**
  * @internal
@@ -240,6 +245,55 @@ final class ServerTest extends TestCase
     }
 
     public function testListenRoutesInboundEnvelopesThroughDispatcher(): void
+    {
+        $transport = new RecordingTransport();
+        $server = self::buildServer();
+
+        $server->listen($transport);
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'server/discover',
+            'params' => ['_meta' => RequestMetaObjectFactory::shape()],
+        ]);
+
+        EventLoop::run();
+
+        self::assertCount(1, $transport->sent);
+    }
+
+    public function testATransportReportedCancellationSuppressesTheResponse(): void
+    {
+        // A peer that abandons a stream never says so in a message, so the transport reports it and the
+        // dispatcher must treat it exactly like `notifications/cancelled`.
+        $transport = new RecordingTransport();
+        $server = new ServerBuilder()
+            ->setServerInfo('demo', '1.0.0')
+            ->replaceRequestHandler('server/discover', new ClosureRequestHandler(
+                static function ($request, AbstractContext $context): Result {
+                    delay(1.0, cancellation: $context->cancellation);
+
+                    return new EmptyResult();
+                },
+            ))
+            ->build()
+        ;
+
+        $server->listen($transport);
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'server/discover',
+            'params' => ['_meta' => RequestMetaObjectFactory::shape()],
+        ]);
+        $transport->emitCancel(new RequestId(id: 1));
+
+        EventLoop::run();
+
+        self::assertSame([], $transport->sent);
+    }
+
+    public function testAnUncancelledRequestIsStillAnsweredOnACancellableTransport(): void
     {
         $transport = new RecordingTransport();
         $server = self::buildServer();

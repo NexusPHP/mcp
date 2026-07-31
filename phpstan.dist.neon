@@ -33,6 +33,7 @@ parameters:
   checkUninitializedProperties: true
   reportAlwaysTrueInLastCondition: true
   reportAnyTypeWideningInVarTag: true
+  reportNonIntStringArrayKey: true
   reportPossiblyNonexistentGeneralArrayOffset: true
   reportPossiblyNonexistentConstantArrayOffset: true
   treatPhpDocTypesAsCertain: false

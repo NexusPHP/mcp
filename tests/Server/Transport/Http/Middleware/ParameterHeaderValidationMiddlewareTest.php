@@ -14,7 +14,11 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Server\Transport\Http\Middleware;
 
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
+use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Core\Schema\Tool\Tool;
+use Nexus\Mcp\Server\Tool\ClosureToolExecutor;
+use Nexus\Mcp\Server\Tool\ToolEntry;
+use Nexus\Mcp\Server\Tool\ToolStore;
 use Nexus\Mcp\Server\Transport\Http\Middleware\ParameterHeaderValidationMiddleware;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Server\Http\RecordingRequestHandler;
@@ -278,6 +282,33 @@ final class ParameterHeaderValidationMiddlewareTest extends TestCase
         $middleware->process(self::callPost(['region' => 'us-west1'], ['Mcp-Param-Region' => 'us-west1']), self::handler());
 
         self::assertSame(1, $store->listCalls, 'The binding scan is cached across requests.');
+    }
+
+    public function testAToolAddedAfterTheScanIsStillValidated(): void
+    {
+        $store = new ToolStore([
+            'echo' => new ToolEntry(
+                new Tool(name: 'echo', inputSchema: ['type' => 'object']),
+                new ClosureToolExecutor(static fn(?array $args, $ctx): CallToolResult => new CallToolResult(content: [])),
+            ),
+        ]);
+        $middleware = new ParameterHeaderValidationMiddleware($store, new Psr17Factory(), new Psr17Factory());
+
+        $middleware->process(self::callPost([], tool: 'echo'), self::handler());
+
+        $store->addTool(
+            new Tool(name: 'later', inputSchema: ['type' => 'object', 'properties' => ['region' => ['type' => 'string', 'x-mcp-header' => 'Region']]]),
+            new ClosureToolExecutor(static fn(?array $args, $ctx): CallToolResult => new CallToolResult(content: [])),
+        );
+
+        $handler = self::handler();
+        $response = $middleware->process(
+            self::callPost(['region' => 'eu-west1'], ['Mcp-Param-Region' => 'us-east1'], tool: 'later'),
+            $handler,
+        );
+
+        self::assertFalse($handler->called, 'A tool registered after the scan must not bypass validation.');
+        self::assertSame(400, $response->getStatusCode());
     }
 
     private static function middleware(): ParameterHeaderValidationMiddleware

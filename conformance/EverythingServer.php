@@ -17,11 +17,13 @@ use Nexus\Mcp\Core\Schema\ContentBlock\EmbeddedResource;
 use Nexus\Mcp\Core\Schema\ContentBlock\ImageContent;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Enum\Role;
+use Nexus\Mcp\Core\Schema\Prompt\Prompt;
 use Nexus\Mcp\Core\Schema\Prompt\PromptMessage;
 use Nexus\Mcp\Core\Schema\Resource\BlobResourceContents;
 use Nexus\Mcp\Core\Schema\Resource\TextResourceContents;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
+use Nexus\Mcp\Core\Schema\Tool\Tool;
 use Nexus\Mcp\Server\Attribute\AsPrompt;
 use Nexus\Mcp\Server\Attribute\AsResource;
 use Nexus\Mcp\Server\Attribute\AsResourceTemplate;
@@ -29,7 +31,11 @@ use Nexus\Mcp\Server\Attribute\AsServer;
 use Nexus\Mcp\Server\Attribute\AsTool;
 use Nexus\Mcp\Server\Attribute\InputSchema;
 use Nexus\Mcp\Server\Exception\MissingRequiredClientCapabilityException;
+use Nexus\Mcp\Server\Prompt\ClosurePromptRenderer;
+use Nexus\Mcp\Server\Prompt\MutablePromptStoreInterface;
 use Nexus\Mcp\Server\ServerContext;
+use Nexus\Mcp\Server\Tool\ClosureToolExecutor;
+use Nexus\Mcp\Server\Tool\MutableToolStoreInterface;
 
 /**
  * The fixture the conformance referee drives.
@@ -55,6 +61,52 @@ final class EverythingServer
      * A minimal silent WAV.
      */
     private const string SILENT_WAV = 'UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
+
+    private int $mutations = 0;
+    private ?MutableToolStoreInterface $toolStore = null;
+    private ?MutablePromptStoreInterface $promptStore = null;
+
+    /**
+     * Hands the fixture the stores `build()` assembled, so the diagnostic triggers below can mutate the
+     * same listings the handlers serve.
+     */
+    public function useStores(MutableToolStoreInterface $tools, MutablePromptStoreInterface $prompts): void
+    {
+        $this->toolStore = $tools;
+        $this->promptStore = $prompts;
+    }
+
+    /**
+     * The referee drives these to prove a mutated listing reaches an open `subscriptions/listen` stream.
+     * They are the one place the fixture reaches for the stores rather than declaring through attributes.
+     */
+    #[AsTool(name: 'test_trigger_tool_change', description: 'Adds a tool, changing the tool list.')]
+    public function triggerToolChange(): string
+    {
+        $name = sprintf('generated_tool_%d', ++$this->mutations);
+        $this->toolStore?->addTool(
+            new Tool(name: $name, description: 'Generated to change the tool list.', inputSchema: ['type' => 'object']),
+            new ClosureToolExecutor(static fn(?array $arguments, ServerContext $context): CallToolResult => new CallToolResult(
+                content: [new TextContent(text: 'generated')],
+            )),
+        );
+
+        return $name;
+    }
+
+    #[AsTool(name: 'test_trigger_prompt_change', description: 'Adds a prompt, changing the prompt list.')]
+    public function triggerPromptChange(): string
+    {
+        $name = sprintf('generated_prompt_%d', ++$this->mutations);
+        $this->promptStore?->addPrompt(
+            new Prompt(name: $name, description: 'Generated to change the prompt list.'),
+            new ClosurePromptRenderer(static fn(?array $arguments, ServerContext $context): GetPromptResult => new GetPromptResult(
+                messages: [],
+            )),
+        );
+
+        return $name;
+    }
 
     #[AsTool(name: 'test_simple_text', description: 'Returns a simple text response.')]
     public function simpleText(): string

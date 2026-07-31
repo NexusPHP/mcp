@@ -176,3 +176,7 @@ Two things sit outside the attribute-discovered fixture:
   hand-written 2020-12 document survives verbatim, down to `$anchor` and `if`/`then`/`else`.
 - Completions have no discovery attribute, so [`server.php`](server.php) registers a `CompletionStore`
   the explicit way.
+- `test_trigger_tool_change` and `test_trigger_prompt_change` mutate the listings at runtime, which the
+  subscription checks need in order to observe a `list_changed` on an open stream. They are the one place
+  the fixture reaches for the stores `build()` assembled rather than declaring through attributes, so
+  [`server.php`](server.php) hands them over with `useStores()` after building.

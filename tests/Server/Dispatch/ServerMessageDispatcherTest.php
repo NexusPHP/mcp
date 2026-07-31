@@ -13,11 +13,15 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Server\Dispatch;
 
+use Amp\CancelledException;
+use Nexus\Mcp\Core\Dispatch\PendingInboundRequests;
 use Nexus\Mcp\Core\Exception\AbstractJsonRpcProtocolException;
+use Nexus\Mcp\Core\Exception\InvalidParamsException;
 use Nexus\Mcp\Core\Exception\MethodMisroutedException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
 use Nexus\Mcp\Core\Handler\AbstractContext;
 use Nexus\Mcp\Core\Handler\HandlerRegistry;
+use Nexus\Mcp\Core\Handler\Notification\CancelledNotificationHandler;
 use Nexus\Mcp\Core\Handler\NotificationHandlerInterface;
 use Nexus\Mcp\Core\Handler\RequestHandlerInterface;
 use Nexus\Mcp\Core\JsonRpc\JsonRpcMessageParser;
@@ -26,6 +30,7 @@ use Nexus\Mcp\Core\Schema\Enum\SdkErrorCode;
 use Nexus\Mcp\Core\Schema\Error\UnsupportedProtocolVersionError;
 use Nexus\Mcp\Core\Schema\Implementation;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
+use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\MetaObject\GenericResultMetaObject;
 use Nexus\Mcp\Core\Schema\MetaObject\ResultMetaObject;
@@ -55,6 +60,8 @@ use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LogLevel;
 
+use function Amp\delay;
+
 /**
  * @internal
  */
@@ -63,6 +70,13 @@ use Psr\Log\LogLevel;
 #[Group('server-tests')]
 final class ServerMessageDispatcherTest extends TestCase
 {
+    /**
+     * Seconds a cancellation test's handler waits. `RecordingTransport` holds no I/O of its own, so the
+     * handler needs referenced loop work to suspend on. It must also self-terminate, or a cancellation
+     * that never arrives would dangle a suspension on a dry loop.
+     */
+    private const float CANCELLATION_ANCHOR = 1.0;
+
     private const string ORPHAN_LOG_MESSAGE = 'Discarded {count} response envelope(s) so far (server has no outbound-request correlation).';
 
     public function testInboundResultResponseEnvelopeIsLoggedAndDropped(): void
@@ -497,6 +511,166 @@ final class ServerMessageDispatcherTest extends TestCase
         $dispatcher->flushPending();
 
         self::assertSame($serverInfo, self::sentResult($transport)->meta->serverInfo);
+    }
+
+    public function testACancelledRequestWhoseHandlerPropagatesTheCancellationIsNotAnswered(): void
+    {
+        [$dispatcher, $transport, $logger] = self::buildCancellableDispatcher(
+            static function ($request, AbstractContext $context): Result {
+                delay(self::CANCELLATION_ANCHOR, cancellation: $context->cancellation);
+
+                return new EmptyResult();
+            },
+        );
+
+        $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
+        $dispatcher->dispatch(self::cancelEnvelope(1), $transport, new ReceiveContext());
+        $dispatcher->flushPending();
+
+        self::assertSame([], $transport->sent, 'The spec forbids answering a request whose cancellation was requested.');
+
+        $records = $logger->recordsMatching(
+            LogLevel::DEBUG,
+            'Dropping the response to a request whose handler the cancellation interrupted.',
+        );
+        self::assertCount(1, $records);
+        self::assertSame(['method' => 'tools/list'], $records[0]['context']);
+        self::assertSame(
+            [],
+            $logger->messagesAtLevel(LogLevel::ERROR),
+            'A cancellation is not a handler fault, so it must not be reported as one.',
+        );
+    }
+
+    public function testACancelledRequestWhoseHandlerReturnsTidilyIsStillNotAnswered(): void
+    {
+        // A cooperative handler may swallow the cancellation and finish, so the drop gate has to key on
+        // the cancellation itself rather than on how the handler returned.
+        [$dispatcher, $transport, $logger] = self::buildCancellableDispatcher(
+            static function ($request, AbstractContext $context): Result {
+                try {
+                    delay(self::CANCELLATION_ANCHOR, cancellation: $context->cancellation);
+                } catch (CancelledException) {
+                    // Finish tidily instead of propagating.
+                }
+
+                return new EmptyResult();
+            },
+        );
+
+        $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
+        $dispatcher->dispatch(self::cancelEnvelope(1), $transport, new ReceiveContext());
+        $dispatcher->flushPending();
+
+        self::assertSame([], $transport->sent);
+
+        $records = $logger->recordsMatching(LogLevel::DEBUG, 'Dropping the response to a cancelled request.');
+        self::assertCount(1, $records);
+        self::assertSame(['method' => 'tools/list'], $records[0]['context']);
+    }
+
+    public function testACancelledRequestIsNotAnsweredWithAProtocolErrorItsHandlerRaised(): void
+    {
+        [$dispatcher, $transport] = self::buildCancellableDispatcher(
+            static function ($request, AbstractContext $context): Result {
+                try {
+                    delay(self::CANCELLATION_ANCHOR, cancellation: $context->cancellation);
+                } catch (CancelledException) {
+                    // Fall through to the protocol error below.
+                }
+
+                throw new InvalidParamsException($context->requestId, 'bad arguments');
+            },
+        );
+
+        $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
+        $dispatcher->dispatch(self::cancelEnvelope(1), $transport, new ReceiveContext());
+        $dispatcher->flushPending();
+
+        self::assertSame([], $transport->sent);
+    }
+
+    public function testACancelledRequestIsNotAnsweredWithTheInternalErrorItsHandlerRaised(): void
+    {
+        [$dispatcher, $transport] = self::buildCancellableDispatcher(
+            static function ($request, AbstractContext $context): Result {
+                try {
+                    delay(self::CANCELLATION_ANCHOR, cancellation: $context->cancellation);
+                } catch (CancelledException) {
+                    // Fall through to the uncaught failure below.
+                }
+
+                throw new \RuntimeException('boom');
+            },
+        );
+
+        $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
+        $dispatcher->dispatch(self::cancelEnvelope(1), $transport, new ReceiveContext());
+        $dispatcher->flushPending();
+
+        self::assertSame([], $transport->sent);
+    }
+
+    public function testCancelRequestReachesTheInFlightSetDirectly(): void
+    {
+        // The transport reports an abandoned stream through this seam rather than through a message.
+        $inboundRequests = new PendingInboundRequests();
+        $dispatcher = self::buildDispatcher(
+            requestHandlers: ['tools/list' => new ClosureRequestHandler(
+                static function ($request, AbstractContext $context): Result {
+                    delay(self::CANCELLATION_ANCHOR, cancellation: $context->cancellation);
+
+                    return new EmptyResult();
+                },
+            )],
+            inboundRequests: $inboundRequests,
+        );
+        $transport = new RecordingTransport();
+
+        $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
+        $dispatcher->cancelRequest(new RequestId(id: 1));
+        $dispatcher->flushPending();
+
+        self::assertSame([], $transport->sent);
+    }
+
+    public function testAnUncancelledRequestIsStillAnswered(): void
+    {
+        [$dispatcher, $transport] = self::buildCancellableDispatcher(
+            static fn($request, AbstractContext $context): Result => new EmptyResult(),
+        );
+
+        $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
+        $dispatcher->flushPending();
+
+        self::assertCount(1, $transport->sent);
+    }
+
+    public function testCancellingOneRequestLeavesAnotherAnswerable(): void
+    {
+        [$dispatcher, $transport] = self::buildCancellableDispatcher(
+            static function ($request, AbstractContext $context): Result {
+                if (1 === $context->requestId->id) {
+                    delay(self::CANCELLATION_ANCHOR, cancellation: $context->cancellation);
+                }
+
+                return new EmptyResult();
+            },
+        );
+
+        $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
+        $dispatcher->dispatch(self::toolsListEnvelope(2), $transport, new ReceiveContext());
+        $dispatcher->dispatch(self::cancelEnvelope(1), $transport, new ReceiveContext());
+        $dispatcher->flushPending();
+
+        self::assertCount(1, $transport->sent, 'Only the cancelled request loses its response.');
+        $message = $transport->sent[0]['message'];
+
+        if (! $message instanceof JsonRpcResultResponse) {
+            self::fail('Expected the uncancelled request to be answered with a result.');
+        }
+
+        self::assertSame(2, $message->id->id);
     }
 
     public function testStampsTheServerIdentityOnAResultThatCarriesOtherMetaEntries(): void
@@ -1184,6 +1358,7 @@ final class ServerMessageDispatcherTest extends TestCase
         ?JsonRpcMessageParser $parser = null,
         ?Implementation $serverInfo = null,
         ?int $maxInFlight = null,
+        ?PendingInboundRequests $inboundRequests = null,
     ): ServerMessageDispatcher {
         return new ServerMessageDispatcher(
             new HandlerRegistry($requestHandlers, RequestHandlerInterface::class, 'Request handler'),
@@ -1192,7 +1367,47 @@ final class ServerMessageDispatcherTest extends TestCase
             parser: $parser ?? new JsonRpcMessageParser(),
             serverInfo: $serverInfo,
             maxInFlight: $maxInFlight,
+            inboundRequests: $inboundRequests ?? new PendingInboundRequests(),
         );
+    }
+
+    /**
+     * Composes the dispatcher the way `ServerBuilder` does, sharing one in-flight set with the
+     * `notifications/cancelled` handler, and answers `tools/list` with `$handler`.
+     *
+     * @param \Closure(JsonRpcRequest<non-empty-string>, AbstractContext): Result $handler
+     *
+     * @return array{ServerMessageDispatcher, RecordingTransport, ArrayLogger}
+     */
+    private static function buildCancellableDispatcher(\Closure $handler): array
+    {
+        $inboundRequests = new PendingInboundRequests();
+        $logger = new ArrayLogger();
+
+        return [
+            self::buildDispatcher(
+                requestHandlers: ['tools/list' => new ClosureRequestHandler($handler)],
+                notificationHandlers: [
+                    'notifications/cancelled' => new CancelledNotificationHandler($inboundRequests, $logger),
+                ],
+                logger: $logger,
+                inboundRequests: $inboundRequests,
+            ),
+            new RecordingTransport(),
+            $logger,
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function cancelEnvelope(int|string $requestId): array
+    {
+        return [
+            'jsonrpc' => '2.0',
+            'method' => 'notifications/cancelled',
+            'params' => ['requestId' => $requestId],
+        ];
     }
 
     /**

@@ -14,14 +14,11 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Server\Resource;
 
 use Amp\NullCancellation;
-use Nexus\Mcp\Core\Schema\Cursor;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Resource\ResourceTemplate;
 use Nexus\Mcp\Core\Schema\Resource\TextResourceContents;
 use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
-use Nexus\Mcp\Server\AbstractPaginatedStore;
-use Nexus\Mcp\Server\Exception\InvalidCursorException;
 use Nexus\Mcp\Server\Exception\ResourceNotFoundException;
 use Nexus\Mcp\Server\Resource\ClosureTemplatedResourceReader;
 use Nexus\Mcp\Server\Resource\ResourceTemplateEntry;
@@ -37,7 +34,6 @@ use PHPUnit\Framework\TestCase;
  * @internal
  */
 #[CoversClass(ResourceTemplateStore::class)]
-#[CoversClass(AbstractPaginatedStore::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
 final class ResourceTemplateStoreTest extends TestCase
@@ -95,33 +91,20 @@ final class ResourceTemplateStoreTest extends TestCase
         self::assertNull($second->nextCursor);
     }
 
-    public function testListAfterLastItemReturnsEmptyPage(): void
-    {
-        $store = new ResourceTemplateStore(
-            ['file:///{x}.only' => self::entry(new ResourceTemplate(name: 'only', uriTemplate: 'file:///{x}.only'))],
-            pageSize: 1,
-        );
-
-        $page = $store->list(new Cursor(cursor: 'file:///{x}.only'));
-
-        self::assertSame([], $page->resourceTemplates);
-        self::assertNull($page->nextCursor);
-    }
-
-    public function testListWithEmptyStoreReturnsEmptyPage(): void
-    {
-        $page = new ResourceTemplateStore()->list(null);
-
-        self::assertSame([], $page->resourceTemplates);
-        self::assertNull($page->nextCursor);
-    }
-
     public function testConstructorRejectsNonPositivePageSize(): void
     {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageMatches('/^Resource template store page size must be a positive integer, 0 given\.$/');
 
         new ResourceTemplateStore([], 0);
+    }
+
+    public function testConstructorRejectsNegativeTtl(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('Resource template store TTL must be a non-negative integer, -1 given.');
+
+        new ResourceTemplateStore(ttlMs: -1);
     }
 
     public function testConstructorRejectsIntegerEntryKey(): void
@@ -170,18 +153,6 @@ final class ResourceTemplateStoreTest extends TestCase
         new ResourceTemplateStore([
             'file:///{a}{b}' => self::entry(new ResourceTemplate(name: 'ab', uriTemplate: 'file:///{a}{b}')),
         ]);
-    }
-
-    public function testListRejectsCursorThatMatchesNoEntry(): void
-    {
-        $store = new ResourceTemplateStore([
-            'file:///{x}.alpha' => self::entry(new ResourceTemplate(name: 'alpha', uriTemplate: 'file:///{x}.alpha')),
-        ]);
-
-        $this->expectException(InvalidCursorException::class);
-        $this->expectExceptionMessageMatches('/^Cursor "missing" does not match any registered entry\.$/');
-
-        $store->list(new Cursor(cursor: 'missing'));
     }
 
     public function testReadThrowsWhenNoTemplateMatches(): void
@@ -248,6 +219,98 @@ final class ResourceTemplateStoreTest extends TestCase
 
         self::assertSame($expected, $store->read('file:///x', self::makeContext()));
         self::assertTrue($firstCalled);
+    }
+
+    public function testAddResourceTemplateRegistersItAndAnnouncesTheChange(): void
+    {
+        $store = new ResourceTemplateStore();
+        $changes = 0;
+        $store->onListChanged(static function () use (&$changes): void { ++$changes; });
+
+        $store->addResourceTemplate(
+            new ResourceTemplate(name: 'files', uriTemplate: 'file:///{path}'),
+            new ClosureTemplatedResourceReader(
+                static fn(string $uri, array $bindings, ServerContext $context): ReadResourceResult => new ReadResourceResult(
+                    contents: [],
+                    ttlMs: 0,
+                    cacheScope: CacheScope::Private,
+                ),
+            ),
+        );
+
+        self::assertSame(
+            ['file:///{path}'],
+            array_map(
+                static fn(ResourceTemplate $template): string => $template->uriTemplate,
+                $store->list(null)->resourceTemplates,
+            ),
+        );
+        self::assertSame(1, $changes);
+
+        $result = $store->read('file:///a', self::makeContext());
+
+        if (! $result instanceof ReadResourceResult) {
+            self::fail('Expected a resource result.');
+        }
+
+        self::assertSame([], $result->contents);
+    }
+
+    public function testAddResourceTemplateRejectsAnUnmatchableTemplate(): void
+    {
+        $store = new ResourceTemplateStore();
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageMatches('/^ResourceTemplate URI template must use only RFC 6570 Level 1 simple-name expressions/');
+
+        $store->addResourceTemplate(
+            new ResourceTemplate(name: 'files', uriTemplate: 'file:///{+path}'),
+            new ClosureTemplatedResourceReader(static fn(): never => throw new \LogicException('unreachable')),
+        );
+    }
+
+    public function testRemoveResourceTemplateDropsItAndStopsMatchingIt(): void
+    {
+        $template = new ResourceTemplate(name: 'files', uriTemplate: 'file:///{path}');
+        $store = new ResourceTemplateStore(['file:///{path}' => self::entry($template)]);
+        $changes = 0;
+        $store->onListChanged(static function () use (&$changes): void { ++$changes; });
+
+        self::assertTrue($store->removeResourceTemplate('file:///{path}'));
+        self::assertSame([], $store->list(null)->resourceTemplates);
+        self::assertSame(1, $changes);
+
+        // The compiled pattern must go with the entry, or `read()` still matches a removed template.
+        $this->expectException(ResourceNotFoundException::class);
+        $store->read('file:///a', self::makeContext());
+    }
+
+    public function testRemoveResourceTemplateIsSilentWhenNoTemplateMatches(): void
+    {
+        $store = new ResourceTemplateStore([
+            'file:///{path}' => self::entry(new ResourceTemplate(name: 'files', uriTemplate: 'file:///{path}')),
+        ]);
+        $changes = 0;
+        $store->onListChanged(static function () use (&$changes): void { ++$changes; });
+
+        self::assertFalse($store->removeResourceTemplate('file:///{missing}'));
+        self::assertCount(1, $store->list(null)->resourceTemplates);
+        self::assertSame(0, $changes);
+    }
+
+    public function testEveryRegisteredListenerHearsAChange(): void
+    {
+        $store = new ResourceTemplateStore();
+        $heard = [];
+        $store->onListChanged(static function () use (&$heard): void { $heard[] = 'first'; });
+        $store->onListChanged(static function () use (&$heard): void { $heard[] = 'second'; });
+
+        $store->addResourceTemplate(
+            new ResourceTemplate(name: 'files', uriTemplate: 'file:///{path}'),
+            new ClosureTemplatedResourceReader(static fn(): never => throw new \LogicException('unreachable')),
+        );
+
+        self::assertSame(['first', 'second'], $heard);
     }
 
     /**

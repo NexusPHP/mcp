@@ -12,6 +12,7 @@ Nexus\Mcp\
 │   ├── Dispatch\       Shared dispatch contract and in-flight correlation primitives
 │   ├── Exception\      McpExceptionInterface marker plus concrete protocol error types
 │   ├── Handler\        Handler interfaces, the method-to-handler registry, and the abstract context base
+│   │   └── Notification\  Built-in notification handlers both peers register (cancellation)
 │   ├── Http\           HTTP vocabulary shared by both sides: status codes, header codecs, Mcp-Param binding and validation
 │   ├── JsonRpc\        Envelope parser, method registry, parser-state value objects
 │   ├── Schema\         Types only (value objects, enums, interfaces). No behaviour
@@ -29,6 +30,7 @@ Nexus\Mcp\
 │   │   └── Request\    Built-in server request handlers
 │   ├── Prompt\         Prompt store plus renderer adapters
 │   ├── Resource\       Static and templated resource stores plus reader adapters
+│   ├── Subscription\   Open subscriptions/listen streams and the fanout that reaches them
 │   ├── Tool\           Tool store plus executor adapters
 │   ├── Transport\      Server-side transport implementations
 │   │   └── Http\       Streamable HTTP endpoint composition
@@ -165,9 +167,7 @@ finishes right as the transport closes would lose its response to a race with th
   arguments and results are validated against the tool's declared `inputSchema` / `outputSchema` (pluggable
   via `SchemaValidatorInterface`), and a `structuredContent`-only result is mirrored into a `TextContent`
   block for backwards compatibility.
-- What we do not have yet: tasks, MCP Apps, and the serving half of `subscriptions/listen` (its request,
-  notification, and result classes are registered, so a peer's envelopes decode in both directions, but no
-  built-in handler answers one).
+- What we do not have yet: tasks and MCP Apps.
 - What we deliberately omit: sampling, roots, and logging. SEP-2596 deprecated them, and the spec tells new
   implementations not to adopt a deprecated feature, so a greenfield SDK carries none of them. One
   consequence reaches the input-required flow: the spec's `InputRequest` union is

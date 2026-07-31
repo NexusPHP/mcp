@@ -25,8 +25,10 @@ use Nexus\Mcp\Core\Schema\Error\InternalError;
 use Nexus\Mcp\Core\Schema\Error\UnknownProtocolError;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
+use Nexus\Mcp\Core\Schema\Notification\SubscriptionsAcknowledgedNotification;
 use Nexus\Mcp\Core\Schema\Notification\ToolListChangedNotification;
 use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
+use Nexus\Mcp\Core\Schema\NotificationParams\SubscriptionsAcknowledgedNotificationParams;
 use Nexus\Mcp\Core\Schema\ProgressToken;
 use Nexus\Mcp\Core\Schema\ProtocolVersion;
 use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
@@ -34,7 +36,9 @@ use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
+use Nexus\Mcp\Core\Schema\SubscriptionFilter;
 use Nexus\Mcp\Core\Transport\ReceiveContext;
+use Nexus\Mcp\Core\Transport\SendContext;
 use Nexus\Mcp\Server\Server;
 use Nexus\Mcp\Server\ServerBuilder;
 use Nexus\Mcp\Server\ServerContext;
@@ -271,6 +275,63 @@ final class StreamableHttpServerTransportTest extends TestCase
 
         self::assertCount(1, $contexts);
         self::assertNull($contexts[0]->authInfo);
+    }
+
+    public function testAListenRequestStreamsEvenUnderTheJsonResponseMode(): void
+    {
+        // A listen request is answered only when its stream ends, so the buffered path would hold the POST
+        // open with nowhere to push the acknowledgement.
+        $transport = self::makeTransport(responseMode: ResponseMode::Json);
+        $transport->onMessage(static function (array $envelope) use ($transport): void {
+            $id = $envelope['id'] ?? null;
+            self::assertIsInt($id);
+            $transport->send(
+                new SubscriptionsAcknowledgedNotification(
+                    params: new SubscriptionsAcknowledgedNotificationParams(notifications: new SubscriptionFilter()),
+                ),
+                new SendContext(relatedRequestId: new RequestId(id: $id)),
+            );
+        });
+
+        $response = $transport->handle(self::makePost([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'subscriptions/listen',
+            'params' => ['notifications' => [], '_meta' => RequestMetaObjectFactory::shape()],
+        ], self::standardHeaders('subscriptions/listen')));
+
+        // The body stays open for the stream's lifetime, so the content type is what proves the carve-out.
+        self::assertSame('text/event-stream', $response->getHeaderLine('Content-Type'));
+        self::assertSame(200, $response->getStatusCode());
+
+        $transport->close();
+    }
+
+    public function testAClientCancellationNotificationIsAcceptedButNotDispatched(): void
+    {
+        // The spec makes closing the response stream the cancellation signal here, so this message is
+        // neither required nor expected. Its `requestId` names the client's own id space, which no sink is
+        // keyed by, so dispatching it would cancel whichever request holds that internal id.
+        $logger = new ArrayLogger();
+        $transport = self::makeTransport(logger: $logger);
+
+        $received = [];
+        $transport->onMessage(static function (array $envelope) use (&$received): void {
+            $received[] = $envelope;
+        });
+
+        $response = $transport->handle(self::makePost([
+            'jsonrpc' => '2.0',
+            'method' => 'notifications/cancelled',
+            'params' => ['requestId' => 1],
+        ]));
+
+        self::assertSame(202, $response->getStatusCode());
+        self::assertSame([], $received, 'A foreign id space must never reach the cancellation registry.');
+        self::assertCount(
+            1,
+            $logger->recordsMatching(LogLevel::DEBUG, 'Ignoring a client cancellation notification: the response stream is the signal on this transport.'),
+        );
     }
 
     public function testValidNotificationIsEmittedAndAcceptedWith202(): void
@@ -987,7 +1048,7 @@ final class StreamableHttpServerTransportTest extends TestCase
         self::assertStringContainsString('"result"', $body);
     }
 
-    public function testClosingTheBodyReleasesAnInFlightStream(): void
+    public function testClosingTheBodyCancelsTheInFlightRequest(): void
     {
         $logger = new ArrayLogger();
         $transport = self::makeTransport($logger, ResponseMode::Sse, start: false);
@@ -997,12 +1058,62 @@ final class StreamableHttpServerTransportTest extends TestCase
             $response = $transport->handle(self::progressRequest(7));
             // The client disconnects before consuming the stream.
             $response->getBody()->close();
-            // Let the queued dispatch coroutine run: its response now has no sink and is discarded.
+            // Let the queued dispatch coroutine run: it is now cancelled.
             delay(0.01);
         })->await();
 
-        self::assertCount(1, $logger->recordsMatching(LogLevel::WARNING, 'Discarding an orphan response with no in-flight request.'));
+        self::assertSame(
+            [],
+            $logger->recordsMatching(LogLevel::WARNING, 'Discarding an orphan response with no in-flight request.'),
+            'A disconnect cancels the request, so no response is produced for the transport to orphan.',
+        );
         self::assertCount(1, $logger->recordsMatching(LogLevel::DEBUG, 'Dropping a notification for a request that is no longer in flight.'));
+    }
+
+    public function testAGracefullyEndedStreamDoesNotCancelAnything(): void
+    {
+        // `endStream()` retires the sink after the final frame, so the host disposing the body afterwards
+        // must not be mistaken for the peer walking away.
+        $transport = self::makeTransport(new ArrayLogger(), ResponseMode::Sse, start: false);
+        self::listen($transport, self::progressServer());
+        $cancelled = [];
+        $transport->onCancel(static function (RequestId $id) use (&$cancelled): void {
+            $cancelled[] = $id->id;
+        });
+
+        async(static function () use ($transport): void {
+            $response = $transport->handle(self::progressRequest(7));
+            delay(0.01);
+            // The handler has answered by now, so this is the host tidying up a finished body.
+            $response->getBody()->close();
+        })->await();
+
+        self::assertSame([], $cancelled);
+    }
+
+    public function testADisconnectReportsTheAbandonedRequestToItsListeners(): void
+    {
+        $transport = self::makeTransport(new ArrayLogger(), ResponseMode::Sse, start: false);
+        self::listen($transport, self::progressServer(busyFor: 0.05));
+        $cancelled = [];
+        $subscription = $transport->onCancel(static function (RequestId $id) use (&$cancelled): void {
+            $cancelled[] = $id->id;
+        });
+
+        async(static function () use ($transport): void {
+            $transport->handle(self::progressRequest(7))->getBody()->close();
+            delay(0.01);
+        })->await();
+
+        self::assertCount(1, $cancelled);
+        $subscription->dispose();
+
+        async(static function () use ($transport): void {
+            $transport->handle(self::progressRequest(8))->getBody()->close();
+            delay(0.01);
+        })->await();
+
+        self::assertCount(1, $cancelled, 'A disposed listener stops hearing about disconnects.');
     }
 
     public function testConstructorRejectsNonPositiveKeepAliveInterval(): void

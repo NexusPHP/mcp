@@ -13,10 +13,13 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Dispatch;
 
+use Amp\Cancellation;
+use Amp\DeferredCancellation;
 use Nexus\Mcp\Core\Schema\RequestId;
 
 /**
- * Tracks the set of inbound JSON-RPC request ids whose handler coroutines are still running.
+ * Tracks the inbound JSON-RPC request ids whose handler coroutines are still running, holding the
+ * cancellation each one is dispatched under.
  *
  * @internal
  *
@@ -25,19 +28,40 @@ use Nexus\Mcp\Core\Schema\RequestId;
 final class PendingInboundRequests implements \Countable
 {
     /**
-     * @var array<non-empty-string, true>
+     * `DeferredCancellation::__destruct()` cancels, so the map retains the deferred, not the derived token.
+     *
+     * @var array<non-empty-string, DeferredCancellation>
      */
     private array $map = [];
 
-    public function claim(RequestId $id): bool
+    /**
+     * Claims `$id`, returning the cancellation its handler runs under, or null when it is already in flight.
+     */
+    public function claim(RequestId $id): ?Cancellation
     {
         $key = self::buildKey($id);
 
         if (\array_key_exists($key, $this->map)) {
+            return null;
+        }
+
+        $this->map[$key] = new DeferredCancellation();
+
+        return $this->map[$key]->getCancellation();
+    }
+
+    /**
+     * Requests cancellation of `$id`, reporting whether a request was in flight under it.
+     */
+    public function cancel(RequestId $id): bool
+    {
+        $deferred = $this->map[self::buildKey($id)] ?? null;
+
+        if (null === $deferred) {
             return false;
         }
 
-        $this->map[$key] = true;
+        $deferred->cancel();
 
         return true;
     }

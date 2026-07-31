@@ -14,13 +14,10 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Server\Resource;
 
 use Amp\NullCancellation;
-use Nexus\Mcp\Core\Schema\Cursor;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Resource\Resource;
 use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
-use Nexus\Mcp\Server\AbstractPaginatedStore;
-use Nexus\Mcp\Server\Exception\InvalidCursorException;
 use Nexus\Mcp\Server\Exception\ResourceNotFoundException;
 use Nexus\Mcp\Server\Resource\ClosureResourceReader;
 use Nexus\Mcp\Server\Resource\ResourceEntry;
@@ -36,7 +33,6 @@ use PHPUnit\Framework\TestCase;
  * @internal
  */
 #[CoversClass(ResourceStore::class)]
-#[CoversClass(AbstractPaginatedStore::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
 final class ResourceStoreTest extends TestCase
@@ -90,30 +86,20 @@ final class ResourceStoreTest extends TestCase
         self::assertNull($second->nextCursor);
     }
 
-    public function testListAfterLastItemReturnsEmptyPage(): void
-    {
-        $store = new ResourceStore(self::makeEntries(['only', 'file:///only']), pageSize: 1);
-
-        $page = $store->list(new Cursor(cursor: 'file:///only'));
-
-        self::assertSame([], $page->resources);
-        self::assertNull($page->nextCursor);
-    }
-
-    public function testListWithEmptyStoreReturnsEmptyPage(): void
-    {
-        $page = new ResourceStore()->list(null);
-
-        self::assertSame([], $page->resources);
-        self::assertNull($page->nextCursor);
-    }
-
     public function testConstructorRejectsNonPositivePageSize(): void
     {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageMatches('/^Resource store page size must be a positive integer, 0 given\.$/');
 
         new ResourceStore([], 0);
+    }
+
+    public function testConstructorRejectsNegativeTtl(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('Resource store TTL must be a non-negative integer, -1 given.');
+
+        new ResourceStore(ttlMs: -1);
     }
 
     public function testConstructorRejectsIntegerEntryKey(): void
@@ -132,16 +118,6 @@ final class ResourceStoreTest extends TestCase
 
         // @phpstan-ignore argument.type
         new ResourceStore(['' => new ResourceEntry(new Resource(name: 'one', uri: 'file:///one'), self::makeReader())]);
-    }
-
-    public function testListRejectsCursorThatMatchesNoEntry(): void
-    {
-        $store = new ResourceStore(self::makeEntries(['alpha', 'file:///alpha']));
-
-        $this->expectException(InvalidCursorException::class);
-        $this->expectExceptionMessageMatches('/^Cursor "file:\\/\\/\\/missing" does not match any registered entry\.$/');
-
-        $store->list(new Cursor(cursor: 'file:///missing'));
     }
 
     public function testReadInvokesTheReaderMatchingTheUri(): void
@@ -184,6 +160,83 @@ final class ResourceStoreTest extends TestCase
         $this->expectExceptionMessageMatches('/^No resource registered under URI "file:\\/\\/\\/missing"\.$/');
 
         $store->read('file:///missing', self::makeContext());
+    }
+
+    public function testAddResourceRegistersItAndAnnouncesTheChange(): void
+    {
+        $store = new ResourceStore(self::makeEntries(['cfg', 'file:///a']));
+        $changes = 0;
+        $store->onListChanged(static function () use (&$changes): void { ++$changes; });
+
+        $store->addResource(new Resource(name: 'log', uri: 'file:///b'), self::makeReader());
+
+        self::assertSame(
+            ['file:///a', 'file:///b'],
+            array_map(static fn(Resource $resource): string => $resource->uri, $store->list(null)->resources),
+        );
+        self::assertSame(1, $changes);
+    }
+
+    public function testAddResourceReplacesAResourceOfTheSameUri(): void
+    {
+        $store = new ResourceStore(self::makeEntries(['cfg', 'file:///a']));
+
+        $store->addResource(new Resource(name: 'renamed', uri: 'file:///a'), self::makeReader());
+
+        $resources = $store->list(null)->resources;
+        self::assertCount(1, $resources);
+        self::assertSame('renamed', $resources[0]->name);
+    }
+
+    public function testRemoveResourceDropsItAndAnnouncesTheChange(): void
+    {
+        $store = new ResourceStore(self::makeEntries(['cfg', 'file:///a'], ['log', 'file:///b']));
+        $changes = 0;
+        $store->onListChanged(static function () use (&$changes): void { ++$changes; });
+
+        self::assertTrue($store->removeResource('file:///a'));
+        self::assertSame(
+            ['file:///b'],
+            array_map(static fn(Resource $resource): string => $resource->uri, $store->list(null)->resources),
+        );
+        self::assertSame(1, $changes);
+    }
+
+    public function testRemoveResourceIsSilentWhenNoResourceMatches(): void
+    {
+        $store = new ResourceStore(self::makeEntries(['cfg', 'file:///a']));
+        $changes = 0;
+        $store->onListChanged(static function () use (&$changes): void { ++$changes; });
+
+        self::assertFalse($store->removeResource('file:///missing'));
+        self::assertCount(1, $store->list(null)->resources);
+        self::assertSame(0, $changes);
+    }
+
+    public function testEveryRegisteredListenerHearsAChange(): void
+    {
+        $store = new ResourceStore();
+        $heard = [];
+        $store->onListChanged(static function () use (&$heard): void { $heard[] = 'first'; });
+        $store->onListChanged(static function () use (&$heard): void { $heard[] = 'second'; });
+
+        $store->addResource(new Resource(name: 'cfg', uri: 'file:///a'), self::makeReader());
+
+        self::assertSame(['first', 'second'], $heard);
+    }
+
+    public function testAnAddedResourceIsReadable(): void
+    {
+        $store = new ResourceStore();
+        $store->addResource(new Resource(name: 'cfg', uri: 'file:///a'), self::makeReader());
+
+        $result = $store->read('file:///a', self::makeContext());
+
+        if (! $result instanceof ReadResourceResult) {
+            self::fail('Expected a resource result.');
+        }
+
+        self::assertSame([], $result->contents);
     }
 
     /**

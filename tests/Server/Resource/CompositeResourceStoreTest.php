@@ -131,6 +131,29 @@ final class CompositeResourceStoreTest extends TestCase
         self::assertSame($static, $result->resources[0]);
     }
 
+    public function testAChangeInEitherInnerStoreReachesTheListener(): void
+    {
+        $resources = new ResourceStore();
+        $templates = new ResourceTemplateStore();
+        $composite = new CompositeResourceStore($resources, $templates);
+
+        $heard = 0;
+        $composite->onListChanged(static function () use (&$heard): void {
+            ++$heard;
+        });
+
+        $resources->addResource(
+            new Resource(name: 'etc', uri: 'file:///etc'),
+            new ClosureResourceReader(static fn(): never => throw new \LogicException('unreachable')),
+        );
+        $templates->addResourceTemplate(
+            new ResourceTemplate(name: 'logs', uriTemplate: 'file:///logs/{name}'),
+            new ClosureTemplatedResourceReader(static fn(): never => throw new \LogicException('unreachable')),
+        );
+
+        self::assertSame(2, $heard, 'A composite that hides its inner stores must still report their changes.');
+    }
+
     public function testListAcceptsCursor(): void
     {
         $composite = new CompositeResourceStore(

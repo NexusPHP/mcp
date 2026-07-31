@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Dispatch;
 
+use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Transport\ReceiveContext;
 use Nexus\Mcp\Core\Transport\TransportInterface;
 
@@ -34,4 +35,9 @@ interface MessageDispatcherInterface
      * Awaits every in-flight dispatch coroutine spawned by `dispatch()`.
      */
     public function flushPending(): void;
+
+    /**
+     * Cancels the in-flight request `$id` names, if one is still running under it.
+     */
+    public function cancelRequest(RequestId $id): void;
 }

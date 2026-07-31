@@ -23,8 +23,10 @@ use Nexus\Mcp\Core\Schema\Enum\SdkErrorCode;
 use Nexus\Mcp\Core\Schema\Icon;
 use Nexus\Mcp\Core\Schema\Implementation;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
+use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\Prompt\Prompt;
+use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\ElicitRequestFormParams;
 use Nexus\Mcp\Core\Schema\Resource\Resource;
 use Nexus\Mcp\Core\Schema\Resource\ResourceTemplate;
@@ -42,37 +44,55 @@ use Nexus\Mcp\Core\Schema\Result\ListResourcesResult;
 use Nexus\Mcp\Core\Schema\Result\ListResourceTemplatesResult;
 use Nexus\Mcp\Core\Schema\Result\ListToolsResult;
 use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
+use Nexus\Mcp\Core\Schema\SubscriptionFilter;
 use Nexus\Mcp\Core\Schema\Tool\Tool;
 use Nexus\Mcp\Server\Attribute\AsServer;
 use Nexus\Mcp\Server\Attribute\AsTool;
+use Nexus\Mcp\Server\Completion\CompletionStore;
+use Nexus\Mcp\Server\Exception\BuilderAlreadyBuiltException;
 use Nexus\Mcp\Server\Exception\DuplicateServerMetadataException;
 use Nexus\Mcp\Server\Exception\MissingDiscoveryAttributeException;
 use Nexus\Mcp\Server\Exception\ReservedMethodException;
 use Nexus\Mcp\Server\Exception\UnreservedMethodException;
+use Nexus\Mcp\Server\ListChangeSourceInterface;
+use Nexus\Mcp\Server\Prompt\MutablePromptStoreInterface;
+use Nexus\Mcp\Server\Prompt\PromptStore;
 use Nexus\Mcp\Server\Prompt\PromptStoreInterface;
+use Nexus\Mcp\Server\Resource\MutableResourceStoreInterface;
+use Nexus\Mcp\Server\Resource\MutableResourceTemplateStoreInterface;
+use Nexus\Mcp\Server\Resource\ResourceStore;
 use Nexus\Mcp\Server\Resource\ResourceStoreInterface;
+use Nexus\Mcp\Server\Resource\ResourceTemplateStore;
 use Nexus\Mcp\Server\Resource\ResourceTemplateStoreInterface;
 use Nexus\Mcp\Server\Server;
 use Nexus\Mcp\Server\ServerBuilder;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Server\ServerInfoDisclosure;
+use Nexus\Mcp\Server\Subscription\SubscriptionStore;
+use Nexus\Mcp\Server\Tool\ClosureToolExecutor;
+use Nexus\Mcp\Server\Tool\MutableToolStoreInterface;
 use Nexus\Mcp\Server\Tool\ToolStore;
 use Nexus\Mcp\Server\Tool\ToolStoreInterface;
+use Nexus\Mcp\Server\Validation\OpisSchemaValidator;
 use Nexus\Mcp\Server\Validation\SchemaValidatorInterface;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureNotificationHandler;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureRequestHandler;
+use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
 use Nexus\Mcp\Tests\Fixtures\Server\Completion\RecordingCompletionStore;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\DiscoverableServer;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\SelfDescribingServer;
+use Nexus\Mcp\Tests\Fixtures\Server\Tool\PagedToolStore;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LogLevel;
 use Revolt\EventLoop;
+
+use function Amp\delay;
 
 /**
  * @internal
@@ -1256,6 +1276,536 @@ final class ServerBuilderTest extends TestCase
         self::assertSame($builder->getToolStore(), $builder->getToolStore());
     }
 
+    public function testCancellingAnInFlightRequestSuppressesItsResponse(): void
+    {
+        // `notifications/cancelled` is served by default, so a built server honours the spec's rule that a
+        // cancelled request draws no response without the consumer registering anything.
+        $server = new ServerBuilder()
+            ->setServerInfo('demo', '1.0.0')
+            ->addTool(
+                new Tool(name: 'slow', inputSchema: ['type' => 'object']),
+                static function (?array $args, ServerContext $ctx): CallToolResult {
+                    delay(1.0, cancellation: $ctx->cancellation);
+
+                    return new CallToolResult(content: []);
+                },
+            )
+            ->build()
+        ;
+
+        $transport = new RecordingTransport();
+        $server->listen($transport);
+
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'tools/call',
+            'params' => ['_meta' => RequestMetaObjectFactory::shape(), 'name' => 'slow'],
+        ]);
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'method' => 'notifications/cancelled',
+            'params' => ['requestId' => 1],
+        ]);
+        $transport->close();
+
+        self::assertSame([], $transport->sent);
+    }
+
+    public function testAConsumerMayStillReplaceTheCancelledNotificationHandler(): void
+    {
+        $seen = [];
+        $server = new ServerBuilder()
+            ->setServerInfo('demo', '1.0.0')
+            ->replaceNotificationHandler(
+                'notifications/cancelled',
+                new ClosureNotificationHandler(static function ($notification) use (&$seen): void {
+                    $seen[] = $notification::getMethod();
+                }),
+            )
+            ->build()
+        ;
+
+        $transport = new RecordingTransport();
+        $server->listen($transport);
+
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'method' => 'notifications/cancelled',
+            'params' => ['requestId' => 1],
+        ]);
+        $transport->close();
+
+        self::assertSame(['notifications/cancelled'], $seen, 'A replaced handler must win over the built-in default.');
+    }
+
+    public function testSubscriptionsAreNotServedUntilAStoreIsRegistered(): void
+    {
+        $capabilities = $this->discoverResultFor(
+            new ServerBuilder()
+                ->setServerInfo('demo', '1.0.0')
+                ->addTool(new Tool(name: 't', inputSchema: ['type' => 'object']), static fn(?array $a, $c): CallToolResult => new CallToolResult(content: []))
+                ->build(),
+        )->capabilities;
+
+        self::assertSame([], $capabilities->tools, 'listChanged is a promise to deliver, so it needs a subscription store.');
+    }
+
+    public function testAdvertisesListChangedOnlyForFeaturesWhoseStoreCanReportChanges(): void
+    {
+        $server = new ServerBuilder()
+            ->setServerInfo('demo', '1.0.0')
+            ->setSubscriptionStore(new SubscriptionStore(toolsListChanged: true, promptsListChanged: true))
+            ->addTool(new Tool(name: 't', inputSchema: ['type' => 'object']), static fn(?array $a, $c): CallToolResult => new CallToolResult(content: []))
+            ->setPromptStore(self::createStub(PromptStoreInterface::class))
+            ->build()
+        ;
+
+        $capabilities = $this->discoverResultFor($server)->capabilities;
+
+        self::assertSame(['listChanged' => true], $capabilities->tools);
+        self::assertSame([], $capabilities->prompts, 'A store that cannot report changes must not claim listChanged.');
+    }
+
+    public function testEachFeatureReadsItsOwnSlotOfWhatTheSubscriptionStoreHonours(): void
+    {
+        $capabilities = $this->discoverResultFor(
+            self::registerFeatureTriples(new ServerBuilder()->setServerInfo('demo', '1.0.0'))
+                ->setSubscriptionStore(new SubscriptionStore(promptsListChanged: true))
+                ->build(),
+        )->capabilities;
+
+        self::assertSame(['listChanged' => true], $capabilities->prompts);
+        self::assertSame([], $capabilities->tools, 'A type the subscription store will not honour is not advertised.');
+        self::assertSame([], $capabilities->resources);
+    }
+
+    public function testToolListChangedNeedsAToolStoreThatReportsChanges(): void
+    {
+        $capabilities = $this->discoverResultFor(
+            new ServerBuilder()
+                ->setServerInfo('demo', '1.0.0')
+                ->setToolStore(new PagedToolStore([[new Tool(name: 't', inputSchema: ['type' => 'object'])]]))
+                ->setSubscriptionStore(new SubscriptionStore(toolsListChanged: true))
+                ->build(),
+        )->capabilities;
+
+        self::assertSame([], $capabilities->tools, 'A store that cannot report changes must not claim listChanged.');
+    }
+
+    /**
+     * @param \Closure(ServerBuilder): ServerBuilder $compose
+     * @param array<string, bool>                    $expected
+     */
+    #[DataProvider('provideResourceListChangedFollowsEitherResourceStoreCases')]
+    public function testResourceListChangedFollowsEitherResourceStore(\Closure $compose, array $expected): void
+    {
+        // Both stores fan into `notifications/resources/list_changed`, so either one reporting is enough.
+        $builder = $compose(new ServerBuilder()->setServerInfo('demo', '1.0.0'))
+            ->setSubscriptionStore(new SubscriptionStore(resourcesListChanged: true))
+        ;
+
+        self::assertSame($expected, $this->discoverResultFor($builder->build())->capabilities->resources);
+    }
+
+    /**
+     * @return iterable<string, array{\Closure(ServerBuilder): ServerBuilder, array<string, bool>}>
+     */
+    public static function provideResourceListChangedFollowsEitherResourceStoreCases(): iterable
+    {
+        yield 'only the resource store reports' => [
+            static fn(ServerBuilder $b): ServerBuilder => $b
+                ->addResource(
+                    new Resource(name: 'r', uri: 'mem://r'),
+                    static fn(string $u, $c): ReadResourceResult => new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private),
+                )
+                ->setResourceTemplateStore(self::createStub(ResourceTemplateStoreInterface::class)),
+            ['listChanged' => true],
+        ];
+
+        yield 'only the template store reports' => [
+            static fn(ServerBuilder $b): ServerBuilder => $b
+                ->setResourceStore(self::createStub(ResourceStoreInterface::class))
+                ->addResourceTemplate(
+                    new ResourceTemplate(name: 'rt', uriTemplate: 'mem://rt/{x}'),
+                    static fn(string $u, array $bs, $c): ReadResourceResult => new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private),
+                ),
+            ['listChanged' => true],
+        ];
+
+        yield 'neither reports' => [
+            static fn(ServerBuilder $b): ServerBuilder => $b
+                ->setResourceStore(self::createStub(ResourceStoreInterface::class))
+                ->setResourceTemplateStore(self::createStub(ResourceTemplateStoreInterface::class)),
+            [],
+        ];
+    }
+
+    public function testAdvertisesResourceSubscribeAlongsideAListenStore(): void
+    {
+        $server = self::builderWithResource()
+            ->setSubscriptionStore(new SubscriptionStore(resourcesListChanged: true, resourceSubscriptions: true))
+            ->build()
+        ;
+
+        self::assertSame(
+            ['listChanged' => true, 'subscribe' => true],
+            $this->discoverResultFor($server)->capabilities->resources,
+        );
+    }
+
+    public function testAMutatedToolListReachesAnOpenSubscription(): void
+    {
+        $subscriptions = new SubscriptionStore(toolsListChanged: true);
+        $builder = new ServerBuilder()
+            ->setServerInfo('demo', '1.0.0')
+            ->setSubscriptionStore($subscriptions)
+            ->addTool(new Tool(name: 'seed', inputSchema: ['type' => 'object']), static fn(?array $a, $c): CallToolResult => new CallToolResult(content: []))
+        ;
+        $builder->build();
+
+        $sender = new RecordingSender();
+        $subscriptions->open(new RequestId(id: 1), new SubscriptionFilter(toolsListChanged: true), $sender);
+
+        $toolStore = $builder->getToolStore();
+
+        if (! $toolStore instanceof MutableToolStoreInterface) {
+            self::fail('The entry-built tool store must support runtime mutation.');
+        }
+
+        $toolStore->addTool(new Tool(name: 'added', inputSchema: ['type' => 'object']), new ClosureToolExecutor(
+            static fn(?array $a, ServerContext $c): CallToolResult => new CallToolResult(content: []),
+        ));
+        delay(0.0);
+
+        self::assertSame(
+            ['notifications/subscriptions/acknowledged', 'notifications/tools/list_changed'],
+            array_map(static fn(JsonRpcNotification $n): string => $n::getMethod(), $sender->notifications),
+        );
+    }
+
+    public function testEveryMutableStoreIsRoutedToTheSubscriptionStore(): void
+    {
+        $subscriptions = new SubscriptionStore(
+            toolsListChanged: true,
+            promptsListChanged: true,
+            resourcesListChanged: true,
+        );
+        $builder = self::registerFeatureTriples(new ServerBuilder()->setServerInfo('demo', '1.0.0'))
+            ->setSubscriptionStore($subscriptions)
+        ;
+        $builder->build();
+
+        $sender = new RecordingSender();
+        $subscriptions->open(
+            new RequestId(id: 1),
+            new SubscriptionFilter(toolsListChanged: true, promptsListChanged: true, resourcesListChanged: true),
+            $sender,
+        );
+
+        $toolStore = $builder->getToolStore();
+        $promptStore = $builder->getPromptStore();
+        $resourceStore = $builder->getResourceStore();
+
+        if (
+            ! $toolStore instanceof ListChangeSourceInterface
+            || ! $promptStore instanceof ListChangeSourceInterface
+            || ! $resourceStore instanceof ListChangeSourceInterface
+        ) {
+            self::fail('Every entry-built store reports its own changes.');
+        }
+
+        // Mutating each store must reach the stream, which is what proves the builder routed all three.
+        self::assertInstanceOf(MutableToolStoreInterface::class, $toolStore);
+        self::assertInstanceOf(MutablePromptStoreInterface::class, $promptStore);
+        self::assertInstanceOf(MutableResourceStoreInterface::class, $resourceStore);
+        $toolStore->removeTool('alpha');
+        $promptStore->removePrompt('alpha');
+        $resourceStore->removeResource('mem://alpha');
+        delay(0.0);
+
+        self::assertSame([
+            'notifications/subscriptions/acknowledged',
+            'notifications/tools/list_changed',
+            'notifications/prompts/list_changed',
+            'notifications/resources/list_changed',
+        ], array_map(static fn(JsonRpcNotification $n): string => $n::getMethod(), $sender->notifications));
+    }
+
+    public function testAMutatedTemplateListReachesAnOpenSubscription(): void
+    {
+        $subscriptions = new SubscriptionStore(resourcesListChanged: true);
+        $builder = self::registerFeatureTriples(new ServerBuilder()->setServerInfo('demo', '1.0.0'))
+            ->setSubscriptionStore($subscriptions)
+        ;
+        $builder->build();
+
+        $sender = new RecordingSender();
+        $subscriptions->open(new RequestId(id: 1), new SubscriptionFilter(resourcesListChanged: true), $sender);
+
+        $templateStore = $builder->getResourceTemplateStore();
+
+        if (! $templateStore instanceof MutableResourceTemplateStoreInterface) {
+            self::fail('The entry-built resource template store must support runtime mutation.');
+        }
+
+        // A template expansion changes what the server can read, so it is a resource list change.
+        $templateStore->removeResourceTemplate('mem://alpha/{path}');
+        delay(0.0);
+
+        self::assertSame(
+            ['notifications/subscriptions/acknowledged', 'notifications/resources/list_changed'],
+            array_map(static fn(JsonRpcNotification $n): string => $n::getMethod(), $sender->notifications),
+        );
+    }
+
+    public function testACapabilityIsNotAdvertisedWhenTheSubscriptionStoreWillNotHonourIt(): void
+    {
+        // A store that honours nothing is the default shape, so the builder must not promise on its behalf.
+        $capabilities = $this->discoverResultFor(
+            self::registerFeatureTriples(new ServerBuilder()->setServerInfo('demo', '1.0.0'))
+                ->setSubscriptionStore(new SubscriptionStore())
+                ->build(),
+        )->capabilities;
+
+        self::assertSame([], $capabilities->tools);
+        self::assertSame([], $capabilities->prompts);
+        self::assertSame([], $capabilities->resources);
+    }
+
+    /**
+     * @param \Closure(ServerBuilder): ServerBuilder $mutate
+     */
+    #[DataProvider('provideEveryRegistrationIsRefusedAfterBuildCases')]
+    public function testEveryRegistrationIsRefusedAfterBuild(\Closure $mutate): void
+    {
+        // The built server holds the stores and the list-change listeners, so a later registration would be
+        // dropped without a trace.
+        $builder = new ServerBuilder()->setServerInfo('demo', '1.0.0');
+        $builder->build();
+
+        $this->expectException(BuilderAlreadyBuiltException::class);
+
+        $mutate($builder);
+    }
+
+    /**
+     * @return iterable<string, array{\Closure(ServerBuilder): ServerBuilder}>
+     */
+    public static function provideEveryRegistrationIsRefusedAfterBuildCases(): iterable
+    {
+        yield 'setServerInfo' => [static fn(ServerBuilder $b): ServerBuilder => $b->setServerInfo('x', '1.0.0')];
+
+        yield 'setMaxInFlightDispatches' => [static fn(ServerBuilder $b): ServerBuilder => $b->setMaxInFlightDispatches(2)];
+
+        yield 'setServerInfoDisclosure' => [static fn(ServerBuilder $b): ServerBuilder => $b->setServerInfoDisclosure(ServerInfoDisclosure::None)];
+
+        yield 'setInstructions' => [static fn(ServerBuilder $b): ServerBuilder => $b->setInstructions('hi')];
+
+        yield 'setLogger' => [static fn(ServerBuilder $b): ServerBuilder => $b->setLogger(new ArrayLogger())];
+
+        yield 'setSchemaValidator' => [static fn(ServerBuilder $b): ServerBuilder => $b->setSchemaValidator(new OpisSchemaValidator())];
+
+        yield 'setPageSize' => [static fn(ServerBuilder $b): ServerBuilder => $b->setPageSize(5)];
+
+        yield 'setTtlMs' => [static fn(ServerBuilder $b): ServerBuilder => $b->setTtlMs(5)];
+
+        yield 'setCacheScope' => [static fn(ServerBuilder $b): ServerBuilder => $b->setCacheScope(CacheScope::Public)];
+
+        yield 'addTool' => [static fn(ServerBuilder $b): ServerBuilder => $b->addTool(new Tool(name: 't', inputSchema: ['type' => 'object']), static fn(?array $a, $c): CallToolResult => new CallToolResult(content: []))];
+
+        yield 'addPrompt' => [static fn(ServerBuilder $b): ServerBuilder => $b->addPrompt(new Prompt(name: 'p'), static fn(?array $a, $c): GetPromptResult => new GetPromptResult(messages: []))];
+
+        yield 'addResource' => [static fn(ServerBuilder $b): ServerBuilder => $b->addResource(new Resource(name: 'r', uri: 'mem://r'), static fn(string $u, $c): ReadResourceResult => new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private))];
+
+        yield 'addResourceTemplate' => [static fn(ServerBuilder $b): ServerBuilder => $b->addResourceTemplate(new ResourceTemplate(name: 'rt', uriTemplate: 'mem://rt/{x}'), static fn(string $u, array $bs, $c): ReadResourceResult => new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private))];
+
+        yield 'setToolStore' => [static fn(ServerBuilder $b): ServerBuilder => $b->setToolStore(new ToolStore())];
+
+        yield 'setPromptStore' => [static fn(ServerBuilder $b): ServerBuilder => $b->setPromptStore(new PromptStore())];
+
+        yield 'setResourceStore' => [static fn(ServerBuilder $b): ServerBuilder => $b->setResourceStore(new ResourceStore())];
+
+        yield 'setResourceTemplateStore' => [static fn(ServerBuilder $b): ServerBuilder => $b->setResourceTemplateStore(new ResourceTemplateStore())];
+
+        yield 'setSubscriptionStore' => [static fn(ServerBuilder $b): ServerBuilder => $b->setSubscriptionStore(new SubscriptionStore())];
+
+        yield 'setCompletionStore' => [static fn(ServerBuilder $b): ServerBuilder => $b->setCompletionStore(new CompletionStore())];
+
+        // A source carrying only `#[AsServer]` contributes without reaching a guarded `add*()`, so this is
+        // the case that proves `register()` needs a guard of its own.
+        yield 'register' => [static fn(ServerBuilder $b): ServerBuilder => $b->register(new #[AsServer(name: 'late', version: '1.0.0')] class {})];
+
+        yield 'addRequestHandler' => [static fn(ServerBuilder $b): ServerBuilder => $b->addRequestHandler('completion/complete', new ClosureRequestHandler(static fn(): EmptyResult => new EmptyResult()))];
+
+        yield 'replaceRequestHandler' => [static fn(ServerBuilder $b): ServerBuilder => $b->replaceRequestHandler('tools/list', new ClosureRequestHandler(static fn(): EmptyResult => new EmptyResult()))];
+
+        yield 'addNotificationHandler' => [static fn(ServerBuilder $b): ServerBuilder => $b->addNotificationHandler('notifications/progress', new ClosureNotificationHandler(static fn() => null))];
+
+        yield 'replaceNotificationHandler' => [static fn(ServerBuilder $b): ServerBuilder => $b->replaceNotificationHandler('notifications/cancelled', new ClosureNotificationHandler(static fn() => null))];
+    }
+
+    public function testBuildingTwiceIsRefused(): void
+    {
+        $builder = new ServerBuilder()->setServerInfo('demo', '1.0.0');
+        $builder->build();
+
+        $this->expectException(BuilderAlreadyBuiltException::class);
+        $this->expectExceptionMessageIs('This builder has already been built. Construct a new ServerBuilder for another server.');
+
+        $builder->build();
+    }
+
+    public function testAMutatedResourceListReachesAnOpenSubscription(): void
+    {
+        $subscriptions = new SubscriptionStore(resourcesListChanged: true);
+        $builder = self::builderWithResource()->setSubscriptionStore($subscriptions);
+        $builder->build();
+
+        $sender = new RecordingSender();
+        $subscriptions->open(new RequestId(id: 1), new SubscriptionFilter(resourcesListChanged: true), $sender);
+
+        $resourceStore = $builder->getResourceStore();
+
+        if (! $resourceStore instanceof MutableResourceStoreInterface) {
+            self::fail('The entry-built resource store must support runtime mutation.');
+        }
+
+        $resourceStore->removeResource('file:///etc/cfg');
+        delay(0.0);
+
+        self::assertSame(
+            ['notifications/subscriptions/acknowledged', 'notifications/resources/list_changed'],
+            array_map(static fn(JsonRpcNotification $n): string => $n::getMethod(), $sender->notifications),
+        );
+    }
+
+    public function testPromptStoreIsNullWhenNoPromptsAreRegistered(): void
+    {
+        self::assertNull(new ServerBuilder()->setServerInfo('demo', '1.0.0')->getPromptStore());
+    }
+
+    public function testPromptStoreAssemblesTheRegisteredEntries(): void
+    {
+        $store = self::builderWithPrompt()->getPromptStore();
+
+        if (! $store instanceof PromptStoreInterface) {
+            self::fail('Expected a prompt store.');
+        }
+
+        self::assertSame(['hello'], array_map(static fn(Prompt $p): string => $p->name, $store->list(null)->prompts));
+    }
+
+    public function testPromptStoreReturnsTheSuppliedStoreUntouched(): void
+    {
+        $store = new PromptStore(entries: [], pageSize: 10);
+
+        self::assertSame(
+            $store,
+            new ServerBuilder()->setServerInfo('demo', '1.0.0')->setPromptStore($store)->getPromptStore(),
+        );
+    }
+
+    public function testTheServedPromptStoreIsTheSameInstanceTheAccessorReturns(): void
+    {
+        $builder = self::builderWithPrompt();
+        $builder->build();
+
+        self::assertSame($builder->getPromptStore(), $builder->getPromptStore());
+    }
+
+    public function testResourceStoreIsNullWhenNoResourcesAreRegistered(): void
+    {
+        self::assertNull(new ServerBuilder()->setServerInfo('demo', '1.0.0')->getResourceStore());
+    }
+
+    public function testResourceStoreAssemblesTheRegisteredEntries(): void
+    {
+        $store = self::builderWithResource()->getResourceStore();
+
+        if (! $store instanceof ResourceStoreInterface) {
+            self::fail('Expected a resource store.');
+        }
+
+        self::assertSame(
+            ['file:///etc/cfg'],
+            array_map(static fn(Resource $r): string => $r->uri, $store->list(null)->resources),
+        );
+    }
+
+    public function testResourceStoreIsAssembledWhenOnlyTemplatesAreRegistered(): void
+    {
+        // `resources/read` composes the two stores, so a template alone still needs a resource store.
+        $store = self::builderWithResourceTemplate()->getResourceStore();
+
+        if (! $store instanceof ResourceStoreInterface) {
+            self::fail('Expected a resource store alongside the template store.');
+        }
+
+        self::assertSame([], $store->list(null)->resources);
+    }
+
+    public function testResourceStoreReturnsTheSuppliedStoreUntouched(): void
+    {
+        $store = new ResourceStore(entries: [], pageSize: 10);
+
+        self::assertSame(
+            $store,
+            new ServerBuilder()->setServerInfo('demo', '1.0.0')->setResourceStore($store)->getResourceStore(),
+        );
+    }
+
+    public function testTheServedResourceStoreIsTheSameInstanceTheAccessorReturns(): void
+    {
+        $builder = self::builderWithResource();
+        $builder->build();
+
+        self::assertSame($builder->getResourceStore(), $builder->getResourceStore());
+    }
+
+    public function testResourceTemplateStoreIsNullWhenNoTemplatesAreRegistered(): void
+    {
+        self::assertNull(new ServerBuilder()->setServerInfo('demo', '1.0.0')->getResourceTemplateStore());
+    }
+
+    public function testResourceTemplateStoreAssemblesTheRegisteredEntries(): void
+    {
+        $store = self::builderWithResourceTemplate()->getResourceTemplateStore();
+
+        if (! $store instanceof ResourceTemplateStoreInterface) {
+            self::fail('Expected a resource template store.');
+        }
+
+        self::assertSame(
+            ['file:///{path}'],
+            array_map(
+                static fn(ResourceTemplate $t): string => $t->uriTemplate,
+                $store->list(null)->resourceTemplates,
+            ),
+        );
+    }
+
+    public function testResourceTemplateStoreReturnsTheSuppliedStoreUntouched(): void
+    {
+        $store = new ResourceTemplateStore(entries: [], pageSize: 10);
+
+        self::assertSame(
+            $store,
+            new ServerBuilder()
+                ->setServerInfo('demo', '1.0.0')
+                ->setResourceTemplateStore($store)
+                ->getResourceTemplateStore(),
+        );
+    }
+
+    public function testTheServedResourceTemplateStoreIsTheSameInstanceTheAccessorReturns(): void
+    {
+        $builder = self::builderWithResourceTemplate();
+        $builder->build();
+
+        self::assertSame($builder->getResourceTemplateStore(), $builder->getResourceTemplateStore());
+    }
+
     public function testAToolMayAnswerWithAnInputRequiredResult(): void
     {
         $server = new ServerBuilder()
@@ -1481,6 +2031,43 @@ final class ServerBuilderTest extends TestCase
         );
         self::assertInstanceOf(ListResourceTemplatesResult::class, $withEntry);
         self::assertSame(['mem://{id}'], array_map(static fn(ResourceTemplate $template): string => $template->uriTemplate, $withEntry->resourceTemplates));
+    }
+
+    private static function builderWithPrompt(): ServerBuilder
+    {
+        return new ServerBuilder()
+            ->setServerInfo('demo', '1.0.0')
+            ->addPrompt(
+                new Prompt(name: 'hello'),
+                static fn(?array $args, $ctx): GetPromptResult => new GetPromptResult(messages: []),
+            )
+        ;
+    }
+
+    private static function builderWithResource(): ServerBuilder
+    {
+        return new ServerBuilder()
+            ->setServerInfo('demo', '1.0.0')
+            ->addResource(
+                new Resource(name: 'cfg', uri: 'file:///etc/cfg'),
+                static fn(string $uri, $ctx): ReadResourceResult => new ReadResourceResult(
+                    contents: [new TextResourceContents(uri: $uri, text: 'data')],
+                    ttlMs: 0,
+                    cacheScope: CacheScope::Private,
+                ),
+            )
+        ;
+    }
+
+    private static function builderWithResourceTemplate(): ServerBuilder
+    {
+        return new ServerBuilder()
+            ->setServerInfo('demo', '1.0.0')
+            ->addResourceTemplate(
+                new ResourceTemplate(name: 'files', uriTemplate: 'file:///{path}'),
+                static fn(): never => throw new \LogicException('unreachable'),
+            )
+        ;
     }
 
     /**

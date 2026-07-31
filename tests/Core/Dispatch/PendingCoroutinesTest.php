@@ -15,9 +15,11 @@ namespace Nexus\Mcp\Tests\Core\Dispatch;
 
 use Amp\DeferredFuture;
 use Nexus\Mcp\Core\Dispatch\PendingCoroutines;
+use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LogLevel;
 
 use function Amp\async;
 use function Amp\delay;
@@ -45,6 +47,35 @@ final class PendingCoroutinesTest extends TestCase
         $coroutines->track($deferred->getFuture());
 
         self::assertCount(1, $coroutines);
+    }
+
+    public function testACoroutineHoldingNoSlotIsStillAwaitedOnDrain(): void
+    {
+        // A coroutine that opens a subscription rather than processing a request holds no slot. The drain
+        // must still wait for it.
+        $coroutines = new PendingCoroutines();
+        $working = new DeferredFuture();
+        $parked = new DeferredFuture();
+
+        $coroutines->track($working->getFuture());
+        $coroutines->track($parked->getFuture(), occupiesSlot: false);
+
+        self::assertCount(1, $coroutines, 'Only the working coroutine holds a slot.');
+
+        $working->complete();
+        delay(0.0);
+
+        self::assertCount(0, $coroutines, 'No slot is held, yet the parked coroutine is still tracked.');
+
+        $flush = async(static fn(): null => $coroutines->flushPending());
+        delay(0.0);
+
+        self::assertFalse($flush->isComplete(), 'The drain waits on a coroutine that holds no slot.');
+
+        $parked->complete();
+        $flush->await();
+
+        self::assertTrue($flush->isComplete());
     }
 
     public function testTrackedFutureRemovesItselfOnSettle(): void
@@ -105,5 +136,48 @@ final class PendingCoroutinesTest extends TestCase
         $coroutines->flushPending();
 
         self::assertCount(0, $coroutines);
+    }
+
+    public function testAnEscapedCoroutineExceptionIsReported(): void
+    {
+        // `awaitAll()` collects failures instead of raising them, so without this the only trace of a
+        // coroutine that died outside its handler guard is a response the peer never receives.
+        $logger = new ArrayLogger();
+        $coroutines = new PendingCoroutines($logger);
+        $failure = new \RuntimeException('boom');
+        $coroutines->track(async(static fn(): never => throw $failure));
+
+        $coroutines->flushPending();
+
+        $records = $logger->recordsMatching(LogLevel::ERROR, 'A dispatch coroutine ended in an uncaught exception.');
+        self::assertCount(1, $records);
+        self::assertSame($failure, $records[0]['context']['exception'] ?? null);
+        self::assertCount(0, $coroutines);
+    }
+
+    public function testEveryEscapedCoroutineExceptionIsReported(): void
+    {
+        $logger = new ArrayLogger();
+        $coroutines = new PendingCoroutines($logger);
+        $coroutines->track(async(static fn(): never => throw new \RuntimeException('first')));
+        $coroutines->track(async(static fn(): never => throw new \RuntimeException('second')));
+
+        $coroutines->flushPending();
+
+        self::assertCount(
+            2,
+            $logger->recordsMatching(LogLevel::ERROR, 'A dispatch coroutine ended in an uncaught exception.'),
+        );
+    }
+
+    public function testASettledCoroutineIsNotReportedAsAFailure(): void
+    {
+        $logger = new ArrayLogger();
+        $coroutines = new PendingCoroutines($logger);
+        $coroutines->track(async(static fn(): string => 'done'));
+
+        $coroutines->flushPending();
+
+        self::assertSame([], $logger->messagesAtLevel(LogLevel::ERROR));
     }
 }
