@@ -41,5 +41,9 @@ parameters:
   editorUrlTitle: '%%relFile%%:%%line%%'
 
 rules:
+  - Nexus\Mcp\Tools\PHPStan\DataProviderConventionsRule
   - Nexus\Mcp\Tools\PHPStan\NoAssignmentInControlFlowExpressionRule
   - Nexus\Mcp\Tools\PHPStan\NoFunctionCallYodaComparisonRule
+  - Nexus\Mcp\Tools\PHPStan\SourceClassConventionsRule
+  - Nexus\Mcp\Tools\PHPStan\TestClassConventionsRule
+  - Nexus\Mcp\Tools\PHPStan\TraitNamingRule
