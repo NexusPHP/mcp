@@ -65,6 +65,21 @@ final class SourceCodeTest extends TestCase
         \T_ELSEIF,
         \T_FOREACH,
     ];
+    private const array COMPOUND_ASSIGNMENT_TOKEN_IDS = [
+        \T_AND_EQUAL,
+        \T_CONCAT_EQUAL,
+        \T_COALESCE_EQUAL,
+        \T_DIV_EQUAL,
+        \T_MINUS_EQUAL,
+        \T_MOD_EQUAL,
+        \T_MUL_EQUAL,
+        \T_OR_EQUAL,
+        \T_PLUS_EQUAL,
+        \T_POW_EQUAL,
+        \T_SL_EQUAL,
+        \T_SR_EQUAL,
+        \T_XOR_EQUAL,
+    ];
 
     /**
      * Classes that intentionally provide a public method (instance or static)
@@ -834,6 +849,8 @@ final class SourceCodeTest extends TestCase
                 }
             } elseif (\T_CURLY_OPEN === $token[0] || \T_DOLLAR_OPEN_CURLY_BRACES === $token[0]) {
                 ++$depth;
+            } elseif (0 === $depth && \in_array($token[0], self::COMPOUND_ASSIGNMENT_TOKEN_IDS, true)) {
+                return true;
             }
         }
 
@@ -862,6 +879,8 @@ final class SourceCodeTest extends TestCase
                 }
             } elseif (\T_CURLY_OPEN === $token[0] || \T_DOLLAR_OPEN_CURLY_BRACES === $token[0]) {
                 ++$depth;
+            } elseif (\in_array($token[0], self::COMPOUND_ASSIGNMENT_TOKEN_IDS, true)) {
+                return true;
             }
         }
 
