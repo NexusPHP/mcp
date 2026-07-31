@@ -15,10 +15,10 @@ namespace Nexus\Mcp\Tests\Server\Transport\Http;
 
 use Nexus\Mcp\Core\Auth\VerifiedAccessToken;
 use Nexus\Mcp\Core\Schema\Tool\Tool;
+use Nexus\Mcp\Server\Auth\AccessTokenValidatorInterface;
 use Nexus\Mcp\Server\Tool\ToolStoreInterface;
 use Nexus\Mcp\Server\Transport\Http\Middleware\BearerAuthenticationMiddleware;
 use Nexus\Mcp\Server\Transport\Http\SecuredHttpEndpoint;
-use Nexus\Mcp\Tests\Fixtures\Server\Auth\ScriptedAccessTokenValidator;
 use Nexus\Mcp\Tests\Fixtures\Server\Http\RecordingRequestHandler;
 use Nexus\Mcp\Tests\Fixtures\Server\Tool\PagedToolStore;
 use Nyholm\Psr7\Factory\Psr17Factory;
@@ -197,8 +197,14 @@ final class SecuredHttpEndpointTest extends TestCase
 
     private static function authentication(): BearerAuthenticationMiddleware
     {
+        $recognised = new VerifiedAccessToken(['https://mcp.test/']);
+        $validator = self::createStub(AccessTokenValidatorInterface::class);
+        $validator->method('validate')->willReturnCallback(
+            static fn(string $presented): ?VerifiedAccessToken => 'the-token' === $presented ? $recognised : null,
+        );
+
         return new BearerAuthenticationMiddleware(
-            new ScriptedAccessTokenValidator(['the-token' => new VerifiedAccessToken(['https://mcp.test/'])]),
+            $validator,
             'https://mcp.test/',
             'https://mcp.test/.well-known/oauth-protected-resource',
             new Psr17Factory(),

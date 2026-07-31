@@ -15,8 +15,8 @@ namespace Nexus\Mcp\Tests\Server\Transport\Http\Middleware;
 
 use Nexus\Mcp\Core\Auth\VerifiedAccessToken;
 use Nexus\Mcp\Core\Auth\WwwAuthenticateChallenge;
+use Nexus\Mcp\Server\Auth\AccessTokenValidatorInterface;
 use Nexus\Mcp\Server\Transport\Http\Middleware\BearerAuthenticationMiddleware;
-use Nexus\Mcp\Tests\Fixtures\Server\Auth\ScriptedAccessTokenValidator;
 use Nexus\Mcp\Tests\Fixtures\Server\Http\RecordingRequestHandler;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -286,13 +286,21 @@ final class BearerAuthenticationMiddlewareTest extends TestCase
 
     public function testTheTokenIsPresentedToTheValidatorVerbatim(): void
     {
-        $validator = new ScriptedAccessTokenValidator();
+        $presented = [];
+        $validator = self::createStub(AccessTokenValidatorInterface::class);
+        $validator->method('validate')->willReturnCallback(
+            static function (string $token) use (&$presented): ?VerifiedAccessToken {
+                $presented[] = $token;
+
+                return null;
+            },
+        );
 
         new BearerAuthenticationMiddleware($validator, self::RESOURCE, self::METADATA_URL, new Psr17Factory())
             ->process(self::request(null)->withHeader('Authorization', 'Bearer   Padded-Token  '), self::handler())
         ;
 
-        self::assertSame(['Padded-Token'], $validator->presented);
+        self::assertSame(['Padded-Token'], $presented);
     }
 
     /**
@@ -300,8 +308,14 @@ final class BearerAuthenticationMiddlewareTest extends TestCase
      */
     private static function middleware(?VerifiedAccessToken $token = null, array $requiredScopes = []): BearerAuthenticationMiddleware
     {
+        $recognised = $token ?? new VerifiedAccessToken([self::RESOURCE], subject: 'the-subject');
+        $validator = self::createStub(AccessTokenValidatorInterface::class);
+        $validator->method('validate')->willReturnCallback(
+            static fn(string $presented): ?VerifiedAccessToken => 'the-token' === $presented ? $recognised : null,
+        );
+
         return new BearerAuthenticationMiddleware(
-            new ScriptedAccessTokenValidator(['the-token' => $token ?? new VerifiedAccessToken([self::RESOURCE], subject: 'the-subject')]),
+            $validator,
             self::RESOURCE,
             self::METADATA_URL,
             new Psr17Factory(),

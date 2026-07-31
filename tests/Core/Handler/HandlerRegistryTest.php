@@ -21,7 +21,6 @@ use Nexus\Mcp\Core\Schema\Notification\ToolListChangedNotification;
 use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureRequestHandler;
-use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingNotificationHandler;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
@@ -85,7 +84,7 @@ final class HandlerRegistryTest extends TestCase
 
         new HandlerRegistry(
             // @phpstan-ignore argument.type
-            ['' => new RecordingNotificationHandler()],
+            ['' => self::createStub(NotificationHandlerInterface::class)],
             NotificationHandlerInterface::class,
             'Notification handler',
         );

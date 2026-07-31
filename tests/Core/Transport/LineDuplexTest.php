@@ -16,7 +16,9 @@ namespace Nexus\Mcp\Tests\Core\Transport;
 use Amp\ByteStream\Pipe;
 use Amp\ByteStream\ReadableBuffer;
 use Amp\ByteStream\ReadableIterableStream;
+use Amp\ByteStream\ReadableStream;
 use Amp\ByteStream\WritableBuffer;
+use Amp\ByteStream\WritableStream;
 use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyStartedException;
 use Nexus\Mcp\Core\Exception\TransportNotStartedException;
@@ -32,8 +34,6 @@ use Nexus\Mcp\Core\Schema\ResultResponse\GenericResultResponse;
 use Nexus\Mcp\Core\Transport\LineDuplex;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
-use Nexus\Mcp\Tests\Fixtures\Core\Transport\ThrowingReadableStream;
-use Nexus\Mcp\Tests\Fixtures\Core\Transport\ThrowingWritableStream;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -327,7 +327,7 @@ final class LineDuplexTest extends TestCase
             };
             $duplex = self::buildDuplex(logger: $logger);
             $duplex->forwardLines(
-                new ThrowingReadableStream(new \RuntimeException('side-channel boom')),
+                self::buildThrowingSource(new \RuntimeException('side-channel boom')),
                 static function (): void {},
             );
 
@@ -387,7 +387,7 @@ final class LineDuplexTest extends TestCase
                 ++$closes;
             });
 
-            $duplex->start(new ThrowingReadableStream(new \RuntimeException('stdin boom')), new WritableBuffer());
+            $duplex->start(self::buildThrowingSource(new \RuntimeException('stdin boom')), new WritableBuffer());
             EventLoop::run();
 
             self::assertSame(1, $closes);
@@ -578,7 +578,7 @@ final class LineDuplexTest extends TestCase
             ++$closes;
         });
 
-        $duplex->start(new ReadableBuffer(''), new ThrowingWritableStream($boom));
+        $duplex->start(new ReadableBuffer(''), self::buildThrowingSink($boom));
 
         $closesBeforeSend = $closes;
 
@@ -608,7 +608,7 @@ final class LineDuplexTest extends TestCase
         $logger = new ArrayLogger();
         $duplex = self::buildDuplex(logger: $logger);
 
-        $duplex->start(new ReadableBuffer(''), new ThrowingWritableStream($boom));
+        $duplex->start(new ReadableBuffer(''), self::buildThrowingSink($boom));
 
         try {
             $duplex->send($message);
@@ -647,7 +647,7 @@ final class LineDuplexTest extends TestCase
     {
         $boom = new \RuntimeException('writable was concurrently closed');
         $logger = new ArrayLogger();
-        $writable = new ThrowingWritableStream(
+        $writable = self::buildThrowingSink(
             $boom,
             beforeThrow: function (): void {
                 $sut = $this->duplexUnderConcurrentClose;
@@ -684,7 +684,7 @@ final class LineDuplexTest extends TestCase
     {
         $boom = new \RuntimeException('writable was concurrently closed');
         $logger = new ArrayLogger();
-        $writable = new ThrowingWritableStream(
+        $writable = self::buildThrowingSink(
             $boom,
             beforeThrow: function (): void {
                 $sut = $this->duplexUnderConcurrentClose;
@@ -748,7 +748,7 @@ final class LineDuplexTest extends TestCase
             $errors[] = $e;
         });
 
-        $duplex->start(new ThrowingReadableStream($boom), new WritableBuffer());
+        $duplex->start(self::buildThrowingSource($boom), new WritableBuffer());
         EventLoop::run();
 
         $matches = $logger->recordsMatching(LogLevel::ERROR, '{label} transport read loop failed. Closing.');
@@ -849,7 +849,7 @@ final class LineDuplexTest extends TestCase
         $duplex = self::buildDuplex(logger: $logger);
 
         $duplex->forwardLines(
-            new ThrowingReadableStream($boom),
+            self::buildThrowingSource($boom),
             static function (): void {},
         );
         EventLoop::run();
@@ -940,5 +940,37 @@ final class LineDuplexTest extends TestCase
             onParseFailure: $onParseFailure,
             onBeforeClose: $onBeforeClose,
         );
+    }
+
+    /**
+     * A source whose every read fails. `LineReader` only ever calls `read()` on its source.
+     */
+    private static function buildThrowingSource(\Throwable $error): ReadableStream
+    {
+        $source = self::createStub(ReadableStream::class);
+        $source->method('read')->willThrowException($error);
+
+        return $source;
+    }
+
+    /**
+     * A sink whose every write fails. `LineDuplex` only ever calls `write()` on its sink.
+     *
+     * @param null|\Closure(): void $beforeThrow Runs inside the write, before it fails
+     */
+    private static function buildThrowingSink(\Throwable $error, ?\Closure $beforeThrow = null): WritableStream
+    {
+        $sink = self::createStub(WritableStream::class);
+        $sink->method('write')->willReturnCallback(
+            static function () use ($error, $beforeThrow): void {
+                if (null !== $beforeThrow) {
+                    $beforeThrow();
+                }
+
+                throw $error;
+            },
+        );
+
+        return $sink;
     }
 }

@@ -17,12 +17,12 @@ use Nexus\Mcp\Server\Transport\Http\MiddlewarePipeline;
 use Nexus\Mcp\Tests\Fixtures\Server\Http\CallLog;
 use Nexus\Mcp\Tests\Fixtures\Server\Http\RecordingMiddleware;
 use Nexus\Mcp\Tests\Fixtures\Server\Http\RecordingRequestHandler;
-use Nexus\Mcp\Tests\Fixtures\Server\Http\ShortCircuitMiddleware;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
 
 /**
  * @internal
@@ -76,10 +76,12 @@ final class MiddlewarePipelineTest extends TestCase
         $log = new CallLog();
         $handler = self::handler();
         $preset = new Psr17Factory()->createResponse(418);
+        $shortCircuit = self::createStub(MiddlewareInterface::class);
+        $shortCircuit->method('process')->willReturn($preset);
 
         $response = new MiddlewarePipeline(
             $handler,
-            new ShortCircuitMiddleware($preset),
+            $shortCircuit,
             new RecordingMiddleware('never', $log),
         )->handle(self::request());
 

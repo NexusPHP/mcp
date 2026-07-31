@@ -16,6 +16,7 @@ namespace Nexus\Mcp\Tests\Server\Transport;
 use Amp\ByteStream\ReadableBuffer;
 use Amp\ByteStream\ReadableIterableStream;
 use Amp\ByteStream\WritableBuffer;
+use Amp\ByteStream\WritableStream;
 use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyStartedException;
 use Nexus\Mcp\Core\Exception\TransportNotStartedException;
@@ -26,7 +27,6 @@ use Nexus\Mcp\Core\Transport\SendContext;
 use Nexus\Mcp\Server\Transport\StdioServerTransport;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
-use Nexus\Mcp\Tests\Fixtures\Core\Transport\ThrowingWritableStream;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -195,7 +195,12 @@ final class StdioServerTransportTest extends TestCase
     {
         $boom = new \RuntimeException('stdout exploded');
         $readable = new ReadableIterableStream(new \ArrayIterator([]));
-        $writable = new ThrowingWritableStream($boom);
+        $sinkClosed = false;
+        $writable = self::createStub(WritableStream::class);
+        $writable->method('write')->willThrowException($boom);
+        $writable->method('close')->willReturnCallback(static function () use (&$sinkClosed): void {
+            $sinkClosed = true;
+        });
         $transport = new StdioServerTransport($readable, $writable);
 
         $transport->start();
@@ -208,7 +213,7 @@ final class StdioServerTransportTest extends TestCase
         }
 
         self::assertTrue($readable->isClosed(), 'send() failure must close the readable stream synchronously.');
-        self::assertTrue($writable->isClosed(), 'send() failure must close the writable stream synchronously.');
+        self::assertTrue($sinkClosed, 'send() failure must close the writable stream synchronously.');
 
         EventLoop::run();
     }
