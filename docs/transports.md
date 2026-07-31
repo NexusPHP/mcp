@@ -144,6 +144,18 @@ Behaviour:
 - **Close**: closes the subprocess's stdin (signalling EOF), then sends `SIGKILL` if the subprocess is
   still running. `SIGTERM` would be preferable but `amphp/process` runs subprocesses behind a shell
   wrapper that ignores `SIGTERM`, so `SIGKILL` is the only signal guaranteed to terminate the child.
+- **Unexpected exit**: this transport also implements
+  [`SupervisableTransportInterface`](../src/Core/Transport/SupervisableTransportInterface.php), so
+  `onUnexpectedExit(fn (int $exitCode) => ...)` reports a teardown nobody asked for, whether the
+  subprocess exited on its own or stopped serving and was killed. Calling `close()` notifies nobody. The
+  transport is spent once this fires, so a supervisor respawns by building a fresh
+  `StdioClientTransport`, not by restarting this one.
+
+  ```php
+  $transport->onUnexpectedExit(static function (int $exitCode) use ($logger): void {
+      $logger->warning('MCP server died with code {code}.', ['code' => $exitCode]);
+  });
+  ```
 
 ## `InMemoryTransport` (test only)
 

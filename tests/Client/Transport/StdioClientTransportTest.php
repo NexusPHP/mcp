@@ -30,6 +30,7 @@ use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\AbstractLogger;
 use Psr\Log\LogLevel;
+use Revolt\EventLoop;
 
 /**
  * @internal
@@ -40,6 +41,7 @@ use Psr\Log\LogLevel;
 final class StdioClientTransportTest extends TestCase
 {
     private const string ECHO_SERVER = __DIR__.'/../../Fixtures/Client/Transport/echo-server.php';
+    private const string EXITING_SERVER = __DIR__.'/../../Fixtures/Client/Transport/exiting-server.php';
     private const string STDERR_NOISE = __DIR__.'/../../Fixtures/Client/Transport/stderr-noise.php';
     private const string ENV_REPORTER = __DIR__.'/../../Fixtures/Client/Transport/env-reporter.php';
 
@@ -106,6 +108,120 @@ final class StdioClientTransportTest extends TestCase
         $transport->close();
 
         $this->expectNotToPerformAssertions();
+    }
+
+    public function testAnUnrequestedSubprocessExitNotifiesTheExitListenerWithItsCode(): void
+    {
+        $transport = self::buildExitingTransport(3);
+        /** @var DeferredFuture<null|int> $exited */
+        $exited = new DeferredFuture();
+        $transport->onUnexpectedExit(static function (?int $exitCode) use ($exited): void {
+            if (! $exited->isComplete()) {
+                $exited->complete($exitCode);
+            }
+        });
+
+        $transport->start();
+
+        self::assertSame(3, $exited->getFuture()->await());
+
+        $transport->close();
+    }
+
+    public function testAnUnrequestedSubprocessExitIsLoggedAsAWarning(): void
+    {
+        $logger = new ArrayLogger();
+        $transport = self::buildExitingTransport(4, $logger);
+        /** @var DeferredFuture<null|int> $exited */
+        $exited = new DeferredFuture();
+        $transport->onUnexpectedExit(static function (?int $exitCode) use ($exited): void {
+            if (! $exited->isComplete()) {
+                $exited->complete($exitCode);
+            }
+        });
+
+        $transport->start();
+        $exited->getFuture()->await();
+        $transport->close();
+
+        $matches = $logger->recordsMatching(
+            LogLevel::WARNING,
+            '{label} transport subprocess exited unexpectedly (code {exitCode}).',
+        );
+        self::assertCount(1, $matches);
+        self::assertSame(['label' => 'Stdio client', 'exitCode' => 4], $matches[0]['context']);
+    }
+
+    public function testAnIntentionalCloseDoesNotNotifyTheExitListener(): void
+    {
+        $transport = self::buildTransport();
+        $notified = 0;
+        $transport->onUnexpectedExit(static function () use (&$notified): void {
+            ++$notified;
+        });
+
+        $transport->start();
+        $transport->close();
+        EventLoop::run();
+
+        self::assertSame(0, $notified);
+    }
+
+    public function testDisposingTheExitSubscriptionStopsTheNotification(): void
+    {
+        $transport = self::buildExitingTransport(5);
+        $notified = 0;
+        $subscription = $transport->onUnexpectedExit(static function () use (&$notified): void {
+            ++$notified;
+        });
+
+        $transport->start();
+        $subscription->dispose();
+        EventLoop::run();
+        $transport->close();
+
+        self::assertSame(0, $notified);
+    }
+
+    public function testAThrowingExitListenerNeitherStopsTheNextOneNorEscapes(): void
+    {
+        $logger = new ArrayLogger();
+        $transport = self::buildExitingTransport(8, $logger);
+        /** @var DeferredFuture<null|int> $second */
+        $second = new DeferredFuture();
+        $transport->onUnexpectedExit(static function (): void {
+            throw new \RuntimeException('listener blew up');
+        });
+        $transport->onUnexpectedExit(static function (?int $exitCode) use ($second): void {
+            if (! $second->isComplete()) {
+                $second->complete($exitCode);
+            }
+        });
+
+        $transport->start();
+
+        self::assertSame(8, $second->getFuture()->await());
+        self::assertCount(1, $logger->recordsMatching(LogLevel::WARNING, '{label} transport exit listener threw.'));
+
+        $transport->close();
+    }
+
+    public function testClosingAfterThePeerHasAlreadyExitedStillReportsTheExit(): void
+    {
+        $transport = self::buildExitingTransport(9);
+        /** @var DeferredFuture<null|int> $exited */
+        $exited = new DeferredFuture();
+        $transport->onUnexpectedExit(static function (?int $exitCode) use ($exited): void {
+            if (! $exited->isComplete()) {
+                $exited->complete($exitCode);
+            }
+        });
+
+        $transport->start();
+        $observed = $exited->getFuture()->await();
+        $transport->close();
+
+        self::assertSame(9, $observed);
     }
 
     public function testRoundTripsAnEnvelopeAgainstTheEchoFixture(): void
@@ -299,6 +415,14 @@ final class StdioClientTransportTest extends TestCase
     {
         return new StdioClientTransport(
             [\PHP_BINARY, self::ECHO_SERVER],
+            logger: $logger ?? new ArrayLogger(),
+        );
+    }
+
+    private static function buildExitingTransport(int $exitCode, ?ArrayLogger $logger = null): StdioClientTransport
+    {
+        return new StdioClientTransport(
+            [\PHP_BINARY, self::EXITING_SERVER, (string) $exitCode],
             logger: $logger ?? new ArrayLogger(),
         );
     }
