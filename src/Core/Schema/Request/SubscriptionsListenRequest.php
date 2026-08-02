@@ -53,7 +53,7 @@ final readonly class SubscriptionsListenRequest extends JsonRpcRequest implement
     {
         Assert::that($data)->hasOffset('id', 'missing the required "id" key.');
         $id = $data['id'];
-        Assert::that($id)->isArrayKey('"id" must be an int or string, {type} given.');
+        Assert::that($id)->isIntOrNonEmptyString('"id" must be an int or non-empty string, {type} given.');
 
         Assert::that($data)->hasOffset('params', 'missing the required "params" key.');
         Assert::that($data['params'])

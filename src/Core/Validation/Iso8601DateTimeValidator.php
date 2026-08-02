@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Validation;
 
+use Nexus\Assert\Assert;
+
 /**
  * Parses an ISO 8601 / RFC 3339 datetime string into `\DateTimeImmutable`,
  * trying the extended sub-second format first and falling back to the plain
@@ -30,9 +32,10 @@ final class Iso8601DateTimeValidator
      */
     public static function parse(string $value, string $context): \DateTimeImmutable
     {
-        if (str_contains($value, "\0")) {
-            throw new \InvalidArgumentException(\sprintf('%s must not contain NULL bytes.', $context));
-        }
+        Assert::that($value)
+            ->not()
+            ->contains("\0", \sprintf('%s must not contain NULL bytes.', $context))
+        ;
 
         $parsed = \DateTimeImmutable::createFromFormat(\DateTimeInterface::RFC3339_EXTENDED, $value);
 

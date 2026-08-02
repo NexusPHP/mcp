@@ -232,7 +232,7 @@ parent key:
   directly:
 
   ```text
-  '"id" must be an int or string, {type} given.'
+  '"id" must be an int or non-empty string, {type} given.'
   'missing the required "params" key.'
   ```
 

@@ -345,14 +345,14 @@ final class JsonRpcMessageParserTest extends TestCase
             self::fail('Expected InvalidRequestException.');
         } catch (InvalidRequestException $e) {
             self::assertNull($e->requestId, 'An empty-string id cannot be preserved on the exception.');
-            self::assertSame('Invalid success response: "id" must be a non-empty string.', $e->getMessage());
+            self::assertSame('Invalid success response: "id" must be an int or non-empty string, string given.', $e->getMessage());
         }
     }
 
     public function testParseRejectsEmptyStringIdWithTypedResultAsInvalidRequest(): void
     {
         $this->expectException(InvalidRequestException::class);
-        $this->expectExceptionMessageIs('Invalid success response: "id" must be a non-empty string.');
+        $this->expectExceptionMessageIs('Invalid success response: "id" must be an int or non-empty string, string given.');
 
         $parser = new JsonRpcMessageParser();
         $parser->parse(['jsonrpc' => '2.0', 'id' => '', 'result' => []], CallToolResultResponse::class);
@@ -367,7 +367,7 @@ final class JsonRpcMessageParserTest extends TestCase
         } catch (InvalidRequestException $e) {
             self::assertNull($e->requestId, 'A non-scalar id cannot be preserved on the exception.');
             self::assertSame(ProtocolErrorCode::InvalidRequest, InvalidRequestException::getErrorCode());
-            self::assertSame('Invalid "tests/test-request" request: "id" must be an int or string, array given.', $e->getMessage());
+            self::assertSame('Invalid "tests/test-request" request: "id" must be an int or non-empty string, array given.', $e->getMessage());
         }
     }
 
@@ -452,7 +452,7 @@ final class JsonRpcMessageParserTest extends TestCase
     public function testParseRejectsNonScalarIdOnResultEnvelopeEvenWhenResultClassOmitted(): void
     {
         $this->expectException(InvalidRequestException::class);
-        $this->expectExceptionMessageIs('Invalid success response: "id" must be an int or string, array given.');
+        $this->expectExceptionMessageIs('Invalid success response: "id" must be an int or non-empty string, array given.');
 
         $parser = new JsonRpcMessageParser();
         $parser->parse(['jsonrpc' => '2.0', 'id' => [], 'result' => []]);
@@ -480,7 +480,7 @@ final class JsonRpcMessageParserTest extends TestCase
     public function testParseRejectsResultResponseWithBadIdType(): void
     {
         $this->expectException(InvalidRequestException::class);
-        $this->expectExceptionMessageIs('Invalid success response: "id" must be an int or string, array given.');
+        $this->expectExceptionMessageIs('Invalid success response: "id" must be an int or non-empty string, array given.');
 
         $parser = new JsonRpcMessageParser();
         $parser->parse(['jsonrpc' => '2.0', 'id' => [], 'result' => []], CallToolResultResponse::class);
@@ -600,7 +600,7 @@ final class JsonRpcMessageParserTest extends TestCase
             self::fail('Expected an InvalidRequestException.');
         } catch (InvalidRequestException $e) {
             self::assertNull($e->requestId, 'An empty-string id cannot be wrapped into a RequestId, so the exception carries null.');
-            self::assertSame('Invalid "unknown/method" request: "id" must be a non-empty string.', $e->getMessage());
+            self::assertSame('Invalid "unknown/method" request: "id" must be an int or non-empty string, string given.', $e->getMessage());
         }
     }
 

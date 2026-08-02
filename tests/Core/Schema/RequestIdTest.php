@@ -37,7 +37,7 @@ final class RequestIdTest extends TestCase
     public function testRequestIdCannotBeEmptyString(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageIs('"id" must be a non-empty string.');
+        $this->expectExceptionMessageIs('"id" must be an int or non-empty string.');
 
         new RequestId(id: '');
     }

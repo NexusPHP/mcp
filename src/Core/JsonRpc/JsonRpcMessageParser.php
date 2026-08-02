@@ -85,7 +85,7 @@ final class JsonRpcMessageParser
         if (\array_key_exists('result', $message)) {
             try {
                 Assert::that($message)->hasOffset('id', 'missing the required "id" key.');
-                Assert::that($message['id'])->isArrayKey('"id" must be an int or string, {type} given.');
+                Assert::that($message['id'])->isIntOrNonEmptyString('"id" must be an int or non-empty string, {type} given.');
                 $id = new RequestId(id: $message['id']);
             } catch (\InvalidArgumentException $e) {
                 throw new InvalidRequestException(null, \sprintf('Invalid success response: %s', $e->getMessage()));
@@ -113,7 +113,7 @@ final class JsonRpcMessageParser
 
         if (\array_key_exists('id', $message)) {
             try {
-                Assert::that($message['id'])->isArrayKey('"id" must be an int or string, {type} given.');
+                Assert::that($message['id'])->isIntOrNonEmptyString('"id" must be an int or non-empty string, {type} given.');
                 $id = new RequestId(id: $message['id']);
             } catch (\InvalidArgumentException $e) {
                 throw new InvalidRequestException(

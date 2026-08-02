@@ -97,7 +97,7 @@ final readonly class RequestMetaObject extends MetaObject
 
         if (\array_key_exists('progressToken', $data)) {
             $raw = $data['progressToken'];
-            Assert::that($raw)->isArrayKey('"_meta.progressToken" must be an int or string, {type} given.');
+            Assert::that($raw)->isIntOrNonEmptyString('"_meta.progressToken" must be an int or non-empty string, {type} given.');
 
             $progressToken = new ProgressToken(token: $raw);
             unset($data['progressToken']);

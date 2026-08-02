@@ -29,9 +29,7 @@ final readonly class RequestId
 
     public function __construct(int|string $id)
     {
-        if (\is_string($id)) {
-            Assert::that($id)->isNonEmptyString('"id" must be a non-empty string.');
-        }
+        Assert::that($id)->isIntOrNonEmptyString('"id" must be an int or non-empty string.');
 
         $this->id = $id;
     }

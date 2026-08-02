@@ -311,7 +311,7 @@ final class RequestMetaObjectTest extends TestCase
                 RequestMetaObject::CLIENT_CAPABILITIES_KEY => [],
                 'progressToken' => [],
             ],
-            '"_meta.progressToken" must be an int or string, array given.',
+            '"_meta.progressToken" must be an int or non-empty string, array given.',
         ];
     }
 }

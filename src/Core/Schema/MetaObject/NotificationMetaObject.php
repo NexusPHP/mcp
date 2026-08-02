@@ -43,8 +43,8 @@ final readonly class NotificationMetaObject extends MetaObject
         $subscriptionId = null;
 
         if (\array_key_exists(self::SUBSCRIPTION_ID_KEY, $data)) {
-            Assert::that($data[self::SUBSCRIPTION_ID_KEY])->isArrayKey(
-                \sprintf('"_meta.%s" must be an int or a string, {type} given.', self::SUBSCRIPTION_ID_KEY),
+            Assert::that($data[self::SUBSCRIPTION_ID_KEY])->isIntOrNonEmptyString(
+                \sprintf('"_meta.%s" must be an int or a non-empty string, {type} given.', self::SUBSCRIPTION_ID_KEY),
             );
             $subscriptionId = new RequestId($data[self::SUBSCRIPTION_ID_KEY]);
             unset($data[self::SUBSCRIPTION_ID_KEY]);

@@ -45,8 +45,8 @@ final readonly class SubscriptionsListenResultMetaObject extends ResultMetaObjec
             self::SUBSCRIPTION_ID_KEY,
             \sprintf('"result._meta" is missing the required "%s" key.', self::SUBSCRIPTION_ID_KEY),
         );
-        Assert::that($data[self::SUBSCRIPTION_ID_KEY])->isArrayKey(
-            \sprintf('"_meta.%s" must be an int or a string, {type} given.', self::SUBSCRIPTION_ID_KEY),
+        Assert::that($data[self::SUBSCRIPTION_ID_KEY])->isIntOrNonEmptyString(
+            \sprintf('"_meta.%s" must be an int or a non-empty string, {type} given.', self::SUBSCRIPTION_ID_KEY),
         );
 
         $subscriptionId = new RequestId($data[self::SUBSCRIPTION_ID_KEY]);

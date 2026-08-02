@@ -29,9 +29,7 @@ final readonly class ProgressToken
 
     public function __construct(int|string $token)
     {
-        if (\is_string($token)) {
-            Assert::that($token)->isNonEmptyString('"progressToken" must be a non-empty string.');
-        }
+        Assert::that($token)->isIntOrNonEmptyString('"progressToken" must be an int or non-empty string.');
 
         $this->token = $token;
     }

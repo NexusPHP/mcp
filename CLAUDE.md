@@ -127,7 +127,7 @@ When the spec defines two structurally similar shapes that differ only in option
 - **String-keyed arrays**: `Assert::that($x)->isArray('… {type} given.')->isMap('… string-keyed object.')`. The two-step chain preserves distinct messages for "not an array" vs. "int-keyed array". A single `isMap` call collapses both into one message.
 - **Must-have keys on a known array**: `Assert::that($data)->hasOffset('key', 'missing message.')`. The bundled `isArray` check is redundant on already-typed input but harmless. Preferred over a bare `array_key_exists` when you want the message to live next to the other Assert chains.
 - **Conditional keys** (`if (\array_key_exists('_meta', $data))`): leave as native PHP. Assert has no "optional key" shape.
-- Expectations used in this repo: `isMap`, `hasOffset`, `isArrayKey` (narrows to `int|string`), `isNonEmptyString`, `isInt`, `isString`, and `nullOr()->isX()` for nullable inputs.
+- **Ids**: use `isIntOrNonEmptyString` for any value that goes on to build a `RequestId` or `ProgressToken`, never `isArrayKey`. The spec shape is `int|non-empty-string`, and `isArrayKey` admits `''`, deferring the failure a frame to a constructor whose message names less of the contract.
 
 ### String composition and logging
 

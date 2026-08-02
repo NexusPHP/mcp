@@ -53,7 +53,7 @@ abstract readonly class JsonRpcResultResponse implements Arrayable, JsonRpcRespo
     {
         Assert::that($data)->hasOffset('id', 'missing the required "id" key.');
         $id = $data['id'];
-        Assert::that($id)->isArrayKey('"id" must be an int or string, {type} given.');
+        Assert::that($id)->isIntOrNonEmptyString('"id" must be an int or non-empty string, {type} given.');
 
         return new RequestId(id: $id);
     }

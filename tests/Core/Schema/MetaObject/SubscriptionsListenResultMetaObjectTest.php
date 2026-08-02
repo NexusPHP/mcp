@@ -88,7 +88,7 @@ final class SubscriptionsListenResultMetaObjectTest extends TestCase
     public function testFromArrayRejectsANonScalarSubscriptionId(mixed $value): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageMatches('/^"_meta\.io\.modelcontextprotocol\/subscriptionId" must be an int or a string, /');
+        $this->expectExceptionMessageMatches('/^"_meta\.io\.modelcontextprotocol\/subscriptionId" must be an int or a non-empty string, /');
 
         SubscriptionsListenResultMetaObject::fromArray(['io.modelcontextprotocol/subscriptionId' => $value]);
     }

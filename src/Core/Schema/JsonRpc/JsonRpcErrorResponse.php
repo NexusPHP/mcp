@@ -44,7 +44,7 @@ final readonly class JsonRpcErrorResponse implements Arrayable, JsonRpcResponse
         $id = $data['id'] ?? null;
         Assert::that($id)
             ->nullOr()
-            ->isArrayKey('"id" must be an int, string, or null, {type} given.')
+            ->isIntOrNonEmptyString('"id" must be an int, non-empty string, or null, {type} given.')
         ;
 
         $error = $data['error'] ?? [];

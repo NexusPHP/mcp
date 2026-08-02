@@ -85,7 +85,7 @@ final class NotificationMetaObjectTest extends TestCase
     public function testFromArrayRejectsANonScalarSubscriptionId(mixed $value): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageMatches('/^"_meta\.io\.modelcontextprotocol\/subscriptionId" must be an int or a string, /');
+        $this->expectExceptionMessageMatches('/^"_meta\.io\.modelcontextprotocol\/subscriptionId" must be an int or a non-empty string, /');
 
         NotificationMetaObject::fromArray(['io.modelcontextprotocol/subscriptionId' => $value]);
     }
