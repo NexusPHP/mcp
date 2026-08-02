@@ -21,7 +21,6 @@ use Nexus\Mcp\Core\Schema\Error\InternalError;
 use Nexus\Mcp\Core\Schema\MetaObject\SubscriptionsListenResultMetaObject;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result\SubscriptionsListenResult;
-use Nexus\Mcp\Core\Schema\ResultResponse\SubscriptionsListenResultResponse;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
@@ -36,19 +35,19 @@ final class SubscriptionStreamTest extends TestCase
 {
     public function testExposesTheSubscriptionId(): void
     {
-        /** @var DeferredFuture<SubscriptionsListenResultResponse> $deferred */
+        /** @var DeferredFuture<SubscriptionsListenResult> $deferred */
         $deferred = new DeferredFuture();
-        $stream = new SubscriptionStream(new RequestId(7), $deferred->getFuture(), static function (): void {});
+        $stream = new SubscriptionStream(new RequestId(id: 7), $deferred->getFuture(), static function (): void {});
 
         self::assertSame(7, $stream->subscriptionId->id);
     }
 
     public function testCloseRunsTheTeardownExactlyOnce(): void
     {
-        /** @var DeferredFuture<SubscriptionsListenResultResponse> $deferred */
+        /** @var DeferredFuture<SubscriptionsListenResult> $deferred */
         $deferred = new DeferredFuture();
         $closes = 0;
-        $stream = new SubscriptionStream(new RequestId(7), $deferred->getFuture(), static function () use (&$closes): void {
+        $stream = new SubscriptionStream(new RequestId(id: 7), $deferred->getFuture(), static function () use (&$closes): void {
             ++$closes;
         });
 
@@ -60,21 +59,21 @@ final class SubscriptionStreamTest extends TestCase
 
     public function testAwaitReturnsTheServersTeardownResult(): void
     {
-        /** @var DeferredFuture<SubscriptionsListenResultResponse> $deferred */
+        /** @var DeferredFuture<SubscriptionsListenResult> $deferred */
         $deferred = new DeferredFuture();
-        $stream = new SubscriptionStream(new RequestId(7), $deferred->getFuture(), static function (): void {});
+        $stream = new SubscriptionStream(new RequestId(id: 7), $deferred->getFuture(), static function (): void {});
 
-        $result = new SubscriptionsListenResult(new SubscriptionsListenResultMetaObject(subscriptionId: new RequestId(7)));
-        $deferred->complete(new SubscriptionsListenResultResponse(id: new RequestId(7), result: $result));
+        $result = new SubscriptionsListenResult(new SubscriptionsListenResultMetaObject(subscriptionId: new RequestId(id: 7)));
+        $deferred->complete($result);
 
         self::assertSame($result, $stream->await());
     }
 
     public function testAwaitSurfacesARefusedSubscription(): void
     {
-        /** @var DeferredFuture<SubscriptionsListenResultResponse> $deferred */
+        /** @var DeferredFuture<SubscriptionsListenResult> $deferred */
         $deferred = new DeferredFuture();
-        $stream = new SubscriptionStream(new RequestId(7), $deferred->getFuture(), static function (): void {});
+        $stream = new SubscriptionStream(new RequestId(id: 7), $deferred->getFuture(), static function (): void {});
 
         $deferred->error(new RemoteCallFailedException(new InternalError('Subscriptions are not served.')));
 
@@ -84,9 +83,9 @@ final class SubscriptionStreamTest extends TestCase
 
     public function testAwaitingAClosedStreamThrowsRatherThanBlocking(): void
     {
-        /** @var DeferredFuture<SubscriptionsListenResultResponse> $deferred */
+        /** @var DeferredFuture<SubscriptionsListenResult> $deferred */
         $deferred = new DeferredFuture();
-        $stream = new SubscriptionStream(new RequestId(7), $deferred->getFuture(), static function (): void {});
+        $stream = new SubscriptionStream(new RequestId(id: 7), $deferred->getFuture(), static function (): void {});
         $deferred->getFuture()->ignore();
 
         $stream->close();

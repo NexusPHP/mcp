@@ -14,9 +14,11 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Client\Dispatch;
 
 use Amp\CancelledException;
+use Amp\DeferredFuture;
 use Nexus\Mcp\Client\ClientContext;
 use Nexus\Mcp\Client\Dispatch\ClientMessageDispatcher;
-use Nexus\Mcp\Client\Subscription\SubscriptionListenerRegistry;
+use Nexus\Mcp\Client\Subscription\OpenSubscription;
+use Nexus\Mcp\Client\Subscription\SubscriptionRegistry;
 use Nexus\Mcp\Core\Dispatch\PendingOutboundRequests;
 use Nexus\Mcp\Core\Exception\AbstractJsonRpcProtocolException;
 use Nexus\Mcp\Core\Exception\MethodNotFoundException;
@@ -38,7 +40,9 @@ use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
+use Nexus\Mcp\Core\Schema\Result\SubscriptionsListenResult;
 use Nexus\Mcp\Core\Schema\ResultResponse\CallToolResultResponse;
+use Nexus\Mcp\Core\Schema\SubscriptionFilter;
 use Nexus\Mcp\Core\Transport\ReceiveContext;
 use Nexus\Mcp\Server\Exception\ResourceNotFoundException;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
@@ -951,7 +955,7 @@ final class ClientMessageDispatcherTest extends TestCase
 
     public function testASubscriptionTaggedNotificationGoesToItsStreamNotTheMethodHandler(): void
     {
-        $listeners = new SubscriptionListenerRegistry();
+        $listeners = new SubscriptionRegistry();
         $handled = 0;
         $handler = new ClosureNotificationHandler(static function () use (&$handled): void {
             ++$handled;
@@ -959,13 +963,13 @@ final class ClientMessageDispatcherTest extends TestCase
         $dispatcher = self::buildDispatcher(
             new PendingOutboundRequests(),
             notificationHandlers: ['notifications/tools/list_changed' => $handler],
-            subscriptionListeners: $listeners,
+            subscriptions: $listeners,
         );
 
         $seen = [];
-        $listeners->register(new RequestId(7), static function (JsonRpcNotification $notification) use (&$seen): void {
+        $listeners->register(self::buildSubscription(new RequestId(id: 7), static function (JsonRpcNotification $notification) use (&$seen): void {
             $seen[] = $notification::getMethod();
-        });
+        }));
 
         $dispatcher->dispatch([
             'jsonrpc' => '2.0',
@@ -981,7 +985,7 @@ final class ClientMessageDispatcherTest extends TestCase
 
     public function testAnUnmatchedSubscriptionIdFallsThroughToTheMethodHandler(): void
     {
-        $listeners = new SubscriptionListenerRegistry();
+        $listeners = new SubscriptionRegistry();
         $handled = 0;
         $handler = new ClosureNotificationHandler(static function () use (&$handled): void {
             ++$handled;
@@ -989,7 +993,7 @@ final class ClientMessageDispatcherTest extends TestCase
         $dispatcher = self::buildDispatcher(
             new PendingOutboundRequests(),
             notificationHandlers: ['notifications/tools/list_changed' => $handler],
-            subscriptionListeners: $listeners,
+            subscriptions: $listeners,
         );
 
         $dispatcher->dispatch([
@@ -1005,17 +1009,17 @@ final class ClientMessageDispatcherTest extends TestCase
 
     public function testAThrowingSubscriptionListenerIsLogged(): void
     {
-        $listeners = new SubscriptionListenerRegistry();
+        $listeners = new SubscriptionRegistry();
         $logger = new ArrayLogger();
         $dispatcher = self::buildDispatcher(
             new PendingOutboundRequests(),
             logger: $logger,
-            subscriptionListeners: $listeners,
+            subscriptions: $listeners,
         );
 
-        $listeners->register(new RequestId(7), static function (JsonRpcNotification $notification): void {
+        $listeners->register(self::buildSubscription(new RequestId(id: 7), static function (JsonRpcNotification $notification): void {
             throw new \RuntimeException('listener blew up');
-        });
+        }));
 
         $dispatcher->dispatch([
             'jsonrpc' => '2.0',
@@ -1032,7 +1036,7 @@ final class ClientMessageDispatcherTest extends TestCase
 
     public function testATaggedProgressNotificationKeepsItsOwnRoute(): void
     {
-        $listeners = new SubscriptionListenerRegistry();
+        $listeners = new SubscriptionRegistry();
         $handled = 0;
         $handler = new ClosureNotificationHandler(static function () use (&$handled): void {
             ++$handled;
@@ -1040,13 +1044,13 @@ final class ClientMessageDispatcherTest extends TestCase
         $dispatcher = self::buildDispatcher(
             new PendingOutboundRequests(),
             notificationHandlers: ['notifications/progress' => $handler],
-            subscriptionListeners: $listeners,
+            subscriptions: $listeners,
         );
 
         $stolen = 0;
-        $listeners->register(new RequestId(7), static function () use (&$stolen): void {
+        $listeners->register(self::buildSubscription(new RequestId(id: 7), static function () use (&$stolen): void {
             ++$stolen;
-        });
+        }));
 
         // The spec keeps this key off progress notifications. A peer that stamps one anyway must not divert
         // progress away from the per-call route that extends the request deadline.
@@ -1075,7 +1079,7 @@ final class ClientMessageDispatcherTest extends TestCase
         array $requestHandlers = [],
         array $notificationHandlers = [],
         ?ArrayLogger $logger = null,
-        ?SubscriptionListenerRegistry $subscriptionListeners = null,
+        ?SubscriptionRegistry $subscriptions = null,
     ): ClientMessageDispatcher {
         return new ClientMessageDispatcher(
             new HandlerRegistry($requestHandlers, RequestHandlerInterface::class, 'Request handler'),
@@ -1083,7 +1087,18 @@ final class ClientMessageDispatcherTest extends TestCase
             $outbound,
             logger: $logger ?? new ArrayLogger(),
             parser: new JsonRpcMessageParser(requests: ['tests/test-request' => TestRequest::class]),
-            subscriptionListeners: $subscriptionListeners ?? new SubscriptionListenerRegistry(),
+            subscriptions: $subscriptions ?? new SubscriptionRegistry(),
         );
+    }
+
+    /**
+     * @param \Closure(JsonRpcNotification<non-empty-string>): void $onNotification
+     */
+    private static function buildSubscription(RequestId $id, \Closure $onNotification): OpenSubscription
+    {
+        /** @var DeferredFuture<SubscriptionsListenResult> $outcome */
+        $outcome = new DeferredFuture();
+
+        return new OpenSubscription($id, new SubscriptionFilter(), $onNotification, $outcome);
     }
 }

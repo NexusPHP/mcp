@@ -371,6 +371,11 @@ supports, and MUST NOT push a type that was not asked for.
   graceful closure. A stream the client closed carries no response, so do not await one.
 - **No deadline applies.** A listen request legitimately never returns, so it is exempt from the request
   timeouts that bound every other call.
+- **A restart does not spend the stream.** Behind a `SupervisedTransport`, an open stream is re-sent to each
+  replacement peer under the same subscription id, so the callback keeps firing and `await()` resumes rather
+  than settling. A server that *refuses* the subscription has answered it, so that still ends the stream on
+  any transport. See [Subscriptions across a restart](transports.md#subscriptions-across-a-restart) for the
+  full list of what ends a stream for good.
 
 ## The escape hatch: `sendRequest()`
 

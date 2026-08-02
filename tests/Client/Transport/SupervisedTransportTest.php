@@ -19,7 +19,6 @@ use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyStartedException;
 use Nexus\Mcp\Core\Exception\TransportNotStartedException;
 use Nexus\Mcp\Core\Schema\Notification\ToolListChangedNotification;
-use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
 use Nexus\Mcp\Core\Transport\SupervisableTransportInterface;
 use Nexus\Mcp\Tests\Fixtures\Client\Transport\SupervisableRecordingTransport;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
@@ -787,6 +786,206 @@ final class SupervisedTransportTest extends TestCase
         $transport->start();
     }
 
+    public function testIsReconnectingIsTrueOnlyWhileAReplacementIsPending(): void
+    {
+        $spawned = [];
+        $transport = $this->buildTransport($spawned, restartDelay: 0.05);
+
+        self::assertFalse($transport->isReconnecting(), 'Nothing has been started, so nothing is coming back.');
+
+        $transport->start();
+        self::assertFalse($transport->isReconnecting(), 'A live connection is not a pending one.');
+
+        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+        self::assertTrue($transport->isReconnecting(), 'The replacement is armed and has not fired yet.');
+
+        EventLoop::run();
+        self::assertFalse($transport->isReconnecting(), 'The replacement is serving, so nothing is pending.');
+    }
+
+    public function testIsReconnectingIsFalseOnceTheBudgetIsSpent(): void
+    {
+        $spawned = [];
+        $transport = $this->buildTransport($spawned, maxRestarts: 1);
+        $transport->onError(static function (): void {});
+        $transport->start();
+
+        for ($i = 0; $i < 2; ++$i) {
+            self::connectionAt($spawned, $i)->emitUnexpectedExit();
+            EventLoop::run();
+        }
+
+        self::assertFalse($transport->isReconnecting(), 'No further peer is coming once supervision gave up.');
+    }
+
+    public function testClosingCancelsThePendingReplacement(): void
+    {
+        $spawned = [];
+        $transport = $this->buildTransport($spawned, restartDelay: 0.05);
+        $transport->start();
+
+        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+        $transport->close();
+
+        self::assertFalse($transport->isReconnecting());
+    }
+
+    public function testAThrowingReconnectListenerIsReportedAndTheChainContinues(): void
+    {
+        $spawned = [];
+        $transport = $this->buildTransport($spawned);
+
+        $errors = [];
+        $transport->onError(static function (\Throwable $e) use (&$errors): void {
+            $errors[] = $e->getMessage();
+        });
+
+        $reached = [];
+        $transport->onReconnect(static function (): void {
+            throw new \RuntimeException('listener blew up');
+        });
+        $transport->onReconnect(static function () use (&$reached): void {
+            $reached[] = true;
+        });
+
+        $transport->start();
+        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+        EventLoop::run();
+
+        self::assertSame(['listener blew up'], $errors);
+        self::assertSame([true], $reached, 'One listener failing must not cost the rest theirs.');
+    }
+
+    public function testTheFirstConnectionIsNotAnnouncedAsAReconnect(): void
+    {
+        $spawned = [];
+        $transport = $this->buildTransport($spawned);
+
+        $reconnects = [];
+        $transport->onReconnect(static function () use (&$reconnects): void {
+            $reconnects[] = true;
+        });
+
+        $transport->start();
+
+        self::assertSame([], $reconnects, 'start() already reports the first connection.');
+    }
+
+    public function testEachReplacementAnnouncesExactlyOneReconnect(): void
+    {
+        $spawned = [];
+        $transport = $this->buildTransport($spawned);
+
+        $reconnects = [];
+        $transport->onReconnect(static function () use (&$reconnects): void {
+            $reconnects[] = true;
+        });
+
+        $transport->start();
+
+        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+        EventLoop::run();
+
+        // A served message clears the budget, so the second death is another first-attempt respawn.
+        self::connectionAt($spawned, 1)->emitMessage(['served' => true]);
+        self::connectionAt($spawned, 1)->emitUnexpectedExit();
+        EventLoop::run();
+
+        self::assertSame([true, true], $reconnects);
+    }
+
+    public function testReconnectRunsAfterTheCloseForTheConnectionItReplaces(): void
+    {
+        $spawned = [];
+        $transport = $this->buildTransport($spawned);
+
+        $order = [];
+        $transport->onClose(static function () use (&$order): void {
+            $order[] = 'close';
+        });
+        $transport->onReconnect(static function () use (&$order): void {
+            $order[] = 'reconnect';
+        });
+
+        $transport->start();
+        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+        EventLoop::run();
+
+        self::assertSame(['close', 'reconnect'], $order);
+    }
+
+    public function testReconnectSeesTheReplacementAlreadyServing(): void
+    {
+        $spawned = [];
+        $transport = $this->buildTransport($spawned);
+
+        $transport->onReconnect(static function () use ($transport): void {
+            // The whole point of the signal: a listener rebuilding per-connection state must be able to
+            // write it to the fresh peer from inside the callback.
+            $transport->send(self::notification());
+        });
+
+        $transport->start();
+        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+        EventLoop::run();
+
+        self::assertCount(1, self::connectionAt($spawned, 1)->sent);
+    }
+
+    public function testAFailedRespawnDoesNotAnnounceAReconnect(): void
+    {
+        $spawned = [];
+        $attempts = 0;
+        $transport = $this->built[] = new SupervisedTransport(
+            static function () use (&$spawned, &$attempts): SupervisableTransportInterface {
+                $inner = new SupervisableRecordingTransport();
+
+                if (2 === ++$attempts) {
+                    $inner->startError = new \RuntimeException('cannot start');
+                }
+
+                $spawned[] = $inner;
+
+                return $inner;
+            },
+            restartDelay: 0.0,
+        );
+
+        $reconnects = [];
+        $transport->onReconnect(static function () use (&$reconnects): void {
+            $reconnects[] = true;
+        });
+        $transport->onError(static function (): void {});
+
+        $transport->start();
+        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+        EventLoop::run();
+
+        // The second attempt failed to start and the third took its place, so exactly one reconnect
+        // is owed, not two.
+        self::assertCount(3, $spawned);
+        self::assertSame([true], $reconnects);
+    }
+
+    public function testADisposedReconnectListenerStopsHearingAboutReplacements(): void
+    {
+        $spawned = [];
+        $transport = $this->buildTransport($spawned);
+
+        $reconnects = [];
+        $subscription = $transport->onReconnect(static function () use (&$reconnects): void {
+            $reconnects[] = true;
+        });
+        $subscription->dispose();
+
+        $transport->start();
+        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+        EventLoop::run();
+
+        self::assertCount(2, $spawned);
+        self::assertSame([], $reconnects);
+    }
+
     /**
      * @param list<SupervisableRecordingTransport> $spawned
      */
@@ -828,6 +1027,6 @@ final class SupervisedTransportTest extends TestCase
 
     private static function notification(): ToolListChangedNotification
     {
-        return new ToolListChangedNotification(new EmptyNotificationParams());
+        return new ToolListChangedNotification();
     }
 }

@@ -20,9 +20,12 @@ use Nexus\Mcp\Client\Exception\ClientAlreadyConnectedException;
 use Nexus\Mcp\Client\Exception\ClientNotConnectedException;
 use Nexus\Mcp\Client\Exception\ServerCapabilityNotSupportedException;
 use Nexus\Mcp\Client\Exception\SubscriptionClosedException;
+use Nexus\Mcp\Client\Transport\SupervisedTransport;
+use Nexus\Mcp\Core\Exception\DuplicateOutboundRequestIdException;
 use Nexus\Mcp\Core\Exception\OutboundRequestFailedException;
 use Nexus\Mcp\Core\Exception\RemoteCallFailedException;
 use Nexus\Mcp\Core\Exception\RequestTimeoutException;
+use Nexus\Mcp\Core\Exception\SupervisionExhaustedException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
 use Nexus\Mcp\Core\Schema\ClientCapabilities;
 use Nexus\Mcp\Core\Schema\Cursor;
@@ -69,6 +72,7 @@ use Nexus\Mcp\Core\Schema\SubscriptionFilter;
 use Nexus\Mcp\Core\Transport\SendContext;
 use Nexus\Mcp\Core\Transport\TransportInterface;
 use Nexus\Mcp\Tests\Fixtures\Client\Http\MirroringRecordingTransport;
+use Nexus\Mcp\Tests\Fixtures\Client\Transport\SupervisableRecordingTransport;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureNotificationHandler;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
@@ -1991,6 +1995,395 @@ final class ClientTest extends TestCase
 
         $this->expectException(SubscriptionClosedException::class);
         $stream->await();
+    }
+
+    public function testARestartReopensTheStreamUnderTheSameSubscriptionId(): void
+    {
+        $spawned = [];
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $transport = self::supervisedTransport($spawned);
+        $client->connect($transport);
+
+        $stream = $client->listen(new SubscriptionFilter(toolsListChanged: true), static function (): void {});
+        $id = $stream->subscriptionId->id;
+
+        self::supervisedPeer($spawned, 0)->emitUnexpectedExit();
+        EventLoop::run();
+
+        $replayed = self::supervisedPeer($spawned, 1)->sent[0]['message'] ?? null;
+
+        if (! $replayed instanceof SubscriptionsListenRequest) {
+            self::fail('The replacement peer should have been sent the listen request again.');
+        }
+
+        // The subscription id is the request id, and the caller still holds it, so re-listening under a
+        // fresh one would leave them naming a stream the server has never heard of.
+        self::assertSame($id, $replayed->id->id);
+        self::assertSame($id, $stream->subscriptionId->id);
+        self::assertTrue($replayed->params->notifications->toolsListChanged);
+
+        // A fresh peer knows nothing, so the replay has to carry the same self-describing `_meta` the
+        // first send did. This is the only assertion covering that on either path.
+        self::assertSame(ProtocolVersion::LATEST_VERSION, $replayed->params->meta->protocolVersion->version);
+        self::assertSame('demo', $replayed->params->meta->clientInfo?->name);
+
+        $transport->close();
+    }
+
+    public function testAReopenedStreamKeepsRoutingNotificationsToItsCallback(): void
+    {
+        $spawned = [];
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $transport = self::supervisedTransport($spawned);
+        $client->connect($transport);
+
+        $seen = [];
+        $stream = $client->listen(new SubscriptionFilter(toolsListChanged: true), static function () use (&$seen): void {
+            $seen[] = true;
+        });
+
+        self::supervisedPeer($spawned, 0)->emitUnexpectedExit();
+        EventLoop::run();
+
+        // Asserted before driving a notification through: the route survives the peer death on its own, so
+        // without this the callback would fire even if the re-open never happened.
+        self::assertCount(1, self::supervisedPeer($spawned, 1)->sent);
+
+        self::supervisedPeer($spawned, 1)->emitMessage([
+            'jsonrpc' => '2.0',
+            'method' => 'notifications/tools/list_changed',
+            'params' => ['_meta' => [NotificationMetaObject::SUBSCRIPTION_ID_KEY => $stream->subscriptionId->id]],
+        ]);
+        EventLoop::run();
+
+        self::assertSame([true], $seen);
+
+        $transport->close();
+    }
+
+    public function testALostPeerDoesNotSettleTheStreamWhileSupervisionContinues(): void
+    {
+        $spawned = [];
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $transport = self::supervisedTransport($spawned);
+        $client->connect($transport);
+
+        $stream = $client->listen(new SubscriptionFilter(toolsListChanged: true), static function (): void {});
+
+        self::supervisedPeer($spawned, 0)->emitUnexpectedExit();
+        EventLoop::run();
+
+        // The replacement now owns the stream, so the answer that ends it arrives from there.
+        self::supervisedPeer($spawned, 1)->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => $stream->subscriptionId->id,
+            'result' => ['_meta' => [SubscriptionsListenResultMetaObject::SUBSCRIPTION_ID_KEY => $stream->subscriptionId->id]],
+        ]);
+        EventLoop::run();
+
+        self::assertSame($stream->subscriptionId->id, $stream->await()->meta->subscriptionId->id);
+
+        $transport->close();
+    }
+
+    public function testExhaustedSupervisionFailsEveryStreamStillOpen(): void
+    {
+        $spawned = [];
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $transport = self::supervisedTransport($spawned, maxRestarts: 1);
+        $client->connect($transport);
+
+        $stream = $client->listen(new SubscriptionFilter(toolsListChanged: true), static function (): void {});
+
+        for ($i = 0; $i < 2; ++$i) {
+            self::supervisedPeer($spawned, $i)->emitUnexpectedExit();
+            EventLoop::run();
+        }
+
+        // No further peer is coming, so a stream still waiting would wait for the life of the process.
+        $this->expectException(SupervisionExhaustedException::class);
+
+        try {
+            $stream->await();
+        } finally {
+            $transport->close();
+        }
+    }
+
+    public function testDisconnectFailsEveryStreamStillOpen(): void
+    {
+        $spawned = [];
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+
+        $transport = self::supervisedTransport($spawned, restartDelay: 0.5);
+        $client->connect($transport);
+
+        $stream = $client->listen(new SubscriptionFilter(toolsListChanged: true), static function (): void {});
+
+        self::supervisedPeer($spawned, 0)->emitUnexpectedExit();
+
+        // Let the loss actually reach the stream while the replacement is still pending. The stream
+        // absorbs it by design and keeps waiting, so from here only the disconnect can end it. Without
+        // this the absorption is still queued and the close alone settles the stream.
+        delay(0.001);
+
+        $client->disconnect();
+
+        $this->expectException(TransportAlreadyClosedException::class);
+        $stream->await();
+    }
+
+    public function testDisconnectStopsAStreamFromBeingReopened(): void
+    {
+        $spawned = [];
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $transport = self::supervisedTransport($spawned);
+        $client->connect($transport);
+
+        $client->listen(new SubscriptionFilter(toolsListChanged: true), static function (): void {});
+
+        // Killed first, so a respawn is genuinely pending when the disconnect lands. Without that, no
+        // re-open was possible either way and the assertion below would hold on its own.
+        self::supervisedPeer($spawned, 0)->emitUnexpectedExit();
+        $client->disconnect();
+        EventLoop::run();
+
+        self::assertCount(1, $spawned, 'A disconnect cancels the pending respawn rather than re-opening into it.');
+    }
+
+    public function testAStreamSettledByADisconnectIsNotReplayedOnTheNextConnection(): void
+    {
+        $spawned = [];
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client->connect(self::supervisedTransport($spawned));
+
+        $client->listen(new SubscriptionFilter(toolsListChanged: true), static function (): void {});
+        $client->disconnect();
+
+        $second = [];
+        $transport = self::supervisedTransport($second);
+        $client->connect($transport);
+
+        self::supervisedPeer($second, 0)->emitUnexpectedExit();
+        EventLoop::run();
+
+        // The disconnect claimed every record, so the stream belonging to the retired connection cannot
+        // reach a server that never served it.
+        self::assertSame([], self::supervisedPeer($second, 1)->sent);
+
+        $transport->close();
+    }
+
+    public function testARefusedSubscriptionEndsTheStreamEvenUnderSupervision(): void
+    {
+        $spawned = [];
+        $client = new ClientBuilder()
+            ->setClientInfo('demo', '1.0.0')
+            ->setRequestIdFactory(static fn(): int => 7)
+            ->build()
+        ;
+        $transport = self::supervisedTransport($spawned);
+        $client->connect($transport);
+
+        $stream = $client->listen(new SubscriptionFilter(toolsListChanged: true), static function (): void {});
+
+        // A peer that answers "no" is answering. However replaceable it is, the stream is over, and a
+        // caller waiting on it must not be left for the life of the process.
+        self::supervisedPeer($spawned, 0)->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => 7,
+            'error' => ['code' => -32601, 'message' => 'no subscriptions here'],
+        ]);
+        EventLoop::run();
+
+        try {
+            $stream->await();
+            self::fail('Expected the refusal to reach the caller.');
+        } catch (RemoteCallFailedException $e) {
+            self::assertSame('no subscriptions here', $e->getMessage());
+        } finally {
+            $transport->close();
+        }
+    }
+
+    public function testARefusedSubscriptionIsNotReplayedToTheReplacement(): void
+    {
+        $spawned = [];
+        $client = new ClientBuilder()
+            ->setClientInfo('demo', '1.0.0')
+            ->setRequestIdFactory(static fn(): int => 7)
+            ->build()
+        ;
+        $transport = self::supervisedTransport($spawned);
+        $client->connect($transport);
+
+        $client->listen(new SubscriptionFilter(toolsListChanged: true), static function (): void {});
+        self::supervisedPeer($spawned, 0)->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => 7,
+            'error' => ['code' => -32601, 'message' => 'no subscriptions here'],
+        ]);
+        EventLoop::run();
+
+        self::supervisedPeer($spawned, 0)->emitUnexpectedExit();
+        EventLoop::run();
+
+        self::assertSame([], self::supervisedPeer($spawned, 1)->sent, 'A stream the server refused is not the supervisor\'s to retry.');
+
+        $transport->close();
+    }
+
+    public function testADuplicateSubscriptionIdLeavesTheLiveStreamIntact(): void
+    {
+        $client = new ClientBuilder()
+            ->setClientInfo('demo', '1.0.0')
+            ->setRequestIdFactory(static fn(): int => 7)
+            ->build()
+        ;
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+
+        $seen = [];
+        $first = $client->listen(new SubscriptionFilter(toolsListChanged: true), static function () use (&$seen): void {
+            $seen[] = true;
+        });
+
+        try {
+            $client->listen(new SubscriptionFilter(toolsListChanged: true), static function (): void {});
+            self::fail('Expected the colliding id to be refused.');
+        } catch (DuplicateOutboundRequestIdException) {
+            // Asserted outside the try: PHPUnit's failure exceptions would otherwise be caught here.
+        }
+
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'method' => 'notifications/tools/list_changed',
+            'params' => ['_meta' => [NotificationMetaObject::SUBSCRIPTION_ID_KEY => 7]],
+        ]);
+        EventLoop::run();
+
+        self::assertSame([true], $seen, 'The refused second stream must not evict the first one\'s route.');
+        self::assertSame(7, $first->subscriptionId->id);
+    }
+
+    public function testAThrowingReconnectListenerDoesNotStopTheReopen(): void
+    {
+        $spawned = [];
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $transport = self::supervisedTransport($spawned);
+
+        // Registered before the client's, so it runs first and would abort the chain if it were unguarded.
+        $transport->onReconnect(static function (): void {
+            throw new \RuntimeException('listener blew up');
+        });
+        $transport->onError(static function (): void {});
+        $client->connect($transport);
+
+        $client->listen(new SubscriptionFilter(toolsListChanged: true), static function (): void {});
+
+        self::supervisedPeer($spawned, 0)->emitUnexpectedExit();
+        EventLoop::run();
+
+        self::assertCount(1, self::supervisedPeer($spawned, 1)->sent);
+
+        $transport->close();
+    }
+
+    public function testAStreamClosedBeforeARestartIsNotReopened(): void
+    {
+        $spawned = [];
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $transport = self::supervisedTransport($spawned);
+        $client->connect($transport);
+
+        $stream = $client->listen(new SubscriptionFilter(toolsListChanged: true), static function (): void {});
+        $stream->close();
+
+        self::supervisedPeer($spawned, 0)->emitUnexpectedExit();
+        EventLoop::run();
+
+        self::assertSame([], self::supervisedPeer($spawned, 1)->sent, 'A stream the caller retired is not the supervisor\'s to restore.');
+
+        $transport->close();
+    }
+
+    public function testAReopenThatCannotBeSentLeavesTheStreamForTheNextPeer(): void
+    {
+        $spawned = [];
+        $logger = new ArrayLogger();
+        $client = new ClientBuilder()
+            ->setClientInfo('demo', '1.0.0')
+            ->setLogger($logger)
+            ->setRequestIdFactory(static fn(): int => 7)
+            ->build()
+        ;
+        $attempts = 0;
+        $transport = self::supervisedTransport($spawned, onSpawn: static function (SupervisableRecordingTransport $peer) use (&$attempts): void {
+            // The first replacement cannot take the re-open. The one after it can.
+            if (2 === ++$attempts) {
+                $peer->sendError = new TransportAlreadyClosedException(operation: 'send');
+            }
+        });
+        $client->connect($transport);
+
+        $client->listen(new SubscriptionFilter(toolsListChanged: true), static function (): void {});
+
+        self::supervisedPeer($spawned, 0)->emitUnexpectedExit();
+        EventLoop::run();
+
+        $matches = $logger->recordsMatching(LogLevel::ERROR, 'Could not re-open subscription {id} against the replacement peer.');
+        self::assertCount(1, $matches);
+        self::assertSame(7, $matches[0]['context']['id'] ?? null);
+
+        // Still registered, so the peer after this one gets another go at it.
+        self::supervisedPeer($spawned, 1)->emitMessage(['jsonrpc' => '2.0', 'method' => 'notifications/tools/list_changed', 'params' => []]);
+        self::supervisedPeer($spawned, 1)->emitUnexpectedExit();
+        EventLoop::run();
+
+        self::assertCount(1, self::supervisedPeer($spawned, 2)->sent);
+
+        $transport->close();
+    }
+
+    /**
+     * @param list<SupervisableRecordingTransport>                $spawned
+     * @param null|\Closure(SupervisableRecordingTransport): void $onSpawn
+     */
+    private static function supervisedTransport(
+        array &$spawned,
+        int $maxRestarts = 3,
+        ?\Closure $onSpawn = null,
+        float $restartDelay = 0.0,
+    ): SupervisedTransport {
+        return new SupervisedTransport(
+            static function () use (&$spawned, $onSpawn): SupervisableRecordingTransport {
+                $peer = new SupervisableRecordingTransport();
+
+                if (null !== $onSpawn) {
+                    $onSpawn($peer);
+                }
+
+                $spawned[] = $peer;
+
+                return $peer;
+            },
+            maxRestarts: $maxRestarts,
+            restartDelay: $restartDelay,
+        );
+    }
+
+    /**
+     * @param list<SupervisableRecordingTransport> $spawned
+     */
+    private static function supervisedPeer(array $spawned, int $index): SupervisableRecordingTransport
+    {
+        $peer = $spawned[$index] ?? null;
+
+        if (! $peer instanceof SupervisableRecordingTransport) {
+            self::fail(\sprintf('Expected a spawned peer at index %d, got %d in all.', $index, \count($spawned)));
+        }
+
+        return $peer;
     }
 
     /**

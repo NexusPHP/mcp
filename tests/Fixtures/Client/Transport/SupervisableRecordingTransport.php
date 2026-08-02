@@ -39,6 +39,7 @@ final class SupervisableRecordingTransport implements SupervisableTransportInter
 
     public ?\Throwable $startError = null;
     public ?\Throwable $closeError = null;
+    public ?\Throwable $sendError = null;
     private readonly TransportEvents $events;
 
     /**
@@ -64,6 +65,10 @@ final class SupervisableRecordingTransport implements SupervisableTransportInter
     #[\Override]
     public function send(JsonRpcMessage $message, ?SendContext $context = null): void
     {
+        if (null !== $this->sendError) {
+            throw $this->sendError;
+        }
+
         $this->sent[] = ['message' => $message, 'context' => $context];
     }
 

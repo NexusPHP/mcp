@@ -163,8 +163,8 @@ Behaviour:
 ## `SupervisedTransport`
 
 Wraps a factory that mints one `SupervisableTransportInterface` per connection and respawns the peer when
-a connection ends without `close()` having been called. It is itself a plain `TransportInterface`, so a
-`Client` connects to it exactly as it would to the transport it supervises.
+a connection ends without `close()` having been called. It is itself a `TransportInterface`, so a `Client`
+connects to it exactly as it would to the transport it supervises.
 
 ```php
 $transport = new SupervisedTransport(
@@ -191,10 +191,42 @@ line-framed duplex underneath it is single-use.
   Spending it emits a `SupervisionExhaustedException` through `onError()` and then closes for good.
 - **Intentional close**: `close()` stops supervision permanently and cancels a pending respawn, so shutting
   down never races a restart.
+- **Reconnect signal**: it implements `ReconnectingTransportInterface`, whose `onReconnect()` fires once per
+  replacement that has started serving, after the close for the connection it replaces and never for the
+  first connection. A protocol layer holding per-connection state rebuilds it there. `Client` uses it to
+  re-open every open `subscriptions/listen` stream (see [Subscriptions across a restart](#subscriptions-across-a-restart)).
 
 No re-handshake is needed after a respawn. This protocol revision is sessionless: every request carries its
 own identity and capabilities in `_meta`, so a fresh peer serves the next request without further protocol
 setup.
+
+### Subscriptions across a restart
+
+A `subscriptions/listen` stream is the one piece of client state a fresh peer cannot infer, because the
+server holds the filter and the client holds the handle. `Client` re-sends the listen request for every
+stream still open, **under the same subscription id**, as soon as the replacement is serving.
+
+Reusing the id matters: the subscription id *is* the JSON-RPC id of the listen request, and the caller is
+holding it on `SubscriptionStream::$subscriptionId`. Minting a fresh one would leave them naming a stream
+the server has never heard of.
+
+What the caller sees:
+
+- The `SubscriptionStream` is not spent by a restart. Its callback keeps receiving notifications, and
+  `await()` does not settle on the peer loss: it resumes against the replacement.
+- **A peer that answers still ends the stream.** Only a failure a replacement will be given another go at
+  is absorbed. A server that refuses the subscription has answered it, so the refusal reaches `await()` as
+  `RemoteCallFailedException` and the stream is not replayed. `Client` tells the two apart by asking
+  `ReconnectingTransportInterface::isReconnecting()` at the moment the request fails, not by the transport's
+  type: a live connection has no replacement pending, so its failures are answers.
+- A re-open the replacement cannot take is logged and left registered, so the peer after it tries again.
+- Spending the restart budget fails every open stream with `SupervisionExhaustedException`, since no
+  further peer is coming. `Client::disconnect()` fails them with `TransportAlreadyClosedException`.
+- A stream the caller closed before the restart is not restored.
+- A reconnect listener that throws is reported through `onError()` and the rest of the chain still runs, so
+  one consumer's failure cannot strand another's streams.
+
+Requests other than subscriptions are still not retried. That half is tracked in `ROADMAP.md`.
 
 Two limits are worth knowing before reaching for it:
 
@@ -202,8 +234,9 @@ Two limits are worth knowing before reaching for it:
   `disconnect()`, so the `serverInfo`, `serverCapabilities` and parameter-header bindings recorded from the
   previous peer survive into the replacement. That is correct when the same command comes back serving the
   same thing, and stale when a peer restarts with a different capability set.
-- **Only `TransportInterface` is forwarded.** The decorator is not itself a `ParameterHeaderMirroringInterface`
-  or `CancellableTransportInterface`, so wrapping a transport that implements one of those hides it from the
+- **Capability interfaces are not forwarded.** The decorator implements `TransportInterface` and
+  `ReconnectingTransportInterface` only. It is not a `ParameterHeaderMirroringInterface` or a
+  `CancellableTransportInterface`, so wrapping a transport that implements one of those hides it from the
   `instanceof` checks in `Client` and `Server`. Supervise transports whose capabilities you do not depend on.
 
 ## `InMemoryTransport` (test only)
