@@ -13,16 +13,16 @@ declare(strict_types=1);
 
 /*
  * Shared bootstrap for the runnable examples: registers the Composer autoloader,
- * loads `ExampleLogger` (a severity-filtering STDERR logger), and installs an
+ * loads `PsrLogger` (a severity-filtering STDERR logger), and installs an
  * uncaught-exception handler. Each example starts with
  * `require __DIR__.'/bootstrap.php';`.
  */
 
 require __DIR__.'/../vendor/autoload.php';
-require __DIR__.'/ExampleLogger.php';
+require __DIR__.'/PsrLogger.php';
 
 set_exception_handler(static function (Throwable $e): void {
-    new ExampleLogger()->critical('Uncaught {exception}', ['exception' => $e]);
+    new PsrLogger()->critical('Uncaught {exception}', ['exception' => $e]);
 
     exit(1);
 });

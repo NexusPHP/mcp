@@ -59,7 +59,7 @@ use function Amp\trapSignal;
 
 const ADDRESS = '127.0.0.1:8931';
 
-$logger = new ExampleLogger();
+$logger = new PsrLogger();
 $psr17 = new Psr17Factory();
 
 /*

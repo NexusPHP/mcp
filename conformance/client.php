@@ -41,6 +41,16 @@ use Nexus\Mcp\Client\Auth\AuthorizedHttpClient;
 use Nexus\Mcp\Client\Auth\ClientRegistration;
 use Nexus\Mcp\Client\Client;
 use Nexus\Mcp\Client\ClientBuilder;
+use Nexus\Mcp\Client\Exception\AuthorizationServerMismatchException;
+use Nexus\Mcp\Client\Exception\ClientRegistrationRequiredException;
+use Nexus\Mcp\Client\Exception\InsecureAuthorizationEndpointException;
+use Nexus\Mcp\Client\Exception\InsufficientScopeException;
+use Nexus\Mcp\Client\Exception\InvalidAuthorizationResponseException;
+use Nexus\Mcp\Client\Exception\MalformedAuthorizationResponseException;
+use Nexus\Mcp\Client\Exception\PkceNotSupportedException;
+use Nexus\Mcp\Client\Exception\RedirectRefusedException;
+use Nexus\Mcp\Client\Exception\ServerCapabilityNotSupportedException;
+use Nexus\Mcp\Client\Exception\UntrustedAuthorizationMetadataException;
 use Nexus\Mcp\Client\Transport\StreamableHttpClientTransport;
 use Nexus\Mcp\Core\Schema\Elicitation\BooleanSchema;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequest;
@@ -65,14 +75,14 @@ $connect = static function (string $serverUrl): Client {
     Assert::that($serverUrl)->isNonEmptyString('The conformance runner must supply a server URL.');
 
     $client = new ClientBuilder()
-        ->setLogger(new ExampleLogger())
+        ->setLogger(new PsrLogger())
         ->setClientInfo(name: 'nexus-mcp-conformance-client', version: '1.0.0')
         ->build()
     ;
 
     $client->connect(new StreamableHttpClientTransport(
         endpoint: $serverUrl,
-        logger: new ExampleLogger(),
+        logger: new PsrLogger(),
         readTimeout: 30.0,
     ));
 
@@ -299,11 +309,11 @@ $withAuthorization = static function (Closure $exercise) use ($clientIdMetadataD
             ),
             new HeadlessUserAuthorization(),
             HttpClientBuilder::buildDefault(),
-            logger: new ExampleLogger(),
+            logger: new PsrLogger(),
         );
 
         $client = new ClientBuilder()
-            ->setLogger(new ExampleLogger())
+            ->setLogger(new PsrLogger())
             ->setClientInfo(name: 'nexus-mcp-conformance-client', version: '1.0.0')
             ->build()
         ;
@@ -311,7 +321,7 @@ $withAuthorization = static function (Closure $exercise) use ($clientIdMetadataD
         $client->connect(new StreamableHttpClientTransport(
             endpoint: $serverUrl,
             client: $http,
-            logger: new ExampleLogger(),
+            logger: new PsrLogger(),
             readTimeout: 30.0,
         ));
 
@@ -373,6 +383,36 @@ $register('auth/authorization-server-migration', $withAuthorization(static funct
     $client->listTools();
 }));
 
+/**
+ * Resolves the spec-mandated refusal a negative scenario drove the client into, or null when the
+ * throwable is a genuine failure that should keep the loud uncaught-exception handler.
+ */
+function resolveDeliberateRefusal(Throwable $throwable): ?Throwable
+{
+    $refusals = [
+        AuthorizationServerMismatchException::class,
+        ClientRegistrationRequiredException::class,
+        InsecureAuthorizationEndpointException::class,
+        InsufficientScopeException::class,
+        InvalidAuthorizationResponseException::class,
+        MalformedAuthorizationResponseException::class,
+        PkceNotSupportedException::class,
+        RedirectRefusedException::class,
+        ServerCapabilityNotSupportedException::class,
+        UntrustedAuthorizationMetadataException::class,
+    ];
+
+    for ($cause = $throwable; null !== $cause; $cause = $cause->getPrevious()) {
+        foreach ($refusals as $refusal) {
+            if ($cause instanceof $refusal) {
+                return $cause;
+            }
+        }
+    }
+
+    return null;
+}
+
 $arguments = conformanceArguments();
 $scenario = getenv('MCP_CONFORMANCE_SCENARIO');
 $serverUrl = count($arguments) > 1 ? $arguments[count($arguments) - 1] : '';
@@ -398,4 +438,21 @@ if (! isset($scenarios[$scenario])) {
     exit(1);
 }
 
-$scenarios[$scenario]($serverUrl);
+try {
+    $scenarios[$scenario]($serverUrl);
+} catch (Throwable $e) {
+    $refusal = resolveDeliberateRefusal($e);
+
+    if (null === $refusal) {
+        throw $e;
+    }
+
+    // The refusal is this scenario's pass condition, so it exits non-zero without the
+    // stack trace the uncaught-exception handler would print for a genuine failure.
+    new PsrLogger()->notice(
+        'The client refused, as this scenario expects: {message}',
+        ['message' => $refusal->getMessage()],
+    );
+
+    exit(1);
+}

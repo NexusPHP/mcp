@@ -93,7 +93,7 @@ final class Concierge
     }
 }
 
-$logger = new ExampleLogger();
+$logger = new PsrLogger();
 
 $server = new ServerBuilder()
     ->setLogger($logger)

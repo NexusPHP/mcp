@@ -55,7 +55,7 @@ $host = conformanceEnv('HOST', '127.0.0.1');
 $port = (int) conformanceEnv('PORT', '3000');
 $address = sprintf('%s:%d', $host, $port);
 
-$logger = new ExampleLogger();
+$logger = new PsrLogger();
 $psr17 = new Psr17Factory();
 
 $everythingServer = new EverythingServer();

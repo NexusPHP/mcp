@@ -71,7 +71,7 @@
             "Nexus\\Mcp\\Tools\\": "tools/src/"
         },
         "classmap": [
-            "examples/ExampleLogger.php",
+            "examples/PsrLogger.php",
             "examples/PsrHttpAdapter.php"
         ]
     },

@@ -4,7 +4,7 @@ Runnable demo servers and clients for the Nexus MCP SDK. Each example is a
 runnable PHP script. Run it with `php` directly, through
 [MCP Inspector](https://github.com/modelcontextprotocol/inspector), or spawn it
 from an MCP-aware client like Claude Desktop / Cursor. Shared setup (the Composer
-autoloader, an uncaught-exception handler, and `ExampleLogger`) lives in
+autoloader, an uncaught-exception handler, and `PsrLogger`) lives in
 [bootstrap.php](bootstrap.php).
 
 | Example | Description | File |
@@ -118,7 +118,7 @@ transport and enter `http://127.0.0.1:8931/mcp`.
 
 MCP clients reserve STDOUT for the JSON-RPC stream. The examples write all
 diagnostic logs to STDERR via PSR-3. Inspector surfaces this stream under its
-**Debug Log** pane regardless of level. `ExampleLogger` (in
+**Debug Log** pane regardless of level. `PsrLogger` (in
 [bootstrap.php](bootstrap.php)) filters by a minimum severity before writing,
 defaulting to `info`, dropping to `debug` when the `DEBUG` environment variable is
 set.

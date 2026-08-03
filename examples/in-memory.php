@@ -38,7 +38,7 @@ use function Amp\async;
 [$serverSide, $clientSide] = InMemoryTransport::createPair();
 
 $server = new ServerBuilder()
-    ->setLogger(new ExampleLogger())
+    ->setLogger(new PsrLogger())
     ->setServerInfo(name: 'nexus-in-memory-example', version: '0.1.0')
     ->addTool(
         new Tool(

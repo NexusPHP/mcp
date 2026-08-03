@@ -50,7 +50,7 @@ use Nexus\Mcp\Server\Transport\StdioServerTransport;
 
 use function Amp\delay;
 
-$logger = new ExampleLogger();
+$logger = new PsrLogger();
 
 $server = new ServerBuilder()
     ->setLogger($logger)

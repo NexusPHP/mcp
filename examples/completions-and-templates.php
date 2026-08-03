@@ -74,7 +74,7 @@ function prefixCompletion(array $candidates): Closure
 [$serverSide, $clientSide] = InMemoryTransport::createPair();
 
 $server = new ServerBuilder()
-    ->setLogger(new ExampleLogger())
+    ->setLogger(new PsrLogger())
     ->setServerInfo(name: 'nexus-completions-example', version: '0.1.0')
     ->addResourceTemplate(
         new ResourceTemplate(

@@ -61,7 +61,7 @@ const METADATA_URL = 'http://127.0.0.1:8973/.well-known/oauth-protected-resource
 const ISSUER = 'http://localhost:8080/realms/mcp';
 const REQUIRED_SCOPE = 'mcp:use';
 
-$logger = new ExampleLogger();
+$logger = new PsrLogger();
 $psr17 = new Psr17Factory();
 
 /*

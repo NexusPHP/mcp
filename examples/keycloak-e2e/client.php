@@ -49,11 +49,11 @@ $http = new AuthorizedHttpClient(
     ),
     new KeycloakLogin(username: 'demo', password: 'demo-password'),
     HttpClientBuilder::buildDefault(),
-    logger: new ExampleLogger(),
+    logger: new PsrLogger(),
 );
 
 $client = new ClientBuilder()
-    ->setLogger(new ExampleLogger())
+    ->setLogger(new PsrLogger())
     ->setClientInfo(name: 'nexus-keycloak-example-client', version: '0.1.0')
     ->build()
 ;
@@ -61,7 +61,7 @@ $client = new ClientBuilder()
 $client->connect(new StreamableHttpClientTransport(
     endpoint: ENDPOINT,
     client: $http,
-    logger: new ExampleLogger(),
+    logger: new PsrLogger(),
     readTimeout: 30.0,
 ));
 

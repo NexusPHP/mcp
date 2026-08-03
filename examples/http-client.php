@@ -43,14 +43,14 @@ $endpoint = '' !== $argument ? $argument : 'http://127.0.0.1:8931/mcp';
 requireReachable($endpoint);
 
 $client = new ClientBuilder()
-    ->setLogger(new ExampleLogger())
+    ->setLogger(new PsrLogger())
     ->setClientInfo(name: 'nexus-http-example-client', version: '0.1.0')
     ->build()
 ;
 
 $transport = new StreamableHttpClientTransport(
     endpoint: $endpoint,
-    logger: new ExampleLogger(),
+    logger: new PsrLogger(),
     // Must exceed the server's SSE keep-alive interval (10s in `http-server.php`),
     // or a quiet stream is abandoned between keep-alive frames.
     readTimeout: 30.0,
