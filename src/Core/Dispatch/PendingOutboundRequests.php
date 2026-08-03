@@ -16,8 +16,10 @@ namespace Nexus\Mcp\Core\Dispatch;
 use Amp\DeferredFuture;
 use Amp\Future;
 use Nexus\Mcp\Core\Exception\DuplicateOutboundRequestIdException;
+use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Core\Transport\SendContext;
 
 /**
  * Correlates outbound JSON-RPC requests with their inbound responses. Senders
@@ -34,6 +36,8 @@ final class PendingOutboundRequests implements \Countable
      * @var array<non-empty-string, array{
      *   deferred: DeferredFuture<JsonRpcResultResponse>,
      *   response: class-string<JsonRpcResultResponse>,
+     *   request: null|JsonRpcRequest<non-empty-string>,
+     *   context: null|SendContext,
      * }>
      */
     private array $map = [];
@@ -42,16 +46,24 @@ final class PendingOutboundRequests implements \Countable
      * Registers an outbound request id and returns the future that resolves
      * once `resolve()` or `reject()` is called for the same id.
      *
+     * Passing `$request` retains it, marking the entry as one a caller means to send again if the peer
+     * carrying it goes away. Entries registered without one are the caller's to fail on peer loss.
+     *
      * @template TResponse of JsonRpcResultResponse = JsonRpcResultResponse
      *
-     * @param class-string<TResponse> $response
+     * @param class-string<TResponse>               $response
+     * @param null|JsonRpcRequest<non-empty-string> $request
      *
      * @return Future<TResponse>
      *
      * @throws DuplicateOutboundRequestIdException
      */
-    public function register(RequestId $id, string $response): Future
-    {
+    public function register(
+        RequestId $id,
+        string $response,
+        ?JsonRpcRequest $request = null,
+        ?SendContext $context = null,
+    ): Future {
         $key = self::buildKey($id);
 
         if (\array_key_exists($key, $this->map)) {
@@ -60,7 +72,12 @@ final class PendingOutboundRequests implements \Countable
 
         /** @var DeferredFuture<TResponse> $deferred */
         $deferred = new DeferredFuture();
-        $this->map[$key] = ['deferred' => $deferred, 'response' => $response];
+        $this->map[$key] = [
+            'deferred' => $deferred,
+            'response' => $response,
+            'request' => $request,
+            'context' => $context,
+        ];
 
         return $deferred->getFuture();
     }
@@ -148,6 +165,46 @@ final class PendingOutboundRequests implements \Countable
         foreach ($pending as $entry) {
             $entry['deferred']->error($error);
         }
+    }
+
+    /**
+     * Fails every pending future that retained no request, leaving the rest registered for a caller that
+     * means to send them again.
+     */
+    public function cancelUnretained(\Throwable $error): void
+    {
+        $failed = [];
+
+        foreach ($this->map as $key => $entry) {
+            if (null === $entry['request']) {
+                $failed[] = $entry['deferred'];
+                unset($this->map[$key]);
+            }
+        }
+
+        foreach ($failed as $deferred) {
+            $deferred->error($error);
+        }
+    }
+
+    /**
+     * Every entry still pending that retained a request, in registration order.
+     *
+     * @return list<array{request: JsonRpcRequest<non-empty-string>, context: null|SendContext}>
+     */
+    public function collectRetained(): array
+    {
+        $retained = [];
+
+        foreach ($this->map as $entry) {
+            $request = $entry['request'];
+
+            if (null !== $request) {
+                $retained[] = ['request' => $request, 'context' => $entry['context']];
+            }
+        }
+
+        return $retained;
     }
 
     #[\Override]

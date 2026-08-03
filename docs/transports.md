@@ -226,7 +226,38 @@ What the caller sees:
 - A reconnect listener that throws is reported through `onError()` and the rest of the chain still runs, so
   one consumer's failure cannot strand another's streams.
 
-Requests other than subscriptions are still not retried. That half is tracked in `ROADMAP.md`.
+### Retrying a lost request
+
+Off by default, and opt-in per client:
+
+```php
+$client = new ClientBuilder()
+    ->setClientInfo('demo', '1.0.0')
+    ->setRetryLostRequests(true)
+    ->build();
+```
+
+With it on, a request whose peer died before answering is sent again to the replacement, under its
+original id, carrying its original `SendContext`. The awaiting caller never learns the peer changed.
+
+**Only state-reading requests are eligible**, and the set is fixed: `server/discover`, `tools/list`,
+`prompts/list`, `prompts/get`, `resources/list`, `resources/templates/list`, `resources/read` and
+`completion/complete`. A retry is at-least-once, because the peer may have carried the work out and died
+before the answer got back, and the spec marks no tool as idempotent. So `tools/call` is never retried
+however harmless a given tool is, and neither is a vendor method sent through `sendRequest()`, whose
+semantics the SDK cannot judge. Everything outside the set fails on peer loss exactly as it does with the
+flag off.
+
+An MCP multi-round-trip continuation is excluded even though it names an eligible method. It carries the
+user's answers plus an opaque resume token, so sending it again would hand a one-time answer over twice and
+resume work the dead peer's token named.
+
+A retried request keeps its original deadline. The restart eats into the same budget, so with a request
+timeout configured a peer that dies repeatedly still ends in `RequestTimeoutException` rather than retrying
+forever. Set both `setRequestTimeout(null)` and `setMaxRequestTimeout(null)` and nothing bounds it but the
+restart budget. Spending that budget fails the request with `SupervisionExhaustedException`, and
+`Client::disconnect()` with `TransportAlreadyClosedException`. A replacement that cannot take the re-send is
+logged and the request is left retained, so the peer after it tries again.
 
 Two limits are worth knowing before reaching for it:
 

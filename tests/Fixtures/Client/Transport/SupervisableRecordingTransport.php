@@ -40,6 +40,14 @@ final class SupervisableRecordingTransport implements SupervisableTransportInter
     public ?\Throwable $startError = null;
     public ?\Throwable $closeError = null;
     public ?\Throwable $sendError = null;
+
+    /**
+     * Runs at the top of every `send()`, before `$sendError` is raised.
+     *
+     * @var null|\Closure(self): void
+     */
+    public ?\Closure $onSend = null;
+
     private readonly TransportEvents $events;
 
     /**
@@ -65,6 +73,12 @@ final class SupervisableRecordingTransport implements SupervisableTransportInter
     #[\Override]
     public function send(JsonRpcMessage $message, ?SendContext $context = null): void
     {
+        if (null !== $this->onSend) {
+            // Stands in for a peer that dies mid-write, where the supervisor has already decided on a
+            // replacement by the time the failure reaches the caller.
+            ($this->onSend)($this);
+        }
+
         if (null !== $this->sendError) {
             throw $this->sendError;
         }

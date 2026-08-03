@@ -407,6 +407,11 @@ it answers `-32601` and the failure arrives as a remote error rather than a loca
 4. **Shutdown** is `disconnect()`, or `($transport)->close()` directly. Pending requests are cancelled with
    `TransportAlreadyClosedException`. In-flight notification handlers drain before the close listeners fire.
 
+Losing the peer is not the same as shutting down. Behind a `SupervisedTransport`, a pending request can be
+sent again to the replacement instead of failing, which
+[Retrying a lost request](transports.md#retrying-a-lost-request) covers. It is off by default and limited to
+methods that read state.
+
 ## See also
 
 - **[Getting started](getting-started.md)**: install + minimal server.

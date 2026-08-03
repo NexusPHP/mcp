@@ -148,14 +148,16 @@ enough on its own because the protocol is sessionless, so a fresh peer needs no 
 The transport reports a replacement through `ReconnectingTransportInterface::onReconnect()`, which is the
 client-side seam for rebuilding per-connection state. `Client` uses it to re-send every open
 `subscriptions/listen` stream under its original subscription id, since that id is the request id the caller
-still holds. What remains is the retry of ordinary in-flight requests.
+still holds, and to re-send the in-flight requests that may safely be repeated.
 
 - [x] Capture the subprocess exit code (`Process::join()`) so an unexpected exit is distinguishable from an
   intentional close.
 - [x] `SupervisedTransport` decorator that respawns the subprocess on unexpected exit and re-emits the
   listener chain to an unchanged `Client`.
 - [x] Re-establish active `subscriptions/listen` streams after restart.
-- [ ] Optional opt-in retry of the lost in-flight requests against the fresh process.
+- [x] Optional opt-in retry of the lost in-flight requests against the fresh process
+  (`ClientBuilder::setRetryLostRequests()`), limited to state-reading methods because a retry is
+  at-least-once and no tool is marked idempotent.
 
 ### Multi round-trip requests (MRTR)
 

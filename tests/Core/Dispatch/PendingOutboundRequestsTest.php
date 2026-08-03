@@ -18,6 +18,8 @@ use Nexus\Mcp\Core\Exception\DuplicateOutboundRequestIdException;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Core\Schema\ResultResponse\GenericResultResponse;
+use Nexus\Mcp\Core\Transport\SendContext;
+use Nexus\Mcp\Tests\Fixtures\Core\TestRequest;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
@@ -280,5 +282,84 @@ final class PendingOutboundRequestsTest extends TestCase
 
         self::assertNull($pending->resolveResponseClass(new RequestId(id: 1)));
         self::assertNull($pending->resolveResponseClass(new RequestId(id: 2)));
+    }
+
+    public function testAFreshMapRetainsNothing(): void
+    {
+        self::assertSame([], new PendingOutboundRequests()->collectRetained());
+    }
+
+    public function testAnEntryRegisteredWithoutARequestRetainsNothing(): void
+    {
+        $pending = new PendingOutboundRequests();
+        $pending->register(new RequestId(id: 1), GenericResultResponse::class)->ignore();
+
+        self::assertSame([], $pending->collectRetained());
+    }
+
+    public function testARetainedEntryCarriesItsRequestAndContext(): void
+    {
+        $pending = new PendingOutboundRequests();
+        $request = new TestRequest(new RequestId(id: 1));
+        $context = new SendContext(relatedRequestId: new RequestId(id: 9));
+        $pending->register(new RequestId(id: 1), GenericResultResponse::class, $request, $context)->ignore();
+
+        self::assertSame([['request' => $request, 'context' => $context]], $pending->collectRetained());
+    }
+
+    public function testRetainedEntriesComeBackInRegistrationOrder(): void
+    {
+        $pending = new PendingOutboundRequests();
+        $first = new TestRequest(new RequestId(id: 1));
+        $second = new TestRequest(new RequestId(id: 2));
+        $pending->register(new RequestId(id: 1), GenericResultResponse::class, $first)->ignore();
+        $pending->register(new RequestId(id: 2), GenericResultResponse::class)->ignore();
+        $pending->register(new RequestId(id: 3), GenericResultResponse::class, $second)->ignore();
+
+        self::assertSame(
+            [['request' => $first, 'context' => null], ['request' => $second, 'context' => null]],
+            $pending->collectRetained(),
+        );
+    }
+
+    public function testCancelUnretainedFailsOnlyTheEntriesCarryingNoRequest(): void
+    {
+        $pending = new PendingOutboundRequests();
+        $retained = $pending->register(new RequestId(id: 1), GenericResultResponse::class, new TestRequest(new RequestId(id: 1)));
+        $dropped = $pending->register(new RequestId(id: 2), GenericResultResponse::class);
+
+        $pending->cancelUnretained(new \RuntimeException('transport closed'));
+
+        self::assertFalse($retained->isComplete(), 'A retained entry outlives the peer that was carrying it.');
+        self::assertSame(GenericResultResponse::class, $pending->resolveResponseClass(new RequestId(id: 1)));
+        self::assertCount(1, $pending);
+
+        try {
+            $dropped->await();
+            self::fail('Expected the unretained entry to be failed.');
+        } catch (\RuntimeException $e) {
+            self::assertSame('transport closed', $e->getMessage());
+        }
+    }
+
+    public function testCancelUnretainedOnAMapOfOnlyRetainedEntriesFailsNothing(): void
+    {
+        $pending = new PendingOutboundRequests();
+        $future = $pending->register(new RequestId(id: 1), GenericResultResponse::class, new TestRequest(new RequestId(id: 1)));
+
+        $pending->cancelUnretained(new \RuntimeException('transport closed'));
+
+        self::assertFalse($future->isComplete());
+        self::assertCount(1, $pending);
+    }
+
+    public function testResolvingARetainedEntryDropsItsRetention(): void
+    {
+        $pending = new PendingOutboundRequests();
+        $pending->register(new RequestId(id: 1), GenericResultResponse::class, new TestRequest(new RequestId(id: 1)))->ignore();
+
+        $pending->resolve(new RequestId(id: 1), new GenericResultResponse(id: new RequestId(id: 1), result: new EmptyResult()));
+
+        self::assertSame([], $pending->collectRetained(), 'An answered request is not one to send again.');
     }
 }

@@ -16,17 +16,22 @@ namespace Nexus\Mcp\Tests\Client;
 use Amp\TimeoutCancellation;
 use Nexus\Mcp\Client\Client;
 use Nexus\Mcp\Client\ClientBuilder;
+use Nexus\Mcp\Client\Dispatch\ClientMessageDispatcher;
 use Nexus\Mcp\Client\Exception\ClientAlreadyConnectedException;
 use Nexus\Mcp\Client\Exception\ClientNotConnectedException;
 use Nexus\Mcp\Client\Exception\ServerCapabilityNotSupportedException;
 use Nexus\Mcp\Client\Exception\SubscriptionClosedException;
 use Nexus\Mcp\Client\Transport\SupervisedTransport;
+use Nexus\Mcp\Core\Dispatch\PendingOutboundRequests;
 use Nexus\Mcp\Core\Exception\DuplicateOutboundRequestIdException;
 use Nexus\Mcp\Core\Exception\OutboundRequestFailedException;
 use Nexus\Mcp\Core\Exception\RemoteCallFailedException;
 use Nexus\Mcp\Core\Exception\RequestTimeoutException;
 use Nexus\Mcp\Core\Exception\SupervisionExhaustedException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
+use Nexus\Mcp\Core\Handler\HandlerRegistry;
+use Nexus\Mcp\Core\Handler\NotificationHandlerInterface;
+use Nexus\Mcp\Core\Handler\RequestHandlerInterface;
 use Nexus\Mcp\Core\Schema\ClientCapabilities;
 use Nexus\Mcp\Core\Schema\Cursor;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitResult;
@@ -55,7 +60,9 @@ use Nexus\Mcp\Core\Schema\Request\ListToolsRequest;
 use Nexus\Mcp\Core\Schema\Request\ReadResourceRequest;
 use Nexus\Mcp\Core\Schema\Request\SubscriptionsListenRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Core\Schema\RequestParams\GetPromptRequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\PaginatedRequestParams;
+use Nexus\Mcp\Core\Schema\RequestParams\ReadResourceRequestParams;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Core\Schema\Result\CompleteResult;
 use Nexus\Mcp\Core\Schema\Result\DiscoverResult;
@@ -66,7 +73,9 @@ use Nexus\Mcp\Core\Schema\Result\ListResourcesResult;
 use Nexus\Mcp\Core\Schema\Result\ListResourceTemplatesResult;
 use Nexus\Mcp\Core\Schema\Result\ListToolsResult;
 use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
+use Nexus\Mcp\Core\Schema\ResultResponse\GetPromptResultResponse;
 use Nexus\Mcp\Core\Schema\ResultResponse\ListToolsResultResponse;
+use Nexus\Mcp\Core\Schema\ResultResponse\ReadResourceResultResponse;
 use Nexus\Mcp\Core\Schema\ServerCapabilities;
 use Nexus\Mcp\Core\Schema\SubscriptionFilter;
 use Nexus\Mcp\Core\Transport\SendContext;
@@ -2264,6 +2273,517 @@ final class ClientTest extends TestCase
 
         self::assertSame([true], $seen, 'The refused second stream must not evict the first one\'s route.');
         self::assertSame(7, $first->subscriptionId->id);
+    }
+
+    public function testALostReadOnlyRequestIsSentAgainToTheReplacement(): void
+    {
+        $spawned = [];
+        $client = new ClientBuilder()
+            ->setClientInfo('demo', '1.0.0')
+            ->setRequestIdFactory(static fn(): int => 7)
+            ->setRetryLostRequests(true)
+            ->build()
+        ;
+        $transport = self::supervisedTransport($spawned);
+        $client->connect($transport);
+
+        $call = async(static fn(): ListToolsResult => $client->listTools());
+        delay(0.001);
+
+        self::supervisedPeer($spawned, 0)->emitUnexpectedExit();
+        EventLoop::run();
+
+        $replayed = self::supervisedPeer($spawned, 1)->sent[0]['message'] ?? null;
+
+        if (! $replayed instanceof ListToolsRequest) {
+            self::fail('The replacement peer should have been sent the lost request again.');
+        }
+
+        self::assertSame(7, $replayed->id->id);
+
+        // Answered by the replacement under the original id, so the caller's await never noticed the peer
+        // it started against had died.
+        self::supervisedPeer($spawned, 1)->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => 7,
+            'result' => ['tools' => [], 'ttlMs' => 0, 'cacheScope' => 'private'],
+        ]);
+
+        $result = $call->await();
+
+        if (! $result instanceof ListToolsResult) {
+            self::fail('The replacement peer\'s answer should have reached the original caller.');
+        }
+
+        self::assertSame([], $result->tools);
+
+        $transport->close();
+    }
+
+    /**
+     * @param \Closure(Client): mixed $call
+     * @param non-empty-string        $expectedMethod
+     */
+    #[DataProvider('provideEveryRetryableMethodIsSentAgainCases')]
+    public function testEveryRetryableMethodIsSentAgain(\Closure $call, string $expectedMethod): void
+    {
+        $spawned = [];
+        $client = new ClientBuilder()
+            ->setClientInfo('demo', '1.0.0')
+            ->setRequestIdFactory(static fn(): int => 7)
+            ->setRetryLostRequests(true)
+            ->build()
+        ;
+        $transport = self::supervisedTransport($spawned);
+        $client->connect($transport);
+
+        $pending = async(static fn(): mixed => $call($client));
+        delay(0.001);
+
+        self::supervisedPeer($spawned, 0)->emitUnexpectedExit();
+        EventLoop::run();
+
+        $replayed = self::supervisedPeer($spawned, 1)->sent[0]['message'] ?? null;
+
+        if (! $replayed instanceof JsonRpcRequest) {
+            self::fail(\sprintf('%s should have been sent again to the replacement peer.', $expectedMethod));
+        }
+
+        self::assertSame($expectedMethod, $replayed::getMethod());
+        self::assertSame(7, $replayed->id->id);
+
+        $pending->ignore();
+        $transport->close();
+    }
+
+    /**
+     * Every entry of the allowlist, since a class-const array generates no mutant and dropping one would
+     * otherwise go unnoticed.
+     *
+     * @return iterable<string, array{\Closure(Client): mixed, non-empty-string}>
+     */
+    public static function provideEveryRetryableMethodIsSentAgainCases(): iterable
+    {
+        yield 'server/discover' => [static fn(Client $c): mixed => $c->discover(), 'server/discover'];
+
+        yield 'tools/list' => [static fn(Client $c): mixed => $c->listTools(), 'tools/list'];
+
+        yield 'prompts/list' => [static fn(Client $c): mixed => $c->listPrompts(), 'prompts/list'];
+
+        yield 'prompts/get' => [static fn(Client $c): mixed => $c->getPrompt('demo'), 'prompts/get'];
+
+        yield 'resources/list' => [static fn(Client $c): mixed => $c->listResources(), 'resources/list'];
+
+        yield 'resources/templates/list' => [
+            static fn(Client $c): mixed => $c->listResourceTemplates(),
+            'resources/templates/list',
+        ];
+
+        yield 'resources/read' => [static fn(Client $c): mixed => $c->readResource('file:///x'), 'resources/read'];
+
+        yield 'completion/complete' => [
+            static fn(Client $c): mixed => $c->complete(new PromptReference(name: 'demo'), ['name' => 'arg', 'value' => 'v']),
+            'completion/complete',
+        ];
+    }
+
+    /**
+     * @param JsonRpcRequest<non-empty-string>    $request
+     * @param class-string<JsonRpcResultResponse> $response
+     */
+    #[DataProvider('provideAnMrtrContinuationIsNotSentAgainCases')]
+    public function testAnMrtrContinuationIsNotSentAgain(JsonRpcRequest $request, string $response): void
+    {
+        $spawned = [];
+        $client = new ClientBuilder()
+            ->setClientInfo('demo', '1.0.0')
+            ->setRetryLostRequests(true)
+            ->build()
+        ;
+        $transport = self::supervisedTransport($spawned);
+        $client->connect($transport);
+
+        $call = async(static fn(): JsonRpcResultResponse => $client->sendRequest($request, $response));
+        delay(0.001);
+
+        self::supervisedPeer($spawned, 0)->emitUnexpectedExit();
+        EventLoop::run();
+
+        // Names a state-reading method, but resumes an exchange the dead peer suspended. Sending it again
+        // hands a one-time answer over twice and quotes a token no replacement issued.
+        self::assertSame([], self::supervisedPeer($spawned, 1)->sent);
+
+        try {
+            $call->await();
+            self::fail('Expected the continuation to reach the caller rather than the replacement.');
+        } catch (TransportAlreadyClosedException) {
+            // Asserted outside the try, as above.
+        }
+
+        $transport->close();
+    }
+
+    /**
+     * Both params shapes that carry continuation state, and each field on its own.
+     *
+     * @return iterable<string, array{JsonRpcRequest<non-empty-string>, class-string<JsonRpcResultResponse>}>
+     */
+    public static function provideAnMrtrContinuationIsNotSentAgainCases(): iterable
+    {
+        $answer = ['otp' => new ElicitResult(action: ElicitAction::Accept, content: ['code' => '839201'])];
+
+        yield 'resources/read carrying answers' => [
+            new ReadResourceRequest(
+                id: new RequestId(id: 7),
+                params: new ReadResourceRequestParams(
+                    uri: 'file:///x',
+                    meta: RequestMetaObjectFactory::create(),
+                    inputResponses: $answer,
+                ),
+            ),
+            ReadResourceResultResponse::class,
+        ];
+
+        yield 'resources/read carrying only a resume token' => [
+            new ReadResourceRequest(
+                id: new RequestId(id: 7),
+                params: new ReadResourceRequestParams(
+                    uri: 'file:///x',
+                    meta: RequestMetaObjectFactory::create(),
+                    requestState: 'resume-token',
+                ),
+            ),
+            ReadResourceResultResponse::class,
+        ];
+
+        yield 'prompts/get carrying answers' => [
+            new GetPromptRequest(
+                id: new RequestId(id: 7),
+                params: new GetPromptRequestParams(
+                    name: 'demo',
+                    meta: RequestMetaObjectFactory::create(),
+                    inputResponses: $answer,
+                ),
+            ),
+            GetPromptResultResponse::class,
+        ];
+
+        yield 'prompts/get carrying only a resume token' => [
+            new GetPromptRequest(
+                id: new RequestId(id: 7),
+                params: new GetPromptRequestParams(
+                    name: 'demo',
+                    meta: RequestMetaObjectFactory::create(),
+                    requestState: 'resume-token',
+                ),
+            ),
+            GetPromptResultResponse::class,
+        ];
+    }
+
+    public function testARetainedRequestFailsWhenANonReconnectingTransportCloses(): void
+    {
+        $client = new ClientBuilder()
+            ->setClientInfo('demo', '1.0.0')
+            ->setRetryLostRequests(true)
+            ->build()
+        ;
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+
+        $call = async(static fn(): ListToolsResult => $client->listTools());
+        delay(0.001);
+
+        // Nothing replaces a transport that cannot reconnect, so retention must not outlive its close.
+        $transport->close();
+
+        $this->expectException(TransportAlreadyClosedException::class);
+        $call->await();
+    }
+
+    public function testARequestOnAFreshTransportSurvivesTheOldOnesClose(): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->setRetryLostRequests(true)->build();
+        $client->connect(new RecordingTransport());
+        $client->disconnect();
+
+        $second = new RecordingTransport();
+        $client->connect($second);
+
+        async(static function () use ($second): void {
+            // The send lands before the loop turns, so this only has to outlive the queued close decision.
+            delay(0.001);
+            $second->emitMessage(['jsonrpc' => '2.0', 'id' => 1, 'result' => ['tools' => [], 'ttlMs' => 0, 'cacheScope' => 'private']]);
+        });
+
+        // Called from this fiber on purpose: the register and the send run before the loop turns, so the
+        // retired transport's queued close decision lands while this request is in flight.
+        $result = $client->listTools();
+
+        self::assertSame([], $result->tools);
+
+        $client->disconnect();
+    }
+
+    public function testALostToolCallIsNotSentAgain(): void
+    {
+        $spawned = [];
+        $client = new ClientBuilder()
+            ->setClientInfo('demo', '1.0.0')
+            ->setRequestIdFactory(static fn(): int => 7)
+            ->setRetryLostRequests(true)
+            ->build()
+        ;
+        $transport = self::supervisedTransport($spawned);
+        $client->connect($transport);
+
+        $call = async(static fn(): CallToolResult|InputRequiredResult => $client->callTool('acme_charge_card'));
+        delay(0.001);
+
+        self::supervisedPeer($spawned, 0)->emitUnexpectedExit();
+        EventLoop::run();
+
+        // A retry is at-least-once and the peer may have charged the card before it died. Asserted before
+        // the await, which would otherwise report a re-sent call as a dry event loop rather than as this.
+        self::assertSame([], self::supervisedPeer($spawned, 1)->sent);
+
+        try {
+            $call->await();
+            self::fail('Expected the lost tool call to reach the caller.');
+        } catch (TransportAlreadyClosedException) {
+            // Asserted outside the try: PHPUnit's failure exceptions would otherwise be caught here.
+        }
+
+        $transport->close();
+    }
+
+    public function testALostRequestIsNotSentAgainWithoutTheOptIn(): void
+    {
+        $spawned = [];
+        $client = new ClientBuilder()
+            ->setClientInfo('demo', '1.0.0')
+            ->setRequestIdFactory(static fn(): int => 7)
+            ->build()
+        ;
+        $transport = self::supervisedTransport($spawned);
+        $client->connect($transport);
+
+        $call = async(static fn(): ListToolsResult => $client->listTools());
+        delay(0.001);
+
+        self::supervisedPeer($spawned, 0)->emitUnexpectedExit();
+        EventLoop::run();
+
+        self::assertSame([], self::supervisedPeer($spawned, 1)->sent);
+
+        try {
+            $call->await();
+            self::fail('Expected the lost request to reach the caller.');
+        } catch (TransportAlreadyClosedException) {
+            // Asserted outside the try, as above.
+        }
+
+        $transport->close();
+    }
+
+    public function testAHandAssembledClientDoesNotRetryLostRequests(): void
+    {
+        $outbound = new PendingOutboundRequests();
+        $spawned = [];
+
+        // The builder always passes the flag, so only a client assembled by hand exercises the default.
+        $client = new Client(
+            new Implementation(name: 'demo', version: '1.0.0'),
+            new ClientCapabilities(),
+            new ClientMessageDispatcher(
+                new HandlerRegistry([], RequestHandlerInterface::class, 'Request handler'),
+                new HandlerRegistry([], NotificationHandlerInterface::class, 'Notification handler'),
+                $outbound,
+            ),
+            $outbound,
+            static fn(): int => 7,
+            static fn(): int => 1,
+        );
+        $transport = self::supervisedTransport($spawned);
+        $client->connect($transport);
+
+        $call = async(static fn(): ListToolsResult => $client->listTools());
+        delay(0.001);
+
+        self::supervisedPeer($spawned, 0)->emitUnexpectedExit();
+        EventLoop::run();
+
+        self::assertSame([], self::supervisedPeer($spawned, 1)->sent);
+
+        try {
+            $call->await();
+            self::fail('Expected the lost request to reach the caller.');
+        } catch (TransportAlreadyClosedException) {
+            // Asserted outside the try, as above.
+        }
+
+        $transport->close();
+    }
+
+    public function testARetriedRequestCarriesItsOriginalSendContext(): void
+    {
+        $spawned = [];
+        $client = new ClientBuilder()
+            ->setClientInfo('demo', '1.0.0')
+            ->setRetryLostRequests(true)
+            ->build()
+        ;
+        $transport = self::supervisedTransport($spawned);
+        $client->connect($transport);
+
+        $context = new SendContext(relatedRequestId: new RequestId(id: 'parent-call'));
+        $request = new ListToolsRequest(id: new RequestId(id: 7), params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create()));
+        $call = async(static fn(): JsonRpcResultResponse => $client->sendRequest($request, ListToolsResultResponse::class, $context));
+        delay(0.001);
+
+        self::supervisedPeer($spawned, 0)->emitUnexpectedExit();
+        EventLoop::run();
+
+        // The routing metadata belongs to the request, not to the connection that first carried it.
+        self::assertSame($context, self::supervisedPeer($spawned, 1)->sent[0]['context'] ?? null);
+
+        $call->ignore();
+        $transport->close();
+    }
+
+    public function testDisconnectFailsARequestWaitingOnAReplacement(): void
+    {
+        $spawned = [];
+        $client = new ClientBuilder()
+            ->setClientInfo('demo', '1.0.0')
+            ->setRetryLostRequests(true)
+            ->build()
+        ;
+        $transport = self::supervisedTransport($spawned, restartDelay: 0.5);
+        $client->connect($transport);
+
+        $call = async(static fn(): ListToolsResult => $client->listTools());
+        delay(0.001);
+
+        self::supervisedPeer($spawned, 0)->emitUnexpectedExit();
+
+        // Absorbed while the replacement is pending, so from here only the disconnect can end it.
+        delay(0.001);
+
+        $client->disconnect();
+
+        $this->expectException(TransportAlreadyClosedException::class);
+        $call->await();
+    }
+
+    public function testARequestTheReplacementCannotTakeIsLeftForThePeerAfterIt(): void
+    {
+        $spawned = [];
+        $logger = new ArrayLogger();
+        $attempts = 0;
+        $client = new ClientBuilder()
+            ->setClientInfo('demo', '1.0.0')
+            ->setLogger($logger)
+            ->setRetryLostRequests(true)
+            ->build()
+        ;
+        $transport = self::supervisedTransport($spawned, onSpawn: static function (SupervisableRecordingTransport $peer) use (&$attempts): void {
+            if (2 !== ++$attempts) {
+                return;
+            }
+
+            // Dies while taking the re-send, so a further replacement is already decided on by the time
+            // the failure surfaces.
+            $peer->onSend = static function (SupervisableRecordingTransport $dying): void {
+                $dying->emitUnexpectedExit();
+            };
+            $peer->sendError = new TransportAlreadyClosedException(operation: 'send');
+        });
+        $client->connect($transport);
+
+        // Two of them, so a walk that stopped at the first failure would leave the second unattempted.
+        $first = async(static fn(): ListToolsResult => $client->listTools());
+        $second = async(static fn(): ListPromptsResult => $client->listPrompts());
+        delay(0.001);
+
+        self::supervisedPeer($spawned, 0)->emitUnexpectedExit();
+        EventLoop::run();
+
+        $matches = $logger->recordsMatching(LogLevel::WARNING, 'Could not send request {id} again to the replacement peer.');
+        self::assertCount(2, $matches);
+        self::assertSame([1, 2], [$matches[0]['context']['id'] ?? null, $matches[1]['context']['id'] ?? null]);
+
+        // Still retained, so the peer after the one that died gets both.
+        self::assertCount(2, self::supervisedPeer($spawned, 2)->sent);
+        self::assertFalse($first->isComplete(), 'A request another peer will carry is not the caller\'s failure yet.');
+        self::assertFalse($second->isComplete());
+
+        $first->ignore();
+        $second->ignore();
+        $transport->close();
+    }
+
+    public function testALostRequestFailsWhenSupervisionGivesUp(): void
+    {
+        $spawned = [];
+        $client = new ClientBuilder()
+            ->setClientInfo('demo', '1.0.0')
+            ->setRequestIdFactory(static fn(): int => 7)
+            ->setRetryLostRequests(true)
+            ->build()
+        ;
+        $transport = self::supervisedTransport($spawned, maxRestarts: 1);
+        $client->connect($transport);
+
+        $call = async(static fn(): ListToolsResult => $client->listTools());
+        delay(0.001);
+
+        for ($i = 0; $i < 2; ++$i) {
+            self::supervisedPeer($spawned, $i)->emitUnexpectedExit();
+            EventLoop::run();
+        }
+
+        // No further peer is coming, so the request has nothing left to be sent to.
+        $this->expectException(SupervisionExhaustedException::class);
+
+        try {
+            $call->await();
+        } finally {
+            $transport->close();
+        }
+    }
+
+    public function testALostRequestFailsWhenItCannotBeSentToTheReplacement(): void
+    {
+        $spawned = [];
+        $attempts = 0;
+        $client = new ClientBuilder()
+            ->setClientInfo('demo', '1.0.0')
+            ->setRequestIdFactory(static fn(): int => 7)
+            ->setRetryLostRequests(true)
+            ->build()
+        ;
+        $transport = self::supervisedTransport($spawned, onSpawn: static function (SupervisableRecordingTransport $peer) use (&$attempts): void {
+            if (2 === ++$attempts) {
+                $peer->sendError = new TransportAlreadyClosedException(operation: 'send');
+            }
+        });
+        $client->connect($transport);
+
+        $call = async(static fn(): ListToolsResult => $client->listTools());
+        delay(0.001);
+
+        self::supervisedPeer($spawned, 0)->emitUnexpectedExit();
+        EventLoop::run();
+
+        // Nothing else will carry it, so the caller hears now rather than at the deadline.
+        $this->expectException(TransportAlreadyClosedException::class);
+
+        try {
+            $call->await();
+        } finally {
+            $transport->close();
+        }
     }
 
     public function testAThrowingReconnectListenerDoesNotStopTheReopen(): void

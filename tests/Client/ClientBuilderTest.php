@@ -97,6 +97,14 @@ final class ClientBuilderTest extends TestCase
         self::assertSame($builder, $returned);
     }
 
+    public function testSetRetryLostRequestsIsFluent(): void
+    {
+        $builder = new ClientBuilder();
+
+        self::assertSame($builder, $builder->setRetryLostRequests(true));
+        self::assertSame($builder, $builder->setRetryLostRequests(false));
+    }
+
     #[DataProvider('provideRejectsANonPositiveRequestTimeoutCases')]
     public function testRejectsANonPositiveRequestTimeout(float $seconds): void
     {
