@@ -27,7 +27,8 @@
         },
         "MethodCallRemoval": {
             "ignore": [
-                "Nexus\\Mcp\\Core\\Dispatch\\PendingCoroutines::track"
+                "Nexus\\Mcp\\Core\\Dispatch\\PendingCoroutines::track",
+                "Nexus\\Mcp\\Client\\Auth\\AuthorizationCoordinator::runExclusively"
             ]
         }
     },
