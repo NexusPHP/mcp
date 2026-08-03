@@ -20,7 +20,7 @@ tracking spec revision **2026-07-28**. It provides both sides of an MCP session:
 tools, resources, and prompts, and a client for connecting to MCP servers over a transport.
 
 This SDK is architected independently of the official PHP MCP SDK. See [ROADMAP.md](ROADMAP.md) for
-direction and the path to the 2026-07-28 spec migration.
+direction and what is queued next.
 
 ## Requirements
 

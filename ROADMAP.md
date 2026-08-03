@@ -7,8 +7,9 @@ already ships.
 
 ## Current capabilities
 
-The SDK targets MCP spec **2025-11-25** and is published on Packagist (latest **v0.5.0**, pre-stable). It
-ships a symmetric server and client over stdio, sharing one protocol kernel under `Nexus\Mcp\Core`.
+The SDK targets MCP spec **2026-07-28** and is published on Packagist (latest **v0.6.0**, pre-stable). It
+ships a symmetric server and client over stdio and Streamable HTTP, sharing one protocol kernel under
+`Nexus\Mcp\Core`.
 
 Protocol surface (both sides):
 
@@ -17,9 +18,12 @@ Protocol surface (both sides):
 - [x] Resources, static and RFC 6570 templated (`resources/list`, `resources/templates/list`,
   `resources/read`).
 - [x] Completions (`completion/complete`).
-- [x] Logging (`notifications/message` + `logging/setLevel`).
-- [x] Ping.
-- [x] The `initialize` / `notifications/initialized` handshake.
+- [x] Capability discovery (`server/discover`), with per-request `_meta` lifecycle fields in place of a
+  handshake.
+- [x] Subscriptions (`subscriptions/listen`): filtered listen streams fed `list_changed` events by the
+  runtime-mutable stores.
+- [x] The input-required flow: `tools/call`, `resources/read`, and `prompts/get` may answer with
+  `InputRequiredResult`, and the client resumes the call with the collected responses.
 
 Composition and transport:
 
@@ -28,6 +32,11 @@ Composition and transport:
   `PendingOutboundRequests` correlates inbound responses to awaiting senders by `RequestId`.
 - [x] Stdio transport on both sides (`StdioServerTransport`, `StdioClientTransport`) plus an in-memory
   transport for tests, with an end-to-end stdio client / server example.
+- [x] Streamable HTTP transport on both sides: `StreamableHttpServerTransport` is a PSR-15 handler
+  (wrapped by `SecuredHttpEndpoint` with the recommended middleware), and the client speaks SSE streams
+  and carries the required per-request headers.
+- [x] Authorization: an OAuth 2.1 client (discovery, dynamic registration, PKCE, scope step-up) and the
+  resource-server middleware with pluggable token validation.
 - [x] Attribute-based registration: `#[AsTool]` / `#[AsResource]` / `#[AsPrompt]` /
   `#[AsResourceTemplate]` / `#[AsCompletion]` on methods plus class-level `#[AsServer]`, registered via
   `ServerBuilder::register()`. Tool input schemas (JSON Schema 2020-12) are generated from PHP
@@ -41,29 +50,29 @@ Quality and project gates:
 - [x] PHPStan level 10 + strict rules. Infection at 100% MSI, 100% MCC, 100% covered-code MSI.
 - [x] Architecture-boundary enforcement (StructArmed) and dependency-declaration checks
   (composer-dependency-analyser) guarding the eventual component split.
-- [x] Documentation (getting-started, server, client, transports, architecture, error-handling,
-  best-practices, design-rationale, attribute-discovery) plus README and community-health files
-  (CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, CHANGELOG, VERSIONING, DEPENDENCY_POLICY).
+- [x] Documentation (getting-started, the server and client guides with per-feature pages, transports,
+  authorization, architecture, error-handling, best-practices, design-rationale, attribute-discovery)
+  plus README and community-health files (CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, CHANGELOG,
+  BREAKING_CHANGES, VERSIONING, DEPENDENCY_POLICY).
 
-The HTTP transport lands with the 2026-07-28 migration below. Server-initiated requests do not: the
-revision removes them, replacing the `ServerRequest` union with `InputRequest`, whose members ride an
-`InputRequiredResult` payload rather than travelling as dispatchable JSON-RPC requests. So
-`RequestBoundSender::sendRequest()` rejecting outbound requests is the finished behaviour, not a stub.
+Server-initiated requests are absent by design: the 2026-07-28 revision removes them, replacing the
+`ServerRequest` union with `InputRequest`, whose members ride an `InputRequiredResult` payload rather
+than travelling as dispatchable JSON-RPC requests. So `RequestBoundSender::sendRequest()` rejecting
+outbound requests is the finished behaviour, not a stub.
 
 ## MCP 2026-07-28 migration
 
-The MCP spec revision dated **2026-07-28** reshapes the protocol significantly. It is published (the
-dated `2026-07-28` tag), and the SDK builds this migration against it, re-syncing field-level fix-ups as
-they land. The work is staged foundation-first: the schema and protocol layer, then the Streamable HTTP
-transport that carries it, then the extension framework. The **v1.0.0 release is reserved for this
-revision**, so the SDK does not ship a stable major against a draft that can still shift.
+The MCP spec revision dated **2026-07-28** reshapes the protocol significantly. The migration is built
+against the published dated tag and shipped in **v0.6.0**, staged foundation-first: the schema and
+protocol layer, then the Streamable HTTP transport that carries it. The extension framework
+([Official extensions](#official-extensions) below) is the remaining piece, and **v1.0.0 is reserved
+for the stable major on this revision**.
 
-**No backward-compatibility layer with 2025-11-25.** The migration ships as the v1.0.0 major version
-bump, and major versions are the SDK's contract for breaking changes. v0.x consumers have already
-accepted that minor versions may break BC, so anyone pinning a 2025-11-25-shaped v0.x release
-understands the migration path is "bump major, port code." Compatibility shims that let a single
-release speak both spec revisions would carry permanent maintenance overhead for a one-time porting
-exercise consumers have already opted into.
+**No backward-compatibility layer with 2025-11-25.** v0.x consumers have already accepted that minor
+versions may break BC, so anyone pinning a 2025-11-25-shaped v0.x release understands the migration
+path is "port code to the new revision" ([BREAKING_CHANGES.md](BREAKING_CHANGES.md) is the guide).
+Compatibility shims that let a single release speak both spec revisions would carry permanent
+maintenance overhead for a one-time porting exercise consumers have already opted into.
 
 The bundle is large because the spec batches a lot of interlocking changes. Subsections below group
 them by what they affect.
@@ -476,10 +485,9 @@ Follow-on milestones.
 
 ### Authorization (OAuth 2.1)
 
-Authorization is a committed part of the v1.0.0 surface. The MCP client must perform the OAuth 2.1 flow
-to obtain tokens for protected MCP servers, and the conformance suite scores client-mode heavily on it
-(the majority of scored client scenarios are OAuth, so client-mode conformance is not reachable without
-it). It depends on the HTTP client transport above and is built after it.
+The MCP client performs the OAuth 2.1 flow to obtain tokens for protected MCP servers, and the
+conformance suite scores client-mode heavily on it (the majority of scored client scenarios are OAuth,
+so client-mode conformance is not reachable without it). It builds on the HTTP client transport above.
 
 Client (required for client-mode conformance):
 
