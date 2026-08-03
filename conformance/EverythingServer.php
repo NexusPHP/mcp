@@ -39,6 +39,8 @@ use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Server\Tool\ClosureToolExecutor;
 use Nexus\Mcp\Server\Tool\MutableToolStoreInterface;
 
+use function Amp\delay;
+
 /**
  * The fixture the conformance referee drives.
  *
@@ -113,7 +115,7 @@ final class EverythingServer
     #[AsTool(name: 'test_simple_text', description: 'Returns a simple text response.')]
     public function simpleText(): string
     {
-        return 'Hello from the Nexus MCP SDK conformance server!';
+        return 'This is a simple text response for testing.';
     }
 
     #[AsTool(name: 'test_image_content', description: 'Returns an image content block.')]
@@ -133,53 +135,50 @@ final class EverythingServer
     {
         return new EmbeddedResource(resource: new TextResourceContents(
             uri: 'test://embedded-resource',
-            text: 'This is an embedded resource.',
+            text: 'This is an embedded resource content.',
             mimeType: 'text/plain',
         ));
     }
 
     /**
-     * @return list<AudioContent|EmbeddedResource|ImageContent|TextContent>
+     * @return list<EmbeddedResource|ImageContent|TextContent>
      */
-    #[AsTool(name: 'test_multiple_content_types', description: 'Returns text, image, audio, and resource content blocks in one result.')]
+    #[AsTool(name: 'test_multiple_content_types', description: 'Returns text, image, and resource content blocks in one result.')]
     public function multipleContentTypes(): array
     {
         return [
-            new TextContent(text: 'This response contains multiple content types.'),
+            new TextContent(text: 'Multiple content types test:'),
             new ImageContent(data: self::RED_PIXEL_PNG, mimeType: 'image/png'),
-            new AudioContent(data: self::SILENT_WAV, mimeType: 'audio/wav'),
             new EmbeddedResource(resource: new TextResourceContents(
                 uri: 'test://mixed-content-resource',
-                text: 'Resource content within a mixed result.',
-                mimeType: 'text/plain',
+                text: json_encode(['test' => 'data', 'value' => 123], \JSON_THROW_ON_ERROR),
+                mimeType: 'application/json',
             )),
         ];
     }
 
-    #[AsTool(name: 'test_error_handling', description: 'Always returns a tool error.')]
-    public function errorHandling(): CallToolResult
+    /**
+     * The referee asserts the SDK converts the throw into a `CallToolResult`
+     * with `isError: true` rather than a JSON-RPC error.
+     */
+    #[AsTool(name: 'test_error_handling', description: 'Always throws, testing tool-error conversion.')]
+    public function errorHandling(): never
     {
-        return new CallToolResult(
-            content: [new TextContent(text: 'This tool intentionally failed.')],
-            isError: true,
-        );
+        throw new RuntimeException('This tool intentionally returns an error for testing');
     }
 
-    /**
-     * @param int $steps How many progress notifications to emit.
-     */
     #[AsTool(name: 'test_tool_with_progress', description: 'Reports progress while it works.')]
-    public function toolWithProgress(ServerContext $context, int $steps = 3): string
+    public function toolWithProgress(ServerContext $context): string
     {
-        for ($step = 1; $step <= $steps; ++$step) {
-            $context->reportProgress(
-                progress: (float) $step,
-                total: (float) $steps,
-                message: sprintf('Step %d of %d.', $step, $steps),
-            );
+        foreach ([0.0, 50.0, 100.0] as $step => $progress) {
+            if ($step > 0) {
+                delay(0.05);
+            }
+
+            $context->reportProgress(progress: $progress, total: 100.0);
         }
 
-        return sprintf('Completed %d steps.', $steps);
+        return 'Completed 3 progress steps.';
     }
 
     /**
@@ -300,7 +299,7 @@ final class EverythingServer
     #[AsResource(uri: 'test://static-text', name: 'static-text', description: 'A static text resource.', mimeType: 'text/plain')]
     public function staticText(string $uri): TextResourceContents
     {
-        return new TextResourceContents(uri: $uri, text: 'This is a static text resource.', mimeType: 'text/plain');
+        return new TextResourceContents(uri: $uri, text: 'This is the content of the static text resource.', mimeType: 'text/plain');
     }
 
     #[AsResource(uri: 'test://static-binary', name: 'static-binary', description: 'A static binary resource.', mimeType: 'image/png')]
@@ -312,10 +311,17 @@ final class EverythingServer
     /**
      * @param string $id The identifier captured from the URI.
      */
-    #[AsResourceTemplate(uriTemplate: 'test://template/{id}/data', name: 'template', description: 'A templated resource addressed by id.', mimeType: 'text/plain')]
+    #[AsResourceTemplate(uriTemplate: 'test://template/{id}/data', name: 'template', description: 'A templated resource addressed by id.', mimeType: 'application/json')]
     public function templatedResource(string $uri, string $id): TextResourceContents
     {
-        return new TextResourceContents(uri: $uri, text: sprintf('Template data for id "%s".', $id), mimeType: 'text/plain');
+        return new TextResourceContents(
+            uri: $uri,
+            text: json_encode(
+                ['id' => $id, 'templateTest' => true, 'data' => sprintf('Data for ID: %s', $id)],
+                \JSON_THROW_ON_ERROR,
+            ),
+            mimeType: 'application/json',
+        );
     }
 
     /**
@@ -341,7 +347,7 @@ final class EverythingServer
     #[AsPrompt(name: 'test_simple_prompt', description: 'A prompt with no arguments.')]
     public function simplePrompt(): string
     {
-        return 'This is a simple prompt with no arguments.';
+        return 'This is a simple prompt for testing.';
     }
 
     /**
@@ -354,17 +360,24 @@ final class EverythingServer
         return sprintf('Prompt with arguments: arg1=\'%s\', arg2=\'%s\'', $arg1, $arg2);
     }
 
+    /**
+     * @param string $resourceUri URI of the resource to embed.
+     */
     #[AsPrompt(name: 'test_prompt_with_embedded_resource', description: 'A prompt carrying an embedded resource.')]
-    public function promptWithEmbeddedResource(): GetPromptResult
+    public function promptWithEmbeddedResource(string $resourceUri): GetPromptResult
     {
         return new GetPromptResult(messages: [
             new PromptMessage(
                 role: Role::User,
                 content: new EmbeddedResource(resource: new TextResourceContents(
-                    uri: 'test://static-text',
-                    text: 'This is a static text resource.',
+                    uri: $resourceUri,
+                    text: 'Embedded resource content for testing.',
                     mimeType: 'text/plain',
                 )),
+            ),
+            new PromptMessage(
+                role: Role::User,
+                content: new TextContent(text: 'Please process the embedded resource above.'),
             ),
         ]);
     }
@@ -376,6 +389,10 @@ final class EverythingServer
             new PromptMessage(
                 role: Role::User,
                 content: new ImageContent(data: self::RED_PIXEL_PNG, mimeType: 'image/png'),
+            ),
+            new PromptMessage(
+                role: Role::User,
+                content: new TextContent(text: 'Please analyze the image above.'),
             ),
         ]);
     }

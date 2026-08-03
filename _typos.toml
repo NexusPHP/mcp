@@ -14,6 +14,7 @@ extend-ignore-re = [
     "tool behavior \\(including descriptive properties",
     "consistent behavior between HTTP and STDIO\\.",
     "agreed to honor\\.",
+    "Please analyze the image above\\.",
 ]
 
 [files]
