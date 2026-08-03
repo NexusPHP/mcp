@@ -594,9 +594,12 @@ are not in the baseline.
   than a `require`, guarded by `class_exists` with an actionable message naming the package to
   install. This is the shape a shipped JWT or JWKS access-token validator would need, since the SDK
   will not take a crypto dependency.
-- [ ] Grow the authorization documentation into runnable ground: per-provider recipes (Keycloak,
-  Entra, Auth0, Okta) and a dockerised end-to-end example, so a reader can stand a protected server
-  up rather than assemble one from the reference.
+- [x] Grow the authorization documentation into per-provider ground: recipes for Keycloak, Entra,
+  Auth0, and Okta, each covering the provider-side configuration, the token validator, and the quirks
+  the generic pages cannot know.
+- [ ] A dockerised end-to-end example (Keycloak in compose, a protected server, the SDK client walking
+  the full flow), so a reader can stand a protected server up rather than assemble one from the
+  reference.
 
 ### Official extensions
 

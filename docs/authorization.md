@@ -18,6 +18,14 @@ the metadata fetches all ride on machinery the SDK already carries.
 - **[Resource server](auth/server.md)**: validating tokens, publishing the metadata document, and reading
   the token in a handler.
 
+Provider recipes, each covering the provider-side configuration, the token validator, and the quirks the
+generic pages cannot know:
+
+- **[Keycloak](auth/keycloak.md)**, the self-hostable reference with anonymous client registration.
+- **[Microsoft Entra ID](auth/entra.md)**, pre-registered clients and `scp` claims.
+- **[Auth0](auth/auth0.md)**, audience via tenant configuration rather than RFC 8707.
+- **[Okta](auth/okta.md)**, custom authorization servers and array-valued `scp`.
+
 ## What the SDK enforces
 
 These are not optional, and they are the checks implementations most often skip:
