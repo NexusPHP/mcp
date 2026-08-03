@@ -7,7 +7,7 @@
 | `tools` | At least one `addTool(...)`, `setToolStore(...)`, or both `tools/list` and `tools/call` `replaceRequestHandler(...)`. |
 | `prompts` | At least one `addPrompt(...)`, `setPromptStore(...)`, or both `prompts/list` and `prompts/get` `replaceRequestHandler(...)`. |
 | `resources` | At least one `addResource(...)` / `addResourceTemplate(...)`, `setResourceStore(...)` / `setResourceTemplateStore(...)`, or both `resources/list` and `resources/read` `replaceRequestHandler(...)`. |
-| `completions` | `setCompletionStore(...)`, or `completion/complete` `replaceRequestHandler(...)`. |
+| `completions` | At least one `addPromptCompletion(...)` / `addResourceTemplateCompletion(...)`, `setCompletionStore(...)`, or `completion/complete` `replaceRequestHandler(...)`. |
 
 `listChanged` and `resources.subscribe` are advertised only when the subscription store says it will honour
 that notification type **and** the feature's own store can report its changes (it implements

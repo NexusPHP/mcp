@@ -39,7 +39,6 @@ use Nexus\Mcp\Core\Schema\Result\CompleteResult;
 use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
 use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
 use Nexus\Mcp\Core\Transport\InMemoryTransport;
-use Nexus\Mcp\Server\Completion\CompletionStore;
 use Nexus\Mcp\Server\ServerBuilder;
 use Nexus\Mcp\Server\ServerContext;
 use Psr\Log\NullLogger;
@@ -120,14 +119,8 @@ $server = new ServerBuilder()
             ]);
         },
     )
-    ->setCompletionStore(new CompletionStore(
-        promptCompletions: [
-            'greet' => ['style' => prefixCompletion(['casual', 'cheerful', 'formal', 'enthusiastic'])],
-        ],
-        templateCompletions: [
-            'users://{userId}' => ['userId' => prefixCompletion(['alice', 'alex', 'bob'])],
-        ],
-    ))
+    ->addPromptCompletion('greet', 'style', prefixCompletion(['casual', 'cheerful', 'formal', 'enthusiastic']))
+    ->addResourceTemplateCompletion('users://{userId}', 'userId', prefixCompletion(['alice', 'alex', 'bob']))
     ->build()
 ;
 

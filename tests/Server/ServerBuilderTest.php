@@ -48,6 +48,7 @@ use Nexus\Mcp\Core\Schema\SubscriptionFilter;
 use Nexus\Mcp\Core\Schema\Tool\Tool;
 use Nexus\Mcp\Server\Attribute\AsServer;
 use Nexus\Mcp\Server\Attribute\AsTool;
+use Nexus\Mcp\Server\Completion\CompletionProviderInterface;
 use Nexus\Mcp\Server\Completion\CompletionStore;
 use Nexus\Mcp\Server\Exception\BuilderAlreadyBuiltException;
 use Nexus\Mcp\Server\Exception\DuplicateServerMetadataException;
@@ -82,6 +83,7 @@ use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
 use Nexus\Mcp\Tests\Fixtures\Server\Completion\RecordingCompletionStore;
+use Nexus\Mcp\Tests\Fixtures\Server\Discovery\CompletionHandlers;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\DiscoverableServer;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\SelfDescribingServer;
 use Nexus\Mcp\Tests\Fixtures\Server\Tool\PagedToolStore;
@@ -1183,6 +1185,142 @@ final class ServerBuilderTest extends TestCase
         self::assertSame(['x'], $result->completion['values']);
     }
 
+    public function testAddedCompletionsFlowThroughBuiltServerAndAdvertiseTheCapability(): void
+    {
+        $provider = new class implements CompletionProviderInterface {
+            /**
+             * @param null|array<string, string> $contextArguments
+             */
+            #[\Override]
+            public function complete(string $argumentValue, ?array $contextArguments, ServerContext $context): CompleteResult
+            {
+                return new CompleteResult(completion: ['values' => ['from-provider-'.$argumentValue]]);
+            }
+        };
+
+        $server = new ServerBuilder()
+            ->setServerInfo('demo', '1.0.0')
+            ->addPromptCompletion('compose', 'tone', static fn(): CompleteResult => new CompleteResult(completion: ['values' => ['from-closure']]))
+            ->addResourceTemplateCompletion('file:///{path}', 'path', $provider)
+            ->addResourceTemplateCompletion('file:///{path}', 'ext', static fn(): CompleteResult => new CompleteResult(completion: ['values' => ['csv']]))
+            ->build()
+        ;
+
+        $discover = $this->dispatch($server, 'server/discover');
+        self::assertInstanceOf(DiscoverResult::class, $discover);
+        self::assertSame([], $discover->capabilities->completions);
+
+        $promptResult = $this->dispatch($server, 'completion/complete', [
+            'ref' => ['type' => 'ref/prompt', 'name' => 'compose'],
+            'argument' => ['name' => 'tone', 'value' => 'f'],
+        ]);
+        self::assertInstanceOf(CompleteResult::class, $promptResult);
+        self::assertSame(['from-closure'], $promptResult->completion['values']);
+
+        $templateResult = $this->dispatch($server, 'completion/complete', [
+            'ref' => ['type' => 'ref/resource', 'uri' => 'file:///{path}'],
+            'argument' => ['name' => 'path', 'value' => 'rep'],
+        ]);
+        self::assertInstanceOf(CompleteResult::class, $templateResult);
+        self::assertSame(['from-provider-rep'], $templateResult->completion['values']);
+
+        $closureTemplateResult = $this->dispatch($server, 'completion/complete', [
+            'ref' => ['type' => 'ref/resource', 'uri' => 'file:///{path}'],
+            'argument' => ['name' => 'ext', 'value' => 'c'],
+        ]);
+        self::assertInstanceOf(CompleteResult::class, $closureTemplateResult);
+        self::assertSame(['csv'], $closureTemplateResult->completion['values']);
+    }
+
+    public function testRegisterDiscoversCompletionProviders(): void
+    {
+        $server = new ServerBuilder()
+            ->setServerInfo('demo', '1.0.0')
+            ->register(new CompletionHandlers())
+            ->build()
+        ;
+
+        $promptResult = $this->dispatch($server, 'completion/complete', [
+            'ref' => ['type' => 'ref/prompt', 'name' => 'compose'],
+            'argument' => ['name' => 'tone', 'value' => 'f'],
+        ]);
+        self::assertInstanceOf(CompleteResult::class, $promptResult);
+        self::assertSame(['formal', 'friendly'], $promptResult->completion['values']);
+
+        $templateResult = $this->dispatch($server, 'completion/complete', [
+            'ref' => ['type' => 'ref/resource', 'uri' => 'file:///{path}'],
+            'argument' => ['name' => 'path', 'value' => 'report.csv'],
+        ]);
+        self::assertInstanceOf(CompleteResult::class, $templateResult);
+        self::assertSame(['report.csv'], $templateResult->completion['values']);
+    }
+
+    public function testAnExplicitCompletionStoreWinsOverAddedCompletions(): void
+    {
+        $builder = new ServerBuilder()
+            ->setServerInfo('demo', '1.0.0')
+            ->addPromptCompletion('compose', 'tone', static fn(): CompleteResult => new CompleteResult(completion: ['values' => ['added']]))
+            ->setCompletionStore(new RecordingCompletionStore(new CompleteResult(completion: ['values' => ['explicit']])))
+        ;
+
+        $result = $this->dispatch($builder->build(), 'completion/complete', [
+            'ref' => ['type' => 'ref/prompt', 'name' => 'compose'],
+            'argument' => ['name' => 'tone', 'value' => 'f'],
+        ]);
+
+        self::assertInstanceOf(CompleteResult::class, $result);
+        self::assertSame(['explicit'], $result->completion['values']);
+    }
+
+    public function testGetCompletionStoreMemoisesTheAssembledStore(): void
+    {
+        $builder = new ServerBuilder()
+            ->addPromptCompletion('compose', 'tone', static fn(): CompleteResult => new CompleteResult(completion: ['values' => []]))
+        ;
+
+        $store = $builder->getCompletionStore();
+
+        self::assertInstanceOf(CompletionStore::class, $store);
+        self::assertSame($store, $builder->getCompletionStore());
+    }
+
+    public function testGetCompletionStoreIsNullWithoutCompletions(): void
+    {
+        self::assertNull(new ServerBuilder()->getCompletionStore());
+    }
+
+    public function testAddPromptCompletionRejectsAnEmptyPromptName(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('Completion prompt name must be a non-empty string.');
+
+        new ServerBuilder()->addPromptCompletion('', 'tone', static fn(): CompleteResult => new CompleteResult(completion: ['values' => []]));
+    }
+
+    public function testAddPromptCompletionRejectsAnEmptyArgumentName(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('Completion argument name must be a non-empty string.');
+
+        new ServerBuilder()->addPromptCompletion('compose', '', static fn(): CompleteResult => new CompleteResult(completion: ['values' => []]));
+    }
+
+    public function testAddResourceTemplateCompletionRejectsAnEmptyTemplate(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('Completion URI template must be a non-empty string.');
+
+        new ServerBuilder()->addResourceTemplateCompletion('', 'path', static fn(): CompleteResult => new CompleteResult(completion: ['values' => []]));
+    }
+
+    public function testAddResourceTemplateCompletionRejectsAnEmptyArgumentName(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('Completion argument name must be a non-empty string.');
+
+        new ServerBuilder()->addResourceTemplateCompletion('file:///{path}', '', static fn(): CompleteResult => new CompleteResult(completion: ['values' => []]));
+    }
+
     public function testCustomToolStoreReplacesEntriesAndAdvertisesCapability(): void
     {
         $store = new class implements ToolStoreInterface {
@@ -1631,6 +1769,10 @@ final class ServerBuilderTest extends TestCase
         yield 'setSubscriptionStore' => [static fn(ServerBuilder $b): ServerBuilder => $b->setSubscriptionStore(new SubscriptionStore())];
 
         yield 'setCompletionStore' => [static fn(ServerBuilder $b): ServerBuilder => $b->setCompletionStore(new CompletionStore())];
+
+        yield 'addPromptCompletion' => [static fn(ServerBuilder $b): ServerBuilder => $b->addPromptCompletion('compose', 'tone', static fn(): CompleteResult => new CompleteResult(completion: ['values' => []]))];
+
+        yield 'addResourceTemplateCompletion' => [static fn(ServerBuilder $b): ServerBuilder => $b->addResourceTemplateCompletion('file:///{path}', 'path', static fn(): CompleteResult => new CompleteResult(completion: ['values' => []]))];
 
         // A source carrying only `#[AsServer]` contributes without reaching a guarded `add*()`, so this is
         // the case that proves `register()` needs a guard of its own.

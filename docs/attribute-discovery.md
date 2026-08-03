@@ -1,8 +1,8 @@
 # Attribute discovery
 
 Attribute discovery is a higher-level alternative to the manual `addTool()` / `addPrompt()` /
-`addResource()` / `addResourceTemplate()` / `setServerInfo()` calls described in the
-[Server API](server.md). Mark methods on a plain object with attributes, then hand the object to
+`addResource()` / `addResourceTemplate()` / `addPromptCompletion()` / `addResourceTemplateCompletion()` /
+`setServerInfo()` calls described in the [Server API](server.md). Mark methods on a plain object with attributes, then hand the object to
 `ServerBuilder::register()`. The explicit builder methods remain the substrate. This is sugar over them, so
 the two compose freely.
 
@@ -50,6 +50,7 @@ typo'd attribute names and objects passed in by mistake.
 | `#[AsPrompt]` | method | a prompt, with `arguments` inferred from the signature |
 | `#[AsResource]` | method | a static resource (requires `uri`) |
 | `#[AsResourceTemplate]` | method | an RFC 6570 templated resource (requires `uriTemplate`) |
+| `#[AsCompletion]` | method | a [completion provider](server/completions.md#attribute-sugar) for one prompt argument or template variable (requires `argument` plus `prompt` or `uriTemplate`, repeatable) |
 | `#[AsServer]` | class | the server identity and instructions |
 
 Each method attribute carries the same optional metadata as its schema class (`title`, `description`,
@@ -70,6 +71,12 @@ intersection types) throw `UnsupportedParameterTypeException` at registration.
 
 A `ServerContext` parameter is injected and left out of the schema. All other arguments are bound to
 parameters by name, and backed or pure enum parameters are hydrated from the argument value.
+
+A completion method's parameters are bound by type instead: a `ServerContext` parameter receives the
+context, an `array` parameter the client's resolved context arguments, and any other parameter the partial
+value being typed. That last kind must take a raw string (`string`, `mixed`, a union containing one, or
+untyped), with no enum hydration on this path, so an enum parameter throws
+`UnsupportedParameterTypeException` at registration even though a prompt method could declare it.
 
 A variadic tool parameter (`T ...$x`) maps to an array input (`{"type": "array", "items": <T>}`), is never
 required, and the supplied list is spread back into the call. Variadic parameters are accepted only on tools,
@@ -114,14 +121,15 @@ public function forecast(
 
 ## Return values
 
-A handler may return the full result object (`CallToolResult`, `GetPromptResult`, `ReadResourceResult`) or
-a shorthand the SDK adapts:
+A handler may return the full result object (`CallToolResult`, `GetPromptResult`, `ReadResourceResult`,
+`CompleteResult`) or a shorthand the SDK adapts:
 
 | Handler | Shorthand returns |
 | --- | --- |
 | tool | a `string` (wrapped as `TextContent`), a content block, a list of content blocks, or an array (treated as `structuredContent`) |
 | prompt | a `string` (wrapped as a `User` `TextContent` message), a `PromptMessage`, or a list of `PromptMessage` |
 | resource | a `string` (wrapped as `TextResourceContents` bound to the URI), a `ResourceContents`, or a list of `ResourceContents` |
+| completion | a list of strings (wrapped as the `values` of a `CompleteResult`), so returning the full `CompleteResult` is only needed for `total` or `hasMore` |
 
 ## Server identity precedence
 

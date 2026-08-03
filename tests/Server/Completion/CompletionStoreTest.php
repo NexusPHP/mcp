@@ -18,6 +18,7 @@ use Nexus\Mcp\Core\Schema\Prompt\PromptReference;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Resource\ResourceTemplateReference;
 use Nexus\Mcp\Core\Schema\Result\CompleteResult;
+use Nexus\Mcp\Server\Completion\CompletionProviderInterface;
 use Nexus\Mcp\Server\Completion\CompletionStore;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
@@ -204,6 +205,68 @@ final class CompletionStoreTest extends TestCase
 
         // @phpstan-ignore argument.type
         new CompletionStore(templateCompletions: [1 => []]);
+    }
+
+    public function testConstructorRejectsAnEmptyArgumentKey(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('Completion store argument key must be a non-empty string.');
+
+        // @phpstan-ignore argument.type
+        new CompletionStore(promptCompletions: ['p' => ['' => static fn(): CompleteResult => new CompleteResult(completion: ['values' => []])]]);
+    }
+
+    public function testConstructorRejectsANonClosureProvider(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('Completion provider must be a closure or implement CompletionProviderInterface, string given.');
+
+        // @phpstan-ignore argument.type
+        new CompletionStore(promptCompletions: ['p' => ['arg' => 'strtoupper']]);
+    }
+
+    public function testNormalizationKeepsEveryRegisteredPrompt(): void
+    {
+        $store = new CompletionStore(promptCompletions: [
+            'first' => ['arg' => static fn(): CompleteResult => new CompleteResult(completion: ['values' => ['a']])],
+            'second' => ['arg' => static fn(): CompleteResult => new CompleteResult(completion: ['values' => ['b']])],
+        ]);
+
+        $result = $store->complete(
+            new PromptReference(name: 'second'),
+            'arg',
+            'partial',
+            null,
+            self::makeContext(),
+        );
+
+        self::assertSame(['b'], $result->completion['values']);
+    }
+
+    public function testAcceptsACompletionProviderInstanceInPlaceOfAClosure(): void
+    {
+        $provider = new class implements CompletionProviderInterface {
+            /**
+             * @param null|array<string, string> $contextArguments
+             */
+            #[\Override]
+            public function complete(string $argumentValue, ?array $contextArguments, ServerContext $context): CompleteResult
+            {
+                return new CompleteResult(completion: ['values' => ['provided-'.$argumentValue]]);
+            }
+        };
+
+        $store = new CompletionStore(promptCompletions: ['my-prompt' => ['arg' => $provider]]);
+
+        $result = $store->complete(
+            new PromptReference(name: 'my-prompt'),
+            'arg',
+            'x',
+            null,
+            self::makeContext(),
+        );
+
+        self::assertSame(['provided-x'], $result->completion['values']);
     }
 
     private static function makeContext(): ServerContext

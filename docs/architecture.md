@@ -20,9 +20,9 @@ Nexus\Mcp\
 │   ├── UriTemplate\    RFC 6570 expansion plus matching
 │   └── Validation\     URI templates, RFC 3339, enum-value coercion
 ├── Server\             Server-side composition. Depends on Core only
-│   ├── Attribute\      #[AsTool], #[AsPrompt], #[AsResource], #[AsResourceTemplate], #[AsServer]
+│   ├── Attribute\      #[AsTool], #[AsPrompt], #[AsResource], #[AsResourceTemplate], #[AsCompletion], #[AsServer]
 │   ├── Auth\           Resource-server side: the access-token validator contract
-│   ├── Completion\     Completion store contract
+│   ├── Completion\     Completion store contract and providers
 │   ├── Discovery\      Attribute scanner behind ServerBuilder::register()
 │   ├── Dispatch\       Server-side per-envelope inbound pipeline
 │   ├── Exception\      Server-side error types

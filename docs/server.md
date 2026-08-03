@@ -40,10 +40,10 @@ instead, which attaches the dispatcher and returns so the HTTP host keeps drivin
 - **[Asking the client for input](server/input-required.md)**: the `InputRequiredResult` flow and
   elicitation.
 
-Tools, prompts, resources, and the server identity can also be declared with attributes (`#[AsTool]`,
-`#[AsPrompt]`, `#[AsResource]`, `#[AsResourceTemplate]`, `#[AsServer]`) on a plain object and registered in
-one call with `ServerBuilder::register()`. See [Attribute discovery](attribute-discovery.md) for the full
-reference.
+Tools, prompts, resources, completions, and the server identity can also be declared with attributes
+(`#[AsTool]`, `#[AsPrompt]`, `#[AsResource]`, `#[AsResourceTemplate]`, `#[AsCompletion]`, `#[AsServer]`) on
+a plain object and registered in one call with `ServerBuilder::register()`. See
+[Attribute discovery](attribute-discovery.md) for the full reference.
 
 ## Lifecycle
 

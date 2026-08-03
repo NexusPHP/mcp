@@ -13,13 +13,19 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Server\Discovery;
 
+use Amp\NullCancellation;
 use Nexus\Mcp\Core\Schema\Prompt\Prompt;
 use Nexus\Mcp\Core\Schema\Prompt\PromptArgument;
+use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Server\Attribute\AsCompletion;
 use Nexus\Mcp\Server\Attribute\AsPrompt;
 use Nexus\Mcp\Server\Attribute\AsResource;
 use Nexus\Mcp\Server\Attribute\AsResourceTemplate;
 use Nexus\Mcp\Server\Attribute\AsTool;
+use Nexus\Mcp\Server\Completion\PromptCompletionEntry;
+use Nexus\Mcp\Server\Completion\ResourceTemplateCompletionEntry;
 use Nexus\Mcp\Server\Discovery\AttributeScanner;
+use Nexus\Mcp\Server\Exception\InvalidCompletionAttributeException;
 use Nexus\Mcp\Server\Exception\UnsupportedParameterTypeException;
 use Nexus\Mcp\Server\Exception\UnsupportedVariadicParameterException;
 use Nexus\Mcp\Server\Prompt\PromptEntry;
@@ -28,10 +34,14 @@ use Nexus\Mcp\Server\Resource\ReflectedResourceReader;
 use Nexus\Mcp\Server\Resource\ReflectedTemplatedResourceReader;
 use Nexus\Mcp\Server\Resource\ResourceEntry;
 use Nexus\Mcp\Server\Resource\ResourceTemplateEntry;
+use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Server\Tool\ReflectedToolExecutor;
 use Nexus\Mcp\Server\Tool\ToolEntry;
+use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
+use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\BackedIntEnum;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\BackedStringEnum;
+use Nexus\Mcp\Tests\Fixtures\Server\Discovery\CompletionHandlers;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\DiscoverableServer;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\PureEnum;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -424,8 +434,268 @@ final class AttributeScannerTest extends TestCase
         iterator_to_array(new AttributeScanner()->scan($source), false);
     }
 
+    public function testCompletionForAPromptArgumentIsDiscovered(): void
+    {
+        $entry = self::promptCompletionEntry('compose', 'tone');
+
+        $result = $entry->provider->complete('f', null, self::makeContext());
+
+        self::assertSame(['formal', 'friendly'], $result->completion['values']);
+    }
+
+    public function testCompletionForATemplateVariableIsDiscovered(): void
+    {
+        $entries = iterator_to_array(new AttributeScanner()->scan(new CompletionHandlers()), false);
+
+        $templateCompletions = array_values(array_filter(
+            $entries,
+            static fn(object $entry): bool => $entry instanceof ResourceTemplateCompletionEntry,
+        ));
+
+        self::assertCount(1, $templateCompletions);
+        self::assertSame('file:///{path}', $templateCompletions[0]->uriTemplate);
+        self::assertSame('path', $templateCompletions[0]->argument);
+
+        $result = $templateCompletions[0]->provider->complete('report.csv', null, self::makeContext());
+
+        self::assertSame(['report.csv'], $result->completion['values']);
+        self::assertFalse($result->completion['hasMore'] ?? null);
+    }
+
+    public function testRepeatedCompletionAttributesEachYieldAnEntry(): void
+    {
+        $entry = self::promptCompletionEntry('compose', 'topic');
+
+        $result = $entry->provider->complete('anything', null, self::makeContext());
+
+        self::assertSame(['anything'], $result->completion['values']);
+    }
+
+    public function testCompletionParametersMayBeUntypedMixedOrAStringBearingUnion(): void
+    {
+        $source = new class {
+            /**
+             * @return list<string>
+             */
+            // @phpstan-ignore missingType.parameter (deliberately untyped to exercise the null-ReflectionType branch)
+            #[AsCompletion(argument: 'a', prompt: 'p')]
+            public function untyped($value): array
+            {
+                return [\is_string($value) ? 'untyped-ok' : 'untyped-bad'];
+            }
+
+            /**
+             * @return list<string>
+             */
+            #[AsCompletion(argument: 'b', prompt: 'p')]
+            public function union(int|string $value): array
+            {
+                return [\is_string($value) ? 'union-ok' : 'union-bad'];
+            }
+
+            /**
+             * @return list<string>
+             */
+            #[AsCompletion(argument: 'c', prompt: 'p')]
+            public function mixedParam(mixed $value): array
+            {
+                return [\is_string($value) ? 'mixed-ok' : 'mixed-bad'];
+            }
+        };
+
+        $values = [];
+
+        foreach (new AttributeScanner()->scan($source) as $entry) {
+            if ($entry instanceof PromptCompletionEntry) {
+                $values[] = $entry->provider->complete('x', null, self::makeContext())->completion['values'][0] ?? null;
+            }
+        }
+
+        self::assertSame(['untyped-ok', 'union-ok', 'mixed-ok'], $values);
+    }
+
+    public function testCompletionMethodWithANonStringParameterIsRejected(): void
+    {
+        $source = new class {
+            /**
+             * @return list<string>
+             */
+            #[AsCompletion(argument: 'x', prompt: 'p')]
+            public function complete(string $value, int $limit): array
+            {
+                return [$value, (string) $limit];
+            }
+        };
+
+        $this->expectException(UnsupportedParameterTypeException::class);
+        $this->expectExceptionMessageMatches(
+            '/^\S+::complete\(\) declares parameter "\$limit" of unsupported type "int"\. It is bound from a string value\.$/',
+        );
+
+        iterator_to_array(new AttributeScanner()->scan($source), false);
+    }
+
+    public function testCompletionMethodWithAStringlessUnionParameterIsRejected(): void
+    {
+        $source = new class {
+            /**
+             * @return list<string>
+             */
+            #[AsCompletion(argument: 'x', prompt: 'p')]
+            public function complete(float|int $value): array
+            {
+                return [(string) $value];
+            }
+        };
+
+        $this->expectException(UnsupportedParameterTypeException::class);
+
+        iterator_to_array(new AttributeScanner()->scan($source), false);
+    }
+
+    public function testCompletionMethodWithAnEnumParameterIsRejected(): void
+    {
+        $source = new class {
+            /**
+             * @return list<string>
+             */
+            #[AsCompletion(argument: 'x', prompt: 'p')]
+            public function complete(BackedStringEnum $color): array
+            {
+                return [$color->value];
+            }
+        };
+
+        $this->expectException(UnsupportedParameterTypeException::class);
+
+        iterator_to_array(new AttributeScanner()->scan($source), false);
+    }
+
+    public function testVariadicCompletionParameterIsRejected(): void
+    {
+        $source = new class {
+            /**
+             * @return list<string>
+             */
+            #[AsCompletion(argument: 'x', prompt: 'p')]
+            public function complete(string ...$values): array
+            {
+                return array_values($values);
+            }
+        };
+
+        $this->expectException(UnsupportedVariadicParameterException::class);
+
+        iterator_to_array(new AttributeScanner()->scan($source), false);
+    }
+
+    public function testACompletionAttributeNamingNoTargetIsRejectedNamingTheMethod(): void
+    {
+        $source = new class {
+            /**
+             * @return list<string>
+             */
+            #[AsCompletion(argument: 'x')]
+            public function complete(string $value): array
+            {
+                return [$value];
+            }
+        };
+
+        $this->expectException(InvalidCompletionAttributeException::class);
+        $this->expectExceptionMessageMatches(
+            '/^class@anonymous.*::complete\(\) declares an invalid #\[AsCompletion\] attribute: it must name the completed "prompt" or "uriTemplate"\.$/',
+        );
+
+        iterator_to_array(new AttributeScanner()->scan($source), false);
+    }
+
+    public function testACompletionAttributeNamingBothTargetsIsRejectedNamingTheMethod(): void
+    {
+        $source = new class {
+            /**
+             * @return list<string>
+             */
+            #[AsCompletion(argument: 'x', prompt: 'p', uriTemplate: 'file:///{path}')]
+            public function complete(string $value): array
+            {
+                return [$value];
+            }
+        };
+
+        $this->expectException(InvalidCompletionAttributeException::class);
+        $this->expectExceptionMessageMatches(
+            '/^class@anonymous.*::complete\(\) declares an invalid #\[AsCompletion\] attribute: it must name either a "prompt" or a "uriTemplate", not both\.$/',
+        );
+
+        iterator_to_array(new AttributeScanner()->scan($source), false);
+    }
+
+    public function testACompletionAttributeWithAnEmptyArgumentIsRejectedNamingTheMethod(): void
+    {
+        $source = new class {
+            /**
+             * @return list<string>
+             */
+            #[AsCompletion(argument: '', prompt: 'p')]
+            public function complete(string $value): array
+            {
+                return [$value];
+            }
+        };
+
+        $this->expectException(InvalidCompletionAttributeException::class);
+        $this->expectExceptionMessageMatches(
+            '/^class@anonymous.*::complete\(\) declares an invalid #\[AsCompletion\] attribute: its "argument" must be a non-empty string\.$/',
+        );
+
+        iterator_to_array(new AttributeScanner()->scan($source), false);
+    }
+
+    public function testACompletionAttributeWithAnEmptyPromptIsRejectedNamingTheMethod(): void
+    {
+        $source = new class {
+            /**
+             * @return list<string>
+             */
+            #[AsCompletion(argument: 'x', prompt: '')]
+            public function complete(string $value): array
+            {
+                return [$value];
+            }
+        };
+
+        $this->expectException(InvalidCompletionAttributeException::class);
+        $this->expectExceptionMessageMatches(
+            '/^class@anonymous.*::complete\(\) declares an invalid #\[AsCompletion\] attribute: it must name the completed "prompt" or "uriTemplate"\.$/',
+        );
+
+        iterator_to_array(new AttributeScanner()->scan($source), false);
+    }
+
+    private static function promptCompletionEntry(string $prompt, string $argument): PromptCompletionEntry
+    {
+        foreach (new AttributeScanner()->scan(new CompletionHandlers()) as $entry) {
+            if ($entry instanceof PromptCompletionEntry && $entry->prompt === $prompt && $entry->argument === $argument) {
+                return $entry;
+            }
+        }
+
+        self::fail(\sprintf('No completion for prompt "%s" argument "%s" discovered.', $prompt, $argument));
+    }
+
+    private static function makeContext(): ServerContext
+    {
+        return new ServerContext(
+            new RequestId(id: 11),
+            new NullCancellation(),
+            RequestMetaObjectFactory::create(),
+            new RecordingSender(),
+        );
+    }
+
     /**
-     * @return list<PromptEntry|ResourceEntry|ResourceTemplateEntry|ToolEntry>
+     * @return list<PromptCompletionEntry|PromptEntry|ResourceEntry|ResourceTemplateCompletionEntry|ResourceTemplateEntry|ToolEntry>
      */
     private static function entries(): array
     {

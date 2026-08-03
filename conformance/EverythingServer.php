@@ -22,8 +22,10 @@ use Nexus\Mcp\Core\Schema\Prompt\PromptMessage;
 use Nexus\Mcp\Core\Schema\Resource\BlobResourceContents;
 use Nexus\Mcp\Core\Schema\Resource\TextResourceContents;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
+use Nexus\Mcp\Core\Schema\Result\CompleteResult;
 use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
 use Nexus\Mcp\Core\Schema\Tool\Tool;
+use Nexus\Mcp\Server\Attribute\AsCompletion;
 use Nexus\Mcp\Server\Attribute\AsPrompt;
 use Nexus\Mcp\Server\Attribute\AsResource;
 use Nexus\Mcp\Server\Attribute\AsResourceTemplate;
@@ -314,6 +316,26 @@ final class EverythingServer
     public function templatedResource(string $uri, string $id): TextResourceContents
     {
         return new TextResourceContents(uri: $uri, text: sprintf('Template data for id "%s".', $id), mimeType: 'text/plain');
+    }
+
+    /**
+     * Both prompt arguments and the template variable complete from the same
+     * canned list the referee expects to see filtered.
+     */
+    #[AsCompletion(argument: 'arg1', prompt: 'test_prompt_with_arguments')]
+    #[AsCompletion(argument: 'arg2', prompt: 'test_prompt_with_arguments')]
+    #[AsCompletion(argument: 'id', uriTemplate: 'test://template/{id}/data')]
+    public function completeArgument(string $value): CompleteResult
+    {
+        $matches = [];
+
+        foreach (['alpha', 'beta', 'gamma', 'delta'] as $candidate) {
+            if ('' === $value || str_starts_with($candidate, $value)) {
+                $matches[] = $candidate;
+            }
+        }
+
+        return new CompleteResult(completion: ['values' => $matches, 'total' => count($matches), 'hasMore' => false]);
     }
 
     #[AsPrompt(name: 'test_simple_prompt', description: 'A prompt with no arguments.')]

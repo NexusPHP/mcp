@@ -29,7 +29,7 @@ Composition and transport:
 - [x] Stdio transport on both sides (`StdioServerTransport`, `StdioClientTransport`) plus an in-memory
   transport for tests, with an end-to-end stdio client / server example.
 - [x] Attribute-based registration: `#[AsTool]` / `#[AsResource]` / `#[AsPrompt]` /
-  `#[AsResourceTemplate]` on methods plus class-level `#[AsServer]`, registered via
+  `#[AsResourceTemplate]` / `#[AsCompletion]` on methods plus class-level `#[AsServer]`, registered via
   `ServerBuilder::register()`. Tool input schemas (JSON Schema 2020-12) are generated from PHP
   signatures and docblocks.
 - [x] Tool-call argument and result validation against their JSON Schemas (opis/json-schema by default,

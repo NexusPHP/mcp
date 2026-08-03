@@ -31,11 +31,8 @@ require __DIR__.'/MultiRoundServer.php';
 use Amp\DeferredFuture;
 use Amp\Http\Server\DefaultErrorHandler;
 use Amp\Http\Server\SocketHttpServer;
-use Nexus\Mcp\Core\Schema\Result\CompleteResult;
-use Nexus\Mcp\Server\Completion\CompletionStore;
 use Nexus\Mcp\Server\Prompt\MutablePromptStoreInterface;
 use Nexus\Mcp\Server\ServerBuilder;
-use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Server\Subscription\SubscriptionStore;
 use Nexus\Mcp\Server\Tool\MutableToolStoreInterface;
 use Nexus\Mcp\Server\Transport\Http\SecuredHttpEndpoint;
@@ -61,36 +58,10 @@ $address = sprintf('%s:%d', $host, $port);
 $logger = new ExampleLogger();
 $psr17 = new Psr17Factory();
 
-/*
- * Completions have no discovery attribute, so this is the one capability the
- * fixture registers the explicit way. Both prompt arguments complete from the
- * same canned list the referee expects to see filtered.
- */
-$completeArgument = static function (string $value, ?array $arguments, ServerContext $context): CompleteResult {
-    $candidates = ['alpha', 'beta', 'gamma', 'delta'];
-    $matches = [];
-
-    foreach ($candidates as $candidate) {
-        if ('' === $value || str_starts_with($candidate, $value)) {
-            $matches[] = $candidate;
-        }
-    }
-
-    return new CompleteResult(completion: ['values' => $matches, 'total' => count($matches), 'hasMore' => false]);
-};
-
 $everythingServer = new EverythingServer();
 $builder = new ServerBuilder()
     ->setLogger($logger)
     ->register($everythingServer, new MultiRoundServer())
-    ->setCompletionStore(new CompletionStore(
-        promptCompletions: [
-            'test_prompt_with_arguments' => ['arg1' => $completeArgument, 'arg2' => $completeArgument],
-        ],
-        templateCompletions: [
-            'test://template/{id}/data' => ['id' => $completeArgument],
-        ],
-    ))
 ;
 
 $subscriptions = new SubscriptionStore(
