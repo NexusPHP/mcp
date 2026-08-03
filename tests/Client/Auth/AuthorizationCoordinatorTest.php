@@ -13,16 +13,23 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Client\Auth;
 
+use Amp\Cancellation;
+use Amp\CancelledException;
 use Amp\DeferredFuture;
+use Amp\Future;
 use Amp\NullCancellation;
+use Amp\TimeoutCancellation;
 use Nexus\Mcp\Client\Auth\AccessToken;
+use Nexus\Mcp\Client\Auth\AuthorizationCallback;
 use Nexus\Mcp\Client\Auth\AuthorizationCoordinator;
 use Nexus\Mcp\Client\Auth\AuthorizationOptions;
+use Nexus\Mcp\Client\Auth\AuthorizationRedirect;
 use Nexus\Mcp\Client\Auth\ClientRegistrar;
 use Nexus\Mcp\Client\Auth\InMemoryClientRegistrationStore;
 use Nexus\Mcp\Client\Auth\InMemoryTokenStore;
 use Nexus\Mcp\Client\Auth\MetadataDiscovery;
 use Nexus\Mcp\Client\Auth\TokenEndpoint;
+use Nexus\Mcp\Client\Auth\UserAuthorizationInterface;
 use Nexus\Mcp\Client\Exception\ClientRegistrationRejectedException;
 use Nexus\Mcp\Client\Exception\InvalidAuthorizationResponseException;
 use Nexus\Mcp\Client\Exception\TokenRequestFailedException;
@@ -36,6 +43,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LogLevel;
+use Revolt\EventLoop;
 
 use function Amp\async;
 use function Amp\delay;
@@ -450,6 +458,140 @@ final class AuthorizationCoordinatorTest extends TestCase
         self::assertSame($first->await(), $second->await());
         self::assertCount(1, $user->redirects);
         self::assertCount(4, $http->requests);
+    }
+
+    public function testAQueuedCallerGivesUpAtItsOwnDeadlineRatherThanTheFlowAheadOfIt(): void
+    {
+        $gate = new DeferredFuture();
+        $http = new RecordingHttpClient()
+            ->willAnswerJson(self::resourceDocument(), gate: $gate->getFuture())
+            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson(['client_id' => 'the-registered-client'])
+            ->willAnswerJson(['access_token' => 'the-access-token', 'token_type' => 'Bearer'])
+        ;
+        $coordinator = self::coordinator($http, new ScriptedUserAuthorization());
+
+        /** @var Future<AccessToken> $holder */
+        $holder = async(static fn(): AccessToken => $coordinator->reauthorize(null, null, new NullCancellation()));
+        delay(0);
+        $queued = async(static fn(): AccessToken => $coordinator->reauthorize(null, null, new TimeoutCancellation(0.01)));
+        // The fixture holds no I/O of its own, so a referenced timer past the deadline is what lets the
+        // loop reach it.
+        delay(0.05);
+
+        $refusal = null;
+
+        try {
+            $queued->await();
+        } catch (CancelledException $e) {
+            $refusal = $e;
+        }
+
+        self::assertInstanceOf(CancelledException::class, $refusal);
+
+        $gate->complete();
+
+        self::assertSame('the-access-token', $holder->await()->value);
+    }
+
+    public function testACallerThatGaveUpWaitingStillHandsTheLockToTheNextInLine(): void
+    {
+        $gate = new DeferredFuture();
+        $http = new RecordingHttpClient()
+            ->willAnswerJson(self::resourceDocument(), gate: $gate->getFuture())
+            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson(['client_id' => 'the-registered-client'])
+            ->willAnswerJson(['access_token' => 'the-access-token', 'token_type' => 'Bearer'])
+        ;
+        $coordinator = self::coordinator($http, new ScriptedUserAuthorization());
+
+        /** @var Future<AccessToken> $holder */
+        $holder = async(static fn(): AccessToken => $coordinator->reauthorize(null, null, new NullCancellation()));
+        delay(0);
+        $abandoned = async(static fn(): AccessToken => $coordinator->reauthorize(null, null, new TimeoutCancellation(0.01)));
+        delay(0.05);
+        $abandoned->ignore();
+        // Queued behind a caller that has already given up, so it only ever runs if the lock that one is
+        // still owed comes free.
+        $served = null;
+        $behind = async(static function () use ($coordinator, &$served): void {
+            $served = $coordinator->reauthorize(null, null, new NullCancellation())->value;
+        });
+        $behind->ignore();
+        delay(0);
+        $gate->complete();
+        // Reached as a plain value rather than an await, so a lock that never came free reads as a caller
+        // still waiting instead of taking the loop down with it.
+        delay(0.05);
+
+        self::assertSame('the-access-token', $holder->await()->value);
+        self::assertSame('the-access-token', $served);
+    }
+
+    public function testTheReEntryEscapeLastsOnlyAsLongAsTheCallThatTookTheLock(): void
+    {
+        $gate = new DeferredFuture();
+        $http = self::scriptFullFlow(tokenOverrides: ['access_token' => 'the-first-token'])
+            ->willAnswerJson(self::resourceDocument(), gate: $gate->getFuture())
+            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson(['access_token' => 'the-second-token', 'token_type' => 'Bearer'])
+            ->willAnswerJson(self::resourceDocument())
+            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson(['access_token' => 'the-third-token', 'token_type' => 'Bearer'])
+        ;
+        $user = new ScriptedUserAuthorization();
+        $coordinator = self::coordinator($http, $user);
+
+        // Both of these run in the main context, so they share the fiber whose re-entry escape the second
+        // one must not inherit from the first.
+        $first = $coordinator->reauthorize(null, null, new NullCancellation());
+
+        /** @var Future<AccessToken> $holder */
+        $holder = async(static fn(): AccessToken => $coordinator->reauthorize($first, null, new NullCancellation()));
+        delay(0);
+        EventLoop::delay(0.02, static fn() => $gate->complete());
+
+        $second = $coordinator->reauthorize($first, null, new NullCancellation());
+
+        self::assertSame('the-second-token', $holder->await()->value);
+        self::assertSame('the-second-token', $second->value);
+        self::assertCount(2, $user->redirects);
+    }
+
+    public function testAUserAuthorizationThatReEntersTheCoordinatorDoesNotWaitOnItsOwnLock(): void
+    {
+        $store = new InMemoryTokenStore();
+        $store->write(self::RESOURCE, new AccessToken('the-spent-token', self::ISSUER, expiresAt: time() - 1));
+        $user = new class implements UserAuthorizationInterface {
+            public ?AuthorizationCoordinator $coordinator = null;
+            public bool $reEntered = false;
+            public ?AccessToken $reEntrantToken = null;
+
+            #[\Override]
+            public function authorize(AuthorizationRedirect $redirect, Cancellation $cancellation): AuthorizationCallback
+            {
+                $this->reEntered = true;
+                $this->reEntrantToken = $this->coordinator?->fetchToken($cancellation);
+
+                return new AuthorizationCallback('http://localhost:3000/callback?'.http_build_query([
+                    'state' => $redirect->state,
+                    'code' => 'the-code',
+                ]));
+            }
+        };
+        $coordinator = self::coordinator(self::scriptFullFlow(), $user, $store);
+        $user->coordinator = $coordinator;
+
+        $token = $coordinator->upgradeScopes(
+            $store->read(self::RESOURCE),
+            new ScopeSet(['files:write']),
+            null,
+            new NullCancellation(),
+        );
+
+        self::assertTrue($user->reEntered);
+        self::assertNull($user->reEntrantToken);
+        self::assertSame('the-access-token', $token->value);
     }
 
     public function testConcurrentRenewalsRedeemTheRefreshTokenOnce(): void
@@ -894,7 +1036,7 @@ final class AuthorizationCoordinatorTest extends TestCase
      */
     private static function coordinator(
         RecordingHttpClient $http,
-        ScriptedUserAuthorization $user,
+        UserAuthorizationInterface $user,
         ?InMemoryTokenStore $tokens = null,
         ?ArrayLogger $logger = null,
         ?InMemoryClientRegistrationStore $registrations = null,

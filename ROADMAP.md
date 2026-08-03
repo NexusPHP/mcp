@@ -499,14 +499,11 @@ Server (resource server, not conformance-scored but part of the auth spec):
 - [x] Serve a Protected Resource Metadata document.
 - [x] Bearer-token validation bound to this resource.
 
-Two behaviours are known and open, each needing its own design pass before it is changed:
-
-- [ ] Make the wait for the coordinator's lock cancellable. Every authorization round trip is bounded by
-  the cancellation of the request that needs it, but the wait to enter the flow is not, so a request
-  queued behind a consent screen runs to that screen's completion rather than to its own deadline.
-  `Amp\Sync\LocalSemaphore::acquire()` takes no `Cancellation`, so closing this means replacing
-  `Amp\Sync\synchronized()` with an explicit acquire raced against the cancellation, and settling what
-  becomes of the per-fiber reentrancy `synchronized()` grants.
+- [x] Make the wait for the coordinator's lock cancellable. Every authorization round trip is bounded by
+  the cancellation of the request that needs it, and so is the wait to enter the flow: the coordinator
+  races the lock acquire against the caller's cancellation, so a request queued behind a consent screen
+  gives up at its own deadline rather than at that screen's completion. Re-entry from the fiber that
+  already holds the lock runs the operation directly.
 - [ ] Settle what a new grant says about a scope granted earlier. The set the coordinator carries into the
   next authorization only ever grows, so a scope the authorization server has since revoked is asked for
   on every grant that follows. Narrowing it needs a rule for when a token that omits a scope means the
