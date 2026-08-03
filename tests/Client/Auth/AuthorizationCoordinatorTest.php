@@ -939,6 +939,27 @@ final class AuthorizationCoordinatorTest extends TestCase
         self::assertSame(['files:read', 'files:write'], $user->readRequestedScopes(1));
     }
 
+    public function testAGrantThatOmitsAScopeGrantedEarlierStopsAskingForIt(): void
+    {
+        $http = self::scriptFullFlow(tokenOverrides: ['scope' => 'files:read files:write'])
+            ->willAnswerJson(self::resourceDocument())
+            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson(['access_token' => 'the-second-token', 'token_type' => 'Bearer', 'scope' => 'files:read'])
+            ->willAnswerJson(self::resourceDocument())
+            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson(['access_token' => 'the-third-token', 'token_type' => 'Bearer', 'scope' => 'files:read'])
+        ;
+        $user = new ScriptedUserAuthorization();
+        $coordinator = self::coordinator($http, $user);
+
+        $first = $coordinator->reauthorize(null, null, new NullCancellation());
+        $second = $coordinator->reauthorize($first, null, new NullCancellation());
+        $coordinator->reauthorize($second, null, new NullCancellation());
+
+        self::assertSame(['files:read', 'files:write'], $user->readRequestedScopes(1));
+        self::assertSame(['files:read'], $user->readRequestedScopes(2));
+    }
+
     public function testReauthorizingReachesAStoreNoAuthorizationInThisProcessFilled(): void
     {
         $store = new InMemoryTokenStore();

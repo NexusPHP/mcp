@@ -504,10 +504,10 @@ Server (resource server, not conformance-scored but part of the auth spec):
   races the lock acquire against the caller's cancellation, so a request queued behind a consent screen
   gives up at its own deadline rather than at that screen's completion. Re-entry from the fiber that
   already holds the lock runs the operation directly.
-- [ ] Settle what a new grant says about a scope granted earlier. The set the coordinator carries into the
-  next authorization only ever grows, so a scope the authorization server has since revoked is asked for
-  on every grant that follows. Narrowing it needs a rule for when a token that omits a scope means the
-  scope was withdrawn rather than merely not asked for.
+- [x] Settle what a new grant says about a scope granted earlier. A grant replaces the remembered set
+  rather than merging onto it, because the token endpoint already resolves the ambiguity: a token
+  response that omits `scope` grants what was asked (RFC 6749 §3.3), so the scopes on the token are
+  authoritative and a scope a grant omits stops being asked for.
 
 The OAuth-related official extensions (client-credentials and enterprise-managed authorization) are
 covered in the "Official extensions" block below, built on this subsystem.
