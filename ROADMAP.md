@@ -598,9 +598,10 @@ are not in the baseline.
 - [x] Grow the authorization documentation into per-provider ground: recipes for Keycloak, Entra,
   Auth0, and Okta, each covering the provider-side configuration, the token validator, and the quirks
   the generic pages cannot know.
-- [ ] A dockerised end-to-end example (Keycloak in compose, a protected server, the SDK client walking
+- [x] A dockerised end-to-end example (Keycloak in compose, a protected server, the SDK client walking
   the full flow), so a reader can stand a protected server up rather than assemble one from the
-  reference.
+  reference. `examples/keycloak-e2e/` holds the realm export, compose file, protected server, and
+  flow-walking client, and the `keycloak-e2e` workflow re-runs the whole flow in CI.
 
 ### Official extensions
 

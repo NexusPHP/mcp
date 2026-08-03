@@ -1,0 +1,87 @@
+name: Keycloak E2E
+
+on:
+  push:
+    branches:
+      - 1.x
+    paths:
+      - .github/workflows/keycloak-e2e.yml
+      - examples/keycloak-e2e/**
+      - src/**
+      - composer.json
+  pull_request:
+    branches:
+      - 1.x
+    paths:
+      - .github/workflows/keycloak-e2e.yml
+      - examples/keycloak-e2e/**
+      - src/**
+      - composer.json
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  keycloak-e2e:
+    name: Full authorization flow
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: composer-8.4-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            composer-8.4-
+            composer-
+
+      - name: Install dependencies
+        run: composer update --ansi
+
+      - name: Start Keycloak
+        run: docker compose -f examples/keycloak-e2e/compose.yaml up --wait
+
+      - name: Start the protected server
+        run: |
+          php examples/keycloak-e2e/server.php > server.log 2>&1 &
+          for _ in $(seq 1 20); do
+            curl -sf -o /dev/null http://127.0.0.1:8973/.well-known/oauth-protected-resource/mcp && exit 0
+            sleep 1
+          done
+          echo "::error::The protected server never came up."
+          cat server.log
+          exit 1
+
+      # The client starts unregistered and tokenless. Everything between the first
+      # 401 and the tool result (discovery, dynamic registration, PKCE, the token
+      # exchange, the replay) is the SDK walking the flow against a real Keycloak.
+      - name: Walk the authorization flow
+        run: php examples/keycloak-e2e/client.php | tee client.log
+
+      - name: Assert the token reached the tool
+        run: grep -q 'with scopes \[mcp:use\]' client.log
+
+      - name: Show the server log
+        if: always()
+        run: cat server.log

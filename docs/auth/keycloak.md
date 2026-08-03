@@ -53,3 +53,8 @@ Two gotchas:
 - Keycloak identifies the authorizing client in `azp`, not `client_id`.
 - A token's `aud` defaults to `account` unless a mapper adds your resource URI. Without the mapper,
   `BearerAuthenticationMiddleware` refuses every token, which is the audience binding doing its job.
+
+All of this exists as a runnable whole in the
+[Keycloak end-to-end example](../../examples/keycloak-e2e/README.md): a realm export with the scope,
+mapper, and registration policies configured, a compose file that imports it, and the protected
+server plus flow-walking client.

@@ -24,6 +24,7 @@ return new Configuration()
     // These read `SIGINT` / `SIGTERM` behind a `defined()` guard and fall back when ext-pcntl
     // is absent, so requiring the extension would over-constrain a `composer install`.
     ->ignoreErrorsOnExtensionAndPath('ext-pcntl', __DIR__.'/examples/http-server.php', [ErrorType::SHADOW_DEPENDENCY])
+    ->ignoreErrorsOnExtensionAndPath('ext-pcntl', __DIR__.'/examples/keycloak-e2e/server.php', [ErrorType::SHADOW_DEPENDENCY])
     ->ignoreErrorsOnExtensionAndPath('ext-pcntl', __DIR__.'/conformance/server.php', [ErrorType::SHADOW_DEPENDENCY])
     // A suggested dependency: JwksAccessTokenValidator guards its use behind `class_exists` and
     // names the package to install, so production code may reference it without requiring it.
