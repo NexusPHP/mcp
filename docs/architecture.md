@@ -175,11 +175,12 @@ finishes right as the transport closes would lose its response to a race with th
   via `SchemaValidatorInterface`), and a `structuredContent`-only result is mirrored into a `TextContent`
   block for backwards compatibility.
 - What we do not have yet: tasks and MCP Apps.
-- What we deliberately omit: sampling, roots, and logging. SEP-2596 deprecated them, and the spec tells new
+- What we deliberately omit: sampling, roots, and logging. SEP-2577 deprecated them, and the spec tells new
   implementations not to adopt a deprecated feature, so a greenfield SDK carries none of them. One
   consequence reaches the input-required flow: the spec's `InputRequest` union is
   `CreateMessageRequest | ListRootsRequest | ElicitRequest`, and only the last is undeprecated, so a server
-  built on this SDK can ask for elicitation and nothing else.
+  built on this SDK can ask for elicitation and nothing else. The two are not modelled even as payload
+  types that never travel as dispatchable methods, since emitting one is adopting the feature.
 
 ## Diagnostic message conventions
 

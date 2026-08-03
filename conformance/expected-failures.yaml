@@ -25,10 +25,17 @@ server:
   #
   # `capability-check` is the same gap seen from the other side: the referee declares
   # `sampling` and no `elicitation`, then requires an `InputRequiredResult` naming
-  # sampling. An elicitation-only server has nothing it may ask that client for.
+  # sampling. An elicitation-only server has nothing it may ask that client for, so the
+  # spec-correct answer is `-32021` with `requiredCapabilities: {elicitation: {}}`, which
+  # the check scores as a failure because it rejects every JSON-RPC error. The only other
+  # way past it is an `InputRequiredResult` carrying `requestState` and no
+  # `inputRequests`, which the check waves through and which would ask the client for
+  # nothing, forever. Do not do that to buy the check.
   #
-  # Retired by deciding whether to model the two deprecated request types as
-  # `InputRequest` payloads. See ROADMAP.md.
+  # Emitting either request is adopting a deprecated feature, which the spec tells a new
+  # implementation not to do, so no work on this side retires these four. They go if the
+  # referee stops requiring the deprecated half of the union, tracked upstream at
+  # https://github.com/modelcontextprotocol/conformance/issues/439.
   - input-required-result-basic-sampling
   - input-required-result-basic-list-roots
   - input-required-result-multiple-input-requests

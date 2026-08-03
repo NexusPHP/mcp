@@ -84,7 +84,7 @@ Some omissions are choices, not gaps:
   types on purpose.
 - **No umbrella capability registry.** Each feature has its own constructor-injected store rather than a
   combined registry, so adding a feature mirrors an existing shape instead of growing a god object.
-- **No sampling, roots, or logging.** SEP-2596 deprecated all three, and the spec tells new implementations
+- **No sampling, roots, or logging.** SEP-2577 deprecated all three, and the spec tells new implementations
   not to adopt a deprecated feature. A greenfield SDK carries none of them rather than shipping surface it
   would have to remove.
 - **No back-compat for superseded spec revisions.** The SDK tracks one protocol revision at a time. The

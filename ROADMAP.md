@@ -188,14 +188,16 @@ per spec method (nine in all). Only `tools/call`, `prompts/get`, and `resources/
   dispatcher reads off `InputResponseRequestParams`. `RequestStateSigner` mints and checks the continuation
   token, since the client echoes it back unverified and a handler must be able to tell its own state from a
   forged one. Eight of the twelve conformance scenarios pass.
-- [ ] Ask for input the two deprecated ways. The spec's `InputRequest` union is
+- [x] Ask for input with elicitation only. The spec's `InputRequest` union is
   `CreateMessageRequest | ListRootsRequest | ElicitRequest`, and `latest-schema.ts` marks the first two
-  `@deprecated` as of 2026-07-28 (SEP-2577) while leaving `ElicitRequest` unmarked. This SDK dropped both
-  under that deprecation, so a handler can ask for elicitation and nothing else. That leaves four
-  conformance scenarios failing (`basic-sampling`, `basic-list-roots`, `multiple-input-requests`, and
-  `capability-check`, the last of which declares `sampling` and no `elicitation`). Retired by deciding
-  whether to model the two as `InputRequest` payload types without readopting them as dispatchable methods.
-  No upstream issue tracks the conflict.
+  `@deprecated` as of 2026-07-28 (SEP-2577) while leaving `ElicitRequest` unmarked. Neither is modelled, not
+  even as a payload type that never travels as a dispatchable method: emitting one is adopting a deprecated
+  feature, and the `sampling` and `roots` client capabilities carry the same deprecation, so a client built
+  to this revision declares neither and a server able to ask would find nobody to ask. The receiving side
+  loses nothing, because a client must answer every key in `inputRequests` or none, so one that cannot sample
+  could not proceed even with the request decoded. Four conformance scenarios stay baselined as a result
+  (`basic-sampling`, `basic-list-roots`, `multiple-input-requests`, and `capability-check`), raised upstream
+  as [conformance#439](https://github.com/modelcontextprotocol/conformance/issues/439).
 
 ### Tool schema relaxation (SEP-2106)
 
