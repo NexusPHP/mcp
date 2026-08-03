@@ -4,7 +4,9 @@ This file is the upgrade guide: what breaks at each version boundary and how to 
 for *when* breaking changes may land and how they are communicated lives in
 [VERSIONING.md](VERSIONING.md).
 
-## v0.5.0 to Unreleased
+## v0.6.0 to Unreleased
+
+## v0.5.0 to v0.6.0
 
 This boundary is the no-compatibility cut from MCP **2025-11-25** to MCP **2026-07-28**. The SDK
 tracks exactly one protocol revision, so everything shaped by the old revision changed in one move.

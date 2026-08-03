@@ -8,6 +8,8 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp/commits/1.x)
 
+## [v0.6.0](https://github.com/NexusPHP/mcp/compare/v0.5.0...v0.6.0) - 2026-08-03
+
 The tracked MCP specification moves from **2025-11-25** to **2026-07-28** with no compatibility
 layer, so this boundary is breaking throughout. [BREAKING_CHANGES.md](BREAKING_CHANGES.md) is the
 upgrade guide. The entries below are the inventory.
