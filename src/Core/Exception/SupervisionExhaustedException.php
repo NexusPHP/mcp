@@ -21,7 +21,7 @@ final class SupervisionExhaustedException extends \RuntimeException implements M
     public function __construct(public readonly int $restarts, ?\Throwable $previous = null)
     {
         parent::__construct(
-            \sprintf('Gave up supervising the peer after %d restart attempt(s) without a served message.', $restarts),
+            \sprintf('Gave up supervising the peer after %d restart attempt(s) in one window.', $restarts),
             previous: $previous,
         );
     }

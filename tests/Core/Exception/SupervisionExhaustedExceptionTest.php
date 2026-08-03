@@ -30,7 +30,7 @@ final class SupervisionExhaustedExceptionTest extends TestCase
     {
         $e = new SupervisionExhaustedException(3);
 
-        self::assertSame('Gave up supervising the peer after 3 restart attempt(s) without a served message.', $e->getMessage());
+        self::assertSame('Gave up supervising the peer after 3 restart attempt(s) in one window.', $e->getMessage());
         self::assertSame(3, $e->restarts);
         self::assertNull($e->getPrevious());
     }

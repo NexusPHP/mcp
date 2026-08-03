@@ -186,11 +186,23 @@ line-framed duplex underneath it is single-use.
   emits close more than once over its life. That emission is what rejects the requests that were in flight
   when the peer died. They are not retried, and a `send()` issued between a death and its replacement is
   refused with `TransportAlreadyClosedException`.
-- **Restart budget**: `maxRestarts` counts *consecutive* respawns. Any inbound message from a replacement
-  clears the count, so the budget bounds a crash loop rather than the lifetime of a healthy connection.
-  Spending it emits a `SupervisionExhaustedException` through `onError()` and then closes for good.
+- **Restart budget**: the count is measured over a window that opens at the first restart and runs for
+  `restartWindow` seconds (60 by default). A death inside it spends budget, and the first death past it
+  opens a fresh window. So the count bounds a crash loop rather than a healthy connection's lifetime. The
+  window is tumbling rather than sliding, which means up to `2 * maxRestarts - 1` respawns can fall inside
+  one window-width span that straddles a boundary. Spending the budget emits a `SupervisionExhaustedException`
+  through `onError()` and then closes for good.
+
+  Time comes from `microtime()` unless you pass a `clock` closure, which exists so a caller can make the
+  boundary exact under test. It must read **seconds**: a source in other units (`hrtime()` returns
+  nanoseconds) makes every gap look larger than any window and silently leaves the budget unspendable.
+
+  A served message deliberately does **not** clear the count. The protocol layer replays its own state on
+  every reconnect (see below), so even a peer that dies immediately is guaranteed to answer something, and
+  treating that as proof of health would make the budget unspendable.
 - **Intentional close**: `close()` stops supervision permanently and cancels a pending respawn, so shutting
-  down never races a restart.
+  down never races a restart. When it cancels one, it emits a second `onClose()`: the connection's own close
+  already went out, and a caller holding state for the promised replacement needs to hear that it withdrew.
 - **Reconnect signal**: it implements `ReconnectingTransportInterface`, whose `onReconnect()` fires once per
   replacement that has started serving, after the close for the connection it replaces and never for the
   first connection. A protocol layer holding per-connection state rebuilds it there. `Client` uses it to
@@ -221,7 +233,8 @@ What the caller sees:
   type: a live connection has no replacement pending, so its failures are answers.
 - A re-open the replacement cannot take is logged and left registered, so the peer after it tries again.
 - Spending the restart budget fails every open stream with `SupervisionExhaustedException`, since no
-  further peer is coming. `Client::disconnect()` fails them with `TransportAlreadyClosedException`.
+  further peer is coming. `Client::disconnect()` fails them with `TransportAlreadyClosedException`, and so
+  does closing the transport directly while a replacement is pending.
 - A stream the caller closed before the restart is not restored.
 - A reconnect listener that throws is reported through `onError()` and the rest of the chain still runs, so
   one consumer's failure cannot strand another's streams.

@@ -28,6 +28,9 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LogLevel;
 use Revolt\EventLoop;
 
+use function Amp\async;
+use function Amp\delay;
+
 /**
  * @internal
  */
@@ -467,11 +470,17 @@ final class SupervisedTransportTest extends TestCase
     public function testClosingFromACloseListenerCancelsTheRespawn(): void
     {
         $spawned = [];
-        $transport = $this->buildTransport($spawned);
+        $logger = new ArrayLogger();
+        $transport = $this->buildTransport($spawned, logger: $logger);
 
-        $transport->onClose(static function () use (&$transport): void {
+        $reentries = 0;
+        $transport->onClose(static function () use (&$transport, &$reentries): void {
             // An application that treats a lost connection as terminal. The peer's death has already
             // been reported at this point, so supervision must not spawn a replacement behind its back.
+            if (++$reentries > 2) {
+                self::fail('close() must not drive unbounded re-entry through its own close listeners.');
+            }
+
             $transport->close();
         });
 
@@ -480,6 +489,12 @@ final class SupervisedTransportTest extends TestCase
         EventLoop::run();
 
         self::assertCount(1, $spawned);
+
+        // A closed transport does no respawn bookkeeping at all: no budget spent, no attempt announced.
+        self::assertSame([], $logger->recordsMatching(
+            LogLevel::WARNING,
+            '{label} transport respawning the peer after an unexpected exit (code {exitCode}), attempt {attempt} of {budget}.',
+        ));
     }
 
     public function testCloseIsIdempotent(): void
@@ -554,22 +569,59 @@ final class SupervisedTransportTest extends TestCase
         self::assertSame(1, $closes, 'A dead connection must not re-close the live one.');
     }
 
-    public function testServedMessageResetsTheRestartBudget(): void
+    public function testAServedMessageDoesNotClearTheRestartBudget(): void
     {
         $spawned = [];
-        $logger = new ArrayLogger();
-        $transport = $this->buildTransport($spawned, maxRestarts: 1, logger: $logger);
+        $transport = $this->buildTransport($spawned, maxRestarts: 1);
+
+        $errors = [];
+        $transport->onError(static function (\Throwable $e) use (&$errors): void {
+            $errors[] = $e;
+        });
+
         $transport->start();
 
-        for ($i = 0; $i < 4; ++$i) {
+        // A replacement that answers and dies again is still a crash loop. The protocol layer replays its
+        // own state on every reconnect, so a peer serving something proves nothing about its health.
+        for ($i = 0; $i < 2; ++$i) {
             self::connectionAt($spawned, $i)->emitMessage(['served' => $i]);
             self::connectionAt($spawned, $i)->emitUnexpectedExit();
             EventLoop::run();
         }
 
-        self::assertCount(5, $spawned, 'A connection that served a message clears the consecutive-failure count.');
+        self::assertCount(2, $spawned);
+        self::assertCount(1, $errors);
+        self::assertInstanceOf(SupervisionExhaustedException::class, $errors[0]);
+    }
 
-        // Every death followed a served message, so each respawn is the first attempt again.
+    public function testTheRestartCountStartsAgainInAFreshWindow(): void
+    {
+        $spawned = [];
+        $logger = new ArrayLogger();
+        $now = 0.0;
+        $transport = $this->buildTransport(
+            $spawned,
+            maxRestarts: 1,
+            logger: $logger,
+            restartWindow: 10.0,
+            clock: static function () use (&$now): float {
+                return $now;
+            },
+        );
+
+        $transport->start();
+        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+        EventLoop::run();
+
+        // Past the window, so the peer that dies next opens a budget of its own instead of spending the
+        // one the first death opened.
+        $now = 10.5;
+
+        self::connectionAt($spawned, 1)->emitUnexpectedExit();
+        EventLoop::run();
+
+        self::assertCount(3, $spawned, 'A death outside the window is a first attempt again.');
+
         $attempts = array_map(
             static fn(array $record): mixed => $record['context']['attempt'] ?? null,
             $logger->recordsMatching(
@@ -578,7 +630,211 @@ final class SupervisedTransportTest extends TestCase
             ),
         );
 
-        self::assertSame([1, 1, 1, 1], $attempts);
+        self::assertSame([1, 1], $attempts);
+    }
+
+    public function testADeathExactlyOnTheWindowEdgeStaysInsideIt(): void
+    {
+        $spawned = [];
+        $now = 0.0;
+        $transport = $this->buildTransport(
+            $spawned,
+            maxRestarts: 1,
+            restartWindow: 10.0,
+            clock: static function () use (&$now): float {
+                return $now;
+            },
+        );
+
+        $errors = [];
+        $transport->onError(static function (\Throwable $e) use (&$errors): void {
+            $errors[] = $e;
+        });
+
+        $transport->start();
+        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+        EventLoop::run();
+
+        // Exactly one window later. The window has not yet elapsed, so this death spends the same budget
+        // rather than opening a new one.
+        $now = 10.0;
+
+        self::connectionAt($spawned, 1)->emitUnexpectedExit();
+        EventLoop::run();
+
+        self::assertCount(2, $spawned);
+        self::assertCount(1, $errors);
+        self::assertInstanceOf(SupervisionExhaustedException::class, $errors[0]);
+    }
+
+    public function testTheWindowOpensAtTheFirstRestartNotAtTheClocksOrigin(): void
+    {
+        $spawned = [];
+        // Starts inside the window, as a monotonic source does in a freshly booted container.
+        $now = 5.0;
+        $transport = $this->buildTransport(
+            $spawned,
+            maxRestarts: 1,
+            restartWindow: 10.0,
+            clock: static function () use (&$now): float {
+                return $now;
+            },
+        );
+
+        $errors = [];
+        $transport->onError(static function (\Throwable $e) use (&$errors): void {
+            $errors[] = $e;
+        });
+
+        $transport->start();
+        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+        EventLoop::run();
+
+        // Seven seconds after the first restart, so well inside its window. Measured from the clock's
+        // origin instead, twelve seconds would have elapsed and this would open a fresh budget.
+        $now = 12.0;
+
+        self::connectionAt($spawned, 1)->emitUnexpectedExit();
+        EventLoop::run();
+
+        self::assertCount(2, $spawned);
+        self::assertCount(1, $errors);
+        self::assertInstanceOf(SupervisionExhaustedException::class, $errors[0]);
+    }
+
+    public function testTheDefaultClockMeasuresTheWindow(): void
+    {
+        $spawned = [];
+        $transport = $this->buildTransport($spawned, maxRestarts: 1, restartWindow: 0.01);
+
+        $errors = [];
+        $transport->onError(static function (\Throwable $e) use (&$errors): void {
+            $errors[] = $e;
+        });
+
+        $transport->start();
+        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+        EventLoop::run();
+
+        // Real elapsed time, not an injected reading: a default clock that never advances would leave
+        // `maxRestarts` a lifetime budget, which is the unsoundness the window replaced.
+        delay(0.05);
+
+        self::connectionAt($spawned, 1)->emitUnexpectedExit();
+        EventLoop::run();
+
+        self::assertCount(3, $spawned);
+        self::assertSame([], $errors, 'A death past the window opens a fresh budget rather than spending the old one.');
+    }
+
+    public function testClosingWhileAReplacementIsComingUpEmitsOnlyItsOwnClose(): void
+    {
+        $spawned = [];
+        $transport = $this->built[] = new SupervisedTransport(
+            static function () use (&$spawned): SupervisableTransportInterface {
+                $inner = new SupervisableRecordingTransport();
+                // The second peer suspends on the way up, exactly as a real subprocess launch does.
+                $inner->startDelay = [] === $spawned ? 0.0 : 0.05;
+                $spawned[] = $inner;
+
+                return $inner;
+            },
+            restartDelay: 0.0,
+        );
+
+        $closes = [];
+        $transport->onClose(static function () use (&$closes): void {
+            $closes[] = 'close';
+        });
+
+        $reconnects = [];
+        $transport->onReconnect(static function () use (&$reconnects): void {
+            $reconnects[] = 'reconnect';
+        });
+
+        $transport->start();
+        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+
+        // Lands while the replacement is still starting: it is a live connection owing its own close, not
+        // a promised one owing an extra.
+        async(static function () use ($transport): void {
+            delay(0.01);
+            $transport->close();
+        });
+        EventLoop::run();
+
+        self::assertSame(['close', 'close'], $closes, 'One close for the dead peer, one for the replacement.');
+        self::assertSame([], $reconnects, 'A replacement the close overtook was never serving.');
+        self::assertTrue(self::connectionAt($spawned, 1)->closed);
+    }
+
+    public function testAClosePartWayThroughRetiringDoesNotArmAReplacement(): void
+    {
+        $spawned = [];
+        $transport = $this->built[] = new SupervisedTransport(
+            static function () use (&$spawned): SupervisableTransportInterface {
+                $inner = new SupervisableRecordingTransport();
+                $inner->closeDelay = 0.05;
+                $spawned[] = $inner;
+
+                return $inner;
+            },
+            restartDelay: 0.0,
+        );
+
+        $transport->start();
+
+        async(static function () use ($transport): void {
+            delay(0.01);
+            $transport->close();
+        });
+
+        // The status lands without the streams tearing down, so the supervisor's own retire is what
+        // closes the peer, and that suspends.
+        self::connectionAt($spawned, 0)->emitUnexpectedExit(streamClosesFirst: false);
+        EventLoop::run();
+
+        // A peer minted after the close would be live, unsupervised, and closed by nothing.
+        self::assertCount(1, $spawned);
+    }
+
+    public function testAThrowingListenerOnTheAbandonmentCloseIsReported(): void
+    {
+        $spawned = [];
+        $transport = $this->buildTransport($spawned, restartDelay: 0.5);
+
+        $errors = [];
+        $transport->onError(static function (\Throwable $e) use (&$errors): void {
+            $errors[] = $e->getMessage();
+        });
+
+        $transport->start();
+        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+
+        // Registered after the peer's own close, so only the abandonment emission reaches it.
+        $reached = [];
+        $transport->onClose(static function (): void {
+            throw new \RuntimeException('listener blew up');
+        });
+        $transport->onClose(static function () use (&$reached): void {
+            $reached[] = 'reached';
+        });
+
+        $transport->close();
+
+        self::assertSame(['listener blew up'], $errors);
+        self::assertSame([], $reached, 'The chain still aborts, as TransportInterface documents.');
+    }
+
+    public function testANonPositiveRestartWindowThrows(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('restartWindow must be positive, 0.0 given.');
+
+        new SupervisedTransport(
+            static fn(): SupervisableTransportInterface => new SupervisableRecordingTransport(),
+            restartWindow: 0.0,
+        );
     }
 
     public function testExhaustedBudgetRaisesAndCloses(): void
@@ -605,7 +861,7 @@ final class SupervisedTransportTest extends TestCase
         self::assertInstanceOf(SupervisionExhaustedException::class, $errors[0]);
         self::assertSame(2, $errors[0]->restarts);
         self::assertSame(
-            'Gave up supervising the peer after 2 restart attempt(s) without a served message.',
+            'Gave up supervising the peer after 2 restart attempt(s) in one window.',
             $errors[0]->getMessage(),
         );
 
@@ -678,6 +934,12 @@ final class SupervisedTransportTest extends TestCase
         $transport = new SupervisedTransport(
             static function () use (&$spawned, &$attempts, $failure): SupervisableTransportInterface {
                 ++$attempts;
+
+                if ($attempts > 8) {
+                    // Budget arithmetic that stopped terminating would otherwise recurse here until the
+                    // suite is killed on the clock rather than failing on an assertion.
+                    self::fail('A spent budget must stop the respawn recursion.');
+                }
 
                 if ($attempts > 1) {
                     throw $failure;
@@ -828,6 +1090,43 @@ final class SupervisedTransportTest extends TestCase
         $transport->close();
 
         self::assertFalse($transport->isReconnecting());
+    }
+
+    public function testAbandoningAPendingReplacementEmitsASecondClose(): void
+    {
+        $spawned = [];
+        $transport = $this->buildTransport($spawned, restartDelay: 0.05);
+
+        $closes = [];
+        $transport->onClose(static function () use (&$closes): void {
+            $closes[] = 'close';
+        });
+
+        $transport->start();
+        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+        $afterExit = $closes;
+
+        // Withdrawing the promised replacement is the only signal a caller holding state for it will get.
+        $transport->close();
+
+        self::assertSame(['close'], $afterExit, 'The dead connection has ended, and a replacement is still promised.');
+        self::assertSame(['close', 'close'], $closes);
+    }
+
+    public function testClosingWithNoReplacementPendingEmitsOneClose(): void
+    {
+        $spawned = [];
+        $transport = $this->buildTransport($spawned);
+
+        $closes = [];
+        $transport->onClose(static function () use (&$closes): void {
+            $closes[] = 'close';
+        });
+
+        $transport->start();
+        $transport->close();
+
+        self::assertSame(['close'], $closes, 'A live connection owes exactly its own close.');
     }
 
     public function testAThrowingReconnectListenerIsReportedAndTheChainContinues(): void
@@ -1002,12 +1301,15 @@ final class SupervisedTransportTest extends TestCase
 
     /**
      * @param list<SupervisableRecordingTransport> $spawned
+     * @param null|\Closure(): float               $clock
      */
     private function buildTransport(
         array &$spawned,
         int $maxRestarts = 3,
         float $restartDelay = 0.0,
         ?ArrayLogger $logger = null,
+        float $restartWindow = SupervisedTransport::DEFAULT_RESTART_WINDOW,
+        ?\Closure $clock = null,
     ): SupervisedTransport {
         $factory = static function () use (&$spawned): SupervisableTransportInterface {
             $inner = new SupervisableRecordingTransport();
@@ -1017,8 +1319,8 @@ final class SupervisedTransportTest extends TestCase
         };
 
         $transport = null === $logger
-            ? new SupervisedTransport($factory, $maxRestarts, $restartDelay)
-            : new SupervisedTransport($factory, $maxRestarts, $restartDelay, $logger);
+            ? new SupervisedTransport($factory, $maxRestarts, $restartDelay, restartWindow: $restartWindow, clock: $clock)
+            : new SupervisedTransport($factory, $maxRestarts, $restartDelay, $logger, $restartWindow, $clock);
 
         $this->built[] = $transport;
 

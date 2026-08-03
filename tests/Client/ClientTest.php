@@ -2142,6 +2142,75 @@ final class ClientTest extends TestCase
         $stream->await();
     }
 
+    public function testClosingTheTransportDirectlyEndsAStreamWaitingOnAReplacement(): void
+    {
+        $spawned = [];
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $transport = self::supervisedTransport($spawned, restartDelay: 0.5);
+        $client->connect($transport);
+
+        $stream = $client->listen(new SubscriptionFilter(toolsListChanged: true), static function (): void {});
+
+        self::supervisedPeer($spawned, 0)->emitUnexpectedExit();
+
+        // Absorbed while the replacement is pending, exactly as designed.
+        delay(0.001);
+
+        $settledEarly = false;
+
+        try {
+            $stream->await();
+            $settledEarly = true;
+        } catch (RemoteCallFailedException|SubscriptionClosedException) {
+            $settledEarly = true;
+        } catch (\Throwable) {
+            // A dry event loop, which is what "still waiting" looks like in an in-memory fixture.
+        }
+
+        self::assertFalse($settledEarly, 'The premise: the stream is still waiting on a replacement.');
+
+        // Shutting the transport down without going through the client is a documented path, and it is
+        // the last chance the stream has to hear anything.
+        $transport->close();
+
+        $settled = async(static fn(): mixed => $stream->await());
+
+        // Referenced loop work, so a stream that never settles reads as still pending rather than as the
+        // dry-loop error an in-memory fixture would otherwise produce.
+        delay(0.05);
+
+        self::assertTrue($settled->isComplete(), 'A close no replacement follows must end the stream.');
+
+        $this->expectException(TransportAlreadyClosedException::class);
+        $settled->await();
+    }
+
+    public function testClosingTheTransportDirectlyEndsARequestWaitingOnAReplacement(): void
+    {
+        $spawned = [];
+        $client = new ClientBuilder()
+            ->setClientInfo('demo', '1.0.0')
+            ->setRetryLostRequests(true)
+            ->build()
+        ;
+        $transport = self::supervisedTransport($spawned, restartDelay: 0.5);
+        $client->connect($transport);
+
+        $call = async(static fn(): ListToolsResult => $client->listTools());
+        delay(0.001);
+
+        self::supervisedPeer($spawned, 0)->emitUnexpectedExit();
+        delay(0.001);
+
+        // The premise: absorbed while the replacement is pending, so only the close can end it.
+        self::assertFalse($call->isComplete());
+
+        $transport->close();
+
+        $this->expectException(TransportAlreadyClosedException::class);
+        $call->await();
+    }
+
     public function testDisconnectStopsAStreamFromBeingReopened(): void
     {
         $spawned = [];

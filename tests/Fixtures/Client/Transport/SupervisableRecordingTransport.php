@@ -21,6 +21,8 @@ use Nexus\Mcp\Core\Transport\SubscriptionInterface;
 use Nexus\Mcp\Core\Transport\SupervisableTransportInterface;
 use Nexus\Mcp\Core\Transport\TransportEvents;
 
+use function Amp\delay;
+
 /**
  * In-memory `SupervisableTransportInterface` for supervision tests. Records sends and exposes hooks to
  * drive each listener chain, including the unexpected-exit signal a real subprocess would raise.
@@ -38,7 +40,19 @@ final class SupervisableRecordingTransport implements SupervisableTransportInter
     public private(set) array $sent = [];
 
     public ?\Throwable $startError = null;
+
+    /**
+     * Seconds `start()` suspends for, standing in for a real subprocess launch.
+     */
+    public float $startDelay = 0.0;
+
     public ?\Throwable $closeError = null;
+
+    /**
+     * Seconds `close()` suspends for, standing in for a transport that drains on the way down.
+     */
+    public float $closeDelay = 0.0;
+
     public ?\Throwable $sendError = null;
 
     /**
@@ -65,6 +79,10 @@ final class SupervisableRecordingTransport implements SupervisableTransportInter
     {
         if (null !== $this->startError) {
             throw $this->startError;
+        }
+
+        if ($this->startDelay > 0.0) {
+            delay($this->startDelay);
         }
 
         $this->started = true;
@@ -94,6 +112,10 @@ final class SupervisableRecordingTransport implements SupervisableTransportInter
         }
 
         $this->closed = true;
+
+        if ($this->closeDelay > 0.0) {
+            delay($this->closeDelay);
+        }
 
         if (null !== $this->closeError) {
             // Mirrors LineDuplex, which drains its background loops before emitting close, so a failure
