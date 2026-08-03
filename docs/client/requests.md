@@ -9,8 +9,8 @@ optional `Cursor` for pagination.
 | `listResources(?Cursor $cursor = null)` | `resources/list` | `ListResourcesResult` |
 | `listResourceTemplates(?Cursor $cursor = null)` | `resources/templates/list` | `ListResourceTemplatesResult` |
 | `listPrompts(?Cursor $cursor = null)` | `prompts/list` | `ListPromptsResult` |
-| `readResource(string $uri)` | `resources/read` | `ReadResourceResult\|InputRequiredResult` |
-| `getPrompt(string $name, ?array $arguments = null)` | `prompts/get` | `GetPromptResult\|InputRequiredResult` |
+| `readResource(string $uri, ?array $inputResponses = null, ?string $requestState = null)` | `resources/read` | `ReadResourceResult\|InputRequiredResult` |
+| `getPrompt(string $name, ?array $arguments = null, ?array $inputResponses = null, ?string $requestState = null)` | `prompts/get` | `GetPromptResult\|InputRequiredResult` |
 | `complete(PromptReference\|ResourceTemplateReference $ref, array $argument, ?array $context = null)` | `completion/complete` | `CompleteResult` |
 | `callTool(string $name, ?array $arguments = null, ?\Closure $onProgress = null, ?array $inputResponses = null, ?string $requestState = null)` | `tools/call` | `CallToolResult\|InputRequiredResult` |
 | `discover()` | `server/discover` | `DiscoverResult` |

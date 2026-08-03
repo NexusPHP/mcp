@@ -1090,6 +1090,8 @@ final class ClientTest extends TestCase
         $request = $transport->sent[1]['message'];
         self::assertInstanceOf(ReadResourceRequest::class, $request);
         self::assertSame('example://greeting', $request->params->uri);
+        self::assertNull($request->params->inputResponses);
+        self::assertNull($request->params->requestState);
 
         $transport->emitMessage([
             'jsonrpc' => '2.0',
@@ -1117,6 +1119,8 @@ final class ClientTest extends TestCase
         self::assertInstanceOf(GetPromptRequest::class, $request);
         self::assertSame('walkthrough', $request->params->name);
         self::assertSame(['audience' => 'reviewers'], $request->params->arguments);
+        self::assertNull($request->params->inputResponses);
+        self::assertNull($request->params->requestState);
 
         $transport->emitMessage([
             'jsonrpc' => '2.0',
@@ -1127,6 +1131,69 @@ final class ClientTest extends TestCase
         $result = $deferred->await();
         self::assertInstanceOf(GetPromptResult::class, $result);
         self::assertSame([], $result->messages);
+    }
+
+    public function testReadResourceCarriesInputResponsesAndRequestStateBackToTheServer(): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+        self::discover($client, $transport);
+
+        $answer = new ElicitResult(action: ElicitAction::Accept, content: ['region' => 'eu']);
+
+        $deferred = async(static fn() => $client->readResource(
+            uri: 'example://greeting',
+            inputResponses: ['pick_region' => $answer],
+            requestState: 'opaque-state-from-the-server',
+        ));
+        $transport->nextSend()->await();
+
+        self::assertCount(2, $transport->sent);
+        $request = $transport->sent[1]['message'];
+        self::assertInstanceOf(ReadResourceRequest::class, $request);
+        self::assertSame(['pick_region' => $answer], $request->params->inputResponses);
+        self::assertSame('opaque-state-from-the-server', $request->params->requestState);
+
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => $request->id->id,
+            'result' => ['contents' => [], 'ttlMs' => 0, 'cacheScope' => 'private'],
+        ]);
+
+        self::assertInstanceOf(ReadResourceResult::class, $deferred->await());
+    }
+
+    public function testGetPromptCarriesInputResponsesAndRequestStateBackToTheServer(): void
+    {
+        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+        self::discover($client, $transport);
+
+        $answer = new ElicitResult(action: ElicitAction::Decline);
+
+        $deferred = async(static fn() => $client->getPrompt(
+            name: 'walkthrough',
+            inputResponses: ['confirm_audience' => $answer],
+            requestState: 'opaque-state-from-the-server',
+        ));
+        $transport->nextSend()->await();
+
+        self::assertCount(2, $transport->sent);
+        $request = $transport->sent[1]['message'];
+        self::assertInstanceOf(GetPromptRequest::class, $request);
+        self::assertNull($request->params->arguments);
+        self::assertSame(['confirm_audience' => $answer], $request->params->inputResponses);
+        self::assertSame('opaque-state-from-the-server', $request->params->requestState);
+
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => $request->id->id,
+            'result' => ['messages' => []],
+        ]);
+
+        self::assertInstanceOf(GetPromptResult::class, $deferred->await());
     }
 
     public function testCompleteForwardsRefAndArgumentAndUnwrapsResult(): void

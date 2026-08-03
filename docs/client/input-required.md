@@ -28,20 +28,28 @@ Keep `arguments` the same as the first call. The server is resuming that request
 one, and `requestState` must go back exactly as it arrived: it is opaque, and a server is entitled to
 reject a modified one.
 
-`readResource()` and `getPrompt()` take no such arguments, so answering those two means building the
-request yourself and sending it through `sendRequest()`:
+`readResource()` and `getPrompt()` answer the same way, with the same two parameters:
 
 ```php
-$response = $client->sendRequest(
-    new ReadResourceRequest(
-        id: $requestId,
-        params: new ReadResourceRequestParams(
-            uri: 'file:///report.csv',
-            inputResponses: ['passphrase' => new ElicitResult(action: ElicitAction::Accept, content: ['passphrase' => 'hunter2'])],
-            requestState: $result->requestState,
-            meta: $meta,
-        ),
-    ),
-    ReadResourceResultResponse::class,
+$contents = $client->readResource(
+    uri: 'file:///report.csv',
+    inputResponses: ['passphrase' => new ElicitResult(
+        action: ElicitAction::Accept,
+        content: ['passphrase' => 'hunter2'],
+    )],
+    requestState: $result->requestState,
+);
+
+$prompt = $client->getPrompt(
+    name: 'walkthrough',
+    arguments: ['audience' => 'a junior developer'],
+    inputResponses: ['confirm_scope' => new ElicitResult(
+        action: ElicitAction::Accept,
+        content: ['scope' => 'full'],
+    )],
+    requestState: $result->requestState,
 );
 ```
+
+The same rule applies here: repeat what the first call carried (the `uri`, the `arguments`), since the
+server is resuming that request, not being given a new one.
