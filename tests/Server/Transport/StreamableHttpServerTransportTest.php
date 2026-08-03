@@ -542,6 +542,10 @@ final class StreamableHttpServerTransportTest extends TestCase
 
         self::assertSame(400, $response->getStatusCode());
         self::assertSame(ProtocolErrorCode::HeaderMismatch->value, self::errorPayload($response)['code'] ?? null);
+
+        $envelope = json_decode((string) $response->getBody(), true);
+        self::assertIsArray($envelope);
+        self::assertSame($body['id'] ?? null, $envelope['id'] ?? null, 'The recovered id must be echoed so the client can correlate the refusal.');
     }
 
     /**

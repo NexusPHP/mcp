@@ -81,7 +81,7 @@ Every exception below implements `McpExceptionInterface`.
 | `ClientRegistrationRejectedException` | The token endpoint does not recognise the client identifier presented to it. |
 | `MalformedAuthorizationResponseException` | An authorization or metadata endpoint answered with something other than a JSON object. |
 | `RedirectRefusedException` | A response arrived from a URL other than the one the request was sent to. |
-| `InsufficientScopeException` | The server wants scopes the token lacks, and the client is set to report rather than ask. |
+| `InsufficientScopeException` | The server answered `insufficient_scope` and asking the resource owner cannot help: the client is set to report rather than ask, the upgrade budget is spent, or the challenge names nothing the token lacks. |
 
 `AuthorizationGrantRejectedException` extends `TokenRequestFailedException` and is raised for the RFC 6749
 codes that mean granting again would help: `invalid_grant` and `invalid_scope`. That is the split the SDK acts

@@ -266,7 +266,7 @@ final class AuthorizedHttpClientTest extends TestCase
         self::assertTrue($http->drainedBodies[5] ?? false);
     }
 
-    public function testAScopeChallengeNamingNothingTheTokenLacksIsReturned(): void
+    public function testAScopeChallengeNamingNothingTheTokenLacksIsReported(): void
     {
         $http = new RecordingHttpClient()
             ->willChallenge(401, self::CHALLENGE)
@@ -279,11 +279,17 @@ final class AuthorizedHttpClientTest extends TestCase
         $user = new ScriptedUserAuthorization();
         $logger = new ArrayLogger();
 
-        $response = self::client($http, $user, logger: $logger)->request(self::mcpRequest(), new NullCancellation());
+        try {
+            self::client($http, $user, logger: $logger)->request(self::mcpRequest(), new NullCancellation());
 
-        self::assertSame(403, $response->getStatus());
+            self::fail('An unwinnable scope challenge must be reported to the caller.');
+        } catch (InsufficientScopeException $e) {
+            self::assertSame(['files:read'], $e->required);
+        }
+
         self::assertCount(6, $http->requests);
         self::assertCount(1, $user->redirects);
+        self::assertTrue($http->drainedBodies[5] ?? false);
         self::assertSame(
             [['level' => LogLevel::WARNING, 'message' => 'The scope challenge from {resource} names {scopes}.', 'context' => [
                 'resource' => self::RESOURCE,
@@ -293,15 +299,20 @@ final class AuthorizedHttpClientTest extends TestCase
         );
     }
 
-    public function testAScopeChallengeNamingNoScopeAtAllIsReturned(): void
+    public function testAScopeChallengeNamingNoScopeAtAllIsReported(): void
     {
         $http = self::scriptChallengeAndFlow()->willChallenge(403, 'Bearer error="insufficient_scope"');
         $user = new ScriptedUserAuthorization();
         $logger = new ArrayLogger();
 
-        $response = self::client($http, $user, logger: $logger)->request(self::mcpRequest(), new NullCancellation());
+        try {
+            self::client($http, $user, logger: $logger)->request(self::mcpRequest(), new NullCancellation());
 
-        self::assertSame(403, $response->getStatus());
+            self::fail('An unwinnable scope challenge must be reported to the caller.');
+        } catch (InsufficientScopeException $e) {
+            self::assertSame([], $e->required);
+        }
+
         self::assertCount(6, $http->requests);
         self::assertCount(1, $user->redirects);
         self::assertSame(
@@ -374,7 +385,7 @@ final class AuthorizedHttpClientTest extends TestCase
         $user = new ScriptedUserAuthorization();
 
         $this->expectException(InsufficientScopeException::class);
-        $this->expectExceptionMessageIs('The MCP server requires the scope "files:write files:admin", which the token does not carry.');
+        $this->expectExceptionMessageIs('The MCP server requires the scope "files:write files:admin".');
 
         self::client($http, $user, policy: InsufficientScopePolicy::Fail)->request(self::mcpRequest(), new NullCancellation());
     }
@@ -399,12 +410,21 @@ final class AuthorizedHttpClientTest extends TestCase
     public function testTheFailPolicyIsNotDefeatedByAnExhaustedUpgradeBudget(): void
     {
         $http = self::scriptChallengeAndFlow()->willChallenge(403, 'Bearer error="insufficient_scope", scope="files:write"');
+        $logger = new ArrayLogger();
 
-        $this->expectException(InsufficientScopeException::class);
+        try {
+            self::client($http, logger: $logger, maxScopeUpgrades: 0, policy: InsufficientScopePolicy::Fail)
+                ->request(self::mcpRequest(), new NullCancellation())
+            ;
 
-        self::client($http, maxScopeUpgrades: 0, policy: InsufficientScopePolicy::Fail)
-            ->request(self::mcpRequest(), new NullCancellation())
-        ;
+            self::fail('The insufficient-scope answer should have surfaced.');
+        } catch (InsufficientScopeException $e) {
+            self::assertSame(['files:write'], $e->required);
+        }
+
+        // What distinguishes the policy from a spent budget: the report happens before the budget is
+        // even consulted, so no giving-up warning is logged.
+        self::assertSame([], $logger->recordsMatching(LogLevel::WARNING, 'Giving up on {resource} after {attempts} scope upgrades.'));
     }
 
     public function testTheFailPolicyStillReportsAChallengeNamingNothingNew(): void
@@ -417,11 +437,19 @@ final class AuthorizedHttpClientTest extends TestCase
             ->willAnswerJson(['access_token' => 'the-access-token', 'token_type' => 'Bearer', 'scope' => 'files:read'])
             ->willChallenge(403, 'Bearer error="insufficient_scope", scope="files:read"')
         ;
+        $logger = new ArrayLogger();
 
-        $this->expectException(InsufficientScopeException::class);
-        $this->expectExceptionMessageIs('The MCP server requires the scope "files:read", which the token does not carry.');
+        try {
+            self::client($http, logger: $logger, policy: InsufficientScopePolicy::Fail)->request(self::mcpRequest(), new NullCancellation());
 
-        self::client($http, policy: InsufficientScopePolicy::Fail)->request(self::mcpRequest(), new NullCancellation());
+            self::fail('The insufficient-scope answer should have surfaced.');
+        } catch (InsufficientScopeException $e) {
+            self::assertSame(['files:read'], $e->required);
+        }
+
+        // What distinguishes the policy from the unwinnable-challenge branch: the report happens
+        // before the token's scopes are compared, so no challenge warning is logged.
+        self::assertSame([], $logger->recordsMatching(LogLevel::WARNING, 'The scope challenge from {resource} names {scopes}.'));
     }
 
     public function testALapsedTokenLeavesItsScopesToTheGrantThatReplacesIt(): void
@@ -492,18 +520,26 @@ final class AuthorizedHttpClientTest extends TestCase
         self::assertCount(6, $http->requests);
     }
 
-    public function testScopeUpgradesAreCappedAndTheChallengeIsReturned(): void
+    public function testScopeUpgradesAreCappedAndTheExhaustionIsReported(): void
     {
         $http = self::scriptChallengeAndFlow()
             ->willChallenge(403, 'Bearer error="insufficient_scope", scope="files:write"')
             ->willAnswerJson(['access_token' => 'the-wider-token', 'token_type' => 'Bearer'])
             ->willChallenge(403, 'Bearer error="insufficient_scope", scope="files:admin"')
         ;
-
         $logger = new ArrayLogger();
-        $response = self::client($http, logger: $logger, maxScopeUpgrades: 1)->request(self::mcpRequest(), new NullCancellation());
 
-        self::assertSame(403, $response->getStatus());
+        try {
+            self::client($http, logger: $logger, maxScopeUpgrades: 1)->request(self::mcpRequest(), new NullCancellation());
+
+            self::fail('A spent upgrade budget must be reported to the caller.');
+        } catch (InsufficientScopeException $e) {
+            // The union across every upgrade round, not just the final challenge: re-requesting
+            // only the last scope would trade the wider token away.
+            self::assertSame(['files:write', 'files:admin'], $e->required);
+        }
+
+        self::assertTrue($http->drainedBodies[7] ?? false);
         self::assertSame(
             [['level' => LogLevel::WARNING, 'message' => 'Giving up on {resource} after {attempts} scope upgrades.', 'context' => [
                 'resource' => self::RESOURCE,

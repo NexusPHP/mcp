@@ -90,7 +90,8 @@ server-returned errors as exceptions:
 | `ServerCapabilityNotSupportedException` | A typed request targets a capability the server did not advertise via `server/discover` (for example `complete()` against a server with no completions). |
 | `RemoteCallFailedException` | The server answered with a JSON-RPC error response. The decoded `Error` (code, message, data) is available on the exception. |
 | `TransportAlreadyClosedException` | The transport closed while a request was in flight (also raised on send-after-close). |
-| `OutboundRequestFailedException` | The transport could not carry the request to completion (connection refused, TLS failure, a stalled read), so no response can arrive. The underlying fault is the exception's `previous`. |
+| `OutboundRequestFailedException` | The transport could not carry the request to completion (connection refused, TLS failure, a stalled read, an HTTP status whose body settles nothing), so no response can arrive. The underlying fault is the exception's `previous`. |
+| `UnexpectedHttpStatusException` | An HTTP exchange answered with a status carrying no JSON-RPC payload that settles the message it was sent for (a `502` from a proxy, an id-less error envelope, a `202` to a request). Arrives as the `previous` of `OutboundRequestFailedException`, with the status and the leading bytes of the body on it. |
 | `RequestTimeoutException` | The request's deadline elapsed before the peer answered. See [request timeouts](client/progress-and-timeouts.md#request-timeouts) for the two bounds and how progress notifications extend them. |
 
 ```php

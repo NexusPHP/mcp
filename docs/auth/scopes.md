@@ -21,17 +21,34 @@ silently from a prior grant generally will, and a silent answer carries no refre
 
 A `403` carrying `error="insufficient_scope"` triggers a step-up. The SDK unions the challenged scopes with
 those already granted, so a fresh grant never costs permissions other operations depend on, and retries.
-`maxScopeUpgrades` caps how many rounds that may take (default `2`) before the `403` is returned to the caller.
+`maxScopeUpgrades` caps how many rounds that may take (default `2`) before the client raises
+`InsufficientScopeException` naming the scopes the server wants.
 
-A challenge that names no scope the token is missing, including one that names no scope at all, is returned
-rather than retried. Asking again would produce the same token and the same `403`, and the only thing the
-round trip would buy the user is a second consent screen.
+A challenge that names no scope the token is missing, including one that names no scope at all, raises the
+same exception rather than retrying. Asking again would produce the same token and the same `403`, and the
+only thing the round trip would buy the user is a second consent screen.
 
 Pass `onInsufficientScope: InsufficientScopePolicy::Fail` to be told instead of asked. The SDK then raises
-`InsufficientScopeException` naming the scopes the server wants, without running discovery or opening a
-consent screen, which is what an unattended process usually wants. It is raised for every insufficient-scope
-answer, including ones `maxScopeUpgrades` would otherwise have swallowed. That covers the `403` path only. To
-refuse every prompt, including the one a `401` provokes, throw from your `UserAuthorizationInterface` instead.
+`InsufficientScopeException` immediately, without running discovery or opening a consent screen, which is
+what an unattended process usually wants. It is raised for every insufficient-scope answer, before any of
+the rounds `Reauthorize` would have attempted. That covers the `403` path only. To refuse every prompt,
+including the one a `401` provokes, throw from your `UserAuthorizationInterface` instead.
+
+Through the Streamable HTTP transport, the exception reaches a typed call wrapped: `callTool()` and its
+siblings throw `OutboundRequestFailedException`, with the `InsufficientScopeException` and its `required`
+scopes as the `previous`:
+
+```php
+try {
+    $client->callTool(name: 'deploy');
+} catch (OutboundRequestFailedException $e) {
+    $cause = $e->getPrevious();
+
+    if ($cause instanceof InsufficientScopeException) {
+        promptForConsent($cause->required);
+    }
+}
+```
 
 A `401` re-authorizes once, and carries the rejected token's scopes into the new grant for the same reason. A
 second `401` on the token that came back is taken as the server's answer and returned to the caller.

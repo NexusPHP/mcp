@@ -29,7 +29,7 @@ final class InsufficientScopeExceptionTest extends TestCase
     public function testMessageNamesTheScopesTheChallengeAskedFor(): void
     {
         self::assertSame(
-            'The MCP server requires the scope "files:write files:admin", which the token does not carry.',
+            'The MCP server requires the scope "files:write files:admin".',
             new InsufficientScopeException(['files:write', 'files:admin'])->getMessage(),
         );
     }
@@ -37,7 +37,7 @@ final class InsufficientScopeExceptionTest extends TestCase
     public function testMessageSaysSoWhenTheChallengeNamedNoScope(): void
     {
         self::assertSame(
-            'The MCP server requires a scope the token does not carry, and named none.',
+            'The MCP server answered insufficient_scope without naming a scope.',
             new InsufficientScopeException([])->getMessage(),
         );
     }

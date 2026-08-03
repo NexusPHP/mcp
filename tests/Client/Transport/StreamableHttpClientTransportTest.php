@@ -22,6 +22,7 @@ use Nexus\Mcp\Core\Exception\ResponseTooLargeException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyStartedException;
 use Nexus\Mcp\Core\Exception\TransportNotStartedException;
+use Nexus\Mcp\Core\Exception\UnexpectedHttpStatusException;
 use Nexus\Mcp\Core\Http\HeaderValueCodec;
 use Nexus\Mcp\Core\Schema\ClientCapabilities;
 use Nexus\Mcp\Core\Schema\Error\InternalError;
@@ -122,10 +123,12 @@ final class StreamableHttpClientTransportTest extends TestCase
         $http = new RecordingHttpClient()->willAnswerJson($envelope, status: 400);
         $transport = self::makeTransport($http);
         $received = self::captureMessages($transport);
+        $faults = self::captureFaults($transport);
 
         self::exchange($transport, self::discoverRequest());
 
         self::assertSame([$envelope], $received->envelopes);
+        self::assertSame([], $faults->messages, 'An emitted error envelope ends the exchange, faultlessly.');
     }
 
     public function testEmitsEveryFrameOfAnSseResponse(): void
@@ -727,6 +730,167 @@ final class StreamableHttpClientTransportTest extends TestCase
         $transport->close();
 
         self::assertSame([self::resultEnvelope()], $received->envelopes, 'A response already on the way must still land.');
+    }
+
+    public function testAnErrorStatusFailsTheRequestItsExchangeCarries(): void
+    {
+        // An OAuth-style error body is valid JSON but no envelope, so emitting it would
+        // strand the request as a discarded-malformed-envelope instead of failing it.
+        $http = new RecordingHttpClient()->willAnswerJson(['error' => 'insufficient_scope'], 403);
+        $transport = self::makeTransport($http);
+        $received = self::captureMessages($transport);
+        $faults = self::captureFaults($transport);
+
+        self::exchange($transport, self::discoverRequest());
+
+        self::assertSame([], $received->envelopes);
+        $fault = $faults->readFault();
+
+        if (! $fault instanceof OutboundRequestFailedException) {
+            self::fail('An error status must still fail the request it was carrying.');
+        }
+
+        $cause = $fault->getPrevious();
+
+        if (! $cause instanceof UnexpectedHttpStatusException) {
+            self::fail('The failure must name the unexpected status.');
+        }
+
+        self::assertSame(403, $cause->status);
+        self::assertSame('The endpoint answered 403 where 200 or 202 was expected.', $cause->getMessage());
+        self::assertSame('{"error":"insufficient_scope"}', $cause->body);
+    }
+
+    /**
+     * @param array<string, mixed>|string $body
+     */
+    #[DataProvider('provideAnUncorrelatedBodyOnAnErrorStatusFailsTheRequestCases')]
+    public function testAnUncorrelatedBodyOnAnErrorStatusFailsTheRequest(array|string $body): void
+    {
+        $http = new RecordingHttpClient()->willAnswerJson($body, 400);
+        $transport = self::makeTransport($http);
+        $received = self::captureMessages($transport);
+        $faults = self::captureFaults($transport);
+
+        self::exchange($transport, self::discoverRequest());
+
+        self::assertSame([], $received->envelopes, 'An envelope that cannot settle this request must not be emitted.');
+        $fault = $faults->readFault();
+
+        if (! $fault instanceof OutboundRequestFailedException) {
+            self::fail('An uncorrelatable answer must fail the request its exchange carries.');
+        }
+
+        self::assertInstanceOf(UnexpectedHttpStatusException::class, $fault->getPrevious());
+    }
+
+    /**
+     * @return iterable<string, array{array<string, mixed>|string}>
+     */
+    public static function provideAnUncorrelatedBodyOnAnErrorStatusFailsTheRequestCases(): iterable
+    {
+        // The spec lets a refused POST carry an id-less error envelope, and this SDK's own
+        // server emits one for every failure whose id it could not recover.
+        yield 'an id-less error envelope' => [['jsonrpc' => '2.0', 'error' => ['code' => -32600, 'message' => 'Invalid Request']]];
+
+        yield 'an error envelope answering some other id' => [['jsonrpc' => '2.0', 'id' => 99, 'error' => ['code' => -32600, 'message' => 'Invalid Request']]];
+
+        yield 'a notification-shaped body' => [['jsonrpc' => '2.0', 'method' => 'notifications/message', 'params' => []]];
+
+        yield 'an envelope without a result or error member' => [['jsonrpc' => '2.0', 'id' => 1]];
+
+        yield 'a JSON scalar' => ['"nope"'];
+    }
+
+    public function testAnOversizedErrorBodyStillReportsTheStatus(): void
+    {
+        // The status is the diagnosis. Reporting the oversized body instead would misname a
+        // refused exchange as a response-size problem.
+        $http = new RecordingHttpClient()->willAnswerJson(str_repeat('a', 512), 502);
+        $transport = new StreamableHttpClientTransport('https://mcp.test/mcp', $http, maxResponseBytes: 64);
+        $transport->start();
+        $faults = self::captureFaults($transport);
+
+        self::exchange($transport, self::discoverRequest());
+
+        $fault = $faults->readFault();
+
+        if (! $fault instanceof OutboundRequestFailedException) {
+            self::fail('An oversized error body must still fail the request it was carrying.');
+        }
+
+        $cause = $fault->getPrevious();
+
+        if (! $cause instanceof UnexpectedHttpStatusException) {
+            self::fail('The failure must name the unexpected status, not the size cap.');
+        }
+
+        self::assertSame(502, $cause->status);
+        self::assertNull($cause->body);
+    }
+
+    public function testAnSseErrorStatusFailsWithoutReadingTheStream(): void
+    {
+        $http = new RecordingHttpClient()->willAnswerStream([": keep-alive\n\n"], 503);
+        $transport = self::makeTransport($http);
+        $faults = self::captureFaults($transport);
+
+        self::exchange($transport, self::discoverRequest());
+
+        $fault = $faults->readFault();
+
+        if (! $fault instanceof OutboundRequestFailedException) {
+            self::fail('An error status on a stream must fail the request without consuming the stream.');
+        }
+
+        $cause = $fault->getPrevious();
+
+        if (! $cause instanceof UnexpectedHttpStatusException) {
+            self::fail('The failure must name the unexpected status.');
+        }
+
+        self::assertSame(503, $cause->status);
+        self::assertNull($cause->body, 'A stream that was never read leaves no body to report.');
+    }
+
+    public function testA202AnsweringARequestFailsIt(): void
+    {
+        $http = new RecordingHttpClient()->willAcceptNotification();
+        $transport = self::makeTransport($http);
+        $faults = self::captureFaults($transport);
+
+        self::exchange($transport, self::discoverRequest());
+
+        $fault = $faults->readFault();
+
+        if (! $fault instanceof OutboundRequestFailedException) {
+            self::fail('A request answered with a bodiless acknowledgement must fail rather than dangle.');
+        }
+
+        $cause = $fault->getPrevious();
+
+        if (! $cause instanceof UnexpectedHttpStatusException) {
+            self::fail('The failure must name the unexpected status.');
+        }
+
+        self::assertSame(202, $cause->status);
+    }
+
+    public function testAnErrorStatusOnANotificationSurfacesTheStatus(): void
+    {
+        $http = new RecordingHttpClient()->willAnswerJson(['error' => 'nope'], 403);
+        $transport = self::makeTransport($http);
+        $faults = self::captureFaults($transport);
+
+        self::exchange($transport, new ToolListChangedNotification(params: new EmptyNotificationParams()));
+
+        $fault = $faults->readFault();
+
+        if (! $fault instanceof UnexpectedHttpStatusException) {
+            self::fail('A refused notification has no request to fail, so the status surfaces raw.');
+        }
+
+        self::assertSame(403, $fault->status);
     }
 
     public function testAbandonsABufferedBodyThatOutgrowsTheResponseCap(): void

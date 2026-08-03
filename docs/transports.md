@@ -543,14 +543,18 @@ ends on its own.
 the mid-call progress stream and a mirrored `Mcp-Param-Tenant` header.
 
 When one exchange fails while the transport stays healthy (connection refused, TLS failure, an undecodable
-buffered body, a read stalled past `readTimeout`), the failure names the request it was carrying, so the
-client fails that one caller with an `OutboundRequestFailedException` instead of leaving it awaiting a
-response that can no longer arrive. Other in-flight requests are untouched, and a notification, having no
-caller, is reported as it stands. Inside an SSE stream a single unreadable frame is reported but does not end
-the exchange, since a later frame may still carry the response.
+buffered body, a read stalled past `readTimeout`, or a status whose body settles nothing, reported as
+`UnexpectedHttpStatusException`), the failure names the request it was carrying, so the client fails that
+one caller with an `OutboundRequestFailedException` instead of leaving it awaiting a response that can no
+longer arrive. A failure status stands only when its body is the JSON-RPC answer to the very request the
+exchange carries. An id-less error envelope, an answer to some other id, or a `202` to a request all fail
+the exchange, since no dispatcher could settle the request from them. Other in-flight requests are
+untouched, and a notification, having no caller, is reported as it stands. Inside an SSE stream a single
+unreadable frame is reported but does not end the exchange, since a later frame may still carry the
+response.
 
-An exchange that *completes* without ever delivering its response (a server that closes the stream early, or
-answers `202` to a request) raises nothing to correlate. The client's
+An exchange that *completes* without ever delivering its response (a server that closes the stream early)
+raises nothing to correlate. The client's
 [request deadline](client/progress-and-timeouts.md#request-timeouts) covers that case, and every other way a peer can go silent.
 
 ## See also
