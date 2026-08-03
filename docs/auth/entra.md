@@ -15,18 +15,11 @@ With no registration endpoint, the SDK client falls back to the pre-registered c
 RFC 8707 `resource` parameter the client sends and derives the audience from the scope instead, so
 request the exposed scope by its full name: `api://mcp.example.com/mcp:use`.
 
-Validate against the tenant's JWKS, discovered through
+Validate with the shipped [`JwksAccessTokenValidator`](server.md#validating-tokens) against the tenant's
+JWKS, discovered through
 `https://login.microsoftonline.com/{tenant-id}/v2.0/.well-known/openid-configuration`. Entra puts granted
-scopes in `scp`, not `scope`:
-
-```php
-return new VerifiedAccessToken(
-    audience: (array) ($claims['aud'] ?? []),
-    scopes: explode(' ', $claims['scp'] ?? ''),
-    subject: $claims['sub'] ?? null,
-    clientId: $claims['azp'] ?? null,
-);
-```
+scopes in `scp` rather than `scope` and names the authorizing client in `azp`, both spellings the
+validator already reads.
 
 The token's `aud` is the Application ID URI (or the API app's client id), so pass that same value as the
 canonical resource to `BearerAuthenticationMiddleware`, and name the issuer in the

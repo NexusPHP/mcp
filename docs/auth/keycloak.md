@@ -11,36 +11,21 @@ Configure a realm:
 - Define a client scope (`mcp:use` below) and, through a **mapper**, stamp the MCP server's canonical URI
   into the token's `aud` claim, so the audience binding below has something to bind.
 
-Validate the RS256 tokens against the realm's JWKS, published at
-`/realms/mcp/protocol/openid-connect/certs`. The SDK ships no crypto, so bring a JWT library
-([firebase/php-jwt](https://github.com/firebase/php-jwt) below):
+Validate the RS256 tokens with the shipped
+[`JwksAccessTokenValidator`](server.md#validating-tokens) against the realm's JWKS, published at
+`/realms/mcp/protocol/openid-connect/certs`:
 
 ```php
 use Firebase\JWT\CachedKeySet;
-use Firebase\JWT\JWT;
-use Nexus\Mcp\Core\Auth\VerifiedAccessToken;
-use Nexus\Mcp\Server\Auth\AccessTokenValidatorInterface;
+use Nexus\Mcp\Server\Auth\JwksAccessTokenValidator;
 
-final class KeycloakAccessTokenValidator implements AccessTokenValidatorInterface
-{
-    public function __construct(private readonly CachedKeySet $keys) {}
-
-    public function validate(string $token): ?VerifiedAccessToken
-    {
-        try {
-            $claims = (array) JWT::decode($token, $this->keys);
-        } catch (\Exception) {
-            return null;
-        }
-
-        return new VerifiedAccessToken(
-            audience: (array) ($claims['aud'] ?? []),
-            scopes: explode(' ', $claims['scope'] ?? ''),
-            subject: $claims['sub'] ?? null,
-            clientId: $claims['azp'] ?? null,
-        );
-    }
-}
+$validator = new JwksAccessTokenValidator(new CachedKeySet(
+    'https://kc.example.com/realms/mcp/protocol/openid-connect/certs',
+    $httpClient,
+    $requestFactory,
+    $cache,
+    300,
+));
 ```
 
 Mount it exactly as [Validating tokens](server.md#validating-tokens) shows, and publish a
@@ -50,7 +35,7 @@ exchange without Keycloak-specific configuration.
 
 Two gotchas:
 
-- Keycloak identifies the authorizing client in `azp`, not `client_id`.
+- Keycloak identifies the authorizing client in `azp`, not `client_id`. The shipped validator reads both.
 - A token's `aud` defaults to `account` unless a mapper adds your resource URI. Without the mapper,
   `BearerAuthenticationMiddleware` refuses every token, which is the audience binding doing its job.
 

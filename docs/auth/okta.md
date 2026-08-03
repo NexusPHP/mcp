@@ -13,19 +13,12 @@ Configure the org:
   credentials (see [choosing a client identifier](client.md#choosing-a-client-identifier)).
 
 Metadata is published at both well-known suffixes under the issuer, so the SDK's discovery finds it
-either way. Validate against the `jwks_uri` that metadata names. Okta puts granted scopes in `scp` as a
-JSON array, not a space-joined `scope` string:
+either way. Validate with the shipped [`JwksAccessTokenValidator`](server.md#validating-tokens) against
+the `jwks_uri` that metadata names. Okta puts granted scopes in `scp` as a JSON array rather than a
+space-joined `scope` string, and the authorizing client rides the `cid` claim. The validator reads both
+shapes.
 
-```php
-return new VerifiedAccessToken(
-    audience: (array) ($claims['aud'] ?? []),
-    scopes: (array) ($claims['scp'] ?? []),
-    subject: $claims['sub'] ?? null,
-    clientId: $claims['cid'] ?? null,
-);
-```
-
-The authorizing client rides the `cid` claim. Pass the authorization server's configured audience as the
+Pass the authorization server's configured audience as the
 canonical resource to `BearerAuthenticationMiddleware`, and name the issuer in the
 [protected resource metadata document](server.md#publishing-the-metadata-document). The org authorization
 server (`https://{org}.okta.com`) does not take custom audiences, which is why the custom one is not
