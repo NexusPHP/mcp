@@ -39,6 +39,7 @@
         "ext-mbstring": "*",
         "ext-tokenizer": "*",
         "amphp/http-server": "^3.4",
+        "firebase/php-jwt": "^7.0",
         "nexusphp/tachycardia": "^2.4",
         "nyholm/psr7": "^1.8",
         "phpstan/extension-installer": "^1.4",
@@ -53,6 +54,9 @@
         "nexusphp/mcp-core": "self.version",
         "nexusphp/mcp-sdk": "self.version",
         "nexusphp/mcp-server": "self.version"
+    },
+    "suggest": {
+        "firebase/php-jwt": "Required to validate JWT bearer tokens with JwksAccessTokenValidator (^7.0)."
     },
     "minimum-stability": "dev",
     "prefer-stable": true,

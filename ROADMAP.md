@@ -590,10 +590,11 @@ are not in the baseline.
 - [x] SEP-2164 says a resource-not-found error SHOULD carry `error.data.uri`. Protocol exceptions now
   carry an optional `errorData` payload that `ResponseSender` passes to `ErrorFactory`, and
   `ResourceNotFoundException` fills it with the URI.
-- [ ] Establish the optional-dependency pattern for anything cryptographic: a `suggest` entry rather
+- [x] Establish the optional-dependency pattern for anything cryptographic: a `suggest` entry rather
   than a `require`, guarded by `class_exists` with an actionable message naming the package to
-  install. This is the shape a shipped JWT or JWKS access-token validator would need, since the SDK
-  will not take a crypto dependency.
+  install. `JwksAccessTokenValidator` is the first consumer: it validates JWT bearer tokens against a
+  key set through the suggested `firebase/php-jwt`, and `SuggestedDependencyGuard` is the reusable
+  check any later cryptographic consumer repeats.
 - [x] Grow the authorization documentation into per-provider ground: recipes for Keycloak, Entra,
   Auth0, and Okta, each covering the provider-side configuration, the token validator, and the quirks
   the generic pages cannot know.

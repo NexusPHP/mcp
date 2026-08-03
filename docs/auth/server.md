@@ -4,8 +4,33 @@ How the server validates tokens and publishes its metadata.
 
 ## Validating tokens
 
-The SDK ships no signature or introspection machinery. Verification is the one thing your authorization server
-dictates, so it stays yours:
+For JWT-minting authorization servers, the SDK ships `JwksAccessTokenValidator`. It rides the suggested
+`firebase/php-jwt` package, which stays out of the SDK's own requirements, so install it alongside:
+
+```console
+composer require firebase/php-jwt:^7.0
+```
+
+```php
+use Firebase\JWT\CachedKeySet;
+use Nexus\Mcp\Server\Auth\JwksAccessTokenValidator;
+
+$validator = new JwksAccessTokenValidator(new CachedKeySet(
+    'https://auth.example.com/.well-known/jwks.json',
+    $httpClient,          // any PSR-18 client
+    $requestFactory,      // any PSR-17 request factory
+    $cache,               // any PSR-6 cache
+    300,
+));
+```
+
+Constructing it without the package installed throws a `MissingSuggestedDependencyException` naming that
+install command. The validator checks signature and expiry through the key set and maps the claim
+spellings the common providers use: `scope` or `scp` (string or list) for scopes, and `azp`, `client_id`,
+or `cid` for the authorizing client. The [provider recipes](../authorization.md#guide) name each
+provider's JWKS URL and quirks.
+
+For anything else (opaque tokens, introspection endpoints, provider SDKs), verification stays yours:
 
 ```php
 use Nexus\Mcp\Core\Auth\VerifiedAccessToken;
