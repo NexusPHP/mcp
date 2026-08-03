@@ -19,6 +19,34 @@ use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
 
 The renderer can be a `\Closure` or a `PromptRendererInterface`.
 
+## Attribute sugar
+
+`#[AsPrompt]` marks a method as a prompt, discovered through the same
+[`ServerBuilder::register()`](../attribute-discovery.md) walk as the other attributes. Each parameter
+becomes a prompt argument, required when it has no default, with its `@param` text as the description,
+and the call's arguments are bound back to the parameters by name:
+
+```php
+use Nexus\Mcp\Server\Attribute\AsPrompt;
+
+final class SummaryPrompts
+{
+    /**
+     * @param string $tone The desired tone.
+     */
+    #[AsPrompt(name: 'summarise', description: 'Summarises the user input.')]
+    public function summarise(string $tone = 'neutral'): string
+    {
+        return "Summarise the following in a {$tone} tone: ...";
+    }
+}
+```
+
+A string return becomes a single `User` text message. A `PromptMessage`, a list of them, or a full
+`GetPromptResult` pass through. Prompt arguments arrive as strings, so every non-injected parameter must
+accept one (`string`, an enum hydrated from the value, or untyped).
+[Attribute discovery](../attribute-discovery.md) has the full binding rules.
+
 ## Message content types
 
 `PromptMessage::$content` takes any single content block, so a prompt can carry images and embedded

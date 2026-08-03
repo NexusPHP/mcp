@@ -40,6 +40,35 @@ Protocol-level conditions (`ToolNotFoundException`, etc.) still surface as JSON-
 > connection strings, and any other sensitive data. The recommended pattern for surfacing tool errors is
 > `return new CallToolResult(content: [...], isError: true)`, not throwing a protocol exception.
 
+## Attribute sugar
+
+`#[AsTool]` marks a method as a tool, discovered through the same
+[`ServerBuilder::register()`](../attribute-discovery.md) walk as the other attributes. The `inputSchema`
+is generated from the parameter types and `@param` docblocks, a `ServerContext` parameter is injected and
+left out of the schema, and the name falls back to the method name:
+
+```php
+use Nexus\Mcp\Server\Attribute\AsTool;
+use Nexus\Mcp\Server\ServerContext;
+
+final class DocsTools
+{
+    /**
+     * @param string $query Text to search for.
+     */
+    #[AsTool(description: 'Searches the docs index.')]
+    public function search_docs(string $query, ServerContext $context): string
+    {
+        return "Results for {$query}";
+    }
+}
+```
+
+The method returns a full `CallToolResult` or a shorthand the SDK adapts: a string (wrapped as
+`TextContent`), a content block or a list of them, or an array treated as `structuredContent`. See
+[Attribute discovery](../attribute-discovery.md) for the schema-inference rules, per-parameter
+`#[InputSchema(...)]` overrides, variadics, and object expansion.
+
 ## Result content types
 
 `CallToolResult::$content` is a list of content blocks, and the five block types compose freely in one

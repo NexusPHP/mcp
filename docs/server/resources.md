@@ -46,6 +46,41 @@ use Nexus\Mcp\Core\Schema\Resource\ResourceTemplate;
 `$vars` carries the resolved template variables (`['userId' => '123']` for `users://123`). The reader can
 be a `\Closure` or a `ResourceReaderInterface` / `TemplatedResourceReaderInterface`.
 
+## Attribute sugar
+
+`#[AsResource]` and `#[AsResourceTemplate]` mark reader methods, discovered through the same
+[`ServerBuilder::register()`](../attribute-discovery.md) walk as the other attributes. A `$uri` parameter
+receives the resolved URI, template variables are bound to parameters by name, and a `ServerContext`
+parameter is injected:
+
+```php
+use Nexus\Mcp\Server\Attribute\AsResource;
+use Nexus\Mcp\Server\Attribute\AsResourceTemplate;
+
+final class AppResources
+{
+    #[AsResource(uri: 'config://app.toml', mimeType: 'application/toml')]
+    public function config(string $uri): string
+    {
+        return file_get_contents('/etc/app.toml');
+    }
+
+    /**
+     * @param string $userId The user id.
+     */
+    #[AsResourceTemplate(uriTemplate: 'users://{userId}')]
+    public function user(string $uri, string $userId): string
+    {
+        return loadUser($userId);
+    }
+}
+```
+
+A string return is wrapped as `TextResourceContents` bound to the URI. A `ResourceContents`, a list of
+them, or a full `ReadResourceResult` pass through. Adapted returns carry the conservative cache hints
+(`ttlMs: 0`, `CacheScope::Private`), so return a `ReadResourceResult` to set your own. See
+[Attribute discovery](../attribute-discovery.md) for the full binding rules.
+
 ## Cache hints
 
 `ReadResourceResult` and the `*/list` results require two cache hints the server returns to the client:
