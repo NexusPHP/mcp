@@ -283,6 +283,24 @@ Two limits are worth knowing before reaching for it:
   `CancellableTransportInterface`, so wrapping a transport that implements one of those hides it from the
   `instanceof` checks in `Client` and `Server`. Supervise transports whose capabilities you do not depend on.
 
+### Aborting one request
+
+`StreamableHttpClientTransport` implements `AbortableTransportInterface`, so a caller that has given up on a
+response can stop that one POST:
+
+```php
+$transport->abort($requestId);
+```
+
+Each request's exchange runs under its own cancellation composed with the transport's lifetime, so `close()`
+still stops everything and an abort reaches only the named exchange. Aborting a request that was never sent,
+already answered, or already aborted does nothing, and an abort is never reported through `onError()`.
+
+`Client` calls it wherever it stops waiting for a response: when a request deadline expires, and when a
+`SubscriptionStream` is closed. Telling the server is separate and still happens, through
+`notifications/cancelled`. Both matter: the notification asks the server to stop working, and the abort stops
+the client reading a stream that a `subscriptions/listen` would otherwise keep open forever.
+
 ## `InMemoryTransport` (test only)
 
 Two linked transports that deliver each other's `send()` calls as `onMessage` events. Useful for

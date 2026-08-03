@@ -1993,6 +1993,68 @@ final class ClientTest extends TestCase
         self::assertCount(1, $transport->sent, 'A stream the server already answered has nothing left to cancel.');
     }
 
+    public function testClosingAStreamAbortsItsExchange(): void
+    {
+        $client = new ClientBuilder()
+            ->setClientInfo('demo', '1.0.0')
+            ->setRequestIdFactory(static fn(): int => 7)
+            ->build()
+        ;
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+
+        $stream = $client->listen(new SubscriptionFilter(toolsListChanged: true), static function (): void {});
+        $stream->close();
+
+        // Telling the server is not enough on HTTP: the POST carrying the stream keeps reading until
+        // something stops it, and a `subscriptions/listen` never ends on its own.
+        self::assertSame([7], $transport->aborted);
+    }
+
+    public function testAStreamTheServerAlreadyAnsweredIsNotAborted(): void
+    {
+        $client = new ClientBuilder()
+            ->setClientInfo('demo', '1.0.0')
+            ->setRequestIdFactory(static fn(): int => 7)
+            ->build()
+        ;
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+
+        $stream = $client->listen(new SubscriptionFilter(toolsListChanged: true), static function (): void {});
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => 7,
+            'result' => ['_meta' => [SubscriptionsListenResultMetaObject::SUBSCRIPTION_ID_KEY => 7]],
+        ]);
+        EventLoop::run();
+
+        $stream->close();
+
+        self::assertSame([], $transport->aborted, 'An exchange the server ended has nothing left to stop.');
+    }
+
+    public function testATimedOutRequestAbortsItsExchange(): void
+    {
+        $client = new ClientBuilder()
+            ->setClientInfo('demo', '1.0.0')
+            ->setRequestIdFactory(static fn(): int => 7)
+            ->setRequestTimeout(0.01)
+            ->build()
+        ;
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+
+        try {
+            self::awaitPastDeadline(static fn(): ListToolsResult => $client->listTools(), 0.01);
+            self::fail('Expected the deadline to abandon the request.');
+        } catch (RequestTimeoutException) {
+            // Asserted outside the try: PHPUnit's failure exceptions would otherwise be caught here.
+        }
+
+        self::assertSame([7], $transport->aborted);
+    }
+
     public function testAwaitingAClosedStreamThrowsRatherThanBlocking(): void
     {
         $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();

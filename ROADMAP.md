@@ -418,10 +418,12 @@ Client transport (`Nexus\Mcp\Client`, amphp/http-client). Adds `amphp/http-clien
   the request it carried, so the client fails that one caller rather than leaving it awaiting a response that
   can no longer arrive. A notification carries no id and no caller, so its failure is reported unwrapped, and
   one unreadable frame mid-stream is reported without ending the exchange.
-- [ ] Per-request cancellation of the client's own *outbound* requests, so abandoning one aborts only that
-  POST. `StreamableHttpClientTransport` shares one `DeferredCancellation` across every exchange, so today
-  only `close()` cancels and it cancels all of them. Unrelated to the inbound half, where a peer's
-  `notifications/cancelled` already cancels a request the client is serving.
+- [x] Per-request cancellation of the client's own *outbound* requests, so abandoning one aborts only that
+  POST. `AbortableTransportInterface::abort(RequestId)` carries the signal, and the HTTP transport composes
+  a per-request `DeferredCancellation` with the shared lifetime, so `close()` still stops everything while
+  an abort reaches one exchange. `Client` calls it wherever it gives up on a response: a deadline expiring
+  and a subscription stream closing. Unrelated to the inbound half, where a peer's `notifications/cancelled`
+  already cancels a request the client is serving.
 - [x] `x-mcp-header` mirroring (client mandatory): `listTools()` scans each tool's `inputSchema`, caches the
   bindings, and drops a tool whose declarations violate the scanner constraints with a warning, since the spec
   has a client exclude what it cannot mirror. `callTool()` builds the `Mcp-Param-{Name}` headers from the

@@ -52,7 +52,7 @@ final class RecordingHttpClient implements DelegateHttpClient
     public private(set) array $cancellations = [];
 
     /**
-     * @var list<array{status: int, headers: array<non-empty-string, string>, chunks: list<string>, open?: bool, fails?: HttpException, gate?: Future<mixed>, hops?: non-empty-list<string>}|HttpException>
+     * @var list<array{status: int, headers: array<non-empty-string, string>, chunks: list<string>, open?: bool, fails?: HttpException, gate?: Future<mixed>, hops?: non-empty-list<string>, resume?: null|Future<mixed>, later?: list<string>}|HttpException>
      */
     private array $script = [];
 
@@ -101,9 +101,21 @@ final class RecordingHttpClient implements DelegateHttpClient
      *
      * @param list<string> $chunks
      */
-    public function willAnswerOpenStream(array $chunks): self
+    /**
+     * @param list<string>       $chunks
+     * @param null|Future<mixed> $resume Held mid-stream, so a test can speak again after a consumer stopped
+     * @param list<string>       $later  Delivered once `$resume` completes
+     */
+    public function willAnswerOpenStream(array $chunks, ?Future $resume = null, array $later = []): self
     {
-        $this->script[] = ['status' => 200, 'headers' => ['content-type' => 'text/event-stream'], 'chunks' => $chunks, 'open' => true];
+        $this->script[] = [
+            'status' => 200,
+            'headers' => ['content-type' => 'text/event-stream'],
+            'chunks' => $chunks,
+            'open' => true,
+            'resume' => $resume,
+            'later' => $later,
+        ];
 
         return $this;
     }
@@ -207,7 +219,7 @@ final class RecordingHttpClient implements DelegateHttpClient
 
         $failure = $step['fails'] ?? null;
         $body = match (true) {
-            $step['open'] ?? false => self::openStream($step['chunks']),
+            $step['open'] ?? false => self::openStream($step['chunks'], $step['resume'] ?? null, $step['later'] ?? []),
             null !== $failure => self::failPartway($step['chunks'], $failure),
             default => $this->trackDrain(\count($this->requests) - 1, $step['chunks']),
         };
@@ -297,9 +309,24 @@ final class RecordingHttpClient implements DelegateHttpClient
      *
      * @return \Traversable<int, string>
      */
-    private static function openStream(array $chunks): \Traversable
+    /**
+     * @param list<string>       $chunks
+     * @param null|Future<mixed> $resume
+     * @param list<string>       $later
+     *
+     * @return \Traversable<int, string>
+     */
+    private static function openStream(array $chunks, ?Future $resume = null, array $later = []): \Traversable
     {
         yield from $chunks;
+
+        if (null !== $resume) {
+            // A stream that goes quiet and then speaks again, so a consumer that stopped reading can be
+            // told apart from one that merely had nothing left to read.
+            $resume->await();
+
+            yield from $later;
+        }
 
         // Never completed, so the stream stays open without holding a timer the test would have to cancel.
         new DeferredFuture()->getFuture()->await();

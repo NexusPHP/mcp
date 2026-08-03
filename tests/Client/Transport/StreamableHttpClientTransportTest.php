@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Client\Transport;
 
+use Amp\DeferredFuture;
 use Amp\Http\Client\HttpException;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Client\Transport\StreamableHttpClientTransport;
@@ -335,6 +336,190 @@ final class StreamableHttpClientTransportTest extends TestCase
         $transport->close();
 
         self::assertSame([], $faults->messages, 'Cancelling at shutdown is not a transport fault.');
+    }
+
+    public function testAbortStopsOneStreamAndLeavesTheOthersRunning(): void
+    {
+        $later = ['jsonrpc' => '2.0', 'method' => 'notifications/tools/list_changed', 'params' => []];
+        $resume = new DeferredFuture();
+        $http = new RecordingHttpClient()
+            ->willAnswerOpenStream([self::frame(self::resultEnvelope())])
+            ->willAnswerOpenStream([self::frame(self::resultEnvelope())], $resume->getFuture(), [self::frame($later)])
+        ;
+        $transport = self::makeTransport($http);
+        $received = self::captureMessages($transport);
+        $faults = self::captureFaults($transport);
+
+        $transport->send(self::discoverRequest(id: 1));
+        $transport->send(self::discoverRequest(id: 2));
+        delay(0.05);
+
+        $transport->abort(new RequestId(id: 1));
+        $resume->complete();
+        delay(0.05);
+
+        // The gated frame belongs to stream 2, so its arrival is what proves the abort reached only 1.
+        self::assertSame(
+            [self::resultEnvelope(), self::resultEnvelope(), $later],
+            $received->envelopes,
+            'Aborting one exchange must not stop the others.',
+        );
+        self::assertSame([], $faults->messages, 'A caller abandoning its own request is not a fault.');
+
+        $transport->close();
+    }
+
+    public function testAbortingAnUnknownRequestDoesNothing(): void
+    {
+        $later = ['jsonrpc' => '2.0', 'method' => 'notifications/tools/list_changed', 'params' => []];
+        $resume = new DeferredFuture();
+        $http = new RecordingHttpClient()->willAnswerOpenStream(
+            [self::frame(self::resultEnvelope())],
+            $resume->getFuture(),
+            [self::frame($later)],
+        );
+        $transport = self::makeTransport($http);
+        $received = self::captureMessages($transport);
+
+        $transport->send(self::discoverRequest(id: 1));
+        delay(0.05);
+
+        $transport->abort(new RequestId(id: 'never-sent'));
+        $resume->complete();
+        delay(0.05);
+
+        // The live exchange is untouched, so naming an id nobody sent reached nothing.
+        self::assertSame([self::resultEnvelope(), $later], $received->envelopes);
+
+        $transport->close();
+    }
+
+    public function testAnIntIdAndItsStringSpellingNameDifferentExchanges(): void
+    {
+        $later = ['jsonrpc' => '2.0', 'method' => 'notifications/tools/list_changed', 'params' => []];
+        $resume = new DeferredFuture();
+        $http = new RecordingHttpClient()
+            ->willAnswerOpenStream([self::frame(self::resultEnvelope())], $resume->getFuture(), [self::frame($later)])
+            ->willAnswerOpenStream([self::frame(self::resultEnvelope())])
+        ;
+        $transport = self::makeTransport($http);
+        $received = self::captureMessages($transport);
+
+        $transport->send(self::discoverRequest(id: 1));
+        $transport->send(self::discoverRequest(id: '1'));
+        delay(0.05);
+
+        // MCP admits both int and string request ids, so "1" is a different exchange than 1.
+        $transport->abort(new RequestId(id: '1'));
+        $resume->complete();
+        delay(0.05);
+
+        self::assertSame(
+            [self::resultEnvelope(), self::resultEnvelope(), $later],
+            $received->envelopes,
+            'Aborting the string id must leave the int one reading.',
+        );
+
+        $transport->close();
+    }
+
+    public function testANotificationExchangeIsNeverTracked(): void
+    {
+        $later = ['jsonrpc' => '2.0', 'method' => 'notifications/tools/list_changed', 'params' => []];
+        $resume = new DeferredFuture();
+        $http = new RecordingHttpClient()
+            ->willAcceptNotification()
+            ->willAnswerOpenStream([self::frame(self::resultEnvelope())], $resume->getFuture(), [self::frame($later)])
+        ;
+        $transport = self::makeTransport($http);
+        $received = self::captureMessages($transport);
+
+        $transport->send(new ToolListChangedNotification(params: new EmptyNotificationParams()));
+        $transport->send(self::discoverRequest(id: 1));
+        delay(0.05);
+
+        // A notification carries no id, so nothing names its exchange and the request keeps its own.
+        $resume->complete();
+        delay(0.05);
+
+        self::assertSame([self::resultEnvelope(), $later], $received->envelopes);
+
+        $transport->close();
+    }
+
+    public function testAbortStopsTheStreamFromBeingReadAnyFurther(): void
+    {
+        $later = ['jsonrpc' => '2.0', 'method' => 'notifications/tools/list_changed', 'params' => []];
+        $resume = new DeferredFuture();
+        $http = new RecordingHttpClient()->willAnswerOpenStream(
+            [self::frame(self::resultEnvelope())],
+            $resume->getFuture(),
+            [self::frame($later)],
+        );
+        $transport = self::makeTransport($http);
+        $received = self::captureMessages($transport);
+
+        $transport->send(self::discoverRequest(id: 1));
+        delay(0.05);
+        self::assertSame([self::resultEnvelope()], $received->envelopes);
+
+        $transport->abort(new RequestId(id: 1));
+        $resume->complete();
+        delay(0.05);
+
+        // The server spoke again, and nobody was listening.
+        self::assertSame([self::resultEnvelope()], $received->envelopes, 'An aborted exchange stops reading its stream.');
+
+        $transport->close();
+    }
+
+    public function testAbortIsIdempotent(): void
+    {
+        $later = ['jsonrpc' => '2.0', 'method' => 'notifications/tools/list_changed', 'params' => []];
+        $resume = new DeferredFuture();
+        $http = new RecordingHttpClient()
+            ->willAnswerOpenStream([self::frame(self::resultEnvelope())])
+            ->willAnswerOpenStream([self::frame(self::resultEnvelope())], $resume->getFuture(), [self::frame($later)])
+        ;
+        $transport = self::makeTransport($http);
+        $received = self::captureMessages($transport);
+        $faults = self::captureFaults($transport);
+
+        $transport->send(self::discoverRequest(id: 1));
+        $transport->send(self::discoverRequest(id: 2));
+        delay(0.05);
+
+        $transport->abort(new RequestId(id: 1));
+        $transport->abort(new RequestId(id: 1));
+        $resume->complete();
+        delay(0.05);
+
+        // The second abort names an exchange that is already gone, and must not reach the live one.
+        self::assertSame([self::resultEnvelope(), self::resultEnvelope(), $later], $received->envelopes);
+        self::assertSame([], $faults->messages);
+
+        $transport->close();
+    }
+
+    public function testAThrowingErrorListenerDoesNotWedgeTheTransport(): void
+    {
+        $http = new RecordingHttpClient()
+            ->willFail(new HttpException('connection reset'))
+            ->willAnswerJson(self::resultEnvelope())
+        ;
+        $transport = self::makeTransport($http);
+        $received = self::captureMessages($transport);
+        $transport->onError(static function (): void {
+            throw new \RuntimeException('listener blew up');
+        });
+
+        $transport->send(self::discoverRequest(id: 1));
+        delay(0.05);
+
+        // The failed exchange still released itself, so the transport keeps serving.
+        self::exchange($transport, self::discoverRequest(id: 2));
+
+        self::assertSame([self::resultEnvelope()], $received->envelopes);
     }
 
     public function testCloseSignalsCloseEvenWhenADrainListenerThrows(): void
@@ -723,9 +908,9 @@ final class StreamableHttpClientTransportTest extends TestCase
         return $log;
     }
 
-    private static function discoverRequest(): DiscoverRequest
+    private static function discoverRequest(int|string $id = 1): DiscoverRequest
     {
-        return new DiscoverRequest(id: new RequestId(id: 1), params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create()));
+        return new DiscoverRequest(id: new RequestId(id: $id), params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create()));
     }
 
     /**

@@ -17,6 +17,7 @@ use Amp\DeferredFuture;
 use Amp\Future;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcMessage;
 use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Core\Transport\AbortableTransportInterface;
 use Nexus\Mcp\Core\Transport\CancellableTransportInterface;
 use Nexus\Mcp\Core\Transport\ReceiveContext;
 use Nexus\Mcp\Core\Transport\SendContext;
@@ -29,7 +30,7 @@ use Nexus\Mcp\Core\Transport\SubscriptionInterface;
  *
  * @internal
  */
-final class RecordingTransport implements CancellableTransportInterface
+final class RecordingTransport implements AbortableTransportInterface, CancellableTransportInterface
 {
     public private(set) bool $started = false;
     public private(set) bool $closed = false;
@@ -38,6 +39,13 @@ final class RecordingTransport implements CancellableTransportInterface
      * @var list<array{message: JsonRpcMessage, context: null|SendContext}>
      */
     public private(set) array $sent = [];
+
+    /**
+     * Ids the protocol layer asked this transport to stop work for, in order.
+     *
+     * @var list<int|non-empty-string>
+     */
+    public private(set) array $aborted = [];
 
     public ?\Throwable $sendError = null;
 
@@ -232,5 +240,11 @@ final class RecordingTransport implements CancellableTransportInterface
         foreach ($this->closeListeners as $listener) {
             $listener();
         }
+    }
+
+    #[\Override]
+    public function abort(RequestId $id): void
+    {
+        $this->aborted[] = $id->id;
     }
 }
