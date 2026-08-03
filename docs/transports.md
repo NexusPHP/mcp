@@ -551,7 +551,7 @@ the exchange, since a later frame may still carry the response.
 
 An exchange that *completes* without ever delivering its response (a server that closes the stream early, or
 answers `202` to a request) raises nothing to correlate. The client's
-[request deadline](client.md#request-timeouts) covers that case, and every other way a peer can go silent.
+[request deadline](client/progress-and-timeouts.md#request-timeouts) covers that case, and every other way a peer can go silent.
 
 ## See also
 

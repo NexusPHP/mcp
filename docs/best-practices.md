@@ -62,7 +62,7 @@ defaults to 60 seconds of silence, restarted by each progress notification, and 
 the total. A call that legitimately runs long takes a per-request override, `sendRequest($request, $response,
 timeout: 900.0)`, rather than a wider default for everything. A lapsed deadline raises
 `RequestTimeoutException` and tells the server to stop working on the request. See
-[request timeouts](client.md#request-timeouts).
+[request timeouts](client/progress-and-timeouts.md#request-timeouts).
 
 ## Both sides
 

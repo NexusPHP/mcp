@@ -50,7 +50,7 @@ The SDK also defines its own code outside the spec's bands, in
 
 | Code | Name | Meaning |
 | --- | --- | --- |
-| -32000 | `Overloaded` | The server is at its in-flight dispatch cap and shed the request. See [`setMaxInFlightDispatches()`](server.md#in-flight-dispatch-cap). |
+| -32000 | `Overloaded` | The server is at its in-flight dispatch cap and shed the request. See [`setMaxInFlightDispatches()`](server/configuration.md#in-flight-dispatch-cap). |
 
 ## Server side: handler failures become error responses
 
@@ -91,7 +91,7 @@ server-returned errors as exceptions:
 | `RemoteCallFailedException` | The server answered with a JSON-RPC error response. The decoded `Error` (code, message, data) is available on the exception. |
 | `TransportAlreadyClosedException` | The transport closed while a request was in flight (also raised on send-after-close). |
 | `OutboundRequestFailedException` | The transport could not carry the request to completion (connection refused, TLS failure, a stalled read), so no response can arrive. The underlying fault is the exception's `previous`. |
-| `RequestTimeoutException` | The request's deadline elapsed before the peer answered. See [request timeouts](client.md#request-timeouts) for the two bounds and how progress notifications extend them. |
+| `RequestTimeoutException` | The request's deadline elapsed before the peer answered. See [request timeouts](client/progress-and-timeouts.md#request-timeouts) for the two bounds and how progress notifications extend them. |
 
 ```php
 use Nexus\Mcp\Client\Exception\ServerCapabilityNotSupportedException;

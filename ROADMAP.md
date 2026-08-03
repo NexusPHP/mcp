@@ -198,6 +198,9 @@ per spec method (nine in all). Only `tools/call`, `prompts/get`, and `resources/
   could not proceed even with the request decoded. Four conformance scenarios stay baselined as a result
   (`basic-sampling`, `basic-list-roots`, `multiple-input-requests`, and `capability-check`), raised upstream
   as [conformance#439](https://github.com/modelcontextprotocol/conformance/issues/439).
+- [ ] Give `readResource()` and `getPrompt()` the `inputResponses` / `requestState` parameters `callTool()`
+  carries, so answering an `InputRequiredResult` on those two methods stays typed instead of dropping to
+  `sendRequest()`.
 
 ### Tool schema relaxation (SEP-2106)
 

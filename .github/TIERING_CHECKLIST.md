@@ -149,12 +149,12 @@ The tiering system covers **both official and community-driven SDKs**, so `nexus
     - [x] Tool registration & handling (docs/server.md)
     - [x] Resource management (docs/server.md)
     - [x] Prompt handling (docs/server.md)
-    - [ ] OAuth/Authentication flows (committed pre-v1.0.0, see ROADMAP.md "Authorization (OAuth 2.1)". The majority of scored client-mode scenarios are OAuth, so this gates client-mode conformance)
+    - [x] OAuth/Authentication flows (docs/authorization.md plus the docs/auth/ pages)
     - [x] Transport configuration (docs/transports.md)
     - [x] Error handling (docs/error-handling.md)
     - [x] Best practices (docs/best-practices.md)
   - Documentation Location: docs/
-  - Evidence/Notes: core, attribute-discovery, error-handling, best-practices, and a design-rationale page all published. Auth pending (see ROADMAP.md Authorization)
+  - Evidence/Notes: per-feature pages under docs/server/, docs/client/, and docs/auth/, plus docs/features.md mapping the conformance repo's 48-row canonical feature list to its documentation
 
 - [x] **Published Dependency Update Policy**
   - Reference: SEP-1730 requirement
