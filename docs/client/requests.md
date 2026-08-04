@@ -74,15 +74,16 @@ use Nexus\Mcp\Core\Schema\ResultResponse\GenericResultResponse;
 // (protocol version, client info, declared capabilities) every request must carry.
 $response = $client->sendRequest(
     new AcmeSnapshotRequest(
-        id: new RequestId(id: 41),
+        id: $client->mintRequestId(),
         params: new AcmeSnapshotRequestParams(meta: $client->stampMeta()),
     ),
     GenericResultResponse::class,
 );
 ```
 
-You supply the `RequestId` yourself when building the request. The auto-incrementing factory backs the typed
-methods above. The capability gate covers the methods behind the typed requests above, so a
+`mintRequestId()` draws from the builder-configured id factory (auto-incrementing by default), so
+hand-built requests share the id scheme of the typed methods. Supplying your own `RequestId` is
+equally valid. The capability gate covers the methods behind the typed requests above, so a
 `tools/list` against a server that advertised no `tools` throws `ServerCapabilityNotSupportedException`
 (see [Typed requests](#typed-requests)). A vendor method like `acme/snapshot` passes through ungated unless
 an [enabled extension](extensions.md) declared it as an outbound method, in which case a server that did not
