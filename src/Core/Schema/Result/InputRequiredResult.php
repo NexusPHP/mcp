@@ -14,8 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\Result;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\JsonRpc\SafeDisplay;
-use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequest;
+use Nexus\Mcp\Core\JsonRpc\InputRequestDispatcher;
 use Nexus\Mcp\Core\Schema\Enum\ResultType;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\MetaObject\GenericResultMetaObject;
@@ -85,7 +84,7 @@ final readonly class InputRequiredResult extends Result implements ServerResult
                 ->isArray('each "result.inputRequests" entry must be an object, {type} given.')
                 ->isMap('each "result.inputRequests" entry must be a string-keyed object.')
             ;
-            $inputRequests = array_map(self::decodeInputRequest(...), $data['inputRequests']);
+            $inputRequests = array_map(InputRequestDispatcher::decode(...), $data['inputRequests']);
         }
 
         $requestState = null;
@@ -148,21 +147,5 @@ final readonly class InputRequiredResult extends Result implements ServerResult
     protected function getResultType(): string
     {
         return ResultType::InputRequired->value;
-    }
-
-    /**
-     * @param array<string, mixed> $request
-     */
-    private static function decodeInputRequest(array $request): InputRequest
-    {
-        Assert::that($request)->hasOffset('method', 'each "result.inputRequests" entry is missing the required "method" key.');
-
-        return match ($request['method']) {
-            'elicitation/create' => ElicitRequest::fromArray($request),
-            default => throw new \InvalidArgumentException(\sprintf(
-                'each "result.inputRequests" entry must use a supported input-request method, %s given.',
-                SafeDisplay::sanitise(var_export($request['method'], true)),
-            )),
-        };
     }
 }
