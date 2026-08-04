@@ -29,6 +29,17 @@ Both runners pass arguments straight through to the referee:
 ./conformance/run-client.sh --scenario tools_call
 ```
 
+The ten `tasks-*` scenarios are tagged `[extension]` upstream, which keeps them out of every
+suite, `all` included. They run individually, and `--force` is required because the tag also makes
+the referee consider them inapplicable at the pinned spec version:
+
+```bash
+./conformance/run-server.sh --scenario tasks-lifecycle --force
+```
+
+`tasks-status-notifications` is a SKIPPED placeholder upstream, pending its subscriptions/listen
+rewrite. The other nine pass against [`TasksServer.php`](TasksServer.php).
+
 The two modes invert. In **server mode** the referee is the client, so `run-server.sh` boots
 [`server.php`](server.php) first and tears it down after. In **client mode** the referee is the
 server: it stands a mock up per scenario and spawns [`client.php`](client.php) once per scenario,
@@ -81,6 +92,7 @@ Two operational notes. To step-debug the fixture itself, set `MCP_CONFORMANCE_AL
 skips the restart. And the restart leaves the original process waiting as a parent, which is why
 `run-server.sh` tears the fixture down by process group rather than by single PID.
 
+
 ## What is being targeted
 
 `--spec-version 2026-07-28`, pinned in [`run-server.sh`](run-server.sh). This SDK implements that
@@ -112,6 +124,11 @@ composer conformance:badge
 Only the modes the run covered are rewritten, so scoring a client run cannot blank the server badge. CI
 regenerates and diffs them, and a stale file fails the build rather than quietly advertising a score
 nobody measured.
+
+The scorer folds in every result under `conformance/results/`, so leftover targeted runs (the
+`tasks-*` scenarios, a single `--scenario` repro) inflate a locally regenerated badge beyond what
+CI measures with `--suite all`, and the drift check then rejects it. Clear `conformance/results/`
+or re-run the suite before regenerating.
 
 The number is the check pass rate at `--spec-version 2026-07-28`. It is **not** the SEP-1730 tier
 percentage, which is computed over a narrower denominator and a more forgiving rule (see above).
@@ -169,6 +186,11 @@ return.
 
 That also puts the feature under third-party pressure. `tools-list` validates every derived schema
 against the spec, which is a sharper test of the generator than the SDK's own unit tests.
+
+[`MultiRoundServer.php`](MultiRoundServer.php) carries the `input-required-result-*` fixtures, and
+[`TasksServer.php`](TasksServer.php) the tools the `tasks-*` scenarios name (`greet`,
+`slow_compute`, `failing_job`, and friends), with their per-tool `ToolTaskPolicy` map living in
+[`server.php`](server.php)'s `TasksServerExtension` registration.
 
 ### The client side
 

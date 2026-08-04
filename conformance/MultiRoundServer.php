@@ -14,15 +14,8 @@ declare(strict_types=1);
 use Nexus\Mcp\Core\Exception\InvalidParamsException;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Elicitation\BooleanSchema;
-use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequest;
-use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequestedSchema;
-use Nexus\Mcp\Core\Schema\Elicitation\ElicitResult;
-use Nexus\Mcp\Core\Schema\Elicitation\PrimitiveSchemaDefinition;
-use Nexus\Mcp\Core\Schema\Elicitation\StringSchema;
-use Nexus\Mcp\Core\Schema\Enum\ElicitAction;
 use Nexus\Mcp\Core\Schema\Enum\Role;
 use Nexus\Mcp\Core\Schema\Prompt\PromptMessage;
-use Nexus\Mcp\Core\Schema\RequestParams\ElicitRequestFormParams;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
 use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
@@ -42,6 +35,8 @@ use Nexus\Mcp\Server\ServerContext;
  */
 final class MultiRoundServer
 {
+    use ElicitationHelpers;
+
     /**
      * A per-process signing key. A real server would load one from configuration so a
      * state stays valid across restarts and behind a load balancer.
@@ -138,42 +133,5 @@ final class MultiRoundServer
         return new GetPromptResult(messages: [
             new PromptMessage(role: Role::User, content: new TextContent(text: sprintf('Context: %s', $userContext))),
         ]);
-    }
-
-    /**
-     * Builds a one-question `InputRequiredResult`.
-     */
-    private static function ask(
-        string $key,
-        string $message,
-        string $field,
-        ?PrimitiveSchemaDefinition $schema = null,
-        ?string $state = null,
-    ): InputRequiredResult {
-        return new InputRequiredResult(
-            inputRequests: [$key => new ElicitRequest(params: new ElicitRequestFormParams(
-                message: $message,
-                requestedSchema: new ElicitRequestedSchema(
-                    properties: [$field => $schema ?? new StringSchema()],
-                    required: [$field],
-                ),
-            ))],
-            requestState: $state,
-        );
-    }
-
-    /**
-     * The named field of an accepted elicitation answer, or null while the client has not
-     * supplied one. An unrecognised key is simply absent, which re-asks rather than failing.
-     */
-    private static function readAnswer(ServerContext $context, string $key, string $field): mixed
-    {
-        $response = $context->inputResponses[$key] ?? null;
-
-        if (! $response instanceof ElicitResult || ElicitAction::Accept !== $response->action) {
-            return null;
-        }
-
-        return $response->content[$field] ?? null;
     }
 }

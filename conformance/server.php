@@ -28,13 +28,18 @@ declare(strict_types=1);
  */
 
 require __DIR__.'/bootstrap.php';
+require __DIR__.'/ElicitationHelpers.php';
 require __DIR__.'/EverythingServer.php';
 require __DIR__.'/MultiRoundServer.php';
+require __DIR__.'/TasksServer.php';
 
 use Amp\DeferredFuture;
 use Amp\Http\Server\DefaultErrorHandler;
 use Amp\Http\Server\SocketHttpServer;
 use Composer\XdebugHandler\XdebugHandler;
+use Nexus\Mcp\Extension\Tasks\Server\TasksServerExtension;
+use Nexus\Mcp\Extension\Tasks\Server\TaskSupport;
+use Nexus\Mcp\Extension\Tasks\Server\ToolTaskPolicy;
 use Nexus\Mcp\Server\Prompt\MutablePromptStoreInterface;
 use Nexus\Mcp\Server\ServerBuilder;
 use Nexus\Mcp\Server\Subscription\SubscriptionStore;
@@ -77,7 +82,18 @@ $psr17 = new Psr17Factory();
 $everythingServer = new EverythingServer();
 $builder = new ServerBuilder()
     ->setLogger($logger)
-    ->register($everythingServer, new MultiRoundServer())
+    ->register($everythingServer, new MultiRoundServer(), new TasksServer())
+    ->enableExtension(new TasksServerExtension(
+        toolPolicies: [
+            'slow_compute' => new ToolTaskPolicy(support: TaskSupport::Optional),
+            'failing_job' => new ToolTaskPolicy(support: TaskSupport::Required),
+            'protocol_error_job' => new ToolTaskPolicy(support: TaskSupport::Optional),
+            'confirm_delete' => new ToolTaskPolicy(support: TaskSupport::Optional),
+            'multi_input' => new ToolTaskPolicy(support: TaskSupport::Optional),
+            'test_tool_with_task' => new ToolTaskPolicy(support: TaskSupport::Required, resolvesInputFirst: true),
+        ],
+        logger: $logger,
+    ))
 ;
 
 $subscriptions = new SubscriptionStore(
@@ -130,9 +146,11 @@ $endpoint = new SecuredHttpEndpoint(
     logger: $logger,
 );
 
+$handler = new PsrHttpAdapter($endpoint, $psr17, $psr17);
+
 $httpServer = SocketHttpServer::createForDirectAccess($logger);
 $httpServer->expose($address);
-$httpServer->start(new PsrHttpAdapter($endpoint, $psr17, $psr17), new DefaultErrorHandler());
+$httpServer->start($handler, new DefaultErrorHandler());
 
 fwrite(\STDERR, sprintf("Conformance server listening on http://%s\n", $address));
 
