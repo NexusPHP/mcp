@@ -53,6 +53,7 @@ use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureNotificationHandler;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureRequestHandler;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
+use Nexus\Mcp\Tests\Fixtures\Core\TestLooseClientRequest;
 use Nexus\Mcp\Tests\Fixtures\Core\TestRequest;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -235,6 +236,38 @@ final class ServerMessageDispatcherTest extends TestCase
         self::assertCount(1, $matches);
         self::assertSame($envelope, $matches[0]['context']['envelope'] ?? null);
         self::assertInstanceOf(MethodMisroutedException::class, $matches[0]['context']['exception'] ?? null);
+    }
+
+    public function testARequestParsedWithoutParamsIsRejectedAsInvalid(): void
+    {
+        $dispatcher = self::buildDispatcher(
+            requestHandlers: [
+                TestLooseClientRequest::getMethod() => new ClosureRequestHandler(
+                    static fn(): EmptyResult => throw new \RuntimeException('The guard must reject before the handler runs.'),
+                ),
+            ],
+            parser: new JsonRpcMessageParser([TestLooseClientRequest::getMethod() => TestLooseClientRequest::class]),
+        );
+        $transport = new RecordingTransport();
+
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 5,
+            'method' => TestLooseClientRequest::getMethod(),
+        ], $transport, new ReceiveContext());
+        $dispatcher->flushPending();
+
+        self::assertCount(1, $transport->sent);
+        $message = $transport->sent[0]['message'];
+        self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
+
+        if (! $message->id instanceof RequestId) {
+            self::fail('The rejection must echo the request id.');
+        }
+
+        self::assertSame(5, $message->id->id);
+        self::assertSame(ProtocolErrorCode::InvalidRequest->value, $message->error->code);
+        self::assertSame('"params" must be an object carrying the lifecycle "_meta" fields.', $message->error->message);
     }
 
     public function testUnknownNotificationMethodIsDroppedAndLoggedNotAnsweredWithError(): void
