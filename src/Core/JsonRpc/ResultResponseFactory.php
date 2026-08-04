@@ -38,6 +38,7 @@ use Nexus\Mcp\Core\Schema\Result\ListResourceTemplatesResult;
 use Nexus\Mcp\Core\Schema\Result\ListToolsResult;
 use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
 use Nexus\Mcp\Core\Schema\Result\SubscriptionsListenResult;
+use Nexus\Mcp\Core\Schema\Result\TaskHandleResult;
 use Nexus\Mcp\Core\Schema\ResultResponse\CallToolResultResponse;
 use Nexus\Mcp\Core\Schema\ResultResponse\CompleteResultResponse;
 use Nexus\Mcp\Core\Schema\ResultResponse\DiscoverResultResponse;
@@ -76,6 +77,7 @@ final class ResultResponseFactory
             $request instanceof ListResourceTemplatesRequest && $result instanceof ListResourceTemplatesResult => new ListResourceTemplatesResultResponse(id: $id, result: $result),
             $request instanceof ListToolsRequest && $result instanceof ListToolsResult => new ListToolsResultResponse(id: $id, result: $result),
             $request instanceof SubscriptionsListenRequest && $result instanceof SubscriptionsListenResult => new SubscriptionsListenResultResponse(id: $id, result: $result),
+            $request instanceof CallToolRequest && $result instanceof TaskHandleResult => new GenericResultResponse(id: $id, result: $result),
             ! \array_key_exists($request::getMethod(), JsonRpcMethodRegistry::requests()) => new GenericResultResponse(id: $id, result: $result),
             $result instanceof EmptyResult => new GenericResultResponse(id: $id, result: $result),
             default => throw new \InvalidArgumentException(\sprintf(

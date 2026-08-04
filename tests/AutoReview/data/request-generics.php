@@ -22,6 +22,9 @@ use Nexus\Mcp\Core\Schema\Request\ListResourceTemplatesRequest;
 use Nexus\Mcp\Core\Schema\Request\ListToolsRequest;
 use Nexus\Mcp\Core\Schema\Request\ReadResourceRequest;
 use Nexus\Mcp\Core\Schema\Request\SubscriptionsListenRequest;
+use Nexus\Mcp\Extension\Tasks\Schema\Request\CancelTaskRequest;
+use Nexus\Mcp\Extension\Tasks\Schema\Request\GetTaskRequest;
+use Nexus\Mcp\Extension\Tasks\Schema\Request\UpdateTaskRequest;
 
 use function PHPStan\Testing\assertType;
 
@@ -34,5 +37,8 @@ assertType('\'resources/read\'', ReadResourceRequest::getMethod());
 assertType('\'resources/templates/list\'', ListResourceTemplatesRequest::getMethod());
 assertType('\'server/discover\'', DiscoverRequest::getMethod());
 assertType('\'subscriptions/listen\'', SubscriptionsListenRequest::getMethod());
+assertType('\'tasks/cancel\'', CancelTaskRequest::getMethod());
+assertType('\'tasks/get\'', GetTaskRequest::getMethod());
+assertType('\'tasks/update\'', UpdateTaskRequest::getMethod());
 assertType('\'tools/call\'', CallToolRequest::getMethod());
 assertType('\'tools/list\'', ListToolsRequest::getMethod());

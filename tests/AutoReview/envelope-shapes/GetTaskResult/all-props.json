@@ -1,0 +1,26 @@
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "_meta": {
+            "vendor.brand": "acme"
+        },
+        "resultType": "complete",
+        "taskId": "0f47ac10b58cc4372a5670e02b2c3d47",
+        "status": "completed",
+        "createdAt": "2026-08-04T12:00:00+00:00",
+        "lastUpdatedAt": "2026-08-04T12:00:05+00:00",
+        "ttlMs": 300000,
+        "result": {
+            "resultType": "complete",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Computed 3 rows."
+                }
+            ]
+        },
+        "statusMessage": "Done.",
+        "pollIntervalMs": 1000
+    }
+}

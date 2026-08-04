@@ -1,0 +1,31 @@
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "tasks/update",
+    "params": {
+        "_meta": {
+            "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+            "io.modelcontextprotocol/clientInfo": {
+                "name": "test-client",
+                "version": "1.0.0"
+            },
+            "io.modelcontextprotocol/clientCapabilities": {
+                "extensions": {
+                    "io.modelcontextprotocol/tasks": {
+                        "vendor.note": "fixture"
+                    }
+                }
+            },
+            "vendor.brand": "acme"
+        },
+        "taskId": "0f47ac10b58cc4372a5670e02b2c3d47",
+        "inputResponses": {
+            "github_login": {
+                "action": "accept",
+                "content": {
+                    "name": "octocat"
+                }
+            }
+        }
+    }
+}

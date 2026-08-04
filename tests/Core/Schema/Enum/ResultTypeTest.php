@@ -41,5 +41,7 @@ final class ResultTypeTest extends TestCase
         yield 'Complete' => [ResultType::Complete, 'complete'];
 
         yield 'InputRequired' => [ResultType::InputRequired, 'input_required'];
+
+        yield 'Task' => [ResultType::Task, 'task'];
     }
 }

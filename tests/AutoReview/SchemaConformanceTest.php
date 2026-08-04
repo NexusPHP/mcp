@@ -46,6 +46,7 @@ use Nexus\Mcp\Core\Schema\Result\ClientResult;
 use Nexus\Mcp\Core\Schema\Result\InputResponse;
 use Nexus\Mcp\Core\Schema\Result\PaginatedResult;
 use Nexus\Mcp\Core\Schema\Result\ServerResult;
+use Nexus\Mcp\Core\Schema\Result\TaskHandleResult;
 use Nexus\Mcp\Core\Schema\ResultResponse\GenericResultResponse;
 use Nexus\Mcp\Tools\McpAnchorSnapshot;
 use Nexus\Mcp\Tools\McpSchemaProcessor;
@@ -124,6 +125,7 @@ final class SchemaConformanceTest extends TestCase
         InputResponse::class => self::TS_SCHEMA_FILE_URL,
         PaginatedResult::class => self::TS_SCHEMA_FILE_URL,
         ServerResult::class => self::TS_SCHEMA_FILE_URL,
+        TaskHandleResult::class => 'https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/seps/2663-tasks-extension.md',
     ];
 
     /**

@@ -1,0 +1,34 @@
+{
+    "name": "nexusphp/mcp-extensions",
+    "description": "PHP SDK for the MCP specification - official extensions component.",
+    "license": "MIT",
+    "type": "library",
+    "authors": [
+        {
+            "name": "John Paul E. Balandan, CPA",
+            "email": "paulbalandan@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^8.4",
+        "amphp/amp": "^3.1",
+        "nexusphp/assert": "^1.0",
+        "nexusphp/mcp-client": "self.version",
+        "nexusphp/mcp-core": "self.version",
+        "nexusphp/mcp-server": "self.version",
+        "psr/log": "^3.0",
+        "revolt/event-loop": "^1.0"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Nexus\\Mcp\\Extension\\": ""
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true
+    }
+}

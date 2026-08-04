@@ -1,0 +1,32 @@
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "resultType": "complete",
+        "taskId": "0f47ac10b58cc4372a5670e02b2c3d47",
+        "status": "input_required",
+        "createdAt": "2026-08-04T12:00:00+00:00",
+        "lastUpdatedAt": "2026-08-04T12:00:02+00:00",
+        "ttlMs": 300000,
+        "inputRequests": {
+            "github_login": {
+                "method": "elicitation/create",
+                "params": {
+                    "mode": "form",
+                    "message": "Please provide your GitHub username",
+                    "requestedSchema": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "name"
+                        ]
+                    }
+                }
+            }
+        }
+    }
+}

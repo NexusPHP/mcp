@@ -60,6 +60,8 @@ use Nexus\Mcp\Core\Schema\ResultResponse\ListToolsResultResponse;
 use Nexus\Mcp\Core\Schema\ResultResponse\ReadResourceResultResponse;
 use Nexus\Mcp\Core\Schema\ResultResponse\SubscriptionsListenResultResponse;
 use Nexus\Mcp\Core\Schema\SubscriptionFilter;
+use Nexus\Mcp\Extension\Tasks\Schema\Enum\TaskStatus;
+use Nexus\Mcp\Extension\Tasks\Schema\Result\CreateTaskResult;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use Nexus\Mcp\Tests\Fixtures\Core\TestRequest;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -112,6 +114,18 @@ final class ResultResponseFactoryTest extends TestCase
             $callTool,
             $inputRequired,
             CallToolResultResponse::class,
+        ];
+
+        yield 'tools/call task handle wraps generically' => [
+            $callTool,
+            new CreateTaskResult(
+                taskId: 'task-1',
+                status: TaskStatus::Working,
+                createdAt: '2026-08-04T12:00:00+00:00',
+                lastUpdatedAt: '2026-08-04T12:00:00+00:00',
+                ttlMs: null,
+            ),
+            GenericResultResponse::class,
         ];
 
         yield 'prompts/get' => [

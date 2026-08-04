@@ -53,6 +53,7 @@
     "replace": {
         "nexusphp/mcp-client": "self.version",
         "nexusphp/mcp-core": "self.version",
+        "nexusphp/mcp-extensions": "self.version",
         "nexusphp/mcp-sdk": "self.version",
         "nexusphp/mcp-server": "self.version"
     },
@@ -157,6 +158,10 @@
             "@putenv XDEBUG_MODE=off",
             "phpunit --group=core-tests --colors=always --no-coverage"
         ],
+        "test:extension": [
+            "@putenv XDEBUG_MODE=off",
+            "phpunit --group=extension-tests --colors=always --no-coverage"
+        ],
         "test:server": [
             "@putenv XDEBUG_MODE=off",
             "phpunit --group=server-tests --colors=always --no-coverage"
@@ -209,6 +214,7 @@
         "test:auto-review": "Runs the automatic code review tests",
         "test:client": "Runs the Client component tests",
         "test:core": "Runs the Core component tests",
+        "test:extension": "Runs the Extension component tests",
         "test:server": "Runs the Server component tests",
         "test:stan": "Runs the static-analysis (PHPStan type-inference lock-in) tests",
         "test:unit": "Runs the unit tests with code coverage",

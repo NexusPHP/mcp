@@ -52,6 +52,11 @@ use Nexus\Mcp\Core\Schema\ResultResponse\ListResourceTemplatesResultResponse;
 use Nexus\Mcp\Core\Schema\ResultResponse\ListToolsResultResponse;
 use Nexus\Mcp\Core\Schema\ResultResponse\ReadResourceResultResponse;
 use Nexus\Mcp\Core\Schema\ResultResponse\SubscriptionsListenResultResponse;
+use Nexus\Mcp\Extension\Tasks\Schema\Request\CancelTaskRequest;
+use Nexus\Mcp\Extension\Tasks\Schema\Request\GetTaskRequest;
+use Nexus\Mcp\Extension\Tasks\Schema\Request\UpdateTaskRequest;
+use Nexus\Mcp\Extension\Tasks\Schema\Result\CreateTaskResult;
+use Nexus\Mcp\Extension\Tasks\Schema\Result\GetTaskResult;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -225,6 +230,12 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
 
         yield 'SubscriptionsListenRequest' => ['wrapper' => SubscriptionsListenRequest::class, 'inner' => null, 'encodingPathsDiverge' => true];
 
+        yield 'GetTaskRequest' => ['wrapper' => GetTaskRequest::class, 'inner' => null];
+
+        yield 'UpdateTaskRequest' => ['wrapper' => UpdateTaskRequest::class, 'inner' => null];
+
+        yield 'CancelTaskRequest' => ['wrapper' => CancelTaskRequest::class, 'inner' => null];
+
         // Concrete notifications.
         yield 'CancelledNotification' => ['wrapper' => CancelledNotification::class, 'inner' => null];
 
@@ -266,6 +277,10 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
         yield 'ReadResourceResult' => ['wrapper' => ReadResourceResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => null];
 
         yield 'SubscriptionsListenResult' => ['wrapper' => SubscriptionsListenResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => null];
+
+        yield 'CreateTaskResult' => ['wrapper' => GenericResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => CreateTaskResult::class];
+
+        yield 'GetTaskResult' => ['wrapper' => GenericResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => GetTaskResult::class];
 
         // Error responses, organised per Error subclass even though
         // `JsonRpcErrorResponse::fromArray` self-dispatches on `code`.

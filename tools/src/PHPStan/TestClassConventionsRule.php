@@ -39,6 +39,7 @@ final class TestClassConventionsRule implements Rule
         'auto-review',
         'client-tests',
         'core-tests',
+        'extension-tests',
         'server-tests',
         'static-analysis',
         'unit-tests',

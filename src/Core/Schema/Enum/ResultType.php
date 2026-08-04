@@ -27,4 +27,10 @@ enum ResultType: string
 {
     case Complete = 'complete';
     case InputRequired = 'input_required';
+
+    /**
+     * Reserved by SEP-2663 for the tasks extension: the request was accepted
+     * as a long-running task and the result carries a task handle.
+     */
+    case Task = 'task';
 }
