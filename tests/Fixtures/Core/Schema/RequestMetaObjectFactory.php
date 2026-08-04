@@ -41,11 +41,12 @@ final class RequestMetaObjectFactory
         array $extras = [],
         ?LoggingLevel $logLevel = null,
         ?string $protocolVersion = null,
+        ?ClientCapabilities $clientCapabilities = null,
     ): RequestMetaObject {
         return new RequestMetaObject(
             protocolVersion: new ProtocolVersion(version: $protocolVersion ?? ProtocolVersion::LATEST_VERSION),
             clientInfo: new Implementation(name: self::CLIENT_NAME, version: self::CLIENT_VERSION),
-            clientCapabilities: new ClientCapabilities(experimental: ['acme.experimental' => ['enabled' => true]]),
+            clientCapabilities: $clientCapabilities ?? new ClientCapabilities(experimental: ['acme.experimental' => ['enabled' => true]]),
             logLevel: $logLevel,
             progressToken: $progressToken,
             extras: $extras,
@@ -64,7 +65,8 @@ final class RequestMetaObjectFactory
         array $extras = [],
         ?LoggingLevel $logLevel = null,
         ?string $protocolVersion = null,
+        ?ClientCapabilities $clientCapabilities = null,
     ): array {
-        return self::create($progressToken, $extras, $logLevel, $protocolVersion)->toArray();
+        return self::create($progressToken, $extras, $logLevel, $protocolVersion, $clientCapabilities)->toArray();
     }
 }

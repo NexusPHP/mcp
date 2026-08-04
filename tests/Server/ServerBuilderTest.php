@@ -13,12 +13,17 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Server;
 
+use Nexus\Assert\ExpectationFailedException;
+use Nexus\Mcp\Core\Exception\DuplicateExtensionException;
+use Nexus\Mcp\Core\Exception\ExtensionMethodCollisionException;
+use Nexus\Mcp\Core\Schema\ClientCapabilities;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Cursor;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequest;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequestedSchema;
 use Nexus\Mcp\Core\Schema\Elicitation\StringSchema;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
+use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Enum\SdkErrorCode;
 use Nexus\Mcp\Core\Schema\Icon;
 use Nexus\Mcp\Core\Schema\Implementation;
@@ -81,11 +86,17 @@ use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureNotificationHandler;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureRequestHandler;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
+use Nexus\Mcp\Tests\Fixtures\Core\TestClientRequest;
+use Nexus\Mcp\Tests\Fixtures\Core\TestNotification;
+use Nexus\Mcp\Tests\Fixtures\Core\TestRequest;
+use Nexus\Mcp\Tests\Fixtures\Core\TestSecondClientRequest;
+use Nexus\Mcp\Tests\Fixtures\Core\TestSecondNotification;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
 use Nexus\Mcp\Tests\Fixtures\Server\Completion\RecordingCompletionStore;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\CompletionHandlers;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\DiscoverableServer;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\SelfDescribingServer;
+use Nexus\Mcp\Tests\Fixtures\Server\Extension\StubServerExtension;
 use Nexus\Mcp\Tests\Fixtures\Server\Tool\PagedToolStore;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -987,17 +998,43 @@ final class ServerBuilderTest extends TestCase
         self::assertSame(1, $invoked);
     }
 
-    public function testAddRequestHandlerAcceptsVendorExtensionMethod(): void
+    public function testAddRequestHandlerDispatchesTheVendorExtensionMethod(): void
     {
-        $this->expectNotToPerformAssertions();
-
-        new ServerBuilder()
+        $server = new ServerBuilder()
             ->setServerInfo('demo', '1.0.0')
-            ->addRequestHandler('acme/snapshot', new ClosureRequestHandler(
+            ->addRequestHandler(TestClientRequest::getMethod(), new ClosureRequestHandler(
                 static fn(): EmptyResult => new EmptyResult(),
-            ))
+            ), TestClientRequest::class)
             ->build()
         ;
+
+        $result = $this->dispatch($server, TestClientRequest::getMethod());
+
+        self::assertInstanceOf(EmptyResult::class, $result);
+    }
+
+    public function testAddRequestHandlerRejectsAClassWithoutTheClientMarker(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs(
+            'Request class "Nexus\Mcp\Tests\Fixtures\Core\TestRequest" must implement "Nexus\Mcp\Core\Schema\Request\ClientRequest" for the server to dispatch it.',
+        );
+
+        new ServerBuilder()->addRequestHandler(TestRequest::getMethod(), new ClosureRequestHandler(
+            static fn(): EmptyResult => new EmptyResult(),
+        ), TestRequest::class);
+    }
+
+    public function testAddRequestHandlerRejectsAClassDeclaringADifferentMethod(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs(
+            'Request class "Nexus\Mcp\Tests\Fixtures\Core\TestClientRequest" must declare the method "acme/snapshot" it is registered for, \'tests/test-client-request\' declared.',
+        );
+
+        new ServerBuilder()->addRequestHandler('acme/snapshot', new ClosureRequestHandler(
+            static fn(): EmptyResult => new EmptyResult(),
+        ), TestClientRequest::class);
     }
 
     /**
@@ -1014,7 +1051,7 @@ final class ServerBuilderTest extends TestCase
 
         new ServerBuilder()->addRequestHandler($method, new ClosureRequestHandler(
             static fn(): EmptyResult => new EmptyResult(),
-        ));
+        ), TestClientRequest::class);
     }
 
     /**
@@ -1041,17 +1078,51 @@ final class ServerBuilderTest extends TestCase
         yield 'tools/list' => ['tools/list'];
     }
 
-    public function testAddNotificationHandlerAcceptsVendorExtensionMethod(): void
+    public function testAddNotificationHandlerDispatchesTheVendorExtensionMethod(): void
     {
-        $this->expectNotToPerformAssertions();
+        $received = 0;
 
-        new ServerBuilder()
+        $server = new ServerBuilder()
             ->setServerInfo('demo', '1.0.0')
-            ->addNotificationHandler('acme/snapshot-done', new ClosureNotificationHandler(
-                static function (): void {},
-            ))
+            ->addNotificationHandler(TestNotification::getMethod(), new ClosureNotificationHandler(
+                static function () use (&$received): void {
+                    ++$received;
+                },
+            ), TestNotification::class)
             ->build()
         ;
+
+        $transport = new RecordingTransport();
+        $serverRun = \Amp\async(static function () use ($server, $transport): void {
+            $server->run($transport);
+        });
+
+        EventLoop::queue(static function () use ($transport): void {
+            $transport->emitMessage([
+                'jsonrpc' => '2.0',
+                'method' => TestNotification::getMethod(),
+            ]);
+        });
+
+        EventLoop::queue(static function () use ($transport): void {
+            $transport->close();
+        });
+
+        $serverRun->await();
+
+        self::assertSame(1, $received);
+    }
+
+    public function testAddNotificationHandlerRejectsAClassDeclaringADifferentMethod(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs(
+            'Notification class "Nexus\Mcp\Tests\Fixtures\Core\TestNotification" must declare the method "acme/snapshot-done" it is registered for, \'tests/test-notification\' declared.',
+        );
+
+        new ServerBuilder()->addNotificationHandler('acme/snapshot-done', new ClosureNotificationHandler(
+            static function (): void {},
+        ), TestNotification::class);
     }
 
     /**
@@ -1068,7 +1139,7 @@ final class ServerBuilderTest extends TestCase
 
         new ServerBuilder()->addNotificationHandler($method, new ClosureNotificationHandler(
             static function (): void {},
-        ));
+        ), TestNotification::class);
     }
 
     /**
@@ -1087,6 +1158,283 @@ final class ServerBuilderTest extends TestCase
         yield 'notifications/resources/updated' => ['notifications/resources/updated'];
 
         yield 'notifications/tools/list_changed' => ['notifications/tools/list_changed'];
+    }
+
+    public function testEnableExtensionAdvertisesTheCapabilitySlot(): void
+    {
+        $server = new ServerBuilder()
+            ->setServerInfo('demo', '1.0.0')
+            ->enableExtension(self::buildServerExtension())
+            ->build()
+        ;
+
+        $result = $this->dispatch($server, 'server/discover');
+
+        self::assertInstanceOf(DiscoverResult::class, $result);
+        self::assertStringContainsString(
+            '"extensions":{"com.example/feature":{}}',
+            json_encode($result->capabilities, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES),
+        );
+    }
+
+    public function testAGatedExtensionMethodServesADeclaringClient(): void
+    {
+        $server = new ServerBuilder()
+            ->setServerInfo('demo', '1.0.0')
+            ->enableExtension(self::buildServerExtension())
+            ->build()
+        ;
+
+        $result = $this->dispatch($server, TestClientRequest::getMethod(), [
+            '_meta' => RequestMetaObjectFactory::shape(
+                clientCapabilities: new ClientCapabilities(extensions: ['com.example/feature' => []]),
+            ),
+        ]);
+
+        self::assertInstanceOf(EmptyResult::class, $result);
+    }
+
+    public function testAGatedExtensionMethodRejectsANonDeclaringClient(): void
+    {
+        $server = new ServerBuilder()
+            ->setServerInfo('demo', '1.0.0')
+            ->enableExtension(self::buildServerExtension())
+            ->build()
+        ;
+
+        $transport = new RecordingTransport();
+        $serverRun = \Amp\async(static function () use ($server, $transport): void {
+            $server->run($transport);
+        });
+
+        EventLoop::queue(static function () use ($transport): void {
+            $transport->emitMessage([
+                'jsonrpc' => '2.0',
+                'id' => 2,
+                'method' => TestClientRequest::getMethod(),
+                'params' => ['_meta' => RequestMetaObjectFactory::shape()],
+            ]);
+        });
+
+        EventLoop::queue(static function () use ($transport): void {
+            $transport->close();
+        });
+
+        $serverRun->await();
+
+        self::assertCount(1, $transport->sent);
+        $message = $transport->sent[0]['message'];
+        self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
+        self::assertSame(ProtocolErrorCode::MissingRequiredClientCapability->value, $message->error->code);
+        self::assertSame(
+            'This request requires client capabilities the client did not declare: extensions.com.example/feature.',
+            $message->error->message,
+        );
+    }
+
+    public function testExtensionNotificationHandlersDispatchUngated(): void
+    {
+        $received = [];
+
+        $server = new ServerBuilder()
+            ->setServerInfo('demo', '1.0.0')
+            ->enableExtension(new StubServerExtension(
+                identifier: 'com.example/feature',
+                notifications: [TestNotification::getMethod() => TestNotification::class],
+                notificationHandlers: [TestNotification::getMethod() => new ClosureNotificationHandler(
+                    static function () use (&$received): void {
+                        $received[] = 'feature';
+                    },
+                )],
+            ))
+            ->enableExtension(new StubServerExtension(
+                identifier: 'com.example/other',
+                notifications: [TestSecondNotification::getMethod() => TestSecondNotification::class],
+                notificationHandlers: [TestSecondNotification::getMethod() => new ClosureNotificationHandler(
+                    static function () use (&$received): void {
+                        $received[] = 'other';
+                    },
+                )],
+            ))
+            ->build()
+        ;
+
+        $transport = new RecordingTransport();
+        $serverRun = \Amp\async(static function () use ($server, $transport): void {
+            $server->run($transport);
+        });
+
+        EventLoop::queue(static function () use ($transport): void {
+            $transport->emitMessage([
+                'jsonrpc' => '2.0',
+                'method' => TestNotification::getMethod(),
+            ]);
+            $transport->emitMessage([
+                'jsonrpc' => '2.0',
+                'method' => TestSecondNotification::getMethod(),
+            ]);
+        });
+
+        EventLoop::queue(static function () use ($transport): void {
+            $transport->close();
+        });
+
+        $serverRun->await();
+
+        self::assertSame(['feature', 'other'], $received);
+    }
+
+    public function testTwoEnabledExtensionsServeTheirOwnMethods(): void
+    {
+        $server = new ServerBuilder()
+            ->setServerInfo('demo', '1.0.0')
+            ->enableExtension(self::buildServerExtension())
+            ->enableExtension(new StubServerExtension(
+                identifier: 'com.example/other',
+                requests: [TestSecondClientRequest::getMethod() => TestSecondClientRequest::class],
+                requestHandlers: [TestSecondClientRequest::getMethod() => new ClosureRequestHandler(
+                    static fn(): EmptyResult => new EmptyResult(),
+                )],
+            ))
+            ->build()
+        ;
+
+        $transport = new RecordingTransport();
+        $serverRun = \Amp\async(static function () use ($server, $transport): void {
+            $server->run($transport);
+        });
+
+        $meta = RequestMetaObjectFactory::shape(clientCapabilities: new ClientCapabilities(extensions: [
+            'com.example/feature' => [],
+            'com.example/other' => [],
+        ]));
+
+        EventLoop::queue(static function () use ($transport, $meta): void {
+            $transport->emitMessage([
+                'jsonrpc' => '2.0',
+                'id' => 2,
+                'method' => TestClientRequest::getMethod(),
+                'params' => ['_meta' => $meta],
+            ]);
+            $transport->emitMessage([
+                'jsonrpc' => '2.0',
+                'id' => 3,
+                'method' => TestSecondClientRequest::getMethod(),
+                'params' => ['_meta' => $meta],
+            ]);
+        });
+
+        EventLoop::queue(static function () use ($transport): void {
+            $transport->close();
+        });
+
+        $serverRun->await();
+
+        $answered = [];
+
+        foreach ($transport->sent as $entry) {
+            $message = $entry['message'];
+
+            if ($message instanceof JsonRpcResultResponse) {
+                $answered[] = $message->id->id;
+            }
+        }
+
+        self::assertSame([2, 3], $answered);
+    }
+
+    public function testEnableExtensionRejectsADuplicateIdentifier(): void
+    {
+        $builder = new ServerBuilder()->enableExtension(new StubServerExtension(identifier: 'com.example/feature'));
+
+        $this->expectException(DuplicateExtensionException::class);
+        $this->expectExceptionMessageIs('Extension "com.example/feature" is declared more than once.');
+
+        $builder->enableExtension(new StubServerExtension(identifier: 'com.example/feature'));
+    }
+
+    public function testEnableExtensionRejectsAMethodABuilderHandlerOwns(): void
+    {
+        $builder = new ServerBuilder()->addRequestHandler(TestClientRequest::getMethod(), new ClosureRequestHandler(
+            static fn(): EmptyResult => new EmptyResult(),
+        ), TestClientRequest::class);
+
+        $this->expectException(ExtensionMethodCollisionException::class);
+        $this->expectExceptionMessageIs(
+            'Extension "com.example/feature" cannot claim the request method "tests/test-client-request" already owned by a builder-registered handler.',
+        );
+
+        $builder->enableExtension(self::buildServerExtension());
+    }
+
+    public function testEnableExtensionRejectsANotificationMethodABuilderHandlerOwns(): void
+    {
+        $builder = new ServerBuilder()->addNotificationHandler(TestNotification::getMethod(), new ClosureNotificationHandler(
+            static function (): void {},
+        ), TestNotification::class);
+
+        $this->expectException(ExtensionMethodCollisionException::class);
+        $this->expectExceptionMessageIs(
+            'Extension "com.example/feature" cannot claim the notification method "tests/test-notification" already owned by a builder-registered handler.',
+        );
+
+        $builder->enableExtension(new StubServerExtension(
+            identifier: 'com.example/feature',
+            notifications: [TestNotification::getMethod() => TestNotification::class],
+            notificationHandlers: [TestNotification::getMethod() => new ClosureNotificationHandler(
+                static function (): void {},
+            )],
+        ));
+    }
+
+    public function testAddRequestHandlerRejectsAMethodAnExtensionOwns(): void
+    {
+        $builder = new ServerBuilder()->enableExtension(self::buildServerExtension());
+
+        $this->expectException(ExtensionMethodCollisionException::class);
+        $this->expectExceptionMessageIs(
+            'A builder-registered handler cannot claim the request method "tests/test-client-request" already owned by extension "com.example/feature".',
+        );
+
+        $builder->addRequestHandler(TestClientRequest::getMethod(), new ClosureRequestHandler(
+            static fn(): EmptyResult => new EmptyResult(),
+        ), TestClientRequest::class);
+    }
+
+    public function testAddNotificationHandlerRejectsAMethodAnExtensionOwns(): void
+    {
+        $builder = new ServerBuilder()->enableExtension(new StubServerExtension(
+            identifier: 'com.example/feature',
+            notifications: [TestNotification::getMethod() => TestNotification::class],
+            notificationHandlers: [TestNotification::getMethod() => new ClosureNotificationHandler(
+                static function (): void {},
+            )],
+        ));
+
+        $this->expectException(ExtensionMethodCollisionException::class);
+        $this->expectExceptionMessageIs(
+            'A builder-registered handler cannot claim the notification method "tests/test-notification" already owned by extension "com.example/feature".',
+        );
+
+        $builder->addNotificationHandler(TestNotification::getMethod(), new ClosureNotificationHandler(
+            static function (): void {},
+        ), TestNotification::class);
+    }
+
+    public function testEnableExtensionRejectsARequestClassWithoutTheClientMarker(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs(
+            'Extension "com.example/feature" request class "Nexus\Mcp\Tests\Fixtures\Core\TestRequest" must implement "Nexus\Mcp\Core\Schema\Request\ClientRequest" for the server to dispatch it.',
+        );
+
+        new ServerBuilder()->enableExtension(new StubServerExtension(
+            identifier: 'com.example/feature',
+            requests: [TestRequest::getMethod() => TestRequest::class],
+            requestHandlers: [TestRequest::getMethod() => new ClosureRequestHandler(
+                static fn(): EmptyResult => new EmptyResult(),
+            )],
+        ));
     }
 
     public function testReplaceRequestHandlerRejectsVendorExtensionMethod(): void
@@ -1778,11 +2126,13 @@ final class ServerBuilderTest extends TestCase
         // the case that proves `register()` needs a guard of its own.
         yield 'register' => [static fn(ServerBuilder $b): ServerBuilder => $b->register(new #[AsServer(name: 'late', version: '1.0.0')] class {})];
 
-        yield 'addRequestHandler' => [static fn(ServerBuilder $b): ServerBuilder => $b->addRequestHandler('completion/complete', new ClosureRequestHandler(static fn(): EmptyResult => new EmptyResult()))];
+        yield 'addRequestHandler' => [static fn(ServerBuilder $b): ServerBuilder => $b->addRequestHandler('completion/complete', new ClosureRequestHandler(static fn(): EmptyResult => new EmptyResult()), TestClientRequest::class)];
 
         yield 'replaceRequestHandler' => [static fn(ServerBuilder $b): ServerBuilder => $b->replaceRequestHandler('tools/list', new ClosureRequestHandler(static fn(): EmptyResult => new EmptyResult()))];
 
-        yield 'addNotificationHandler' => [static fn(ServerBuilder $b): ServerBuilder => $b->addNotificationHandler('notifications/progress', new ClosureNotificationHandler(static fn() => null))];
+        yield 'addNotificationHandler' => [static fn(ServerBuilder $b): ServerBuilder => $b->addNotificationHandler('notifications/progress', new ClosureNotificationHandler(static fn() => null), TestNotification::class)];
+
+        yield 'enableExtension' => [static fn(ServerBuilder $b): ServerBuilder => $b->enableExtension(new StubServerExtension(identifier: 'com.example/feature'))];
 
         yield 'replaceNotificationHandler' => [static fn(ServerBuilder $b): ServerBuilder => $b->replaceNotificationHandler('notifications/cancelled', new ClosureNotificationHandler(static fn() => null))];
     }
@@ -2173,6 +2523,17 @@ final class ServerBuilderTest extends TestCase
         );
         self::assertInstanceOf(ListResourceTemplatesResult::class, $withEntry);
         self::assertSame(['mem://{id}'], array_map(static fn(ResourceTemplate $template): string => $template->uriTemplate, $withEntry->resourceTemplates));
+    }
+
+    private static function buildServerExtension(): StubServerExtension
+    {
+        return new StubServerExtension(
+            identifier: 'com.example/feature',
+            requests: [TestClientRequest::getMethod() => TestClientRequest::class],
+            requestHandlers: [TestClientRequest::getMethod() => new ClosureRequestHandler(
+                static fn(): EmptyResult => new EmptyResult(),
+            )],
+        );
     }
 
     private static function builderWithPrompt(): ServerBuilder
