@@ -96,8 +96,9 @@ also counts scenarios rather than checks and tolerates an unmet SHOULD, so it re
 `--suite active`, which leaves the draft and pending scenarios out of the denominator entirely.
 
 As it stands: server 20 of 20 (100%), client 15 of 15 (100%), verdict Tier 3 with the stable release the
-only failing check. See [.github/TIERING_CHECKLIST.md](../.github/TIERING_CHECKLIST.md) for the gate and
-the command to reproduce it.
+only failing check. The verdict is a self-assessment: the SDK Working Group currently assigns tiers to
+official SDKs only. See [.github/TIERING_CHECKLIST.md](../.github/TIERING_CHECKLIST.md) for the gate,
+the command to reproduce it, and the assignment-practice caveat.
 
 ## The README badges
 

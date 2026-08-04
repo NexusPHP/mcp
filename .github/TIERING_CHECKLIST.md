@@ -2,21 +2,21 @@
 
 Based on [SEP-1730: SDKs Tiering System](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1730)
 
-**Target Tier**: Tier 2 (only Tier 3 is claimable pre-1.0, per "How tiering works" below)
+**Target Tier**: Tier 2, self-assessed (only Tier 3 is claimable pre-1.0, and assignment currently runs for official SDKs only, per "How tiering works" below)
 
 **Target spec**: `2026-07-28`, which the SDK implements exclusively. See "Conformance suite: scenarios to pass" for the measured standing and for which scenarios the tier percentage is scored over.
 
-**Last Updated**: 2026-07-29
+**Last Updated**: 2026-08-04
 
 ---
 
 ## How tiering works (SEP-1730)
 
-The tiering system covers **both official and community-driven SDKs**, so `nexusphp/mcp` is eligible. Tiers are **request-based**: self-assess, open an issue in `modelcontextprotocol/modelcontextprotocol` with supporting evidence, pass the automated conformance suite, then the SDK Working Group approves and makes the final assignment.
+The published governance page ([`docs/community/sdk-tiers.mdx`](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/docs/community/sdk-tiers.mdx)) covers **both official and community-driven SDKs**, and tiers are **request-based**: self-assess, open an issue in `modelcontextprotocol/modelcontextprotocol` with supporting evidence, pass the automated conformance suite, then the SDK Working Group approves and makes the final assignment. Assignment practice has not caught up with that page: the one community application on record ([mcp#2814](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/2814)) was declined with "at this time, the tiering only applies to official MCP SDKs that have broader community adoption", consistent with the page's own phased key dates (official SDK tiering published first, no date for community SDKs). Until community applications open, this checklist is a self-assessment, and the step before applying at a stable release is asking the working group whether they have.
 
 - **Conformance is the gate.** Scored against **applicable required tests only**: the spec version the SDK targets, excluding pending/skipped tests, experimental-feature tests, and legacy back-compat tests (unless legacy support is claimed). The actual `tier-check` tool diverges from this wording in several places (target-version filter off by default, draft scenarios non-scoring, SLA metrics reworded): see "Drift: SEP mandates vs conformance repo".
 - **Relegation.** An SDK drops a tier if conformance tests on its latest stable release fail continuously for 4 weeks. (Not implemented by the tool, which is a point-in-time scorer. See Drift.)
-- **Where we stand.** Pre-1.0, only **Tier 3** is claimable (no stable-release or conformance minimum). **Tier 2** needs a stable 1.0-class release plus 80% conformance (server-mode conformance runs over HTTP, so it needs the Streamable HTTP transport), landing with `v1.0.0` and the 2026-07-28 migration.
+- **Where we stand.** Pre-1.0, only **Tier 3** is claimable (no stable-release or conformance minimum). **Tier 2** needs a stable 1.0-class release plus 80% conformance, and the conformance side already measures 100% on both legs. The assignment itself waits on `v1.0.0` and on community applications opening.
 
 ---
 

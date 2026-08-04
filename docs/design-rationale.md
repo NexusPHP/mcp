@@ -95,4 +95,5 @@ Some omissions are choices, not gaps:
 
 - **[Architecture](architecture.md)**: the dispatch kernel and layering in detail.
 - **[Best practices](best-practices.md)**: how to work with the grain of these choices.
-- **[ROADMAP.md](../ROADMAP.md)**: where the SDK is headed, including the SDK tiering target.
+- **[ROADMAP.md](../ROADMAP.md)**: where the SDK is headed.
+- **[TIERING_CHECKLIST.md](../.github/TIERING_CHECKLIST.md)**: the SEP-1730 self-assessment against the tier requirements.
