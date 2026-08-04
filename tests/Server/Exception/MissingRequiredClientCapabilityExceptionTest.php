@@ -53,6 +53,44 @@ final class MissingRequiredClientCapabilityExceptionTest extends TestCase
         );
     }
 
+    public function testNamesTheNestedMembersOfAMapValuedSlot(): void
+    {
+        $e = new MissingRequiredClientCapabilityException(new ClientCapabilities(extensions: [
+            'com.example/feature' => [],
+            'com.example/other' => ['mode' => 'fast'],
+        ]));
+
+        self::assertSame(
+            'This request requires client capabilities the client did not declare: extensions.com.example/feature, extensions.com.example/other.',
+            $e->getMessage(),
+        );
+    }
+
+    public function testAMapValuedSlotDoesNotStopTheRendering(): void
+    {
+        $e = new MissingRequiredClientCapabilityException(new ClientCapabilities(
+            extensions: ['com.example/feature' => []],
+            extras: ['sampling' => []],
+        ));
+
+        self::assertSame(
+            'This request requires client capabilities the client did not declare: extensions.com.example/feature, sampling.',
+            $e->getMessage(),
+        );
+    }
+
+    public function testAListValuedSlotIsNamedPlainly(): void
+    {
+        $e = new MissingRequiredClientCapabilityException(
+            new ClientCapabilities(extras: ['sampling' => ['tools', 'context']]),
+        );
+
+        self::assertSame(
+            'This request requires client capabilities the client did not declare: sampling.',
+            $e->getMessage(),
+        );
+    }
+
     public function testCarriesProvidedRequestIdAndPrevious(): void
     {
         $previous = new \RuntimeException('inner');
