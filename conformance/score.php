@@ -76,6 +76,29 @@ $scenarioName = static function (string $checkFile): string {
 };
 
 /**
+ * Scenario-name prefixes of extension-tagged scenarios. The referee keeps them
+ * out of every suite, so they score into their own bucket and badge instead of
+ * diluting the specification score.
+ */
+$extensionPrefixes = ['tasks-'];
+
+/**
+ * The score bucket a scenario belongs to: `spec` for suite scenarios,
+ * `extensions` for extension-tagged ones.
+ */
+$bucketOf = static function (string $name, string $mode) use ($extensionPrefixes): string {
+    $bare = str_starts_with($name, $mode.'-') ? substr($name, strlen($mode) + 1) : $name;
+
+    foreach ($extensionPrefixes as $prefix) {
+        if (str_starts_with($bare, $prefix)) {
+            return 'extensions';
+        }
+    }
+
+    return 'spec';
+};
+
+/**
  * Each runner writes under `results/<mode>/`, so the two modes can be scored
  * together without one overwriting the other.
  */
@@ -121,7 +144,8 @@ foreach ($findCheckFiles($resultsDir) as $checkFile) {
 
     // A later run of the same scenario supersedes an earlier one, and the file
     // list is sorted, so the newest timestamp wins.
-    $scenarios[$name] = ['mode' => $modeOf($checkFile), 'counts' => $counts, 'failures' => $failures];
+    $mode = $modeOf($checkFile);
+    $scenarios[$name] = ['mode' => $mode, 'bucket' => $bucketOf($name, $mode), 'counts' => $counts, 'failures' => $failures];
 }
 
 if ([] === $scenarios) {
@@ -148,13 +172,14 @@ $scored = $totals['SUCCESS'] + $totals['FAILURE'] + $totals['WARNING'];
 $rate = $scored > 0 ? $totals['SUCCESS'] / $scored : 0.0;
 
 if ($writeBadges) {
-    $perMode = [];
+    $perBadge = [];
 
     foreach ($scenarios as $scenario) {
         $mode = $scenario['mode'];
-        $perMode[$mode] ??= ['passed' => 0, 'scored' => 0];
-        $perMode[$mode]['passed'] += $scenario['counts']['SUCCESS'];
-        $perMode[$mode]['scored'] += $scenario['counts']['SUCCESS']
+        $key = 'spec' === $scenario['bucket'] ? $mode : $mode.'-'.$scenario['bucket'];
+        $perBadge[$key] ??= ['mode' => $mode, 'bucket' => $scenario['bucket'], 'passed' => 0, 'scored' => 0];
+        $perBadge[$key]['passed'] += $scenario['counts']['SUCCESS'];
+        $perBadge[$key]['scored'] += $scenario['counts']['SUCCESS']
             + $scenario['counts']['FAILURE']
             + $scenario['counts']['WARNING'];
     }
@@ -167,17 +192,19 @@ if ($writeBadges) {
         exit(1);
     }
 
-    // Only the modes this run actually covered are rewritten. Each CI job runs one
-    // mode, so touching the other would blank a badge that is still accurate.
-    foreach ($perMode as $mode => $tally) {
-        if ('unknown' === $mode || 0 === $tally['scored']) {
+    // Only the badges this run actually covered are rewritten. Each CI job runs one
+    // mode, so touching the others would blank a badge that is still accurate.
+    foreach ($perBadge as $file => $tally) {
+        if ('unknown' === $tally['mode'] || 0 === $tally['scored']) {
             continue;
         }
 
         $percent = (int) round($tally['passed'] / $tally['scored'] * 100);
         $badge = [
             'schemaVersion' => 1,
-            'label' => sprintf('conformance (%s)', $mode),
+            'label' => 'spec' === $tally['bucket']
+                ? sprintf('conformance (%s)', $tally['mode'])
+                : sprintf('%s (%s)', $tally['bucket'], $tally['mode']),
             'message' => sprintf('%d/%d (%d%%)', $tally['passed'], $tally['scored'], $percent),
             'color' => match (true) {
                 $percent >= 95 => 'brightgreen',
@@ -188,11 +215,11 @@ if ($writeBadges) {
         ];
 
         file_put_contents(
-            sprintf('%s/%s.json', $badgeDir, $mode),
+            sprintf('%s/%s.json', $badgeDir, $file),
             json_encode($badge, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES)."\n",
         );
 
-        printf("Wrote conformance/badges/%s.json (%s).\n", $mode, $badge['message']);
+        printf("Wrote conformance/badges/%s.json (%s).\n", $file, $badge['message']);
     }
 
     exit(0);
@@ -222,7 +249,30 @@ printf("## Conformance score (%s)\n\n", '' === $heading ? 'no mode' : $heading);
 printf("**Scenarios passed:** %d / %d\n", $scenariosPassed, count($scenarios));
 printf("**Checks passed:** %d / %d (%.1f%%)\n", $totals['SUCCESS'], $scored, $rate * 100);
 printf("**Unmet SHOULD checks:** %d (counted against the score)\n", $totals['WARNING']);
-printf("**Skipped checks:** %d (excluded from the denominator)\n\n", $totals['SKIPPED']);
+printf("**Skipped checks:** %d (excluded from the denominator)\n", $totals['SKIPPED']);
+
+$perBucket = [];
+
+foreach ($scenarios as $scenario) {
+    $bucket = $scenario['bucket'];
+    $perBucket[$bucket] ??= ['passed' => 0, 'scored' => 0];
+    $perBucket[$bucket]['passed'] += $scenario['counts']['SUCCESS'];
+    $perBucket[$bucket]['scored'] += $scenario['counts']['SUCCESS']
+        + $scenario['counts']['FAILURE']
+        + $scenario['counts']['WARNING'];
+}
+
+// The buckets carry separate badges, so the split is only worth a line when
+// this run actually holds both.
+if (count($perBucket) > 1) {
+    ksort($perBucket);
+
+    foreach ($perBucket as $bucket => $tally) {
+        printf("**%s checks:** %d / %d\n", ucfirst($bucket), $tally['passed'], $tally['scored']);
+    }
+}
+
+echo "\n";
 
 echo "| Mode | Scenario | Pass | Fail | Warn | Skip | Not passing |\n";
 echo "| --- | --- | ---: | ---: | ---: | ---: | --- |\n";

@@ -8,6 +8,7 @@
 [![Mutation score](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2FNexusPHP%2Fmcp%2F1.x)](https://dashboard.stryker-mutator.io/reports/github.com/NexusPHP/mcp/1.x)
 [![MCP conformance (server)](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fraw.githubusercontent.com%2FNexusPHP%2Fmcp%2F1.x%2Fconformance%2Fbadges%2Fserver.json)](conformance/README.md)
 [![MCP conformance (client)](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fraw.githubusercontent.com%2FNexusPHP%2Fmcp%2F1.x%2Fconformance%2Fbadges%2Fclient.json)](conformance/README.md)
+[![MCP extensions (server)](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fraw.githubusercontent.com%2FNexusPHP%2Fmcp%2F1.x%2Fconformance%2Fbadges%2Fserver-extensions.json)](conformance/README.md)
 [![License](https://img.shields.io/github/license/NexusPHP/mcp)](LICENSE)
 
 > [!IMPORTANT]

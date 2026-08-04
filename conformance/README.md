@@ -29,9 +29,10 @@ Both runners pass arguments straight through to the referee:
 ./conformance/run-client.sh --scenario tools_call
 ```
 
-The ten `tasks-*` scenarios are tagged `[extension]` upstream, which keeps them out of every
-suite, `all` included. They run individually, and `--force` is required because the tag also makes
-the referee consider them inapplicable at the pinned spec version:
+Extension-tagged scenarios (the ten `tasks-*` ones) sit outside every suite, `all` included, and
+run individually with `--force` because the tag also makes the referee consider them inapplicable
+at the pinned spec version. `composer conformance:extensions` runs the whole set, and a single
+scenario is:
 
 ```bash
 ./conformance/run-server.sh --scenario tasks-lifecycle --force
@@ -48,8 +49,7 @@ before starting the other.
 
 Needs Node (for `npx`) and a free port. `PORT` and `HOST` override the default `127.0.0.1:3000`.
 Results land in `results/`, which is gitignored, and every run prunes superseded results so the
-directory holds one entry per scenario ([`prune-results.sh`](prune-results.sh)). The referee declares no engine constraint, so any
-maintained Node works. CI tracks the active LTS.
+directory holds one entry per scenario ([`prune-results.sh`](prune-results.sh)). The referee declares no engine constraint, so any maintained Node works. CI tracks the active LTS.
 
 `URL_HOST` overrides only the authority the referee reaches the fixture by, leaving the bind address
 to `HOST`. The fixture admits both spellings of loopback, and `dns-rebinding-protection` is the one
@@ -121,21 +121,19 @@ the command to reproduce it, and the assignment-practice caveat.
 
 ## The README badges
 
-`conformance/badges/server.json` and `client.json` are shields.io endpoint payloads, committed and read
-straight off the default branch by the README. Regenerate them from the last run with:
+`conformance/badges/server.json`, `client.json`, and `server-extensions.json` are shields.io
+endpoint payloads, committed and read straight off the default branch by the README. Regenerate
+them from the last run with:
 
 ```bash
 composer conformance:badge
 ```
 
-Only the modes the run covered are rewritten, so scoring a client run cannot blank the server badge. CI
-regenerates and diffs them, and a stale file fails the build rather than quietly advertising a score
-nobody measured.
-
-The scorer folds in every result under `conformance/results/`, so leftover targeted runs (the
-`tasks-*` scenarios, a single `--scenario` repro) inflate a locally regenerated badge beyond what
-CI measures with `--suite all`, and the drift check then rejects it. Clear `conformance/results/`
-or re-run the suite before regenerating.
+The scorer buckets extension-tagged scenarios separately, so the spec badges measure exactly what
+the referee's suites measure and `server-extensions.json` scores the extension scenarios on their
+own. Only the badges the run covered are rewritten, so scoring a client run cannot blank the
+server badges. CI runs the suites and the extension set, regenerates, and diffs them, and a stale
+file fails the build rather than quietly advertising a score nobody measured.
 
 The number is the check pass rate at `--spec-version 2026-07-28`. It is **not** the SEP-1730 tier
 percentage, which is computed over a narrower denominator and a more forgiving rule (see above).

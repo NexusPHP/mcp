@@ -74,6 +74,11 @@ jobs:
       - name: Run the conformance suite
         run: composer conformance:server -- --suite all
 
+      # Extension-tagged scenarios sit outside every referee suite, so they run
+      # targeted here and score into their own badge bucket.
+      - name: Run the extension scenarios
+        run: composer conformance:extensions
+
       # Each job runs on its own runner, so this only ever sees the mode that job
       # ran. score.php names the mode in its heading, so two summaries stay
       # distinguishable in the combined run output.

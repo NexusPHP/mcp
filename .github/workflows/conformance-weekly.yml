@@ -80,6 +80,17 @@ jobs:
           CONFORMANCE_VERSION: ${{ steps.referee.outputs.version }}
         run: composer conformance:${{ matrix.mode }} -- --suite all
 
+      # Extension-tagged scenarios sit outside every referee suite, and a new
+      # referee is exactly where their checks drift, so the drift run covers
+      # them too.
+      - name: Run the extension scenarios
+        id: extensions
+        if: matrix.mode == 'server'
+        continue-on-error: true
+        env:
+          CONFORMANCE_VERSION: ${{ steps.referee.outputs.version }}
+        run: composer conformance:extensions
+
       # No badge check here. The badges record the score at the pinned referee, and
       # this job deliberately runs a different one.
       - name: Publish the score
@@ -103,7 +114,8 @@ jobs:
           NEWEST: ${{ steps.referee.outputs.version }}
           PINNED: ${{ steps.referee.outputs.pinned }}
           OUTCOME: ${{ steps.suite.outcome }}
-          # `skipped` in client mode, where the step does not run at all.
+          # `skipped` in client mode, where these steps do not run at all.
+          EXTENSIONS_OUTCOME: ${{ steps.extensions.outcome }}
           LOCALHOST_OUTCOME: ${{ steps.localhost.outcome }}
         run: |
           STATUS=0
@@ -118,6 +130,12 @@ jobs:
           if [ "${OUTCOME}" != "success" ]; then
             echo "::error::The suite did not pass at ${NEWEST}. The uploaded results say which scenarios moved."
             echo "**The suite did not pass at** \`${NEWEST}\`." >> "$GITHUB_STEP_SUMMARY"
+            STATUS=1
+          fi
+
+          if [ "${EXTENSIONS_OUTCOME}" != "success" ] && [ "${EXTENSIONS_OUTCOME}" != "skipped" ]; then
+            echo "::error::The extension scenarios did not pass at ${NEWEST}. The uploaded results say which checks moved."
+            echo "**The extension scenarios did not pass at** \`${NEWEST}\`." >> "$GITHUB_STEP_SUMMARY"
             STATUS=1
           fi
 
