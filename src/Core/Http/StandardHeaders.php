@@ -191,6 +191,7 @@ final class StandardHeaders
         return match (self::readString($body, 'method')) {
             'tools/call', 'prompts/get' => 'name',
             'resources/read' => 'uri',
+            'tasks/get', 'tasks/update', 'tasks/cancel' => 'taskId',
             default => null,
         };
     }

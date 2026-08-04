@@ -72,13 +72,19 @@ final class StandardHeadersTest extends TestCase
             self::makeBody('resources/read', ['uri' => 'file:///a']),
         ];
 
+        yield 'tasks/get with a matching taskId' => [
+            ['mcp-protocol-version' => '2026-07-28', 'mcp-method' => 'tasks/get', 'mcp-name' => 'task-1'],
+            self::makeBody('tasks/get', ['taskId' => 'task-1']),
+        ];
+
         yield 'a method that carries no name requirement' => [
             ['mcp-protocol-version' => '2026-07-28', 'mcp-method' => 'tools/list'],
             self::makeBody('tools/list'),
         ];
 
-        // `Mcp-Name` is defined only for tools/call, prompts/get, and resources/read. A server must not
-        // expect it elsewhere, so a stray one is ignored rather than decoded and rejected.
+        // `Mcp-Name` is defined only for tools/call, prompts/get, resources/read, and the tasks
+        // methods. A server must not expect it elsewhere, so a stray one is ignored rather than
+        // decoded and rejected.
         yield 'a stray malformed name on a method that defines none' => [
             ['mcp-protocol-version' => '2026-07-28', 'mcp-method' => 'tools/list', 'mcp-name' => '=?base64?not-base64!?='],
             self::makeBody('tools/list'),
@@ -177,6 +183,24 @@ final class StandardHeadersTest extends TestCase
             self::NAME_MISMATCH,
         ];
 
+        yield 'a tasks/get taskId header disagrees with the body' => [
+            ['mcp-protocol-version' => '2026-07-28', 'mcp-method' => 'tasks/get', 'mcp-name' => 'task-1'],
+            self::makeBody('tasks/get', ['taskId' => 'task-2']),
+            self::NAME_MISMATCH,
+        ];
+
+        yield 'a tasks/update taskId header disagrees with the body' => [
+            ['mcp-protocol-version' => '2026-07-28', 'mcp-method' => 'tasks/update', 'mcp-name' => 'task-1'],
+            self::makeBody('tasks/update', ['taskId' => 'task-2']),
+            self::NAME_MISMATCH,
+        ];
+
+        yield 'a tasks/cancel taskId header disagrees with the body' => [
+            ['mcp-protocol-version' => '2026-07-28', 'mcp-method' => 'tasks/cancel', 'mcp-name' => 'task-1'],
+            self::makeBody('tasks/cancel', ['taskId' => 'task-2']),
+            self::NAME_MISMATCH,
+        ];
+
         yield 'the version check precedes the method check' => [
             ['mcp-method' => 'tools/list'],
             self::makeBody('tools/call'),
@@ -223,6 +247,11 @@ final class StandardHeadersTest extends TestCase
         yield 'resources/read mirrors params.uri' => [
             self::makeBody('resources/read', ['uri' => 'file:///etc/cfg']),
             ['MCP-Protocol-Version' => '2026-07-28', 'Mcp-Method' => 'resources/read', 'Mcp-Name' => 'file:///etc/cfg'],
+        ];
+
+        yield 'tasks/get mirrors params.taskId' => [
+            self::makeBody('tasks/get', ['taskId' => 'task-1']),
+            ['MCP-Protocol-Version' => '2026-07-28', 'Mcp-Method' => 'tasks/get', 'Mcp-Name' => 'task-1'],
         ];
 
         yield 'a name outside the header-safe set is sentinel-encoded' => [
