@@ -68,9 +68,10 @@ features on that list. Those rows say so explicitly and name the replacement.
 | 47 | Protocol version negotiation | The per-request `_meta` stamp and the `-32022` retry, on the [Client API](client.md) page |
 | 48 | JSON Schema 2020-12 | [Schema validation](server/tools.md#schema-validation), [input schemas](attribute-discovery.md#input-schemas-and-arguments) |
 
-## Experimental features
+## Extensions
 
-The tasks extension (`tasks/get`, `tasks/result`, `tasks/cancel`, `tasks/list`, status notifications) is
-not implemented. The 2026-07-28 revision moved tasks out of the core spec into the
-`io.modelcontextprotocol/tasks` extension, and extension support is tracked in
+The SEP-2133 extensions framework is implemented on both sides: [server](server/extensions.md) and
+[client](client/extensions.md) builders take `enableExtension(...)`, advertising the capability and
+serving the extension's methods behind the declared-capability gate. No official extension ships
+yet. Tasks (`io.modelcontextprotocol/tasks`, SEP-2663) and the others are tracked in
 [ROADMAP.md](../ROADMAP.md) under Official extensions.

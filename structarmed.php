@@ -17,9 +17,11 @@ return Architecture::define()
     ->layerPattern('Core', '/^Nexus\\\\Mcp\\\\Core\\\\/')
     ->layerPattern('Server', '/^Nexus\\\\Mcp\\\\Server\\\\/')
     ->layerPattern('Client', '/^Nexus\\\\Mcp\\\\Client\\\\/')
+    ->layerPattern('Extension', '/^Nexus\\\\Mcp\\\\Extension\\\\/')
     ->ruleset([
         'Core' => [], // depends on no other layer
         'Server' => ['Core'], // depends on Core only
         'Client' => ['Core'], // depends on Core only
+        'Extension' => ['Core', 'Server', 'Client'], // official extensions; nothing depends on it
     ])
 ;

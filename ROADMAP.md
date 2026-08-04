@@ -615,14 +615,24 @@ are not in the baseline.
 
 The SDK fully supports the official MCP extensions. They are built as the final block of the migration,
 after the transport and authorization above, and each ships disabled by default with explicit opt-in per
-the extensions framework (SEP-2133).
+the extensions framework (SEP-2133). Official extensions land per-extension under a top-level
+`src/Extension/{Name}/` tree (the architecture ruleset lets it depend on `Core`, `Server`, and
+`Client`, and nothing depends on it), splitting at 1.0 as a single `nexusphp/mcp-extensions` package.
 
-- [ ] Extensions framework primitive: `ServerBuilder::enableExtension(...)` (or similar) plus the
-  `extensions` capability slot (the slot itself lands with the schema layer).
-- [ ] Tasks (`io.modelcontextprotocol/tasks`): relocate the task layer to `Nexus\Mcp\Extension\Tasks\*`,
-  remove `tasks/list`, replace the blocking `tasks/result` with polling via `tasks/get`, add `tasks/update`
-  for client-to-server input, drop per-request opt-in (servers may return task handles unsolicited), and
-  route the `resultType: "task"` variant through the result discriminator.
+- [x] Extensions framework primitive: a first-class extension object (`ServerExtensionInterface` /
+  `ClientExtensionInterface` declaring identifier, settings, method-to-class maps, and handlers) consumed
+  by `ServerBuilder::enableExtension(...)` and `ClientBuilder::enableExtension(...)`. The server
+  advertises the `extensions` capability slot on `server/discover` and auto-gates every extension-owned
+  request behind the client's per-request declared capabilities (`-32021` otherwise). The client
+  advertises enabled extensions in the `_meta` stamp on every request and refuses an extension's declared
+  outbound methods against a server that did not advertise it. `Client::stampMeta()` is public so
+  hand-built `sendRequest()` requests carry the same lifecycle `_meta`.
+- [ ] Tasks (`io.modelcontextprotocol/tasks`, SEP-2663) under `Nexus\Mcp\Extension\Tasks\*`: the method
+  set is `tasks/get` (polling), `tasks/update` (client-to-server input), and `tasks/cancel`, plus
+  `notifications/tasks` delivered via `subscriptions/listen`. There is no `tasks/list` and no blocking
+  `tasks/result`. A task handle (`resultType: "task"`) may only be returned to a client whose per-request
+  capabilities declared the extension, and routing that variant through the result discriminator opens
+  the closed `ResultType` enum.
 - [ ] MCP Apps (SEP-1865): the `ui://` URI scheme, `text/html;profile=mcp-app`, and the sandboxed
   iframe interaction model.
 - [ ] OAuth client-credentials (`io.modelcontextprotocol/oauth-client-credentials`) and

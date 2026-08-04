@@ -32,6 +32,8 @@ instead, which attaches the dispatcher and returns so the HTTP host keeps drivin
 - **[Stores and pagination](server/stores.md)**: page size, custom store implementations, and runtime
   mutation.
 - **[Custom handlers](server/handlers.md)**: vendor-extension methods and spec-method overrides.
+- **[Extensions](server/extensions.md)**: enabling SEP-2133 extensions and the declared-capability
+  gate on their methods.
 - **[Capability advertisement](server/capabilities.md)**: how `ServerCapabilities` is derived from what
   you registered.
 - **[Subscriptions](server/subscriptions.md)**: serving `subscriptions/listen` streams and the

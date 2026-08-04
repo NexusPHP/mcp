@@ -69,13 +69,23 @@ For a vendor reply with its own shape, subclass `JsonRpcResultResponse` with a m
 ```php
 use Nexus\Mcp\Core\Schema\ResultResponse\GenericResultResponse;
 
-// $request is your own JsonRpcRequest subclass bound to a vendor method literal, e.g. "acme/snapshot".
-$response = $client->sendRequest($request, GenericResultResponse::class);
+// AcmeSnapshotRequest is your own JsonRpcRequest subclass bound to a vendor method
+// literal, e.g. "acme/snapshot". stampMeta() supplies the lifecycle `_meta` fields
+// (protocol version, client info, declared capabilities) every request must carry.
+$response = $client->sendRequest(
+    new AcmeSnapshotRequest(
+        id: new RequestId(id: 41),
+        params: new AcmeSnapshotRequestParams(meta: $client->stampMeta()),
+    ),
+    GenericResultResponse::class,
+);
 ```
 
 You supply the `RequestId` yourself when building the request. The auto-incrementing factory backs the typed
 methods above. The capability gate covers the methods behind the typed requests above, so a
 `tools/list` against a server that advertised no `tools` throws `ServerCapabilityNotSupportedException`
-(see [Typed requests](#typed-requests)). A vendor method like `acme/snapshot` passes through ungated, and so
-does `listen()`: the spec defines no capability for `subscriptions/listen`, so a server that does not serve
-it answers `-32601` and the failure arrives as a remote error rather than a local one.
+(see [Typed requests](#typed-requests)). A vendor method like `acme/snapshot` passes through ungated unless
+an [enabled extension](extensions.md) declared it as an outbound method, in which case a server that did not
+advertise the extension is refused the same way. `listen()` also passes ungated: the spec defines no
+capability for `subscriptions/listen`, so a server that does not serve it answers `-32601` and the failure
+arrives as a remote error rather than a local one.

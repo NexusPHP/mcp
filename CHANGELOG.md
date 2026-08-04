@@ -8,6 +8,42 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp/commits/1.x)
 
+### Added
+
+- The SEP-2133 extensions framework. An extension is a first-class object
+  (`ServerExtensionInterface` / `ClientExtensionInterface`) declaring its capability identifier,
+  settings, and the methods it owns with their envelope classes and handlers, enabled via
+  `ServerBuilder::enableExtension()` and `ClientBuilder::enableExtension()`. Extensions are
+  disabled by default, and every declaration is validated at enable time: identifier grammar,
+  settings shape, class-to-method identity, and collisions against the specification, other
+  extensions, and builder-registered handlers.
+- Extension capability negotiation on both sides. The server advertises enabled extensions in the
+  `server/discover` capabilities and answers an extension-owned request from a client whose
+  per-request `_meta` capabilities did not declare the extension with `-32021`, naming the missing
+  member (`extensions.{identifier}`). The client advertises enabled extensions in every request's
+  `_meta`, refuses an extension's declared outbound methods against a server that did not
+  advertise it, and answers an extension-owned inbound request from such a server with `-32601`.
+- `Client::stampMeta()` is public, so hand-built `sendRequest()` requests can carry the same
+  lifecycle `_meta` the typed methods stamp.
+
+### Changed
+
+- `ServerBuilder::addRequestHandler()` / `addNotificationHandler()` and their `ClientBuilder`
+  counterparts take the envelope class that parses the registered method, and the server variant
+  requires request classes to implement the `ClientRequest` marker
+  (see [BREAKING_CHANGES.md](BREAKING_CHANGES.md)). On the client, a spec method keeps its
+  registry envelope class and a different class is refused.
+
+### Fixed
+
+- Vendor-method handlers registered via `addRequestHandler()` / `addNotificationHandler()` were
+  unreachable: the parser answered `-32601` before dispatch ever consulted them. Registered
+  envelope classes now feed the message parser on both sides.
+- A vendor or extension handler returning a result outside the spec's typed pairs was refused as
+  an internal error. Non-spec methods now wrap any result in the generic response envelope.
+- A request parsed by a user-registered class without `RequestParams`-shaped params crashed into a
+  `-32603` internal error in production. The server now rejects it as `-32600` with the echoed id.
+
 ## [v0.6.0](https://github.com/NexusPHP/mcp/compare/v0.5.0...v0.6.0) - 2026-08-03
 
 The tracked MCP specification moves from **2025-11-25** to **2026-07-28** with no compatibility

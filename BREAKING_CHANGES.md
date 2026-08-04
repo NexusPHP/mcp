@@ -6,6 +6,24 @@ for *when* breaking changes may land and how they are communicated lives in
 
 ## v0.6.0 to Unreleased
 
+### Custom handler registration names the envelope class
+
+`ServerBuilder::addRequestHandler()` / `addNotificationHandler()` and their `ClientBuilder`
+counterparts now require the `JsonRpcRequest` / `JsonRpcNotification` subclass that parses the
+registered method (the `ClientBuilder` notification variant only for non-spec methods). The class
+must declare the same method it is registered for. Previously a vendor-method handler was
+unreachable: the parser answered `-32601` before dispatch ever consulted the handler map.
+
+```php
+// before
+->addRequestHandler('acme/lookup', new MyLookupHandler())
+// after
+->addRequestHandler('acme/lookup', new MyLookupHandler(), AcmeLookupRequest::class)
+```
+
+The `replace*` variants are unchanged, since a replaced spec method keeps its registry envelope
+class.
+
 ## v0.5.0 to v0.6.0
 
 This boundary is the no-compatibility cut from MCP **2025-11-25** to MCP **2026-07-28**. The SDK

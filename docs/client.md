@@ -56,6 +56,8 @@ none, or the retry is rejected in turn, the error reaches the caller as a `Remot
   `InputRequiredResult`.
 - **[Progress and timeouts](client/progress-and-timeouts.md)**: streaming progress and request deadlines.
 - **[Notification handlers](client/notifications.md)**: reacting to server notifications.
+- **[Extensions](client/extensions.md)**: enabling SEP-2133 extensions, their capability
+  advertisement, and the outbound gate.
 - **[Subscriptions](client/subscriptions.md)**: opening `subscriptions/listen` streams.
 
 ## Lifecycle

@@ -8,6 +8,7 @@
 | `prompts` | At least one `addPrompt(...)`, `setPromptStore(...)`, or both `prompts/list` and `prompts/get` `replaceRequestHandler(...)`. |
 | `resources` | At least one `addResource(...)` / `addResourceTemplate(...)`, `setResourceStore(...)` / `setResourceTemplateStore(...)`, or both `resources/list` and `resources/read` `replaceRequestHandler(...)`. |
 | `completions` | At least one `addPromptCompletion(...)` / `addResourceTemplateCompletion(...)`, `setCompletionStore(...)`, or `completion/complete` `replaceRequestHandler(...)`. |
+| `extensions` | One entry per `enableExtension(...)`, keyed by the extension's identifier with its settings object (`{}` when it has none). Never derived: no enable, no entry. |
 
 `listChanged` and `resources.subscribe` are advertised only when the subscription store says it will honour
 that notification type **and** the feature's own store can report its changes (it implements
