@@ -38,6 +38,7 @@ use Nexus\Mcp\Core\Schema\Elicitation\ElicitResult;
 use Nexus\Mcp\Core\Schema\Enum\ElicitAction;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Implementation;
+use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcMessage;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
@@ -66,6 +67,7 @@ use Nexus\Mcp\Core\Schema\RequestParams\ReadResourceRequestParams;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Core\Schema\Result\CompleteResult;
 use Nexus\Mcp\Core\Schema\Result\DiscoverResult;
+use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
 use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
 use Nexus\Mcp\Core\Schema\Result\ListPromptsResult;
@@ -73,6 +75,7 @@ use Nexus\Mcp\Core\Schema\Result\ListResourcesResult;
 use Nexus\Mcp\Core\Schema\Result\ListResourceTemplatesResult;
 use Nexus\Mcp\Core\Schema\Result\ListToolsResult;
 use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
+use Nexus\Mcp\Core\Schema\ResultResponse\GenericResultResponse;
 use Nexus\Mcp\Core\Schema\ResultResponse\GetPromptResultResponse;
 use Nexus\Mcp\Core\Schema\ResultResponse\ListToolsResultResponse;
 use Nexus\Mcp\Core\Schema\ResultResponse\ReadResourceResultResponse;
@@ -80,10 +83,12 @@ use Nexus\Mcp\Core\Schema\ServerCapabilities;
 use Nexus\Mcp\Core\Schema\SubscriptionFilter;
 use Nexus\Mcp\Core\Transport\SendContext;
 use Nexus\Mcp\Core\Transport\TransportInterface;
+use Nexus\Mcp\Tests\Fixtures\Client\Extension\StubClientExtension;
 use Nexus\Mcp\Tests\Fixtures\Client\Http\MirroringRecordingTransport;
 use Nexus\Mcp\Tests\Fixtures\Client\Transport\SupervisableRecordingTransport;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureNotificationHandler;
+use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureRequestHandler;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use Nexus\Mcp\Tests\Fixtures\Core\TestRequest;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
@@ -1788,6 +1793,131 @@ final class ClientTest extends TestCase
             self::assertSame(ProtocolErrorCode::UnsupportedProtocolVersion->value, $e->getCode());
         }
 
+        self::assertCount(1, $transport->sent);
+    }
+
+    public function testAnExtensionOutboundMethodIsRefusedWhenTheServerDoesNotAdvertiseIt(): void
+    {
+        $client = new ClientBuilder()
+            ->setClientInfo('demo', '1.0.0')
+            ->enableExtension(new StubClientExtension(
+                identifier: 'com.example/feature',
+                outboundRequests: [TestRequest::getMethod()],
+            ))
+            ->build()
+        ;
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+        self::discover($client, $transport, capabilities: []);
+
+        $this->expectException(ServerCapabilityNotSupportedException::class);
+        $this->expectExceptionMessageIs(
+            'Request method "tests/test-request" requires a server capability that was not advertised by server/discover.',
+        );
+
+        $client->sendRequest(new TestRequest(new RequestId(id: 51)), GenericResultResponse::class);
+    }
+
+    public function testAnExtensionOutboundMethodProceedsWhenTheServerAdvertisesIt(): void
+    {
+        $client = new ClientBuilder()
+            ->setClientInfo('demo', '1.0.0')
+            ->enableExtension(new StubClientExtension(
+                identifier: 'com.example/feature',
+                outboundRequests: [TestRequest::getMethod()],
+            ))
+            ->build()
+        ;
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+        self::discover($client, $transport, capabilities: ['extensions' => ['com.example/feature' => []]]);
+
+        $deferred = async(static fn() => $client->sendRequest(new TestRequest(new RequestId(id: 52)), GenericResultResponse::class));
+        $transport->nextSend()->await();
+        $transport->emitMessage(['jsonrpc' => '2.0', 'id' => 52, 'result' => []]);
+
+        self::assertInstanceOf(GenericResultResponse::class, $deferred->await());
+    }
+
+    public function testAnExtensionInboundMethodIsRefusedWhenTheServerDidNotAdvertiseIt(): void
+    {
+        $client = new ClientBuilder()
+            ->setClientInfo('demo', '1.0.0')
+            ->enableExtension(new StubClientExtension(
+                identifier: 'com.example/feature',
+                requests: [TestRequest::getMethod() => TestRequest::class],
+                requestHandlers: [TestRequest::getMethod() => new ClosureRequestHandler(
+                    static fn(): EmptyResult => throw new \RuntimeException('The gate must reject before the handler runs.'),
+                )],
+            ))
+            ->build()
+        ;
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+        self::discover($client, $transport, capabilities: []);
+
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => 9,
+            'method' => TestRequest::getMethod(),
+        ]);
+        $transport->nextSend()->await();
+
+        self::assertCount(2, $transport->sent);
+        $response = $transport->sent[1]['message'];
+        self::assertInstanceOf(JsonRpcErrorResponse::class, $response);
+        self::assertSame(9, $response->id?->id);
+        self::assertSame(ProtocolErrorCode::MethodNotFound->value, $response->error->code);
+    }
+
+    public function testAnExtensionInboundMethodIsServedWhenTheServerAdvertisedIt(): void
+    {
+        $marker = new EmptyResult();
+        $client = new ClientBuilder()
+            ->setClientInfo('demo', '1.0.0')
+            ->enableExtension(new StubClientExtension(
+                identifier: 'com.example/feature',
+                requests: [TestRequest::getMethod() => TestRequest::class],
+                requestHandlers: [TestRequest::getMethod() => new ClosureRequestHandler(static fn(): EmptyResult => $marker)],
+            ))
+            ->build()
+        ;
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+        self::discover($client, $transport, capabilities: ['extensions' => ['com.example/feature' => []]]);
+
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => 9,
+            'method' => TestRequest::getMethod(),
+        ]);
+        $transport->nextSend()->await();
+
+        self::assertCount(2, $transport->sent);
+        $response = $transport->sent[1]['message'];
+        self::assertInstanceOf(JsonRpcResultResponse::class, $response);
+        self::assertSame(9, $response->id->id);
+        self::assertSame($marker, $response->result);
+    }
+
+    public function testAnExtensionOutboundMethodPassesUngatedBeforeDiscovery(): void
+    {
+        $client = new ClientBuilder()
+            ->setClientInfo('demo', '1.0.0')
+            ->enableExtension(new StubClientExtension(
+                identifier: 'com.example/feature',
+                outboundRequests: [TestRequest::getMethod()],
+            ))
+            ->build()
+        ;
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+
+        $deferred = async(static fn() => $client->sendRequest(new TestRequest(new RequestId(id: 53)), GenericResultResponse::class));
+        $transport->nextSend()->await();
+        $transport->emitMessage(['jsonrpc' => '2.0', 'id' => 53, 'result' => []]);
+
+        self::assertInstanceOf(GenericResultResponse::class, $deferred->await());
         self::assertCount(1, $transport->sent);
     }
 
