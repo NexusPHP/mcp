@@ -49,14 +49,18 @@ if (: > "/dev/tcp/${HOST}/${PORT}") 2>/dev/null; then
     exit 1
 fi
 
-# Spawn PHP directly rather than through a wrapper, so SERVER_PID is the listener
-# itself. Killing a wrapper leaves the real server running and squatting the port.
+# With xdebug active the fixture restarts itself through composer/xdebug-handler, so
+# SERVER_PID can be a waiting parent rather than the listener. Job control gives the
+# fixture its own process group, and the teardown kills the whole group so a restarted
+# listener cannot outlive its parent and squat the port.
 echo "Starting conformance fixture on ${HOST}:${PORT}..."
-HOST="$HOST" PORT="$PORT" php -d zend.assertions=0 conformance/server.php &
+set -m
+HOST="$HOST" PORT="$PORT" php conformance/server.php &
 SERVER_PID=$!
+set +m
 
 cleanup() {
-    kill "$SERVER_PID" 2>/dev/null || true
+    kill -- "-$SERVER_PID" 2>/dev/null || true
     wait "$SERVER_PID" 2>/dev/null || true
 }
 trap cleanup EXIT

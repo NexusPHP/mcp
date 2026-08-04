@@ -60,6 +60,27 @@ conformance is neither. The harness sources are still held to the repo's standar
 is in the PHPStan paths (as is `examples/`), the PHP-CS-Fixer finder, and the dependency analyser, so a
 fixture that stops type-checking fails the normal gates rather than waiting for a conformance run.
 
+## Production posture
+
+[`server.php`](server.php) forces itself into the posture production code runs under: xdebug off and
+`assert()` not executing. When the invoking PHP has xdebug active, [`composer/xdebug-handler`][handler]
+restarts the script once with the extension dropped from the loaded ini, and `zend.assertions` is
+lowered at runtime (`-1` is startup-only, so runtime lowering stops at compiled-but-not-executed).
+Nothing needs setting up front: a bare `php conformance/server.php` from a development shell lands in
+the same posture CI measures.
+
+[handler]: https://github.com/composer/xdebug-handler
+
+This is load-bearing for the scores, not hygiene. An instrumented fixture can stall long enough for
+the HTTP host to time a streaming response out mid-body, and the referee reads the truncated stream
+as a missing `tools/call` result, so timing-sensitive scenarios such as `tools-call-with-progress`
+fail intermittently under xdebug while the production posture passes them reliably. Score only
+against the posture the fixture forces.
+
+Two operational notes. To step-debug the fixture itself, set `MCP_CONFORMANCE_ALLOW_XDEBUG=1`, which
+skips the restart. And the restart leaves the original process waiting as a parent, which is why
+`run-server.sh` tears the fixture down by process group rather than by single PID.
+
 ## What is being targeted
 
 `--spec-version 2026-07-28`, pinned in [`run-server.sh`](run-server.sh). This SDK implements that

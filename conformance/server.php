@@ -11,7 +11,7 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-/**
+/*
  * Serves `EverythingServer` and `MultiRoundServer` over Streamable HTTP for the
  * conformance referee.
  *
@@ -22,6 +22,9 @@ declare(strict_types=1);
  * this process down. To run it alone:
  *
  *     PORT=3000 php conformance/server.php
+ *
+ * Serves with xdebug off and assertions not executing, restarting itself once
+ * through `composer/xdebug-handler` when the invoking PHP has xdebug active.
  */
 
 require __DIR__.'/bootstrap.php';
@@ -31,6 +34,7 @@ require __DIR__.'/MultiRoundServer.php';
 use Amp\DeferredFuture;
 use Amp\Http\Server\DefaultErrorHandler;
 use Amp\Http\Server\SocketHttpServer;
+use Composer\XdebugHandler\XdebugHandler;
 use Nexus\Mcp\Server\Prompt\MutablePromptStoreInterface;
 use Nexus\Mcp\Server\ServerBuilder;
 use Nexus\Mcp\Server\Subscription\SubscriptionStore;
@@ -40,6 +44,18 @@ use Nexus\Mcp\Server\Transport\StreamableHttpServerTransport;
 use Nyholm\Psr7\Factory\Psr17Factory;
 
 use function Amp\trapSignal;
+
+// xdebug's mode is fixed at process start, so forcing it off takes one restart. The handler
+// re-runs this script with the extension dropped from the loaded ini, which leaves the
+// restarted listener as a child process the run scripts tear down by process group.
+$xdebugHandler = new XdebugHandler('MCP_CONFORMANCE');
+$xdebugHandler->check();
+unset($xdebugHandler);
+
+// `-1` is only reachable at startup, so runtime lowering stops at "compiled but not executed".
+if (ini_get('zend.assertions') !== '-1') {
+    ini_set('zend.assertions', '0');
+}
 
 /**
  * Reads an environment variable, falling back when it is unset or empty.

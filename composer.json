@@ -39,6 +39,7 @@
         "ext-mbstring": "*",
         "ext-tokenizer": "*",
         "amphp/http-server": "^3.4",
+        "composer/xdebug-handler": "^3.0",
         "firebase/php-jwt": "^7.0",
         "nexusphp/tachycardia": "^2.4",
         "nyholm/psr7": "^1.8",
