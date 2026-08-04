@@ -92,6 +92,12 @@ Two operational notes. To step-debug the fixture itself, set `MCP_CONFORMANCE_AL
 skips the restart. And the restart leaves the original process waiting as a parent, which is why
 `run-server.sh` tears the fixture down by process group rather than by single PID.
 
+The fixture also closes the connection after every response. On macOS loopback, a kept-alive
+connection the referee's Node client reuses after an idle gap can stall into TCP retransmission
+for 10+ seconds, tripping the referee's request timeout on checks that pause between requests
+(the tasks TTL probe was the reproducible case, and a bare `amphp/http-server` echo fixture
+reproduces it with no SDK code involved). One connection per response sidesteps the interaction
+at a cost conformance traffic never notices.
 
 ## What is being targeted
 

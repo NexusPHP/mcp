@@ -35,6 +35,9 @@ require __DIR__.'/TasksServer.php';
 
 use Amp\DeferredFuture;
 use Amp\Http\Server\DefaultErrorHandler;
+use Amp\Http\Server\Request;
+use Amp\Http\Server\RequestHandler;
+use Amp\Http\Server\Response;
 use Amp\Http\Server\SocketHttpServer;
 use Composer\XdebugHandler\XdebugHandler;
 use Nexus\Mcp\Extension\Tasks\Server\TasksServerExtension;
@@ -146,7 +149,28 @@ $endpoint = new SecuredHttpEndpoint(
     logger: $logger,
 );
 
+// One connection per response on macOS only: a kept-alive loopback connection the
+// referee reuses after an idle gap can stall into TCP retransmission for 10+ seconds
+// there, tripping the referee's request timeout on checks that pause between requests.
+// Other platforms keep connection reuse so the suite exercises it.
 $handler = new PsrHttpAdapter($endpoint, $psr17, $psr17);
+
+if (PHP_OS_FAMILY === 'Darwin') {
+    $handler = new class ($handler) implements RequestHandler {
+        public function __construct(private readonly RequestHandler $inner)
+        {
+        }
+
+        #[Override]
+        public function handleRequest(Request $request): Response
+        {
+            $response = $this->inner->handleRequest($request);
+            $response->setHeader('connection', 'close');
+
+            return $response;
+        }
+    };
+}
 
 $httpServer = SocketHttpServer::createForDirectAccess($logger);
 $httpServer->expose($address);
