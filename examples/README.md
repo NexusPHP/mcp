@@ -28,10 +28,8 @@ npx @modelcontextprotocol/inspector php examples/stdio-server.php
 ```
 
 Open the URL Inspector prints, click **Connect**, then drive tools, resources,
-and prompts from the UI. Change the log level under **Server Notifications →
-Logging Level** to see the bridge in action: lower it to `debug` and the SDK's
-internal PSR-3 chatter starts streaming into the **Debug Log** pane. Raise it
-back to `warning` and the stream quiets.
+and prompts from the UI. The SDK's own PSR-3 chatter goes to STDERR, which
+Inspector surfaces alongside the server's output.
 
 ### Claude Desktop / Cursor / any `mcpServers`-aware client
 

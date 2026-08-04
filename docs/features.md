@@ -41,7 +41,7 @@ features on that list. Those rows say so explicitly and name the replacement.
 | 30 | Roots: listing | Not implemented: deprecated by SEP-2577. See [deliberate non-features](design-rationale.md#deliberate-non-features). |
 | 31 | Roots: change notifications | Not implemented, with row 30. |
 | 32 | Logging: log messages | Not implemented: `notifications/message` is deprecated by SEP-2577. The SDK logs to [PSR-3](server/configuration.md#logger) instead. |
-| 33 | Logging: setting level | Not implemented: `logging/setLevel` was removed outright by SEP-2575. |
+| 33 | Logging: setting level | Not implemented: `logging/setLevel` was removed outright by SEP-2575. Its per-request replacement, the `io.modelcontextprotocol/logLevel` `_meta` field, is parsed and [exposed to handlers](server/context.md). |
 | 34 | Completions: resource argument | [Completions](server/completions.md) |
 | 35 | Completions: prompt argument | [Completions](server/completions.md) |
 | 36 | Ping | Not implemented: removed by SEP-2575 with the session it kept alive. The protocol is stateless. |

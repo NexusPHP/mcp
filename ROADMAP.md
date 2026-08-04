@@ -530,7 +530,7 @@ SDKs.
   expected-failures baseline, and publish the server score. The harness lives in `conformance/`: a
   pinned referee, an attribute-discovered fixture, a baseline whose stale entries fail the build, and
   a scorer that counts an unmet SHOULD against the total. Server mode runs at
-  `--spec-version 2026-07-28` and stands at 102 of 106 checks. The 4 that remain all need an input
+  `--spec-version 2026-07-28` and stands at 107 of 111 checks. The 4 that remain all need an input
   request this SDK does not model, named in the baseline.
 - [x] Run the conformance suite in client mode, on the same pinned referee and baseline.
   `conformance/client.php` routes on the scenario name the referee supplies. Stands at 332 of 332
