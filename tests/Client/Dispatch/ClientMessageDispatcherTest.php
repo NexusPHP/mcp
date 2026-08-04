@@ -330,7 +330,7 @@ final class ClientMessageDispatcherTest extends TestCase
         $dispatcher = self::buildDispatcher(
             $outbound,
             requestHandlers: [
-                'tests/test-request' => new ClosureRequestHandler(
+                'server/discover' => new ClosureRequestHandler(
                     static fn(): Result => InputRequiredResult::fromArray([
                         'resultType' => 'input_required',
                         'requestState' => 'tok',
@@ -341,7 +341,12 @@ final class ClientMessageDispatcherTest extends TestCase
         );
         $transport = new RecordingTransport();
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'server/discover',
+            'params' => ['_meta' => RequestMetaObjectFactory::shape()],
+        ], $transport, new ReceiveContext());
         $dispatcher->flushPending();
 
         self::assertCount(1, $transport->sent);
@@ -354,7 +359,7 @@ final class ClientMessageDispatcherTest extends TestCase
         $logged = $matches[0]['context']['exception'] ?? null;
         self::assertInstanceOf(\InvalidArgumentException::class, $logged);
         self::assertSame(
-            \sprintf('Handler for "tests/test-request" returned %s, which is not a valid result for that method.', InputRequiredResult::class),
+            \sprintf('Handler for "server/discover" returned %s, which is not a valid result for that method.', InputRequiredResult::class),
             $logged->getMessage(),
         );
     }

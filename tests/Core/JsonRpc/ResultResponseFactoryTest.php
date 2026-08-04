@@ -61,6 +61,7 @@ use Nexus\Mcp\Core\Schema\ResultResponse\ReadResourceResultResponse;
 use Nexus\Mcp\Core\Schema\ResultResponse\SubscriptionsListenResultResponse;
 use Nexus\Mcp\Core\Schema\SubscriptionFilter;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
+use Nexus\Mcp\Tests\Fixtures\Core\TestRequest;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -230,6 +231,12 @@ final class ResultResponseFactoryTest extends TestCase
         yield 'untyped result falls back to the generic writer' => [
             $callTool,
             new EmptyResult(),
+            GenericResultResponse::class,
+        ];
+
+        yield 'vendor method wraps any result generically' => [
+            new TestRequest(new RequestId(id: 1)),
+            InputRequiredResult::fromArray(['resultType' => 'input_required', 'requestState' => 'tok']),
             GenericResultResponse::class,
         ];
     }
