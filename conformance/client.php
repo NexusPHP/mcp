@@ -195,6 +195,32 @@ $register('json-schema-ref-no-deref', static function (string $serverUrl) use ($
     }
 });
 
+$register('json-schema-2020-12-preservation', static function (string $serverUrl) use ($connect): void {
+    $client = $connect($serverUrl);
+
+    try {
+        $schema = null;
+
+        foreach ($client->listTools()->tools as $tool) {
+            if ('json_schema_2020_12_tool' === $tool->name) {
+                $schema = $tool->inputSchema;
+
+                break;
+            }
+        }
+
+        if (null === $schema) {
+            throw new RuntimeException('The mock server did not advertise "json_schema_2020_12_tool".');
+        }
+
+        // Echoing the observed schema back verbatim is what lets the referee diff
+        // it against its fixture for stripped 2020-12 keywords.
+        $client->callTool(name: 'json_schema_echo', arguments: ['schema' => $schema]);
+    } finally {
+        $client->disconnect();
+    }
+});
+
 /**
  * Accepts every input a server asked for, answering each field from its declared type.
  *
