@@ -52,3 +52,9 @@ $response = $client->sendRequest(
     AcmeSnapshotResultResponse::class,
 );
 ```
+
+## Official extensions
+
+The [tasks extension](tasks.md) (`io.modelcontextprotocol/tasks`, SEP-2663) ships with the SDK
+and is the worked example of this surface: `TasksClientExtension` declares the capability and the
+outbound `tasks/*` methods, and the `TaskClient` facade wraps the `sendRequest()` calls.

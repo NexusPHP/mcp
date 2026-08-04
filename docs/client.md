@@ -58,6 +58,8 @@ none, or the retry is rejected in turn, the error reaches the caller as a `Remot
 - **[Notification handlers](client/notifications.md)**: reacting to server notifications.
 - **[Extensions](client/extensions.md)**: enabling SEP-2133 extensions, their capability
   advertisement, and the outbound gate.
+- **[Tasks](client/tasks.md)**: the SEP-2663 tasks extension, calling tools as tasks and polling
+  them to completion.
 - **[Subscriptions](client/subscriptions.md)**: opening `subscriptions/listen` streams.
 
 ## Lifecycle

@@ -56,3 +56,20 @@ Handlers read the per-request declaration themselves when they need the settings
 ```php
 $declared = $context->meta->clientCapabilities->extensions['com.example/snapshot'] ?? null;
 ```
+
+## Decorating built-in handlers
+
+An extension that changes how a specification method behaves, rather than adding methods of its
+own, additionally implements `RequestHandlerDecoratorInterface`. Its
+`getRequestHandlerDecorators()` map pairs a spec-registry request method with a closure that
+receives the handler finally serving that method, whether the built-in default or a
+`replaceRequestHandler()` replacement, and returns the wrapping handler. Decorators are applied
+at `build()`, a decorated method must have a handler to wrap or the build fails, and when several
+enabled extensions decorate the same method they compose with the last-enabled extension
+outermost.
+
+A decorator's output is served ungated: unlike an extension-owned method, a spec method must keep
+serving clients that never declared the extension, so any per-request refusal is the decorator's
+own decision. The shipped [tasks extension](tasks.md) is the worked example: it decorates
+`tools/call` with a broker that only diverts a call into a task when the client declared the
+capability.

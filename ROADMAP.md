@@ -627,12 +627,18 @@ the extensions framework (SEP-2133). Official extensions land per-extension unde
   advertises enabled extensions in the `_meta` stamp on every request and refuses an extension's declared
   outbound methods against a server that did not advertise it. `Client::stampMeta()` is public so
   hand-built `sendRequest()` requests carry the same lifecycle `_meta`.
-- [ ] Tasks (`io.modelcontextprotocol/tasks`, SEP-2663) under `Nexus\Mcp\Extension\Tasks\*`: the method
-  set is `tasks/get` (polling), `tasks/update` (client-to-server input), and `tasks/cancel`, plus
-  `notifications/tasks` delivered via `subscriptions/listen`. There is no `tasks/list` and no blocking
-  `tasks/result`. A task handle (`resultType: "task"`) may only be returned to a client whose per-request
-  capabilities declared the extension, and routing that variant through the result discriminator opens
-  the closed `ResultType` enum.
+- [x] Tasks (`io.modelcontextprotocol/tasks`, SEP-2663) under `Nexus\Mcp\Extension\Tasks\*`: the method
+  set is `tasks/get` (polling), `tasks/update` (client-to-server input), and `tasks/cancel`. There is no
+  `tasks/list` and no blocking `tasks/result` (both answer `-32601`). The server extension decorates
+  `tools/call` through the framework's `RequestHandlerDecoratorInterface` seam with a broker driven by
+  per-tool `ToolTaskPolicy` entries, backed by a `TaskStoreInterface` with sticky terminal states and
+  terminal-anchored TTL retention. A task handle (`resultType: "task"`, opening the `ResultType` enum)
+  is only returned to a client whose per-request capabilities declared the extension. The client half
+  pairs `TasksClientExtension` with the polling `TaskClient` facade. The ten referee `tasks-*` scenarios
+  pass (35 checks), with `tasks-status-notifications` SKIPPED upstream as a placeholder.
+  - [ ] `notifications/tasks` delivered via `subscriptions/listen`, once the upstream conformance
+    placeholder activates: grows `SubscriptionFilter` with the SEP-2663 `taskIds` slot and settles the
+    polling-only `TaskClient` loop onto push updates.
 - [ ] MCP Apps (SEP-1865): the `ui://` URI scheme, `text/html;profile=mcp-app`, and the sandboxed
   iframe interaction model.
 - [ ] OAuth client-credentials (`io.modelcontextprotocol/oauth-client-credentials`) and

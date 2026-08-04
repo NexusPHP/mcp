@@ -34,6 +34,8 @@ instead, which attaches the dispatcher and returns so the HTTP host keeps drivin
 - **[Custom handlers](server/handlers.md)**: vendor-extension methods and spec-method overrides.
 - **[Extensions](server/extensions.md)**: enabling SEP-2133 extensions and the declared-capability
   gate on their methods.
+- **[Tasks](server/tasks.md)**: the SEP-2663 tasks extension, brokering tool calls into polled
+  long-running tasks.
 - **[Capability advertisement](server/capabilities.md)**: how `ServerCapabilities` is derived from what
   you registered.
 - **[Subscriptions](server/subscriptions.md)**: serving `subscriptions/listen` streams and the

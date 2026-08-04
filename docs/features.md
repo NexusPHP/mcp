@@ -72,6 +72,10 @@ features on that list. Those rows say so explicitly and name the replacement.
 
 The SEP-2133 extensions framework is implemented on both sides: [server](server/extensions.md) and
 [client](client/extensions.md) builders take `enableExtension(...)`, advertising the capability and
-serving the extension's methods behind the declared-capability gate. No official extension ships
-yet. Tasks (`io.modelcontextprotocol/tasks`, SEP-2663) and the others are tracked in
-[ROADMAP.md](../ROADMAP.md) under Official extensions.
+serving the extension's methods behind the declared-capability gate.
+
+The tasks extension (`io.modelcontextprotocol/tasks`, SEP-2663) ships with the SDK:
+[server](server/tasks.md) brokering of `tools/call` into polled tasks with `tasks/get`,
+`tasks/update`, and `tasks/cancel`, and the [client](client/tasks.md) facade that calls tools as
+tasks and polls them to completion. `notifications/tasks` and the remaining official extensions
+are tracked in [ROADMAP.md](../ROADMAP.md) under Official extensions.

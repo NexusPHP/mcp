@@ -23,8 +23,27 @@ in `0.x`, minor releases may include breaking changes.
   member (`extensions.{identifier}`). The client advertises enabled extensions in every request's
   `_meta`, refuses an extension's declared outbound methods against a server that did not
   advertise it, and answers an extension-owned inbound request from such a server with `-32601`.
-- `Client::stampMeta()` is public, so hand-built `sendRequest()` requests can carry the same
-  lifecycle `_meta` the typed methods stamp.
+- `Client::stampMeta()` and `Client::mintRequestId()` are public, so hand-built `sendRequest()`
+  requests can carry the same lifecycle `_meta` and id scheme the typed methods use.
+- The tasks extension (`io.modelcontextprotocol/tasks`, SEP-2663) under
+  `Nexus\Mcp\Extension\Tasks`. `TasksServerExtension` serves `tasks/get`, `tasks/update`, and
+  `tasks/cancel`, and brokers `tools/call` into long-running tasks per the given
+  `ToolTaskPolicy` map: a task-supporting tool answers a declaring client with a flat
+  `CreateTaskResult` and runs in a background fiber whose outcome settles the store record. Tool
+  errors settle as `completed` with `result.isError`, protocol errors as `failed`, and terminal
+  states are sticky with TTL retention anchored at the terminal transition.
+  `TasksClientExtension` advertises the capability and gates the outbound `tasks/*` methods, and
+  the `TaskClient` facade calls tools as tasks (continuation parameters included, so an
+  `InputRequiredResult` round can be re-issued through the facade), polls at the server-suggested
+  interval, answers `input_required` rounds through a resolver, throws `StalledTaskException`
+  past its stall ceiling, and aborts on a caller-supplied `Amp\Cancellation`.
+- `RequestHandlerDecoratorInterface`, the extension framework's seam for wrapping the handler
+  that serves a spec-registry method at `build()` time. Decorator groups compose with the
+  last-enabled extension outermost, and the tasks extension uses it to broker `tools/call`.
+- `ResultType::Task` and the `TaskHandleResult` marker, routing extension-defined task handles
+  through `ResultResponseFactory` on the send path.
+- The SEP-2243 `Mcp-Name` routing header now mirrors `params.taskId` on the tasks methods, on
+  both the client build path and the server validation path.
 
 ### Changed
 
