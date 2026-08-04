@@ -35,6 +35,8 @@ use Nexus\Mcp\Core\Validation\MethodClassValidator;
  * @internal
  *
  * @template TContext of AbstractContext
+ *
+ * @phpstan-type StoredRequestDecorator \Closure(never): object
  */
 final class ExtensionCollection
 {
@@ -79,11 +81,20 @@ final class ExtensionCollection
     private array $outboundOwners = [];
 
     /**
-     * @param ExtensionInterface<TContext> $extension
-     * @param list<non-empty-string>       $claimedRequests       Methods a builder-registered request handler already owns
-     * @param list<non-empty-string>       $claimedNotifications  Methods a builder-registered notification handler already owns
-     * @param list<non-empty-string>       $outboundRequests      Client-to-server methods the extension invokes
-     * @param bool                         $requireClientRequests Require each request class to implement `ClientRequest`
+     * Stored behind an opaque closure supertype: the server-side decorator
+     * seam owns the real signature, and the builder re-narrows on read.
+     *
+     * @var array<non-empty-string, array<non-empty-string, StoredRequestDecorator>>
+     */
+    private array $requestDecoratorGroups = [];
+
+    /**
+     * @param ExtensionInterface<TContext>                    $extension
+     * @param list<non-empty-string>                          $claimedRequests       Methods a builder-registered request handler already owns
+     * @param list<non-empty-string>                          $claimedNotifications  Methods a builder-registered notification handler already owns
+     * @param list<non-empty-string>                          $outboundRequests      Client-to-server methods the extension invokes
+     * @param bool                                            $requireClientRequests Require each request class to implement `ClientRequest`
+     * @param array<non-empty-string, StoredRequestDecorator> $requestDecorators     Decorators keyed by the spec-registry method they wrap
      *
      * @throws DuplicateExtensionException
      * @throws ExtensionMethodCollisionException
@@ -94,6 +105,7 @@ final class ExtensionCollection
         array $claimedNotifications = [],
         array $outboundRequests = [],
         bool $requireClientRequests = false,
+        array $requestDecorators = [],
     ): void {
         $identifier = $extension->getIdentifier();
         ExtensionIdentifierValidator::validate($identifier);
@@ -148,8 +160,18 @@ final class ExtensionCollection
             }
         }
 
+        Assert::that($requestDecorators)->keys()->isOneOf(array_keys($specRequests), \sprintf(
+            'Extension "%s" may only decorate spec-registry request methods, and {value} is not one.',
+            $identifier,
+        ));
+
         $this->settings[$identifier] = $settings;
         $this->requestHandlerGroups[$identifier] = $requestHandlers;
+
+        if ([] !== $requestDecorators) {
+            $this->requestDecoratorGroups[$identifier] = $requestDecorators;
+        }
+
         $this->requestClasses = [...$this->requestClasses, ...$requests];
         $this->notificationClasses = [...$this->notificationClasses, ...$notifications];
         $this->notificationHandlers = [...$this->notificationHandlers, ...$notificationHandlers];
@@ -282,6 +304,17 @@ final class ExtensionCollection
     public function getOutboundOwners(): array
     {
         return $this->outboundOwners;
+    }
+
+    /**
+     * The validated request decorators keyed by owning identifier, in enable
+     * order so the last-enabled extension wraps outermost.
+     *
+     * @return array<non-empty-string, array<non-empty-string, StoredRequestDecorator>>
+     */
+    public function getRequestDecoratorGroups(): array
+    {
+        return $this->requestDecoratorGroups;
     }
 
     /**

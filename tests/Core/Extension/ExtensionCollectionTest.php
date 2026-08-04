@@ -17,6 +17,7 @@ use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Exception\DuplicateExtensionException;
 use Nexus\Mcp\Core\Exception\ExtensionMethodCollisionException;
 use Nexus\Mcp\Core\Extension\ExtensionCollection;
+use Nexus\Mcp\Core\Handler\RequestHandlerInterface;
 use Nexus\Mcp\Core\Schema\Notification\ProgressNotification;
 use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
@@ -64,6 +65,7 @@ final class ExtensionCollectionTest extends TestCase
         self::assertSame([TestNotification::getMethod() => $notificationHandler], $collection->buildNotificationHandlers());
         self::assertSame(['com.example/feature' => [TestRequest::getMethod() => $requestHandler]], $collection->getRequestHandlerGroups());
         self::assertSame(['acme/lookup' => 'com.example/feature'], $collection->getOutboundOwners());
+        self::assertSame([], $collection->getRequestDecoratorGroups());
     }
 
     public function testAnEmptyCollectionBuildsNothing(): void
@@ -77,6 +79,36 @@ final class ExtensionCollectionTest extends TestCase
         self::assertSame([], $collection->buildNotificationHandlers());
         self::assertSame([], $collection->getRequestHandlerGroups());
         self::assertSame([], $collection->getOutboundOwners());
+        self::assertSame([], $collection->getRequestDecoratorGroups());
+    }
+
+    public function testAddStoresDecoratorGroupsInEnableOrder(): void
+    {
+        $first = static fn(RequestHandlerInterface $handler): RequestHandlerInterface => $handler;
+        $second = static fn(RequestHandlerInterface $handler): RequestHandlerInterface => $handler;
+        $collection = new ExtensionCollection();
+        $collection->add(new StubExtension(identifier: 'com.example/first'), requestDecorators: [CallToolRequest::getMethod() => $first]);
+        $collection->add(new StubExtension(identifier: 'com.example/second'), requestDecorators: [CallToolRequest::getMethod() => $second]);
+
+        self::assertSame(
+            [
+                'com.example/first' => [CallToolRequest::getMethod() => $first],
+                'com.example/second' => [CallToolRequest::getMethod() => $second],
+            ],
+            $collection->getRequestDecoratorGroups(),
+        );
+    }
+
+    public function testAddRejectsADecoratorOnANonRegistryMethod(): void
+    {
+        $collection = new ExtensionCollection();
+
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs('Extension "com.example/feature" may only decorate spec-registry request methods, and \'acme/lookup\' is not one.');
+
+        $collection->add(new StubExtension(identifier: 'com.example/feature'), requestDecorators: [
+            'acme/lookup' => static fn(RequestHandlerInterface $handler): RequestHandlerInterface => $handler,
+        ]);
     }
 
     public function testTwoExtensionsMergeTheirDeclarations(): void

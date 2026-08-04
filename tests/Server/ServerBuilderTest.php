@@ -16,6 +16,8 @@ namespace Nexus\Mcp\Tests\Server;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Exception\DuplicateExtensionException;
 use Nexus\Mcp\Core\Exception\ExtensionMethodCollisionException;
+use Nexus\Mcp\Core\Handler\AbstractContext;
+use Nexus\Mcp\Core\Handler\RequestHandlerInterface;
 use Nexus\Mcp\Core\Schema\ClientCapabilities;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Cursor;
@@ -29,6 +31,7 @@ use Nexus\Mcp\Core\Schema\Icon;
 use Nexus\Mcp\Core\Schema\Implementation;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
+use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\Prompt\Prompt;
 use Nexus\Mcp\Core\Schema\RequestId;
@@ -96,6 +99,7 @@ use Nexus\Mcp\Tests\Fixtures\Server\Completion\RecordingCompletionStore;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\CompletionHandlers;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\DiscoverableServer;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\SelfDescribingServer;
+use Nexus\Mcp\Tests\Fixtures\Server\Extension\StubDecoratingServerExtension;
 use Nexus\Mcp\Tests\Fixtures\Server\Extension\StubServerExtension;
 use Nexus\Mcp\Tests\Fixtures\Server\Tool\PagedToolStore;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -1230,6 +1234,113 @@ final class ServerBuilderTest extends TestCase
             'This request requires client capabilities the client did not declare: extensions.com.example/feature.',
             $message->error->message,
         );
+    }
+
+    public function testADecoratorWrapsTheDefaultToolHandlerAndServesUngated(): void
+    {
+        $server = new ServerBuilder()
+            ->setServerInfo('demo', '1.0.0')
+            ->addTool(
+                new Tool(name: 'report', inputSchema: ['type' => 'object']),
+                static fn(?array $args, $ctx): CallToolResult => new CallToolResult(content: [new TextContent(text: 'inner')]),
+            )
+            ->enableExtension(self::buildTextWrappingExtension('com.example/feature', 'outer'))
+            ->build()
+        ;
+
+        // The request declares no extension capability, so a gated handler would refuse it.
+        $result = $this->dispatch($server, 'tools/call', ['name' => 'report']);
+
+        self::assertInstanceOf(CallToolResult::class, $result);
+        $content = $result->content[0] ?? null;
+
+        if (! $content instanceof TextContent) {
+            self::fail('The decorated tool result must carry a text block.');
+        }
+
+        self::assertSame('outer(inner)', $content->text);
+    }
+
+    public function testADecoratorWrapsAReplacedHandler(): void
+    {
+        $server = new ServerBuilder()
+            ->setServerInfo('demo', '1.0.0')
+            ->replaceRequestHandler('tools/call', new ClosureRequestHandler(
+                static fn(JsonRpcRequest $request, AbstractContext $context): Result => new CallToolResult(content: [new TextContent(text: 'replaced')]),
+            ))
+            ->enableExtension(self::buildTextWrappingExtension('com.example/feature', 'outer'))
+            ->build()
+        ;
+
+        $result = $this->dispatch($server, 'tools/call', ['name' => 'report']);
+
+        self::assertInstanceOf(CallToolResult::class, $result);
+        $content = $result->content[0] ?? null;
+
+        if (! $content instanceof TextContent) {
+            self::fail('The decorated tool result must carry a text block.');
+        }
+
+        self::assertSame('outer(replaced)', $content->text);
+    }
+
+    public function testTwoDecoratorsComposeWithTheLastEnabledOutermost(): void
+    {
+        $server = new ServerBuilder()
+            ->setServerInfo('demo', '1.0.0')
+            ->addTool(
+                new Tool(name: 'report', inputSchema: ['type' => 'object']),
+                static fn(?array $args, $ctx): CallToolResult => new CallToolResult(content: [new TextContent(text: 'inner')]),
+            )
+            ->enableExtension(self::buildTextWrappingExtension('com.example/first', 'first'))
+            ->enableExtension(self::buildTextWrappingExtension('com.example/second', 'second'))
+            ->build()
+        ;
+
+        $result = $this->dispatch($server, 'tools/call', ['name' => 'report']);
+
+        self::assertInstanceOf(CallToolResult::class, $result);
+        $content = $result->content[0] ?? null;
+
+        if (! $content instanceof TextContent) {
+            self::fail('The decorated tool result must carry a text block.');
+        }
+
+        self::assertSame('second(first(inner))', $content->text);
+    }
+
+    public function testBuildRejectsADecoratedMethodNoHandlerServes(): void
+    {
+        $builder = new ServerBuilder()
+            ->setServerInfo('demo', '1.0.0')
+            ->enableExtension(self::buildTextWrappingExtension('com.example/feature', 'outer'))
+        ;
+
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs('Extension "com.example/feature" decorates "tools/call", but no handler serves that method.');
+
+        $builder->build();
+    }
+
+    public function testBuildRejectsADecoratorReturningANonHandler(): void
+    {
+        $builder = new ServerBuilder()
+            ->setServerInfo('demo', '1.0.0')
+            ->addTool(
+                new Tool(name: 'report', inputSchema: ['type' => 'object']),
+                static fn(?array $args, $ctx): CallToolResult => new CallToolResult(content: [new TextContent(text: 'inner')]),
+            )
+            ->enableExtension(new StubDecoratingServerExtension(
+                identifier: 'com.example/feature',
+                // @phpstan-ignore argument.type
+                requestDecorators: ['tools/call' => static fn(RequestHandlerInterface $inner): string => 'oops'],
+            ))
+        ;
+
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs('Extension "com.example/feature" decorator for "tools/call" must return a request handler, string given.');
+
+        $builder->build();
     }
 
     public function testExtensionNotificationHandlersDispatchUngated(): void
@@ -2533,6 +2644,29 @@ final class ServerBuilderTest extends TestCase
             requestHandlers: [TestClientRequest::getMethod() => new ClosureRequestHandler(
                 static fn(): EmptyResult => new EmptyResult(),
             )],
+        );
+    }
+
+    /**
+     * @param non-empty-string $identifier
+     * @param non-empty-string $marker
+     */
+    private static function buildTextWrappingExtension(string $identifier, string $marker): StubDecoratingServerExtension
+    {
+        return new StubDecoratingServerExtension(
+            identifier: $identifier,
+            requestDecorators: [
+                'tools/call' => static fn(RequestHandlerInterface $inner): RequestHandlerInterface => new ClosureRequestHandler(
+                    static function (JsonRpcRequest $request, AbstractContext $context) use ($inner, $marker): Result {
+                        $result = $inner->handle($request, $context);
+                        \assert($result instanceof CallToolResult);
+                        $text = $result->content[0] ?? null;
+                        \assert($text instanceof TextContent);
+
+                        return new CallToolResult(content: [new TextContent(text: \sprintf('%s(%s)', $marker, $text->text))]);
+                    },
+                ),
+            ],
         );
     }
 

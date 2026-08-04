@@ -41,7 +41,7 @@ final class JsonRpcMethodRegistry
     /**
      * Keyed by spec method literal (`completion/complete`, etc.), sorted by key.
      *
-     * @return array<non-empty-string, class-string<JsonRpcRequest<non-empty-string>>>
+     * @return non-empty-array<non-empty-string, class-string<JsonRpcRequest<non-empty-string>>>
      */
     public static function requests(): array
     {
@@ -62,7 +62,7 @@ final class JsonRpcMethodRegistry
     /**
      * Keyed by spec method literal (`notifications/cancelled`, etc.), sorted by key.
      *
-     * @return array<non-empty-string, class-string<JsonRpcNotification<non-empty-string>>>
+     * @return non-empty-array<non-empty-string, class-string<JsonRpcNotification<non-empty-string>>>
      */
     public static function notifications(): array
     {
