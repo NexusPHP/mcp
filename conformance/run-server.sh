@@ -89,9 +89,17 @@ fi
 echo "Running the conformance suite (referee conformance@${CONFORMANCE_VERSION}, spec ${SPEC_VERSION})..."
 # `-o` is what persists per-scenario checks.json files. Without it the referee
 # only prints, and there is nothing for score.php to read.
+REFEREE_STATUS=0
 npx -y -q "@modelcontextprotocol/conformance@${CONFORMANCE_VERSION}" server \
     --url "$SERVER_URL" \
     --spec-version "$SPEC_VERSION" \
     --expected-failures ./conformance/expected-failures.yaml \
     --output-dir ./conformance/results/server \
-    "$@"
+    "$@" || REFEREE_STATUS=$?
+
+# Supersede older runs of the same scenarios, keeping results/ one directory
+# per scenario. Pruning runs even on a failed referee so a red run cannot
+# leave duplicates behind.
+./conformance/prune-results.sh
+
+exit "$REFEREE_STATUS"

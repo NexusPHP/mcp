@@ -23,9 +23,17 @@ REPO_ROOT="$(dirname "$SCRIPT_DIR")"
 cd "$REPO_ROOT"
 
 echo "Running the conformance suite in client mode (referee conformance@${CONFORMANCE_VERSION}, spec ${SPEC_VERSION})..."
+REFEREE_STATUS=0
 npx -y -q "@modelcontextprotocol/conformance@${CONFORMANCE_VERSION}" client \
     --command "php conformance/client.php" \
     --spec-version "$SPEC_VERSION" \
     --expected-failures ./conformance/expected-failures.yaml \
     --output-dir ./conformance/results/client \
-    "$@"
+    "$@" || REFEREE_STATUS=$?
+
+# Supersede older runs of the same scenarios, keeping results/ one directory
+# per scenario. Pruning runs even on a failed referee so a red run cannot
+# leave duplicates behind.
+./conformance/prune-results.sh
+
+exit "$REFEREE_STATUS"

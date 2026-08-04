@@ -47,7 +47,8 @@ so nothing needs starting first. Both write into the same `results/` directory, 
 before starting the other.
 
 Needs Node (for `npx`) and a free port. `PORT` and `HOST` override the default `127.0.0.1:3000`.
-Results land in `results/`, which is gitignored. The referee declares no engine constraint, so any
+Results land in `results/`, which is gitignored, and every run prunes superseded results so the
+directory holds one entry per scenario ([`prune-results.sh`](prune-results.sh)). The referee declares no engine constraint, so any
 maintained Node works. CI tracks the active LTS.
 
 `URL_HOST` overrides only the authority the referee reaches the fixture by, leaving the bind address
