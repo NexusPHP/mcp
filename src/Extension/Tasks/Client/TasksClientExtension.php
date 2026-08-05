@@ -17,7 +17,7 @@ use Nexus\Mcp\Client\ClientExtensionInterface;
 use Nexus\Mcp\Extension\Tasks\Schema\Request\CancelTaskRequest;
 use Nexus\Mcp\Extension\Tasks\Schema\Request\GetTaskRequest;
 use Nexus\Mcp\Extension\Tasks\Schema\Request\UpdateTaskRequest;
-use Nexus\Mcp\Extension\Tasks\Server\TasksServerExtension;
+use Nexus\Mcp\Extension\Tasks\Tasks;
 
 /**
  * The official tasks extension (`io.modelcontextprotocol/tasks`, SEP-2663)
@@ -30,7 +30,7 @@ final readonly class TasksClientExtension implements ClientExtensionInterface
     #[\Override]
     public function getIdentifier(): string
     {
-        return TasksServerExtension::IDENTIFIER;
+        return Tasks::IDENTIFIER;
     }
 
     #[\Override]

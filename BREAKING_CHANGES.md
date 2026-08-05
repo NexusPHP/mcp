@@ -6,6 +6,18 @@ for *when* breaking changes may land and how they are communicated lives in
 
 ## v0.7.0 to Unreleased
 
+### The tasks extension identifier moved to a vocabulary class
+
+`TasksServerExtension::IDENTIFIER` no longer exists. The identifier now lives on the extension's
+vocabulary class, mirroring the MCP Apps shape:
+
+```php
+// before
+TasksServerExtension::IDENTIFIER
+// after
+\Nexus\Mcp\Extension\Tasks\Tasks::IDENTIFIER
+```
+
 ## v0.6.0 to v0.7.0
 
 ### Custom handler registration names the envelope class

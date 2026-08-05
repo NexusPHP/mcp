@@ -35,6 +35,7 @@ use Nexus\Mcp\Extension\Tasks\Server\Store\TaskRecord;
 use Nexus\Mcp\Extension\Tasks\Server\TasksServerExtension;
 use Nexus\Mcp\Extension\Tasks\Server\TaskSupport;
 use Nexus\Mcp\Extension\Tasks\Server\ToolTaskPolicy;
+use Nexus\Mcp\Extension\Tasks\Tasks;
 use Nexus\Mcp\Server\ServerBuilder;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureRequestHandler;
@@ -125,14 +126,14 @@ final class TasksServerExtensionTest extends TestCase
             CallToolRequest::fromArray([
                 'id' => 7,
                 'params' => ['_meta' => RequestMetaObjectFactory::shape(
-                    clientCapabilities: new ClientCapabilities(extensions: [TasksServerExtension::IDENTIFIER => []]),
+                    clientCapabilities: new ClientCapabilities(extensions: [Tasks::IDENTIFIER => []]),
                 ), 'name' => 'slow_compute'],
             ]),
             new ServerContext(
                 new RequestId(id: 7),
                 new NullCancellation(),
                 RequestMetaObjectFactory::create(
-                    clientCapabilities: new ClientCapabilities(extensions: [TasksServerExtension::IDENTIFIER => []]),
+                    clientCapabilities: new ClientCapabilities(extensions: [Tasks::IDENTIFIER => []]),
                 ),
                 new RecordingSender(),
             ),

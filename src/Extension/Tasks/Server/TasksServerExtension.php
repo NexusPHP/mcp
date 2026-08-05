@@ -24,6 +24,7 @@ use Nexus\Mcp\Extension\Tasks\Server\Handler\TaskBrokeringCallToolHandler;
 use Nexus\Mcp\Extension\Tasks\Server\Handler\UpdateTaskRequestHandler;
 use Nexus\Mcp\Extension\Tasks\Server\Store\InMemoryTaskStore;
 use Nexus\Mcp\Extension\Tasks\Server\Store\TaskStoreInterface;
+use Nexus\Mcp\Extension\Tasks\Tasks;
 use Nexus\Mcp\Server\RequestHandlerDecoratorInterface;
 use Nexus\Mcp\Server\ServerExtensionInterface;
 use Psr\Log\LoggerInterface;
@@ -39,8 +40,6 @@ use Psr\Log\NullLogger;
  */
 final readonly class TasksServerExtension implements RequestHandlerDecoratorInterface, ServerExtensionInterface
 {
-    public const string IDENTIFIER = 'io.modelcontextprotocol/tasks';
-
     private TaskCancellationRegistry $cancellations;
     private ToolTaskRunner $runner;
 
@@ -63,7 +62,7 @@ final readonly class TasksServerExtension implements RequestHandlerDecoratorInte
     #[\Override]
     public function getIdentifier(): string
     {
-        return self::IDENTIFIER;
+        return Tasks::IDENTIFIER;
     }
 
     #[\Override]
@@ -113,7 +112,7 @@ final readonly class TasksServerExtension implements RequestHandlerDecoratorInte
 
                 return new TaskBrokeringCallToolHandler(
                     inner: $inner,
-                    identifier: self::IDENTIFIER,
+                    identifier: Tasks::IDENTIFIER,
                     store: $this->store,
                     runner: $this->runner,
                     toolPolicies: $this->toolPolicies,

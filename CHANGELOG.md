@@ -24,6 +24,12 @@ in `0.x`, minor releases may include breaking changes.
   (`InvalidUiResourceContentsException` on drift). The `ui/*` postMessage family is host-side and
   deliberately unmodelled.
 
+### Changed
+
+- The tasks extension identifier moved from `TasksServerExtension::IDENTIFIER` to the new
+  vocabulary class `Nexus\Mcp\Extension\Tasks\Tasks`, mirroring the MCP Apps shape, so the client
+  half no longer imports a server-namespace class.
+
 ## [v0.7.0](https://github.com/NexusPHP/mcp/compare/v0.6.0...v0.7.0) - 2026-08-05
 
 This release introduces the SEP-2133 extensions framework and the first official extension built on
