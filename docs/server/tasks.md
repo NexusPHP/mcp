@@ -100,4 +100,5 @@ The tasks methods carry the [SEP-2243 routing headers](../transports.md): `Mcp-N
 `params.taskId` on `tasks/get`, `tasks/update`, and `tasks/cancel`, and a mismatched header is
 rejected with `-32020` like any other header mismatch.
 
-The client half is documented in [Client tasks](../client/tasks.md).
+The client half is documented in [Client tasks](../client/tasks.md), and
+[examples/tasks.php](../../examples/tasks.php) runs the whole loop in one process.

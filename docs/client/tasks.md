@@ -89,4 +89,5 @@ loop aborts with `CancelledException` when it fires.
 lifecycle `_meta` stamped. `cancelTask()` is cooperative: the server acks immediately and the
 task settles as `cancelled` once its fiber observes the cancellation.
 
-The server half is documented in [Server tasks](../server/tasks.md).
+The server half is documented in [Server tasks](../server/tasks.md), and
+[examples/tasks.php](../../examples/tasks.php) runs the whole loop in one process.
