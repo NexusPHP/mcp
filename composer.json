@@ -74,7 +74,8 @@
         },
         "classmap": [
             "examples/PsrLogger.php",
-            "examples/PsrHttpAdapter.php"
+            "examples/PsrHttpAdapter.php",
+            "examples/ProductionPosture.php"
         ]
     },
     "config": {

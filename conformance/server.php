@@ -28,6 +28,7 @@ declare(strict_types=1);
  */
 
 require __DIR__.'/bootstrap.php';
+require __DIR__.'/../examples/ProductionPosture.php';
 require __DIR__.'/ElicitationHelpers.php';
 require __DIR__.'/EverythingServer.php';
 require __DIR__.'/MultiRoundServer.php';
@@ -39,7 +40,6 @@ use Amp\Http\Server\Request;
 use Amp\Http\Server\RequestHandler;
 use Amp\Http\Server\Response;
 use Amp\Http\Server\SocketHttpServer;
-use Composer\XdebugHandler\XdebugHandler;
 use Nexus\Mcp\Extension\Tasks\Server\TasksServerExtension;
 use Nexus\Mcp\Extension\Tasks\Server\TaskSupport;
 use Nexus\Mcp\Extension\Tasks\Server\ToolTaskPolicy;
@@ -53,17 +53,8 @@ use Nyholm\Psr7\Factory\Psr17Factory;
 
 use function Amp\trapSignal;
 
-// xdebug's mode is fixed at process start, so forcing it off takes one restart. The handler
-// re-runs this script with the extension dropped from the loaded ini, which leaves the
-// restarted listener as a child process the run scripts tear down by process group.
-$xdebugHandler = new XdebugHandler('MCP_CONFORMANCE');
-$xdebugHandler->check();
-unset($xdebugHandler);
-
-// `-1` is only reachable at startup, so runtime lowering stops at "compiled but not executed".
-if (ini_get('zend.assertions') !== '-1') {
-    ini_set('zend.assertions', '0');
-}
+// The restarted listener is a child process the run scripts tear down by process group.
+ProductionPosture::force('MCP_CONFORMANCE');
 
 /**
  * Reads an environment variable, falling back when it is unset or empty.

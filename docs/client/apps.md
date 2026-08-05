@@ -76,4 +76,5 @@ Rendering is out of the SDK's scope: hosting the HTML in a sandboxed iframe, enf
 declared CSP, and speaking the `ui/*` postMessage protocol to the embedded view are the browser
 host's job, documented by the upstream `modelcontextprotocol/ext-apps` project.
 
-The server half is documented in [Server apps](../server/apps.md).
+The server half is documented in [Server apps](../server/apps.md), and
+[examples/apps-e2e/](../../examples/apps-e2e/) runs the whole flow, browser host included.

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Server status panel</title>
+<style>
+    :root { color-scheme: light dark; }
+    body { font-family: system-ui, sans-serif; margin: 0; padding: 1rem; }
+    h2 { font-size: 1rem; margin: 0 0 0.75rem; }
+    dl { display: grid; grid-template-columns: max-content 1fr; gap: 0.35rem 1rem; margin: 0; font-size: 0.9rem; }
+    dt { opacity: 0.7; }
+    dd { margin: 0; font-variant-numeric: tabular-nums; }
+    button { margin-top: 1rem; padding: 0.4rem 0.9rem; border-radius: 0.5rem; border: 1px solid color-mix(in srgb, currentColor 35%, transparent); background: transparent; color: inherit; cursor: pointer; }
+    #status { font-size: 0.8rem; opacity: 0.6; margin-top: 0.75rem; }
+</style>
+</head>
+<body>
+<h2>Server status</h2>
+<dl id="metrics"><dt>Waiting</dt><dd>for the first tool result&hellip;</dd></dl>
+<button id="refresh" type="button">Refresh</button>
+<p id="status"></p>
+
+<script>
+'use strict';
+
+// The view side of the MCP Apps postMessage protocol, hand-written and
+// dependency-free: JSON-RPC 2.0 envelopes posted to the parent window.
+const PROTOCOL_VERSION = '2026-01-26';
+
+let nextId = 1;
+const pending = new Map();
+
+function send(message) {
+    window.parent.postMessage(message, '*');
+}
+
+function request(method, params) {
+    return new Promise((resolve, reject) => {
+        const id = nextId++;
+        pending.set(id, { resolve: resolve, reject: reject });
+        send({ jsonrpc: '2.0', id: id, method: method, params: params });
+    });
+}
+
+function render(result) {
+    const metrics = (result && result.structuredContent) || {};
+    const labels = {
+        phpVersion: 'PHP version',
+        uptimeSeconds: 'Uptime (s)',
+        memoryBytes: 'Memory (bytes)',
+        statusCalls: 'Status calls',
+        generatedAt: 'Generated at',
+    };
+    const list = document.getElementById('metrics');
+    list.replaceChildren();
+    for (const key of Object.keys(labels)) {
+        const dt = document.createElement('dt');
+        dt.textContent = labels[key];
+        const dd = document.createElement('dd');
+        dd.textContent = String(metrics[key] !== undefined ? metrics[key] : '?');
+        list.append(dt, dd);
+    }
+    document.getElementById('status').textContent = 'Rendered at ' + new Date().toLocaleTimeString();
+    send({ jsonrpc: '2.0', method: 'ui/notifications/size-changed', params: { height: document.documentElement.scrollHeight } });
+}
+
+window.addEventListener('message', (event) => {
+    const message = event.data;
+    if (!message || message.jsonrpc !== '2.0') {
+        return;
+    }
+    if (message.id !== undefined && pending.has(message.id)) {
+        const entry = pending.get(message.id);
+        pending.delete(message.id);
+        if (message.error) {
+            entry.reject(new Error(message.error.message));
+        } else {
+            entry.resolve(message.result);
+        }
+        return;
+    }
+    if (message.method === 'ui/notifications/tool-result') {
+        render(message.params);
+    }
+});
+
+document.getElementById('refresh').addEventListener('click', async () => {
+    document.getElementById('status').textContent = 'Refreshing…';
+    try {
+        // The view calls the tool itself, through the host's tools/call proxy.
+        render(await request('tools/call', { name: 'system_status', arguments: {} }));
+    } catch (error) {
+        document.getElementById('status').textContent = 'Refresh failed: ' + error.message;
+    }
+});
+
+(async () => {
+    await request('ui/initialize', {
+        appInfo: { name: 'status-panel', version: '0.1.0' },
+        appCapabilities: {},
+        protocolVersion: PROTOCOL_VERSION,
+    });
+    send({ jsonrpc: '2.0', method: 'ui/notifications/initialized', params: {} });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MCP Apps example host</title>
+<style>
+    :root { color-scheme: light dark; }
+    body { font-family: system-ui, sans-serif; margin: 0; padding: 1.5rem; max-width: 60rem; margin-inline: auto; }
+    h1 { font-size: 1.25rem; }
+    p.hint { opacity: 0.75; font-size: 0.9rem; }
+    #tools { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-block: 1rem; }
+    #tools button { padding: 0.5rem 1rem; border-radius: 0.5rem; border: 1px solid color-mix(in srgb, currentColor 35%, transparent); background: transparent; color: inherit; cursor: pointer; font-size: 0.95rem; }
+    #tools button:hover { background: color-mix(in srgb, currentColor 10%, transparent); }
+    #panel { margin-top: 1rem; }
+    #panel iframe { width: 100%; height: 20rem; border: 0; display: block; }
+    #panel.bordered iframe { border: 1px solid color-mix(in srgb, currentColor 35%, transparent); border-radius: 0.75rem; background: color-mix(in srgb, currentColor 4%, transparent); }
+    #log { margin-top: 1.5rem; font-family: ui-monospace, monospace; font-size: 0.8rem; opacity: 0.75; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<h1>MCP Apps example host</h1>
+<p class="hint">
+    A minimal browser host: it lists the UI-linked tools the PHP backend discovered with
+    <code>AppClient::findAppTools()</code>, renders the linked <code>ui://</code> view in a
+    sandboxed iframe, and speaks the <code>ui/*</code> postMessage handshake with it.
+</p>
+<div id="tools">Loading tools&hellip;</div>
+<div id="panel"></div>
+<div id="log"></div>
+
+<script>
+'use strict';
+
+const PROTOCOL_VERSION = '2026-01-26';
+const HOST_INFO = { name: 'nexus-apps-example-host', version: '0.1.0' };
+
+const state = {
+    iframe: null,
+    toolName: null,
+    initialResult: null,
+};
+
+function log(line) {
+    const el = document.getElementById('log');
+    el.textContent += line + '\n';
+}
+
+async function fetchJson(url, options) {
+    const response = await fetch(url, options);
+    const data = await response.json();
+    if (!response.ok) {
+        throw new Error(data.error || ('HTTP ' + response.status));
+    }
+    return data;
+}
+
+async function callTool(name, args) {
+    const data = await fetchJson('/api/call', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ name: name, arguments: args || {} }),
+    });
+    return data.result;
+}
+
+// Composes the iframe document's CSP from the declared `_meta.ui.csp`
+// allow-lists. Omitted lists fall back to the restrictive default the spec
+// prescribes. 'unsafe-inline' is what lets the view's inline script run
+// inside its opaque sandbox origin.
+function buildCsp(csp) {
+    const lists = csp || {};
+    const connect = (lists.connectDomains || []).join(' ');
+    const resources = (lists.resourceDomains || []).join(' ');
+    const frames = (lists.frameDomains || []).join(' ');
+    return [
+        "default-src 'none'",
+        ("script-src 'unsafe-inline' " + resources).trim(),
+        ("style-src 'unsafe-inline' " + resources).trim(),
+        ('img-src ' + (resources || "'none'")).trim(),
+        ('connect-src ' + (connect || "'none'")).trim(),
+        ('frame-src ' + (frames || "'none'")).trim(),
+        "base-uri 'none'",
+    ].join('; ');
+}
+
+function respond(id, result) {
+    state.iframe.contentWindow.postMessage({ jsonrpc: '2.0', id: id, result: result }, '*');
+}
+
+function respondError(id, code, message) {
+    state.iframe.contentWindow.postMessage({ jsonrpc: '2.0', id: id, error: { code: code, message: message } }, '*');
+}
+
+function notify(method, params) {
+    state.iframe.contentWindow.postMessage({ jsonrpc: '2.0', method: method, params: params }, '*');
+}
+
+window.addEventListener('message', async (event) => {
+    if (!state.iframe || event.source !== state.iframe.contentWindow) {
+        return;
+    }
+    const message = event.data;
+    if (!message || message.jsonrpc !== '2.0') {
+        return;
+    }
+
+    // View-to-host requests.
+    if (message.id !== undefined && message.method) {
+        if (message.method === 'ui/initialize') {
+            log('view -> ui/initialize (protocol ' + message.params.protocolVersion + ')');
+            respond(message.id, {
+                protocolVersion: PROTOCOL_VERSION,
+                hostInfo: HOST_INFO,
+                hostCapabilities: {},
+                hostContext: {
+                    platform: 'web',
+                    locale: navigator.language,
+                    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                },
+            });
+            return;
+        }
+        if (message.method === 'tools/call') {
+            log('view -> tools/call ' + message.params.name);
+            try {
+                respond(message.id, await callTool(message.params.name, message.params.arguments));
+            } catch (error) {
+                respondError(message.id, -32603, String(error));
+            }
+            return;
+        }
+        // The demo host implements a deliberate subset of ui/*.
+        respondError(message.id, -32601, 'Method not supported by this example host: ' + message.method);
+        return;
+    }
+
+    // View-to-host notifications.
+    if (message.method === 'ui/notifications/initialized') {
+        log('view -> initialized, delivering the tool result');
+        notify('ui/notifications/tool-input', { arguments: {} });
+        notify('ui/notifications/tool-result', state.initialResult);
+        return;
+    }
+    if (message.method === 'ui/notifications/size-changed') {
+        if (message.params && typeof message.params.height === 'number') {
+            state.iframe.style.height = Math.ceil(message.params.height) + 'px';
+        }
+    }
+});
+
+async function openTool(tool) {
+    log('host: reading ' + tool.resourceUri);
+    const resource = await fetchJson('/api/resource?uri=' + encodeURIComponent(tool.resourceUri));
+    const uiMeta = resource.uiMeta || {};
+
+    log('host: calling ' + tool.name);
+    state.toolName = tool.name;
+    state.initialResult = await callTool(tool.name, {});
+
+    // The CSP rides a meta tag injected into the sandboxed document. A real
+    // host serves views from a dedicated origin and sets the header there.
+    const cspTag = '<meta http-equiv="Content-Security-Policy" content="' + buildCsp(uiMeta.csp) + '">';
+    const html = resource.html.replace(/<head>/i, '<head>' + cspTag);
+
+    const panel = document.getElementById('panel');
+    panel.classList.toggle('bordered', uiMeta.prefersBorder === true);
+    panel.replaceChildren();
+
+    const iframe = document.createElement('iframe');
+    iframe.setAttribute('sandbox', 'allow-scripts');
+    iframe.srcdoc = html;
+    panel.append(iframe);
+    state.iframe = iframe;
+}
+
+async function loadTools() {
+    const container = document.getElementById('tools');
+    try {
+        const data = await fetchJson('/api/app-tools');
+        container.replaceChildren();
+        if (data.tools.length === 0) {
+            container.textContent = 'The server exposes no UI-linked tools.';
+            return;
+        }
+        for (const tool of data.tools) {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.textContent = tool.title || tool.name;
+            button.title = tool.description || '';
+            button.addEventListener('click', () => openTool(tool));
+            container.append(button);
+        }
+        log('host: ' + data.tools.length + ' UI-linked tool(s) discovered');
+    } catch (error) {
+        container.textContent = 'Failed to load tools: ' + error;
+    }
+}
+
+loadTools();
+</script>
+</body>
+</html>

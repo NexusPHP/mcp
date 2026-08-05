@@ -18,6 +18,7 @@ autoloader, an uncaught-exception handler, and `PsrLogger`) lives in
 | `http-server` | Streamable HTTP MCP server bound to a socket by `amphp/http-server`, behind `SecuredHttpEndpoint`. One tool reports progress (answered as an SSE stream), one declares `x-mcp-header` (validated against the mirrored header). | [http-server.php](http-server.php) |
 | `http-client` | Streamable HTTP MCP client driving `http-server` over the network: one POST per message, progress parsed from the SSE stream mid-call, and an argument mirrored into `Mcp-Param-Tenant`. | [http-client.php](http-client.php) |
 | `keycloak-e2e` | The full OAuth 2.1 flow against a real Keycloak in Docker: a bearer-protected server, and a client that starts tokenless and walks discovery, anonymous Dynamic Client Registration, PKCE, and the token exchange before its first tool call. | [keycloak-e2e/](keycloak-e2e/) |
+| `apps-e2e` | The MCP Apps extension end to end, browser host included: a server declaring a `ui://` view linked to a tool, a host backend running `AppClient`, and a hand-written host page that renders the view in a sandboxed iframe and speaks the `ui/*` postMessage handshake. | [apps-e2e/](apps-e2e/) |
 
 ## Running an example
 

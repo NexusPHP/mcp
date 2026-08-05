@@ -23,6 +23,8 @@ return new Configuration()
     ->addPathToExclude(__DIR__.'/tests/AutoReview/data')
     // These read `SIGINT` / `SIGTERM` behind a `defined()` guard and fall back when ext-pcntl
     // is absent, so requiring the extension would over-constrain a `composer install`.
+    ->ignoreErrorsOnExtensionAndPath('ext-pcntl', __DIR__.'/examples/apps-e2e/host.php', [ErrorType::SHADOW_DEPENDENCY])
+    ->ignoreErrorsOnExtensionAndPath('ext-pcntl', __DIR__.'/examples/apps-e2e/server.php', [ErrorType::SHADOW_DEPENDENCY])
     ->ignoreErrorsOnExtensionAndPath('ext-pcntl', __DIR__.'/examples/http-server.php', [ErrorType::SHADOW_DEPENDENCY])
     ->ignoreErrorsOnExtensionAndPath('ext-pcntl', __DIR__.'/examples/keycloak-e2e/server.php', [ErrorType::SHADOW_DEPENDENCY])
     ->ignoreErrorsOnExtensionAndPath('ext-pcntl', __DIR__.'/conformance/server.php', [ErrorType::SHADOW_DEPENDENCY])

@@ -104,4 +104,5 @@ Everything under the `ui/*` postMessage family (`ui/initialize`, the host notifi
 sandbox proxy) is the browser host's side of the extension and never touches the MCP connection,
 so the SDK does not model it.
 
-The client half is documented in [Client apps](../client/apps.md).
+The client half is documented in [Client apps](../client/apps.md), and
+[examples/apps-e2e/](../../examples/apps-e2e/) runs the whole flow, browser host included.
