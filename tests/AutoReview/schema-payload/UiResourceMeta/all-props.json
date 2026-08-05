@@ -1,0 +1,12 @@
+{
+    "csp": {
+        "connectDomains": [
+            "https://api.openweathermap.org"
+        ]
+    },
+    "permissions": {
+        "camera": {}
+    },
+    "domain": "abc123.claudemcpcontent.com",
+    "prefersBorder": true
+}

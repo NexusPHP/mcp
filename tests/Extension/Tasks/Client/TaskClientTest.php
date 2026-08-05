@@ -63,7 +63,7 @@ final class TaskClientTest extends TestCase
         $transport->emitMessage([
             'jsonrpc' => '2.0',
             'id' => $sent->id->id,
-            'result' => [...self::taskPayload('working'), 'resultType' => 'task'],
+            'result' => [...self::buildTaskPayload('working'), 'resultType' => 'task'],
         ]);
 
         $result = $call->await();
@@ -94,7 +94,7 @@ final class TaskClientTest extends TestCase
         $transport->emitMessage([
             'jsonrpc' => '2.0',
             'id' => $sent->id->id,
-            'result' => [...self::taskPayload('working'), 'resultType' => 'task'],
+            'result' => [...self::buildTaskPayload('working'), 'resultType' => 'task'],
         ]);
 
         self::assertInstanceOf(CreateTaskResult::class, $call->await());
@@ -103,13 +103,13 @@ final class TaskClientTest extends TestCase
     public function testAwaitTaskAbortsWhenItsCancellationFires(): void
     {
         [$tasks, $transport] = self::buildTaskClient();
-        $handle = CreateTaskResult::fromArray(self::taskPayload('working'));
+        $handle = CreateTaskResult::fromArray(self::buildTaskPayload('working'));
         $cancellation = new DeferredCancellation();
 
         $await = async(static fn(): GetTaskResult => $tasks->awaitTask($handle, cancellation: $cancellation->getCancellation()));
         $await->ignore();
 
-        self::respondToNextTasksGet($transport, self::taskPayload('working'), 0);
+        self::respondToNextTasksGet($transport, self::buildTaskPayload('working'), 0);
         $cancellation->cancel();
 
         $this->expectException(CancelledException::class);
@@ -151,7 +151,7 @@ final class TaskClientTest extends TestCase
         $transport->emitMessage([
             'jsonrpc' => '2.0',
             'id' => $sent->id->id,
-            'result' => self::taskPayload('completed', ['result' => ['resultType' => 'complete', 'content' => []]]),
+            'result' => self::buildTaskPayload('completed', ['result' => ['resultType' => 'complete', 'content' => []]]),
         ]);
 
         $state = $call->await();
@@ -191,12 +191,12 @@ final class TaskClientTest extends TestCase
     public function testAwaitTaskPollsUntilTheTerminalState(): void
     {
         [$tasks, $transport] = self::buildTaskClient();
-        $handle = CreateTaskResult::fromArray(self::taskPayload('working'));
+        $handle = CreateTaskResult::fromArray(self::buildTaskPayload('working'));
 
         $await = async(static fn(): GetTaskResult => $tasks->awaitTask($handle));
 
-        self::respondToNextTasksGet($transport, self::taskPayload('working'), 0);
-        self::respondToNextTasksGet($transport, self::taskPayload('completed', ['result' => ['resultType' => 'complete', 'content' => []]]), 1);
+        self::respondToNextTasksGet($transport, self::buildTaskPayload('working'), 0);
+        self::respondToNextTasksGet($transport, self::buildTaskPayload('completed', ['result' => ['resultType' => 'complete', 'content' => []]]), 1);
 
         $state = $await->await();
 
@@ -208,7 +208,7 @@ final class TaskClientTest extends TestCase
     public function testAwaitTaskDispatchesInputRequestsThroughTheResolver(): void
     {
         [$tasks, $transport] = self::buildTaskClient();
-        $handle = CreateTaskResult::fromArray(self::taskPayload('working'));
+        $handle = CreateTaskResult::fromArray(self::buildTaskPayload('working'));
 
         $seenKeys = null;
         $resolver = static function (array $requests) use (&$seenKeys): array {
@@ -218,7 +218,7 @@ final class TaskClientTest extends TestCase
         };
         $await = async(static fn(): GetTaskResult => $tasks->awaitTask($handle, $resolver));
 
-        self::respondToNextTasksGet($transport, self::taskPayload('input_required', ['inputRequests' => [
+        self::respondToNextTasksGet($transport, self::buildTaskPayload('input_required', ['inputRequests' => [
             'confirm' => [
                 'method' => 'elicitation/create',
                 'params' => [
@@ -237,7 +237,7 @@ final class TaskClientTest extends TestCase
         self::assertSame('tasks/update', $update::getMethod());
         $transport->emitMessage(['jsonrpc' => '2.0', 'id' => $update->id->id, 'result' => ['resultType' => 'complete']]);
 
-        self::respondToNextTasksGet($transport, self::taskPayload('completed', ['result' => ['resultType' => 'complete', 'content' => []]]), 2);
+        self::respondToNextTasksGet($transport, self::buildTaskPayload('completed', ['result' => ['resultType' => 'complete', 'content' => []]]), 2);
 
         $state = $await->await();
 
@@ -255,18 +255,18 @@ final class TaskClientTest extends TestCase
 
         // Neither the handle nor the first poll carries an interval, so the
         // first sleep uses the fallback and the second the suggested interval.
-        $payload = self::taskPayload('working');
+        $payload = self::buildTaskPayload('working');
         unset($payload['pollIntervalMs']);
         $handle = CreateTaskResult::fromArray($payload);
 
         $await = async(static fn(): GetTaskResult => $tasks->awaitTask($handle));
         $await->ignore();
 
-        $first = self::taskPayload('working');
+        $first = self::buildTaskPayload('working');
         unset($first['pollIntervalMs']);
         self::respondToNextTasksGet($transport, $first, 0);
-        self::respondToNextTasksGet($transport, self::taskPayload('working'), 1);
-        self::respondToNextTasksGet($transport, self::taskPayload('completed', ['result' => ['resultType' => 'complete', 'content' => []]]), 2);
+        self::respondToNextTasksGet($transport, self::buildTaskPayload('working'), 1);
+        self::respondToNextTasksGet($transport, self::buildTaskPayload('completed', ['result' => ['resultType' => 'complete', 'content' => []]]), 2);
 
         $await->await();
 
@@ -277,7 +277,7 @@ final class TaskClientTest extends TestCase
     {
         $stopped = new \ArrayObject([false]);
         [$tasks, $transport] = self::buildTaskClient(sleep: static function (): void {});
-        $handle = CreateTaskResult::fromArray(self::taskPayload('working'));
+        $handle = CreateTaskResult::fromArray(self::buildTaskPayload('working'));
         $responder = self::startInputRequiredResponder($transport, $stopped);
 
         try {
@@ -296,7 +296,7 @@ final class TaskClientTest extends TestCase
     {
         $stopped = new \ArrayObject([false]);
         [$tasks, $transport] = self::buildTaskClient(stallCeiling: 2, sleep: static function (): void {});
-        $handle = CreateTaskResult::fromArray(self::taskPayload('working'));
+        $handle = CreateTaskResult::fromArray(self::buildTaskPayload('working'));
         $responder = self::startInputRequiredResponder($transport, $stopped);
 
         try {
@@ -315,7 +315,7 @@ final class TaskClientTest extends TestCase
     {
         $stopped = new \ArrayObject([false]);
         [$tasks, $transport] = self::buildTaskClient(stallCeiling: 1, sleep: static function (): void {});
-        $handle = CreateTaskResult::fromArray(self::taskPayload('working'));
+        $handle = CreateTaskResult::fromArray(self::buildTaskPayload('working'));
         $responder = self::startInputRequiredResponder($transport, $stopped);
 
         try {
@@ -348,14 +348,14 @@ final class TaskClientTest extends TestCase
         };
 
         [$tasks, $transport] = self::buildTaskClient(sleep: static function (): void {});
-        $handle = CreateTaskResult::fromArray(self::taskPayload('working'));
+        $handle = CreateTaskResult::fromArray(self::buildTaskPayload('working'));
         $await = async(static fn(): GetTaskResult => $tasks->awaitTask($handle, $resolver));
         // Should the loop fail before `await()`, an unobserved future error
         // would poison the event loop for every later test in the process.
         $await->ignore();
 
         // Round 1: 'confirm' requested and answered.
-        self::respondToNextTasksGet($transport, self::taskPayload('input_required', ['inputRequests' => self::inputRequestsPayload()]), 0);
+        self::respondToNextTasksGet($transport, self::buildTaskPayload('input_required', ['inputRequests' => self::buildInputRequestsPayload()]), 0);
         self::awaitSendCount($transport, 2);
         self::assertArrayHasKey(1, $transport->sent);
         $update = $transport->sent[1]['message'];
@@ -365,9 +365,9 @@ final class TaskClientTest extends TestCase
 
         // Round 2: the answered 'confirm' is still listed next to a new key,
         // so only 'extra' may reach the resolver.
-        self::respondToNextTasksGet($transport, self::taskPayload('input_required', ['inputRequests' => [
-            ...self::inputRequestsPayload(),
-            ...self::inputRequestsPayload('extra'),
+        self::respondToNextTasksGet($transport, self::buildTaskPayload('input_required', ['inputRequests' => [
+            ...self::buildInputRequestsPayload(),
+            ...self::buildInputRequestsPayload('extra'),
         ]]), 2);
         self::awaitSendCount($transport, 4);
         self::assertArrayHasKey(3, $transport->sent);
@@ -378,12 +378,12 @@ final class TaskClientTest extends TestCase
 
         // Round 3: both answered keys are listed again. The accumulated ledger
         // leaves nothing unanswered, so this poll stalls without a resolver call.
-        self::respondToNextTasksGet($transport, self::taskPayload('input_required', ['inputRequests' => [
-            ...self::inputRequestsPayload(),
-            ...self::inputRequestsPayload('extra'),
+        self::respondToNextTasksGet($transport, self::buildTaskPayload('input_required', ['inputRequests' => [
+            ...self::buildInputRequestsPayload(),
+            ...self::buildInputRequestsPayload('extra'),
         ]]), 4);
 
-        self::respondToNextTasksGet($transport, self::taskPayload('completed', ['result' => ['resultType' => 'complete', 'content' => []]]), 5);
+        self::respondToNextTasksGet($transport, self::buildTaskPayload('completed', ['result' => ['resultType' => 'complete', 'content' => []]]), 5);
 
         $await->await();
 
@@ -394,15 +394,15 @@ final class TaskClientTest extends TestCase
     public function testAwaitTaskSleepsForRealByDefault(): void
     {
         [$tasks, $transport] = self::buildTaskClient();
-        $handle = CreateTaskResult::fromArray([...self::taskPayload('working'), 'pollIntervalMs' => 1]);
+        $handle = CreateTaskResult::fromArray([...self::buildTaskPayload('working'), 'pollIntervalMs' => 1]);
 
         $started = hrtime(true);
         $await = async(static fn(): GetTaskResult => $tasks->awaitTask($handle));
         $await->ignore();
 
-        self::respondToNextTasksGet($transport, self::taskPayload('working', ['pollIntervalMs' => 1]), 0);
-        self::respondToNextTasksGet($transport, self::taskPayload('working', ['pollIntervalMs' => 1]), 1);
-        self::respondToNextTasksGet($transport, self::taskPayload('completed', ['result' => ['resultType' => 'complete', 'content' => []], 'pollIntervalMs' => 1]), 2);
+        self::respondToNextTasksGet($transport, self::buildTaskPayload('working', ['pollIntervalMs' => 1]), 0);
+        self::respondToNextTasksGet($transport, self::buildTaskPayload('working', ['pollIntervalMs' => 1]), 1);
+        self::respondToNextTasksGet($transport, self::buildTaskPayload('completed', ['result' => ['resultType' => 'complete', 'content' => []], 'pollIntervalMs' => 1]), 2);
 
         $await->await();
 
@@ -412,12 +412,12 @@ final class TaskClientTest extends TestCase
     public function testAwaitTaskThrowsOnceTheStallCeilingIsReached(): void
     {
         [$tasks, $transport] = self::buildTaskClient(stallCeiling: 2);
-        $handle = CreateTaskResult::fromArray(self::taskPayload('working'));
+        $handle = CreateTaskResult::fromArray(self::buildTaskPayload('working'));
 
         $await = async(static fn(): GetTaskResult => $tasks->awaitTask($handle));
         $await->ignore();
 
-        self::respondToNextTasksGet($transport, self::taskPayload('input_required', ['inputRequests' => [
+        self::respondToNextTasksGet($transport, self::buildTaskPayload('input_required', ['inputRequests' => [
             'confirm' => [
                 'method' => 'elicitation/create',
                 'params' => [
@@ -427,7 +427,7 @@ final class TaskClientTest extends TestCase
                 ],
             ],
         ]]), 0);
-        self::respondToNextTasksGet($transport, self::taskPayload('input_required', ['inputRequests' => [
+        self::respondToNextTasksGet($transport, self::buildTaskPayload('input_required', ['inputRequests' => [
             'confirm' => [
                 'method' => 'elicitation/create',
                 'params' => [
@@ -475,7 +475,7 @@ final class TaskClientTest extends TestCase
      *
      * @return array<string, array<string, mixed>>
      */
-    private static function inputRequestsPayload(string $key = 'confirm'): array
+    private static function buildInputRequestsPayload(string $key = 'confirm'): array
     {
         return [
             $key => [
@@ -523,7 +523,7 @@ final class TaskClientTest extends TestCase
                     'id' => $sent->id->id,
                     'result' => 'tasks/update' === $method
                         ? ['resultType' => 'complete']
-                        : self::taskPayload('input_required', ['inputRequests' => self::inputRequestsPayload()]),
+                        : self::buildTaskPayload('input_required', ['inputRequests' => self::buildInputRequestsPayload()]),
                 ]);
                 ++$index;
             }
@@ -562,7 +562,7 @@ final class TaskClientTest extends TestCase
      *
      * @return array<string, mixed>
      */
-    private static function taskPayload(string $status, array $extra = []): array
+    private static function buildTaskPayload(string $status, array $extra = []): array
     {
         return [
             'resultType' => 'complete',

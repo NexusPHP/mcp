@@ -1,0 +1,7 @@
+{
+    "resourceUri": "ui://weather-server/dashboard",
+    "visibility": [
+        "model",
+        "app"
+    ]
+}

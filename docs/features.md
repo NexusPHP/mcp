@@ -77,5 +77,10 @@ serving the extension's methods behind the declared-capability gate.
 The tasks extension (`io.modelcontextprotocol/tasks`, SEP-2663) ships with the SDK:
 [server](server/tasks.md) brokering of `tools/call` into polled tasks with `tasks/get`,
 `tasks/update`, and `tasks/cancel`, and the [client](client/tasks.md) facade that calls tools as
-tasks and polls them to completion. `notifications/tasks` and the remaining official extensions
-are tracked in [ROADMAP.md](../ROADMAP.md) under Official extensions.
+tasks and polls them to completion.
+
+The MCP Apps extension (`io.modelcontextprotocol/ui`, SEP-1865) also ships:
+[server-side](server/apps.md) typed `_meta.ui` metadata with the guarded `UiResource`
+declaration, and the [client-side](client/apps.md) `mimeTypes` capability plus the `AppClient`
+reader facade. `notifications/tasks` and the remaining official extensions are tracked in
+[ROADMAP.md](../ROADMAP.md) under Official extensions.

@@ -1,0 +1,14 @@
+{
+    "connectDomains": [
+        "https://api.openweathermap.org"
+    ],
+    "resourceDomains": [
+        "https://cdn.jsdelivr.net"
+    ],
+    "frameDomains": [
+        "https://frames.example.com"
+    ],
+    "baseUriDomains": [
+        "https://base.example.com"
+    ]
+}

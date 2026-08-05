@@ -60,6 +60,8 @@ none, or the retry is rejected in turn, the error reaches the caller as a `Remot
   advertisement, and the outbound gate.
 - **[Tasks](client/tasks.md)**: the SEP-2663 tasks extension, calling tools as tasks and polling
   them to completion.
+- **[Apps](client/apps.md)**: the SEP-1865 MCP Apps extension, advertising renderable mime types
+  and reading `_meta.ui` metadata.
 - **[Subscriptions](client/subscriptions.md)**: opening `subscriptions/listen` streams.
 
 ## Lifecycle

@@ -81,6 +81,10 @@ final class SchemaPayloadRoundTripTest extends AbstractRoundTripTestCase
         'ServerCapabilities' => true,
         'SubscriptionFilter' => true,
         'ToolAnnotations' => true,
+        'UiResourceCsp' => true,
+        'UiResourceMeta' => true,
+        'UiResourcePermissions' => true,
+        'UiToolMeta' => true,
     ];
 
     public function testEveryRegisteredEntryIsArrayable(): void

@@ -8,6 +8,22 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp/commits/1.x)
 
+### Added
+
+- The MCP Apps extension (`io.modelcontextprotocol/ui`, SEP-1865) under `Nexus\Mcp\Extension\Apps`.
+  The extension defines no JSON-RPC methods: `AppsServerExtension` advertises the capability slot,
+  and the typed `_meta.ui` value objects (`UiToolMeta`, `UiResourceMeta`, `UiResourceCsp`,
+  `UiResourcePermissions`) model the tool-to-view link and the sandbox configuration on both the
+  `resources/list` descriptor and the `resources/read` contents. `UiResource` composes a `Resource`
+  that enforces the `ui://` scheme and the `text/html;profile=mcp-app` mime type at construction.
+- The client half of MCP Apps: `AppsClientExtension` advertises the renderable `mimeTypes` in the
+  per-request `_meta` capabilities, and the `AppClient` facade resolves tool and resource `_meta.ui`
+  metadata (tolerating the deprecated flat `ui/resourceUri` key on read, never emitting it), filters
+  a listing to UI-enabled tools paired with their resolved metadata (`AppTool`), and reads `ui://`
+  resources verified against the facade's accepted mime types
+  (`InvalidUiResourceContentsException` on drift). The `ui/*` postMessage family is host-side and
+  deliberately unmodelled.
+
 ## [v0.7.0](https://github.com/NexusPHP/mcp/compare/v0.6.0...v0.7.0) - 2026-08-05
 
 This release introduces the SEP-2133 extensions framework and the first official extension built on

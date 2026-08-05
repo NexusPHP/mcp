@@ -73,3 +73,11 @@ serving clients that never declared the extension, so any per-request refusal is
 own decision. The shipped [tasks extension](tasks.md) is the worked example: it decorates
 `tools/call` with a broker that only diverts a call into a task when the client declared the
 capability.
+
+## Official extensions
+
+Two official extensions ship with the SDK. The [tasks extension](tasks.md) exercises the whole
+surface above: owned methods, handlers, and a `tools/call` decorator. The
+[apps extension](apps.md) sits at the other end: it defines no methods, so
+`AppsServerExtension` only advertises the capability slot and the substance is typed `_meta.ui`
+metadata on the tools and resources you already register.

@@ -642,8 +642,20 @@ the extensions framework (SEP-2133). Official extensions land per-extension unde
     the subscriptions channel, and that rewrite is the trigger to pick this up. Settling the loop onto
     push updates starts with the SEP's opt-in shape for the listen filter, which `SubscriptionFilter`
     has no slot for.
-- [ ] MCP Apps (SEP-1865): the `ui://` URI scheme, `text/html;profile=mcp-app`, and the sandboxed
-  iframe interaction model.
+- [x] MCP Apps (SEP-1865, `io.modelcontextprotocol/ui`) under `Nexus\Mcp\Extension\Apps`. The
+  extension defines no JSON-RPC methods, so the SDK surface is metadata and negotiation: typed
+  `_meta.ui` value objects for tools and resources (CSP allow-lists, sandbox permissions, dedicated
+  domain, border hint), `UiResource` enforcing the `ui://` scheme and `text/html;profile=mcp-app`
+  mime type at construction, `AppsServerExtension` advertising the empty server slot,
+  `AppsClientExtension` declaring the client's required `mimeTypes`, and the `AppClient` facade
+  resolving metadata and verifying `ui://` reads against the mime profile. The deprecated flat
+  `ui/resourceUri` key is read-tolerated and never emitted. The `ui/*` postMessage family
+  (`ui/initialize`, host notifications, sandbox proxy) is the browser host's side and stays
+  unmodelled. The pinned conformance referee carries no apps scenarios, so there is no conformance
+  claim to make yet. Extension-tagged scenarios sit outside every referee suite, so if a later
+  referee release adds `apps-*` scenarios, adopting them is a deliberate step at pin-bump time:
+  extend the scenario list in `conformance/run-extensions.sh` and the extension prefixes in
+  `conformance/score.php`.
 - [ ] OAuth client-credentials (`io.modelcontextprotocol/oauth-client-credentials`) and
   enterprise-managed authorization (SEP-990), built on the authorization subsystem above.
 

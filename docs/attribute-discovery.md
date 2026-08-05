@@ -54,7 +54,9 @@ typo'd attribute names and objects passed in by mistake.
 | `#[AsServer]` | class | the server identity and instructions |
 
 Each method attribute carries the same optional metadata as its schema class (`title`, `description`,
-`icons`, `annotations`, `meta`, ...). When `name` is omitted it falls back to the method name.
+`icons`, `annotations`, `meta`, ...). When `name` is omitted it falls back to the method name. The
+`meta` slot is also how extension metadata attaches, such as an [MCP Apps](server/apps.md)
+`_meta.ui` tool link.
 
 ## Input schemas and arguments
 

@@ -58,3 +58,7 @@ $response = $client->sendRequest(
 The [tasks extension](tasks.md) (`io.modelcontextprotocol/tasks`, SEP-2663) ships with the SDK
 and is the worked example of this surface: `TasksClientExtension` declares the capability and the
 outbound `tasks/*` methods, and the `TaskClient` facade wraps the `sendRequest()` calls.
+
+The [apps extension](apps.md) (`io.modelcontextprotocol/ui`, SEP-1865) is the settings-only
+counterpart: `AppsClientExtension` declares the renderable `mimeTypes` and no methods at all, and
+the `AppClient` facade only reads metadata and verifies `ui://` resource reads.
