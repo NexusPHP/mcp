@@ -17,6 +17,7 @@ use Amp\Http\Client\HttpException;
 use Amp\Http\Client\Request;
 use Amp\Http\Client\Response;
 use Amp\NullCancellation;
+use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Client\Auth\AccessToken;
 use Nexus\Mcp\Client\Auth\AuthorizationOptions;
 use Nexus\Mcp\Client\Auth\AuthorizedHttpClient;
@@ -25,6 +26,7 @@ use Nexus\Mcp\Client\Auth\InMemoryTokenStore;
 use Nexus\Mcp\Client\Auth\InsufficientScopePolicy;
 use Nexus\Mcp\Client\Exception\InsufficientScopeException;
 use Nexus\Mcp\Client\Exception\RedirectRefusedException;
+use Nexus\Mcp\Tests\Fixtures\Client\Auth\ScriptedGrantStrategy;
 use Nexus\Mcp\Tests\Fixtures\Client\Auth\ScriptedUserAuthorization;
 use Nexus\Mcp\Tests\Fixtures\Client\Http\RecordingHttpClient;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
@@ -792,6 +794,74 @@ final class AuthorizedHttpClientTest extends TestCase
         self::assertCount(8, $http->requests);
     }
 
+    /**
+     * Queues the challenge and the four authorization exchanges that answer it. The caller queues what the
+     * retried MCP request is answered with.
+     */
+    public function testAGrantStrategyRunsTheFlowWithoutAnyUserAuthorization(): void
+    {
+        $http = new RecordingHttpClient()
+            ->willChallenge(401, self::CHALLENGE)
+            ->willAnswerJson(self::resourceDocument())
+            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson(['ok' => true])
+        ;
+        $strategy = new ScriptedGrantStrategy(true, new AccessToken('the-machine-token', 'https://auth.test'));
+
+        $client = new AuthorizedHttpClient(
+            self::RESOURCE,
+            new AuthorizationOptions('Example MCP Client'),
+            null,
+            $http,
+            grantStrategy: $strategy,
+        );
+        $response = $client->request(self::mcpRequest(), new NullCancellation());
+
+        self::assertSame(200, $response->getStatus());
+        self::assertCount(1, $strategy->contexts);
+        self::assertSame('Bearer the-machine-token', $http->readRequest(3)->getHeader('Authorization'));
+    }
+
+    public function testAClientWithNeitherAUserAuthorizationNorAGrantStrategyIsRefused(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs('The client needs a user authorization or a grant strategy to obtain tokens, and neither was given.');
+
+        new AuthorizedHttpClient(
+            self::RESOURCE,
+            new AuthorizationOptions('Example MCP Client'),
+            null,
+            new RecordingHttpClient(),
+        );
+    }
+
+    public function testAUserAuthorizationWithoutARedirectUriIsRefused(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs('A user authorization needs a redirect URI, and the authorization options carry none.');
+
+        new AuthorizedHttpClient(
+            self::RESOURCE,
+            new AuthorizationOptions('Example MCP Client'),
+            new ScriptedUserAuthorization(),
+            new RecordingHttpClient(),
+        );
+    }
+
+    public function testAClientWithBothAUserAuthorizationAndAGrantStrategyIsRefused(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs('A user authorization and a grant strategy were both given, and the client can run only one.');
+
+        new AuthorizedHttpClient(
+            self::RESOURCE,
+            new AuthorizationOptions('Example MCP Client'),
+            new ScriptedUserAuthorization(),
+            new RecordingHttpClient(),
+            grantStrategy: new ScriptedGrantStrategy(true),
+        );
+    }
+
     private static function client(
         RecordingHttpClient $http,
         ?ScriptedUserAuthorization $user = null,
@@ -822,10 +892,6 @@ final class AuthorizedHttpClientTest extends TestCase
         return new Request(self::RESOURCE, 'POST', '{"jsonrpc":"2.0","id":1,"method":"ping"}');
     }
 
-    /**
-     * Queues the challenge and the four authorization exchanges that answer it. The caller queues what the
-     * retried MCP request is answered with.
-     */
     private static function scriptChallengeAndFlow(string $challengeBody = '{}'): RecordingHttpClient
     {
         return new RecordingHttpClient()

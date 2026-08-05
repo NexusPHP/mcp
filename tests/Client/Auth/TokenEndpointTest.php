@@ -451,6 +451,68 @@ final class TokenEndpointTest extends TestCase
         ));
     }
 
+    public function testRequestTokenRedeemsTheCallerBuiltGrant(): void
+    {
+        $http = new RecordingHttpClient()->willAnswerJson(self::tokenResponse());
+
+        $token = new TokenEndpoint($http)->requestToken(
+            self::metadata(),
+            new ClientRegistration('the-client', self::ISSUER, 'the-secret', TokenEndpointAuthMethod::ClientSecretBasic),
+            ['grant_type' => 'client_credentials', 'resource' => self::RESOURCE],
+            new ScopeSet(['files:read']),
+            new NullCancellation(),
+        );
+
+        self::assertSame('the-access-token', $token->value);
+        self::assertSame(self::ISSUER, $token->issuer);
+        self::assertSame(['files:read'], $token->scopes);
+        self::assertNull($token->refreshToken);
+
+        $request = $http->readRequest();
+        self::assertSame('https://auth.example.com/token', (string) $request->getUri());
+        self::assertNotNull($request->getHeader('Authorization'));
+        self::assertSame(['grant_type' => 'client_credentials', 'resource' => self::RESOURCE], self::readForm($request));
+    }
+
+    public function testAPrivateKeyJwtClientAuthenticatesThroughItsAssertionAlone(): void
+    {
+        $http = new RecordingHttpClient()->willAnswerJson(self::tokenResponse());
+
+        new TokenEndpoint($http)->requestToken(
+            self::metadata(),
+            new ClientRegistration('the-client', self::ISSUER, null, TokenEndpointAuthMethod::PrivateKeyJwt),
+            [
+                'grant_type' => 'client_credentials',
+                'client_assertion_type' => 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+                'client_assertion' => 'signed.jwt.assertion',
+            ],
+            new ScopeSet(),
+            new NullCancellation(),
+        );
+
+        $request = $http->readRequest();
+        self::assertNull($request->getHeader('Authorization'));
+        self::assertSame([
+            'grant_type' => 'client_credentials',
+            'client_assertion_type' => 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+            'client_assertion' => 'signed.jwt.assertion',
+        ], self::readForm($request));
+    }
+
+    public function testAPrivateKeyJwtClientWithoutAnAssertionIsRefused(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs('Client "the-client" must carry a "client_assertion" parameter to authenticate with "private_key_jwt".');
+
+        new TokenEndpoint(new RecordingHttpClient())->requestToken(
+            self::metadata(),
+            new ClientRegistration('the-client', self::ISSUER, null, TokenEndpointAuthMethod::PrivateKeyJwt),
+            ['grant_type' => 'client_credentials'],
+            new ScopeSet(),
+            new NullCancellation(),
+        );
+    }
+
     private static function exchange(
         RecordingHttpClient $http,
         ?ClientRegistration $registration = null,

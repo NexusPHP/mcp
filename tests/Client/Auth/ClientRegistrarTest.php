@@ -264,17 +264,40 @@ final class ClientRegistrarTest extends TestCase
         self::assertSame(TokenEndpointAuthMethod::ClientSecretPost, $registration->tokenEndpointAuthMethod);
     }
 
-    public function testAnUnsupportedAuthenticationMethodIsRefused(): void
+    #[DataProvider('provideAnUnsupportedAuthenticationMethodIsRefusedCases')]
+    public function testAnUnsupportedAuthenticationMethodIsRefused(string $method): void
     {
         $http = new RecordingHttpClient()->willAnswerJson([
             'client_id' => 'registered',
-            'token_endpoint_auth_method' => 'private_key_jwt',
+            'token_endpoint_auth_method' => $method,
         ]);
 
         $this->expectException(ClientRegistrationFailedException::class);
-        $this->expectExceptionMessageIs('Dynamic Client Registration failed with "invalid_client_metadata": The client was registered with the unsupported "private_key_jwt" token endpoint authentication method.');
+        $this->expectExceptionMessageIs(\sprintf('Dynamic Client Registration failed with "invalid_client_metadata": The client was registered with the unsupported "%s" token endpoint authentication method.', $method));
 
         self::resolve($http, self::metadata(registrationEndpoint: 'https://auth.example.com/register'), self::options());
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function provideAnUnsupportedAuthenticationMethodIsRefusedCases(): iterable
+    {
+        yield 'unknown to the SDK' => ['tls_client_auth'];
+
+        yield 'known but keyless in dynamic registration' => ['private_key_jwt'];
+    }
+
+    public function testRegistrationWithoutARedirectUriIsRefused(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs('Dynamic Client Registration needs a redirect URI, and the authorization options carry none.');
+
+        self::resolve(
+            new RecordingHttpClient(),
+            self::metadata(registrationEndpoint: 'https://auth.example.com/register'),
+            new AuthorizationOptions('Example MCP Client'),
+        );
     }
 
     public function testARefusedRegistrationSurfacesTheError(): void

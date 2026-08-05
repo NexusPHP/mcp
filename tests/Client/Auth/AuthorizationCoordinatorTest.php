@@ -21,10 +21,12 @@ use Amp\NullCancellation;
 use Amp\TimeoutCancellation;
 use Nexus\Mcp\Client\Auth\AccessToken;
 use Nexus\Mcp\Client\Auth\AuthorizationCallback;
+use Nexus\Mcp\Client\Auth\AuthorizationCodeGrantStrategy;
 use Nexus\Mcp\Client\Auth\AuthorizationCoordinator;
 use Nexus\Mcp\Client\Auth\AuthorizationOptions;
 use Nexus\Mcp\Client\Auth\AuthorizationRedirect;
 use Nexus\Mcp\Client\Auth\ClientRegistrar;
+use Nexus\Mcp\Client\Auth\GrantStrategyInterface;
 use Nexus\Mcp\Client\Auth\InMemoryClientRegistrationStore;
 use Nexus\Mcp\Client\Auth\InMemoryTokenStore;
 use Nexus\Mcp\Client\Auth\MetadataDiscovery;
@@ -36,6 +38,7 @@ use Nexus\Mcp\Client\Exception\TokenRequestFailedException;
 use Nexus\Mcp\Core\Auth\ResourceIdentifier;
 use Nexus\Mcp\Core\Auth\ScopeSet;
 use Nexus\Mcp\Core\Auth\WwwAuthenticateChallenge;
+use Nexus\Mcp\Tests\Fixtures\Client\Auth\ScriptedGrantStrategy;
 use Nexus\Mcp\Tests\Fixtures\Client\Auth\ScriptedUserAuthorization;
 use Nexus\Mcp\Tests\Fixtures\Client\Http\RecordingHttpClient;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
@@ -1031,6 +1034,72 @@ final class AuthorizationCoordinatorTest extends TestCase
         self::assertNull($store->read(self::RESOURCE));
     }
 
+    public function testAnExpiredTokenWithoutARefreshTokenIsRenewedByAFreshUnattendedGrant(): void
+    {
+        $store = new InMemoryTokenStore();
+        $store->write(self::RESOURCE, new AccessToken('the-spent-token', self::ISSUER, time() + 1, null, ['files:read']));
+        $http = self::scriptDiscoveryOnly();
+        $strategy = new ScriptedGrantStrategy(true, new AccessToken('the-fresh-token', self::ISSUER, null, null, ['files:read']));
+
+        $token = self::coordinator($http, $strategy, $store)->fetchToken(new NullCancellation());
+
+        self::assertNotNull($token);
+        self::assertSame('the-fresh-token', $token->value);
+        self::assertSame('the-fresh-token', $store->read(self::RESOURCE)?->value);
+        // What the spent token held is re-asked for rather than narrowed away.
+        self::assertSame(['files:read'], $strategy->readContext()->scopes->values);
+    }
+
+    public function testTheRenewalGrantReusesTheDiscoveryThatCheckedTheSpentToken(): void
+    {
+        $store = new InMemoryTokenStore();
+        $store->write(self::RESOURCE, new AccessToken('the-spent-token', self::ISSUER, time() + 1));
+        $http = self::scriptDiscoveryOnly();
+        $strategy = new ScriptedGrantStrategy(true, new AccessToken('the-fresh-token', self::ISSUER));
+
+        self::coordinator($http, $strategy, $store)->fetchToken(new NullCancellation());
+
+        // Discovering again would repeat both documents, and without a challenge it could not reach a
+        // resource document that only a challenge names.
+        self::assertSame([
+            'https://mcp.example.com/.well-known/oauth-protected-resource/mcp',
+            'https://auth.example.com/.well-known/oauth-authorization-server',
+        ], array_map(static fn($request): string => (string) $request->getUri(), $http->requests));
+    }
+
+    public function testAnUnattendedStrategyRerunsItsGrantRatherThanRedeemingARefreshToken(): void
+    {
+        $store = new InMemoryTokenStore();
+        $store->write(self::RESOURCE, new AccessToken('the-spent-token', self::ISSUER, time() + 1, 'the-refresh-token'));
+        $http = self::scriptDiscoveryOnly();
+        $strategy = new ScriptedGrantStrategy(true, new AccessToken('the-fresh-token', self::ISSUER));
+
+        $token = self::coordinator($http, $strategy, $store)->fetchToken(new NullCancellation());
+
+        // The registration a refresh resolves is not the one an unattended strategy authenticates with, so
+        // the refresh token is left unredeemed and nothing reaches the token endpoint.
+        self::assertSame('the-fresh-token', $token?->value);
+        self::assertCount(1, $strategy->contexts);
+        self::assertCount(2, $http->requests);
+    }
+
+    public function testAFailedUnattendedRenewalPropagatesRatherThanSendingTheRequestBare(): void
+    {
+        $store = new InMemoryTokenStore();
+        $store->write(self::RESOURCE, new AccessToken('the-spent-token', self::ISSUER, time() + 1));
+        $http = self::scriptDiscoveryOnly();
+
+        try {
+            self::coordinator($http, new ScriptedGrantStrategy(true), $store)->fetchToken(new NullCancellation());
+            self::fail('The renewal should have propagated.');
+        } catch (\OutOfBoundsException $e) {
+            self::assertSame('No token was scripted for this grant.', $e->getMessage());
+            // The spent token is dropped before the grant runs, so a failed renewal leaves nothing
+            // presentable behind.
+            self::assertNull($store->read(self::RESOURCE));
+        }
+    }
+
     private static function storeHoldingATokenFromAFormerServer(): InMemoryTokenStore
     {
         $store = new InMemoryTokenStore();
@@ -1057,7 +1126,7 @@ final class AuthorizationCoordinatorTest extends TestCase
      */
     private static function coordinator(
         RecordingHttpClient $http,
-        UserAuthorizationInterface $user,
+        GrantStrategyInterface|UserAuthorizationInterface $user,
         ?InMemoryTokenStore $tokens = null,
         ?ArrayLogger $logger = null,
         ?InMemoryClientRegistrationStore $registrations = null,
@@ -1070,7 +1139,8 @@ final class AuthorizationCoordinatorTest extends TestCase
             new MetadataDiscovery($http),
             new ClientRegistrar($http, $registrations ?? new InMemoryClientRegistrationStore()),
             new TokenEndpoint($http),
-            $user,
+            $http,
+            $user instanceof GrantStrategyInterface ? $user : new AuthorizationCodeGrantStrategy($user),
             $tokens ?? new InMemoryTokenStore(),
             new AuthorizationOptions(
                 'Example MCP Client',

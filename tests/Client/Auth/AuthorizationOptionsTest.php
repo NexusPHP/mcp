@@ -18,6 +18,7 @@ use Nexus\Mcp\Client\Auth\ClientRegistration;
 use Nexus\Mcp\Client\Auth\InsufficientScopePolicy;
 use Nexus\Mcp\Client\Exception\InsecureAuthorizationEndpointException;
 use Nexus\Mcp\Core\Auth\ApplicationType;
+use Nexus\Mcp\Core\Auth\TokenEndpointAuthMethod;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -75,6 +76,22 @@ final class AuthorizationOptionsTest extends TestCase
         self::assertSame(
             'https://app.example.com/cb',
             new AuthorizationOptions('Example MCP Client', 'https://app.example.com/cb')->redirectUri,
+        );
+    }
+
+    public function testTheRedirectUriMayBeLeftOutForGrantsThatNeverVisitAnAuthorizationEndpoint(): void
+    {
+        self::assertNull(new AuthorizationOptions('Example MCP Client')->redirectUri);
+    }
+
+    public function testAPreRegisteredClientAuthenticatingWithAJwtAssertionIsRefused(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('Pre-registered credentials cannot authenticate with "private_key_jwt". Configure a ClientCredentialsGrant with a PrivateKeyJwtCredential instead.');
+
+        new AuthorizationOptions(
+            'Example MCP Client',
+            preRegistered: new ClientRegistration('the-client', null, null, TokenEndpointAuthMethod::PrivateKeyJwt),
         );
     }
 
