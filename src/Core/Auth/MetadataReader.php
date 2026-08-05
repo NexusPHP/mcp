@@ -60,7 +60,7 @@ final class MetadataReader
     public static function readRequiredString(array $data, string $key, string $label): string
     {
         $value = self::readString($data, $key, $label);
-        Assert::that($value)->not()->isNull(\sprintf('%s must carry a "%s" value.', $label, $key));
+        Assert::that($value)->isNonEmptyString(\sprintf('%s must carry a "%s" value.', $label, $key));
 
         return $value;
     }
