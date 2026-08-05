@@ -129,8 +129,7 @@ final class ExtensionCollection
             MethodClassValidator::validate($requestClass, $method);
 
             if ($requireClientRequests) {
-                // TODO: switch to Assert's isSubclassOf() once nexusphp/assert ships it.
-                Assert::that(is_subclass_of($requestClass, ClientRequest::class))->isTrue(\sprintf(
+                Assert::that($requestClass)->isSubclassOf(ClientRequest::class, \sprintf(
                     'Extension "%s" request class "%s" must implement "%s" for the server to dispatch it.',
                     $identifier,
                     $requestClass,
