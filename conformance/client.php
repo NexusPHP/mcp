@@ -33,6 +33,7 @@ declare(strict_types=1);
 
 require __DIR__.'/bootstrap.php';
 require __DIR__.'/HeadlessUserAuthorization.php';
+require __DIR__.'/StaticIdentityAssertionProvider.php';
 
 use Amp\Http\Client\HttpClientBuilder;
 use Nexus\Assert\Assert;
@@ -41,6 +42,7 @@ use Nexus\Mcp\Client\Auth\AuthorizedHttpClient;
 use Nexus\Mcp\Client\Auth\ClientRegistration;
 use Nexus\Mcp\Client\Client;
 use Nexus\Mcp\Client\ClientBuilder;
+use Nexus\Mcp\Client\ClientExtensionInterface;
 use Nexus\Mcp\Client\Exception\AuthorizationServerMismatchException;
 use Nexus\Mcp\Client\Exception\ClientRegistrationRequiredException;
 use Nexus\Mcp\Client\Exception\InsecureAuthorizationEndpointException;
@@ -61,6 +63,12 @@ use Nexus\Mcp\Core\Schema\RequestParams\ElicitRequestFormParams;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
 use Nexus\Mcp\Core\Schema\Result\InputResponse;
+use Nexus\Mcp\Extension\Auth\ClientCredentials\ClientCredentialsClientExtension;
+use Nexus\Mcp\Extension\Auth\ClientCredentials\ClientCredentialsGrant;
+use Nexus\Mcp\Extension\Auth\ClientCredentials\ClientSecretCredential;
+use Nexus\Mcp\Extension\Auth\ClientCredentials\PrivateKeyJwtCredential;
+use Nexus\Mcp\Extension\Auth\Enterprise\EnterpriseAuthorizationClientExtension;
+use Nexus\Mcp\Extension\Auth\Enterprise\IdentityAssertionGrant;
 
 /** @var array<string, Closure(string): void> $scenarios */
 $scenarios = [];
@@ -301,33 +309,76 @@ $register('sep-2322-client-request-state', static function (string $serverUrl) u
  */
 $clientIdMetadataDocumentUrl = 'https://conformance-test.local/client-metadata.json';
 
+/** The scenario context the referee supplies, decoded once. */
+$scenarioContext = static function (): array {
+    $raw = getenv('MCP_CONFORMANCE_CONTEXT');
+    $context = is_string($raw) && '' !== $raw ? json_decode($raw, true, 512, \JSON_THROW_ON_ERROR) : [];
+
+    return is_array($context) ? $context : [];
+};
+
+/** The pre-registered credentials the scenario issued out of band, or null when it issued none. */
+$preRegisteredFromContext = static function (array $context): ?ClientRegistration {
+    $clientId = is_string($context['client_id'] ?? null) ? $context['client_id'] : null;
+    $clientSecret = is_string($context['client_secret'] ?? null) ? $context['client_secret'] : null;
+
+    // The credentials name no authorization server, so the registration stays unbound until discovery
+    // names one.
+    return null !== $clientId ? new ClientRegistration(clientId: $clientId, clientSecret: $clientSecret) : null;
+};
+
+/*
+ * Connects a client over an already-composed authorized HTTP client and runs the exercise. Everything
+ * that differs between the interactive and unattended paths is decided before this point.
+ */
+$runAuthorized = static function (
+    string $serverUrl,
+    AuthorizedHttpClient $http,
+    Closure $exercise,
+    ?ClientExtensionInterface $extension = null,
+): void {
+    // The URL arrives from argv, so this is the boundary where it earns its type.
+    Assert::that($serverUrl)->isNonEmptyString('The conformance runner must supply a server URL.');
+
+    $builder = new ClientBuilder()
+        ->setLogger(new PsrLogger())
+        ->setClientInfo(name: 'nexus-mcp-conformance-client', version: '1.0.0')
+    ;
+
+    if (null !== $extension) {
+        $builder = $builder->enableExtension($extension);
+    }
+
+    $client = $builder->build();
+
+    $client->connect(new StreamableHttpClientTransport(
+        endpoint: $serverUrl,
+        client: $http,
+        logger: new PsrLogger(),
+        readTimeout: 30.0,
+    ));
+
+    try {
+        $exercise($client);
+    } finally {
+        $client->disconnect();
+    }
+};
+
 /*
  * Every OAuth scenario runs the same client, and what differs between them lives in the referee's
  * mock authorization server and in the context it supplies. What the client does once it holds a
  * token is the exception, so that part is the argument.
  */
-$withAuthorization = static function (Closure $exercise) use ($clientIdMetadataDocumentUrl): Closure {
-    return static function (string $serverUrl) use ($exercise, $clientIdMetadataDocumentUrl): void {
-        Assert::that($serverUrl)->isNonEmptyString('The conformance runner must supply a server URL.');
-
-        $raw = getenv('MCP_CONFORMANCE_CONTEXT');
-        $context = is_string($raw) && '' !== $raw ? json_decode($raw, true, 512, \JSON_THROW_ON_ERROR) : [];
-        $context = is_array($context) ? $context : [];
-
-        $clientId = is_string($context['client_id'] ?? null) ? $context['client_id'] : null;
-        $clientSecret = is_string($context['client_secret'] ?? null) ? $context['client_secret'] : null;
-
+$withAuthorization = static function (Closure $exercise) use ($clientIdMetadataDocumentUrl, $scenarioContext, $preRegisteredFromContext, $runAuthorized): Closure {
+    return static function (string $serverUrl) use ($exercise, $clientIdMetadataDocumentUrl, $scenarioContext, $preRegisteredFromContext, $runAuthorized): void {
         $http = new AuthorizedHttpClient(
             $serverUrl,
             new AuthorizationOptions(
                 clientName: 'Nexus MCP SDK conformance client',
                 redirectUri: 'http://127.0.0.1:8765/callback',
                 clientIdMetadataDocumentUrl: $clientIdMetadataDocumentUrl,
-                // Supplied only by the scenarios that issue credentials out of band. They name no
-                // authorization server, so the registration stays unbound until discovery names one.
-                preRegistered: null !== $clientId
-                    ? new ClientRegistration(clientId: $clientId, clientSecret: $clientSecret)
-                    : null,
+                preRegistered: $preRegisteredFromContext($scenarioContext()),
                 requestOfflineAccess: true,
                 // The referee's mock authorization server runs on plain HTTP over
                 // loopback, which the spec does not exempt, so the harness opts in.
@@ -338,24 +389,7 @@ $withAuthorization = static function (Closure $exercise) use ($clientIdMetadataD
             logger: new PsrLogger(),
         );
 
-        $client = new ClientBuilder()
-            ->setLogger(new PsrLogger())
-            ->setClientInfo(name: 'nexus-mcp-conformance-client', version: '1.0.0')
-            ->build()
-        ;
-
-        $client->connect(new StreamableHttpClientTransport(
-            endpoint: $serverUrl,
-            client: $http,
-            logger: new PsrLogger(),
-            readTimeout: 30.0,
-        ));
-
-        try {
-            $exercise($client);
-        } finally {
-            $client->disconnect();
-        }
+        $runAuthorized($serverUrl, $http, $exercise);
     };
 };
 
@@ -408,6 +442,85 @@ $register('auth/authorization-server-migration', $withAuthorization(static funct
     $client->listTools();
     $client->listTools();
 }));
+
+/** @var Closure(array<array-key, mixed>, string): non-empty-string $contextString */
+$contextString = static function (array $context, string $key): string {
+    $value = $context[$key] ?? null;
+    Assert::that($value)->isNonEmptyString(sprintf('The scenario context must carry a non-empty "%s".', $key));
+
+    return $value;
+};
+
+/*
+ * Runs a `listTools` exercise the way `$withAuthorization` does, but with an unattended grant strategy in
+ * place of the user-agent round trip. The client credentials grant carries its own credential, so only the
+ * enterprise scenario pre-registers one for the resource authorization server.
+ */
+$withGrantStrategy = static function (
+    ClientCredentialsGrant|IdentityAssertionGrant $strategy,
+    ClientExtensionInterface $extension,
+    ?ClientRegistration $preRegistered = null,
+) use ($runAuthorized): Closure {
+    return static function (string $serverUrl) use ($strategy, $extension, $preRegistered, $runAuthorized): void {
+        $http = new AuthorizedHttpClient(
+            $serverUrl,
+            new AuthorizationOptions(
+                clientName: 'Nexus MCP SDK conformance client',
+                preRegistered: $preRegistered,
+                // The referee's mock authorization server runs on plain HTTP over
+                // loopback, which the spec does not exempt, so the harness opts in.
+                allowInsecureLoopback: true,
+            ),
+            null,
+            HttpClientBuilder::buildDefault(),
+            logger: new PsrLogger(),
+            grantStrategy: $strategy,
+        );
+
+        $runAuthorized($serverUrl, $http, static fn(Client $client): mixed => $client->listTools(), $extension);
+    };
+};
+
+$register('auth/client-credentials-basic', static function (string $serverUrl) use ($withGrantStrategy, $scenarioContext, $contextString): void {
+    $context = $scenarioContext();
+
+    $withGrantStrategy(
+        new ClientCredentialsGrant(new ClientSecretCredential(
+            $contextString($context, 'client_id'),
+            $contextString($context, 'client_secret'),
+        )),
+        new ClientCredentialsClientExtension(),
+    )($serverUrl);
+});
+
+$register('auth/client-credentials-jwt', static function (string $serverUrl) use ($withGrantStrategy, $scenarioContext, $contextString): void {
+    $context = $scenarioContext();
+
+    $withGrantStrategy(
+        new ClientCredentialsGrant(new PrivateKeyJwtCredential(
+            $contextString($context, 'client_id'),
+            $contextString($context, 'private_key_pem'),
+            $contextString($context, 'signing_algorithm'),
+        )),
+        new ClientCredentialsClientExtension(),
+    )($serverUrl);
+});
+
+$register('auth/enterprise-managed-authorization', static function (string $serverUrl) use ($withGrantStrategy, $scenarioContext, $contextString, $preRegisteredFromContext): void {
+    $context = $scenarioContext();
+
+    $withGrantStrategy(
+        new IdentityAssertionGrant(
+            $contextString($context, 'idp_token_endpoint'),
+            new StaticIdentityAssertionProvider($contextString($context, 'idp_id_token')),
+            $contextString($context, 'idp_client_id'),
+            // The referee's mock IdP runs on plain HTTP over loopback.
+            allowInsecureLoopback: true,
+        ),
+        new EnterpriseAuthorizationClientExtension(),
+        $preRegisteredFromContext($context),
+    )($serverUrl);
+});
 
 /**
  * Resolves the spec-mandated refusal a negative scenario drove the client into, or null when the

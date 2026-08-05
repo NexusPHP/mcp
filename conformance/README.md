@@ -29,17 +29,21 @@ Both runners pass arguments straight through to the referee:
 ./conformance/run-client.sh --scenario tools_call
 ```
 
-Extension-tagged scenarios (the ten `tasks-*` ones) sit outside every suite, `all` included, and
-run individually with `--force` because the tag also makes the referee consider them inapplicable
-at the pinned spec version. `composer conformance:extensions` runs the whole set, and a single
-scenario is:
+Extension-tagged scenarios (the ten server-mode `tasks-*` ones and the three client-mode
+`auth/*` ones for the OAuth extensions) sit outside every suite, `all` included, and run
+individually with `--force` because the tag also makes the referee consider them inapplicable at
+the pinned spec version. `composer conformance:extensions` runs the whole set,
+`conformance:extensions:server` / `conformance:extensions:client` narrow it to one mode, and a
+single scenario is:
 
 ```bash
 ./conformance/run-server.sh --scenario tasks-lifecycle --force
+./conformance/run-client.sh --scenario auth/client-credentials-jwt --force
 ```
 
 `tasks-status-notifications` is a SKIPPED placeholder upstream, pending its subscriptions/listen
-rewrite. The other nine pass against [`TasksServer.php`](TasksServer.php).
+rewrite. The other nine pass against [`TasksServer.php`](TasksServer.php), and the three OAuth
+scenarios pass against the grant strategies [`client.php`](client.php) registers.
 
 The two modes invert. In **server mode** the referee is the client, so `run-server.sh` boots
 [`server.php`](server.php) first and tears it down after. In **client mode** the referee is the
@@ -121,16 +125,16 @@ the command to reproduce it, and the assignment-practice caveat.
 
 ## The README badges
 
-`conformance/badges/server.json`, `client.json`, and `server-extensions.json` are shields.io
-endpoint payloads, committed and read straight off the default branch by the README. Regenerate
-them from the last run with:
+`conformance/badges/server.json`, `client.json`, `server-extensions.json`, and
+`client-extensions.json` are shields.io endpoint payloads, committed and read straight off the
+default branch by the README. Regenerate them from the last run with:
 
 ```bash
 composer conformance:badge
 ```
 
 The scorer buckets extension-tagged scenarios separately, so the spec badges measure exactly what
-the referee's suites measure and `server-extensions.json` scores the extension scenarios on their
+the referee's suites measure and the two extensions badges score the extension scenarios on their
 own. Only the badges the run covered are rewritten, so scoring a client run cannot blank the
 server badges. CI runs the suites and the extension set, regenerates, and diffs them, and a stale
 file fails the build rather than quietly advertising a score nobody measured.

@@ -85,11 +85,10 @@ jobs:
       # them too.
       - name: Run the extension scenarios
         id: extensions
-        if: matrix.mode == 'server'
         continue-on-error: true
         env:
           CONFORMANCE_VERSION: ${{ steps.referee.outputs.version }}
-        run: composer conformance:extensions
+        run: composer conformance:extensions:${{ matrix.mode }}
 
       # No badge check here. The badges record the score at the pinned referee, and
       # this job deliberately runs a different one.
@@ -114,8 +113,8 @@ jobs:
           NEWEST: ${{ steps.referee.outputs.version }}
           PINNED: ${{ steps.referee.outputs.pinned }}
           OUTCOME: ${{ steps.suite.outcome }}
-          # `skipped` in client mode, where these steps do not run at all.
           EXTENSIONS_OUTCOME: ${{ steps.extensions.outcome }}
+          # `skipped` in client mode, where the step does not run at all.
           LOCALHOST_OUTCOME: ${{ steps.localhost.outcome }}
         run: |
           STATUS=0

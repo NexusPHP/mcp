@@ -67,12 +67,19 @@ $findCheckFiles = static function (string $dir): array {
 
 /**
  * The referee's directory name is `<scenario>-<timestamp>` (server runs prefix
- * it with `server-`), so the trailing timestamp is stripped to recover the name.
+ * it with `server-`), nested one level deeper for namespaced scenarios like
+ * `auth/<name>`. The path below the mode directory is the name, with the
+ * trailing timestamp stripped from its leaf.
  */
-$scenarioName = static function (string $checkFile): string {
-    $dir = basename(dirname($checkFile));
+$scenarioName = static function (string $checkFile) use ($resultsDir): string {
+    $segments = explode('/', trim(str_replace($resultsDir, '', dirname($checkFile)), '/'));
 
-    return preg_replace('/-\d{4}-\d{2}-\d{2}T[\d.-]+Z?$/', '', $dir) ?? $dir;
+    // The first segment is the mode directory.
+    array_shift($segments);
+    $leaf = array_pop($segments) ?? '';
+    $leaf = preg_replace('/-\d{4}-\d{2}-\d{2}T[\d.-]+Z?$/', '', $leaf) ?? $leaf;
+
+    return implode('/', [...$segments, $leaf]);
 };
 
 /**
@@ -83,10 +90,24 @@ $scenarioName = static function (string $checkFile): string {
 $extensionPrefixes = ['tasks-'];
 
 /**
+ * Exact names of extension-tagged scenarios living inside a namespace the spec
+ * suites also use, so a prefix cannot tell them apart.
+ */
+$extensionScenarios = [
+    'auth/client-credentials-basic',
+    'auth/client-credentials-jwt',
+    'auth/enterprise-managed-authorization',
+];
+
+/**
  * The score bucket a scenario belongs to: `spec` for suite scenarios,
  * `extensions` for extension-tagged ones.
  */
-$bucketOf = static function (string $name, string $mode) use ($extensionPrefixes): string {
+$bucketOf = static function (string $name, string $mode) use ($extensionPrefixes, $extensionScenarios): string {
+    if (in_array($name, $extensionScenarios, true)) {
+        return 'extensions';
+    }
+
     $bare = str_starts_with($name, $mode.'-') ? substr($name, strlen($mode) + 1) : $name;
 
     foreach ($extensionPrefixes as $prefix) {
