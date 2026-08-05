@@ -7,7 +7,7 @@ already ships.
 
 ## Current capabilities
 
-The SDK targets MCP spec **2026-07-28** and is published on Packagist (latest **v0.6.0**, pre-stable). It
+The SDK targets MCP spec **2026-07-28** and is published on Packagist (latest **v0.7.0**, pre-stable). It
 ships a symmetric server and client over stdio and Streamable HTTP, sharing one protocol kernel under
 `Nexus\Mcp\Core`.
 
@@ -636,9 +636,12 @@ the extensions framework (SEP-2133). Official extensions land per-extension unde
   is only returned to a client whose per-request capabilities declared the extension. The client half
   pairs `TasksClientExtension` with the polling `TaskClient` facade. The ten referee `tasks-*` scenarios
   pass (35 checks), with `tasks-status-notifications` SKIPPED upstream as a placeholder.
-  - [ ] `notifications/tasks` delivered via `subscriptions/listen`, once the upstream conformance
-    placeholder activates: grows `SubscriptionFilter` with the SEP-2663 `taskIds` slot and settles the
-    polling-only `TaskClient` loop onto push updates.
+  - [ ] `notifications/tasks` delivered via `subscriptions/listen`. SEP-2663 makes these notifications
+    optional (a server is conformant whether or not it sends them), so the polling-only `TaskClient`
+    loop stands on its own. The upstream scenario is a placeholder pending a harness rewrite against
+    the subscriptions channel, and that rewrite is the trigger to pick this up. Settling the loop onto
+    push updates starts with the SEP's opt-in shape for the listen filter, which `SubscriptionFilter`
+    has no slot for.
 - [ ] MCP Apps (SEP-1865): the `ui://` URI scheme, `text/html;profile=mcp-app`, and the sandboxed
   iframe interaction model.
 - [ ] OAuth client-credentials (`io.modelcontextprotocol/oauth-client-credentials`) and

@@ -8,6 +8,14 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp/commits/1.x)
 
+## [v0.7.0](https://github.com/NexusPHP/mcp/compare/v0.6.0...v0.7.0) - 2026-08-05
+
+This release introduces the SEP-2133 extensions framework and the first official extension built on
+it, tasks (SEP-2663). Two notes for consumers. Task status updates are delivered by polling only:
+SEP-2663 makes `notifications/tasks` optional, so this is a conformant shape rather than a partial
+one, and a later release may add push delivery. And `RequestHandlerDecoratorInterface` ships in the
+same release that first consumes it, so treat its shape as provisional while `0.x` lasts.
+
 ### Added
 
 - The SEP-2133 extensions framework. An extension is a first-class object
