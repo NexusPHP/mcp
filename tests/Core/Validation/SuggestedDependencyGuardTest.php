@@ -11,11 +11,11 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Nexus\Mcp\Tests\Server\Auth;
+namespace Nexus\Mcp\Tests\Core\Validation;
 
-use Nexus\Mcp\Server\Auth\JwksAccessTokenValidator;
-use Nexus\Mcp\Server\Auth\SuggestedDependencyGuard;
-use Nexus\Mcp\Server\Exception\MissingSuggestedDependencyException;
+use Nexus\Mcp\Core\Exception\MissingSuggestedDependencyException;
+use Nexus\Mcp\Core\Validation\SuggestedDependencyGuard;
+use Nexus\Mcp\Tests\Fixtures\Core\Validation\StubPackageBackedConsumer;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
@@ -25,23 +25,23 @@ use PHPUnit\Framework\TestCase;
  */
 #[CoversClass(SuggestedDependencyGuard::class)]
 #[Group('unit-tests')]
-#[Group('server-tests')]
+#[Group('core-tests')]
 final class SuggestedDependencyGuardTest extends TestCase
 {
     public function testAnInstalledPackagePassesSilently(): void
     {
         $this->expectNotToPerformAssertions();
 
-        SuggestedDependencyGuard::verify(JwksAccessTokenValidator::class, \stdClass::class, 'acme/jwt', '^1.0');
+        SuggestedDependencyGuard::verify(StubPackageBackedConsumer::class, \stdClass::class, 'acme/jwt', '^1.0');
     }
 
     public function testAMissingPackageNamesTheConsumerAndTheInstallCommand(): void
     {
         $this->expectException(MissingSuggestedDependencyException::class);
         $this->expectExceptionMessageIs(
-            'Nexus\Mcp\Server\Auth\JwksAccessTokenValidator requires the suggested "acme/jwt" package. Install it with "composer require acme/jwt:^1.0".',
+            'Nexus\Mcp\Tests\Fixtures\Core\Validation\StubPackageBackedConsumer requires the suggested "acme/jwt" package. Install it with "composer require acme/jwt:^1.0".',
         );
 
-        SuggestedDependencyGuard::verify(JwksAccessTokenValidator::class, 'Acme\Jwt\DoesNotExist', 'acme/jwt', '^1.0');
+        SuggestedDependencyGuard::verify(StubPackageBackedConsumer::class, 'Acme\Jwt\DoesNotExist', 'acme/jwt', '^1.0');
     }
 }

@@ -11,9 +11,9 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Nexus\Mcp\Server\Auth;
+namespace Nexus\Mcp\Core\Validation;
 
-use Nexus\Mcp\Server\Exception\MissingSuggestedDependencyException;
+use Nexus\Mcp\Core\Exception\MissingSuggestedDependencyException;
 
 /**
  * Verifies a suggested package is installed before the class that needs it does any work.

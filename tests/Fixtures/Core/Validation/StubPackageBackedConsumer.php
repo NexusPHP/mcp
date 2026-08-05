@@ -11,13 +11,13 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Nexus\Mcp\Server\Exception;
-
-use Nexus\Mcp\Core\Exception\McpExceptionInterface;
+namespace Nexus\Mcp\Tests\Fixtures\Core\Validation;
 
 /**
- * Thrown when a class backed by a suggested package is used while that package is not installed.
+ * Stands in for a class whose work is backed by a suggested package.
+ *
+ * @internal
  */
-final class MissingSuggestedDependencyException extends \LogicException implements McpExceptionInterface
+final class StubPackageBackedConsumer
 {
 }

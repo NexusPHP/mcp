@@ -51,6 +51,10 @@ in `0.x`, minor releases may include breaking changes.
 - The enterprise grant validates its IdP token endpoint when constructed and takes its own
   `allowInsecureLoopback` flag, and a non-JSON error body from the IdP is reported as a failed
   exchange naming the status rather than as a malformed response.
+- `MissingSuggestedDependencyException` moved from `Nexus\Mcp\Server\Exception` to
+  `Nexus\Mcp\Core\Exception`. It is raised by a client-side signer as well as by the server's JWKS
+  validator, so the server namespace filed it by its first consumer rather than by what it means
+  (see [BREAKING_CHANGES.md](BREAKING_CHANGES.md)).
 
 ## [v0.8.0](https://github.com/NexusPHP/mcp/compare/v0.7.0...v0.8.0) - 2026-08-05
 

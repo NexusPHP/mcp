@@ -6,6 +6,23 @@ for *when* breaking changes may land and how they are communicated lives in
 
 ## v0.8.0 to Unreleased
 
+### `MissingSuggestedDependencyException` moved to `Core`
+
+The exception raised when a suggested package is missing is no longer server-specific: the
+client-side `ClientAssertionSigner` raises it for `firebase/php-jwt` just as
+`JwksAccessTokenValidator` does. It moved to the cross-cutting namespace:
+
+```php
+// before
+\Nexus\Mcp\Server\Exception\MissingSuggestedDependencyException
+// after
+\Nexus\Mcp\Core\Exception\MissingSuggestedDependencyException
+```
+
+Update any `catch` around constructing `JwksAccessTokenValidator`, or a `ClientCredentialsGrant`
+that signs `private_key_jwt` assertions. Catching `Nexus\Mcp\Core\Exception\McpExceptionInterface`
+keeps working either way.
+
 ## v0.7.0 to v0.8.0
 
 ### The tasks extension identifier moved to a vocabulary class

@@ -14,8 +14,8 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Extension\Auth;
 
 use Firebase\JWT\JWT;
+use Nexus\Mcp\Core\Validation\SuggestedDependencyGuard;
 use Nexus\Mcp\Extension\Auth\ClientCredentials\PrivateKeyJwtCredential;
-use Nexus\Mcp\Server\Auth\SuggestedDependencyGuard;
 
 /**
  * Signs RFC 7523 JWT client assertions with a pre-registered private key.
