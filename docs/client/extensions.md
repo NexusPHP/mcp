@@ -62,3 +62,7 @@ outbound `tasks/*` methods, and the `TaskClient` facade wraps the `sendRequest()
 The [apps extension](apps.md) (`io.modelcontextprotocol/ui`, SEP-1865) is the settings-only
 counterpart: `AppsClientExtension` declares the renderable `mimeTypes` and no methods at all, and
 the `AppClient` facade only reads metadata and verifies `ui://` resource reads.
+
+The [OAuth extensions](auth-extensions.md) (client credentials, SEP-1046, and enterprise-managed
+authorization, SEP-990) go further still: settings-free declarations whose behaviour lives entirely
+at the HTTP layer, as unattended grant strategies plugged into `AuthorizedHttpClient`.

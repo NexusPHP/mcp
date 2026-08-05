@@ -656,8 +656,18 @@ the extensions framework (SEP-2133). Official extensions land per-extension unde
   referee release adds `apps-*` scenarios, adopting them is a deliberate step at pin-bump time:
   extend the scenario list in `conformance/run-extensions.sh` and the extension prefixes in
   `conformance/score.php`.
-- [ ] OAuth client-credentials (`io.modelcontextprotocol/oauth-client-credentials`) and
-  enterprise-managed authorization (SEP-990), built on the authorization subsystem above.
+- [x] OAuth client-credentials (`io.modelcontextprotocol/oauth-client-credentials`, SEP-1046) and
+  enterprise-managed authorization (`io.modelcontextprotocol/enterprise-managed-authorization`,
+  SEP-990), built on the authorization subsystem above. `Nexus\Mcp\Extension\Auth` ships
+  `ClientCredentialsGrant` (basic or `private_key_jwt` credentials, the latter signing RFC 7523
+  assertions through the suggested `firebase/php-jwt`) and `IdentityAssertionGrant` (RFC 8693
+  token exchange at the enterprise IdP, then the RFC 7523 JWT-bearer redemption), both plugged
+  into `AuthorizedHttpClient` through the grant-strategy seam extracted from the coordinator,
+  plus settings-free capability declarations for both sides. The three referee scenarios
+  (`auth/client-credentials-basic`, `auth/client-credentials-jwt`,
+  `auth/enterprise-managed-authorization`) pass and score into the client-extensions badge via
+  `composer conformance:extensions:client`. DPoP (SEP-1932) and workload identity federation
+  (SEP-1933) are open proposals upstream and stay unmodelled until ratified.
 
 ### OpenTelemetry trace context
 

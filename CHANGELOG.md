@@ -8,6 +8,50 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp/commits/1.x)
 
+### Added
+
+- The OAuth client credentials extension (`io.modelcontextprotocol/oauth-client-credentials`,
+  SEP-1046) under `Nexus\Mcp\Extension\Auth\ClientCredentials`: `ClientCredentialsGrant` runs the
+  unattended machine-to-machine grant with either a `ClientSecretCredential` (HTTP Basic) or a
+  `PrivateKeyJwtCredential` (RFC 7523 client assertion, signed through the suggested
+  `firebase/php-jwt` package), enforcing the `token_endpoint_auth_methods_supported` discovery
+  signal. `ClientCredentialsClientExtension` and `ClientCredentialsServerExtension` declare the
+  settings-free capability.
+- The enterprise-managed authorization extension
+  (`io.modelcontextprotocol/enterprise-managed-authorization`, SEP-990) under
+  `Nexus\Mcp\Extension\Auth\Enterprise`: `IdentityAssertionGrant` exchanges the sign-on's identity
+  assertion for an ID-JAG at the enterprise IdP (RFC 8693) and redeems it at the resource
+  authorization server (RFC 7523 JWT-bearer), with `IdentityAssertionProviderInterface` as the
+  consumer's seam to its own sign-on. `EnterpriseAuthorizationClientExtension` and
+  `EnterpriseAuthorizationServerExtension` declare the settings-free capability.
+- A grant-strategy seam in the client authorization subsystem: `AuthorizedHttpClient` accepts a
+  `grantStrategy:` argument (with a now-nullable user authorization) that replaces the
+  authorization-code round trip, and a strategy that renews by fresh grant is rerun when its
+  token expires instead of sending the request bare.
+- `AuthorizationServerMetadata` reads `token_endpoint_auth_methods_supported`,
+  `token_endpoint_auth_signing_alg_values_supported`, `grant_types_supported`, and
+  `authorization_grant_profiles_supported`, and `TokenEndpointAuthMethod` gained the
+  `private_key_jwt` case.
+- The three referee scenarios for these extensions (`auth/client-credentials-basic`,
+  `auth/client-credentials-jwt`, `auth/enterprise-managed-authorization`) run via
+  `composer conformance:extensions:client` and score into a new client-extensions badge.
+
+### Changed
+
+- `AuthorizationOptions::$redirectUri` is nullable, for grants that never visit an authorization
+  endpoint. A client built with a user authorization is still held to carrying one, now refused at
+  construction rather than at the first challenge, and Dynamic Client Registration refuses to run
+  without one instead of registering a null redirect URI.
+- An unattended grant is rerun on expiry whether or not the token carried a refresh token. The
+  registration a refresh resolves is not the one such a strategy authenticates with, and the rerun
+  reuses the discovery that just checked the spent token rather than discovering again without a
+  challenge.
+- `AuthorizationOptions` refuses a pre-registered client whose token endpoint authentication is
+  `private_key_jwt`, which no built-in grant can present an assertion for.
+- The enterprise grant validates its IdP token endpoint when constructed and takes its own
+  `allowInsecureLoopback` flag, and a non-JSON error body from the IdP is reported as a failed
+  exchange naming the status rather than as a malformed response.
+
 ## [v0.8.0](https://github.com/NexusPHP/mcp/compare/v0.7.0...v0.8.0) - 2026-08-05
 
 This release ships the second official extension, MCP Apps (SEP-1865). It is metadata and

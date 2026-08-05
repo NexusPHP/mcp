@@ -74,13 +74,16 @@ The SEP-2133 extensions framework is implemented on both sides: [server](server/
 [client](client/extensions.md) builders take `enableExtension(...)`, advertising the capability and
 serving the extension's methods behind the declared-capability gate.
 
-The tasks extension (`io.modelcontextprotocol/tasks`, SEP-2663) ships with the SDK:
-[server](server/tasks.md) brokering of `tools/call` into polled tasks with `tasks/get`,
-`tasks/update`, and `tasks/cancel`, and the [client](client/tasks.md) facade that calls tools as
-tasks and polls them to completion.
+Every official extension ratified for this spec revision is implemented on that framework, each one
+covering both halves of a session.
 
-The MCP Apps extension (`io.modelcontextprotocol/ui`, SEP-1865) also ships:
-[server-side](server/apps.md) typed `_meta.ui` metadata with the guarded `UiResource`
-declaration, and the [client-side](client/apps.md) `mimeTypes` capability plus the `AppClient`
-reader facade. `notifications/tasks` and the remaining official extensions are tracked in
-[ROADMAP.md](../ROADMAP.md) under Official extensions.
+| Extension | What it does | Where |
+| --- | --- | --- |
+| Tasks (`io.modelcontextprotocol/tasks`, SEP-2663) | Runs a long tool call as a task the client polls instead of holding the request open. The server brokers `tools/call` and serves `tasks/get`, `tasks/update`, and `tasks/cancel`. The client calls tools as tasks and polls them to completion. | [server](server/tasks.md), [client](client/tasks.md) |
+| MCP Apps (`io.modelcontextprotocol/ui`, SEP-1865) | Links a tool to a `ui://` view a host renders. The server declares typed `_meta.ui` metadata through the guarded `UiResource`. The client advertises the renderable `mimeTypes` and reads that metadata back through `AppClient`. | [server](server/apps.md), [client](client/apps.md) |
+| OAuth client credentials (`io.modelcontextprotocol/oauth-client-credentials`, SEP-1046) | Authenticates a machine client with a secret or a signed JWT assertion, as an unattended grant strategy for `AuthorizedHttpClient`. | [client](client/auth-extensions.md) |
+| Enterprise-managed authorization (`io.modelcontextprotocol/enterprise-managed-authorization`, SEP-990) | Turns an enterprise sign-on into MCP access through an ID-JAG, so admin policy governs the grant and the user is never redirected. | [client](client/auth-extensions.md) |
+
+The `notifications/tasks` follow-up, and the extensions still in proposal upstream (DPoP,
+workload identity federation), are tracked in [ROADMAP.md](../ROADMAP.md) under Official
+extensions.

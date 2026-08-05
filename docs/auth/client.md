@@ -41,6 +41,12 @@ the response is refused with `RedirectRefusedException` instead of trusted.
 The inner client carries the authorization traffic too, so an interceptor placed on it (proxy, logging,
 custom TLS) applies to discovery, registration, and token requests as well.
 
+The authorization-code round trip is the default. A machine client with no user swaps it for an
+unattended grant strategy instead: pass `null` for the user authorization and one of the
+[OAuth extension grants](../client/auth-extensions.md) (client credentials, enterprise-managed
+authorization) as `grantStrategy:`. An unattended grant also renews itself when its token expires,
+since no refresh token is issued to redeem.
+
 ## Implementing the user-agent leg
 
 The SDK cannot open a browser, and it ships no HTTP server to catch the redirect. That one leg is yours:
