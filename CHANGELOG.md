@@ -8,6 +8,15 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp/commits/1.x)
 
+## [v0.8.0](https://github.com/NexusPHP/mcp/compare/v0.7.0...v0.8.0) - 2026-08-05
+
+This release ships the second official extension, MCP Apps (SEP-1865). It is metadata and
+negotiation only: the extension defines no JSON-RPC methods, and the `ui/*` postMessage family is
+the browser host's side of the spec, so a PHP server or client is complete without it. The
+conformance referee carries no apps scenarios at its current pin, so the extension ships without
+a conformance claim. One breaking change rides along: the tasks extension identifier moved to a
+vocabulary class (see [BREAKING_CHANGES.md](BREAKING_CHANGES.md)).
+
 ### Added
 
 - The MCP Apps extension (`io.modelcontextprotocol/ui`, SEP-1865) under `Nexus\Mcp\Extension\Apps`.
