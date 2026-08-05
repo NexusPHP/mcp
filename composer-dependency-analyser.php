@@ -31,4 +31,5 @@ return new Configuration()
     // A suggested dependency: JwksAccessTokenValidator guards its use behind `class_exists` and
     // names the package to install, so production code may reference it without requiring it.
     ->ignoreErrorsOnPackageAndPath('firebase/php-jwt', __DIR__.'/src/Server/Auth/JwksAccessTokenValidator.php', [ErrorType::DEV_DEPENDENCY_IN_PROD])
+    ->ignoreErrorsOnPackageAndPath('firebase/php-jwt', __DIR__.'/src/Extension/Auth/ClientAssertionSigner.php', [ErrorType::DEV_DEPENDENCY_IN_PROD])
 ;
