@@ -34,4 +34,11 @@ enum TokenEndpointAuthMethod: string
      * Public client, authenticating with its client identifier alone.
      */
     case None = 'none';
+
+    /**
+     * Signed JWT client assertion in the request body.
+     *
+     * @see https://datatracker.ietf.org/doc/html/rfc7523#section-2.2
+     */
+    case PrivateKeyJwt = 'private_key_jwt';
 }

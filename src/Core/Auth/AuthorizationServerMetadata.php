@@ -32,6 +32,10 @@ final readonly class AuthorizationServerMetadata
      * @param null|non-empty-string       $tokenEndpoint
      * @param null|non-empty-string       $registrationEndpoint
      * @param null|list<non-empty-string> $codeChallengeMethodsSupported
+     * @param null|list<non-empty-string> $tokenEndpointAuthMethodsSupported
+     * @param null|list<non-empty-string> $tokenEndpointAuthSigningAlgValuesSupported
+     * @param null|list<non-empty-string> $grantTypesSupported
+     * @param null|list<non-empty-string> $authorizationGrantProfilesSupported
      */
     public function __construct(
         public string $issuer,
@@ -42,6 +46,10 @@ final readonly class AuthorizationServerMetadata
         public ?array $codeChallengeMethodsSupported = null,
         public ?bool $authorizationResponseIssParameterSupported = null,
         public ?bool $clientIdMetadataDocumentSupported = null,
+        public ?array $tokenEndpointAuthMethodsSupported = null,
+        public ?array $tokenEndpointAuthSigningAlgValuesSupported = null,
+        public ?array $grantTypesSupported = null,
+        public ?array $authorizationGrantProfilesSupported = null,
     ) {
     }
 
@@ -61,6 +69,10 @@ final readonly class AuthorizationServerMetadata
             MetadataReader::readStringList($data, 'code_challenge_methods_supported', self::LABEL),
             MetadataReader::readBool($data, 'authorization_response_iss_parameter_supported', self::LABEL),
             MetadataReader::readBool($data, 'client_id_metadata_document_supported', self::LABEL),
+            MetadataReader::readStringList($data, 'token_endpoint_auth_methods_supported', self::LABEL),
+            MetadataReader::readStringList($data, 'token_endpoint_auth_signing_alg_values_supported', self::LABEL),
+            MetadataReader::readStringList($data, 'grant_types_supported', self::LABEL),
+            MetadataReader::readStringList($data, 'authorization_grant_profiles_supported', self::LABEL),
         );
     }
 }

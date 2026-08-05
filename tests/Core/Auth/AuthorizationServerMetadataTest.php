@@ -38,6 +38,10 @@ final class AuthorizationServerMetadataTest extends TestCase
             'code_challenge_methods_supported' => ['S256'],
             'authorization_response_iss_parameter_supported' => true,
             'client_id_metadata_document_supported' => true,
+            'token_endpoint_auth_methods_supported' => ['private_key_jwt', 'client_secret_basic'],
+            'token_endpoint_auth_signing_alg_values_supported' => ['ES256'],
+            'grant_types_supported' => ['authorization_code', 'client_credentials'],
+            'authorization_grant_profiles_supported' => ['urn:ietf:params:oauth:grant-profile:id-jag'],
         ]);
 
         self::assertSame('https://auth.example.com', $metadata->issuer);
@@ -48,6 +52,10 @@ final class AuthorizationServerMetadataTest extends TestCase
         self::assertSame(['S256'], $metadata->codeChallengeMethodsSupported);
         self::assertTrue($metadata->authorizationResponseIssParameterSupported);
         self::assertTrue($metadata->clientIdMetadataDocumentSupported);
+        self::assertSame(['private_key_jwt', 'client_secret_basic'], $metadata->tokenEndpointAuthMethodsSupported);
+        self::assertSame(['ES256'], $metadata->tokenEndpointAuthSigningAlgValuesSupported);
+        self::assertSame(['authorization_code', 'client_credentials'], $metadata->grantTypesSupported);
+        self::assertSame(['urn:ietf:params:oauth:grant-profile:id-jag'], $metadata->authorizationGrantProfilesSupported);
     }
 
     public function testFromArrayLeavesEveryOptionalFieldNull(): void
@@ -62,6 +70,10 @@ final class AuthorizationServerMetadataTest extends TestCase
         self::assertNull($metadata->codeChallengeMethodsSupported);
         self::assertNull($metadata->authorizationResponseIssParameterSupported);
         self::assertNull($metadata->clientIdMetadataDocumentSupported);
+        self::assertNull($metadata->tokenEndpointAuthMethodsSupported);
+        self::assertNull($metadata->tokenEndpointAuthSigningAlgValuesSupported);
+        self::assertNull($metadata->grantTypesSupported);
+        self::assertNull($metadata->authorizationGrantProfilesSupported);
     }
 
     public function testFromArrayKeepsAFalseFlagDistinctFromAnAbsentOne(): void
