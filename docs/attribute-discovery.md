@@ -154,6 +154,9 @@ attributes are rejected.
   list of objects, an interface, or an abstract class is not expanded and throws.
 - There is no filesystem auto-discovery and no class-level handler backend. `register()` takes explicit
   source objects.
+- Only the per-feature listings are discoverable. Singleton infrastructure, such as the
+  [subscription store](server/subscriptions.md), the logger, and the schema validator, is registered through
+  the builder's `set*` methods.
 
 ## See also
 
