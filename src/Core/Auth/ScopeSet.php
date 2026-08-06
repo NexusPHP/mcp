@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Auth;
 
+use Nexus\Assert\Assert;
+
 /**
  * An ordered, duplicate-free set of OAuth scope values.
  *
@@ -39,6 +41,8 @@ final readonly class ScopeSet
      */
     public function __construct(array $values = [])
     {
+        Assert::that($values)->values()->isNonEmptyString('Each scope must be a non-empty string, {type} given.');
+
         $this->values = array_values(array_unique($values));
     }
 
