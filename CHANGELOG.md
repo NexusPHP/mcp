@@ -55,6 +55,23 @@ in `0.x`, minor releases may include breaking changes.
   `Nexus\Mcp\Core\Exception`. It is raised by a client-side signer as well as by the server's JWKS
   validator, so the server namespace filed it by its first consumer rather than by what it means
   (see [BREAKING_CHANGES.md](BREAKING_CHANGES.md)).
+- Constructor parameters carry the narrow type their property always had, and are promoted, so the
+  contract reads at the call site instead of on a separate property declaration. The same narrowing
+  reaches the entry points that feed those constructors: the builders' `set*Info()`, the typed
+  `Client` calls, the discovery attributes, and the resource read surface. No runtime behaviour
+  changes, but PHPStan now reports a plain `string` passed where a `non-empty-string` is required
+  (see [BREAKING_CHANGES.md](BREAKING_CHANGES.md)). A new
+  `PromotableConstructorPropertyRule` keeps the shape from drifting back.
+- `ResourceRequestParams` and `ReadResourceRequestParams` hold `uri` to the RFC 3986 absolute-URI
+  shape the spec's `format: uri` fixes, matching what `Resource` already enforced when emitting one.
+  An empty or malformed URI is refused when the params decode rather than at the store, keeping the
+  `-32602` code it already produced.
+- `ScopeSet` rejects an element that is not a non-empty string instead of documenting the type and
+  checking nothing.
+- Decoding a schema payload reports a missing value as `must be a non-empty string` where it
+  previously said `must be a string`, and an empty value now fails at the decoder rather than one
+  frame later in the constructor. Exception messages sit outside the compatibility
+  promise ([VERSIONING.md](VERSIONING.md)), but tests pinning them will need updating.
 
 ## [v0.8.0](https://github.com/NexusPHP/mcp/compare/v0.7.0...v0.8.0) - 2026-08-05
 

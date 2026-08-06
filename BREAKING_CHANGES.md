@@ -6,6 +6,52 @@ for *when* breaking changes may land and how they are communicated lives in
 
 ## v0.8.0 to Unreleased
 
+### Constructor and entry-point parameters declare their narrow types
+
+Value objects used to accept a wide `string` and narrow it on the property, so a caller learned the
+real contract only by reading the class. The narrow type now sits on the parameter, where the call
+site can see it. Runtime behaviour is unchanged: the same assertions ran before, one frame later.
+
+What changes is static analysis. PHPStan now reports a plain `string` passed where a
+`non-empty-string` is required, across the schema classes and the public surface that feeds them:
+`ServerBuilder::setServerInfo()`, `ClientBuilder::setClientInfo()`, `Client::callTool()`,
+`Client::getPrompt()`, `Client::readResource()`, the `#[AsTool]` / `#[AsPrompt]` / `#[AsResource]` /
+`#[AsResourceTemplate]` / `#[AsServer]` attributes, and the resource read surface
+(`ResourceReaderInterface`, `TemplatedResourceReaderInterface`, `ResourceStoreInterface`,
+`ResourceTemplateStoreInterface`, and the `\Closure` types `ServerBuilder::addResource()` and
+`addResourceTemplate()` accept).
+
+Narrow at your own boundary rather than at the call:
+
+```php
+// before: $name came from config typed as string
+$builder->addTool($name, ...);
+// after
+Assert::that($name)->isNonEmptyString('Tool name must be a non-empty string.');
+$builder->addTool($name, ...);
+```
+
+An attribute argument is a compile-time constant, so `#[AsTool(name: '')]` is now a static error at
+the declaration instead of a throw during discovery.
+
+### Resource request params enforce the spec's `uri` format
+
+`ResourceRequestParams` and `ReadResourceRequestParams` hold `uri` to the RFC 3986 absolute-URI
+shape the spec's `format: uri` fixes. `Resource` already enforced it on the emit side, so this makes
+the two directions symmetric.
+
+A `resources/read` naming an empty, relative, or non-ASCII URI is now refused when the params are
+decoded rather than reaching the store. The JSON-RPC error code is unchanged (`-32602`), and only
+the message differs, since `ResourceNotFoundException` already mapped to `InvalidParams`. Custom
+`ResourceStoreInterface` implementations keyed on non-absolute URIs become unreachable and need
+absolute ones. Client side, `Client::readResource()` throws locally instead of sending.
+
+### `ScopeSet` enforces its element type
+
+`ScopeSet` documented `list<non-empty-string>` but checked nothing, so a wrong element type
+travelled as far as the token request. The constructor now rejects it. Keyed arrays are still
+accepted, since the constructor reindexes.
+
 ### `MissingSuggestedDependencyException` moved to `Core`
 
 The exception raised when a suggested package is missing is no longer server-specific: the
