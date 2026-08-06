@@ -41,15 +41,10 @@ use Nexus\Mcp\Core\Validation\EnumValueValidator;
 final readonly class ListToolsResult extends PaginatedResult implements ServerResult
 {
     /**
-     * @var list<Tool>
-     */
-    public array $tools;
-
-    /**
      * @param list<Tool> $tools
      */
     public function __construct(
-        array $tools,
+        public array $tools,
         int $ttlMs,
         CacheScope $cacheScope,
         ?Cursor $nextCursor = null,
@@ -59,8 +54,6 @@ final readonly class ListToolsResult extends PaginatedResult implements ServerRe
             ->isList('"result.tools" must be a list, non-list array given.')
             ->values()->isInstanceOf(Tool::class)
         ;
-
-        $this->tools = $tools;
 
         parent::__construct(ttlMs: $ttlMs, cacheScope: $cacheScope, nextCursor: $nextCursor, meta: $meta);
     }

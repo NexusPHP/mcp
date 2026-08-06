@@ -69,6 +69,7 @@ final class CancelledNotificationParamsTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"params.reason" must be a non-empty string or null.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new CancelledNotificationParams(requestId: new RequestId(id: 1), reason: '');
     }
 
@@ -157,7 +158,7 @@ final class CancelledNotificationParamsTest extends TestCase
     public function testFromArrayRejectsEmptyReason(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('"params.reason" must be a non-empty string or null.');
+        $this->expectExceptionMessageIs('"params.reason" must be a non-empty string or null, string given.');
 
         CancelledNotificationParams::fromArray([
             'requestId' => 1,
@@ -224,7 +225,7 @@ final class CancelledNotificationParamsTest extends TestCase
     public function testFromArrayRejectsNonStringReason(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('"params.reason" must be a string or null, int given.');
+        $this->expectExceptionMessageIs('"params.reason" must be a non-empty string or null, int given.');
 
         CancelledNotificationParams::fromArray([
             'requestId' => 1,

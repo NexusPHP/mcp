@@ -38,20 +38,16 @@ final readonly class ProgressNotificationParams extends NotificationParams
     use ParsesNumber;
 
     /**
-     * @var null|non-empty-string
+     * @param null|non-empty-string $message
      */
-    public ?string $message;
-
     public function __construct(
         public ProgressToken $progressToken,
         public float $progress,
         public ?float $total = null,
-        ?string $message = null,
+        public ?string $message = null,
         NotificationMetaObject $meta = new NotificationMetaObject(),
     ) {
         Assert::that($message)->nullOr()->isNonEmptyString('"params.message" must be a non-empty string or null.');
-
-        $this->message = $message;
 
         parent::__construct(meta: $meta);
     }
@@ -73,7 +69,7 @@ final readonly class ProgressNotificationParams extends NotificationParams
         }
 
         $message = $data['message'] ?? null;
-        Assert::that($message)->nullOr()->isString('"params.message" must be a string or null, {type} given.');
+        Assert::that($message)->nullOr()->isNonEmptyString('"params.message" must be a non-empty string or null, {type} given.');
 
         $meta = new NotificationMetaObject();
 

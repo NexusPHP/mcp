@@ -41,15 +41,10 @@ use Nexus\Mcp\Core\Validation\EnumValueValidator;
 final readonly class ListPromptsResult extends PaginatedResult implements ServerResult
 {
     /**
-     * @var list<Prompt>
-     */
-    public array $prompts;
-
-    /**
      * @param list<Prompt> $prompts
      */
     public function __construct(
-        array $prompts,
+        public array $prompts,
         int $ttlMs,
         CacheScope $cacheScope,
         ?Cursor $nextCursor = null,
@@ -59,8 +54,6 @@ final readonly class ListPromptsResult extends PaginatedResult implements Server
             ->isList('"result.prompts" must be a list, non-list array given.')
             ->values()->isInstanceOf(Prompt::class)
         ;
-
-        $this->prompts = $prompts;
 
         parent::__construct(ttlMs: $ttlMs, cacheScope: $cacheScope, nextCursor: $nextCursor, meta: $meta);
     }

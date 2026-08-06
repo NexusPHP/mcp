@@ -88,6 +88,7 @@ final class ElicitRequestUrlParamsTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"params.message" must be a non-empty string.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new ElicitRequestUrlParams(message: '', mode: 'url', url: 'https://example.com');
     }
 
@@ -96,6 +97,7 @@ final class ElicitRequestUrlParamsTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"params.url" must be a non-empty string.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new ElicitRequestUrlParams(message: 'm', mode: 'url', url: '');
     }
 
@@ -112,6 +114,7 @@ final class ElicitRequestUrlParamsTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"params.mode" must be \'url\', \'form\' given.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new ElicitRequestUrlParams(message: 'm', mode: 'form', url: 'https://example.com');
     }
 
@@ -139,7 +142,7 @@ final class ElicitRequestUrlParamsTest extends TestCase
 
         yield 'message not a string' => [
             ['message' => 1, 'mode' => 'url', 'url' => 'https://example.com'],
-            '"params.message" must be a string, int given.',
+            '"params.message" must be a non-empty string, int given.',
         ];
 
         yield 'missing mode' => [
@@ -149,7 +152,7 @@ final class ElicitRequestUrlParamsTest extends TestCase
 
         yield 'mode not a string' => [
             ['message' => 'm', 'mode' => 1, 'url' => 'https://example.com'],
-            '"params.mode" must be a string, int given.',
+            '"params.mode" must be \'url\', 1 given.',
         ];
 
         yield 'missing url' => [
@@ -159,7 +162,7 @@ final class ElicitRequestUrlParamsTest extends TestCase
 
         yield 'url not a string' => [
             ['message' => 'm', 'mode' => 'url', 'url' => 1],
-            '"params.url" must be a string, int given.',
+            '"params.url" must be a non-empty string, int given.',
         ];
     }
 }

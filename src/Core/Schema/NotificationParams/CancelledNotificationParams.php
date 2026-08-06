@@ -33,18 +33,14 @@ use Nexus\Mcp\Core\Schema\RequestId;
 final readonly class CancelledNotificationParams extends NotificationParams
 {
     /**
-     * @var null|non-empty-string
+     * @param null|non-empty-string $reason
      */
-    public ?string $reason;
-
     public function __construct(
         public RequestId $requestId,
-        ?string $reason = null,
+        public ?string $reason = null,
         NotificationMetaObject $meta = new NotificationMetaObject(),
     ) {
         Assert::that($reason)->nullOr()->isNonEmptyString('"params.reason" must be a non-empty string or null.');
-
-        $this->reason = $reason;
 
         parent::__construct(meta: $meta);
     }
@@ -57,7 +53,7 @@ final readonly class CancelledNotificationParams extends NotificationParams
         $requestId = new RequestId(id: $data['requestId']);
 
         $reason = $data['reason'] ?? null;
-        Assert::that($reason)->nullOr()->isString('"params.reason" must be a string or null, {type} given.');
+        Assert::that($reason)->nullOr()->isNonEmptyString('"params.reason" must be a non-empty string or null, {type} given.');
 
         $meta = new NotificationMetaObject();
 

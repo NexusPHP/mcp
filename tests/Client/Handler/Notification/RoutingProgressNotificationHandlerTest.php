@@ -79,7 +79,8 @@ final class RoutingProgressNotificationHandlerTest extends TestCase
     }
 
     /**
-     * @param int|non-empty-string $token
+     * @param int|non-empty-string  $token
+     * @param null|non-empty-string $message
      */
     private static function progressNotification(
         int|string $token,

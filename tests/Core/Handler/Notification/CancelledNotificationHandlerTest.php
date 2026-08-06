@@ -96,7 +96,8 @@ final class CancelledNotificationHandlerTest extends TestCase
     }
 
     /**
-     * @param int|non-empty-string $requestId
+     * @param int|non-empty-string  $requestId
+     * @param null|non-empty-string $reason
      */
     private static function notificationFor(int|string $requestId, ?string $reason = null): CancelledNotification
     {

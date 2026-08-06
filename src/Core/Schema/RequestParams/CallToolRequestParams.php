@@ -36,31 +36,19 @@ use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
 final readonly class CallToolRequestParams extends InputResponseRequestParams
 {
     /**
-     * @var non-empty-string
-     */
-    public string $name;
-
-    /**
-     * @var null|array<string, mixed>
-     */
-    public ?array $arguments;
-
-    /**
+     * @param non-empty-string                  $name
      * @param null|array<string, mixed>         $arguments
      * @param null|array<string, InputResponse> $inputResponses
      */
     public function __construct(
-        string $name,
+        public string $name,
         RequestMetaObject $meta,
-        ?array $arguments = null,
+        public ?array $arguments = null,
         ?array $inputResponses = null,
         ?string $requestState = null,
     ) {
         IdentifierNameValidator::validate($name, '"params.name"');
         Assert::that($arguments)->nullOr()->isMap('"params.arguments" must be a string-keyed map or null.');
-
-        $this->name = $name;
-        $this->arguments = $arguments;
 
         parent::__construct(inputResponses: $inputResponses, requestState: $requestState, meta: $meta);
     }
@@ -70,7 +58,7 @@ final readonly class CallToolRequestParams extends InputResponseRequestParams
     {
         Assert::that($data)->hasOffset('name', '"params" is missing the required "name" key.');
         $name = $data['name'];
-        Assert::that($name)->isString('"params.name" must be a string, {type} given.');
+        Assert::that($name)->isNonEmptyString('"params.name" must be a non-empty string, {type} given.');
 
         $arguments = null;
 

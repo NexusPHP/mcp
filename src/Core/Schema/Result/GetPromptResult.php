@@ -37,20 +37,14 @@ use Nexus\Mcp\Core\Schema\Result;
 final readonly class GetPromptResult extends Result implements ServerResult
 {
     /**
-     * @var list<PromptMessage>
+     * @param list<PromptMessage>   $messages
+     * @param null|non-empty-string $description
      */
-    public array $messages;
-
-    /**
-     * @var null|non-empty-string
-     */
-    public ?string $description;
-
-    /**
-     * @param list<PromptMessage> $messages
-     */
-    public function __construct(array $messages, ?string $description = null, ResultMetaObject $meta = new GenericResultMetaObject())
-    {
+    public function __construct(
+        public array $messages,
+        public ?string $description = null,
+        ResultMetaObject $meta = new GenericResultMetaObject(),
+    ) {
         Assert::that($messages)->isList('"result.messages" must be a list, non-list array given.');
 
         foreach ($messages as $message) {
@@ -58,9 +52,6 @@ final readonly class GetPromptResult extends Result implements ServerResult
         }
 
         Assert::that($description)->nullOr()->isNonEmptyString('"result.description" must be a non-empty string or null.');
-
-        $this->messages = $messages;
-        $this->description = $description;
 
         parent::__construct(meta: $meta);
     }
@@ -82,7 +73,7 @@ final readonly class GetPromptResult extends Result implements ServerResult
         }
 
         $description = $data['description'] ?? null;
-        Assert::that($description)->nullOr()->isString('"result.description" must be a string or null, {type} given.');
+        Assert::that($description)->nullOr()->isNonEmptyString('"result.description" must be a non-empty string or null, {type} given.');
 
         $meta = new GenericResultMetaObject();
 

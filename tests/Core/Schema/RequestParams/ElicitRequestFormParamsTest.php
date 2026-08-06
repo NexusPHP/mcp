@@ -113,6 +113,7 @@ final class ElicitRequestFormParamsTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"params.message" must be a non-empty string.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new ElicitRequestFormParams(message: '', requestedSchema: new ElicitRequestedSchema(properties: ['x' => new StringSchema()]));
     }
 
@@ -124,6 +125,7 @@ final class ElicitRequestFormParamsTest extends TestCase
         new ElicitRequestFormParams(
             message: 'Pick',
             requestedSchema: new ElicitRequestedSchema(properties: ['x' => new StringSchema()]),
+            // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
             mode: 'url',
         );
     }
@@ -147,7 +149,7 @@ final class ElicitRequestFormParamsTest extends TestCase
     {
         yield 'mode not a string' => [
             ['mode' => 1, 'message' => 'm', 'requestedSchema' => ['type' => 'object', 'properties' => []]],
-            '"params.mode" must be a string, int given.',
+            '"params.mode" must be \'form\', 1 given.',
         ];
 
         yield 'missing message' => [
@@ -157,7 +159,7 @@ final class ElicitRequestFormParamsTest extends TestCase
 
         yield 'message not a string' => [
             ['message' => 1, 'requestedSchema' => ['type' => 'object', 'properties' => []]],
-            '"params.message" must be a string, int given.',
+            '"params.message" must be a non-empty string, int given.',
         ];
 
         yield 'missing requestedSchema' => [

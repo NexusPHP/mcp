@@ -184,7 +184,7 @@ final class ElicitRequestTest extends TestCase
 
         yield 'params mode not a string' => [
             ['method' => 'elicitation/create', 'params' => ['mode' => 1]],
-            '"params.mode" must be a string, int given.',
+            '"params.mode" must be \'form\', 1 given.',
         ];
     }
 }

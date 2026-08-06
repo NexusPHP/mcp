@@ -272,7 +272,7 @@ final class CallToolRequestParamsTest extends TestCase
 
         yield 'name not a string' => [
             ['name' => 1],
-            '"params.name" must be a string, int given.',
+            '"params.name" must be a non-empty string, int given.',
         ];
 
         yield 'arguments not an object' => [

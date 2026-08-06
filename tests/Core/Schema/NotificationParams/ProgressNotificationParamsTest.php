@@ -90,6 +90,7 @@ final class ProgressNotificationParamsTest extends TestCase
         new ProgressNotificationParams(
             progressToken: new ProgressToken(token: 'p-1'),
             progress: 5.0,
+            // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
             message: '',
         );
     }
@@ -241,12 +242,12 @@ final class ProgressNotificationParamsTest extends TestCase
 
         yield 'message not a string' => [
             ['progressToken' => 'p-1', 'progress' => 0.5, 'message' => 1],
-            '"params.message" must be a string or null, int given.',
+            '"params.message" must be a non-empty string or null, int given.',
         ];
 
         yield 'message empty' => [
             ['progressToken' => 'p-1', 'progress' => 0.5, 'message' => ''],
-            '"params.message" must be a non-empty string or null.',
+            '"params.message" must be a non-empty string or null, string given.',
         ];
 
         yield '_meta not an object' => [

@@ -97,7 +97,7 @@ $connect = static function (string $serverUrl): Client {
     return $client;
 };
 
-/** @var Closure(): list<array{name: string, arguments: array<string, mixed>}> $toolCallsFromContext */
+/** @var Closure(): list<array{name: non-empty-string, arguments: array<string, mixed>}> $toolCallsFromContext */
 $toolCallsFromContext = static function (): array {
     $raw = getenv('MCP_CONFORMANCE_CONTEXT');
 

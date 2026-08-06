@@ -42,15 +42,10 @@ use Nexus\Mcp\Core\Validation\EnumValueValidator;
 final readonly class ReadResourceResult extends CacheableResult implements ServerResult
 {
     /**
-     * @var list<BlobResourceContents|TextResourceContents>
-     */
-    public array $contents;
-
-    /**
      * @param list<BlobResourceContents|TextResourceContents> $contents
      */
     public function __construct(
-        array $contents,
+        public array $contents,
         int $ttlMs,
         CacheScope $cacheScope,
         ResultMetaObject $meta = new GenericResultMetaObject(),
@@ -59,8 +54,6 @@ final readonly class ReadResourceResult extends CacheableResult implements Serve
             ->isList('"result.contents" must be a list, non-list array given.')
             ->values()->isInstanceOf(ResourceContents::class)
         ;
-
-        $this->contents = $contents;
 
         parent::__construct(ttlMs: $ttlMs, cacheScope: $cacheScope, meta: $meta);
     }

@@ -36,23 +36,14 @@ use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
 final readonly class GetPromptRequestParams extends InputResponseRequestParams
 {
     /**
-     * @var non-empty-string
-     */
-    public string $name;
-
-    /**
-     * @var null|array<string, string>
-     */
-    public ?array $arguments;
-
-    /**
+     * @param non-empty-string                  $name
      * @param null|array<string, string>        $arguments
      * @param null|array<string, InputResponse> $inputResponses
      */
     public function __construct(
-        string $name,
+        public string $name,
         RequestMetaObject $meta,
-        ?array $arguments = null,
+        public ?array $arguments = null,
         ?array $inputResponses = null,
         ?string $requestState = null,
     ) {
@@ -65,9 +56,6 @@ final readonly class GetPromptRequestParams extends InputResponseRequestParams
             ;
         }
 
-        $this->name = $name;
-        $this->arguments = $arguments;
-
         parent::__construct(inputResponses: $inputResponses, requestState: $requestState, meta: $meta);
     }
 
@@ -76,7 +64,7 @@ final readonly class GetPromptRequestParams extends InputResponseRequestParams
     {
         Assert::that($data)->hasOffset('name', '"params" is missing the required "name" key.');
         $name = $data['name'];
-        Assert::that($name)->isString('"params.name" must be a string, {type} given.');
+        Assert::that($name)->isNonEmptyString('"params.name" must be a non-empty string, {type} given.');
 
         $arguments = null;
 

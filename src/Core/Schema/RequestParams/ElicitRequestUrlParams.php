@@ -29,32 +29,18 @@ final readonly class ElicitRequestUrlParams implements Arrayable, ElicitRequestP
     public const string MODE = 'url';
 
     /**
-     * @var non-empty-string
+     * @param non-empty-string $message
+     * @param 'url'            $mode
+     * @param non-empty-string $url
      */
-    public string $message;
-
-    /**
-     * @var 'url'
-     */
-    public string $mode;
-
-    /**
-     * @var non-empty-string
-     */
-    public string $url;
-
     public function __construct(
-        string $message,
-        string $mode,
-        string $url,
+        public string $message,
+        public string $mode,
+        public string $url,
     ) {
         Assert::that($message)->isNonEmptyString('"params.message" must be a non-empty string.');
         Assert::that($url)->isNonEmptyString('"params.url" must be a non-empty string.')->isUrl('"params.url" must be a valid URL.');
         Assert::that($mode)->isIdentical(self::MODE, '"params.mode" must be {other}, {value} given.');
-
-        $this->message = $message;
-        $this->url = $url;
-        $this->mode = $mode;
     }
 
     #[\Override]
@@ -62,15 +48,15 @@ final readonly class ElicitRequestUrlParams implements Arrayable, ElicitRequestP
     {
         Assert::that($data)->hasOffset('message', '"params" is missing the required "message" key.');
         $message = $data['message'];
-        Assert::that($message)->isString('"params.message" must be a string, {type} given.');
+        Assert::that($message)->isNonEmptyString('"params.message" must be a non-empty string, {type} given.');
 
         Assert::that($data)->hasOffset('mode', '"params" is missing the required "mode" key.');
         $mode = $data['mode'];
-        Assert::that($mode)->isString('"params.mode" must be a string, {type} given.');
+        Assert::that($mode)->isIdentical(self::MODE, '"params.mode" must be {other}, {value} given.');
 
         Assert::that($data)->hasOffset('url', '"params" is missing the required "url" key.');
         $url = $data['url'];
-        Assert::that($url)->isString('"params.url" must be a string, {type} given.');
+        Assert::that($url)->isNonEmptyString('"params.url" must be a non-empty string, {type} given.');
 
         return new self(message: $message, mode: $mode, url: $url);
     }

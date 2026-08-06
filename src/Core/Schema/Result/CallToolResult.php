@@ -44,22 +44,12 @@ use Nexus\Mcp\Core\Schema\Result;
 final readonly class CallToolResult extends Result implements ServerResult
 {
     /**
-     * @var list<AudioContent|EmbeddedResource|ImageContent|ResourceLink|TextContent>
-     */
-    public array $content;
-
-    /**
-     * @var null|array<string, mixed>
-     */
-    public ?array $structuredContent;
-
-    /**
      * @param list<AudioContent|EmbeddedResource|ImageContent|ResourceLink|TextContent> $content
      * @param null|array<string, mixed>                                                 $structuredContent
      */
     public function __construct(
-        array $content,
-        ?array $structuredContent = null,
+        public array $content,
+        public ?array $structuredContent = null,
         public ?bool $isError = null,
         ResultMetaObject $meta = new GenericResultMetaObject(),
     ) {
@@ -71,9 +61,6 @@ final readonly class CallToolResult extends Result implements ServerResult
             ->nullOr()
             ->isMap('"result.structuredContent" must be a string-keyed map or null.')
         ;
-
-        $this->content = $content;
-        $this->structuredContent = $structuredContent;
 
         parent::__construct(meta: $meta);
     }

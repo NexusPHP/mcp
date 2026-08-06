@@ -41,24 +41,15 @@ use Nexus\Mcp\Core\Validation\EnumValueValidator;
 final readonly class DiscoverResult extends CacheableResult implements ServerResult
 {
     /**
-     * @var list<non-empty-string>
-     */
-    public array $supportedVersions;
-
-    /**
-     * @var null|non-empty-string
-     */
-    public ?string $instructions;
-
-    /**
-     * @param list<string> $supportedVersions
+     * @param list<non-empty-string> $supportedVersions
+     * @param null|non-empty-string  $instructions
      */
     public function __construct(
-        array $supportedVersions,
+        public array $supportedVersions,
         public ServerCapabilities $capabilities,
         int $ttlMs,
         CacheScope $cacheScope,
-        ?string $instructions = null,
+        public ?string $instructions = null,
         ResultMetaObject $meta = new GenericResultMetaObject(),
     ) {
         Assert::that($supportedVersions)
@@ -66,9 +57,6 @@ final readonly class DiscoverResult extends CacheableResult implements ServerRes
             ->values()->isNonEmptyString('each "result.supportedVersions" must be a non-empty string.')
         ;
         Assert::that($instructions)->nullOr()->isNonEmptyString('"result.instructions" must be a non-empty string or null.');
-
-        $this->supportedVersions = $supportedVersions;
-        $this->instructions = $instructions;
 
         parent::__construct(ttlMs: $ttlMs, cacheScope: $cacheScope, meta: $meta);
     }
@@ -79,7 +67,7 @@ final readonly class DiscoverResult extends CacheableResult implements ServerRes
         Assert::that($data)->hasOffset('supportedVersions', '"result" is missing the required "supportedVersions" key.');
         Assert::that($data['supportedVersions'])
             ->isList('"result.supportedVersions" must be a list, {type} given.')
-            ->values()->isString('each "result.supportedVersions" must be a string, {type} given.')
+            ->values()->isNonEmptyString('each "result.supportedVersions" must be a non-empty string, {type} given.')
         ;
         $supportedVersions = $data['supportedVersions'];
 
@@ -101,7 +89,7 @@ final readonly class DiscoverResult extends CacheableResult implements ServerRes
 
         if (\array_key_exists('instructions', $data)) {
             $raw = $data['instructions'];
-            Assert::that($raw)->isString('"result.instructions" must be a string, {type} given.');
+            Assert::that($raw)->isNonEmptyString('"result.instructions" must be a non-empty string, {type} given.');
             $instructions = $raw;
         }
 

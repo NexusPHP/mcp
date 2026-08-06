@@ -157,6 +157,7 @@ final class GetPromptResultTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"result.description" must be a non-empty string or null.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new GetPromptResult(messages: [], description: '');
     }
 
@@ -199,7 +200,7 @@ final class GetPromptResultTest extends TestCase
 
         yield 'description not a string' => [
             ['messages' => [], 'description' => 1],
-            '"result.description" must be a string or null, int given.',
+            '"result.description" must be a non-empty string or null, int given.',
         ];
 
         yield '_meta not an object' => [

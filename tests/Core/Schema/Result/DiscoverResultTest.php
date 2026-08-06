@@ -219,6 +219,7 @@ final class DiscoverResultTest extends TestCase
         $this->expectExceptionMessageIs('each "result.supportedVersions" must be a non-empty string.');
 
         new DiscoverResult(
+            // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
             supportedVersions: [''],
             capabilities: new ServerCapabilities(),
             ttlMs: 0,
@@ -236,6 +237,7 @@ final class DiscoverResultTest extends TestCase
             capabilities: new ServerCapabilities(),
             ttlMs: 0,
             cacheScope: CacheScope::Private,
+            // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
             instructions: '',
         );
     }
@@ -282,7 +284,7 @@ final class DiscoverResultTest extends TestCase
 
         yield 'supportedVersions entry not a string' => [
             ['supportedVersions' => [1]],
-            'each "result.supportedVersions" must be a string, int given.',
+            'each "result.supportedVersions" must be a non-empty string, int given.',
         ];
 
         yield 'missing capabilities' => [
@@ -322,12 +324,12 @@ final class DiscoverResultTest extends TestCase
 
         yield 'instructions not a string' => [
             ['supportedVersions' => ['2026-07-28'], 'capabilities' => [], 'ttlMs' => 0, 'cacheScope' => 'private', 'instructions' => 1],
-            '"result.instructions" must be a string, int given.',
+            '"result.instructions" must be a non-empty string, int given.',
         ];
 
         yield 'instructions empty' => [
             ['supportedVersions' => ['2026-07-28'], 'capabilities' => [], 'ttlMs' => 0, 'cacheScope' => 'private', 'instructions' => ''],
-            '"result.instructions" must be a non-empty string or null.',
+            '"result.instructions" must be a non-empty string, string given.',
         ];
 
         yield '_meta not an object' => [

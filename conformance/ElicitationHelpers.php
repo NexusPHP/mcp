@@ -31,6 +31,7 @@ trait ElicitationHelpers
      * Builds a one-question `InputRequiredResult`.
      *
      * @param non-empty-string $key
+     * @param non-empty-string $message
      * @param non-empty-string $field
      */
     private static function ask(
@@ -47,6 +48,7 @@ trait ElicitationHelpers
     }
 
     /**
+     * @param non-empty-string $message
      * @param non-empty-string $field
      */
     private static function buildInputRequest(string $message, string $field, PrimitiveSchemaDefinition $schema): ElicitRequest

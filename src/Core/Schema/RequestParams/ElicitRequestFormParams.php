@@ -30,36 +30,27 @@ final readonly class ElicitRequestFormParams implements Arrayable, ElicitRequest
     public const string MODE = 'form';
 
     /**
-     * @var non-empty-string
+     * @param non-empty-string $message
+     * @param 'form'           $mode
      */
-    public string $message;
-
-    /**
-     * @var 'form'
-     */
-    public string $mode;
-
     public function __construct(
-        string $message,
+        public string $message,
         public ElicitRequestedSchema $requestedSchema,
-        string $mode = self::MODE,
+        public string $mode = self::MODE,
     ) {
         Assert::that($message)->isNonEmptyString('"params.message" must be a non-empty string.');
         Assert::that($mode)->isIdentical(self::MODE, '"params.mode" must be {other}, {value} given.');
-
-        $this->message = $message;
-        $this->mode = $mode;
     }
 
     #[\Override]
     public static function fromArray(array $data): static
     {
         $mode = $data['mode'] ?? self::MODE;
-        Assert::that($mode)->isString('"params.mode" must be a string, {type} given.');
+        Assert::that($mode)->isIdentical(self::MODE, '"params.mode" must be {other}, {value} given.');
 
         Assert::that($data)->hasOffset('message', '"params" is missing the required "message" key.');
         $message = $data['message'];
-        Assert::that($message)->isString('"params.message" must be a string, {type} given.');
+        Assert::that($message)->isNonEmptyString('"params.message" must be a non-empty string, {type} given.');
 
         Assert::that($data)->hasOffset('requestedSchema', '"params" is missing the required "requestedSchema" key.');
         Assert::that($data['requestedSchema'])

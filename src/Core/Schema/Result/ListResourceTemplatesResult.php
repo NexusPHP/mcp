@@ -41,15 +41,10 @@ use Nexus\Mcp\Core\Validation\EnumValueValidator;
 final readonly class ListResourceTemplatesResult extends PaginatedResult implements ServerResult
 {
     /**
-     * @var list<ResourceTemplate>
-     */
-    public array $resourceTemplates;
-
-    /**
      * @param list<ResourceTemplate> $resourceTemplates
      */
     public function __construct(
-        array $resourceTemplates,
+        public array $resourceTemplates,
         int $ttlMs,
         CacheScope $cacheScope,
         ?Cursor $nextCursor = null,
@@ -59,8 +54,6 @@ final readonly class ListResourceTemplatesResult extends PaginatedResult impleme
             ->isList('"result.resourceTemplates" must be a list, non-list array given.')
             ->values()->isInstanceOf(ResourceTemplate::class)
         ;
-
-        $this->resourceTemplates = $resourceTemplates;
 
         parent::__construct(ttlMs: $ttlMs, cacheScope: $cacheScope, nextCursor: $nextCursor, meta: $meta);
     }
