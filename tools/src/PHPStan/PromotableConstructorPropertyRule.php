@@ -96,8 +96,7 @@ final class PromotableConstructorPropertyRule implements Rule
                 }
             }
 
-            // A property narrower than its parameter is the documented exception: the constructor
-            // body is what narrows, and a promoted property could only restate the wider type.
+            // A promoted property's type is its parameter's type, so a divergence cannot be promoted.
             if (null === $parameterType || ! $propertyType->equals($parameterType)) {
                 continue;
             }

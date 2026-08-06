@@ -12,10 +12,8 @@ declare(strict_types=1);
  */
 
 /*
- * Shared bootstrap for the conformance harness. The examples' own bootstrap
- * already registers the autoloader, `PsrLogger`, and an uncaught-exception
- * handler, and `PsrHttpAdapter` is the same PSR-15 to `amphp/http-server`
- * bridge the harness needs, so both are reused rather than duplicated.
+ * Shared bootstrap for the conformance harness, layered on the examples' own
+ * bootstrap and PSR-15 to `amphp/http-server` bridge.
  */
 
 require __DIR__.'/../examples/bootstrap.php';

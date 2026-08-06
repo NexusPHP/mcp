@@ -17,9 +17,8 @@ use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\RequestId;
 
 /**
- * Thrown when an inbound-request handler invokes the `SenderInterface::sendRequest()`
- * stub before the corresponding outbound-request machinery has been implemented
- * for the dispatching side.
+ * Thrown when an inbound-request handler invokes `SenderInterface::sendRequest()`
+ * on a sender that cannot carry server-to-client requests.
  */
 final class OutboundRequestsNotSupportedException extends AbstractJsonRpcProtocolException
 {

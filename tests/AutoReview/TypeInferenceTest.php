@@ -60,10 +60,8 @@ final class TypeInferenceTest extends TypeInferenceTestCase
 
     /**
      * Asserts the data file contains a `ShortName::getMethod()` reference for
-     * every concrete subclass of the given base. The literal-string return
-     * type pinned by these assertions is the load-bearing contract. Without
-     * an entry per class, a regression to a wider `non-empty-string` would
-     * slip through. Extend the data file rather than relax this gate.
+     * every concrete subclass of the given base. A class with no entry could
+     * widen its return type to `non-empty-string` unnoticed.
      *
      * @param class-string $base
      */

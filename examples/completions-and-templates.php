@@ -49,9 +49,6 @@ use function Amp\async;
  * Builds a completion callback that suggests whichever candidates start with what
  * has been typed so far.
  *
- * A named function rather than a closure, so the `@param` binds to something: on a
- * closure assignment the docblock documents the variable, not the signature.
- *
  * @param list<string> $candidates
  *
  * @return Closure(string, ?array<string, string>, ServerContext): CompleteResult
@@ -146,9 +143,7 @@ try {
 
     fwrite(\STDOUT, "=== resources/read users://alice (matched against the template) ===\n");
 
-    // A read can answer `InputRequiredResult` instead, when the server needs something
-    // from the user first. This one never does, so the branch is a guard rather than a
-    // second code path. See docs/client.md for what answering it looks like.
+    // A read can answer `InputRequiredResult` when the server needs input first. See docs/client.md.
     $resource = $client->readResource('users://alice');
 
     if ($resource instanceof ReadResourceResult) {

@@ -717,7 +717,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         EventLoop::run();
 
         // Real elapsed time, not an injected reading: a default clock that never advances would leave
-        // `maxRestarts` a lifetime budget, which is the unsoundness the window replaced.
+        // `maxRestarts` a lifetime budget.
         delay(0.05);
 
         self::connectionAt($spawned, 1)->emitUnexpectedExit();

@@ -62,7 +62,7 @@ final class Rfc3986UriValidatorTest extends AbstractMcpTestCase
     }
 
     /**
-     * The `string $uri` parameter type is deliberate: it widens past the
+     * The `string $uri` parameter type widens past the
      * literal-string types PHPStan would otherwise pin on the data-provider
      * values, so the validator's `@phpstan-assert non-empty-string $uri`
      * doesn't produce always-false / already-narrowed errors at the call site.

@@ -303,9 +303,7 @@ $register('sep-2322-client-request-state', static function (string $serverUrl) u
 
 /*
  * The `client_id` the CIMD scenario expects to see. The referee compares the string and never
- * fetches the document, so nothing has to serve it. It is carried by every OAuth scenario because
- * `ClientRegistrar` reaches for it only where the authorization server advertises
- * `client_id_metadata_document_supported`, which makes the priority order it sits in observable.
+ * fetches the document, so nothing has to serve it.
  */
 $clientIdMetadataDocumentUrl = 'https://conformance-test.local/client-metadata.json';
 

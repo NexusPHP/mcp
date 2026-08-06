@@ -163,7 +163,6 @@ final class TasksServerExtensionTest extends AbstractMcpTestCase
             ))
         ;
 
-        // Building proves the decorator seam accepts the extension end to end.
         $this->expectNotToPerformAssertions();
         $builder->build();
     }

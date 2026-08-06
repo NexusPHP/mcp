@@ -89,11 +89,8 @@ final class JsonRpcMethodRegistryTest extends AbstractMcpTestCase
     }
 
     /**
-     * Verifies the registry's iteration order matches `sort()` on its keys.
-     * The order itself is human-meaningful (entries are easier to find when
-     * grouped by method-name prefix), so a regression (e.g. appending a
-     * new entry at the bottom instead of at its sorted position) should
-     * fail the build rather than silently drift.
+     * Asserts the registry's iteration order matches `sort()` on its keys, so
+     * entries stay grouped by method-name prefix.
      *
      * @param array<non-empty-string, class-string> $registry
      */

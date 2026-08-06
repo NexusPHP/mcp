@@ -25,8 +25,8 @@ use Nexus\Mcp\Server\RequestStateSigner;
 use Nexus\Mcp\Server\ServerContext;
 
 /**
- * The multi-round-trip half of the conformance fixture, kept apart from
- * `EverythingServer` because every method here answers over two or more rounds.
+ * The multi-round-trip half of the conformance fixture: every method here
+ * answers over two or more rounds.
  *
  * Each method returns an `InputRequiredResult` while it still needs input from the
  * client, and a complete result once it has what it asked for. A client resends only
@@ -38,8 +38,7 @@ final class MultiRoundServer
     use ElicitationHelpers;
 
     /**
-     * A per-process signing key. A real server would load one from configuration so a
-     * state stays valid across restarts and behind a load balancer.
+     * A per-process signing key.
      */
     private readonly RequestStateSigner $states;
 

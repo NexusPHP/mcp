@@ -52,7 +52,7 @@ features on that list. Those rows say so explicitly and name the replacement.
 | --- | --- | --- |
 | 37 | Streamable HTTP transport (client) | [`StreamableHttpClientTransport`](transports.md#streamablehttpclienttransport) |
 | 38 | Streamable HTTP transport (server) | [`StreamableHttpServerTransport`](transports.md#streamablehttpservertransport) |
-| 39 | SSE transport, legacy (client) | Not implemented: the HTTP+SSE transport was deprecated in 2025-03-26, before this SDK existed. |
+| 39 | SSE transport, legacy (client) | Not implemented: the HTTP+SSE transport was deprecated in 2025-03-26 and is absent from the targeted revision. |
 | 40 | SSE transport, legacy (server) | Not implemented, with row 39. |
 | 41 | stdio transport (client) | [`StdioClientTransport`](transports.md#stdioclienttransport), plus [`SupervisedTransport`](transports.md#supervisedtransport) for restart supervision |
 | 42 | stdio transport (server) | [`StdioServerTransport`](transports.md#stdioservertransport) |

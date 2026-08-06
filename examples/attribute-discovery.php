@@ -53,9 +53,7 @@ final class Concierge
     #[AsTool(description: 'Returns a canned weather report for a city.')]
     public function weather(string $city, ServerContext $context, string $unit = 'celsius'): string
     {
-        // `ServerContext` is injected rather than exposed to the client, so it never
-        // appears in the generated `inputSchema`. Progress is the one out-of-band
-        // signal a handler can raise: logging was removed from the protocol at 2026-07-28.
+        // Progress is the one out-of-band signal a handler can raise mid-call.
         $context->reportProgress(progress: 1.0, total: 1.0, message: sprintf('Looking up weather for %s.', $city));
 
         $temperature = 'fahrenheit' === $unit ? '72 °F' : '22 °C';

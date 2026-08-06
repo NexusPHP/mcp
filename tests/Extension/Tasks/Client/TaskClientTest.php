@@ -454,8 +454,7 @@ final class TaskClientTest extends AbstractMcpTestCase
         $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             // A finite request timeout turns an exhausted response script into
-            // a fast failure instead of a hang, which keeps mutants that add
-            // extra polls killable rather than timing out.
+            // a fast failure instead of a hang.
             ->setRequestTimeout(0.5)
             ->enableExtension(new TasksClientExtension())
             ->build()

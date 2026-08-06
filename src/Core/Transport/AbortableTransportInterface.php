@@ -17,8 +17,7 @@ use Nexus\Mcp\Core\Schema\RequestId;
 
 /**
  * A transport whose in-flight work can be stopped one request at a time, rather than only wholesale by
- * `close()`. The inbound counterpart is `CancellableTransportInterface`, which reports a peer abandoning
- * a request the caller is serving.
+ * `close()`. `CancellableTransportInterface` is the inbound counterpart.
  */
 interface AbortableTransportInterface extends TransportInterface
 {

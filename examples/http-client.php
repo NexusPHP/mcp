@@ -99,8 +99,7 @@ try {
 
 function renderText(CallToolResult|InputRequiredResult $result): string
 {
-    // A tool can ask for input before it will finish. These tools never do, so this
-    // says so rather than branching. docs/client.md covers answering one.
+    // A tool can ask for input before it will finish. See docs/client.md.
     if ($result instanceof InputRequiredResult) {
         return '(the server asked for input first)';
     }

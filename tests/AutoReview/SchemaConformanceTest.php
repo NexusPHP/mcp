@@ -1208,9 +1208,7 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
      * `ServerResult` is recorded separately as a structural license, not
      * folded into the explicit members list.
      *
-     * Unions whose PHP marker class/interface does not yet exist (because the
-     * type hasn't been built in this SDK yet) are filtered out so the test
-     * stays green until the marker lands.
+     * Unions with no PHP marker class/interface are filtered out.
      *
      * @return array<string, array{members: list<string>, allowsResultSubclass: bool}>
      */

@@ -94,9 +94,7 @@ try {
     }
 
     fwrite(\STDOUT, "\n=== tools/call add (a=2, b=3) ===\n");
-    // A tool can answer `InputRequiredResult` instead, when it needs something from
-    // the user before it can finish. This one never does, so the branch is a guard
-    // rather than a second code path. docs/client.md covers answering one.
+    // A tool can answer `InputRequiredResult` when it needs input first. See docs/client.md.
     $result = $client->callTool(name: 'add', arguments: ['a' => 2, 'b' => 3]);
 
     if ($result instanceof CallToolResult) {

@@ -198,7 +198,6 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $dispatcher = self::buildDispatcher($outbound);
         $transport = new RecordingTransport();
 
-        // result is not a JSON object - parser will reject.
         $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'result' => 'not-an-object'], $transport, new ReceiveContext());
 
         $dispatcher->flushPending();
@@ -233,9 +232,6 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $dispatcher = self::buildDispatcher($outbound, logger: $logger);
         $transport = new RecordingTransport();
 
-        // Response envelope with no pending entry. dispatchResponseEnvelope handles it and must NOT
-        // fall through into the request/notification parse branch (which would log a "malformed
-        // notification" info entry because the response envelope lacks a method).
         $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 999, 'result' => []], $transport, new ReceiveContext());
 
         $dispatcher->flushPending();
@@ -264,11 +260,10 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         );
         $transport = new RecordingTransport();
 
-        // First dispatch with id 1 - handler throws.
         $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
         $dispatcher->flushPending();
 
-        // Second dispatch with the SAME id 1. The finally block must have released it.
+        // The finally block must have released the id.
         $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
         $dispatcher->flushPending();
 
@@ -500,7 +495,6 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $dispatcher = self::buildDispatcher($outbound, logger: $logger);
         $transport = new RecordingTransport();
 
-        // notifications/cancelled is a notification method but sent with an id.
         $dispatcher->dispatch([
             'jsonrpc' => '2.0',
             'id' => 1,
@@ -542,7 +536,6 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $dispatcher = self::buildDispatcher($outbound, logger: $logger);
         $transport = new RecordingTransport();
 
-        // Bad jsonrpc version on a request envelope. Parser raises InvalidRequestException.
         $envelope = ['jsonrpc' => '1.0', 'id' => 7, 'method' => 'tests/test-request'];
         $dispatcher->dispatch($envelope, $transport, new ReceiveContext());
 
@@ -561,7 +554,6 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $dispatcher = self::buildDispatcher($outbound, logger: $logger);
         $transport = new RecordingTransport();
 
-        // Bad jsonrpc version on a notification (no id) envelope.
         $envelope = ['jsonrpc' => '1.0', 'method' => 'notifications/cancelled'];
         $dispatcher->dispatch($envelope, $transport, new ReceiveContext());
 
@@ -756,7 +748,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     public function testErrorResponseUsesExceptionRequestIdWhenSetEvenIfDifferentFromIncomingRequestId(): void
     {
         // The toErrorResponse helper coalesces $exception->requestId over the fallback. ResourceNotFoundException
-        // carries no requestId, so the fallback (request->id) is used. Test pinning the coalesce direction.
+        // carries no requestId, so the fallback (request->id) is used.
         $outbound = new PendingOutboundRequests();
         $dispatcher = self::buildDispatcher(
             $outbound,

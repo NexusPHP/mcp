@@ -174,7 +174,8 @@ finishes right as the transport closes would lose its response to a race with th
   arguments and results are validated against the tool's declared `inputSchema` / `outputSchema` (pluggable
   via `SchemaValidatorInterface`), and a `structuredContent`-only result is mirrored into a `TextContent`
   block for backwards compatibility.
-- What we do not have yet: tasks and MCP Apps.
+- Official extensions, each opt-in: Tasks and MCP Apps. See [server tasks](server/tasks.md) and
+  [server apps](server/apps.md).
 - What we deliberately omit: sampling, roots, and logging. SEP-2577 deprecated them, and the spec tells new
   implementations not to adopt a deprecated feature, so a greenfield SDK carries none of them. One
   consequence reaches the input-required flow: the spec's `InputRequest` union is

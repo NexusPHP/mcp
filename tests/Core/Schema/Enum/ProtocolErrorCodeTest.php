@@ -51,7 +51,6 @@ final class ProtocolErrorCodeTest extends AbstractMcpTestCase
 
     public function testProtocolErrorCodeFollowsJsonRpcSpecification(): void
     {
-        // JSON-RPC spec error codes are in range -32768 to -32000
         foreach (ProtocolErrorCode::cases() as $case) {
             self::assertGreaterThanOrEqual(-32768, $case->value);
             self::assertLessThanOrEqual(-32000, $case->value);

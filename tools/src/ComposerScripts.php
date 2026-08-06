@@ -64,8 +64,7 @@ final class ComposerScripts
 
     /**
      * Installs the native binaries used by the `lint:*` composer scripts when
-     * missing. Mirrors the bootstrap pattern that `tools/composer.json` provides
-     * for PHP dev tools.
+     * missing.
      */
     public static function installDocLinters(): void
     {

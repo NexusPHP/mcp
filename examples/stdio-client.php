@@ -80,9 +80,7 @@ try {
 
     fwrite(\STDOUT, "=== resources/read example://about ===\n");
 
-    // A read can answer `InputRequiredResult` instead, when the server needs something
-    // from the user first. This one never does, so the branch is a guard rather than a
-    // second code path. See docs/client.md for what answering it looks like.
+    // A read can answer `InputRequiredResult` when the server needs input first. See docs/client.md.
     $about = $client->readResource('example://about');
 
     if ($about instanceof ReadResourceResult) {
@@ -104,8 +102,7 @@ try {
 
 function renderText(CallToolResult|InputRequiredResult $result): string
 {
-    // A tool can ask for input before it will finish. These tools never do, so this
-    // says so rather than branching. docs/client.md covers answering one.
+    // A tool can ask for input before it will finish. See docs/client.md.
     if ($result instanceof InputRequiredResult) {
         return '(the server asked for input first)';
     }

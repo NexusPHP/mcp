@@ -82,7 +82,6 @@ final class EverythingServer
 
     /**
      * The referee drives these to prove a mutated listing reaches an open `subscriptions/listen` stream.
-     * They are the one place the fixture reaches for the stores rather than declaring through attributes.
      */
     #[AsTool(name: 'test_trigger_tool_change', description: 'Adds a tool, changing the tool list.')]
     public function triggerToolChange(): string
@@ -240,8 +239,7 @@ final class EverythingServer
     /**
      * The `server-stateless` scenario calls this without a `logLevel` in the request
      * `_meta` and asserts no log notification comes back. The SDK emits none at all,
-     * logging having been removed at the 2026-07-28 cut, so the requirement holds
-     * trivially. The tool exists so the referee can assert that rather than skip.
+     * so the requirement holds trivially.
      */
     #[AsTool(name: 'test_logging_tool', description: 'Would log if the request asked for logs.')]
     public function loggingTool(ServerContext $context): string

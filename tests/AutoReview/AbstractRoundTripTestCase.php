@@ -198,7 +198,7 @@ abstract class AbstractRoundTripTestCase extends AbstractMcpTestCase
     /**
      * Asserts the decoded fixture is a string-keyed map (a JSON object). PHPUnit
      * has no built-in equivalent that produces the `array<string, mixed>` shape
-     * downstream callers need, so we narrow here.
+     * downstream callers need.
      *
      * @param array<array-key, mixed> $value
      *

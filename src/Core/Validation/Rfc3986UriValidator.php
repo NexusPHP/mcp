@@ -21,8 +21,7 @@ use Nexus\Assert\ExpectationFailedException;
  * (no whitespace or control characters) and a scheme + optional authority +
  * path/query/fragment structure. Used by spec types whose `uri` field is a
  * generic resource identifier with no scheme restriction (e.g. `Resource`,
- * `ResourceContents`). Stricter checks like `Implementation.websiteUrl`'s
- * HTTP/HTTPS-only regex stay at the call site.
+ * `ResourceContents`).
  *
  * @internal
  *

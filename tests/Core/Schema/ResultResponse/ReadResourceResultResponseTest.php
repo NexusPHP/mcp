@@ -22,8 +22,6 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
- * \@internal.
- *
  * @internal
  */
 #[CoversClass(ReadResourceResultResponse::class)]

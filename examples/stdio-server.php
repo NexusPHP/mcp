@@ -15,8 +15,7 @@ declare(strict_types=1);
  * An interactive MCP server speaking line-framed JSON-RPC over STDIN/STDOUT.
  *
  * "Interactive" here means tools that emit server-to-client traffic during
- * execution: `notifications/progress` (per-step progress reports). The
- * server-initiated `elicitation/create` request is not yet supported.
+ * execution: `notifications/progress` (per-step progress reports).
  *
  * Spawn from an MCP client (e.g. Claude Desktop) with:
  *

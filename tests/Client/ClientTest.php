@@ -300,8 +300,7 @@ final class ClientTest extends AbstractMcpTestCase
         $transport->emitError($error);
 
         try {
-            // Bounded: a client that does not fail the caller leaves this awaiting forever, and the point
-            // of the test is that it must not. Without the bound that reads as a hang, not a failure.
+            // Bounded: without it, a client that never fails the caller reads as a hang, not a failure.
             $deferred->await(new TimeoutCancellation(1.0));
             self::fail('Expected the caller to be failed rather than left awaiting a response that cannot arrive.');
         } catch (OutboundRequestFailedException $e) {
@@ -2291,7 +2290,7 @@ final class ClientTest extends AbstractMcpTestCase
         self::assertTrue($replayed->params->notifications->toolsListChanged);
 
         // A fresh peer knows nothing, so the replay has to carry the same self-describing `_meta` the
-        // first send did. This is the only assertion covering that on either path.
+        // first send did.
         self::assertSame(ProtocolVersion::LATEST_VERSION, $replayed->params->meta->protocolVersion->version);
         self::assertSame('demo', $replayed->params->meta->clientInfo?->name);
 
@@ -2685,8 +2684,7 @@ final class ClientTest extends AbstractMcpTestCase
     }
 
     /**
-     * Every entry of the allowlist, since a class-const array generates no mutant and dropping one would
-     * otherwise go unnoticed.
+     * Every entry of the retryable-method allowlist.
      *
      * @return iterable<string, array{\Closure(Client): mixed, non-empty-string}>
      */

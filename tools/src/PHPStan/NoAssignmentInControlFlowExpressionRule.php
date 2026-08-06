@@ -58,8 +58,7 @@ final class NoAssignmentInControlFlowExpressionRule implements Rule
      */
     private static function resolveKeyword(Node\Stmt $node): ?string
     {
-        // A `return` only offends when the assignment IS the returned expression. One nested inside a
-        // call argument is a separate concern the fixer does not police.
+        // A nested call argument is `NoAssignmentInCallArgumentRule`'s concern, reported against its own call.
         if ($node instanceof Node\Stmt\Return_) {
             return self::isAssignment($node->expr) ? 'return' : null;
         }

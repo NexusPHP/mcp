@@ -196,7 +196,6 @@ final class ServerTest extends AbstractMcpTestCase
     }
 
     /**
-     * Proves `run()` attaches a drain listener to `dispatcher->flushPending()`.
      * `InMemoryTransport` throws `TransportAlreadyClosedException` on
      * send-after-close, so without the drain step the async dispatch coroutine
      * would lose the race and the client would never see a response.

@@ -19,8 +19,7 @@ use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
 
 /**
- * Rejects the `*Trait` suffix. Traits need their own node type because PHPStan emits `InClassNode`
- * for the classes that use a trait, never for the trait declaration itself.
+ * Rejects the `*Trait` suffix.
  *
  * @implements Rule<Node\Stmt\Trait_>
  *
@@ -31,6 +30,7 @@ final class TraitNamingRule implements Rule
     #[\Override]
     public function getNodeType(): string
     {
+        // PHPStan emits `InClassNode` for the classes that use a trait, never for the declaration itself.
         return Node\Stmt\Trait_::class;
     }
 

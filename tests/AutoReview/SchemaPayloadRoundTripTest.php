@@ -44,9 +44,7 @@ final class SchemaPayloadRoundTripTest extends AbstractRoundTripTestCase
      * Concrete `Arrayable` classes under these namespaces ship inside a
      * JSON-RPC envelope and are exercised by `JsonRpcEnvelopeRoundTripTest`
      * (request/notification/result/error wrappers, plus the params bags
-     * carried by their parent request/notification). Excluding them here
-     * avoids double coverage and keeps schema-payload focused on value
-     * objects with standalone identity.
+     * carried by their parent request/notification).
      */
     private const array WIRE_ENVELOPE_NAMESPACES = [
         'Nexus\\Mcp\\Core\\Schema\\Error\\',

@@ -2,7 +2,7 @@
 
 Scope selection starts from the `scope` a challenge names, falling back to `defaultScopes` if you declared any,
 then to the resource's `scopes_supported`, and omitting the parameter entirely if none of those names anything.
-The first two rungs are the spec's; `defaultScopes` is an extra tier the SDK adds so you can avoid asking for
+The first two rungs are the spec's. `defaultScopes` is an extra tier the SDK adds so you can avoid asking for
 everything a resource happens to advertise when your client only needs part of it. Since servers *should* name
 a `scope` in the challenge, `defaultScopes` mostly bites against servers that omit it. Whatever the baseline,
 the scopes already granted are unioned on top, and they survive a token being dropped, so re-authorizing never

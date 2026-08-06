@@ -66,7 +66,7 @@ final class Rfc6570UriTemplateValidatorTest extends AbstractMcpTestCase
     }
 
     /**
-     * The `string $uriTemplate` parameter type is deliberate: it widens past the
+     * The `string $uriTemplate` parameter type widens past the
      * literal-string types PHPStan would otherwise pin on the data-provider
      * values, so the validator's `@phpstan-assert non-empty-string $uriTemplate`
      * doesn't produce always-false / already-narrowed errors at the call site.

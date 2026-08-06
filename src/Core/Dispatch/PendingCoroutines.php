@@ -22,8 +22,7 @@ use function Amp\Future\awaitAll;
 /**
  * Tracks coroutines (`Amp\Future`) spawned during inbound dispatch so a transport
  * `onDrain` listener can await them all before close. Each tracked future
- * removes itself on settle. Counting reports the ones holding a dispatch slot, which is
- * a subset: a drain awaits more than a cap counts.
+ * removes itself on settle.
  *
  * @internal
  */
