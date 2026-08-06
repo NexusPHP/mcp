@@ -8,6 +8,19 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp/commits/1.x)
 
+## [v0.9.0](https://github.com/NexusPHP/mcp/compare/v0.8.0...v0.9.0) - 2026-08-06
+
+This release closes the extensions backlog with the two ratified OAuth extensions, client
+credentials (SEP-1046) and enterprise-managed authorization (SEP-990), completing the final block of
+the 2026-07-28 migration. Both are unattended machine grants that run in place of the
+authorization-code round trip, so the client's grant-strategy seam ships as public API alongside
+them: an OAuth grant this SDK does not model is a class you can write yourself. Three breaking
+changes ride along (see [BREAKING_CHANGES.md](BREAKING_CHANGES.md)). Constructor parameters now
+declare the narrow types their properties always carried, which changes nothing at runtime but
+surfaces in a consumer's static analysis. Resource request params hold `uri` to the RFC 3986 shape
+the spec's `format: uri` fixes. And `ScopeSet` enforces its element type rather than only
+documenting it. With the extensions block complete, v1.0.0 is gated only on the component split.
+
 ### Added
 
 - The OAuth client credentials extension (`io.modelcontextprotocol/oauth-client-credentials`,

@@ -75,8 +75,8 @@ deprecations only: a deprecation that mirrors a spec feature follows the spec's 
 
 ## MCP spec revisions
 
-Each release tracks one MCP spec revision. The current line tracks **2025-11-25**, with **2026-07-28**
-next. Adopting a new revision is not, on its own, a major release. The spec defines a feature lifecycle
+Each release tracks one MCP spec revision. The current line tracks **2026-07-28**. Adopting a new
+revision is not, on its own, a major release. The spec defines a feature lifecycle
 ([MCP SEP-2596](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/seps/2596-spec-feature-lifecycle-and-deprecation.md)):
 a feature is first marked **Deprecated** (with an `@deprecated` schema annotation and a changelog entry) and
 stays in the spec for at least twelve months before it becomes eligible for **Removal**. The SDK mirrors
