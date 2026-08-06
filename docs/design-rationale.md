@@ -87,9 +87,13 @@ Some omissions are choices, not gaps:
 - **No sampling, roots, or logging.** SEP-2577 deprecated all three, and the spec tells new implementations
   not to adopt a deprecated feature. A greenfield SDK carries none of them rather than shipping surface it
   would have to remove.
-- **No back-compat for superseded spec revisions.** The SDK tracks one protocol revision at a time. The
-  2026-07-28 migration is a single coordinated cut with no compatibility shim, because carrying two
-  protocols permanently would cost more than the one-time port (see [ROADMAP.md](../ROADMAP.md)).
+- **No server-initiated requests.** The 2026-07-28 revision replaces the `ServerRequest` union with
+  `InputRequest`, whose members ride an `InputRequiredResult` payload rather than travelling as
+  dispatchable JSON-RPC requests. `RequestBoundSender::sendRequest()` rejecting an outbound request is
+  therefore the finished behaviour, not a stub awaiting an implementation.
+- **No back-compat for superseded spec revisions.** The SDK tracks one protocol revision at a time.
+  Porting to a new revision is a single coordinated cut with no compatibility shim, documented in
+  [BREAKING_CHANGES.md](../BREAKING_CHANGES.md).
 
 ## See also
 
