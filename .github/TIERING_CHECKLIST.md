@@ -4,9 +4,9 @@ Based on [SEP-1730: SDKs Tiering System](https://github.com/modelcontextprotocol
 
 **Target Tier**: Tier 2, self-assessed (only Tier 3 is claimable pre-1.0, and assignment currently runs for official SDKs only, per "How tiering works" below)
 
-**Target spec**: `2026-07-28`, which the SDK implements exclusively. See "Conformance suite: scenarios to pass" for the measured standing and for which scenarios the tier percentage is scored over.
+**Target spec**: `2026-07-28`, which the SDK implements exclusively.
 
-**Last Updated**: 2026-08-04
+**Last Updated**: 2026-08-06
 
 ---
 
@@ -14,9 +14,32 @@ Based on [SEP-1730: SDKs Tiering System](https://github.com/modelcontextprotocol
 
 The published governance page ([`docs/community/sdk-tiers.mdx`](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/docs/community/sdk-tiers.mdx)) covers **both official and community-driven SDKs**, and tiers are **request-based**: self-assess, open an issue in `modelcontextprotocol/modelcontextprotocol` with supporting evidence, pass the automated conformance suite, then the SDK Working Group approves and makes the final assignment. Assignment practice has not caught up with that page: the one community application on record ([mcp#2814](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/2814)) was declined with "at this time, the tiering only applies to official MCP SDKs that have broader community adoption", consistent with the page's own phased key dates (official SDK tiering published first, no date for community SDKs). Until community applications open, this checklist is a self-assessment, and the step before applying at a stable release is asking the working group whether they have.
 
-- **Conformance is the gate.** Scored against **applicable required tests only**: the spec version the SDK targets, excluding pending/skipped tests, experimental-feature tests, and legacy back-compat tests (unless legacy support is claimed). The actual `tier-check` tool diverges from this wording in several places (target-version filter off by default, draft scenarios non-scoring, SLA metrics reworded): see "Drift: SEP mandates vs conformance repo".
-- **Relegation.** An SDK drops a tier if conformance tests on its latest stable release fail continuously for 4 weeks. (Not implemented by the tool, which is a point-in-time scorer. See Drift.)
-- **Where we stand.** Pre-1.0, only **Tier 3** is claimable (no stable-release or conformance minimum). **Tier 2** needs a stable 1.0-class release plus 80% conformance, and the conformance side already measures 100% on both legs. The assignment itself waits on `v1.0.0` and on community applications opening.
+- **Conformance is the gate.** Scored against **applicable required tests only**: the spec version the SDK targets, excluding pending/skipped tests, experimental-feature tests, and legacy back-compat tests (unless legacy support is claimed). The `tier-check` tool diverges from this wording in several places: see [Drift](#drift-sep-mandates-vs-the-conformance-repo).
+- **Relegation.** An SDK drops a tier if conformance tests on its latest stable release fail continuously for 4 weeks. Not implemented by the tool, which is a point-in-time scorer.
+- **Pre-1.0, only Tier 3 is claimable** (no stable-release or conformance minimum). Tier 2 needs a stable 1.0-class release plus 80% conformance. The assignment waits on `v1.0.0` and on community applications opening.
+
+---
+
+## Where we stand
+
+This is the single source of truth for measured standing. Every requirement below links here rather than restating a number.
+
+**Referee**: `@modelcontextprotocol/conformance@0.2.0-alpha.10`, pinned in [`conformance/run-server.sh`](../conformance/run-server.sh) and [`conformance/run-client.sh`](../conformance/run-client.sh). **Spec**: `2026-07-28`.
+
+Two measurements answer different questions, and conflating them is what makes tier numbers look inconsistent:
+
+| | Suite | Server | Client | What it answers |
+| --- | --- | --- | --- | --- |
+| **Tier score** | referee default (`active`) | 20/20 scenarios | 15/15 scenarios | What `tier-check` counts toward the tier percentage |
+| **Full sweep** | `--suite all` | 46/50 scenarios, 142/146 checks | 35/35 scenarios, 348/348 checks | What this SDK's own CI gates on |
+
+Full-sweep totals: **81/85 scenarios, 490/494 checks (99.2%)**, split 439/443 spec checks and 51/51 extension checks, with 0 unmet SHOULD checks and 14 skipped (excluded from the denominator).
+
+Both tier-scored legs pass outright at 100%. The 4 full-sweep failures are the four entries in [`conformance/expected-failures.yaml`](../conformance/expected-failures.yaml), none of which sit in the `active` suite, so they do not bear on the tier score. Each needs the server to emit an `InputRequest` for `sampling/createMessage` or `roots/list`, both of which `latest-schema.ts` marks `@deprecated` as of 2026-07-28 (SEP-2577). The upstream resolution is tracked at [conformance#439](https://github.com/modelcontextprotocol/conformance/issues/439). The client half of the baseline is empty.
+
+Reproduce with `composer conformance:server`, `composer conformance:client`, then `composer conformance:score`. The referee exits non-zero on an unlisted failure and on a stale baseline entry, so the list burns down rather than rotting.
+
+**Tier verdict**: `tier-check` reports **Tier 3**, with `Stable Release` as the single failing check. Conformance, labels (12 of 12), triage, and P0 resolution all pass. `Policy Signals` reports partial because this repository keeps `DEPENDENCY_POLICY.md`, `ROADMAP.md`, `BREAKING_CHANGES.md`, and `VERSIONING.md` at the root rather than under `docs/`, and uses `.github/dependabot.yml` in place of a Renovate config.
 
 ---
 
@@ -26,7 +49,7 @@ The published governance page ([`docs/community/sdk-tiers.mdx`](https://github.c
 
 - [x] **SDK Implementation Started**
   - Reference: Basic MCP protocol support available
-  - Notes: full server + client against MCP 2025-11-25 over stdio (tools, prompts, resources incl. RFC 6570 templates, completions, logging, ping). See ROADMAP.md
+  - Notes: full server and client against MCP 2026-07-28 over stdio and Streamable HTTP (tools, prompts, resources incl. RFC 6570 templates, completions, subscriptions, the input-required flow), plus the three official extensions
 
 ---
 
@@ -36,54 +59,49 @@ The published governance page ([`docs/community/sdk-tiers.mdx`](https://github.c
 
 ### Feature Completeness
 
-- [ ] **80% Conformance Tests Pass**
-  - Reference: [Conformance Test Suite](https://github.com/modelcontextprotocol/conformance). Exact scenarios in "Conformance suite: scenarios to pass" below
-  - Threshold: 80% of the scored set, which is the carried-forward scenarios (see "Scoring model" below). Server **20 of 20**, client **15 of 15**: both legs pass outright
-  - Evidence/Notes: both modes run and are measured at `--spec-version 2026-07-28 --suite all`. As of 2026-07-28: server **102 of 106 checks**, client **332 of 332**, combined **434 of 438 (99.1%)**
+- [x] **80% Conformance Tests Pass**
+  - Reference: [Conformance Test Suite](https://github.com/modelcontextprotocol/conformance)
+  - Threshold: 80% of the tier-scored set. Both legs pass at 100%: see [Where we stand](#where-we-stand)
   - Run: `composer conformance:server` then `composer conformance:score`
 
 ### Implementation Timeline
 
-- [ ] **New Protocol Features Within 6 Months**
+- [x] **New Protocol Features Within 6 Months**
   - Reference: SEP-1730 Tier 2 requirement
-  - Currently implemented: 2025-11-25 (stdio). Target: the dated `2026-07-28` release, adopted at v1.0
-  - Next Spec Release: 2026-07-28 (dated tag published 2026-07-28)
-  - Evidence/Notes: forward commitment, assessed once we publish a stable release
+  - Implemented: `2026-07-28`, the current revision, on both transports
+  - Evidence/Notes: the dated tag published 2026-07-28 and the migration shipped in v0.6.0 on 2026-08-03
 
 ### Maintenance & Issue Management
 
 - [ ] **Issue Triage Within a Month**
   - Reference: SEP-1730 Tier 2 requirement (triage = label + validity assessment, not resolution)
-  - Evidence/Notes: _________________________
+  - Evidence/Notes: 12 of 12 required labels present. No issues filed yet, so the metric passes over an empty set and demonstrates no track record
 
 - [ ] **Critical Bug (P0) Resolution Within Two Weeks**
   - Reference: SEP-1730 Tier 2 requirement
-  - Evidence/Notes: _________________________
+  - Evidence/Notes: no P0 issues filed. Passes vacuously, same as above
 
 - [ ] **At Least One Stable Release**
   - Reference: Published release with stable API
-  - Evidence/Notes: no stable release yet. 0.x is pre-stable (breaking changes allowed in minors). A stable release means v1.0.0, which lands with the 2026-07-28 migration
-  - Release Tag: none stable. Pre-stable v0.1.0 to v0.5.0 are published on Packagist
+  - Evidence/Notes: **the sole hard blocker.** 0.x is pre-stable (breaking changes allowed in minors). A stable release means v1.0.0, gated on the component split in [ROADMAP.md](../ROADMAP.md)
+  - Release Tag: none stable. v0.1.0 through v0.9.0 are published on Packagist
 
 ### Documentation
 
 - [x] **Basic Documentation for Core Features**
   - Reference: README, getting started guide
-  - Coverage: Core server features, core client features
   - Evidence/Notes: README.md plus docs/getting-started.md, docs/server.md, docs/client.md, docs/transports.md, docs/architecture.md
 
 - [x] **Published Dependency Update Policy**
   - Reference: Document in repository (e.g., DEPENDENCY_POLICY.md)
   - Location: DEPENDENCY_POLICY.md (plus .github/dependabot.yml automation)
-  - Covers: Security patches, minor updates, major updates
-  - Evidence/Notes: DEPENDENCY_POLICY.md published 2026-05-25 (PHP version matrix, security timeline, minor/major/EOL policy)
+  - Covers: Security patches, minor updates, major updates, EOL policy, PHP version matrix
 
 ### Commitment & Roadmap
 
 - [x] **Published Plan Toward Tier 1 (or explanation for remaining Tier 2)**
   - Reference: SEP-1730 Tier 2 requirement. ROADMAP.md or a GitHub project board
-  - Location: ROADMAP.md
-  - Evidence/Notes: ROADMAP.md (phases through the 2026-07-28 migration)
+  - Location: [ROADMAP.md](../ROADMAP.md)
 
 ---
 
@@ -93,51 +111,40 @@ The published governance page ([`docs/community/sdk-tiers.mdx`](https://github.c
 
 ### Feature Completeness
 
-- [ ] **100% Conformance Tests Pass**
-  - Reference: [Conformance Test Suite](https://github.com/modelcontextprotocol/conformance). Exact scenarios in "Conformance suite: scenarios to pass" below
-  - Conformance Version: pinned in [`conformance/run-server.sh`](../conformance/run-server.sh)
-  - Threshold: server `30 of 30`, client `18 of 18` today. Upstream has now dated the version, but the pinned referee still scores only the 2025-dated set, so the 2026-07-28 scenarios (17 server + 17 client) stay informational until a referee release adds `2026-07-28` to its dated list. They become Tier 1 blockers at that point
-  - Evidence/Notes: _________________________
-  - Conformance Score: ___%
+- [x] **100% Conformance Tests Pass**
+  - Reference: [Conformance Test Suite](https://github.com/modelcontextprotocol/conformance)
+  - Standing: both tier-scored legs at 100%: see [Where we stand](#where-we-stand)
 
-- [ ] **Conformance example server + client**
-  - Reference: not a standalone SEP-1730 requirement. This is the harness behind the conformance score above. Mirror the canonical fixtures in the conformance repo's [`everything-server.ts`](https://github.com/modelcontextprotocol/conformance/blob/main/examples/servers/typescript/everything-server.ts), per [SDK_INTEGRATION.md](https://github.com/modelcontextprotocol/conformance/blob/main/SDK_INTEGRATION.md)
-  - Location: `conformance/server.php` + `conformance/client.php`, both built
-  - Canonical fixtures + the full server/client capability contract: see "Conformance suite: scenarios to pass" below. Route the client off the harness scenario names, not the stale keys in `everything-client.ts`
-  - Evidence/Notes: both halves are built and running. `conformance/EverythingServer.php` registers every server capability through attribute discovery, `conformance/client.php` is a scenario-name to closure registry covering the client leg, and `conformance/README.md` documents the run and bump procedure
+- [x] **Conformance example server + client**
+  - Reference: not a standalone SEP-1730 requirement. This is the harness behind the conformance score. Mirrors the canonical fixtures per [SDK_INTEGRATION.md](https://github.com/modelcontextprotocol/conformance/blob/main/SDK_INTEGRATION.md)
+  - Location: `conformance/server.php` + `conformance/client.php`
+  - Evidence/Notes: `conformance/EverythingServer.php` registers every server capability through attribute discovery, `conformance/client.php` is a scenario-name to closure registry covering the client leg, and `conformance/README.md` documents the run and bump procedure. Both halves key on the harness scenario names, matching the upstream [`everything-client.ts`](https://github.com/modelcontextprotocol/conformance/blob/main/examples/clients/typescript/everything-client.ts) registry shape
 
 ### Implementation Timeline
 
-- [ ] **New Protocol Features Before Spec Release**
+- [x] **New Protocol Features Before Spec Release**
   - Reference: SEP-1730 Tier 1 requirement, "before the new spec version release" (timeline agreed per release by feature complexity, not a fixed window)
-  - Context: the 2026-07-28 RC-to-final window ran ~9 weeks (RC tag cut 2026-05-29, dated tag published 2026-07-28). Tier 1 requires building against the RC, not waiting for the final tag, which is what this SDK did
-  - Next Spec Release: 2026-07-28
-  - Evidence/Notes: _________________________
+  - Evidence/Notes: Tier 1 requires building against the RC rather than waiting for the final tag. The 2026-07-28 RC-to-final window ran about 9 weeks (RC tag 2026-05-29, dated tag 2026-07-28), and this SDK built against the RC
 
 ### Maintenance & Support
 
 - [ ] **Issue Triage Within 2 Business Days**
   - Reference: SEP-1730 Tier 1 requirement
-  - GitHub Policy/Template: _________________________
-  - Process Documentation: _________________________
-  - Evidence/Notes: _________________________
+  - Evidence/Notes: label taxonomy in place. Demonstrating a rate requires real issue traffic, so this accrues with adoption
 
 - [ ] **Security & Critical Bug Resolution Within 7 Days**
   - Reference: SEP-1730 Tier 1 requirement
   - Security Policy File: SECURITY.md
-  - Location: repository root
-  - Evidence/Notes: SECURITY.md present. The 7-day resolution SLA is not formally committed yet
+  - Evidence/Notes: SECURITY.md present. The 7-day resolution SLA is not formally committed
 
 - [ ] **Stable Release & Versioning Clearly Documented**
   - Reference: Published versioning policy
-  - Location/File: VERSIONING.md (versioning scheme, breaking-change policy), ROADMAP.md (release sequencing)
-  - Documents: Semantic versioning, release schedule, breaking changes policy
-  - Evidence/Notes: versioning policy now published in VERSIONING.md (SemVer scheme, pre-1.0 caveat, breaking-change definition, deprecation path, spec-revision tracking). Stable 1.0 release still pending
+  - Location/File: VERSIONING.md (SemVer scheme, pre-1.0 caveat, breaking-change definition, deprecation path, spec-revision tracking), BREAKING_CHANGES.md (the port guide), ROADMAP.md (release sequencing)
+  - Evidence/Notes: policy published. The stable 1.0 release itself is pending
 
 - [x] **Published Roadmap**
   - Reference: SEP-1730 Tier 1 requirement
-  - Location: ROADMAP.md
-  - Evidence/Notes: ROADMAP.md
+  - Location: [ROADMAP.md](../ROADMAP.md)
 
 ### Documentation
 
@@ -153,8 +160,7 @@ The published governance page ([`docs/community/sdk-tiers.mdx`](https://github.c
     - [x] Transport configuration (docs/transports.md)
     - [x] Error handling (docs/error-handling.md)
     - [x] Best practices (docs/best-practices.md)
-  - Documentation Location: docs/
-  - Evidence/Notes: per-feature pages under docs/server/, docs/client/, and docs/auth/, plus docs/features.md mapping the conformance repo's 48-row canonical feature list to its documentation
+  - Evidence/Notes: scores 37 of 48 on the SEP-1730 canonical feature list. All 11 misses are features the SDK deliberately does not implement because 2026-07-28 removed or deprecated them, each named with its SEP in [docs/features.md](../docs/features.md). No feature the SDK ships is undocumented, and no documented feature lacks an example. The scoring model is raised upstream at [conformance#441](https://github.com/modelcontextprotocol/conformance/issues/441)
 
 - [x] **Published Dependency Update Policy**
   - Reference: SEP-1730 requirement
@@ -165,27 +171,19 @@ The published governance page ([`docs/community/sdk-tiers.mdx`](https://github.c
     - [x] Major version update policy
     - [x] End-of-life policy for old versions
     - [x] PHP version support matrix
-  - Evidence/Notes: DEPENDENCY_POLICY.md (published 2026-05-25)
 
 ### Quality Standards (internal gates, not SEP-1730 requirements)
 
 - [x] **Static Analysis Passing (PHPStan Level 10)**
-  - Reference: PHPStan
   - Command: `composer phpstan:check`
-  - Evidence: No errors in main codebase
   - Notes: level 10 + strict rules, enforced in CI
 
 - [x] **Code Style Compliance**
-  - Reference: PHP-CS-Fixer, Nexus84 preset from Nexus CS Config
   - Command: `composer cs:check`
-  - Evidence: All files compliant
-  - Notes: enforced in CI
+  - Notes: PHP-CS-Fixer, Nexus83 preset from Nexus CS Config, enforced in CI
 
 - [x] **Full Test Coverage**
-  - Reference: PHPUnit tests
-  - Coverage Target: 100% (Infection MSI + code coverage, enforced)
-  - Command: `composer test:all`
-  - All Tests Pass: Yes
+  - Command: `composer test:with-untracked`
   - Notes: 100% MSI, 100% covered-code MSI, 100% line coverage (infection.json5)
 
 ---
@@ -195,17 +193,13 @@ The published governance page ([`docs/community/sdk-tiers.mdx`](https://github.c
 ### Architecture & Code Quality
 
 - [x] **CONTRIBUTING.md Updated**
-  - Location: Repository root
   - Covers: Development setup, testing, code standards, PR process
-  - Evidence/Notes: CONTRIBUTING.md
 
 - [x] **CODE_OF_CONDUCT.md Present**
-  - Location: Repository root
-  - Evidence/Notes: CODE_OF_CONDUCT.md (Contributor Covenant 2.1)
+  - Evidence/Notes: Contributor Covenant 2.1
 
 - [x] **Proper Exception Handling**
-  - Reference: every SDK exception implements the `McpExceptionInterface` marker, so consumers can `catch (McpExceptionInterface $e)`
-  - Namespaces (every exception implements the `Nexus\Mcp\Core\Exception\McpExceptionInterface` marker):
+  - Reference: every SDK exception implements the `Nexus\Mcp\Core\Exception\McpExceptionInterface` marker, so consumers can `catch (McpExceptionInterface $e)`
     - [x] `Nexus\Mcp\Core\Exception\*`
     - [x] `Nexus\Mcp\Server\Exception\*`
     - [x] `Nexus\Mcp\Client\Exception\*`
@@ -214,56 +208,70 @@ The published governance page ([`docs/community/sdk-tiers.mdx`](https://github.c
 ### Release Management
 
 - [x] **Changelog Maintained (CHANGELOG.md)**
-  - Location: Repository root
-  - Format: Semantic versioning compatible
-  - Evidence/Notes: CHANGELOG.md (Keep a Changelog format, Unreleased section)
+  - Format: Keep a Changelog, semantic-versioning compatible
 
 - [x] **Version Number Consistency**
-  - All packages released at same version
-  - Location of version definition: git tag (composer.json has no version field, umbrella-only during 0.x)
-  - Current Version: v0.5.0
-  - Evidence/Notes: umbrella package only until 1.0 (per ROADMAP.md), so the single version is trivially consistent. Component packages split at v1.0
+  - Location of version definition: git tag (composer.json has no version field)
+  - Current Version: v0.9.0
+  - Evidence/Notes: umbrella package only during 0.x, so the single version is trivially consistent. Component packages split at v1.0
 
 ### Metadata & Discoverability
 
 - [x] **Package Published on Packagist**
-  - Reference: Composer registry
-  - Package Name: `nexusphp/mcp`
-  - Link: https://packagist.org/packages/nexusphp/mcp
-  - Evidence/Notes: published. Latest v0.5.0. Umbrella package only during 0.x. Component packages split at v1.0
+  - Package Name: `nexusphp/mcp` (https://packagist.org/packages/nexusphp/mcp)
+  - Evidence/Notes: published, latest v0.9.0
 
 - [x] **GitHub Repository Properly Configured**
   - Repository URL: https://github.com/NexusPHP/mcp
-  - Topics: `mcp`, `mcp-sdk`, `model-context-protocol` (set). Consider adding `php` / `php-sdk`
-  - Description: "PHP SDK for the MCP specification" (set, clear)
-  - Evidence/Notes: verified 2026-05-30: public, description set, 3 topics set
+  - Topics: `mcp`, `mcp-sdk`, `model-context-protocol`. Consider adding `php` / `php-sdk`
+  - Description: "PHP SDK for the MCP specification"
 
 ---
 
-## Conformance & Validation
+## Running the assessment
 
-### Pre-Submission Self-Assessment
+`tier-check` runs from the pinned referee, so the assessment needs no source checkout. Boot `php conformance/server.php` first.
 
-- [ ] **Run Tiering Assessment Tool**
-  - Reference: [SDK Tier Assessment Tool](https://github.com/modelcontextprotocol/conformance) (build first: `npm ci && npm run build` in `../mcp-conformance`)
-  - Command (policy only, no conformance): `GITHUB_TOKEN="$(gh auth token)" npx -y @modelcontextprotocol/conformance@<pin> tier-check --repo NexusPHP/mcp --skip-conformance --output json`
-  - Output/Evidence: _________________________
-  - Date Run: _________
+```bash
+GITHUB_TOKEN="$(gh auth token)" npx -y @modelcontextprotocol/conformance@0.2.0-alpha.10 tier-check \
+  --repo NexusPHP/mcp \
+  --conformance-server-url http://127.0.0.1:3000/mcp \
+  --client-cmd "php conformance/client.php" \
+  --spec-version 2026-07-28 \
+  --output json
+```
 
-- [ ] **Run Full Conformance Tests**
-  - Reference: [MCP Conformance Framework](https://github.com/modelcontextprotocol/conformance). Scenario lists + run commands in "Conformance suite: scenarios to pass"
-  - Command: `GITHUB_TOKEN="$(gh auth token)" npx -y @modelcontextprotocol/conformance@<pin> tier-check --repo NexusPHP/mcp --conformance-server-url <url> --client-cmd "php conformance/client.php" --spec-version 2026-07-28 --output json`
-  - Conformance Version: the pin in [`conformance/run-server.sh`](../conformance/run-server.sh)
-  - Server Test Results: _________________________ (target 20/20 scored)
-  - Client Test Results: _________________________ (target 15/15 scored)
-  - Baseline File: `conformance/expected-failures.yaml`
-  - Evidence/Notes: _________________________
+Omitting `--conformance-server-url` skips server conformance, and omitting `--client-cmd` skips client conformance. Either skip blocks Tier 1 (a skipped check is not a pass) but is tolerated for the Tier 2 clause. `--skip-conformance` gives the repository-health half on its own.
 
-### Submission Readiness
+**Always pin `--spec-version`.** Without it the referee negotiates 2025-11-25 and omits the `MCP-Protocol-Version` header, which this SDK requires on every request including `initialize`. Every server scenario then fails on `-32020` at the first POST. That is a protocol-negotiation artifact, not a measurement. `draft` is an accepted alias for `2026-07-28`.
+
+### Scoring model
+
+A scenario counts toward the tier percentage only when it is live at one of the **2025 dated versions** (`2025-03-26`, `2025-06-18`, `2025-11-25`). Scenarios live only at `2026-07-28`, and those tagged `extension`, land in a separate bucket the report prints under "Informational (not scored for tier)". The carried-forward scenarios this SDK passes do count. The ones the 2026-07-28 revision introduced do not.
+
+Two rules differ from `composer conformance:score`, and both matter when reading a tier number:
+
+- The tier scorer counts **scenarios**, not checks, and treats a scenario as passed when it has no `FAILURE`. An unmet SHOULD (`WARNING`) does not fail it. `conformance:score` counts checks and holds a `WARNING` against the total, so it reports the stricter figure.
+- A scenario in the expected list that did not run is scored as failed.
+
+`tier-check` also runs **server** conformance at the referee's default `active` suite and **client** conformance at `--suite all`. That asymmetry, plus the check-versus-scenario difference above, is why the two rows in [Where we stand](#where-we-stand) differ.
+
+Inverted naming: **server-mode** scenarios are `ClientScenario` objects under `src/scenarios/server/` (the harness acts as a client against your server, over Streamable HTTP at `POST /mcp`). **Client-mode** scenarios run your client as a subprocess.
+
+### Authorization-server mode
+
+One scenario (`authorization-server-metadata-endpoint`) via a separate `conformance authorization --url <as-url>` path. It is not in the client denominator. Out of scope unless the SDK grows an OAuth authorization server.
+
+### Client subprocess contract
+
+The harness spawns `<command> <serverUrl>` (shell-parsed) and sets `MCP_CONFORMANCE_SCENARIO` (the scenario name, which the client routes on), `MCP_CONFORMANCE_PROTOCOL_VERSION`, and `MCP_CONFORMANCE_CONTEXT` (JSON, auth credentials). Exit 0 = pass, non-zero = fail (tolerated only for negative scenarios). 30s default timeout.
+
+---
+
+## Submission readiness
 
 - [ ] **Evidence & Artifact Links Prepared**
   - For each requirement, collected documentation links
-  - Created summary document with references
   - Location/File: _________________________
 
 - [ ] **Issue Submission Ready for MCP Org**
@@ -271,170 +279,35 @@ The published governance page ([`docs/community/sdk-tiers.mdx`](https://github.c
   - Target Repo: modelcontextprotocol/modelcontextprotocol
   - Format: tier assessment table with evidence links
   - Working Group context: [discussion #2238](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/2238)
-  - Evidence/Notes: _________________________
 
 ---
 
-## Conformance suite: scenarios to pass
+## Drift: SEP mandates vs the conformance repo
 
-> The scenario inventory below was mapped against `modelcontextprotocol/conformance` **v0.2.0-alpha.0** on 2026-05-30 and has since drifted. The suite is now actually run, so treat `conformance/` as the source of truth for what passes: the referee version is pinned in [`conformance/run-server.sh`](../conformance/run-server.sh), what fails is listed in [`conformance/expected-failures.yaml`](../conformance/expected-failures.yaml), and `composer conformance:score` prints the current number. See "Drift" below for where the tooling diverges from SEP-1730.
+> Verified against conformance v0.2.0-alpha.0 on 2026-05-30. Citations are file paths in the conformance repo.
 
-**Target spec: `--spec-version 2026-07-28`.** The SDK implements that revision only. The referee filters scenarios by a `removedIn` field, so pinning the version is also what drops the 2025-era scenarios for features the SDK deliberately does not implement (`initialize`, `logging/setLevel`, sampling, `resources/subscribe`) rather than failing them. `draft` is an accepted alias for the same version.
+### SEP-1730 vs the tier-check tool
 
-**Standing, measured 2026-07-28**, both legs at `--suite all`:
-
-- **Server mode:** 102 of 106 checks. The four failures all need an input request this SDK does not model: the spec's `InputRequest` union is `CreateMessageRequest | ListRootsRequest | ElicitRequest`, and `latest-schema.ts` marks the first two `@deprecated` as of 2026-07-28 (SEP-2577). Named in the baseline.
-- **Client mode:** 290 of 304 checks. What remains is five OAuth scenarios each missing one obligation, plus the MRTR client leg, all named individually in the baseline.
-
-### Scoring model (verified against the pinned referee)
-
-`tier-check` runs from the pinned referee, so the assessment needs no source checkout:
-
-```bash
-GITHUB_TOKEN="$(gh auth token)" npx -y @modelcontextprotocol/conformance@<pin> tier-check \
-  --repo NexusPHP/mcp \
-  --conformance-server-url http://127.0.0.1:3000/ \
-  --client-cmd "php conformance/client.php" \
-  --spec-version 2026-07-28
-```
-
-Boot `php conformance/server.php` first. `--skip-conformance` gives the repository-health half on its own.
-
-A scenario counts toward the tier percentage only when it is live at one of the **2025 dated versions** (`2025-03-26`, `2025-06-18`, `2025-11-25`). Scenarios live only at `2026-07-28`, and those tagged `extension`, land in a separate bucket the report prints under "Informational (not scored for tier)". So the carried-forward scenarios this SDK passes do count, while the ones the 2026-07-28 revision introduced do not.
-
-Two rules differ from `composer conformance:score` and both matter when reading a tier number:
-
-- The tier scorer counts **scenarios**, not checks, and treats a scenario as passed when it has no `FAILURE`. An unmet SHOULD (`WARNING`) does not fail it. `conformance:score` counts checks and holds a `WARNING` against the total, so it reports the stricter figure.
-- A scenario in the expected list that did not run is scored as failed.
-
-**Tier split at `--spec-version 2026-07-28`**, as `tier-check` reports it:
-
-| Leg | 2025-06-18 | 2025-11-25 | Tier-scored | Status |
-| --- | --- | --- | --- | --- |
-| Server | 18/18 | 20/20 | **20/20 (100%)** | `pass` |
-| Client: Core | 1/1 | 1/1 | 1/1 | |
-| Client: Auth | 3/3 | 14/14 | 14/14 (100%) | |
-| Client total | | | **15/15 (100%)** | `pass` |
-
-Both legs pass the tier-scored set outright, and the informational bucket reads server 20 of 20 and client core 7 of 7 and auth 25 of 25 at `2026-07-28`. The client leg now passes every scenario at every version, so the tier figure and the badge figure agree on it.
-
-Two things keep these numbers apart from the badge figures. `tier-check` runs **server** conformance at the referee's default `--suite active`, so the draft and pending scenarios stay out of the tier denominator: the four MRTR scenarios this SDK fails are among them and do not count against the tier. Client conformance it runs at `--suite all`.
-
-### The deterministic gate
-
-Tier 2 is met when all four hold. Tier 1 additionally requires 100% on both conformance legs, a triage compliance rate of at least 90%, every P0 closed within 7 days, an SDK release within 30 days of the latest spec release, and no missing issue labels.
-
-| Requirement | Standing |
-| --- | --- |
-| Server conformance at or above 80% | 100% |
-| Client conformance at or above 80% | 100% |
-| Every P0 resolved within 14 days | No P0 issues, and no open issues |
-| A stable release | **Not met.** Latest is `v0.5.0` |
-
-The stable release is the only outstanding Tier 2 requirement. It lands with `v1.0.0` and the final dated spec. `tier-check` accordingly reports **Tier 3** today, with `Stable Release` as the single failing repository-health check.
-
-The other health checks already pass: `Labels` at 12 of 12 required, `Triage` at 100% within two business days, and `P0 Resolution` with none open. `Policy Signals` reports partial, and the one artefact genuinely absent is `BREAKING_CHANGES.md`. The rest of its misses are alternative paths to files this repository keeps elsewhere (`DEPENDENCY_POLICY.md`, `ROADMAP.md`, and `VERSIONING.md` at the root rather than under `docs/`, and `.github/dependabot.yml` in place of a Renovate config).
-
-Inverted naming: **server-mode** scenarios are `ClientScenario` objects under `src/scenarios/server/` (the harness acts as a client against your server, over Streamable HTTP at `POST /mcp`). **Client-mode** scenarios run your client as a subprocess.
-
-### Server-mode (draft): 47 active scenarios
-
-Stand up a Streamable-HTTP server at `POST /mcp` mirroring the `everything-server.ts` fixtures, then:
-
-```bash
-conformance server --url http://localhost:PORT/mcp --suite all --spec-version 2026-07-28 -o ./results
-```
-
-**Scored (20 carried-forward, as `tier-check` counts them):** Tier 1 = all 20, Tier 2 = at least 16 of 20 (`pass_rate >= 0.80`). The SDK passes all 20. Scenarios introduced at 2026-07-28 are informational. Read the split off a `tier-check` run rather than from the inventory below, which predates it.
-
-- Lifecycle / utility (4): `server-initialize`, `ping`, `logging-set-level`, `completion-complete`
-- Tools (11): `tools-list`, `tools-call-simple-text`, `-image`, `-audio`, `-embedded-resource`, `-mixed-content`, `-with-logging`, `-error`, `-with-progress`, `-sampling`, `-elicitation`
-- Resources (6): `resources-list`, `-read-text`, `-read-binary`, `-templates-read`, `-subscribe`, `-unsubscribe`
-- Prompts (5): `prompts-list`, `prompts-get-simple`, `-with-args`, `-embedded-resource`, `-with-image`
-- Elicitation schema (2): `elicitation-sep1034-defaults`, `elicitation-sep1330-enums`
-- Transport / security (2): `server-sse-multiple-streams`, `dns-rebinding-protection`
-
-**Draft-only, active (17, the v1.0 SEP work, informational in scoring until the date bump):**
-
-- SEP-2575 stateless (1): `server-stateless` (`server/discover`, per-request `_meta`, version negotiation 400/404, `subscriptions/listen`, `-32003`)
-- SEP-2549 TTL (1): `caching` (`ttlMs` + `cacheScope`)
-- SEP-2164 (1): `sep-2164-resource-not-found` (`-32602`, no empty contents)
-- SEP-2322 MRTR (14): the `input-required-result-*` set (`-basic-elicitation`, `-basic-sampling`, `-basic-list-roots`, `-request-state`, `-multiple-input-requests`, `-multi-round`, `-missing-input-response`, `-non-tool-request`, `-result-type`, `-unsupported-methods`, `-tampered-state`, `-capability-check`, `-ignore-extra-params`, `-validate-input`)
-
-**Pending (4, run only via `--suite pending`):** `json-schema-2020-12` (SEP-1613/2106), `server-sse-polling` (SEP-1699), `http-header-validation`, `http-custom-header-server-validation` (SEP-2243).
-
-Canonical fixtures our `conformance/EverythingServer.php` must expose (from `everything-server.ts`): identity `{name: mcp-conformance-test-server, version: 1.0.0}`, endpoint `POST /mcp` (plus `GET`/`DELETE`), capabilities `tools.listChanged`, `resources.subscribe`+`listChanged`, `prompts.listChanged`, `logging`, `completions`. Tools: `test_simple_text`, `test_image_content`, `test_audio_content`, `test_embedded_resource`, `test_multiple_content_types`, `test_tool_with_logging`, `test_tool_with_progress`, `test_error_handling`, `test_sampling`, `test_elicitation`, `test_elicitation_sep1034_defaults`, `test_elicitation_sep1330_enums`, `json_schema_2020_12_tool`. Resources: `test://static-text`, `test://static-binary`, `test://template/{id}/data`, `test://watched-resource` (plus subscribe/unsubscribe). Prompts: `test_simple_prompt`, `test_prompt_with_arguments`, `test_prompt_with_embedded_resource`, `test_prompt_with_image`. The draft-only scenarios add the stateless lifecycle (`server/discover`, `subscriptions/listen`), TTL hints, `-32602` errors, and the MRTR `resultType` / `inputRequests` / `requestState` flow. The README's `test_dynamic_*` fixtures are stale (absent from current source). Do not implement them.
-
-### Client-mode (draft): 35 scenarios
-
-Provide a client entry that reads the server URL as its last argv and routes on `MCP_CONFORMANCE_SCENARIO`, then:
-
-```bash
-conformance client --command "php conformance/client.php" --suite all --spec-version 2026-07-28 -o ./results
-```
-
-`--spec-version draft` excludes the 3 OAuth `extension` scenarios and the 2 `2025-03-26` back-compat scenarios. `--suite core` runs exactly the 18 scored scenarios.
-
-**Scored (15 carried-forward, measured at `--spec-version 2026-07-28`):** Tier 1 = all 15, Tier 2 = at least 12 of 15 (`pass_rate >= 0.80`). The SDK passes all 15. The remaining 17 scenarios the suite runs were introduced at 2026-07-28 and are informational.
-
-- Core (4): `initialize`, `tools_call`, `elicitation-sep1034-client-defaults`, `sse-retry`
-- OAuth (14): `auth/metadata-default`, `-var1`, `-var2`, `-var3`, `auth/basic-cimd`, `auth/scope-from-www-authenticate`, `-from-scopes-supported`, `-omitted-when-undefined`, `-step-up`, `-retry-limit`, `auth/token-endpoint-auth-basic`, `-post`, `-none`, `auth/pre-registration`
-
-**Draft-only (17, informational in scoring until the date bump):**
-
-- SEP-2575 (1): `request-metadata` (per-request `_meta` + `MCP-Protocol-Version` header)
-- SEP-2322 MRTR (1): `sep-2322-client-request-state`
-- SEP-2243 headers (3): `http-standard-headers`, `http-custom-headers`, `http-invalid-tool-headers`
-- SEP-2106 (1): `json-schema-ref-no-deref`
-- Draft OAuth (11): `auth/resource-mismatch`, `auth/offline-access-scope`, `auth/offline-access-not-supported`, `auth/authorization-server-migration`, `auth/iss-supported`, `auth/iss-not-advertised`, `auth/iss-supported-missing`, `auth/iss-wrong-issuer`, `auth/iss-unexpected`, `auth/iss-normalized`, `auth/metadata-issuer-mismatch`
-
-**Extension (3, run targeted via `composer conformance:extensions:client`, scored into the client-extensions badge, not the spec denominator):** `auth/client-credentials-jwt`, `auth/client-credentials-basic`, `auth/enterprise-managed-authorization`. All three pass against the `Nexus\Mcp\Extension\Auth` grant strategies.
-
-Capabilities our `conformance/client.php` must implement. For the 18 carried-forward: Streamable HTTP client transport, `initialize` + `tools/list` + `tools/call`, an elicitation client capability that applies schema defaults for omitted fields, a full OAuth 2.1 client (PKCE, PRM + AS metadata discovery, DCR + CIMD, scope handling incl. step-up and retry-cap, token-endpoint auth basic/post/none, RFC 8707 `resource`, pre-registered creds), and SSE retry/reconnect with `Last-Event-ID`. For the draft-only set additionally: per-request `_meta` + protocol-version header, MRTR `input_required` result handling (echo `requestState`, fulfill `inputRequests`), `Mcp-Method` / `Mcp-Name` + `x-mcp-header` propagation, no-network `$ref` dereferencing, and draft OAuth (issuer validation, `offline_access`, AS migration). Subprocess contract: the harness spawns `<command> <serverUrl>` (shell-parsed), sets `MCP_CONFORMANCE_SCENARIO` (= scenario name, route on this), `MCP_CONFORMANCE_PROTOCOL_VERSION`, and `MCP_CONFORMANCE_CONTEXT` (JSON, auth credentials). Exit 0 = pass, non-zero = fail (tolerated only for negative scenarios). 30s default timeout. Route on the registry scenario names above, not the stale keys baked into `everything-client.ts`.
-
-### Authorization-server mode
-
-One scenario (`authorization-server-metadata-endpoint`) via a separate `conformance authorization --url <as-url>` path. It is NOT in the client denominator. Out of scope unless the SDK grows an OAuth authorization server.
-
-### Running tier-check
-
-```bash
-conformance tier-check --repo NexusPHP/mcp \
-  --conformance-server-url http://localhost:PORT/mcp \
-  --client-cmd "php conformance/client.php" \
-  --spec-version draft --output json
-```
-
-Omitting `--conformance-server-url` skips server conformance. Omitting `--client-cmd` skips client conformance. Either skip blocks Tier 1 (a skipped check is not a pass) but is tolerated for the Tier 2 clause. For a fast policy-only self-check that skips both: add `--skip-conformance`.
-
----
-
-## Drift: SEP mandates vs conformance repo
-
-> Verified 2026-05-30 against conformance v0.2.0-alpha.0. The drift hypothesis holds in both the tiering meta-SEP and the feature SEPs. Citations are file paths in `../mcp-conformance`.
-
-### A. SEP-1730 (tiering) vs the tier-check tool
-
-The `.claude/skills/mcp-sdk-tier-audit` docs are byte-unchanged since v0.1.16 and now contradict the 0.2.0 code. Material divergences:
+The `mcp-sdk-tier-audit` skill docs are byte-unchanged since v0.1.16 and contradict the 0.2.0 code. Material divergences:
 
 - **Triage metric.** SEP-1730 and the skill doc define triage as "time from issue creation to first label, within 2 business days." The tool measures only the ratio of **currently-open** issues that carry any label (no timestamp, closed issues ignored), gated at 90%. The "2 business days" value feeds an unused counter (`src/tier-check/checks/triage.ts`).
 - **P0 window mis-anchored.** The SEP measures from P0-label application to close. The tool measures `closed_at - created_at` (full issue lifetime), and any open P0 fails regardless of age (`src/tier-check/checks/p0.ts`).
 - **Stable-release regex looser than documented.** The doc says `^\d+\.\d+\.\d+$`, but the code accepts two-part `1.0` (`src/tier-check/checks/release.ts`).
-- **Target-version filter off by default.** Without `--spec-version`, the denominator includes legacy `2025-03-26` scenarios. Always pin the version (`src/tier-check/checks/test-conformance-results.ts`).
+- **Target-version filter off by default.** Without `--spec-version`, the denominator includes legacy `2025-03-26` scenarios (`src/tier-check/checks/test-conformance-results.ts`).
 - **Draft is a superset, not exact-match.** The skill doc claims `--spec-version draft` is exact-match. The code, README, and a pinned test all make draft cumulative (`tier-requirements.md` vs `src/scenarios/index.ts`).
-- **Stale `specVersions` field.** Skill docs reference a `specVersions` field that 0.2.0 removed (replaced by `source: {introducedIn | extensionId}`).
+- **Stale `specVersions` field.** Skill docs reference a `specVersions` field that 0.2.0 removed, replaced by `source: {introducedIn | extensionId}`.
 - **Relegation / advancement unimplemented.** The 4-week-continuous-failure relegation and request-based advancement in SEP-1730 are absent. The tool is a point-in-time scorer.
 - **Labels and spec-tracking gate Tier 1 only.** `computeTier` never checks labels, triage, or spec-tracking for Tier 2, though the report template lists them for both.
 
-Net for us: run `tier-check` with `--spec-version draft` and treat its tier verdict as advisory (the scored percentage is identical to `2025-11-25` today, since draft scenarios are non-scoring). The conformance percentage is the meaningful gate. The SLA and label checks are proxies that diverge from the SEP wording, so we self-attest those against the SEP text in the tier sections above.
+Net: treat the tool's tier verdict as advisory. The conformance percentage is the meaningful gate. The SLA and label checks are proxies that diverge from the SEP wording, so those are self-attested against the SEP text in the tier sections above.
 
-### B. Feature SEPs vs scenario coverage
+### Feature SEPs vs scenario coverage
 
-Traceability lives in `src/seps/sep-NNNN.yaml` (hand-authored MUST enumeration) joined to scenario-emitted check IDs in `src/seps/traceability.json`. `tested` means "a scenario emits this check ID" against the reference TS-SDK, NOT "any SDK passes it." `npm run traceability` produces a coverage manifest, advisory only (`--strict` exits non-zero on untested rows but is not a PR gate).
+Traceability lives in `src/seps/sep-NNNN.yaml` (hand-authored MUST enumeration) joined to scenario-emitted check IDs in `src/seps/traceability.json`. `tested` means "a scenario emits this check ID" against the reference TS-SDK, not "any SDK passes it". `npm run traceability` produces a coverage manifest, advisory only (`--strict` exits non-zero on untested rows but is not a PR gate).
 
-Coverage of the SEPs on our 2026-07-28 migration path (all currently tagged `DRAFT-2026-v1`):
+This table is the reason the suite passing is not the same as the spec being met: where the referee tests nothing, the obligation still binds and has to be self-verified.
 
-| SEP | Conformance coverage today | Gap to self-verify |
+| SEP | Conformance coverage | Gap to self-verify |
 |---|---|---|
 | 2575 stateless | Strong (22 checks + 11 untracked): `_meta` population, `-32003` / HTTP 400, `server/discover`, version header, `-32601` to 404, subscription ack/filter | None major. Heaviest scenario, mirror it |
 | 2322 MRTR | Strong (17 checks, server + client) | None major |
@@ -443,14 +316,14 @@ Coverage of the SEPs on our 2026-07-28 migration path (all currently tagged `DRA
 | 2164 -32602 | 2 checks (no-empty-contents, `-32602`) | None |
 | 2106 JSON Schema | 1 check (`$ref` no-deref) + 3 untracked keyword-preservation. Server-side SEP-1613 scenario is pending | Keyword-preservation not enumerated as requirements |
 | 2567 sessionless | **None** (folded into 2575, no isolated check) | Full self-verify |
-| 2663 tasks | **None** (explicitly excluded as an extension) | Full self-verify (extension, not core) |
-| 2577 deprecate roots/sampling/logging | **None** | Moot: we delete these at the cut |
+| 2663 tasks | **None** (excluded as an extension) | Full self-verify (extension, not core) |
+| 2577 deprecate roots/sampling/logging | **None** | Moot: not implemented |
 | 2260 server-req association | yaml exists, **0 checks** (all 12 reqs excluded as subsumed by 2322) | The MUST-NOT (no standalone server streams) is untested |
 | 414 OTel `_meta` | **None** (only a unit-test fixture) | Full self-verify |
 
 Implemented-but-untraceable SEPs (scenarios exist, no `sep-*.yaml`, invisible to the manifest): 1034, 1330, 1613, 1699.
 
-SEP-2484 meta-drift: the repo has no SEP-status field, so it cannot mechanically enforce its own "Final SEP needs a traceability file" rule. Enforcement is downstream (plan.modelcontextprotocol.io) and advisory in-repo. SEP-2260 is the clearest case (a yaml that maps no MUST to any check). Post-migration we will be scored under `--spec-version draft` until upstream dates the version and migrates the `introducedIn` tags.
+SEP-2484 meta-drift: the repo has no SEP-status field, so it cannot mechanically enforce its own "Final SEP needs a traceability file" rule. Enforcement is downstream (plan.modelcontextprotocol.io) and advisory in-repo. SEP-2260 is the clearest case, a yaml that maps no MUST to any check.
 
 ---
 
@@ -458,21 +331,17 @@ SEP-2484 meta-drift: the repo has no SEP-status field, so it cannot mechanically
 
 - **SEP-1730 Issue**: https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1730
 - **SDK Working Group Meeting (Feb 11, 2026)**: https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/2238
-- **Conformance Test Framework**: https://github.com/modelcontextprotocol/conformance (mapped at v0.2.0-alpha.0, local clone `../mcp-conformance`)
+- **Conformance Test Framework**: https://github.com/modelcontextprotocol/conformance
 - **SDK Integration Guide**: https://github.com/modelcontextprotocol/conformance/blob/main/SDK_INTEGRATION.md
-- **Tiering Assessment Tool**: https://github.com/modelcontextprotocol/conformance/blob/main/.claude/skills/mcp-sdk-tier-audit/README.md (skill docs are stale vs the 0.2.0 code, see "Drift")
-- **MCP Spec (2026-07-28, target)**: https://modelcontextprotocol.io/specification/2026-07-28
-- **MCP Spec (2025-11-25, currently implemented)**: https://modelcontextprotocol.io/specification/2025-11-25
+- **Tiering Assessment Tool**: https://github.com/modelcontextprotocol/conformance/blob/main/.claude/skills/mcp-sdk-tier-audit/README.md (skill docs diverge from the 0.2.0 code, see [Drift](#drift-sep-mandates-vs-the-conformance-repo))
+- **MCP Spec (2026-07-28, the targeted revision)**: https://modelcontextprotocol.io/specification/2026-07-28
 
-### General Notes
+## Progress summary
 
----
-
-### Progress Summary
-
-| Tier | Items Complete | Total Items | Status |
-|------|---|---|---|
+| Tier | Items complete | Total items | Status |
+| --- | ---: | ---: | --- |
 | Tier 3 | 1 | 1 | Met (claimable now) |
-| Tier 2 | 3 | 8 | In progress |
-| Tier 1 | 18 | 26 | In progress |
-| **TOTAL** | **22** | **35** | **Tier 3 met, Tier 2 gated on v1.0.0** |
+| Tier 2 | 5 | 8 | Gated on v1.0.0 |
+| Tier 1 | 8 | 12 | Gated on v1.0.0, docs scoring, and triage history |
+
+The three open Tier 2 items are the stable release plus the two issue-management metrics, which cannot be demonstrated without issue traffic. Tier 1 adds the documentation scoring question. None is a conformance gap.
