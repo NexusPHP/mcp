@@ -22,7 +22,7 @@ final class UnexpectedHttpStatusException extends \RuntimeException implements M
     /**
      * How many leading bytes of the answer's body are retained for diagnostics.
      */
-    private const int MAX_BODY_BYTES = 8192;
+    private const int MAX_BODY_BYTES = 8_192;
 
     /**
      * The leading bytes of the answer's body, or null where the body was not read.

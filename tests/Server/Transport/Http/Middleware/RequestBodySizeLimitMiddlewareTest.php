@@ -34,7 +34,7 @@ final class RequestBodySizeLimitMiddlewareTest extends AbstractMcpTestCase
     {
         $handler = self::recordingHandler();
 
-        $response = self::middleware(1024)->process(self::request(512), $handler);
+        $response = self::middleware(1_024)->process(self::request(512), $handler);
 
         self::assertTrue($handler->called);
         self::assertSame(200, $response->getStatusCode());
@@ -44,7 +44,7 @@ final class RequestBodySizeLimitMiddlewareTest extends AbstractMcpTestCase
     {
         $handler = self::recordingHandler();
 
-        $response = self::middleware(1024)->process(self::request(1024), $handler);
+        $response = self::middleware(1_024)->process(self::request(1_024), $handler);
 
         self::assertTrue($handler->called);
         self::assertSame(200, $response->getStatusCode());
@@ -54,7 +54,7 @@ final class RequestBodySizeLimitMiddlewareTest extends AbstractMcpTestCase
     {
         $handler = self::recordingHandler();
 
-        $response = self::middleware(1024)->process(self::request(1025), $handler);
+        $response = self::middleware(1_024)->process(self::request(1_025), $handler);
 
         self::assertFalse($handler->called);
         self::assertSame(413, $response->getStatusCode());

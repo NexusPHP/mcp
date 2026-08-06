@@ -24,7 +24,7 @@ use Nexus\Assert\Assert;
  */
 final readonly class LineReader
 {
-    public const int DEFAULT_MAX_LINE_BYTES = 4 * 1024 * 1024;
+    public const int DEFAULT_MAX_LINE_BYTES = 4 * 1_024 * 1_024;
 
     public function __construct(private ReadableStream $source, private int $maxLineBytes = self::DEFAULT_MAX_LINE_BYTES)
     {

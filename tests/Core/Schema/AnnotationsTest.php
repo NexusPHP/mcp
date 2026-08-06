@@ -68,9 +68,9 @@ final class AnnotationsTest extends AbstractMcpTestCase
      */
     public static function provideAnnotationsRejectsOutOfRangePriorityCases(): iterable
     {
-        yield 'below lower boundary' => [-0.00001];
+        yield 'below lower boundary' => [-0.000_01];
 
-        yield 'above upper boundary' => [1.00001];
+        yield 'above upper boundary' => [1.000_01];
     }
 
     #[DataProvider('provideAnnotationsAcceptsIso8601LastModifiedCases')]

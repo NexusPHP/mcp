@@ -123,7 +123,7 @@ final class ListResourceTemplatesResultTest extends AbstractMcpTestCase
     {
         $result = new ListResourceTemplatesResult(
             resourceTemplates: [new ResourceTemplate(name: 'a', uriTemplate: 'file:///{a}')],
-            ttlMs: 60000,
+            ttlMs: 60_000,
             cacheScope: CacheScope::Public,
             nextCursor: new Cursor(cursor: 'cur-1'),
             meta: new GenericResultMetaObject(extras: ['vendor' => 'x']),
@@ -141,7 +141,7 @@ final class ListResourceTemplatesResultTest extends AbstractMcpTestCase
     {
         $result = new ListResourceTemplatesResult(
             resourceTemplates: [new ResourceTemplate(name: 'a', uriTemplate: 'file:///{a}')],
-            ttlMs: 60000,
+            ttlMs: 60_000,
             cacheScope: CacheScope::Public,
             nextCursor: new Cursor(cursor: 'cur-1'),
             meta: new GenericResultMetaObject(extras: ['vendor' => 'x']),
@@ -153,7 +153,7 @@ final class ListResourceTemplatesResultTest extends AbstractMcpTestCase
                 'resultType' => 'complete',
                 'resourceTemplates' => [['name' => 'a', 'uriTemplate' => 'file:///{a}']],
                 'nextCursor' => 'cur-1',
-                'ttlMs' => 60000,
+                'ttlMs' => 60_000,
                 'cacheScope' => 'public',
             ],
             $result->toArray(),
@@ -164,7 +164,7 @@ final class ListResourceTemplatesResultTest extends AbstractMcpTestCase
     {
         $result = new ListResourceTemplatesResult(
             resourceTemplates: [new ResourceTemplate(name: 'a', uriTemplate: 'file:///{a}')],
-            ttlMs: 60000,
+            ttlMs: 60_000,
             cacheScope: CacheScope::Public,
             nextCursor: new Cursor(cursor: 'cur-1'),
             meta: new GenericResultMetaObject(extras: ['k' => 'v']),
@@ -191,7 +191,7 @@ final class ListResourceTemplatesResultTest extends AbstractMcpTestCase
                 ['name' => 'a', 'uriTemplate' => 'file:///{a}'],
                 ['name' => 'b', 'uriTemplate' => 'file:///{b}'],
             ],
-            'ttlMs' => 60000,
+            'ttlMs' => 60_000,
             'cacheScope' => 'public',
             'nextCursor' => 'cur-1',
             '_meta' => ['vendor' => 'x'],
@@ -200,7 +200,7 @@ final class ListResourceTemplatesResultTest extends AbstractMcpTestCase
         self::assertCount(2, $result->resourceTemplates);
         self::assertSame('a', $result->resourceTemplates[0]->name);
         self::assertSame('file:///{a}', $result->resourceTemplates[0]->uriTemplate);
-        self::assertSame(60000, $result->ttlMs);
+        self::assertSame(60_000, $result->ttlMs);
         self::assertSame(CacheScope::Public, $result->cacheScope);
         self::assertNotNull($result->nextCursor);
         self::assertSame('cur-1', $result->nextCursor->cursor);
@@ -211,7 +211,7 @@ final class ListResourceTemplatesResultTest extends AbstractMcpTestCase
     {
         $original = new ListResourceTemplatesResult(
             resourceTemplates: [new ResourceTemplate(name: 'a', uriTemplate: 'file:///{a}', title: 'A')],
-            ttlMs: 60000,
+            ttlMs: 60_000,
             cacheScope: CacheScope::Public,
             nextCursor: new Cursor(cursor: 'cur-1'),
             meta: new GenericResultMetaObject(extras: ['vendor' => 'x']),

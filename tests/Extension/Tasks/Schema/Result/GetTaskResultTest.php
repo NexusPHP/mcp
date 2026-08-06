@@ -87,7 +87,7 @@ final class GetTaskResultTest extends AbstractMcpTestCase
             createdAt: '2026-08-04T12:00:00+00:00',
             lastUpdatedAt: '2026-08-04T12:00:05+00:00',
             ttlMs: 300_000,
-            error: ['code' => -32603, 'message' => 'It broke.'],
+            error: ['code' => -32_603, 'message' => 'It broke.'],
             statusMessage: 'Upstream unavailable.',
         );
 
@@ -99,7 +99,7 @@ final class GetTaskResultTest extends AbstractMcpTestCase
                 'createdAt' => '2026-08-04T12:00:00+00:00',
                 'lastUpdatedAt' => '2026-08-04T12:00:05+00:00',
                 'ttlMs' => 300_000,
-                'error' => ['code' => -32603, 'message' => 'It broke.'],
+                'error' => ['code' => -32_603, 'message' => 'It broke.'],
                 'statusMessage' => 'Upstream unavailable.',
             ],
             $result->toArray(),
@@ -149,7 +149,7 @@ final class GetTaskResultTest extends AbstractMcpTestCase
                 createdAt: '2026-08-04T12:00:00+00:00',
                 lastUpdatedAt: '2026-08-04T12:00:05+00:00',
                 ttlMs: 300_000,
-                error: ['code' => -32603, 'message' => 'It broke.'],
+                error: ['code' => -32_603, 'message' => 'It broke.'],
             ),
             new GetTaskResult(
                 taskId: 'task-1',
@@ -241,7 +241,7 @@ final class GetTaskResultTest extends AbstractMcpTestCase
         yield 'completed with error' => [
             TaskStatus::Completed,
             ['resultType' => 'complete'],
-            ['code' => -32603],
+            ['code' => -32_603],
             false,
             'a completed "result" must carry "result" and neither "error" nor "inputRequests".',
         ];

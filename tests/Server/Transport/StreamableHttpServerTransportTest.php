@@ -782,14 +782,14 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
         self::assertIsInt($internalId);
         $transport->send(new JsonRpcErrorResponse(
             id: new RequestId(id: $internalId),
-            error: new UnknownProtocolError(code: -32001, message: 'boom'),
+            error: new UnknownProtocolError(code: -32_001, message: 'boom'),
         ));
 
         $response = $pending->await();
         self::assertInstanceOf(ResponseInterface::class, $response);
 
         self::assertSame(400, $response->getStatusCode());
-        self::assertSame(-32001, self::errorPayload($response)['code'] ?? null);
+        self::assertSame(-32_001, self::errorPayload($response)['code'] ?? null);
     }
 
     public function testNonPostIsAnsweredEvenWhenTheEndpointIsNotAccepting(): void
@@ -1009,9 +1009,9 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
 
         $eof = async(static function () use ($transport): string {
             $body = $transport->handle(self::progressRequest(7))->getBody();
-            $body->read(65536); // drains the progress and final-result frames
+            $body->read(65_536); // drains the progress and final-result frames
 
-            return $body->read(65536); // end-of-body once the stream has ended
+            return $body->read(65_536); // end-of-body once the stream has ended
         })->await();
 
         self::assertSame('', $eof);

@@ -44,7 +44,7 @@ final class MethodNotFoundErrorTest extends AbstractMcpTestCase
     {
         $error = new MethodNotFoundError(message: MethodNotFoundError::DEFAULT_MESSAGE);
         self::assertSame(ProtocolErrorCode::MethodNotFound->value, $error->code);
-        self::assertSame(-32601, $error->code);
+        self::assertSame(-32_601, $error->code);
     }
 
     public function testMethodNotFoundErrorCanIncludeData(): void
@@ -64,7 +64,7 @@ final class MethodNotFoundErrorTest extends AbstractMcpTestCase
         $error = MethodNotFoundError::fromArray($data);
 
         self::assertSame('The method does not exist', $error->message);
-        self::assertSame(-32601, $error->code);
+        self::assertSame(-32_601, $error->code);
         self::assertSame(['requested' => 'unknown_rpc'], $error->data);
     }
 
@@ -90,7 +90,7 @@ final class MethodNotFoundErrorTest extends AbstractMcpTestCase
         $array = $error->toArray();
 
         self::assertSame([
-            'code' => -32601,
+            'code' => -32_601,
             'message' => 'No such method',
             'data' => ['available' => ['tools/list']],
         ], $array);
@@ -102,7 +102,7 @@ final class MethodNotFoundErrorTest extends AbstractMcpTestCase
         $result = $error->jsonSerialize();
 
         self::assertSame([
-            'code' => -32601,
+            'code' => -32_601,
             'message' => 'No such method',
         ], $result);
     }
@@ -114,7 +114,7 @@ final class MethodNotFoundErrorTest extends AbstractMcpTestCase
         $result = $error->jsonSerialize();
 
         self::assertSame([
-            'code' => -32601,
+            'code' => -32_601,
             'message' => 'No such method',
             'data' => $data,
         ], $result);

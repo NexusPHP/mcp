@@ -145,11 +145,11 @@ final class JsonRpcErrorResponseTest extends AbstractMcpTestCase
         $response = JsonRpcErrorResponse::fromArray([
             'jsonrpc' => '2.0',
             'id' => 1,
-            'error' => ['code' => -32099, 'message' => 'Server error', 'data' => ['trace' => 'abc']],
+            'error' => ['code' => -32_099, 'message' => 'Server error', 'data' => ['trace' => 'abc']],
         ]);
 
         self::assertInstanceOf(UnknownProtocolError::class, $response->error);
-        self::assertSame(-32099, $response->error->code);
+        self::assertSame(-32_099, $response->error->code);
         self::assertSame('Server error', $response->error->message);
         self::assertSame(['trace' => 'abc'], $response->error->data);
     }
@@ -159,7 +159,7 @@ final class JsonRpcErrorResponseTest extends AbstractMcpTestCase
         $envelope = [
             'jsonrpc' => '2.0',
             'id' => 1,
-            'error' => ['code' => -32099, 'message' => 'Upstream rejected', 'data' => ['detail' => 'x']],
+            'error' => ['code' => -32_099, 'message' => 'Upstream rejected', 'data' => ['detail' => 'x']],
         ];
 
         $rebuilt = JsonRpcErrorResponse::fromArray($envelope)->toArray();

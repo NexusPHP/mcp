@@ -30,7 +30,7 @@ final class ResponseTooLargeExceptionTest extends AbstractMcpTestCase
     {
         self::assertSame(
             'The response exceeded the 1024 byte limit the client accepts.',
-            (new ResponseTooLargeException(1024))->getMessage(),
+            (new ResponseTooLargeException(1_024))->getMessage(),
         );
     }
 
@@ -38,11 +38,11 @@ final class ResponseTooLargeExceptionTest extends AbstractMcpTestCase
     {
         $cause = new \RuntimeException('buffer limit reached');
 
-        self::assertSame($cause, (new ResponseTooLargeException(1024, $cause))->getPrevious());
+        self::assertSame($cause, (new ResponseTooLargeException(1_024, $cause))->getPrevious());
     }
 
     public function testTheCauseIsOptional(): void
     {
-        self::assertNull((new ResponseTooLargeException(1024))->getPrevious());
+        self::assertNull((new ResponseTooLargeException(1_024))->getPrevious());
     }
 }

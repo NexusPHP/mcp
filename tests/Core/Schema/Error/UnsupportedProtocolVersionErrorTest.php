@@ -35,7 +35,7 @@ final class UnsupportedProtocolVersionErrorTest extends AbstractMcpTestCase
     {
         $error = new UnsupportedProtocolVersionError(requested: '2099-01-01', supported: ['DRAFT-2026-v1', '2025-11-25']);
 
-        self::assertSame(-32022, $error->code);
+        self::assertSame(-32_022, $error->code);
         self::assertSame(ProtocolErrorCode::UnsupportedProtocolVersion->value, $error->code);
         self::assertSame('Unsupported protocol version', $error->message);
         self::assertSame('2099-01-01', $error->requested);
@@ -59,7 +59,7 @@ final class UnsupportedProtocolVersionErrorTest extends AbstractMcpTestCase
         );
 
         self::assertSame([
-            'code' => -32022,
+            'code' => -32_022,
             'message' => 'bad version',
             'data' => ['supported' => ['DRAFT-2026-v1', '2025-11-25'], 'requested' => '2099-01-01'],
         ], $error->toArray());
@@ -75,7 +75,7 @@ final class UnsupportedProtocolVersionErrorTest extends AbstractMcpTestCase
     public function testFromArrayRoundTripsAllFields(): void
     {
         $error = UnsupportedProtocolVersionError::fromArray([
-            'code' => -32022,
+            'code' => -32_022,
             'message' => 'bad version',
             'data' => ['supported' => ['DRAFT-2026-v1'], 'requested' => '2099-01-01'],
         ]);

@@ -37,7 +37,7 @@ final class MissingRequiredClientCapabilityErrorTest extends AbstractMcpTestCase
         $capabilities = new ClientCapabilities(elicitation: []);
         $error = new MissingRequiredClientCapabilityError(requiredCapabilities: $capabilities);
 
-        self::assertSame(-32021, $error->code);
+        self::assertSame(-32_021, $error->code);
         self::assertSame(ProtocolErrorCode::MissingRequiredClientCapability->value, $error->code);
         self::assertSame('Missing required client capability', $error->message);
         self::assertSame($capabilities, $error->requiredCapabilities);
@@ -62,7 +62,7 @@ final class MissingRequiredClientCapabilityErrorTest extends AbstractMcpTestCase
         );
 
         self::assertSame([
-            'code' => -32021,
+            'code' => -32_021,
             'message' => 'need elicitation',
             'data' => ['requiredCapabilities' => ['elicitation' => []]],
         ], $error->toArray());
@@ -84,7 +84,7 @@ final class MissingRequiredClientCapabilityErrorTest extends AbstractMcpTestCase
     public function testFromArrayRoundTripsCapabilities(): void
     {
         $error = MissingRequiredClientCapabilityError::fromArray([
-            'code' => -32021,
+            'code' => -32_021,
             'message' => 'need elicitation',
             'data' => ['requiredCapabilities' => ['elicitation' => []]],
         ]);

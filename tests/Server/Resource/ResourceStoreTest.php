@@ -58,13 +58,13 @@ final class ResourceStoreTest extends AbstractMcpTestCase
     {
         $store = new ResourceStore(
             self::makeEntries(['alpha', 'file:///tmp/a.txt']),
-            ttlMs: 120000,
+            ttlMs: 120_000,
             cacheScope: CacheScope::Public,
         );
 
         $result = $store->list(null);
 
-        self::assertSame(120000, $result->ttlMs);
+        self::assertSame(120_000, $result->ttlMs);
         self::assertSame(CacheScope::Public, $result->cacheScope);
     }
 

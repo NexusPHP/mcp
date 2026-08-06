@@ -83,13 +83,13 @@ final class GetTaskRequestHandlerTest extends AbstractMcpTestCase
     {
         $store = new InMemoryTaskStore();
         $taskId = $store->createTask('failing_job', null, null, 1_000)->taskId;
-        $store->trySetFailed($taskId, ['code' => -32603, 'message' => 'It broke.'], 'Upstream unavailable.');
+        $store->trySetFailed($taskId, ['code' => -32_603, 'message' => 'It broke.'], 'Upstream unavailable.');
         $handler = new GetTaskRequestHandler($store);
 
         $result = $handler->handle(self::buildRequest($taskId), self::buildContext());
 
         self::assertSame(TaskStatus::Failed, $result->status);
-        self::assertSame(['code' => -32603, 'message' => 'It broke.'], $result->error);
+        self::assertSame(['code' => -32_603, 'message' => 'It broke.'], $result->error);
         self::assertSame('Upstream unavailable.', $result->statusMessage);
     }
 

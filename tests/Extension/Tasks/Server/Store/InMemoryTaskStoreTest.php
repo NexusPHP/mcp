@@ -118,12 +118,12 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
         $store = $this->buildStore();
         $taskId = $store->createTask('failing_job', null, null, 1_000)->taskId;
 
-        self::assertTrue($store->trySetFailed($taskId, ['code' => -32603, 'message' => 'It broke.'], 'Upstream unavailable.'));
+        self::assertTrue($store->trySetFailed($taskId, ['code' => -32_603, 'message' => 'It broke.'], 'Upstream unavailable.'));
 
         $record = $store->findTask($taskId);
         self::assertInstanceOf(TaskRecord::class, $record);
         self::assertSame(TaskStatus::Failed, $record->status);
-        self::assertSame(['code' => -32603, 'message' => 'It broke.'], $record->error);
+        self::assertSame(['code' => -32_603, 'message' => 'It broke.'], $record->error);
         self::assertSame('Upstream unavailable.', $record->statusMessage);
     }
 
@@ -134,7 +134,7 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
 
         self::assertTrue($store->trySetCompleted($taskId, ['resultType' => 'complete']));
         self::assertFalse($store->trySetCancelled($taskId));
-        self::assertFalse($store->trySetFailed($taskId, ['code' => -32603]));
+        self::assertFalse($store->trySetFailed($taskId, ['code' => -32_603]));
         self::assertFalse($store->trySetWorking($taskId));
         self::assertFalse($store->trySetInputRequired($taskId, ['k' => self::buildElicitRequest()], null));
 

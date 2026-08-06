@@ -78,7 +78,7 @@ final class ListPromptsResultTest extends AbstractMcpTestCase
     {
         $result = new ListPromptsResult(
             prompts: [new Prompt(name: 'a')],
-            ttlMs: 60000,
+            ttlMs: 60_000,
             cacheScope: CacheScope::Public,
             nextCursor: new Cursor(cursor: 'cur-1'),
             meta: new GenericResultMetaObject(extras: ['vendor' => 'x']),
@@ -96,7 +96,7 @@ final class ListPromptsResultTest extends AbstractMcpTestCase
     {
         $result = new ListPromptsResult(
             prompts: [new Prompt(name: 'a')],
-            ttlMs: 60000,
+            ttlMs: 60_000,
             cacheScope: CacheScope::Public,
             nextCursor: new Cursor(cursor: 'cur-1'),
             meta: new GenericResultMetaObject(extras: ['vendor' => 'x']),
@@ -108,7 +108,7 @@ final class ListPromptsResultTest extends AbstractMcpTestCase
                 'resultType' => 'complete',
                 'prompts' => [['name' => 'a']],
                 'nextCursor' => 'cur-1',
-                'ttlMs' => 60000,
+                'ttlMs' => 60_000,
                 'cacheScope' => 'public',
             ],
             $result->toArray(),
@@ -119,7 +119,7 @@ final class ListPromptsResultTest extends AbstractMcpTestCase
     {
         $result = new ListPromptsResult(
             prompts: [new Prompt(name: 'a')],
-            ttlMs: 60000,
+            ttlMs: 60_000,
             cacheScope: CacheScope::Public,
             nextCursor: new Cursor(cursor: 'cur-1'),
             meta: new GenericResultMetaObject(extras: ['k' => 'v']),
@@ -132,7 +132,7 @@ final class ListPromptsResultTest extends AbstractMcpTestCase
     {
         $result = ListPromptsResult::fromArray([
             'prompts' => [['name' => 'a'], ['name' => 'b']],
-            'ttlMs' => 60000,
+            'ttlMs' => 60_000,
             'cacheScope' => 'public',
             'nextCursor' => 'cur-1',
             '_meta' => ['vendor' => 'x'],
@@ -140,7 +140,7 @@ final class ListPromptsResultTest extends AbstractMcpTestCase
 
         self::assertCount(2, $result->prompts);
         self::assertSame('a', $result->prompts[0]->name);
-        self::assertSame(60000, $result->ttlMs);
+        self::assertSame(60_000, $result->ttlMs);
         self::assertSame(CacheScope::Public, $result->cacheScope);
         self::assertNotNull($result->nextCursor);
         self::assertSame('cur-1', $result->nextCursor->cursor);
@@ -151,7 +151,7 @@ final class ListPromptsResultTest extends AbstractMcpTestCase
     {
         $original = new ListPromptsResult(
             prompts: [new Prompt(name: 'a', title: 'A')],
-            ttlMs: 60000,
+            ttlMs: 60_000,
             cacheScope: CacheScope::Public,
             nextCursor: new Cursor(cursor: 'cur-1'),
             meta: new GenericResultMetaObject(extras: ['vendor' => 'x']),

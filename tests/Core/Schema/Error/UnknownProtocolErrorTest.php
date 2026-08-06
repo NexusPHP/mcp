@@ -31,9 +31,9 @@ final class UnknownProtocolErrorTest extends AbstractMcpTestCase
 {
     public function testRawIntCodeIsPreserved(): void
     {
-        $error = new UnknownProtocolError(code: -32099, message: 'Upstream rejected');
+        $error = new UnknownProtocolError(code: -32_099, message: 'Upstream rejected');
 
-        self::assertSame(-32099, $error->code);
+        self::assertSame(-32_099, $error->code);
         self::assertSame('Upstream rejected', $error->message);
         self::assertNull($error->data);
     }
@@ -44,7 +44,7 @@ final class UnknownProtocolErrorTest extends AbstractMcpTestCase
         $this->expectExceptionMessageIs('error "message" must be a non-empty string.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
-        new UnknownProtocolError(code: -32099, message: '');
+        new UnknownProtocolError(code: -32_099, message: '');
     }
 
     public function testRejectsCodeThatMapsToKnownProtocolErrorCase(): void
@@ -52,32 +52,32 @@ final class UnknownProtocolErrorTest extends AbstractMcpTestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('code -32603 maps to a known protocol error code.');
 
-        new UnknownProtocolError(code: -32603, message: 'Internal error');
+        new UnknownProtocolError(code: -32_603, message: 'Internal error');
     }
 
     public function testToArrayEmitsRawCode(): void
     {
-        $error = new UnknownProtocolError(code: -32099, message: 'Upstream rejected', data: ['trace' => 'abc']);
+        $error = new UnknownProtocolError(code: -32_099, message: 'Upstream rejected', data: ['trace' => 'abc']);
 
         self::assertSame(
-            ['code' => -32099, 'message' => 'Upstream rejected', 'data' => ['trace' => 'abc']],
+            ['code' => -32_099, 'message' => 'Upstream rejected', 'data' => ['trace' => 'abc']],
             $error->toArray(),
         );
     }
 
     public function testToArrayOmitsEmptyData(): void
     {
-        $error = new UnknownProtocolError(code: -32099, message: 'Upstream rejected', data: []);
+        $error = new UnknownProtocolError(code: -32_099, message: 'Upstream rejected', data: []);
 
         self::assertSame(
-            ['code' => -32099, 'message' => 'Upstream rejected'],
+            ['code' => -32_099, 'message' => 'Upstream rejected'],
             $error->toArray(),
         );
     }
 
     public function testFromArrayRoundTrip(): void
     {
-        $original = new UnknownProtocolError(code: -32099, message: 'Upstream rejected', data: ['trace' => 'abc']);
+        $original = new UnknownProtocolError(code: -32_099, message: 'Upstream rejected', data: ['trace' => 'abc']);
         $rebuilt = UnknownProtocolError::fromArray($original->toArray());
 
         self::assertSame($original->toArray(), $rebuilt->toArray());

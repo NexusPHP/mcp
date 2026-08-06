@@ -100,7 +100,7 @@ $server = (new ServerBuilder())
         static function (?array $args, ServerContext $context): CallToolResult {
             $count = is_int($args['count'] ?? null) ? max(1, min(20, $args['count'])) : 1;
             $intervalMs = is_int($args['intervalMs'] ?? null) ? max(0, $args['intervalMs']) : 250;
-            $intervalSeconds = $intervalMs / 1000;
+            $intervalSeconds = $intervalMs / 1_000;
 
             for ($i = 1; $i <= $count; ++$i) {
                 $context->reportProgress(

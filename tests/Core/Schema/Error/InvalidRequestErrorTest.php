@@ -44,7 +44,7 @@ final class InvalidRequestErrorTest extends AbstractMcpTestCase
     {
         $error = new InvalidRequestError(message: InvalidRequestError::DEFAULT_MESSAGE);
         self::assertSame(ProtocolErrorCode::InvalidRequest->value, $error->code);
-        self::assertSame(-32600, $error->code);
+        self::assertSame(-32_600, $error->code);
     }
 
     public function testInvalidRequestErrorCanIncludeData(): void
@@ -64,7 +64,7 @@ final class InvalidRequestErrorTest extends AbstractMcpTestCase
         $error = InvalidRequestError::fromArray($data);
 
         self::assertSame('The request is invalid', $error->message);
-        self::assertSame(-32600, $error->code);
+        self::assertSame(-32_600, $error->code);
         self::assertSame(['validation' => 'errors'], $error->data);
     }
 
@@ -90,7 +90,7 @@ final class InvalidRequestErrorTest extends AbstractMcpTestCase
         $array = $error->toArray();
 
         self::assertSame([
-            'code' => -32600,
+            'code' => -32_600,
             'message' => 'Bad request',
             'data' => ['why' => 'malformed'],
         ], $array);
@@ -102,7 +102,7 @@ final class InvalidRequestErrorTest extends AbstractMcpTestCase
         $result = $error->jsonSerialize();
 
         self::assertSame([
-            'code' => -32600,
+            'code' => -32_600,
             'message' => 'Bad request',
         ], $result);
     }
@@ -114,7 +114,7 @@ final class InvalidRequestErrorTest extends AbstractMcpTestCase
         $result = $error->jsonSerialize();
 
         self::assertSame([
-            'code' => -32600,
+            'code' => -32_600,
             'message' => 'Bad request',
             'data' => $data,
         ], $result);

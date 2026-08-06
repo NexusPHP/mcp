@@ -702,7 +702,7 @@ final class ClientTest extends AbstractMcpTestCase
         $transport->emitMessage([
             'jsonrpc' => '2.0',
             'id' => $sentRequest->id->id,
-            'error' => ['code' => -32603, 'message' => 'peer refused'],
+            'error' => ['code' => -32_603, 'message' => 'peer refused'],
         ]);
 
         try {
@@ -821,7 +821,7 @@ final class ClientTest extends AbstractMcpTestCase
         $transport->emitMessage([
             'jsonrpc' => '2.0',
             'id' => $first->id->id,
-            'error' => ['code' => -32603, 'message' => 'peer refused'],
+            'error' => ['code' => -32_603, 'message' => 'peer refused'],
         ]);
 
         try {
@@ -2047,7 +2047,7 @@ final class ClientTest extends AbstractMcpTestCase
         self::assertSame('pipe is gone', $propagated);
 
         // The correlation slot is free, so a late answer for that id reads as an orphan.
-        $transport->emitMessage(['jsonrpc' => '2.0', 'id' => 7, 'error' => ['code' => -32603, 'message' => 'too late']]);
+        $transport->emitMessage(['jsonrpc' => '2.0', 'id' => 7, 'error' => ['code' => -32_603, 'message' => 'too late']]);
 
         // And the notification route is free, so nothing reaches the abandoned listener.
         $transport->emitMessage([
@@ -2077,7 +2077,7 @@ final class ClientTest extends AbstractMcpTestCase
         $stream->close();
 
         // A server that answers anyway is answering a stream the client already retired.
-        $transport->emitMessage(['jsonrpc' => '2.0', 'id' => 7, 'error' => ['code' => -32603, 'message' => 'too late']]);
+        $transport->emitMessage(['jsonrpc' => '2.0', 'id' => 7, 'error' => ['code' => -32_603, 'message' => 'too late']]);
         EventLoop::run();
 
         self::assertCount(1, $logger->recordsMatching(LogLevel::WARNING, 'Discarding orphan error response for unknown request id.'));
@@ -2094,7 +2094,7 @@ final class ClientTest extends AbstractMcpTestCase
         $client->connect($transport);
 
         $stream = $client->listen(new SubscriptionFilter(toolsListChanged: true), static function (): void {});
-        $transport->emitMessage(['jsonrpc' => '2.0', 'id' => 7, 'error' => ['code' => -32603, 'message' => 'no subscriptions here']]);
+        $transport->emitMessage(['jsonrpc' => '2.0', 'id' => 7, 'error' => ['code' => -32_603, 'message' => 'no subscriptions here']]);
         EventLoop::run();
 
         // Dropping the last reference destroys the future. An unconsumed error there reaches the loop as an
@@ -2528,7 +2528,7 @@ final class ClientTest extends AbstractMcpTestCase
         self::supervisedPeer($spawned, 0)->emitMessage([
             'jsonrpc' => '2.0',
             'id' => 7,
-            'error' => ['code' => -32601, 'message' => 'no subscriptions here'],
+            'error' => ['code' => -32_601, 'message' => 'no subscriptions here'],
         ]);
         EventLoop::run();
 
@@ -2557,7 +2557,7 @@ final class ClientTest extends AbstractMcpTestCase
         self::supervisedPeer($spawned, 0)->emitMessage([
             'jsonrpc' => '2.0',
             'id' => 7,
-            'error' => ['code' => -32601, 'message' => 'no subscriptions here'],
+            'error' => ['code' => -32_601, 'message' => 'no subscriptions here'],
         ]);
         EventLoop::run();
 

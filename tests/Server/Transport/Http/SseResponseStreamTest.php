@@ -55,7 +55,7 @@ final class SseResponseStreamTest extends AbstractMcpTestCase
     public function testGetContentsReadsPayloadsLargerThanOneChunk(): void
     {
         $stream = new SseResponseStream(60.0, static fn(): null => null);
-        $payload = str_repeat('x', 10000);
+        $payload = str_repeat('x', 10_000);
         $stream->push($payload);
         $stream->end();
 
@@ -71,7 +71,7 @@ final class SseResponseStreamTest extends AbstractMcpTestCase
                 $stream->push('woke');
             });
 
-            return $stream->read(8192);
+            return $stream->read(8_192);
         })->await();
 
         self::assertSame('woke', $chunk);
@@ -86,7 +86,7 @@ final class SseResponseStreamTest extends AbstractMcpTestCase
                 $stream->end();
             });
 
-            return $stream->read(8192);
+            return $stream->read(8_192);
         })->await();
 
         self::assertSame('', $chunk);
@@ -101,7 +101,7 @@ final class SseResponseStreamTest extends AbstractMcpTestCase
             $anchor = EventLoop::delay(1.0, static fn(): null => null);
 
             try {
-                return $stream->read(8192);
+                return $stream->read(8_192);
             } finally {
                 EventLoop::cancel($anchor);
             }
@@ -121,7 +121,7 @@ final class SseResponseStreamTest extends AbstractMcpTestCase
                 // A host copying into a fixed buffer must not be handed more bytes than it asked for, and
                 // every byte emitted has to count towards tell().
                 $first = $stream->read(4);
-                $rest = $stream->read(8192);
+                $rest = $stream->read(8_192);
 
                 return [$first, $rest, $stream->tell()];
             } finally {

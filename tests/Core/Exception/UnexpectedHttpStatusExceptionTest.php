@@ -37,9 +37,9 @@ final class UnexpectedHttpStatusExceptionTest extends AbstractMcpTestCase
 
     public function testTheBodyIsRetainedTruncated(): void
     {
-        $exception = new UnexpectedHttpStatusException(502, str_repeat('a', 9000));
+        $exception = new UnexpectedHttpStatusException(502, str_repeat('a', 9_000));
 
-        self::assertSame(str_repeat('a', 8192), $exception->body);
+        self::assertSame(str_repeat('a', 8_192), $exception->body);
     }
 
     public function testAShortBodyIsKeptWhole(): void

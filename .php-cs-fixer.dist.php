@@ -37,6 +37,10 @@ $finder = Finder::create()
 ;
 
 $overrides = [
+    'numeric_literal_separator' => [
+        'override_existing' => false,
+        'strategy' => 'use_separator',
+    ],
     'phpdoc_no_alias_tag' => [
         'replacements' => [
             'const' => 'var',
@@ -80,5 +84,5 @@ return Factory::create(new Nexus83(), $overrides, $options)->forLibrary(
     'the Nexus MCP SDK package',
     'John Paul E. Balandan, CPA',
     'paulbalandan@gmail.com',
-    2026,
+    2_026,
 );

@@ -72,11 +72,11 @@ final class ToolStoreTest extends AbstractMcpTestCase
 
     public function testListReflectsConfiguredTtlAndCacheScope(): void
     {
-        $store = new ToolStore(self::makeEntries('alpha'), ttlMs: 120000, cacheScope: CacheScope::Public);
+        $store = new ToolStore(self::makeEntries('alpha'), ttlMs: 120_000, cacheScope: CacheScope::Public);
 
         $result = $store->list(null);
 
-        self::assertSame(120000, $result->ttlMs);
+        self::assertSame(120_000, $result->ttlMs);
         self::assertSame(CacheScope::Public, $result->cacheScope);
     }
 

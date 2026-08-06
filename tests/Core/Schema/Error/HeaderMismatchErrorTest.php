@@ -34,7 +34,7 @@ final class HeaderMismatchErrorTest extends AbstractMcpTestCase
     {
         $error = new HeaderMismatchError();
 
-        self::assertSame(-32020, $error->code);
+        self::assertSame(-32_020, $error->code);
         self::assertSame(ProtocolErrorCode::HeaderMismatch->value, $error->code);
         self::assertSame('Header mismatch', $error->message);
         self::assertNull($error->data);
@@ -51,7 +51,7 @@ final class HeaderMismatchErrorTest extends AbstractMcpTestCase
     {
         $error = new HeaderMismatchError(message: 'header mismatch');
 
-        self::assertSame(['code' => -32020, 'message' => 'header mismatch'], $error->toArray());
+        self::assertSame(['code' => -32_020, 'message' => 'header mismatch'], $error->toArray());
     }
 
     public function testJsonSerializeMatchesToArray(): void

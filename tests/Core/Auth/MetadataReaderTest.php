@@ -130,7 +130,7 @@ final class MetadataReaderTest extends AbstractMcpTestCase
 
     public function testReadIntReturnsThePresentValue(): void
     {
-        self::assertSame(3600, MetadataReader::readInt(['expires_in' => 3600], 'expires_in', self::LABEL));
+        self::assertSame(3_600, MetadataReader::readInt(['expires_in' => 3_600], 'expires_in', self::LABEL));
     }
 
     public function testReadIntKeepsAZeroLifetimeDistinctFromAnAbsentOne(): void
@@ -154,7 +154,7 @@ final class MetadataReaderTest extends AbstractMcpTestCase
     {
         yield 'a numeric string is not an integer' => ['3600', 'string'];
 
-        yield 'a float is not an integer' => [3600.0, 'float'];
+        yield 'a float is not an integer' => [3_600.0, 'float'];
 
         yield 'null is not an integer' => [null, 'null'];
     }

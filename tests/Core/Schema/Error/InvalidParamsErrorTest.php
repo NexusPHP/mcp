@@ -44,7 +44,7 @@ final class InvalidParamsErrorTest extends AbstractMcpTestCase
     {
         $error = new InvalidParamsError(message: InvalidParamsError::DEFAULT_MESSAGE);
         self::assertSame(ProtocolErrorCode::InvalidParams->value, $error->code);
-        self::assertSame(-32602, $error->code);
+        self::assertSame(-32_602, $error->code);
     }
 
     public function testInvalidParamsErrorCanIncludeData(): void
@@ -64,7 +64,7 @@ final class InvalidParamsErrorTest extends AbstractMcpTestCase
         $error = InvalidParamsError::fromArray($data);
 
         self::assertSame('Parameters are invalid', $error->message);
-        self::assertSame(-32602, $error->code);
+        self::assertSame(-32_602, $error->code);
         self::assertSame(['param' => 'uri', 'issue' => 'required'], $error->data);
     }
 
@@ -90,7 +90,7 @@ final class InvalidParamsErrorTest extends AbstractMcpTestCase
         $array = $error->toArray();
 
         self::assertSame([
-            'code' => -32602,
+            'code' => -32_602,
             'message' => 'Missing arguments',
             'data' => ['missing' => ['arg1']],
         ], $array);
@@ -102,7 +102,7 @@ final class InvalidParamsErrorTest extends AbstractMcpTestCase
         $result = $error->jsonSerialize();
 
         self::assertSame([
-            'code' => -32602,
+            'code' => -32_602,
             'message' => 'Missing arguments',
         ], $result);
     }
@@ -114,7 +114,7 @@ final class InvalidParamsErrorTest extends AbstractMcpTestCase
         $result = $error->jsonSerialize();
 
         self::assertSame([
-            'code' => -32602,
+            'code' => -32_602,
             'message' => 'Missing arguments',
             'data' => $data,
         ], $result);

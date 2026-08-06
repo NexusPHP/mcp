@@ -117,7 +117,7 @@ final class ReadResourceResultTest extends AbstractMcpTestCase
     {
         $result = new ReadResourceResult(
             contents: [new TextResourceContents(uri: 'file:///x', text: 'hi')],
-            ttlMs: 60000,
+            ttlMs: 60_000,
             cacheScope: CacheScope::Public,
             meta: new GenericResultMetaObject(extras: ['vendor' => 'x']),
         );
@@ -216,7 +216,7 @@ final class ReadResourceResultTest extends AbstractMcpTestCase
                 new TextResourceContents(uri: 'file:///a', text: 'hi', mimeType: 'text/plain'),
                 new BlobResourceContents(uri: 'file:///b', blob: 'aGVsbG8=', mimeType: 'application/octet-stream'),
             ],
-            ttlMs: 60000,
+            ttlMs: 60_000,
             cacheScope: CacheScope::Public,
             meta: new GenericResultMetaObject(extras: ['vendor' => 'x']),
         );

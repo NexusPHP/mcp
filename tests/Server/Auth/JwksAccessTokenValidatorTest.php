@@ -124,7 +124,7 @@ final class JwksAccessTokenValidatorTest extends AbstractMcpTestCase
 
     public function testANonStringSubjectIsDropped(): void
     {
-        $verified = self::validator()->validate(self::encode(['sub' => 12345]));
+        $verified = self::validator()->validate(self::encode(['sub' => 12_345]));
 
         self::assertNotNull($verified);
         self::assertNull($verified->subject);

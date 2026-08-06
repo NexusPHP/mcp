@@ -652,7 +652,7 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 
     public function testAChallengeBodyAtTheDrainCapIsStillRead(): void
     {
-        $http = self::scriptChallengeAndFlow(str_repeat('x', 8192))->willAnswerJson(['ok' => true]);
+        $http = self::scriptChallengeAndFlow(str_repeat('x', 8_192))->willAnswerJson(['ok' => true]);
 
         $response = self::client($http)->request(self::mcpRequest(), new NullCancellation());
 
@@ -662,7 +662,7 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 
     public function testAnOversizedChallengeBodyIsGivenUpOnButStillAuthorizes(): void
     {
-        $http = self::scriptChallengeAndFlow(str_repeat('x', 8193))->willAnswerJson(['ok' => true]);
+        $http = self::scriptChallengeAndFlow(str_repeat('x', 8_193))->willAnswerJson(['ok' => true]);
 
         $response = self::client($http)->request(self::mcpRequest(), new NullCancellation());
 
@@ -740,7 +740,7 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
     {
         $tokens = new InMemoryTokenStore();
         // A lifetime near the leeway would flip if the wall clock ticked between the write and the read.
-        $tokens->write(self::RESOURCE, new AccessToken('the-stored-token', 'https://auth.test', time() + 3600, 'the-refresh-token'));
+        $tokens->write(self::RESOURCE, new AccessToken('the-stored-token', 'https://auth.test', time() + 3_600, 'the-refresh-token'));
         $http = (new RecordingHttpClient())
             ->willAnswerJson(self::resourceDocument())
             ->willAnswerJson(self::serverDocument())

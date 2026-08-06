@@ -59,13 +59,13 @@ final class ResourceTemplateStoreTest extends AbstractMcpTestCase
     {
         $store = new ResourceTemplateStore(
             ['file:///{name}.txt' => self::entry(new ResourceTemplate(name: 'alpha', uriTemplate: 'file:///{name}.txt'))],
-            ttlMs: 120000,
+            ttlMs: 120_000,
             cacheScope: CacheScope::Public,
         );
 
         $result = $store->list(null);
 
-        self::assertSame(120000, $result->ttlMs);
+        self::assertSame(120_000, $result->ttlMs);
         self::assertSame(CacheScope::Public, $result->cacheScope);
     }
 

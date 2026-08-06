@@ -103,7 +103,7 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
         $logger = new ArrayLogger();
         $dispatcher = self::buildDispatcher(logger: $logger);
 
-        $envelope = ['jsonrpc' => '2.0', 'id' => 1, 'error' => ['code' => -32603, 'message' => 'oops']];
+        $envelope = ['jsonrpc' => '2.0', 'id' => 1, 'error' => ['code' => -32_603, 'message' => 'oops']];
         $dispatcher->dispatch($envelope, $transport, new ReceiveContext());
 
         $dispatcher->flushPending();

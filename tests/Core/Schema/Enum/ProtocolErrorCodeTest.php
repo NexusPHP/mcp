@@ -38,22 +38,22 @@ final class ProtocolErrorCodeTest extends AbstractMcpTestCase
      */
     public static function provideProtocolErrorCodeCaseValueCases(): iterable
     {
-        yield 'Parse error' => [ProtocolErrorCode::ParseError, -32700];
+        yield 'Parse error' => [ProtocolErrorCode::ParseError, -32_700];
 
-        yield 'Invalid request' => [ProtocolErrorCode::InvalidRequest, -32600];
+        yield 'Invalid request' => [ProtocolErrorCode::InvalidRequest, -32_600];
 
-        yield 'Method not found' => [ProtocolErrorCode::MethodNotFound, -32601];
+        yield 'Method not found' => [ProtocolErrorCode::MethodNotFound, -32_601];
 
-        yield 'Invalid params' => [ProtocolErrorCode::InvalidParams, -32602];
+        yield 'Invalid params' => [ProtocolErrorCode::InvalidParams, -32_602];
 
-        yield 'Internal error' => [ProtocolErrorCode::InternalError, -32603];
+        yield 'Internal error' => [ProtocolErrorCode::InternalError, -32_603];
     }
 
     public function testProtocolErrorCodeFollowsJsonRpcSpecification(): void
     {
         foreach (ProtocolErrorCode::cases() as $case) {
-            self::assertGreaterThanOrEqual(-32768, $case->value);
-            self::assertLessThanOrEqual(-32000, $case->value);
+            self::assertGreaterThanOrEqual(-32_768, $case->value);
+            self::assertLessThanOrEqual(-32_000, $case->value);
         }
     }
 }

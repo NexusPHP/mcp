@@ -23,40 +23,40 @@ enum ProtocolErrorCode: int
     /**
      * Invalid JSON was received by the server.
      */
-    case ParseError = -32700;
+    case ParseError = -32_700;
 
     /**
      * The JSON sent is not a valid Request object.
      */
-    case InvalidRequest = -32600;
+    case InvalidRequest = -32_600;
 
     /**
      * The method does not exist or is not available.
      */
-    case MethodNotFound = -32601;
+    case MethodNotFound = -32_601;
 
     /**
      * Invalid method parameter(s).
      */
-    case InvalidParams = -32602;
+    case InvalidParams = -32_602;
 
     /**
      * Internal JSON-RPC error.
      */
-    case InternalError = -32603;
+    case InternalError = -32_603;
 
     /**
      * The HTTP header values do not match the request body, or required headers are missing or malformed.
      */
-    case HeaderMismatch = -32020;
+    case HeaderMismatch = -32_020;
 
     /**
      * Processing the request requires a client capability absent from the request's `clientCapabilities`.
      */
-    case MissingRequiredClientCapability = -32021;
+    case MissingRequiredClientCapability = -32_021;
 
     /**
      * The request's protocol version is unknown to the server or unsupported.
      */
-    case UnsupportedProtocolVersion = -32022;
+    case UnsupportedProtocolVersion = -32_022;
 }

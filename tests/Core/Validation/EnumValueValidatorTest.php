@@ -39,7 +39,7 @@ final class EnumValueValidatorTest extends AbstractMcpTestCase
 
     public function testParseReturnsCaseForValidIntBackedValue(): void
     {
-        $case = EnumValueValidator::parse(ProtocolErrorCode::class, -32601, 'Test "code"');
+        $case = EnumValueValidator::parse(ProtocolErrorCode::class, -32_601, 'Test "code"');
 
         self::assertSame(ProtocolErrorCode::MethodNotFound, $case);
     }

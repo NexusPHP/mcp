@@ -67,7 +67,7 @@ final class ResourceTest extends AbstractMcpTestCase
             description: 'A description.',
             mimeType: 'text/plain',
             annotations: new Annotations(priority: 0.5),
-            size: 1024,
+            size: 1_024,
             icons: [new Icon(src: 'https://example.com/icon.png')],
             meta: new PayloadMetaObject(extras: ['vendor' => 'x']),
         );
@@ -80,7 +80,7 @@ final class ResourceTest extends AbstractMcpTestCase
                 'description' => 'A description.',
                 'mimeType' => 'text/plain',
                 'annotations' => ['priority' => 0.5],
-                'size' => 1024,
+                'size' => 1_024,
                 'icons' => [['src' => 'https://example.com/icon.png']],
                 '_meta' => ['vendor' => 'x'],
             ],
@@ -119,7 +119,7 @@ final class ResourceTest extends AbstractMcpTestCase
             'description' => 'A description.',
             'mimeType' => 'text/plain',
             'annotations' => ['priority' => 0.5],
-            'size' => 1024,
+            'size' => 1_024,
             'icons' => [['src' => 'https://example.com/icon.png']],
             '_meta' => ['vendor' => 'x'],
         ]);
@@ -128,7 +128,7 @@ final class ResourceTest extends AbstractMcpTestCase
         self::assertSame('A description.', $resource->description);
         self::assertSame('text/plain', $resource->mimeType);
         self::assertSame(0.5, $resource->annotations->priority);
-        self::assertSame(1024, $resource->size);
+        self::assertSame(1_024, $resource->size);
         self::assertNotNull($resource->icons);
         self::assertCount(1, $resource->icons);
         self::assertSame('https://example.com/icon.png', $resource->icons[0]->src);

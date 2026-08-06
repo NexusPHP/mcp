@@ -44,7 +44,7 @@ final class InternalErrorTest extends AbstractMcpTestCase
     {
         $error = new InternalError(message: InternalError::DEFAULT_MESSAGE);
         self::assertSame(ProtocolErrorCode::InternalError->value, $error->code);
-        self::assertSame(-32603, $error->code);
+        self::assertSame(-32_603, $error->code);
     }
 
     public function testInternalErrorCanIncludeData(): void
@@ -63,7 +63,7 @@ final class InternalErrorTest extends AbstractMcpTestCase
         $error = InternalError::fromArray($data);
 
         self::assertSame('Server encountered an error', $error->message);
-        self::assertSame(-32603, $error->code);
+        self::assertSame(-32_603, $error->code);
         self::assertSame(['trace_id' => 'uuid123'], $error->data);
     }
 
@@ -89,7 +89,7 @@ final class InternalErrorTest extends AbstractMcpTestCase
         $array = $error->toArray();
 
         self::assertSame([
-            'code' => -32603,
+            'code' => -32_603,
             'message' => 'Unexpected error',
             'data' => ['error_id' => '12345'],
         ], $array);
@@ -101,7 +101,7 @@ final class InternalErrorTest extends AbstractMcpTestCase
         $result = $error->jsonSerialize();
 
         self::assertSame([
-            'code' => -32603,
+            'code' => -32_603,
             'message' => 'Unexpected error',
         ], $result);
     }
@@ -113,7 +113,7 @@ final class InternalErrorTest extends AbstractMcpTestCase
         $result = $error->jsonSerialize();
 
         self::assertSame([
-            'code' => -32603,
+            'code' => -32_603,
             'message' => 'Unexpected error',
             'data' => $data,
         ], $result);
@@ -124,7 +124,7 @@ final class InternalErrorTest extends AbstractMcpTestCase
         $error = new InternalError(message: 'Unexpected error', data: []);
 
         self::assertSame([
-            'code' => -32603,
+            'code' => -32_603,
             'message' => 'Unexpected error',
         ], $error->toArray());
     }

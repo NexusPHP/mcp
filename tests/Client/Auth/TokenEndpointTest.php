@@ -86,14 +86,14 @@ final class TokenEndpointTest extends AbstractMcpTestCase
 
     public function testExchangeCodeTurnsTheLifetimeIntoAnExpiryTimestamp(): void
     {
-        $http = (new RecordingHttpClient())->willAnswerJson(self::tokenResponse(['expires_in' => 3600]));
+        $http = (new RecordingHttpClient())->willAnswerJson(self::tokenResponse(['expires_in' => 3_600]));
 
         $before = time();
         $token = self::exchange($http);
 
         self::assertNotNull($token->expiresAt);
-        self::assertGreaterThanOrEqual($before + 3600, $token->expiresAt);
-        self::assertLessThanOrEqual(time() + 3600, $token->expiresAt);
+        self::assertGreaterThanOrEqual($before + 3_600, $token->expiresAt);
+        self::assertLessThanOrEqual(time() + 3_600, $token->expiresAt);
     }
 
     public function testExchangeCodeHoldsAnAbsurdLifetimeToOneTheClockCanCarry(): void

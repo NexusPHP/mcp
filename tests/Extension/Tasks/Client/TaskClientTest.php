@@ -505,7 +505,7 @@ final class TaskClientTest extends AbstractMcpTestCase
 
             while (true !== $stopped[0] && $index < 70) {
                 if (\count($transport->sent) < $index + 1) {
-                    delay(0.0005);
+                    delay(0.000_5);
 
                     continue;
                 }

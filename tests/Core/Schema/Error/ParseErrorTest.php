@@ -46,7 +46,7 @@ final class ParseErrorTest extends AbstractMcpTestCase
         $error = new ParseError(message: ParseError::DEFAULT_MESSAGE);
 
         self::assertSame(ProtocolErrorCode::ParseError->value, $error->code);
-        self::assertSame(-32700, $error->code);
+        self::assertSame(-32_700, $error->code);
     }
 
     public function testParseErrorCanIncludeData(): void
@@ -66,7 +66,7 @@ final class ParseErrorTest extends AbstractMcpTestCase
         $error = ParseError::fromArray($data);
 
         self::assertSame('Custom parse error', $error->message);
-        self::assertSame(-32700, $error->code);
+        self::assertSame(-32_700, $error->code);
         self::assertSame(['details' => 'test'], $error->data);
     }
 
@@ -84,7 +84,7 @@ final class ParseErrorTest extends AbstractMcpTestCase
         $array = $error->toArray();
 
         self::assertSame([
-            'code' => -32700,
+            'code' => -32_700,
             'message' => 'Test parse error',
             'data' => ['metadata' => 'value'],
         ], $array);
@@ -96,7 +96,7 @@ final class ParseErrorTest extends AbstractMcpTestCase
         $result = $error->jsonSerialize();
 
         self::assertSame([
-            'code' => -32700,
+            'code' => -32_700,
             'message' => 'Test parse error',
         ], $result);
     }
@@ -108,7 +108,7 @@ final class ParseErrorTest extends AbstractMcpTestCase
         $result = $error->jsonSerialize();
 
         self::assertSame([
-            'code' => -32700,
+            'code' => -32_700,
             'message' => 'Test parse error',
             'data' => $data,
         ], $result);

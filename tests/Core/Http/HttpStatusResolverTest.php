@@ -58,7 +58,7 @@ final class HttpStatusResolverTest extends AbstractMcpTestCase
 
         yield 'a shed request is retryable, not the caller\'s fault' => [SdkErrorCode::Overloaded->value, false, 503];
 
-        yield 'an unrecognised code defaults to 400' => [-32001, false, 400];
+        yield 'an unrecognised code defaults to 400' => [-32_001, false, 400];
 
         yield 'handler error rides 200 regardless of code' => [ProtocolErrorCode::InternalError->value, true, 200];
 

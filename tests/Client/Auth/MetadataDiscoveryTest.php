@@ -273,7 +273,7 @@ final class MetadataDiscoveryTest extends AbstractMcpTestCase
 
         yield 'a body too large to read' => [
             (new RecordingHttpClient())
-                ->willAnswerJson(str_repeat('x', 65537))
+                ->willAnswerJson(str_repeat('x', 65_537))
                 ->willAnswerJson(self::resourceDocument()),
         ];
     }

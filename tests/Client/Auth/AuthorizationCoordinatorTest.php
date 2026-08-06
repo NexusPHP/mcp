@@ -386,7 +386,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
     public function testFetchTokenKeepsAnUnexpiredToken(): void
     {
         $store = new InMemoryTokenStore();
-        $coordinator = self::coordinator(self::scriptFullFlow(tokenOverrides: ['expires_in' => 3600]), new ScriptedUserAuthorization(), $store);
+        $coordinator = self::coordinator(self::scriptFullFlow(tokenOverrides: ['expires_in' => 3_600]), new ScriptedUserAuthorization(), $store);
         $coordinator->reauthorize(null, null, new NullCancellation());
 
         self::assertSame('the-access-token', $coordinator->fetchToken(new NullCancellation())?->value);

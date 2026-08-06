@@ -67,7 +67,7 @@ final class ResourceLinkTest extends AbstractMcpTestCase
             description: 'A description.',
             mimeType: 'text/plain',
             annotations: new Annotations(priority: 0.5),
-            size: 1024,
+            size: 1_024,
             icons: [new Icon(src: 'https://example.com/icon.png')],
             meta: new PayloadMetaObject(extras: ['vendor' => 'x']),
         );
@@ -81,7 +81,7 @@ final class ResourceLinkTest extends AbstractMcpTestCase
                 'description' => 'A description.',
                 'mimeType' => 'text/plain',
                 'annotations' => ['priority' => 0.5],
-                'size' => 1024,
+                'size' => 1_024,
                 'icons' => [['src' => 'https://example.com/icon.png']],
                 '_meta' => ['vendor' => 'x'],
             ],
@@ -125,7 +125,7 @@ final class ResourceLinkTest extends AbstractMcpTestCase
             'description' => 'A description.',
             'mimeType' => 'text/plain',
             'annotations' => ['priority' => 0.5],
-            'size' => 1024,
+            'size' => 1_024,
             'icons' => [['src' => 'https://example.com/icon.png']],
             '_meta' => ['vendor' => 'x'],
         ]);
@@ -134,7 +134,7 @@ final class ResourceLinkTest extends AbstractMcpTestCase
         self::assertSame('A description.', $link->description);
         self::assertSame('text/plain', $link->mimeType);
         self::assertSame(0.5, $link->annotations->priority);
-        self::assertSame(1024, $link->size);
+        self::assertSame(1_024, $link->size);
         self::assertNotNull($link->icons);
         self::assertCount(1, $link->icons);
         self::assertSame('https://example.com/icon.png', $link->icons[0]->src);

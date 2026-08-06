@@ -119,7 +119,7 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
     {
         // A 400 HeaderMismatch still carries the id, so it must reach the protocol layer rather than be
         // swallowed as a transport fault.
-        $envelope = ['jsonrpc' => '2.0', 'id' => 1, 'error' => ['code' => -32020, 'message' => 'Header mismatch']];
+        $envelope = ['jsonrpc' => '2.0', 'id' => 1, 'error' => ['code' => -32_020, 'message' => 'Header mismatch']];
         $http = (new RecordingHttpClient())->willAnswerJson($envelope, status: 400);
         $transport = self::makeTransport($http);
         $received = self::captureMessages($transport);
@@ -792,9 +792,9 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
     {
         // The spec lets a refused POST carry an id-less error envelope, and this SDK's own
         // server emits one for every failure whose id it could not recover.
-        yield 'an id-less error envelope' => [['jsonrpc' => '2.0', 'error' => ['code' => -32600, 'message' => 'Invalid Request']]];
+        yield 'an id-less error envelope' => [['jsonrpc' => '2.0', 'error' => ['code' => -32_600, 'message' => 'Invalid Request']]];
 
-        yield 'an error envelope answering some other id' => [['jsonrpc' => '2.0', 'id' => 99, 'error' => ['code' => -32600, 'message' => 'Invalid Request']]];
+        yield 'an error envelope answering some other id' => [['jsonrpc' => '2.0', 'id' => 99, 'error' => ['code' => -32_600, 'message' => 'Invalid Request']]];
 
         yield 'a notification-shaped body' => [['jsonrpc' => '2.0', 'method' => 'notifications/message', 'params' => []]];
 

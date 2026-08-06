@@ -81,7 +81,7 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
     {
         $handler = self::handler();
 
-        $response = self::endpoint($handler, ['*'], maxBodyBytes: 1024)->handle(self::request(null, 2048));
+        $response = self::endpoint($handler, ['*'], maxBodyBytes: 1_024)->handle(self::request(null, 2_048));
 
         self::assertFalse($handler->called);
         self::assertSame(413, $response->getStatusCode());
@@ -91,7 +91,7 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
     {
         $handler = self::handler();
 
-        $response = self::endpoint($handler, ['*'])->handle(self::request(null, 2048));
+        $response = self::endpoint($handler, ['*'])->handle(self::request(null, 2_048));
 
         self::assertTrue($handler->called);
         self::assertSame(200, $response->getStatusCode());

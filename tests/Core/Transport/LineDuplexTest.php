@@ -209,7 +209,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
 
     public function testCloseFromMainFiberDrainsSuspendedReadLoopBeforeReturning(): void
     {
-        $pipe = new Pipe(8192);
+        $pipe = new Pipe(8_192);
         $sink = $pipe->getSink();
         $events = [];
         $duplex = self::buildDuplex(
@@ -238,7 +238,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
 
     public function testCloseDrainsRegisteredSideChannelLoopBeforeReturning(): void
     {
-        $pipe = new Pipe(8192);
+        $pipe = new Pipe(8_192);
         $sink = $pipe->getSink();
         $lines = [];
         $duplex = self::buildDuplex(
@@ -262,7 +262,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
 
     public function testCloseDrainsAParkedReadLoopWithoutAnOnBeforeClose(): void
     {
-        $pipe = new Pipe(8192);
+        $pipe = new Pipe(8_192);
         $events = [];
         $errors = [];
         $duplex = self::buildDuplex();
@@ -290,7 +290,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
 
     public function testSideChannelOnLineCallingCloseDoesNotSelfDeadlock(): void
     {
-        $pipe = new Pipe(8192);
+        $pipe = new Pipe(8_192);
         $sink = $pipe->getSink();
         $sink->write("first\n");
         $sink->close();
@@ -411,7 +411,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
         EventLoop::run();
 
         self::assertCount(1, $reported);
-        self::assertSame(-32700, $reported[0]->error->code, 'Malformed JSON must surface a ParseError (-32700).');
+        self::assertSame(-32_700, $reported[0]->error->code, 'Malformed JSON must surface a ParseError (-32700).');
     }
 
     public function testReportsParseFailureWithInvalidRequestErrorForNonObjectEnvelope(): void
@@ -429,7 +429,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
         EventLoop::run();
 
         self::assertCount(1, $reported);
-        self::assertSame(-32600, $reported[0]->error->code, 'Non-object envelope must surface an InvalidRequestError (-32600).');
+        self::assertSame(-32_600, $reported[0]->error->code, 'Non-object envelope must surface an InvalidRequestError (-32600).');
     }
 
     public function testParseFailureIsSilentWhenNoOnParseFailureClosureIsConfigured(): void

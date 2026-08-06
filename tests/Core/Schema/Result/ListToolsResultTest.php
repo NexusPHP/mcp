@@ -72,7 +72,7 @@ final class ListToolsResultTest extends AbstractMcpTestCase
     {
         $result = new ListToolsResult(
             tools: [new Tool(name: 'read-file', inputSchema: ['type' => 'object'])],
-            ttlMs: 60000,
+            ttlMs: 60_000,
             cacheScope: CacheScope::Public,
             nextCursor: new Cursor(cursor: 'cursor-1'),
             meta: new GenericResultMetaObject(extras: ['vendor' => 'x']),
@@ -90,7 +90,7 @@ final class ListToolsResultTest extends AbstractMcpTestCase
     {
         $result = new ListToolsResult(
             tools: [new Tool(name: 'read-file', inputSchema: ['type' => 'object'])],
-            ttlMs: 60000,
+            ttlMs: 60_000,
             cacheScope: CacheScope::Public,
             nextCursor: new Cursor(cursor: 'cursor-1'),
             meta: new GenericResultMetaObject(extras: ['vendor' => 'x']),
@@ -102,7 +102,7 @@ final class ListToolsResultTest extends AbstractMcpTestCase
                 'resultType' => 'complete',
                 'tools' => [['name' => 'read-file', 'inputSchema' => ['type' => 'object']]],
                 'nextCursor' => 'cursor-1',
-                'ttlMs' => 60000,
+                'ttlMs' => 60_000,
                 'cacheScope' => 'public',
             ],
             $result->toArray(),
@@ -120,7 +120,7 @@ final class ListToolsResultTest extends AbstractMcpTestCase
     {
         $original = new ListToolsResult(
             tools: [new Tool(name: 'read-file', inputSchema: ['type' => 'object'])],
-            ttlMs: 60000,
+            ttlMs: 60_000,
             cacheScope: CacheScope::Public,
             nextCursor: new Cursor(cursor: 'cursor-1'),
             meta: new GenericResultMetaObject(extras: ['vendor' => 'x']),

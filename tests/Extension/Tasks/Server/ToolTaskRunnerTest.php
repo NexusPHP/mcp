@@ -129,7 +129,7 @@ final class ToolTaskRunnerTest extends AbstractMcpTestCase
         self::assertInstanceOf(TaskRecord::class, $record);
         self::assertSame(TaskStatus::Failed, $record->status);
         self::assertSame(
-            ['code' => -32603, 'message' => 'The tool parked the task without any input requests.'],
+            ['code' => -32_603, 'message' => 'The tool parked the task without any input requests.'],
             $record->error,
         );
     }
@@ -151,7 +151,7 @@ final class ToolTaskRunnerTest extends AbstractMcpTestCase
         self::assertInstanceOf(TaskRecord::class, $record);
         self::assertSame(TaskStatus::Failed, $record->status);
         self::assertSame(
-            ['code' => -32603, 'message' => \sprintf('Task "%s" already issued the input-request key "confirm".', $taskId)],
+            ['code' => -32_603, 'message' => \sprintf('Task "%s" already issued the input-request key "confirm".', $taskId)],
             $record->error,
         );
     }
@@ -170,7 +170,7 @@ final class ToolTaskRunnerTest extends AbstractMcpTestCase
         self::assertInstanceOf(TaskRecord::class, $record);
         self::assertSame(TaskStatus::Failed, $record->status);
         self::assertSame(
-            ['code' => -32602, 'message' => 'Bad params.', 'data' => ['field' => 'name']],
+            ['code' => -32_602, 'message' => 'Bad params.', 'data' => ['field' => 'name']],
             $record->error,
         );
     }
@@ -189,7 +189,7 @@ final class ToolTaskRunnerTest extends AbstractMcpTestCase
         $record = $store->findTask($taskId);
         self::assertInstanceOf(TaskRecord::class, $record);
         self::assertSame(TaskStatus::Failed, $record->status);
-        self::assertSame(['code' => -32603, 'message' => 'Task execution failed.'], $record->error);
+        self::assertSame(['code' => -32_603, 'message' => 'Task execution failed.'], $record->error);
         $records = $logger->recordsMatching(
             LogLevel::ERROR,
             'Uncaught task executor exception. Failing task {taskId} with a generic error.',

@@ -29,5 +29,5 @@ enum SdkErrorCode: int
      * The server is already dispatching as many messages as it accepts at once.
      * The request was not processed and may be retried.
      */
-    case Overloaded = -32000;
+    case Overloaded = -32_000;
 }

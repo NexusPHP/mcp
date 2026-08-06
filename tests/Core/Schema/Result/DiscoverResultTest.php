@@ -82,7 +82,7 @@ final class DiscoverResultTest extends AbstractMcpTestCase
         $result = new DiscoverResult(
             supportedVersions: ['2026-07-28', '2025-06-18'],
             capabilities: new ServerCapabilities(tools: ['listChanged' => true]),
-            ttlMs: 60000,
+            ttlMs: 60_000,
             cacheScope: CacheScope::Public,
             instructions: 'Be helpful.',
             meta: new GenericResultMetaObject(extras: ['vendor' => 'x']),
@@ -101,7 +101,7 @@ final class DiscoverResultTest extends AbstractMcpTestCase
         $result = new DiscoverResult(
             supportedVersions: ['2026-07-28', '2025-06-18'],
             capabilities: new ServerCapabilities(tools: ['listChanged' => true]),
-            ttlMs: 60000,
+            ttlMs: 60_000,
             cacheScope: CacheScope::Public,
             instructions: 'Be helpful.',
             meta: new GenericResultMetaObject(
@@ -120,7 +120,7 @@ final class DiscoverResultTest extends AbstractMcpTestCase
                 'supportedVersions' => ['2026-07-28', '2025-06-18'],
                 'capabilities' => ['tools' => ['listChanged' => true]],
                 'instructions' => 'Be helpful.',
-                'ttlMs' => 60000,
+                'ttlMs' => 60_000,
                 'cacheScope' => 'public',
             ],
             $result->toArray(),
@@ -168,7 +168,7 @@ final class DiscoverResultTest extends AbstractMcpTestCase
         $original = new DiscoverResult(
             supportedVersions: ['2026-07-28', '2025-06-18'],
             capabilities: new ServerCapabilities(tools: ['listChanged' => true]),
-            ttlMs: 60000,
+            ttlMs: 60_000,
             cacheScope: CacheScope::Public,
             instructions: 'Be helpful.',
             meta: new GenericResultMetaObject(

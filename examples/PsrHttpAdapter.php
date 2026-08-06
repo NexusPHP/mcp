@@ -33,7 +33,7 @@ use Psr\Http\Server\RequestHandlerInterface as PsrRequestHandler;
  */
 final readonly class PsrHttpAdapter implements AmpRequestHandler
 {
-    private const int CHUNK = 8192;
+    private const int CHUNK = 8_192;
 
     public function __construct(
         private PsrRequestHandler $handler,

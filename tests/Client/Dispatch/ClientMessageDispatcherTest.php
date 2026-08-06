@@ -160,7 +160,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $dispatcher->dispatch([
             'jsonrpc' => '2.0',
             'id' => 999,
-            'error' => ['code' => -32603, 'message' => 'oops'],
+            'error' => ['code' => -32_603, 'message' => 'oops'],
         ], $transport, new ReceiveContext());
 
         $dispatcher->flushPending();
@@ -181,7 +181,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $dispatcher->dispatch([
             'jsonrpc' => '2.0',
             'id' => null,
-            'error' => ['code' => -32700, 'message' => 'parse error'],
+            'error' => ['code' => -32_700, 'message' => 'parse error'],
         ], $transport, new ReceiveContext());
 
         $dispatcher->flushPending();
