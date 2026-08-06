@@ -99,9 +99,6 @@ final class RecordingHttpClient implements DelegateHttpClient
      * Queues an SSE response that emits its chunks then stays open, the way a `subscriptions/listen` stream
      * does. Reading it after the chunks run out suspends until the caller's cancellation fires.
      *
-     * @param list<string> $chunks
-     */
-    /**
      * @param list<string>       $chunks
      * @param null|Future<mixed> $resume Held mid-stream, so a test can speak again after a consumer stopped
      * @param list<string>       $later  Delivered once `$resume` completes
@@ -305,11 +302,6 @@ final class RecordingHttpClient implements DelegateHttpClient
      * Yields the chunks, then suspends forever. A read past the end unblocks only when the caller cancels,
      * which is how a real long-lived stream behaves.
      *
-     * @param list<string> $chunks
-     *
-     * @return \Traversable<int, string>
-     */
-    /**
      * @param list<string>       $chunks
      * @param null|Future<mixed> $resume
      * @param list<string>       $later
