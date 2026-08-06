@@ -19,10 +19,10 @@ use Nexus\Mcp\Core\Schema\BaseMetadata;
 use Nexus\Mcp\Core\Schema\Icon;
 use Nexus\Mcp\Core\Schema\MetaObject\PayloadMetaObject;
 use Nexus\Mcp\Core\Schema\Resource\ResourceTemplate;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -31,7 +31,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(BaseMetadata::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class ResourceTemplateTest extends TestCase
+final class ResourceTemplateTest extends AbstractMcpTestCase
 {
     public function testConstructionMinimal(): void
     {

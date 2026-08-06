@@ -15,9 +15,9 @@ namespace Nexus\Mcp\Tests\Client\Auth;
 
 use Nexus\Mcp\Client\Auth\ClientRegistration;
 use Nexus\Mcp\Client\Auth\InMemoryClientRegistrationStore;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -25,13 +25,13 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(InMemoryClientRegistrationStore::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class InMemoryClientRegistrationStoreTest extends TestCase
+final class InMemoryClientRegistrationStoreTest extends AbstractMcpTestCase
 {
     private const string ISSUER = 'https://auth.example.com';
 
     public function testReadReturnsNullForAnUnknownIssuer(): void
     {
-        self::assertNull(new InMemoryClientRegistrationStore()->read(self::ISSUER));
+        self::assertNull((new InMemoryClientRegistrationStore())->read(self::ISSUER));
     }
 
     public function testWriteThenReadReturnsTheRegistration(): void

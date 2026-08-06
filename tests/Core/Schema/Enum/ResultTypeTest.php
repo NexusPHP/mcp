@@ -14,10 +14,10 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Schema\Enum;
 
 use Nexus\Mcp\Core\Schema\Enum\ResultType;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -25,7 +25,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ResultType::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class ResultTypeTest extends TestCase
+final class ResultTypeTest extends AbstractMcpTestCase
 {
     #[DataProvider('provideResultTypeCaseValueCases')]
     public function testResultTypeCaseValue(ResultType $case, string $expectedValue): void

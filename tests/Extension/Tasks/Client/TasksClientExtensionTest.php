@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Extension\Tasks\Client;
 
 use Nexus\Mcp\Extension\Tasks\Client\TasksClientExtension;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -24,7 +24,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(TasksClientExtension::class)]
 #[Group('unit-tests')]
 #[Group('extension-tests')]
-final class TasksClientExtensionTest extends TestCase
+final class TasksClientExtensionTest extends AbstractMcpTestCase
 {
     public function testDeclaresTheOfficialIdentifierWithEmptySettings(): void
     {
@@ -42,7 +42,7 @@ final class TasksClientExtensionTest extends TestCase
     {
         self::assertSame(
             ['tasks/get', 'tasks/update', 'tasks/cancel'],
-            new TasksClientExtension()->getOutboundRequests(),
+            (new TasksClientExtension())->getOutboundRequests(),
         );
     }
 }

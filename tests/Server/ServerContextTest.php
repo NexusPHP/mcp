@@ -21,12 +21,12 @@ use Nexus\Mcp\Core\Schema\ProgressToken;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Transport\ReceiveContext;
 use Nexus\Mcp\Server\ServerContext;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -35,7 +35,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(AbstractContext::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class ServerContextTest extends TestCase
+final class ServerContextTest extends AbstractMcpTestCase
 {
     public function testCarriesAllProvidedFields(): void
     {
@@ -65,7 +65,7 @@ final class ServerContextTest extends TestCase
 
     public function testCarriesTheProvidedReceiveContext(): void
     {
-        $request = new Psr17Factory()->createServerRequest('POST', 'https://mcp.test/');
+        $request = (new Psr17Factory())->createServerRequest('POST', 'https://mcp.test/');
         $receiveContext = new ReceiveContext($request);
 
         $context = new ServerContext(

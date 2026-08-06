@@ -8,6 +8,16 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp/commits/1.x)
 
+### Changed
+
+- The PHP floor is **8.3**, down from 8.4, so the SDK installs into anything still receiving PHP
+  security fixes. Lowering a floor breaks nobody, so this needs no migration. The 8.4-only syntax it
+  used is gone: asymmetric visibility, the `Icons` interface property hook, paren-less
+  `new Foo()->bar()`, and `array_any` / `array_all`. `Icons` is now a pure marker interface, its
+  implementors each declaring the `icons` property that `SchemaConformanceTest` already holds to the
+  spec. `RequestDeadline::$elapsed` became `readElapsed()`, and the CS preset moved to `Nexus83`. CI
+  runs the suite on 8.3, 8.4, and 8.5.
+
 ## [v0.9.0](https://github.com/NexusPHP/mcp/compare/v0.8.0...v0.9.0) - 2026-08-06
 
 This release closes the extensions backlog with the two ratified OAuth extensions, client

@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Client\Exception;
 
 use Nexus\Mcp\Client\Exception\InsufficientScopeException;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -24,13 +24,13 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(InsufficientScopeException::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class InsufficientScopeExceptionTest extends TestCase
+final class InsufficientScopeExceptionTest extends AbstractMcpTestCase
 {
     public function testMessageNamesTheScopesTheChallengeAskedFor(): void
     {
         self::assertSame(
             'The MCP server requires the scope "files:write files:admin".',
-            new InsufficientScopeException(['files:write', 'files:admin'])->getMessage(),
+            (new InsufficientScopeException(['files:write', 'files:admin']))->getMessage(),
         );
     }
 
@@ -38,12 +38,12 @@ final class InsufficientScopeExceptionTest extends TestCase
     {
         self::assertSame(
             'The MCP server answered insufficient_scope without naming a scope.',
-            new InsufficientScopeException([])->getMessage(),
+            (new InsufficientScopeException([]))->getMessage(),
         );
     }
 
     public function testItExposesTheRequiredScopes(): void
     {
-        self::assertSame(['files:write'], new InsufficientScopeException(['files:write'])->required);
+        self::assertSame(['files:write'], (new InsufficientScopeException(['files:write']))->required);
     }
 }

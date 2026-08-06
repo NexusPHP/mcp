@@ -19,12 +19,12 @@ use Nexus\Mcp\Server\Auth\AccessTokenValidatorInterface;
 use Nexus\Mcp\Server\Tool\ToolStoreInterface;
 use Nexus\Mcp\Server\Transport\Http\Middleware\BearerAuthenticationMiddleware;
 use Nexus\Mcp\Server\Transport\Http\SecuredHttpEndpoint;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Server\Http\RecordingRequestHandler;
 use Nexus\Mcp\Tests\Fixtures\Server\Tool\PagedToolStore;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\NullLogger;
 
@@ -34,7 +34,7 @@ use Psr\Log\NullLogger;
 #[CoversClass(SecuredHttpEndpoint::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class SecuredHttpEndpointTest extends TestCase
+final class SecuredHttpEndpointTest extends AbstractMcpTestCase
 {
     public function testForwardsAnAllowedRequestAndDecoratesTheResponse(): void
     {
@@ -242,7 +242,7 @@ final class SecuredHttpEndpointTest extends TestCase
 
     private static function handler(): RecordingRequestHandler
     {
-        return new RecordingRequestHandler(new Psr17Factory()->createResponse(200));
+        return new RecordingRequestHandler((new Psr17Factory())->createResponse(200));
     }
 
     private static function request(?string $origin, int $bodyBytes = 0): ServerRequestInterface
@@ -263,7 +263,7 @@ final class SecuredHttpEndpointTest extends TestCase
 
     private static function preflight(string $origin): ServerRequestInterface
     {
-        return new Psr17Factory()->createServerRequest('OPTIONS', 'https://mcp.test/')
+        return (new Psr17Factory())->createServerRequest('OPTIONS', 'https://mcp.test/')
             ->withHeader('Origin', $origin)
             ->withHeader('Access-Control-Request-Method', 'POST')
         ;

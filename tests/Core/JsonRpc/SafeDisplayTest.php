@@ -14,10 +14,10 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\JsonRpc;
 
 use Nexus\Mcp\Core\JsonRpc\SafeDisplay;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -25,7 +25,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(SafeDisplay::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class SafeDisplayTest extends TestCase
+final class SafeDisplayTest extends AbstractMcpTestCase
 {
     #[DataProvider('provideSanitiseCases')]
     public function testSanitise(string $input, string $expected): void

@@ -27,6 +27,7 @@ use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
 use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
 use Nexus\Mcp\Core\Schema\Request\ListToolsRequest;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Client\Extension\StubClientExtension;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\DiscoverLookalikeRequest;
@@ -42,7 +43,6 @@ use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 use function Amp\async;
 use function Amp\delay;
@@ -53,14 +53,14 @@ use function Amp\delay;
 #[CoversClass(ClientBuilder::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class ClientBuilderTest extends TestCase
+final class ClientBuilderTest extends AbstractMcpTestCase
 {
     public function testBuildWithoutClientInfoThrows(): void
     {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('Client information must be set before build() via setClientInfo().');
 
-        new ClientBuilder()->build();
+        (new ClientBuilder())->build();
     }
 
     public function testSetClientInfoIsFluent(): void
@@ -122,7 +122,7 @@ final class ClientBuilderTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageMatches('/^The request timeout must be positive or null, /');
 
-        new ClientBuilder()->setRequestTimeout($seconds);
+        (new ClientBuilder())->setRequestTimeout($seconds);
     }
 
     #[DataProvider('provideRejectsANonPositiveRequestTimeoutCases')]
@@ -131,7 +131,7 @@ final class ClientBuilderTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageMatches('/^The maximum request timeout must be positive or null, /');
 
-        new ClientBuilder()->setMaxRequestTimeout($seconds);
+        (new ClientBuilder())->setMaxRequestTimeout($seconds);
     }
 
     /**
@@ -178,7 +178,7 @@ final class ClientBuilderTest extends TestCase
             'Request class "Nexus\Mcp\Tests\Fixtures\Core\TestRequest" must declare the method "vendor/custom" it is registered for, \'tests/test-request\' declared.',
         );
 
-        new ClientBuilder()->addRequestHandler('vendor/custom', new ClosureRequestHandler(
+        (new ClientBuilder())->addRequestHandler('vendor/custom', new ClosureRequestHandler(
             static fn() => throw new \RuntimeException('not used'),
         ), TestRequest::class);
     }
@@ -190,7 +190,7 @@ final class ClientBuilderTest extends TestCase
             'Notification class "Nexus\Mcp\Tests\Fixtures\Core\TestNotification" must declare the method "vendor/custom-done" it is registered for, \'tests/test-notification\' declared.',
         );
 
-        new ClientBuilder()->addNotificationHandler('vendor/custom-done', new ClosureNotificationHandler(
+        (new ClientBuilder())->addNotificationHandler('vendor/custom-done', new ClosureNotificationHandler(
             static fn() => null,
         ), TestNotification::class);
     }
@@ -202,7 +202,7 @@ final class ClientBuilderTest extends TestCase
             'Request method "server/discover" is defined by the MCP specification and keeps its registry envelope class, \'Nexus\\\\Mcp\\\\Tests\\\\Fixtures\\\\Core\\\\DiscoverLookalikeRequest\' given.',
         );
 
-        new ClientBuilder()->addRequestHandler('server/discover', new ClosureRequestHandler(
+        (new ClientBuilder())->addRequestHandler('server/discover', new ClosureRequestHandler(
             static fn(): EmptyResult => new EmptyResult(),
         ), DiscoverLookalikeRequest::class);
     }
@@ -214,7 +214,7 @@ final class ClientBuilderTest extends TestCase
             'Notification method "notifications/progress" is defined by the MCP specification and keeps its registry envelope class, \'Nexus\\\\Mcp\\\\Tests\\\\Fixtures\\\\Core\\\\ProgressLookalikeNotification\' given.',
         );
 
-        new ClientBuilder()->addNotificationHandler('notifications/progress', new ClosureNotificationHandler(
+        (new ClientBuilder())->addNotificationHandler('notifications/progress', new ClosureNotificationHandler(
             static fn() => null,
         ), ProgressLookalikeNotification::class);
     }
@@ -226,14 +226,14 @@ final class ClientBuilderTest extends TestCase
             'Notification method "vendor/custom-done" is not defined by the MCP specification, so its handler registration must name the $notificationClass that parses it.',
         );
 
-        new ClientBuilder()->addNotificationHandler('vendor/custom-done', new ClosureNotificationHandler(
+        (new ClientBuilder())->addNotificationHandler('vendor/custom-done', new ClosureNotificationHandler(
             static fn() => null,
         ));
     }
 
     public function testEnableExtensionAdvertisesTheCapabilityOnTheStampedMeta(): void
     {
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->enableExtension(new StubClientExtension(identifier: 'com.example/feature'))
             ->build()
@@ -255,13 +255,13 @@ final class ClientBuilderTest extends TestCase
             'com.example/feature' => [],
         ];
 
-        $enableFirst = new ClientBuilder()
+        $enableFirst = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->enableExtension(new StubClientExtension(identifier: 'com.example/feature'))
             ->setClientCapabilities(new ClientCapabilities(extensions: ['com.example/manual' => ['mode' => 'safe']]))
             ->build()
         ;
-        $setFirst = new ClientBuilder()
+        $setFirst = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->setClientCapabilities(new ClientCapabilities(extensions: ['com.example/manual' => ['mode' => 'safe']]))
             ->enableExtension(new StubClientExtension(identifier: 'com.example/feature'))
@@ -274,7 +274,7 @@ final class ClientBuilderTest extends TestCase
 
     public function testBuildRejectsAnIdentifierDeclaredManuallyAndEnabled(): void
     {
-        $builder = new ClientBuilder()
+        $builder = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->setClientCapabilities(new ClientCapabilities(extensions: ['com.example/feature' => []]))
             ->enableExtension(new StubClientExtension(identifier: 'com.example/feature'))
@@ -293,7 +293,7 @@ final class ClientBuilderTest extends TestCase
             'Extension "com.example/feature" cannot claim the request method "tools/call" already owned by the MCP specification.',
         );
 
-        new ClientBuilder()->enableExtension(new StubClientExtension(
+        (new ClientBuilder())->enableExtension(new StubClientExtension(
             identifier: 'com.example/feature',
             outboundRequests: ['tools/call'],
         ));
@@ -301,7 +301,7 @@ final class ClientBuilderTest extends TestCase
 
     public function testEnableExtensionRejectsAnOutboundMethodAnotherExtensionOwns(): void
     {
-        $builder = new ClientBuilder()->enableExtension(new StubClientExtension(
+        $builder = (new ClientBuilder())->enableExtension(new StubClientExtension(
             identifier: 'com.example/feature',
             outboundRequests: ['acme/lookup'],
         ));
@@ -319,7 +319,7 @@ final class ClientBuilderTest extends TestCase
 
     public function testEnableExtensionRejectsAnInboundMethodABuilderHandlerOwns(): void
     {
-        $builder = new ClientBuilder()->addRequestHandler(TestRequest::getMethod(), new ClosureRequestHandler(
+        $builder = (new ClientBuilder())->addRequestHandler(TestRequest::getMethod(), new ClosureRequestHandler(
             static fn(): EmptyResult => new EmptyResult(),
         ), TestRequest::class);
 
@@ -339,7 +339,7 @@ final class ClientBuilderTest extends TestCase
 
     public function testEnableExtensionRejectsANotificationMethodABuilderHandlerOwns(): void
     {
-        $builder = new ClientBuilder()->addNotificationHandler(TestNotification::getMethod(), new ClosureNotificationHandler(
+        $builder = (new ClientBuilder())->addNotificationHandler(TestNotification::getMethod(), new ClosureNotificationHandler(
             static fn() => null,
         ), TestNotification::class);
 
@@ -359,7 +359,7 @@ final class ClientBuilderTest extends TestCase
 
     public function testAddRequestHandlerRejectsAMethodAnExtensionOwns(): void
     {
-        $builder = new ClientBuilder()->enableExtension(new StubClientExtension(
+        $builder = (new ClientBuilder())->enableExtension(new StubClientExtension(
             identifier: 'com.example/feature',
             requests: [TestRequest::getMethod() => TestRequest::class],
             requestHandlers: [TestRequest::getMethod() => new ClosureRequestHandler(
@@ -379,7 +379,7 @@ final class ClientBuilderTest extends TestCase
 
     public function testAddNotificationHandlerRejectsAMethodAnExtensionOwns(): void
     {
-        $builder = new ClientBuilder()->enableExtension(new StubClientExtension(
+        $builder = (new ClientBuilder())->enableExtension(new StubClientExtension(
             identifier: 'com.example/feature',
             notifications: [TestNotification::getMethod() => TestNotification::class],
             notificationHandlers: [TestNotification::getMethod() => new ClosureNotificationHandler(
@@ -402,7 +402,7 @@ final class ClientBuilderTest extends TestCase
         $marker = new EmptyResult();
         $secondMarker = new EmptyResult();
 
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->enableExtension(new StubClientExtension(
                 identifier: 'com.example/feature',
@@ -449,7 +449,7 @@ final class ClientBuilderTest extends TestCase
     {
         $received = [];
 
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->enableExtension(new StubClientExtension(
                 identifier: 'com.example/feature',
@@ -503,7 +503,7 @@ final class ClientBuilderTest extends TestCase
     {
         $marker = new EmptyResult();
 
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->addRequestHandler('server/discover', new ClosureRequestHandler(static fn(): EmptyResult => $marker), DiscoverRequest::class)
             ->build()
@@ -530,7 +530,7 @@ final class ClientBuilderTest extends TestCase
     {
         $marker = new EmptyResult();
 
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->addRequestHandler(TestRequest::getMethod(), new ClosureRequestHandler(static fn(): EmptyResult => $marker), TestRequest::class)
             ->build()
@@ -556,7 +556,7 @@ final class ClientBuilderTest extends TestCase
     {
         $received = 0;
 
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->addNotificationHandler(TestNotification::getMethod(), new ClosureNotificationHandler(
                 static function () use (&$received): void {
@@ -580,7 +580,7 @@ final class ClientBuilderTest extends TestCase
     public function testAnInboundCancellationStopsARequestTheClientIsServing(): void
     {
         $seen = [];
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->addRequestHandler('server/discover', new ClosureRequestHandler(
                 static function ($request, AbstractContext $context) use (&$seen): EmptyResult {
@@ -618,7 +618,7 @@ final class ClientBuilderTest extends TestCase
     public function testACustomCancelledNotificationHandlerReplacesTheBuiltInOne(): void
     {
         $seen = [];
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->addNotificationHandler('notifications/cancelled', new ClosureNotificationHandler(
                 static function () use (&$seen): void {
@@ -642,7 +642,7 @@ final class ClientBuilderTest extends TestCase
 
     public function testBuildDefaultsToIncrementingIntegerRequestIdFactoryWhenNoneIsSet(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
 
@@ -678,7 +678,7 @@ final class ClientBuilderTest extends TestCase
     {
         $uuid = '550e8400-e29b-41d4-a716-446655440000';
 
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->setRequestIdFactory(static fn(): string => $uuid)
             ->build()
@@ -700,7 +700,7 @@ final class ClientBuilderTest extends TestCase
 
     public function testBuildDefaultsToIncrementingProgressTokenFactoryWhenNoneIsSet(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
 

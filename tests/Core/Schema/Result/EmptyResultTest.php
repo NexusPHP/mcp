@@ -16,9 +16,9 @@ namespace Nexus\Mcp\Tests\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\MetaObject\GenericResultMetaObject;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -27,16 +27,16 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(Result::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class EmptyResultTest extends TestCase
+final class EmptyResultTest extends AbstractMcpTestCase
 {
     public function testDefaultsToNullMeta(): void
     {
-        self::assertSame([], new EmptyResult()->meta->toArray());
+        self::assertSame([], (new EmptyResult())->meta->toArray());
     }
 
     public function testToArrayCarriesResultTypeWhenNoMeta(): void
     {
-        self::assertSame(['resultType' => 'complete'], new EmptyResult()->toArray());
+        self::assertSame(['resultType' => 'complete'], (new EmptyResult())->toArray());
     }
 
     public function testToArrayEmitsMeta(): void

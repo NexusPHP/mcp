@@ -62,12 +62,12 @@ use Nexus\Mcp\Core\Schema\ResultResponse\SubscriptionsListenResultResponse;
 use Nexus\Mcp\Core\Schema\SubscriptionFilter;
 use Nexus\Mcp\Extension\Tasks\Schema\Enum\TaskStatus;
 use Nexus\Mcp\Extension\Tasks\Schema\Result\CreateTaskResult;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use Nexus\Mcp\Tests\Fixtures\Core\TestRequest;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -75,7 +75,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ResultResponseFactory::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class ResultResponseFactoryTest extends TestCase
+final class ResultResponseFactoryTest extends AbstractMcpTestCase
 {
     /**
      * @param JsonRpcRequest<non-empty-string> $request

@@ -15,9 +15,9 @@ namespace Nexus\Mcp\Tests\Extension\Apps\Server;
 
 use Nexus\Mcp\Extension\Apps\Server\AppsServerExtension;
 use Nexus\Mcp\Server\ServerBuilder;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -25,7 +25,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(AppsServerExtension::class)]
 #[Group('unit-tests')]
 #[Group('extension-tests')]
-final class AppsServerExtensionTest extends TestCase
+final class AppsServerExtensionTest extends AbstractMcpTestCase
 {
     public function testDeclaresTheOfficialIdentifierWithEmptySettings(): void
     {
@@ -43,7 +43,7 @@ final class AppsServerExtensionTest extends TestCase
     {
         $this->expectNotToPerformAssertions();
 
-        new ServerBuilder()
+        (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->enableExtension(new AppsServerExtension())
             ->build()

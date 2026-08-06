@@ -97,7 +97,7 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
         $missing = [];
 
         foreach (self::concreteSubclasses(Result::class) as $result) {
-            $shortName = new \ReflectionClass($result)->getShortName();
+            $shortName = (new \ReflectionClass($result))->getShortName();
 
             if (! is_dir(self::fixtureRoot().'/'.$shortName)) {
                 $missing[] = $result;
@@ -163,7 +163,7 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
     public static function provideEveryResultSurvivesAMetaRebuildCases(): iterable
     {
         foreach (self::concreteSubclasses(Result::class) as $resultClass) {
-            $shortName = new \ReflectionClass($resultClass)->getShortName();
+            $shortName = (new \ReflectionClass($resultClass))->getShortName();
 
             yield $shortName => [$resultClass, self::fixtureRoot().'/'.$shortName.'/all-props.json'];
         }
@@ -174,7 +174,7 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
         $missing = [];
 
         foreach (self::concreteSubclasses(Error::class) as $errorClass) {
-            $shortName = new \ReflectionClass($errorClass)->getShortName();
+            $shortName = (new \ReflectionClass($errorClass))->getShortName();
             $expectedDir = 'JsonRpcErrorResponse-'.$shortName;
 
             if (! is_dir(self::fixtureRoot().'/'.$expectedDir)) {

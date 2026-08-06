@@ -14,10 +14,10 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Server\Attribute;
 
 use Nexus\Mcp\Server\Attribute\InputSchema;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -25,11 +25,11 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(InputSchema::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class InputSchemaTest extends TestCase
+final class InputSchemaTest extends AbstractMcpTestCase
 {
     public function testEmptyWhenNoKeywordsSet(): void
     {
-        self::assertSame([], new InputSchema()->toArray());
+        self::assertSame([], (new InputSchema())->toArray());
     }
 
     public function testDefinitionShortCircuitsAndIgnoresOtherKeywords(): void

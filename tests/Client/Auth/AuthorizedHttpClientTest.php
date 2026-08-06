@@ -26,13 +26,13 @@ use Nexus\Mcp\Client\Auth\InMemoryTokenStore;
 use Nexus\Mcp\Client\Auth\InsufficientScopePolicy;
 use Nexus\Mcp\Client\Exception\InsufficientScopeException;
 use Nexus\Mcp\Client\Exception\RedirectRefusedException;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Client\Auth\ScriptedGrantStrategy;
 use Nexus\Mcp\Tests\Fixtures\Client\Auth\ScriptedUserAuthorization;
 use Nexus\Mcp\Tests\Fixtures\Client\Http\RecordingHttpClient;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 use Psr\Log\LogLevel;
 
 use function Amp\async;
@@ -43,14 +43,14 @@ use function Amp\async;
 #[CoversClass(AuthorizedHttpClient::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class AuthorizedHttpClientTest extends TestCase
+final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 {
     private const string RESOURCE = 'https://127.0.0.1:1/mcp';
     private const string CHALLENGE = 'Bearer resource_metadata="https://127.0.0.1:1/.well-known/oauth-protected-resource/mcp"';
 
     public function testAnUnprotectedServerIsCalledWithNoAuthorization(): void
     {
-        $http = new RecordingHttpClient()->willAnswerJson(['ok' => true]);
+        $http = (new RecordingHttpClient())->willAnswerJson(['ok' => true]);
 
         $response = self::client($http)->request(self::mcpRequest(), new NullCancellation());
 
@@ -61,7 +61,7 @@ final class AuthorizedHttpClientTest extends TestCase
 
     public function testAChallengeTriggersTheFlowAndTheRequestIsRetriedWithTheToken(): void
     {
-        $http = new RecordingHttpClient()
+        $http = (new RecordingHttpClient())
             ->willChallenge(401, self::CHALLENGE)
             ->willAnswerJson(self::resourceDocument())
             ->willAnswerJson(self::serverDocument())
@@ -80,7 +80,7 @@ final class AuthorizedHttpClientTest extends TestCase
 
     public function testEveryLegOfTheFlowIsBoundedByTheRequestsOwnCancellation(): void
     {
-        $http = new RecordingHttpClient()
+        $http = (new RecordingHttpClient())
             ->willChallenge(401, self::CHALLENGE)
             ->willAnswerJson(self::resourceDocument())
             ->willAnswerJson(self::serverDocument())
@@ -99,7 +99,7 @@ final class AuthorizedHttpClientTest extends TestCase
 
     public function testATokenIsNeverSentToAnotherOrigin(): void
     {
-        $http = new RecordingHttpClient()
+        $http = (new RecordingHttpClient())
             ->willChallenge(401, self::CHALLENGE)
             ->willAnswerJson(self::resourceDocument())
             ->willAnswerJson(self::serverDocument())
@@ -156,7 +156,7 @@ final class AuthorizedHttpClientTest extends TestCase
 
     public function testAChallengeFromAnotherOriginIsReturnedRatherThanActedOn(): void
     {
-        $http = new RecordingHttpClient()->willChallenge(
+        $http = (new RecordingHttpClient())->willChallenge(
             401,
             'Bearer resource_metadata="https://attacker.example.com/prm", scope="admin:everything"',
         );
@@ -173,14 +173,14 @@ final class AuthorizedHttpClientTest extends TestCase
 
     public function testAnUnauthenticatedRequestThatFollowedARedirectIsLeftAlone(): void
     {
-        $http = new RecordingHttpClient()->willAnswerFrom('https://elsewhere.example.com/mcp', ['ok' => true]);
+        $http = (new RecordingHttpClient())->willAnswerFrom('https://elsewhere.example.com/mcp', ['ok' => true]);
 
         self::assertSame(200, self::client($http)->request(self::mcpRequest(), new NullCancellation())->getStatus());
     }
 
     public function testTheChallengeSteersDiscoveryToTheAdvertisedUrl(): void
     {
-        $http = new RecordingHttpClient()
+        $http = (new RecordingHttpClient())
             ->willChallenge(401, 'Bearer resource_metadata="https://127.0.0.1:1/custom/prm"')
             ->willAnswerJson(self::resourceDocument())
             ->willAnswerJson(self::serverDocument())
@@ -196,7 +196,7 @@ final class AuthorizedHttpClientTest extends TestCase
 
     public function testTheChallengeScopeIsRequested(): void
     {
-        $http = new RecordingHttpClient()
+        $http = (new RecordingHttpClient())
             ->willChallenge(401, 'Bearer resource_metadata="https://127.0.0.1:1/.well-known/oauth-protected-resource/mcp", scope="files:read"')
             ->willAnswerJson(self::resourceDocument())
             ->willAnswerJson(self::serverDocument())
@@ -213,7 +213,7 @@ final class AuthorizedHttpClientTest extends TestCase
 
     public function testAStoredTokenIsPresentedOnALaterRequest(): void
     {
-        $http = new RecordingHttpClient()
+        $http = (new RecordingHttpClient())
             ->willChallenge(401, self::CHALLENGE)
             ->willAnswerJson(self::resourceDocument())
             ->willAnswerJson(self::serverDocument())
@@ -233,7 +233,7 @@ final class AuthorizedHttpClientTest extends TestCase
 
     public function testASecondUnauthorizedAnswerIsReturnedRatherThanRetriedForever(): void
     {
-        $http = new RecordingHttpClient()
+        $http = (new RecordingHttpClient())
             ->willChallenge(401, self::CHALLENGE)
             ->willAnswerJson(self::resourceDocument())
             ->willAnswerJson(self::serverDocument())
@@ -270,7 +270,7 @@ final class AuthorizedHttpClientTest extends TestCase
 
     public function testAScopeChallengeNamingNothingTheTokenLacksIsReported(): void
     {
-        $http = new RecordingHttpClient()
+        $http = (new RecordingHttpClient())
             ->willChallenge(401, self::CHALLENGE)
             ->willAnswerJson(self::resourceDocument())
             ->willAnswerJson(self::serverDocument())
@@ -328,7 +328,7 @@ final class AuthorizedHttpClientTest extends TestCase
 
     public function testASecondScopeChallengeAsksForWhatTheFirstOneDidAsWell(): void
     {
-        $http = new RecordingHttpClient()
+        $http = (new RecordingHttpClient())
             ->willChallenge(401, self::CHALLENGE)
             ->willAnswerJson(self::resourceDocument())
             ->willAnswerJson(self::serverDocument())
@@ -354,7 +354,7 @@ final class AuthorizedHttpClientTest extends TestCase
 
     public function testAScopeTheTokenLostToANarrowerGrantIsAskedForAgain(): void
     {
-        $http = new RecordingHttpClient()
+        $http = (new RecordingHttpClient())
             ->willChallenge(401, self::CHALLENGE)
             ->willAnswerJson(self::resourceDocument())
             ->willAnswerJson(self::serverDocument())
@@ -431,7 +431,7 @@ final class AuthorizedHttpClientTest extends TestCase
 
     public function testTheFailPolicyStillReportsAChallengeNamingNothingNew(): void
     {
-        $http = new RecordingHttpClient()
+        $http = (new RecordingHttpClient())
             ->willChallenge(401, self::CHALLENGE)
             ->willAnswerJson(self::resourceDocument())
             ->willAnswerJson(self::serverDocument())
@@ -456,7 +456,7 @@ final class AuthorizedHttpClientTest extends TestCase
 
     public function testALapsedTokenLeavesItsScopesToTheGrantThatReplacesIt(): void
     {
-        $http = new RecordingHttpClient()
+        $http = (new RecordingHttpClient())
             ->willChallenge(401, self::CHALLENGE)
             ->willAnswerJson(self::resourceDocument())
             ->willAnswerJson(self::serverDocument())
@@ -480,7 +480,7 @@ final class AuthorizedHttpClientTest extends TestCase
 
     public function testConcurrentChallengesOpenOneConsentScreen(): void
     {
-        $http = new RecordingHttpClient()
+        $http = (new RecordingHttpClient())
             ->willChallenge(401, self::CHALLENGE)
             ->willChallenge(401, self::CHALLENGE)
             ->willAnswerJson(self::resourceDocument())
@@ -553,7 +553,7 @@ final class AuthorizedHttpClientTest extends TestCase
 
     public function testAnUnauthorizedAnswerWithNoChallengeStillStartsDiscovery(): void
     {
-        $http = new RecordingHttpClient()
+        $http = (new RecordingHttpClient())
             ->willAnswerJson([], 401)
             ->willAnswerJson(self::resourceDocument())
             ->willAnswerJson(self::serverDocument())
@@ -573,7 +573,7 @@ final class AuthorizedHttpClientTest extends TestCase
 
     public function testARejectedTokenCarriesItsGrantedScopesIntoTheNextOne(): void
     {
-        $http = new RecordingHttpClient()
+        $http = (new RecordingHttpClient())
             ->willChallenge(401, self::CHALLENGE)
             ->willAnswerJson(self::resourceDocument())
             ->willAnswerJson(self::serverDocument())
@@ -672,7 +672,7 @@ final class AuthorizedHttpClientTest extends TestCase
 
     public function testAChallengeBodyThatFailsPartwayThroughIsGivenUpOnButStillAuthorizes(): void
     {
-        $http = new RecordingHttpClient()
+        $http = (new RecordingHttpClient())
             ->willChallengeWithAnUnreadableBody(401, self::CHALLENGE, new HttpException('Invalid hexadecimal chunk size.'))
             ->willAnswerJson(self::resourceDocument())
             ->willAnswerJson(self::serverDocument())
@@ -719,7 +719,7 @@ final class AuthorizedHttpClientTest extends TestCase
     {
         $tokens = new InMemoryTokenStore();
         $tokens->write(self::RESOURCE, new AccessToken('the-stored-token', 'https://auth.test', time() - 1, 'the-refresh-token'));
-        $http = new RecordingHttpClient()
+        $http = (new RecordingHttpClient())
             ->willAnswerJson(self::resourceDocument())
             ->willAnswerJson(self::serverDocument())
             ->willAnswerJson(['client_id' => 'the-client'])
@@ -741,7 +741,7 @@ final class AuthorizedHttpClientTest extends TestCase
         $tokens = new InMemoryTokenStore();
         // A lifetime near the leeway would flip if the wall clock ticked between the write and the read.
         $tokens->write(self::RESOURCE, new AccessToken('the-stored-token', 'https://auth.test', time() + 3600, 'the-refresh-token'));
-        $http = new RecordingHttpClient()
+        $http = (new RecordingHttpClient())
             ->willAnswerJson(self::resourceDocument())
             ->willAnswerJson(self::serverDocument())
             ->willAnswerJson(['ok' => true])
@@ -757,7 +757,7 @@ final class AuthorizedHttpClientTest extends TestCase
     {
         $tokens = new InMemoryTokenStore();
         $tokens->write(self::RESOURCE, new AccessToken('the-stored-token', 'https://auth.test', time() + 30, 'the-refresh-token'));
-        $http = new RecordingHttpClient()
+        $http = (new RecordingHttpClient())
             ->willAnswerJson(self::resourceDocument())
             ->willAnswerJson(self::serverDocument())
             ->willAnswerJson(['client_id' => 'the-client'])
@@ -773,7 +773,7 @@ final class AuthorizedHttpClientTest extends TestCase
 
     public function testAChallengeFollowingAScopeUpgradeIsTheServersAnswer(): void
     {
-        $http = new RecordingHttpClient()
+        $http = (new RecordingHttpClient())
             ->willChallenge(401, self::CHALLENGE)
             ->willAnswerJson(self::resourceDocument())
             ->willAnswerJson(self::serverDocument())
@@ -800,7 +800,7 @@ final class AuthorizedHttpClientTest extends TestCase
      */
     public function testAGrantStrategyRunsTheFlowWithoutAnyUserAuthorization(): void
     {
-        $http = new RecordingHttpClient()
+        $http = (new RecordingHttpClient())
             ->willChallenge(401, self::CHALLENGE)
             ->willAnswerJson(self::resourceDocument())
             ->willAnswerJson(self::serverDocument())
@@ -894,7 +894,7 @@ final class AuthorizedHttpClientTest extends TestCase
 
     private static function scriptChallengeAndFlow(string $challengeBody = '{}'): RecordingHttpClient
     {
-        return new RecordingHttpClient()
+        return (new RecordingHttpClient())
             ->willChallenge(401, self::CHALLENGE, $challengeBody)
             ->willAnswerJson(self::resourceDocument())
             ->willAnswerJson(self::serverDocument())

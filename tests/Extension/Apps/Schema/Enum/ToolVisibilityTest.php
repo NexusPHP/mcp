@@ -14,10 +14,10 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Extension\Apps\Schema\Enum;
 
 use Nexus\Mcp\Extension\Apps\Schema\Enum\ToolVisibility;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -25,7 +25,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ToolVisibility::class)]
 #[Group('unit-tests')]
 #[Group('extension-tests')]
-final class ToolVisibilityTest extends TestCase
+final class ToolVisibilityTest extends AbstractMcpTestCase
 {
     #[DataProvider('provideToolVisibilityCaseValueCases')]
     public function testToolVisibilityCaseValue(ToolVisibility $case, string $expectedValue): void

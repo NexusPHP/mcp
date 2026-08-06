@@ -15,10 +15,10 @@ namespace Nexus\Mcp\Tests\Core\UriTemplate;
 
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\UriTemplate\Validator;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -26,7 +26,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(Validator::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class ValidatorTest extends TestCase
+final class ValidatorTest extends AbstractMcpTestCase
 {
     #[DataProvider('provideAcceptsMatchableTemplateCases')]
     public function testAcceptsMatchableTemplate(string $template): void

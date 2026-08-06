@@ -15,9 +15,9 @@ namespace Nexus\Mcp\Tests\Core\Schema\MetaObject;
 
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\MetaObject\PayloadMetaObject;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -26,7 +26,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(MetaObject::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class PayloadMetaObjectTest extends TestCase
+final class PayloadMetaObjectTest extends AbstractMcpTestCase
 {
     public function testDefaultsToEmptyExtras(): void
     {

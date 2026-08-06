@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Http;
 
 use Nexus\Mcp\Core\Http\ParameterHeaderBinding;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -24,7 +24,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ParameterHeaderBinding::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class ParameterHeaderBindingTest extends TestCase
+final class ParameterHeaderBindingTest extends AbstractMcpTestCase
 {
     public function testExposesItsFields(): void
     {

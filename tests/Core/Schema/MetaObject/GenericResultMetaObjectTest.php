@@ -18,10 +18,10 @@ use Nexus\Mcp\Core\Schema\Implementation;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\MetaObject\GenericResultMetaObject;
 use Nexus\Mcp\Core\Schema\MetaObject\ResultMetaObject;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -31,7 +31,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(MetaObject::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class GenericResultMetaObjectTest extends TestCase
+final class GenericResultMetaObjectTest extends AbstractMcpTestCase
 {
     public function testDefaultsToNoServerInfoAndEmptyExtras(): void
     {
@@ -160,7 +160,7 @@ final class GenericResultMetaObjectTest extends TestCase
 
     public function testDeclaresServerInfoIsFalseWhenNeitherCarriesIt(): void
     {
-        self::assertFalse(new GenericResultMetaObject(extras: ['vendor' => 'x'])->declaresServerInfo());
+        self::assertFalse((new GenericResultMetaObject(extras: ['vendor' => 'x']))->declaresServerInfo());
     }
 
     public function testJsonSerializeMatchesToArrayWhenPopulated(): void

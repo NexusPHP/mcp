@@ -15,10 +15,10 @@ namespace Nexus\Mcp\Tests\Core\Auth;
 
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Auth\MetadataReader;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -26,7 +26,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(MetadataReader::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class MetadataReaderTest extends TestCase
+final class MetadataReaderTest extends AbstractMcpTestCase
 {
     private const string LABEL = 'Test Metadata';
 

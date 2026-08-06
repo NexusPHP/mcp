@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Exception;
 
 use Nexus\Mcp\Core\Exception\DuplicateExtensionException;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -24,13 +24,13 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(DuplicateExtensionException::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class DuplicateExtensionExceptionTest extends TestCase
+final class DuplicateExtensionExceptionTest extends AbstractMcpTestCase
 {
     public function testMessageNamesTheIdentifier(): void
     {
         self::assertSame(
             'Extension "com.example/feature" is declared more than once.',
-            new DuplicateExtensionException('com.example/feature')->getMessage(),
+            (new DuplicateExtensionException('com.example/feature'))->getMessage(),
         );
     }
 }

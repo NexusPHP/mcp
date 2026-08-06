@@ -83,6 +83,7 @@ use Nexus\Mcp\Core\Schema\ServerCapabilities;
 use Nexus\Mcp\Core\Schema\SubscriptionFilter;
 use Nexus\Mcp\Core\Transport\SendContext;
 use Nexus\Mcp\Core\Transport\TransportInterface;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Client\Extension\StubClientExtension;
 use Nexus\Mcp\Tests\Fixtures\Client\Http\MirroringRecordingTransport;
 use Nexus\Mcp\Tests\Fixtures\Client\Transport\SupervisableRecordingTransport;
@@ -95,7 +96,6 @@ use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 use Psr\Log\LogLevel;
 use Revolt\EventLoop;
 
@@ -108,12 +108,12 @@ use function Amp\delay;
 #[CoversClass(Client::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class ClientTest extends TestCase
+final class ClientTest extends AbstractMcpTestCase
 {
     public function testConnectStartsTheTransportAndLogs(): void
     {
         $logger = new ArrayLogger();
-        $client = new ClientBuilder()->setLogger($logger)->setClientInfo('demo', '1.2.3')->build();
+        $client = (new ClientBuilder())->setLogger($logger)->setClientInfo('demo', '1.2.3')->build();
         $transport = new RecordingTransport();
 
         $client->connect($transport);
@@ -126,7 +126,7 @@ final class ClientTest extends TestCase
 
     public function testConnectTwiceThrowsClientAlreadyConnectedException(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $client->connect(new RecordingTransport());
 
         $this->expectException(ClientAlreadyConnectedException::class);
@@ -137,7 +137,7 @@ final class ClientTest extends TestCase
 
     public function testDisconnectClosesTheTransportAndAllowsReconnecting(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $first = new RecordingTransport();
         $client->connect($first);
 
@@ -151,7 +151,7 @@ final class ClientTest extends TestCase
 
     public function testDisconnectIsANoOpWhenNotConnected(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
 
         $client->disconnect();
 
@@ -160,7 +160,7 @@ final class ClientTest extends TestCase
 
     public function testSendRequestBeforeConnectThrowsClientNotConnectedException(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $request = new ListToolsRequest(id: new RequestId(id: 1), params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create()));
 
         $this->expectException(ClientNotConnectedException::class);
@@ -171,7 +171,7 @@ final class ClientTest extends TestCase
 
     public function testSendRequestRegistersTheIdAndSendsTheRequestOnTheTransport(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
 
@@ -196,7 +196,7 @@ final class ClientTest extends TestCase
 
     public function testTransportCloseCancelsAllPendingOutboundRequestsWithTransportClosedException(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
 
@@ -216,7 +216,7 @@ final class ClientTest extends TestCase
 
     public function testSendRequestForgetsTheRegistrationWhenTheTransportSendThrows(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $transport->sendError = new TransportAlreadyClosedException(operation: 'send-request');
         $client->connect($transport);
@@ -241,7 +241,7 @@ final class ClientTest extends TestCase
 
     public function testDiscoverForgetsTheRegistrationWhenTheTransportSendThrows(): void
     {
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->setRequestIdFactory(static fn(): int => 1)
             ->build()
@@ -270,7 +270,7 @@ final class ClientTest extends TestCase
     public function testTransportErrorIsLoggedViaTheRegisteredErrorListener(): void
     {
         $logger = new ArrayLogger();
-        $client = new ClientBuilder()->setLogger($logger)->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setLogger($logger)->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
 
@@ -285,7 +285,7 @@ final class ClientTest extends TestCase
     public function testAFailedExchangeFailsTheRequestItWasCarrying(): void
     {
         $logger = new ArrayLogger();
-        $client = new ClientBuilder()->setLogger($logger)->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setLogger($logger)->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
 
@@ -313,7 +313,7 @@ final class ClientTest extends TestCase
 
     public function testAFailedExchangeLeavesOtherRequestsPending(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
 
@@ -333,7 +333,7 @@ final class ClientTest extends TestCase
 
     public function testARequestThatGoesUnansweredTimesOut(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->setRequestTimeout(0.05)->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->setRequestTimeout(0.05)->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
 
@@ -356,7 +356,7 @@ final class ClientTest extends TestCase
     public function testATimedOutRequestReleasesItsCorrelationSlot(): void
     {
         $logger = new ArrayLogger();
-        $client = new ClientBuilder()->setLogger($logger)->setClientInfo('demo', '1.0.0')->setRequestTimeout(0.05)->build();
+        $client = (new ClientBuilder())->setLogger($logger)->setClientInfo('demo', '1.0.0')->setRequestTimeout(0.05)->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
 
@@ -377,7 +377,7 @@ final class ClientTest extends TestCase
 
     public function testASettledRequestLeavesNoTimerArmed(): void
     {
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->setRequestTimeout(30.0)
             ->setMaxRequestTimeout(60.0)
@@ -401,7 +401,7 @@ final class ClientTest extends TestCase
     public function testATimeoutIsReportedEvenWhenTheCancellationCannotBeSent(): void
     {
         $logger = new ArrayLogger();
-        $client = new ClientBuilder()->setLogger($logger)->setClientInfo('demo', '1.0.0')->setRequestTimeout(0.05)->build();
+        $client = (new ClientBuilder())->setLogger($logger)->setClientInfo('demo', '1.0.0')->setRequestTimeout(0.05)->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
 
@@ -428,7 +428,7 @@ final class ClientTest extends TestCase
 
     public function testATimeoutCanBeDisabled(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->setRequestTimeout(null)->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->setRequestTimeout(null)->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
 
@@ -444,7 +444,7 @@ final class ClientTest extends TestCase
 
     public function testSendRequestTimeoutOverridesTheClientDefault(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->setRequestTimeout(10.0)->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->setRequestTimeout(10.0)->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
 
@@ -461,7 +461,7 @@ final class ClientTest extends TestCase
 
     public function testSendRequestTimeoutWidensTheCeilingItExceeds(): void
     {
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->setRequestTimeout(0.01)
             ->setMaxRequestTimeout(0.05)
@@ -487,7 +487,7 @@ final class ClientTest extends TestCase
      */
     public function testACallToolThatThrowsBeforeDispatchLeavesNoTimerArmed(mixed $arguments = [1, 2, 3]): void
     {
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->setRequestTimeout(30.0)
             ->setMaxRequestTimeout(60.0)
@@ -517,7 +517,7 @@ final class ClientTest extends TestCase
 
     public function testProgressKeepsALongCallAlivePastTheIdleTimeout(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->setRequestTimeout(0.1)->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->setRequestTimeout(0.1)->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
         self::discover($client, $transport);
@@ -549,7 +549,7 @@ final class ClientTest extends TestCase
 
     public function testTheCeilingAbandonsACallThatKeepsReportingProgress(): void
     {
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->setRequestTimeout(0.1)
             ->setMaxRequestTimeout(0.15)
@@ -587,7 +587,7 @@ final class ClientTest extends TestCase
 
     public function testDiscoverBeforeConnectThrowsClientNotConnectedException(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
 
         $this->expectException(ClientNotConnectedException::class);
         $this->expectExceptionMessageMatches('/not connected/');
@@ -597,7 +597,7 @@ final class ClientTest extends TestCase
 
     public function testDiscoverSendsRequestAndCachesServerInfoAndCapabilities(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.2.3')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.2.3')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
 
@@ -642,7 +642,7 @@ final class ClientTest extends TestCase
 
     public function testSecondDiscoverPassesTheDefaultCapabilityGate(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
 
@@ -666,7 +666,7 @@ final class ClientTest extends TestCase
     public function testDiscoverStampsClientCapabilitiesIntoTheRequestMeta(): void
     {
         $capabilities = new ClientCapabilities(elicitation: []);
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->setClientCapabilities($capabilities)
             ->build()
@@ -690,7 +690,7 @@ final class ClientTest extends TestCase
 
     public function testDiscoverPropagatesRemoteCallFailureWhenPeerReturnsError(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
 
@@ -719,7 +719,7 @@ final class ClientTest extends TestCase
     public function testRetriesWithAVersionTheRejectionNamedAsSupported(): void
     {
         $logger = new ArrayLogger();
-        $client = new ClientBuilder()->setLogger($logger)->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setLogger($logger)->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
 
@@ -755,7 +755,7 @@ final class ClientTest extends TestCase
 
     public function testDoesNotRetryWhenTheRejectionNamesNoVersionThisSdkSpeaks(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
 
@@ -779,7 +779,7 @@ final class ClientTest extends TestCase
 
     public function testTheRetryIsNotItselfRetried(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
 
@@ -809,7 +809,7 @@ final class ClientTest extends TestCase
 
     public function testAnErrorThatIsNotAVersionRejectionIsNotRetried(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
 
@@ -838,7 +838,7 @@ final class ClientTest extends TestCase
     public function testDrainFiresFlushPendingOnTheDispatcher(): void
     {
         $logger = new ArrayLogger();
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setLogger($logger)
             ->setClientInfo('demo', '1.0.0')
             ->addNotificationHandler(
@@ -867,14 +867,14 @@ final class ClientTest extends TestCase
 
     public function testGetServerInfoReturnsNullBeforeDiscovery(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
 
         self::assertNull($client->getServerInfo());
     }
 
     public function testGetServerInfoReturnsImplementationCachedFromDiscovery(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
         self::discover($client, $transport, 'srv', '9.9');
@@ -887,14 +887,14 @@ final class ClientTest extends TestCase
 
     public function testGetServerCapabilitiesReturnsNullBeforeDiscovery(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
 
         self::assertNull($client->getServerCapabilities());
     }
 
     public function testGetServerCapabilitiesReturnsCapabilitiesCachedFromDiscovery(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
         self::discover($client, $transport, capabilities: ['tools' => []]);
@@ -911,7 +911,7 @@ final class ClientTest extends TestCase
     #[DataProvider('provideTypedCallThrowsWhenServerLacksTheCapabilityCases')]
     public function testTypedCallThrowsWhenServerLacksTheCapability(string $method, \Closure $call): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
         self::discover($client, $transport, capabilities: []);
@@ -958,7 +958,7 @@ final class ClientTest extends TestCase
 
     public function testListToolsSendsRequestAndUnwrapsResult(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
         self::discover($client, $transport);
@@ -984,7 +984,7 @@ final class ClientTest extends TestCase
 
     public function testListToolsForwardsCursorIntoParams(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
         self::discover($client, $transport);
@@ -1008,7 +1008,7 @@ final class ClientTest extends TestCase
 
     public function testListResourcesSendsRequestAndUnwrapsResult(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
         self::discover($client, $transport);
@@ -1033,7 +1033,7 @@ final class ClientTest extends TestCase
 
     public function testListResourceTemplatesSendsRequestAndUnwrapsResult(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
         self::discover($client, $transport);
@@ -1058,7 +1058,7 @@ final class ClientTest extends TestCase
 
     public function testListPromptsSendsRequestAndUnwrapsResult(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
         self::discover($client, $transport);
@@ -1083,7 +1083,7 @@ final class ClientTest extends TestCase
 
     public function testReadResourceSendsRequestAndUnwrapsResult(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
         self::discover($client, $transport);
@@ -1111,7 +1111,7 @@ final class ClientTest extends TestCase
 
     public function testGetPromptForwardsNameAndArgumentsAndUnwrapsResult(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
         self::discover($client, $transport);
@@ -1140,7 +1140,7 @@ final class ClientTest extends TestCase
 
     public function testReadResourceCarriesInputResponsesAndRequestStateBackToTheServer(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
         self::discover($client, $transport);
@@ -1171,7 +1171,7 @@ final class ClientTest extends TestCase
 
     public function testGetPromptCarriesInputResponsesAndRequestStateBackToTheServer(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
         self::discover($client, $transport);
@@ -1203,7 +1203,7 @@ final class ClientTest extends TestCase
 
     public function testCompleteForwardsRefAndArgumentAndUnwrapsResult(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
         self::discover($client, $transport);
@@ -1233,7 +1233,7 @@ final class ClientTest extends TestCase
 
     public function testCallToolWithoutProgressSendsRequestAndUnwrapsResult(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
         self::discover($client, $transport);
@@ -1261,7 +1261,7 @@ final class ClientTest extends TestCase
 
     public function testCallToolCarriesInputResponsesAndRequestStateBackToTheServer(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
         self::discover($client, $transport);
@@ -1292,7 +1292,7 @@ final class ClientTest extends TestCase
 
     public function testCallToolCarriesInputResponsesAlongsideAProgressToken(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
         self::discover($client, $transport);
@@ -1325,7 +1325,7 @@ final class ClientTest extends TestCase
 
     public function testCallToolOmitsInputResponsesAndRequestStateWhenNotAnswering(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
         self::discover($client, $transport);
@@ -1350,7 +1350,7 @@ final class ClientTest extends TestCase
 
     public function testCallToolWithProgressMintsTokenIntoMetaAndStreamsToCallback(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
         self::discover($client, $transport);
@@ -1397,7 +1397,7 @@ final class ClientTest extends TestCase
 
     public function testCallToolDisposesProgressListenerAfterTheResponse(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
         self::discover($client, $transport);
@@ -1436,7 +1436,7 @@ final class ClientTest extends TestCase
 
     public function testCallToolUsesTheInjectedProgressTokenFactory(): void
     {
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->setProgressTokenFactory(static fn(): string => 'custom-token')
             ->build()
@@ -1466,7 +1466,7 @@ final class ClientTest extends TestCase
     {
         /** @var list<int|string> $delivered */
         $delivered = [];
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->addNotificationHandler(
                 ProgressNotification::getMethod(),
@@ -1776,7 +1776,7 @@ final class ClientTest extends TestCase
     {
         // `sendRequest()` takes any `JsonRpcRequest`, and a subclass may leave `params` null. Such a
         // request carries no `_meta` to restamp, so there is nothing to renegotiate.
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
 
@@ -1798,7 +1798,7 @@ final class ClientTest extends TestCase
 
     public function testAnExtensionOutboundMethodIsRefusedWhenTheServerDoesNotAdvertiseIt(): void
     {
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->enableExtension(new StubClientExtension(
                 identifier: 'com.example/feature',
@@ -1820,7 +1820,7 @@ final class ClientTest extends TestCase
 
     public function testAnExtensionOutboundMethodProceedsWhenTheServerAdvertisesIt(): void
     {
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->enableExtension(new StubClientExtension(
                 identifier: 'com.example/feature',
@@ -1841,7 +1841,7 @@ final class ClientTest extends TestCase
 
     public function testAnExtensionInboundMethodIsRefusedWhenTheServerDidNotAdvertiseIt(): void
     {
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->enableExtension(new StubClientExtension(
                 identifier: 'com.example/feature',
@@ -1873,7 +1873,7 @@ final class ClientTest extends TestCase
     public function testAnExtensionInboundMethodIsServedWhenTheServerAdvertisedIt(): void
     {
         $marker = new EmptyResult();
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->enableExtension(new StubClientExtension(
                 identifier: 'com.example/feature',
@@ -1902,7 +1902,7 @@ final class ClientTest extends TestCase
 
     public function testAnExtensionOutboundMethodPassesUngatedBeforeDiscovery(): void
     {
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->enableExtension(new StubClientExtension(
                 identifier: 'com.example/feature',
@@ -1923,7 +1923,7 @@ final class ClientTest extends TestCase
 
     public function testListenSendsTheSubscriptionRequestAndReturnsImmediately(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
 
@@ -1939,7 +1939,7 @@ final class ClientTest extends TestCase
 
     public function testListenRoutesTaggedNotificationsToItsOwnListener(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
 
@@ -1963,7 +1963,7 @@ final class ClientTest extends TestCase
 
     public function testAnUntaggedNotificationDoesNotReachASubscriptionListener(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
 
@@ -1984,7 +1984,7 @@ final class ClientTest extends TestCase
 
     public function testClosingAStreamCancelsItAndStopsRoutingToIt(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
 
@@ -2011,7 +2011,7 @@ final class ClientTest extends TestCase
 
     public function testListenBeforeConnectThrows(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
 
         $this->expectException(ClientNotConnectedException::class);
 
@@ -2021,7 +2021,7 @@ final class ClientTest extends TestCase
     public function testAFailedSendReleasesBothSubscriptionSlots(): void
     {
         $logger = new ArrayLogger();
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->setLogger($logger)
             ->setRequestIdFactory(static fn(): int => 7)
@@ -2065,7 +2065,7 @@ final class ClientTest extends TestCase
     public function testClosingAStreamReleasesItsCorrelationSlot(): void
     {
         $logger = new ArrayLogger();
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->setLogger($logger)
             ->setRequestIdFactory(static fn(): int => 7)
@@ -2086,7 +2086,7 @@ final class ClientTest extends TestCase
 
     public function testARefusedSubscriptionDoesNotCrashTheLoopWhenNobodyAwaits(): void
     {
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->setRequestIdFactory(static fn(): int => 7)
             ->build()
@@ -2109,7 +2109,7 @@ final class ClientTest extends TestCase
 
     public function testAServerEndedStreamReleasesItsNotificationRoute(): void
     {
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->setRequestIdFactory(static fn(): int => 7)
             ->build()
@@ -2142,7 +2142,7 @@ final class ClientTest extends TestCase
     public function testClosingAStreamWhoseTransportIsGoneDoesNotThrow(): void
     {
         $logger = new ArrayLogger();
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->setLogger($logger)
             ->setRequestIdFactory(static fn(): int => 7)
@@ -2168,7 +2168,7 @@ final class ClientTest extends TestCase
 
     public function testAServerAnsweredStreamSendsNoCancellationOnClose(): void
     {
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->setRequestIdFactory(static fn(): int => 7)
             ->build()
@@ -2192,7 +2192,7 @@ final class ClientTest extends TestCase
 
     public function testClosingAStreamAbortsItsExchange(): void
     {
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->setRequestIdFactory(static fn(): int => 7)
             ->build()
@@ -2210,7 +2210,7 @@ final class ClientTest extends TestCase
 
     public function testAStreamTheServerAlreadyAnsweredIsNotAborted(): void
     {
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->setRequestIdFactory(static fn(): int => 7)
             ->build()
@@ -2233,7 +2233,7 @@ final class ClientTest extends TestCase
 
     public function testATimedOutRequestAbortsItsExchange(): void
     {
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->setRequestIdFactory(static fn(): int => 7)
             ->setRequestTimeout(0.01)
@@ -2254,7 +2254,7 @@ final class ClientTest extends TestCase
 
     public function testAwaitingAClosedStreamThrowsRatherThanBlocking(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
 
@@ -2268,7 +2268,7 @@ final class ClientTest extends TestCase
     public function testARestartReopensTheStreamUnderTheSameSubscriptionId(): void
     {
         $spawned = [];
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = self::supervisedTransport($spawned);
         $client->connect($transport);
 
@@ -2301,7 +2301,7 @@ final class ClientTest extends TestCase
     public function testAReopenedStreamKeepsRoutingNotificationsToItsCallback(): void
     {
         $spawned = [];
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = self::supervisedTransport($spawned);
         $client->connect($transport);
 
@@ -2332,7 +2332,7 @@ final class ClientTest extends TestCase
     public function testALostPeerDoesNotSettleTheStreamWhileSupervisionContinues(): void
     {
         $spawned = [];
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = self::supervisedTransport($spawned);
         $client->connect($transport);
 
@@ -2357,7 +2357,7 @@ final class ClientTest extends TestCase
     public function testExhaustedSupervisionFailsEveryStreamStillOpen(): void
     {
         $spawned = [];
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = self::supervisedTransport($spawned, maxRestarts: 1);
         $client->connect($transport);
 
@@ -2381,7 +2381,7 @@ final class ClientTest extends TestCase
     public function testDisconnectFailsEveryStreamStillOpen(): void
     {
         $spawned = [];
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
 
         $transport = self::supervisedTransport($spawned, restartDelay: 0.5);
         $client->connect($transport);
@@ -2404,7 +2404,7 @@ final class ClientTest extends TestCase
     public function testClosingTheTransportDirectlyEndsAStreamWaitingOnAReplacement(): void
     {
         $spawned = [];
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = self::supervisedTransport($spawned, restartDelay: 0.5);
         $client->connect($transport);
 
@@ -2447,7 +2447,7 @@ final class ClientTest extends TestCase
     public function testClosingTheTransportDirectlyEndsARequestWaitingOnAReplacement(): void
     {
         $spawned = [];
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->setRetryLostRequests(true)
             ->build()
@@ -2473,7 +2473,7 @@ final class ClientTest extends TestCase
     public function testDisconnectStopsAStreamFromBeingReopened(): void
     {
         $spawned = [];
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = self::supervisedTransport($spawned);
         $client->connect($transport);
 
@@ -2491,7 +2491,7 @@ final class ClientTest extends TestCase
     public function testAStreamSettledByADisconnectIsNotReplayedOnTheNextConnection(): void
     {
         $spawned = [];
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $client->connect(self::supervisedTransport($spawned));
 
         $client->listen(new SubscriptionFilter(toolsListChanged: true), static function (): void {});
@@ -2514,7 +2514,7 @@ final class ClientTest extends TestCase
     public function testARefusedSubscriptionEndsTheStreamEvenUnderSupervision(): void
     {
         $spawned = [];
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->setRequestIdFactory(static fn(): int => 7)
             ->build()
@@ -2546,7 +2546,7 @@ final class ClientTest extends TestCase
     public function testARefusedSubscriptionIsNotReplayedToTheReplacement(): void
     {
         $spawned = [];
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->setRequestIdFactory(static fn(): int => 7)
             ->build()
@@ -2572,7 +2572,7 @@ final class ClientTest extends TestCase
 
     public function testADuplicateSubscriptionIdLeavesTheLiveStreamIntact(): void
     {
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->setRequestIdFactory(static fn(): int => 7)
             ->build()
@@ -2606,7 +2606,7 @@ final class ClientTest extends TestCase
     public function testALostReadOnlyRequestIsSentAgainToTheReplacement(): void
     {
         $spawned = [];
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->setRequestIdFactory(static fn(): int => 7)
             ->setRetryLostRequests(true)
@@ -2656,7 +2656,7 @@ final class ClientTest extends TestCase
     public function testEveryRetryableMethodIsSentAgain(\Closure $call, string $expectedMethod): void
     {
         $spawned = [];
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->setRequestIdFactory(static fn(): int => 7)
             ->setRetryLostRequests(true)
@@ -2723,7 +2723,7 @@ final class ClientTest extends TestCase
     public function testAnMrtrContinuationIsNotSentAgain(JsonRpcRequest $request, string $response): void
     {
         $spawned = [];
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->setRetryLostRequests(true)
             ->build()
@@ -2811,7 +2811,7 @@ final class ClientTest extends TestCase
 
     public function testARetainedRequestFailsWhenANonReconnectingTransportCloses(): void
     {
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->setRetryLostRequests(true)
             ->build()
@@ -2831,7 +2831,7 @@ final class ClientTest extends TestCase
 
     public function testARequestOnAFreshTransportSurvivesTheOldOnesClose(): void
     {
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->setRetryLostRequests(true)->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->setRetryLostRequests(true)->build();
         $client->connect(new RecordingTransport());
         $client->disconnect();
 
@@ -2856,7 +2856,7 @@ final class ClientTest extends TestCase
     public function testALostToolCallIsNotSentAgain(): void
     {
         $spawned = [];
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->setRequestIdFactory(static fn(): int => 7)
             ->setRetryLostRequests(true)
@@ -2888,7 +2888,7 @@ final class ClientTest extends TestCase
     public function testALostRequestIsNotSentAgainWithoutTheOptIn(): void
     {
         $spawned = [];
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->setRequestIdFactory(static fn(): int => 7)
             ->build()
@@ -2956,7 +2956,7 @@ final class ClientTest extends TestCase
     public function testARetriedRequestCarriesItsOriginalSendContext(): void
     {
         $spawned = [];
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->setRetryLostRequests(true)
             ->build()
@@ -2982,7 +2982,7 @@ final class ClientTest extends TestCase
     public function testDisconnectFailsARequestWaitingOnAReplacement(): void
     {
         $spawned = [];
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->setRetryLostRequests(true)
             ->build()
@@ -3009,7 +3009,7 @@ final class ClientTest extends TestCase
         $spawned = [];
         $logger = new ArrayLogger();
         $attempts = 0;
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->setLogger($logger)
             ->setRetryLostRequests(true)
@@ -3054,7 +3054,7 @@ final class ClientTest extends TestCase
     public function testALostRequestFailsWhenSupervisionGivesUp(): void
     {
         $spawned = [];
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->setRequestIdFactory(static fn(): int => 7)
             ->setRetryLostRequests(true)
@@ -3085,7 +3085,7 @@ final class ClientTest extends TestCase
     {
         $spawned = [];
         $attempts = 0;
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->setRequestIdFactory(static fn(): int => 7)
             ->setRetryLostRequests(true)
@@ -3117,7 +3117,7 @@ final class ClientTest extends TestCase
     public function testAThrowingReconnectListenerDoesNotStopTheReopen(): void
     {
         $spawned = [];
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = self::supervisedTransport($spawned);
 
         // Registered before the client's, so it runs first and would abort the chain if it were unguarded.
@@ -3140,7 +3140,7 @@ final class ClientTest extends TestCase
     public function testAStreamClosedBeforeARestartIsNotReopened(): void
     {
         $spawned = [];
-        $client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = self::supervisedTransport($spawned);
         $client->connect($transport);
 
@@ -3159,7 +3159,7 @@ final class ClientTest extends TestCase
     {
         $spawned = [];
         $logger = new ArrayLogger();
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->setLogger($logger)
             ->setRequestIdFactory(static fn(): int => 7)
@@ -3274,7 +3274,7 @@ final class ClientTest extends TestCase
 
     private static function connectMirroring(TransportInterface $transport, ?ArrayLogger $logger = null): Client
     {
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->setLogger($logger ?? new ArrayLogger())
             ->build()

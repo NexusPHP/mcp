@@ -16,9 +16,9 @@ namespace Nexus\Mcp\Tests\Core\Transport;
 use Amp\ByteStream\ReadableBuffer;
 use Amp\ByteStream\ReadableIterableStream;
 use Nexus\Mcp\Core\Transport\LineReader;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -26,7 +26,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(LineReader::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class LineReaderTest extends TestCase
+final class LineReaderTest extends AbstractMcpTestCase
 {
     public function testConstructorRejectsNonPositiveMaxLineBytes(): void
     {

@@ -718,20 +718,21 @@ symmetric with `onClose` so streaming responses can flush before the connection 
 
 ## Language compatibility
 
-The SDK currently targets **PHP 8.4** minimum and uses the language features that became available in
-that version (typed class constants, readonly classes, constructor property promotion, asymmetric
-visibility, property hooks, `#[\Override]`).
+The SDK currently targets **PHP 8.3** minimum, the oldest release still receiving security fixes, and uses
+the language features available in it (typed class constants, readonly classes, constructor property
+promotion, `#[\Override]`). Asymmetric visibility and property hooks are 8.4 features and are therefore
+not used.
 
 PHP 8.5 brings covariant `static` return types for factory methods. Once the minimum PHP version is raised
 to 8.5, the `Arrayable::fromArray()` contract will relax from `: static` to `: self` so final
-implementations may narrow their return types. Until then, PHP 8.4 strictly enforces `: static`
+implementations may narrow their return types. Until then, the floor strictly enforces `: static`
 invariance and the contract stays as it is.
 
 The PHP-version floor will track the
 [supported-versions calendar](https://www.php.net/supported-versions.php) at the SDK's own discretion.
 Expect at least one major release per PHP minor that drops EOL versions.
 
-- [x] PHP 8.4 floor.
+- [x] PHP 8.3 floor, matching the oldest release still under security support.
 - [ ] Raise floor to PHP 8.5.
 - [ ] Relax `Arrayable::fromArray(): static` to `: self` after the 8.5 bump.
 

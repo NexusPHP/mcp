@@ -15,10 +15,10 @@ namespace Nexus\Mcp\Tests\Core\Dispatch;
 
 use Amp\DeferredFuture;
 use Nexus\Mcp\Core\Dispatch\PendingCoroutines;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 use Psr\Log\LogLevel;
 
 use function Amp\async;
@@ -30,7 +30,7 @@ use function Amp\delay;
 #[CoversClass(PendingCoroutines::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class PendingCoroutinesTest extends TestCase
+final class PendingCoroutinesTest extends AbstractMcpTestCase
 {
     public function testStartsEmpty(): void
     {

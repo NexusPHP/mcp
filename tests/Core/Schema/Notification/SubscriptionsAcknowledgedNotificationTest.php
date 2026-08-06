@@ -19,10 +19,10 @@ use Nexus\Mcp\Core\Schema\Notification;
 use Nexus\Mcp\Core\Schema\Notification\SubscriptionsAcknowledgedNotification;
 use Nexus\Mcp\Core\Schema\NotificationParams\SubscriptionsAcknowledgedNotificationParams;
 use Nexus\Mcp\Core\Schema\SubscriptionFilter;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -32,7 +32,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(Notification::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class SubscriptionsAcknowledgedNotificationTest extends TestCase
+final class SubscriptionsAcknowledgedNotificationTest extends AbstractMcpTestCase
 {
     public function testMethod(): void
     {

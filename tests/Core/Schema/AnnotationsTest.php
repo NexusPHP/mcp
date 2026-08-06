@@ -16,10 +16,10 @@ namespace Nexus\Mcp\Tests\Core\Schema;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Annotations;
 use Nexus\Mcp\Core\Schema\Enum\Role;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -27,7 +27,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(Annotations::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class AnnotationsTest extends TestCase
+final class AnnotationsTest extends AbstractMcpTestCase
 {
     public function testAnnotationsDefaultsToNullValues(): void
     {
@@ -79,7 +79,7 @@ final class AnnotationsTest extends TestCase
         $annotations = new Annotations(lastModified: $lastModified);
 
         self::assertInstanceOf(\DateTimeImmutable::class, $annotations->lastModified);
-        self::assertSame(new \DateTimeImmutable($lastModified)->getTimestamp(), $annotations->lastModified->getTimestamp());
+        self::assertSame((new \DateTimeImmutable($lastModified))->getTimestamp(), $annotations->lastModified->getTimestamp());
     }
 
     /**

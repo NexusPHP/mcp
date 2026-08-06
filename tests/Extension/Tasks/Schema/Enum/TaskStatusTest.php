@@ -14,10 +14,10 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Extension\Tasks\Schema\Enum;
 
 use Nexus\Mcp\Extension\Tasks\Schema\Enum\TaskStatus;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -25,7 +25,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(TaskStatus::class)]
 #[Group('unit-tests')]
 #[Group('extension-tests')]
-final class TaskStatusTest extends TestCase
+final class TaskStatusTest extends AbstractMcpTestCase
 {
     #[DataProvider('provideTaskStatusCaseValueCases')]
     public function testTaskStatusCaseValue(TaskStatus $case, string $expectedValue): void

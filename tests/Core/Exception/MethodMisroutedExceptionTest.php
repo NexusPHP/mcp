@@ -17,9 +17,9 @@ use Nexus\Mcp\Core\Exception\AbstractJsonRpcProtocolException;
 use Nexus\Mcp\Core\Exception\MethodMisroutedException;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -28,7 +28,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(AbstractJsonRpcProtocolException::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class MethodMisroutedExceptionTest extends TestCase
+final class MethodMisroutedExceptionTest extends AbstractMcpTestCase
 {
     public function testComposesMessageFromMethodAndShapes(): void
     {

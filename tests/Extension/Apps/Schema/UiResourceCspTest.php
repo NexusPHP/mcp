@@ -15,10 +15,10 @@ namespace Nexus\Mcp\Tests\Extension\Apps\Schema;
 
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Extension\Apps\Schema\UiResourceCsp;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -26,7 +26,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(UiResourceCsp::class)]
 #[Group('unit-tests')]
 #[Group('extension-tests')]
-final class UiResourceCspTest extends TestCase
+final class UiResourceCspTest extends AbstractMcpTestCase
 {
     public function testRoundTripsTheFullShape(): void
     {

@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Transport;
 
 use Nexus\Mcp\Core\Transport\Subscription;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -24,7 +24,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(Subscription::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class SubscriptionTest extends TestCase
+final class SubscriptionTest extends AbstractMcpTestCase
 {
     public function testDisposeRunsTheCallbackOnce(): void
     {

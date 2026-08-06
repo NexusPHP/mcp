@@ -21,9 +21,9 @@ use Nexus\Mcp\Core\Schema\Error\InternalError;
 use Nexus\Mcp\Core\Schema\MetaObject\SubscriptionsListenResultMetaObject;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result\SubscriptionsListenResult;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -31,7 +31,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(SubscriptionStream::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class SubscriptionStreamTest extends TestCase
+final class SubscriptionStreamTest extends AbstractMcpTestCase
 {
     public function testExposesTheSubscriptionId(): void
     {

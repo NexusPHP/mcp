@@ -14,10 +14,10 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Auth;
 
 use Nexus\Mcp\Core\Auth\WwwAuthenticateChallenge;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -25,7 +25,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(WwwAuthenticateChallenge::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class WwwAuthenticateChallengeTest extends TestCase
+final class WwwAuthenticateChallengeTest extends AbstractMcpTestCase
 {
     /**
      * @param list<array{string, array<string, string>}> $expected
@@ -218,12 +218,12 @@ final class WwwAuthenticateChallengeTest extends TestCase
 
     public function testReadParameterReturnsNullForAnAbsentParameter(): void
     {
-        self::assertNull(new WwwAuthenticateChallenge('Bearer')->readParameter('scope'));
+        self::assertNull((new WwwAuthenticateChallenge('Bearer'))->readParameter('scope'));
     }
 
     public function testConstructorLowercasesParameterNames(): void
     {
-        self::assertSame(['realm' => 'x'], new WwwAuthenticateChallenge('Bearer', ['REALM' => 'x'])->parameters);
+        self::assertSame(['realm' => 'x'], (new WwwAuthenticateChallenge('Bearer', ['REALM' => 'x']))->parameters);
     }
 
     /**
@@ -233,7 +233,7 @@ final class WwwAuthenticateChallengeTest extends TestCase
     #[DataProvider('provideToHeaderValueCases')]
     public function testToHeaderValue(string $scheme, array $parameters, string $expected): void
     {
-        self::assertSame($expected, new WwwAuthenticateChallenge($scheme, $parameters)->toHeaderValue());
+        self::assertSame($expected, (new WwwAuthenticateChallenge($scheme, $parameters))->toHeaderValue());
     }
 
     /**

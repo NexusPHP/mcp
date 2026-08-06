@@ -21,12 +21,12 @@ use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 use Psr\Log\LogLevel;
 
 /**
@@ -35,7 +35,7 @@ use Psr\Log\LogLevel;
 #[CoversClass(ResponseSender::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class ResponseSenderTest extends TestCase
+final class ResponseSenderTest extends AbstractMcpTestCase
 {
     public function testSendDeliversTheMessage(): void
     {

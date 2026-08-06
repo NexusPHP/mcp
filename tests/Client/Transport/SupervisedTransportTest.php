@@ -20,11 +20,11 @@ use Nexus\Mcp\Core\Exception\TransportAlreadyStartedException;
 use Nexus\Mcp\Core\Exception\TransportNotStartedException;
 use Nexus\Mcp\Core\Schema\Notification\ToolListChangedNotification;
 use Nexus\Mcp\Core\Transport\SupervisableTransportInterface;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Client\Transport\SupervisableRecordingTransport;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 use Psr\Log\LogLevel;
 use Revolt\EventLoop;
 
@@ -37,7 +37,7 @@ use function Amp\delay;
 #[CoversClass(SupervisedTransport::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class SupervisedTransportTest extends TestCase
+final class SupervisedTransportTest extends AbstractMcpTestCase
 {
     /**
      * @var list<SupervisedTransport>

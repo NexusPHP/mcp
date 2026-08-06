@@ -20,9 +20,9 @@ use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Error\MissingRequiredClientCapabilityError;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Server\Exception\MissingRequiredClientCapabilityException;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -31,7 +31,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(AbstractJsonRpcProtocolException::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class MissingRequiredClientCapabilityExceptionTest extends TestCase
+final class MissingRequiredClientCapabilityExceptionTest extends AbstractMcpTestCase
 {
     public function testNamesTheWithheldCapabilitiesInTheMessage(): void
     {

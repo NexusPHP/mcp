@@ -16,9 +16,9 @@ namespace Nexus\Mcp\Tests\Server\Resource;
 use Nexus\Mcp\Core\Schema\Resource\ResourceTemplate;
 use Nexus\Mcp\Server\Resource\ClosureTemplatedResourceReader;
 use Nexus\Mcp\Server\Resource\ResourceTemplateEntry;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -26,7 +26,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ResourceTemplateEntry::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class ResourceTemplateEntryTest extends TestCase
+final class ResourceTemplateEntryTest extends AbstractMcpTestCase
 {
     public function testExposesTemplateAndReader(): void
     {

@@ -16,9 +16,9 @@ namespace Nexus\Mcp\Tests\Extension\Apps\Client;
 use Nexus\Mcp\Core\Schema\Tool\Tool;
 use Nexus\Mcp\Extension\Apps\Client\AppTool;
 use Nexus\Mcp\Extension\Apps\Schema\UiToolMeta;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -26,7 +26,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(AppTool::class)]
 #[Group('unit-tests')]
 #[Group('extension-tests')]
-final class AppToolTest extends TestCase
+final class AppToolTest extends AbstractMcpTestCase
 {
     public function testPairsTheToolWithItsMeta(): void
     {

@@ -14,11 +14,11 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Server\Transport\Http\Middleware;
 
 use Nexus\Mcp\Server\Transport\Http\Middleware\CorsMiddleware;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Server\Http\RecordingRequestHandler;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
 
 /**
@@ -27,7 +27,7 @@ use Psr\Http\Message\ServerRequestInterface;
 #[CoversClass(CorsMiddleware::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class CorsMiddlewareTest extends TestCase
+final class CorsMiddlewareTest extends AbstractMcpTestCase
 {
     public function testPreflightFromAllowedOriginReturns204WithCorsHeaders(): void
     {
@@ -164,7 +164,7 @@ final class CorsMiddlewareTest extends TestCase
 
     private static function preflightRequest(?string $origin, ?string $requestedHeaders = null): ServerRequestInterface
     {
-        $request = new Psr17Factory()->createServerRequest('OPTIONS', 'https://mcp.test/')
+        $request = (new Psr17Factory())->createServerRequest('OPTIONS', 'https://mcp.test/')
             ->withHeader('Access-Control-Request-Method', 'POST')
         ;
 
@@ -181,13 +181,13 @@ final class CorsMiddlewareTest extends TestCase
 
     private static function request(string $method = 'POST', ?string $origin = null): ServerRequestInterface
     {
-        $request = new Psr17Factory()->createServerRequest($method, 'https://mcp.test/');
+        $request = (new Psr17Factory())->createServerRequest($method, 'https://mcp.test/');
 
         return null === $origin ? $request : $request->withHeader('Origin', $origin);
     }
 
     private static function recordingHandler(): RecordingRequestHandler
     {
-        return new RecordingRequestHandler(new Psr17Factory()->createResponse(200));
+        return new RecordingRequestHandler((new Psr17Factory())->createResponse(200));
     }
 }

@@ -16,9 +16,9 @@ namespace Nexus\Mcp\Tests\Server\Attribute;
 use Nexus\Mcp\Core\Schema\Annotations;
 use Nexus\Mcp\Core\Schema\Icon;
 use Nexus\Mcp\Server\Attribute\AsResourceTemplate;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -26,7 +26,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(AsResourceTemplate::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class AsResourceTemplateTest extends TestCase
+final class AsResourceTemplateTest extends AbstractMcpTestCase
 {
     public function testDefaultsToNullExceptUriTemplate(): void
     {

@@ -21,9 +21,9 @@ use Nexus\Mcp\Client\Exception\UntrustedAuthorizationMetadataException;
 use Nexus\Mcp\Core\Auth\AuthorizationServerMetadata;
 use Nexus\Mcp\Core\Auth\ResourceIdentifier;
 use Nexus\Mcp\Core\Auth\ScopeSet;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -31,7 +31,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(AuthorizationRequest::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class AuthorizationRequestTest extends TestCase
+final class AuthorizationRequestTest extends AbstractMcpTestCase
 {
     public function testBuildCarriesEveryRequiredParameter(): void
     {

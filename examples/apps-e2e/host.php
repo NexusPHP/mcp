@@ -61,7 +61,7 @@ requireAppsServerReachable(APPS_MCP_ENDPOINT);
 
 $logger = new PsrLogger();
 
-$client = new ClientBuilder()
+$client = (new ClientBuilder())
     ->setLogger($logger)
     ->setClientInfo(name: 'nexus-apps-example-host', version: '0.1.0')
     ->enableExtension(new AppsClientExtension())
@@ -176,7 +176,7 @@ if (defined('SIGINT')) {
     trapSignal([\SIGINT, \SIGTERM]);
 } else {
     // ext-pcntl absent, so there is no signal to trap. Ctrl-C ends the process.
-    new DeferredFuture()->getFuture()->await();
+    (new DeferredFuture())->getFuture()->await();
 }
 
 $httpServer->stop();

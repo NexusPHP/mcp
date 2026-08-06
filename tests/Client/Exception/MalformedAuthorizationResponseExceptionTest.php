@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Client\Exception;
 
 use Nexus\Mcp\Client\Exception\MalformedAuthorizationResponseException;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -24,13 +24,13 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(MalformedAuthorizationResponseException::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class MalformedAuthorizationResponseExceptionTest extends TestCase
+final class MalformedAuthorizationResponseExceptionTest extends AbstractMcpTestCase
 {
     public function testItNamesTheEndpointThatAnswered(): void
     {
         self::assertSame(
             'The token endpoint answered with a payload that is not a JSON object.',
-            new MalformedAuthorizationResponseException('token endpoint')->getMessage(),
+            (new MalformedAuthorizationResponseException('token endpoint'))->getMessage(),
         );
     }
 
@@ -38,6 +38,6 @@ final class MalformedAuthorizationResponseExceptionTest extends TestCase
     {
         $cause = new \JsonException('Syntax error');
 
-        self::assertSame($cause, new MalformedAuthorizationResponseException('token endpoint', $cause)->getPrevious());
+        self::assertSame($cause, (new MalformedAuthorizationResponseException('token endpoint', $cause))->getPrevious());
     }
 }

@@ -40,6 +40,7 @@ use Nexus\Mcp\Core\Schema\RequestParams\CallToolRequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\ReadResourceRequestParams;
 use Nexus\Mcp\Core\Transport\SendContext;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Client\Http\RecordingHttpClient;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
@@ -48,7 +49,6 @@ use Nexus\Mcp\Tests\Fixtures\Core\Transport\FaultLog;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 use Psr\Log\LogLevel;
 
 use function Amp\ByteStream\buffer;
@@ -60,11 +60,11 @@ use function Amp\delay;
 #[CoversClass(StreamableHttpClientTransport::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class StreamableHttpClientTransportTest extends TestCase
+final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
 {
     public function testPostsTheEnvelopeWithTheRequiredHeaders(): void
     {
-        $http = new RecordingHttpClient()->willAnswerJson(self::resultEnvelope());
+        $http = (new RecordingHttpClient())->willAnswerJson(self::resultEnvelope());
         $transport = self::makeTransport($http);
 
         self::exchange($transport, self::discoverRequest());
@@ -82,7 +82,7 @@ final class StreamableHttpClientTransportTest extends TestCase
 
     public function testMirrorsTheToolNameIntoTheNameHeader(): void
     {
-        $http = new RecordingHttpClient()->willAnswerJson(self::resultEnvelope());
+        $http = (new RecordingHttpClient())->willAnswerJson(self::resultEnvelope());
         $transport = self::makeTransport($http);
 
         self::exchange($transport, new CallToolRequest(
@@ -96,7 +96,7 @@ final class StreamableHttpClientTransportTest extends TestCase
 
     public function testTheHeadersOnTheSendContextAreCarriedByThePost(): void
     {
-        $http = new RecordingHttpClient()->willAnswerJson(self::resultEnvelope());
+        $http = (new RecordingHttpClient())->willAnswerJson(self::resultEnvelope());
         $transport = self::makeTransport($http);
 
         self::exchange($transport, self::discoverRequest(), new SendContext(headers: ['Mcp-Param-Region' => 'us-west1']));
@@ -106,7 +106,7 @@ final class StreamableHttpClientTransportTest extends TestCase
 
     public function testEmitsABufferedJsonResponse(): void
     {
-        $http = new RecordingHttpClient()->willAnswerJson(self::resultEnvelope());
+        $http = (new RecordingHttpClient())->willAnswerJson(self::resultEnvelope());
         $transport = self::makeTransport($http);
         $received = self::captureMessages($transport);
 
@@ -120,7 +120,7 @@ final class StreamableHttpClientTransportTest extends TestCase
         // A 400 HeaderMismatch still carries the id, so it must reach the protocol layer rather than be
         // swallowed as a transport fault.
         $envelope = ['jsonrpc' => '2.0', 'id' => 1, 'error' => ['code' => -32020, 'message' => 'Header mismatch']];
-        $http = new RecordingHttpClient()->willAnswerJson($envelope, status: 400);
+        $http = (new RecordingHttpClient())->willAnswerJson($envelope, status: 400);
         $transport = self::makeTransport($http);
         $received = self::captureMessages($transport);
         $faults = self::captureFaults($transport);
@@ -134,7 +134,7 @@ final class StreamableHttpClientTransportTest extends TestCase
     public function testEmitsEveryFrameOfAnSseResponse(): void
     {
         $progress = ['jsonrpc' => '2.0', 'method' => 'notifications/progress', 'params' => ['progressToken' => 'p-1', 'progress' => 0.5]];
-        $http = new RecordingHttpClient()->willAnswerStream([
+        $http = (new RecordingHttpClient())->willAnswerStream([
             self::frame($progress),
             self::frame(self::resultEnvelope()),
         ]);
@@ -151,7 +151,7 @@ final class StreamableHttpClientTransportTest extends TestCase
     public function testAssemblesAnSseFrameSplitAcrossChunks(): void
     {
         $frame = self::frame(self::resultEnvelope());
-        $http = new RecordingHttpClient()->willAnswerStream([
+        $http = (new RecordingHttpClient())->willAnswerStream([
             substr($frame, 0, 12),
             substr($frame, 12),
         ]);
@@ -165,7 +165,7 @@ final class StreamableHttpClientTransportTest extends TestCase
 
     public function testIgnoresAKeepAliveComment(): void
     {
-        $http = new RecordingHttpClient()->willAnswerStream([": keep-alive\n\n", self::frame(self::resultEnvelope())]);
+        $http = (new RecordingHttpClient())->willAnswerStream([": keep-alive\n\n", self::frame(self::resultEnvelope())]);
         $transport = self::makeTransport($http);
         $received = self::captureMessages($transport);
 
@@ -179,7 +179,7 @@ final class StreamableHttpClientTransportTest extends TestCase
         // Both values `Mcp-Name` can carry are constrained to subsets of the header-safe set: a tool or
         // prompt name to the MCP identifier set, and a resource URI to RFC 3986's printable ASCII. Neither
         // can reach the sentinel path, which `StandardHeadersTest` covers directly instead.
-        $http = new RecordingHttpClient()->willAnswerJson(self::resultEnvelope());
+        $http = (new RecordingHttpClient())->willAnswerJson(self::resultEnvelope());
         $transport = self::makeTransport($http);
         $uri = 'file:///tmp/notes.txt';
 
@@ -211,7 +211,7 @@ final class StreamableHttpClientTransportTest extends TestCase
 
     public function testKeepsSlashesAndUnicodeUnescapedInTheBody(): void
     {
-        $http = new RecordingHttpClient()->willAnswerJson(self::resultEnvelope());
+        $http = (new RecordingHttpClient())->willAnswerJson(self::resultEnvelope());
         $transport = self::makeTransport($http);
         $path = 'file:///tmp/世界.txt';
 
@@ -228,7 +228,7 @@ final class StreamableHttpClientTransportTest extends TestCase
 
     public function testAnEmptyObjectSlotIsPostedAsAnObjectNotAnArray(): void
     {
-        $http = new RecordingHttpClient()->willAnswerJson(self::resultEnvelope());
+        $http = (new RecordingHttpClient())->willAnswerJson(self::resultEnvelope());
         $transport = self::makeTransport($http);
 
         self::exchange($transport, new DiscoverRequest(
@@ -248,7 +248,7 @@ final class StreamableHttpClientTransportTest extends TestCase
     public function testDetectsAnUppercaseContentType(): void
     {
         // RFC 9110 makes the media type case-insensitive, so a shouting server still gets parsed as a stream.
-        $http = new RecordingHttpClient()->willAnswerWithContentType('TEXT/EVENT-STREAM', [self::frame(self::resultEnvelope())]);
+        $http = (new RecordingHttpClient())->willAnswerWithContentType('TEXT/EVENT-STREAM', [self::frame(self::resultEnvelope())]);
         $transport = self::makeTransport($http);
         $received = self::captureMessages($transport);
 
@@ -260,7 +260,7 @@ final class StreamableHttpClientTransportTest extends TestCase
     public function testReadsAJsonBodyWhoseContentTypeParameterNamesAStream(): void
     {
         // The media type is the head of the value, so an event-stream spelling inside a parameter is not one.
-        $http = new RecordingHttpClient()->willAnswerWithContentType(
+        $http = (new RecordingHttpClient())->willAnswerWithContentType(
             'application/json; note="text/event-stream"',
             [json_encode(self::resultEnvelope(), \JSON_THROW_ON_ERROR)],
         );
@@ -280,7 +280,7 @@ final class StreamableHttpClientTransportTest extends TestCase
     #[DataProvider('provideKeepsReadingAfterAMalformedFrameCases')]
     public function testKeepsReadingAfterAMalformedFrame(string $payload): void
     {
-        $http = new RecordingHttpClient()->willAnswerStream([
+        $http = (new RecordingHttpClient())->willAnswerStream([
             \sprintf("event: message\ndata: %s\n\n", $payload).self::frame(self::resultEnvelope()),
         ]);
         $transport = self::makeTransport($http);
@@ -307,7 +307,7 @@ final class StreamableHttpClientTransportTest extends TestCase
     {
         // The protocol layer's parser rejects an envelope with `InvalidArgumentException`, the very type the
         // per-frame guard catches, so only the decode may sit inside it.
-        $http = new RecordingHttpClient()->willAnswerStream([self::frame(self::resultEnvelope())]);
+        $http = (new RecordingHttpClient())->willAnswerStream([self::frame(self::resultEnvelope())]);
         $transport = self::makeTransport($http);
         $faults = self::captureFaults($transport);
         $transport->onMessage(static function (): void {
@@ -328,7 +328,7 @@ final class StreamableHttpClientTransportTest extends TestCase
     public function testCloseCancelsAnOpenStreamWithoutReportingAFault(): void
     {
         // A `subscriptions/listen` stream never ends, so shutdown has to abort it rather than await it.
-        $http = new RecordingHttpClient()->willAnswerOpenStream([self::frame(self::resultEnvelope())]);
+        $http = (new RecordingHttpClient())->willAnswerOpenStream([self::frame(self::resultEnvelope())]);
         $transport = self::makeTransport($http);
         $received = self::captureMessages($transport);
         $faults = self::captureFaults($transport);
@@ -346,7 +346,7 @@ final class StreamableHttpClientTransportTest extends TestCase
     {
         $later = ['jsonrpc' => '2.0', 'method' => 'notifications/tools/list_changed', 'params' => []];
         $resume = new DeferredFuture();
-        $http = new RecordingHttpClient()
+        $http = (new RecordingHttpClient())
             ->willAnswerOpenStream([self::frame(self::resultEnvelope())])
             ->willAnswerOpenStream([self::frame(self::resultEnvelope())], $resume->getFuture(), [self::frame($later)])
         ;
@@ -377,7 +377,7 @@ final class StreamableHttpClientTransportTest extends TestCase
     {
         $later = ['jsonrpc' => '2.0', 'method' => 'notifications/tools/list_changed', 'params' => []];
         $resume = new DeferredFuture();
-        $http = new RecordingHttpClient()->willAnswerOpenStream(
+        $http = (new RecordingHttpClient())->willAnswerOpenStream(
             [self::frame(self::resultEnvelope())],
             $resume->getFuture(),
             [self::frame($later)],
@@ -402,7 +402,7 @@ final class StreamableHttpClientTransportTest extends TestCase
     {
         $later = ['jsonrpc' => '2.0', 'method' => 'notifications/tools/list_changed', 'params' => []];
         $resume = new DeferredFuture();
-        $http = new RecordingHttpClient()
+        $http = (new RecordingHttpClient())
             ->willAnswerOpenStream([self::frame(self::resultEnvelope())], $resume->getFuture(), [self::frame($later)])
             ->willAnswerOpenStream([self::frame(self::resultEnvelope())])
         ;
@@ -431,7 +431,7 @@ final class StreamableHttpClientTransportTest extends TestCase
     {
         $later = ['jsonrpc' => '2.0', 'method' => 'notifications/tools/list_changed', 'params' => []];
         $resume = new DeferredFuture();
-        $http = new RecordingHttpClient()
+        $http = (new RecordingHttpClient())
             ->willAcceptNotification()
             ->willAnswerOpenStream([self::frame(self::resultEnvelope())], $resume->getFuture(), [self::frame($later)])
         ;
@@ -455,7 +455,7 @@ final class StreamableHttpClientTransportTest extends TestCase
     {
         $later = ['jsonrpc' => '2.0', 'method' => 'notifications/tools/list_changed', 'params' => []];
         $resume = new DeferredFuture();
-        $http = new RecordingHttpClient()->willAnswerOpenStream(
+        $http = (new RecordingHttpClient())->willAnswerOpenStream(
             [self::frame(self::resultEnvelope())],
             $resume->getFuture(),
             [self::frame($later)],
@@ -481,7 +481,7 @@ final class StreamableHttpClientTransportTest extends TestCase
     {
         $later = ['jsonrpc' => '2.0', 'method' => 'notifications/tools/list_changed', 'params' => []];
         $resume = new DeferredFuture();
-        $http = new RecordingHttpClient()
+        $http = (new RecordingHttpClient())
             ->willAnswerOpenStream([self::frame(self::resultEnvelope())])
             ->willAnswerOpenStream([self::frame(self::resultEnvelope())], $resume->getFuture(), [self::frame($later)])
         ;
@@ -507,7 +507,7 @@ final class StreamableHttpClientTransportTest extends TestCase
 
     public function testAThrowingErrorListenerDoesNotWedgeTheTransport(): void
     {
-        $http = new RecordingHttpClient()
+        $http = (new RecordingHttpClient())
             ->willFail(new HttpException('connection reset'))
             ->willAnswerJson(self::resultEnvelope())
         ;
@@ -548,7 +548,7 @@ final class StreamableHttpClientTransportTest extends TestCase
 
     public function testEmitsNothingForAnAcceptedNotification(): void
     {
-        $http = new RecordingHttpClient()->willAcceptNotification();
+        $http = (new RecordingHttpClient())->willAcceptNotification();
         $transport = self::makeTransport($http);
         $received = self::captureMessages($transport);
         $faults = self::captureFaults($transport);
@@ -562,7 +562,7 @@ final class StreamableHttpClientTransportTest extends TestCase
 
     public function testReportsATransportFailureThroughOnError(): void
     {
-        $http = new RecordingHttpClient()->willFail(new HttpException('connection refused'));
+        $http = (new RecordingHttpClient())->willFail(new HttpException('connection refused'));
         $transport = self::makeTransport($http);
         $faults = self::captureFaults($transport);
 
@@ -587,7 +587,7 @@ final class StreamableHttpClientTransportTest extends TestCase
     {
         // A notification has no id and so no caller awaiting a response. Wrapping it would name a request
         // that does not exist.
-        $http = new RecordingHttpClient()->willFail(new HttpException('connection refused'));
+        $http = (new RecordingHttpClient())->willFail(new HttpException('connection refused'));
         $transport = self::makeTransport($http);
         $faults = self::captureFaults($transport);
 
@@ -603,7 +603,7 @@ final class StreamableHttpClientTransportTest extends TestCase
     #[DataProvider('provideReportsAnUndecodablePayloadThroughOnErrorCases')]
     public function testReportsAnUndecodablePayloadThroughOnError(array|string $body): void
     {
-        $http = new RecordingHttpClient()->willAnswerJson($body);
+        $http = (new RecordingHttpClient())->willAnswerJson($body);
         $transport = self::makeTransport($http);
         $received = self::captureMessages($transport);
         $faults = self::captureFaults($transport);
@@ -634,7 +634,7 @@ final class StreamableHttpClientTransportTest extends TestCase
     public function testAnUnreadableStreamFrameDoesNotEndTheExchange(): void
     {
         // Unlike a buffered body, one bad frame is not the whole answer: the response may still follow.
-        $http = new RecordingHttpClient()->willAnswerStream([
+        $http = (new RecordingHttpClient())->willAnswerStream([
             "data: {\"jsonrpc\":\n\n",
             'data: '.json_encode(self::resultEnvelope(), \JSON_THROW_ON_ERROR)."\n\n",
         ]);
@@ -723,7 +723,7 @@ final class StreamableHttpClientTransportTest extends TestCase
     {
         // Cancelling the lifetime first is what lets the await terminate, so `close()` is the only thing
         // driving this exchange to completion.
-        $http = new RecordingHttpClient()->willAnswerJson(self::resultEnvelope());
+        $http = (new RecordingHttpClient())->willAnswerJson(self::resultEnvelope());
         $transport = self::makeTransport($http);
         $received = self::captureMessages($transport);
 
@@ -737,7 +737,7 @@ final class StreamableHttpClientTransportTest extends TestCase
     {
         // An OAuth-style error body is valid JSON but no envelope, so emitting it would
         // strand the request as a discarded-malformed-envelope instead of failing it.
-        $http = new RecordingHttpClient()->willAnswerJson(['error' => 'insufficient_scope'], 403);
+        $http = (new RecordingHttpClient())->willAnswerJson(['error' => 'insufficient_scope'], 403);
         $transport = self::makeTransport($http);
         $received = self::captureMessages($transport);
         $faults = self::captureFaults($transport);
@@ -768,7 +768,7 @@ final class StreamableHttpClientTransportTest extends TestCase
     #[DataProvider('provideAnUncorrelatedBodyOnAnErrorStatusFailsTheRequestCases')]
     public function testAnUncorrelatedBodyOnAnErrorStatusFailsTheRequest(array|string $body): void
     {
-        $http = new RecordingHttpClient()->willAnswerJson($body, 400);
+        $http = (new RecordingHttpClient())->willAnswerJson($body, 400);
         $transport = self::makeTransport($http);
         $received = self::captureMessages($transport);
         $faults = self::captureFaults($transport);
@@ -807,7 +807,7 @@ final class StreamableHttpClientTransportTest extends TestCase
     {
         // The status is the diagnosis. Reporting the oversized body instead would misname a
         // refused exchange as a response-size problem.
-        $http = new RecordingHttpClient()->willAnswerJson(str_repeat('a', 512), 502);
+        $http = (new RecordingHttpClient())->willAnswerJson(str_repeat('a', 512), 502);
         $transport = new StreamableHttpClientTransport('https://mcp.test/mcp', $http, maxResponseBytes: 64);
         $transport->start();
         $faults = self::captureFaults($transport);
@@ -832,7 +832,7 @@ final class StreamableHttpClientTransportTest extends TestCase
 
     public function testAnSseErrorStatusFailsWithoutReadingTheStream(): void
     {
-        $http = new RecordingHttpClient()->willAnswerStream([": keep-alive\n\n"], 503);
+        $http = (new RecordingHttpClient())->willAnswerStream([": keep-alive\n\n"], 503);
         $transport = self::makeTransport($http);
         $faults = self::captureFaults($transport);
 
@@ -856,7 +856,7 @@ final class StreamableHttpClientTransportTest extends TestCase
 
     public function testA202AnsweringARequestFailsIt(): void
     {
-        $http = new RecordingHttpClient()->willAcceptNotification();
+        $http = (new RecordingHttpClient())->willAcceptNotification();
         $transport = self::makeTransport($http);
         $faults = self::captureFaults($transport);
 
@@ -879,7 +879,7 @@ final class StreamableHttpClientTransportTest extends TestCase
 
     public function testAnErrorStatusOnANotificationSurfacesTheStatus(): void
     {
-        $http = new RecordingHttpClient()->willAnswerJson(['error' => 'nope'], 403);
+        $http = (new RecordingHttpClient())->willAnswerJson(['error' => 'nope'], 403);
         $transport = self::makeTransport($http);
         $faults = self::captureFaults($transport);
 
@@ -897,7 +897,7 @@ final class StreamableHttpClientTransportTest extends TestCase
     public function testAbandonsABufferedBodyThatOutgrowsTheResponseCap(): void
     {
         // amphp buffers to PHP_INT_MAX by default, so an oversized reply would be held whole in memory.
-        $http = new RecordingHttpClient()->willAnswerJson(str_repeat('a', 512));
+        $http = (new RecordingHttpClient())->willAnswerJson(str_repeat('a', 512));
         $transport = new StreamableHttpClientTransport('https://mcp.test/mcp', $http, maxResponseBytes: 64);
         $transport->start();
         $received = self::captureMessages($transport);
@@ -917,7 +917,7 @@ final class StreamableHttpClientTransportTest extends TestCase
 
     public function testAbandonsAStreamFrameThatOutgrowsTheResponseCap(): void
     {
-        $http = new RecordingHttpClient()->willAnswerStream(['data: '.str_repeat('a', 512)]);
+        $http = (new RecordingHttpClient())->willAnswerStream(['data: '.str_repeat('a', 512)]);
         $transport = new StreamableHttpClientTransport('https://mcp.test/mcp', $http, maxResponseBytes: 64);
         $transport->start();
         $faults = self::captureFaults($transport);
@@ -935,7 +935,7 @@ final class StreamableHttpClientTransportTest extends TestCase
 
     public function testDrainRunsBeforeTheTransportIsMarkedClosed(): void
     {
-        $transport = self::makeTransport(new RecordingHttpClient()->willAcceptNotification());
+        $transport = self::makeTransport((new RecordingHttpClient())->willAcceptNotification());
         $sendFaults = new FaultLog();
 
         $transport->onDrain(static function () use ($transport, $sendFaults): void {
@@ -1019,7 +1019,7 @@ final class StreamableHttpClientTransportTest extends TestCase
     public function testDisablesTheTransferTimeoutAndAppliesTheReadTimeout(): void
     {
         // amphp defaults the transfer timeout to 10s, which would sever a long-lived stream mid-flight.
-        $http = new RecordingHttpClient()->willAnswerJson(self::resultEnvelope());
+        $http = (new RecordingHttpClient())->willAnswerJson(self::resultEnvelope());
         $transport = new StreamableHttpClientTransport('https://mcp.test/mcp', $http, readTimeout: 45.0);
         $transport->start();
 

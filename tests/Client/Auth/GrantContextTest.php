@@ -26,11 +26,11 @@ use Nexus\Mcp\Core\Auth\AuthorizationServerMetadata;
 use Nexus\Mcp\Core\Auth\ProtectedResourceMetadata;
 use Nexus\Mcp\Core\Auth\ResourceIdentifier;
 use Nexus\Mcp\Core\Auth\ScopeSet;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Client\Http\RecordingHttpClient;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 use function Amp\ByteStream\buffer;
 
@@ -40,7 +40,7 @@ use function Amp\ByteStream\buffer;
 #[CoversClass(GrantContext::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class GrantContextTest extends TestCase
+final class GrantContextTest extends AbstractMcpTestCase
 {
     private const string RESOURCE = 'https://mcp.example.com/mcp';
     private const string ISSUER = 'https://auth.example.com';
@@ -88,7 +88,7 @@ final class GrantContextTest extends TestCase
 
     public function testRequestTokenRedeemsTheGrantAtTheDiscoveredTokenEndpoint(): void
     {
-        $http = new RecordingHttpClient()->willAnswerJson([
+        $http = (new RecordingHttpClient())->willAnswerJson([
             'access_token' => 'the-access-token',
             'token_type' => 'Bearer',
         ]);
@@ -114,7 +114,7 @@ final class GrantContextTest extends TestCase
 
     public function testRequestTokenFallsBackToTheContextScopesWhenTheResponseNamesNone(): void
     {
-        $http = new RecordingHttpClient()->willAnswerJson([
+        $http = (new RecordingHttpClient())->willAnswerJson([
             'access_token' => 'the-access-token',
             'token_type' => 'Bearer',
         ]);
@@ -131,7 +131,7 @@ final class GrantContextTest extends TestCase
 
     public function testRequestTokenPrefersTheScopesTheCallerNames(): void
     {
-        $http = new RecordingHttpClient()->willAnswerJson([
+        $http = (new RecordingHttpClient())->willAnswerJson([
             'access_token' => 'the-access-token',
             'token_type' => 'Bearer',
         ]);

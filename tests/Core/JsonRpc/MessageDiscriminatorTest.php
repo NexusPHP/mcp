@@ -15,9 +15,9 @@ namespace Nexus\Mcp\Tests\Core\JsonRpc;
 
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\JsonRpc\MessageDiscriminator;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -25,7 +25,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(MessageDiscriminator::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class MessageDiscriminatorTest extends TestCase
+final class MessageDiscriminatorTest extends AbstractMcpTestCase
 {
     public function testReadTypeReturnsTypeValue(): void
     {

@@ -52,7 +52,7 @@ $http = new AuthorizedHttpClient(
     logger: new PsrLogger(),
 );
 
-$client = new ClientBuilder()
+$client = (new ClientBuilder())
     ->setLogger(new PsrLogger())
     ->setClientInfo(name: 'nexus-keycloak-example-client', version: '0.1.0')
     ->build()

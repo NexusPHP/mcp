@@ -17,9 +17,9 @@ use Nexus\Mcp\Core\Schema\Prompt\Prompt;
 use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
 use Nexus\Mcp\Server\Prompt\ClosurePromptRenderer;
 use Nexus\Mcp\Server\Prompt\PromptEntry;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -27,7 +27,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(PromptEntry::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class PromptEntryTest extends TestCase
+final class PromptEntryTest extends AbstractMcpTestCase
 {
     public function testExposesPromptAndRenderer(): void
     {

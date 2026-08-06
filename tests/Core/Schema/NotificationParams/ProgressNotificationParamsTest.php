@@ -17,10 +17,10 @@ use Nexus\Mcp\Core\Schema\MetaObject\NotificationMetaObject;
 use Nexus\Mcp\Core\Schema\NotificationParams;
 use Nexus\Mcp\Core\Schema\NotificationParams\ProgressNotificationParams;
 use Nexus\Mcp\Core\Schema\ProgressToken;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -29,7 +29,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(NotificationParams::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class ProgressNotificationParamsTest extends TestCase
+final class ProgressNotificationParamsTest extends AbstractMcpTestCase
 {
     public function testConstructionDefaultsTotalAndMessageAndMetaToNull(): void
     {

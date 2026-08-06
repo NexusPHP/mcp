@@ -23,10 +23,10 @@ use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\CacheableResult;
 use Nexus\Mcp\Core\Schema\Result\DiscoverResult;
 use Nexus\Mcp\Core\Schema\ServerCapabilities;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -36,7 +36,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(Result::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class DiscoverResultTest extends TestCase
+final class DiscoverResultTest extends AbstractMcpTestCase
 {
     public function testConstructionMinimal(): void
     {

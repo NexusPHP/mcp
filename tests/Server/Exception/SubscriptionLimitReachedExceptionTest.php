@@ -17,9 +17,9 @@ use Nexus\Mcp\Core\Exception\AbstractJsonRpcProtocolException;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Server\Exception\SubscriptionLimitReachedException;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -28,7 +28,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(AbstractJsonRpcProtocolException::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class SubscriptionLimitReachedExceptionTest extends TestCase
+final class SubscriptionLimitReachedExceptionTest extends AbstractMcpTestCase
 {
     public function testMessageNamesTheLimitItRefusedAt(): void
     {
@@ -41,7 +41,7 @@ final class SubscriptionLimitReachedExceptionTest extends TestCase
 
     public function testCarriesTheLimitAsErrorData(): void
     {
-        self::assertSame(['limit' => 4], new SubscriptionLimitReachedException(4)->errorData);
+        self::assertSame(['limit' => 4], (new SubscriptionLimitReachedException(4))->errorData);
     }
 
     public function testUsesTheInternalErrorCode(): void

@@ -16,6 +16,7 @@ namespace Nexus\Mcp\Tests\Server\Discovery;
 use Nexus\Mcp\Server\Discovery\DocBlockTypeResolver;
 use Nexus\Mcp\Server\Discovery\TypeNodeSchemaMapper;
 use Nexus\Mcp\Server\Exception\UnsupportedSchemaTypeException;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\BackedIntEnum;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\BackedStringEnum;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\PureEnum;
@@ -25,7 +26,6 @@ use PHPStan\PhpDocParser\Ast\Type\UnionTypeNode;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -33,7 +33,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(TypeNodeSchemaMapper::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class TypeNodeSchemaMapperTest extends TestCase
+final class TypeNodeSchemaMapperTest extends AbstractMcpTestCase
 {
     private TypeNodeSchemaMapper $mapper;
     private DocBlockTypeResolver $resolver;

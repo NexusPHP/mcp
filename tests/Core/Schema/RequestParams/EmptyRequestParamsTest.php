@@ -17,10 +17,10 @@ use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\ProgressToken;
 use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -29,7 +29,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(RequestParams::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class EmptyRequestParamsTest extends TestCase
+final class EmptyRequestParamsTest extends AbstractMcpTestCase
 {
     public function testConstructionCapturesMeta(): void
     {

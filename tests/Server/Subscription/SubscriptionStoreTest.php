@@ -22,12 +22,12 @@ use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\SubscriptionFilter;
 use Nexus\Mcp\Server\Exception\SubscriptionLimitReachedException;
 use Nexus\Mcp\Server\Subscription\SubscriptionStore;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 use Psr\Log\LogLevel;
 
 use function Amp\delay;
@@ -38,7 +38,7 @@ use function Amp\delay;
 #[CoversClass(SubscriptionStore::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class SubscriptionStoreTest extends TestCase
+final class SubscriptionStoreTest extends AbstractMcpTestCase
 {
     public function testOpeningAStreamAcknowledgesItFirst(): void
     {
@@ -285,7 +285,7 @@ final class SubscriptionStoreTest extends TestCase
     public function testClosingAStreamAnotherStoreOwnsIsANoOp(): void
     {
         $store = new SubscriptionStore();
-        $foreign = new SubscriptionStore()->open(new RequestId(id: 1), new SubscriptionFilter(), new RecordingSender());
+        $foreign = (new SubscriptionStore())->open(new RequestId(id: 1), new SubscriptionFilter(), new RecordingSender());
 
         $store->close($foreign);
 

@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Client\Exception;
 
 use Nexus\Mcp\Client\Exception\InvalidAuthorizationResponseException;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -24,13 +24,13 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(InvalidAuthorizationResponseException::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class InvalidAuthorizationResponseExceptionTest extends TestCase
+final class InvalidAuthorizationResponseExceptionTest extends AbstractMcpTestCase
 {
     public function testMessageAppendsTheReason(): void
     {
         self::assertSame(
             'The authorization response cannot be used because it carries no authorization code.',
-            new InvalidAuthorizationResponseException('it carries no authorization code.')->getMessage(),
+            (new InvalidAuthorizationResponseException('it carries no authorization code.'))->getMessage(),
         );
     }
 }

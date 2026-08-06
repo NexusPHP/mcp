@@ -15,10 +15,10 @@ namespace Nexus\Mcp\Tests\Core\Exception;
 
 use Nexus\Mcp\Core\Exception\RequestTimeoutException;
 use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -26,7 +26,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(RequestTimeoutException::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class RequestTimeoutExceptionTest extends TestCase
+final class RequestTimeoutExceptionTest extends AbstractMcpTestCase
 {
     /**
      * @param int|non-empty-string $id
@@ -34,7 +34,7 @@ final class RequestTimeoutExceptionTest extends TestCase
     #[DataProvider('provideMessageNamesTheRequestAndTheElapsedDeadlineCases')]
     public function testMessageNamesTheRequestAndTheElapsedDeadline(int|string $id, float $seconds, string $expected): void
     {
-        self::assertSame($expected, new RequestTimeoutException(new RequestId(id: $id), $seconds)->getMessage());
+        self::assertSame($expected, (new RequestTimeoutException(new RequestId(id: $id), $seconds))->getMessage());
     }
 
     /**
@@ -58,6 +58,6 @@ final class RequestTimeoutExceptionTest extends TestCase
 
     public function testTheCauseIsOptional(): void
     {
-        self::assertNull(new RequestTimeoutException(new RequestId(id: 1), 5.0)->getPrevious());
+        self::assertNull((new RequestTimeoutException(new RequestId(id: 1), 5.0))->getPrevious());
     }
 }

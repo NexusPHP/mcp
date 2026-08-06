@@ -15,9 +15,9 @@ namespace Nexus\Mcp\Tests\Core\Schema;
 
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -25,13 +25,13 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(RequestId::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class RequestIdTest extends TestCase
+final class RequestIdTest extends AbstractMcpTestCase
 {
     public function testRequestIdCapturesIdAsIs(): void
     {
-        self::assertSame('12345', new RequestId(id: '12345')->id);
-        self::assertSame('abcde', new RequestId(id: 'abcde')->id);
-        self::assertSame(100, new RequestId(id: 100)->id);
+        self::assertSame('12345', (new RequestId(id: '12345'))->id);
+        self::assertSame('abcde', (new RequestId(id: 'abcde'))->id);
+        self::assertSame(100, (new RequestId(id: 100))->id);
     }
 
     public function testRequestIdCannotBeEmptyString(): void

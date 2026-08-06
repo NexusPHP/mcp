@@ -17,10 +17,10 @@ use Nexus\Mcp\Client\ClientBuilder;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\Result\ListToolsResult;
 use Nexus\Mcp\Extension\Auth\ClientCredentials\ClientCredentialsClientExtension;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 use function Amp\async;
 
@@ -30,7 +30,7 @@ use function Amp\async;
 #[CoversClass(ClientCredentialsClientExtension::class)]
 #[Group('unit-tests')]
 #[Group('extension-tests')]
-final class ClientCredentialsClientExtensionTest extends TestCase
+final class ClientCredentialsClientExtensionTest extends AbstractMcpTestCase
 {
     public function testDeclaresTheOfficialIdentifierWithEmptySettings(): void
     {
@@ -47,7 +47,7 @@ final class ClientCredentialsClientExtensionTest extends TestCase
 
     public function testStampsTheDeclarationOntoEveryRequest(): void
     {
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->enableExtension(new ClientCredentialsClientExtension())
             ->build()

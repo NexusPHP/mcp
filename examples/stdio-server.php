@@ -52,7 +52,7 @@ use function Amp\delay;
 
 $logger = new PsrLogger();
 
-$server = new ServerBuilder()
+$server = (new ServerBuilder())
     ->setLogger($logger)
     ->setServerInfo(
         name: 'nexus-stdio-example',

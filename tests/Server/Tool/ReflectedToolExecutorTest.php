@@ -21,12 +21,12 @@ use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Server\Exception\UnsupportedReturnValueException;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Server\Tool\ReflectedToolExecutor;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\ReflectedHandlers;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -34,7 +34,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ReflectedToolExecutor::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class ReflectedToolExecutorTest extends TestCase
+final class ReflectedToolExecutorTest extends AbstractMcpTestCase
 {
     public function testReturnsCallToolResultUnchanged(): void
     {

@@ -17,10 +17,10 @@ use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\MetaObject\GenericResultMetaObject;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\CompleteResult;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -29,7 +29,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(Result::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class CompleteResultTest extends TestCase
+final class CompleteResultTest extends AbstractMcpTestCase
 {
     public function testConstructionMinimal(): void
     {

@@ -21,11 +21,11 @@ use Nexus\Mcp\Core\Schema\Result\CompleteResult;
 use Nexus\Mcp\Server\Completion\CompletionProviderInterface;
 use Nexus\Mcp\Server\Completion\CompletionStore;
 use Nexus\Mcp\Server\ServerContext;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -33,7 +33,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(CompletionStore::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class CompletionStoreTest extends TestCase
+final class CompletionStoreTest extends AbstractMcpTestCase
 {
     public function testReturnsEmptyResultForUnknownPromptRef(): void
     {

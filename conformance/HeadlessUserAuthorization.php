@@ -33,7 +33,7 @@ final class HeadlessUserAuthorization implements UserAuthorizationInterface
     {
         // The redirect *is* the answer, so following it would discard the thing
         // being read. `buildDefault()` follows up to 10, hence the explicit 0.
-        $client = new HttpClientBuilder()->followRedirects(0)->build();
+        $client = (new HttpClientBuilder())->followRedirects(0)->build();
 
         $response = $client->request(new Request($redirect->url), $cancellation);
         $location = $response->getHeader('location');

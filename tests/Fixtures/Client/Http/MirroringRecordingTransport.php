@@ -29,14 +29,12 @@ use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
  */
 final class MirroringRecordingTransport implements ParameterHeaderMirroringInterface
 {
-    public private(set) RecordingTransport $recorder;
+    public RecordingTransport $recorder;
 
     /**
      * @var list<array{message: JsonRpcMessage, context: null|SendContext}>
      */
-    public array $sent {
-        get => $this->recorder->sent;
-    }
+    public array $sent = [];
 
     public function __construct()
     {
@@ -53,6 +51,7 @@ final class MirroringRecordingTransport implements ParameterHeaderMirroringInter
     public function send(JsonRpcMessage $message, ?SendContext $context = null): void
     {
         $this->recorder->send($message, $context);
+        $this->sent = $this->recorder->sent;
     }
 
     #[\Override]

@@ -16,10 +16,10 @@ namespace Nexus\Mcp\Tests\Client\Auth;
 use Nexus\Mcp\Client\Auth\SecureEndpoint;
 use Nexus\Mcp\Client\Exception\InsecureAuthorizationEndpointException;
 use Nexus\Mcp\Client\Exception\UntrustedAuthorizationMetadataException;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -27,7 +27,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(SecureEndpoint::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class SecureEndpointTest extends TestCase
+final class SecureEndpointTest extends AbstractMcpTestCase
 {
     #[DataProvider('provideAcceptedUrlsCases')]
     public function testAcceptedUrls(string $url): void

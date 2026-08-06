@@ -16,10 +16,10 @@ namespace Nexus\Mcp\Tests\Core\Transport;
 use Nexus\Mcp\Core\Transport\ReceiveContext;
 use Nexus\Mcp\Core\Transport\SubscriptionInterface;
 use Nexus\Mcp\Core\Transport\TransportEvents;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -27,7 +27,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(TransportEvents::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class TransportEventsTest extends TestCase
+final class TransportEventsTest extends AbstractMcpTestCase
 {
     public function testOnMessageEmitsToEveryListenerInRegistrationOrder(): void
     {

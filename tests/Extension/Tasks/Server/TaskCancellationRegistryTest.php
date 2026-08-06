@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Extension\Tasks\Server;
 
 use Nexus\Mcp\Extension\Tasks\Server\TaskCancellationRegistry;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -24,7 +24,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(TaskCancellationRegistry::class)]
 #[Group('unit-tests')]
 #[Group('extension-tests')]
-final class TaskCancellationRegistryTest extends TestCase
+final class TaskCancellationRegistryTest extends AbstractMcpTestCase
 {
     public function testCancelRequestsTheRegisteredToken(): void
     {
@@ -42,7 +42,7 @@ final class TaskCancellationRegistryTest extends TestCase
     {
         $this->expectNotToPerformAssertions();
 
-        new TaskCancellationRegistry()->cancel('missing');
+        (new TaskCancellationRegistry())->cancel('missing');
     }
 
     public function testReleaseDropsTheSource(): void
@@ -53,7 +53,7 @@ final class TaskCancellationRegistryTest extends TestCase
 
         // Dropping the source cancels its token via the destructor, which is
         // harmless: release only runs once the bounded fiber has settled.
-        $sources = new \ReflectionProperty(TaskCancellationRegistry::class, 'sources')->getValue($registry);
+        $sources = (new \ReflectionProperty(TaskCancellationRegistry::class, 'sources'))->getValue($registry);
         self::assertSame([], $sources);
     }
 

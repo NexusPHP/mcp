@@ -21,6 +21,7 @@ use Nexus\Mcp\Core\Handler\RequestHandlerInterface;
 use Nexus\Mcp\Core\Schema\Notification\ProgressNotification;
 use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Extension\StubExtension;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureNotificationHandler;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureRequestHandler;
@@ -30,7 +31,6 @@ use Nexus\Mcp\Tests\Fixtures\Core\TestRequest;
 use Nexus\Mcp\Tests\Fixtures\Core\TestSecondNotification;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -38,7 +38,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ExtensionCollection::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class ExtensionCollectionTest extends TestCase
+final class ExtensionCollectionTest extends AbstractMcpTestCase
 {
     public function testAddSnapshotsTheDeclarationAndItsOwnership(): void
     {
@@ -155,7 +155,7 @@ final class ExtensionCollectionTest extends TestCase
     {
         $this->expectNotToPerformAssertions();
 
-        new ExtensionCollection()->add(new StubExtension(
+        (new ExtensionCollection())->add(new StubExtension(
             identifier: 'com.example/feature',
             requests: [
                 TestRequest::getMethod() => TestRequest::class,
@@ -183,7 +183,7 @@ final class ExtensionCollectionTest extends TestCase
             'Extension identifier must be "{vendor-prefix}/{name}" following the "_meta" key grammar with a mandatory prefix, \'tasks\' given.',
         );
 
-        new ExtensionCollection()->add(new StubExtension(identifier: 'tasks'));
+        (new ExtensionCollection())->add(new StubExtension(identifier: 'tasks'));
     }
 
     public function testAddRejectsADuplicateIdentifier(): void
@@ -213,7 +213,7 @@ final class ExtensionCollectionTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('Extension "com.example/feature" settings must be a string-keyed object.');
 
-        new ExtensionCollection()->add(new StubExtension(
+        (new ExtensionCollection())->add(new StubExtension(
             identifier: 'com.example/feature',
             settings: ['fast', 'safe'], // @phpstan-ignore argument.type (drives the list into the runtime shape guard)
         ));
@@ -226,7 +226,7 @@ final class ExtensionCollectionTest extends TestCase
             'Request class "Nexus\Mcp\Tests\Fixtures\Core\TestClientRequest" must declare the method "acme/lookup" it is registered for, \'tests/test-client-request\' declared.',
         );
 
-        new ExtensionCollection()->add(new StubExtension(
+        (new ExtensionCollection())->add(new StubExtension(
             identifier: 'com.example/feature',
             requests: ['acme/lookup' => TestClientRequest::class],
             requestHandlers: ['acme/lookup' => self::buildRequestHandler()],
@@ -240,7 +240,7 @@ final class ExtensionCollectionTest extends TestCase
             'Notification class "Nexus\Mcp\Tests\Fixtures\Core\TestNotification" must declare the method "acme/ping" it is registered for, \'tests/test-notification\' declared.',
         );
 
-        new ExtensionCollection()->add(new StubExtension(
+        (new ExtensionCollection())->add(new StubExtension(
             identifier: 'com.example/feature',
             notifications: ['acme/ping' => TestNotification::class],
             notificationHandlers: ['acme/ping' => self::buildNotificationHandler()],
@@ -254,7 +254,7 @@ final class ExtensionCollectionTest extends TestCase
             'Extension "com.example/feature" request class "Nexus\Mcp\Tests\Fixtures\Core\TestRequest" must implement "Nexus\Mcp\Core\Schema\Request\ClientRequest" for the server to dispatch it.',
         );
 
-        new ExtensionCollection()->add(new StubExtension(
+        (new ExtensionCollection())->add(new StubExtension(
             identifier: 'com.example/feature',
             requests: [TestRequest::getMethod() => TestRequest::class],
             requestHandlers: [TestRequest::getMethod() => self::buildRequestHandler()],
@@ -265,7 +265,7 @@ final class ExtensionCollectionTest extends TestCase
     {
         $this->expectNotToPerformAssertions();
 
-        new ExtensionCollection()->add(new StubExtension(
+        (new ExtensionCollection())->add(new StubExtension(
             identifier: 'com.example/feature',
             requests: [TestRequest::getMethod() => TestRequest::class],
             requestHandlers: [TestRequest::getMethod() => self::buildRequestHandler()],
@@ -279,7 +279,7 @@ final class ExtensionCollectionTest extends TestCase
             'Extension "com.example/feature" must declare its request classes and request handlers under the same method keys.',
         );
 
-        new ExtensionCollection()->add(new StubExtension(
+        (new ExtensionCollection())->add(new StubExtension(
             identifier: 'com.example/feature',
             requests: [TestRequest::getMethod() => TestRequest::class],
         ));
@@ -292,7 +292,7 @@ final class ExtensionCollectionTest extends TestCase
             'Extension "com.example/feature" must declare its request classes and request handlers under the same method keys.',
         );
 
-        new ExtensionCollection()->add(new StubExtension(
+        (new ExtensionCollection())->add(new StubExtension(
             identifier: 'com.example/feature',
             requestHandlers: [TestRequest::getMethod() => self::buildRequestHandler()],
         ));
@@ -305,7 +305,7 @@ final class ExtensionCollectionTest extends TestCase
             'Extension "com.example/feature" must declare its notification classes and notification handlers under the same method keys.',
         );
 
-        new ExtensionCollection()->add(new StubExtension(
+        (new ExtensionCollection())->add(new StubExtension(
             identifier: 'com.example/feature',
             notifications: [TestNotification::getMethod() => TestNotification::class],
         ));
@@ -318,7 +318,7 @@ final class ExtensionCollectionTest extends TestCase
             'Extension "com.example/feature" must declare its notification classes and notification handlers under the same method keys.',
         );
 
-        new ExtensionCollection()->add(new StubExtension(
+        (new ExtensionCollection())->add(new StubExtension(
             identifier: 'com.example/feature',
             notificationHandlers: [TestNotification::getMethod() => self::buildNotificationHandler()],
         ));
@@ -331,7 +331,7 @@ final class ExtensionCollectionTest extends TestCase
             'Extension "com.example/feature" cannot claim the request method "tools/call" already owned by the MCP specification.',
         );
 
-        new ExtensionCollection()->add(new StubExtension(
+        (new ExtensionCollection())->add(new StubExtension(
             identifier: 'com.example/feature',
             requests: ['tools/call' => CallToolRequest::class],
             requestHandlers: ['tools/call' => self::buildRequestHandler()],
@@ -345,7 +345,7 @@ final class ExtensionCollectionTest extends TestCase
             'Extension "com.example/feature" cannot claim the notification method "notifications/progress" already owned by the MCP specification.',
         );
 
-        new ExtensionCollection()->add(new StubExtension(
+        (new ExtensionCollection())->add(new StubExtension(
             identifier: 'com.example/feature',
             notifications: ['notifications/progress' => ProgressNotification::class],
             notificationHandlers: ['notifications/progress' => self::buildNotificationHandler()],
@@ -404,7 +404,7 @@ final class ExtensionCollectionTest extends TestCase
             TestRequest::getMethod(),
         ));
 
-        new ExtensionCollection()->add(new StubExtension(
+        (new ExtensionCollection())->add(new StubExtension(
             identifier: 'com.example/feature',
             requests: [TestRequest::getMethod() => TestRequest::class],
             requestHandlers: [TestRequest::getMethod() => self::buildRequestHandler()],
@@ -419,7 +419,7 @@ final class ExtensionCollectionTest extends TestCase
             TestNotification::getMethod(),
         ));
 
-        new ExtensionCollection()->add(new StubExtension(
+        (new ExtensionCollection())->add(new StubExtension(
             identifier: 'com.example/feature',
             notifications: [TestNotification::getMethod() => TestNotification::class],
             notificationHandlers: [TestNotification::getMethod() => self::buildNotificationHandler()],
@@ -433,7 +433,7 @@ final class ExtensionCollectionTest extends TestCase
             'Extension "com.example/feature" cannot claim the request method "tools/call" already owned by the MCP specification.',
         );
 
-        new ExtensionCollection()->add(new StubExtension(identifier: 'com.example/feature'), outboundRequests: ['tools/call']);
+        (new ExtensionCollection())->add(new StubExtension(identifier: 'com.example/feature'), outboundRequests: ['tools/call']);
     }
 
     public function testAddRejectsAnOutboundMethodAnotherExtensionOwns(): void

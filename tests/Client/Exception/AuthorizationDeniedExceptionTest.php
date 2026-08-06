@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Client\Exception;
 
 use Nexus\Mcp\Client\Exception\AuthorizationDeniedException;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -24,13 +24,13 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(AuthorizationDeniedException::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class AuthorizationDeniedExceptionTest extends TestCase
+final class AuthorizationDeniedExceptionTest extends AbstractMcpTestCase
 {
     public function testMessageEndsAtTheErrorCodeWhenThereIsNoDescription(): void
     {
         self::assertSame(
             'The authorization server denied the request with "access_denied".',
-            new AuthorizationDeniedException('access_denied')->getMessage(),
+            (new AuthorizationDeniedException('access_denied'))->getMessage(),
         );
     }
 
@@ -38,12 +38,12 @@ final class AuthorizationDeniedExceptionTest extends TestCase
     {
         self::assertSame(
             'The authorization server denied the request with "invalid_scope": Scope "files:admin" is unknown.',
-            new AuthorizationDeniedException('invalid_scope', 'Scope "files:admin" is unknown.')->getMessage(),
+            (new AuthorizationDeniedException('invalid_scope', 'Scope "files:admin" is unknown.'))->getMessage(),
         );
     }
 
     public function testItExposesTheErrorCode(): void
     {
-        self::assertSame('access_denied', new AuthorizationDeniedException('access_denied')->error);
+        self::assertSame('access_denied', (new AuthorizationDeniedException('access_denied'))->error);
     }
 }

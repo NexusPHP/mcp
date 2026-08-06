@@ -129,7 +129,7 @@ final class SchemaPayloadRoundTripTest extends AbstractRoundTripTestCase
                 }
             }
 
-            $shortName = new \ReflectionClass($class)->getShortName();
+            $shortName = (new \ReflectionClass($class))->getShortName();
             $entry = ['class' => $class];
 
             if (isset(self::ENCODING_PATHS_DIVERGE[$shortName])) {

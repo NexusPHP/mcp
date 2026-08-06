@@ -15,9 +15,9 @@ namespace Nexus\Mcp\Tests\Extension\Tasks\Server\Store;
 
 use Nexus\Mcp\Extension\Tasks\Schema\Enum\TaskStatus;
 use Nexus\Mcp\Extension\Tasks\Server\Store\TaskRecord;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -25,7 +25,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(TaskRecord::class)]
 #[Group('unit-tests')]
 #[Group('extension-tests')]
-final class TaskRecordTest extends TestCase
+final class TaskRecordTest extends AbstractMcpTestCase
 {
     public function testConstructionDefaultsTheOptionalSlotsToEmpty(): void
     {

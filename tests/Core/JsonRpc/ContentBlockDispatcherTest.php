@@ -20,10 +20,10 @@ use Nexus\Mcp\Core\Schema\ContentBlock\EmbeddedResource;
 use Nexus\Mcp\Core\Schema\ContentBlock\ImageContent;
 use Nexus\Mcp\Core\Schema\ContentBlock\ResourceLink;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -31,7 +31,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ContentBlockDispatcher::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class ContentBlockDispatcherTest extends TestCase
+final class ContentBlockDispatcherTest extends AbstractMcpTestCase
 {
     /**
      * @param array<string, mixed> $payload

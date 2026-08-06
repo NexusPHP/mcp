@@ -25,7 +25,7 @@ final class ArrayLogger extends AbstractLogger
     /**
      * @var list<array{level: mixed, message: string, context: array<array-key, mixed>}>
      */
-    public private(set) array $records = [];
+    public array $records = [];
 
     /**
      * @param array<array-key, mixed> $context

@@ -15,9 +15,9 @@ namespace Nexus\Mcp\Tests\Client\Dispatch;
 
 use Nexus\Mcp\Client\Dispatch\DiscoveredServerCapabilities;
 use Nexus\Mcp\Core\Schema\ServerCapabilities;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -25,11 +25,11 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(DiscoveredServerCapabilities::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class DiscoveredServerCapabilitiesTest extends TestCase
+final class DiscoveredServerCapabilitiesTest extends AbstractMcpTestCase
 {
     public function testHoldsNothingUntilARecording(): void
     {
-        self::assertNull(new DiscoveredServerCapabilities()->current());
+        self::assertNull((new DiscoveredServerCapabilities())->current());
     }
 
     public function testRecordsAndReplacesTheCapabilities(): void

@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Exception;
 
 use Nexus\Mcp\Core\Exception\SupervisionExhaustedException;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -24,7 +24,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(SupervisionExhaustedException::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class SupervisionExhaustedExceptionTest extends TestCase
+final class SupervisionExhaustedExceptionTest extends AbstractMcpTestCase
 {
     public function testRendersTheSpentBudgetIntoMessage(): void
     {

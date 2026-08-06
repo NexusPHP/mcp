@@ -21,9 +21,9 @@ use Nexus\Mcp\Core\Schema\Notification\ToolListChangedNotification;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result\SubscriptionsListenResult;
 use Nexus\Mcp\Core\Schema\SubscriptionFilter;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -31,7 +31,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(OpenSubscription::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class OpenSubscriptionTest extends TestCase
+final class OpenSubscriptionTest extends AbstractMcpTestCase
 {
     public function testCarriesEverythingAReopenNeeds(): void
     {

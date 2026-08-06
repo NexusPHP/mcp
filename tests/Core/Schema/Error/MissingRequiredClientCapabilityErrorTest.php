@@ -18,10 +18,10 @@ use Nexus\Mcp\Core\Schema\ClientCapabilities;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Error;
 use Nexus\Mcp\Core\Schema\Error\MissingRequiredClientCapabilityError;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -30,7 +30,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(Error::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class MissingRequiredClientCapabilityErrorTest extends TestCase
+final class MissingRequiredClientCapabilityErrorTest extends AbstractMcpTestCase
 {
     public function testHasCodeAndDefaultMessageAndCapabilities(): void
     {

@@ -17,10 +17,10 @@ use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Annotations;
 use Nexus\Mcp\Core\Schema\ContentBlock\AudioContent;
 use Nexus\Mcp\Core\Schema\MetaObject\PayloadMetaObject;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -28,7 +28,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(AudioContent::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class AudioContentTest extends TestCase
+final class AudioContentTest extends AbstractMcpTestCase
 {
     public function testConstructionMinimal(): void
     {

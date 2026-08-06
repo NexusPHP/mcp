@@ -22,10 +22,10 @@ use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Enum\Role;
 use Nexus\Mcp\Core\Schema\Prompt\PromptMessage;
 use Nexus\Mcp\Core\Schema\Resource\TextResourceContents;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -33,7 +33,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(PromptMessage::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class PromptMessageTest extends TestCase
+final class PromptMessageTest extends AbstractMcpTestCase
 {
     public function testConstructionWithText(): void
     {

@@ -19,10 +19,10 @@ use Nexus\Mcp\Client\Auth\InsufficientScopePolicy;
 use Nexus\Mcp\Client\Exception\InsecureAuthorizationEndpointException;
 use Nexus\Mcp\Core\Auth\ApplicationType;
 use Nexus\Mcp\Core\Auth\TokenEndpointAuthMethod;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -30,7 +30,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(AuthorizationOptions::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class AuthorizationOptionsTest extends TestCase
+final class AuthorizationOptionsTest extends AbstractMcpTestCase
 {
     public function testItCarriesEveryConfiguredField(): void
     {
@@ -75,13 +75,13 @@ final class AuthorizationOptionsTest extends TestCase
     {
         self::assertSame(
             'https://app.example.com/cb',
-            new AuthorizationOptions('Example MCP Client', 'https://app.example.com/cb')->redirectUri,
+            (new AuthorizationOptions('Example MCP Client', 'https://app.example.com/cb'))->redirectUri,
         );
     }
 
     public function testTheRedirectUriMayBeLeftOutForGrantsThatNeverVisitAnAuthorizationEndpoint(): void
     {
-        self::assertNull(new AuthorizationOptions('Example MCP Client')->redirectUri);
+        self::assertNull((new AuthorizationOptions('Example MCP Client'))->redirectUri);
     }
 
     public function testAPreRegisteredClientAuthenticatingWithAJwtAssertionIsRefused(): void

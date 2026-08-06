@@ -79,7 +79,7 @@ $statusPanel = new UiResource(
     uiMeta: new UiResourceMeta(prefersBorder: true),
 );
 
-$server = new ServerBuilder()
+$server = (new ServerBuilder())
     ->setLogger($logger)
     ->setServerInfo(
         name: 'nexus-apps-example',
@@ -96,10 +96,10 @@ $server = new ServerBuilder()
             // `resourceUri` for its results, and `visibility` keeps the tool
             // callable by both the model and the embedded view.
             meta: new PayloadMetaObject(extras: [
-                Apps::META_KEY => new UiToolMeta(
+                Apps::META_KEY => (new UiToolMeta(
                     resourceUri: $statusPanel->resource->uri,
                     visibility: [ToolVisibility::Model, ToolVisibility::App],
-                )->toArray(),
+                ))->toArray(),
             ]),
         ),
         static function (?array $args, ServerContext $context) use ($bootedAt, &$statusCalls): CallToolResult {
@@ -183,7 +183,7 @@ if (defined('SIGINT')) {
     trapSignal([\SIGINT, \SIGTERM]);
 } else {
     // ext-pcntl absent, so there is no signal to trap. Ctrl-C ends the process.
-    new DeferredFuture()->getFuture()->await();
+    (new DeferredFuture())->getFuture()->await();
 }
 
 $httpServer->stop();

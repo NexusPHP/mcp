@@ -32,20 +32,20 @@ use Nexus\Mcp\Core\Transport\SubscriptionInterface;
  */
 final class RecordingTransport implements AbortableTransportInterface, CancellableTransportInterface
 {
-    public private(set) bool $started = false;
-    public private(set) bool $closed = false;
+    public bool $started = false;
+    public bool $closed = false;
 
     /**
      * @var list<array{message: JsonRpcMessage, context: null|SendContext}>
      */
-    public private(set) array $sent = [];
+    public array $sent = [];
 
     /**
      * Ids the protocol layer asked this transport to stop work for, in order.
      *
      * @var list<int|non-empty-string>
      */
-    public private(set) array $aborted = [];
+    public array $aborted = [];
 
     public ?\Throwable $sendError = null;
 

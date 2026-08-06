@@ -19,11 +19,11 @@ use Nexus\Mcp\Core\Schema\Result\CompleteResult;
 use Nexus\Mcp\Server\Completion\ReflectedCompletionProvider;
 use Nexus\Mcp\Server\Exception\UnsupportedReturnValueException;
 use Nexus\Mcp\Server\ServerContext;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -31,7 +31,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ReflectedCompletionProvider::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class ReflectedCompletionProviderTest extends TestCase
+final class ReflectedCompletionProviderTest extends AbstractMcpTestCase
 {
     public function testBindsTheValueToAStringParameter(): void
     {

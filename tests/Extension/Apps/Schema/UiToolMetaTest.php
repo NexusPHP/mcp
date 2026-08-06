@@ -16,10 +16,10 @@ namespace Nexus\Mcp\Tests\Extension\Apps\Schema;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Extension\Apps\Schema\Enum\ToolVisibility;
 use Nexus\Mcp\Extension\Apps\Schema\UiToolMeta;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -27,7 +27,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(UiToolMeta::class)]
 #[Group('unit-tests')]
 #[Group('extension-tests')]
-final class UiToolMetaTest extends TestCase
+final class UiToolMetaTest extends AbstractMcpTestCase
 {
     public function testRoundTripsTheFullShape(): void
     {

@@ -17,12 +17,12 @@ use Nexus\Mcp\Core\Auth\VerifiedAccessToken;
 use Nexus\Mcp\Core\Auth\WwwAuthenticateChallenge;
 use Nexus\Mcp\Server\Auth\AccessTokenValidatorInterface;
 use Nexus\Mcp\Server\Transport\Http\Middleware\BearerAuthenticationMiddleware;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Server\Http\RecordingRequestHandler;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -32,7 +32,7 @@ use Psr\Http\Message\ServerRequestInterface;
 #[CoversClass(BearerAuthenticationMiddleware::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class BearerAuthenticationMiddlewareTest extends TestCase
+final class BearerAuthenticationMiddlewareTest extends AbstractMcpTestCase
 {
     private const string RESOURCE = 'https://mcp.test/mcp';
     private const string METADATA_URL = 'https://mcp.test/.well-known/oauth-protected-resource/mcp';
@@ -296,7 +296,7 @@ final class BearerAuthenticationMiddlewareTest extends TestCase
             },
         );
 
-        new BearerAuthenticationMiddleware($validator, self::RESOURCE, self::METADATA_URL, new Psr17Factory())
+        (new BearerAuthenticationMiddleware($validator, self::RESOURCE, self::METADATA_URL, new Psr17Factory()))
             ->process(self::request(null)->withHeader('Authorization', 'Bearer   Padded-Token  '), self::handler())
         ;
 
@@ -325,14 +325,14 @@ final class BearerAuthenticationMiddlewareTest extends TestCase
 
     private static function request(?string $token): ServerRequestInterface
     {
-        $request = new Psr17Factory()->createServerRequest('POST', self::RESOURCE);
+        $request = (new Psr17Factory())->createServerRequest('POST', self::RESOURCE);
 
         return null === $token ? $request : $request->withHeader('Authorization', 'Bearer '.$token);
     }
 
     private static function handler(): RecordingRequestHandler
     {
-        return new RecordingRequestHandler(new Psr17Factory()->createResponse(200));
+        return new RecordingRequestHandler((new Psr17Factory())->createResponse(200));
     }
 
     /**

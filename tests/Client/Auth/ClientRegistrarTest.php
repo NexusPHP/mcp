@@ -27,11 +27,11 @@ use Nexus\Mcp\Client\Exception\UntrustedAuthorizationMetadataException;
 use Nexus\Mcp\Core\Auth\ApplicationType;
 use Nexus\Mcp\Core\Auth\AuthorizationServerMetadata;
 use Nexus\Mcp\Core\Auth\TokenEndpointAuthMethod;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Client\Http\RecordingHttpClient;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 use function Amp\ByteStream\buffer;
 
@@ -41,7 +41,7 @@ use function Amp\ByteStream\buffer;
 #[CoversClass(ClientRegistrar::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class ClientRegistrarTest extends TestCase
+final class ClientRegistrarTest extends AbstractMcpTestCase
 {
     private const string ISSUER = 'https://auth.example.com';
     private const string CIMD_URL = 'https://app.example.com/oauth/client.json';
@@ -137,7 +137,7 @@ final class ClientRegistrarTest extends TestCase
     #[DataProvider('provideAMetadataDocumentUrlIsSkippedWhenTheServerDoesNotSupportItCases')]
     public function testAMetadataDocumentUrlIsSkippedWhenTheServerDoesNotSupportIt(?bool $cimdSupported, ?string $documentUrl): void
     {
-        $http = new RecordingHttpClient()->willAnswerJson(['client_id' => 'registered']);
+        $http = (new RecordingHttpClient())->willAnswerJson(['client_id' => 'registered']);
 
         $registration = self::resolve(
             $http,
@@ -162,7 +162,7 @@ final class ClientRegistrarTest extends TestCase
 
     public function testDynamicRegistrationSendsTheClientMetadata(): void
     {
-        $http = new RecordingHttpClient()->willAnswerJson(['client_id' => 'registered']);
+        $http = (new RecordingHttpClient())->willAnswerJson(['client_id' => 'registered']);
 
         self::resolve($http, self::metadata(registrationEndpoint: 'https://auth.example.com/register'), self::options());
 
@@ -188,7 +188,7 @@ final class ClientRegistrarTest extends TestCase
 
     public function testDynamicRegistrationDeclaresTheConfiguredApplicationType(): void
     {
-        $http = new RecordingHttpClient()->willAnswerJson(['client_id' => 'registered']);
+        $http = (new RecordingHttpClient())->willAnswerJson(['client_id' => 'registered']);
 
         self::resolve($http, self::metadata(registrationEndpoint: 'https://auth.example.com/register'), self::options(applicationType: ApplicationType::Web));
 
@@ -199,7 +199,7 @@ final class ClientRegistrarTest extends TestCase
 
     public function testDynamicRegistrationBindsTheIdentifierToTheIssuer(): void
     {
-        $http = new RecordingHttpClient()->willAnswerJson(['client_id' => 'registered']);
+        $http = (new RecordingHttpClient())->willAnswerJson(['client_id' => 'registered']);
 
         $registration = self::resolve($http, self::metadata(registrationEndpoint: 'https://auth.example.com/register'), self::options());
 
@@ -209,7 +209,7 @@ final class ClientRegistrarTest extends TestCase
 
     public function testDynamicRegistrationIsStoredAndReusedForTheSameIssuer(): void
     {
-        $http = new RecordingHttpClient()->willAnswerJson(['client_id' => 'registered']);
+        $http = (new RecordingHttpClient())->willAnswerJson(['client_id' => 'registered']);
         $store = new InMemoryClientRegistrationStore();
         $metadata = self::metadata(registrationEndpoint: 'https://auth.example.com/register');
 
@@ -222,7 +222,7 @@ final class ClientRegistrarTest extends TestCase
 
     public function testAStoredRegistrationIsNotCarriedAcrossAuthorizationServers(): void
     {
-        $http = new RecordingHttpClient()
+        $http = (new RecordingHttpClient())
             ->willAnswerJson(['client_id' => 'first'])
             ->willAnswerJson(['client_id' => 'second'])
         ;
@@ -243,7 +243,7 @@ final class ClientRegistrarTest extends TestCase
 
     public function testAnIssuedSecretDefaultsToBasicAuthentication(): void
     {
-        $http = new RecordingHttpClient()->willAnswerJson(['client_id' => 'registered', 'client_secret' => 'the-secret']);
+        $http = (new RecordingHttpClient())->willAnswerJson(['client_id' => 'registered', 'client_secret' => 'the-secret']);
 
         $registration = self::resolve($http, self::metadata(registrationEndpoint: 'https://auth.example.com/register'), self::options());
 
@@ -253,7 +253,7 @@ final class ClientRegistrarTest extends TestCase
 
     public function testTheRegisteredAuthenticationMethodIsHonoured(): void
     {
-        $http = new RecordingHttpClient()->willAnswerJson([
+        $http = (new RecordingHttpClient())->willAnswerJson([
             'client_id' => 'registered',
             'client_secret' => 'the-secret',
             'token_endpoint_auth_method' => 'client_secret_post',
@@ -267,7 +267,7 @@ final class ClientRegistrarTest extends TestCase
     #[DataProvider('provideAnUnsupportedAuthenticationMethodIsRefusedCases')]
     public function testAnUnsupportedAuthenticationMethodIsRefused(string $method): void
     {
-        $http = new RecordingHttpClient()->willAnswerJson([
+        $http = (new RecordingHttpClient())->willAnswerJson([
             'client_id' => 'registered',
             'token_endpoint_auth_method' => $method,
         ]);
@@ -302,7 +302,7 @@ final class ClientRegistrarTest extends TestCase
 
     public function testARefusedRegistrationSurfacesTheError(): void
     {
-        $http = new RecordingHttpClient()->willAnswerJson(
+        $http = (new RecordingHttpClient())->willAnswerJson(
             ['error' => 'invalid_redirect_uri', 'error_description' => 'Loopback redirect URIs are not permitted.'],
             400,
         );
@@ -315,7 +315,7 @@ final class ClientRegistrarTest extends TestCase
 
     public function testARefusedRegistrationWithNoErrorCodeFallsBackToInvalidClientMetadata(): void
     {
-        $http = new RecordingHttpClient()->willAnswerJson([], 400);
+        $http = (new RecordingHttpClient())->willAnswerJson([], 400);
 
         $this->expectException(ClientRegistrationFailedException::class);
         $this->expectExceptionMessageIs('Dynamic Client Registration failed with "invalid_client_metadata".');
@@ -325,7 +325,7 @@ final class ClientRegistrarTest extends TestCase
 
     public function testARegistrationResponseWithNoClientIdIsRefused(): void
     {
-        $http = new RecordingHttpClient()->willAnswerJson([]);
+        $http = (new RecordingHttpClient())->willAnswerJson([]);
 
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('Client registration response must carry a "client_id" value.');
@@ -335,7 +335,7 @@ final class ClientRegistrarTest extends TestCase
 
     public function testARegistrationResponseThatIsNotAJsonObjectIsRefused(): void
     {
-        $http = new RecordingHttpClient()->willAnswerJson('"not-an-object"');
+        $http = (new RecordingHttpClient())->willAnswerJson('"not-an-object"');
 
         $this->expectException(MalformedAuthorizationResponseException::class);
         $this->expectExceptionMessageIs('The registration endpoint answered with a payload that is not a JSON object.');
@@ -369,9 +369,9 @@ final class ClientRegistrarTest extends TestCase
 
     public function testTheTimeoutBoundsBothTheTransferAndTheStall(): void
     {
-        $http = new RecordingHttpClient()->willAnswerJson(['client_id' => 'registered']);
+        $http = (new RecordingHttpClient())->willAnswerJson(['client_id' => 'registered']);
 
-        new ClientRegistrar($http, new InMemoryClientRegistrationStore(), 2.5)->resolve(
+        (new ClientRegistrar($http, new InMemoryClientRegistrationStore(), 2.5))->resolve(
             self::metadata(registrationEndpoint: 'https://auth.example.com/register'),
             self::options(),
             new NullCancellation(),
@@ -384,7 +384,7 @@ final class ClientRegistrarTest extends TestCase
     public function testForgettingARegistrationSendsTheNextResolutionBackToTheRegistrationEndpoint(): void
     {
         $store = new InMemoryClientRegistrationStore();
-        $http = new RecordingHttpClient()
+        $http = (new RecordingHttpClient())
             ->willAnswerJson(['client_id' => 'first'])
             ->willAnswerJson(['client_id' => 'second'])
         ;
@@ -406,7 +406,7 @@ final class ClientRegistrarTest extends TestCase
         AuthorizationOptions $options,
         ?InMemoryClientRegistrationStore $store = null,
     ): ClientRegistration {
-        return new ClientRegistrar($http, $store ?? new InMemoryClientRegistrationStore())->resolve($metadata, $options, new NullCancellation());
+        return (new ClientRegistrar($http, $store ?? new InMemoryClientRegistrationStore()))->resolve($metadata, $options, new NullCancellation());
     }
 
     /**

@@ -32,12 +32,12 @@ use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Core\Schema\ResultResponse\GenericResultResponse;
 use Nexus\Mcp\Core\Transport\LineDuplex;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Psr\Log\NullLogger;
@@ -51,7 +51,7 @@ use function Amp\delay;
 #[CoversClass(LineDuplex::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class LineDuplexTest extends TestCase
+final class LineDuplexTest extends AbstractMcpTestCase
 {
     private ?LineDuplex $duplexUnderConcurrentClose = null;
 
@@ -870,8 +870,8 @@ final class LineDuplexTest extends TestCase
         // memory-leak fix with no behavioural observable (awaiting an already
         // completed future is a no-op), so there is nothing on the public surface
         // to assert. This is not a precedent for testing private state generally.
-        $completions = new \ReflectionProperty(LineDuplex::class, 'sideChannelCompletions')->getValue($duplex);
-        $fibers = new \ReflectionProperty(LineDuplex::class, 'sideChannelFibers')->getValue($duplex);
+        $completions = (new \ReflectionProperty(LineDuplex::class, 'sideChannelCompletions'))->getValue($duplex);
+        $fibers = (new \ReflectionProperty(LineDuplex::class, 'sideChannelFibers'))->getValue($duplex);
 
         self::assertSame([], $completions, 'A finished side channel must be removed from the completion list.');
         self::assertSame([], $fibers, 'A finished side channel must be removed from the fiber map.');

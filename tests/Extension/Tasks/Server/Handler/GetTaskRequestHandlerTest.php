@@ -25,11 +25,11 @@ use Nexus\Mcp\Extension\Tasks\Schema\Request\GetTaskRequest;
 use Nexus\Mcp\Extension\Tasks\Server\Handler\GetTaskRequestHandler;
 use Nexus\Mcp\Extension\Tasks\Server\Store\InMemoryTaskStore;
 use Nexus\Mcp\Server\ServerContext;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -37,7 +37,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(GetTaskRequestHandler::class)]
 #[Group('unit-tests')]
 #[Group('extension-tests')]
-final class GetTaskRequestHandlerTest extends TestCase
+final class GetTaskRequestHandlerTest extends AbstractMcpTestCase
 {
     public function testAnUnknownTaskIdIsInvalidParams(): void
     {

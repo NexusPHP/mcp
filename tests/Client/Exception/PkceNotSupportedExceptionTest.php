@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Client\Exception;
 
 use Nexus\Mcp\Client\Exception\PkceNotSupportedException;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -24,13 +24,13 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(PkceNotSupportedException::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class PkceNotSupportedExceptionTest extends TestCase
+final class PkceNotSupportedExceptionTest extends AbstractMcpTestCase
 {
     public function testMessageNamesTheAuthorizationServer(): void
     {
         self::assertSame(
             'The authorization server "https://auth.example.com" does not advertise the S256 code challenge method, so authorization cannot proceed.',
-            new PkceNotSupportedException('https://auth.example.com')->getMessage(),
+            (new PkceNotSupportedException('https://auth.example.com'))->getMessage(),
         );
     }
 }

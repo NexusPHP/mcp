@@ -118,7 +118,7 @@ $tools = new ToolStore([
     ),
 ]);
 
-$server = new ServerBuilder()
+$server = (new ServerBuilder())
     ->setLogger($logger)
     ->setServerInfo(
         name: 'nexus-http-example',
@@ -161,7 +161,7 @@ if (defined('SIGINT')) {
     trapSignal([\SIGINT, \SIGTERM]);
 } else {
     // ext-pcntl absent, so there is no signal to trap. Ctrl-C ends the process.
-    new DeferredFuture()->getFuture()->await();
+    (new DeferredFuture())->getFuture()->await();
 }
 
 $httpServer->stop();

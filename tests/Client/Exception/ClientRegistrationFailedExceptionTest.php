@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Client\Exception;
 
 use Nexus\Mcp\Client\Exception\ClientRegistrationFailedException;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -24,13 +24,13 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ClientRegistrationFailedException::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class ClientRegistrationFailedExceptionTest extends TestCase
+final class ClientRegistrationFailedExceptionTest extends AbstractMcpTestCase
 {
     public function testMessageEndsAtTheErrorCodeWhenThereIsNoDescription(): void
     {
         self::assertSame(
             'Dynamic Client Registration failed with "invalid_redirect_uri".',
-            new ClientRegistrationFailedException('invalid_redirect_uri')->getMessage(),
+            (new ClientRegistrationFailedException('invalid_redirect_uri'))->getMessage(),
         );
     }
 
@@ -38,12 +38,12 @@ final class ClientRegistrationFailedExceptionTest extends TestCase
     {
         self::assertSame(
             'Dynamic Client Registration failed with "invalid_redirect_uri": Loopback is not permitted.',
-            new ClientRegistrationFailedException('invalid_redirect_uri', 'Loopback is not permitted.')->getMessage(),
+            (new ClientRegistrationFailedException('invalid_redirect_uri', 'Loopback is not permitted.'))->getMessage(),
         );
     }
 
     public function testItExposesTheErrorCode(): void
     {
-        self::assertSame('invalid_redirect_uri', new ClientRegistrationFailedException('invalid_redirect_uri')->error);
+        self::assertSame('invalid_redirect_uri', (new ClientRegistrationFailedException('invalid_redirect_uri'))->error);
     }
 }

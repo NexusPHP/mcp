@@ -16,9 +16,9 @@ namespace Nexus\Mcp\Tests\Core\Schema\Error;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Error;
 use Nexus\Mcp\Core\Schema\Error\UnknownProtocolError;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -27,7 +27,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(Error::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class UnknownProtocolErrorTest extends TestCase
+final class UnknownProtocolErrorTest extends AbstractMcpTestCase
 {
     public function testRawIntCodeIsPreserved(): void
     {

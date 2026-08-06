@@ -5,7 +5,7 @@ gates, and the conventions the project follows.
 
 ## Requirements
 
-- PHP 8.4 or newer
+- PHP 8.3 or newer
 - [Composer](https://getcomposer.org)
 
 ## Setup
@@ -55,7 +55,7 @@ composer lint:fix
 
 ## Coding standards
 
-- Target PHP 8.4. Declare `declare(strict_types=1);` in every file.
+- Target PHP 8.3. Declare `declare(strict_types=1);` in every file.
 - The namespace root is `Nexus\Mcp\`, with `Core`, `Server`, and `Client` subnamespaces mirrored by
   the directory layout under `src/`.
 - `Core/` holds protocol types only (readonly value objects, enums, interfaces). Behaviour lives in

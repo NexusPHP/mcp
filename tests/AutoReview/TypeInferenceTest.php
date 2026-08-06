@@ -75,7 +75,7 @@ final class TypeInferenceTest extends TypeInferenceTestCase
         $missing = [];
 
         foreach (self::concreteSubclasses($base) as $class) {
-            $shortName = new \ReflectionClass($class)->getShortName();
+            $shortName = (new \ReflectionClass($class))->getShortName();
 
             if (! str_contains($contents, $shortName.'::getMethod()')) {
                 $missing[] = $class;

@@ -20,11 +20,11 @@ use Nexus\Mcp\Core\Schema\Resource\TextResourceContents;
 use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
 use Nexus\Mcp\Server\Resource\ClosureTemplatedResourceReader;
 use Nexus\Mcp\Server\ServerContext;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -32,7 +32,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ClosureTemplatedResourceReader::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class ClosureTemplatedResourceReaderTest extends TestCase
+final class ClosureTemplatedResourceReaderTest extends AbstractMcpTestCase
 {
     public function testForwardsUriBindingsAndContextToClosureAndReturnsItsResult(): void
     {

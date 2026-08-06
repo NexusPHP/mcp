@@ -14,10 +14,10 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Client\Auth;
 
 use Nexus\Mcp\Client\Auth\AuthorizationCallback;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -25,7 +25,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(AuthorizationCallback::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class AuthorizationCallbackTest extends TestCase
+final class AuthorizationCallbackTest extends AbstractMcpTestCase
 {
     /**
      * @param array<array-key, string> $expected
@@ -33,7 +33,7 @@ final class AuthorizationCallbackTest extends TestCase
     #[DataProvider('provideParametersCases')]
     public function testParameters(string $callbackUrl, array $expected): void
     {
-        self::assertSame($expected, new AuthorizationCallback($callbackUrl)->parameters);
+        self::assertSame($expected, (new AuthorizationCallback($callbackUrl))->parameters);
     }
 
     /**

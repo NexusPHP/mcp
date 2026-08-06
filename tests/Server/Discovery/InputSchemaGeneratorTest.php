@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Tests\Server\Discovery;
 
 use Nexus\Mcp\Server\Discovery\InputSchemaGenerator;
 use Nexus\Mcp\Server\Exception\SchemaGenerationException;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\AbstractShape;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\BackedStringEnum;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\Coordinate;
@@ -23,7 +24,6 @@ use Nexus\Mcp\Tests\Fixtures\Server\Discovery\ShapeInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -31,7 +31,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(InputSchemaGenerator::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class InputSchemaGeneratorTest extends TestCase
+final class InputSchemaGeneratorTest extends AbstractMcpTestCase
 {
     private const string DIALECT = 'https://json-schema.org/draft/2020-12/schema';
 
@@ -361,6 +361,6 @@ final class InputSchemaGeneratorTest extends TestCase
      */
     private static function generate(string $method): array
     {
-        return new InputSchemaGenerator()->generate(new \ReflectionMethod(SampleToolHandlers::class, $method));
+        return (new InputSchemaGenerator())->generate(new \ReflectionMethod(SampleToolHandlers::class, $method));
     }
 }

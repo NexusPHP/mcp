@@ -16,10 +16,10 @@ namespace Nexus\Mcp\Tests\Core\Http;
 use Nexus\Mcp\Core\Http\HeaderValueCodec;
 use Nexus\Mcp\Core\Http\StandardHeaders;
 use Nexus\Mcp\Core\Schema\Error\HeaderMismatchError;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -27,7 +27,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(StandardHeaders::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class StandardHeadersTest extends TestCase
+final class StandardHeadersTest extends AbstractMcpTestCase
 {
     private const string VERSION_ABSENT = 'The MCP-Protocol-Version header is required but absent.';
     private const string VERSION_MISMATCH = 'The MCP-Protocol-Version header does not match the request body protocol version.';

@@ -4,7 +4,7 @@ includes:
 
 parameters:
   phpVersion:
-    min: 80400
+    min: 80300
     max: 80599
   level: 10
   tmpDir: build/phpstan
@@ -16,6 +16,7 @@ parameters:
     - tools
   excludePaths:
     analyse:
+      - tests/AbstractMcpTestCase.php
       - tests/AutoReview/data/**
       - tools/vendor/**
   bootstrapFiles:

@@ -16,9 +16,9 @@ namespace Nexus\Mcp\Tests\Extension\Auth\Enterprise;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Extension\Auth\Enterprise\IdentityAssertion;
 use Nexus\Mcp\Extension\Auth\Enterprise\IdentityAssertionType;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -26,7 +26,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(IdentityAssertion::class)]
 #[Group('unit-tests')]
 #[Group('extension-tests')]
-final class IdentityAssertionTest extends TestCase
+final class IdentityAssertionTest extends AbstractMcpTestCase
 {
     public function testItCarriesTheTokenAndItsType(): void
     {

@@ -23,11 +23,11 @@ use Nexus\Mcp\Extension\Tasks\Server\Store\InMemoryTaskStore;
 use Nexus\Mcp\Extension\Tasks\Server\Store\TaskRecord;
 use Nexus\Mcp\Extension\Tasks\Server\TaskCancellationRegistry;
 use Nexus\Mcp\Server\ServerContext;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -35,7 +35,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(CancelTaskRequestHandler::class)]
 #[Group('unit-tests')]
 #[Group('extension-tests')]
-final class CancelTaskRequestHandlerTest extends TestCase
+final class CancelTaskRequestHandlerTest extends AbstractMcpTestCase
 {
     public function testAnUnknownTaskIdIsInvalidParams(): void
     {

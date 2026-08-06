@@ -18,10 +18,10 @@ use Nexus\Mcp\Core\Handler\Notification\CancelledNotificationHandler;
 use Nexus\Mcp\Core\Schema\Notification\CancelledNotification;
 use Nexus\Mcp\Core\Schema\NotificationParams\CancelledNotificationParams;
 use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 use Psr\Log\LogLevel;
 
 /**
@@ -30,7 +30,7 @@ use Psr\Log\LogLevel;
 #[CoversClass(CancelledNotificationHandler::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class CancelledNotificationHandlerTest extends TestCase
+final class CancelledNotificationHandlerTest extends AbstractMcpTestCase
 {
     public function testCancelsTheRequestTheNotificationNames(): void
     {
@@ -39,7 +39,7 @@ final class CancelledNotificationHandlerTest extends TestCase
         $cancellation = $inboundRequests->claim($id);
         $logger = new ArrayLogger();
 
-        new CancelledNotificationHandler($inboundRequests, $logger)->handle(self::notificationFor(7, 'user aborted'));
+        (new CancelledNotificationHandler($inboundRequests, $logger))->handle(self::notificationFor(7, 'user aborted'));
 
         self::assertNotNull($cancellation);
         self::assertTrue($cancellation->isRequested());
@@ -55,7 +55,7 @@ final class CancelledNotificationHandlerTest extends TestCase
         $target = $inboundRequests->claim(new RequestId(id: 7));
         $bystander = $inboundRequests->claim(new RequestId(id: 8));
 
-        new CancelledNotificationHandler($inboundRequests)->handle(self::notificationFor(7));
+        (new CancelledNotificationHandler($inboundRequests))->handle(self::notificationFor(7));
 
         self::assertNotNull($target);
         self::assertNotNull($bystander);
@@ -69,7 +69,7 @@ final class CancelledNotificationHandlerTest extends TestCase
         // notification arrived.
         $logger = new ArrayLogger();
 
-        new CancelledNotificationHandler(new PendingInboundRequests(), $logger)->handle(self::notificationFor(7));
+        (new CancelledNotificationHandler(new PendingInboundRequests(), $logger))->handle(self::notificationFor(7));
 
         $records = $logger->recordsMatching(LogLevel::DEBUG, 'Ignoring cancellation for a request that is not in flight.');
         self::assertCount(1, $records);
@@ -87,7 +87,7 @@ final class CancelledNotificationHandlerTest extends TestCase
         $intCancellation = $inboundRequests->claim(new RequestId(id: 7));
         $stringCancellation = $inboundRequests->claim(new RequestId(id: '7'));
 
-        new CancelledNotificationHandler($inboundRequests)->handle(self::notificationFor('7'));
+        (new CancelledNotificationHandler($inboundRequests))->handle(self::notificationFor('7'));
 
         self::assertNotNull($intCancellation);
         self::assertNotNull($stringCancellation);

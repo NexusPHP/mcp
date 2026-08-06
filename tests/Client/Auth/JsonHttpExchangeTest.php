@@ -19,11 +19,11 @@ use Nexus\Mcp\Client\Auth\JsonHttpExchange;
 use Nexus\Mcp\Client\Exception\MalformedAuthorizationResponseException;
 use Nexus\Mcp\Client\Exception\RedirectRefusedException;
 use Nexus\Mcp\Core\Exception\ResponseTooLargeException;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Client\Http\RecordingHttpClient;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -31,15 +31,15 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(JsonHttpExchange::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class JsonHttpExchangeTest extends TestCase
+final class JsonHttpExchangeTest extends AbstractMcpTestCase
 {
     private const string URL = 'https://auth.example.com/token';
 
     public function testItAsksForJsonAndReturnsTheStatusWithThePayload(): void
     {
-        $http = new RecordingHttpClient()->willAnswerJson(['issuer' => 'https://auth.example.com'], 201);
+        $http = (new RecordingHttpClient())->willAnswerJson(['issuer' => 'https://auth.example.com'], 201);
 
-        [$status, $payload] = new JsonHttpExchange($http)->send(new Request(self::URL), new NullCancellation());
+        [$status, $payload] = (new JsonHttpExchange($http))->send(new Request(self::URL), new NullCancellation());
 
         self::assertSame(201, $status);
         self::assertSame('{"issuer":"https:\/\/auth.example.com"}', $payload);
@@ -48,9 +48,9 @@ final class JsonHttpExchangeTest extends TestCase
 
     public function testTheTimeoutBoundsBothTheTransferAndTheStall(): void
     {
-        $http = new RecordingHttpClient()->willAnswerJson([]);
+        $http = (new RecordingHttpClient())->willAnswerJson([]);
 
-        new JsonHttpExchange($http, 2.5)->send(new Request(self::URL), new NullCancellation());
+        (new JsonHttpExchange($http, 2.5))->send(new Request(self::URL), new NullCancellation());
 
         self::assertSame(2.5, $http->readRequest()->getTransferTimeout());
         self::assertSame(2.5, $http->readRequest()->getInactivityTimeout());
@@ -58,39 +58,39 @@ final class JsonHttpExchangeTest extends TestCase
 
     public function testTheDefaultTimeoutIsTenSeconds(): void
     {
-        $http = new RecordingHttpClient()->willAnswerJson([]);
+        $http = (new RecordingHttpClient())->willAnswerJson([]);
 
-        new JsonHttpExchange($http)->send(new Request(self::URL), new NullCancellation());
+        (new JsonHttpExchange($http))->send(new Request(self::URL), new NullCancellation());
 
         self::assertSame(10.0, $http->readRequest()->getTransferTimeout());
     }
 
     public function testAnAnswerFromAnotherUrlIsRefused(): void
     {
-        $http = new RecordingHttpClient()->willAnswerFrom('http://127.0.0.1:6379/token');
+        $http = (new RecordingHttpClient())->willAnswerFrom('http://127.0.0.1:6379/token');
 
         $this->expectException(RedirectRefusedException::class);
         $this->expectExceptionMessageIs('The request to "https://auth.example.com/token" was answered from "http://127.0.0.1:6379/token" after a redirect. Credentials are never carried across one.');
 
-        new JsonHttpExchange($http)->send(new Request(self::URL), new NullCancellation());
+        (new JsonHttpExchange($http))->send(new Request(self::URL), new NullCancellation());
     }
 
     public function testAnOversizedAnswerIsRefused(): void
     {
-        $http = new RecordingHttpClient()->willAnswerJson(str_repeat('x', JsonHttpExchange::MAX_RESPONSE_BYTES + 1));
+        $http = (new RecordingHttpClient())->willAnswerJson(str_repeat('x', JsonHttpExchange::MAX_RESPONSE_BYTES + 1));
 
         $this->expectException(ResponseTooLargeException::class);
         $this->expectExceptionMessageIs('The response exceeded the 65536 byte limit the client accepts.');
 
-        new JsonHttpExchange($http)->send(new Request(self::URL), new NullCancellation());
+        (new JsonHttpExchange($http))->send(new Request(self::URL), new NullCancellation());
     }
 
     public function testAnAnswerAtTheByteCapIsRead(): void
     {
         $payload = str_pad('{"a":"', JsonHttpExchange::MAX_RESPONSE_BYTES - 2, 'x').'"}';
-        $http = new RecordingHttpClient()->willAnswerJson($payload);
+        $http = (new RecordingHttpClient())->willAnswerJson($payload);
 
-        self::assertSame($payload, new JsonHttpExchange($http)->send(new Request(self::URL), new NullCancellation())[1]);
+        self::assertSame($payload, (new JsonHttpExchange($http))->send(new Request(self::URL), new NullCancellation())[1]);
     }
 
     public function testEveryMemberOfADecodedObjectIsReturned(): void

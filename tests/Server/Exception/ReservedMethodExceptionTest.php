@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Server\Exception;
 
 use Nexus\Mcp\Server\Exception\ReservedMethodException;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -24,13 +24,13 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ReservedMethodException::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class ReservedMethodExceptionTest extends TestCase
+final class ReservedMethodExceptionTest extends AbstractMcpTestCase
 {
     public function testRequestMessagePointsToReplaceRequestHandler(): void
     {
         self::assertSame(
             'Request method "tools/list" is reserved by the MCP specification. Use replaceRequestHandler() to attach a handler to it.',
-            new ReservedMethodException('tools/list')->getMessage(),
+            (new ReservedMethodException('tools/list'))->getMessage(),
         );
     }
 
@@ -38,7 +38,7 @@ final class ReservedMethodExceptionTest extends TestCase
     {
         self::assertSame(
             'Notification method "notifications/initialized" is reserved by the MCP specification. Use replaceNotificationHandler() to attach a handler to it.',
-            new ReservedMethodException('notifications/initialized', isNotification: true)->getMessage(),
+            (new ReservedMethodException('notifications/initialized', isNotification: true))->getMessage(),
         );
     }
 }

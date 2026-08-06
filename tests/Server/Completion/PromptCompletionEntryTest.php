@@ -16,9 +16,9 @@ namespace Nexus\Mcp\Tests\Server\Completion;
 use Nexus\Mcp\Core\Schema\Result\CompleteResult;
 use Nexus\Mcp\Server\Completion\ClosureCompletionProvider;
 use Nexus\Mcp\Server\Completion\PromptCompletionEntry;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -26,7 +26,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(PromptCompletionEntry::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class PromptCompletionEntryTest extends TestCase
+final class PromptCompletionEntryTest extends AbstractMcpTestCase
 {
     public function testStoresItsFields(): void
     {

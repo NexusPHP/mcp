@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Server\Exception;
 
 use Nexus\Mcp\Server\Exception\UnsupportedParameterTypeException;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -24,13 +24,13 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(UnsupportedParameterTypeException::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class UnsupportedParameterTypeExceptionTest extends TestCase
+final class UnsupportedParameterTypeExceptionTest extends AbstractMcpTestCase
 {
     public function testMessageNamesTheOffendingMethodParameterAndType(): void
     {
         self::assertSame(
             \sprintf('%s::rank() declares parameter "$level" of unsupported type "int". It is bound from a string value.', self::class),
-            new UnsupportedParameterTypeException(self::class, 'rank', 'level', 'int')->getMessage(),
+            (new UnsupportedParameterTypeException(self::class, 'rank', 'level', 'int'))->getMessage(),
         );
     }
 }

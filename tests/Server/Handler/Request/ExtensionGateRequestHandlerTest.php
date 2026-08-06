@@ -20,13 +20,13 @@ use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Server\Exception\MissingRequiredClientCapabilityException;
 use Nexus\Mcp\Server\Handler\Request\ExtensionGateRequestHandler;
 use Nexus\Mcp\Server\ServerContext;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureRequestHandler;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use Nexus\Mcp\Tests\Fixtures\Core\TestClientRequest;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -34,7 +34,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ExtensionGateRequestHandler::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class ExtensionGateRequestHandlerTest extends TestCase
+final class ExtensionGateRequestHandlerTest extends AbstractMcpTestCase
 {
     public function testADeclaredExtensionReachesTheHandler(): void
     {

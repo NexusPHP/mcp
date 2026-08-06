@@ -17,9 +17,9 @@ use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\JsonRpc\ResourceContentsDispatcher;
 use Nexus\Mcp\Core\Schema\Resource\BlobResourceContents;
 use Nexus\Mcp\Core\Schema\Resource\TextResourceContents;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -27,7 +27,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ResourceContentsDispatcher::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class ResourceContentsDispatcherTest extends TestCase
+final class ResourceContentsDispatcherTest extends AbstractMcpTestCase
 {
     public function testFromArrayDispatchesToTextResourceContents(): void
     {

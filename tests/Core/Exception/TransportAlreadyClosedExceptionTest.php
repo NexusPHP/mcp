@@ -14,10 +14,10 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Exception;
 
 use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -25,7 +25,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(TransportAlreadyClosedException::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class TransportAlreadyClosedExceptionTest extends TestCase
+final class TransportAlreadyClosedExceptionTest extends AbstractMcpTestCase
 {
     /**
      * @param non-empty-string $operation

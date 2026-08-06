@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Client\Auth;
 
 use Nexus\Mcp\Client\Auth\AccessToken;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -24,7 +24,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(AccessToken::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class AccessTokenTest extends TestCase
+final class AccessTokenTest extends AbstractMcpTestCase
 {
     public function testItCarriesEveryIssuedField(): void
     {

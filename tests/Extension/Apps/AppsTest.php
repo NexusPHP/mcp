@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Extension\Apps;
 
 use Nexus\Mcp\Extension\Apps\Apps;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -24,7 +24,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(Apps::class)]
 #[Group('unit-tests')]
 #[Group('extension-tests')]
-final class AppsTest extends TestCase
+final class AppsTest extends AbstractMcpTestCase
 {
     public function testPinsTheProtocolVocabulary(): void
     {
@@ -34,6 +34,6 @@ final class AppsTest extends TestCase
             'URI_PREFIX' => 'ui://',
             'META_KEY' => 'ui',
             'DEPRECATED_RESOURCE_URI_KEY' => 'ui/resourceUri',
-        ], new \ReflectionClass(Apps::class)->getConstants());
+        ], (new \ReflectionClass(Apps::class))->getConstants());
     }
 }

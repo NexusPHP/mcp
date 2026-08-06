@@ -15,9 +15,9 @@ namespace Nexus\Mcp\Tests\Core\Schema;
 
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Cursor;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -25,11 +25,11 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(Cursor::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class CursorTest extends TestCase
+final class CursorTest extends AbstractMcpTestCase
 {
     public function testCursorAcceptsNonEmptyString(): void
     {
-        self::assertSame('abc123', new Cursor(cursor: 'abc123')->cursor);
+        self::assertSame('abc123', (new Cursor(cursor: 'abc123'))->cursor);
     }
 
     public function testCursorRejectsEmptyString(): void

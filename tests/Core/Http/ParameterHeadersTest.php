@@ -17,10 +17,10 @@ use Nexus\Mcp\Core\Http\HeaderValueCodec;
 use Nexus\Mcp\Core\Http\ParameterHeaderBinding;
 use Nexus\Mcp\Core\Http\ParameterHeaders;
 use Nexus\Mcp\Core\Schema\Error\HeaderMismatchError;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -28,7 +28,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ParameterHeaders::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class ParameterHeadersTest extends TestCase
+final class ParameterHeadersTest extends AbstractMcpTestCase
 {
     /**
      * @param list<ParameterHeaderBinding> $bindings

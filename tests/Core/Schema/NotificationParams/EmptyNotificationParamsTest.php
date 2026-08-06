@@ -16,9 +16,9 @@ namespace Nexus\Mcp\Tests\Core\Schema\NotificationParams;
 use Nexus\Mcp\Core\Schema\MetaObject\NotificationMetaObject;
 use Nexus\Mcp\Core\Schema\NotificationParams;
 use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -27,16 +27,16 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(NotificationParams::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class EmptyNotificationParamsTest extends TestCase
+final class EmptyNotificationParamsTest extends AbstractMcpTestCase
 {
     public function testDefaultsToNullMeta(): void
     {
-        self::assertSame([], new EmptyNotificationParams()->meta->toArray());
+        self::assertSame([], (new EmptyNotificationParams())->meta->toArray());
     }
 
     public function testToArrayIsEmptyWhenNoMeta(): void
     {
-        self::assertSame([], new EmptyNotificationParams()->toArray());
+        self::assertSame([], (new EmptyNotificationParams())->toArray());
     }
 
     public function testToArrayEmitsMetaUnderUnderscoreKey(): void

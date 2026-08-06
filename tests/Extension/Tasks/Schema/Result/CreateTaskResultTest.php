@@ -19,10 +19,10 @@ use Nexus\Mcp\Core\Schema\MetaObject\GenericResultMetaObject;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Extension\Tasks\Schema\Enum\TaskStatus;
 use Nexus\Mcp\Extension\Tasks\Schema\Result\CreateTaskResult;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -31,7 +31,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(Result::class)]
 #[Group('unit-tests')]
 #[Group('extension-tests')]
-final class CreateTaskResultTest extends TestCase
+final class CreateTaskResultTest extends AbstractMcpTestCase
 {
     public function testToArrayEmitsTaskResultTypeAndAlwaysCarriesTtl(): void
     {

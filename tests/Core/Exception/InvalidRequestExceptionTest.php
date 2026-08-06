@@ -16,9 +16,9 @@ namespace Nexus\Mcp\Tests\Core\Exception;
 use Nexus\Mcp\Core\Exception\AbstractJsonRpcProtocolException;
 use Nexus\Mcp\Core\Exception\InvalidRequestException;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -27,7 +27,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(AbstractJsonRpcProtocolException::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class InvalidRequestExceptionTest extends TestCase
+final class InvalidRequestExceptionTest extends AbstractMcpTestCase
 {
     public function testReportsInvalidRequestErrorCode(): void
     {

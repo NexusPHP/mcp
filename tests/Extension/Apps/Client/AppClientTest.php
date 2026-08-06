@@ -29,10 +29,10 @@ use Nexus\Mcp\Extension\Apps\Client\AppClient;
 use Nexus\Mcp\Extension\Apps\Client\AppsClientExtension;
 use Nexus\Mcp\Extension\Apps\Client\Exception\InvalidUiResourceContentsException;
 use Nexus\Mcp\Extension\Apps\Schema\Enum\ToolVisibility;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 use function Amp\async;
 
@@ -42,7 +42,7 @@ use function Amp\async;
 #[CoversClass(AppClient::class)]
 #[Group('unit-tests')]
 #[Group('extension-tests')]
-final class AppClientTest extends TestCase
+final class AppClientTest extends AbstractMcpTestCase
 {
     public function testResolvesTheNestedToolMeta(): void
     {
@@ -388,7 +388,7 @@ final class AppClientTest extends TestCase
      */
     private static function buildAppClient(?array $mimeTypes = null): array
     {
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->setRequestTimeout(0.5)
             ->enableExtension(null === $mimeTypes ? new AppsClientExtension() : new AppsClientExtension(mimeTypes: $mimeTypes))
@@ -404,6 +404,6 @@ final class AppClientTest extends TestCase
 
     private static function buildBareClient(): Client
     {
-        return new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+        return (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
     }
 }

@@ -22,12 +22,12 @@ use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
 use Nexus\Mcp\Server\Exception\UnsupportedReturnValueException;
 use Nexus\Mcp\Server\Prompt\ReflectedPromptRenderer;
 use Nexus\Mcp\Server\ServerContext;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\ReflectedHandlers;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -35,7 +35,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ReflectedPromptRenderer::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class ReflectedPromptRendererTest extends TestCase
+final class ReflectedPromptRendererTest extends AbstractMcpTestCase
 {
     public function testReturnsGetPromptResultUnchanged(): void
     {

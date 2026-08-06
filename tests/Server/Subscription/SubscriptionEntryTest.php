@@ -17,10 +17,10 @@ use Amp\DeferredFuture;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\SubscriptionFilter;
 use Nexus\Mcp\Server\Subscription\SubscriptionEntry;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -28,7 +28,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(SubscriptionEntry::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class SubscriptionEntryTest extends TestCase
+final class SubscriptionEntryTest extends AbstractMcpTestCase
 {
     public function testCarriesTheStreamIdentityAndItsPump(): void
     {

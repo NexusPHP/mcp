@@ -16,9 +16,9 @@ namespace Nexus\Mcp\Tests\Extension\Auth;
 use Nexus\Mcp\Core\Auth\AuthorizationServerMetadata;
 use Nexus\Mcp\Extension\Auth\Exception\UnsupportedGrantException;
 use Nexus\Mcp\Extension\Auth\GrantTypeAdvertisement;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -26,7 +26,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(GrantTypeAdvertisement::class)]
 #[Group('unit-tests')]
 #[Group('extension-tests')]
-final class GrantTypeAdvertisementTest extends TestCase
+final class GrantTypeAdvertisementTest extends AbstractMcpTestCase
 {
     private const string ISSUER = 'https://auth.example.com';
 

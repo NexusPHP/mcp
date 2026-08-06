@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Client\Exception;
 
 use Nexus\Mcp\Client\Exception\ClientRegistrationRejectedException;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -24,13 +24,13 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ClientRegistrationRejectedException::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class ClientRegistrationRejectedExceptionTest extends TestCase
+final class ClientRegistrationRejectedExceptionTest extends AbstractMcpTestCase
 {
     public function testItSaysTheClientMustRegisterAgain(): void
     {
         self::assertSame(
             'The authorization server does not recognise the client identifier presented to it, so the client must register again.',
-            new ClientRegistrationRejectedException()->getMessage(),
+            (new ClientRegistrationRejectedException())->getMessage(),
         );
     }
 
@@ -38,7 +38,7 @@ final class ClientRegistrationRejectedExceptionTest extends TestCase
     {
         self::assertSame(
             'The authorization server does not recognise the client identifier presented to it, so the client must register again: The registration has lapsed.',
-            new ClientRegistrationRejectedException('The registration has lapsed.')->getMessage(),
+            (new ClientRegistrationRejectedException('The registration has lapsed.'))->getMessage(),
         );
     }
 }

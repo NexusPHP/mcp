@@ -19,11 +19,11 @@ use Nexus\Mcp\Core\Schema\Request;
 use Nexus\Mcp\Core\Schema\Request\ReadResourceRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\ReadResourceRequestParams;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -33,7 +33,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(Request::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class ReadResourceRequestTest extends TestCase
+final class ReadResourceRequestTest extends AbstractMcpTestCase
 {
     public function testMethodIsResourcesRead(): void
     {

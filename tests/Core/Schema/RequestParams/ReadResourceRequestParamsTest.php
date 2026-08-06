@@ -21,11 +21,11 @@ use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\ReadResourceRequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\ResourceRequestParams;
 use Nexus\Mcp\Core\Schema\Result\InputResponse;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -35,7 +35,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(RequestParams::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class ReadResourceRequestParamsTest extends TestCase
+final class ReadResourceRequestParamsTest extends AbstractMcpTestCase
 {
     public function testConstructionMinimal(): void
     {

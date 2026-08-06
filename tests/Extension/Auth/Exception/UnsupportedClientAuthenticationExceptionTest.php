@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Extension\Auth\Exception;
 
 use Nexus\Mcp\Extension\Auth\Exception\UnsupportedClientAuthenticationException;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -24,13 +24,13 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(UnsupportedClientAuthenticationException::class)]
 #[Group('unit-tests')]
 #[Group('extension-tests')]
-final class UnsupportedClientAuthenticationExceptionTest extends TestCase
+final class UnsupportedClientAuthenticationExceptionTest extends AbstractMcpTestCase
 {
     public function testCarriesItsMessage(): void
     {
         self::assertSame(
             'The method is not advertised.',
-            new UnsupportedClientAuthenticationException('The method is not advertised.')->getMessage(),
+            (new UnsupportedClientAuthenticationException('The method is not advertised.'))->getMessage(),
         );
     }
 }

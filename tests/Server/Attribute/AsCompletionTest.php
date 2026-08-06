@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Server\Attribute;
 
 use Nexus\Mcp\Server\Attribute\AsCompletion;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -24,7 +24,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(AsCompletion::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class AsCompletionTest extends TestCase
+final class AsCompletionTest extends AbstractMcpTestCase
 {
     public function testStoresAPromptCompletion(): void
     {

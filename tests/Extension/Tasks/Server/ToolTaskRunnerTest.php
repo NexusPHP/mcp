@@ -32,13 +32,13 @@ use Nexus\Mcp\Extension\Tasks\Server\Store\TaskRecord;
 use Nexus\Mcp\Extension\Tasks\Server\TaskCancellationRegistry;
 use Nexus\Mcp\Extension\Tasks\Server\ToolTaskRunner;
 use Nexus\Mcp\Server\ServerContext;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureRequestHandler;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 use Psr\Log\LogLevel;
 
 use function Amp\delay;
@@ -49,7 +49,7 @@ use function Amp\delay;
 #[CoversClass(ToolTaskRunner::class)]
 #[Group('unit-tests')]
 #[Group('extension-tests')]
-final class ToolTaskRunnerTest extends TestCase
+final class ToolTaskRunnerTest extends AbstractMcpTestCase
 {
     public function testStartTaskRefusesToRunUnbound(): void
     {
@@ -227,7 +227,7 @@ final class ToolTaskRunnerTest extends TestCase
         $runner->startTask($taskId, self::buildRequest(), self::buildContext(), null, null);
         delay(0);
 
-        $sources = new \ReflectionProperty(TaskCancellationRegistry::class, 'sources')->getValue($registry);
+        $sources = (new \ReflectionProperty(TaskCancellationRegistry::class, 'sources'))->getValue($registry);
         self::assertSame([], $sources);
     }
 

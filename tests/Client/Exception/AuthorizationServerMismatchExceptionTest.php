@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Client\Exception;
 
 use Nexus\Mcp\Client\Exception\AuthorizationServerMismatchException;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -24,13 +24,13 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(AuthorizationServerMismatchException::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class AuthorizationServerMismatchExceptionTest extends TestCase
+final class AuthorizationServerMismatchExceptionTest extends AbstractMcpTestCase
 {
     public function testMessageNamesBothAuthorizationServers(): void
     {
         self::assertSame(
             'The supplied client credentials were registered with "https://old.example.com" but the protected resource now names "https://new.example.com", and credentials are not portable between authorization servers.',
-            new AuthorizationServerMismatchException('https://old.example.com', 'https://new.example.com')->getMessage(),
+            (new AuthorizationServerMismatchException('https://old.example.com', 'https://new.example.com'))->getMessage(),
         );
     }
 }

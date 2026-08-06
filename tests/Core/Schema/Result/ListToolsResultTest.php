@@ -22,10 +22,10 @@ use Nexus\Mcp\Core\Schema\Result\CacheableResult;
 use Nexus\Mcp\Core\Schema\Result\ListToolsResult;
 use Nexus\Mcp\Core\Schema\Result\PaginatedResult;
 use Nexus\Mcp\Core\Schema\Tool\Tool;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -36,7 +36,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(Result::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class ListToolsResultTest extends TestCase
+final class ListToolsResultTest extends AbstractMcpTestCase
 {
     public function testConstructionDefaults(): void
     {

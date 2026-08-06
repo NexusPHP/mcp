@@ -17,10 +17,10 @@ use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Extension\Apps\Schema\UiResourceCsp;
 use Nexus\Mcp\Extension\Apps\Schema\UiResourceMeta;
 use Nexus\Mcp\Extension\Apps\Schema\UiResourcePermissions;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -28,7 +28,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(UiResourceMeta::class)]
 #[Group('unit-tests')]
 #[Group('extension-tests')]
-final class UiResourceMetaTest extends TestCase
+final class UiResourceMetaTest extends AbstractMcpTestCase
 {
     public function testRoundTripsTheFullShape(): void
     {
@@ -98,7 +98,7 @@ final class UiResourceMetaTest extends TestCase
     {
         $csp = new UiResourceCsp(frameDomains: ['https://frames.example.com']);
 
-        self::assertSame($csp, new UiResourceMeta(csp: $csp)->csp);
+        self::assertSame($csp, (new UiResourceMeta(csp: $csp))->csp);
     }
 
     public function testEmptyPermissionsCollapseToNull(): void
@@ -113,7 +113,7 @@ final class UiResourceMetaTest extends TestCase
     {
         $permissions = new UiResourcePermissions(geolocation: true);
 
-        self::assertSame($permissions, new UiResourceMeta(permissions: $permissions)->permissions);
+        self::assertSame($permissions, (new UiResourceMeta(permissions: $permissions))->permissions);
     }
 
     public function testRejectsAnEmptyDomain(): void

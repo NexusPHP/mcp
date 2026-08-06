@@ -22,10 +22,10 @@ use Nexus\Mcp\Core\Schema\Error\ParseError;
 use Nexus\Mcp\Core\Schema\Error\UnknownProtocolError;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -33,7 +33,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(JsonRpcErrorResponse::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class JsonRpcErrorResponseTest extends TestCase
+final class JsonRpcErrorResponseTest extends AbstractMcpTestCase
 {
     public function testToArrayWithCorrelatedId(): void
     {

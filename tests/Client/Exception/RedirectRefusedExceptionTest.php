@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Client\Exception;
 
 use Nexus\Mcp\Client\Exception\RedirectRefusedException;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -24,13 +24,13 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(RedirectRefusedException::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class RedirectRefusedExceptionTest extends TestCase
+final class RedirectRefusedExceptionTest extends AbstractMcpTestCase
 {
     public function testItNamesBothEndsOfTheRedirect(): void
     {
         self::assertSame(
             'The request to "https://auth.example.com/token" was answered from "http://127.0.0.1:6379/token" after a redirect. Credentials are never carried across one.',
-            new RedirectRefusedException('https://auth.example.com/token', 'http://127.0.0.1:6379/token')->getMessage(),
+            (new RedirectRefusedException('https://auth.example.com/token', 'http://127.0.0.1:6379/token'))->getMessage(),
         );
     }
 }

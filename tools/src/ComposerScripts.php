@@ -195,7 +195,7 @@ final class ComposerScripts
             self::fail(\sprintf('Invalid XML in coverage report at %s.', self::PHPUNIT_CLOVER));
         }
 
-        $nodes = new \DOMXPath($dom)->query('//file/line[@type="stmt" and @count="0"]');
+        $nodes = (new \DOMXPath($dom))->query('//file/line[@type="stmt" and @count="0"]');
 
         if (false === $nodes) {
             self::fail('Failed to inspect the coverage report.');

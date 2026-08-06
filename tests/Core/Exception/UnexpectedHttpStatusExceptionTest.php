@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Exception;
 
 use Nexus\Mcp\Core\Exception\UnexpectedHttpStatusException;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -24,7 +24,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(UnexpectedHttpStatusException::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class UnexpectedHttpStatusExceptionTest extends TestCase
+final class UnexpectedHttpStatusExceptionTest extends AbstractMcpTestCase
 {
     public function testMessageNamesTheStatus(): void
     {
@@ -44,6 +44,6 @@ final class UnexpectedHttpStatusExceptionTest extends TestCase
 
     public function testAShortBodyIsKeptWhole(): void
     {
-        self::assertSame('{"error":"x"}', new UnexpectedHttpStatusException(400, '{"error":"x"}')->body);
+        self::assertSame('{"error":"x"}', (new UnexpectedHttpStatusException(400, '{"error":"x"}'))->body);
     }
 }

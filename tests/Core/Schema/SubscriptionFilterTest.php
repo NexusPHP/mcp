@@ -15,10 +15,10 @@ namespace Nexus\Mcp\Tests\Core\Schema;
 
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\SubscriptionFilter;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -26,7 +26,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(SubscriptionFilter::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class SubscriptionFilterTest extends TestCase
+final class SubscriptionFilterTest extends AbstractMcpTestCase
 {
     public function testDefaultsToNullValues(): void
     {
@@ -87,7 +87,7 @@ final class SubscriptionFilterTest extends TestCase
 
     public function testJsonSerializeSubstitutesStdClassWhenEmpty(): void
     {
-        self::assertInstanceOf(\stdClass::class, new SubscriptionFilter()->jsonSerialize());
+        self::assertInstanceOf(\stdClass::class, (new SubscriptionFilter())->jsonSerialize());
         self::assertSame('{}', json_encode(new SubscriptionFilter()));
     }
 

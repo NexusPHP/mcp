@@ -15,9 +15,9 @@ namespace Nexus\Mcp\Tests\Core\JsonRpc;
 
 use Nexus\Mcp\Core\JsonRpc\UnparsedResultEnvelope;
 use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -25,7 +25,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(UnparsedResultEnvelope::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class UnparsedResultEnvelopeTest extends TestCase
+final class UnparsedResultEnvelopeTest extends AbstractMcpTestCase
 {
     public function testCarriesIdAndResultPayload(): void
     {

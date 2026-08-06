@@ -36,11 +36,11 @@ use Nexus\Mcp\Extension\Auth\Enterprise\IdentityAssertionProviderInterface;
 use Nexus\Mcp\Extension\Auth\Enterprise\IdentityAssertionType;
 use Nexus\Mcp\Extension\Auth\Exception\UnsupportedClientAuthenticationException;
 use Nexus\Mcp\Extension\Auth\Exception\UnsupportedGrantException;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Client\Http\RecordingHttpClient;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 use Psr\Log\LogLevel;
 
 use function Amp\ByteStream\buffer;
@@ -51,7 +51,7 @@ use function Amp\ByteStream\buffer;
 #[CoversClass(IdentityAssertionGrant::class)]
 #[Group('unit-tests')]
 #[Group('extension-tests')]
-final class IdentityAssertionGrantTest extends TestCase
+final class IdentityAssertionGrantTest extends AbstractMcpTestCase
 {
     private const string IDP_ENDPOINT = 'https://idp.example.com/token';
     private const string RESOURCE = 'https://mcp.example.com/mcp';
@@ -59,7 +59,7 @@ final class IdentityAssertionGrantTest extends TestCase
 
     public function testGrantExchangesTheAssertionAndRedeemsTheIdJag(): void
     {
-        $http = new RecordingHttpClient()
+        $http = (new RecordingHttpClient())
             ->willAnswerJson(self::exchangeResponse())
             ->willAnswerJson(self::tokenResponse())
         ;
@@ -99,7 +99,7 @@ final class IdentityAssertionGrantTest extends TestCase
 
     public function testGrantAsksForTheSelectedScopes(): void
     {
-        $http = new RecordingHttpClient()
+        $http = (new RecordingHttpClient())
             ->willAnswerJson(self::exchangeResponse())
             ->willAnswerJson(self::tokenResponse())
         ;
@@ -142,7 +142,7 @@ final class IdentityAssertionGrantTest extends TestCase
 
     public function testAProfileListNamingIdJagProceedsWithoutLogging(): void
     {
-        $http = new RecordingHttpClient()
+        $http = (new RecordingHttpClient())
             ->willAnswerJson(self::exchangeResponse())
             ->willAnswerJson(self::tokenResponse())
         ;
@@ -190,7 +190,7 @@ final class IdentityAssertionGrantTest extends TestCase
 
     public function testACimdUrlServesAsTheClientId(): void
     {
-        $http = new RecordingHttpClient()
+        $http = (new RecordingHttpClient())
             ->willAnswerJson(self::exchangeResponse())
             ->willAnswerJson(self::tokenResponse())
         ;
@@ -215,7 +215,7 @@ final class IdentityAssertionGrantTest extends TestCase
 
     public function testItRenewsByAFreshGrant(): void
     {
-        self::assertTrue(new IdentityAssertionGrant(self::IDP_ENDPOINT, self::provider())->renewsByFreshGrant());
+        self::assertTrue((new IdentityAssertionGrant(self::IDP_ENDPOINT, self::provider()))->renewsByFreshGrant());
     }
 
     public function testAnEmptyIdpTokenEndpointIsRefused(): void

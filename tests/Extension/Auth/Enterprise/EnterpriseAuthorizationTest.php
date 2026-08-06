@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Extension\Auth\Enterprise;
 
 use Nexus\Mcp\Extension\Auth\Enterprise\EnterpriseAuthorization;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -24,7 +24,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(EnterpriseAuthorization::class)]
 #[Group('unit-tests')]
 #[Group('extension-tests')]
-final class EnterpriseAuthorizationTest extends TestCase
+final class EnterpriseAuthorizationTest extends AbstractMcpTestCase
 {
     public function testPinsTheProtocolVocabulary(): void
     {
@@ -35,6 +35,6 @@ final class EnterpriseAuthorizationTest extends TestCase
             'ID_JAG_TOKEN_TYPE' => 'urn:ietf:params:oauth:token-type:id-jag',
             'GRANT_PROFILE' => 'urn:ietf:params:oauth:grant-profile:id-jag',
             'JWT_TYP' => 'oauth-id-jag+jwt',
-        ], new \ReflectionClass(EnterpriseAuthorization::class)->getConstants());
+        ], (new \ReflectionClass(EnterpriseAuthorization::class))->getConstants());
     }
 }

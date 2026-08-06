@@ -15,9 +15,9 @@ namespace Nexus\Mcp\Tests\Extension\Auth\Enterprise;
 
 use Nexus\Mcp\Extension\Auth\Enterprise\EnterpriseAuthorizationServerExtension;
 use Nexus\Mcp\Server\ServerBuilder;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -25,7 +25,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(EnterpriseAuthorizationServerExtension::class)]
 #[Group('unit-tests')]
 #[Group('extension-tests')]
-final class EnterpriseAuthorizationServerExtensionTest extends TestCase
+final class EnterpriseAuthorizationServerExtensionTest extends AbstractMcpTestCase
 {
     public function testDeclaresTheOfficialIdentifierWithEmptySettings(): void
     {
@@ -43,7 +43,7 @@ final class EnterpriseAuthorizationServerExtensionTest extends TestCase
     {
         $this->expectNotToPerformAssertions();
 
-        new ServerBuilder()
+        (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->enableExtension(new EnterpriseAuthorizationServerExtension())
             ->build()

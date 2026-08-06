@@ -19,10 +19,10 @@ use Nexus\Mcp\Core\Handler\AbstractContext;
 use Nexus\Mcp\Core\Schema\Notification\ProgressNotification;
 use Nexus\Mcp\Core\Schema\ProgressToken;
 use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -31,7 +31,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(AbstractContext::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class ClientContextTest extends TestCase
+final class ClientContextTest extends AbstractMcpTestCase
 {
     public function testExposesTheConstructorFieldsInheritedFromAbstractContext(): void
     {

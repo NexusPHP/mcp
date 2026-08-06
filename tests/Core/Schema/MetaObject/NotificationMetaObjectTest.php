@@ -17,10 +17,10 @@ use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\MetaObject\NotificationMetaObject;
 use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -29,7 +29,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(MetaObject::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class NotificationMetaObjectTest extends TestCase
+final class NotificationMetaObjectTest extends AbstractMcpTestCase
 {
     public function testDefaultsToNoSubscriptionAndNoExtras(): void
     {

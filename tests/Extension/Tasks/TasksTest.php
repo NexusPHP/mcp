@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Extension\Tasks;
 
 use Nexus\Mcp\Extension\Tasks\Tasks;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -24,13 +24,13 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(Tasks::class)]
 #[Group('unit-tests')]
 #[Group('extension-tests')]
-final class TasksTest extends TestCase
+final class TasksTest extends AbstractMcpTestCase
 {
     public function testPinsTheProtocolVocabulary(): void
     {
         self::assertSame(
             ['IDENTIFIER' => 'io.modelcontextprotocol/tasks'],
-            new \ReflectionClass(Tasks::class)->getConstants(),
+            (new \ReflectionClass(Tasks::class))->getConstants(),
         );
     }
 }

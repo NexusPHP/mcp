@@ -21,10 +21,10 @@ use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 use Nexus\Mcp\Core\Transport\InMemoryTransport;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -32,7 +32,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(InMemoryTransport::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class InMemoryTransportTest extends TestCase
+final class InMemoryTransportTest extends AbstractMcpTestCase
 {
     public function testPairProducesTwoDistinctTransports(): void
     {

@@ -17,10 +17,10 @@ use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Enum\Role;
 use Nexus\Mcp\Core\Validation\EnumValueValidator;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -28,7 +28,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(EnumValueValidator::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class EnumValueValidatorTest extends TestCase
+final class EnumValueValidatorTest extends AbstractMcpTestCase
 {
     public function testParseReturnsCaseForValidStringBackedValue(): void
     {

@@ -15,9 +15,9 @@ namespace Nexus\Mcp\Tests\Extension\Auth\ClientCredentials;
 
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Extension\Auth\ClientCredentials\PrivateKeyJwtCredential;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -25,7 +25,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(PrivateKeyJwtCredential::class)]
 #[Group('unit-tests')]
 #[Group('extension-tests')]
-final class PrivateKeyJwtCredentialTest extends TestCase
+final class PrivateKeyJwtCredentialTest extends AbstractMcpTestCase
 {
     public function testItCarriesTheSigningIdentity(): void
     {
@@ -39,7 +39,7 @@ final class PrivateKeyJwtCredentialTest extends TestCase
 
     public function testTheKeyIdIsOptional(): void
     {
-        self::assertNull(new PrivateKeyJwtCredential('the-client', '-----BEGIN PRIVATE KEY-----', 'ES256')->keyId);
+        self::assertNull((new PrivateKeyJwtCredential('the-client', '-----BEGIN PRIVATE KEY-----', 'ES256'))->keyId);
     }
 
     public function testAnEmptyClientIdIsRefused(): void

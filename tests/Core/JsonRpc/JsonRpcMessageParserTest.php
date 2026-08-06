@@ -32,12 +32,12 @@ use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
 use Nexus\Mcp\Core\Schema\ResultResponse\CallToolResultResponse;
 use Nexus\Mcp\Core\Schema\ResultResponse\ListToolsResultResponse;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use Nexus\Mcp\Tests\Fixtures\Core\TestNotification;
 use Nexus\Mcp\Tests\Fixtures\Core\TestRequest;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -45,7 +45,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(JsonRpcMessageParser::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class JsonRpcMessageParserTest extends TestCase
+final class JsonRpcMessageParserTest extends AbstractMcpTestCase
 {
     public function testRequestWithNullParamsSerializesWithoutParamsKey(): void
     {

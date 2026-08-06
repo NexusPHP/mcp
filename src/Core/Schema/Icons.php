@@ -20,10 +20,4 @@ namespace Nexus\Mcp\Core\Schema;
  */
 interface Icons
 {
-    /**
-     * @var null|list<Icon>
-     */
-    public ?array $icons {
-        get;
-    }
 }

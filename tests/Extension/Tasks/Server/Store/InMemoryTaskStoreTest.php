@@ -23,9 +23,9 @@ use Nexus\Mcp\Extension\Tasks\Schema\Enum\TaskStatus;
 use Nexus\Mcp\Extension\Tasks\Server\Exception\InputRequestKeyReusedException;
 use Nexus\Mcp\Extension\Tasks\Server\Store\InMemoryTaskStore;
 use Nexus\Mcp\Extension\Tasks\Server\Store\TaskRecord;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -33,7 +33,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(InMemoryTaskStore::class)]
 #[Group('unit-tests')]
 #[Group('extension-tests')]
-final class InMemoryTaskStoreTest extends TestCase
+final class InMemoryTaskStoreTest extends AbstractMcpTestCase
 {
     private \DateTimeImmutable $now;
 
@@ -52,8 +52,8 @@ final class InMemoryTaskStoreTest extends TestCase
         $this->now = $this->now->modify('+2 seconds');
         $store->createTask('slow_compute', null, 1_000, 1_000);
 
-        $records = new \ReflectionProperty(InMemoryTaskStore::class, 'records')->getValue($store);
-        $terminalAt = new \ReflectionProperty(InMemoryTaskStore::class, 'terminalAt')->getValue($store);
+        $records = (new \ReflectionProperty(InMemoryTaskStore::class, 'records'))->getValue($store);
+        $terminalAt = (new \ReflectionProperty(InMemoryTaskStore::class, 'terminalAt'))->getValue($store);
         self::assertIsArray($records);
         self::assertIsArray($terminalAt);
         self::assertArrayNotHasKey($expired, $records);

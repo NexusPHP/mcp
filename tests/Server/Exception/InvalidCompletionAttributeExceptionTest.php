@@ -14,10 +14,10 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Server\Exception;
 
 use Nexus\Mcp\Server\Exception\InvalidCompletionAttributeException;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\CompletionHandlers;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -25,7 +25,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(InvalidCompletionAttributeException::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class InvalidCompletionAttributeExceptionTest extends TestCase
+final class InvalidCompletionAttributeExceptionTest extends AbstractMcpTestCase
 {
     public function testNamesTheMethodAndTheReason(): void
     {

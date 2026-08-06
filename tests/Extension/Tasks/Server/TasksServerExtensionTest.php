@@ -38,12 +38,12 @@ use Nexus\Mcp\Extension\Tasks\Server\ToolTaskPolicy;
 use Nexus\Mcp\Extension\Tasks\Tasks;
 use Nexus\Mcp\Server\ServerBuilder;
 use Nexus\Mcp\Server\ServerContext;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureRequestHandler;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 use function Amp\delay;
 
@@ -53,7 +53,7 @@ use function Amp\delay;
 #[CoversClass(TasksServerExtension::class)]
 #[Group('unit-tests')]
 #[Group('extension-tests')]
-final class TasksServerExtensionTest extends TestCase
+final class TasksServerExtensionTest extends AbstractMcpTestCase
 {
     public function testDeclaresTheOfficialIdentifierWithEmptySettings(): void
     {
@@ -152,7 +152,7 @@ final class TasksServerExtensionTest extends TestCase
 
     public function testRegistersOnAServerBuilderWithATaskCapableTool(): void
     {
-        $builder = new ServerBuilder()
+        $builder = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->addTool(
                 new Tool(name: 'slow_compute', inputSchema: ['type' => 'object']),

@@ -17,10 +17,10 @@ use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\MetaObject\NotificationMetaObject;
 use Nexus\Mcp\Core\Schema\NotificationParams;
 use Nexus\Mcp\Core\Schema\NotificationParams\ResourceUpdatedNotificationParams;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -29,7 +29,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(NotificationParams::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class ResourceUpdatedNotificationParamsTest extends TestCase
+final class ResourceUpdatedNotificationParamsTest extends AbstractMcpTestCase
 {
     public function testConstructionExposesUri(): void
     {

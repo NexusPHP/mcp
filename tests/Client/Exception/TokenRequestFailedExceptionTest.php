@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Client\Exception;
 
 use Nexus\Mcp\Client\Exception\TokenRequestFailedException;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -24,13 +24,13 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(TokenRequestFailedException::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class TokenRequestFailedExceptionTest extends TestCase
+final class TokenRequestFailedExceptionTest extends AbstractMcpTestCase
 {
     public function testMessageEndsAtTheErrorCodeWhenThereIsNoDescription(): void
     {
         self::assertSame(
             'The token request failed with "invalid_grant".',
-            new TokenRequestFailedException('invalid_grant')->getMessage(),
+            (new TokenRequestFailedException('invalid_grant'))->getMessage(),
         );
     }
 
@@ -38,12 +38,12 @@ final class TokenRequestFailedExceptionTest extends TestCase
     {
         self::assertSame(
             'The token request failed with "invalid_grant": The code has expired.',
-            new TokenRequestFailedException('invalid_grant', 'The code has expired.')->getMessage(),
+            (new TokenRequestFailedException('invalid_grant', 'The code has expired.'))->getMessage(),
         );
     }
 
     public function testItExposesTheErrorCode(): void
     {
-        self::assertSame('invalid_grant', new TokenRequestFailedException('invalid_grant')->error);
+        self::assertSame('invalid_grant', (new TokenRequestFailedException('invalid_grant'))->error);
     }
 }

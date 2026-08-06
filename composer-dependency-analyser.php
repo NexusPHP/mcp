@@ -14,7 +14,7 @@ declare(strict_types=1);
 use ShipMonk\ComposerDependencyAnalyser\Config\Configuration;
 use ShipMonk\ComposerDependencyAnalyser\Config\ErrorType;
 
-return new Configuration()
+return (new Configuration())
     ->disableComposerAutoloadPathScan()
     ->addPathToScan(__DIR__.'/src', isDev: false)
     ->addPathToScan(__DIR__.'/conformance', isDev: true)

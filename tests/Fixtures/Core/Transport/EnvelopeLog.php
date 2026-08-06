@@ -23,7 +23,7 @@ final class EnvelopeLog
     /**
      * @var list<array<string, mixed>>
      */
-    public private(set) array $envelopes = [];
+    public array $envelopes = [];
 
     /**
      * @param array<string, mixed> $envelope

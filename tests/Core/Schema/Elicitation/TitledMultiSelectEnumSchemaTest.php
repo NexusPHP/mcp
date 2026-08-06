@@ -16,10 +16,10 @@ namespace Nexus\Mcp\Tests\Core\Schema\Elicitation;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Elicitation\EnumOption;
 use Nexus\Mcp\Core\Schema\Elicitation\TitledMultiSelectEnumSchema;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -27,7 +27,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(TitledMultiSelectEnumSchema::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class TitledMultiSelectEnumSchemaTest extends TestCase
+final class TitledMultiSelectEnumSchemaTest extends AbstractMcpTestCase
 {
     public function testConstructionMinimal(): void
     {

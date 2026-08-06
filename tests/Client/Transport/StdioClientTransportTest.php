@@ -22,12 +22,12 @@ use Nexus\Mcp\Core\Schema\Notification\ToolListChangedNotification;
 use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 use Psr\Log\AbstractLogger;
 use Psr\Log\LogLevel;
 use Revolt\EventLoop;
@@ -38,7 +38,7 @@ use Revolt\EventLoop;
 #[CoversClass(StdioClientTransport::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class StdioClientTransportTest extends TestCase
+final class StdioClientTransportTest extends AbstractMcpTestCase
 {
     private const string ECHO_SERVER = __DIR__.'/../../Fixtures/Client/Transport/echo-server.php';
     private const string EXITING_SERVER = __DIR__.'/../../Fixtures/Client/Transport/exiting-server.php';

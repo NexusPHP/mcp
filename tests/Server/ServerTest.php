@@ -22,13 +22,13 @@ use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Core\Transport\InMemoryTransport;
 use Nexus\Mcp\Server\Server;
 use Nexus\Mcp\Server\ServerBuilder;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureRequestHandler;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 use Psr\Log\LogLevel;
 use Revolt\EventLoop;
 
@@ -41,7 +41,7 @@ use function Amp\delay;
 #[CoversClass(Server::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class ServerTest extends TestCase
+final class ServerTest extends AbstractMcpTestCase
 {
     public function testRunStartsTheTransport(): void
     {
@@ -108,7 +108,7 @@ final class ServerTest extends TestCase
     {
         $transport = new RecordingTransport();
         $logger = new ArrayLogger();
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->setLogger($logger)
             ->build()
@@ -134,7 +134,7 @@ final class ServerTest extends TestCase
     {
         $transport = new RecordingTransport();
         $logger = new ArrayLogger();
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->setLogger($logger)
             ->build()
@@ -267,7 +267,7 @@ final class ServerTest extends TestCase
         // A peer that abandons a stream never says so in a message, so the transport reports it and the
         // dispatcher must treat it exactly like `notifications/cancelled`.
         $transport = new RecordingTransport();
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->replaceRequestHandler('server/discover', new ClosureRequestHandler(
                 static function ($request, AbstractContext $context): Result {
@@ -313,6 +313,6 @@ final class ServerTest extends TestCase
 
     private static function buildServer(): Server
     {
-        return new ServerBuilder()->setServerInfo('demo', '1.0.0')->build();
+        return (new ServerBuilder())->setServerInfo('demo', '1.0.0')->build();
     }
 }

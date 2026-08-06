@@ -15,9 +15,9 @@ namespace Nexus\Mcp\Tests\Client\Dispatch;
 
 use Nexus\Mcp\Client\Dispatch\ProgressListenerRegistry;
 use Nexus\Mcp\Core\Schema\ProgressToken;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -25,7 +25,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ProgressListenerRegistry::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class ProgressListenerRegistryTest extends TestCase
+final class ProgressListenerRegistryTest extends AbstractMcpTestCase
 {
     public function testGetReturnsNullForUnregisteredToken(): void
     {

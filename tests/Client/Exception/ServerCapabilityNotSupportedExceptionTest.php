@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Client\Exception;
 
 use Nexus\Mcp\Client\Exception\ServerCapabilityNotSupportedException;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -24,7 +24,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ServerCapabilityNotSupportedException::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class ServerCapabilityNotSupportedExceptionTest extends TestCase
+final class ServerCapabilityNotSupportedExceptionTest extends AbstractMcpTestCase
 {
     public function testMessageNamesTheRequestMethod(): void
     {

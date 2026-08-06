@@ -17,9 +17,9 @@ use Nexus\Mcp\Client\Auth\DiscoveredResource;
 use Nexus\Mcp\Core\Auth\AuthorizationServerMetadata;
 use Nexus\Mcp\Core\Auth\ProtectedResourceMetadata;
 use Nexus\Mcp\Core\Auth\ResourceIdentifier;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -27,7 +27,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(DiscoveredResource::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class DiscoveredResourceTest extends TestCase
+final class DiscoveredResourceTest extends AbstractMcpTestCase
 {
     public function testItPairsTheResourceDocumentWithItsAuthorizationServer(): void
     {

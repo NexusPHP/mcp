@@ -22,7 +22,7 @@ require __DIR__.'/../vendor/autoload.php';
 require __DIR__.'/PsrLogger.php';
 
 set_exception_handler(static function (Throwable $e): void {
-    new PsrLogger()->critical('Uncaught {exception}', ['exception' => $e]);
+    (new PsrLogger())->critical('Uncaught {exception}', ['exception' => $e]);
 
     exit(1);
 });

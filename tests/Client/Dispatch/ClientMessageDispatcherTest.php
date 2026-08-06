@@ -45,6 +45,7 @@ use Nexus\Mcp\Core\Schema\ResultResponse\CallToolResultResponse;
 use Nexus\Mcp\Core\Schema\SubscriptionFilter;
 use Nexus\Mcp\Core\Transport\ReceiveContext;
 use Nexus\Mcp\Server\Exception\ResourceNotFoundException;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureNotificationHandler;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureRequestHandler;
@@ -53,7 +54,6 @@ use Nexus\Mcp\Tests\Fixtures\Core\TestRequest;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 use Psr\Log\LogLevel;
 
 use function Amp\delay;
@@ -64,7 +64,7 @@ use function Amp\delay;
 #[CoversClass(ClientMessageDispatcher::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class ClientMessageDispatcherTest extends TestCase
+final class ClientMessageDispatcherTest extends AbstractMcpTestCase
 {
     public function testSuccessResponseResolvesTheRegisteredFuture(): void
     {

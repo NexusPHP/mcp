@@ -15,9 +15,9 @@ namespace Nexus\Mcp\Tests\Client\Dispatch;
 
 use Amp\DeferredFuture;
 use Nexus\Mcp\Client\Dispatch\RequestDeadline;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 use function Amp\delay;
 
@@ -27,19 +27,19 @@ use function Amp\delay;
 #[CoversClass(RequestDeadline::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class RequestDeadlineTest extends TestCase
+final class RequestDeadlineTest extends AbstractMcpTestCase
 {
     public function testFiresOnceTheIdleTimeoutElapses(): void
     {
         $deadline = new RequestDeadline(0.05);
 
         self::assertFalse($deadline->getCancellation()->isRequested());
-        self::assertSame(0.0, $deadline->elapsed);
+        self::assertSame(0.0, $deadline->readElapsed());
 
         delay(0.08);
 
         self::assertTrue($deadline->getCancellation()->isRequested());
-        self::assertSame(0.05, $deadline->elapsed);
+        self::assertSame(0.05, $deadline->readElapsed());
     }
 
     public function testExtendRestartsTheIdleTimeout(): void
@@ -68,13 +68,13 @@ final class RequestDeadlineTest extends TestCase
         }
 
         self::assertTrue($deadline->getCancellation()->isRequested());
-        self::assertSame(0.12, $deadline->elapsed, 'The ceiling is what elapsed, not the idle window.');
+        self::assertSame(0.12, $deadline->readElapsed(), 'The ceiling is what elapsed, not the idle window.');
 
         // The last extend armed an idle timer that outlives the ceiling. Firing second, it must not
         // restate what elapsed.
         delay(0.08);
 
-        self::assertSame(0.12, $deadline->elapsed);
+        self::assertSame(0.12, $deadline->readElapsed());
     }
 
     public function testACeilingNearerThanTheIdleTimeoutCannotPreemptIt(): void
@@ -90,7 +90,7 @@ final class RequestDeadlineTest extends TestCase
         delay(0.09);
 
         self::assertTrue($deadline->getCancellation()->isRequested());
-        self::assertSame(0.15, $deadline->elapsed);
+        self::assertSame(0.15, $deadline->readElapsed());
     }
 
     public function testAnArmedDeadlineIsNotWorkTheEventLoopWaitsOn(): void
@@ -98,7 +98,7 @@ final class RequestDeadlineTest extends TestCase
         $deadline = new RequestDeadline(0.05, 0.05);
 
         try {
-            new DeferredFuture()->getFuture()->await();
+            (new DeferredFuture())->getFuture()->await();
             self::fail('Expected the loop to run dry rather than treat the deadline as work.');
         } catch (\Error $e) {
             self::assertStringStartsWith('Event loop terminated without resuming the current suspension', $e->getMessage());
@@ -106,7 +106,7 @@ final class RequestDeadlineTest extends TestCase
 
         // Neither timer was ever waited on, so the loop ran dry well before their window could elapse.
         self::assertFalse($deadline->getCancellation()->isRequested());
-        self::assertSame(0.0, $deadline->elapsed);
+        self::assertSame(0.0, $deadline->readElapsed());
     }
 
     public function testReleaseDisarmsBothTimers(): void
@@ -117,7 +117,7 @@ final class RequestDeadlineTest extends TestCase
         delay(0.08);
 
         self::assertFalse($deadline->getCancellation()->isRequested());
-        self::assertSame(0.0, $deadline->elapsed);
+        self::assertSame(0.0, $deadline->readElapsed());
     }
 
     public function testAnUnboundedDeadlineNeverReachesACeiling(): void

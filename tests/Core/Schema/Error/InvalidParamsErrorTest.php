@@ -16,9 +16,9 @@ namespace Nexus\Mcp\Tests\Core\Schema\Error;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Error;
 use Nexus\Mcp\Core\Schema\Error\InvalidParamsError;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -27,7 +27,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(Error::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class InvalidParamsErrorTest extends TestCase
+final class InvalidParamsErrorTest extends AbstractMcpTestCase
 {
     public function testInvalidParamsErrorHasCorrectDefaultMessage(): void
     {

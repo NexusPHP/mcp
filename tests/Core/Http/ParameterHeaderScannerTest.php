@@ -16,10 +16,10 @@ namespace Nexus\Mcp\Tests\Core\Http;
 use Nexus\Mcp\Core\Http\ParameterHeaderBinding;
 use Nexus\Mcp\Core\Http\ParameterHeaderScanner;
 use Nexus\Mcp\Core\Http\ParameterHeaderScanResult;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -27,7 +27,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ParameterHeaderScanner::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class ParameterHeaderScannerTest extends TestCase
+final class ParameterHeaderScannerTest extends AbstractMcpTestCase
 {
     /**
      * @param array<string, mixed>                      $schema

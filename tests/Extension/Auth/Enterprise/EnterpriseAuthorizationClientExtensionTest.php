@@ -17,10 +17,10 @@ use Nexus\Mcp\Client\ClientBuilder;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\Result\ListToolsResult;
 use Nexus\Mcp\Extension\Auth\Enterprise\EnterpriseAuthorizationClientExtension;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 use function Amp\async;
 
@@ -30,7 +30,7 @@ use function Amp\async;
 #[CoversClass(EnterpriseAuthorizationClientExtension::class)]
 #[Group('unit-tests')]
 #[Group('extension-tests')]
-final class EnterpriseAuthorizationClientExtensionTest extends TestCase
+final class EnterpriseAuthorizationClientExtensionTest extends AbstractMcpTestCase
 {
     public function testDeclaresTheOfficialIdentifierWithEmptySettings(): void
     {
@@ -47,7 +47,7 @@ final class EnterpriseAuthorizationClientExtensionTest extends TestCase
 
     public function testStampsTheDeclarationOntoEveryRequest(): void
     {
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->enableExtension(new EnterpriseAuthorizationClientExtension())
             ->build()

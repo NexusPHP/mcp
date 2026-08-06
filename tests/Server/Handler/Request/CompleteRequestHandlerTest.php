@@ -22,12 +22,12 @@ use Nexus\Mcp\Core\Schema\Resource\ResourceTemplateReference;
 use Nexus\Mcp\Core\Schema\Result\CompleteResult;
 use Nexus\Mcp\Server\Handler\Request\CompleteRequestHandler;
 use Nexus\Mcp\Server\ServerContext;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use Nexus\Mcp\Tests\Fixtures\Server\Completion\RecordingCompletionStore;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -35,7 +35,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(CompleteRequestHandler::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class CompleteRequestHandlerTest extends TestCase
+final class CompleteRequestHandlerTest extends AbstractMcpTestCase
 {
     public function testDelegatesPromptRefToStoreWithDeconstructedParams(): void
     {

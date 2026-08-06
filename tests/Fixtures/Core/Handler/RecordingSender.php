@@ -30,12 +30,12 @@ final class RecordingSender implements SenderInterface
     /**
      * @var list<JsonRpcNotification<non-empty-string>>
      */
-    public private(set) array $notifications = [];
+    public array $notifications = [];
 
     /**
      * @var list<JsonRpcRequest<non-empty-string>>
      */
-    public private(set) array $requests = [];
+    public array $requests = [];
 
     #[\Override]
     public function sendNotification(JsonRpcNotification $notification): void

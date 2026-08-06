@@ -49,6 +49,7 @@ use Nexus\Mcp\Server\Dispatch\ServerMessageDispatcher;
 use Nexus\Mcp\Server\Exception\ResourceNotFoundException;
 use Nexus\Mcp\Server\Handler\Request\DiscoverRequestHandler;
 use Nexus\Mcp\Server\ServerContext;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureNotificationHandler;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureRequestHandler;
@@ -58,7 +59,6 @@ use Nexus\Mcp\Tests\Fixtures\Core\TestRequest;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 use Psr\Log\LogLevel;
 
 use function Amp\delay;
@@ -69,7 +69,7 @@ use function Amp\delay;
 #[CoversClass(ServerMessageDispatcher::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class ServerMessageDispatcherTest extends TestCase
+final class ServerMessageDispatcherTest extends AbstractMcpTestCase
 {
     /**
      * Seconds a cancellation test's handler waits. `RecordingTransport` holds no I/O of its own, so the

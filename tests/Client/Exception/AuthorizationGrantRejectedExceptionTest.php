@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Client\Exception;
 
 use Nexus\Mcp\Client\Exception\AuthorizationGrantRejectedException;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -24,18 +24,18 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(AuthorizationGrantRejectedException::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class AuthorizationGrantRejectedExceptionTest extends TestCase
+final class AuthorizationGrantRejectedExceptionTest extends AbstractMcpTestCase
 {
     public function testItReadsAsATokenRequestFailure(): void
     {
         self::assertSame(
             'The token request failed with "invalid_grant": The refresh token was revoked.',
-            new AuthorizationGrantRejectedException('invalid_grant', 'The refresh token was revoked.')->getMessage(),
+            (new AuthorizationGrantRejectedException('invalid_grant', 'The refresh token was revoked.'))->getMessage(),
         );
     }
 
     public function testItExposesTheErrorCode(): void
     {
-        self::assertSame('invalid_scope', new AuthorizationGrantRejectedException('invalid_scope')->error);
+        self::assertSame('invalid_scope', (new AuthorizationGrantRejectedException('invalid_scope'))->error);
     }
 }

@@ -15,12 +15,12 @@ namespace Nexus\Mcp\Tests\Server\Transport\Http\Middleware;
 
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Server\Transport\Http\Middleware\DnsRebindingProtectionMiddleware;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Server\Http\RecordingRequestHandler;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -30,7 +30,7 @@ use Psr\Http\Message\ServerRequestInterface;
 #[CoversClass(DnsRebindingProtectionMiddleware::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class DnsRebindingProtectionMiddlewareTest extends TestCase
+final class DnsRebindingProtectionMiddlewareTest extends AbstractMcpTestCase
 {
     public function testPassesThroughWhenNoOriginHeader(): void
     {
@@ -197,13 +197,13 @@ final class DnsRebindingProtectionMiddlewareTest extends TestCase
 
     private static function request(?string $origin = null): ServerRequestInterface
     {
-        $request = new Psr17Factory()->createServerRequest('POST', 'https://mcp.test/');
+        $request = (new Psr17Factory())->createServerRequest('POST', 'https://mcp.test/');
 
         return null === $origin ? $request : $request->withHeader('Origin', $origin);
     }
 
     private static function recordingHandler(): RecordingRequestHandler
     {
-        return new RecordingRequestHandler(new Psr17Factory()->createResponse(200));
+        return new RecordingRequestHandler((new Psr17Factory())->createResponse(200));
     }
 }

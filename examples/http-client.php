@@ -42,7 +42,7 @@ $endpoint = '' !== $argument ? $argument : 'http://127.0.0.1:8931/mcp';
 
 requireReachable($endpoint);
 
-$client = new ClientBuilder()
+$client = (new ClientBuilder())
     ->setLogger(new PsrLogger())
     ->setClientInfo(name: 'nexus-http-example-client', version: '0.1.0')
     ->build()

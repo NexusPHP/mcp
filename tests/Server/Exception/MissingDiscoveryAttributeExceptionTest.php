@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Server\Exception;
 
 use Nexus\Mcp\Server\Exception\MissingDiscoveryAttributeException;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -24,13 +24,13 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(MissingDiscoveryAttributeException::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class MissingDiscoveryAttributeExceptionTest extends TestCase
+final class MissingDiscoveryAttributeExceptionTest extends AbstractMcpTestCase
 {
     public function testMessageNamesTheOffendingSource(): void
     {
         self::assertSame(
             \sprintf('The registered source "%s" declares no #[AsServer] and no #[AsTool], #[AsPrompt], #[AsResource], or #[AsResourceTemplate] method.', self::class),
-            new MissingDiscoveryAttributeException(self::class)->getMessage(),
+            (new MissingDiscoveryAttributeException(self::class))->getMessage(),
         );
     }
 }

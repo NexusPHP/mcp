@@ -14,10 +14,10 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Extension\Auth\Enterprise;
 
 use Nexus\Mcp\Extension\Auth\Enterprise\IdentityAssertionType;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -25,7 +25,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(IdentityAssertionType::class)]
 #[Group('unit-tests')]
 #[Group('extension-tests')]
-final class IdentityAssertionTypeTest extends TestCase
+final class IdentityAssertionTypeTest extends AbstractMcpTestCase
 {
     #[DataProvider('provideIdentityAssertionTypeCaseValueCases')]
     public function testIdentityAssertionTypeCaseValue(IdentityAssertionType $case, string $expectedValue): void

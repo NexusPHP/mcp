@@ -25,8 +25,8 @@ use Psr\Http\Server\RequestHandlerInterface;
  */
 final class RecordingRequestHandler implements RequestHandlerInterface
 {
-    public private(set) bool $called = false;
-    public private(set) ?ServerRequestInterface $received = null;
+    public bool $called = false;
+    public ?ServerRequestInterface $received = null;
 
     public function __construct(private readonly ResponseInterface $response)
     {

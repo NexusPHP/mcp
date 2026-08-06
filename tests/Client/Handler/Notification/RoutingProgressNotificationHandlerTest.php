@@ -19,10 +19,10 @@ use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 use Nexus\Mcp\Core\Schema\Notification\ProgressNotification;
 use Nexus\Mcp\Core\Schema\NotificationParams\ProgressNotificationParams;
 use Nexus\Mcp\Core\Schema\ProgressToken;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureNotificationHandler;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -30,7 +30,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(RoutingProgressNotificationHandler::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class RoutingProgressNotificationHandlerTest extends TestCase
+final class RoutingProgressNotificationHandlerTest extends AbstractMcpTestCase
 {
     public function testRoutesMatchingTokenToTheRegisteredListener(): void
     {

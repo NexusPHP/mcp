@@ -20,12 +20,12 @@ use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
 use Nexus\Mcp\Server\Exception\UnsupportedReturnValueException;
 use Nexus\Mcp\Server\Resource\ReflectedTemplatedResourceReader;
 use Nexus\Mcp\Server\ServerContext;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\ReflectedHandlers;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -33,7 +33,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ReflectedTemplatedResourceReader::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class ReflectedTemplatedResourceReaderTest extends TestCase
+final class ReflectedTemplatedResourceReaderTest extends AbstractMcpTestCase
 {
     public function testReturnsReadResourceResultUnchanged(): void
     {

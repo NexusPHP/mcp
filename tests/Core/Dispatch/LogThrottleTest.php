@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Dispatch;
 
 use Nexus\Mcp\Core\Dispatch\LogThrottle;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -24,11 +24,11 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(LogThrottle::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class LogThrottleTest extends TestCase
+final class LogThrottleTest extends AbstractMcpTestCase
 {
     public function testAdmitsTheFirstOccurrence(): void
     {
-        self::assertTrue(new LogThrottle()->admits());
+        self::assertTrue((new LogThrottle())->admits());
     }
 
     public function testSuppressesEveryOccurrenceUpToTheInterval(): void
@@ -66,7 +66,7 @@ final class LogThrottleTest extends TestCase
 
     public function testStartsAtZero(): void
     {
-        self::assertSame(0, new LogThrottle()->count());
+        self::assertSame(0, (new LogThrottle())->count());
     }
 
     public function testDefaultsToAdmittingOneInEveryHundred(): void

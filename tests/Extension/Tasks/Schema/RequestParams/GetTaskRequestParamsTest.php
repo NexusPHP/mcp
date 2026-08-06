@@ -16,11 +16,11 @@ namespace Nexus\Mcp\Tests\Extension\Tasks\Schema\RequestParams;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Extension\Tasks\Schema\RequestParams\GetTaskRequestParams;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -29,7 +29,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(RequestParams::class)]
 #[Group('unit-tests')]
 #[Group('extension-tests')]
-final class GetTaskRequestParamsTest extends TestCase
+final class GetTaskRequestParamsTest extends AbstractMcpTestCase
 {
     public function testConstruction(): void
     {

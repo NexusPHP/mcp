@@ -15,11 +15,11 @@ namespace Nexus\Mcp\Tests\Server\Transport\Http;
 
 use Nexus\Mcp\Client\Auth\WellKnownUri;
 use Nexus\Mcp\Server\Transport\Http\ProtectedResourceMetadataHandler;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 
 /**
@@ -28,7 +28,7 @@ use Psr\Http\Message\ResponseInterface;
 #[CoversClass(ProtectedResourceMetadataHandler::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class ProtectedResourceMetadataHandlerTest extends TestCase
+final class ProtectedResourceMetadataHandlerTest extends AbstractMcpTestCase
 {
     private const string RESOURCE = 'https://mcp.test/mcp';
     private const string METADATA_URL = 'https://mcp.test/.well-known/oauth-protected-resource/mcp';
@@ -36,7 +36,7 @@ final class ProtectedResourceMetadataHandlerTest extends TestCase
 
     public function testItServesTheRequiredFields(): void
     {
-        $response = self::handler()->handle(new Psr17Factory()->createServerRequest('GET', self::METADATA_URL));
+        $response = self::handler()->handle((new Psr17Factory())->createServerRequest('GET', self::METADATA_URL));
 
         self::assertSame(200, $response->getStatusCode());
         self::assertSame('application/json', $response->getHeaderLine('Content-Type'));
@@ -50,7 +50,7 @@ final class ProtectedResourceMetadataHandlerTest extends TestCase
     public function testItServesTheOptionalFields(): void
     {
         $response = self::handler(['files:read', 'files:write'], 'Example MCP Server')
-            ->handle(new Psr17Factory()->createServerRequest('GET', self::METADATA_URL))
+            ->handle((new Psr17Factory())->createServerRequest('GET', self::METADATA_URL))
         ;
 
         self::assertSame([
@@ -72,7 +72,7 @@ final class ProtectedResourceMetadataHandlerTest extends TestCase
         );
 
         $response = $handler->handle(
-            new Psr17Factory()->createServerRequest('GET', 'https://mcp.test/.well-known/oauth-protected-resource'),
+            (new Psr17Factory())->createServerRequest('GET', 'https://mcp.test/.well-known/oauth-protected-resource'),
         );
 
         self::assertSame('https://mcp.test', self::readDocument($response)['resource'] ?? null);
@@ -80,7 +80,7 @@ final class ProtectedResourceMetadataHandlerTest extends TestCase
 
     public function testItLeavesSlashesUnescaped(): void
     {
-        $response = self::handler()->handle(new Psr17Factory()->createServerRequest('GET', self::METADATA_URL));
+        $response = self::handler()->handle((new Psr17Factory())->createServerRequest('GET', self::METADATA_URL));
 
         self::assertStringContainsString('"resource":"https://mcp.test/mcp"', (string) $response->getBody());
     }
@@ -88,7 +88,7 @@ final class ProtectedResourceMetadataHandlerTest extends TestCase
     #[DataProvider('provideARequestThatIsNotAGetIsRefusedCases')]
     public function testARequestThatIsNotAGetIsRefused(string $method): void
     {
-        $response = self::handler()->handle(new Psr17Factory()->createServerRequest($method, self::METADATA_URL));
+        $response = self::handler()->handle((new Psr17Factory())->createServerRequest($method, self::METADATA_URL));
 
         self::assertSame(405, $response->getStatusCode());
         self::assertSame('GET', $response->getHeaderLine('Allow'));
@@ -110,7 +110,7 @@ final class ProtectedResourceMetadataHandlerTest extends TestCase
     public function testTheRootWellKnownPathIsServedForAPathBearingResource(): void
     {
         $response = self::handler()->handle(
-            new Psr17Factory()->createServerRequest('GET', 'https://mcp.test/.well-known/oauth-protected-resource'),
+            (new Psr17Factory())->createServerRequest('GET', 'https://mcp.test/.well-known/oauth-protected-resource'),
         );
 
         self::assertSame(200, $response->getStatusCode());
@@ -129,7 +129,7 @@ final class ProtectedResourceMetadataHandlerTest extends TestCase
     #[DataProvider('provideAPathTheDocumentDoesNotBelongAtIsNotServedCases')]
     public function testAPathTheDocumentDoesNotBelongAtIsNotServed(string $url): void
     {
-        $response = self::handler()->handle(new Psr17Factory()->createServerRequest('GET', $url));
+        $response = self::handler()->handle((new Psr17Factory())->createServerRequest('GET', $url));
 
         self::assertSame(404, $response->getStatusCode());
         self::assertSame('', (string) $response->getBody());

@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Extension\Tasks\Server\Exception;
 
 use Nexus\Mcp\Extension\Tasks\Server\Exception\InputRequestKeyReusedException;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -24,7 +24,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(InputRequestKeyReusedException::class)]
 #[Group('unit-tests')]
 #[Group('extension-tests')]
-final class InputRequestKeyReusedExceptionTest extends TestCase
+final class InputRequestKeyReusedExceptionTest extends AbstractMcpTestCase
 {
     public function testCarriesTheTaskAndKeyInItsMessage(): void
     {

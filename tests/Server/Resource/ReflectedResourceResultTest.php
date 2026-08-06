@@ -19,10 +19,10 @@ use Nexus\Mcp\Core\Schema\Resource\TextResourceContents;
 use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
 use Nexus\Mcp\Server\Exception\UnsupportedReturnValueException;
 use Nexus\Mcp\Server\Resource\ReflectedResourceResult;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\ReflectedHandlers;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -30,7 +30,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ReflectedResourceResult::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class ReflectedResourceResultTest extends TestCase
+final class ReflectedResourceResultTest extends AbstractMcpTestCase
 {
     public function testReturnsReadResourceResultUnchanged(): void
     {

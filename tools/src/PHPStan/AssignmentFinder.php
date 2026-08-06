@@ -52,7 +52,7 @@ final class AssignmentFinder
             }
         };
 
-        new NodeTraverser($visitor)->traverse($nodes);
+        (new NodeTraverser($visitor))->traverse($nodes);
 
         return $visitor->found;
     }

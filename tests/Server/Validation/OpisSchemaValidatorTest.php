@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Server\Validation;
 
 use Nexus\Mcp\Server\Validation\OpisSchemaValidator;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -24,7 +24,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(OpisSchemaValidator::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class OpisSchemaValidatorTest extends TestCase
+final class OpisSchemaValidatorTest extends AbstractMcpTestCase
 {
     private const array SCHEMA = [
         'type' => 'object',
@@ -34,12 +34,12 @@ final class OpisSchemaValidatorTest extends TestCase
 
     public function testConformingDataReturnsNoErrors(): void
     {
-        self::assertSame([], new OpisSchemaValidator()->validate(['n' => 42], self::SCHEMA));
+        self::assertSame([], (new OpisSchemaValidator())->validate(['n' => 42], self::SCHEMA));
     }
 
     public function testNonConformingDataReturnsErrorMessages(): void
     {
-        $errors = new OpisSchemaValidator()->validate(['n' => 'not-an-int'], self::SCHEMA);
+        $errors = (new OpisSchemaValidator())->validate(['n' => 'not-an-int'], self::SCHEMA);
 
         self::assertNotSame([], $errors);
 
@@ -50,7 +50,7 @@ final class OpisSchemaValidatorTest extends TestCase
 
     public function testMissingRequiredPropertyReturnsErrorMessages(): void
     {
-        self::assertNotSame([], new OpisSchemaValidator()->validate(['other' => 1], self::SCHEMA));
+        self::assertNotSame([], (new OpisSchemaValidator())->validate(['other' => 1], self::SCHEMA));
     }
 
     public function testReportsEveryViolationNotJustTheFirst(): void
@@ -61,7 +61,7 @@ final class OpisSchemaValidatorTest extends TestCase
             'required' => ['a', 'b'],
         ];
 
-        $errors = new OpisSchemaValidator()->validate(['a' => 1, 'b' => 'x'], $schema);
+        $errors = (new OpisSchemaValidator())->validate(['a' => 1, 'b' => 'x'], $schema);
 
         self::assertGreaterThan(1, \count($errors));
     }

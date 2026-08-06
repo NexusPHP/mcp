@@ -15,9 +15,9 @@ namespace Nexus\Mcp\Tests\Core\Transport;
 
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Transport\SendContext;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -25,7 +25,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(SendContext::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class SendContextTest extends TestCase
+final class SendContextTest extends AbstractMcpTestCase
 {
     public function testDefaultsRelatedRequestIdToNull(): void
     {

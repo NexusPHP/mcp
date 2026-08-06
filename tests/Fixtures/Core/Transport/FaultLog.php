@@ -23,12 +23,12 @@ final class FaultLog
     /**
      * @var list<string>
      */
-    public private(set) array $messages = [];
+    public array $messages = [];
 
     /**
      * @var list<\Throwable>
      */
-    public private(set) array $faults = [];
+    public array $faults = [];
 
     public function record(\Throwable $fault): void
     {

@@ -87,7 +87,7 @@ Assert::that($jwks)->isArray('The JWKS document must decode to an array, {type} 
 
 $keys = JWK::parseKeySet($jwks);
 
-$server = new ServerBuilder()
+$server = (new ServerBuilder())
     ->setLogger($logger)
     ->setServerInfo(
         name: 'nexus-keycloak-example',
@@ -184,7 +184,7 @@ if (defined('SIGINT')) {
     trapSignal([\SIGINT, \SIGTERM]);
 } else {
     // ext-pcntl absent, so there is no signal to trap. Ctrl-C ends the process.
-    new DeferredFuture()->getFuture()->await();
+    (new DeferredFuture())->getFuture()->await();
 }
 
 $httpServer->stop();

@@ -20,9 +20,6 @@ on:
       - composer.json
       - phpunit.dist.xml
 
-env:
-  DEFAULT_PHP_VERSION: '8.4'
-
 permissions:
   contents: read
 
@@ -32,9 +29,17 @@ concurrency:
 
 jobs:
   auto-review:
-    name: Automatic Code Review
+    name: Automatic Code Review on PHP ${{ matrix.php-version }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version:
+          - '8.3'
+          - '8.4'
+          - '8.5'
 
     steps:
       - name: Checkout code
@@ -45,7 +50,7 @@ jobs:
       - name: Set up PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
-          php-version: ${{ env.DEFAULT_PHP_VERSION }}
+          php-version: ${{ matrix.php-version }}
           coverage: none
           ini-values: zend.assertions=1, assert.exception=1, error_reporting=-1, display_errors=On, display_startup_errors=On
 
@@ -57,9 +62,9 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: composer-${{ env.DEFAULT_PHP_VERSION }}-${{ hashFiles('**/composer.lock') }}
+          key: composer-${{ matrix.php-version }}-${{ hashFiles('**/composer.lock') }}
           restore-keys: |
-            composer-${{ env.DEFAULT_PHP_VERSION }}-
+            composer-${{ matrix.php-version }}-
             composer-
 
       - name: Install dependencies

@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Extension\Auth\Exception;
 
 use Nexus\Mcp\Extension\Auth\Exception\IdentityAssertionExchangeFailedException;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -24,13 +24,13 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(IdentityAssertionExchangeFailedException::class)]
 #[Group('unit-tests')]
 #[Group('extension-tests')]
-final class IdentityAssertionExchangeFailedExceptionTest extends TestCase
+final class IdentityAssertionExchangeFailedExceptionTest extends AbstractMcpTestCase
 {
     public function testCarriesItsMessage(): void
     {
         self::assertSame(
             'The exchange was refused.',
-            new IdentityAssertionExchangeFailedException('The exchange was refused.')->getMessage(),
+            (new IdentityAssertionExchangeFailedException('The exchange was refused.'))->getMessage(),
         );
     }
 }

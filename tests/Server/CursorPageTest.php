@@ -15,9 +15,9 @@ namespace Nexus\Mcp\Tests\Server;
 
 use Nexus\Mcp\Core\Schema\Cursor;
 use Nexus\Mcp\Server\CursorPage;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -25,7 +25,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(CursorPage::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class CursorPageTest extends TestCase
+final class CursorPageTest extends AbstractMcpTestCase
 {
     public function testCarriesItsEntriesAndNextCursor(): void
     {

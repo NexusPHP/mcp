@@ -14,10 +14,10 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Http;
 
 use Nexus\Mcp\Core\Http\HeaderValueCodec;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -25,7 +25,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(HeaderValueCodec::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class HeaderValueCodecTest extends TestCase
+final class HeaderValueCodecTest extends AbstractMcpTestCase
 {
     #[DataProvider('provideEncodeCases')]
     public function testEncode(string $input, string $expected): void

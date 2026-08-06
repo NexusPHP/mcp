@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Client\Exception;
 
 use Nexus\Mcp\Client\Exception\ClientNotConnectedException;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -24,13 +24,13 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ClientNotConnectedException::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class ClientNotConnectedExceptionTest extends TestCase
+final class ClientNotConnectedExceptionTest extends AbstractMcpTestCase
 {
     public function testMessageStatesTheClientIsNotConnected(): void
     {
         self::assertSame(
             'Client is not connected. Call connect() first.',
-            new ClientNotConnectedException()->getMessage(),
+            (new ClientNotConnectedException())->getMessage(),
         );
     }
 }

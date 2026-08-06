@@ -29,7 +29,7 @@ use Nexus\Mcp\Server\Tool\ToolStoreInterface;
  */
 final class PagedToolStore implements ToolStoreInterface
 {
-    public private(set) int $listCalls = 0;
+    public int $listCalls = 0;
 
     /**
      * @var list<int>

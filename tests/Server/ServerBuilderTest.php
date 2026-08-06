@@ -84,6 +84,7 @@ use Nexus\Mcp\Server\Tool\ToolStore;
 use Nexus\Mcp\Server\Tool\ToolStoreInterface;
 use Nexus\Mcp\Server\Validation\OpisSchemaValidator;
 use Nexus\Mcp\Server\Validation\SchemaValidatorInterface;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureNotificationHandler;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureRequestHandler;
@@ -105,7 +106,6 @@ use Nexus\Mcp\Tests\Fixtures\Server\Tool\PagedToolStore;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 use Psr\Log\LogLevel;
 use Revolt\EventLoop;
 
@@ -117,14 +117,14 @@ use function Amp\delay;
 #[CoversClass(ServerBuilder::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class ServerBuilderTest extends TestCase
+final class ServerBuilderTest extends AbstractMcpTestCase
 {
     public function testBuildFailsWithoutServerInfo(): void
     {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('Server information must be set before build() via setServerInfo() or a class-level #[AsServer].');
 
-        new ServerBuilder()->build();
+        (new ServerBuilder())->build();
     }
 
     public function testSetServerInfoRejectsEmptyName(): void
@@ -133,7 +133,7 @@ final class ServerBuilderTest extends TestCase
         $this->expectExceptionMessageIs('Implementation name must be a non-empty string.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
-        new ServerBuilder()->setServerInfo('', '1.0.0');
+        (new ServerBuilder())->setServerInfo('', '1.0.0');
     }
 
     public function testSetServerInfoRejectsEmptyVersion(): void
@@ -142,7 +142,7 @@ final class ServerBuilderTest extends TestCase
         $this->expectExceptionMessageIs('"version" must be a non-empty string.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
-        new ServerBuilder()->setServerInfo('demo', '');
+        (new ServerBuilder())->setServerInfo('demo', '');
     }
 
     public function testSetInstructionsRejectsEmptyString(): void
@@ -150,12 +150,12 @@ final class ServerBuilderTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('Server instructions must be a non-empty string or null.');
 
-        new ServerBuilder()->setInstructions('');
+        (new ServerBuilder())->setInstructions('');
     }
 
     public function testDiscoverOnEmptyServerAdvertisesNoCapabilities(): void
     {
-        $result = $this->discoverResultFor(new ServerBuilder()->setServerInfo('demo', '1.0.0')->build());
+        $result = $this->discoverResultFor((new ServerBuilder())->setServerInfo('demo', '1.0.0')->build());
 
         self::assertNull($result->capabilities->tools);
         self::assertNull($result->capabilities->prompts);
@@ -166,7 +166,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testCapabilitiesIncludeToolsWhenToolRegistered(): void
     {
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->addTool(
                 new Tool(name: 'echo', inputSchema: ['type' => 'object']),
@@ -182,7 +182,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testCapabilitiesIncludePromptsWhenPromptRegistered(): void
     {
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->addPrompt(
                 new Prompt(name: 'hello'),
@@ -198,7 +198,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testCapabilitiesIncludeResourcesWhenResourceRegistered(): void
     {
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->addResource(
                 new Resource(name: 'cfg', uri: 'file:///etc/cfg'),
@@ -214,7 +214,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testCapabilitiesIncludeResourcesWhenResourceTemplateRegistered(): void
     {
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->addResourceTemplate(
                 new ResourceTemplate(name: 'files', uriTemplate: 'file:///{path}'),
@@ -230,7 +230,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testCapabilitiesIncludeCompletionsWhenCompletionStoreSet(): void
     {
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->setCompletionStore(new RecordingCompletionStore(new CompleteResult(completion: ['values' => []])))
             ->build()
@@ -243,7 +243,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testReplacingBothToolsHandlersEnablesToolsCapability(): void
     {
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->replaceRequestHandler('tools/list', new ClosureRequestHandler(
                 static fn(): EmptyResult => new EmptyResult(),
@@ -265,7 +265,7 @@ final class ServerBuilderTest extends TestCase
     #[DataProvider('provideReplacingOnlyOneToolHandlerDoesNotAdvertiseToolsCapabilityCases')]
     public function testReplacingOnlyOneToolHandlerDoesNotAdvertiseToolsCapability(string $onlyMethod): void
     {
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->replaceRequestHandler($onlyMethod, new ClosureRequestHandler(
                 static fn(): EmptyResult => new EmptyResult(),
@@ -290,7 +290,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testReplacingBothPromptsHandlersEnablesPromptsCapability(): void
     {
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->replaceRequestHandler('prompts/list', new ClosureRequestHandler(
                 static fn(): EmptyResult => new EmptyResult(),
@@ -312,7 +312,7 @@ final class ServerBuilderTest extends TestCase
     #[DataProvider('provideReplacingOnlyOnePromptHandlerDoesNotAdvertisePromptsCapabilityCases')]
     public function testReplacingOnlyOnePromptHandlerDoesNotAdvertisePromptsCapability(string $onlyMethod): void
     {
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->replaceRequestHandler($onlyMethod, new ClosureRequestHandler(
                 static fn(): EmptyResult => new EmptyResult(),
@@ -337,7 +337,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testReplacingBothResourceHandlersEnablesResourcesCapability(): void
     {
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->replaceRequestHandler('resources/list', new ClosureRequestHandler(
                 static fn(): EmptyResult => new EmptyResult(),
@@ -359,7 +359,7 @@ final class ServerBuilderTest extends TestCase
     #[DataProvider('provideReplacingOnlyOneResourceHandlerDoesNotAdvertiseResourcesCapabilityCases')]
     public function testReplacingOnlyOneResourceHandlerDoesNotAdvertiseResourcesCapability(string $onlyMethod): void
     {
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->replaceRequestHandler($onlyMethod, new ClosureRequestHandler(
                 static fn(): EmptyResult => new EmptyResult(),
@@ -386,7 +386,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testReplacingCompletionMethodEnablesCompletionsCapability(): void
     {
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->replaceRequestHandler('completion/complete', new ClosureRequestHandler(
                 static fn(): EmptyResult => new EmptyResult(),
@@ -401,7 +401,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testInstructionsArePropagatedToDiscoverResult(): void
     {
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->setInstructions('Greet the user warmly.')
             ->build()
@@ -414,7 +414,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testServerInfoMatchesNameAndVersion(): void
     {
-        $server = new ServerBuilder()->setServerInfo('demo-srv', '2.3.4')->build();
+        $server = (new ServerBuilder())->setServerInfo('demo-srv', '2.3.4')->build();
 
         $info = $this->serverInfoFor($server);
 
@@ -425,7 +425,7 @@ final class ServerBuilderTest extends TestCase
     public function testServerInfoRidesTheMetaOfAResultOtherThanDiscover(): void
     {
         // The spec asks for the identity on every response, not only on the discovery probe.
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo-srv', '2.3.4')
             ->addTool(
                 new Tool(name: 'echo', inputSchema: ['type' => 'object']),
@@ -444,14 +444,14 @@ final class ServerBuilderTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('Maximum in-flight dispatches must be a positive integer or null, 0 given.');
 
-        new ServerBuilder()->setMaxInFlightDispatches(0);
+        (new ServerBuilder())->setMaxInFlightDispatches(0);
     }
 
     public function testTheInFlightCapReachesTheDispatcher(): void
     {
         // `listen()` attaches without awaiting close, so both envelopes are dispatched before the
         // loop turns and the second one meets a saturated dispatcher.
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->setMaxInFlightDispatches(1)
             ->build()
@@ -473,7 +473,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testDisclosingNoServerInfoLeavesTheIdentityOffEveryResult(): void
     {
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo-srv', '2.3.4')
             ->setServerInfoDisclosure(ServerInfoDisclosure::None)
             ->build()
@@ -487,7 +487,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testServerInfoDisclosureIsFullByDefaultAndResettable(): void
     {
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo-srv', '2.3.4')
             ->setServerInfoDisclosure(ServerInfoDisclosure::None)
             ->setServerInfoDisclosure(ServerInfoDisclosure::Full)
@@ -499,7 +499,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testNameAndVersionDisclosureTrimsTheIdentityOnResultsOtherThanDiscover(): void
     {
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo-srv', '2.3.4', title: 'Demo', description: 'A demo.', websiteUrl: 'https://example.com')
             ->setServerInfoDisclosure(ServerInfoDisclosure::NameAndVersion)
             ->addTool(
@@ -518,7 +518,7 @@ final class ServerBuilderTest extends TestCase
     public function testDiscoverCarriesTheFullIdentityEvenWhenOtherResultsAreTrimmed(): void
     {
         // The rich fields are display material a client collects once, at discovery.
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo-srv', '2.3.4', title: 'Demo', description: 'A demo.')
             ->setServerInfoDisclosure(ServerInfoDisclosure::NameAndVersion)
             ->build()
@@ -532,7 +532,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testRegisteredToolFlowsThroughBuiltServer(): void
     {
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->addTool(
                 new Tool(name: 'echo', inputSchema: ['type' => 'object']),
@@ -558,7 +558,7 @@ final class ServerBuilderTest extends TestCase
             }
         };
 
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->setSchemaValidator($alwaysValid)
             ->addTool(
@@ -582,7 +582,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testPageSizeReachesEveryBuilderAssembledStore(): void
     {
-        $server = self::registerFeatureTriples(new ServerBuilder()->setServerInfo('demo', '1.0.0'))
+        $server = self::registerFeatureTriples((new ServerBuilder())->setServerInfo('demo', '1.0.0'))
             ->setPageSize(2)
             ->build()
         ;
@@ -610,7 +610,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testCacheHintsReachEveryBuilderAssembledStore(): void
     {
-        $server = self::registerFeatureTriples(new ServerBuilder()->setServerInfo('demo', '1.0.0'))
+        $server = self::registerFeatureTriples((new ServerBuilder())->setServerInfo('demo', '1.0.0'))
             ->setTtlMs(60_000)
             ->setCacheScope(CacheScope::Public)
             ->build()
@@ -634,7 +634,7 @@ final class ServerBuilderTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs(\sprintf('Store page size must be a positive integer, %d given.', $pageSize));
 
-        new ServerBuilder()->setPageSize($pageSize);
+        (new ServerBuilder())->setPageSize($pageSize);
     }
 
     /**
@@ -652,12 +652,12 @@ final class ServerBuilderTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('Store TTL must be a non-negative integer, -1 given.');
 
-        new ServerBuilder()->setTtlMs(-1);
+        (new ServerBuilder())->setTtlMs(-1);
     }
 
     public function testRegisteredPromptFlowsThroughBuiltServer(): void
     {
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->addPrompt(
                 new Prompt(name: 'hello'),
@@ -675,7 +675,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testRegisteredResourceFlowsThroughBuiltServer(): void
     {
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->addResource(
                 new Resource(name: 'cfg', uri: 'file:///etc/cfg'),
@@ -693,7 +693,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testRegisteredResourceAndTemplateBothFlowThroughBuiltServer(): void
     {
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->addResource(
                 new Resource(name: 'cfg', uri: 'file:///etc/cfg'),
@@ -733,7 +733,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testRegisteredResourceTemplateFlowsThroughBuiltServer(): void
     {
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->addResourceTemplate(
                 new ResourceTemplate(name: 'files', uriTemplate: 'file:///{path}'),
@@ -751,7 +751,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testTemplateOnlyServerStillServesResourceRead(): void
     {
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->addResourceTemplate(
                 new ResourceTemplate(name: 'files', uriTemplate: 'file:///{path}'),
@@ -774,7 +774,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testRegisterDiscoversAttributeMarkedDefinitions(): void
     {
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->register(new DiscoverableServer())
             ->build()
@@ -799,7 +799,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testRegisterWiresAnExecutableTool(): void
     {
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->register(new DiscoverableServer())
             ->build()
@@ -828,7 +828,7 @@ final class ServerBuilderTest extends TestCase
             }
         };
 
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->register(new DiscoverableServer(), $extra)
             ->build()
@@ -849,7 +849,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testRegisterAppliesServerMetadataFromAttribute(): void
     {
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->register(new SelfDescribingServer())
             ->build()
         ;
@@ -868,7 +868,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testExplicitServerInfoFieldsWinAndAttributeFillsGaps(): void
     {
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('explicit-server', '9.9.9')
             ->register(new SelfDescribingServer())
             ->build()
@@ -886,7 +886,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testExplicitServerInfoFieldsTakePrecedencePerField(): void
     {
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('explicit-server', '9.9.9', 'Explicit Title', 'Explicit description.', 'https://explicit.test', [new Icon(src: 'https://explicit.test/icon.svg')])
             ->register(new SelfDescribingServer())
             ->build()
@@ -903,7 +903,7 @@ final class ServerBuilderTest extends TestCase
     public function testAttributeWithoutInstructionsLeavesThemNull(): void
     {
         $source = new #[AsServer(name: 'minimal', version: '1.0.0')] class {};
-        $server = new ServerBuilder()->register($source)->build();
+        $server = (new ServerBuilder())->register($source)->build();
 
         self::assertNull($this->discoverResultFor($server)->instructions);
         self::assertSame('minimal', $this->serverInfoFor($server)->name);
@@ -916,7 +916,7 @@ final class ServerBuilderTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('Server instructions must be a non-empty string or null.');
 
-        new ServerBuilder()->register($source)->build();
+        (new ServerBuilder())->register($source)->build();
     }
 
     public function testLaterAttributelessSourceDoesNotClearServerMetadata(): void
@@ -930,7 +930,7 @@ final class ServerBuilderTest extends TestCase
         };
 
         $info = $this->serverInfoFor(
-            new ServerBuilder()->register(new SelfDescribingServer(), $extra)->build(),
+            (new ServerBuilder())->register(new SelfDescribingServer(), $extra)->build(),
         );
 
         self::assertSame('described-server', $info->name);
@@ -942,7 +942,7 @@ final class ServerBuilderTest extends TestCase
 
         $this->expectException(DuplicateServerMetadataException::class);
 
-        new ServerBuilder()->register(new SelfDescribingServer(), $second);
+        (new ServerBuilder())->register(new SelfDescribingServer(), $second);
     }
 
     public function testRegisterRejectsASourceWithoutDiscoverableAttributes(): void
@@ -955,12 +955,12 @@ final class ServerBuilderTest extends TestCase
                 return 'ignored';
             }
         };
-        new ServerBuilder()->register($source);
+        (new ServerBuilder())->register($source);
     }
 
     public function testExplicitInstructionsTakePrecedenceOverAttribute(): void
     {
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setInstructions('Explicit instructions win.')
             ->register(new SelfDescribingServer())
             ->build()
@@ -973,7 +973,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testAddResourceTemplateRejectsUnsupportedTemplateAtRegistration(): void
     {
-        $builder = new ServerBuilder()->setServerInfo('demo', '1.0.0');
+        $builder = (new ServerBuilder())->setServerInfo('demo', '1.0.0');
 
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageMatches('/^ResourceTemplate URI template must use only RFC 6570 Level 1 simple-name expressions/');
@@ -987,7 +987,7 @@ final class ServerBuilderTest extends TestCase
     public function testReplaceRequestHandlerOverridesBuiltinAndIsDispatched(): void
     {
         $invoked = 0;
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->replaceRequestHandler('server/discover', new ClosureRequestHandler(
                 static function () use (&$invoked): EmptyResult {
@@ -1006,7 +1006,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testAddRequestHandlerDispatchesTheVendorExtensionMethod(): void
     {
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->addRequestHandler(TestClientRequest::getMethod(), new ClosureRequestHandler(
                 static fn(): EmptyResult => new EmptyResult(),
@@ -1026,7 +1026,7 @@ final class ServerBuilderTest extends TestCase
             'Request class "Nexus\Mcp\Tests\Fixtures\Core\TestRequest" must implement "Nexus\Mcp\Core\Schema\Request\ClientRequest" for the server to dispatch it.',
         );
 
-        new ServerBuilder()->addRequestHandler(TestRequest::getMethod(), new ClosureRequestHandler(
+        (new ServerBuilder())->addRequestHandler(TestRequest::getMethod(), new ClosureRequestHandler(
             static fn(): EmptyResult => new EmptyResult(),
         ), TestRequest::class);
     }
@@ -1038,7 +1038,7 @@ final class ServerBuilderTest extends TestCase
             'Request class "Nexus\Mcp\Tests\Fixtures\Core\TestClientRequest" must declare the method "acme/snapshot" it is registered for, \'tests/test-client-request\' declared.',
         );
 
-        new ServerBuilder()->addRequestHandler('acme/snapshot', new ClosureRequestHandler(
+        (new ServerBuilder())->addRequestHandler('acme/snapshot', new ClosureRequestHandler(
             static fn(): EmptyResult => new EmptyResult(),
         ), TestClientRequest::class);
     }
@@ -1055,7 +1055,7 @@ final class ServerBuilderTest extends TestCase
             $method,
         ));
 
-        new ServerBuilder()->addRequestHandler($method, new ClosureRequestHandler(
+        (new ServerBuilder())->addRequestHandler($method, new ClosureRequestHandler(
             static fn(): EmptyResult => new EmptyResult(),
         ), TestClientRequest::class);
     }
@@ -1088,7 +1088,7 @@ final class ServerBuilderTest extends TestCase
     {
         $received = 0;
 
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->addNotificationHandler(TestNotification::getMethod(), new ClosureNotificationHandler(
                 static function () use (&$received): void {
@@ -1126,7 +1126,7 @@ final class ServerBuilderTest extends TestCase
             'Notification class "Nexus\Mcp\Tests\Fixtures\Core\TestNotification" must declare the method "acme/snapshot-done" it is registered for, \'tests/test-notification\' declared.',
         );
 
-        new ServerBuilder()->addNotificationHandler('acme/snapshot-done', new ClosureNotificationHandler(
+        (new ServerBuilder())->addNotificationHandler('acme/snapshot-done', new ClosureNotificationHandler(
             static function (): void {},
         ), TestNotification::class);
     }
@@ -1143,7 +1143,7 @@ final class ServerBuilderTest extends TestCase
             $method,
         ));
 
-        new ServerBuilder()->addNotificationHandler($method, new ClosureNotificationHandler(
+        (new ServerBuilder())->addNotificationHandler($method, new ClosureNotificationHandler(
             static function (): void {},
         ), TestNotification::class);
     }
@@ -1168,7 +1168,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testEnableExtensionAdvertisesTheCapabilitySlot(): void
     {
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->enableExtension(self::buildServerExtension())
             ->build()
@@ -1185,7 +1185,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testAGatedExtensionMethodServesADeclaringClient(): void
     {
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->enableExtension(self::buildServerExtension())
             ->build()
@@ -1202,7 +1202,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testAGatedExtensionMethodRejectsANonDeclaringClient(): void
     {
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->enableExtension(self::buildServerExtension())
             ->build()
@@ -1240,7 +1240,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testADecoratorWrapsTheDefaultToolHandlerAndServesUngated(): void
     {
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->addTool(
                 new Tool(name: 'report', inputSchema: ['type' => 'object']),
@@ -1265,7 +1265,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testADecoratorWrapsAReplacedHandler(): void
     {
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->replaceRequestHandler('tools/call', new ClosureRequestHandler(
                 static fn(JsonRpcRequest $request, AbstractContext $context): Result => new CallToolResult(content: [new TextContent(text: 'replaced')]),
@@ -1288,7 +1288,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testTwoDecoratorsComposeWithTheLastEnabledOutermost(): void
     {
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->addTool(
                 new Tool(name: 'report', inputSchema: ['type' => 'object']),
@@ -1313,7 +1313,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testBuildRejectsADecoratedMethodNoHandlerServes(): void
     {
-        $builder = new ServerBuilder()
+        $builder = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->enableExtension(self::buildTextWrappingExtension('com.example/feature', 'outer'))
         ;
@@ -1326,7 +1326,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testBuildRejectsADecoratorReturningANonHandler(): void
     {
-        $builder = new ServerBuilder()
+        $builder = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->addTool(
                 new Tool(name: 'report', inputSchema: ['type' => 'object']),
@@ -1349,7 +1349,7 @@ final class ServerBuilderTest extends TestCase
     {
         $received = [];
 
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->enableExtension(new StubServerExtension(
                 identifier: 'com.example/feature',
@@ -1399,7 +1399,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testTwoEnabledExtensionsServeTheirOwnMethods(): void
     {
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->enableExtension(self::buildServerExtension())
             ->enableExtension(new StubServerExtension(
@@ -1458,7 +1458,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testEnableExtensionRejectsADuplicateIdentifier(): void
     {
-        $builder = new ServerBuilder()->enableExtension(new StubServerExtension(identifier: 'com.example/feature'));
+        $builder = (new ServerBuilder())->enableExtension(new StubServerExtension(identifier: 'com.example/feature'));
 
         $this->expectException(DuplicateExtensionException::class);
         $this->expectExceptionMessageIs('Extension "com.example/feature" is declared more than once.');
@@ -1468,7 +1468,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testEnableExtensionRejectsAMethodABuilderHandlerOwns(): void
     {
-        $builder = new ServerBuilder()->addRequestHandler(TestClientRequest::getMethod(), new ClosureRequestHandler(
+        $builder = (new ServerBuilder())->addRequestHandler(TestClientRequest::getMethod(), new ClosureRequestHandler(
             static fn(): EmptyResult => new EmptyResult(),
         ), TestClientRequest::class);
 
@@ -1482,7 +1482,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testEnableExtensionRejectsANotificationMethodABuilderHandlerOwns(): void
     {
-        $builder = new ServerBuilder()->addNotificationHandler(TestNotification::getMethod(), new ClosureNotificationHandler(
+        $builder = (new ServerBuilder())->addNotificationHandler(TestNotification::getMethod(), new ClosureNotificationHandler(
             static function (): void {},
         ), TestNotification::class);
 
@@ -1502,7 +1502,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testAddRequestHandlerRejectsAMethodAnExtensionOwns(): void
     {
-        $builder = new ServerBuilder()->enableExtension(self::buildServerExtension());
+        $builder = (new ServerBuilder())->enableExtension(self::buildServerExtension());
 
         $this->expectException(ExtensionMethodCollisionException::class);
         $this->expectExceptionMessageIs(
@@ -1516,7 +1516,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testAddNotificationHandlerRejectsAMethodAnExtensionOwns(): void
     {
-        $builder = new ServerBuilder()->enableExtension(new StubServerExtension(
+        $builder = (new ServerBuilder())->enableExtension(new StubServerExtension(
             identifier: 'com.example/feature',
             notifications: [TestNotification::getMethod() => TestNotification::class],
             notificationHandlers: [TestNotification::getMethod() => new ClosureNotificationHandler(
@@ -1541,7 +1541,7 @@ final class ServerBuilderTest extends TestCase
             'Extension "com.example/feature" request class "Nexus\Mcp\Tests\Fixtures\Core\TestRequest" must implement "Nexus\Mcp\Core\Schema\Request\ClientRequest" for the server to dispatch it.',
         );
 
-        new ServerBuilder()->enableExtension(new StubServerExtension(
+        (new ServerBuilder())->enableExtension(new StubServerExtension(
             identifier: 'com.example/feature',
             requests: [TestRequest::getMethod() => TestRequest::class],
             requestHandlers: [TestRequest::getMethod() => new ClosureRequestHandler(
@@ -1557,7 +1557,7 @@ final class ServerBuilderTest extends TestCase
             'Request method "acme/snapshot" is not reserved by the MCP specification. Use addRequestHandler() to register a vendor extension.',
         );
 
-        new ServerBuilder()->replaceRequestHandler('acme/snapshot', new ClosureRequestHandler(
+        (new ServerBuilder())->replaceRequestHandler('acme/snapshot', new ClosureRequestHandler(
             static fn(): EmptyResult => new EmptyResult(),
         ));
     }
@@ -1569,7 +1569,7 @@ final class ServerBuilderTest extends TestCase
             'Notification method "acme/snapshot-done" is not reserved by the MCP specification. Use addNotificationHandler() to register a vendor extension.',
         );
 
-        new ServerBuilder()->replaceNotificationHandler('acme/snapshot-done', new ClosureNotificationHandler(
+        (new ServerBuilder())->replaceNotificationHandler('acme/snapshot-done', new ClosureNotificationHandler(
             static function (): void {},
         ));
     }
@@ -1577,7 +1577,7 @@ final class ServerBuilderTest extends TestCase
     public function testCustomNotificationHandlerIsDispatched(): void
     {
         $invoked = 0;
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->replaceNotificationHandler('notifications/cancelled', new ClosureNotificationHandler(
                 static function () use (&$invoked): void { ++$invoked; },
@@ -1607,7 +1607,7 @@ final class ServerBuilderTest extends TestCase
     public function testCustomLoggerReceivesServerLogs(): void
     {
         $logger = new ArrayLogger();
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->setLogger($logger)
             ->build()
@@ -1631,7 +1631,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testRegisteredCompletionStoreFlowsThroughBuiltServer(): void
     {
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->setCompletionStore(new RecordingCompletionStore(new CompleteResult(completion: ['values' => ['x']])))
             ->build()
@@ -1659,7 +1659,7 @@ final class ServerBuilderTest extends TestCase
             }
         };
 
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->addPromptCompletion('compose', 'tone', static fn(): CompleteResult => new CompleteResult(completion: ['values' => ['from-closure']]))
             ->addResourceTemplateCompletion('file:///{path}', 'path', $provider)
@@ -1695,7 +1695,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testRegisterDiscoversCompletionProviders(): void
     {
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->register(new CompletionHandlers())
             ->build()
@@ -1718,7 +1718,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testAnExplicitCompletionStoreWinsOverAddedCompletions(): void
     {
-        $builder = new ServerBuilder()
+        $builder = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->addPromptCompletion('compose', 'tone', static fn(): CompleteResult => new CompleteResult(completion: ['values' => ['added']]))
             ->setCompletionStore(new RecordingCompletionStore(new CompleteResult(completion: ['values' => ['explicit']])))
@@ -1735,7 +1735,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testGetCompletionStoreMemoisesTheAssembledStore(): void
     {
-        $builder = new ServerBuilder()
+        $builder = (new ServerBuilder())
             ->addPromptCompletion('compose', 'tone', static fn(): CompleteResult => new CompleteResult(completion: ['values' => []]))
         ;
 
@@ -1747,7 +1747,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testGetCompletionStoreIsNullWithoutCompletions(): void
     {
-        self::assertNull(new ServerBuilder()->getCompletionStore());
+        self::assertNull((new ServerBuilder())->getCompletionStore());
     }
 
     public function testAddPromptCompletionRejectsAnEmptyPromptName(): void
@@ -1755,7 +1755,7 @@ final class ServerBuilderTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('Completion prompt name must be a non-empty string.');
 
-        new ServerBuilder()->addPromptCompletion('', 'tone', static fn(): CompleteResult => new CompleteResult(completion: ['values' => []]));
+        (new ServerBuilder())->addPromptCompletion('', 'tone', static fn(): CompleteResult => new CompleteResult(completion: ['values' => []]));
     }
 
     public function testAddPromptCompletionRejectsAnEmptyArgumentName(): void
@@ -1763,7 +1763,7 @@ final class ServerBuilderTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('Completion argument name must be a non-empty string.');
 
-        new ServerBuilder()->addPromptCompletion('compose', '', static fn(): CompleteResult => new CompleteResult(completion: ['values' => []]));
+        (new ServerBuilder())->addPromptCompletion('compose', '', static fn(): CompleteResult => new CompleteResult(completion: ['values' => []]));
     }
 
     public function testAddResourceTemplateCompletionRejectsAnEmptyTemplate(): void
@@ -1771,7 +1771,7 @@ final class ServerBuilderTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('Completion URI template must be a non-empty string.');
 
-        new ServerBuilder()->addResourceTemplateCompletion('', 'path', static fn(): CompleteResult => new CompleteResult(completion: ['values' => []]));
+        (new ServerBuilder())->addResourceTemplateCompletion('', 'path', static fn(): CompleteResult => new CompleteResult(completion: ['values' => []]));
     }
 
     public function testAddResourceTemplateCompletionRejectsAnEmptyArgumentName(): void
@@ -1779,7 +1779,7 @@ final class ServerBuilderTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('Completion argument name must be a non-empty string.');
 
-        new ServerBuilder()->addResourceTemplateCompletion('file:///{path}', '', static fn(): CompleteResult => new CompleteResult(completion: ['values' => []]));
+        (new ServerBuilder())->addResourceTemplateCompletion('file:///{path}', '', static fn(): CompleteResult => new CompleteResult(completion: ['values' => []]));
     }
 
     public function testCustomToolStoreReplacesEntriesAndAdvertisesCapability(): void
@@ -1799,19 +1799,19 @@ final class ServerBuilderTest extends TestCase
         };
 
         $capabilities = $this->discoverResultFor(
-            new ServerBuilder()->setServerInfo('demo', '1.0.0')->setToolStore($store)->build(),
+            (new ServerBuilder())->setServerInfo('demo', '1.0.0')->setToolStore($store)->build(),
         )->capabilities;
         self::assertSame([], $capabilities->tools);
 
         $storeOnly = $this->dispatch(
-            new ServerBuilder()->setServerInfo('demo', '1.0.0')->setToolStore($store)->build(),
+            (new ServerBuilder())->setServerInfo('demo', '1.0.0')->setToolStore($store)->build(),
             'tools/list',
         );
         self::assertInstanceOf(ListToolsResult::class, $storeOnly);
         self::assertSame(['custom_tool'], array_map(static fn(Tool $tool): string => $tool->name, $storeOnly->tools));
 
         $withEntry = $this->dispatch(
-            new ServerBuilder()
+            (new ServerBuilder())
                 ->setServerInfo('demo', '1.0.0')
                 ->addTool(
                     new Tool(name: 'entry_tool', inputSchema: ['type' => 'object']),
@@ -1827,12 +1827,12 @@ final class ServerBuilderTest extends TestCase
 
     public function testToolStoreIsNullWhenNoToolsAreRegistered(): void
     {
-        self::assertNull(new ServerBuilder()->setServerInfo('demo', '1.0.0')->getToolStore());
+        self::assertNull((new ServerBuilder())->setServerInfo('demo', '1.0.0')->getToolStore());
     }
 
     public function testToolStoreAssemblesTheRegisteredEntries(): void
     {
-        $store = new ServerBuilder()
+        $store = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->addTool(
                 new Tool(name: 'entry_tool', inputSchema: ['type' => 'object']),
@@ -1854,7 +1854,7 @@ final class ServerBuilderTest extends TestCase
 
         self::assertSame(
             $store,
-            new ServerBuilder()->setServerInfo('demo', '1.0.0')->setToolStore($store)->getToolStore(),
+            (new ServerBuilder())->setServerInfo('demo', '1.0.0')->setToolStore($store)->getToolStore(),
         );
     }
 
@@ -1862,7 +1862,7 @@ final class ServerBuilderTest extends TestCase
     {
         // `SecuredHttpEndpoint` validates `Mcp-Param-{Name}` against this store, so it must be the one
         // the request handlers serve rather than a second copy.
-        $builder = new ServerBuilder()
+        $builder = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->addTool(
                 new Tool(name: 'entry_tool', inputSchema: ['type' => 'object']),
@@ -1879,7 +1879,7 @@ final class ServerBuilderTest extends TestCase
     {
         // `notifications/cancelled` is served by default, so a built server honours the spec's rule that a
         // cancelled request draws no response without the consumer registering anything.
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->addTool(
                 new Tool(name: 'slow', inputSchema: ['type' => 'object']),
@@ -1914,7 +1914,7 @@ final class ServerBuilderTest extends TestCase
     public function testAConsumerMayStillReplaceTheCancelledNotificationHandler(): void
     {
         $seen = [];
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->replaceNotificationHandler(
                 'notifications/cancelled',
@@ -1941,7 +1941,7 @@ final class ServerBuilderTest extends TestCase
     public function testSubscriptionsAreNotServedUntilAStoreIsRegistered(): void
     {
         $capabilities = $this->discoverResultFor(
-            new ServerBuilder()
+            (new ServerBuilder())
                 ->setServerInfo('demo', '1.0.0')
                 ->addTool(new Tool(name: 't', inputSchema: ['type' => 'object']), static fn(?array $a, $c): CallToolResult => new CallToolResult(content: []))
                 ->build(),
@@ -1952,7 +1952,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testAdvertisesListChangedOnlyForFeaturesWhoseStoreCanReportChanges(): void
     {
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->setSubscriptionStore(new SubscriptionStore(toolsListChanged: true, promptsListChanged: true))
             ->addTool(new Tool(name: 't', inputSchema: ['type' => 'object']), static fn(?array $a, $c): CallToolResult => new CallToolResult(content: []))
@@ -1969,7 +1969,7 @@ final class ServerBuilderTest extends TestCase
     public function testEachFeatureReadsItsOwnSlotOfWhatTheSubscriptionStoreHonours(): void
     {
         $capabilities = $this->discoverResultFor(
-            self::registerFeatureTriples(new ServerBuilder()->setServerInfo('demo', '1.0.0'))
+            self::registerFeatureTriples((new ServerBuilder())->setServerInfo('demo', '1.0.0'))
                 ->setSubscriptionStore(new SubscriptionStore(promptsListChanged: true))
                 ->build(),
         )->capabilities;
@@ -1982,7 +1982,7 @@ final class ServerBuilderTest extends TestCase
     public function testToolListChangedNeedsAToolStoreThatReportsChanges(): void
     {
         $capabilities = $this->discoverResultFor(
-            new ServerBuilder()
+            (new ServerBuilder())
                 ->setServerInfo('demo', '1.0.0')
                 ->setToolStore(new PagedToolStore([[new Tool(name: 't', inputSchema: ['type' => 'object'])]]))
                 ->setSubscriptionStore(new SubscriptionStore(toolsListChanged: true))
@@ -2000,7 +2000,7 @@ final class ServerBuilderTest extends TestCase
     public function testResourceListChangedFollowsEitherResourceStore(\Closure $compose, array $expected): void
     {
         // Both stores fan into `notifications/resources/list_changed`, so either one reporting is enough.
-        $builder = $compose(new ServerBuilder()->setServerInfo('demo', '1.0.0'))
+        $builder = $compose((new ServerBuilder())->setServerInfo('demo', '1.0.0'))
             ->setSubscriptionStore(new SubscriptionStore(resourcesListChanged: true))
         ;
 
@@ -2056,7 +2056,7 @@ final class ServerBuilderTest extends TestCase
     public function testAMutatedToolListReachesAnOpenSubscription(): void
     {
         $subscriptions = new SubscriptionStore(toolsListChanged: true);
-        $builder = new ServerBuilder()
+        $builder = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->setSubscriptionStore($subscriptions)
             ->addTool(new Tool(name: 'seed', inputSchema: ['type' => 'object']), static fn(?array $a, $c): CallToolResult => new CallToolResult(content: []))
@@ -2090,7 +2090,7 @@ final class ServerBuilderTest extends TestCase
             promptsListChanged: true,
             resourcesListChanged: true,
         );
-        $builder = self::registerFeatureTriples(new ServerBuilder()->setServerInfo('demo', '1.0.0'))
+        $builder = self::registerFeatureTriples((new ServerBuilder())->setServerInfo('demo', '1.0.0'))
             ->setSubscriptionStore($subscriptions)
         ;
         $builder->build();
@@ -2134,7 +2134,7 @@ final class ServerBuilderTest extends TestCase
     public function testAMutatedTemplateListReachesAnOpenSubscription(): void
     {
         $subscriptions = new SubscriptionStore(resourcesListChanged: true);
-        $builder = self::registerFeatureTriples(new ServerBuilder()->setServerInfo('demo', '1.0.0'))
+        $builder = self::registerFeatureTriples((new ServerBuilder())->setServerInfo('demo', '1.0.0'))
             ->setSubscriptionStore($subscriptions)
         ;
         $builder->build();
@@ -2162,7 +2162,7 @@ final class ServerBuilderTest extends TestCase
     {
         // A store that honours nothing is the default shape, so the builder must not promise on its behalf.
         $capabilities = $this->discoverResultFor(
-            self::registerFeatureTriples(new ServerBuilder()->setServerInfo('demo', '1.0.0'))
+            self::registerFeatureTriples((new ServerBuilder())->setServerInfo('demo', '1.0.0'))
                 ->setSubscriptionStore(new SubscriptionStore())
                 ->build(),
         )->capabilities;
@@ -2180,7 +2180,7 @@ final class ServerBuilderTest extends TestCase
     {
         // The built server holds the stores and the list-change listeners, so a later registration would be
         // dropped without a trace.
-        $builder = new ServerBuilder()->setServerInfo('demo', '1.0.0');
+        $builder = (new ServerBuilder())->setServerInfo('demo', '1.0.0');
         $builder->build();
 
         $this->expectException(BuilderAlreadyBuiltException::class);
@@ -2252,7 +2252,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testBuildingTwiceIsRefused(): void
     {
-        $builder = new ServerBuilder()->setServerInfo('demo', '1.0.0');
+        $builder = (new ServerBuilder())->setServerInfo('demo', '1.0.0');
         $builder->build();
 
         $this->expectException(BuilderAlreadyBuiltException::class);
@@ -2287,7 +2287,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testPromptStoreIsNullWhenNoPromptsAreRegistered(): void
     {
-        self::assertNull(new ServerBuilder()->setServerInfo('demo', '1.0.0')->getPromptStore());
+        self::assertNull((new ServerBuilder())->setServerInfo('demo', '1.0.0')->getPromptStore());
     }
 
     public function testPromptStoreAssemblesTheRegisteredEntries(): void
@@ -2307,7 +2307,7 @@ final class ServerBuilderTest extends TestCase
 
         self::assertSame(
             $store,
-            new ServerBuilder()->setServerInfo('demo', '1.0.0')->setPromptStore($store)->getPromptStore(),
+            (new ServerBuilder())->setServerInfo('demo', '1.0.0')->setPromptStore($store)->getPromptStore(),
         );
     }
 
@@ -2321,7 +2321,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testResourceStoreIsNullWhenNoResourcesAreRegistered(): void
     {
-        self::assertNull(new ServerBuilder()->setServerInfo('demo', '1.0.0')->getResourceStore());
+        self::assertNull((new ServerBuilder())->setServerInfo('demo', '1.0.0')->getResourceStore());
     }
 
     public function testResourceStoreAssemblesTheRegisteredEntries(): void
@@ -2356,7 +2356,7 @@ final class ServerBuilderTest extends TestCase
 
         self::assertSame(
             $store,
-            new ServerBuilder()->setServerInfo('demo', '1.0.0')->setResourceStore($store)->getResourceStore(),
+            (new ServerBuilder())->setServerInfo('demo', '1.0.0')->setResourceStore($store)->getResourceStore(),
         );
     }
 
@@ -2370,7 +2370,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testResourceTemplateStoreIsNullWhenNoTemplatesAreRegistered(): void
     {
-        self::assertNull(new ServerBuilder()->setServerInfo('demo', '1.0.0')->getResourceTemplateStore());
+        self::assertNull((new ServerBuilder())->setServerInfo('demo', '1.0.0')->getResourceTemplateStore());
     }
 
     public function testResourceTemplateStoreAssemblesTheRegisteredEntries(): void
@@ -2396,7 +2396,7 @@ final class ServerBuilderTest extends TestCase
 
         self::assertSame(
             $store,
-            new ServerBuilder()
+            (new ServerBuilder())
                 ->setServerInfo('demo', '1.0.0')
                 ->setResourceTemplateStore($store)
                 ->getResourceTemplateStore(),
@@ -2413,7 +2413,7 @@ final class ServerBuilderTest extends TestCase
 
     public function testAToolMayAnswerWithAnInputRequiredResult(): void
     {
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->addTool(
                 new Tool(name: 'ask', inputSchema: ['type' => 'object']),
@@ -2442,7 +2442,7 @@ final class ServerBuilderTest extends TestCase
     public function testTheClientsInputResponsesAndRequestStateReachTheExecutor(): void
     {
         $seen = null;
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->addTool(
                 new Tool(name: 'ask', inputSchema: ['type' => 'object']),
@@ -2473,7 +2473,7 @@ final class ServerBuilderTest extends TestCase
     public function testAToolCallWithoutMrtrFieldsLeavesThemNullOnTheContext(): void
     {
         $seen = null;
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->addTool(
                 new Tool(name: 'ask', inputSchema: ['type' => 'object']),
@@ -2508,19 +2508,19 @@ final class ServerBuilderTest extends TestCase
         };
 
         $capabilities = $this->discoverResultFor(
-            new ServerBuilder()->setServerInfo('demo', '1.0.0')->setPromptStore($store)->build(),
+            (new ServerBuilder())->setServerInfo('demo', '1.0.0')->setPromptStore($store)->build(),
         )->capabilities;
         self::assertSame([], $capabilities->prompts);
 
         $storeOnly = $this->dispatch(
-            new ServerBuilder()->setServerInfo('demo', '1.0.0')->setPromptStore($store)->build(),
+            (new ServerBuilder())->setServerInfo('demo', '1.0.0')->setPromptStore($store)->build(),
             'prompts/list',
         );
         self::assertInstanceOf(ListPromptsResult::class, $storeOnly);
         self::assertSame(['custom_prompt'], array_map(static fn(Prompt $prompt): string => $prompt->name, $storeOnly->prompts));
 
         $withEntry = $this->dispatch(
-            new ServerBuilder()
+            (new ServerBuilder())
                 ->setServerInfo('demo', '1.0.0')
                 ->addPrompt(
                     new Prompt(name: 'entry_prompt'),
@@ -2551,19 +2551,19 @@ final class ServerBuilderTest extends TestCase
         };
 
         $capabilities = $this->discoverResultFor(
-            new ServerBuilder()->setServerInfo('demo', '1.0.0')->setResourceStore($store)->build(),
+            (new ServerBuilder())->setServerInfo('demo', '1.0.0')->setResourceStore($store)->build(),
         )->capabilities;
         self::assertSame([], $capabilities->resources);
 
         $storeOnly = $this->dispatch(
-            new ServerBuilder()->setServerInfo('demo', '1.0.0')->setResourceStore($store)->build(),
+            (new ServerBuilder())->setServerInfo('demo', '1.0.0')->setResourceStore($store)->build(),
             'resources/list',
         );
         self::assertInstanceOf(ListResourcesResult::class, $storeOnly);
         self::assertSame(['mem://custom'], array_map(static fn(Resource $resource): string => $resource->uri, $storeOnly->resources));
 
         $withEntry = $this->dispatch(
-            new ServerBuilder()
+            (new ServerBuilder())
                 ->setServerInfo('demo', '1.0.0')
                 ->addResource(
                     new Resource(name: 'entry', uri: 'mem://entry'),
@@ -2577,7 +2577,7 @@ final class ServerBuilderTest extends TestCase
         self::assertSame(['mem://custom'], array_map(static fn(Resource $resource): string => $resource->uri, $withEntry->resources));
 
         $alongsideTemplates = $this->dispatch(
-            new ServerBuilder()
+            (new ServerBuilder())
                 ->setServerInfo('demo', '1.0.0')
                 ->addResource(
                     new Resource(name: 'entry', uri: 'mem://entry'),
@@ -2612,19 +2612,19 @@ final class ServerBuilderTest extends TestCase
         };
 
         $capabilities = $this->discoverResultFor(
-            new ServerBuilder()->setServerInfo('demo', '1.0.0')->setResourceTemplateStore($store)->build(),
+            (new ServerBuilder())->setServerInfo('demo', '1.0.0')->setResourceTemplateStore($store)->build(),
         )->capabilities;
         self::assertSame([], $capabilities->resources);
 
         $storeOnly = $this->dispatch(
-            new ServerBuilder()->setServerInfo('demo', '1.0.0')->setResourceTemplateStore($store)->build(),
+            (new ServerBuilder())->setServerInfo('demo', '1.0.0')->setResourceTemplateStore($store)->build(),
             'resources/templates/list',
         );
         self::assertInstanceOf(ListResourceTemplatesResult::class, $storeOnly);
         self::assertSame(['mem://{id}'], array_map(static fn(ResourceTemplate $template): string => $template->uriTemplate, $storeOnly->resourceTemplates));
 
         $withEntry = $this->dispatch(
-            new ServerBuilder()
+            (new ServerBuilder())
                 ->setServerInfo('demo', '1.0.0')
                 ->addResourceTemplate(
                     new ResourceTemplate(name: 'entry', uriTemplate: 'mem://entry/{id}'),
@@ -2674,7 +2674,7 @@ final class ServerBuilderTest extends TestCase
 
     private static function builderWithPrompt(): ServerBuilder
     {
-        return new ServerBuilder()
+        return (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->addPrompt(
                 new Prompt(name: 'hello'),
@@ -2685,7 +2685,7 @@ final class ServerBuilderTest extends TestCase
 
     private static function builderWithResource(): ServerBuilder
     {
-        return new ServerBuilder()
+        return (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->addResource(
                 new Resource(name: 'cfg', uri: 'file:///etc/cfg'),
@@ -2700,7 +2700,7 @@ final class ServerBuilderTest extends TestCase
 
     private static function builderWithResourceTemplate(): ServerBuilder
     {
-        return new ServerBuilder()
+        return (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->addResourceTemplate(
                 new ResourceTemplate(name: 'files', uriTemplate: 'file:///{path}'),

@@ -82,7 +82,7 @@ composer spec:snapshot-anchors
 - **PHPUnit**: test framework
 - **PHPStan level 10**: static analysis (strict)
 - **PHP-CS-Fixer + Nexus CS Config**: code style enforcement
-- **Minimum PHP version: 8.4**
+- **Minimum PHP version: 8.3**
 
 ## Architecture Conventions
 

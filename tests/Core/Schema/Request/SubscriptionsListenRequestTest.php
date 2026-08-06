@@ -20,11 +20,11 @@ use Nexus\Mcp\Core\Schema\Request\SubscriptionsListenRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\SubscriptionsListenRequestParams;
 use Nexus\Mcp\Core\Schema\SubscriptionFilter;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -34,7 +34,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(Request::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class SubscriptionsListenRequestTest extends TestCase
+final class SubscriptionsListenRequestTest extends AbstractMcpTestCase
 {
     public function testMethodIsSubscriptionsListen(): void
     {

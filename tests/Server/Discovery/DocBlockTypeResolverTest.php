@@ -14,11 +14,11 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Server\Discovery;
 
 use Nexus\Mcp\Server\Discovery\DocBlockTypeResolver;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\SampleToolHandlers;
 use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -26,7 +26,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(DocBlockTypeResolver::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class DocBlockTypeResolverTest extends TestCase
+final class DocBlockTypeResolverTest extends AbstractMcpTestCase
 {
     private DocBlockTypeResolver $resolver;
 

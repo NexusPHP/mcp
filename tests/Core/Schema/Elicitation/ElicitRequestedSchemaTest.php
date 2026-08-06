@@ -24,10 +24,10 @@ use Nexus\Mcp\Core\Schema\Elicitation\TitledMultiSelectEnumSchema;
 use Nexus\Mcp\Core\Schema\Elicitation\TitledSingleSelectEnumSchema;
 use Nexus\Mcp\Core\Schema\Elicitation\UntitledMultiSelectEnumSchema;
 use Nexus\Mcp\Core\Schema\Elicitation\UntitledSingleSelectEnumSchema;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -35,7 +35,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ElicitRequestedSchema::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class ElicitRequestedSchemaTest extends TestCase
+final class ElicitRequestedSchemaTest extends AbstractMcpTestCase
 {
     public function testConstructionMinimal(): void
     {

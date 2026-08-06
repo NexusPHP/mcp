@@ -15,10 +15,10 @@ namespace Nexus\Mcp\Tests\Core\Exception;
 
 use Nexus\Mcp\Core\Exception\OutboundRequestFailedException;
 use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -26,7 +26,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(OutboundRequestFailedException::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class OutboundRequestFailedExceptionTest extends TestCase
+final class OutboundRequestFailedExceptionTest extends AbstractMcpTestCase
 {
     /**
      * @param int|non-empty-string $id
@@ -36,7 +36,7 @@ final class OutboundRequestFailedExceptionTest extends TestCase
     {
         self::assertSame(
             $expected,
-            new OutboundRequestFailedException(new RequestId(id: $id), new \RuntimeException('boom'))->getMessage(),
+            (new OutboundRequestFailedException(new RequestId(id: $id), new \RuntimeException('boom')))->getMessage(),
         );
     }
 

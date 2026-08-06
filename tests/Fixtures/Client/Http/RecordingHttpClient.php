@@ -34,7 +34,7 @@ final class RecordingHttpClient implements DelegateHttpClient
     /**
      * @var list<Request>
      */
-    public private(set) array $requests = [];
+    public array $requests = [];
 
     /**
      * Whether the body of the answer at each index was read to its end, keyed by request index. A body that
@@ -42,14 +42,14 @@ final class RecordingHttpClient implements DelegateHttpClient
      *
      * @var array<int, bool>
      */
-    public private(set) array $drainedBodies = [];
+    public array $drainedBodies = [];
 
     /**
      * The cancellation each request was handed, keyed by request index.
      *
      * @var list<Cancellation>
      */
-    public private(set) array $cancellations = [];
+    public array $cancellations = [];
 
     /**
      * @var list<array{status: int, headers: array<non-empty-string, string>, chunks: list<string>, open?: bool, fails?: HttpException, gate?: Future<mixed>, hops?: non-empty-list<string>, resume?: null|Future<mixed>, later?: list<string>}|HttpException>
@@ -321,7 +321,7 @@ final class RecordingHttpClient implements DelegateHttpClient
         }
 
         // Never completed, so the stream stays open without holding a timer the test would have to cancel.
-        new DeferredFuture()->getFuture()->await();
+        (new DeferredFuture())->getFuture()->await();
     }
 
     /**

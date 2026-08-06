@@ -23,7 +23,7 @@ final class CallLog
     /**
      * @var list<string>
      */
-    public private(set) array $labels = [];
+    public array $labels = [];
 
     public function record(string $label): void
     {

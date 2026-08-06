@@ -15,10 +15,10 @@ namespace Nexus\Mcp\Tests\Core\Exception;
 
 use Nexus\Mcp\Core\Exception\AbstractJsonRpcProtocolException;
 use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Exception\StubProtocolException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -26,7 +26,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(AbstractJsonRpcProtocolException::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class AbstractJsonRpcProtocolExceptionTest extends TestCase
+final class AbstractJsonRpcProtocolExceptionTest extends AbstractMcpTestCase
 {
     public function testCarriesMessageAndDefaultsPreviousToNull(): void
     {

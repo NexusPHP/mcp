@@ -15,10 +15,10 @@ namespace Nexus\Mcp\Tests\Core\Auth;
 
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Auth\ScopeSet;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -26,16 +26,16 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ScopeSet::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class ScopeSetTest extends TestCase
+final class ScopeSetTest extends AbstractMcpTestCase
 {
     public function testConstructorDropsDuplicatesAndReindexes(): void
     {
-        self::assertSame(['files:read', 'files:write'], new ScopeSet(['files:read', 'files:read', 'files:write'])->values);
+        self::assertSame(['files:read', 'files:write'], (new ScopeSet(['files:read', 'files:read', 'files:write']))->values);
     }
 
     public function testConstructorDefaultsToTheEmptySet(): void
     {
-        self::assertSame([], new ScopeSet()->values);
+        self::assertSame([], (new ScopeSet())->values);
     }
 
     public function testConstructorRejectsAnEmptyScope(): void
@@ -82,53 +82,53 @@ final class ScopeSetTest extends TestCase
 
     public function testMergeWithKeepsThisSetFirstAndDropsDuplicates(): void
     {
-        $merged = new ScopeSet(['files:read'])->mergeWith(new ScopeSet(['files:write', 'files:read']));
+        $merged = (new ScopeSet(['files:read']))->mergeWith(new ScopeSet(['files:write', 'files:read']));
 
         self::assertSame(['files:read', 'files:write'], $merged->values);
     }
 
     public function testMergeWithAnEmptySetChangesNothing(): void
     {
-        self::assertSame(['files:read'], new ScopeSet(['files:read'])->mergeWith(new ScopeSet())->values);
+        self::assertSame(['files:read'], (new ScopeSet(['files:read']))->mergeWith(new ScopeSet())->values);
     }
 
     public function testContainsAllAcceptsASubset(): void
     {
-        self::assertTrue(new ScopeSet(['files:read', 'files:write'])->containsAll(new ScopeSet(['files:write'])));
+        self::assertTrue((new ScopeSet(['files:read', 'files:write']))->containsAll(new ScopeSet(['files:write'])));
     }
 
     public function testContainsAllAcceptsTheEmptySet(): void
     {
-        self::assertTrue(new ScopeSet()->containsAll(new ScopeSet()));
+        self::assertTrue((new ScopeSet())->containsAll(new ScopeSet()));
     }
 
     public function testContainsAllRejectsAnUnheldValue(): void
     {
-        self::assertFalse(new ScopeSet(['files:read'])->containsAll(new ScopeSet(['files:read', 'files:write'])));
+        self::assertFalse((new ScopeSet(['files:read']))->containsAll(new ScopeSet(['files:read', 'files:write'])));
     }
 
     public function testContainsAllIsCaseSensitive(): void
     {
-        self::assertFalse(new ScopeSet(['files:read'])->containsAll(new ScopeSet(['Files:Read'])));
+        self::assertFalse((new ScopeSet(['files:read']))->containsAll(new ScopeSet(['Files:Read'])));
     }
 
     public function testToParameterOmitsAnEmptySet(): void
     {
-        self::assertNull(new ScopeSet()->toParameter());
+        self::assertNull((new ScopeSet())->toParameter());
     }
 
     public function testToParameterJoinsWithSpaces(): void
     {
-        self::assertSame('files:read files:write', new ScopeSet(['files:read', 'files:write'])->toParameter());
+        self::assertSame('files:read files:write', (new ScopeSet(['files:read', 'files:write']))->toParameter());
     }
 
     public function testWithoutDropsTheNamedScope(): void
     {
-        self::assertSame(['files:read'], new ScopeSet(['files:read', 'offline_access'])->without('offline_access')->values);
+        self::assertSame(['files:read'], (new ScopeSet(['files:read', 'offline_access']))->without('offline_access')->values);
     }
 
     public function testWithoutLeavesASetThatNeverHeldItAlone(): void
     {
-        self::assertSame(['files:read'], new ScopeSet(['files:read'])->without('offline_access')->values);
+        self::assertSame(['files:read'], (new ScopeSet(['files:read']))->without('offline_access')->values);
     }
 }

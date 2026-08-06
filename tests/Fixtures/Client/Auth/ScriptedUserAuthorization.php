@@ -29,14 +29,14 @@ final class ScriptedUserAuthorization implements UserAuthorizationInterface
     /**
      * @var list<AuthorizationRedirect>
      */
-    public private(set) array $redirects = [];
+    public array $redirects = [];
 
     /**
      * The cancellation each redirect was handed.
      *
      * @var list<Cancellation>
      */
-    public private(set) array $cancellations = [];
+    public array $cancellations = [];
 
     /**
      * @param array<string, string> $parameters Callback parameters beyond the echoed `state`

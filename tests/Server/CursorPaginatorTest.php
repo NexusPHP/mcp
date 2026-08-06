@@ -16,9 +16,9 @@ namespace Nexus\Mcp\Tests\Server;
 use Nexus\Mcp\Core\Schema\Cursor;
 use Nexus\Mcp\Server\CursorPaginator;
 use Nexus\Mcp\Server\Exception\InvalidCursorException;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -26,13 +26,13 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(CursorPaginator::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class CursorPaginatorTest extends TestCase
+final class CursorPaginatorTest extends AbstractMcpTestCase
 {
     public function testReturnsEveryEntryWhenTheyFitOnOnePage(): void
     {
         $entries = ['alpha' => new \stdClass(), 'beta' => new \stdClass()];
 
-        $page = new CursorPaginator(50)->paginate($entries, null);
+        $page = (new CursorPaginator(50))->paginate($entries, null);
 
         self::assertSame([$entries['alpha'], $entries['beta']], $page->entries);
         self::assertNull($page->nextCursor);
@@ -57,7 +57,7 @@ final class CursorPaginatorTest extends TestCase
 
     public function testReturnsAnEmptyPageForAnEmptyStore(): void
     {
-        $page = new CursorPaginator(50)->paginate([], null);
+        $page = (new CursorPaginator(50))->paginate([], null);
 
         self::assertSame([], $page->entries);
         self::assertNull($page->nextCursor);
@@ -67,7 +67,7 @@ final class CursorPaginatorTest extends TestCase
     {
         $entries = ['alpha' => new \stdClass(), 'beta' => new \stdClass(), 'gamma' => new \stdClass()];
 
-        $page = new CursorPaginator(2)->paginate($entries, null);
+        $page = (new CursorPaginator(2))->paginate($entries, null);
 
         self::assertSame([$entries['alpha'], $entries['beta']], $page->entries);
 
@@ -82,7 +82,7 @@ final class CursorPaginatorTest extends TestCase
     {
         $entries = ['alpha' => new \stdClass(), 'beta' => new \stdClass()];
 
-        $page = new CursorPaginator(2)->paginate($entries, null);
+        $page = (new CursorPaginator(2))->paginate($entries, null);
 
         self::assertCount(2, $page->entries);
         self::assertNull($page->nextCursor);
@@ -97,7 +97,7 @@ final class CursorPaginatorTest extends TestCase
             'delta' => new \stdClass(),
         ];
 
-        $page = new CursorPaginator(2)->paginate($entries, new Cursor(cursor: 'beta'));
+        $page = (new CursorPaginator(2))->paginate($entries, new Cursor(cursor: 'beta'));
 
         self::assertSame([$entries['gamma'], $entries['delta']], $page->entries);
         self::assertNull($page->nextCursor);
@@ -107,7 +107,7 @@ final class CursorPaginatorTest extends TestCase
     {
         $entries = ['alpha' => new \stdClass(), 'beta' => new \stdClass()];
 
-        $page = new CursorPaginator(2)->paginate($entries, new Cursor(cursor: 'beta'));
+        $page = (new CursorPaginator(2))->paginate($entries, new Cursor(cursor: 'beta'));
 
         self::assertSame([], $page->entries);
         self::assertNull($page->nextCursor);
@@ -117,7 +117,7 @@ final class CursorPaginatorTest extends TestCase
     {
         $entries = ['alpha' => new \stdClass(), 'beta' => new \stdClass()];
 
-        $page = new CursorPaginator(50)->paginate($entries, null);
+        $page = (new CursorPaginator(50))->paginate($entries, null);
 
         self::assertSame([0, 1], array_keys($page->entries));
     }
@@ -127,6 +127,6 @@ final class CursorPaginatorTest extends TestCase
         $this->expectException(InvalidCursorException::class);
         $this->expectExceptionMessageIs('Cursor "missing" does not match any registered entry.');
 
-        new CursorPaginator(50)->paginate(['alpha' => new \stdClass()], new Cursor(cursor: 'missing'));
+        (new CursorPaginator(50))->paginate(['alpha' => new \stdClass()], new Cursor(cursor: 'missing'));
     }
 }

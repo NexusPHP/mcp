@@ -17,9 +17,9 @@ use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Auth\ProtectedResourceMetadata;
 use Nexus\Mcp\Core\Auth\ResourceIdentifier;
 use Nexus\Mcp\Core\Auth\ScopeSet;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -27,7 +27,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ProtectedResourceMetadata::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class ProtectedResourceMetadataTest extends TestCase
+final class ProtectedResourceMetadataTest extends AbstractMcpTestCase
 {
     public function testFromArrayReadsTheFullDocument(): void
     {

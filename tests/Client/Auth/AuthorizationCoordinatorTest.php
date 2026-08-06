@@ -38,13 +38,13 @@ use Nexus\Mcp\Client\Exception\TokenRequestFailedException;
 use Nexus\Mcp\Core\Auth\ResourceIdentifier;
 use Nexus\Mcp\Core\Auth\ScopeSet;
 use Nexus\Mcp\Core\Auth\WwwAuthenticateChallenge;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Client\Auth\ScriptedGrantStrategy;
 use Nexus\Mcp\Tests\Fixtures\Client\Auth\ScriptedUserAuthorization;
 use Nexus\Mcp\Tests\Fixtures\Client\Http\RecordingHttpClient;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 use Psr\Log\LogLevel;
 use Revolt\EventLoop;
 
@@ -57,7 +57,7 @@ use function Amp\delay;
 #[CoversClass(AuthorizationCoordinator::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class AuthorizationCoordinatorTest extends TestCase
+final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
 {
     private const string RESOURCE = 'https://mcp.example.com/mcp';
     private const string ISSUER = 'https://auth.example.com';
@@ -306,7 +306,7 @@ final class AuthorizationCoordinatorTest extends TestCase
     {
         $store = new InMemoryTokenStore();
         $store->write(self::RESOURCE, new AccessToken('from-an-earlier-run', self::ISSUER));
-        $http = new RecordingHttpClient()
+        $http = (new RecordingHttpClient())
             // The well-known probes miss, so the stored token cannot be checked and is not presented.
             ->willAnswerJson([], 404)
             ->willAnswerJson([], 404)
@@ -444,7 +444,7 @@ final class AuthorizationCoordinatorTest extends TestCase
     public function testConcurrentAuthorizationsRunOneFlowAndPromptOnce(): void
     {
         $gate = new DeferredFuture();
-        $http = new RecordingHttpClient()
+        $http = (new RecordingHttpClient())
             ->willAnswerJson(self::resourceDocument(), gate: $gate->getFuture())
             ->willAnswerJson(self::serverDocument())
             ->willAnswerJson(['client_id' => 'the-registered-client'])
@@ -466,7 +466,7 @@ final class AuthorizationCoordinatorTest extends TestCase
     public function testAQueuedCallerGivesUpAtItsOwnDeadlineRatherThanTheFlowAheadOfIt(): void
     {
         $gate = new DeferredFuture();
-        $http = new RecordingHttpClient()
+        $http = (new RecordingHttpClient())
             ->willAnswerJson(self::resourceDocument(), gate: $gate->getFuture())
             ->willAnswerJson(self::serverDocument())
             ->willAnswerJson(['client_id' => 'the-registered-client'])
@@ -500,7 +500,7 @@ final class AuthorizationCoordinatorTest extends TestCase
     public function testACallerThatGaveUpWaitingStillHandsTheLockToTheNextInLine(): void
     {
         $gate = new DeferredFuture();
-        $http = new RecordingHttpClient()
+        $http = (new RecordingHttpClient())
             ->willAnswerJson(self::resourceDocument(), gate: $gate->getFuture())
             ->willAnswerJson(self::serverDocument())
             ->willAnswerJson(['client_id' => 'the-registered-client'])
@@ -776,7 +776,7 @@ final class AuthorizationCoordinatorTest extends TestCase
     {
         $store = new InMemoryTokenStore();
         $store->write(self::RESOURCE, new AccessToken('from-an-earlier-run', self::ISSUER, time() + 1, 'the-refresh-token'));
-        $http = new RecordingHttpClient()->willAnswerJson([], 404)->willAnswerJson([], 404);
+        $http = (new RecordingHttpClient())->willAnswerJson([], 404)->willAnswerJson([], 404);
         $logger = new ArrayLogger();
 
         $coordinator = self::coordinator($http, new ScriptedUserAuthorization(), $store, $logger);
@@ -799,7 +799,7 @@ final class AuthorizationCoordinatorTest extends TestCase
     {
         $gate = new DeferredFuture();
         $other = 'https://other.example.com/mcp';
-        $theirHttp = new RecordingHttpClient()
+        $theirHttp = (new RecordingHttpClient())
             // Theirs parks on its own metadata, which must not hold ours up.
             ->willAnswerJson(['resource' => $other, 'authorization_servers' => [self::ISSUER]], gate: $gate->getFuture())
             ->willAnswerJson(self::serverDocument())
@@ -1115,7 +1115,7 @@ final class AuthorizationCoordinatorTest extends TestCase
 
     private static function scriptDiscoveryOnly(): RecordingHttpClient
     {
-        return new RecordingHttpClient()
+        return (new RecordingHttpClient())
             ->willAnswerJson(self::resourceDocument())
             ->willAnswerJson(self::serverDocument())
         ;
@@ -1162,7 +1162,7 @@ final class AuthorizationCoordinatorTest extends TestCase
         array $serverOverrides = [],
         array $tokenOverrides = [],
     ): RecordingHttpClient {
-        return new RecordingHttpClient()
+        return (new RecordingHttpClient())
             ->willAnswerJson(self::resourceDocument($resourceOverrides))
             ->willAnswerJson(self::serverDocument($serverOverrides))
             ->willAnswerJson(['client_id' => 'the-registered-client'])

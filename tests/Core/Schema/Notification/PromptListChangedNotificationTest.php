@@ -18,9 +18,9 @@ use Nexus\Mcp\Core\Schema\MetaObject\NotificationMetaObject;
 use Nexus\Mcp\Core\Schema\Notification;
 use Nexus\Mcp\Core\Schema\Notification\PromptListChangedNotification;
 use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -30,7 +30,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(Notification::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class PromptListChangedNotificationTest extends TestCase
+final class PromptListChangedNotificationTest extends AbstractMcpTestCase
 {
     public function testDefaultsToBaseNotificationParamsWithNullMeta(): void
     {

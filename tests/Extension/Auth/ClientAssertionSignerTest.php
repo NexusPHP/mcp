@@ -17,9 +17,9 @@ use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Nexus\Mcp\Extension\Auth\ClientAssertionSigner;
 use Nexus\Mcp\Extension\Auth\ClientCredentials\PrivateKeyJwtCredential;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -27,7 +27,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ClientAssertionSigner::class)]
 #[Group('unit-tests')]
 #[Group('extension-tests')]
-final class ClientAssertionSignerTest extends TestCase
+final class ClientAssertionSignerTest extends AbstractMcpTestCase
 {
     public function testSignsAnAssertionNamingTheClientAsIssuerAndSubject(): void
     {

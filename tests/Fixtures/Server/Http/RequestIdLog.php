@@ -23,7 +23,7 @@ final class RequestIdLog
     /**
      * @var list<int>
      */
-    public private(set) array $ids = [];
+    public array $ids = [];
 
     public function record(int $id): void
     {

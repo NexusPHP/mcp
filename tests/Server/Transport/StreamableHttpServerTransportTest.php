@@ -44,6 +44,7 @@ use Nexus\Mcp\Server\ServerBuilder;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Server\Transport\Http\ResponseMode;
 use Nexus\Mcp\Server\Transport\StreamableHttpServerTransport;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureRequestHandler;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
@@ -52,7 +53,6 @@ use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LogLevel;
@@ -66,7 +66,7 @@ use function Amp\delay;
 #[CoversClass(StreamableHttpServerTransport::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class StreamableHttpServerTransportTest extends TestCase
+final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
 {
     public function testNonPostReturns405WithAllowHeader(): void
     {
@@ -609,7 +609,7 @@ final class StreamableHttpServerTransportTest extends TestCase
     {
         // A handler that raises the same -32602 code as the envelope-level case above, but from execution,
         // so it rides HTTP 200 with the JSON-RPC error in the body.
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->replaceRequestHandler('server/discover', new ClosureRequestHandler(
                 static fn() => throw new InvalidParamsException(null, 'invalid tool arguments'),
@@ -631,7 +631,7 @@ final class StreamableHttpServerTransportTest extends TestCase
 
     public function testHandlerExceptionRidesHttp200AsInternalError(): void
     {
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->replaceRequestHandler('server/discover', new ClosureRequestHandler(
                 static fn() => throw new \RuntimeException('handler boom'),
@@ -654,7 +654,7 @@ final class StreamableHttpServerTransportTest extends TestCase
     public function testRequestHandlerReceivesTheOriginatingHttpRequest(): void
     {
         $captured = null;
-        $server = new ServerBuilder()
+        $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->replaceRequestHandler('server/discover', new ClosureRequestHandler(
                 static function (JsonRpcRequest $request, AbstractContext $context) use (&$captured): Result {
@@ -739,7 +739,7 @@ final class StreamableHttpServerTransportTest extends TestCase
     {
         // The one path where the in-flight cap meets the status resolver end to end.
         $transport = self::makeTransport(start: false);
-        self::listen($transport, new ServerBuilder()
+        self::listen($transport, (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->setMaxInFlightDispatches(1)
             ->replaceRequestHandler(
@@ -795,7 +795,7 @@ final class StreamableHttpServerTransportTest extends TestCase
     public function testNonPostIsAnsweredEvenWhenTheEndpointIsNotAccepting(): void
     {
         // The method check is pure HTTP and does not depend on the transport serving MCP traffic.
-        $response = self::makeTransport(start: false)->handle(new Psr17Factory()->createServerRequest('GET', 'https://mcp.test/'));
+        $response = self::makeTransport(start: false)->handle((new Psr17Factory())->createServerRequest('GET', 'https://mcp.test/'));
 
         self::assertSame(405, $response->getStatusCode());
     }
@@ -1172,7 +1172,7 @@ final class StreamableHttpServerTransportTest extends TestCase
 
     private static function listen(StreamableHttpServerTransport $transport, ?Server $server = null): void
     {
-        ($server ?? new ServerBuilder()->setServerInfo('demo', '1.0.0')->build())->listen($transport);
+        ($server ?? (new ServerBuilder())->setServerInfo('demo', '1.0.0')->build())->listen($transport);
     }
 
     /**
@@ -1233,7 +1233,7 @@ final class StreamableHttpServerTransportTest extends TestCase
      */
     private static function progressServer(float $busyFor = 0.0): Server
     {
-        return new ServerBuilder()
+        return (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->replaceRequestHandler('server/discover', new ClosureRequestHandler(
                 static function (JsonRpcRequest $request, AbstractContext $context) use ($busyFor): Result {

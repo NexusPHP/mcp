@@ -16,9 +16,9 @@ namespace Nexus\Mcp\Tests\Server\Auth;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Nexus\Mcp\Server\Auth\JwksAccessTokenValidator;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -26,7 +26,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(JwksAccessTokenValidator::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class JwksAccessTokenValidatorTest extends TestCase
+final class JwksAccessTokenValidatorTest extends AbstractMcpTestCase
 {
     private const string SECRET = 'a-shared-test-secret-that-is-32b-plus';
     private const string KID = 'test-key';

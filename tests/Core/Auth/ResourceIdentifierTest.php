@@ -14,10 +14,10 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Auth;
 
 use Nexus\Mcp\Core\Auth\ResourceIdentifier;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -25,12 +25,12 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ResourceIdentifier::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class ResourceIdentifierTest extends TestCase
+final class ResourceIdentifierTest extends AbstractMcpTestCase
 {
     #[DataProvider('provideCanonicalisationCases')]
     public function testCanonicalisation(string $uri, string $expected): void
     {
-        self::assertSame($expected, new ResourceIdentifier($uri)->value);
+        self::assertSame($expected, (new ResourceIdentifier($uri))->value);
     }
 
     /**
@@ -107,7 +107,7 @@ final class ResourceIdentifierTest extends TestCase
     #[DataProvider('provideMatchesAudienceCases')]
     public function testMatchesAudience(array $audience, bool $expected): void
     {
-        self::assertSame($expected, new ResourceIdentifier('https://mcp.example.com/mcp')->matchesAudience($audience));
+        self::assertSame($expected, (new ResourceIdentifier('https://mcp.example.com/mcp'))->matchesAudience($audience));
     }
 
     /**
@@ -143,7 +143,7 @@ final class ResourceIdentifierTest extends TestCase
     #[DataProvider('provideSharesOriginWithCases')]
     public function testSharesOriginWith(string $uri, bool $expected): void
     {
-        self::assertSame($expected, new ResourceIdentifier('https://mcp.example.com/mcp')->sharesOriginWith($uri));
+        self::assertSame($expected, (new ResourceIdentifier('https://mcp.example.com/mcp'))->sharesOriginWith($uri));
     }
 
     /**
@@ -173,7 +173,7 @@ final class ResourceIdentifierTest extends TestCase
     #[DataProvider('provideTheOriginIsExposedCases')]
     public function testTheOriginIsExposed(string $uri, string $origin): void
     {
-        self::assertSame($origin, new ResourceIdentifier($uri)->origin);
+        self::assertSame($origin, (new ResourceIdentifier($uri))->origin);
     }
 
     /**

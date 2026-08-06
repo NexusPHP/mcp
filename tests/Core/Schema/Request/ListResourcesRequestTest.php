@@ -21,11 +21,11 @@ use Nexus\Mcp\Core\Schema\Request\ListResourcesRequest;
 use Nexus\Mcp\Core\Schema\Request\PaginatedRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\PaginatedRequestParams;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -36,7 +36,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(Request::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class ListResourcesRequestTest extends TestCase
+final class ListResourcesRequestTest extends AbstractMcpTestCase
 {
     public function testMethodIsResourcesList(): void
     {

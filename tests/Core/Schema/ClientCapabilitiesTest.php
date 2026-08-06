@@ -15,10 +15,10 @@ namespace Nexus\Mcp\Tests\Core\Schema;
 
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\ClientCapabilities;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -26,7 +26,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ClientCapabilities::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class ClientCapabilitiesTest extends TestCase
+final class ClientCapabilitiesTest extends AbstractMcpTestCase
 {
     public function testMinimalConstructionAllFieldsNull(): void
     {
@@ -52,7 +52,7 @@ final class ClientCapabilitiesTest extends TestCase
 
     public function testToArrayMinimalIsEmpty(): void
     {
-        self::assertSame([], new ClientCapabilities()->toArray());
+        self::assertSame([], (new ClientCapabilities())->toArray());
     }
 
     public function testToArrayOmitsNullFields(): void

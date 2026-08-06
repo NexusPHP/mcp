@@ -14,13 +14,13 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Server\Transport\Http;
 
 use Nexus\Mcp\Server\Transport\Http\MiddlewarePipeline;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Server\Http\CallLog;
 use Nexus\Mcp\Tests\Fixtures\Server\Http\RecordingMiddleware;
 use Nexus\Mcp\Tests\Fixtures\Server\Http\RecordingRequestHandler;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 
@@ -30,13 +30,13 @@ use Psr\Http\Server\MiddlewareInterface;
 #[CoversClass(MiddlewarePipeline::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class MiddlewarePipelineTest extends TestCase
+final class MiddlewarePipelineTest extends AbstractMcpTestCase
 {
     public function testEmptyPipelineDelegatesToTheInnerHandler(): void
     {
         $handler = self::handler();
 
-        $response = new MiddlewarePipeline($handler)->handle(self::request());
+        $response = (new MiddlewarePipeline($handler))->handle(self::request());
 
         self::assertTrue($handler->called);
         self::assertSame(200, $response->getStatusCode());
@@ -47,7 +47,7 @@ final class MiddlewarePipelineTest extends TestCase
         $log = new CallLog();
         $handler = self::handler();
 
-        $response = new MiddlewarePipeline($handler, new RecordingMiddleware('a', $log))
+        $response = (new MiddlewarePipeline($handler, new RecordingMiddleware('a', $log)))
             ->handle(self::request())
         ;
 
@@ -61,11 +61,11 @@ final class MiddlewarePipelineTest extends TestCase
         $log = new CallLog();
         $handler = self::handler();
 
-        new MiddlewarePipeline(
+        (new MiddlewarePipeline(
             $handler,
             new RecordingMiddleware('a', $log),
             new RecordingMiddleware('b', $log),
-        )->handle(self::request());
+        ))->handle(self::request());
 
         self::assertSame(['a', 'b'], $log->labels);
         self::assertTrue($handler->called);
@@ -75,15 +75,15 @@ final class MiddlewarePipelineTest extends TestCase
     {
         $log = new CallLog();
         $handler = self::handler();
-        $preset = new Psr17Factory()->createResponse(418);
+        $preset = (new Psr17Factory())->createResponse(418);
         $shortCircuit = self::createStub(MiddlewareInterface::class);
         $shortCircuit->method('process')->willReturn($preset);
 
-        $response = new MiddlewarePipeline(
+        $response = (new MiddlewarePipeline(
             $handler,
             $shortCircuit,
             new RecordingMiddleware('never', $log),
-        )->handle(self::request());
+        ))->handle(self::request());
 
         self::assertSame(418, $response->getStatusCode());
         self::assertFalse($handler->called);
@@ -104,11 +104,11 @@ final class MiddlewarePipelineTest extends TestCase
 
     private static function handler(): RecordingRequestHandler
     {
-        return new RecordingRequestHandler(new Psr17Factory()->createResponse(200));
+        return new RecordingRequestHandler((new Psr17Factory())->createResponse(200));
     }
 
     private static function request(): ServerRequestInterface
     {
-        return new Psr17Factory()->createServerRequest('POST', 'https://mcp.test/');
+        return (new Psr17Factory())->createServerRequest('POST', 'https://mcp.test/');
     }
 }

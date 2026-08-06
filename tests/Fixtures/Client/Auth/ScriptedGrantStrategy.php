@@ -28,7 +28,7 @@ final class ScriptedGrantStrategy implements GrantStrategyInterface
     /**
      * @var list<GrantContext>
      */
-    public private(set) array $contexts = [];
+    public array $contexts = [];
 
     /**
      * @var list<AccessToken>

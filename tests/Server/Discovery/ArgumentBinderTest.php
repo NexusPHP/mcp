@@ -20,6 +20,7 @@ use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Server\Discovery\ArgumentBinder;
 use Nexus\Mcp\Server\Exception\UnsupportedNestedParameterException;
 use Nexus\Mcp\Server\ServerContext;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\BackedIntEnum;
@@ -31,7 +32,6 @@ use Nexus\Mcp\Tests\Fixtures\Server\Discovery\PureEnum;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\ReflectedHandlers;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -39,7 +39,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ArgumentBinder::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class ArgumentBinderTest extends TestCase
+final class ArgumentBinderTest extends AbstractMcpTestCase
 {
     private ArgumentBinder $binder;
 

@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Server\Transport\Http;
 
 use Nexus\Mcp\Server\Transport\Http\SseResponseStream;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 use Revolt\EventLoop;
 
 use function Amp\async;
@@ -27,7 +27,7 @@ use function Amp\async;
 #[CoversClass(SseResponseStream::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class SseResponseStreamTest extends TestCase
+final class SseResponseStreamTest extends AbstractMcpTestCase
 {
     public function testReadsAllPushedContentThenReportsEof(): void
     {
@@ -190,7 +190,7 @@ final class SseResponseStreamTest extends TestCase
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessageMatches('/^An SSE response body is not writable\.$/');
 
-        new SseResponseStream(60.0, static fn(): null => null)->write('nope');
+        (new SseResponseStream(60.0, static fn(): null => null))->write('nope');
     }
 
     public function testSeekThrows(): void
@@ -198,7 +198,7 @@ final class SseResponseStreamTest extends TestCase
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessageMatches('/^An SSE response body is not seekable\.$/');
 
-        new SseResponseStream(60.0, static fn(): null => null)->seek(0);
+        (new SseResponseStream(60.0, static fn(): null => null))->seek(0);
     }
 
     public function testRewindThrows(): void
@@ -206,7 +206,7 @@ final class SseResponseStreamTest extends TestCase
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessageMatches('/^An SSE response body is not seekable\.$/');
 
-        new SseResponseStream(60.0, static fn(): null => null)->rewind();
+        (new SseResponseStream(60.0, static fn(): null => null))->rewind();
     }
 
     public function testCloseEndsTheStreamAndInvokesTheCloseHook(): void

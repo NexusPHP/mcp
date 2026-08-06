@@ -15,9 +15,9 @@ namespace Nexus\Mcp\Tests\Core\Auth;
 
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Auth\AuthorizationServerMetadata;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -25,7 +25,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(AuthorizationServerMetadata::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class AuthorizationServerMetadataTest extends TestCase
+final class AuthorizationServerMetadataTest extends AbstractMcpTestCase
 {
     public function testFromArrayReadsTheFullDocument(): void
     {

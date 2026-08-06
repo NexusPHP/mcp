@@ -18,9 +18,9 @@ use Nexus\Mcp\Core\Schema\Annotations;
 use Nexus\Mcp\Extension\Apps\Schema\UiResourceCsp;
 use Nexus\Mcp\Extension\Apps\Schema\UiResourceMeta;
 use Nexus\Mcp\Extension\Apps\Server\UiResource;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -28,7 +28,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(UiResource::class)]
 #[Group('unit-tests')]
 #[Group('extension-tests')]
-final class UiResourceTest extends TestCase
+final class UiResourceTest extends AbstractMcpTestCase
 {
     public function testComposesAResourceBoundToTheUiProfile(): void
     {
@@ -63,7 +63,7 @@ final class UiResourceTest extends TestCase
 
     public function testOmitsTheMetaSlotWithoutUiMeta(): void
     {
-        $resource = new UiResource(name: 'panel', uri: 'ui://demo/panel')->resource;
+        $resource = (new UiResource(name: 'panel', uri: 'ui://demo/panel'))->resource;
 
         self::assertSame([], $resource->meta->extras);
         self::assertSame('text/html;profile=mcp-app', $resource->mimeType);
@@ -71,7 +71,7 @@ final class UiResourceTest extends TestCase
 
     public function testOmitsTheMetaSlotForAnEmptyUiMeta(): void
     {
-        $resource = new UiResource(name: 'panel', uri: 'ui://demo/panel', uiMeta: new UiResourceMeta())->resource;
+        $resource = (new UiResource(name: 'panel', uri: 'ui://demo/panel', uiMeta: new UiResourceMeta()))->resource;
 
         self::assertSame([], $resource->meta->extras);
     }
@@ -79,12 +79,12 @@ final class UiResourceTest extends TestCase
     public function testPassesTheOptionalResourceFieldsThrough(): void
     {
         $annotations = new Annotations(priority: 0.5);
-        $resource = new UiResource(
+        $resource = (new UiResource(
             name: 'panel',
             uri: 'ui://demo/panel',
             annotations: $annotations,
             size: 2_048,
-        )->resource;
+        ))->resource;
 
         self::assertSame($annotations, $resource->annotations);
         self::assertSame(2_048, $resource->size);

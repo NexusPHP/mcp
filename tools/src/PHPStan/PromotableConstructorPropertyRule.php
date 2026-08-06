@@ -125,7 +125,7 @@ final class PromotableConstructorPropertyRule implements Rule
     {
         $names = [];
 
-        foreach (new NodeFinder()->findInstanceOf($constructor->stmts ?? [], Node\Expr\Assign::class) as $assign) {
+        foreach ((new NodeFinder())->findInstanceOf($constructor->stmts ?? [], Node\Expr\Assign::class) as $assign) {
             if ($assign->var instanceof Node\Expr\Variable && \is_string($assign->var->name)) {
                 $names[$assign->var->name] = true;
             }
@@ -143,7 +143,7 @@ final class PromotableConstructorPropertyRule implements Rule
     {
         $names = [];
 
-        foreach (new NodeFinder()->findInstanceOf($constructor->stmts ?? [], Node\Expr\Assign::class) as $assign) {
+        foreach ((new NodeFinder())->findInstanceOf($constructor->stmts ?? [], Node\Expr\Assign::class) as $assign) {
             if (! $assign->var instanceof Node\Expr\PropertyFetch
                 || ! $assign->var->var instanceof Node\Expr\Variable
                 || 'this' !== $assign->var->var->name

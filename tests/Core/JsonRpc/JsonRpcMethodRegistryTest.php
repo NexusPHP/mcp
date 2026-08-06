@@ -16,9 +16,9 @@ namespace Nexus\Mcp\Tests\Core\JsonRpc;
 use Nexus\Mcp\Core\JsonRpc\JsonRpcMethodRegistry;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -26,7 +26,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(JsonRpcMethodRegistry::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class JsonRpcMethodRegistryTest extends TestCase
+final class JsonRpcMethodRegistryTest extends AbstractMcpTestCase
 {
     public function testRequestsBindEachMethodLiteralToItsClass(): void
     {
@@ -129,7 +129,7 @@ final class JsonRpcMethodRegistryTest extends TestCase
                 continue;
             }
 
-            if (new \ReflectionClass($class)->isAbstract()) {
+            if ((new \ReflectionClass($class))->isAbstract()) {
                 continue;
             }
 

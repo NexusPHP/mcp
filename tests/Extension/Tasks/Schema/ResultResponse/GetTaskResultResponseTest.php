@@ -16,9 +16,9 @@ namespace Nexus\Mcp\Tests\Extension\Tasks\Schema\ResultResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Extension\Tasks\Schema\Enum\TaskStatus;
 use Nexus\Mcp\Extension\Tasks\Schema\ResultResponse\GetTaskResultResponse;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -27,7 +27,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(JsonRpcResultResponse::class)]
 #[Group('unit-tests')]
 #[Group('extension-tests')]
-final class GetTaskResultResponseTest extends TestCase
+final class GetTaskResultResponseTest extends AbstractMcpTestCase
 {
     public function testDecodesTheTaskState(): void
     {

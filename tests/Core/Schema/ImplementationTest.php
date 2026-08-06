@@ -17,9 +17,9 @@ use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\BaseMetadata;
 use Nexus\Mcp\Core\Schema\Icon;
 use Nexus\Mcp\Core\Schema\Implementation;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -28,7 +28,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(BaseMetadata::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class ImplementationTest extends TestCase
+final class ImplementationTest extends AbstractMcpTestCase
 {
     public function testMinimalConstructionExposesNameAndVersion(): void
     {

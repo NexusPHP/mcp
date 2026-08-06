@@ -22,11 +22,11 @@ use Nexus\Mcp\Core\Schema\ProgressToken;
 use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -34,7 +34,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(RequestBoundSender::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class RequestBoundSenderTest extends TestCase
+final class RequestBoundSenderTest extends AbstractMcpTestCase
 {
     public function testSendNotificationDelegatesToTransportWithRelatedRequestIdContext(): void
     {

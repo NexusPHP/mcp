@@ -17,13 +17,13 @@ use Nexus\Mcp\Core\Exception\OutboundRequestsNotSupportedException;
 use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Extension\Tasks\Server\DetachedTaskSender;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use Nexus\Mcp\Tests\Fixtures\Core\TestClientRequest;
 use Nexus\Mcp\Tests\Fixtures\Core\TestNotification;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 use Psr\Log\LogLevel;
 
 /**
@@ -32,7 +32,7 @@ use Psr\Log\LogLevel;
 #[CoversClass(DetachedTaskSender::class)]
 #[Group('unit-tests')]
 #[Group('extension-tests')]
-final class DetachedTaskSenderTest extends TestCase
+final class DetachedTaskSenderTest extends AbstractMcpTestCase
 {
     public function testDropsNotificationsWithADebugLog(): void
     {

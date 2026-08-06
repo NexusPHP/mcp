@@ -16,9 +16,9 @@ namespace Nexus\Mcp\Tests\Server;
 use Nexus\Mcp\Core\Schema\Icon;
 use Nexus\Mcp\Core\Schema\Implementation;
 use Nexus\Mcp\Server\ServerInfoDisclosure;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -26,7 +26,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ServerInfoDisclosure::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class ServerInfoDisclosureTest extends TestCase
+final class ServerInfoDisclosureTest extends AbstractMcpTestCase
 {
     public function testFullProjectsTheIdentityUnchanged(): void
     {

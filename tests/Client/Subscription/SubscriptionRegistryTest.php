@@ -21,9 +21,9 @@ use Nexus\Mcp\Core\Schema\Notification\ToolListChangedNotification;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result\SubscriptionsListenResult;
 use Nexus\Mcp\Core\Schema\SubscriptionFilter;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -31,7 +31,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(SubscriptionRegistry::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class SubscriptionRegistryTest extends TestCase
+final class SubscriptionRegistryTest extends AbstractMcpTestCase
 {
     public function testUnknownIdHasNoSubscription(): void
     {
@@ -89,7 +89,7 @@ final class SubscriptionRegistryTest extends TestCase
 
     public function testAllIsEmptyOnAFreshRegistry(): void
     {
-        self::assertSame([], new SubscriptionRegistry()->all());
+        self::assertSame([], (new SubscriptionRegistry())->all());
     }
 
     public function testReregisteringAnIdReplacesTheSubscription(): void
@@ -117,7 +117,7 @@ final class SubscriptionRegistryTest extends TestCase
 
     public function testDrainingAnEmptyRegistryReturnsNothing(): void
     {
-        self::assertSame([], new SubscriptionRegistry()->drain());
+        self::assertSame([], (new SubscriptionRegistry())->drain());
     }
 
     public function testAnIntIdAndItsStringSpellingAreDistinct(): void

@@ -17,10 +17,10 @@ use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequestedSchema;
 use Nexus\Mcp\Core\Schema\Elicitation\StringSchema;
 use Nexus\Mcp\Core\Schema\RequestParams\ElicitRequestFormParams;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -28,7 +28,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ElicitRequestFormParams::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class ElicitRequestFormParamsTest extends TestCase
+final class ElicitRequestFormParamsTest extends AbstractMcpTestCase
 {
     public function testConstructionMinimal(): void
     {

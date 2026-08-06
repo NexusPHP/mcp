@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Client\Exception;
 
 use Nexus\Mcp\Client\Exception\AuthorizationDiscoveryFailedException;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -24,17 +24,17 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(AuthorizationDiscoveryFailedException::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class AuthorizationDiscoveryFailedExceptionTest extends TestCase
+final class AuthorizationDiscoveryFailedExceptionTest extends AbstractMcpTestCase
 {
     public function testMessageListsEveryProbedUrl(): void
     {
         self::assertSame(
             'No protected resource metadata was served for "https://mcp.example.com". Probed: https://a.example, https://b.example.',
-            new AuthorizationDiscoveryFailedException(
+            (new AuthorizationDiscoveryFailedException(
                 'protected resource metadata',
                 'https://mcp.example.com',
                 ['https://a.example', 'https://b.example'],
-            )->getMessage(),
+            ))->getMessage(),
         );
     }
 }

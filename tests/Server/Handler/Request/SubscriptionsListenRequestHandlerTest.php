@@ -24,11 +24,11 @@ use Nexus\Mcp\Core\Transport\ReceiveContext;
 use Nexus\Mcp\Server\Handler\Request\SubscriptionsListenRequestHandler;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Server\Subscription\SubscriptionStore;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 use function Amp\async;
 use function Amp\delay;
@@ -39,7 +39,7 @@ use function Amp\delay;
 #[CoversClass(SubscriptionsListenRequestHandler::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class SubscriptionsListenRequestHandlerTest extends TestCase
+final class SubscriptionsListenRequestHandlerTest extends AbstractMcpTestCase
 {
     public function testHoldsTheRequestOpenUntilTheStreamIsTornDown(): void
     {

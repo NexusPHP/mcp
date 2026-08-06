@@ -82,7 +82,7 @@ $connect = static function (string $serverUrl): Client {
     // The URL arrives from argv, so this is the boundary where it earns its type.
     Assert::that($serverUrl)->isNonEmptyString('The conformance runner must supply a server URL.');
 
-    $client = new ClientBuilder()
+    $client = (new ClientBuilder())
         ->setLogger(new PsrLogger())
         ->setClientInfo(name: 'nexus-mcp-conformance-client', version: '1.0.0')
         ->build()
@@ -340,7 +340,7 @@ $runAuthorized = static function (
     // The URL arrives from argv, so this is the boundary where it earns its type.
     Assert::that($serverUrl)->isNonEmptyString('The conformance runner must supply a server URL.');
 
-    $builder = new ClientBuilder()
+    $builder = (new ClientBuilder())
         ->setLogger(new PsrLogger())
         ->setClientInfo(name: 'nexus-mcp-conformance-client', version: '1.0.0')
     ;
@@ -588,7 +588,7 @@ try {
 
     // The refusal is this scenario's pass condition, so it exits non-zero without the
     // stack trace the uncaught-exception handler would print for a genuine failure.
-    new PsrLogger()->notice(
+    (new PsrLogger())->notice(
         'The client refused, as this scenario expects: {message}',
         ['message' => $refusal->getMessage()],
     );

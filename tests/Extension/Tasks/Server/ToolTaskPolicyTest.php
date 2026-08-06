@@ -15,9 +15,9 @@ namespace Nexus\Mcp\Tests\Extension\Tasks\Server;
 
 use Nexus\Mcp\Extension\Tasks\Server\TaskSupport;
 use Nexus\Mcp\Extension\Tasks\Server\ToolTaskPolicy;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -25,7 +25,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ToolTaskPolicy::class)]
 #[Group('unit-tests')]
 #[Group('extension-tests')]
-final class ToolTaskPolicyTest extends TestCase
+final class ToolTaskPolicyTest extends AbstractMcpTestCase
 {
     public function testDefaultsToNotResolvingInputFirst(): void
     {

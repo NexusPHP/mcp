@@ -15,10 +15,10 @@ namespace Nexus\Mcp\Tests\Core\Validation;
 
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Validation\Rfc6570UriTemplateValidator;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -26,7 +26,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(Rfc6570UriTemplateValidator::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class Rfc6570UriTemplateValidatorTest extends TestCase
+final class Rfc6570UriTemplateValidatorTest extends AbstractMcpTestCase
 {
     /**
      * @param non-empty-string $uriTemplate

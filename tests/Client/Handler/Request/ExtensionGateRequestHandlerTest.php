@@ -21,12 +21,12 @@ use Nexus\Mcp\Core\Exception\MethodNotFoundException;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Core\Schema\ServerCapabilities;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureRequestHandler;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use Nexus\Mcp\Tests\Fixtures\Core\TestRequest;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -34,7 +34,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ExtensionGateRequestHandler::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class ExtensionGateRequestHandlerTest extends TestCase
+final class ExtensionGateRequestHandlerTest extends AbstractMcpTestCase
 {
     public function testServesBeforeDiscovery(): void
     {

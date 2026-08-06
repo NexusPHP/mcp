@@ -73,7 +73,7 @@ function prefixCompletion(array $candidates): Closure
 
 [$serverSide, $clientSide] = InMemoryTransport::createPair();
 
-$server = new ServerBuilder()
+$server = (new ServerBuilder())
     ->setLogger(new PsrLogger())
     ->setServerInfo(name: 'nexus-completions-example', version: '0.1.0')
     ->addResourceTemplate(
@@ -124,7 +124,7 @@ $server = new ServerBuilder()
     ->build()
 ;
 
-$client = new ClientBuilder()
+$client = (new ClientBuilder())
     ->setLogger(new NullLogger())
     ->setClientInfo(name: 'nexus-completions-example-client', version: '0.1.0')
     ->build()

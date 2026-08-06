@@ -16,10 +16,10 @@ namespace Nexus\Mcp\Tests\Core\Http;
 use Nexus\Mcp\Core\Exception\ResponseTooLargeException;
 use Nexus\Mcp\Core\Http\SseFrame;
 use Nexus\Mcp\Core\Http\SseFrameParser;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -27,7 +27,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(SseFrameParser::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class SseFrameParserTest extends TestCase
+final class SseFrameParserTest extends AbstractMcpTestCase
 {
     /**
      * @param list<array{string, string}> $expected
@@ -35,7 +35,7 @@ final class SseFrameParserTest extends TestCase
     #[DataProvider('provideParsesAWholeStreamCases')]
     public function testParsesAWholeStream(string $stream, array $expected): void
     {
-        self::assertSame($expected, self::flatten(new SseFrameParser()->feed($stream)));
+        self::assertSame($expected, self::flatten((new SseFrameParser())->feed($stream)));
     }
 
     /**
@@ -102,7 +102,7 @@ final class SseFrameParserTest extends TestCase
     {
         // The spec has servers emit a comment line as a keep-alive, and clients must not treat it as
         // malformed input or dispatch it as an event.
-        self::assertSame($expected, self::flatten(new SseFrameParser()->feed($stream)));
+        self::assertSame($expected, self::flatten((new SseFrameParser())->feed($stream)));
     }
 
     /**
@@ -216,7 +216,7 @@ final class SseFrameParserTest extends TestCase
     public function testAnUnterminatedTrailingFrameIsNotDispatched(): void
     {
         // The stream ended mid-frame, so there is nothing to hand the caller.
-        self::assertSame([], self::flatten(new SseFrameParser()->feed("event: message\ndata: truncated\n")));
+        self::assertSame([], self::flatten((new SseFrameParser())->feed("event: message\ndata: truncated\n")));
     }
 
     /**

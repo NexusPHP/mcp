@@ -15,9 +15,9 @@ namespace Nexus\Mcp\Tests\Extension\Auth\ClientCredentials;
 
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Extension\Auth\ClientCredentials\ClientSecretCredential;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -25,7 +25,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ClientSecretCredential::class)]
 #[Group('unit-tests')]
 #[Group('extension-tests')]
-final class ClientSecretCredentialTest extends TestCase
+final class ClientSecretCredentialTest extends AbstractMcpTestCase
 {
     public function testItCarriesTheCredentialPair(): void
     {

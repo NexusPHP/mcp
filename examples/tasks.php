@@ -53,7 +53,7 @@ use function Amp\delay;
 
 [$serverSide, $clientSide] = InMemoryTransport::createPair();
 
-$server = new ServerBuilder()
+$server = (new ServerBuilder())
     ->setServerInfo(name: 'nexus-tasks-example', version: '0.1.0')
     ->addTool(
         new Tool(
@@ -108,7 +108,7 @@ $server = new ServerBuilder()
     ->build()
 ;
 
-$client = new ClientBuilder()
+$client = (new ClientBuilder())
     ->setClientInfo(name: 'nexus-tasks-example-client', version: '0.1.0')
     ->enableExtension(new TasksClientExtension())
     ->build()

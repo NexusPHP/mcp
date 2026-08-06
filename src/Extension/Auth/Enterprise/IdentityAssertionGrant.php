@@ -61,13 +61,13 @@ final readonly class IdentityAssertionGrant implements GrantStrategyInterface
         self::verifyAdvertisedSupport($server, $context->logger);
         $registration = self::resolveRegistration($context, $cancellation);
 
-        $idJag = new IdentityAssertionExchanger(
+        $idJag = (new IdentityAssertionExchanger(
             $this->idpTokenEndpoint,
             $context->httpClient,
             $this->idpClientId,
             $context->options->timeout,
             $this->allowInsecureLoopback,
-        )->exchangeForGrant(
+        ))->exchangeForGrant(
             $this->assertions->provideAssertion($cancellation),
             $server->issuer,
             $context->resource,

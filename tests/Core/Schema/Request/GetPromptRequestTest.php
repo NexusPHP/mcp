@@ -19,11 +19,11 @@ use Nexus\Mcp\Core\Schema\Request;
 use Nexus\Mcp\Core\Schema\Request\GetPromptRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\GetPromptRequestParams;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -33,7 +33,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(Request::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class GetPromptRequestTest extends TestCase
+final class GetPromptRequestTest extends AbstractMcpTestCase
 {
     public function testMethodIsPromptsGet(): void
     {

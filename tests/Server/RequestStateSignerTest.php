@@ -15,10 +15,10 @@ namespace Nexus\Mcp\Tests\Server;
 
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Server\RequestStateSigner;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -26,7 +26,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(RequestStateSigner::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class RequestStateSignerTest extends TestCase
+final class RequestStateSignerTest extends AbstractMcpTestCase
 {
     public function testVerifyReturnsThePayloadItSigned(): void
     {
@@ -59,7 +59,7 @@ final class RequestStateSignerTest extends TestCase
     #[DataProvider('provideVerifyRejectsATamperedStateCases')]
     public function testVerifyRejectsATamperedState(string $state): void
     {
-        self::assertNull(new RequestStateSigner('secret')->verify($state));
+        self::assertNull((new RequestStateSigner('secret'))->verify($state));
     }
 
     /**
@@ -80,14 +80,14 @@ final class RequestStateSignerTest extends TestCase
 
         yield 'signature emptied' => ['round-1.'];
 
-        yield 'signed by another secret' => [new RequestStateSigner('other')->sign('round-1')];
+        yield 'signed by another secret' => [(new RequestStateSigner('other'))->sign('round-1')];
     }
 
     public function testTwoSecretsDoNotVerifyEachOther(): void
     {
         $mine = new RequestStateSigner('mine');
 
-        self::assertNull($mine->verify(new RequestStateSigner('yours')->sign('round-1')));
+        self::assertNull($mine->verify((new RequestStateSigner('yours'))->sign('round-1')));
     }
 
     public function testAGeneratedSignerVerifiesItsOwnState(): void
@@ -109,7 +109,7 @@ final class RequestStateSignerTest extends TestCase
         $signer = new RequestStateSigner('secret', 'sha512');
 
         self::assertSame('round-1', $signer->verify($signer->sign('round-1')));
-        self::assertNull(new RequestStateSigner('secret')->verify($signer->sign('round-1')));
+        self::assertNull((new RequestStateSigner('secret'))->verify($signer->sign('round-1')));
     }
 
     public function testConstructorRejectsAnEmptySecret(): void

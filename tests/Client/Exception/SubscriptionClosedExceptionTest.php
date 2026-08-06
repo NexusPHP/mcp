@@ -15,9 +15,9 @@ namespace Nexus\Mcp\Tests\Client\Exception;
 
 use Nexus\Mcp\Client\Exception\SubscriptionClosedException;
 use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -25,7 +25,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(SubscriptionClosedException::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class SubscriptionClosedExceptionTest extends TestCase
+final class SubscriptionClosedExceptionTest extends AbstractMcpTestCase
 {
     public function testRendersTheSubscriptionIdIntoMessage(): void
     {

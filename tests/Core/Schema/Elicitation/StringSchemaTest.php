@@ -15,10 +15,10 @@ namespace Nexus\Mcp\Tests\Core\Schema\Elicitation;
 
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Elicitation\StringSchema;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -26,7 +26,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(StringSchema::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class StringSchemaTest extends TestCase
+final class StringSchemaTest extends AbstractMcpTestCase
 {
     public function testConstructionMinimal(): void
     {
@@ -42,7 +42,7 @@ final class StringSchemaTest extends TestCase
 
     public function testToArrayMinimal(): void
     {
-        self::assertSame(['type' => 'string'], new StringSchema()->toArray());
+        self::assertSame(['type' => 'string'], (new StringSchema())->toArray());
     }
 
     public function testToArrayWithAllFields(): void
@@ -149,7 +149,7 @@ final class StringSchemaTest extends TestCase
     #[DataProvider('provideConstructorAcceptsKnownFormatCases')]
     public function testConstructorAcceptsKnownFormat(string $format): void
     {
-        self::assertSame($format, new StringSchema(format: $format)->format);
+        self::assertSame($format, (new StringSchema(format: $format))->format);
     }
 
     /**

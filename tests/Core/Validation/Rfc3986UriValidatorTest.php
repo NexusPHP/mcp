@@ -15,10 +15,10 @@ namespace Nexus\Mcp\Tests\Core\Validation;
 
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Validation\Rfc3986UriValidator;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -26,7 +26,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(Rfc3986UriValidator::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class Rfc3986UriValidatorTest extends TestCase
+final class Rfc3986UriValidatorTest extends AbstractMcpTestCase
 {
     /**
      * @param non-empty-string $uri

@@ -19,9 +19,9 @@ use Nexus\Mcp\Core\Schema\Notification;
 use Nexus\Mcp\Core\Schema\Notification\CancelledNotification;
 use Nexus\Mcp\Core\Schema\NotificationParams\CancelledNotificationParams;
 use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -31,7 +31,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(Notification::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class CancelledNotificationTest extends TestCase
+final class CancelledNotificationTest extends AbstractMcpTestCase
 {
     public function testMethodIsNotificationsCancelled(): void
     {

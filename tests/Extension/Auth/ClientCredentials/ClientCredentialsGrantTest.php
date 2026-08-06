@@ -32,11 +32,11 @@ use Nexus\Mcp\Extension\Auth\ClientCredentials\ClientSecretCredential;
 use Nexus\Mcp\Extension\Auth\ClientCredentials\PrivateKeyJwtCredential;
 use Nexus\Mcp\Extension\Auth\Exception\UnsupportedClientAuthenticationException;
 use Nexus\Mcp\Extension\Auth\Exception\UnsupportedGrantException;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Client\Http\RecordingHttpClient;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 use function Amp\ByteStream\buffer;
 
@@ -46,14 +46,14 @@ use function Amp\ByteStream\buffer;
 #[CoversClass(ClientCredentialsGrant::class)]
 #[Group('unit-tests')]
 #[Group('extension-tests')]
-final class ClientCredentialsGrantTest extends TestCase
+final class ClientCredentialsGrantTest extends AbstractMcpTestCase
 {
     private const string RESOURCE = 'https://mcp.example.com/mcp';
     private const string ISSUER = 'https://auth.example.com';
 
     public function testGrantPresentsTheBasicCredentials(): void
     {
-        $http = new RecordingHttpClient()->willAnswerJson(self::tokenResponse());
+        $http = (new RecordingHttpClient())->willAnswerJson(self::tokenResponse());
         $grant = new ClientCredentialsGrant(new ClientSecretCredential('the-client', 'the-secret'));
 
         $token = $grant->grant(self::context($http, self::metadata()), new NullCancellation());
@@ -72,7 +72,7 @@ final class ClientCredentialsGrantTest extends TestCase
 
     public function testGrantAsksForTheSelectedScopes(): void
     {
-        $http = new RecordingHttpClient()->willAnswerJson(self::tokenResponse());
+        $http = (new RecordingHttpClient())->willAnswerJson(self::tokenResponse());
         $grant = new ClientCredentialsGrant(new ClientSecretCredential('the-client', 'the-secret'));
 
         $token = $grant->grant(self::context($http, self::metadata(), new ScopeSet(['files:read', 'files:write'])), new NullCancellation());
@@ -87,7 +87,7 @@ final class ClientCredentialsGrantTest extends TestCase
 
     public function testGrantSignsAndPresentsAClientAssertion(): void
     {
-        $http = new RecordingHttpClient()->willAnswerJson(self::tokenResponse());
+        $http = (new RecordingHttpClient())->willAnswerJson(self::tokenResponse());
         $grant = new ClientCredentialsGrant(new PrivateKeyJwtCredential('the-client', self::generatePrivateKey(), 'ES256'));
 
         $token = $grant->grant(
@@ -159,7 +159,7 @@ final class ClientCredentialsGrantTest extends TestCase
 
     public function testAGrantTypeListNamingClientCredentialsProceeds(): void
     {
-        $http = new RecordingHttpClient()->willAnswerJson(self::tokenResponse());
+        $http = (new RecordingHttpClient())->willAnswerJson(self::tokenResponse());
         $grant = new ClientCredentialsGrant(new ClientSecretCredential('the-client', 'the-secret'));
 
         $token = $grant->grant(
@@ -193,7 +193,7 @@ final class ClientCredentialsGrantTest extends TestCase
 
     public function testItRenewsByAFreshGrant(): void
     {
-        self::assertTrue(new ClientCredentialsGrant(new ClientSecretCredential('the-client', 'the-secret'))->renewsByFreshGrant());
+        self::assertTrue((new ClientCredentialsGrant(new ClientSecretCredential('the-client', 'the-secret')))->renewsByFreshGrant());
     }
 
     /**

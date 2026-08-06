@@ -14,10 +14,10 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Schema\Enum;
 
 use Nexus\Mcp\Core\Schema\Enum\ElicitAction;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -25,7 +25,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ElicitAction::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class ElicitActionTest extends TestCase
+final class ElicitActionTest extends AbstractMcpTestCase
 {
     #[DataProvider('provideElicitActionCaseValueCases')]
     public function testElicitActionCaseValue(ElicitAction $case, string $expectedValue): void

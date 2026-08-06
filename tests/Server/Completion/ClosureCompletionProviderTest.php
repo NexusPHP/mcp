@@ -18,11 +18,11 @@ use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result\CompleteResult;
 use Nexus\Mcp\Server\Completion\ClosureCompletionProvider;
 use Nexus\Mcp\Server\ServerContext;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -30,7 +30,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ClosureCompletionProvider::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class ClosureCompletionProviderTest extends TestCase
+final class ClosureCompletionProviderTest extends AbstractMcpTestCase
 {
     public function testDelegatesAllThreeInputsToTheClosure(): void
     {

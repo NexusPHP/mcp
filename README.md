@@ -1,6 +1,6 @@
 # Nexus MCP SDK
 
-[![PHP](https://img.shields.io/badge/php-%E2%89%A5%208.4-777bb4?logo=php&logoColor=white)](https://www.php.net)
+[![PHP](https://img.shields.io/badge/php-%E2%89%A5%208.3-777bb4?logo=php&logoColor=white)](https://www.php.net)
 [![Latest Stable Version](https://img.shields.io/packagist/v/nexusphp/mcp)](https://packagist.org/packages/nexusphp/mcp)
 [![Unit Tests](https://github.com/NexusPHP/mcp/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/NexusPHP/mcp/actions/workflows/unit-tests.yml)
 [![Static analysis](https://github.com/NexusPHP/mcp/actions/workflows/static-analysis.yml/badge.svg)](https://github.com/NexusPHP/mcp/actions/workflows/static-analysis.yml)
@@ -26,7 +26,7 @@ direction and what is queued next.
 
 ## Requirements
 
-- PHP 8.4 or newer
+- PHP 8.3 or newer
 - [Composer](https://getcomposer.org)
 
 ## Installation

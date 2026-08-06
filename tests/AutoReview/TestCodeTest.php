@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\AutoReview;
 
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -24,7 +25,7 @@ use PHPUnit\Framework\TestCase;
  */
 #[CoversNothing]
 #[Group('auto-review')]
-final class TestCodeTest extends TestCase
+final class TestCodeTest extends AbstractMcpTestCase
 {
     /**
      * @var list<class-string<TestCase>>

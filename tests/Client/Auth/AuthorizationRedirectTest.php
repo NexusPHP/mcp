@@ -16,9 +16,9 @@ namespace Nexus\Mcp\Tests\Client\Auth;
 use Nexus\Mcp\Client\Auth\AuthorizationRedirect;
 use Nexus\Mcp\Client\Auth\PkcePair;
 use Nexus\Mcp\Core\Auth\ScopeSet;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -26,7 +26,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(AuthorizationRedirect::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class AuthorizationRedirectTest extends TestCase
+final class AuthorizationRedirectTest extends AbstractMcpTestCase
 {
     public function testItCarriesThePerRequestStateTheResponseIsValidatedAgainst(): void
     {

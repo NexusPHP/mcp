@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Server\Exception;
 
 use Nexus\Mcp\Server\Exception\DuplicateServerMetadataException;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -24,13 +24,13 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(DuplicateServerMetadataException::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class DuplicateServerMetadataExceptionTest extends TestCase
+final class DuplicateServerMetadataExceptionTest extends AbstractMcpTestCase
 {
     public function testMessageNamesTheOffendingSource(): void
     {
         self::assertSame(
             \sprintf('A class-level #[AsServer] is already declared by an earlier registered source. "%s" must not declare another.', self::class),
-            new DuplicateServerMetadataException(self::class)->getMessage(),
+            (new DuplicateServerMetadataException(self::class))->getMessage(),
         );
     }
 }

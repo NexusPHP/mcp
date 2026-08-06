@@ -19,7 +19,7 @@
         "source": "https://github.com/NexusPHP/mcp.git"
     },
     "require": {
-        "php": "^8.4",
+        "php": "^8.3",
         "amphp/amp": "^3.1",
         "amphp/byte-stream": "^2.1",
         "amphp/http-client": "^5.0",
@@ -49,7 +49,7 @@
         "phpstan/phpstan-deprecation-rules": "^2.0",
         "phpstan/phpstan-phpunit": "^2.0",
         "phpstan/phpstan-strict-rules": "^2.0",
-        "phpunit/phpunit": "^11.5 || ^12.5 || ^13.0"
+        "phpunit/phpunit": "^12.5 || ^13.0"
     },
     "replace": {
         "nexusphp/mcp-client": "self.version",

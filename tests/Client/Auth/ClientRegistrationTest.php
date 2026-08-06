@@ -15,9 +15,9 @@ namespace Nexus\Mcp\Tests\Client\Auth;
 
 use Nexus\Mcp\Client\Auth\ClientRegistration;
 use Nexus\Mcp\Core\Auth\TokenEndpointAuthMethod;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -25,7 +25,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ClientRegistration::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class ClientRegistrationTest extends TestCase
+final class ClientRegistrationTest extends AbstractMcpTestCase
 {
     public function testItBindsTheIdentifierToItsIssuer(): void
     {

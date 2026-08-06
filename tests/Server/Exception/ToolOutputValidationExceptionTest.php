@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Server\Exception;
 
 use Nexus\Mcp\Server\Exception\ToolOutputValidationException;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -24,7 +24,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ToolOutputValidationException::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class ToolOutputValidationExceptionTest extends TestCase
+final class ToolOutputValidationExceptionTest extends AbstractMcpTestCase
 {
     public function testMessageNamesTheToolAndJoinsTheErrors(): void
     {
@@ -44,6 +44,6 @@ final class ToolOutputValidationExceptionTest extends TestCase
     {
         $previous = new \RuntimeException('root cause');
 
-        self::assertSame($previous, new ToolOutputValidationException('report', [], $previous)->getPrevious());
+        self::assertSame($previous, (new ToolOutputValidationException('report', [], $previous))->getPrevious());
     }
 }

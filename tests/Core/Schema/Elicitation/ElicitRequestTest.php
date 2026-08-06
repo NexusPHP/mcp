@@ -20,10 +20,10 @@ use Nexus\Mcp\Core\Schema\Elicitation\StringSchema;
 use Nexus\Mcp\Core\Schema\Request;
 use Nexus\Mcp\Core\Schema\RequestParams\ElicitRequestFormParams;
 use Nexus\Mcp\Core\Schema\RequestParams\ElicitRequestUrlParams;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -32,7 +32,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(Request::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class ElicitRequestTest extends TestCase
+final class ElicitRequestTest extends AbstractMcpTestCase
 {
     public function testMethodIsElicitationCreate(): void
     {

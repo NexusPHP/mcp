@@ -16,9 +16,9 @@ namespace Nexus\Mcp\Tests\Server\Attribute;
 use Nexus\Mcp\Core\Schema\Icon;
 use Nexus\Mcp\Core\Schema\Tool\ToolAnnotations;
 use Nexus\Mcp\Server\Attribute\AsTool;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -26,7 +26,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(AsTool::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class AsToolTest extends TestCase
+final class AsToolTest extends AbstractMcpTestCase
 {
     public function testDefaultsToNull(): void
     {

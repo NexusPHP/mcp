@@ -15,10 +15,10 @@ namespace Nexus\Mcp\Tests\Core\Validation;
 
 use Nexus\Mcp\Core\Exception\MissingSuggestedDependencyException;
 use Nexus\Mcp\Core\Validation\SuggestedDependencyGuard;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Validation\StubPackageBackedConsumer;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -26,7 +26,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(SuggestedDependencyGuard::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class SuggestedDependencyGuardTest extends TestCase
+final class SuggestedDependencyGuardTest extends AbstractMcpTestCase
 {
     public function testAnInstalledPackagePassesSilently(): void
     {

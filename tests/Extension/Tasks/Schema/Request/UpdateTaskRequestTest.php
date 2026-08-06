@@ -21,11 +21,11 @@ use Nexus\Mcp\Core\Schema\Request;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Extension\Tasks\Schema\Request\UpdateTaskRequest;
 use Nexus\Mcp\Extension\Tasks\Schema\RequestParams\UpdateTaskRequestParams;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -35,7 +35,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(Request::class)]
 #[Group('unit-tests')]
 #[Group('extension-tests')]
-final class UpdateTaskRequestTest extends TestCase
+final class UpdateTaskRequestTest extends AbstractMcpTestCase
 {
     public function testMethodIsTasksUpdate(): void
     {

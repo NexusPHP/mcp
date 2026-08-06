@@ -20,10 +20,10 @@ use Nexus\Mcp\Client\Auth\PkcePair;
 use Nexus\Mcp\Client\Exception\AuthorizationDeniedException;
 use Nexus\Mcp\Client\Exception\InvalidAuthorizationResponseException;
 use Nexus\Mcp\Core\Auth\ScopeSet;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -31,7 +31,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(AuthorizationResponse::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class AuthorizationResponseTest extends TestCase
+final class AuthorizationResponseTest extends AbstractMcpTestCase
 {
     private const string ISSUER = 'https://auth.example.com';
     private const string STATE = 'the-recorded-state';

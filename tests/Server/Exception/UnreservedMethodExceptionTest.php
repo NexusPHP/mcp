@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Server\Exception;
 
 use Nexus\Mcp\Server\Exception\UnreservedMethodException;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -24,13 +24,13 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(UnreservedMethodException::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class UnreservedMethodExceptionTest extends TestCase
+final class UnreservedMethodExceptionTest extends AbstractMcpTestCase
 {
     public function testRequestMessagePointsToAddRequestHandler(): void
     {
         self::assertSame(
             'Request method "acme/snapshot" is not reserved by the MCP specification. Use addRequestHandler() to register a vendor extension.',
-            new UnreservedMethodException('acme/snapshot')->getMessage(),
+            (new UnreservedMethodException('acme/snapshot'))->getMessage(),
         );
     }
 
@@ -38,7 +38,7 @@ final class UnreservedMethodExceptionTest extends TestCase
     {
         self::assertSame(
             'Notification method "acme/snapshot-done" is not reserved by the MCP specification. Use addNotificationHandler() to register a vendor extension.',
-            new UnreservedMethodException('acme/snapshot-done', isNotification: true)->getMessage(),
+            (new UnreservedMethodException('acme/snapshot-done', isNotification: true))->getMessage(),
         );
     }
 }

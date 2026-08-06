@@ -37,6 +37,7 @@ use Nexus\Mcp\Server\Resource\ResourceTemplateEntry;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Server\Tool\ReflectedToolExecutor;
 use Nexus\Mcp\Server\Tool\ToolEntry;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\BackedIntEnum;
@@ -47,7 +48,6 @@ use Nexus\Mcp\Tests\Fixtures\Server\Discovery\PureEnum;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -55,7 +55,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(AttributeScanner::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class AttributeScannerTest extends TestCase
+final class AttributeScannerTest extends AbstractMcpTestCase
 {
     private const string REJECTION_PATTERN = '/^\S+\:\:rank\(\) declares parameter "\$level" of unsupported type "%s"\. It is bound from a string value\./';
 
@@ -227,7 +227,7 @@ final class AttributeScannerTest extends TestCase
                 return implode('', $parts);
             }
         };
-        $entries = iterator_to_array(new AttributeScanner()->scan($source), false);
+        $entries = iterator_to_array((new AttributeScanner())->scan($source), false);
 
         self::assertCount(1, $entries);
         self::assertInstanceOf(ToolEntry::class, $entries[0]);
@@ -245,7 +245,7 @@ final class AttributeScannerTest extends TestCase
                 return implode(', ', $topics);
             }
         };
-        iterator_to_array(new AttributeScanner()->scan($source), false);
+        iterator_to_array((new AttributeScanner())->scan($source), false);
     }
 
     public function testVariadicResourceParameterIsRejected(): void
@@ -260,7 +260,7 @@ final class AttributeScannerTest extends TestCase
                 return implode(',', $ids);
             }
         };
-        iterator_to_array(new AttributeScanner()->scan($source), false);
+        iterator_to_array((new AttributeScanner())->scan($source), false);
     }
 
     public function testVariadicResourceTemplateParameterIsRejected(): void
@@ -275,13 +275,13 @@ final class AttributeScannerTest extends TestCase
                 return implode(',', $ids);
             }
         };
-        iterator_to_array(new AttributeScanner()->scan($source), false);
+        iterator_to_array((new AttributeScanner())->scan($source), false);
     }
 
     #[DataProvider('provideSupportedPromptParameterTypeIsAcceptedCases')]
     public function testSupportedPromptParameterTypeIsAccepted(object $source): void
     {
-        $entries = iterator_to_array(new AttributeScanner()->scan($source), false);
+        $entries = iterator_to_array((new AttributeScanner())->scan($source), false);
 
         self::assertCount(1, $entries);
         self::assertInstanceOf(PromptEntry::class, $entries[0]);
@@ -340,7 +340,7 @@ final class AttributeScannerTest extends TestCase
         $this->expectException(UnsupportedParameterTypeException::class);
         $this->expectExceptionMessageMatches($pattern);
 
-        iterator_to_array(new AttributeScanner()->scan($source), false);
+        iterator_to_array((new AttributeScanner())->scan($source), false);
     }
 
     /**
@@ -416,7 +416,7 @@ final class AttributeScannerTest extends TestCase
                 return (string) $uri;
             }
         };
-        iterator_to_array(new AttributeScanner()->scan($source), false);
+        iterator_to_array((new AttributeScanner())->scan($source), false);
     }
 
     public function testUnsupportedResourceTemplateParameterTypeIsRejected(): void
@@ -431,7 +431,7 @@ final class AttributeScannerTest extends TestCase
                 return $uri.$id;
             }
         };
-        iterator_to_array(new AttributeScanner()->scan($source), false);
+        iterator_to_array((new AttributeScanner())->scan($source), false);
     }
 
     public function testCompletionForAPromptArgumentIsDiscovered(): void
@@ -445,7 +445,7 @@ final class AttributeScannerTest extends TestCase
 
     public function testCompletionForATemplateVariableIsDiscovered(): void
     {
-        $entries = iterator_to_array(new AttributeScanner()->scan(new CompletionHandlers()), false);
+        $entries = iterator_to_array((new AttributeScanner())->scan(new CompletionHandlers()), false);
 
         $templateCompletions = array_values(array_filter(
             $entries,
@@ -505,7 +505,7 @@ final class AttributeScannerTest extends TestCase
 
         $values = [];
 
-        foreach (new AttributeScanner()->scan($source) as $entry) {
+        foreach ((new AttributeScanner())->scan($source) as $entry) {
             if ($entry instanceof PromptCompletionEntry) {
                 $values[] = $entry->provider->complete('x', null, self::makeContext())->completion['values'][0] ?? null;
             }
@@ -532,7 +532,7 @@ final class AttributeScannerTest extends TestCase
             '/^\S+::complete\(\) declares parameter "\$limit" of unsupported type "int"\. It is bound from a string value\.$/',
         );
 
-        iterator_to_array(new AttributeScanner()->scan($source), false);
+        iterator_to_array((new AttributeScanner())->scan($source), false);
     }
 
     public function testCompletionMethodWithAStringlessUnionParameterIsRejected(): void
@@ -550,7 +550,7 @@ final class AttributeScannerTest extends TestCase
 
         $this->expectException(UnsupportedParameterTypeException::class);
 
-        iterator_to_array(new AttributeScanner()->scan($source), false);
+        iterator_to_array((new AttributeScanner())->scan($source), false);
     }
 
     public function testCompletionMethodWithAnEnumParameterIsRejected(): void
@@ -568,7 +568,7 @@ final class AttributeScannerTest extends TestCase
 
         $this->expectException(UnsupportedParameterTypeException::class);
 
-        iterator_to_array(new AttributeScanner()->scan($source), false);
+        iterator_to_array((new AttributeScanner())->scan($source), false);
     }
 
     public function testVariadicCompletionParameterIsRejected(): void
@@ -586,7 +586,7 @@ final class AttributeScannerTest extends TestCase
 
         $this->expectException(UnsupportedVariadicParameterException::class);
 
-        iterator_to_array(new AttributeScanner()->scan($source), false);
+        iterator_to_array((new AttributeScanner())->scan($source), false);
     }
 
     public function testACompletionAttributeNamingNoTargetIsRejectedNamingTheMethod(): void
@@ -607,7 +607,7 @@ final class AttributeScannerTest extends TestCase
             '/^class@anonymous.*::complete\(\) declares an invalid #\[AsCompletion\] attribute: it must name the completed "prompt" or "uriTemplate"\.$/',
         );
 
-        iterator_to_array(new AttributeScanner()->scan($source), false);
+        iterator_to_array((new AttributeScanner())->scan($source), false);
     }
 
     public function testACompletionAttributeNamingBothTargetsIsRejectedNamingTheMethod(): void
@@ -628,7 +628,7 @@ final class AttributeScannerTest extends TestCase
             '/^class@anonymous.*::complete\(\) declares an invalid #\[AsCompletion\] attribute: it must name either a "prompt" or a "uriTemplate", not both\.$/',
         );
 
-        iterator_to_array(new AttributeScanner()->scan($source), false);
+        iterator_to_array((new AttributeScanner())->scan($source), false);
     }
 
     public function testACompletionAttributeWithAnEmptyArgumentIsRejectedNamingTheMethod(): void
@@ -649,7 +649,7 @@ final class AttributeScannerTest extends TestCase
             '/^class@anonymous.*::complete\(\) declares an invalid #\[AsCompletion\] attribute: its "argument" must be a non-empty string\.$/',
         );
 
-        iterator_to_array(new AttributeScanner()->scan($source), false);
+        iterator_to_array((new AttributeScanner())->scan($source), false);
     }
 
     public function testACompletionAttributeWithAnEmptyPromptIsRejectedNamingTheMethod(): void
@@ -670,12 +670,12 @@ final class AttributeScannerTest extends TestCase
             '/^class@anonymous.*::complete\(\) declares an invalid #\[AsCompletion\] attribute: it must name the completed "prompt" or "uriTemplate"\.$/',
         );
 
-        iterator_to_array(new AttributeScanner()->scan($source), false);
+        iterator_to_array((new AttributeScanner())->scan($source), false);
     }
 
     private static function promptCompletionEntry(string $prompt, string $argument): PromptCompletionEntry
     {
-        foreach (new AttributeScanner()->scan(new CompletionHandlers()) as $entry) {
+        foreach ((new AttributeScanner())->scan(new CompletionHandlers()) as $entry) {
             if ($entry instanceof PromptCompletionEntry && $entry->prompt === $prompt && $entry->argument === $argument) {
                 return $entry;
             }
@@ -699,7 +699,7 @@ final class AttributeScannerTest extends TestCase
      */
     private static function entries(): array
     {
-        return iterator_to_array(new AttributeScanner()->scan(new DiscoverableServer()), false);
+        return iterator_to_array((new AttributeScanner())->scan(new DiscoverableServer()), false);
     }
 
     private static function toolEntry(string $name): ToolEntry

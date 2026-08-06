@@ -28,10 +28,10 @@ use Nexus\Mcp\Extension\Tasks\Client\TasksClientExtension;
 use Nexus\Mcp\Extension\Tasks\Schema\Enum\TaskStatus;
 use Nexus\Mcp\Extension\Tasks\Schema\Result\CreateTaskResult;
 use Nexus\Mcp\Extension\Tasks\Schema\Result\GetTaskResult;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 use function Amp\async;
 use function Amp\delay;
@@ -42,7 +42,7 @@ use function Amp\delay;
 #[CoversClass(TaskClient::class)]
 #[Group('unit-tests')]
 #[Group('extension-tests')]
-final class TaskClientTest extends TestCase
+final class TaskClientTest extends AbstractMcpTestCase
 {
     public function testCallToolAsTaskDecodesATaskHandleAndAdvertisesTheExtension(): void
     {
@@ -451,7 +451,7 @@ final class TaskClientTest extends TestCase
      */
     private static function buildTaskClient(?int $stallCeiling = null, ?\Closure $sleep = null): array
     {
-        $client = new ClientBuilder()
+        $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             // A finite request timeout turns an exhausted response script into
             // a fast failure instead of a hang, which keeps mutants that add

@@ -15,9 +15,9 @@ namespace Nexus\Mcp\Tests\Core\Dispatch;
 
 use Nexus\Mcp\Core\Dispatch\PendingInboundRequests;
 use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -25,7 +25,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(PendingInboundRequests::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class PendingInboundRequestsTest extends TestCase
+final class PendingInboundRequestsTest extends AbstractMcpTestCase
 {
     public function testFirstClaimSucceedsAndRegistersTheId(): void
     {

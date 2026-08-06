@@ -16,10 +16,10 @@ namespace Nexus\Mcp\Tests\Core\Http;
 use Nexus\Mcp\Core\Http\HttpStatusResolver;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Enum\SdkErrorCode;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -27,7 +27,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(HttpStatusResolver::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class HttpStatusResolverTest extends TestCase
+final class HttpStatusResolverTest extends AbstractMcpTestCase
 {
     #[DataProvider('provideResolveCases')]
     public function testResolve(int $code, bool $fromHandler, int $expected): void

@@ -14,10 +14,10 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\UriTemplate;
 
 use Nexus\Mcp\Core\UriTemplate\Matcher;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -25,7 +25,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(Matcher::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class MatcherTest extends TestCase
+final class MatcherTest extends AbstractMcpTestCase
 {
     public function testMatchesSingleVariableAtEnd(): void
     {

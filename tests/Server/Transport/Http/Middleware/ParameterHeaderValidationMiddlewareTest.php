@@ -20,6 +20,7 @@ use Nexus\Mcp\Server\Tool\ClosureToolExecutor;
 use Nexus\Mcp\Server\Tool\ToolEntry;
 use Nexus\Mcp\Server\Tool\ToolStore;
 use Nexus\Mcp\Server\Transport\Http\Middleware\ParameterHeaderValidationMiddleware;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Server\Http\RecordingRequestHandler;
 use Nexus\Mcp\Tests\Fixtures\Server\Tool\PagedToolStore;
@@ -27,7 +28,6 @@ use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LogLevel;
@@ -38,7 +38,7 @@ use Psr\Log\LogLevel;
 #[CoversClass(ParameterHeaderValidationMiddleware::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class ParameterHeaderValidationMiddlewareTest extends TestCase
+final class ParameterHeaderValidationMiddlewareTest extends AbstractMcpTestCase
 {
     public function testForwardsAMatchingHeader(): void
     {
@@ -224,7 +224,7 @@ final class ParameterHeaderValidationMiddlewareTest extends TestCase
             ]),
         ]]);
 
-        $response = new ParameterHeaderValidationMiddleware($store, new Psr17Factory(), new Psr17Factory(), $logger)
+        $response = (new ParameterHeaderValidationMiddleware($store, new Psr17Factory(), new Psr17Factory(), $logger))
             ->process(self::post([
                 'jsonrpc' => '2.0',
                 'id' => 1,
@@ -248,7 +248,7 @@ final class ParameterHeaderValidationMiddlewareTest extends TestCase
             new Tool(name: 'echo', inputSchema: ['type' => 'object', 'properties' => ['region' => ['type' => 'string', 'x-mcp-header' => 'Region']]]),
         ]]);
 
-        new ParameterHeaderValidationMiddleware($store, new Psr17Factory(), new Psr17Factory(), $logger)
+        (new ParameterHeaderValidationMiddleware($store, new Psr17Factory(), new Psr17Factory(), $logger))
             ->process(self::callPost(['region' => 'us-west1'], ['Mcp-Param-Region' => 'us-west1']), self::handler())
         ;
 
@@ -263,7 +263,7 @@ final class ParameterHeaderValidationMiddlewareTest extends TestCase
             [new Tool(name: 'second', inputSchema: ['type' => 'object', 'properties' => ['region' => ['type' => 'string', 'x-mcp-header' => 'Region']]])],
         ]);
 
-        $response = new ParameterHeaderValidationMiddleware($store, new Psr17Factory(), new Psr17Factory())
+        $response = (new ParameterHeaderValidationMiddleware($store, new Psr17Factory(), new Psr17Factory()))
             ->process(self::callPost(['region' => 'eu-west1'], ['Mcp-Param-Region' => 'us-east1'], tool: 'second'), $handler)
         ;
 
@@ -324,7 +324,7 @@ final class ParameterHeaderValidationMiddlewareTest extends TestCase
 
     private static function handler(): RecordingRequestHandler
     {
-        return new RecordingRequestHandler(new Psr17Factory()->createResponse(200));
+        return new RecordingRequestHandler((new Psr17Factory())->createResponse(200));
     }
 
     /**

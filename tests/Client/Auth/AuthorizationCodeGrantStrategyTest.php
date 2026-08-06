@@ -27,12 +27,12 @@ use Nexus\Mcp\Core\Auth\AuthorizationServerMetadata;
 use Nexus\Mcp\Core\Auth\ProtectedResourceMetadata;
 use Nexus\Mcp\Core\Auth\ResourceIdentifier;
 use Nexus\Mcp\Core\Auth\ScopeSet;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Client\Auth\ScriptedUserAuthorization;
 use Nexus\Mcp\Tests\Fixtures\Client\Http\RecordingHttpClient;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 use function Amp\ByteStream\buffer;
 
@@ -42,20 +42,20 @@ use function Amp\ByteStream\buffer;
 #[CoversClass(AuthorizationCodeGrantStrategy::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class AuthorizationCodeGrantStrategyTest extends TestCase
+final class AuthorizationCodeGrantStrategyTest extends AbstractMcpTestCase
 {
     private const string RESOURCE = 'https://mcp.example.com/mcp';
     private const string ISSUER = 'https://auth.example.com';
 
     public function testGrantRegistersAuthorizesAndExchangesTheCode(): void
     {
-        $http = new RecordingHttpClient()
+        $http = (new RecordingHttpClient())
             ->willAnswerJson(['client_id' => 'the-registered-client'])
             ->willAnswerJson(['access_token' => 'the-access-token', 'token_type' => 'Bearer'])
         ;
         $user = new ScriptedUserAuthorization();
 
-        $token = new AuthorizationCodeGrantStrategy($user)->grant(self::context($http, new ScopeSet(['files:read'])), new NullCancellation());
+        $token = (new AuthorizationCodeGrantStrategy($user))->grant(self::context($http, new ScopeSet(['files:read'])), new NullCancellation());
 
         self::assertSame('the-access-token', $token->value);
         self::assertSame(self::ISSUER, $token->issuer);
@@ -76,7 +76,7 @@ final class AuthorizationCodeGrantStrategyTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('The authorization-code grant needs a redirect URI, and the authorization options carry none.');
 
-        new AuthorizationCodeGrantStrategy(new ScriptedUserAuthorization())->grant(
+        (new AuthorizationCodeGrantStrategy(new ScriptedUserAuthorization()))->grant(
             self::context(new RecordingHttpClient(), new ScopeSet(), new AuthorizationOptions('Example MCP Client')),
             new NullCancellation(),
         );
@@ -84,7 +84,7 @@ final class AuthorizationCodeGrantStrategyTest extends TestCase
 
     public function testItRenewsThroughTheChallengeRatherThanByAFreshGrant(): void
     {
-        self::assertFalse(new AuthorizationCodeGrantStrategy(new ScriptedUserAuthorization())->renewsByFreshGrant());
+        self::assertFalse((new AuthorizationCodeGrantStrategy(new ScriptedUserAuthorization()))->renewsByFreshGrant());
     }
 
     private static function context(

@@ -15,10 +15,10 @@ namespace Nexus\Mcp\Tests\Core\Schema;
 
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\ProtocolVersion;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -26,11 +26,11 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ProtocolVersion::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class ProtocolVersionTest extends TestCase
+final class ProtocolVersionTest extends AbstractMcpTestCase
 {
     public function testLatestIsAcceptedByTheConstructor(): void
     {
-        self::assertSame(ProtocolVersion::LATEST_VERSION, new ProtocolVersion(version: ProtocolVersion::LATEST_VERSION)->version);
+        self::assertSame(ProtocolVersion::LATEST_VERSION, (new ProtocolVersion(version: ProtocolVersion::LATEST_VERSION))->version);
     }
 
     public function testPreviousVersionsDoNotIncludeLatest(): void
@@ -44,7 +44,7 @@ final class ProtocolVersionTest extends TestCase
     #[DataProvider('providePreviousVersionsAreAcceptedByConstructorCases')]
     public function testPreviousVersionsAreAcceptedByConstructor(string $version): void
     {
-        self::assertSame($version, new ProtocolVersion(version: $version)->version);
+        self::assertSame($version, (new ProtocolVersion(version: $version))->version);
     }
 
     /**
@@ -72,7 +72,7 @@ final class ProtocolVersionTest extends TestCase
     #[DataProvider('provideAnUnrecognisedVersionIsAcceptedCases')]
     public function testAnUnrecognisedVersionIsAccepted(string $version): void
     {
-        self::assertSame($version, new ProtocolVersion(version: $version)->version);
+        self::assertSame($version, (new ProtocolVersion(version: $version))->version);
     }
 
     /**

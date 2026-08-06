@@ -24,11 +24,11 @@ use Nexus\Mcp\Server\Resource\ClosureTemplatedResourceReader;
 use Nexus\Mcp\Server\Resource\ResourceTemplateEntry;
 use Nexus\Mcp\Server\Resource\ResourceTemplateStore;
 use Nexus\Mcp\Server\ServerContext;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -36,7 +36,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ListResourceTemplatesRequestHandler::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class ListResourceTemplatesRequestHandlerTest extends TestCase
+final class ListResourceTemplatesRequestHandlerTest extends AbstractMcpTestCase
 {
     public function testReturnsAllRegisteredTemplatesWhenCursorIsNull(): void
     {

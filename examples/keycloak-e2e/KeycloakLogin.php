@@ -39,7 +39,7 @@ final class KeycloakLogin implements UserAuthorizationInterface
     {
         // The redirect back to the client is the answer, so following it would
         // discard the thing being read.
-        $client = new HttpClientBuilder()->followRedirects(0)->build();
+        $client = (new HttpClientBuilder())->followRedirects(0)->build();
 
         $page = $client->request(new Request($redirect->url), $cancellation);
 

@@ -15,10 +15,10 @@ namespace Nexus\Mcp\Tests\Core\Validation;
 
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Validation\ExtensionIdentifierValidator;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -26,7 +26,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ExtensionIdentifierValidator::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class ExtensionIdentifierValidatorTest extends TestCase
+final class ExtensionIdentifierValidatorTest extends AbstractMcpTestCase
 {
     #[DataProvider('provideValidIdentifierPassesCases')]
     public function testValidIdentifierPasses(string $identifier): void

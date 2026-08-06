@@ -15,11 +15,11 @@ namespace Nexus\Mcp\Tests\Server\Transport\Http\Middleware;
 
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Server\Transport\Http\Middleware\RequestBodySizeLimitMiddleware;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Server\Http\RecordingRequestHandler;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
 
 /**
@@ -28,7 +28,7 @@ use Psr\Http\Message\ServerRequestInterface;
 #[CoversClass(RequestBodySizeLimitMiddleware::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class RequestBodySizeLimitMiddlewareTest extends TestCase
+final class RequestBodySizeLimitMiddlewareTest extends AbstractMcpTestCase
 {
     public function testPassesThroughBodyUnderLimit(): void
     {
@@ -99,6 +99,6 @@ final class RequestBodySizeLimitMiddlewareTest extends TestCase
 
     private static function recordingHandler(): RecordingRequestHandler
     {
-        return new RecordingRequestHandler(new Psr17Factory()->createResponse(200));
+        return new RecordingRequestHandler((new Psr17Factory())->createResponse(200));
     }
 }

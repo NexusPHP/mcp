@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Server\Exception;
 
 use Nexus\Mcp\Server\Exception\UnsupportedReturnValueException;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -24,7 +24,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(UnsupportedReturnValueException::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class UnsupportedReturnValueExceptionTest extends TestCase
+final class UnsupportedReturnValueExceptionTest extends AbstractMcpTestCase
 {
     public function testComposesMessageWithTheDebugType(): void
     {

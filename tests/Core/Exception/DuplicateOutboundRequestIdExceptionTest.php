@@ -15,9 +15,9 @@ namespace Nexus\Mcp\Tests\Core\Exception;
 
 use Nexus\Mcp\Core\Exception\DuplicateOutboundRequestIdException;
 use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -25,13 +25,13 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(DuplicateOutboundRequestIdException::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class DuplicateOutboundRequestIdExceptionTest extends TestCase
+final class DuplicateOutboundRequestIdExceptionTest extends AbstractMcpTestCase
 {
     public function testMessageEmitsTheExportedId(): void
     {
         self::assertSame(
             'Outbound request id 7 is already pending. The id-generation strategy must produce unique ids per in-flight request.',
-            new DuplicateOutboundRequestIdException(new RequestId(id: 7))->getMessage(),
+            (new DuplicateOutboundRequestIdException(new RequestId(id: 7)))->getMessage(),
         );
     }
 }

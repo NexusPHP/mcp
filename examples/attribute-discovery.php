@@ -95,7 +95,7 @@ final class Concierge
 
 $logger = new PsrLogger();
 
-$server = new ServerBuilder()
+$server = (new ServerBuilder())
     ->setLogger($logger)
     ->register(new Concierge())
     ->build()

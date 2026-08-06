@@ -15,10 +15,10 @@ namespace Nexus\Mcp\Tests\Core\Schema\Elicitation;
 
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Elicitation\NumberSchema;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -26,7 +26,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(NumberSchema::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class NumberSchemaTest extends TestCase
+final class NumberSchemaTest extends AbstractMcpTestCase
 {
     public function testConstructionMinimal(): void
     {
@@ -49,7 +49,7 @@ final class NumberSchemaTest extends TestCase
 
     public function testToArrayMinimal(): void
     {
-        self::assertSame(['type' => NumberSchema::TYPE], new NumberSchema()->toArray());
+        self::assertSame(['type' => NumberSchema::TYPE], (new NumberSchema())->toArray());
     }
 
     public function testToArrayWithAllFields(): void

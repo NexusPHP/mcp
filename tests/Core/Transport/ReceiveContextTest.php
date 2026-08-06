@@ -14,10 +14,10 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Transport;
 
 use Nexus\Mcp\Core\Transport\ReceiveContext;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -25,17 +25,17 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ReceiveContext::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class ReceiveContextTest extends TestCase
+final class ReceiveContextTest extends AbstractMcpTestCase
 {
     public function testDefaultsToNoOriginatingRequest(): void
     {
-        self::assertNull(new ReceiveContext()->request);
+        self::assertNull((new ReceiveContext())->request);
     }
 
     public function testCarriesTheOriginatingRequest(): void
     {
-        $request = new Psr17Factory()->createServerRequest('POST', 'https://mcp.test/');
+        $request = (new Psr17Factory())->createServerRequest('POST', 'https://mcp.test/');
 
-        self::assertSame($request, new ReceiveContext($request)->request);
+        self::assertSame($request, (new ReceiveContext($request))->request);
     }
 }

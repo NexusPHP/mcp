@@ -48,19 +48,19 @@ use Nexus\Mcp\Core\Schema\Result\PaginatedResult;
 use Nexus\Mcp\Core\Schema\Result\ServerResult;
 use Nexus\Mcp\Core\Schema\Result\TaskHandleResult;
 use Nexus\Mcp\Core\Schema\ResultResponse\GenericResultResponse;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tools\McpAnchorSnapshot;
 use Nexus\Mcp\Tools\McpSchemaProcessor;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
  */
 #[CoversNothing]
 #[Group('auto-review')]
-final class SchemaConformanceTest extends TestCase
+final class SchemaConformanceTest extends AbstractMcpTestCase
 {
     /**
      * Spec keys that the SDK represents on the class as a constant or static
@@ -476,7 +476,7 @@ final class SchemaConformanceTest extends TestCase
         }
 
         foreach (self::NON_SCHEMA_ANCHOR_SEE_URLS as $schemaClass => $expectedUrl) {
-            yield new \ReflectionClass($schemaClass)->getShortName() => [$schemaClass, $expectedUrl];
+            yield (new \ReflectionClass($schemaClass))->getShortName() => [$schemaClass, $expectedUrl];
         }
     }
 

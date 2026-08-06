@@ -18,11 +18,11 @@ use Nexus\Mcp\Core\Schema\Elicitation\ElicitResult;
 use Nexus\Mcp\Core\Schema\Enum\ElicitAction;
 use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Extension\Tasks\Schema\RequestParams\UpdateTaskRequestParams;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -31,7 +31,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(RequestParams::class)]
 #[Group('unit-tests')]
 #[Group('extension-tests')]
-final class UpdateTaskRequestParamsTest extends TestCase
+final class UpdateTaskRequestParamsTest extends AbstractMcpTestCase
 {
     public function testConstruction(): void
     {

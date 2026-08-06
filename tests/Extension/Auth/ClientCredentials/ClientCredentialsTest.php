@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Extension\Auth\ClientCredentials;
 
 use Nexus\Mcp\Extension\Auth\ClientCredentials\ClientCredentials;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -24,7 +24,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ClientCredentials::class)]
 #[Group('unit-tests')]
 #[Group('extension-tests')]
-final class ClientCredentialsTest extends TestCase
+final class ClientCredentialsTest extends AbstractMcpTestCase
 {
     public function testPinsTheProtocolVocabulary(): void
     {
@@ -32,6 +32,6 @@ final class ClientCredentialsTest extends TestCase
             'IDENTIFIER' => 'io.modelcontextprotocol/oauth-client-credentials',
             'GRANT_TYPE' => 'client_credentials',
             'CLIENT_ASSERTION_TYPE' => 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
-        ], new \ReflectionClass(ClientCredentials::class)->getConstants());
+        ], (new \ReflectionClass(ClientCredentials::class))->getConstants());
     }
 }

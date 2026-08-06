@@ -19,10 +19,10 @@ use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\MetaObject\ResultMetaObject;
 use Nexus\Mcp\Core\Schema\MetaObject\SubscriptionsListenResultMetaObject;
 use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -32,7 +32,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(MetaObject::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class SubscriptionsListenResultMetaObjectTest extends TestCase
+final class SubscriptionsListenResultMetaObjectTest extends AbstractMcpTestCase
 {
     public function testToArrayLeadsWithTheSubscriptionId(): void
     {

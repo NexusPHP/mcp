@@ -14,10 +14,10 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Validation;
 
 use Nexus\Mcp\Core\Validation\Iso8601DateTimeValidator;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -25,7 +25,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(Iso8601DateTimeValidator::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class Iso8601DateTimeValidatorTest extends TestCase
+final class Iso8601DateTimeValidatorTest extends AbstractMcpTestCase
 {
     #[DataProvider('provideParseAcceptsValidIso8601Cases')]
     public function testParseAcceptsValidIso8601(string $value, string $expectedFormatted): void

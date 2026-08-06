@@ -29,12 +29,12 @@ use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Server\Tool\ClosureToolExecutor;
 use Nexus\Mcp\Server\Tool\ToolEntry;
 use Nexus\Mcp\Server\Tool\ToolStore;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 use Psr\Log\LogLevel;
 
 /**
@@ -43,7 +43,7 @@ use Psr\Log\LogLevel;
 #[CoversClass(CallToolRequestHandler::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class CallToolRequestHandlerTest extends TestCase
+final class CallToolRequestHandlerTest extends AbstractMcpTestCase
 {
     public function testForwardsNameArgumentsAndContextToStore(): void
     {
@@ -78,7 +78,7 @@ final class CallToolRequestHandlerTest extends TestCase
             ),
         ]);
 
-        $result = new CallToolRequestHandler($store)->handle(
+        $result = (new CallToolRequestHandler($store))->handle(
             new CallToolRequest(id: new RequestId(id: 42), params: new CallToolRequestParams(name: 'ask', meta: RequestMetaObjectFactory::create())),
             self::makeContext(),
         );

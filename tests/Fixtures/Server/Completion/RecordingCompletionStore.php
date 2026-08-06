@@ -37,7 +37,7 @@ final class RecordingCompletionStore implements CompletionStoreInterface
     /**
      * @var list<RecordedCall>
      */
-    public private(set) array $calls = [];
+    public array $calls = [];
 
     public function __construct(private readonly CompleteResult $result)
     {

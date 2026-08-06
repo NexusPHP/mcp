@@ -31,13 +31,13 @@ use function Amp\delay;
  */
 final class SupervisableRecordingTransport implements SupervisableTransportInterface
 {
-    public private(set) bool $started = false;
-    public private(set) bool $closed = false;
+    public bool $started = false;
+    public bool $closed = false;
 
     /**
      * @var list<array{message: JsonRpcMessage, context: null|SendContext}>
      */
-    public private(set) array $sent = [];
+    public array $sent = [];
 
     public ?\Throwable $startError = null;
 

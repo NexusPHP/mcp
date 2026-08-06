@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Extension\Auth\Exception;
 
 use Nexus\Mcp\Extension\Auth\Exception\UnsupportedGrantException;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -24,13 +24,13 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(UnsupportedGrantException::class)]
 #[Group('unit-tests')]
 #[Group('extension-tests')]
-final class UnsupportedGrantExceptionTest extends TestCase
+final class UnsupportedGrantExceptionTest extends AbstractMcpTestCase
 {
     public function testCarriesItsMessage(): void
     {
         self::assertSame(
             'The grant type is not advertised.',
-            new UnsupportedGrantException('The grant type is not advertised.')->getMessage(),
+            (new UnsupportedGrantException('The grant type is not advertised.'))->getMessage(),
         );
     }
 }

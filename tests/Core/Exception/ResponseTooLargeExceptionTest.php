@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Exception;
 
 use Nexus\Mcp\Core\Exception\ResponseTooLargeException;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -24,13 +24,13 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ResponseTooLargeException::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class ResponseTooLargeExceptionTest extends TestCase
+final class ResponseTooLargeExceptionTest extends AbstractMcpTestCase
 {
     public function testMessageNamesTheLimitThatWasExceeded(): void
     {
         self::assertSame(
             'The response exceeded the 1024 byte limit the client accepts.',
-            new ResponseTooLargeException(1024)->getMessage(),
+            (new ResponseTooLargeException(1024))->getMessage(),
         );
     }
 
@@ -38,11 +38,11 @@ final class ResponseTooLargeExceptionTest extends TestCase
     {
         $cause = new \RuntimeException('buffer limit reached');
 
-        self::assertSame($cause, new ResponseTooLargeException(1024, $cause)->getPrevious());
+        self::assertSame($cause, (new ResponseTooLargeException(1024, $cause))->getPrevious());
     }
 
     public function testTheCauseIsOptional(): void
     {
-        self::assertNull(new ResponseTooLargeException(1024)->getPrevious());
+        self::assertNull((new ResponseTooLargeException(1024))->getPrevious());
     }
 }

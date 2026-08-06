@@ -18,10 +18,10 @@ use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 use Nexus\Mcp\Core\Schema\Notification;
 use Nexus\Mcp\Core\Schema\Notification\ResourceUpdatedNotification;
 use Nexus\Mcp\Core\Schema\NotificationParams\ResourceUpdatedNotificationParams;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -31,7 +31,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(Notification::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class ResourceUpdatedNotificationTest extends TestCase
+final class ResourceUpdatedNotificationTest extends AbstractMcpTestCase
 {
     public function testMethodIsResourcesUpdated(): void
     {

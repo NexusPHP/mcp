@@ -15,9 +15,9 @@ namespace Nexus\Mcp\Tests\Client\Auth;
 
 use Nexus\Mcp\Client\Auth\AccessToken;
 use Nexus\Mcp\Client\Auth\InMemoryTokenStore;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -25,14 +25,14 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(InMemoryTokenStore::class)]
 #[Group('unit-tests')]
 #[Group('client-tests')]
-final class InMemoryTokenStoreTest extends TestCase
+final class InMemoryTokenStoreTest extends AbstractMcpTestCase
 {
     private const string RESOURCE = 'https://mcp.example.com/mcp';
     private const string ISSUER = 'https://auth.example.com';
 
     public function testReadReturnsNullForAnUnknownResource(): void
     {
-        self::assertNull(new InMemoryTokenStore()->read(self::RESOURCE));
+        self::assertNull((new InMemoryTokenStore())->read(self::RESOURCE));
     }
 
     public function testWriteThenReadReturnsTheToken(): void

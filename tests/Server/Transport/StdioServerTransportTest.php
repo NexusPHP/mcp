@@ -25,12 +25,12 @@ use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 use Nexus\Mcp\Core\Transport\SendContext;
 use Nexus\Mcp\Server\Transport\StdioServerTransport;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 use Psr\Log\LogLevel;
 use Revolt\EventLoop;
 
@@ -40,7 +40,7 @@ use Revolt\EventLoop;
 #[CoversClass(StdioServerTransport::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class StdioServerTransportTest extends TestCase
+final class StdioServerTransportTest extends AbstractMcpTestCase
 {
     public function testStartAfterStartThrows(): void
     {

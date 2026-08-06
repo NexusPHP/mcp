@@ -27,11 +27,11 @@ use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Server\Tool\ClosureToolExecutor;
 use Nexus\Mcp\Server\Tool\ToolEntry;
 use Nexus\Mcp\Server\Tool\ToolStore;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -39,7 +39,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ToolStore::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class ToolStoreTest extends TestCase
+final class ToolStoreTest extends AbstractMcpTestCase
 {
     public function testListReturnsRegisteredTools(): void
     {

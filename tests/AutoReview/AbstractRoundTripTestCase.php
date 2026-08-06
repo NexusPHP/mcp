@@ -14,10 +14,10 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\AutoReview;
 
 use Nexus\Mcp\Core\Schema\Arrayable;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * Shared scaffolding for round-trip tests that pin a hand-authored JSON
@@ -29,7 +29,7 @@ use PHPUnit\Framework\TestCase;
  */
 #[CoversNothing]
 #[Group('auto-review')]
-abstract class AbstractRoundTripTestCase extends TestCase
+abstract class AbstractRoundTripTestCase extends AbstractMcpTestCase
 {
     use SchemaClassDiscovery;
 

@@ -31,7 +31,7 @@ use Nexus\Mcp\Client\Transport\StdioClientTransport;
 use Nexus\Mcp\Core\Schema\Prompt\PromptReference;
 use Psr\Log\NullLogger;
 
-$client = new ClientBuilder()
+$client = (new ClientBuilder())
     ->setLogger(new NullLogger())
     ->setClientInfo(name: 'nexus-capability-example-client', version: '0.1.0')
     ->build()

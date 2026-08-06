@@ -4,7 +4,7 @@ Read [.github/copilot-instructions.md](.github/copilot-instructions.md) first fo
 
 ## Before making changes
 
-- Target PHP 8.4 minimum. Use typed class constants (`public const string FOO = 'x';`), readonly classes, constructor property promotion, `#[\Override]`, asymmetric visibility (`public private(set)`), property hooks, and the `#[\Deprecated]` attribute where they fit.
+- Target PHP 8.3 minimum, the oldest release still under security support. Use typed class constants (`public const string FOO = 'x';`), readonly classes, constructor property promotion, and `#[\Override]` where they fit. **Do not use 8.4+ syntax**: asymmetric visibility (`public private(set)`), property hooks (including `get;` on an interface property), the `#[\Deprecated]` attribute, `new Foo()->bar()` without parentheses, and `array_find` / `array_any` / `array_all`. A real 8.3 binary is the authoritative check, since PHPStan alone will not catch every construct: `find src tests -name '*.php' | xargs -P 8 -n 25 <php8.3> -n -l`.
 - The SDK tracks **MCP spec version 2026-07-28 and later**. Do not add back-compat for earlier revisions (e.g. 2025-03-26 batching). The live schema sits at `latest-schema.json`. The class-to-schema map is in `sorted-schema.json`. If either file is missing, run `composer schema:generate` to regenerate them.
 - `Core/Schema/` is types-only. Behaviour (parsers, codecs, registries) lives in sibling namespaces under `Core/`, not under `Core/Schema/`. Prefer editing existing files over introducing new layers.
 
@@ -179,7 +179,8 @@ These all bit me at least once. Note them up-front so you don't relearn:
 ## Test patterns
 
 - Tests mirror `src/` layout under `tests/` with namespace `Nexus\Mcp\Tests\`. Test-only fixtures live under `tests/Fixtures/{Core,Client,Server}/` (namespace `Nexus\Mcp\Tests\Fixtures\{Core,Client,Server}`): a single top-level tree so fixtures can be shared across suites without false ownership. Never place fixtures under `src/`.
-- Every test class: `final`, `@internal`, attributes `#[CoversClass(Foo::class)]`, `#[Group('unit-tests')]`, `#[Group('core-tests')]` (swap `core` for `client`/`server` as appropriate).
+- Every test class: `final`, `@internal`, extends `Nexus\Mcp\Tests\AbstractMcpTestCase` (never PHPUnit's `TestCase` directly), attributes `#[CoversClass(Foo::class)]`, `#[Group('unit-tests')]`, `#[Group('core-tests')]` (swap `core` for `client`/`server` as appropriate).
+- **`AbstractMcpTestCase` declares itself twice**, picking the branch that matches the installed PHPUnit major, and is excluded from PHPStan analysis for that reason. PHPUnit 13 requires PHP 8.4.1, so the PHP 8.3 job resolves to PHPUnit 12, which has no `expectExceptionMessageIs()`. The fallback branch supplies it as a fully anchored `preg_quote` pattern, which is exact-equality by another route. The method is `final` in PHPUnit 13, so a trait or a plain subclass cannot supply it and the conditional declaration is the only shape that works. Delete the shim when the floor next rises.
 - Data provider methods are named `provide{TestMethodSuffix}Cases`. The CS fixer will rename them if they do not match.
 - For happy-path void functions that merely need to "not throw," use `$this->expectNotToPerformAssertions()` rather than `self::assertTrue(true)`. The latter is flagged by PHPStan.
 - **PHPStan + PHPUnit stubs narrow `assertInstanceOf`, but intelephense does not.** For nested access after an instance check, use the `if (! $x instanceof Y) { self::fail(...); }` pattern. Both tools narrow through it. Native `assert($x instanceof Y)` is also flagged by PHPStan as redundant after the PHPUnit assertion, so avoid it.

@@ -19,10 +19,10 @@ use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Core\Schema\ResultResponse\GenericResultResponse;
 use Nexus\Mcp\Core\Transport\SendContext;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\TestRequest;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -30,7 +30,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(PendingOutboundRequests::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class PendingOutboundRequestsTest extends TestCase
+final class PendingOutboundRequestsTest extends AbstractMcpTestCase
 {
     public function testRegisterReturnsAFutureAndIncrementsTheCount(): void
     {
@@ -286,7 +286,7 @@ final class PendingOutboundRequestsTest extends TestCase
 
     public function testAFreshMapRetainsNothing(): void
     {
-        self::assertSame([], new PendingOutboundRequests()->collectRetained());
+        self::assertSame([], (new PendingOutboundRequests())->collectRetained());
     }
 
     public function testAnEntryRegisteredWithoutARequestRetainsNothing(): void

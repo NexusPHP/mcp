@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Auth;
 
 use Nexus\Mcp\Core\Auth\VerifiedAccessToken;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -24,7 +24,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(VerifiedAccessToken::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class VerifiedAccessTokenTest extends TestCase
+final class VerifiedAccessTokenTest extends AbstractMcpTestCase
 {
     public function testItCarriesEveryVerifiedField(): void
     {

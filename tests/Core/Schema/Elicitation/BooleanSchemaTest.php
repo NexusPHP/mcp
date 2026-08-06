@@ -15,10 +15,10 @@ namespace Nexus\Mcp\Tests\Core\Schema\Elicitation;
 
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Elicitation\BooleanSchema;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
@@ -26,7 +26,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(BooleanSchema::class)]
 #[Group('unit-tests')]
 #[Group('core-tests')]
-final class BooleanSchemaTest extends TestCase
+final class BooleanSchemaTest extends AbstractMcpTestCase
 {
     public function testConstructionMinimal(): void
     {
