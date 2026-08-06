@@ -103,6 +103,7 @@ final class StringSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('string schema "title" must be a non-empty string or null.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new StringSchema(title: '');
     }
 
@@ -111,6 +112,7 @@ final class StringSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('string schema "description" must be a non-empty string or null.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new StringSchema(description: '');
     }
 
@@ -119,6 +121,7 @@ final class StringSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('string schema "minLength" must be a non-negative integer or null.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new StringSchema(minLength: -1);
     }
 
@@ -127,6 +130,7 @@ final class StringSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('string schema "maxLength" must be a non-negative integer or null.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new StringSchema(maxLength: -1);
     }
 
@@ -135,19 +139,30 @@ final class StringSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('string schema "format" must be one of "date", "date-time", "email", "uri".');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new StringSchema(format: 'phone');
     }
 
+    /**
+     * @param 'date'|'date-time'|'email'|'uri' $format
+     */
     #[DataProvider('provideConstructorAcceptsKnownFormatCases')]
     public function testConstructorAcceptsKnownFormat(string $format): void
     {
-        $schema = new StringSchema(format: $format);
-
-        self::assertSame($format, $schema->format);
+        self::assertSame($format, new StringSchema(format: $format)->format);
     }
 
     /**
-     * @return iterable<string, array{string}>
+     * @param 'date'|'date-time'|'email'|'uri' $format
+     */
+    #[DataProvider('provideConstructorAcceptsKnownFormatCases')]
+    public function testFromArrayAcceptsKnownFormat(string $format): void
+    {
+        self::assertSame($format, StringSchema::fromArray(['type' => 'string', 'format' => $format])->format);
+    }
+
+    /**
+     * @return iterable<string, array{'date'|'date-time'|'email'|'uri'}>
      */
     public static function provideConstructorAcceptsKnownFormatCases(): iterable
     {
@@ -189,27 +204,27 @@ final class StringSchemaTest extends TestCase
 
         yield 'title not a string' => [
             ['type' => 'string', 'title' => 1],
-            'string schema "title" must be a string or null, int given.',
+            'string schema "title" must be a non-empty string or null, int given.',
         ];
 
         yield 'description not a string' => [
             ['type' => 'string', 'description' => 1],
-            'string schema "description" must be a string or null, int given.',
+            'string schema "description" must be a non-empty string or null, int given.',
         ];
 
         yield 'minLength not an int' => [
             ['type' => 'string', 'minLength' => 'x'],
-            'string schema "minLength" must be an int or null, string given.',
+            'string schema "minLength" must be a non-negative integer or null, string given.',
         ];
 
         yield 'maxLength not an int' => [
             ['type' => 'string', 'maxLength' => 'x'],
-            'string schema "maxLength" must be an int or null, string given.',
+            'string schema "maxLength" must be a non-negative integer or null, string given.',
         ];
 
         yield 'format not a string' => [
             ['type' => 'string', 'format' => 1],
-            'string schema "format" must be a string or null, int given.',
+            'string schema "format" must be one of "date", "date-time", "email", "uri".',
         ];
 
         yield 'format unknown' => [

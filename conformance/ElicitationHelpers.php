@@ -29,6 +29,9 @@ trait ElicitationHelpers
 {
     /**
      * Builds a one-question `InputRequiredResult`.
+     *
+     * @param non-empty-string $key
+     * @param non-empty-string $field
      */
     private static function ask(
         string $key,
@@ -43,6 +46,9 @@ trait ElicitationHelpers
         );
     }
 
+    /**
+     * @param non-empty-string $field
+     */
     private static function buildInputRequest(string $message, string $field, PrimitiveSchemaDefinition $schema): ElicitRequest
     {
         return new ElicitRequest(params: new ElicitRequestFormParams(

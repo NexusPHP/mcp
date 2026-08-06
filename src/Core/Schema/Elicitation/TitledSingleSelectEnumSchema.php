@@ -34,27 +34,14 @@ final readonly class TitledSingleSelectEnumSchema implements SingleSelectEnumSch
     public const string TYPE = 'string';
 
     /**
-     * @var list<EnumOption>
-     */
-    public array $oneOf;
-
-    /**
-     * @var null|non-empty-string
-     */
-    public ?string $title;
-
-    /**
-     * @var null|non-empty-string
-     */
-    public ?string $description;
-
-    /**
-     * @param list<EnumOption> $oneOf
+     * @param list<EnumOption>      $oneOf
+     * @param null|non-empty-string $title
+     * @param null|non-empty-string $description
      */
     public function __construct(
-        array $oneOf,
-        ?string $title = null,
-        ?string $description = null,
+        public array $oneOf,
+        public ?string $title = null,
+        public ?string $description = null,
         public ?string $default = null,
     ) {
         Assert::that($oneOf)
@@ -63,10 +50,6 @@ final readonly class TitledSingleSelectEnumSchema implements SingleSelectEnumSch
         ;
         Assert::that($title)->nullOr()->isNonEmptyString('titled single select enum schema "title" must be a non-empty string or null.');
         Assert::that($description)->nullOr()->isNonEmptyString('titled single select enum schema "description" must be a non-empty string or null.');
-
-        $this->oneOf = $oneOf;
-        $this->title = $title;
-        $this->description = $description;
     }
 
     #[\Override]
@@ -86,10 +69,10 @@ final readonly class TitledSingleSelectEnumSchema implements SingleSelectEnumSch
         $oneOf = array_map(EnumOption::fromArray(...), $data['oneOf']);
 
         $title = $data['title'] ?? null;
-        Assert::that($title)->nullOr()->isString('titled single select enum schema "title" must be a string or null, {type} given.');
+        Assert::that($title)->nullOr()->isNonEmptyString('titled single select enum schema "title" must be a non-empty string or null, {type} given.');
 
         $description = $data['description'] ?? null;
-        Assert::that($description)->nullOr()->isString('titled single select enum schema "description" must be a string or null, {type} given.');
+        Assert::that($description)->nullOr()->isNonEmptyString('titled single select enum schema "description" must be a non-empty string or null, {type} given.');
 
         $default = $data['default'] ?? null;
         Assert::that($default)->nullOr()->isString('titled single select enum schema "default" must be a string or null, {type} given.');

@@ -34,26 +34,15 @@ final readonly class ElicitRequestedSchema implements Arrayable
     public const string TYPE = 'object';
 
     /**
-     * @var array<non-empty-string, PrimitiveSchemaDefinition>
+     * @param array<non-empty-string, PrimitiveSchemaDefinition> $properties
+     * @param null|list<non-empty-string>                        $required
+     * @param null|non-empty-string                              $schema
      */
-    public array $properties;
-
-    /**
-     * @var null|list<non-empty-string>
-     */
-    public ?array $required;
-
-    /**
-     * @var null|non-empty-string
-     */
-    public ?string $schema;
-
-    /**
-     * @param array<string, PrimitiveSchemaDefinition> $properties
-     * @param null|list<string>                        $required
-     */
-    public function __construct(array $properties, ?array $required = null, ?string $schema = null)
-    {
+    public function __construct(
+        public array $properties,
+        public ?array $required = null,
+        public ?string $schema = null,
+    ) {
         Assert::that($properties)
             ->isMap('"requestedSchema.properties" must be a string-keyed map.')
             ->keys()->isNonEmptyString('each "requestedSchema.properties" key must be a non-empty string.')
@@ -68,10 +57,6 @@ final readonly class ElicitRequestedSchema implements Arrayable
         }
 
         Assert::that($schema)->nullOr()->isNonEmptyString('"requestedSchema.$schema" must be a non-empty string or null.');
-
-        $this->properties = $properties;
-        $this->required = $required;
-        $this->schema = $schema;
     }
 
     #[\Override]
@@ -90,6 +75,7 @@ final readonly class ElicitRequestedSchema implements Arrayable
         $properties = [];
 
         foreach ($data['properties'] as $name => $shape) {
+            Assert::that($name)->isNonEmptyString('each "requestedSchema.properties" key must be a non-empty string.');
             Assert::that($shape)
                 ->isArray('"requestedSchema.properties" must be an object, {type} given.')
                 ->isMap('"requestedSchema.properties" must be a string-keyed object.')
@@ -103,13 +89,13 @@ final readonly class ElicitRequestedSchema implements Arrayable
         if (isset($data['required'])) {
             Assert::that($data['required'])
                 ->isList('"requestedSchema.required" must be a list, non-list array given.')
-                ->values()->isString('each "requestedSchema.required" must be a string, {type} given.')
+                ->values()->isNonEmptyString('each "requestedSchema.required" must be a non-empty string, {type} given.')
             ;
             $required = $data['required'];
         }
 
         $schema = $data['$schema'] ?? null;
-        Assert::that($schema)->nullOr()->isString('"requestedSchema.$schema" must be a string or null, {type} given.');
+        Assert::that($schema)->nullOr()->isNonEmptyString('"requestedSchema.$schema" must be a non-empty string or null, {type} given.');
 
         return new self(properties: $properties, required: $required, schema: $schema);
     }

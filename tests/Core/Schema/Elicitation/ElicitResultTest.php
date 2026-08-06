@@ -121,6 +121,7 @@ final class ElicitResultTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('each elicit result "content" key must be a non-empty string.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new ElicitResult(action: ElicitAction::Accept, content: ['' => 'v']);
     }
 
@@ -136,7 +137,7 @@ final class ElicitResultTest extends TestCase
     public function testConstructorRejectsListWithNonStringEntries(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageIs('each elicit result "x" list entry must be a string, int given.');
+        $this->expectExceptionMessageIs('each elicit result "x" list entry must be a non-empty string, int given.');
 
         // @phpstan-ignore argument.type
         new ElicitResult(action: ElicitAction::Accept, content: ['x' => [1, 2]]);
@@ -191,7 +192,7 @@ final class ElicitResultTest extends TestCase
 
         yield 'content entry list with non-string' => [
             ['action' => 'accept', 'content' => ['x' => [1]]],
-            'each elicit result "content entry x" list entry must be a string, int given.',
+            'each elicit result "content entry x" list entry must be a non-empty string, int given.',
         ];
     }
 }

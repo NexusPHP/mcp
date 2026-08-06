@@ -94,6 +94,7 @@ final class BooleanSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('boolean schema "title" must be a non-empty string or null.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new BooleanSchema(title: '');
     }
 
@@ -102,6 +103,7 @@ final class BooleanSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('boolean schema "description" must be a non-empty string or null.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new BooleanSchema(description: '');
     }
 
@@ -134,12 +136,12 @@ final class BooleanSchemaTest extends TestCase
 
         yield 'title not a string' => [
             ['type' => 'boolean', 'title' => 1],
-            'boolean schema "title" must be a string or null, int given.',
+            'boolean schema "title" must be a non-empty string or null, int given.',
         ];
 
         yield 'description not a string' => [
             ['type' => 'boolean', 'description' => 1],
-            'boolean schema "description" must be a string or null, int given.',
+            'boolean schema "description" must be a non-empty string or null, int given.',
         ];
 
         yield 'default not a bool' => [

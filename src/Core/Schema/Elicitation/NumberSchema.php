@@ -38,24 +38,14 @@ final readonly class NumberSchema implements PrimitiveSchemaDefinition
     public const string TYPE_INTEGER = 'integer';
 
     /**
-     * @var 'integer'|'number'
+     * @param 'integer'|'number'    $type
+     * @param null|non-empty-string $title
+     * @param null|non-empty-string $description
      */
-    public string $type;
-
-    /**
-     * @var null|non-empty-string
-     */
-    public ?string $title;
-
-    /**
-     * @var null|non-empty-string
-     */
-    public ?string $description;
-
     public function __construct(
-        string $type = self::TYPE,
-        ?string $title = null,
-        ?string $description = null,
+        public string $type = self::TYPE,
+        public ?string $title = null,
+        public ?string $description = null,
         public ?float $minimum = null,
         public ?float $maximum = null,
         public ?float $default = null,
@@ -69,10 +59,6 @@ final readonly class NumberSchema implements PrimitiveSchemaDefinition
             ->nullOr()
             ->isNonEmptyString('number schema "description" must be a non-empty string or null.')
         ;
-
-        $this->type = $type;
-        $this->title = $title;
-        $this->description = $description;
     }
 
     #[\Override]
@@ -80,13 +66,13 @@ final readonly class NumberSchema implements PrimitiveSchemaDefinition
     {
         Assert::that($data)->hasOffset('type', 'number schema is missing the required "type" key.');
         $type = $data['type'];
-        Assert::that($type)->isString('number schema "type" must be a string, {type} given.');
+        Assert::that($type)->isOneOf([self::TYPE, self::TYPE_INTEGER], 'number schema "type" must be one of {choices}, {value} given.');
 
         $title = $data['title'] ?? null;
-        Assert::that($title)->nullOr()->isString('number schema "title" must be a string or null, {type} given.');
+        Assert::that($title)->nullOr()->isNonEmptyString('number schema "title" must be a non-empty string or null, {type} given.');
 
         $description = $data['description'] ?? null;
-        Assert::that($description)->nullOr()->isString('number schema "description" must be a string or null, {type} given.');
+        Assert::that($description)->nullOr()->isNonEmptyString('number schema "description" must be a non-empty string or null, {type} given.');
 
         $minimum = $data['minimum'] ?? null;
 

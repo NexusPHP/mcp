@@ -93,6 +93,7 @@ final class LegacyTitledEnumSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('each legacy titled enum schema "enum" must be a non-empty string.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new LegacyTitledEnumSchema(enum: ['']);
     }
 
@@ -101,6 +102,7 @@ final class LegacyTitledEnumSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('legacy titled enum schema "title" must be a non-empty string or null.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new LegacyTitledEnumSchema(enum: ['a'], title: '');
     }
 
@@ -109,6 +111,7 @@ final class LegacyTitledEnumSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('legacy titled enum schema "description" must be a non-empty string or null.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new LegacyTitledEnumSchema(enum: ['a'], description: '');
     }
 
@@ -126,6 +129,7 @@ final class LegacyTitledEnumSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('each legacy titled enum schema "enumNames" must be a non-empty string.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new LegacyTitledEnumSchema(enum: ['a'], enumNames: ['']);
     }
 
@@ -168,17 +172,17 @@ final class LegacyTitledEnumSchemaTest extends TestCase
 
         yield 'enum entry not a string' => [
             ['type' => 'string', 'enum' => [1]],
-            'each legacy titled enum schema "enum" must be a string, int given.',
+            'each legacy titled enum schema "enum" must be a non-empty string, int given.',
         ];
 
         yield 'title not a string' => [
             ['type' => 'string', 'enum' => ['a'], 'title' => 1],
-            'legacy titled enum schema "title" must be a string or null, int given.',
+            'legacy titled enum schema "title" must be a non-empty string or null, int given.',
         ];
 
         yield 'description not a string' => [
             ['type' => 'string', 'enum' => ['a'], 'description' => 1],
-            'legacy titled enum schema "description" must be a string or null, int given.',
+            'legacy titled enum schema "description" must be a non-empty string or null, int given.',
         ];
 
         yield 'enumNames not a list' => [
@@ -188,7 +192,7 @@ final class LegacyTitledEnumSchemaTest extends TestCase
 
         yield 'enumNames entry not a string' => [
             ['type' => 'string', 'enum' => ['a'], 'enumNames' => [1]],
-            'each legacy titled enum schema "enumNames" must be a string, int given.',
+            'each legacy titled enum schema "enumNames" must be a non-empty string, int given.',
         ];
 
         yield 'default not a string' => [

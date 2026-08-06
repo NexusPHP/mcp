@@ -91,6 +91,7 @@ final class UntitledSingleSelectEnumSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('each untitled single select enum schema "enum" must be a non-empty string.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new UntitledSingleSelectEnumSchema(enum: ['']);
     }
 
@@ -99,6 +100,7 @@ final class UntitledSingleSelectEnumSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('untitled single select enum schema "title" must be a non-empty string or null.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new UntitledSingleSelectEnumSchema(enum: ['a'], title: '');
     }
 
@@ -107,6 +109,7 @@ final class UntitledSingleSelectEnumSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('untitled single select enum schema "description" must be a non-empty string or null.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new UntitledSingleSelectEnumSchema(enum: ['a'], description: '');
     }
 
@@ -149,17 +152,17 @@ final class UntitledSingleSelectEnumSchemaTest extends TestCase
 
         yield 'enum entry not a string' => [
             ['type' => 'string', 'enum' => [1]],
-            'each untitled single select enum schema "enum" must be a string, int given.',
+            'each untitled single select enum schema "enum" must be a non-empty string, int given.',
         ];
 
         yield 'title not a string' => [
             ['type' => 'string', 'enum' => ['a'], 'title' => 1],
-            'untitled single select enum schema "title" must be a string or null, int given.',
+            'untitled single select enum schema "title" must be a non-empty string or null, int given.',
         ];
 
         yield 'description not a string' => [
             ['type' => 'string', 'enum' => ['a'], 'description' => 1],
-            'untitled single select enum schema "description" must be a string or null, int given.',
+            'untitled single select enum schema "description" must be a non-empty string or null, int given.',
         ];
 
         yield 'default not a string' => [

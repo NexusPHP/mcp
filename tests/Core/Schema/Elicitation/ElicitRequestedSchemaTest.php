@@ -197,6 +197,7 @@ final class ElicitRequestedSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('each "requestedSchema.properties" key must be a non-empty string.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new ElicitRequestedSchema(properties: ['' => new StringSchema()]);
     }
 
@@ -222,6 +223,7 @@ final class ElicitRequestedSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('each "requestedSchema.required" must be a non-empty string.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new ElicitRequestedSchema(properties: ['x' => new StringSchema()], required: ['']);
     }
 
@@ -230,6 +232,7 @@ final class ElicitRequestedSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"requestedSchema.$schema" must be a non-empty string or null.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new ElicitRequestedSchema(properties: ['x' => new StringSchema()], schema: '');
     }
 
@@ -307,12 +310,12 @@ final class ElicitRequestedSchemaTest extends TestCase
 
         yield 'required entry not a string' => [
             ['type' => 'object', 'properties' => [], 'required' => [1]],
-            'each "requestedSchema.required" must be a string, int given.',
+            'each "requestedSchema.required" must be a non-empty string, int given.',
         ];
 
         yield '$schema not a string' => [
             ['type' => 'object', 'properties' => [], '$schema' => 1],
-            '"requestedSchema.$schema" must be a string or null, int given.',
+            '"requestedSchema.$schema" must be a non-empty string or null, int given.',
         ];
     }
 }

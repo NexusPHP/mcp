@@ -36,46 +36,20 @@ final readonly class UntitledMultiSelectEnumSchema implements MultiSelectEnumSch
     public const string ITEMS_TYPE = 'string';
 
     /**
-     * @var list<non-empty-string>
-     */
-    public array $items;
-
-    /**
-     * @var null|non-empty-string
-     */
-    public ?string $title;
-
-    /**
-     * @var null|non-empty-string
-     */
-    public ?string $description;
-
-    /**
-     * @var null|list<string>
-     */
-    public ?array $default;
-
-    /**
-     * @var null|int<0, max>
-     */
-    public ?int $minItems;
-
-    /**
-     * @var null|int<0, max>
-     */
-    public ?int $maxItems;
-
-    /**
-     * @param list<string>      $items   The inner `enum` values
-     * @param null|list<string> $default
+     * @param list<non-empty-string> $items       The inner `enum` values
+     * @param null|non-empty-string  $title
+     * @param null|non-empty-string  $description
+     * @param null|int<0, max>       $minItems
+     * @param null|int<0, max>       $maxItems
+     * @param null|list<string>      $default
      */
     public function __construct(
-        array $items,
-        ?string $title = null,
-        ?string $description = null,
-        ?int $minItems = null,
-        ?int $maxItems = null,
-        ?array $default = null,
+        public array $items,
+        public ?string $title = null,
+        public ?string $description = null,
+        public ?int $minItems = null,
+        public ?int $maxItems = null,
+        public ?array $default = null,
     ) {
         Assert::that($items)
             ->isList('untitled multi-select enum schema "items" must be a list, non-list array given.')
@@ -104,13 +78,6 @@ final readonly class UntitledMultiSelectEnumSchema implements MultiSelectEnumSch
                 ->values()->isString('each untitled multi-select enum schema "default" must be a string.')
             ;
         }
-
-        $this->items = $items;
-        $this->title = $title;
-        $this->description = $description;
-        $this->default = $default;
-        $this->minItems = $minItems;
-        $this->maxItems = $maxItems;
     }
 
     #[\Override]
@@ -133,20 +100,20 @@ final readonly class UntitledMultiSelectEnumSchema implements MultiSelectEnumSch
         Assert::that($itemsEnum)
             ->isArray('untitled multi-select enum schema "items.enum" must be a list, {type} given.')
             ->isList('untitled multi-select enum schema "items.enum" must be a list, non-list array given.')
-            ->values()->isString('each untitled multi-select enum schema "items.enum" must be a string, {type} given.')
+            ->values()->isNonEmptyString('each untitled multi-select enum schema "items.enum" must be a non-empty string, {type} given.')
         ;
 
         $title = $data['title'] ?? null;
-        Assert::that($title)->nullOr()->isString('untitled multi-select enum schema "title" must be a string or null, {type} given.');
+        Assert::that($title)->nullOr()->isNonEmptyString('untitled multi-select enum schema "title" must be a non-empty string or null, {type} given.');
 
         $description = $data['description'] ?? null;
-        Assert::that($description)->nullOr()->isString('untitled multi-select enum schema "description" must be a string or null, {type} given.');
+        Assert::that($description)->nullOr()->isNonEmptyString('untitled multi-select enum schema "description" must be a non-empty string or null, {type} given.');
 
         $minItems = $data['minItems'] ?? null;
-        Assert::that($minItems)->nullOr()->isInt('untitled multi-select enum schema "minItems" must be an int or null, {type} given.');
+        Assert::that($minItems)->nullOr()->isNaturalInt('untitled multi-select enum schema "minItems" must be a non-negative integer or null, {type} given.');
 
         $maxItems = $data['maxItems'] ?? null;
-        Assert::that($maxItems)->nullOr()->isInt('untitled multi-select enum schema "maxItems" must be an int or null, {type} given.');
+        Assert::that($maxItems)->nullOr()->isNaturalInt('untitled multi-select enum schema "maxItems" must be a non-negative integer or null, {type} given.');
 
         $default = null;
 

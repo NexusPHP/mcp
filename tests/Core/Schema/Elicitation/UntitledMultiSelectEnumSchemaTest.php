@@ -101,6 +101,7 @@ final class UntitledMultiSelectEnumSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('each untitled multi-select enum schema "items" must be a non-empty string.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new UntitledMultiSelectEnumSchema(items: ['']);
     }
 
@@ -109,6 +110,7 @@ final class UntitledMultiSelectEnumSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('untitled multi-select enum schema "title" must be a non-empty string or null.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new UntitledMultiSelectEnumSchema(items: ['a'], title: '');
     }
 
@@ -117,6 +119,7 @@ final class UntitledMultiSelectEnumSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('untitled multi-select enum schema "description" must be a non-empty string or null.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new UntitledMultiSelectEnumSchema(items: ['a'], description: '');
     }
 
@@ -125,6 +128,7 @@ final class UntitledMultiSelectEnumSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('untitled multi-select enum schema "minItems" must be a non-negative integer or null.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new UntitledMultiSelectEnumSchema(items: ['a'], minItems: -1);
     }
 
@@ -133,6 +137,7 @@ final class UntitledMultiSelectEnumSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('untitled multi-select enum schema "maxItems" must be a non-negative integer or null.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new UntitledMultiSelectEnumSchema(items: ['a'], maxItems: -1);
     }
 
@@ -204,27 +209,27 @@ final class UntitledMultiSelectEnumSchemaTest extends TestCase
 
         yield 'items.enum entry not a string' => [
             ['type' => 'array', 'items' => ['type' => 'string', 'enum' => [1]]],
-            'each untitled multi-select enum schema "items.enum" must be a string, int given.',
+            'each untitled multi-select enum schema "items.enum" must be a non-empty string, int given.',
         ];
 
         yield 'title not a string' => [
             ['type' => 'array', 'items' => ['type' => 'string', 'enum' => ['a']], 'title' => 1],
-            'untitled multi-select enum schema "title" must be a string or null, int given.',
+            'untitled multi-select enum schema "title" must be a non-empty string or null, int given.',
         ];
 
         yield 'description not a string' => [
             ['type' => 'array', 'items' => ['type' => 'string', 'enum' => ['a']], 'description' => 1],
-            'untitled multi-select enum schema "description" must be a string or null, int given.',
+            'untitled multi-select enum schema "description" must be a non-empty string or null, int given.',
         ];
 
         yield 'minItems not an int' => [
             ['type' => 'array', 'items' => ['type' => 'string', 'enum' => ['a']], 'minItems' => 'x'],
-            'untitled multi-select enum schema "minItems" must be an int or null, string given.',
+            'untitled multi-select enum schema "minItems" must be a non-negative integer or null, string given.',
         ];
 
         yield 'maxItems not an int' => [
             ['type' => 'array', 'items' => ['type' => 'string', 'enum' => ['a']], 'maxItems' => 'x'],
-            'untitled multi-select enum schema "maxItems" must be an int or null, string given.',
+            'untitled multi-select enum schema "maxItems" must be a non-negative integer or null, string given.',
         ];
 
         yield 'default not a list' => [

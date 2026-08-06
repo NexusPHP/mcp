@@ -118,6 +118,7 @@ final class TitledSingleSelectEnumSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('titled single select enum schema "title" must be a non-empty string or null.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new TitledSingleSelectEnumSchema(oneOf: [new EnumOption(const: 'a', title: 'A')], title: '');
     }
 
@@ -126,6 +127,7 @@ final class TitledSingleSelectEnumSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('titled single select enum schema "description" must be a non-empty string or null.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new TitledSingleSelectEnumSchema(oneOf: [new EnumOption(const: 'a', title: 'A')], description: '');
     }
 
@@ -178,12 +180,12 @@ final class TitledSingleSelectEnumSchemaTest extends TestCase
 
         yield 'title not a string' => [
             ['type' => 'string', 'oneOf' => [], 'title' => 1],
-            'titled single select enum schema "title" must be a string or null, int given.',
+            'titled single select enum schema "title" must be a non-empty string or null, int given.',
         ];
 
         yield 'description not a string' => [
             ['type' => 'string', 'oneOf' => [], 'description' => 1],
-            'titled single select enum schema "description" must be a string or null, int given.',
+            'titled single select enum schema "description" must be a non-empty string or null, int given.',
         ];
 
         yield 'default not a string' => [

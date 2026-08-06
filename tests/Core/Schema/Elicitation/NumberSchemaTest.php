@@ -138,6 +138,7 @@ final class NumberSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('number schema "type" must be one of [\'number\', \'integer\'].');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new NumberSchema(type: 'string');
     }
 
@@ -146,6 +147,7 @@ final class NumberSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('number schema "title" must be a non-empty string or null.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new NumberSchema(title: '');
     }
 
@@ -154,6 +156,7 @@ final class NumberSchemaTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('number schema "description" must be a non-empty string or null.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new NumberSchema(description: '');
     }
 
@@ -181,22 +184,22 @@ final class NumberSchemaTest extends TestCase
 
         yield 'type not a string' => [
             ['type' => 1],
-            'number schema "type" must be a string, int given.',
+            'number schema "type" must be one of [\'number\', \'integer\'], 1 given.',
         ];
 
         yield 'unknown type' => [
             ['type' => 'string'],
-            'number schema "type" must be one of [\'number\', \'integer\'].',
+            'number schema "type" must be one of [\'number\', \'integer\'], \'string\' given.',
         ];
 
         yield 'title not a string' => [
             ['type' => 'number', 'title' => 1],
-            'number schema "title" must be a string or null, int given.',
+            'number schema "title" must be a non-empty string or null, int given.',
         ];
 
         yield 'description not a string' => [
             ['type' => 'number', 'description' => 1],
-            'number schema "description" must be a string or null, int given.',
+            'number schema "description" must be a non-empty string or null, int given.',
         ];
 
         yield 'minimum not a number' => [
