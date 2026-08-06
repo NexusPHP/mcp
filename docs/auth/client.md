@@ -45,7 +45,8 @@ The authorization-code round trip is the default. A machine client with no user 
 unattended grant strategy instead: pass `null` for the user authorization and one of the
 [OAuth extension grants](../client/auth-extensions.md) (client credentials, enterprise-managed
 authorization) as `grantStrategy:`. An unattended grant also renews itself when its token expires,
-since no refresh token is issued to redeem.
+since no refresh token is issued to redeem. The seam is public, so a grant this SDK does not model
+is one you can [write yourself](../client/auth-extensions.md#writing-your-own-grant).
 
 ## Implementing the user-agent leg
 

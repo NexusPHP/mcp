@@ -85,7 +85,7 @@ final readonly class IdentityAssertionGrant implements GrantStrategyInterface
             $parameters['scope'] = $scope;
         }
 
-        return $context->tokenEndpoint->requestToken($server, $registration, $parameters, $context->scopes, $cancellation);
+        return $context->requestToken($registration, $parameters, $cancellation);
     }
 
     #[\Override]
@@ -144,6 +144,6 @@ final readonly class IdentityAssertionGrant implements GrantStrategyInterface
             ));
         }
 
-        return $context->registrar->resolve($server, $options, $cancellation);
+        return $context->resolveRegistration($cancellation);
     }
 }

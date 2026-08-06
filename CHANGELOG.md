@@ -35,9 +35,19 @@ in `0.x`, minor releases may include breaking changes.
 - The three referee scenarios for these extensions (`auth/client-credentials-basic`,
   `auth/client-credentials-jwt`, `auth/enterprise-managed-authorization`) run via
   `composer conformance:extensions:client` and score into a new client-extensions badge.
+- The client's grant-strategy seam is public API, so an OAuth grant the SDK does not model can be
+  written by a consumer. `GrantStrategyInterface` and `GrantContext` are supported surface, along
+  with the types a grant reads: `DiscoveredResource`, `AuthorizationServerMetadata`,
+  `ProtectedResourceMetadata`, `ResourceIdentifier`, and `ScopeSet`. See
+  [docs/client/auth-extensions.md](docs/client/auth-extensions.md#writing-your-own-grant).
 
 ### Changed
 
+- `GrantContext` exposes the two authorization-server calls a grant is built from as
+  `resolveRegistration()` and `requestToken()`, rather than the `ClientRegistrar` and
+  `TokenEndpoint` collaborators that answer them. Those two stay `@internal` and keep changing
+  freely, and the built-in authorization-code grant runs on the same public surface a third-party
+  grant does.
 - `AuthorizationOptions::$redirectUri` is nullable, for grants that never visit an authorization
   endpoint. A client built with a user authorization is still held to carrying one, now refused at
   construction rather than at the first challenge, and Dynamic Client Registration refuses to run

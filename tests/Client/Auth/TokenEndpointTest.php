@@ -17,9 +17,7 @@ use Amp\Http\Client\Request;
 use Amp\NullCancellation;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Client\Auth\AccessToken;
-use Nexus\Mcp\Client\Auth\AuthorizationRedirect;
 use Nexus\Mcp\Client\Auth\ClientRegistration;
-use Nexus\Mcp\Client\Auth\PkcePair;
 use Nexus\Mcp\Client\Auth\TokenEndpoint;
 use Nexus\Mcp\Client\Exception\AuthorizationGrantRejectedException;
 use Nexus\Mcp\Client\Exception\ClientRegistrationRejectedException;
@@ -51,7 +49,7 @@ final class TokenEndpointTest extends TestCase
     private const string REDIRECT_URI = 'http://localhost:3000/callback';
     private const string VERIFIER = 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk';
 
-    public function testExchangeCodeSendsTheAuthorizationCodeGrant(): void
+    public function testItPostsTheGrantBodyAsAForm(): void
     {
         $http = new RecordingHttpClient()->willAnswerJson(self::tokenResponse());
 
@@ -520,20 +518,17 @@ final class TokenEndpointTest extends TestCase
         ?AuthorizationServerMetadata $metadata = null,
         float $timeout = 10.0,
     ): AccessToken {
-        return new TokenEndpoint($http, $timeout)->exchangeCode(
+        return new TokenEndpoint($http, $timeout)->requestToken(
             $metadata ?? self::metadata(),
             $registration ?? new ClientRegistration('the-client', self::ISSUER),
-            new AuthorizationRedirect(
-                'https://auth.example.com/authorize',
-                'the-state',
-                self::ISSUER,
-                false,
-                PkcePair::fromVerifier(self::VERIFIER),
-                $scopes,
-            ),
-            'the-code',
-            self::REDIRECT_URI,
-            new ResourceIdentifier(self::RESOURCE),
+            [
+                'grant_type' => 'authorization_code',
+                'code' => 'the-code',
+                'redirect_uri' => self::REDIRECT_URI,
+                'code_verifier' => self::VERIFIER,
+                'resource' => self::RESOURCE,
+            ],
+            $scopes,
             new NullCancellation(),
         );
     }

@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Client\Auth;
 
+use Amp\Http\Client\Request;
 use Amp\NullCancellation;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Client\Auth\AuthorizationCodeGrantStrategy;
@@ -32,6 +33,8 @@ use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
+
+use function Amp\ByteStream\buffer;
 
 /**
  * @internal
@@ -59,6 +62,13 @@ final class AuthorizationCodeGrantStrategyTest extends TestCase
         self::assertSame(['files:read'], $user->readRequestedScopes());
         self::assertSame('https://auth.example.com/register', (string) $http->readRequest(0)->getUri());
         self::assertSame('https://auth.example.com/token', (string) $http->readRequest(1)->getUri());
+
+        $form = self::readForm($http->readRequest(1));
+        self::assertSame('authorization_code', $form['grant_type'] ?? null);
+        self::assertSame('http://localhost:3000/callback', $form['redirect_uri'] ?? null);
+        self::assertSame(self::RESOURCE, $form['resource'] ?? null);
+        self::assertArrayHasKey('code', $form);
+        self::assertArrayHasKey('code_verifier', $form);
     }
 
     public function testGrantRefusesToRunWithoutARedirectUri(): void
@@ -98,10 +108,28 @@ final class AuthorizationCodeGrantStrategyTest extends TestCase
             $resource,
             $scopes,
             $options ?? new AuthorizationOptions('Example MCP Client', 'http://localhost:3000/callback'),
-            new ClientRegistrar($http, new InMemoryClientRegistrationStore()),
-            new TokenEndpoint($http),
             $http,
             new ArrayLogger(),
+            new ClientRegistrar($http, new InMemoryClientRegistrationStore()),
+            new TokenEndpoint($http),
         );
+    }
+
+    /**
+     * @return array<array-key, string>
+     */
+    private static function readForm(Request $request): array
+    {
+        parse_str(buffer($request->getBody()->getContent()), $parsed);
+
+        $parameters = [];
+
+        foreach ($parsed as $name => $value) {
+            if (\is_string($value)) {
+                $parameters[$name] = $value;
+            }
+        }
+
+        return $parameters;
     }
 }

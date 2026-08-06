@@ -17,8 +17,6 @@ namespace Nexus\Mcp\Core\Auth;
  * The OAuth 2.0 Protected Resource Metadata document an MCP server publishes to name the authorization
  * servers that issue tokens for it.
  *
- * @internal
- *
  * @see https://datatracker.ietf.org/doc/html/rfc9728#section-2
  */
 final readonly class ProtectedResourceMetadata

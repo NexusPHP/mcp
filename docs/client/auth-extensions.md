@@ -143,6 +143,58 @@ The declaration rides every request's `_meta` capabilities. The grants themselve
 it, since the whole flow is HTTP-layer, but declaring is what tells the server which authorization
 model the client runs, and the server classes exist for the same discoverability.
 
+## Writing your own grant
+
+The seam the two shipped grants ride is public, so an OAuth grant this SDK does not model is a
+class you can write yourself. Implement `GrantStrategyInterface`:
+
+```php
+use Amp\Cancellation;
+use Nexus\Mcp\Client\Auth\AccessToken;
+use Nexus\Mcp\Client\Auth\GrantContext;
+use Nexus\Mcp\Client\Auth\GrantStrategyInterface;
+
+final readonly class DeviceCodeGrant implements GrantStrategyInterface
+{
+    public function grant(GrantContext $context, Cancellation $cancellation): AccessToken
+    {
+        $registration = $context->resolveRegistration($cancellation);
+
+        return $context->requestToken($registration, [
+            'grant_type' => 'urn:ietf:params:oauth:grant-type:device_code',
+            'device_code' => $this->pollForDeviceCode($context, $cancellation),
+            'resource' => $context->resource->value,
+        ], $cancellation);
+    }
+
+    public function renewsByFreshGrant(): bool
+    {
+        return true;
+    }
+}
+```
+
+`GrantContext` is what the coordinator hands a grant once discovery has run. It carries the
+discovery result (`$context->discovered->server` for the authorization server's metadata,
+`->metadata` for the MCP server's own), the `resource` the token is for, the `scopes` to ask for,
+the `options` the client was built with, and an `httpClient` and `logger` for anything the grant
+does on its own. The two authorization-server calls are methods on the context rather than
+collaborators you assemble:
+
+- `resolveRegistration()` resolves the `client_id` to present, walking pre-registered credentials,
+  then a Client ID Metadata Document, then Dynamic Client Registration. Skip it when the grant
+  carries its own credential, as `ClientCredentialsGrant` does.
+- `requestToken()` posts the form body to the discovered token endpoint, applying client
+  authentication, RFC 6749 error triage, and the token read. Pass a fourth `ScopeSet` argument when
+  the token should fall back to scopes other than the context's.
+
+`renewsByFreshGrant()` says how an expired token with no refresh token is renewed. Return `true`
+for an unattended grant, which reruns rather than sending the request bare to draw a challenge.
+Return `false` when the grant needs a user, so the challenge path is the cheaper one.
+
+The built-in authorization-code grant is written against this same surface, so nothing about it is
+reachable that your own grant cannot reach.
+
 DPoP (SEP-1932) and workload identity federation (SEP-1933) are still open proposals upstream and
 are not modelled.
 

@@ -228,10 +228,10 @@ final class ClientCredentialsGrantTest extends TestCase
             $resource,
             $scopes,
             $options ?? new AuthorizationOptions('Example MCP Client'),
-            new ClientRegistrar($http, new InMemoryClientRegistrationStore()),
-            new TokenEndpoint($http),
             $http,
             new ArrayLogger(),
+            new ClientRegistrar($http, new InMemoryClientRegistrationStore()),
+            new TokenEndpoint($http),
         );
     }
 

@@ -19,8 +19,6 @@ use Nexus\Assert\Assert;
  * The canonical URI of an MCP server, the value carried by the OAuth `resource` parameter and the audience
  * a token issued for that server must name.
  *
- * @internal
- *
  * @see https://www.rfc-editor.org/rfc/rfc8707.html#section-2
  * @see https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization#canonical-server-uri
  */

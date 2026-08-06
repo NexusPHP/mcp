@@ -315,10 +315,10 @@ final class IdentityAssertionGrantTest extends TestCase
             $resource,
             $scopes,
             $options,
-            new ClientRegistrar($http, new InMemoryClientRegistrationStore()),
-            new TokenEndpoint($http),
             $http,
             $logger ?? new ArrayLogger(),
+            new ClientRegistrar($http, new InMemoryClientRegistrationStore()),
+            new TokenEndpoint($http),
         );
     }
 

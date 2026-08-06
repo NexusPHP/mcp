@@ -18,8 +18,6 @@ use Nexus\Assert\Assert;
 /**
  * An ordered, duplicate-free set of OAuth scope values.
  *
- * @internal
- *
  * @see https://datatracker.ietf.org/doc/html/rfc6749#section-3.3
  */
 final readonly class ScopeSet

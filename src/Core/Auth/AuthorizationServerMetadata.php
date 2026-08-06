@@ -17,8 +17,6 @@ namespace Nexus\Mcp\Core\Auth;
  * The metadata document an authorization server publishes, as served by either OAuth 2.0 Authorization
  * Server Metadata or OpenID Connect Discovery.
  *
- * @internal
- *
  * @see https://datatracker.ietf.org/doc/html/rfc8414#section-2
  * @see https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
  */

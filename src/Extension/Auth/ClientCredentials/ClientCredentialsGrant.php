@@ -98,7 +98,7 @@ final readonly class ClientCredentialsGrant implements GrantStrategyInterface
             $this->authMethod,
         );
 
-        return $context->tokenEndpoint->requestToken($server, $registration, $parameters, $context->scopes, $cancellation);
+        return $context->requestToken($registration, $parameters, $cancellation);
     }
 
     #[\Override]
