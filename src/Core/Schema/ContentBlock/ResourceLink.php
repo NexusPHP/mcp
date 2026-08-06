@@ -50,37 +50,20 @@ final readonly class ResourceLink extends BaseMetadata implements Arrayable, Con
     public const string TYPE = 'resource_link';
 
     /**
-     * @var non-empty-string
-     */
-    public string $uri;
-
-    /**
-     * @var null|non-empty-string
-     */
-    public ?string $description;
-
-    /**
-     * @var null|non-empty-string
-     */
-    public ?string $mimeType;
-
-    /**
-     * @var null|list<Icon>
-     */
-    public ?array $icons;
-
-    /**
-     * @param null|list<Icon> $icons
+     * @param non-empty-string      $uri
+     * @param null|non-empty-string $description
+     * @param null|non-empty-string $mimeType
+     * @param null|list<Icon>       $icons
      */
     public function __construct(
         string $name,
-        string $uri,
+        public string $uri,
         ?string $title = null,
-        ?string $description = null,
-        ?string $mimeType = null,
+        public ?string $description = null,
+        public ?string $mimeType = null,
         public Annotations $annotations = new Annotations(),
         public ?int $size = null,
-        ?array $icons = null,
+        public ?array $icons = null,
         public PayloadMetaObject $meta = new PayloadMetaObject(),
     ) {
         parent::__construct(name: $name, title: $title);
@@ -100,11 +83,6 @@ final readonly class ResourceLink extends BaseMetadata implements Arrayable, Con
         if (null !== $icons) {
             Assert::that($icons)->values()->isInstanceOf(Icon::class);
         }
-
-        $this->uri = $uri;
-        $this->description = $description;
-        $this->mimeType = $mimeType;
-        $this->icons = $icons;
     }
 
     #[\Override]

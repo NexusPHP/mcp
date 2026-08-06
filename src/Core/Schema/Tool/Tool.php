@@ -43,11 +43,6 @@ use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
 final readonly class Tool extends BaseMetadata implements Arrayable, Icons
 {
     /**
-     * @var null|non-empty-string
-     */
-    public ?string $description;
-
-    /**
      * @var ToolInputSchemaShape
      */
     public array $inputSchema;
@@ -59,6 +54,7 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
 
     /**
      * @param array<string, mixed>      $inputSchema
+     * @param null|non-empty-string     $description
      * @param null|array<string, mixed> $outputSchema
      * @param null|list<Icon>           $icons
      */
@@ -66,7 +62,7 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
         string $name,
         array $inputSchema,
         ?string $title = null,
-        ?string $description = null,
+        public ?string $description = null,
         ?array $outputSchema = null,
         public ToolAnnotations $annotations = new ToolAnnotations(),
         public ?array $icons = null,
@@ -81,7 +77,6 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
             Assert::that($this->icons)->values()->isInstanceOf(Icon::class);
         }
 
-        $this->description = $description;
         $this->inputSchema = self::validateInputSchema($inputSchema);
         $this->outputSchema = null === $outputSchema ? null : self::validateOutputSchema($outputSchema);
     }

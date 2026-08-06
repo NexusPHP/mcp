@@ -181,6 +181,7 @@ final class ResourceLinkTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('resource link "description" must be a non-empty string or null.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new ResourceLink(name: 'my-link', uri: 'file:///tmp/x', description: '');
     }
 
@@ -189,6 +190,7 @@ final class ResourceLinkTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('resource link "mimeType" must be a non-empty string or null.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new ResourceLink(name: 'my-link', uri: 'file:///tmp/x', mimeType: '');
     }
 

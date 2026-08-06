@@ -33,22 +33,18 @@ use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
 final readonly class PromptArgument extends BaseMetadata implements Arrayable
 {
     /**
-     * @var null|non-empty-string
+     * @param null|non-empty-string $description
      */
-    public ?string $description;
-
     public function __construct(
         string $name,
         ?string $title = null,
-        ?string $description = null,
+        public ?string $description = null,
         public ?bool $required = null,
     ) {
         parent::__construct(name: $name, title: $title);
 
         IdentifierNameValidator::validate($name, '"arguments.name"');
         Assert::that($description)->nullOr()->isNonEmptyString('"arguments.description" must be a non-empty string or null.');
-
-        $this->description = $description;
     }
 
     #[\Override]
@@ -62,7 +58,7 @@ final readonly class PromptArgument extends BaseMetadata implements Arrayable
         Assert::that($title)->nullOr()->isNonEmptyString('"arguments.title" must be a non-empty string or null, {type} given.');
 
         $description = $data['description'] ?? null;
-        Assert::that($description)->nullOr()->isString('"arguments.description" must be a string or null, {type} given.');
+        Assert::that($description)->nullOr()->isNonEmptyString('"arguments.description" must be a non-empty string or null, {type} given.');
 
         $required = $data['required'] ?? null;
         Assert::that($required)->nullOr()->isBool('"arguments.required" must be a bool or null, {type} given.');

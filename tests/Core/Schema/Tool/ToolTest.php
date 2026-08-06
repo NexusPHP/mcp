@@ -166,6 +166,7 @@ final class ToolTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('Tool description must be a non-empty string or null.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new Tool(name: 'read-file', inputSchema: ['type' => 'object'], description: '');
     }
 

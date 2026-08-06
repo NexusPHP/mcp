@@ -163,6 +163,7 @@ final class ResourceTemplateTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('resource template "uriTemplate" must be a non-empty string.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new ResourceTemplate(name: 'my-template', uriTemplate: '');
     }
 
@@ -179,6 +180,7 @@ final class ResourceTemplateTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('resource template "description" must be a non-empty string or null.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new ResourceTemplate(name: 'my-template', uriTemplate: 'file:///tmp/{name}', description: '');
     }
 
@@ -187,6 +189,7 @@ final class ResourceTemplateTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('resource template "mimeType" must be a non-empty string or null.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new ResourceTemplate(name: 'my-template', uriTemplate: 'file:///tmp/{name}', mimeType: '');
     }
 

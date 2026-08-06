@@ -75,6 +75,7 @@ final class ImplementationTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"version" must be a non-empty string.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new Implementation(name: 'Nexus MCP', version: '');
     }
 
@@ -92,6 +93,7 @@ final class ImplementationTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"description" must be a non-empty string or null.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new Implementation(name: 'Nexus MCP', version: '1.0.0', description: '');
     }
 
@@ -100,6 +102,7 @@ final class ImplementationTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"websiteUrl" must be a non-empty string or null.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new Implementation(name: 'Nexus MCP', version: '1.0.0', websiteUrl: '');
     }
 

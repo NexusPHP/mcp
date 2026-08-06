@@ -39,30 +39,16 @@ use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
 final readonly class Prompt extends BaseMetadata implements Arrayable, Icons
 {
     /**
-     * @var null|non-empty-string
-     */
-    public ?string $description;
-
-    /**
-     * @var null|list<PromptArgument>
-     */
-    public ?array $arguments;
-
-    /**
-     * @var null|list<Icon>
-     */
-    public ?array $icons;
-
-    /**
+     * @param null|non-empty-string     $description
      * @param null|list<PromptArgument> $arguments
      * @param null|list<Icon>           $icons
      */
     public function __construct(
         string $name,
         ?string $title = null,
-        ?string $description = null,
-        ?array $arguments = null,
-        ?array $icons = null,
+        public ?string $description = null,
+        public ?array $arguments = null,
+        public ?array $icons = null,
         public PayloadMetaObject $meta = new PayloadMetaObject(),
     ) {
         parent::__construct(name: $name, title: $title);
@@ -77,10 +63,6 @@ final readonly class Prompt extends BaseMetadata implements Arrayable, Icons
         if (null !== $icons) {
             Assert::that($icons)->values()->isInstanceOf(Icon::class);
         }
-
-        $this->description = $description;
-        $this->arguments = $arguments;
-        $this->icons = $icons;
     }
 
     #[\Override]

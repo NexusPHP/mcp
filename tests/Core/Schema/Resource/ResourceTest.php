@@ -175,6 +175,7 @@ final class ResourceTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('resource "description" must be a non-empty string or null.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new Resource(name: 'my-resource', uri: 'file:///x', description: '');
     }
 
@@ -183,6 +184,7 @@ final class ResourceTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('resource "mimeType" must be a non-empty string or null.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new Resource(name: 'my-resource', uri: 'file:///x', mimeType: '');
     }
 

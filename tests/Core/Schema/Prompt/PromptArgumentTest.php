@@ -122,6 +122,7 @@ final class PromptArgumentTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"arguments.description" must be a non-empty string or null.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new PromptArgument(name: 'topic', description: '');
     }
 
@@ -159,7 +160,7 @@ final class PromptArgumentTest extends TestCase
 
         yield 'description not a string' => [
             ['name' => 'topic', 'description' => 1],
-            '"arguments.description" must be a string or null, int given.',
+            '"arguments.description" must be a non-empty string or null, int given.',
         ];
 
         yield 'required not a bool' => [

@@ -32,35 +32,18 @@ use Nexus\Assert\Assert;
 final readonly class Implementation extends BaseMetadata implements Arrayable, Icons
 {
     /**
-     * @var non-empty-string
-     */
-    public string $version;
-
-    /**
-     * @var null|non-empty-string
-     */
-    public ?string $description;
-
-    /**
-     * @var null|non-empty-string
-     */
-    public ?string $websiteUrl;
-
-    /**
-     * @var null|list<Icon>
-     */
-    public ?array $icons;
-
-    /**
-     * @param null|list<Icon> $icons
+     * @param non-empty-string      $version
+     * @param null|non-empty-string $description
+     * @param null|non-empty-string $websiteUrl
+     * @param null|list<Icon>       $icons
      */
     public function __construct(
         string $name,
-        string $version,
+        public string $version,
         ?string $title = null,
-        ?string $description = null,
-        ?string $websiteUrl = null,
-        ?array $icons = null,
+        public ?string $description = null,
+        public ?string $websiteUrl = null,
+        public ?array $icons = null,
     ) {
         parent::__construct(name: $name, title: $title);
 
@@ -75,11 +58,6 @@ final readonly class Implementation extends BaseMetadata implements Arrayable, I
         if (null !== $icons) {
             Assert::that($icons)->values()->isInstanceOf(Icon::class);
         }
-
-        $this->version = $version;
-        $this->description = $description;
-        $this->websiteUrl = $websiteUrl;
-        $this->icons = $icons;
     }
 
     #[\Override]
