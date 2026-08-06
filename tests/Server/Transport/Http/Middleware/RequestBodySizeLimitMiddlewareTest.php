@@ -74,9 +74,13 @@ final class RequestBodySizeLimitMiddlewareTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('The maximum request body size must be a non-negative integer, -1 given.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         self::middleware(-1);
     }
 
+    /**
+     * @param int<0, max> $maxBytes
+     */
     private static function middleware(int $maxBytes): RequestBodySizeLimitMiddleware
     {
         $factory = new Psr17Factory();

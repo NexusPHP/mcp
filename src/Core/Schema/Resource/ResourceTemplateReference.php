@@ -32,15 +32,11 @@ final readonly class ResourceTemplateReference implements Arrayable
     public const string TYPE = 'ref/resource';
 
     /**
-     * @var non-empty-string
+     * @param non-empty-string $uri
      */
-    public string $uri;
-
-    public function __construct(string $uri)
+    public function __construct(public string $uri)
     {
         Rfc6570UriTemplateValidator::validate($uri, 'resource template reference "uri"');
-
-        $this->uri = $uri;
     }
 
     #[\Override]
@@ -52,7 +48,7 @@ final readonly class ResourceTemplateReference implements Arrayable
 
         Assert::that($data)->hasOffset('uri', 'resource template reference is missing the required "uri" key.');
         $uri = $data['uri'];
-        Assert::that($uri)->isString('resource template reference "uri" must be a string, {type} given.');
+        Assert::that($uri)->isNonEmptyString('resource template reference "uri" must be a non-empty string, {type} given.');
 
         return new self(uri: $uri);
     }

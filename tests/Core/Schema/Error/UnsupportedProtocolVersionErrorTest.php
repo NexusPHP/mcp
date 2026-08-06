@@ -113,7 +113,7 @@ final class UnsupportedProtocolVersionErrorTest extends TestCase
     {
         yield 'message not a string' => [
             ['message' => 1, 'data' => ['supported' => ['DRAFT-2026-v1'], 'requested' => '2099-01-01']],
-            'error "message" must be a string, int given.',
+            'error "message" must be a non-empty string, int given.',
         ];
 
         yield 'missing data' => [

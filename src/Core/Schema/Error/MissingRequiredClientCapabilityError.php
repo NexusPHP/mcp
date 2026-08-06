@@ -35,6 +35,9 @@ final readonly class MissingRequiredClientCapabilityError extends Error
 {
     public const string DEFAULT_MESSAGE = 'Missing required client capability';
 
+    /**
+     * @param non-empty-string $message
+     */
     public function __construct(public ClientCapabilities $requiredCapabilities, string $message = self::DEFAULT_MESSAGE)
     {
         parent::__construct(
@@ -48,7 +51,7 @@ final readonly class MissingRequiredClientCapabilityError extends Error
     public static function fromArray(array $data): static
     {
         $message = $data['message'] ?? self::DEFAULT_MESSAGE;
-        Assert::that($message)->isString('error "message" must be a string, {type} given.');
+        Assert::that($message)->isNonEmptyString('error "message" must be a non-empty string, {type} given.');
 
         $payload = $data['data'] ?? null;
         Assert::that($payload)

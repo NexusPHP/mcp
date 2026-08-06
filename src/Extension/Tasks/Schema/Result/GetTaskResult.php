@@ -49,16 +49,6 @@ use Nexus\Mcp\Extension\Tasks\Schema\Enum\TaskStatus;
 final readonly class GetTaskResult extends Result implements ServerResult
 {
     /**
-     * @var null|array<string, mixed>
-     */
-    public ?array $result;
-
-    /**
-     * @var null|array<string, mixed>
-     */
-    public ?array $error;
-
-    /**
      * @var null|array<string, InputRequest>
      */
     public ?array $inputRequests;
@@ -78,8 +68,8 @@ final readonly class GetTaskResult extends Result implements ServerResult
         public string $createdAt,
         public string $lastUpdatedAt,
         public ?int $ttlMs,
-        ?array $result = null,
-        ?array $error = null,
+        public ?array $result = null,
+        public ?array $error = null,
         ?array $inputRequests = null,
         public ?string $statusMessage = null,
         public ?int $pollIntervalMs = null,
@@ -100,8 +90,6 @@ final readonly class GetTaskResult extends Result implements ServerResult
 
         self::assertStatusPayload($status, $result, $error, $inputRequests);
 
-        $this->result = $result;
-        $this->error = $error;
         $this->inputRequests = $inputRequests;
 
         parent::__construct(meta: $meta);

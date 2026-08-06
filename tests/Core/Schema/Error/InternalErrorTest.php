@@ -134,6 +134,7 @@ final class InternalErrorTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('error "message" must be a non-empty string.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new InternalError(message: '');
     }
 }

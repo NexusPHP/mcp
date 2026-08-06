@@ -84,6 +84,7 @@ final class ResourceTemplateReferenceTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('resource template reference "uri" must be a non-empty string.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new ResourceTemplateReference(uri: '');
     }
 
@@ -121,7 +122,7 @@ final class ResourceTemplateReferenceTest extends TestCase
 
         yield 'uri not a string' => [
             ['type' => 'ref/resource', 'uri' => 1],
-            'resource template reference "uri" must be a string, int given.',
+            'resource template reference "uri" must be a non-empty string, int given.',
         ];
     }
 }

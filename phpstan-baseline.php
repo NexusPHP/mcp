@@ -8,6 +8,12 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/src/Core/Dispatch/PendingOutboundRequests.php',
 ];
 $ignoreErrors[] = [
+	'rawMessage' => 'Parameter #2 $message of static method Nexus\\Mcp\\Core\\JsonRpc\\ErrorFactory::create() expects non-empty-string, string given.',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/src/Core/Dispatch/ResponseSender.php',
+];
+$ignoreErrors[] = [
 	'rawMessage' => 'Strict comparison using === between Nexus\\Mcp\\Core\\Transport\\TransportState::Closed and Nexus\\Mcp\\Core\\Transport\\TransportState::Running will always evaluate to false.',
 	'identifier' => 'identical.alwaysFalse',
 	'count' => 1,
@@ -18,6 +24,12 @@ $ignoreErrors[] = [
 	'identifier' => 'offsetAccess.notFound',
 	'count' => 1,
 	'path' => __DIR__ . '/src/Core/Transport/LineReader.php',
+];
+$ignoreErrors[] = [
+	'rawMessage' => 'Parameter #2 $message of static method Nexus\\Mcp\\Core\\JsonRpc\\ErrorFactory::create() expects non-empty-string, string given.',
+	'identifier' => 'argument.type',
+	'count' => 2,
+	'path' => __DIR__ . '/src/Extension/Tasks/Server/ToolTaskRunner.php',
 ];
 $ignoreErrors[] = [
 	'rawMessage' => 'Casting class ReflectionType to string is deprecated.',

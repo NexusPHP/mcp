@@ -74,7 +74,7 @@ final class HeaderMismatchErrorTest extends TestCase
     public function testFromArrayRejectsNonStringMessage(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageIs('error "message" must be a string, int given.');
+        $this->expectExceptionMessageIs('error "message" must be a non-empty string, int given.');
 
         HeaderMismatchError::fromArray(['message' => 1]);
     }

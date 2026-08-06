@@ -43,6 +43,7 @@ final class UnknownProtocolErrorTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('error "message" must be a non-empty string.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new UnknownProtocolError(code: -32099, message: '');
     }
 
@@ -93,7 +94,7 @@ final class UnknownProtocolErrorTest extends TestCase
     public function testFromArrayRejectsNonStringMessage(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageIs('"error.message" must be a string, int given.');
+        $this->expectExceptionMessageIs('"error.message" must be a non-empty string, int given.');
 
         UnknownProtocolError::fromArray(['code' => 42, 'message' => 1]);
     }

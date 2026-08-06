@@ -256,7 +256,7 @@ final class JsonRpcErrorResponseTest extends TestCase
     public function testFromArrayRejectsNonStringMessage(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('"error.message" must be a string, int given.');
+        $this->expectExceptionMessageIs('"error.message" must be a non-empty string, int given.');
 
         JsonRpcErrorResponse::fromArray([
             'jsonrpc' => '2.0',

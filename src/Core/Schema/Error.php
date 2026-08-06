@@ -28,19 +28,16 @@ abstract readonly class Error implements Arrayable
     public int $code;
 
     /**
-     * @var non-empty-string
+     * @param non-empty-string $message
      */
-    public string $message;
-
     public function __construct(
         int|ProtocolErrorCode $code,
-        string $message,
+        public string $message,
         public mixed $data = null,
     ) {
         Assert::that($message)->isNonEmptyString('error "message" must be a non-empty string.');
 
         $this->code = $code instanceof ProtocolErrorCode ? $code->value : $code;
-        $this->message = $message;
     }
 
     #[\Override]

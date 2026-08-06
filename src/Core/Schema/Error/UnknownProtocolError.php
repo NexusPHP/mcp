@@ -27,6 +27,9 @@ use Nexus\Mcp\Core\Schema\Error;
  */
 final readonly class UnknownProtocolError extends Error
 {
+    /**
+     * @param non-empty-string $message
+     */
     public function __construct(int $code, string $message, mixed $data = null)
     {
         if (ProtocolErrorCode::tryFrom($code) !== null) {
@@ -46,7 +49,7 @@ final readonly class UnknownProtocolError extends Error
         Assert::that($data['code'])->isInt('"error.code" must be an integer, {type} given.');
 
         Assert::that($data)->hasOffset('message', '"error" is missing the required "message" key.');
-        Assert::that($data['message'])->isString('"error.message" must be a string, {type} given.');
+        Assert::that($data['message'])->isNonEmptyString('"error.message" must be a non-empty string, {type} given.');
 
         return new self(code: $data['code'], message: $data['message'], data: $data['data'] ?? null);
     }

@@ -31,6 +31,9 @@ use Nexus\Mcp\Core\Schema\Error\UnsupportedProtocolVersionError;
  */
 final class ErrorFactory
 {
+    /**
+     * @param non-empty-string $message
+     */
     public static function create(ProtocolErrorCode $code, string $message, mixed $data = null): Error
     {
         return match ($code) {

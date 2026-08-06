@@ -35,7 +35,8 @@ final readonly class UnsupportedProtocolVersionError extends Error
     public const string DEFAULT_MESSAGE = 'Unsupported protocol version';
 
     /**
-     * @param list<string> $supported
+     * @param list<string>     $supported
+     * @param non-empty-string $message
      */
     public function __construct(
         public string $requested,
@@ -53,7 +54,7 @@ final readonly class UnsupportedProtocolVersionError extends Error
     public static function fromArray(array $data): static
     {
         $message = $data['message'] ?? self::DEFAULT_MESSAGE;
-        Assert::that($message)->isString('error "message" must be a string, {type} given.');
+        Assert::that($message)->isNonEmptyString('error "message" must be a non-empty string, {type} given.');
 
         $payload = $data['data'] ?? null;
         Assert::that($payload)

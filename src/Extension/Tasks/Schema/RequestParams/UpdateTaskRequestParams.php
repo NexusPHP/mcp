@@ -34,20 +34,12 @@ use Nexus\Mcp\Core\Schema\Result\InputResponse;
 final readonly class UpdateTaskRequestParams extends RequestParams
 {
     /**
-     * A raw map entry carries an answer for a key the task never issued,
-     * preserved as-is.
-     *
-     * @var array<string, array<string, mixed>|InputResponse>
-     */
-    public array $inputResponses;
-
-    /**
      * @param non-empty-string                                  $taskId
      * @param array<string, array<string, mixed>|InputResponse> $inputResponses
      */
     public function __construct(
         public string $taskId,
-        array $inputResponses,
+        public array $inputResponses,
         RequestMetaObject $meta,
     ) {
         Assert::that($inputResponses)->isMap('"params.inputResponses" must be a string-keyed object.');
@@ -60,8 +52,6 @@ final readonly class UpdateTaskRequestParams extends RequestParams
                 ;
             }
         }
-
-        $this->inputResponses = $inputResponses;
 
         parent::__construct(meta: $meta);
     }

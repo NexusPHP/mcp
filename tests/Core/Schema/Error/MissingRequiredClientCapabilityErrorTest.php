@@ -121,7 +121,7 @@ final class MissingRequiredClientCapabilityErrorTest extends TestCase
     {
         yield 'message not a string' => [
             ['message' => 1, 'data' => ['requiredCapabilities' => []]],
-            'error "message" must be a string, int given.',
+            'error "message" must be a non-empty string, int given.',
         ];
 
         yield 'missing data' => [

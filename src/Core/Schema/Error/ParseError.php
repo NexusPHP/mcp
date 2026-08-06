@@ -30,6 +30,9 @@ final readonly class ParseError extends Error
 {
     public const string DEFAULT_MESSAGE = 'Parse error';
 
+    /**
+     * @param non-empty-string $message
+     */
     public function __construct(string $message, mixed $data = null)
     {
         parent::__construct(code: ProtocolErrorCode::ParseError, message: $message, data: $data);
@@ -39,7 +42,7 @@ final readonly class ParseError extends Error
     public static function fromArray(array $data): static
     {
         $message = $data['message'] ?? self::DEFAULT_MESSAGE;
-        Assert::that($message)->isString('error "message" must be a string, {type} given.');
+        Assert::that($message)->isNonEmptyString('error "message" must be a non-empty string, {type} given.');
 
         return new self(message: $message, data: $data['data'] ?? null);
     }

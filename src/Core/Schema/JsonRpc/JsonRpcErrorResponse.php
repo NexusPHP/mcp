@@ -97,7 +97,7 @@ final readonly class JsonRpcErrorResponse implements Arrayable, JsonRpcResponse
         $code = $data['code'];
 
         Assert::that($data)->hasOffset('message', '"error" is missing the required "message" key.');
-        Assert::that($data['message'])->isString('"error.message" must be a string, {type} given.');
+        Assert::that($data['message'])->isNonEmptyString('"error.message" must be a non-empty string, {type} given.');
         $message = $data['message'];
 
         $extra = $data['data'] ?? null;
