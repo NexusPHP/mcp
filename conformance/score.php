@@ -266,7 +266,7 @@ foreach ($scenarios as $scenario) {
 ksort($modes);
 $heading = implode(' and ', array_keys($modes));
 
-printf("## Conformance score (%s)\n\n", '' === $heading ? 'no mode' : $heading);
+printf("## Conformance score (%s)\n\n", $heading);
 printf("**Scenarios passed:** %d / %d\n", $scenariosPassed, count($scenarios));
 printf("**Checks passed:** %d / %d (%.1f%%)\n", $totals['SUCCESS'], $scored, $rate * 100);
 printf("**Unmet SHOULD checks:** %d (counted against the score)\n", $totals['WARNING']);

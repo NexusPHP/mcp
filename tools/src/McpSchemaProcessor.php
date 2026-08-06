@@ -76,7 +76,6 @@ final class McpSchemaProcessor
             file_put_contents(self::LATEST_SCHEMA_JSON_PATH, $schemaJson);
         }
 
-        /** @var array{'$schema': string, '$defs': array<string, mixed>} $decodedSchema */
         $decodedSchema = json_decode($schemaJson, true, flags: \JSON_THROW_ON_ERROR);
 
         if (! \is_array($decodedSchema)) {
@@ -87,14 +86,17 @@ final class McpSchemaProcessor
             throw new \RuntimeException('The latest schema does not contain valid $defs.');
         }
 
-        $decodedSchema['$defs'] = self::resolveLinks($decodedSchema['$defs']);
+        /** @var array<string, mixed> $schemaDefs */
+        $schemaDefs = $decodedSchema['$defs'];
+        $resolvedDefs = self::resolveLinks($schemaDefs);
+        $decodedSchema['$defs'] = $resolvedDefs;
 
         if ($fetched) {
             $schemaJson = json_encode(self::convertEmptyArraysToObjects($decodedSchema), \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE | \JSON_THROW_ON_ERROR);
             file_put_contents(self::LATEST_SCHEMA_JSON_PATH, $schemaJson);
         }
 
-        return self::resolveRefAliases($decodedSchema['$defs']);
+        return self::resolveRefAliases($resolvedDefs);
     }
 
     /**

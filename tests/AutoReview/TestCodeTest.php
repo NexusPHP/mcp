@@ -180,7 +180,7 @@ final class TestCodeTest extends TestCase
             );
 
             if ([] !== $covered) {
-                $index[$testClassName] = array_values($covered);
+                $index[$testClassName] = $covered;
             }
         }
 
