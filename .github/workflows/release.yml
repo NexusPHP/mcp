@@ -21,15 +21,22 @@ jobs:
         env:
           TAG: ${{ github.ref_name }}
         run: |
-          # Capture this tag's section, then join hard-wrapped lines into one line per bullet.
+          # Capture this tag's section, then unwrap it: the changelog hard-wraps to a column limit,
+          # which GitHub renders as one long line anyway, so every block collapses to a single line.
+          # Blank lines, headings and fenced code delimit blocks and pass through untouched.
           body="$(awk -v tag="$TAG" '
             index($0, "## [" tag "]") == 1     { capture = 1; next }
             capture && index($0, "## [") == 1  { exit }
             capture                            { print }
           ' CHANGELOG.md | awk '
             function flush() { if (started) { print line; started = 0 } }
-            /^[[:space:]]+[^[:space:]]/ { sub(/^[[:space:]]+/, " "); line = line $0; next }
-            { flush(); line = $0; started = 1 }
+            /^```/                    { flush(); fence = ! fence; print; next }
+            fence                     { print; next }
+            /^[[:space:]]*$/          { flush(); print; next }
+            /^[[:space:]]*[-*+][ \t]/ { flush(); line = $0; started = 1; next }
+            /^[[:space:]]*#/          { flush(); print; next }
+            started                   { sub(/^[[:space:]]+/, ""); line = line " " $0; next }
+                                      { line = $0; started = 1 }
             END { flush() }
           ' | sed '/./,$!d')"
 
