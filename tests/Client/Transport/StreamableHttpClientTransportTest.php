@@ -174,13 +174,14 @@ final class StreamableHttpClientTransportTest extends TestCase
         self::assertSame([self::resultEnvelope()], $received->envelopes);
     }
 
-    public function testSentinelEncodesAResourceUriOutsideTheHeaderSafeSet(): void
+    public function testAResourceUriRidesTheNameHeaderVerbatim(): void
     {
-        // A tool name is constrained to the MCP identifier set, so a resource URI is the value that actually
-        // reaches the sentinel path. It must survive as a plain-ASCII header value.
+        // Both values `Mcp-Name` can carry are constrained to subsets of the header-safe set: a tool or
+        // prompt name to the MCP identifier set, and a resource URI to RFC 3986's printable ASCII. Neither
+        // can reach the sentinel path, which `StandardHeadersTest` covers directly instead.
         $http = new RecordingHttpClient()->willAnswerJson(self::resultEnvelope());
         $transport = self::makeTransport($http);
-        $uri = 'file:///tmp/notes 世界.txt';
+        $uri = 'file:///tmp/notes.txt';
 
         self::exchange($transport, new ReadResourceRequest(
             id: new RequestId(id: 1),
@@ -188,8 +189,8 @@ final class StreamableHttpClientTransportTest extends TestCase
         ));
 
         $header = $http->readRequest()->getHeader('Mcp-Name');
-        self::assertSame(\sprintf('=?base64?%s?=', base64_encode($uri)), $header);
-        self::assertSame($uri, HeaderValueCodec::decode($header), 'The server must be able to decode it back to the body value.');
+        self::assertSame($uri, $header);
+        self::assertSame($uri, HeaderValueCodec::decode($header), 'The server must be able to read it back as the body value.');
     }
 
     public function testDropsAnOutboundResponseTheSpecForbidsAClientFromSending(): void
@@ -212,15 +213,15 @@ final class StreamableHttpClientTransportTest extends TestCase
     {
         $http = new RecordingHttpClient()->willAnswerJson(self::resultEnvelope());
         $transport = self::makeTransport($http);
-        $uri = 'file:///tmp/世界.txt';
+        $path = 'file:///tmp/世界.txt';
 
-        self::exchange($transport, new ReadResourceRequest(
+        self::exchange($transport, new CallToolRequest(
             id: new RequestId(id: 1),
-            params: new ReadResourceRequestParams(uri: $uri, meta: RequestMetaObjectFactory::create()),
+            params: new CallToolRequestParams(name: 'read_file', arguments: ['path' => $path], meta: RequestMetaObjectFactory::create()),
         ));
 
         $body = buffer($http->readRequest()->getBody()->getContent());
-        self::assertStringContainsString($uri, $body);
+        self::assertStringContainsString($path, $body);
         self::assertStringNotContainsString('file:\\/\\/', $body, 'Slashes stay unescaped.');
         self::assertStringNotContainsString('\\u4e16', $body, 'Non-ASCII stays unescaped.');
     }

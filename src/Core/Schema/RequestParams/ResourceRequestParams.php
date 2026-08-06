@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Core\Schema\RequestParams;
 
 use Nexus\Mcp\Core\Schema\MetaObject\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams;
+use Nexus\Mcp\Core\Validation\Rfc3986UriValidator;
 
 /**
  * Common params for resource-related requests.
@@ -27,8 +28,13 @@ use Nexus\Mcp\Core\Schema\RequestParams;
  */
 abstract readonly class ResourceRequestParams extends RequestParams
 {
+    /**
+     * @param non-empty-string $uri
+     */
     public function __construct(public string $uri, RequestMetaObject $meta)
     {
+        Rfc3986UriValidator::validate($uri, '"params.uri"');
+
         parent::__construct(meta: $meta);
     }
 }

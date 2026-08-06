@@ -219,7 +219,7 @@ final class ReadResourceRequestParamsTest extends TestCase
 
         yield 'uri not a string' => [
             ['uri' => 1],
-            '"params.uri" must be a string, int given.',
+            '"params.uri" must be a non-empty string, int given.',
         ];
 
         yield 'missing _meta' => [
@@ -260,6 +260,34 @@ final class ReadResourceRequestParamsTest extends TestCase
         yield 'requestState not a string' => [
             ['uri' => 'file:///x', 'requestState' => 42],
             '"params.requestState" must be a string, int given.',
+        ];
+    }
+
+    #[DataProvider('provideConstructorRejectsAMalformedUriCases')]
+    public function testConstructorRejectsAMalformedUri(string $uri, string $expectedMessage): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs($expectedMessage);
+
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
+        new ReadResourceRequestParams(uri: $uri, meta: RequestMetaObjectFactory::create());
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function provideConstructorRejectsAMalformedUriCases(): iterable
+    {
+        yield 'empty' => ['', '"params.uri" must be a non-empty string.'];
+
+        yield 'embedded space' => [
+            'file:///tmp/a b.txt',
+            '"params.uri" must contain only ASCII printable characters (no whitespace or control characters), \'file:///tmp/a b.txt\' given.',
+        ];
+
+        yield 'relative reference' => [
+            'tmp/a.txt',
+            '"params.uri" must be a valid RFC 3986 absolute URI, \'tmp/a.txt\' given.',
         ];
     }
 }

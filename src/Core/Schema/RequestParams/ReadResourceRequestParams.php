@@ -67,7 +67,7 @@ final readonly class ReadResourceRequestParams extends ResourceRequestParams
     {
         Assert::that($data)->hasOffset('uri', '"params" is missing the required "uri" key.');
         $uri = $data['uri'];
-        Assert::that($uri)->isString('"params.uri" must be a string, {type} given.');
+        Assert::that($uri)->isNonEmptyString('"params.uri" must be a non-empty string, {type} given.');
 
         $inputResponses = null;
 

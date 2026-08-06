@@ -95,19 +95,6 @@ final class ReadResourceRequestHandlerTest extends TestCase
         );
     }
 
-    public function testAnEmptyUriResolvesAsNotFound(): void
-    {
-        $handler = new ReadResourceRequestHandler(new ResourceStore());
-
-        $this->expectException(ResourceNotFoundException::class);
-        $this->expectExceptionMessageMatches('/^No resource registered under URI ""\.$/');
-
-        $handler->handle(
-            new ReadResourceRequest(id: new RequestId(id: 1), params: new ReadResourceRequestParams(uri: '', meta: RequestMetaObjectFactory::create())),
-            self::makeContext(),
-        );
-    }
-
     private static function makeContext(): ServerContext
     {
         return new ServerContext(
