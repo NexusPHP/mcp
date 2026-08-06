@@ -56,10 +56,10 @@ final readonly class PromptArgument extends BaseMetadata implements Arrayable
     {
         Assert::that($data)->hasOffset('name', '"arguments" is missing the required "name" key.');
         $name = $data['name'];
-        Assert::that($name)->isString('"arguments.name" must be a string, {type} given.');
+        Assert::that($name)->isNonEmptyString('"arguments.name" must be a non-empty string, {type} given.');
 
         $title = $data['title'] ?? null;
-        Assert::that($title)->nullOr()->isString('"arguments.title" must be a string or null, {type} given.');
+        Assert::that($title)->nullOr()->isNonEmptyString('"arguments.title" must be a non-empty string or null, {type} given.');
 
         $description = $data['description'] ?? null;
         Assert::that($description)->nullOr()->isString('"arguments.description" must be a string or null, {type} given.');

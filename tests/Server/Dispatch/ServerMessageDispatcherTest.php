@@ -1462,6 +1462,8 @@ final class ServerMessageDispatcherTest extends TestCase
     }
 
     /**
+     * @param null|non-empty-string $protocolVersion
+     *
      * @return array<string, mixed>
      */
     private static function toolsListEnvelope(int|string $id, ?string $protocolVersion = null): array
@@ -1475,6 +1477,8 @@ final class ServerMessageDispatcherTest extends TestCase
     }
 
     /**
+     * @param null|non-empty-string $protocolVersion
+     *
      * @return array<string, mixed>
      */
     private static function discoverEnvelope(int|string $id, ?string $protocolVersion = null): array

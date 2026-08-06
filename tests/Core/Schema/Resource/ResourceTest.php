@@ -223,27 +223,27 @@ final class ResourceTest extends TestCase
 
         yield 'name not a string' => [
             ['name' => 1, 'uri' => 'file:///x'],
-            'resource "name" must be a string, int given.',
+            'resource "name" must be a non-empty string, int given.',
         ];
 
         yield 'uri not a string' => [
             ['name' => 'my-resource', 'uri' => 1],
-            'resource "uri" must be a string, int given.',
+            'resource "uri" must be a non-empty string, int given.',
         ];
 
         yield 'title not a string' => [
             ['name' => 'my-resource', 'uri' => 'file:///x', 'title' => 1],
-            'resource "title" must be a string or null, int given.',
+            'resource "title" must be a non-empty string or null, int given.',
         ];
 
         yield 'description not a string' => [
             ['name' => 'my-resource', 'uri' => 'file:///x', 'description' => 1],
-            'resource "description" must be a string or null, int given.',
+            'resource "description" must be a non-empty string or null, int given.',
         ];
 
         yield 'mimeType not a string' => [
             ['name' => 'my-resource', 'uri' => 'file:///x', 'mimeType' => 1],
-            'resource "mimeType" must be a string or null, int given.',
+            'resource "mimeType" must be a non-empty string or null, int given.',
         ];
 
         yield 'annotations not an object' => [

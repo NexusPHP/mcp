@@ -149,12 +149,12 @@ final class PromptArgumentTest extends TestCase
 
         yield 'name not a string' => [
             ['name' => 1],
-            '"arguments.name" must be a string, int given.',
+            '"arguments.name" must be a non-empty string, int given.',
         ];
 
         yield 'title not a string' => [
             ['name' => 'topic', 'title' => 1],
-            '"arguments.title" must be a string or null, int given.',
+            '"arguments.title" must be a non-empty string or null, int given.',
         ];
 
         yield 'description not a string' => [

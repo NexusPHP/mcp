@@ -62,6 +62,7 @@ final class ProtocolVersionTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"protocolVersion" must be a non-empty string.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new ProtocolVersion(version: '');
     }
 

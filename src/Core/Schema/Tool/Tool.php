@@ -103,13 +103,13 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
     {
         Assert::that($data)->hasOffset('name', 'Tool data missing "name".');
         $name = $data['name'];
-        Assert::that($name)->isString('Tool "name" must be a string, {type} given.');
+        Assert::that($name)->isNonEmptyString('Tool "name" must be a non-empty string, {type} given.');
 
         $title = $data['title'] ?? null;
-        Assert::that($title)->nullOr()->isString('Tool "title" must be a string or null, {type} given.');
+        Assert::that($title)->nullOr()->isNonEmptyString('Tool "title" must be a non-empty string or null, {type} given.');
 
         $description = $data['description'] ?? null;
-        Assert::that($description)->nullOr()->isString('Tool "description" must be a string or null, {type} given.');
+        Assert::that($description)->nullOr()->isNonEmptyString('Tool "description" must be a non-empty string or null, {type} given.');
 
         Assert::that($data)->hasOffset('inputSchema', 'Tool data missing "inputSchema".');
         Assert::that($data['inputSchema'])

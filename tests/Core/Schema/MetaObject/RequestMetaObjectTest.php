@@ -250,7 +250,7 @@ final class RequestMetaObjectTest extends TestCase
 
         yield 'protocolVersion not a string' => [
             [RequestMetaObject::PROTOCOL_VERSION_KEY => 1],
-            '"_meta.io.modelcontextprotocol/protocolVersion" must be a string, int given.',
+            '"_meta.io.modelcontextprotocol/protocolVersion" must be a non-empty string, int given.',
         ];
 
         yield 'clientInfo not an object' => [

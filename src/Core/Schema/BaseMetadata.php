@@ -23,24 +23,15 @@ use Nexus\Assert\Assert;
 abstract readonly class BaseMetadata
 {
     /**
-     * @var non-empty-string
+     * @param non-empty-string      $name
+     * @param null|non-empty-string $title
      */
-    public string $name;
-
-    /**
-     * @var null|non-empty-string
-     */
-    public ?string $title;
-
-    public function __construct(string $name, ?string $title = null)
+    public function __construct(public string $name, public ?string $title = null)
     {
         $label = basename(strtr(static::class, '\\', '/'));
 
         Assert::that($name)->isNonEmptyString(\sprintf('%s name must be a non-empty string.', $label));
         Assert::that($title)->nullOr()->isNonEmptyString(\sprintf('%s title must be a non-empty string or null.', $label));
-
-        $this->name = $name;
-        $this->title = $title;
     }
 
     /**

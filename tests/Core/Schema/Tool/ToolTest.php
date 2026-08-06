@@ -305,17 +305,17 @@ final class ToolTest extends TestCase
 
         yield 'name not a string' => [
             ['name' => 1],
-            'Tool "name" must be a string, int given.',
+            'Tool "name" must be a non-empty string, int given.',
         ];
 
         yield 'title not a string' => [
             ['name' => 'read-file', 'title' => 1, 'inputSchema' => ['type' => 'object']],
-            'Tool "title" must be a string or null, int given.',
+            'Tool "title" must be a non-empty string or null, int given.',
         ];
 
         yield 'description not a string' => [
             ['name' => 'read-file', 'description' => 1, 'inputSchema' => ['type' => 'object']],
-            'Tool "description" must be a string or null, int given.',
+            'Tool "description" must be a non-empty string or null, int given.',
         ];
 
         yield 'missing inputSchema' => [

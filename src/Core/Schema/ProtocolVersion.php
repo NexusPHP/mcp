@@ -40,16 +40,12 @@ final readonly class ProtocolVersion
     public const array SUPPORTED_VERSIONS = [self::LATEST_VERSION];
 
     /**
-     * @var non-empty-string
+     * @param non-empty-string $version
      */
-    public string $version;
-
-    public function __construct(string $version)
+    public function __construct(public string $version)
     {
         // The spec types this as a plain string, and a version the server does not recognise must reach
         // the support check so it is answered with -32022 rather than rejected as malformed params.
         Assert::that($version)->isNonEmptyString('"protocolVersion" must be a non-empty string.');
-
-        $this->version = $version;
     }
 }

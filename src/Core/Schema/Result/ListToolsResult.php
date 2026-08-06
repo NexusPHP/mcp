@@ -88,7 +88,7 @@ final readonly class ListToolsResult extends PaginatedResult implements ServerRe
 
         if (\array_key_exists('nextCursor', $data)) {
             $raw = $data['nextCursor'];
-            Assert::that($raw)->isString('"result.nextCursor" must be a string, {type} given.');
+            Assert::that($raw)->isNonEmptyString('"result.nextCursor" must be a non-empty string, {type} given.');
             $nextCursor = new Cursor(cursor: $raw);
         }
 

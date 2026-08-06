@@ -1072,6 +1072,9 @@ final class StreamableHttpClientTransportTest extends TestCase
         return $log;
     }
 
+    /**
+     * @param int|non-empty-string $id
+     */
     private static function discoverRequest(int|string $id = 1): DiscoverRequest
     {
         return new DiscoverRequest(id: new RequestId(id: $id), params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create()));

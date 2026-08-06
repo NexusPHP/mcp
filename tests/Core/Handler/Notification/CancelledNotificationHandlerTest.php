@@ -95,6 +95,9 @@ final class CancelledNotificationHandlerTest extends TestCase
         self::assertTrue($stringCancellation->isRequested());
     }
 
+    /**
+     * @param int|non-empty-string $requestId
+     */
     private static function notificationFor(int|string $requestId, ?string $reason = null): CancelledNotification
     {
         return new CancelledNotification(

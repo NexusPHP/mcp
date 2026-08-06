@@ -43,7 +43,7 @@ final readonly class PaginatedRequestParams extends RequestParams
 
         if (\array_key_exists('cursor', $data)) {
             $raw = $data['cursor'];
-            Assert::that($raw)->isString('"params.cursor" must be a string, {type} given.');
+            Assert::that($raw)->isNonEmptyString('"params.cursor" must be a non-empty string, {type} given.');
             $cursor = new Cursor(cursor: $raw);
         }
 

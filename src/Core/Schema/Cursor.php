@@ -23,14 +23,10 @@ use Nexus\Assert\Assert;
 final readonly class Cursor
 {
     /**
-     * @var non-empty-string
+     * @param non-empty-string $cursor
      */
-    public string $cursor;
-
-    public function __construct(string $cursor)
+    public function __construct(public string $cursor)
     {
         Assert::that($cursor)->isNonEmptyString('"cursor" must be a non-empty string.');
-
-        $this->cursor = $cursor;
     }
 }

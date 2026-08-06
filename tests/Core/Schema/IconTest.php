@@ -80,6 +80,7 @@ final class IconTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new Icon(src: $src);
     }
 
@@ -99,6 +100,9 @@ final class IconTest extends TestCase
         yield 'data URI without semicolon' => ['data:image/pngbase64,abc', '"icons.src" must be a valid HTTP/HTTPS URL or a data URI with base64-encoded data.'];
     }
 
+    /**
+     * @param non-empty-string $mimeType
+     */
     #[DataProvider('provideIconAcceptsValidMimeTypesCases')]
     public function testIconAcceptsValidMimeTypes(string $mimeType): void
     {
@@ -108,7 +112,7 @@ final class IconTest extends TestCase
     }
 
     /**
-     * @return iterable<string, array{string}>
+     * @return iterable<string, array{non-empty-string}>
      */
     public static function provideIconAcceptsValidMimeTypesCases(): iterable
     {
@@ -135,6 +139,7 @@ final class IconTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new Icon(src: 'https://example.com/icon.png', mimeType: $mimeType);
     }
 
@@ -153,7 +158,7 @@ final class IconTest extends TestCase
     }
 
     /**
-     * @param list<string> $sizes
+     * @param list<non-empty-string> $sizes
      */
     #[DataProvider('provideIconAcceptsValidSizesCases')]
     public function testIconAcceptsValidSizes(array $sizes): void
@@ -164,7 +169,7 @@ final class IconTest extends TestCase
     }
 
     /**
-     * @return iterable<string, array{list<string>}>
+     * @return iterable<string, array{list<non-empty-string>}>
      */
     public static function provideIconAcceptsValidSizesCases(): iterable
     {
@@ -186,6 +191,7 @@ final class IconTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new Icon(src: 'https://example.com/icon.png', sizes: $sizes);
     }
 
@@ -203,6 +209,9 @@ final class IconTest extends TestCase
         yield 'non-numeric dimensions' => [['widthxheight'], 'each "icons.sizes" must be in the format "WIDTHxHEIGHT" or "any".'];
     }
 
+    /**
+     * @param 'dark'|'light' $theme
+     */
     #[DataProvider('provideIconAcceptsValidThemesCases')]
     public function testIconAcceptsValidThemes(string $theme): void
     {
@@ -212,7 +221,7 @@ final class IconTest extends TestCase
     }
 
     /**
-     * @return iterable<string, array{string}>
+     * @return iterable<string, array{'dark'|'light'}>
      */
     public static function provideIconAcceptsValidThemesCases(): iterable
     {
@@ -226,6 +235,7 @@ final class IconTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"icons.theme" must be one of "light", "dark".');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new Icon(src: 'https://example.com/icon.png', theme: 'invalid');
     }
 
@@ -244,6 +254,11 @@ final class IconTest extends TestCase
         self::assertSame('image/png', $icon->mimeType);
         self::assertSame(['32x32', '64x64'], $icon->sizes);
         self::assertSame('dark', $icon->theme);
+    }
+
+    public function testIconCanBeCreatedFromArrayWithTheLightTheme(): void
+    {
+        self::assertSame('light', Icon::fromArray(['src' => 'https://example.com/icon.png', 'theme' => 'light'])->theme);
     }
 
     public function testIconCanBeCreatedFromArrayWithOnlySrc(): void
@@ -320,12 +335,12 @@ final class IconTest extends TestCase
 
         yield 'src not a string' => [
             ['src' => 1],
-            '"icons.src" must be a string, int given.',
+            '"icons.src" must be a non-empty string, int given.',
         ];
 
         yield 'mimeType not a string' => [
             ['src' => 'https://example.com/icon.png', 'mimeType' => 1],
-            '"icons.mimeType" must be a string or null, int given.',
+            '"icons.mimeType" must be a non-empty string or null, int given.',
         ];
 
         yield 'sizes not an array' => [
@@ -335,12 +350,12 @@ final class IconTest extends TestCase
 
         yield 'sizes entry not a string' => [
             ['src' => 'https://example.com/icon.png', 'sizes' => [1]],
-            'each "icons.sizes" must be a string, int given.',
+            'each "icons.sizes" must be a non-empty string, int given.',
         ];
 
         yield 'theme not a string' => [
             ['src' => 'https://example.com/icon.png', 'theme' => 1],
-            '"icons.theme" must be a string or null, int given.',
+            '"icons.theme" must be one of "light", "dark".',
         ];
     }
 }

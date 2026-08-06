@@ -39,6 +39,7 @@ final class RequestIdTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"id" must be an int or non-empty string.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new RequestId(id: '');
     }
 }

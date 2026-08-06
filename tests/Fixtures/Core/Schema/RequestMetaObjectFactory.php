@@ -34,7 +34,8 @@ final class RequestMetaObjectFactory
     public const string CLIENT_VERSION = '1.0.0';
 
     /**
-     * @param array<string, mixed> $extras
+     * @param array<string, mixed>  $extras
+     * @param null|non-empty-string $protocolVersion
      */
     public static function create(
         ?ProgressToken $progressToken = null,
@@ -56,7 +57,8 @@ final class RequestMetaObjectFactory
     /**
      * The `toArray()` shape produced by `create()`, for embedding in expected envelopes.
      *
-     * @param array<string, mixed> $extras
+     * @param array<string, mixed>  $extras
+     * @param null|non-empty-string $protocolVersion
      *
      * @return array<string, mixed>
      */

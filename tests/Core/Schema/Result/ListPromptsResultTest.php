@@ -246,7 +246,7 @@ final class ListPromptsResultTest extends TestCase
 
         yield 'nextCursor not a string' => [
             ['prompts' => [], 'ttlMs' => 0, 'cacheScope' => 'private', 'nextCursor' => 1],
-            '"result.nextCursor" must be a string, int given.',
+            '"result.nextCursor" must be a non-empty string, int given.',
         ];
 
         yield '_meta not an object' => [

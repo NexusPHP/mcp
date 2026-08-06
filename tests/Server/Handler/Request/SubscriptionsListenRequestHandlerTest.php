@@ -135,6 +135,9 @@ final class SubscriptionsListenRequestHandlerTest extends TestCase
         self::assertCount(1, $sender->notifications, 'A closed stream hears nothing more.');
     }
 
+    /**
+     * @param int|non-empty-string $id
+     */
     private static function listenRequest(int|string $id): SubscriptionsListenRequest
     {
         return new SubscriptionsListenRequest(
@@ -146,6 +149,9 @@ final class SubscriptionsListenRequestHandlerTest extends TestCase
         );
     }
 
+    /**
+     * @param int|non-empty-string $id
+     */
     private static function contextFor(int|string $id, RecordingSender $sender): ServerContext
     {
         return new ServerContext(

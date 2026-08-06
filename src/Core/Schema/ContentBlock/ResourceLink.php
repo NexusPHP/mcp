@@ -116,20 +116,20 @@ final readonly class ResourceLink extends BaseMetadata implements Arrayable, Con
 
         Assert::that($data)->hasOffset('name', 'resource link is missing the required "name" key.');
         $name = $data['name'];
-        Assert::that($name)->isString('resource link "name" must be a string, {type} given.');
+        Assert::that($name)->isNonEmptyString('resource link "name" must be a non-empty string, {type} given.');
 
         Assert::that($data)->hasOffset('uri', 'resource link is missing the required "uri" key.');
         $uri = $data['uri'];
-        Assert::that($uri)->isString('resource link "uri" must be a string, {type} given.');
+        Assert::that($uri)->isNonEmptyString('resource link "uri" must be a non-empty string, {type} given.');
 
         $title = $data['title'] ?? null;
-        Assert::that($title)->nullOr()->isString('resource link "title" must be a string or null, {type} given.');
+        Assert::that($title)->nullOr()->isNonEmptyString('resource link "title" must be a non-empty string or null, {type} given.');
 
         $description = $data['description'] ?? null;
-        Assert::that($description)->nullOr()->isString('resource link "description" must be a string or null, {type} given.');
+        Assert::that($description)->nullOr()->isNonEmptyString('resource link "description" must be a non-empty string or null, {type} given.');
 
         $mimeType = $data['mimeType'] ?? null;
-        Assert::that($mimeType)->nullOr()->isString('resource link "mimeType" must be a string or null, {type} given.');
+        Assert::that($mimeType)->nullOr()->isNonEmptyString('resource link "mimeType" must be a non-empty string or null, {type} given.');
 
         $annotations = new Annotations();
 

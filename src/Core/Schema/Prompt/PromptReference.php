@@ -49,10 +49,10 @@ final readonly class PromptReference extends BaseMetadata implements Arrayable
 
         Assert::that($data)->hasOffset('name', 'prompt reference is missing the required "name" key.');
         $name = $data['name'];
-        Assert::that($name)->isString('prompt reference "name" must be a string, {type} given.');
+        Assert::that($name)->isNonEmptyString('prompt reference "name" must be a non-empty string, {type} given.');
 
         $title = $data['title'] ?? null;
-        Assert::that($title)->nullOr()->isString('prompt reference "title" must be a string or null, {type} given.');
+        Assert::that($title)->nullOr()->isNonEmptyString('prompt reference "title" must be a non-empty string or null, {type} given.');
 
         return new self(name: $name, title: $title);
     }

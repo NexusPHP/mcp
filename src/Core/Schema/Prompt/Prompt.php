@@ -88,13 +88,13 @@ final readonly class Prompt extends BaseMetadata implements Arrayable, Icons
     {
         Assert::that($data)->hasOffset('name', 'prompt is missing the required "name" key.');
         $name = $data['name'];
-        Assert::that($name)->isString('prompt "name" must be a string, {type} given.');
+        Assert::that($name)->isNonEmptyString('prompt "name" must be a non-empty string, {type} given.');
 
         $title = $data['title'] ?? null;
-        Assert::that($title)->nullOr()->isString('prompt "title" must be a string or null, {type} given.');
+        Assert::that($title)->nullOr()->isNonEmptyString('prompt "title" must be a non-empty string or null, {type} given.');
 
         $description = $data['description'] ?? null;
-        Assert::that($description)->nullOr()->isString('prompt "description" must be a string or null, {type} given.');
+        Assert::that($description)->nullOr()->isNonEmptyString('prompt "description" must be a non-empty string or null, {type} given.');
 
         $arguments = null;
 

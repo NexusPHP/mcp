@@ -66,6 +66,7 @@ final class ImplementationTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('Implementation name must be a non-empty string.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new Implementation(name: '', version: '1.0.0');
     }
 
@@ -82,6 +83,7 @@ final class ImplementationTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('Implementation title must be a non-empty string or null.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new Implementation(name: 'Nexus MCP', version: '1.0.0', title: '');
     }
 
@@ -202,7 +204,7 @@ final class ImplementationTest extends TestCase
     public function testFromArrayBadNameTypeIsRejected(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageIs('"name" must be a string, int given.');
+        $this->expectExceptionMessageIs('"name" must be a non-empty string, int given.');
 
         Implementation::fromArray(['name' => 42, 'version' => '1.0.0']);
     }
@@ -210,7 +212,7 @@ final class ImplementationTest extends TestCase
     public function testFromArrayBadVersionTypeIsRejected(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageIs('"version" must be a string, int given.');
+        $this->expectExceptionMessageIs('"version" must be a non-empty string, int given.');
 
         Implementation::fromArray(['name' => 'Nexus MCP', 'version' => 42]);
     }
@@ -218,7 +220,7 @@ final class ImplementationTest extends TestCase
     public function testFromArrayBadTitleTypeIsRejected(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageIs('"title" must be a string or null, int given.');
+        $this->expectExceptionMessageIs('"title" must be a non-empty string or null, int given.');
 
         Implementation::fromArray(['name' => 'Nexus MCP', 'version' => '1.0.0', 'title' => 42]);
     }
@@ -226,7 +228,7 @@ final class ImplementationTest extends TestCase
     public function testFromArrayBadDescriptionTypeIsRejected(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageIs('"description" must be a string or null, int given.');
+        $this->expectExceptionMessageIs('"description" must be a non-empty string or null, int given.');
 
         Implementation::fromArray(['name' => 'Nexus MCP', 'version' => '1.0.0', 'description' => 42]);
     }
@@ -234,7 +236,7 @@ final class ImplementationTest extends TestCase
     public function testFromArrayBadWebsiteUrlTypeIsRejected(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageIs('"websiteUrl" must be a string or null, int given.');
+        $this->expectExceptionMessageIs('"websiteUrl" must be a non-empty string or null, int given.');
 
         Implementation::fromArray(['name' => 'Nexus MCP', 'version' => '1.0.0', 'websiteUrl' => 42]);
     }

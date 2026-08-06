@@ -98,20 +98,20 @@ final readonly class ResourceTemplate extends BaseMetadata implements Arrayable,
     {
         Assert::that($data)->hasOffset('name', 'resource template is missing the required "name" key.');
         $name = $data['name'];
-        Assert::that($name)->isString('resource template "name" must be a string, {type} given.');
+        Assert::that($name)->isNonEmptyString('resource template "name" must be a non-empty string, {type} given.');
 
         Assert::that($data)->hasOffset('uriTemplate', 'resource template is missing the required "uriTemplate" key.');
         $uriTemplate = $data['uriTemplate'];
-        Assert::that($uriTemplate)->isString('resource template "uriTemplate" must be a string, {type} given.');
+        Assert::that($uriTemplate)->isNonEmptyString('resource template "uriTemplate" must be a non-empty string, {type} given.');
 
         $title = $data['title'] ?? null;
-        Assert::that($title)->nullOr()->isString('resource template "title" must be a string or null, {type} given.');
+        Assert::that($title)->nullOr()->isNonEmptyString('resource template "title" must be a non-empty string or null, {type} given.');
 
         $description = $data['description'] ?? null;
-        Assert::that($description)->nullOr()->isString('resource template "description" must be a string or null, {type} given.');
+        Assert::that($description)->nullOr()->isNonEmptyString('resource template "description" must be a non-empty string or null, {type} given.');
 
         $mimeType = $data['mimeType'] ?? null;
-        Assert::that($mimeType)->nullOr()->isString('resource template "mimeType" must be a string or null, {type} given.');
+        Assert::that($mimeType)->nullOr()->isNonEmptyString('resource template "mimeType" must be a non-empty string or null, {type} given.');
 
         $annotations = new Annotations();
 

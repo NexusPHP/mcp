@@ -147,12 +147,12 @@ final class PromptReferenceTest extends TestCase
 
         yield 'name not a string' => [
             ['type' => 'ref/prompt', 'name' => 1],
-            'prompt reference "name" must be a string, int given.',
+            'prompt reference "name" must be a non-empty string, int given.',
         ];
 
         yield 'title not a string' => [
             ['type' => 'ref/prompt', 'name' => 'my-prompt', 'title' => 1],
-            'prompt reference "title" must be a string or null, int given.',
+            'prompt reference "title" must be a non-empty string or null, int given.',
         ];
     }
 }

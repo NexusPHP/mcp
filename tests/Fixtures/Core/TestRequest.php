@@ -43,9 +43,9 @@ final readonly class TestRequest extends JsonRpcRequest
     {
         $id = $data['id'] ?? null;
 
-        if (! \is_int($id) && ! \is_string($id)) {
+        if (! \is_int($id) && ('' === $id || ! \is_string($id))) {
             throw new \InvalidArgumentException(\sprintf(
-                'TestRequest "id" must be an int or string, %s given.',
+                'TestRequest "id" must be an int or non-empty string, %s given.',
                 get_debug_type($id),
             ));
         }

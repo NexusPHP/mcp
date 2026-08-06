@@ -87,20 +87,20 @@ final readonly class Implementation extends BaseMetadata implements Arrayable, I
     {
         Assert::that($data)->hasOffset('name', 'missing the required "name" key.');
         $name = $data['name'];
-        Assert::that($name)->isString('"name" must be a string, {type} given.');
+        Assert::that($name)->isNonEmptyString('"name" must be a non-empty string, {type} given.');
 
         Assert::that($data)->hasOffset('version', 'missing the required "version" key.');
         $version = $data['version'];
-        Assert::that($version)->isString('"version" must be a string, {type} given.');
+        Assert::that($version)->isNonEmptyString('"version" must be a non-empty string, {type} given.');
 
         $title = $data['title'] ?? null;
-        Assert::that($title)->nullOr()->isString('"title" must be a string or null, {type} given.');
+        Assert::that($title)->nullOr()->isNonEmptyString('"title" must be a non-empty string or null, {type} given.');
 
         $description = $data['description'] ?? null;
-        Assert::that($description)->nullOr()->isString('"description" must be a string or null, {type} given.');
+        Assert::that($description)->nullOr()->isNonEmptyString('"description" must be a non-empty string or null, {type} given.');
 
         $websiteUrl = $data['websiteUrl'] ?? null;
-        Assert::that($websiteUrl)->nullOr()->isString('"websiteUrl" must be a string or null, {type} given.');
+        Assert::that($websiteUrl)->nullOr()->isNonEmptyString('"websiteUrl" must be a non-empty string or null, {type} given.');
 
         $icons = null;
 

@@ -125,7 +125,7 @@ final class PaginatedRequestParamsTest extends TestCase
     {
         yield 'cursor not a string' => [
             ['cursor' => 1],
-            '"params.cursor" must be a string, int given.',
+            '"params.cursor" must be a non-empty string, int given.',
         ];
 
         yield 'missing _meta' => [

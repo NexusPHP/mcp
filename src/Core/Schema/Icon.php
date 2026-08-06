@@ -30,30 +30,17 @@ use Nexus\Assert\Assert;
 final readonly class Icon implements Arrayable
 {
     /**
-     * @var non-empty-string
+     * @param non-empty-string            $src
+     * @param null|non-empty-string       $mimeType
+     * @param null|list<non-empty-string> $sizes
+     * @param null|'dark'|'light'         $theme
      */
-    public string $src;
-
-    /**
-     * @var null|non-empty-string
-     */
-    public ?string $mimeType;
-
-    /**
-     * @var null|list<non-empty-string>
-     */
-    public ?array $sizes;
-
-    /**
-     * @var null|'dark'|'light'
-     */
-    public ?string $theme;
-
-    /**
-     * @param null|list<string> $sizes
-     */
-    public function __construct(string $src, ?string $mimeType = null, ?array $sizes = null, ?string $theme = null)
-    {
+    public function __construct(
+        public string $src,
+        public ?string $mimeType = null,
+        public ?array $sizes = null,
+        public ?string $theme = null,
+    ) {
         Assert::that($src)
             ->isNonEmptyString('"icons.src" must be a non-empty string.')
             ->matchesRegularExpression(
@@ -79,11 +66,6 @@ final readonly class Icon implements Arrayable
         }
 
         Assert::that($theme)->nullOr()->isOneOf(['light', 'dark'], '"icons.theme" must be one of "light", "dark".');
-
-        $this->src = $src;
-        $this->mimeType = $mimeType;
-        $this->sizes = $sizes;
-        $this->theme = $theme;
     }
 
     #[\Override]
@@ -92,23 +74,23 @@ final readonly class Icon implements Arrayable
         Assert::that($data)->hasOffset('src', '"icons" is missing the required "src" key.');
 
         $src = $data['src'];
-        Assert::that($src)->isString('"icons.src" must be a string, {type} given.');
+        Assert::that($src)->isNonEmptyString('"icons.src" must be a non-empty string, {type} given.');
 
         $mimeType = $data['mimeType'] ?? null;
-        Assert::that($mimeType)->nullOr()->isString('"icons.mimeType" must be a string or null, {type} given.');
+        Assert::that($mimeType)->nullOr()->isNonEmptyString('"icons.mimeType" must be a non-empty string or null, {type} given.');
 
         $sizes = null;
 
         if (isset($data['sizes'])) {
             Assert::that($data['sizes'])
                 ->isList('"icons.sizes" must be a list of strings or null, {type} given.')
-                ->values()->isString('each "icons.sizes" must be a string, {type} given.')
+                ->values()->isNonEmptyString('each "icons.sizes" must be a non-empty string, {type} given.')
             ;
             $sizes = $data['sizes'];
         }
 
         $theme = $data['theme'] ?? null;
-        Assert::that($theme)->nullOr()->isString('"icons.theme" must be a string or null, {type} given.');
+        Assert::that($theme)->nullOr()->isOneOf(['light', 'dark'], '"icons.theme" must be one of "light", "dark".');
 
         return new self(src: $src, mimeType: $mimeType, sizes: $sizes, theme: $theme);
     }

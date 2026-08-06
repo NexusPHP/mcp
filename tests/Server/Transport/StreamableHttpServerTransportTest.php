@@ -852,6 +852,9 @@ final class StreamableHttpServerTransportTest extends TestCase
         self::assertCount(0, $logger->recordsMatching(LogLevel::WARNING, 'Dropping an unexpected server-initiated request.'));
     }
 
+    /**
+     * @param int|non-empty-string $id
+     */
     #[DataProvider('provideSendDropsOrphanResponseCases')]
     public function testSendDropsOrphanResponse(int|string $id): void
     {

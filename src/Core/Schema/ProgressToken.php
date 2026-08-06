@@ -23,14 +23,10 @@ use Nexus\Assert\Assert;
 final readonly class ProgressToken
 {
     /**
-     * @var int|non-empty-string
+     * @param int|non-empty-string $token
      */
-    public int|string $token;
-
-    public function __construct(int|string $token)
+    public function __construct(public int|string $token)
     {
         Assert::that($token)->isIntOrNonEmptyString('"progressToken" must be an int or non-empty string.');
-
-        $this->token = $token;
     }
 }

@@ -184,17 +184,17 @@ final class PromptTest extends TestCase
 
         yield 'name not a string' => [
             ['name' => 1],
-            'prompt "name" must be a string, int given.',
+            'prompt "name" must be a non-empty string, int given.',
         ];
 
         yield 'title not a string' => [
             ['name' => 'code-review', 'title' => 1],
-            'prompt "title" must be a string or null, int given.',
+            'prompt "title" must be a non-empty string or null, int given.',
         ];
 
         yield 'description not a string' => [
             ['name' => 'code-review', 'description' => 1],
-            'prompt "description" must be a string or null, int given.',
+            'prompt "description" must be a non-empty string or null, int given.',
         ];
 
         yield 'arguments not an array' => [

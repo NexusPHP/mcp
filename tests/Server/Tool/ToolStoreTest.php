@@ -376,11 +376,17 @@ final class ToolStoreTest extends TestCase
         self::assertSame([], $result->content);
     }
 
+    /**
+     * @param non-empty-string $name
+     */
     private static function makeTool(string $name): Tool
     {
         return new Tool(name: $name, inputSchema: ['type' => 'object']);
     }
 
+    /**
+     * @param non-empty-string $name
+     */
     private static function makeToolWithOutputSchema(string $name): Tool
     {
         return new Tool(name: $name, inputSchema: ['type' => 'object'], outputSchema: [

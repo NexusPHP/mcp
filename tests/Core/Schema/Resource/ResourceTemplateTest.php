@@ -227,27 +227,27 @@ final class ResourceTemplateTest extends TestCase
 
         yield 'name not a string' => [
             ['name' => 1, 'uriTemplate' => 'file:///tmp/{name}'],
-            'resource template "name" must be a string, int given.',
+            'resource template "name" must be a non-empty string, int given.',
         ];
 
         yield 'uriTemplate not a string' => [
             ['name' => 'my-template', 'uriTemplate' => 1],
-            'resource template "uriTemplate" must be a string, int given.',
+            'resource template "uriTemplate" must be a non-empty string, int given.',
         ];
 
         yield 'title not a string' => [
             ['name' => 'my-template', 'uriTemplate' => 'file:///tmp/{name}', 'title' => 1],
-            'resource template "title" must be a string or null, int given.',
+            'resource template "title" must be a non-empty string or null, int given.',
         ];
 
         yield 'description not a string' => [
             ['name' => 'my-template', 'uriTemplate' => 'file:///tmp/{name}', 'description' => 1],
-            'resource template "description" must be a string or null, int given.',
+            'resource template "description" must be a non-empty string or null, int given.',
         ];
 
         yield 'mimeType not a string' => [
             ['name' => 'my-template', 'uriTemplate' => 'file:///tmp/{name}', 'mimeType' => 1],
-            'resource template "mimeType" must be a string or null, int given.',
+            'resource template "mimeType" must be a non-empty string or null, int given.',
         ];
 
         yield 'annotations not an object' => [

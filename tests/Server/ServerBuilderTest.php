@@ -132,6 +132,7 @@ final class ServerBuilderTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('Implementation name must be a non-empty string.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new ServerBuilder()->setServerInfo('', '1.0.0');
     }
 
@@ -140,6 +141,7 @@ final class ServerBuilderTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"version" must be a non-empty string.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new ServerBuilder()->setServerInfo('demo', '');
     }
 

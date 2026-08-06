@@ -78,6 +78,9 @@ final class RoutingProgressNotificationHandlerTest extends TestCase
         $handler->handle(self::progressNotification('orphan', 1.0));
     }
 
+    /**
+     * @param int|non-empty-string $token
+     */
     private static function progressNotification(
         int|string $token,
         float $progress,

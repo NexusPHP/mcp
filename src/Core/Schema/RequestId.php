@@ -23,14 +23,10 @@ use Nexus\Assert\Assert;
 final readonly class RequestId
 {
     /**
-     * @var int|non-empty-string
+     * @param int|non-empty-string $id
      */
-    public int|string $id;
-
-    public function __construct(int|string $id)
+    public function __construct(public int|string $id)
     {
         Assert::that($id)->isIntOrNonEmptyString('"id" must be an int or non-empty string.');
-
-        $this->id = $id;
     }
 }

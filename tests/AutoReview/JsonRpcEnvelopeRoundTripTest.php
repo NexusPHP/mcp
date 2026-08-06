@@ -327,8 +327,8 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
 
             $id = $decoded['id'];
 
-            if (! \is_int($id) && ! \is_string($id)) {
-                self::fail('GenericResultResponse fixture "id" must be an int or string.');
+            if (! \is_int($id) && ('' === $id || ! \is_string($id))) {
+                self::fail('GenericResultResponse fixture "id" must be an int or non-empty string.');
             }
 
             \assert(is_subclass_of($inner, Result::class));

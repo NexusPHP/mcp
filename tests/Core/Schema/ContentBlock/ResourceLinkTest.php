@@ -234,7 +234,7 @@ final class ResourceLinkTest extends TestCase
 
         yield 'name not a string' => [
             ['type' => 'resource_link', 'name' => 1, 'uri' => 'file:///tmp/x'],
-            'resource link "name" must be a string, int given.',
+            'resource link "name" must be a non-empty string, int given.',
         ];
 
         yield 'missing uri' => [
@@ -244,22 +244,22 @@ final class ResourceLinkTest extends TestCase
 
         yield 'uri not a string' => [
             ['type' => 'resource_link', 'name' => 'my-link', 'uri' => 1],
-            'resource link "uri" must be a string, int given.',
+            'resource link "uri" must be a non-empty string, int given.',
         ];
 
         yield 'title not a string' => [
             ['type' => 'resource_link', 'name' => 'my-link', 'uri' => 'file:///tmp/x', 'title' => 1],
-            'resource link "title" must be a string or null, int given.',
+            'resource link "title" must be a non-empty string or null, int given.',
         ];
 
         yield 'description not a string' => [
             ['type' => 'resource_link', 'name' => 'my-link', 'uri' => 'file:///tmp/x', 'description' => 1],
-            'resource link "description" must be a string or null, int given.',
+            'resource link "description" must be a non-empty string or null, int given.',
         ];
 
         yield 'mimeType not a string' => [
             ['type' => 'resource_link', 'name' => 'my-link', 'uri' => 'file:///tmp/x', 'mimeType' => 1],
-            'resource link "mimeType" must be a string or null, int given.',
+            'resource link "mimeType" must be a non-empty string or null, int given.',
         ];
 
         yield 'annotations not an object' => [

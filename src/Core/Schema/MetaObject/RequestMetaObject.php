@@ -64,7 +64,7 @@ final readonly class RequestMetaObject extends MetaObject
     {
         Assert::that($data)->hasOffset(self::PROTOCOL_VERSION_KEY, '"_meta" is missing the required "{key}" key.');
         $protocolVersion = $data[self::PROTOCOL_VERSION_KEY];
-        Assert::that($protocolVersion)->isString(\sprintf('"_meta.%s" must be a string, {type} given.', self::PROTOCOL_VERSION_KEY));
+        Assert::that($protocolVersion)->isNonEmptyString(\sprintf('"_meta.%s" must be a non-empty string, {type} given.', self::PROTOCOL_VERSION_KEY));
         unset($data[self::PROTOCOL_VERSION_KEY]);
 
         Assert::that($data)->hasOffset(self::CLIENT_CAPABILITIES_KEY, '"_meta" is missing the required "{key}" key.');
