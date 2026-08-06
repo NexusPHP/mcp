@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Tools\PHPStan;
 
 use PhpParser\Node;
 use PHPStan\Analyser\Scope;
+use PHPStan\Node\Printer\ExprPrinter;
 use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
 
@@ -45,6 +46,10 @@ final class NoFunctionCallYodaComparisonRule implements Rule
         Node\Expr\StaticCall::class,
     ];
 
+    public function __construct(private readonly ExprPrinter $exprPrinter)
+    {
+    }
+
     #[\Override]
     public function getNodeType(): string
     {
@@ -64,9 +69,8 @@ final class NoFunctionCallYodaComparisonRule implements Rule
 
         return [
             RuleErrorBuilder::message(\sprintf(
-                'Yoda comparison against a call: `%s %s ...(...)`. Put the call on the left of the operator.',
-                self::describeLiteral($node->left),
-                $node->getOperatorSigil(),
+                'Yoda comparison against a call: `%s`. Put the call on the left of the operator.',
+                $this->exprPrinter->printExpr($node),
             ))
                 ->identifier('nexusMcp.functionCallYodaComparison')
                 ->build(),
@@ -81,15 +85,5 @@ final class NoFunctionCallYodaComparisonRule implements Rule
 
         return $expr instanceof Node\Expr\ConstFetch
             && \in_array(strtolower($expr->name->toString()), ['null', 'true', 'false'], true);
-    }
-
-    private static function describeLiteral(Node\Expr $expr): string
-    {
-        return match (true) {
-            $expr instanceof Node\Scalar\String_ => var_export($expr->value, true),
-            $expr instanceof Node\Scalar\Int_, $expr instanceof Node\Scalar\Float_ => (string) $expr->value,
-            $expr instanceof Node\Expr\ConstFetch => $expr->name->toString(),
-            default => 'literal',
-        };
     }
 }
