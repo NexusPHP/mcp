@@ -35,20 +35,13 @@ final readonly class UnsupportedProtocolVersionError extends Error
     public const string DEFAULT_MESSAGE = 'Unsupported protocol version';
 
     /**
-     * @var list<string>
-     */
-    public array $supported;
-
-    /**
      * @param list<string> $supported
      */
     public function __construct(
         public string $requested,
-        array $supported,
+        public array $supported,
         string $message = self::DEFAULT_MESSAGE,
     ) {
-        $this->supported = $supported;
-
         parent::__construct(
             code: ProtocolErrorCode::UnsupportedProtocolVersion,
             message: $message,

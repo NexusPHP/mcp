@@ -39,20 +39,16 @@ use Nexus\Mcp\Core\Schema\Arrayable;
 final readonly class ToolAnnotations implements Arrayable
 {
     /**
-     * @var null|non-empty-string
+     * @param null|non-empty-string $title
      */
-    public ?string $title;
-
     public function __construct(
-        ?string $title = null,
+        public ?string $title = null,
         public ?bool $readOnlyHint = null,
         public ?bool $destructiveHint = null,
         public ?bool $idempotentHint = null,
         public ?bool $openWorldHint = null,
     ) {
         Assert::that($title)->nullOr()->isNonEmptyString('"annotations.title" must be a non-empty string or null.');
-
-        $this->title = $title;
 
         if (true === $this->readOnlyHint) {
             Assert::that($this->destructiveHint)->isNull('"annotations.destructiveHint" must be null when "readOnlyHint" is true; the spec defines it only when readOnlyHint == false.');
@@ -64,7 +60,7 @@ final readonly class ToolAnnotations implements Arrayable
     public static function fromArray(array $data): static
     {
         $title = $data['title'] ?? null;
-        Assert::that($title)->nullOr()->isString('"annotations.title" must be a string or null, {type} given.');
+        Assert::that($title)->nullOr()->isNonEmptyString('"annotations.title" must be a non-empty string or null, {type} given.');
 
         $readOnlyHint = $data['readOnlyHint'] ?? null;
         Assert::that($readOnlyHint)->nullOr()->isBool('"annotations.readOnlyHint" must be a bool or null, {type} given.');

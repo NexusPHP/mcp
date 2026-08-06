@@ -64,6 +64,7 @@ final class EnumOptionTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"oneOf.const" must be a non-empty string.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new EnumOption(const: '', title: 'Title');
     }
 
@@ -72,6 +73,7 @@ final class EnumOptionTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"oneOf.title" must be a non-empty string.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new EnumOption(const: 'value', title: '');
     }
 
@@ -99,7 +101,7 @@ final class EnumOptionTest extends TestCase
 
         yield 'const not a string' => [
             ['const' => 1, 'title' => 'x'],
-            '"oneOf.const" must be a string, int given.',
+            '"oneOf.const" must be a non-empty string, int given.',
         ];
 
         yield 'missing title' => [
@@ -109,7 +111,7 @@ final class EnumOptionTest extends TestCase
 
         yield 'title not a string' => [
             ['const' => 'x', 'title' => 1],
-            '"oneOf.title" must be a string, int given.',
+            '"oneOf.title" must be a non-empty string, int given.',
         ];
     }
 }

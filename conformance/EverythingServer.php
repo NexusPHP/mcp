@@ -296,12 +296,18 @@ final class EverythingServer
         return sprintf('Received "%s".', $name);
     }
 
+    /**
+     * @param non-empty-string $uri
+     */
     #[AsResource(uri: 'test://static-text', name: 'static-text', description: 'A static text resource.', mimeType: 'text/plain')]
     public function staticText(string $uri): TextResourceContents
     {
         return new TextResourceContents(uri: $uri, text: 'This is the content of the static text resource.', mimeType: 'text/plain');
     }
 
+    /**
+     * @param non-empty-string $uri
+     */
     #[AsResource(uri: 'test://static-binary', name: 'static-binary', description: 'A static binary resource.', mimeType: 'image/png')]
     public function staticBinary(string $uri): BlobResourceContents
     {
@@ -309,7 +315,8 @@ final class EverythingServer
     }
 
     /**
-     * @param string $id The identifier captured from the URI.
+     * @param string           $id  The identifier captured from the URI.
+     * @param non-empty-string $uri
      */
     #[AsResourceTemplate(uriTemplate: 'test://template/{id}/data', name: 'template', description: 'A templated resource addressed by id.', mimeType: 'application/json')]
     public function templatedResource(string $uri, string $id): TextResourceContents
@@ -361,7 +368,7 @@ final class EverythingServer
     }
 
     /**
-     * @param string $resourceUri URI of the resource to embed.
+     * @param non-empty-string $resourceUri URI of the resource to embed.
      */
     #[AsPrompt(name: 'test_prompt_with_embedded_resource', description: 'A prompt carrying an embedded resource.')]
     public function promptWithEmbeddedResource(string $resourceUri): GetPromptResult

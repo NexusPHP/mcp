@@ -101,6 +101,9 @@ final class DiscoverableServer
         return '{"debug":false}';
     }
 
+    /**
+     * @param non-empty-string $uri
+     */
     #[AsResource(uri: 'config://defaults')]
     public function defaults(string $uri): ReadResourceResult
     {
@@ -121,6 +124,9 @@ final class DiscoverableServer
         return \sprintf('profile %s at %s', $id, $uri);
     }
 
+    /**
+     * @param non-empty-string $uri
+     */
     #[AsResourceTemplate(uriTemplate: 'files://{path}')]
     public function fileTemplate(string $uri): ReadResourceResult
     {

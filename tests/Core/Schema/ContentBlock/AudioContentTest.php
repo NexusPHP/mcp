@@ -113,6 +113,7 @@ final class AudioContentTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('audio content "data" must be a non-empty string.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new AudioContent(data: '', mimeType: 'audio/mp3');
     }
 
@@ -121,6 +122,7 @@ final class AudioContentTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('audio content "mimeType" must be a non-empty string.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new AudioContent(data: 'aGVsbG8=', mimeType: '');
     }
 
@@ -158,7 +160,7 @@ final class AudioContentTest extends TestCase
 
         yield 'data not a string' => [
             ['type' => 'audio', 'data' => 1, 'mimeType' => 'audio/mp3'],
-            'audio content "data" must be a string, int given.',
+            'audio content "data" must be a non-empty string, int given.',
         ];
 
         yield 'missing mimeType' => [
@@ -168,7 +170,7 @@ final class AudioContentTest extends TestCase
 
         yield 'mimeType not a string' => [
             ['type' => 'audio', 'data' => 'aGVsbG8=', 'mimeType' => 1],
-            'audio content "mimeType" must be a string, int given.',
+            'audio content "mimeType" must be a non-empty string, int given.',
         ];
 
         yield 'annotations not an object' => [

@@ -72,6 +72,7 @@ final class ReflectedTemplatedResourceReaderTest extends TestCase
     }
 
     /**
+     * @param non-empty-string      $uri
      * @param array<string, string> $bindings
      */
     private static function read(string $method, string $uri, array $bindings): ReadResourceResult

@@ -64,6 +64,9 @@ final class ReflectedResourceReaderTest extends TestCase
         self::read('resourceUnsupported', 'mem://x');
     }
 
+    /**
+     * @param non-empty-string $uri
+     */
     private static function read(string $method, string $uri): ReadResourceResult
     {
         $reader = new ReflectedResourceReader(new ReflectedHandlers(), new \ReflectionMethod(ReflectedHandlers::class, $method));

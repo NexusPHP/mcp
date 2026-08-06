@@ -61,6 +61,7 @@ final class ToolAnnotationsTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('"annotations.title" must be a non-empty string or null.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new ToolAnnotations(title: '');
     }
 
@@ -183,7 +184,7 @@ final class ToolAnnotationsTest extends TestCase
     {
         yield 'title not a string' => [
             ['title' => 1],
-            '"annotations.title" must be a string or null, int given.',
+            '"annotations.title" must be a non-empty string or null, int given.',
         ];
 
         yield 'readOnlyHint not a bool' => [

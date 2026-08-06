@@ -113,6 +113,7 @@ final class ImageContentTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('image content "data" must be a non-empty string.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new ImageContent(data: '', mimeType: 'image/png');
     }
 
@@ -121,6 +122,7 @@ final class ImageContentTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('image content "mimeType" must be a non-empty string.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new ImageContent(data: 'aGVsbG8=', mimeType: '');
     }
 
@@ -158,7 +160,7 @@ final class ImageContentTest extends TestCase
 
         yield 'data not a string' => [
             ['type' => 'image', 'data' => 1, 'mimeType' => 'image/png'],
-            'image content "data" must be a string, int given.',
+            'image content "data" must be a non-empty string, int given.',
         ];
 
         yield 'missing mimeType' => [
@@ -168,7 +170,7 @@ final class ImageContentTest extends TestCase
 
         yield 'mimeType not a string' => [
             ['type' => 'image', 'data' => 'aGVsbG8=', 'mimeType' => 1],
-            'image content "mimeType" must be a string, int given.',
+            'image content "mimeType" must be a non-empty string, int given.',
         ];
 
         yield 'annotations not an object' => [

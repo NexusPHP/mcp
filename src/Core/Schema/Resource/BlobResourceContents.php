@@ -46,14 +46,14 @@ final readonly class BlobResourceContents extends ResourceContents
     {
         Assert::that($data)->hasOffset('uri', 'blob resource contents is missing the required "uri" key.');
         $uri = $data['uri'];
-        Assert::that($uri)->isString('blob resource contents "uri" must be a string, {type} given.');
+        Assert::that($uri)->isNonEmptyString('blob resource contents "uri" must be a non-empty string, {type} given.');
 
         Assert::that($data)->hasOffset('blob', 'blob resource contents is missing the required "blob" key.');
         $blob = $data['blob'];
         Assert::that($blob)->isString('blob resource contents "blob" must be a string, {type} given.');
 
         $mimeType = $data['mimeType'] ?? null;
-        Assert::that($mimeType)->nullOr()->isString('blob resource contents "mimeType" must be a string or null, {type} given.');
+        Assert::that($mimeType)->nullOr()->isNonEmptyString('blob resource contents "mimeType" must be a non-empty string or null, {type} given.');
 
         $meta = new PayloadMetaObject();
 

@@ -26,22 +26,13 @@ use Nexus\Mcp\Core\Schema\Arrayable;
 final readonly class EnumOption implements Arrayable
 {
     /**
-     * @var non-empty-string
+     * @param non-empty-string $const
+     * @param non-empty-string $title
      */
-    public string $const;
-
-    /**
-     * @var non-empty-string
-     */
-    public string $title;
-
-    public function __construct(string $const, string $title)
+    public function __construct(public string $const, public string $title)
     {
         Assert::that($const)->isNonEmptyString('"oneOf.const" must be a non-empty string.');
         Assert::that($title)->isNonEmptyString('"oneOf.title" must be a non-empty string.');
-
-        $this->const = $const;
-        $this->title = $title;
     }
 
     #[\Override]
@@ -49,11 +40,11 @@ final readonly class EnumOption implements Arrayable
     {
         Assert::that($data)->hasOffset('const', '"oneOf" is missing the required "const" key.');
         $const = $data['const'];
-        Assert::that($const)->isString('"oneOf.const" must be a string, {type} given.');
+        Assert::that($const)->isNonEmptyString('"oneOf.const" must be a non-empty string, {type} given.');
 
         Assert::that($data)->hasOffset('title', '"oneOf" is missing the required "title" key.');
         $title = $data['title'];
-        Assert::that($title)->isString('"oneOf.title" must be a string, {type} given.');
+        Assert::that($title)->isNonEmptyString('"oneOf.title" must be a non-empty string, {type} given.');
 
         return new self(const: $const, title: $title);
     }

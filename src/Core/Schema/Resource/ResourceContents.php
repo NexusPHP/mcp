@@ -30,25 +30,16 @@ use Nexus\Mcp\Core\Validation\Rfc3986UriValidator;
 abstract readonly class ResourceContents implements Arrayable
 {
     /**
-     * @var non-empty-string
+     * @param non-empty-string      $uri
+     * @param null|non-empty-string $mimeType
      */
-    public string $uri;
-
-    /**
-     * @var null|non-empty-string
-     */
-    public ?string $mimeType;
-
     public function __construct(
-        string $uri,
-        ?string $mimeType = null,
+        public string $uri,
+        public ?string $mimeType = null,
         public PayloadMetaObject $meta = new PayloadMetaObject(),
     ) {
         Rfc3986UriValidator::validate($uri, 'resource contents "uri"');
         Assert::that($mimeType)->nullOr()->isNonEmptyString('resource contents "mimeType" must be a non-empty string or null.');
-
-        $this->uri = $uri;
-        $this->mimeType = $mimeType;
     }
 
     #[\Override]

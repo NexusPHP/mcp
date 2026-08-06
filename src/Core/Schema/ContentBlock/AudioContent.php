@@ -38,26 +38,17 @@ final readonly class AudioContent implements Arrayable, ContentBlock
     public const string TYPE = 'audio';
 
     /**
-     * @var non-empty-string
+     * @param non-empty-string $data
+     * @param non-empty-string $mimeType
      */
-    public string $data;
-
-    /**
-     * @var non-empty-string
-     */
-    public string $mimeType;
-
     public function __construct(
-        string $data,
-        string $mimeType,
+        public string $data,
+        public string $mimeType,
         public Annotations $annotations = new Annotations(),
         public PayloadMetaObject $meta = new PayloadMetaObject(),
     ) {
         Assert::that($data)->isNonEmptyString('audio content "data" must be a non-empty string.');
         Assert::that($mimeType)->isNonEmptyString('audio content "mimeType" must be a non-empty string.');
-
-        $this->data = $data;
-        $this->mimeType = $mimeType;
     }
 
     #[\Override]
@@ -69,11 +60,11 @@ final readonly class AudioContent implements Arrayable, ContentBlock
 
         Assert::that($data)->hasOffset('data', 'audio content is missing the required "data" key.');
         $payload = $data['data'];
-        Assert::that($payload)->isString('audio content "data" must be a string, {type} given.');
+        Assert::that($payload)->isNonEmptyString('audio content "data" must be a non-empty string, {type} given.');
 
         Assert::that($data)->hasOffset('mimeType', 'audio content is missing the required "mimeType" key.');
         $mimeType = $data['mimeType'];
-        Assert::that($mimeType)->isString('audio content "mimeType" must be a string, {type} given.');
+        Assert::that($mimeType)->isNonEmptyString('audio content "mimeType" must be a non-empty string, {type} given.');
 
         $annotations = new Annotations();
 

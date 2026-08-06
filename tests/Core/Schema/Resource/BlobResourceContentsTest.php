@@ -148,7 +148,7 @@ final class BlobResourceContentsTest extends TestCase
 
         yield 'uri not a string' => [
             ['uri' => 1, 'blob' => 'aGVsbG8='],
-            'blob resource contents "uri" must be a string, int given.',
+            'blob resource contents "uri" must be a non-empty string, int given.',
         ];
 
         yield 'missing blob' => [
@@ -163,7 +163,7 @@ final class BlobResourceContentsTest extends TestCase
 
         yield 'mimeType not a string' => [
             ['uri' => 'file:///x', 'blob' => 'aGVsbG8=', 'mimeType' => 1],
-            'blob resource contents "mimeType" must be a string or null, int given.',
+            'blob resource contents "mimeType" must be a non-empty string or null, int given.',
         ];
 
         yield '_meta not an object' => [

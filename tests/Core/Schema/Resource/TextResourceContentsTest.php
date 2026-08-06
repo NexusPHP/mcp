@@ -67,6 +67,7 @@ final class TextResourceContentsTest extends TestCase
         $this->expectException(ExpectationFailedException::class);
         $this->expectExceptionMessageIs('resource contents "mimeType" must be a non-empty string or null.');
 
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new TextResourceContents(uri: 'file:///x', text: 'hello', mimeType: '');
     }
 
@@ -164,7 +165,7 @@ final class TextResourceContentsTest extends TestCase
 
         yield 'uri not a string' => [
             ['uri' => 1, 'text' => 'hello'],
-            'text resource contents "uri" must be a string, int given.',
+            'text resource contents "uri" must be a non-empty string, int given.',
         ];
 
         yield 'missing text' => [
@@ -179,7 +180,7 @@ final class TextResourceContentsTest extends TestCase
 
         yield 'mimeType not a string' => [
             ['uri' => 'file:///x', 'text' => 'hello', 'mimeType' => 1],
-            'text resource contents "mimeType" must be a string or null, int given.',
+            'text resource contents "mimeType" must be a non-empty string or null, int given.',
         ];
 
         yield '_meta not an object' => [

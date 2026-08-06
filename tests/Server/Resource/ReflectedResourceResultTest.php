@@ -106,6 +106,9 @@ final class ReflectedResourceResultTest extends TestCase
         self::adapt(7);
     }
 
+    /**
+     * @param non-empty-string $uri
+     */
     private static function adapt(mixed $result, string $uri = 'mem://resource'): ReadResourceResult
     {
         $adapted = ReflectedResourceResult::adapt($result, $uri, new \ReflectionMethod(ReflectedHandlers::class, 'resourceResult'));
