@@ -31,6 +31,7 @@ use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
@@ -212,6 +213,44 @@ final class ToolStoreTest extends AbstractMcpTestCase
         ]);
 
         self::assertSame($result, $store->call('search', ['q' => 'hello'], self::makeContext()));
+    }
+
+    #[DataProvider('provideCallAcceptsAnyValueForAnAlwaysValidPropertyCases')]
+    public function testCallAcceptsAnyValueForAnAlwaysValidProperty(mixed $payload): void
+    {
+        $result = new CallToolResult(content: []);
+        $store = new ToolStore([
+            'anything' => new ToolEntry(
+                new Tool(name: 'anything', inputSchema: [
+                    'type' => 'object',
+                    'properties' => ['payload' => true],
+                    'required' => ['payload'],
+                ]),
+                self::makeExecutorReturning($result),
+            ),
+        ]);
+
+        self::assertSame($result, $store->call('anything', ['payload' => $payload], self::makeContext()));
+    }
+
+    /**
+     * @return iterable<string, array{0: mixed}>
+     */
+    public static function provideCallAcceptsAnyValueForAnAlwaysValidPropertyCases(): iterable
+    {
+        yield 'string' => ['hi'];
+
+        yield 'int' => [42];
+
+        yield 'float' => [1.5];
+
+        yield 'bool' => [true];
+
+        yield 'null' => [null];
+
+        yield 'list' => [['a']];
+
+        yield 'map' => [['k' => 'v']];
     }
 
     public function testCallAcceptsEmptyArrayArgumentsAsEmptyObject(): void

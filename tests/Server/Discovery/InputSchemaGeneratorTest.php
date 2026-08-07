@@ -19,6 +19,7 @@ use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\AbstractShape;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\BackedStringEnum;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\Coordinate;
+use Nexus\Mcp\Tests\Fixtures\Server\Discovery\Place;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\SampleToolHandlers;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\ShapeInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -228,24 +229,57 @@ final class InputSchemaGeneratorTest extends AbstractMcpTestCase
         ], self::generate('unmappableArrayDoc'));
     }
 
-    public function testUntypedParameterYieldsEmptySchema(): void
+    public function testUntypedParameterYieldsTheAlwaysValidSchema(): void
     {
         self::assertSame([
             'type' => 'object',
             '$schema' => self::DIALECT,
-            'properties' => ['anything' => []],
+            'properties' => ['anything' => true],
             'required' => ['anything'],
         ], self::generate('untyped'));
     }
 
-    public function testMixedParameterYieldsEmptySchema(): void
+    public function testMixedParameterYieldsTheAlwaysValidSchema(): void
     {
         self::assertSame([
             'type' => 'object',
             '$schema' => self::DIALECT,
-            'properties' => ['value' => []],
+            'properties' => ['value' => true],
             'required' => ['value'],
         ], self::generate('mixedParameter'));
+    }
+
+    public function testMixedNestedInAShapeYieldsTheAlwaysValidSchema(): void
+    {
+        self::assertSame([
+            'type' => 'object',
+            '$schema' => self::DIALECT,
+            'properties' => [
+                'entry' => [
+                    'type' => 'object',
+                    'properties' => ['label' => ['type' => 'string'], 'payload' => true],
+                    'required' => ['label', 'payload'],
+                ],
+            ],
+            'required' => ['entry'],
+        ], self::generate('mixedInsideAShape'));
+    }
+
+    public function testMixedNestedInATupleYieldsTheAlwaysValidSchema(): void
+    {
+        self::assertSame([
+            'type' => 'object',
+            '$schema' => self::DIALECT,
+            'properties' => [
+                'pair' => [
+                    'type' => 'array',
+                    'prefixItems' => [true, ['type' => 'string']],
+                    'items' => false,
+                    'minItems' => 2,
+                ],
+            ],
+            'required' => ['pair'],
+        ], self::generate('mixedInsideATuple'));
     }
 
     public function testEnumDefaultsAreUnwrapped(): void
@@ -354,6 +388,34 @@ final class InputSchemaGeneratorTest extends AbstractMcpTestCase
         yield 'internal class' => [\stdClass::class, false];
 
         yield 'unknown class' => ['Nexus\\Mcp\\Does\\Not\\Exist', false];
+    }
+
+    public function testIsInjectedContextIdentifiesTheServerContextParameter(): void
+    {
+        self::assertFalse(InputSchemaGenerator::isInjectedContext(self::parameterAt('withContext', 0)));
+        self::assertTrue(InputSchemaGenerator::isInjectedContext(self::parameterAt('withContext', 1)));
+    }
+
+    public function testResolveExpandableNativeClassAnswersOnlyForAnInstantiableClass(): void
+    {
+        self::assertSame(
+            Place::class,
+            InputSchemaGenerator::resolveExpandableNativeClass(self::parameterAt('nestedObject', 0)),
+        );
+        self::assertNull(
+            InputSchemaGenerator::resolveExpandableNativeClass(self::parameterAt('withContext', 0)),
+        );
+    }
+
+    private static function parameterAt(string $method, int $position): \ReflectionParameter
+    {
+        $parameters = (new \ReflectionMethod(SampleToolHandlers::class, $method))->getParameters();
+
+        if (! \array_key_exists($position, $parameters)) {
+            self::fail(\sprintf('%s() has no parameter at position %d.', $method, $position));
+        }
+
+        return $parameters[$position];
     }
 
     /**

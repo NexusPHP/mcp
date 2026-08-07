@@ -100,6 +100,20 @@ final class SampleToolHandlers
     {
     }
 
+    /**
+     * @param array{label: string, payload: mixed} $entry
+     */
+    public function mixedInsideAShape(array $entry): void
+    {
+    }
+
+    /**
+     * @param array{mixed, string} $pair
+     */
+    public function mixedInsideATuple(array $pair): void
+    {
+    }
+
     public function enumDefaults(BackedStringEnum $color = BackedStringEnum::A, PureEnum $flag = PureEnum::Yes): void
     {
     }

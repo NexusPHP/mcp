@@ -10,6 +10,8 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Fixed
 
+- A discovered tool taking a `mixed` or untyped parameter is callable. It advertised `[]` as that
+  property's schema, which is not a JSON Schema, so every `tools/call` failed before the executor ran.
 - `Tool` accepts boolean sub-schemas in `inputSchema` and `outputSchema`. One such entry previously
   failed the whole `tools/list` page.
 
