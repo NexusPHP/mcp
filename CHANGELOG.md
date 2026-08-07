@@ -18,6 +18,11 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Fixed
 
+- A stdio server no longer loses in-flight responses when the transport is closed explicitly.
+  `Server::run()` could return while handlers were still running, and their sends were refused because
+  the transport went `Closed` before draining.
+- A stdio transport closed before it was started, or in the same tick it was started, now fires
+  `onDrain` before `onClose` like every other close path.
 - A `resources/read` handler receives the client's `inputResponses` and `requestState`. Both were parsed
   from the envelope and then dropped, so a resource could ask for input but never see the answer.
 - `BearerAuthenticationMiddleware` refuses a token whose `expiresAt` has passed. It took the validator's

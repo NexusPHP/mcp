@@ -83,9 +83,12 @@ Behaviour:
   envelopes are emitted to `onMessage` listeners.
 - **Output**: every `send()` writes a single line ending in `\n`. The underlying `WritableResourceStream`
   is flushed per write.
-- **EOF**: when STDIN closes, the read loop unwinds. Its `finally` fires `onDrain` listeners (so the
-  dispatcher can await its pending coroutines) and then calls `close()`.
-- **Close**: idempotent. Fires `onDrain` then `onClose`, transitions to the `Closed` state. Subsequent
+- **EOF**: when STDIN closes, the read loop unwinds and its `finally` calls `close()`.
+- **Close**: idempotent, and the only place `onDrain` fires, so every close path drains exactly once,
+  a cold `close()` on a never-started transport included. It waits for the read loop and any
+  side-channel loop to finish, fires `onDrain` (so the dispatcher can await its pending coroutines),
+  transitions to the `Closed` state, then fires `onClose`. The state flips only after draining, so a
+  drain listener settling its last exchange can still `send()`. Subsequent
   `send()` or `start()` calls throw `TransportAlreadyClosedException`. If a concurrent close (e.g. EOF on
   the read loop) lands while a `send()` is suspended in the byte-stream `write()`, the resulting stream
   failure is wrapped into `TransportAlreadyClosedException` (with the original throwable preserved as
