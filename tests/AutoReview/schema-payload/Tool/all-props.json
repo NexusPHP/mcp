@@ -6,7 +6,8 @@
         "properties": {
             "path": {
                 "type": "string"
-            }
+            },
+            "anything": true
         },
         "required": [
             "path"

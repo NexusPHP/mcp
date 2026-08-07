@@ -255,13 +255,24 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
         }
 
         if (\array_key_exists('properties', $schema)) {
-            Assert::that($schema['properties'])
+            $properties = $schema['properties'];
+            Assert::that($properties)
                 ->isArray(\sprintf('%s "properties" must be an object, {type} given.', $context))
                 ->isMap(\sprintf('%s "properties" must be a string-keyed object.', $context))
-                ->values()
-                ->isArray(\sprintf('%s property entry must be an object, {type} given.', $context))
-                ->isMap(\sprintf('%s property entry must be a string-keyed object.', $context))
             ;
+
+            foreach ($properties as $entry) {
+                // JSON Schema 2020-12 spells a sub-schema as an object or a boolean, where `true` admits
+                // every instance and `false` admits none.
+                if (\is_bool($entry)) {
+                    continue;
+                }
+
+                Assert::that($entry)
+                    ->isArray(\sprintf('%s property entry must be an object or boolean, {type} given.', $context))
+                    ->isMap(\sprintf('%s property entry must be a string-keyed object.', $context))
+                ;
+            }
         }
 
         if (\array_key_exists('required', $schema)) {

@@ -8,6 +8,11 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp/commits/1.x)
 
+### Fixed
+
+- `Tool` accepts boolean sub-schemas in `inputSchema` and `outputSchema`. One such entry previously
+  failed the whole `tools/list` page.
+
 ## [v0.10.0](https://github.com/NexusPHP/mcp/compare/v0.9.0...v0.10.0) - 2026-08-07
 
 This release exists to put the PHP 8.3 floor in front of real installs before the stable tag. Lowering

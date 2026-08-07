@@ -238,7 +238,17 @@ final class ToolTest extends AbstractMcpTestCase
 
         yield 'property entry not an object' => [
             ['type' => 'object', 'properties' => ['name' => 'oops']],
-            'tool "inputSchema" property entry must be an object, string given.',
+            'tool "inputSchema" property entry must be an object or boolean, string given.',
+        ];
+
+        yield 'property entry list-keyed' => [
+            ['type' => 'object', 'properties' => ['name' => ['oops']]],
+            'tool "inputSchema" property entry must be a string-keyed object.',
+        ];
+
+        yield 'property entry invalid behind a boolean one' => [
+            ['type' => 'object', 'properties' => ['fine' => true, 'name' => 'oops']],
+            'tool "inputSchema" property entry must be an object or boolean, string given.',
         ];
 
         yield 'required not a list' => [
@@ -250,6 +260,40 @@ final class ToolTest extends AbstractMcpTestCase
             ['type' => 'object', 'required' => [1]],
             'tool "inputSchema" "required" entry must be a string, int given.',
         ];
+    }
+
+    #[DataProvider('provideConstructorAcceptsABooleanSubSchemaCases')]
+    public function testConstructorAcceptsABooleanSubSchema(bool $entry): void
+    {
+        $schema = ['type' => 'object', 'properties' => ['extra' => $entry]];
+
+        $tool = new Tool(name: 'peer-tool', inputSchema: $schema, outputSchema: $schema);
+
+        self::assertSame($schema, $tool->inputSchema);
+        self::assertSame($schema, $tool->outputSchema);
+        self::assertStringContainsString(
+            \sprintf('"properties":{"extra":%s}', $entry ? 'true' : 'false'),
+            json_encode($tool, \JSON_THROW_ON_ERROR),
+        );
+    }
+
+    /**
+     * @return iterable<string, array{0: bool}>
+     */
+    public static function provideConstructorAcceptsABooleanSubSchemaCases(): iterable
+    {
+        yield 'always-valid schema' => [true];
+
+        yield 'always-invalid schema' => [false];
+    }
+
+    public function testAToolsListPageSurvivesAPeerDeclaringABooleanSubSchema(): void
+    {
+        $schema = ['type' => 'object', 'properties' => ['extra' => true]];
+
+        $tool = Tool::fromArray(['name' => 'peer-tool', 'inputSchema' => $schema]);
+
+        self::assertSame($schema, $tool->inputSchema);
     }
 
     public function testConstructorAcceptsNonObjectOutputSchemaRoot(): void
