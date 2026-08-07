@@ -149,6 +149,57 @@ final class ClientTest extends AbstractMcpTestCase
         self::assertTrue($second->started, 'disconnect() must detach the transport so a fresh connect() can run.');
     }
 
+    public function testDisconnectForgetsTheServerItWasTalkingTo(): void
+    {
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
+        $first = new RecordingTransport();
+        $client->connect($first);
+        self::discover($client, $first, serverName: 'server-A');
+
+        self::assertNotNull($client->getServerInfo());
+        self::assertNotNull($client->getServerCapabilities());
+
+        $client->disconnect();
+
+        // Nothing has been discovered about the next server yet, so the accessors' documented
+        // "null until discovery has run" is the only honest answer.
+        self::assertNull($client->getServerInfo());
+        self::assertNull($client->getServerCapabilities());
+
+        $client->connect(new RecordingTransport());
+
+        self::assertNull($client->getServerInfo());
+        self::assertNull($client->getServerCapabilities());
+    }
+
+    public function testAReconnectedClientIsNotGatedByThePreviousServersAdvertisement(): void
+    {
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
+        $first = new RecordingTransport();
+        $client->connect($first);
+        // Server A advertises nothing, so every typed call is refused while it is attached.
+        self::discover($client, $first, capabilities: []);
+
+        $client->disconnect();
+        $second = new RecordingTransport();
+        $client->connect($second);
+
+        // A refused call never sends or gets awaited, so bound the wait and mark it handled to keep a
+        // regression on this test rather than the next one.
+        $call = async(static fn(): CallToolResult|InputRequiredResult => $client->callTool('demo'))->ignore();
+        $second->nextSend()->await(new TimeoutCancellation(1.0));
+
+        self::assertCount(1, $second->sent);
+        self::assertInstanceOf(CallToolRequest::class, $second->sent[0]['message']);
+
+        $client->disconnect();
+
+        $this->expectException(TransportAlreadyClosedException::class);
+        $this->expectExceptionMessageIs('Cannot await-response on a closed transport.');
+
+        $call->await();
+    }
+
     public function testDisconnectIsANoOpWhenNotConnected(): void
     {
         $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();

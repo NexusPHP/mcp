@@ -25,9 +25,9 @@ $prompt = $client->getPrompt('walkthrough', ['audience' => 'a junior developer']
 Once `discover()` has run, every typed request requires the server to have advertised the matching
 capability: `tools/*` needs `tools`, `resources/*` needs `resources`, `prompts/*` needs `prompts`, and
 `completion/complete` needs `completions`. Calling one the server did not advertise throws
-`ServerCapabilityNotSupportedException` before anything reaches the transport. Before discovery there are no
-advertised capabilities to gate against, so requests pass through. Check `getServerCapabilities()` when you
-need to branch on what the server supports.
+`ServerCapabilityNotSupportedException` before anything reaches the transport. Before discovery, and again
+after a `disconnect()`, there are no advertised capabilities to gate against, so requests pass through.
+Check `getServerCapabilities()` when you need to branch on what the server supports.
 
 ## Mirrored tool parameters over HTTP
 

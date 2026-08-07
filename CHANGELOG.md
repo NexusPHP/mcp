@@ -18,6 +18,8 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Fixed
 
+- A client reconnected to a different server no longer answers with the previous server's identity, nor
+  refuses a typed call on the previous server's advertisement. `disconnect()` left both in place.
 - A stdio server no longer loses in-flight responses when the transport is closed explicitly.
   `Server::run()` could return while handlers were still running, and their sends were refused because
   the transport went `Closed` before draining.

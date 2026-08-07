@@ -50,8 +50,9 @@ try {
 
 **Degrade gracefully on missing capabilities.** Before relying on an optional capability, call `discover()`
 then check `getServerCapabilities()`, or catch `ServerCapabilityNotSupportedException`. Once discovery has
-run, the client gates each typed request on what the server advertised, so a `complete()` against a server
-without completions fails before sending. See
+run, the client gates each typed request on what that server advertised, so a `complete()` against a server
+without completions fails before sending. A `disconnect()` forgets the advertisement, so a reconnected
+client is ungated until it discovers again. See
 [examples/capability-aware-client.php](../examples/capability-aware-client.php).
 
 **Stream progress for long tools.** Pass an `onProgress` callback to `callTool()` to receive

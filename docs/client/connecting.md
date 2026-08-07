@@ -38,7 +38,8 @@ $info = $client->getServerInfo();
 echo $info?->name, ' ', $info?->version;
 ```
 
-`getServerCapabilities()` returns the server's advertised `ServerCapabilities`, or `null` before discovery.
+`getServerCapabilities()` returns the server's advertised `ServerCapabilities`, or `null` before discovery
+has run for the attached server.
 Use it to check what the server supports before issuing a typed request (see
 [Typed requests](requests.md#typed-requests)).
 
@@ -49,7 +50,9 @@ if (null !== $client->getServerCapabilities()?->tools) {
 ```
 
 `connect()` attaches and starts the transport. `disconnect()` is its inverse: it closes the transport and
-detaches it (a no-op when not connected), so the client can `connect()` to a new transport afterwards.
+detaches it (a no-op when not connected), so the client can `connect()` to a new transport afterwards. It
+also forgets what the old server advertised, so `getServerInfo()` and `getServerCapabilities()` return
+`null` again and the next server is gated on its own `discover()` rather than the last one's.
 Calling `connect()` twice throws `ClientAlreadyConnectedException`, and using the client before `connect()`
 throws `ClientNotConnectedException`.
 
