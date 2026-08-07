@@ -3,6 +3,10 @@
     "source": {
         "directories": [
             "src"
+        ],
+        "excludes": [
+            "Client/Transport/AmpSubprocess.php",
+            "Client/Transport/AmpSubprocessLauncher.php"
         ]
     },
     "timeout": 30,

@@ -129,9 +129,9 @@ level.
 
 Behaviour:
 
-- **Launch**: `start()` invokes `Amp\Process\Process::start(...)` with the supplied command. The first
-  array element is the executable. The rest are arguments. There is no shell interpretation, so pass
-  arguments separately to avoid quoting bugs.
+- **Launch**: `start()` runs the supplied command through `Amp\Process\Process`. The first array element
+  is the executable. The rest are arguments. There is no shell interpretation, so pass arguments
+  separately to avoid quoting bugs.
 - **Environment**: `env: null` (the default) passes a pruned allowlist of safe names (`PATH`, `HOME`,
   `TERM`, …) drawn from the parent, dropping everything else (such as secrets) and skipping exported
   shell-function values. An empty array (`env: []`) inherits the full parent environment. A non-empty array

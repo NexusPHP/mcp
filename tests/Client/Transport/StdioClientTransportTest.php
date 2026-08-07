@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Client\Transport;
 
 use Amp\DeferredFuture;
+use Amp\Process\ProcessException;
 use Nexus\Mcp\Client\Transport\StdioClientTransport;
 use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyStartedException;
@@ -23,16 +24,20 @@ use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
+use Nexus\Mcp\Tests\Fixtures\Client\Transport\ScriptedSubprocessLauncher;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
-use Psr\Log\AbstractLogger;
 use Psr\Log\LogLevel;
 use Revolt\EventLoop;
 
 /**
+ * Drives the transport against a scripted subprocess. Every real spawn lives in
+ * `AmpSubprocessLauncherTest`, because an Infection mutant cannot start a process and a test that
+ * tries scores as a false kill.
+ *
  * @internal
  */
 #[CoversClass(StdioClientTransport::class)]
@@ -40,10 +45,10 @@ use Revolt\EventLoop;
 #[Group('client-tests')]
 final class StdioClientTransportTest extends AbstractMcpTestCase
 {
-    private const string ECHO_SERVER = __DIR__.'/../../Fixtures/Client/Transport/echo-server.php';
-    private const string EXITING_SERVER = __DIR__.'/../../Fixtures/Client/Transport/exiting-server.php';
-    private const string STDERR_NOISE = __DIR__.'/../../Fixtures/Client/Transport/stderr-noise.php';
-    private const string ENV_REPORTER = __DIR__.'/../../Fixtures/Client/Transport/env-reporter.php';
+    /**
+     * Never spawned, so never resolved against PATH.
+     */
+    private const array COMMAND = ['mcp-server', '--stdio'];
 
     public function testEmptyCommandThrows(): void
     {
@@ -53,9 +58,18 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
         new StdioClientTransport([]);
     }
 
+    public function testCommandThatIsNotAListThrows(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('Stdio client command must be a list, array given.');
+
+        // @phpstan-ignore argument.type
+        new StdioClientTransport(['bin' => 'mcp-server']);
+    }
+
     public function testListenerRegistrationReturnsDistinctSubscriptionsPerChannel(): void
     {
-        $transport = self::buildTransport();
+        $transport = self::buildTransport(new ScriptedSubprocessLauncher());
 
         $error = $transport->onError(static fn() => null);
         $drain = $transport->onDrain(static fn() => null);
@@ -68,16 +82,80 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
 
     public function testSendBeforeStartThrows(): void
     {
-        $transport = self::buildTransport();
+        $transport = self::buildTransport(new ScriptedSubprocessLauncher());
 
         $this->expectException(TransportNotStartedException::class);
 
-        $transport->send(new DiscoverRequest(id: new RequestId(id: 1), params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create())));
+        $transport->send(self::request());
     }
 
-    public function testStartAfterStartThrows(): void
+    public function testStartLaunchesTheConfiguredCommandInTheConfiguredDirectory(): void
     {
-        $transport = self::buildTransport();
+        $launcher = new ScriptedSubprocessLauncher();
+        $transport = new StdioClientTransport(self::COMMAND, '/tmp', ['PATH' => '/usr/bin'], launcher: $launcher);
+
+        $transport->start();
+        $transport->close();
+
+        self::assertCount(1, $launcher->launches);
+        self::assertSame(self::COMMAND, $launcher->lastLaunch()['command']);
+        self::assertSame('/tmp', $launcher->lastLaunch()['workingDirectory']);
+        self::assertSame(['PATH' => '/usr/bin'], $launcher->lastLaunch()['environment']);
+    }
+
+    public function testStartLaunchesWithThePrunedDefaultEnvironmentWhenNoneIsConfigured(): void
+    {
+        putenv('MCP_PARENT_SECRET=topsecret');
+
+        try {
+            $launcher = new ScriptedSubprocessLauncher();
+            $transport = self::buildTransport($launcher);
+
+            $transport->start();
+            $transport->close();
+
+            $environment = $launcher->lastLaunch()['environment'];
+            self::assertArrayHasKey('PATH', $environment, 'PATH is allowlisted and inherited.');
+            self::assertArrayNotHasKey('MCP_PARENT_SECRET', $environment);
+        } finally {
+            putenv('MCP_PARENT_SECRET');
+        }
+    }
+
+    public function testStartLaunchesWithAnEmptyEnvironmentVerbatim(): void
+    {
+        $launcher = new ScriptedSubprocessLauncher();
+        $transport = new StdioClientTransport(self::COMMAND, env: [], launcher: $launcher);
+
+        $transport->start();
+        $transport->close();
+
+        self::assertSame([], $launcher->lastLaunch()['environment']);
+    }
+
+    public function testStartLogsTheSpawnedSubprocess(): void
+    {
+        $logger = new ArrayLogger();
+        $transport = self::buildTransport(new ScriptedSubprocessLauncher(), $logger);
+
+        $transport->start();
+        $transport->close();
+
+        $matches = $logger->recordsMatching(
+            LogLevel::INFO,
+            '{label} transport spawned subprocess. Command: {command} (PID {pid}).',
+        );
+        self::assertCount(1, $matches);
+        self::assertSame(
+            ['label' => 'Stdio client', 'command' => 'mcp-server --stdio', 'pid' => 4_242],
+            $matches[0]['context'],
+        );
+    }
+
+    public function testStartAfterStartThrowsAndTearsTheSecondSubprocessDown(): void
+    {
+        $launcher = new ScriptedSubprocessLauncher();
+        $transport = self::buildTransport($launcher);
         $transport->start();
 
         try {
@@ -86,33 +164,164 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
 
             $transport->start();
         } finally {
+            self::assertCount(2, $launcher->subprocesses);
+            $abandoned = $launcher->lastSubprocess();
+            self::assertTrue($abandoned->getStdin()->isClosed());
+            self::assertSame(1, $abandoned->killCount);
+
             $transport->close();
         }
     }
 
-    public function testStartAfterCloseThrows(): void
+    public function testStartAfterCloseThrowsAndTearsTheSubprocessDown(): void
     {
-        $transport = self::buildTransport();
+        $launcher = new ScriptedSubprocessLauncher();
+        $transport = self::buildTransport($launcher);
         $transport->close();
 
-        $this->expectException(TransportAlreadyClosedException::class);
+        try {
+            $this->expectException(TransportAlreadyClosedException::class);
+
+            $transport->start();
+        } finally {
+            $abandoned = $launcher->lastSubprocess();
+            self::assertTrue($abandoned->getStdin()->isClosed());
+            self::assertSame(1, $abandoned->killCount);
+        }
+    }
+
+    public function testAFailedLaunchSurfacesToTheCaller(): void
+    {
+        $transport = self::buildTransport(new ScriptedSubprocessLauncher(new ProcessException('boom')));
+
+        $this->expectException(ProcessException::class);
+        $this->expectExceptionMessageIs('boom');
 
         $transport->start();
     }
 
     public function testCloseBeforeStartIsNoOp(): void
     {
-        $transport = self::buildTransport();
+        $launcher = new ScriptedSubprocessLauncher();
+        $transport = self::buildTransport($launcher);
 
         $transport->close();
         $transport->close();
 
-        $this->expectNotToPerformAssertions();
+        self::assertSame([], $launcher->subprocesses);
+    }
+
+    public function testCloseShutsTheSubprocessStdinAndKillsIt(): void
+    {
+        $launcher = new ScriptedSubprocessLauncher();
+        $transport = self::buildTransport($launcher);
+        $transport->start();
+        $subprocess = $launcher->lastSubprocess();
+
+        self::assertFalse($subprocess->getStdin()->isClosed());
+        self::assertSame(0, $subprocess->killCount);
+
+        $transport->close();
+
+        self::assertTrue($subprocess->getStdin()->isClosed());
+        self::assertSame(1, $subprocess->killCount);
+    }
+
+    public function testCloseLogsAtInfoLevel(): void
+    {
+        $logger = new ArrayLogger();
+        $transport = self::buildTransport(new ScriptedSubprocessLauncher(), $logger);
+        $transport->start();
+        $transport->close();
+
+        $matches = $logger->recordsMatching(LogLevel::INFO, '{label} transport closed.');
+        self::assertCount(1, $matches);
+        self::assertSame(['label' => 'Stdio client'], $matches[0]['context']);
+    }
+
+    public function testDeliversAnEnvelopeReadFromTheSubprocessStdout(): void
+    {
+        $launcher = new ScriptedSubprocessLauncher();
+        $transport = self::buildTransport($launcher);
+        /** @var DeferredFuture<array<string, mixed>> $messageReceived */
+        $messageReceived = new DeferredFuture();
+        $transport->onMessage(static function (array $envelope) use ($messageReceived): void {
+            if (! $messageReceived->isComplete()) {
+                $messageReceived->complete($envelope);
+            }
+        });
+
+        $transport->start();
+        $launcher->lastSubprocess()->emitStdout('{"jsonrpc":"2.0","id":"round-trip-1","method":"server/discover"}'."\n");
+
+        $envelope = $messageReceived->getFuture()->await();
+        $transport->close();
+
+        self::assertSame('2.0', $envelope['jsonrpc'] ?? null);
+        self::assertSame('round-trip-1', $envelope['id'] ?? null);
+        self::assertSame('server/discover', $envelope['method'] ?? null);
+    }
+
+    public function testSendsANotificationToTheSubprocessStdinAndLogsItAtDebug(): void
+    {
+        $logger = new ArrayLogger();
+        $launcher = new ScriptedSubprocessLauncher();
+        $transport = self::buildTransport($launcher, $logger);
+
+        $transport->start();
+        $transport->send(new ToolListChangedNotification());
+        $written = $launcher->lastSubprocess()->readWrittenLine();
+        $transport->close();
+
+        self::assertSame('{"jsonrpc":"2.0","method":"notifications/tools/list_changed"}'."\n", $written);
+        $matches = $logger->recordsMatching(LogLevel::DEBUG, '{label} transport sent {kind}.');
+        self::assertNotEmpty($matches);
+        self::assertSame('Stdio client', $matches[0]['context']['label'] ?? null);
+        self::assertSame('"notifications/tools/list_changed" notification', $matches[0]['context']['kind'] ?? null);
+    }
+
+    public function testSendAfterCloseThrowsTransportAlreadyClosed(): void
+    {
+        $transport = self::buildTransport(new ScriptedSubprocessLauncher());
+        $transport->start();
+        $transport->close();
+
+        $this->expectException(TransportAlreadyClosedException::class);
+
+        $transport->send(self::request());
+    }
+
+    #[DataProvider('provideSubprocessStderrIsSanitisedAndForwardedToTheLoggerCases')]
+    public function testSubprocessStderrIsSanitisedAndForwardedToTheLogger(string $emitted, string $logged): void
+    {
+        $logger = new ArrayLogger();
+        $launcher = new ScriptedSubprocessLauncher();
+        $transport = self::buildTransport($launcher, $logger);
+
+        $transport->start();
+        $launcher->lastSubprocess()->emitStderr($emitted."\n");
+        EventLoop::run();
+        $transport->close();
+
+        $matches = $logger->recordsMatching(LogLevel::INFO, 'Subprocess stderr: {line}');
+        self::assertCount(1, $matches);
+        self::assertSame(['line' => $logged], $matches[0]['context']);
+    }
+
+    /**
+     * @return iterable<string, array{0: string, 1: string}>
+     */
+    public static function provideSubprocessStderrIsSanitisedAndForwardedToTheLoggerCases(): iterable
+    {
+        yield 'printable line' => ['mcp-server fixture ready', 'mcp-server fixture ready'];
+
+        yield 'terminal control bytes' => ["noise\x07\x1b[31m", 'noise\\x07\\x1b[31m'];
     }
 
     public function testAnUnrequestedSubprocessExitNotifiesTheExitListenerWithItsCode(): void
     {
-        $transport = self::buildExitingTransport(3);
+        $launcher = new ScriptedSubprocessLauncher();
+        $transport = self::buildTransport($launcher);
         /** @var DeferredFuture<null|int> $exited */
         $exited = new DeferredFuture();
         $transport->onUnexpectedExit(static function (?int $exitCode) use ($exited): void {
@@ -122,6 +331,7 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
         });
 
         $transport->start();
+        $launcher->lastSubprocess()->exitWith(3);
 
         self::assertSame(3, $exited->getFuture()->await());
 
@@ -131,7 +341,8 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
     public function testAnUnrequestedSubprocessExitIsLoggedAsAWarning(): void
     {
         $logger = new ArrayLogger();
-        $transport = self::buildExitingTransport(4, $logger);
+        $launcher = new ScriptedSubprocessLauncher();
+        $transport = self::buildTransport($launcher, $logger);
         /** @var DeferredFuture<null|int> $exited */
         $exited = new DeferredFuture();
         $transport->onUnexpectedExit(static function (?int $exitCode) use ($exited): void {
@@ -141,6 +352,7 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
         });
 
         $transport->start();
+        $launcher->lastSubprocess()->exitWith(4);
         $exited->getFuture()->await();
         $transport->close();
 
@@ -152,9 +364,43 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
         self::assertSame(['label' => 'Stdio client', 'exitCode' => 4], $matches[0]['context']);
     }
 
-    public function testAnIntentionalCloseDoesNotNotifyTheExitListener(): void
+    public function testAnExitReportingNoStatusIsNotifiedAndLoggedAsUnknown(): void
     {
-        $transport = self::buildTransport();
+        $logger = new ArrayLogger();
+        $launcher = new ScriptedSubprocessLauncher();
+        $transport = self::buildTransport($launcher, $logger);
+        /** @var DeferredFuture<null|int> $exited */
+        $exited = new DeferredFuture();
+        $observed = 0;
+        $transport->onUnexpectedExit(static function (?int $exitCode) use ($exited, &$observed): void {
+            ++$observed;
+
+            if (! $exited->isComplete()) {
+                $exited->complete($exitCode);
+            }
+        });
+
+        $transport->start();
+        $launcher->lastSubprocess()->failToReportExit();
+
+        self::assertNull($exited->getFuture()->await());
+        self::assertSame(1, $observed);
+
+        $transport->close();
+
+        $matches = $logger->recordsMatching(
+            LogLevel::WARNING,
+            '{label} transport subprocess exited unexpectedly (code {exitCode}).',
+        );
+        self::assertCount(1, $matches);
+        self::assertSame(['label' => 'Stdio client', 'exitCode' => 'unknown'], $matches[0]['context']);
+    }
+
+    public function testAnIntentionalCloseSilencesAnExitThatArrivesAfterwards(): void
+    {
+        $logger = new ArrayLogger();
+        $launcher = new ScriptedSubprocessLauncher();
+        $transport = self::buildTransport($launcher, $logger);
         $notified = 0;
         $transport->onUnexpectedExit(static function () use (&$notified): void {
             ++$notified;
@@ -162,14 +408,23 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
 
         $transport->start();
         $transport->close();
+        // The cancellation lands on the next loop turn, so let it before the exit arrives. A real
+        // subprocess exit is I/O and can never reach the watch in the same turn as `close()`.
+        EventLoop::run();
+        $launcher->lastSubprocess()->exitWith(3);
         EventLoop::run();
 
         self::assertSame(0, $notified);
+        self::assertSame([], $logger->recordsMatching(
+            LogLevel::WARNING,
+            '{label} transport subprocess exited unexpectedly (code {exitCode}).',
+        ));
     }
 
     public function testDisposingTheExitSubscriptionStopsTheNotification(): void
     {
-        $transport = self::buildExitingTransport(5);
+        $launcher = new ScriptedSubprocessLauncher();
+        $transport = self::buildTransport($launcher);
         $notified = 0;
         $subscription = $transport->onUnexpectedExit(static function () use (&$notified): void {
             ++$notified;
@@ -177,6 +432,7 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
 
         $transport->start();
         $subscription->dispose();
+        $launcher->lastSubprocess()->exitWith(5);
         EventLoop::run();
         $transport->close();
 
@@ -186,11 +442,13 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
     public function testAThrowingExitListenerNeitherStopsTheNextOneNorEscapes(): void
     {
         $logger = new ArrayLogger();
-        $transport = self::buildExitingTransport(8, $logger);
+        $launcher = new ScriptedSubprocessLauncher();
+        $transport = self::buildTransport($launcher, $logger);
         /** @var DeferredFuture<null|int> $second */
         $second = new DeferredFuture();
-        $transport->onUnexpectedExit(static function (): void {
-            throw new \RuntimeException('listener blew up');
+        $failure = new \RuntimeException('listener blew up');
+        $transport->onUnexpectedExit(static function () use ($failure): void {
+            throw $failure;
         });
         $transport->onUnexpectedExit(static function (?int $exitCode) use ($second): void {
             if (! $second->isComplete()) {
@@ -199,130 +457,15 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
         });
 
         $transport->start();
+        $launcher->lastSubprocess()->exitWith(8);
 
         self::assertSame(8, $second->getFuture()->await());
-        self::assertCount(1, $logger->recordsMatching(LogLevel::WARNING, '{label} transport exit listener threw.'));
 
-        $transport->close();
-    }
-
-    public function testClosingAfterThePeerHasAlreadyExitedStillReportsTheExit(): void
-    {
-        $transport = self::buildExitingTransport(9);
-        /** @var DeferredFuture<null|int> $exited */
-        $exited = new DeferredFuture();
-        $transport->onUnexpectedExit(static function (?int $exitCode) use ($exited): void {
-            if (! $exited->isComplete()) {
-                $exited->complete($exitCode);
-            }
-        });
-
-        $transport->start();
-        $observed = $exited->getFuture()->await();
-        $transport->close();
-
-        self::assertSame(9, $observed);
-    }
-
-    public function testRoundTripsAnEnvelopeAgainstTheEchoFixture(): void
-    {
-        $transport = self::buildTransport();
-        /** @var DeferredFuture<array<string, mixed>> $messageReceived */
-        $messageReceived = new DeferredFuture();
-        $transport->onMessage(static function (array $envelope) use ($messageReceived): void {
-            if (! $messageReceived->isComplete()) {
-                $messageReceived->complete($envelope);
-            }
-        });
-
-        $transport->start();
-        $transport->send(new DiscoverRequest(id: new RequestId(id: 'round-trip-1'), params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create())));
-
-        $envelope = $messageReceived->getFuture()->await();
-        $transport->close();
-
-        self::assertSame('2.0', $envelope['jsonrpc'] ?? null);
-        self::assertSame('round-trip-1', $envelope['id'] ?? null);
-        self::assertSame('server/discover', $envelope['method'] ?? null);
-    }
-
-    public function testSendsANotificationAndLogsItAtDebug(): void
-    {
-        $logger = new ArrayLogger();
-        $transport = self::buildTransport(logger: $logger);
-        /** @var DeferredFuture<array<string, mixed>> $messageReceived */
-        $messageReceived = new DeferredFuture();
-        $transport->onMessage(static function (array $envelope) use ($messageReceived): void {
-            if (! $messageReceived->isComplete()) {
-                $messageReceived->complete($envelope);
-            }
-        });
-
-        $transport->start();
-        $transport->send(new ToolListChangedNotification());
-        $envelope = $messageReceived->getFuture()->await();
-        $transport->close();
-
-        self::assertSame('notifications/tools/list_changed', $envelope['method'] ?? null);
-        $matches = $logger->recordsMatching(LogLevel::DEBUG, '{label} transport sent {kind}.');
-        self::assertNotEmpty($matches);
-        self::assertSame('Stdio client', $matches[0]['context']['label'] ?? null);
-        self::assertSame('"notifications/tools/list_changed" notification', $matches[0]['context']['kind'] ?? null);
-    }
-
-    public function testSubprocessStderrIsForwardedToTheLogger(): void
-    {
-        /** @var DeferredFuture<string> $stderrCaptured */
-        $stderrCaptured = new DeferredFuture();
-        $transport = new StdioClientTransport(
-            [\PHP_BINARY, self::ECHO_SERVER],
-            logger: self::stderrCapturingLogger($stderrCaptured),
-        );
-
-        $transport->start();
-        $line = $stderrCaptured->getFuture()->await();
-        $transport->close();
-
-        self::assertSame('echo-server fixture ready', $line);
-    }
-
-    public function testSubprocessStderrIsSanitisedBeforeLogging(): void
-    {
-        /** @var DeferredFuture<string> $stderrCaptured */
-        $stderrCaptured = new DeferredFuture();
-        $transport = new StdioClientTransport(
-            [\PHP_BINARY, self::STDERR_NOISE],
-            logger: self::stderrCapturingLogger($stderrCaptured),
-        );
-
-        $transport->start();
-        $line = $stderrCaptured->getFuture()->await();
-        $transport->close();
-
-        self::assertSame('noise\\x07\\x1b[31m', $line);
-    }
-
-    public function testSendAfterCloseThrowsTransportAlreadyClosed(): void
-    {
-        $transport = self::buildTransport();
-        $transport->start();
-        $transport->close();
-
-        $this->expectException(TransportAlreadyClosedException::class);
-
-        $transport->send(new DiscoverRequest(id: new RequestId(id: 1), params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create())));
-    }
-
-    public function testCloseLogsAtInfoLevel(): void
-    {
-        $logger = new ArrayLogger();
-        $transport = self::buildTransport(logger: $logger);
-        $transport->start();
-        $transport->close();
-
-        $matches = $logger->recordsMatching(LogLevel::INFO, '{label} transport closed.');
+        $matches = $logger->recordsMatching(LogLevel::WARNING, '{label} transport exit listener threw.');
         self::assertCount(1, $matches);
-        self::assertSame(['label' => 'Stdio client'], $matches[0]['context']);
+        self::assertSame(['label' => 'Stdio client', 'exception' => $failure], $matches[0]['context']);
+
+        $transport->close();
     }
 
     #[DataProvider('provideDefaultEnvironmentKeepsEachInheritedNameCases')]
@@ -372,110 +515,32 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
         self::assertSame(['HOME' => '/home/me'], $environment);
     }
 
-    public function testDefaultEnvironmentPrunesParentSecretsFromTheSubprocess(): void
+    public function testDefaultEnvironmentKeepsNamesFollowingASkippedOne(): void
     {
-        putenv('MCP_PARENT_SECRET=topsecret');
+        $environment = StdioClientTransport::buildDefaultEnvironment([
+            'APPDATA' => '() { :; }; echo pwned',
+            'USERPROFILE' => 'C:\\Users\\me',
+        ]);
 
-        try {
-            $childEnv = self::reportedEnvironment(new StdioClientTransport([\PHP_BINARY, self::ENV_REPORTER]));
-
-            self::assertArrayHasKey('PATH', $childEnv, 'PATH is allowlisted and inherited.');
-            self::assertArrayNotHasKey('MCP_PARENT_SECRET', $childEnv);
-        } finally {
-            putenv('MCP_PARENT_SECRET');
-        }
+        self::assertSame(['USERPROFILE' => 'C:\\Users\\me'], $environment);
     }
 
-    public function testEmptyEnvironmentInheritsTheFullParentEnvironment(): void
-    {
-        putenv('MCP_PARENT_SECRET=topsecret');
-
-        try {
-            $childEnv = self::reportedEnvironment(new StdioClientTransport([\PHP_BINARY, self::ENV_REPORTER], env: []));
-
-            self::assertSame('topsecret', $childEnv['MCP_PARENT_SECRET'] ?? null);
-        } finally {
-            putenv('MCP_PARENT_SECRET');
-        }
-    }
-
-    public function testExplicitEnvironmentIsPassedVerbatim(): void
-    {
-        $transport = new StdioClientTransport(
-            [\PHP_BINARY, self::ENV_REPORTER],
-            env: ['MCP_CUSTOM' => 'yes', 'PATH' => (string) getenv('PATH')],
-        );
-        $childEnv = self::reportedEnvironment($transport);
-
-        self::assertSame('yes', $childEnv['MCP_CUSTOM'] ?? null);
-        self::assertArrayNotHasKey('HOME', $childEnv, 'A non-empty env is passed verbatim, not merged with the parent.');
-    }
-
-    private static function buildTransport(?ArrayLogger $logger = null): StdioClientTransport
-    {
+    private static function buildTransport(
+        ScriptedSubprocessLauncher $launcher,
+        ?ArrayLogger $logger = null,
+    ): StdioClientTransport {
         return new StdioClientTransport(
-            [\PHP_BINARY, self::ECHO_SERVER],
+            self::COMMAND,
             logger: $logger ?? new ArrayLogger(),
+            launcher: $launcher,
         );
     }
 
-    private static function buildExitingTransport(int $exitCode, ?ArrayLogger $logger = null): StdioClientTransport
+    private static function request(): DiscoverRequest
     {
-        return new StdioClientTransport(
-            [\PHP_BINARY, self::EXITING_SERVER, (string) $exitCode],
-            logger: $logger ?? new ArrayLogger(),
+        return new DiscoverRequest(
+            id: new RequestId(id: 1),
+            params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create()),
         );
-    }
-
-    /**
-     * @return array<array-key, mixed>
-     */
-    private static function reportedEnvironment(StdioClientTransport $transport): array
-    {
-        /** @var DeferredFuture<array<string, mixed>> $received */
-        $received = new DeferredFuture();
-        $transport->onMessage(static function (array $envelope) use ($received): void {
-            if (! $received->isComplete()) {
-                $received->complete($envelope);
-            }
-        });
-
-        $transport->start();
-        $envelope = $received->getFuture()->await();
-        $transport->close();
-
-        $params = $envelope['params'] ?? null;
-        self::assertIsArray($params);
-        $environment = $params['env'] ?? null;
-        self::assertIsArray($environment);
-
-        return $environment;
-    }
-
-    /**
-     * @param DeferredFuture<string> $captured
-     */
-    private static function stderrCapturingLogger(DeferredFuture $captured): AbstractLogger
-    {
-        return new class ($captured) extends AbstractLogger {
-            /**
-             * @param DeferredFuture<string> $captured
-             */
-            public function __construct(private readonly DeferredFuture $captured)
-            {
-            }
-
-            #[\Override]
-            public function log(mixed $level, string|\Stringable $message, array $context = []): void
-            {
-                if (
-                    'Subprocess stderr: {line}' === (string) $message
-                    && ! $this->captured->isComplete()
-                    && \is_string($context['line'] ?? null)
-                ) {
-                    $this->captured->complete($context['line']);
-                }
-            }
-        };
     }
 }
