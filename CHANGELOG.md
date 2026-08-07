@@ -10,6 +10,9 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Changed
 
+- `AuthorizedHttpClient` takes an `HttpClientBuilder` and runs credentialed traffic on a client that
+  follows no redirect, so a hop off the MCP server's origin is refused before the credential travels
+  (see [BREAKING_CHANGES.md](BREAKING_CHANGES.md)).
 - `JwksAccessTokenValidator` takes the issuer it accepts and refuses a token whose `iss` is absent or
   different, or which carries no `exp` (see [BREAKING_CHANGES.md](BREAKING_CHANGES.md)).
 

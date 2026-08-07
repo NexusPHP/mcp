@@ -48,7 +48,7 @@ $http = new AuthorizedHttpClient(
         allowInsecureLoopback: true,
     ),
     new KeycloakLogin(username: 'demo', password: 'demo-password'),
-    HttpClientBuilder::buildDefault(),
+    new HttpClientBuilder(),
     logger: new PsrLogger(),
 );
 

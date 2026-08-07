@@ -22,21 +22,54 @@ $http = new AuthorizedHttpClient(
         redirectUri: 'http://127.0.0.1:8765/callback',
     ),
     new ConsoleUserAuthorization(),
-    HttpClientBuilder::buildDefault(),
+    new HttpClientBuilder(),
 );
 
 $client = $builder->build();
 $client->connect(new StreamableHttpClientTransport($endpoint, $http));
 ```
 
+It takes the builder rather than a built client because it derives two: metadata discovery follows redirects,
+and everything carrying a credential runs on one that does not, so a hop off this server's origin is refused
+before the credential travels. A downgrade from `https` to `http` on the same host is such a hop, and it is
+the one an ordinary client would follow while keeping the `Authorization` header, since it strips headers
+only when the authority changes and an authority carries no scheme.
+
+Configure the transport on the builder as usual (`usingPool()`, `intercept()`, `interceptNetwork()`,
+`retry()`). To route everything through a client of your own, short-circuit with an interceptor:
+
+```php
+use Amp\Cancellation;
+use Amp\Http\Client\ApplicationInterceptor;
+use Amp\Http\Client\DelegateHttpClient;
+use Amp\Http\Client\Request;
+use Amp\Http\Client\Response;
+
+final class MyTransport implements ApplicationInterceptor
+{
+    public function __construct(private readonly DelegateHttpClient $mine) {}
+
+    public function request(Request $request, Cancellation $cancellation, DelegateHttpClient $next): Response
+    {
+        return $this->mine->request($request, $cancellation);
+    }
+}
+
+$builder = (new HttpClientBuilder())->intercept(new MyTransport($mine));
+```
+
+Do not pass a builder carrying your own redirect follower for credentialed traffic. The decorator resolves
+redirects itself precisely so it can refuse one before sending.
+
 Nothing happens until the server challenges. On the first `401` the decorator reads the `WWW-Authenticate`
 header, discovers the authorization server, obtains a token, and replays the request with it. Later requests
 present the stored token directly.
 
 The token goes only to the origin the decorator was built for, so handing the same client a request aimed
-somewhere else sends it unauthenticated rather than leaking the credential. If an answer arrives from a
-different origin than the request was sent to, which is what an HTTP client that follows redirects will do,
-the response is refused with `RedirectRefusedException` instead of trusted.
+somewhere else sends it unauthenticated rather than leaking the credential. A request that does reach that
+origin has its redirects resolved here, whether or not a token was ready: a hop leaving the origin is
+refused with `RedirectRefusedException` before it is sent, and running out of hops raises
+`TooManyRedirectsException` as the client's own follower would.
 
 The inner client carries the authorization traffic too, so an interceptor placed on it (proxy, logging,
 custom TLS) applies to discovery, registration, and token requests as well.

@@ -6,6 +6,32 @@ for *when* breaking changes may land and how they are communicated lives in
 
 ## v0.10.0 to Unreleased
 
+### `AuthorizedHttpClient` takes an `HttpClientBuilder`
+
+It took a built `DelegateHttpClient`, which meant the redirect behaviour of credentialed traffic belonged
+to the caller. An HTTP client strips headers on a redirect only when the authority changes, and an
+authority carries no scheme, so a hop from `https` to cleartext on the same host kept the `Authorization`
+header and put the token on the network in the open. Nothing the decorator could do after the fact
+un-sends it.
+
+```php
+// before
+new AuthorizedHttpClient($endpoint, $options, $login, HttpClientBuilder::buildDefault());
+// after
+new AuthorizedHttpClient($endpoint, $options, $login, new HttpClientBuilder());
+```
+
+The decorator now derives two clients from the builder: metadata discovery follows redirects, and anything
+carrying a credential runs on one that does not, resolving each hop itself and refusing any that leaves the
+MCP server's origin before the credential travels.
+
+Configure the transport on the builder as before (`usingPool()`, `intercept()`, `interceptNetwork()`,
+`retry()`). To route traffic through a client of your own, short-circuit with an `ApplicationInterceptor`,
+shown in [docs/auth/client.md](docs/auth/client.md). `TokenEndpoint`, `MetadataDiscovery`,
+`ClientRegistrar` and `JsonHttpExchange` still take a `DelegateHttpClient`, but they are `@internal` and
+they do not seal anything themselves: composing them by hand puts the redirect behaviour of their
+credentials back in your own hands.
+
 ### `JwksAccessTokenValidator` requires the issuer it accepts
 
 The validator took a key set and nothing else, so it verified the signature but never checked who signed.

@@ -13,7 +13,9 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Client\Auth;
 
+use Amp\Http\Client\HttpClientBuilder;
 use Amp\Http\Client\HttpException;
+use Amp\Http\Client\Interceptor\TooManyRedirectsException;
 use Amp\Http\Client\Request;
 use Amp\Http\Client\Response;
 use Amp\NullCancellation;
@@ -29,9 +31,11 @@ use Nexus\Mcp\Client\Exception\RedirectRefusedException;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Client\Auth\ScriptedGrantStrategy;
 use Nexus\Mcp\Tests\Fixtures\Client\Auth\ScriptedUserAuthorization;
+use Nexus\Mcp\Tests\Fixtures\Client\Http\DelegatingInterceptor;
 use Nexus\Mcp\Tests\Fixtures\Client\Http\RecordingHttpClient;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use Psr\Log\LogLevel;
 
@@ -117,34 +121,272 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
         self::assertNull($http->readRequest(6)->getHeader('Authorization'));
     }
 
-    public function testATokenThatFollowedARedirectOffTheMcpServerIsReported(): void
+    public function testARedirectOffTheMcpServerIsRefusedBeforeTheCredentialTravels(): void
     {
-        $http = self::scriptChallengeAndFlow()->willAnswerFrom('http://127.0.0.1:1/mcp');
+        $http = self::scriptChallengeAndFlow()->willRedirectTo('https://attacker.example.com/mcp');
+
+        try {
+            self::client($http)->request(self::mcpRequest(), new NullCancellation());
+            self::fail('The redirect should have been refused.');
+        } catch (RedirectRefusedException $e) {
+            self::assertSame(
+                'The request to "https://127.0.0.1:1/mcp" was answered from "https://attacker.example.com/mcp" after a redirect. Credentials are never carried across one.',
+                $e->getMessage(),
+            );
+        }
+
+        // The refusal is what matters: the target was never requested, so the token never left.
+        self::assertCount(6, $http->requests);
+    }
+
+    public function testASchemeDowngradeIsRefusedBeforeTheCredentialTravels(): void
+    {
+        // The hop amphp would have taken: same authority, so it kept the header, and cleartext, so the
+        // token travelled in the open. Nothing is sent to it now.
+        $http = self::scriptChallengeAndFlow()->willRedirectTo('http://127.0.0.1:1/mcp');
+
+        try {
+            self::client($http)->request(self::mcpRequest(), new NullCancellation());
+            self::fail('The downgrade should have been refused.');
+        } catch (RedirectRefusedException $e) {
+            self::assertSame(
+                'The request to "https://127.0.0.1:1/mcp" was answered from "http://127.0.0.1:1/mcp" after a redirect. Credentials are never carried across one.',
+                $e->getMessage(),
+            );
+        }
+
+        self::assertCount(6, $http->requests);
+        self::assertSame('https', $http->readRequest(5)->getUri()->getScheme(), 'Nothing was sent over cleartext.');
+    }
+
+    public function testARedirectWithinTheMcpServerIsFollowedWithTheCredential(): void
+    {
+        $http = self::scriptChallengeAndFlow()
+            ->willRedirectTo('https://127.0.0.1:1/mcp/v2')
+            ->willAnswerJson(['ok' => true])
+        ;
+
+        $response = self::client($http)->request(self::mcpRequest(), new NullCancellation());
+
+        self::assertSame(200, $response->getStatus());
+        self::assertSame('https://127.0.0.1:1/mcp/v2', (string) $http->readRequest(6)->getUri());
+        self::assertSame('Bearer the-access-token', $http->readRequest(6)->getHeader('Authorization'));
+    }
+
+    #[DataProvider('provideOnlyARedirectStatusIsFollowedCases')]
+    public function testOnlyARedirectStatusIsFollowed(int $status, bool $followed): void
+    {
+        $http = self::scriptChallengeAndFlow()
+            ->willAnswerWithHeaders($status, ['location' => 'https://127.0.0.1:1/mcp/v2'])
+            ->willAnswerJson(['ok' => true])
+        ;
+
+        $response = self::client($http)->request(self::mcpRequest(), new NullCancellation());
+
+        self::assertCount($followed ? 7 : 6, $http->requests);
+        self::assertSame($followed ? 200 : $status, $response->getStatus());
+    }
+
+    /**
+     * @return iterable<string, array{0: int, 1: bool}>
+     */
+    public static function provideOnlyARedirectStatusIsFollowedCases(): iterable
+    {
+        yield '200 carrying a location' => [200, false];
+
+        yield '300 multiple choices' => [300, false];
+
+        yield '301 moved permanently' => [301, true];
+
+        yield '302 found' => [302, true];
+
+        yield '303 see other' => [303, true];
+
+        yield '304 not modified' => [304, false];
+
+        yield '305 use proxy' => [305, false];
+
+        // A 307 or 308 preserves the method, and this request is a POST, so neither is replayed.
+        yield '307 temporary redirect' => [307, false];
+
+        yield '308 permanent redirect' => [308, false];
+
+        yield '309 unassigned' => [309, false];
+    }
+
+    public function testAnUntokenedRequestToThisServerIsStillRedirectControlled(): void
+    {
+        // The bare first request carries whatever headers the caller set, and no token is held yet. It
+        // reaches this origin, so its hops are refused the same way a tokened one's are.
+        $http = (new RecordingHttpClient())->willRedirectTo('http://127.0.0.1:1/mcp');
+        $request = self::mcpRequest();
+        $request->setHeader('Authorization', 'Bearer a-token-of-the-callers-own');
 
         $this->expectException(RedirectRefusedException::class);
-        $this->expectExceptionMessageIs('The request to "https://127.0.0.1:1/mcp" was answered from "http://127.0.0.1:1/mcp" after a redirect. Credentials are never carried across one.');
+
+        self::client($http)->request($request, new NullCancellation());
+    }
+
+    public function testAChallengeCannotBeAnsweredFromOffOrigin(): void
+    {
+        // The challenge steers the grant, so an answer to it must not come from somewhere else.
+        $http = (new RecordingHttpClient())->willRedirectTo('https://attacker.example.com/mcp');
+
+        try {
+            self::client($http)->request(self::mcpRequest(), new NullCancellation());
+            self::fail('The redirect should have been refused.');
+        } catch (RedirectRefusedException) {
+            self::assertCount(1, $http->requests, 'Nothing was sent to the redirect target.');
+        }
+    }
+
+    #[DataProvider('provideAGetIsReplayedByAMethodPreservingRedirectCases')]
+    public function testAGetIsReplayedByAMethodPreservingRedirect(int $status): void
+    {
+        // 307 and 308 preserve the method, so they are followed for a GET where a POST is not.
+        $http = self::scriptChallengeAndFlow()
+            ->willAnswerWithHeaders($status, ['location' => 'https://127.0.0.1:1/mcp/v2'])
+            ->willAnswerJson(['ok' => true])
+        ;
+
+        $response = self::client($http)->request(
+            new Request(self::RESOURCE, 'GET'),
+            new NullCancellation(),
+        );
+
+        self::assertSame(200, $response->getStatus());
+        self::assertCount(7, $http->requests);
+    }
+
+    /**
+     * @return iterable<string, array{0: int}>
+     */
+    public static function provideAGetIsReplayedByAMethodPreservingRedirectCases(): iterable
+    {
+        yield '307 temporary redirect' => [307];
+
+        yield '308 permanent redirect' => [308];
+    }
+
+    public function testTheHopDropsTheBodyFramingOfTheRequestItReplaces(): void
+    {
+        $http = self::scriptChallengeAndFlow()
+            ->willRedirectTo('https://127.0.0.1:1/mcp/v2')
+            ->willAnswerJson(['ok' => true])
+        ;
+        $request = self::mcpRequest();
+        $request->setHeader('content-type', 'application/json');
+        $request->setHeader('content-length', '40');
+        $request->setHeader('transfer-encoding', 'chunked');
+
+        self::client($http)->request($request, new NullCancellation());
+
+        $hop = $http->readRequest(6);
+        self::assertNull($hop->getHeader('content-type'));
+        self::assertNull($hop->getHeader('content-length'));
+        self::assertNull($hop->getHeader('transfer-encoding'));
+    }
+
+    public function testTheRedirectBudgetIsSpentExactlyOnce(): void
+    {
+        $withinBudget = self::scriptChallengeAndFlow();
+
+        for ($hop = 1; $hop <= 10; ++$hop) {
+            $withinBudget->willRedirectTo('https://127.0.0.1:1/mcp/'.$hop);
+        }
+
+        $withinBudget->willAnswerJson(['ok' => true]);
+
+        self::assertSame(
+            200,
+            self::client($withinBudget)->request(self::mcpRequest(), new NullCancellation())->getStatus(),
+            'Ten hops is the budget an unsealed client would have spent.',
+        );
+    }
+
+    public function testAnAnswerNamingTwoLocationsIsNotFollowed(): void
+    {
+        $http = self::scriptChallengeAndFlow()->willAnswerWithHeaders(
+            302,
+            ['location' => ['https://127.0.0.1:1/a', 'https://127.0.0.1:1/b']],
+        );
+
+        $response = self::client($http)->request(self::mcpRequest(), new NullCancellation());
+
+        self::assertSame(302, $response->getStatus());
+        self::assertCount(6, $http->requests);
+    }
+
+    public function testAnUnreadableLocationIsNotFollowed(): void
+    {
+        $http = self::scriptChallengeAndFlow()->willAnswerWithHeaders(302, ['location' => ':://not a uri']);
+
+        $response = self::client($http)->request(self::mcpRequest(), new NullCancellation());
+
+        self::assertSame(302, $response->getStatus());
+        self::assertCount(6, $http->requests);
+    }
+
+    public function testAnEndlessRedirectLoopIsReportedAsTooManyRedirects(): void
+    {
+        // One hop past the budget, then an answer the loop must never reach.
+        $http = self::scriptChallengeAndFlow();
+
+        for ($hop = 1; $hop <= 11; ++$hop) {
+            $http->willRedirectTo('https://127.0.0.1:1/mcp/'.$hop);
+        }
+
+        $http->willAnswerJson(['ok' => true]);
+
+        // The same answer the client's own follower gives, so sealing changes who counts the hops rather
+        // than what a caller catches.
+        $this->expectException(TooManyRedirectsException::class);
 
         self::client($http)->request(self::mcpRequest(), new NullCancellation());
     }
 
-    public function testATokenCarriedThroughCleartextAndBackIsReported(): void
+    public function testAFollowedRedirectIsChainedOntoTheAnswerItProduced(): void
     {
-        // amphp strips credentials only when the authority changes, and an authority carries no scheme, so
-        // the middle hop takes the token over cleartext while the chain still ends where it started.
-        $http = self::scriptChallengeAndFlow()->willAnswerAfterHops([
-            'http://127.0.0.1:1/mcp',
-            'https://127.0.0.1:1/mcp?ok=1',
-        ], ['ok' => true]);
+        $http = self::scriptChallengeAndFlow()
+            ->willRedirectTo('https://127.0.0.1:1/mcp/v2')
+            ->willAnswerJson(['ok' => true])
+        ;
 
-        $this->expectException(RedirectRefusedException::class);
-        $this->expectExceptionMessageIs('The request to "https://127.0.0.1:1/mcp" was answered from "http://127.0.0.1:1/mcp" after a redirect. Credentials are never carried across one.');
+        $response = self::client($http)->request(self::mcpRequest(), new NullCancellation());
+
+        // The chain a caller walks is the one the client's own follower would have left.
+        self::assertSame(302, $response->getPreviousResponse()?->getStatus());
+    }
+
+    public function testAFollowedRedirectDrainsTheAnswerItReplaces(): void
+    {
+        $http = self::scriptChallengeAndFlow()
+            ->willRedirectTo('https://127.0.0.1:1/mcp/v2')
+            ->willAnswerJson(['ok' => true])
+        ;
 
         self::client($http)->request(self::mcpRequest(), new NullCancellation());
+
+        self::assertTrue($http->drainedBodies[5] ?? false, 'The redirect answer is drained before the hop.');
+    }
+
+    public function testFollowingARedirectLeavesTheRequestThatProducedItUntouched(): void
+    {
+        $http = self::scriptChallengeAndFlow()
+            ->willRedirectTo('https://127.0.0.1:1/mcp/v2')
+            ->willAnswerJson(['ok' => true])
+        ;
+
+        self::client($http)->request(self::mcpRequest(), new NullCancellation());
+
+        self::assertSame('https://127.0.0.1:1/mcp', (string) $http->readRequest(5)->getUri());
+        self::assertSame('POST', $http->readRequest(5)->getMethod());
+        self::assertSame('GET', $http->readRequest(6)->getMethod(), 'The hop is a GET, as the client would send.');
     }
 
     public function testARefusedRedirectIsDrainedSoItsConnectionIsReleased(): void
     {
-        $http = self::scriptChallengeAndFlow()->willAnswerFrom('http://127.0.0.1:1/mcp');
+        $http = self::scriptChallengeAndFlow()->willRedirectTo('http://127.0.0.1:1/mcp');
 
         try {
             self::client($http)->request(self::mcpRequest(), new NullCancellation());
@@ -812,7 +1054,7 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
             self::RESOURCE,
             new AuthorizationOptions('Example MCP Client'),
             null,
-            $http,
+            self::builderFor($http),
             grantStrategy: $strategy,
         );
         $response = $client->request(self::mcpRequest(), new NullCancellation());
@@ -831,7 +1073,7 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
             self::RESOURCE,
             new AuthorizationOptions('Example MCP Client'),
             null,
-            new RecordingHttpClient(),
+            self::builderFor(new RecordingHttpClient()),
         );
     }
 
@@ -844,7 +1086,7 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
             self::RESOURCE,
             new AuthorizationOptions('Example MCP Client'),
             new ScriptedUserAuthorization(),
-            new RecordingHttpClient(),
+            self::builderFor(new RecordingHttpClient()),
         );
     }
 
@@ -857,9 +1099,17 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
             self::RESOURCE,
             new AuthorizationOptions('Example MCP Client'),
             new ScriptedUserAuthorization(),
-            new RecordingHttpClient(),
+            self::builderFor(new RecordingHttpClient()),
             grantStrategy: new ScriptedGrantStrategy(true),
         );
+    }
+
+    /**
+     * Puts the fake client behind a builder, since the decorator derives its own sealed client from one.
+     */
+    private static function builderFor(RecordingHttpClient $http): HttpClientBuilder
+    {
+        return (new HttpClientBuilder())->intercept(new DelegatingInterceptor($http));
     }
 
     private static function client(
@@ -880,7 +1130,7 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
                 onInsufficientScope: $policy,
             ),
             $user ?? new ScriptedUserAuthorization(),
-            $http,
+            self::builderFor($http),
             $tokens,
             $registrations,
             $logger ?? new ArrayLogger(),

@@ -383,7 +383,7 @@ $withAuthorization = static function (Closure $exercise) use ($clientIdMetadataD
                 allowInsecureLoopback: true,
             ),
             new HeadlessUserAuthorization(),
-            HttpClientBuilder::buildDefault(),
+            new HttpClientBuilder(),
             logger: new PsrLogger(),
         );
 
@@ -470,7 +470,7 @@ $withGrantStrategy = static function (
                 allowInsecureLoopback: true,
             ),
             null,
-            HttpClientBuilder::buildDefault(),
+            new HttpClientBuilder(),
             logger: new PsrLogger(),
             grantStrategy: $strategy,
         );

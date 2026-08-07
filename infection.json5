@@ -29,6 +29,11 @@
                 "Nexus\\Mcp\\Core\\Dispatch\\PendingCoroutines::flushPending"
             ]
         },
+        "DecrementInteger": {
+            "ignoreSourceCodeByRegex": [
+                ".*followRedirects\\(0\\).*"
+            ]
+        },
         "MethodCallRemoval": {
             "ignore": [
                 "Nexus\\Mcp\\Core\\Dispatch\\PendingCoroutines::track",

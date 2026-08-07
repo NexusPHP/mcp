@@ -54,9 +54,11 @@ These are not optional, and they are the checks implementations most often skip:
   server's own scheme, so a loopback MCP server reached over plain HTTP serves its metadata over plain HTTP
   too.
 - **No redirects.** On the authorization legs, nothing read from an answer that arrived from a URL other than
-  the one it was sent to is trusted. On the MCP request the rule applies whenever a token was attached: every
-  hop of the chain is walked back, and one that left the MCP server's origin is refused even where the chain
-  ended back on it. A request the decorator sent no token with is left alone, redirects and all.
+  the one it was sent to is trusted. Whenever a token or client secret is attached, the request runs on a
+  client that follows no redirect: a `3xx` comes back to the decorator, which refuses it unless the target is
+  the MCP server's own origin. The credential therefore never travels to the target, and since an origin
+  carries its scheme, a downgrade from `https` to cleartext on the same host is refused like any other hop.
+  A request the decorator sent no credential with is left alone, redirects and all.
 - **Audience binding.** Server-side, a token whose audience does not name this server is refused. Client-side,
   a token is sent only to the origin it was obtained for.
 - **Bearer tokens only.** A token of any other type is refused rather than sent as one.

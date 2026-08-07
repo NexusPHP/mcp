@@ -52,7 +52,17 @@ final class RecordingHttpClient implements DelegateHttpClient
     public array $cancellations = [];
 
     /**
-     * @var list<array{status: int, headers: array<non-empty-string, string>, chunks: list<string>, open?: bool, fails?: HttpException, gate?: Future<mixed>, hops?: non-empty-list<string>, resume?: null|Future<mixed>, later?: list<string>}|HttpException>
+     * @var list<array{
+     *   status: int,
+     *   headers: array<non-empty-string, list<string>|string>,
+     *   chunks: list<string>,
+     *   open?: bool,
+     *   fails?: HttpException,
+     *   gate?: Future<mixed>,
+     *   hops?: non-empty-list<string>,
+     *   resume?: null|Future<mixed>,
+     *   later?: list<string>,
+     * }|HttpException>
      */
     private array $script = [];
 
@@ -197,6 +207,24 @@ final class RecordingHttpClient implements DelegateHttpClient
         );
     }
 
+    /**
+     * Queues a redirect answer, as a client that does not follow them hands back.
+     */
+    public function willRedirectTo(string $location, int $status = 302): self
+    {
+        return $this->willAnswer($status, ['location' => $location], ['']);
+    }
+
+    /**
+     * Queues an answer with arbitrary headers, for the shapes a redirect resolver must refuse to act on.
+     *
+     * @param array<non-empty-string, list<string>|string> $headers
+     */
+    public function willAnswerWithHeaders(int $status, array $headers, string $body = ''): self
+    {
+        return $this->willAnswer($status, $headers, [$body]);
+    }
+
     #[\Override]
     public function request(Request $request, Cancellation $cancellation): Response
     {
@@ -325,10 +353,10 @@ final class RecordingHttpClient implements DelegateHttpClient
     }
 
     /**
-     * @param array<non-empty-string, string> $headers
-     * @param list<string>                    $chunks
-     * @param null|Future<mixed>              $gate
-     * @param null|non-empty-list<string>     $hops
+     * @param array<non-empty-string, list<string>|string> $headers
+     * @param list<string>                                 $chunks
+     * @param null|Future<mixed>                           $gate
+     * @param null|non-empty-list<string>                  $hops
      */
     private function willAnswer(
         int $status,

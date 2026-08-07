@@ -36,7 +36,7 @@ $http = new AuthorizedHttpClient(
     'https://mcp.example.com/mcp',
     new AuthorizationOptions(clientName: 'acme-worker'),
     null,
-    HttpClientBuilder::buildDefault(),
+    new HttpClientBuilder(),
     grantStrategy: new ClientCredentialsGrant(new PrivateKeyJwtCredential(
         clientId: 'the-worker',
         privateKeyPem: $privateKeyPem,
@@ -99,7 +99,7 @@ $http = new AuthorizedHttpClient(
         preRegistered: new ClientRegistration(clientId: 'acme-app', clientSecret: $secret),
     ),
     null,
-    HttpClientBuilder::buildDefault(),
+    new HttpClientBuilder(),
     grantStrategy: new IdentityAssertionGrant(
         'https://idp.example.com/token',
         new SessionAssertionProvider(),
