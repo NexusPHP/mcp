@@ -4,7 +4,22 @@ This file is the upgrade guide: what breaks at each version boundary and how to 
 for *when* breaking changes may land and how they are communicated lives in
 [VERSIONING.md](VERSIONING.md).
 
-## v0.9.0 to Unreleased
+## v0.10.0 to Unreleased
+
+## v0.9.0 to v0.10.0
+
+No breaking changes on the supported surface, and nothing to migrate.
+
+The PHP floor moved from 8.4 down to 8.3. [VERSIONING.md](VERSIONING.md) lists *raising* the floor as
+breaking, because it strands installs. Lowering it only widens the constraint, so every environment
+that could install v0.9.0 can install this release.
+
+One observable behaviour did change, and it is called out here rather than buried because the taxonomy
+lists observable behaviour as breaking. A client now answers a misrouted request-shaped envelope with
+`-32600` instead of dropping it silently. This is not a covered-surface break: `ClientMessageDispatcher`
+is `@internal`, and the behaviour it replaces was a JSON-RPC violation, so the only way to depend on the
+old shape was to rely on the SDK failing to reply where the spec obliges one. Peers that already handled
+the compliant server-side behaviour need no change, because the client now matches it.
 
 ## v0.8.0 to v0.9.0
 

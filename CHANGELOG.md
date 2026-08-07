@@ -8,6 +8,16 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp/commits/1.x)
 
+## [v0.10.0](https://github.com/NexusPHP/mcp/compare/v0.9.0...v0.10.0) - 2026-08-07
+
+This release exists to put the PHP 8.3 floor in front of real installs before the stable tag. Lowering
+a floor widens the constraint, so nothing to migrate and no existing install breaks. The reason to ship
+it separately is that 1.0 is the version consumers depend on longest, and making it the first release
+whose 8.3 support has any exposure would be a poor trade for the sake of one fewer tag. The one other
+consumer-visible change is a client-side conformance fix, so that both dispatchers now apply the
+JSON-RPC rule that an envelope's `id`, never the method it names, decides whether a reply is owed. No
+breaking changes.
+
 ### Changed
 
 - The PHP floor is **8.3**, down from 8.4, so the SDK installs into anything still receiving PHP
