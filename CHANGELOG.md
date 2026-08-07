@@ -18,6 +18,14 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Fixed
 
+- A timestamp carrying any number of fractional-second digits is accepted, so a peer emitting
+  microseconds (Python's `isoformat()`) or nanoseconds no longer has the whole payload rejected. Only 0
+  to 3 digits parsed before. Anything finer than a microsecond is truncated.
+- An emitted timestamp now carries microseconds rather than milliseconds, so a value survives a round
+  trip. `2026-03-09T12:00:00.500+00:00` becomes `…12:00:00.500000+00:00`, and a sub-millisecond value
+  is no longer flattened to `.000`.
+- An ISO 8601 parse failure caused by an overflowed date now names the field that carried it, rather
+  than reporting a bare `The parsed date was invalid.`
 - A client reconnected to a different server no longer answers with the previous server's identity, nor
   refuses a typed call on the previous server's advertisement. `disconnect()` left both in place.
 - A stdio server no longer loses in-flight responses when the transport is closed explicitly.

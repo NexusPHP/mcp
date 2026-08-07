@@ -16,15 +16,16 @@ namespace Nexus\Mcp\Core\Validation;
 use Nexus\Assert\Assert;
 
 /**
- * Parses an ISO 8601 / RFC 3339 datetime string into `\DateTimeImmutable`,
- * trying the extended sub-second format first and falling back to the plain
- * RFC 3339 form. Rejects NUL bytes and surfaces parser warnings (e.g. silent
- * date overflow like `2026-13-45`) as `\InvalidArgumentException`.
+ * Parses an ISO 8601 / RFC 3339 datetime string into `\DateTimeImmutable`.
  *
  * @internal
  */
 final class Iso8601DateTimeValidator
 {
+    private const string SECFRAC_PATTERN = '/\A(?P<datetime>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})\.(?P<secfrac>\d+)(?P<offset>.*)\z/';
+    private const string MICROSECOND_FORMAT = 'Y-m-d\TH:i:s.uP';
+    private const int MICROSECOND_DIGITS = 6;
+
     /**
      * @param non-empty-string $context Label prefix for the error message (e.g. "Task createdAt")
      *
@@ -32,12 +33,9 @@ final class Iso8601DateTimeValidator
      */
     public static function parse(string $value, string $context): \DateTimeImmutable
     {
-        Assert::that($value)
-            ->not()
-            ->contains("\0", \sprintf('%s must not contain NULL bytes.', $context))
-        ;
+        Assert::that($value)->not()->contains("\0", \sprintf('%s must not contain NULL bytes.', $context));
 
-        $parsed = \DateTimeImmutable::createFromFormat(\DateTimeInterface::RFC3339_EXTENDED, $value);
+        $parsed = \DateTimeImmutable::createFromFormat(self::MICROSECOND_FORMAT, self::truncateSecfrac($value));
 
         if (false === $parsed) {
             $parsed = \DateTimeImmutable::createFromFormat(\DateTimeInterface::RFC3339, $value);
@@ -50,14 +48,18 @@ final class Iso8601DateTimeValidator
         $errors = \DateTimeImmutable::getLastErrors();
 
         if (false !== $errors && [] !== $errors['warnings']) {
-            throw new \InvalidArgumentException(implode('; ', $errors['warnings']).'.');
+            throw new \InvalidArgumentException(\sprintf(
+                '%s must be a valid ISO 8601 datetime: %s.',
+                $context,
+                implode('; ', $errors['warnings']),
+            ));
         }
 
         return $parsed;
     }
 
     /**
-     * Formats `$dateTime` as RFC 3339, emitting `.vvv` subseconds only when non-zero.
+     * Formats `$dateTime` as RFC 3339, emitting microsecond subseconds only when non-zero.
      *
      * @return non-empty-string
      */
@@ -65,6 +67,18 @@ final class Iso8601DateTimeValidator
     {
         return $dateTime->format('u') === '000000'
             ? $dateTime->format(\DateTimeInterface::RFC3339)
-            : $dateTime->format(\DateTimeInterface::RFC3339_EXTENDED);
+            : $dateTime->format(self::MICROSECOND_FORMAT);
+    }
+
+    /**
+     * Truncates RFC 3339's `"." 1*DIGIT` fractional second to the six digits `u` reads.
+     */
+    private static function truncateSecfrac(string $value): string
+    {
+        if (preg_match(self::SECFRAC_PATTERN, $value, $matches) !== 1) {
+            return $value;
+        }
+
+        return $matches['datetime'].'.'.substr($matches['secfrac'], 0, self::MICROSECOND_DIGITS).$matches['offset'];
     }
 }

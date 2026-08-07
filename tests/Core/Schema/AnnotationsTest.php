@@ -114,7 +114,7 @@ final class AnnotationsTest extends AbstractMcpTestCase
 
         yield 'missing timezone' => ['2026-03-09T12:00:00', '"annotations.lastModified" must be a valid ISO 8601 datetime.'];
 
-        yield 'overflowed date and time' => ['2026-13-45T25:99:99+00:00', 'The parsed date was invalid.'];
+        yield 'overflowed date and time' => ['2026-13-45T25:99:99+00:00', '"annotations.lastModified" must be a valid ISO 8601 datetime: The parsed date was invalid.'];
 
         yield 'space separator' => ['2026-03-09 12:00:00+00:00', '"annotations.lastModified" must be a valid ISO 8601 datetime.'];
 
@@ -182,7 +182,18 @@ final class AnnotationsTest extends AbstractMcpTestCase
         $annotations = new Annotations(lastModified: '2026-03-09T12:00:00.500Z');
 
         self::assertSame(
-            ['lastModified' => '2026-03-09T12:00:00.500+00:00'],
+            ['lastModified' => '2026-03-09T12:00:00.500000+00:00'],
+            $annotations->toArray(),
+        );
+    }
+
+    public function testAnnotationsToArrayPreservesLastModifiedMicroseconds(): void
+    {
+        $annotations = new Annotations(lastModified: '2026-03-09T12:00:00.000456Z');
+
+        // Emitting only milliseconds would round this to a meaningless ".000".
+        self::assertSame(
+            ['lastModified' => '2026-03-09T12:00:00.000456+00:00'],
             $annotations->toArray(),
         );
     }

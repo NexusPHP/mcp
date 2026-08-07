@@ -47,6 +47,54 @@ final class Iso8601DateTimeValidatorTest extends AbstractMcpTestCase
         yield 'non-UTC offset' => ['2026-05-10T08:00:00-04:00', '2026-05-10T08:00:00-04:00'];
     }
 
+    #[DataProvider('provideParseNormalisesTheFractionalSecondCases')]
+    public function testParseNormalisesTheFractionalSecond(string $value, string $expectedMicroseconds): void
+    {
+        $parsed = Iso8601DateTimeValidator::parse($value, 'Test field');
+
+        self::assertSame($expectedMicroseconds, $parsed->format('u'));
+    }
+
+    /**
+     * RFC 3339's `time-secfrac` is `"." 1*DIGIT`, so any digit count has to parse.
+     *
+     * @return iterable<string, array{string, string}>
+     */
+    public static function provideParseNormalisesTheFractionalSecondCases(): iterable
+    {
+        yield 'none' => ['2026-05-10T12:00:00+00:00', '000000'];
+
+        yield 'one digit' => ['2026-05-10T12:00:00.1+00:00', '100000'];
+
+        yield 'two digits' => ['2026-05-10T12:00:00.12+00:00', '120000'];
+
+        yield 'three digits, as JavaScript emits' => ['2026-05-10T12:00:00.123+00:00', '123000'];
+
+        yield 'six digits, as Python emits' => ['2026-05-10T12:00:00.123456+00:00', '123456'];
+
+        yield 'nine digits, truncated to microseconds' => ['2026-05-10T12:00:00.123456789+00:00', '123456'];
+
+        yield 'six digits behind Z' => ['2026-05-10T12:00:00.123456Z', '123456'];
+
+        yield 'one digit behind a non-UTC offset' => ['2026-05-10T08:00:00.5-04:00', '500000'];
+    }
+
+    public function testParseRejectsAFractionalSecondWithNoDigits(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('Test field must be a valid ISO 8601 datetime.');
+
+        Iso8601DateTimeValidator::parse('2026-05-10T12:00:00.+00:00', 'Test field');
+    }
+
+    public function testParseRejectsATrailingNewline(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('Test field must be a valid ISO 8601 datetime.');
+
+        Iso8601DateTimeValidator::parse("2026-05-10T12:00:00.123+00:00\n", 'Test field');
+    }
+
     public function testParseRejectsNullByte(): void
     {
         $this->expectException(\InvalidArgumentException::class);
@@ -74,7 +122,7 @@ final class Iso8601DateTimeValidatorTest extends AbstractMcpTestCase
     public function testParseRejectsOverflowedDate(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('The parsed date was invalid.');
+        $this->expectExceptionMessageIs('Test field must be a valid ISO 8601 datetime: The parsed date was invalid.');
 
         Iso8601DateTimeValidator::parse('2026-13-45T25:99:99+00:00', 'Test field');
     }
@@ -102,10 +150,14 @@ final class Iso8601DateTimeValidatorTest extends AbstractMcpTestCase
     {
         yield 'plain RFC3339 stays plain' => ['2026-05-10T12:00:00+00:00', '2026-05-10T12:00:00+00:00'];
 
-        yield 'sub-second precision preserved' => ['2026-05-10T12:00:00.123+00:00', '2026-05-10T12:00:00.123+00:00'];
+        yield 'sub-second precision preserved' => ['2026-05-10T12:00:00.123+00:00', '2026-05-10T12:00:00.123000+00:00'];
+
+        yield 'microsecond precision survives the round trip' => ['2026-05-10T12:00:00.123456+00:00', '2026-05-10T12:00:00.123456+00:00'];
+
+        yield 'a fraction with no milliseconds is not flattened away' => ['2026-05-10T12:00:00.000456+00:00', '2026-05-10T12:00:00.000456+00:00'];
 
         yield 'sub-second .000 collapses to plain' => ['2026-05-10T12:00:00.000+00:00', '2026-05-10T12:00:00+00:00'];
 
-        yield 'non-UTC offset preserved' => ['2026-05-10T08:00:00.500-04:00', '2026-05-10T08:00:00.500-04:00'];
+        yield 'non-UTC offset preserved' => ['2026-05-10T08:00:00.500-04:00', '2026-05-10T08:00:00.500000-04:00'];
     }
 }
