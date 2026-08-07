@@ -1,0 +1,23 @@
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "resultType": "complete",
+        "content": [
+            {
+                "text": "Found 2 users.",
+                "type": "text"
+            }
+        ],
+        "structuredContent": [
+            {
+                "id": "1",
+                "name": "Alice"
+            },
+            {
+                "id": "2",
+                "name": "Bob"
+            }
+        ]
+    }
+}

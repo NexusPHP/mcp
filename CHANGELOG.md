@@ -18,10 +18,11 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Fixed
 
-- A peer's tool, prompt, resource or resource-template name is decoded whatever characters it carries,
-  so a spec-legal page such as `"name": "Project Files"` no longer fails wholesale. The SDK still holds
-  its stricter handle format on the names it authors, in `ServerBuilder::addTool()` and friends. A
-  client can now also call a tool whose name sits outside that format.
+- A tool can now return an array, string, number or boolean as its structured content, not only an object.
+  `CallToolResult` previously refused everything but an object on both construction and decode.
+- A peer's tool, prompt, resource or resource-template name is decoded whatever characters it carries.
+  The SDK still holds its stricter handle format on the names it authors, in `ServerBuilder::addTool()`
+  and friends. A client can now also call a tool whose name sits outside that format.
 - A timestamp carrying any number of fractional-second digits is accepted, so a peer emitting
   microseconds (Python's `isoformat()`) or nanoseconds no longer has the whole payload rejected. Only 0
   to 3 digits parsed before. Anything finer than a microsecond is truncated.

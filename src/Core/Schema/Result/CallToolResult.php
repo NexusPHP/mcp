@@ -35,7 +35,7 @@ use Nexus\Mcp\Core\Schema\Result;
  *   _meta?: template-type<ResultMetaObject, MetaObject, 'T'>,
  *   resultType: non-empty-string,
  *   content: list<template-type<AudioContent|EmbeddedResource|ImageContent|ResourceLink|TextContent, Arrayable, 'T'>>,
- *   structuredContent?: array<string, mixed>,
+ *   structuredContent?: mixed,
  *   isError?: bool,
  * }>
  *
@@ -45,11 +45,10 @@ final readonly class CallToolResult extends Result implements ServerResult
 {
     /**
      * @param list<AudioContent|EmbeddedResource|ImageContent|ResourceLink|TextContent> $content
-     * @param null|array<string, mixed>                                                 $structuredContent
      */
     public function __construct(
         public array $content,
-        public ?array $structuredContent = null,
+        public mixed $structuredContent = null,
         public ?bool $isError = null,
         ResultMetaObject $meta = new GenericResultMetaObject(),
     ) {
@@ -57,11 +56,6 @@ final readonly class CallToolResult extends Result implements ServerResult
             ->isList('"result.content" must be a list, non-list array given.')
             ->values()->isInstanceOf(ContentBlock::class)
         ;
-        Assert::that($structuredContent)
-            ->nullOr()
-            ->isMap('"result.structuredContent" must be a string-keyed map or null.')
-        ;
-
         parent::__construct(meta: $meta);
     }
 
@@ -83,10 +77,6 @@ final readonly class CallToolResult extends Result implements ServerResult
         $structuredContent = null;
 
         if (\array_key_exists('structuredContent', $data)) {
-            Assert::that($data['structuredContent'])
-                ->isArray('"result.structuredContent" must be an object, {type} given.')
-                ->isMap('"result.structuredContent" must be a string-keyed object.')
-            ;
             $structuredContent = $data['structuredContent'];
         }
 

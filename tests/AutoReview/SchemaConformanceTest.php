@@ -887,6 +887,18 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
             $specScalar = self::specScalarJsonType($specProperties[$key] ?? []);
 
             if (
+                self::specAllowsAnyJsonValue($specProperties[$key] ?? [])
+                && ! ($type instanceof \ReflectionNamedType && $type->getName() === 'mixed')
+            ) {
+                $findings[] = \sprintf(
+                    '"%s" is any JSON value in the spec but %s is typed "%s".',
+                    $key,
+                    $source,
+                    null === $type ? 'untyped' : (string) $type,
+                );
+            }
+
+            if (
                 null !== $specScalar
                 && $type instanceof \ReflectionNamedType
                 && $type->isBuiltin()
@@ -910,6 +922,23 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
         sort($findings);
 
         return $findings;
+    }
+
+    /**
+     * A property carrying no `type` and no narrowing keyword takes any JSON value, which PHP can only
+     * model as `mixed`.
+     *
+     * @param array<string, mixed> $propertyShape
+     */
+    private static function specAllowsAnyJsonValue(array $propertyShape): bool
+    {
+        foreach (['$ref', 'anyOf', 'oneOf', 'allOf', 'enum', 'const', 'type'] as $narrowing) {
+            if (\array_key_exists($narrowing, $propertyShape)) {
+                return false;
+            }
+        }
+
+        return [] !== $propertyShape;
     }
 
     /**

@@ -83,7 +83,8 @@ final class ReflectedToolExecutorTest extends AbstractMcpTestCase
         $result = self::execute('toolMapOfBlocks');
 
         self::assertSame([], $result->content);
-        self::assertSame(['main'], array_keys($result->structuredContent ?? []));
+        self::assertIsArray($result->structuredContent);
+        self::assertSame(['main'], array_keys($result->structuredContent));
     }
 
     public function testTreatsEmptyArrayAsStructuredContent(): void

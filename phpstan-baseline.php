@@ -37,5 +37,11 @@ $ignoreErrors[] = [
 	'count' => 1,
 	'path' => __DIR__ . '/src/Server/Discovery/InputSchemaGenerator.php',
 ];
+$ignoreErrors[] = [
+	'rawMessage' => 'Casting class ReflectionType to string is deprecated.',
+	'identifier' => 'class.toStringDeprecated',
+	'count' => 1,
+	'path' => __DIR__ . '/tests/AutoReview/SchemaConformanceTest.php',
+];
 
 return ['parameters' => ['ignoreErrors' => $ignoreErrors]];

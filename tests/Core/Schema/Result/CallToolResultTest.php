@@ -174,13 +174,37 @@ final class CallToolResultTest extends AbstractMcpTestCase
         new CallToolResult(content: [42]);
     }
 
-    public function testConstructorRejectsListKeyedStructuredContent(): void
+    #[DataProvider('provideFromArrayAcceptsAnyJsonValueAsStructuredContentCases')]
+    public function testFromArrayAcceptsAnyJsonValueAsStructuredContent(mixed $value): void
     {
-        $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageIs('"result.structuredContent" must be a string-keyed map or null.');
+        $result = CallToolResult::fromArray(['content' => [], 'structuredContent' => $value]);
 
-        // @phpstan-ignore argument.type
-        new CallToolResult(content: [], structuredContent: ['v1', 'v2']);
+        self::assertSame($value, $result->structuredContent);
+    }
+
+    /**
+     * @return iterable<string, array{mixed}>
+     */
+    public static function provideFromArrayAcceptsAnyJsonValueAsStructuredContentCases(): iterable
+    {
+        yield 'object' => [['temperature' => 22.5]];
+
+        yield 'array, as the spec\'s list_users example returns' => [[['id' => '1'], ['id' => '2']]];
+
+        yield 'string' => ['done'];
+
+        yield 'integer' => [42];
+
+        yield 'float' => [1.5];
+
+        yield 'boolean' => [true];
+    }
+
+    public function testConstructorAcceptsAListAsStructuredContent(): void
+    {
+        $result = new CallToolResult(content: [], structuredContent: ['v1', 'v2']);
+
+        self::assertSame(['v1', 'v2'], $result->structuredContent);
     }
 
     /**
@@ -228,16 +252,6 @@ final class CallToolResultTest extends AbstractMcpTestCase
         yield 'content entry unknown type' => [
             ['content' => [['type' => 'unknown']]],
             'CallToolResult content "type" must be one of "text", "image", "audio", "resource_link", "resource", \'unknown\' given.',
-        ];
-
-        yield 'structuredContent not an object' => [
-            ['content' => [], 'structuredContent' => 'oops'],
-            '"result.structuredContent" must be an object, string given.',
-        ];
-
-        yield 'structuredContent list-keyed' => [
-            ['content' => [], 'structuredContent' => ['x']],
-            '"result.structuredContent" must be a string-keyed object.',
         ];
 
         yield 'isError not a bool' => [

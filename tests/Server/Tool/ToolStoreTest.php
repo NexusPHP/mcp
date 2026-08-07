@@ -322,6 +322,32 @@ final class ToolStoreTest extends AbstractMcpTestCase
         self::assertSame($result, $store->call('report', null, self::makeContext()));
     }
 
+    public function testCallAcceptsEmptyStructuredContentAsAnEmptyArray(): void
+    {
+        $result = new CallToolResult(content: [], structuredContent: []);
+        $store = new ToolStore([
+            'report' => new ToolEntry(
+                new Tool(name: 'report', inputSchema: ['type' => 'object'], outputSchema: ['type' => 'array']),
+                self::makeExecutorReturning($result),
+            ),
+        ]);
+
+        self::assertSame($result, $store->call('report', null, self::makeContext()));
+    }
+
+    public function testCallReadsEmptyStructuredContentAsAnObjectForATypeUnionWithoutArray(): void
+    {
+        $result = new CallToolResult(content: [], structuredContent: []);
+        $store = new ToolStore([
+            'report' => new ToolEntry(
+                new Tool(name: 'report', inputSchema: ['type' => 'object'], outputSchema: ['type' => ['object', 'null']]),
+                self::makeExecutorReturning($result),
+            ),
+        ]);
+
+        self::assertSame($result, $store->call('report', null, self::makeContext()));
+    }
+
     public function testCallSkipsOutputValidationForAnInputRequiredResult(): void
     {
         // The output schema demands an `n` property, which a result still awaiting input cannot carry.

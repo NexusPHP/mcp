@@ -97,14 +97,27 @@ wants the bytes. The same block types appear in [prompt messages](prompts.md#mes
 
 ## Structured content
 
-A tool may return a `structuredContent` object instead of, or alongside, its `content` blocks:
+A tool may return `structuredContent` instead of, or alongside, its `content` blocks. It may be any
+JSON value the tool's `outputSchema` accepts:
 
 ```php
 return new CallToolResult(
     content: [],
     structuredContent: ['temperature' => 22.5, 'unit' => 'celsius'],
 );
+
+// An `outputSchema` of `{"type": "array"}` takes a list, and a scalar schema takes a scalar.
+return new CallToolResult(content: [], structuredContent: [['id' => '1'], ['id' => '2']]);
 ```
+
+A discovered `#[AsTool]` method cannot express the list form: a list return is read as content blocks,
+so a tool with an array `outputSchema` has to build its `CallToolResult` explicitly, as above.
+
+PHP spells an empty object and an empty array the same, so an empty `structuredContent` is validated as
+whichever the declared `outputSchema` asks for. On the encoding side it always emits `[]`, which a peer
+re-validating against `{"type": "object"}` will refuse. A tool whose `outputSchema` is `{"type": "null"}`
+is not supported: `null` structured content is indistinguishable from none and is omitted from the
+result unvalidated.
 
 For backwards compatibility, the spec recommends that a tool returning `structuredContent` also return
 the serialised JSON in a `TextContent` block. When the executor leaves `content` empty, the handler adds
