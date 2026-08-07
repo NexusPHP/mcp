@@ -115,6 +115,7 @@
             "@lint:typos",
             "@lint:markdown"
         ],
+        "lint:fences": "tools/lint-doc-fences",
         "lint:fix": [
             "@lint:typos:fix",
             "@lint:markdown:fix"
@@ -207,6 +208,7 @@
         "cs:fix": "Fixes any coding style violations",
         "deps:check": "Analyses composer dependency declarations with shipmonk",
         "lint:docs": "Runs all documentation linters (typos, markdown)",
+        "lint:fences": "Lints documentation PHP fences against the declared PHP floor (needs PHP_FLOOR_BIN)",
         "lint:fix": "Runs all auto-fixable doc linters (typos, markdown)",
         "lint:markdown": "Runs markdownlint-cli2 across markdown files",
         "lint:markdown:fix": "Auto-fixes markdown violations with markdownlint-cli2",

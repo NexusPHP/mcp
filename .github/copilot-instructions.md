@@ -70,6 +70,9 @@ composer cs:fix
 composer lint:docs
 composer lint:fix         # auto-fix typos + markdownlint
 
+# Lint the PHP code fences in markdown against the floor declared in composer.json
+PHP_FLOOR_BIN=/path/to/php8.3 composer lint:fences
+
 # Regenerate the schema snapshots (latest-schema.json + sorted-schema.json)
 composer schema:generate
 
@@ -82,7 +85,8 @@ composer spec:snapshot-anchors
 - **PHPUnit**: test framework
 - **PHPStan level 10**: static analysis (strict)
 - **PHP-CS-Fixer + Nexus CS Config**: code style enforcement
-- **Minimum PHP version: 8.3**
+- **Minimum PHP version: 8.3**, enforced in documentation as well as in source. Code samples in
+  markdown must parse on the floor, which `composer lint:fences` and the `doc-fences` workflow check.
 
 ## Architecture Conventions
 

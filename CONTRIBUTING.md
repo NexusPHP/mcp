@@ -44,6 +44,7 @@ composer deps:check      # composer dependency declarations (shadow/unused deps)
 composer test:unit       # or test:client / test:core / test:server
 composer coverage:check  # enforce 100% line coverage (after test:unit)
 composer lint:docs       # typos, markdownlint
+composer lint:fences     # PHP fences in markdown parse on the declared floor
 ```
 
 Auto-fix what is fixable:
@@ -87,6 +88,11 @@ justifies it.
 
 After renaming, moving, or adding a public building block (class, interface, method, file), update
 the affected files under `docs/` plus `ROADMAP.md`, then run `composer lint:docs`.
+
+Every PHP code sample in the documentation must parse on the PHP floor declared in `composer.json`,
+not merely on your local PHP. `composer lint:fences` checks this, and CI enforces it. Set
+`PHP_FLOOR_BIN` to a floor binary to run it locally, for example
+`PHP_FLOOR_BIN=/usr/bin/php8.3 composer lint:fences`.
 
 ## Commits and pull requests
 

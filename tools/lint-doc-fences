@@ -1,0 +1,50 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+/**
+ * This file is part of the Nexus MCP SDK package.
+ *
+ * (c) 2026 John Paul E. Balandan, CPA <paulbalandan@gmail.com>
+ *
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
+ */
+
+use Nexus\Mcp\Tools\DocFenceLinter;
+
+if (! is_file(__DIR__.'/../composer.json')) {
+    throw new RuntimeException('Could not determine repository root. Are you running from the repository directory?');
+}
+
+if (is_file(__DIR__.'/../vendor/autoload.php')) {
+    require __DIR__.'/../vendor/autoload.php';
+} elseif (is_file(__DIR__.'/vendor/autoload.php')) {
+    require __DIR__.'/vendor/autoload.php';
+}
+
+// The docs gate runs before any install, so fall back to the class file itself.
+if (! class_exists(DocFenceLinter::class)) {
+    require __DIR__.'/src/DocFenceLinter.php';
+}
+
+$root = \dirname(__DIR__);
+$floor = getenv('PHP_FLOOR_BIN');
+$floor = false === $floor ? 'php8.3' : $floor;
+
+foreach (array_slice($argv, 1) as $argument) {
+    if (str_starts_with($argument, '--floor=')) {
+        $floor = substr($argument, \strlen('--floor='));
+    }
+}
+
+try {
+    echo "\033[36mLinting documentation PHP fences against the declared floor...\033[0m\n\n";
+
+    exit(DocFenceLinter::run($root, $floor, PHP_BINARY));
+} catch (Throwable $e) {
+    fwrite(STDERR, \sprintf("\033[31m%s\033[0m\n", $e->getMessage()));
+
+    exit(1);
+}

@@ -1,0 +1,59 @@
+name: Doc Fences
+
+on:
+  push:
+    branches:
+      - 1.x
+    paths:
+      - '**/*.md'
+      - .github/workflows/doc-fences.yml
+      - composer.json
+      - tools/lint-doc-fences
+      - tools/src/DocFenceLinter.php
+  pull_request:
+    branches:
+      - 1.x
+    paths:
+      - '**/*.md'
+      - .github/workflows/doc-fences.yml
+      - composer.json
+      - tools/lint-doc-fences
+      - tools/src/DocFenceLinter.php
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  doc-fences:
+    name: Lint documentation PHP fences
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # The floor leg proves a fence parses on the version the package claims to
+      # support. The newer leg tells a genuine drift from a partial fragment.
+      - name: Set up the floor PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: '8.3'
+          coverage: none
+
+      - name: Set up the newer PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: '8.5'
+          coverage: none
+
+      - name: Lint documentation PHP fences
+        env:
+          PHP_FLOOR_BIN: /usr/bin/php8.3
+        run: tools/lint-doc-fences

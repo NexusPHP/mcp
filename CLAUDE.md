@@ -42,6 +42,8 @@ Docs sync: after any change that renames, deletes, moves, or adds a top-level bu
 
 `composer lint:docs` bundles typos (whole-repo) and markdownlint. Auto-fix with `composer lint:fix`. Gotcha: `composer lint:typos:fix` rewrites identifiers in source files too, not just docs, so review the diff before staging.
 
+`composer lint:fences` is separate, and parses every PHP code fence in the repository's markdown against the floor declared in `composer.json`. It is deliberately **not** bundled into `lint:docs`, so `test:with-untracked` does not hard-require a floor binary on every machine. Point `PHP_FLOOR_BIN` at a real 8.3 binary to run it (the default is a bare `php8.3` on `PATH`), and note it refuses to run rather than skipping when that binary is missing or reports the wrong version. It lints each fence twice, on the floor and on the running interpreter, because that is what separates a genuine drift from a deliberately partial fragment. The `doc-fences` workflow enforces it in CI.
+
 ## Conventions worth internalising
 
 ### Namespaces and layout
