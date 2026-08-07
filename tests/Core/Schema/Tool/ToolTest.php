@@ -153,12 +153,11 @@ final class ToolTest extends AbstractMcpTestCase
         self::assertSame($original->toArray(), $rebuilt->toArray());
     }
 
-    public function testConstructorRejectsInvalidName(): void
+    public function testConstructorAcceptsANameOutsideTheSdksPreferredCharset(): void
     {
-        $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageMatches('/\Atool "name" must be 1-128 characters/');
+        $tool = new Tool(name: 'Project Files', inputSchema: ['type' => 'object']);
 
-        new Tool(name: 'bad name', inputSchema: ['type' => 'object']);
+        self::assertSame('Project Files', $tool->name);
     }
 
     public function testConstructorRejectsEmptyDescription(): void

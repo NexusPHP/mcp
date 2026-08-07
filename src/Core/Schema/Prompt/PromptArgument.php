@@ -16,7 +16,6 @@ namespace Nexus\Mcp\Core\Schema\Prompt;
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\BaseMetadata;
-use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
 
 /**
  * Describes an argument that a prompt can accept.
@@ -43,7 +42,6 @@ final readonly class PromptArgument extends BaseMetadata implements Arrayable
     ) {
         parent::__construct(name: $name, title: $title);
 
-        IdentifierNameValidator::validate($name, '"arguments.name"');
         Assert::that($description)->nullOr()->isNonEmptyString('"arguments.description" must be a non-empty string or null.');
     }
 

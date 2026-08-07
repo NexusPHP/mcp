@@ -2411,6 +2411,56 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         self::assertSame($builder->getResourceTemplateStore(), $builder->getResourceTemplateStore());
     }
 
+    /**
+     * @param \Closure(ServerBuilder): ServerBuilder $register
+     */
+    #[DataProvider('provideRegisteringAnUnconventionalNameIsRefusedCases')]
+    public function testRegisteringAnUnconventionalNameIsRefused(\Closure $register, string $expectedMessage): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs($expectedMessage);
+
+        $register(new ServerBuilder());
+    }
+
+    /**
+     * @return iterable<string, array{\Closure(ServerBuilder): ServerBuilder, string}>
+     */
+    public static function provideRegisteringAnUnconventionalNameIsRefusedCases(): iterable
+    {
+        yield 'addTool' => [
+            static fn(ServerBuilder $b): ServerBuilder => $b->addTool(
+                new Tool(name: 'Project Files', inputSchema: ['type' => 'object']),
+                static fn(?array $a, ServerContext $c): CallToolResult => new CallToolResult(content: []),
+            ),
+            'tool "name" must be 1-128 characters of A-Z, a-z, 0-9, ".", "-", or "_", \'Project Files\' given.',
+        ];
+
+        yield 'addPrompt' => [
+            static fn(ServerBuilder $b): ServerBuilder => $b->addPrompt(
+                new Prompt(name: 'Project Files'),
+                static fn(?array $a, ServerContext $c): GetPromptResult => new GetPromptResult(messages: []),
+            ),
+            'prompt "name" must be 1-128 characters of A-Z, a-z, 0-9, ".", "-", or "_", \'Project Files\' given.',
+        ];
+
+        yield 'addResource' => [
+            static fn(ServerBuilder $b): ServerBuilder => $b->addResource(
+                new Resource(name: 'Project Files', uri: 'mem://r'),
+                static fn(string $u, ServerContext $c): ReadResourceResult => new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private),
+            ),
+            'resource "name" must be 1-128 characters of A-Z, a-z, 0-9, ".", "-", or "_", \'Project Files\' given.',
+        ];
+
+        yield 'addResourceTemplate' => [
+            static fn(ServerBuilder $b): ServerBuilder => $b->addResourceTemplate(
+                new ResourceTemplate(name: 'Project Files', uriTemplate: 'mem://{path}'),
+                static fn(string $u, array $bindings, ServerContext $c): ReadResourceResult => new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private),
+            ),
+            'resource template "name" must be 1-128 characters of A-Z, a-z, 0-9, ".", "-", or "_", \'Project Files\' given.',
+        ];
+    }
+
     public function testAToolMayAnswerWithAnInputRequiredResult(): void
     {
         $server = (new ServerBuilder())

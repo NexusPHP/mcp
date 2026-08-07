@@ -6,6 +6,27 @@ for *when* breaking changes may land and how they are communicated lives in
 
 ## v0.10.0 to Unreleased
 
+### Schema constructors no longer enforce the identifier-name format
+
+`Tool`, `Resource`, `ResourceTemplate`, `Prompt`, `PromptArgument`, `PromptReference`, `ResourceLink`,
+`CallToolRequestParams` and `GetPromptRequestParams` used to refuse a `name` outside
+`[A-Za-z0-9._-]{1,128}`. The spec puts no `pattern` on `name`, so that rejected spec-legal payloads: a
+peer listing `"name": "Project Files"` failed to decode, taking the whole page with it, and a client
+could not call such a tool at all.
+
+The format is now held where the SDK *authors* a name instead, in the four `ServerBuilder::add*` methods
+and in `ToolStore`, `PromptStore`, `ResourceStore` and `ResourceTemplateStore`. An empty name still
+throws everywhere.
+
+```php
+// before: threw ExpectationFailedException
+new Tool(name: 'Project Files', inputSchema: ['type' => 'object']);
+// after: constructs, because a peer may legally send it
+```
+
+Migrate only if you relied on the constructor throwing. A store you implement yourself is not covered:
+`ToolStoreInterface` and its siblings are your own contract, so validate there if you want the format.
+
 ### `AuthorizedHttpClient` takes an `HttpClientBuilder`
 
 It took a built `DelegateHttpClient`, which meant the redirect behaviour of credentialed traffic belonged

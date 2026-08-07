@@ -160,12 +160,11 @@ final class ResourceLinkTest extends AbstractMcpTestCase
         self::assertSame($original->toArray(), $rebuilt->toArray());
     }
 
-    public function testConstructorRejectsInvalidName(): void
+    public function testConstructorAcceptsANameOutsideTheSdksPreferredCharset(): void
     {
-        $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageMatches('/\Aresource link "name" must be 1-128 characters/');
+        $link = new ResourceLink(name: 'Project Files', uri: 'file:///tmp/x');
 
-        new ResourceLink(name: 'my link', uri: 'file:///tmp/x');
+        self::assertSame('Project Files', $link->name);
     }
 
     public function testConstructorRejectsUriViolatingRfc3986(): void

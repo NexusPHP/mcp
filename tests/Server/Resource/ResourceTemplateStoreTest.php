@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Server\Resource;
 
 use Amp\NullCancellation;
+use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Resource\ResourceTemplate;
@@ -311,6 +312,22 @@ final class ResourceTemplateStoreTest extends AbstractMcpTestCase
         );
 
         self::assertSame(['first', 'second'], $heard);
+    }
+
+    public function testConstructorRefusesAnUnconventionalName(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs('resource template "name" must be 1-128 characters of A-Z, a-z, 0-9, ".", "-", or "_", \'Project Files\' given.');
+
+        new ResourceTemplateStore(['mem://{p}' => self::entry(new ResourceTemplate(name: 'Project Files', uriTemplate: 'mem://{p}'))]);
+    }
+
+    public function testAddRefusesAnUnconventionalName(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs('resource template "name" must be 1-128 characters of A-Z, a-z, 0-9, ".", "-", or "_", \'Project Files\' given.');
+
+        (new ResourceTemplateStore())->addResourceTemplate(new ResourceTemplate(name: 'Project Files', uriTemplate: 'mem://{p}'), new ClosureTemplatedResourceReader(static fn(): never => throw new \LogicException('unreachable')));
     }
 
     /**

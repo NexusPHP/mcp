@@ -17,15 +17,13 @@ use Nexus\Assert\Assert;
 use Nexus\Assert\ExpectationFailedException;
 
 /**
- * Enforces a stable identifier-name format: 1-128 characters drawn from
- * `A-Z`, `a-z`, `0-9`, `_`, `-`, and `.`. Applied to schema types where
- * `name` is a stable handle clients invoke (tools, prompts, resources,
- * resource templates).
+ * Enforces the format the spec recommends for tool names, applied to every handle the SDK authors:
+ * tools, prompts, resources and resource templates. The rule is SHOULD and the schema carries no
+ * `pattern`, so it never runs on a decode path, which takes whatever a peer sends.
  *
  * @internal
  *
  * @see https://modelcontextprotocol.io/specification/2026-07-28/server/tools#tool-names
- * @see https://github.com/modelcontextprotocol/modelcontextprotocol/issues/986
  */
 final class IdentifierNameValidator
 {

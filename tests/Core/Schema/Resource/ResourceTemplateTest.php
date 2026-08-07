@@ -150,12 +150,11 @@ final class ResourceTemplateTest extends AbstractMcpTestCase
         self::assertSame($original->toArray(), $rebuilt->toArray());
     }
 
-    public function testConstructorRejectsInvalidName(): void
+    public function testConstructorAcceptsANameOutsideTheSdksPreferredCharset(): void
     {
-        $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageMatches('/\Aresource template "name" must be 1-128 characters/');
+        $template = new ResourceTemplate(name: 'Project Files', uriTemplate: 'file:///tmp/{name}');
 
-        new ResourceTemplate(name: 'my template', uriTemplate: 'file:///tmp/{name}');
+        self::assertSame('Project Files', $template->name);
     }
 
     public function testConstructorRejectsEmptyUriTemplate(): void

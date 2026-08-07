@@ -18,7 +18,6 @@ use Nexus\Mcp\Core\Schema\Elicitation\ElicitResult;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\MetaObject\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\Result\InputResponse;
-use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
 
 /**
  * Parameters for a `tools/call` request.
@@ -47,7 +46,7 @@ final readonly class CallToolRequestParams extends InputResponseRequestParams
         ?array $inputResponses = null,
         ?string $requestState = null,
     ) {
-        IdentifierNameValidator::validate($name, '"params.name"');
+        Assert::that($name)->isNonEmptyString('"params.name" must be a non-empty string, {type} given.');
         Assert::that($arguments)->nullOr()->isMap('"params.arguments" must be a string-keyed map or null.');
 
         parent::__construct(inputResponses: $inputResponses, requestState: $requestState, meta: $meta);

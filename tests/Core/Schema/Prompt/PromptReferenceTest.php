@@ -105,12 +105,11 @@ final class PromptReferenceTest extends AbstractMcpTestCase
         self::assertSame($original->toArray(), $rebuilt->toArray());
     }
 
-    public function testConstructorRejectsInvalidName(): void
+    public function testConstructorAcceptsANameOutsideTheSdksPreferredCharset(): void
     {
-        $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageMatches('/\Aprompt reference "name" must be 1-128 characters/');
+        $reference = new PromptReference(name: 'Project Files');
 
-        new PromptReference(name: 'my prompt');
+        self::assertSame('Project Files', $reference->name);
     }
 
     /**

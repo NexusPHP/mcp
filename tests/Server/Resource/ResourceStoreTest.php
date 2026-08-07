@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Server\Resource;
 
 use Amp\NullCancellation;
+use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Resource\Resource;
@@ -237,6 +238,22 @@ final class ResourceStoreTest extends AbstractMcpTestCase
         }
 
         self::assertSame([], $result->contents);
+    }
+
+    public function testConstructorRefusesAnUnconventionalName(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs('resource "name" must be 1-128 characters of A-Z, a-z, 0-9, ".", "-", or "_", \'Project Files\' given.');
+
+        new ResourceStore(['file:///x' => new ResourceEntry(new Resource(name: 'Project Files', uri: 'file:///x'), self::makeReader())]);
+    }
+
+    public function testAddRefusesAnUnconventionalName(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs('resource "name" must be 1-128 characters of A-Z, a-z, 0-9, ".", "-", or "_", \'Project Files\' given.');
+
+        (new ResourceStore())->addResource(new Resource(name: 'Project Files', uri: 'file:///x'), self::makeReader());
     }
 
     /**

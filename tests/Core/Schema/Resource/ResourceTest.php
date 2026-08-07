@@ -154,12 +154,11 @@ final class ResourceTest extends AbstractMcpTestCase
         self::assertSame($original->toArray(), $rebuilt->toArray());
     }
 
-    public function testConstructorRejectsInvalidName(): void
+    public function testConstructorAcceptsANameOutsideTheSdksPreferredCharset(): void
     {
-        $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageMatches('/\Aresource "name" must be 1-128 characters/');
+        $resource = new Resource(name: 'Project Files', uri: 'file:///x');
 
-        new Resource(name: 'my resource', uri: 'file:///x');
+        self::assertSame('Project Files', $resource->name);
     }
 
     public function testConstructorRejectsUriViolatingRfc3986(): void

@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Server\Prompt;
 
 use Amp\NullCancellation;
+use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\Prompt\Prompt;
 use Nexus\Mcp\Core\Schema\RequestId;
@@ -224,6 +225,22 @@ final class PromptStoreTest extends AbstractMcpTestCase
         }
 
         self::assertSame([], $result->messages);
+    }
+
+    public function testConstructorRefusesAnUnconventionalName(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs('prompt "name" must be 1-128 characters of A-Z, a-z, 0-9, ".", "-", or "_", \'Project Files\' given.');
+
+        new PromptStore(['Project Files' => new PromptEntry(new Prompt(name: 'Project Files'), self::makeRenderer())]);
+    }
+
+    public function testAddRefusesAnUnconventionalName(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs('prompt "name" must be 1-128 characters of A-Z, a-z, 0-9, ".", "-", or "_", \'Project Files\' given.');
+
+        (new PromptStore())->addPrompt(new Prompt(name: 'Project Files'), self::makeRenderer());
     }
 
     /**

@@ -20,7 +20,6 @@ use Nexus\Mcp\Core\Schema\Icon;
 use Nexus\Mcp\Core\Schema\Icons;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\MetaObject\PayloadMetaObject;
-use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
 
 /**
  * Definition for a tool the client can call.
@@ -70,7 +69,6 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
     ) {
         parent::__construct(name: $name, title: $title);
 
-        IdentifierNameValidator::validate($name, 'tool "name"');
         Assert::that($description)->nullOr()->isNonEmptyString('Tool description must be a non-empty string or null.');
 
         if (null !== $this->icons) {

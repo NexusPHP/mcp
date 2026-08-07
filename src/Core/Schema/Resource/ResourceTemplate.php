@@ -21,7 +21,6 @@ use Nexus\Mcp\Core\Schema\Icon;
 use Nexus\Mcp\Core\Schema\Icons;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\MetaObject\PayloadMetaObject;
-use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
 use Nexus\Mcp\Core\Validation\Rfc6570UriTemplateValidator;
 
 /**
@@ -60,7 +59,6 @@ final readonly class ResourceTemplate extends BaseMetadata implements Arrayable,
     ) {
         parent::__construct(name: $name, title: $title);
 
-        IdentifierNameValidator::validate($name, 'resource template "name"');
         Rfc6570UriTemplateValidator::validate($uriTemplate, 'resource template "uriTemplate"');
 
         Assert::that($description)->nullOr()->isNonEmptyString('resource template "description" must be a non-empty string or null.');

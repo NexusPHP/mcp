@@ -16,7 +16,6 @@ namespace Nexus\Mcp\Core\Schema\Prompt;
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\BaseMetadata;
-use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
 
 /**
  * Identifies a prompt.
@@ -32,13 +31,6 @@ use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
 final readonly class PromptReference extends BaseMetadata implements Arrayable
 {
     public const string TYPE = 'ref/prompt';
-
-    public function __construct(string $name, ?string $title = null)
-    {
-        parent::__construct(name: $name, title: $title);
-
-        IdentifierNameValidator::validate($name, 'prompt reference "name"');
-    }
 
     #[\Override]
     public static function fromArray(array $data): static

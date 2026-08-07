@@ -138,12 +138,20 @@ final class GetPromptRequestParamsTest extends AbstractMcpTestCase
         self::assertSame($original->toArray(), $rebuilt->toArray());
     }
 
-    public function testConstructorRejectsInvalidName(): void
+    public function testConstructorAcceptsANameOutsideTheSdksPreferredCharset(): void
+    {
+        $params = new GetPromptRequestParams(name: 'Project Files', meta: RequestMetaObjectFactory::create());
+
+        self::assertSame('Project Files', $params->name);
+    }
+
+    public function testConstructorRejectsAnEmptyName(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageMatches('/\A"params.name" must be 1-128 characters/');
+        $this->expectExceptionMessageIs('"params.name" must be a non-empty string, string given.');
 
-        new GetPromptRequestParams(name: 'bad name', meta: RequestMetaObjectFactory::create());
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
+        new GetPromptRequestParams(name: '', meta: RequestMetaObjectFactory::create());
     }
 
     public function testConstructorRejectsListKeyedArguments(): void

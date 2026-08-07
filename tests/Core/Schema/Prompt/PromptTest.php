@@ -128,12 +128,11 @@ final class PromptTest extends AbstractMcpTestCase
         self::assertSame($original->toArray(), $rebuilt->toArray());
     }
 
-    public function testConstructorRejectsInvalidName(): void
+    public function testConstructorAcceptsANameOutsideTheSdksPreferredCharset(): void
     {
-        $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageMatches('/\Aprompt "name" must be 1-128 characters/');
+        $prompt = new Prompt(name: 'Project Files');
 
-        new Prompt(name: 'bad name');
+        self::assertSame('Project Files', $prompt->name);
     }
 
     public function testConstructorRejectsEmptyDescription(): void

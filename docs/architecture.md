@@ -287,12 +287,12 @@ scope in the inner message.
 `Core/Validation/` exposes four field-format validators. Each takes the value plus a `$context` label
 that becomes the message prefix:
 
-| Validator                                                  | Purpose                                  |
-|------------------------------------------------------------|------------------------------------------|
-| `IdentifierNameValidator::validate($name, $context)`       | 1-128 chars from `[A-Za-z0-9._-]`        |
-| `Rfc3986UriValidator::validate($uri, $context)`            | RFC 3986 absolute URI                    |
-| `Rfc6570UriTemplateValidator::validate($uri, $context)`    | RFC 6570 URI Template                    |
-| `Iso8601DateTimeValidator::parse($value, $context)`        | ISO 8601 datetime parse                  |
+| Validator                                               | Purpose                                           |
+|---------------------------------------------------------|---------------------------------------------------|
+| `IdentifierNameValidator::validate($name, $context)`    | 1-128 chars from `[A-Za-z0-9._-]`, authoring only |
+| `Rfc3986UriValidator::validate($uri, $context)`         | RFC 3986 absolute URI                             |
+| `Rfc6570UriTemplateValidator::validate($uri, $context)` | RFC 6570 URI Template                             |
+| `Iso8601DateTimeValidator::parse($value, $context)`     | ISO 8601 datetime parse                           |
 
 The validator templates have no hardcoded field noun. Callers pass the full label they want in the
 emitted message (e.g. `'"params.name"'`, `'tool "name"'`, `'resource link "uri"'`,

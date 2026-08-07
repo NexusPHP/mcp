@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Server\Tool;
 
 use Amp\NullCancellation;
+use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Exception\InvalidParamsException;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
@@ -413,6 +414,22 @@ final class ToolStoreTest extends AbstractMcpTestCase
         }
 
         self::assertSame([], $result->content);
+    }
+
+    public function testConstructorRefusesAnUnconventionalName(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs('tool "name" must be 1-128 characters of A-Z, a-z, 0-9, ".", "-", or "_", \'Project Files\' given.');
+
+        new ToolStore(['Project Files' => new ToolEntry(new Tool(name: 'Project Files', inputSchema: ['type' => 'object']), new ClosureToolExecutor(static fn(?array $a, ServerContext $c): CallToolResult => new CallToolResult(content: [])))]);
+    }
+
+    public function testAddRefusesAnUnconventionalName(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs('tool "name" must be 1-128 characters of A-Z, a-z, 0-9, ".", "-", or "_", \'Project Files\' given.');
+
+        (new ToolStore())->addTool(new Tool(name: 'Project Files', inputSchema: ['type' => 'object']), new ClosureToolExecutor(static fn(?array $a, ServerContext $c): CallToolResult => new CallToolResult(content: [])));
     }
 
     /**

@@ -21,7 +21,6 @@ use Nexus\Mcp\Core\Schema\Icon;
 use Nexus\Mcp\Core\Schema\Icons;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\MetaObject\PayloadMetaObject;
-use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
 use Nexus\Mcp\Core\Validation\Rfc3986UriValidator;
 
 /**
@@ -62,7 +61,6 @@ final readonly class Resource extends BaseMetadata implements Arrayable, Icons
     ) {
         parent::__construct(name: $name, title: $title);
 
-        IdentifierNameValidator::validate($name, 'resource "name"');
         Rfc3986UriValidator::validate($uri, 'resource "uri"');
 
         Assert::that($description)
