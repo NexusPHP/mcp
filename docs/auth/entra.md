@@ -17,7 +17,8 @@ request the exposed scope by its full name: `api://mcp.example.com/mcp:use`.
 
 Validate with the shipped [`JwksAccessTokenValidator`](server.md#validating-tokens) against the tenant's
 JWKS, discovered through
-`https://login.microsoftonline.com/{tenant-id}/v2.0/.well-known/openid-configuration`. Entra puts granted
+`https://login.microsoftonline.com/{tenant-id}/v2.0/.well-known/openid-configuration`, naming
+`https://login.microsoftonline.com/{tenant-id}/v2.0` as the expected issuer. Entra puts granted
 scopes in `scp` rather than `scope` and names the authorizing client in `azp`, both spellings the
 validator already reads.
 

@@ -15,19 +15,24 @@ composer require firebase/php-jwt:^7.0
 use Firebase\JWT\CachedKeySet;
 use Nexus\Mcp\Server\Auth\JwksAccessTokenValidator;
 
-$validator = new JwksAccessTokenValidator(new CachedKeySet(
-    'https://auth.example.com/.well-known/jwks.json',
-    $httpClient,          // any PSR-18 client
-    $requestFactory,      // any PSR-17 request factory
-    $cache,               // any PSR-6 cache
-    300,
-));
+$validator = new JwksAccessTokenValidator(
+    new CachedKeySet(
+        'https://auth.example.com/.well-known/jwks.json',
+        $httpClient,          // any PSR-18 client
+        $requestFactory,      // any PSR-17 request factory
+        $cache,               // any PSR-6 cache
+        300,
+    ),
+    'https://auth.example.com',  // the `iss` every accepted token must carry
+);
 ```
 
 Constructing it without the package installed throws a `MissingSuggestedDependencyException` naming that
-install command. The validator checks signature and expiry through the key set and maps the claim
-spellings the common providers use: `scope` or `scp` (string or list) for scopes, and `azp`, `client_id`,
-or `cid` for the authorizing client. The [provider recipes](../authorization.md#guide) name each
+install command. The validator refuses a token whose signature does not verify, whose `iss` is absent or
+is not the issuer you named, or which carries no `exp` at all. A key set may sign for several issuers, so
+the issuer is what bounds the tenant rather than the audience alone, and a token minted with no expiry
+would otherwise be a permanent credential. It maps the claim spellings the common providers use: `scope`
+or `scp` (string or list) for scopes, and `azp`, `client_id`, or `cid` for the authorizing client. The [provider recipes](../authorization.md#guide) name each
 provider's JWKS URL and quirks.
 
 For anything else (opaque tokens, introspection endpoints, provider SDKs), verification stays yours:
@@ -40,19 +45,29 @@ final class JwtAccessTokenValidator implements AccessTokenValidatorInterface
 {
     public function validate(string $token): ?VerifiedAccessToken
     {
-        $claims = $this->verifySignatureAndExpiry($token);
+        $claims = $this->verifySignature($token);
 
-        return null === $claims ? null : new VerifiedAccessToken(
+        if (null === $claims || ($claims['iss'] ?? null) !== $this->expectedIssuer) {
+            return null;
+        }
+
+        // Most JWT libraries check an expiry only when present, so an absent one never expires.
+        if (! is_numeric($claims['exp'] ?? null) || $claims['exp'] < time()) {
+            return null;
+        }
+
+        return new VerifiedAccessToken(
             audience: $claims['aud'],
             scopes: explode(' ', $claims['scope'] ?? ''),
             subject: $claims['sub'] ?? null,
             clientId: $claims['client_id'] ?? null,
+            expiresAt: (int) $claims['exp'],
         );
     }
 }
 ```
 
-The validator owns signature checking and expiry. Two checks are not its job:
+The validator owns signature checking, the issuer, and expiry. Two checks are not its job:
 `BearerAuthenticationMiddleware` binds the returned audience to this server, and enforces the scopes the
 endpoint requires. A token minted for another resource is refused even if the validator accepts it.
 

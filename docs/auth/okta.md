@@ -14,7 +14,8 @@ Configure the org:
 
 Metadata is published at both well-known suffixes under the issuer, so the SDK's discovery finds it
 either way. Validate with the shipped [`JwksAccessTokenValidator`](server.md#validating-tokens) against
-the `jwks_uri` that metadata names. Okta puts granted scopes in `scp` as a JSON array rather than a
+the `jwks_uri` that metadata names, giving it the authorization server's issuer
+(`https://{org}.okta.com/oauth2/{authServerId}`) as the expected issuer. Okta puts granted scopes in `scp` as a JSON array rather than a
 space-joined `scope` string, and the authorizing client rides the `cid` claim. The validator reads both
 shapes.
 

@@ -8,6 +8,11 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp/commits/1.x)
 
+### Changed
+
+- `JwksAccessTokenValidator` takes the issuer it accepts and refuses a token whose `iss` is absent or
+  different, or which carries no `exp` (see [BREAKING_CHANGES.md](BREAKING_CHANGES.md)).
+
 ### Fixed
 
 - A PSR-7 host whose request body cannot rewind can serve tool calls. `ParameterHeaderValidationMiddleware`

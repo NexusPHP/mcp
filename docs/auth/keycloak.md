@@ -19,13 +19,16 @@ Validate the RS256 tokens with the shipped
 use Firebase\JWT\CachedKeySet;
 use Nexus\Mcp\Server\Auth\JwksAccessTokenValidator;
 
-$validator = new JwksAccessTokenValidator(new CachedKeySet(
-    'https://kc.example.com/realms/mcp/protocol/openid-connect/certs',
-    $httpClient,
-    $requestFactory,
-    $cache,
-    300,
-));
+$validator = new JwksAccessTokenValidator(
+    new CachedKeySet(
+        'https://kc.example.com/realms/mcp/protocol/openid-connect/certs',
+        $httpClient,
+        $requestFactory,
+        $cache,
+        300,
+    ),
+    'https://kc.example.com/realms/mcp',  // the realm issuer
+);
 ```
 
 Mount it exactly as [Validating tokens](server.md#validating-tokens) shows, and publish a

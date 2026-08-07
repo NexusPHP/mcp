@@ -18,7 +18,8 @@ that carry no `audience` still mint tokens for it. Without that, Auth0 answers w
 the userinfo endpoint, and your validator refuses it.
 
 Validate with the shipped [`JwksAccessTokenValidator`](server.md#validating-tokens) against
-`https://{tenant}.auth0.com/.well-known/jwks.json`. Auth0 uses the standard `scope` claim, and names the
+`https://{tenant}.auth0.com/.well-known/jwks.json`, naming `https://{tenant}.auth0.com/` as the expected
+issuer. Auth0's issuer carries a trailing slash and the comparison is exact, so keep it. Auth0 uses the standard `scope` claim, and names the
 authorizing client in `azp` only when the token carries more than one audience, falling back to
 `client_id` otherwise. The validator walks exactly that fallback chain.
 

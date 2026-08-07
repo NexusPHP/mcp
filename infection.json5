@@ -32,9 +32,10 @@
         "MethodCallRemoval": {
             "ignore": [
                 "Nexus\\Mcp\\Core\\Dispatch\\PendingCoroutines::track",
-                "Nexus\\Mcp\\Client\\Auth\\AuthorizationCoordinator::runExclusively",
-                "Nexus\\Mcp\\Server\\Auth\\JwksAccessTokenValidator::__construct",
-                "Nexus\\Mcp\\Extension\\Auth\\ClientAssertionSigner::__construct"
+                "Nexus\\Mcp\\Client\\Auth\\AuthorizationCoordinator::runExclusively"
+            ],
+            "ignoreSourceCodeByRegex": [
+                "SuggestedDependencyGuard::verify\\(.*"
             ]
         }
     },

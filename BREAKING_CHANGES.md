@@ -6,6 +6,26 @@ for *when* breaking changes may land and how they are communicated lives in
 
 ## v0.10.0 to Unreleased
 
+### `JwksAccessTokenValidator` requires the issuer it accepts
+
+The validator took a key set and nothing else, so it verified the signature but never checked who signed.
+A key set that serves more than one issuer left audience as the only tenant boundary, and a token minted
+with no `exp` was accepted forever, because `JWT::decode` enforces expiry only when the claim is present.
+
+Name the issuer as the second constructor argument:
+
+```php
+// before
+new JwksAccessTokenValidator($keys);
+// after
+new JwksAccessTokenValidator($keys, 'https://auth.example.com');
+```
+
+Use the exact `iss` string your authorization server mints, which for Keycloak is the realm URL
+(`https://kc.example.com/realms/mcp`) rather than the JWKS URL. Tokens whose `iss` is absent or different
+are now refused, as are tokens carrying no `exp`. If your provider issues tokens without `exp`, that is
+the thing to fix: nothing revokes them.
+
 ## v0.9.0 to v0.10.0
 
 No breaking changes on the supported surface, and nothing to migrate.
