@@ -22,6 +22,7 @@ use Nexus\Mcp\Server\Tool\ToolStore;
 use Nexus\Mcp\Server\Transport\Http\Middleware\ParameterHeaderValidationMiddleware;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
+use Nexus\Mcp\Tests\Fixtures\Server\Http\NonSeekableStream;
 use Nexus\Mcp\Tests\Fixtures\Server\Http\RecordingRequestHandler;
 use Nexus\Mcp\Tests\Fixtures\Server\Tool\PagedToolStore;
 use Nyholm\Psr7\Factory\Psr17Factory;
@@ -308,6 +309,54 @@ final class ParameterHeaderValidationMiddlewareTest extends AbstractMcpTestCase
         );
 
         self::assertFalse($handler->called, 'A tool registered after the scan must not bypass validation.');
+        self::assertSame(400, $response->getStatusCode());
+    }
+
+    public function testANonSeekableBodyStillReachesTheHandlerIntact(): void
+    {
+        $payload = json_encode([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'tools/call',
+            'params' => ['name' => 'echo', 'arguments' => ['region' => 'us-west1']],
+        ], \JSON_THROW_ON_ERROR);
+        $body = new NonSeekableStream($payload);
+        $handler = self::handler();
+
+        $response = self::middleware()->process(
+            (new Psr17Factory())->createServerRequest('POST', 'https://mcp.test/')
+                ->withBody($body)
+                ->withHeader('Content-Type', 'application/json')
+                ->withHeader('Mcp-Param-Region', 'us-west1'),
+            $handler,
+        );
+
+        self::assertSame(200, $response->getStatusCode());
+        self::assertTrue($handler->called);
+        self::assertNotNull($handler->received);
+        self::assertSame($payload, (string) $handler->received->getBody(), 'The downstream body is re-seated.');
+        self::assertSame(1, $body->reads, 'The unrewindable body is read exactly once.');
+    }
+
+    public function testANonSeekableBodyIsStillValidatedAgainstItsHeaders(): void
+    {
+        $payload = json_encode([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'tools/call',
+            'params' => ['name' => 'echo', 'arguments' => ['region' => 'us-west1']],
+        ], \JSON_THROW_ON_ERROR);
+        $handler = self::handler();
+
+        $response = self::middleware()->process(
+            (new Psr17Factory())->createServerRequest('POST', 'https://mcp.test/')
+                ->withBody(new NonSeekableStream($payload))
+                ->withHeader('Content-Type', 'application/json')
+                ->withHeader('Mcp-Param-Region', 'eu-west1'),
+            $handler,
+        );
+
+        self::assertFalse($handler->called);
         self::assertSame(400, $response->getStatusCode());
     }
 

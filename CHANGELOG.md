@@ -10,6 +10,10 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Fixed
 
+- A PSR-7 host whose request body cannot rewind can serve tool calls. `ParameterHeaderValidationMiddleware`
+  consumed the body while peeking at it, so the transport answered every POST with `-32700 Parse error`.
+  A side effect: with a tool store registered, `maxBodyBytes` now also caps a body whose size the host
+  cannot report, where such a body previously passed through.
 - A discovered tool taking a `mixed` or untyped parameter is callable. It advertised `[]` as that
   property's schema, which is not a JSON Schema, so every `tools/call` failed before the executor ran.
 - `Tool` accepts boolean sub-schemas in `inputSchema` and `outputSchema`. One such entry previously

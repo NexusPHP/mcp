@@ -20,6 +20,7 @@ use Nexus\Mcp\Server\Tool\ToolStoreInterface;
 use Nexus\Mcp\Server\Transport\Http\Middleware\BearerAuthenticationMiddleware;
 use Nexus\Mcp\Server\Transport\Http\SecuredHttpEndpoint;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
+use Nexus\Mcp\Tests\Fixtures\Server\Http\NonSeekableStream;
 use Nexus\Mcp\Tests\Fixtures\Server\Http\RecordingRequestHandler;
 use Nexus\Mcp\Tests\Fixtures\Server\Tool\PagedToolStore;
 use Nyholm\Psr7\Factory\Psr17Factory;
@@ -85,6 +86,30 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
 
         self::assertFalse($handler->called);
         self::assertSame(413, $response->getStatusCode());
+    }
+
+    public function testABodyOfUnknownSizeEscapesTheCapWithNoToolStore(): void
+    {
+        $handler = self::handler();
+        $request = self::request(null)->withBody(new NonSeekableStream(str_repeat('x', 2_048)));
+
+        $response = self::endpoint($handler, ['*'], maxBodyBytes: 1_024)->handle($request);
+
+        self::assertTrue($handler->called, 'Nothing measured the body, so the host owns the cap.');
+        self::assertSame(200, $response->getStatusCode());
+    }
+
+    public function testABodyOfUnknownSizeIsCappedOnceAToolStoreMakesItDeterminate(): void
+    {
+        $handler = self::handler();
+        $request = self::request(null)->withBody(new NonSeekableStream(str_repeat('x', 2_048)));
+
+        $response = self::endpoint($handler, ['*'], maxBodyBytes: 1_024, toolStore: self::toolStore())
+            ->handle($request)
+        ;
+
+        self::assertFalse($handler->called);
+        self::assertSame(413, $response->getStatusCode(), 'Header validation re-seats the body, so its size is known.');
     }
 
     public function testOmitsTheBodySizeCapByDefault(): void
