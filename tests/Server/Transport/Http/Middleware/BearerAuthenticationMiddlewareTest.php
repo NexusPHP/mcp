@@ -47,6 +47,117 @@ final class BearerAuthenticationMiddlewareTest extends AbstractMcpTestCase
         self::assertTrue($handler->called);
     }
 
+    #[DataProvider('provideAnExpiredTokenIsRefusedCases')]
+    public function testAnExpiredTokenIsRefused(int $expiresAt): void
+    {
+        $handler = self::handler();
+        $token = new VerifiedAccessToken([self::RESOURCE], subject: 'the-subject', expiresAt: $expiresAt);
+
+        $response = self::middleware($token, now: 1_000)->process(self::request('the-token'), $handler);
+
+        self::assertFalse($handler->called);
+        self::assertSame(401, $response->getStatusCode());
+        self::assertStringContainsString('error="invalid_token"', $response->getHeaderLine('WWW-Authenticate'));
+    }
+
+    /**
+     * @return iterable<string, array{0: int}>
+     */
+    public static function provideAnExpiredTokenIsRefusedCases(): iterable
+    {
+        yield 'long past' => [1];
+
+        // RFC 7519 refuses a token on or after its expiry, so the exact second is already too late.
+        yield 'exactly now' => [1_000];
+    }
+
+    public function testATokenExpiringInTheNextSecondIsStillAccepted(): void
+    {
+        $handler = self::handler();
+        $token = new VerifiedAccessToken([self::RESOURCE], subject: 'the-subject', expiresAt: 1_001);
+
+        $response = self::middleware($token, now: 1_000)->process(self::request('the-token'), $handler);
+
+        self::assertTrue($handler->called);
+        self::assertSame(200, $response->getStatusCode());
+    }
+
+    public function testConfiguredLeewayToleratesATokenExpiredWithinIt(): void
+    {
+        // A validator set up for clock skew keeps its own leeway, which does not reach here.
+        $handler = self::handler();
+        $token = new VerifiedAccessToken([self::RESOURCE], subject: 'the-subject', expiresAt: 940);
+
+        $response = self::middleware($token, now: 1_000, expiryLeewaySeconds: 300)
+            ->process(self::request('the-token'), $handler)
+        ;
+
+        self::assertTrue($handler->called);
+        self::assertSame(200, $response->getStatusCode());
+    }
+
+    public function testConfiguredLeewayStillRefusesATokenExpiredBeyondIt(): void
+    {
+        $handler = self::handler();
+        $token = new VerifiedAccessToken([self::RESOURCE], subject: 'the-subject', expiresAt: 699);
+
+        $response = self::middleware($token, now: 1_000, expiryLeewaySeconds: 300)
+            ->process(self::request('the-token'), $handler)
+        ;
+
+        self::assertFalse($handler->called);
+        self::assertSame(401, $response->getStatusCode());
+    }
+
+    public function testTheDefaultToleratesNoClockSkew(): void
+    {
+        $handler = self::handler();
+        $recognised = new VerifiedAccessToken([self::RESOURCE], subject: 'the-subject', expiresAt: 1_000);
+        $validator = self::createStub(AccessTokenValidatorInterface::class);
+        $validator->method('validate')->willReturn($recognised);
+
+        // Constructed without an expiry leeway, so the constructor's own default is what is under test.
+        $middleware = new BearerAuthenticationMiddleware(
+            $validator,
+            self::RESOURCE,
+            self::METADATA_URL,
+            new Psr17Factory(),
+            clock: static fn(): int => 1_000,
+        );
+
+        $response = $middleware->process(self::request('the-token'), $handler);
+
+        self::assertFalse($handler->called);
+        self::assertSame(401, $response->getStatusCode());
+    }
+
+    public function testANegativeExpiryLeewayIsRefused(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('Expiry leeway must be a non-negative integer, -1 given.');
+
+        new BearerAuthenticationMiddleware(
+            self::createStub(AccessTokenValidatorInterface::class),
+            self::RESOURCE,
+            self::METADATA_URL,
+            new Psr17Factory(),
+            // @phpstan-ignore argument.type
+            expiryLeewaySeconds: -1,
+        );
+    }
+
+    public function testATokenReportingNoExpiryIsAccepted(): void
+    {
+        // An opaque-token validator may have no expiry to report, and that is not a reason to refuse.
+        $handler = self::handler();
+        $token = new VerifiedAccessToken([self::RESOURCE], subject: 'the-subject');
+
+        $response = self::middleware($token, now: 1_000)->process(self::request('the-token'), $handler);
+
+        self::assertTrue($handler->called);
+        self::assertSame(200, $response->getStatusCode());
+    }
+
     public function testTheValidatedTokenTravelsOnTheRequest(): void
     {
         $handler = self::handler();
@@ -306,8 +417,14 @@ final class BearerAuthenticationMiddlewareTest extends AbstractMcpTestCase
     /**
      * @param list<non-empty-string> $requiredScopes
      */
-    private static function middleware(?VerifiedAccessToken $token = null, array $requiredScopes = []): BearerAuthenticationMiddleware
-    {
+    private static function middleware(
+        ?VerifiedAccessToken $token = null,
+        array $requiredScopes = [],
+        ?int $now = null,
+        int $expiryLeewaySeconds = 0,
+    ): BearerAuthenticationMiddleware {
+        \assert($expiryLeewaySeconds >= 0);
+
         $recognised = $token ?? new VerifiedAccessToken([self::RESOURCE], subject: 'the-subject');
         $validator = self::createStub(AccessTokenValidatorInterface::class);
         $validator->method('validate')->willReturnCallback(
@@ -320,6 +437,8 @@ final class BearerAuthenticationMiddlewareTest extends AbstractMcpTestCase
             self::METADATA_URL,
             new Psr17Factory(),
             $requiredScopes,
+            $expiryLeewaySeconds,
+            null === $now ? null : static fn(): int => $now,
         );
     }
 

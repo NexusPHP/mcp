@@ -67,9 +67,14 @@ final class JwtAccessTokenValidator implements AccessTokenValidatorInterface
 }
 ```
 
-The validator owns signature checking, the issuer, and expiry. Two checks are not its job:
-`BearerAuthenticationMiddleware` binds the returned audience to this server, and enforces the scopes the
-endpoint requires. A token minted for another resource is refused even if the validator accepts it.
+The validator owns signature checking, the issuer, and expiry. `BearerAuthenticationMiddleware` enforces
+the endpoint's own rules on top, so a token minted for another resource is refused even if the validator
+accepts it, and so is one handed over already expired.
+
+Its expiry check tolerates no clock skew by default, and a validator's own tolerance does not reach it. If
+you set `JWT::$leeway` for `firebase/php-jwt`, or your validator allows skew some other way, pass the same
+allowance as `expiryLeewaySeconds` to `BearerAuthenticationMiddleware` or it will refuse what the validator
+deliberately accepted.
 
 Mount it on the endpoint:
 

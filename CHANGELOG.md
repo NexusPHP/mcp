@@ -15,6 +15,9 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Fixed
 
+- `BearerAuthenticationMiddleware` refuses a token whose `expiresAt` has passed. It took the validator's
+  reported expiry on trust, so a custom validator's lapsed token was served. Pass `expiryLeewaySeconds`
+  to match a validator configured for clock skew, such as one setting `JWT::$leeway`.
 - A PSR-7 host whose request body cannot rewind can serve tool calls. `ParameterHeaderValidationMiddleware`
   consumed the body while peeking at it, so the transport answered every POST with `-32700 Parse error`.
   A side effect: with a tool store registered, `maxBodyBytes` now also caps a body whose size the host
