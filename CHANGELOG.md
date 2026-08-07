@@ -18,6 +18,8 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Fixed
 
+- A `resources/read` handler receives the client's `inputResponses` and `requestState`. Both were parsed
+  from the envelope and then dropped, so a resource could ask for input but never see the answer.
 - `BearerAuthenticationMiddleware` refuses a token whose `expiresAt` has passed. It took the validator's
   reported expiry on trust, so a custom validator's lapsed token was served. Pass `expiryLeewaySeconds`
   to match a validator configured for clock skew, such as one setting `JWT::$leeway`.

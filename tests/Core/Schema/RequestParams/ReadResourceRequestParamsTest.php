@@ -119,6 +119,8 @@ final class ReadResourceRequestParamsTest extends AbstractMcpTestCase
 
         self::assertSame(['github_login' => $response], $params->inputResponses);
         self::assertSame('tok', $params->requestState);
+        self::assertSame(['github_login' => $response], $params->getInputResponses());
+        self::assertSame('tok', $params->getRequestState());
     }
 
     public function testToArrayWithInputResponsesAndRequestState(): void

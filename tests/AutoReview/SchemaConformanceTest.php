@@ -37,6 +37,7 @@ use Nexus\Mcp\Core\Schema\Request\ClientRequest;
 use Nexus\Mcp\Core\Schema\Request\InputRequest;
 use Nexus\Mcp\Core\Schema\Request\PaginatedRequest;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
+use Nexus\Mcp\Core\Schema\RequestParams\InputResponseCarrierInterface;
 use Nexus\Mcp\Core\Schema\RequestParams\ResourceRequestParams;
 use Nexus\Mcp\Core\Schema\RequestParamsInterface;
 use Nexus\Mcp\Core\Schema\Resource\ResourceContents;
@@ -136,6 +137,7 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
         Arrayable::class,
         GenericResultResponse::class,
         GenericResultMetaObject::class,
+        InputResponseCarrierInterface::class,
         PayloadMetaObject::class,
         RequestParamsInterface::class,
     ];
@@ -498,6 +500,37 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
         self::assertSame([], $unaccounted, \sprintf(
             'Schema classes without a 1:1 spec def must be listed in either NON_SCHEMA_ANCHOR_SEE_URLS (with the spec URL their @see should reference) or SEE_ANNOTATION_EXEMPT (PHP-only infrastructure). Unaccounted: %s.',
             implode(', ', $unaccounted),
+        ));
+    }
+
+    public function testEveryParamsDefCarryingAContinuationFieldImplementsTheCarrier(): void
+    {
+        $missing = [];
+
+        foreach (self::getProtocolSchemasForTesting() as $basename => [, $schemaClass]) {
+            if (! is_a($schemaClass, RequestParamsInterface::class, true)) {
+                continue;
+            }
+
+            $definition = self::$latestSchema[$basename] ?? null;
+            $properties = \is_array($definition) ? $definition['properties'] ?? [] : [];
+
+            if (! \is_array($properties)) {
+                continue;
+            }
+
+            $carries = \array_key_exists('inputResponses', $properties)
+                || \array_key_exists('requestState', $properties);
+
+            if ($carries && ! is_a($schemaClass, InputResponseCarrierInterface::class, true)) {
+                $missing[] = $schemaClass;
+            }
+        }
+
+        self::assertSame([], $missing, \sprintf(
+            'Params classes for spec defs carrying "inputResponses" or "requestState" must implement "%s", since PHP cannot inherit the spec\'s second base. Missing: %s.',
+            InputResponseCarrierInterface::class,
+            implode(', ', $missing),
         ));
     }
 

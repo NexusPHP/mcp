@@ -31,7 +31,7 @@ use Nexus\Mcp\Core\Schema\Result\InputResponse;
  *
  * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#readresourcerequestparams
  */
-final readonly class ReadResourceRequestParams extends ResourceRequestParams
+final readonly class ReadResourceRequestParams extends ResourceRequestParams implements InputResponseCarrierInterface
 {
     /**
      * @var null|array<string, InputResponse>
@@ -60,6 +60,18 @@ final readonly class ReadResourceRequestParams extends ResourceRequestParams
         $this->inputResponses = $inputResponses;
 
         parent::__construct(uri: $uri, meta: $meta);
+    }
+
+    #[\Override]
+    public function getInputResponses(): ?array
+    {
+        return $this->inputResponses;
+    }
+
+    #[\Override]
+    public function getRequestState(): ?string
+    {
+        return $this->requestState;
     }
 
     #[\Override]

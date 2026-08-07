@@ -2470,6 +2470,66 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         self::assertSame(['who'], array_keys($seen[0] ?? []));
     }
 
+    public function testTheClientsInputResponsesAndRequestStateReachAResourceReader(): void
+    {
+        $seen = null;
+        $server = (new ServerBuilder())
+            ->setServerInfo('demo', '1.0.0')
+            ->addResource(
+                new Resource(name: 'cfg', uri: 'file:///etc/cfg'),
+                static function (string $uri, ServerContext $ctx) use (&$seen): ReadResourceResult {
+                    $seen = [$ctx->inputResponses, $ctx->requestState];
+
+                    return new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private);
+                },
+            )
+            ->build()
+        ;
+
+        $this->dispatch($server, 'resources/read', [
+            'uri' => 'file:///etc/cfg',
+            'inputResponses' => ['who' => ['action' => 'accept', 'content' => ['name' => 'Ada']]],
+            'requestState' => 'state-1',
+        ]);
+
+        if (! \is_array($seen)) {
+            self::fail('The resource reader was never reached.');
+        }
+
+        self::assertSame('state-1', $seen[1]);
+        self::assertSame(['who'], array_keys($seen[0] ?? []));
+    }
+
+    public function testTheClientsInputResponsesAndRequestStateReachAPromptRenderer(): void
+    {
+        $seen = null;
+        $server = (new ServerBuilder())
+            ->setServerInfo('demo', '1.0.0')
+            ->addPrompt(
+                new Prompt(name: 'ask'),
+                static function (?array $args, ServerContext $ctx) use (&$seen): GetPromptResult {
+                    $seen = [$ctx->inputResponses, $ctx->requestState];
+
+                    return new GetPromptResult(messages: []);
+                },
+            )
+            ->build()
+        ;
+
+        $this->dispatch($server, 'prompts/get', [
+            'name' => 'ask',
+            'inputResponses' => ['who' => ['action' => 'accept', 'content' => ['name' => 'Ada']]],
+            'requestState' => 'state-1',
+        ]);
+
+        if (! \is_array($seen)) {
+            self::fail('The prompt renderer was never reached.');
+        }
+
+        self::assertSame('state-1', $seen[1]);
+        self::assertSame(['who'], array_keys($seen[0] ?? []));
+    }
+
     public function testAToolCallWithoutMrtrFieldsLeavesThemNullOnTheContext(): void
     {
         $seen = null;
