@@ -43,6 +43,7 @@ parameters:
 
 rules:
   - Nexus\Mcp\Tools\PHPStan\DataProviderConventionsRule
+  - Nexus\Mcp\Tools\PHPStan\NativeAssertConditionRule
   - Nexus\Mcp\Tools\PHPStan\NoAssignmentInCallArgumentRule
   - Nexus\Mcp\Tools\PHPStan\NoAssignmentInControlFlowExpressionRule
   - Nexus\Mcp\Tools\PHPStan\NoFunctionCallYodaComparisonRule
