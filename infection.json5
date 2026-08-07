@@ -38,5 +38,6 @@
             ]
         }
     },
-    "testFramework": "phpunit"
+    "testFramework": "phpunit",
+    "testFrameworkExtraArgs": "--do-not-fail-on-phpunit-deprecation"
 }
