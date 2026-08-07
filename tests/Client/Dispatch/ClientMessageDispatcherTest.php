@@ -21,6 +21,7 @@ use Nexus\Mcp\Client\Subscription\OpenSubscription;
 use Nexus\Mcp\Client\Subscription\SubscriptionRegistry;
 use Nexus\Mcp\Core\Dispatch\PendingOutboundRequests;
 use Nexus\Mcp\Core\Exception\AbstractJsonRpcProtocolException;
+use Nexus\Mcp\Core\Exception\MethodMisroutedException;
 use Nexus\Mcp\Core\Exception\MethodNotFoundException;
 use Nexus\Mcp\Core\Exception\RemoteCallFailedException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
@@ -488,28 +489,42 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         self::assertInstanceOf(JsonRpcResultResponse::class, $transport->sent[1]['message']);
     }
 
-    public function testNotificationMethodSentAsRequestIsDroppedAndLogged(): void
+    public function testNotificationMethodSentAsRequestIsAnsweredWithInvalidRequestEchoingTheId(): void
     {
         $outbound = new PendingOutboundRequests();
         $logger = new ArrayLogger();
         $dispatcher = self::buildDispatcher($outbound, logger: $logger);
         $transport = new RecordingTransport();
 
-        $dispatcher->dispatch([
+        $envelope = [
             'jsonrpc' => '2.0',
-            'id' => 1,
+            'id' => 7,
             'method' => 'notifications/cancelled',
             'params' => ['requestId' => 1],
-        ], $transport, new ReceiveContext());
+        ];
+        $dispatcher->dispatch($envelope, $transport, new ReceiveContext());
 
         $dispatcher->flushPending();
 
-        self::assertSame([], $transport->sent, 'A client sends no JSON-RPC responses, so it has no reply to offer. The server answers this case per §5.');
+        self::assertCount(1, $transport->sent);
+        $message = $transport->sent[0]['message'];
+        self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
+
+        if (! $message->id instanceof RequestId) {
+            self::fail('An envelope that carried an id is a request, so the error response must echo it.');
+        }
+
+        self::assertSame(7, $message->id->id);
+        self::assertSame(ProtocolErrorCode::InvalidRequest->value, $message->error->code);
+        self::assertStringContainsString('"notifications/cancelled"', $message->error->message);
+
         $matches = $logger->recordsMatching(LogLevel::WARNING, 'Rejecting envelope whose method was sent under the wrong JSON-RPC shape.');
         self::assertCount(1, $matches);
+        self::assertSame($envelope, $matches[0]['context']['envelope'] ?? null);
+        self::assertInstanceOf(MethodMisroutedException::class, $matches[0]['context']['exception'] ?? null);
     }
 
-    public function testRequestMethodSentAsNotificationIsDroppedAndLogged(): void
+    public function testRequestMethodSentAsNotificationIsDroppedAndLoggedNotAnsweredWithError(): void
     {
         $outbound = new PendingOutboundRequests();
         $logger = new ArrayLogger();
@@ -521,7 +536,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
 
         $dispatcher->flushPending();
 
-        self::assertSame([], $transport->sent, 'A client sends no JSON-RPC responses, so it has no reply to offer whatever shape the envelope arrived in.');
+        self::assertSame([], $transport->sent, 'An envelope carrying no id is a notification whatever method it names, and §4.1 forbids answering it.');
 
         $matches = $logger->recordsMatching(LogLevel::WARNING, 'Rejecting envelope whose method was sent under the wrong JSON-RPC shape.');
         self::assertCount(1, $matches);

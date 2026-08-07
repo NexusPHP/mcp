@@ -17,6 +17,13 @@ in `0.x`, minor releases may include breaking changes.
   implementors each declaring the `icons` property that `SchemaConformanceTest` already holds to the
   spec. `RequestDeadline::$elapsed` became `readElapsed()`, and the CS preset moved to `Nexus83`. CI
   runs the suite on 8.3, 8.4, and 8.5.
+- A client now answers a misrouted request-shaped envelope instead of dropping it. JSON-RPC 2.0 §4.1
+  splits request from notification on the envelope's `id` and never on the method it names, so an
+  envelope carrying an `id` is a request whatever method it names and §5 obliges a reply. The client
+  dispatcher applied that rule to its malformed-envelope arm but not to its misrouted-method arm, so
+  a peer sending `notifications/cancelled` with an `id` waited on a reply that never came. It now
+  receives `-32600` echoing the id, matching what the server dispatcher already did. An envelope
+  carrying no `id` is still dropped and logged.
 
 ## [v0.9.0](https://github.com/NexusPHP/mcp/compare/v0.8.0...v0.9.0) - 2026-08-06
 
