@@ -7,7 +7,7 @@ until you enable the extension explicitly.
 ```php
 use Nexus\Mcp\Server\ServerBuilder;
 
-$server = new ServerBuilder()
+$server = (new ServerBuilder())
     ->setServerInfo('demo', '1.0.0')
     ->enableExtension(new AcmeSnapshotExtension($store))
     ->build();

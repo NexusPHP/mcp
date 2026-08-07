@@ -133,7 +133,7 @@ counterpart for the server (`ClientCredentialsServerExtension`,
 `EnterpriseAuthorizationServerExtension`), enabled like [any extension](extensions.md):
 
 ```php
-$client = new ClientBuilder()
+$client = (new ClientBuilder())
     ->setClientInfo('acme-worker', '1.0.0')
     ->enableExtension(new ClientCredentialsClientExtension())
     ->build();

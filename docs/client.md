@@ -12,7 +12,7 @@ apart from [mirrored tool parameters](client/requests.md#mirrored-tool-parameter
 use Nexus\Mcp\Client\ClientBuilder;
 use Nexus\Mcp\Client\Transport\StdioClientTransport;
 
-$client = new ClientBuilder()
+$client = (new ClientBuilder())
     ->setClientInfo(name: 'my-client', version: '1.0.0')
     ->build()
 ;

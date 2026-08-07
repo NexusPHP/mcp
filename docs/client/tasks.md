@@ -9,7 +9,7 @@ use Nexus\Mcp\Client\ClientBuilder;
 use Nexus\Mcp\Extension\Tasks\Client\TaskClient;
 use Nexus\Mcp\Extension\Tasks\Client\TasksClientExtension;
 
-$client = new ClientBuilder()
+$client = (new ClientBuilder())
     ->setClientInfo('demo', '1.0.0')
     ->enableExtension(new TasksClientExtension())
     ->build();

@@ -56,7 +56,7 @@ use Nexus\Mcp\Server\ServerBuilder;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Server\Transport\StdioServerTransport;
 
-$server = new ServerBuilder()
+$server = (new ServerBuilder())
     ->setServerInfo(name: 'hello', version: '0.1.0')
     ->addTool(
         tool: new Tool(

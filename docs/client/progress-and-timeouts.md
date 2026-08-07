@@ -32,7 +32,7 @@ the life of the process. Two bounds apply, both configurable at build time and b
 | `setMaxRequestTimeout(?float)` | `600.0` | Seconds the request may run in total, however much progress arrives. |
 
 ```php
-$client = new ClientBuilder()
+$client = (new ClientBuilder())
     ->setClientInfo(name: 'my-client', version: '1.0.0')
     ->setRequestTimeout(30.0)
     ->setMaxRequestTimeout(300.0)

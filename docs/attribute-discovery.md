@@ -33,7 +33,7 @@ final class MyServer
     }
 }
 
-$server = new ServerBuilder()->register(new MyServer())->build();
+$server = (new ServerBuilder())->register(new MyServer())->build();
 $server->run(new StdioServerTransport());
 ```
 

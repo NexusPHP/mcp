@@ -9,7 +9,7 @@ use Nexus\Mcp\Client\ClientBuilder;
 use Nexus\Mcp\Extension\Apps\Client\AppClient;
 use Nexus\Mcp\Extension\Apps\Client\AppsClientExtension;
 
-$client = new ClientBuilder()
+$client = (new ClientBuilder())
     ->setClientInfo('demo', '1.0.0')
     ->enableExtension(new AppsClientExtension())
     ->build();

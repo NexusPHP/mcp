@@ -7,7 +7,7 @@ Build one with the fluent `ServerBuilder` and run it against any transport imple
 use Nexus\Mcp\Server\ServerBuilder;
 use Nexus\Mcp\Server\Transport\StdioServerTransport;
 
-$server = new ServerBuilder()
+$server = (new ServerBuilder())
     ->setServerInfo(name: 'my-server', version: '1.0.0')
     // ... register features ...
     ->build()

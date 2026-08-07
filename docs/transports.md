@@ -244,7 +244,7 @@ What the caller sees:
 Off by default, and opt-in per client:
 
 ```php
-$client = new ClientBuilder()
+$client = (new ClientBuilder())
     ->setClientInfo('demo', '1.0.0')
     ->setRetryLostRequests(true)
     ->build();
@@ -350,7 +350,7 @@ $clientSide->send(new DiscoverRequest(id: new RequestId(id: 1), params: new Empt
 
 // Run the server. `Server::run()` calls `$serverSide->start()`, which drains the queue
 // in arrival order into the dispatcher's onMessage listener.
-$server = new ServerBuilder()->setServerInfo(name: 'test', version: '0.1.0')->build();
+$server = (new ServerBuilder())->setServerInfo(name: 'test', version: '0.1.0')->build();
 $serverRun = \Amp\async(static fn() => $server->run($serverSide));
 
 // Close to let run() return. close() cascades to the peer.
@@ -411,7 +411,7 @@ use Nyholm\Psr7\Factory\Psr17Factory;
 $factory = new Psr17Factory();
 $transport = new StreamableHttpServerTransport($factory, $factory);
 
-$server = new ServerBuilder()->setServerInfo('demo', '1.0.0')->build();
+$server = (new ServerBuilder())->setServerInfo('demo', '1.0.0')->build();
 $server->listen($transport);   // attaches the dispatcher, does not block
 
 // Then, per inbound HTTP request:
@@ -467,7 +467,7 @@ set of tools. `ServerBuilder::getToolStore()` returns it whether you supplied it
 the builder assembled it from `addTool()` and `register()` entries:
 
 ```php
-$builder = new ServerBuilder()->setServerInfo('demo', '1.0.0')->register(new WeatherTools());
+$builder = (new ServerBuilder())->setServerInfo('demo', '1.0.0')->register(new WeatherTools());
 $server = $builder->build();
 
 $endpoint = new SecuredHttpEndpoint(
@@ -519,7 +519,7 @@ use Nexus\Mcp\Client\Transport\StreamableHttpClientTransport;
 
 $transport = new StreamableHttpClientTransport('https://mcp.example.com/mcp');
 
-$client = new ClientBuilder()->setClientInfo('demo', '1.0.0')->build();
+$client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
 $client->connect($transport);
 ```
 

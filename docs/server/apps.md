@@ -24,7 +24,7 @@ $dashboard = new UiResource(
     ),
 );
 
-$server = new ServerBuilder()
+$server = (new ServerBuilder())
     ->setServerInfo('demo', '1.0.0')
     ->enableExtension(new AppsServerExtension())
     ->addResource($dashboard->resource, static fn(): string => file_get_contents(__DIR__.'/dashboard.html'))
@@ -83,7 +83,7 @@ public function weather(string $city): string { /* ... */ }
 ```
 
 `UiToolMeta` validates the `ui://` scheme on `resourceUri`, and
-`new UiToolMeta(resourceUri: ..., visibility: [ToolVisibility::App])->toArray()` produces the
+`(new UiToolMeta(resourceUri: ..., visibility: [ToolVisibility::App]))->toArray()` produces the
 same array for the manual path. An omitted `visibility` means the spec default
 `["model", "app"]`, and the SDK never materialises the default on the envelope. The deprecated
 flat `_meta["ui/resourceUri"]` key is never emitted.

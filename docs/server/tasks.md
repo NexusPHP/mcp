@@ -10,7 +10,7 @@ use Nexus\Mcp\Extension\Tasks\Server\TaskSupport;
 use Nexus\Mcp\Extension\Tasks\Server\ToolTaskPolicy;
 use Nexus\Mcp\Server\ServerBuilder;
 
-$server = new ServerBuilder()
+$server = (new ServerBuilder())
     ->setServerInfo('demo', '1.0.0')
     ->register($tools)
     ->enableExtension(new TasksServerExtension(

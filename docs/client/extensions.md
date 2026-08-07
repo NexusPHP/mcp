@@ -8,7 +8,7 @@ server's advertised capabilities.
 ```php
 use Nexus\Mcp\Client\ClientBuilder;
 
-$client = new ClientBuilder()
+$client = (new ClientBuilder())
     ->setClientInfo('demo', '1.0.0')
     ->enableExtension(new AcmeSnapshotClientExtension())
     ->build();

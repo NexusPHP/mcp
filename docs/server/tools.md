@@ -128,7 +128,7 @@ with `ServerBuilder::setSchemaValidator()`.
 ```php
 use Nexus\Mcp\Server\Validation\SchemaValidatorInterface;
 
-$server = new ServerBuilder()
+$server = (new ServerBuilder())
     ->setSchemaValidator($myValidator) // any SchemaValidatorInterface
     // ...
     ->build()
