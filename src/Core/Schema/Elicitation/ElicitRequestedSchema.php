@@ -22,7 +22,7 @@ use Nexus\Mcp\Core\Schema\Arrayable;
  *
  * @implements Arrayable<array{
  *   type: 'object',
- *   properties: array<non-empty-string, template-type<PrimitiveSchemaDefinition, Arrayable, 'T'>>,
+ *   properties: array<int|non-empty-string, template-type<PrimitiveSchemaDefinition, Arrayable, 'T'>>,
  *   required?: list<non-empty-string>,
  *   '$schema'?: non-empty-string,
  * }>
@@ -34,19 +34,16 @@ final readonly class ElicitRequestedSchema implements Arrayable
     public const string TYPE = 'object';
 
     /**
-     * @param array<non-empty-string, PrimitiveSchemaDefinition> $properties
-     * @param null|list<non-empty-string>                        $required
-     * @param null|non-empty-string                              $schema
+     * @param array<int|non-empty-string, PrimitiveSchemaDefinition> $properties
+     * @param null|list<non-empty-string>                            $required
+     * @param null|non-empty-string                                  $schema
      */
     public function __construct(
         public array $properties,
         public ?array $required = null,
         public ?string $schema = null,
     ) {
-        Assert::that($properties)
-            ->isMap('"requestedSchema.properties" must be a string-keyed map.')
-            ->keys()->isNonEmptyString('each "requestedSchema.properties" key must be a non-empty string.')
-        ;
+        Assert::that($properties)->keys()->isIntOrNonEmptyString('each "requestedSchema.properties" key must be an int or non-empty string.');
         Assert::that($properties)->values()->isInstanceOf(PrimitiveSchemaDefinition::class);
 
         if (null !== $required) {
@@ -67,15 +64,12 @@ final readonly class ElicitRequestedSchema implements Arrayable
         Assert::that($type)->isIdentical(self::TYPE, '"requestedSchema.type" must be {other}, {value} given.');
 
         Assert::that($data)->hasOffset('properties', '"requestedSchema" is missing the required "properties" key.');
-        Assert::that($data['properties'])
-            ->isArray('"requestedSchema.properties" must be an object, {type} given.')
-            ->isMap('"requestedSchema.properties" must be a string-keyed object.')
-        ;
+        Assert::that($data['properties'])->isArray('"requestedSchema.properties" must be an object, {type} given.');
 
         $properties = [];
 
         foreach ($data['properties'] as $name => $shape) {
-            Assert::that($name)->isNonEmptyString('each "requestedSchema.properties" key must be a non-empty string.');
+            Assert::that($name)->isIntOrNonEmptyString('each "requestedSchema.properties" key must be an int or non-empty string.');
             Assert::that($shape)
                 ->isArray('"requestedSchema.properties" must be an object, {type} given.')
                 ->isMap('"requestedSchema.properties" must be a string-keyed object.')
@@ -127,8 +121,8 @@ final readonly class ElicitRequestedSchema implements Arrayable
     {
         $data = $this->toArray();
 
-        if ([] === $this->properties) {
-            $data['properties'] = new \stdClass();
+        if (array_is_list($this->properties)) {
+            $data['properties'] = (object) $data['properties'];
         }
 
         return $data;

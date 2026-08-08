@@ -74,6 +74,7 @@ final class SchemaPayloadRoundTripTest extends AbstractRoundTripTestCase
         'ClientCapabilities' => true,
         'ElicitRequest' => true,
         'ElicitRequestedSchema' => true,
+        'ElicitResult' => true,
         'GenericResultMetaObject' => true,
         'NotificationMetaObject' => true,
         'PayloadMetaObject' => true,

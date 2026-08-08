@@ -230,9 +230,9 @@ final class ToolTest extends AbstractMcpTestCase
             'tool "inputSchema" "properties" must be an object, string given.',
         ];
 
-        yield 'properties list-keyed' => [
+        yield 'properties entry not an object or boolean' => [
             ['type' => 'object', 'properties' => ['x']],
-            'tool "inputSchema" "properties" must be a string-keyed object.',
+            'tool "inputSchema" property entry must be an object or boolean, string given.',
         ];
 
         yield 'property entry not an object' => [
@@ -523,6 +523,59 @@ final class ToolTest extends AbstractMcpTestCase
         ]);
 
         self::assertStringContainsString('"dependentRequired":{"a":[]}', (string) json_encode($tool));
+    }
+
+    public function testJsonSerializeKeepsADraft07TupleItemsAsAList(): void
+    {
+        $tool = new Tool(name: 'ping', inputSchema: [
+            'type' => 'object',
+            'items' => [['type' => 'string'], ['type' => 'object', 'properties' => []]],
+        ]);
+
+        self::assertSame(
+            '{"name":"ping","inputSchema":{"type":"object","items":[{"type":"string"},{"type":"object","properties":{}}]}}',
+            json_encode($tool),
+        );
+    }
+
+    public function testJsonSerializeEmitsAPropertyNameThatIsAllDigitsAsAnObject(): void
+    {
+        $tool = new Tool(name: 'ping', inputSchema: [
+            'type' => 'object',
+            'properties' => ['0' => ['type' => 'string']],
+        ]);
+
+        self::assertSame(
+            '{"name":"ping","inputSchema":{"type":"object","properties":{"0":{"type":"string"}}}}',
+            json_encode($tool),
+        );
+    }
+
+    public function testJsonSerializePassesABooleanSubSchemaThrough(): void
+    {
+        $tool = new Tool(name: 'ping', inputSchema: [
+            'type' => 'object',
+            'additionalProperties' => false,
+            'properties' => ['a' => true],
+        ]);
+
+        self::assertSame(
+            '{"name":"ping","inputSchema":{"type":"object","additionalProperties":false,"properties":{"a":true}}}',
+            json_encode($tool),
+        );
+    }
+
+    public function testJsonSerializeEmitsADigitNamedSingleSubSchemaAsAnObject(): void
+    {
+        $tool = new Tool(name: 'ping', inputSchema: [
+            'type' => 'object',
+            'additionalProperties' => ['0' => ['type' => 'string']],
+        ]);
+
+        self::assertSame(
+            '{"name":"ping","inputSchema":{"type":"object","additionalProperties":{"0":{"type":"string"}}}}',
+            json_encode($tool),
+        );
     }
 
     /**

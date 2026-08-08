@@ -292,4 +292,24 @@ final class ReadResourceRequestParamsTest extends AbstractMcpTestCase
             '"params.uri" must be a valid RFC 3986 absolute URI, \'tmp/a.txt\' given.',
         ];
     }
+
+    public function testJsonSerializeEmitsANestedInputResponsesDigitContentKeyAsAnObject(): void
+    {
+        $params = ReadResourceRequestParams::fromArray([
+            'uri' => 'file:///a',
+            'inputResponses' => ['ask' => ['action' => 'accept', 'content' => ['0' => 'v']]],
+            '_meta' => [
+                'io.modelcontextprotocol/protocolVersion' => '2026-07-28',
+                'io.modelcontextprotocol/clientCapabilities' => [],
+            ],
+        ]);
+
+        self::assertStringContainsString('"content":{"0":"v"}', (string) json_encode($params));
+
+        $serialized = $params->jsonSerialize();
+        self::assertArrayHasKey('inputResponses', $serialized);
+        self::assertIsArray($serialized['inputResponses']);
+        self::assertArrayHasKey('ask', $serialized['inputResponses']);
+        self::assertIsArray($serialized['inputResponses']['ask']);
+    }
 }

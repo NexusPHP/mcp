@@ -330,4 +330,24 @@ final class CallToolRequestParamsTest extends AbstractMcpTestCase
             '"params.requestState" must be a string, int given.',
         ];
     }
+
+    public function testJsonSerializeEmitsANestedInputResponsesDigitContentKeyAsAnObject(): void
+    {
+        $params = CallToolRequestParams::fromArray([
+            'name' => 'tool',
+            'inputResponses' => ['ask' => ['action' => 'accept', 'content' => ['0' => 'v']]],
+            '_meta' => [
+                'io.modelcontextprotocol/protocolVersion' => '2026-07-28',
+                'io.modelcontextprotocol/clientCapabilities' => [],
+            ],
+        ]);
+
+        self::assertStringContainsString('"content":{"0":"v"}', (string) json_encode($params));
+
+        $serialized = $params->jsonSerialize();
+        self::assertArrayHasKey('inputResponses', $serialized);
+        self::assertIsArray($serialized['inputResponses']);
+        self::assertArrayHasKey('ask', $serialized['inputResponses']);
+        self::assertIsArray($serialized['inputResponses']['ask']);
+    }
 }

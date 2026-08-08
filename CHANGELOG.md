@@ -18,6 +18,13 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Fixed
 
+- A JSON Schema property name made only of digits is decoded rather than refused, and re-encodes as an
+  object. Covers a tool's `inputSchema` and `outputSchema`, an elicitation's `requestedSchema`, and an
+  elicit result's `content`, whose keys are those same names. An empty `content` now emits `{}` too.
+  A JSON array arriving in one of those object-typed slots is normalised to an object rather than
+  refused, since `json_decode` cannot tell it from an object whose names run `0`…`n-1`. Not yet
+  covered: `arguments`, `inputRequests` and `inputResponses` still hold string keys, so a tool
+  declaring such a property cannot yet be called.
 - A tool's `inputSchema` and `outputSchema` emit an empty sub-schema as `{}` rather than `[]`, at any
   nesting depth, so `{"type":"object","properties":{}}` survives a round trip as valid JSON Schema. An
   elicitation's `requestedSchema` does the same, including when it rides on a `tools/call` or

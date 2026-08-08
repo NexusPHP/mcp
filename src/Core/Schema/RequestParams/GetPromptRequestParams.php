@@ -137,4 +137,19 @@ final readonly class GetPromptRequestParams extends InputResponseRequestParams
 
         return $data;
     }
+
+    #[\Override]
+    public function jsonSerialize(): array
+    {
+        $data = parent::jsonSerialize();
+
+        if (null !== $this->inputResponses) {
+            $data['inputResponses'] = array_map(
+                static fn(InputResponse $response): array|\stdClass => $response->jsonSerialize(),
+                $this->inputResponses,
+            );
+        }
+
+        return $data;
+    }
 }

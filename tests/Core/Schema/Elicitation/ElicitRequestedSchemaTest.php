@@ -183,19 +183,18 @@ final class ElicitRequestedSchemaTest extends AbstractMcpTestCase
         self::assertSame($original->toArray(), $rebuilt->toArray());
     }
 
-    public function testConstructorRejectsListKeyedProperties(): void
+    public function testConstructorAcceptsAPropertyNameThatIsAllDigits(): void
     {
-        $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageIs('"requestedSchema.properties" must be a string-keyed map.');
+        $schema = new ElicitRequestedSchema(properties: ['0' => new StringSchema()]);
 
-        // @phpstan-ignore argument.type
-        new ElicitRequestedSchema(properties: [new StringSchema()]);
+        self::assertSame([0], array_keys($schema->properties));
+        self::assertSame('{"type":"object","properties":{"0":{"type":"string"}}}', json_encode($schema));
     }
 
     public function testConstructorRejectsEmptyPropertyName(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageIs('each "requestedSchema.properties" key must be a non-empty string.');
+        $this->expectExceptionMessageIs('each "requestedSchema.properties" key must be an int or non-empty string.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new ElicitRequestedSchema(properties: ['' => new StringSchema()]);
@@ -271,11 +270,6 @@ final class ElicitRequestedSchemaTest extends AbstractMcpTestCase
         yield 'properties not an object' => [
             ['type' => 'object', 'properties' => 'oops'],
             '"requestedSchema.properties" must be an object, string given.',
-        ];
-
-        yield 'properties list-keyed' => [
-            ['type' => 'object', 'properties' => ['oops']],
-            '"requestedSchema.properties" must be a string-keyed object.',
         ];
 
         yield 'property entry not an object' => [

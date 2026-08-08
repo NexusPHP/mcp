@@ -109,6 +109,10 @@ final readonly class UpdateTaskRequestParams extends RequestParams
     public function jsonSerialize(): array
     {
         $data = parent::jsonSerialize();
+        $data['inputResponses'] = array_map(
+            static fn(array|InputResponse $response): array|\stdClass => $response instanceof InputResponse ? $response->jsonSerialize() : $response,
+            $this->inputResponses,
+        );
 
         // The slot is required, so an empty map must still encode as `{}`.
         if ([] === $this->inputResponses) {

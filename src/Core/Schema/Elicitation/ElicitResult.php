@@ -23,7 +23,7 @@ use Nexus\Mcp\Core\Validation\EnumValueValidator;
  *
  * @implements InputResponse<array{
  *   action: non-empty-string,
- *   content?: array<non-empty-string, bool|float|int|list<string>|string>,
+ *   content?: array<int|non-empty-string, bool|float|int|list<string>|string>,
  * }>
  *
  * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#elicitresult
@@ -31,18 +31,15 @@ use Nexus\Mcp\Core\Validation\EnumValueValidator;
 final readonly class ElicitResult implements InputResponse
 {
     /**
-     * @param null|array<non-empty-string, bool|float|int|list<string>|string> $content
+     * @param null|array<int|non-empty-string, bool|float|int|list<string>|string> $content
      */
     public function __construct(public ElicitAction $action, public ?array $content = null)
     {
         if (null !== $content) {
-            Assert::that($content)
-                ->isMap('elicit result "content" must be a string-keyed map.')
-                ->keys()->isNonEmptyString('each elicit result "content" key must be a non-empty string.')
-            ;
+            Assert::that($content)->keys()->isIntOrNonEmptyString('each elicit result "content" key must be an int or non-empty string.');
 
             foreach ($content as $key => $value) {
-                self::validateValue($key, $value);
+                self::validateValue((string) $key, $value);
             }
         }
     }
@@ -56,16 +53,13 @@ final readonly class ElicitResult implements InputResponse
         $content = null;
 
         if (\array_key_exists('content', $data)) {
-            Assert::that($data['content'])
-                ->isArray('elicit result "content" must be an object, {type} given.')
-                ->isMap('elicit result "content" must be a string-keyed object.')
-            ;
+            Assert::that($data['content'])->isArray('elicit result "content" must be an object, {type} given.');
 
             foreach ($data['content'] as $key => $value) {
                 self::validateValue('content entry '.$key, $value);
             }
 
-            /** @var array<non-empty-string, bool|float|int|list<string>|string> $content */
+            /** @var array<int|non-empty-string, bool|float|int|list<string>|string> $content */
             $content = $data['content'];
         }
 
@@ -87,7 +81,13 @@ final readonly class ElicitResult implements InputResponse
     #[\Override]
     public function jsonSerialize(): array
     {
-        return $this->toArray();
+        $data = $this->toArray();
+
+        if (null !== $this->content && array_is_list($this->content)) {
+            $data['content'] = (object) $this->content;
+        }
+
+        return $data;
     }
 
     private static function validateValue(string $context, mixed $value): void

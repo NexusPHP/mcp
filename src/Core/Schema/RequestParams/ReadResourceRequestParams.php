@@ -132,4 +132,19 @@ final readonly class ReadResourceRequestParams extends ResourceRequestParams imp
 
         return $data;
     }
+
+    #[\Override]
+    public function jsonSerialize(): array
+    {
+        $data = parent::jsonSerialize();
+
+        if (null !== $this->inputResponses) {
+            $data['inputResponses'] = array_map(
+                static fn(InputResponse $response): array|\stdClass => $response->jsonSerialize(),
+                $this->inputResponses,
+            );
+        }
+
+        return $data;
+    }
 }

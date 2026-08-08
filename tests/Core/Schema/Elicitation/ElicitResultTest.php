@@ -107,19 +107,18 @@ final class ElicitResultTest extends AbstractMcpTestCase
         self::assertSame($original->toArray(), $rebuilt->toArray());
     }
 
-    public function testConstructorRejectsListKeyedContent(): void
+    public function testConstructorAcceptsAContentKeyThatIsAllDigits(): void
     {
-        $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageIs('elicit result "content" must be a string-keyed map.');
+        $result = new ElicitResult(action: ElicitAction::Accept, content: ['0' => 'a']);
 
-        // @phpstan-ignore argument.type
-        new ElicitResult(action: ElicitAction::Accept, content: ['a']);
+        self::assertSame([0 => 'a'], $result->content);
+        self::assertSame('{"action":"accept","content":{"0":"a"}}', json_encode($result));
     }
 
     public function testConstructorRejectsEmptyContentKey(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageIs('each elicit result "content" key must be a non-empty string.');
+        $this->expectExceptionMessageIs('each elicit result "content" key must be an int or non-empty string.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new ElicitResult(action: ElicitAction::Accept, content: ['' => 'v']);
@@ -178,11 +177,6 @@ final class ElicitResultTest extends AbstractMcpTestCase
         yield 'content not an object' => [
             ['action' => 'accept', 'content' => 'oops'],
             'elicit result "content" must be an object, string given.',
-        ];
-
-        yield 'content list-keyed' => [
-            ['action' => 'accept', 'content' => ['x']],
-            'elicit result "content" must be a string-keyed object.',
         ];
 
         yield 'content entry nested object' => [

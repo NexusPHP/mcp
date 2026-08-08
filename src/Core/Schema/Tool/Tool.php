@@ -56,7 +56,7 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
      */
     private const array SUBSCHEMA_KEYWORDS = [
         'additionalProperties', 'contains', 'contentSchema', 'else', 'if',
-        'items', 'not', 'propertyNames', 'then', 'unevaluatedItems', 'unevaluatedProperties',
+        'not', 'propertyNames', 'then', 'unevaluatedItems', 'unevaluatedProperties',
     ];
 
     /**
@@ -255,13 +255,16 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
             }
 
             if (\in_array($keyword, self::SUBSCHEMA_MAP_KEYWORDS, true)) {
-                $schema[$keyword] = [] === $value ? new \stdClass() : array_map(self::encodeSubSchema(...), $value);
+                $mapped = array_map(self::encodeSubSchema(...), $value);
+                $schema[$keyword] = array_is_list($value) ? (object) $mapped : $mapped;
             } elseif (\in_array($keyword, self::SUBSCHEMA_LIST_KEYWORDS, true)) {
                 $schema[$keyword] = array_map(self::encodeSubSchema(...), $value);
+            } elseif ('items' === $keyword) {
+                $schema[$keyword] = self::encodeItems($value);
             } elseif (\in_array($keyword, self::SUBSCHEMA_KEYWORDS, true)) {
                 $schema[$keyword] = self::encodeSubSchema($value);
-            } elseif ([] === $value && \in_array($keyword, self::OBJECT_KEYWORDS, true)) {
-                $schema[$keyword] = new \stdClass();
+            } elseif (array_is_list($value) && \in_array($keyword, self::OBJECT_KEYWORDS, true)) {
+                $schema[$keyword] = (object) $value;
             }
         }
 
@@ -270,6 +273,8 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
 
     /**
      * A sub-schema is an object or a boolean, so anything else passes through untouched.
+     * A list here decoded from an object whose names run 0..n-1, since no sub-schema slot
+     * takes an array.
      */
     private static function encodeSubSchema(mixed $value): mixed
     {
@@ -277,11 +282,27 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
             return $value;
         }
 
+        $encoded = self::encodeSchema($value);
+
+        return array_is_list($value) ? (object) $encoded : $encoded;
+    }
+
+    /**
+     * Draft-07 also spells `items` as a tuple, so a non-empty list here stays a list.
+     *
+     * @param array<array-key, mixed> $value
+     *
+     * @return array<array-key, mixed>|\stdClass
+     */
+    private static function encodeItems(array $value): array|\stdClass
+    {
         if ([] === $value) {
             return new \stdClass();
         }
 
-        return self::encodeSchema($value);
+        return array_is_list($value)
+            ? array_map(self::encodeSubSchema(...), $value)
+            : self::encodeSchema($value);
     }
 
     /**
@@ -328,10 +349,7 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
 
         if (\array_key_exists('properties', $schema)) {
             $properties = $schema['properties'];
-            Assert::that($properties)
-                ->isArray(\sprintf('%s "properties" must be an object, {type} given.', $context))
-                ->isMap(\sprintf('%s "properties" must be a string-keyed object.', $context))
-            ;
+            Assert::that($properties)->isArray(\sprintf('%s "properties" must be an object, {type} given.', $context));
 
             foreach ($properties as $entry) {
                 // JSON Schema 2020-12 spells a sub-schema as an object or a boolean, where `true` admits

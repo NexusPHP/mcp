@@ -245,4 +245,18 @@ final class UpdateTaskRequestParamsTest extends AbstractMcpTestCase
             '"params._meta" must be an object, string given.',
         ];
     }
+
+    public function testJsonSerializeEmitsANestedInputResponsesDigitContentKeyAsAnObject(): void
+    {
+        $params = UpdateTaskRequestParams::fromArray([
+            'taskId' => 'task-1',
+            'inputResponses' => ['ask' => ['action' => 'accept', 'content' => ['0' => 'v']]],
+            '_meta' => [
+                'io.modelcontextprotocol/protocolVersion' => '2026-07-28',
+                'io.modelcontextprotocol/clientCapabilities' => [],
+            ],
+        ]);
+
+        self::assertStringContainsString('"content":{"0":"v"}', (string) json_encode($params));
+    }
 }
