@@ -41,7 +41,7 @@ body. Supporting this is mandatory for a client on the Streamable HTTP transport
 - A `-32020 HeaderMismatch` rejection re-lists the tool and retries the call once, so a cached schema that
   has fallen behind the server's recovers on its own.
 
-Two consequences worth knowing:
+Consequences worth knowing:
 
 **A tool with invalid declarations disappears from `listTools()`.** The spec requires a client to exclude a
 tool it cannot mirror rather than call it unmirrored, since the server would reject the call anyway. The tool
@@ -55,6 +55,12 @@ server answers `-32020 HeaderMismatch` and the client recovers by listing and re
 round trip each time, so call `listTools()` first when you can. A second mismatch on the retry propagates to
 you, as does any other error code. `disconnect()` clears the cache, since it described the server you just
 left.
+
+**The re-listing walk is bounded.** It runs inside the `callTool()` you are awaiting, and every page is
+answered, so no request deadline can end it. It stops when the server sends a cursor it has already
+followed, and at 100 pages either way, logging a warning in both cases. Giving up also forgets the tool's
+cached declarations, so the one retry goes out unmirrored rather than carrying the header the server just
+rejected. A listing deeper than 100 pages therefore behaves like a tool you never listed.
 
 None of this applies on stdio: that transport may ignore the annotations entirely, so the listing is passed
 through untouched and no tool is dropped.

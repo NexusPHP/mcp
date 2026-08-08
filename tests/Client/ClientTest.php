@@ -1739,6 +1739,103 @@ final class ClientTest extends AbstractMcpTestCase
         self::assertSame(2, self::countRequests($transport, ListToolsRequest::class), 'The opening listing plus one refresh page.');
     }
 
+    public function testHeaderMismatchRefreshStopsWhenTheServerRepeatsACursor(): void
+    {
+        $logger = new ArrayLogger();
+        $transport = new MirroringRecordingTransport();
+        $client = self::connectMirroring($transport, $logger);
+        self::listToolsWithDeclarations($client, $transport);
+
+        $call = async(static fn() => $client->callTool('good', ['region' => 'us-west1']));
+        self::settleHeaderMismatch($transport);
+
+        // Every page names the same next cursor and never yields the tool, so the walk must break
+        // rather than re-request the page forever.
+        for ($page = 0; $page < 2; ++$page) {
+            $transport->nextSend()->await();
+            $transport->emitMessage([
+                'jsonrpc' => '2.0',
+                'id' => self::lastRequestId($transport),
+                'result' => [
+                    'tools' => [self::toolListedUnder('other', 'Other')],
+                    'nextCursor' => 'stuck',
+                    'ttlMs' => 0,
+                    'cacheScope' => 'private',
+                ],
+            ]);
+        }
+
+        // Counted before the retry is settled, so a broken guard trips this rather than the parser.
+        self::assertSame(3, self::countRequests($transport, ListToolsRequest::class), 'The opening listing plus two refresh pages.');
+
+        // The refresh failed, so the stale binding is forgotten and the retry carries no header.
+        $transport->nextSend()->await();
+        self::assertSame([], self::lastContext($transport)->headers);
+        self::settleToolCall($transport, awaitSend: false);
+        $call->await();
+
+        $matches = $logger->recordsMatching(LogLevel::WARNING, 'Server sent cursor {cursor} again while re-listing tool {tool}, first seen on page {page}, so the refresh stopped.');
+        self::assertCount(1, $matches);
+        self::assertSame(['cursor' => 'stuck', 'tool' => 'good', 'page' => 1], $matches[0]['context']);
+    }
+
+    public function testHeaderMismatchRefreshStopsAtItsPageCeiling(): void
+    {
+        $logger = new ArrayLogger();
+        $transport = new MirroringRecordingTransport();
+        $client = self::connectMirroring($transport, $logger);
+        self::listToolsWithDeclarations($client, $transport);
+
+        $call = async(static fn() => $client->callTool('good', ['region' => 'us-west1']));
+        self::settleHeaderMismatch($transport);
+
+        // A fresh cursor every time defeats the repeat guard, so only the ceiling ends the walk.
+        for ($page = 0; $page < 100; ++$page) {
+            $transport->nextSend()->await();
+            $transport->emitMessage([
+                'jsonrpc' => '2.0',
+                'id' => self::lastRequestId($transport),
+                'result' => [
+                    'tools' => [self::toolListedUnder('other', 'Other')],
+                    'nextCursor' => \sprintf('page-%d', $page),
+                    'ttlMs' => 0,
+                    'cacheScope' => 'private',
+                ],
+            ]);
+        }
+
+        // Counted before the retry is settled, so a broken ceiling trips this rather than the parser.
+        self::assertSame(101, self::countRequests($transport, ListToolsRequest::class), 'The opening listing plus the 100-page ceiling.');
+
+        // The refresh never reached the tool, so the stale binding is forgotten.
+        $transport->nextSend()->await();
+        self::assertSame([], self::lastContext($transport)->headers);
+        self::settleToolCall($transport, awaitSend: false);
+        $call->await();
+
+        $matches = $logger->recordsMatching(LogLevel::WARNING, 'Re-listing tool {tool} passed {pages} pages without reaching it, so the refresh stopped.');
+        self::assertCount(1, $matches);
+        self::assertSame(['tool' => 'good', 'pages' => 100], $matches[0]['context']);
+    }
+
+    public function testHeaderMismatchRefreshIsSkippedOnANonMirroringTransport(): void
+    {
+        $transport = new RecordingTransport();
+        $client = self::connectMirroring($transport);
+        self::discover($client, $transport);
+
+        $call = async(static fn() => $client->callTool('good', ['region' => 'us-west1']));
+        self::settleHeaderMismatch($transport);
+
+        // No binding cache exists to refresh, so the retry goes straight back out. Counted before the
+        // retry is settled, so a broken guard trips this rather than the parser.
+        $transport->nextSend()->await();
+        self::assertSame(0, self::countRequests($transport, ListToolsRequest::class));
+
+        self::settleToolCall($transport, awaitSend: false);
+        $call->await();
+    }
+
     public function testHeaderMismatchRefreshWalksToThePageHoldingTheTool(): void
     {
         $transport = new MirroringRecordingTransport();
