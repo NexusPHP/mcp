@@ -311,20 +311,19 @@ final class GetTaskResultTest extends AbstractMcpTestCase
         );
     }
 
-    public function testConstructorRejectsListKeyedInputRequests(): void
+    public function testConstructorAcceptsAServerAssignedIdThatIsAllDigits(): void
     {
-        $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageIs('"result.inputRequests" must be a string-keyed object.');
-
-        new GetTaskResult(
+        $result = new GetTaskResult(
             taskId: 'task-1',
             status: TaskStatus::InputRequired,
             createdAt: '2026-08-04T12:00:00+00:00',
             lastUpdatedAt: '2026-08-04T12:00:00+00:00',
             ttlMs: null,
-            // @phpstan-ignore argument.type
-            inputRequests: [self::createElicitRequest()],
+            inputRequests: ['0' => self::createElicitRequest()],
         );
+
+        self::assertSame([0], array_keys($result->inputRequests ?? []));
+        self::assertStringContainsString('"inputRequests":{"0":', (string) json_encode($result));
     }
 
     /**
@@ -486,6 +485,38 @@ final class GetTaskResultTest extends AbstractMcpTestCase
         self::assertIsArray($serialized['inputRequests']);
         self::assertArrayHasKey('ask', $serialized['inputRequests']);
         self::assertIsArray($serialized['inputRequests']['ask']);
+    }
+
+    public function testConstructorRejectsANonInputRequestEntry(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs('each "result.inputRequests" entry must be an InputRequest, string given.');
+
+        new GetTaskResult(
+            taskId: 'task-1',
+            status: TaskStatus::InputRequired,
+            createdAt: '2026-08-04T12:00:00+00:00',
+            lastUpdatedAt: '2026-08-04T12:00:00+00:00',
+            ttlMs: null,
+            // @phpstan-ignore argument.type
+            inputRequests: ['ask' => 'oops'],
+        );
+    }
+
+    public function testConstructorRejectsAnEmptyInputRequestKey(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs('each "result.inputRequests" key must be an int or non-empty string.');
+
+        new GetTaskResult(
+            taskId: 'task-1',
+            status: TaskStatus::InputRequired,
+            createdAt: '2026-08-04T12:00:00+00:00',
+            lastUpdatedAt: '2026-08-04T12:00:00+00:00',
+            ttlMs: null,
+            // @phpstan-ignore argument.type
+            inputRequests: ['' => self::createElicitRequest()],
+        );
     }
 
     private static function createWorking(): GetTaskResult

@@ -69,10 +69,10 @@ final class ToolTaskRunner
      * with, whether carried over from the origin request or accumulated by
      * the store.
      *
-     * @param non-empty-string                  $taskId
-     * @param ServerContext                     $origin         The context of the request that triggered the run
-     * @param null|array<string, InputResponse> $inputResponses Continuation answers for the background context
-     * @param null|string                       $requestState   Continuation token for the background context
+     * @param non-empty-string                                $taskId
+     * @param ServerContext                                   $origin         The context of the request that triggered the run
+     * @param null|array<int|non-empty-string, InputResponse> $inputResponses Continuation answers for the background context
+     * @param null|string                                     $requestState   Continuation token for the background context
      */
     public function startTask(string $taskId, CallToolRequest $request, ServerContext $origin, ?array $inputResponses, ?string $requestState): void
     {

@@ -25,7 +25,7 @@ use Nexus\Mcp\Core\Schema\Result\InputResponse;
  * @extends ResourceRequestParams<array{
  *   _meta: template-type<RequestMetaObject, MetaObject, 'T'>,
  *   uri: string,
- *   inputResponses?: array<string, array<string, mixed>>,
+ *   inputResponses?: array<int|non-empty-string, array<string, mixed>>,
  *   requestState?: string,
  * }>
  *
@@ -34,12 +34,12 @@ use Nexus\Mcp\Core\Schema\Result\InputResponse;
 final readonly class ReadResourceRequestParams extends ResourceRequestParams implements InputResponseCarrierInterface
 {
     /**
-     * @var null|array<string, InputResponse>
+     * @var null|array<int|non-empty-string, InputResponse>
      */
     public ?array $inputResponses;
 
     /**
-     * @param null|array<string, InputResponse> $inputResponses
+     * @param null|array<int|non-empty-string, InputResponse> $inputResponses
      */
     public function __construct(
         string $uri,
@@ -51,7 +51,10 @@ final readonly class ReadResourceRequestParams extends ResourceRequestParams imp
 
         if (null !== $inputResponses) {
             Assert::that($inputResponses)
-                ->isMap('"params.inputResponses" must be a string-keyed object.')
+                ->keys()
+                ->isIntOrNonEmptyString('each "params.inputResponses" key must be an int or non-empty string.')
+            ;
+            Assert::that($inputResponses)
                 ->values()
                 ->isInstanceOf(InputResponse::class, 'each "params.inputResponses" entry must be an InputResponse, {type} given.')
             ;
@@ -86,7 +89,9 @@ final readonly class ReadResourceRequestParams extends ResourceRequestParams imp
         if (\array_key_exists('inputResponses', $data)) {
             Assert::that($data['inputResponses'])
                 ->isArray('"params.inputResponses" must be an object, {type} given.')
-                ->isMap('"params.inputResponses" must be a string-keyed object.')
+                ->keys()->isIntOrNonEmptyString('each "params.inputResponses" key must be an int or non-empty string.')
+            ;
+            Assert::that($data['inputResponses'])
                 ->values()
                 ->isArray('each "params.inputResponses" entry must be an object, {type} given.')
                 ->isMap('each "params.inputResponses" entry must be a string-keyed object.')
@@ -143,6 +148,10 @@ final readonly class ReadResourceRequestParams extends ResourceRequestParams imp
                 static fn(InputResponse $response): array|\stdClass => $response->jsonSerialize(),
                 $this->inputResponses,
             );
+
+            if (array_is_list($this->inputResponses)) {
+                $data['inputResponses'] = (object) $data['inputResponses'];
+            }
         }
 
         return $data;

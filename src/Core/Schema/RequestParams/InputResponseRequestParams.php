@@ -31,12 +31,12 @@ use Nexus\Mcp\Core\Schema\Result\InputResponse;
 abstract readonly class InputResponseRequestParams extends RequestParams implements InputResponseCarrierInterface
 {
     /**
-     * @var null|array<string, InputResponse>
+     * @var null|array<int|non-empty-string, InputResponse>
      */
     public ?array $inputResponses;
 
     /**
-     * @param null|array<string, InputResponse> $inputResponses
+     * @param null|array<int|non-empty-string, InputResponse> $inputResponses
      */
     public function __construct(
         ?array $inputResponses,
@@ -47,7 +47,10 @@ abstract readonly class InputResponseRequestParams extends RequestParams impleme
 
         if (null !== $inputResponses) {
             Assert::that($inputResponses)
-                ->isMap('"params.inputResponses" must be a string-keyed object.')
+                ->keys()
+                ->isIntOrNonEmptyString('each "params.inputResponses" key must be an int or non-empty string.')
+            ;
+            Assert::that($inputResponses)
                 ->values()
                 ->isInstanceOf(InputResponse::class, 'each "params.inputResponses" entry must be an InputResponse, {type} given.')
             ;

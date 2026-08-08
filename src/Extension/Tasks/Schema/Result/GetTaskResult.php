@@ -42,7 +42,7 @@ use Nexus\Mcp\Extension\Tasks\Schema\Enum\TaskStatus;
  *   pollIntervalMs?: int,
  *   result?: array<string, mixed>,
  *   error?: array<string, mixed>,
- *   inputRequests?: array<string, array<string, mixed>>,
+ *   inputRequests?: array<int|non-empty-string, array<string, mixed>>,
  * }>
  *
  * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/seps/2663-tasks-extension.md
@@ -50,18 +50,18 @@ use Nexus\Mcp\Extension\Tasks\Schema\Enum\TaskStatus;
 final readonly class GetTaskResult extends Result implements ServerResult
 {
     /**
-     * @var null|array<string, InputRequest>
+     * @var null|array<int|non-empty-string, InputRequest>
      */
     public ?array $inputRequests;
 
     /**
-     * @param non-empty-string                 $taskId
-     * @param non-empty-string                 $createdAt
-     * @param non-empty-string                 $lastUpdatedAt
-     * @param null|array<string, mixed>        $result
-     * @param null|array<string, mixed>        $error
-     * @param null|array<string, InputRequest> $inputRequests
-     * @param null|non-empty-string            $statusMessage
+     * @param non-empty-string                               $taskId
+     * @param non-empty-string                               $createdAt
+     * @param non-empty-string                               $lastUpdatedAt
+     * @param null|array<string, mixed>                      $result
+     * @param null|array<string, mixed>                      $error
+     * @param null|array<int|non-empty-string, InputRequest> $inputRequests
+     * @param null|non-empty-string                          $statusMessage
      */
     public function __construct(
         public string $taskId,
@@ -82,8 +82,8 @@ final readonly class GetTaskResult extends Result implements ServerResult
         $inputRequests = [] === $inputRequests ? null : $inputRequests;
 
         if (null !== $inputRequests) {
+            Assert::that($inputRequests)->keys()->isIntOrNonEmptyString('each "result.inputRequests" key must be an int or non-empty string.');
             Assert::that($inputRequests)
-                ->isMap('"result.inputRequests" must be a string-keyed object.')
                 ->values()
                 ->isInstanceOf(InputRequest::class, 'each "result.inputRequests" entry must be an InputRequest, {type} given.')
             ;
@@ -143,7 +143,9 @@ final readonly class GetTaskResult extends Result implements ServerResult
         if (\array_key_exists('inputRequests', $data)) {
             Assert::that($data['inputRequests'])
                 ->isArray('"result.inputRequests" must be an object, {type} given.')
-                ->isMap('"result.inputRequests" must be a string-keyed object.')
+                ->keys()->isIntOrNonEmptyString('each "result.inputRequests" key must be an int or non-empty string.')
+            ;
+            Assert::that($data['inputRequests'])
                 ->values()
                 ->isArray('each "result.inputRequests" entry must be an object, {type} given.')
                 ->isMap('each "result.inputRequests" entry must be a string-keyed object.')
@@ -243,6 +245,10 @@ final readonly class GetTaskResult extends Result implements ServerResult
                 static fn(InputRequest $request): array|\stdClass => $request->jsonSerialize(),
                 $this->inputRequests,
             );
+
+            if (array_is_list($this->inputRequests)) {
+                $data['inputRequests'] = (object) $data['inputRequests'];
+            }
         }
 
         return $data;
@@ -273,9 +279,9 @@ final readonly class GetTaskResult extends Result implements ServerResult
     }
 
     /**
-     * @param null|array<string, mixed>        $result
-     * @param null|array<string, mixed>        $error
-     * @param null|array<string, InputRequest> $inputRequests
+     * @param null|array<string, mixed>                      $result
+     * @param null|array<string, mixed>                      $error
+     * @param null|array<int|non-empty-string, InputRequest> $inputRequests
      */
     private static function assertStatusPayload(TaskStatus $status, ?array $result, ?array $error, ?array $inputRequests): void
     {

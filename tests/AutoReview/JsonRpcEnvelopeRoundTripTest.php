@@ -212,13 +212,13 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
         // Concrete requests.
         yield 'DiscoverRequest' => ['wrapper' => DiscoverRequest::class, 'inner' => null];
 
-        yield 'ReadResourceRequest' => ['wrapper' => ReadResourceRequest::class, 'inner' => null];
+        yield 'ReadResourceRequest' => ['wrapper' => ReadResourceRequest::class, 'inner' => null, 'encodingPathsDiverge' => true];
 
         yield 'CompleteRequest' => ['wrapper' => CompleteRequest::class, 'inner' => null];
 
-        yield 'GetPromptRequest' => ['wrapper' => GetPromptRequest::class, 'inner' => null];
+        yield 'GetPromptRequest' => ['wrapper' => GetPromptRequest::class, 'inner' => null, 'encodingPathsDiverge' => true];
 
-        yield 'CallToolRequest' => ['wrapper' => CallToolRequest::class, 'inner' => null];
+        yield 'CallToolRequest' => ['wrapper' => CallToolRequest::class, 'inner' => null, 'encodingPathsDiverge' => true];
 
         yield 'ListPromptsRequest' => ['wrapper' => ListPromptsRequest::class, 'inner' => null];
 
@@ -232,7 +232,7 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
 
         yield 'GetTaskRequest' => ['wrapper' => GetTaskRequest::class, 'inner' => null];
 
-        yield 'UpdateTaskRequest' => ['wrapper' => UpdateTaskRequest::class, 'inner' => null];
+        yield 'UpdateTaskRequest' => ['wrapper' => UpdateTaskRequest::class, 'inner' => null, 'encodingPathsDiverge' => true];
 
         yield 'CancelTaskRequest' => ['wrapper' => CancelTaskRequest::class, 'inner' => null];
 

@@ -16,6 +16,7 @@ namespace Nexus\Mcp\Tests\Extension\Tasks\Client;
 use Amp\CancelledException;
 use Amp\DeferredCancellation;
 use Amp\Future;
+use Nexus\Assert\Assert;
 use Nexus\Mcp\Client\ClientBuilder;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitResult;
 use Nexus\Mcp\Core\Schema\Enum\ElicitAction;
@@ -337,11 +338,13 @@ final class TaskClientTest extends AbstractMcpTestCase
     {
         $seen = [];
         $resolver = static function (array $requests) use (&$seen): array {
+            Assert::that($requests)->keys()->isIntOrNonEmptyString();
+
             $seen[] = array_keys($requests);
             $answers = [];
 
             foreach (array_keys($requests) as $key) {
-                $answers[(string) $key] = new ElicitResult(action: ElicitAction::Accept);
+                $answers[$key] = new ElicitResult(action: ElicitAction::Accept);
             }
 
             return $answers;

@@ -23,7 +23,7 @@ use Nexus\Mcp\Core\Schema\Result\InputResponse;
 interface InputResponseCarrierInterface
 {
     /**
-     * @return null|array<string, InputResponse>
+     * @return null|array<int|non-empty-string, InputResponse>
      */
     public function getInputResponses(): ?array;
 

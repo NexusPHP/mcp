@@ -143,13 +143,16 @@ final class UpdateTaskRequestParamsTest extends AbstractMcpTestCase
         self::assertSame(['unknown-key' => ['ignored' => true]], $params->inputResponses);
     }
 
-    public function testConstructorRejectsListKeyedResponses(): void
+    public function testConstructorAcceptsAServerAssignedIdThatIsAllDigits(): void
     {
-        $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageIs('"params.inputResponses" must be a string-keyed object.');
+        $params = new UpdateTaskRequestParams(
+            taskId: 'task-1',
+            inputResponses: ['0' => new ElicitResult(action: ElicitAction::Accept)],
+            meta: RequestMetaObjectFactory::create(),
+        );
 
-        // @phpstan-ignore argument.type
-        new UpdateTaskRequestParams(taskId: 'task-1', inputResponses: [new ElicitResult(action: ElicitAction::Accept)], meta: RequestMetaObjectFactory::create());
+        self::assertSame([0], array_keys($params->inputResponses));
+        self::assertStringContainsString('"inputResponses":{"0":', (string) json_encode($params));
     }
 
     public function testConstructorRejectsNonResponseEntry(): void
@@ -220,11 +223,6 @@ final class UpdateTaskRequestParamsTest extends AbstractMcpTestCase
             '"params.inputResponses" must be an object, string given.',
         ];
 
-        yield 'inputResponses list-keyed' => [
-            ['taskId' => 'task-1', 'inputResponses' => [['action' => 'accept']]],
-            '"params.inputResponses" must be a string-keyed object.',
-        ];
-
         yield 'inputResponses entry not an object' => [
             ['taskId' => 'task-1', 'inputResponses' => ['github_login' => 'oops']],
             'each "params.inputResponses" entry must be an object, string given.',
@@ -258,5 +256,18 @@ final class UpdateTaskRequestParamsTest extends AbstractMcpTestCase
         ]);
 
         self::assertStringContainsString('"content":{"0":"v"}', (string) json_encode($params));
+    }
+
+    public function testConstructorRejectsAnEmptyInputResponseKey(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs('each "params.inputResponses" key must be an int or non-empty string.');
+
+        new UpdateTaskRequestParams(
+            taskId: 'task-1',
+            // @phpstan-ignore argument.type
+            inputResponses: ['' => new ElicitResult(action: ElicitAction::Accept)],
+            meta: RequestMetaObjectFactory::create(),
+        );
     }
 }

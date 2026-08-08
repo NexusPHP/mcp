@@ -284,11 +284,6 @@ final class GetPromptRequestParamsTest extends AbstractMcpTestCase
             '"params.inputResponses" must be an object, string given.',
         ];
 
-        yield 'inputResponses list-keyed' => [
-            ['name' => 'topic', 'inputResponses' => [['action' => 'accept']]],
-            '"params.inputResponses" must be a string-keyed object.',
-        ];
-
         yield 'inputResponses entry not an object' => [
             ['name' => 'topic', 'inputResponses' => ['github_login' => 'oops']],
             'each "params.inputResponses" entry must be an object, string given.',
@@ -323,5 +318,17 @@ final class GetPromptRequestParamsTest extends AbstractMcpTestCase
         self::assertIsArray($serialized['inputResponses']);
         self::assertArrayHasKey('ask', $serialized['inputResponses']);
         self::assertIsArray($serialized['inputResponses']['ask']);
+    }
+
+    public function testConstructorAcceptsAServerAssignedIdThatIsAllDigits(): void
+    {
+        $params = new GetPromptRequestParams(
+            name: 'topic',
+            meta: RequestMetaObjectFactory::create(),
+            inputResponses: ['0' => new ElicitResult(action: ElicitAction::Accept)],
+        );
+
+        self::assertSame([0], array_keys($params->inputResponses ?? []));
+        self::assertStringContainsString('"inputResponses":{"0":', (string) json_encode($params));
     }
 }

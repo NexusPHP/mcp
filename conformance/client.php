@@ -232,7 +232,7 @@ $register('json-schema-2020-12-preservation', static function (string $serverUrl
 /**
  * Accepts every input a server asked for, answering each field from its declared type.
  *
- * @return array<string, InputResponse>
+ * @return array<int|non-empty-string, InputResponse>
  */
 $acceptInputRequests = static function (InputRequiredResult $result): array {
     $responses = [];

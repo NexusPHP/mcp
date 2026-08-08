@@ -26,7 +26,7 @@ use Nexus\Mcp\Core\Schema\Result\InputResponse;
  *   _meta: template-type<RequestMetaObject, MetaObject, 'T'>,
  *   name: non-empty-string,
  *   arguments?: array<string, string>,
- *   inputResponses?: array<string, array<string, mixed>>,
+ *   inputResponses?: array<int|non-empty-string, array<string, mixed>>,
  *   requestState?: string,
  * }>
  *
@@ -35,9 +35,9 @@ use Nexus\Mcp\Core\Schema\Result\InputResponse;
 final readonly class GetPromptRequestParams extends InputResponseRequestParams
 {
     /**
-     * @param non-empty-string                  $name
-     * @param null|array<string, string>        $arguments
-     * @param null|array<string, InputResponse> $inputResponses
+     * @param non-empty-string                                $name
+     * @param null|array<string, string>                      $arguments
+     * @param null|array<int|non-empty-string, InputResponse> $inputResponses
      */
     public function __construct(
         public string $name,
@@ -81,7 +81,9 @@ final readonly class GetPromptRequestParams extends InputResponseRequestParams
         if (\array_key_exists('inputResponses', $data)) {
             Assert::that($data['inputResponses'])
                 ->isArray('"params.inputResponses" must be an object, {type} given.')
-                ->isMap('"params.inputResponses" must be a string-keyed object.')
+                ->keys()->isIntOrNonEmptyString('each "params.inputResponses" key must be an int or non-empty string.')
+            ;
+            Assert::that($data['inputResponses'])
                 ->values()
                 ->isArray('each "params.inputResponses" entry must be an object, {type} given.')
                 ->isMap('each "params.inputResponses" entry must be a string-keyed object.')
@@ -148,6 +150,10 @@ final readonly class GetPromptRequestParams extends InputResponseRequestParams
                 static fn(InputResponse $response): array|\stdClass => $response->jsonSerialize(),
                 $this->inputResponses,
             );
+
+            if (array_is_list($this->inputResponses)) {
+                $data['inputResponses'] = (object) $data['inputResponses'];
+            }
         }
 
         return $data;

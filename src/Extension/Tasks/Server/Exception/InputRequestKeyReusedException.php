@@ -24,7 +24,7 @@ final class InputRequestKeyReusedException extends \LogicException implements Mc
     /**
      * @param non-empty-string $taskId
      */
-    public function __construct(string $taskId, string $key)
+    public function __construct(string $taskId, int|string $key)
     {
         parent::__construct(\sprintf('Task "%s" already issued the input-request key "%s".', $taskId, $key));
     }

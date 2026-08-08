@@ -34,9 +34,9 @@ interface TaskClientInterface
      * result, a synchronous input request, or a task handle. The continuation
      * parameters re-issue a call that answered an `InputRequiredResult`.
      *
-     * @param non-empty-string                  $name
-     * @param null|array<string, mixed>         $arguments
-     * @param null|array<string, InputResponse> $inputResponses
+     * @param non-empty-string                                $name
+     * @param null|array<string, mixed>                       $arguments
+     * @param null|array<int|non-empty-string, InputResponse> $inputResponses
      */
     public function callToolAsTask(string $name, ?array $arguments = null, ?array $inputResponses = null, ?string $requestState = null): CallToolResult|CreateTaskResult|InputRequiredResult;
 
@@ -50,8 +50,8 @@ interface TaskClientInterface
     /**
      * Supplies input responses to a task waiting in `input_required`.
      *
-     * @param non-empty-string             $taskId
-     * @param array<string, InputResponse> $inputResponses
+     * @param non-empty-string                           $taskId
+     * @param array<int|non-empty-string, InputResponse> $inputResponses
      */
     public function updateTask(string $taskId, array $inputResponses): void;
 
@@ -68,7 +68,7 @@ interface TaskClientInterface
      * through `tasks/update`. Returns the terminal state, whichever terminal
      * status it carries. Cancelling `$cancellation` aborts the poll loop.
      *
-     * @param null|\Closure(array<string, InputRequest>): array<string, InputResponse> $resolveInputRequests
+     * @param null|\Closure(array<int|non-empty-string, InputRequest>): array<int|non-empty-string, InputResponse> $resolveInputRequests
      *
      * @throws StalledTaskException
      */

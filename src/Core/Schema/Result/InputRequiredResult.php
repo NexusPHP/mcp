@@ -31,7 +31,7 @@ use Nexus\Mcp\Core\Schema\Result;
  * @extends Result<array{
  *   _meta?: template-type<ResultMetaObject, MetaObject, 'T'>,
  *   resultType: non-empty-string,
- *   inputRequests?: array<string, array<string, mixed>>,
+ *   inputRequests?: array<int|non-empty-string, array<string, mixed>>,
  *   requestState?: string,
  * }>
  *
@@ -40,12 +40,12 @@ use Nexus\Mcp\Core\Schema\Result;
 final readonly class InputRequiredResult extends Result implements ServerResult
 {
     /**
-     * @var null|array<string, InputRequest>
+     * @var null|array<int|non-empty-string, InputRequest>
      */
     public ?array $inputRequests;
 
     /**
-     * @param null|array<string, InputRequest> $inputRequests
+     * @param null|array<int|non-empty-string, InputRequest> $inputRequests
      */
     public function __construct(
         ?array $inputRequests = null,
@@ -60,7 +60,10 @@ final readonly class InputRequiredResult extends Result implements ServerResult
 
         if (null !== $inputRequests) {
             Assert::that($inputRequests)
-                ->isMap('"result.inputRequests" must be a string-keyed object.')
+                ->keys()
+                ->isIntOrNonEmptyString('each "result.inputRequests" key must be an int or non-empty string.')
+            ;
+            Assert::that($inputRequests)
                 ->values()
                 ->isInstanceOf(InputRequest::class, 'each "result.inputRequests" entry must be an InputRequest, {type} given.')
             ;
@@ -79,7 +82,9 @@ final readonly class InputRequiredResult extends Result implements ServerResult
         if (\array_key_exists('inputRequests', $data)) {
             Assert::that($data['inputRequests'])
                 ->isArray('"result.inputRequests" must be an object, {type} given.')
-                ->isMap('"result.inputRequests" must be a string-keyed object.')
+                ->keys()->isIntOrNonEmptyString('each "result.inputRequests" key must be an int or non-empty string.')
+            ;
+            Assert::that($data['inputRequests'])
                 ->values()
                 ->isArray('each "result.inputRequests" entry must be an object, {type} given.')
                 ->isMap('each "result.inputRequests" entry must be a string-keyed object.')
@@ -143,6 +148,10 @@ final readonly class InputRequiredResult extends Result implements ServerResult
                 static fn(InputRequest $request): array|\stdClass => $request->jsonSerialize(),
                 $this->inputRequests,
             );
+
+            if (array_is_list($this->inputRequests)) {
+                $data['inputRequests'] = (object) $data['inputRequests'];
+            }
         }
 
         return $data;

@@ -170,13 +170,16 @@ final class ReadResourceRequestParamsTest extends AbstractMcpTestCase
         self::assertSame('tok', $params->requestState);
     }
 
-    public function testConstructorRejectsListKeyedInputResponses(): void
+    public function testConstructorAcceptsAServerAssignedIdThatIsAllDigits(): void
     {
-        $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageIs('"params.inputResponses" must be a string-keyed object.');
+        $params = new ReadResourceRequestParams(
+            uri: 'file:///x',
+            meta: RequestMetaObjectFactory::create(),
+            inputResponses: ['0' => new ElicitResult(action: ElicitAction::Accept)],
+        );
 
-        // @phpstan-ignore argument.type
-        new ReadResourceRequestParams(uri: 'file:///x', meta: RequestMetaObjectFactory::create(), inputResponses: [['action' => 'accept']]);
+        self::assertSame([0], array_keys($params->inputResponses ?? []));
+        self::assertStringContainsString('"inputResponses":{"0":', (string) json_encode($params));
     }
 
     public function testConstructorRejectsNonObjectInputResponseEntry(): void
@@ -244,11 +247,6 @@ final class ReadResourceRequestParamsTest extends AbstractMcpTestCase
             '"params.inputResponses" must be an object, string given.',
         ];
 
-        yield 'inputResponses list-keyed' => [
-            ['uri' => 'file:///x', 'inputResponses' => [['action' => 'accept']]],
-            '"params.inputResponses" must be a string-keyed object.',
-        ];
-
         yield 'inputResponses entry not an object' => [
             ['uri' => 'file:///x', 'inputResponses' => ['github_login' => 'oops']],
             'each "params.inputResponses" entry must be an object, string given.',
@@ -311,5 +309,18 @@ final class ReadResourceRequestParamsTest extends AbstractMcpTestCase
         self::assertIsArray($serialized['inputResponses']);
         self::assertArrayHasKey('ask', $serialized['inputResponses']);
         self::assertIsArray($serialized['inputResponses']['ask']);
+    }
+
+    public function testConstructorRejectsAnEmptyInputResponseKey(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs('each "params.inputResponses" key must be an int or non-empty string.');
+
+        new ReadResourceRequestParams(
+            uri: 'file:///x',
+            meta: RequestMetaObjectFactory::create(),
+            // @phpstan-ignore argument.type
+            inputResponses: ['' => new ElicitResult(action: ElicitAction::Accept)],
+        );
     }
 }

@@ -26,7 +26,7 @@ use Nexus\Mcp\Core\Schema\Result\InputResponse;
  * @extends RequestParams<array{
  *   _meta: template-type<RequestMetaObject, MetaObject, 'T'>,
  *   taskId: non-empty-string,
- *   inputResponses: array<string, array<string, mixed>>,
+ *   inputResponses: array<int|non-empty-string, array<string, mixed>>,
  * }>
  *
  * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/seps/2663-tasks-extension.md
@@ -34,15 +34,15 @@ use Nexus\Mcp\Core\Schema\Result\InputResponse;
 final readonly class UpdateTaskRequestParams extends RequestParams
 {
     /**
-     * @param non-empty-string                                  $taskId
-     * @param array<string, array<string, mixed>|InputResponse> $inputResponses
+     * @param non-empty-string                                                $taskId
+     * @param array<int|non-empty-string, array<string, mixed>|InputResponse> $inputResponses
      */
     public function __construct(
         public string $taskId,
         public array $inputResponses,
         RequestMetaObject $meta,
     ) {
-        Assert::that($inputResponses)->isMap('"params.inputResponses" must be a string-keyed object.');
+        Assert::that($inputResponses)->keys()->isIntOrNonEmptyString('each "params.inputResponses" key must be an int or non-empty string.');
 
         foreach ($inputResponses as $response) {
             if (! $response instanceof InputResponse) {
@@ -66,7 +66,9 @@ final readonly class UpdateTaskRequestParams extends RequestParams
         Assert::that($data)->hasOffset('inputResponses', '"params" is missing the required "inputResponses" key.');
         Assert::that($data['inputResponses'])
             ->isArray('"params.inputResponses" must be an object, {type} given.')
-            ->isMap('"params.inputResponses" must be a string-keyed object.')
+            ->keys()->isIntOrNonEmptyString('each "params.inputResponses" key must be an int or non-empty string.')
+        ;
+        Assert::that($data['inputResponses'])
             ->values()
             ->isArray('each "params.inputResponses" entry must be an object, {type} given.')
             ->isMap('each "params.inputResponses" entry must be a string-keyed object.')
@@ -114,9 +116,9 @@ final readonly class UpdateTaskRequestParams extends RequestParams
             $this->inputResponses,
         );
 
-        // The slot is required, so an empty map must still encode as `{}`.
-        if ([] === $this->inputResponses) {
-            $data['inputResponses'] = new \stdClass();
+        // The slot is required, so an empty or digit-named map must still encode as an object.
+        if (array_is_list($this->inputResponses)) {
+            $data['inputResponses'] = (object) $data['inputResponses'];
         }
 
         return $data;

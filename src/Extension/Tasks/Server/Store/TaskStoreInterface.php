@@ -91,8 +91,8 @@ interface TaskStoreInterface
      * already issued over the task's lifetime is refused: request keys are
      * unique per task.
      *
-     * @param non-empty-string            $taskId
-     * @param array<string, InputRequest> $inputRequests
+     * @param non-empty-string                          $taskId
+     * @param array<int|non-empty-string, InputRequest> $inputRequests
      *
      * @return bool `false` when the record is terminal or absent
      *
@@ -105,8 +105,8 @@ interface TaskStoreInterface
      * currently outstanding are ignored, answered keys leave the pending set,
      * and every accepted answer accumulates for the next re-dispatch.
      *
-     * @param non-empty-string             $taskId
-     * @param array<string, InputResponse> $inputResponses
+     * @param non-empty-string                           $taskId
+     * @param array<int|non-empty-string, InputResponse> $inputResponses
      *
      * @return null|TaskRecord the updated record, or `null` when it is absent
      */

@@ -236,10 +236,10 @@ final class InMemoryTaskStore implements TaskStoreInterface
      * @param array{
      *   result?: null|array<string, mixed>,
      *   error?: null|array<string, mixed>,
-     *   pendingInputRequests?: array<string, InputRequest>,
-     *   inputResponses?: array<string, InputResponse>,
+     *   pendingInputRequests?: array<int|non-empty-string, InputRequest>,
+     *   inputResponses?: array<int|non-empty-string, InputResponse>,
      *   requestState?: null|string,
-     *   issuedInputKeys?: array<string, true>,
+     *   issuedInputKeys?: array<array-key, true>,
      *   statusMessage?: null|non-empty-string,
      * } $changes
      */

@@ -56,9 +56,9 @@ interface AppClientInterface
      * Reads a `ui://` resource, verifying every returned content item carries
      * one of the accepted UI mime types.
      *
-     * @param non-empty-string                  $uri
-     * @param null|array<string, InputResponse> $inputResponses Answers to a prior `InputRequiredResult`, keyed as its `inputRequests` were
-     * @param null|string                       $requestState   Echoed verbatim from the `InputRequiredResult` being answered
+     * @param non-empty-string                                $uri
+     * @param null|array<int|non-empty-string, InputResponse> $inputResponses Answers to a prior `InputRequiredResult`, keyed as its `inputRequests` were
+     * @param null|string                                     $requestState   Echoed verbatim from the `InputRequiredResult` being answered
      *
      * @throws InvalidUiResourceContentsException
      */

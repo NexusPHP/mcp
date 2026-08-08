@@ -173,13 +173,12 @@ final class InputRequiredResultTest extends AbstractMcpTestCase
         new InputRequiredResult(inputRequests: []);
     }
 
-    public function testConstructorRejectsListKeyedInputRequests(): void
+    public function testConstructorAcceptsAServerAssignedIdThatIsAllDigits(): void
     {
-        $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageIs('"result.inputRequests" must be a string-keyed object.');
+        $result = new InputRequiredResult(inputRequests: ['0' => self::elicitRequest()]);
 
-        // @phpstan-ignore argument.type
-        new InputRequiredResult(inputRequests: [self::elicitRequest()]);
+        self::assertSame([0], array_keys($result->inputRequests ?? []));
+        self::assertStringContainsString('"inputRequests":{"0":', (string) json_encode($result));
     }
 
     public function testConstructorRejectsNonInputRequestEntry(): void
@@ -252,11 +251,6 @@ final class InputRequiredResultTest extends AbstractMcpTestCase
             '"result.inputRequests" must be an object, string given.',
         ];
 
-        yield 'inputRequests list-keyed' => [
-            ['inputRequests' => [['method' => 'elicitation/create']]],
-            '"result.inputRequests" must be a string-keyed object.',
-        ];
-
         yield 'inputRequests entry not an object' => [
             ['inputRequests' => ['github_login' => 'oops']],
             'each "result.inputRequests" entry must be an object, string given.',
@@ -302,8 +296,17 @@ final class InputRequiredResultTest extends AbstractMcpTestCase
         self::assertIsArray($serialized['inputRequests']['github_login']);
     }
 
+    public function testConstructorRejectsAnEmptyInputRequestKey(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs('each "result.inputRequests" key must be an int or non-empty string.');
+
+        // @phpstan-ignore argument.type
+        new InputRequiredResult(inputRequests: ['' => self::elicitRequest()]);
+    }
+
     /**
-     * @return array<string, ElicitRequest>
+     * @return array<int|non-empty-string, ElicitRequest>
      */
     private static function inputRequests(): array
     {

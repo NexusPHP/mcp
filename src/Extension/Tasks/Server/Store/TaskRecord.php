@@ -25,18 +25,18 @@ use Nexus\Mcp\Extension\Tasks\Schema\Enum\TaskStatus;
 final readonly class TaskRecord
 {
     /**
-     * @param non-empty-string             $taskId
-     * @param non-empty-string             $toolName             The `tools/call` tool the task runs
-     * @param non-empty-string             $createdAt            ISO 8601
-     * @param non-empty-string             $lastUpdatedAt        ISO 8601
-     * @param null|array<string, mixed>    $arguments            The original call arguments
-     * @param null|array<string, mixed>    $result               The stored result payload, once completed
-     * @param null|array<string, mixed>    $error                The stored error payload, once failed
-     * @param array<string, InputRequest>  $pendingInputRequests Input requests awaiting `tasks/update` answers
-     * @param array<string, InputResponse> $inputResponses       Accumulated answers, re-dispatched with `$requestState`
-     * @param null|string                  $requestState         The continuation token the parked result carried
-     * @param array<string, true>          $issuedInputKeys      Every input-request key issued over the task's lifetime
-     * @param null|non-empty-string        $statusMessage
+     * @param non-empty-string                           $taskId
+     * @param non-empty-string                           $toolName             The `tools/call` tool the task runs
+     * @param non-empty-string                           $createdAt            ISO 8601
+     * @param non-empty-string                           $lastUpdatedAt        ISO 8601
+     * @param null|array<string, mixed>                  $arguments            The original call arguments
+     * @param null|array<string, mixed>                  $result               The stored result payload, once completed
+     * @param null|array<string, mixed>                  $error                The stored error payload, once failed
+     * @param array<int|non-empty-string, InputRequest>  $pendingInputRequests Input requests awaiting `tasks/update` answers
+     * @param array<int|non-empty-string, InputResponse> $inputResponses       Accumulated answers, re-dispatched with `$requestState`
+     * @param null|string                                $requestState         The continuation token the parked result carried
+     * @param array<array-key, true>                     $issuedInputKeys      Every input-request key issued over the task's lifetime
+     * @param null|non-empty-string                      $statusMessage
      */
     public function __construct(
         public string $taskId,
