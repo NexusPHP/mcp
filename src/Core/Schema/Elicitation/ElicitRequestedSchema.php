@@ -125,7 +125,13 @@ final readonly class ElicitRequestedSchema implements Arrayable
     #[\Override]
     public function jsonSerialize(): array
     {
-        return $this->toArray();
+        $data = $this->toArray();
+
+        if ([] === $this->properties) {
+            $data['properties'] = new \stdClass();
+        }
+
+        return $data;
     }
 
     /**

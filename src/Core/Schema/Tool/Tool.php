@@ -42,6 +42,29 @@ use Nexus\Mcp\Core\Schema\MetaObject\PayloadMetaObject;
 final readonly class Tool extends BaseMetadata implements Arrayable, Icons
 {
     /**
+     * JSON Schema keywords whose value is an object of sub-schemas.
+     */
+    private const array SUBSCHEMA_MAP_KEYWORDS = ['$defs', 'definitions', 'dependentSchemas', 'patternProperties', 'properties'];
+
+    /**
+     * JSON Schema keywords whose value is a list of sub-schemas.
+     */
+    private const array SUBSCHEMA_LIST_KEYWORDS = ['allOf', 'anyOf', 'oneOf', 'prefixItems'];
+
+    /**
+     * JSON Schema keywords whose value is a single sub-schema.
+     */
+    private const array SUBSCHEMA_KEYWORDS = [
+        'additionalProperties', 'contains', 'contentSchema', 'else', 'if',
+        'items', 'not', 'propertyNames', 'then', 'unevaluatedItems', 'unevaluatedProperties',
+    ];
+
+    /**
+     * JSON Schema keywords whose value is an object of something other than sub-schemas.
+     */
+    private const array OBJECT_KEYWORDS = ['$vocabulary', 'dependentRequired'];
+
+    /**
      * @var ToolInputSchemaShape
      */
     public array $inputSchema;
@@ -207,7 +230,58 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
     #[\Override]
     public function jsonSerialize(): array
     {
-        return $this->toArray();
+        $data = $this->toArray();
+        $data['inputSchema'] = self::encodeSubSchema($this->inputSchema);
+
+        if (null !== $this->outputSchema) {
+            $data['outputSchema'] = self::encodeSubSchema($this->outputSchema);
+        }
+
+        return $data;
+    }
+
+    /**
+     * Re-encodes a JSON Schema so an empty sub-schema emits `{}` rather than `[]`.
+     *
+     * @param array<array-key, mixed> $schema
+     *
+     * @return array<array-key, mixed>
+     */
+    private static function encodeSchema(array $schema): array
+    {
+        foreach ($schema as $keyword => $value) {
+            if (! \is_array($value)) {
+                continue;
+            }
+
+            if (\in_array($keyword, self::SUBSCHEMA_MAP_KEYWORDS, true)) {
+                $schema[$keyword] = [] === $value ? new \stdClass() : array_map(self::encodeSubSchema(...), $value);
+            } elseif (\in_array($keyword, self::SUBSCHEMA_LIST_KEYWORDS, true)) {
+                $schema[$keyword] = array_map(self::encodeSubSchema(...), $value);
+            } elseif (\in_array($keyword, self::SUBSCHEMA_KEYWORDS, true)) {
+                $schema[$keyword] = self::encodeSubSchema($value);
+            } elseif ([] === $value && \in_array($keyword, self::OBJECT_KEYWORDS, true)) {
+                $schema[$keyword] = new \stdClass();
+            }
+        }
+
+        return $schema;
+    }
+
+    /**
+     * A sub-schema is an object or a boolean, so anything else passes through untouched.
+     */
+    private static function encodeSubSchema(mixed $value): mixed
+    {
+        if (! \is_array($value)) {
+            return $value;
+        }
+
+        if ([] === $value) {
+            return new \stdClass();
+        }
+
+        return self::encodeSchema($value);
     }
 
     /**

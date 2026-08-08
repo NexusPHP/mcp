@@ -223,4 +223,15 @@ final class ListToolsResultTest extends AbstractMcpTestCase
             '"result._meta" must be an object, string given.',
         ];
     }
+
+    public function testJsonSerializeEmitsANestedToolsEmptySubSchemaAsAnObject(): void
+    {
+        $result = new ListToolsResult(
+            tools: [new Tool(name: 'ping', inputSchema: ['type' => 'object', 'properties' => []])],
+            ttlMs: 0,
+            cacheScope: CacheScope::Private,
+        );
+
+        self::assertStringContainsString('"properties":{}', (string) json_encode($result));
+    }
 }

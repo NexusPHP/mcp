@@ -234,6 +234,21 @@ final readonly class GetTaskResult extends Result implements ServerResult
     }
 
     #[\Override]
+    public function jsonSerialize(): array
+    {
+        $data = $this->toArray();
+
+        if (null !== $this->inputRequests) {
+            $data['inputRequests'] = array_map(
+                static fn(InputRequest $request): array|\stdClass => $request->jsonSerialize(),
+                $this->inputRequests,
+            );
+        }
+
+        return $data;
+    }
+
+    #[\Override]
     public function rebuildWithMeta(ResultMetaObject $meta): static
     {
         return new self(

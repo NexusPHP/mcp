@@ -75,6 +75,9 @@ final readonly class ElicitRequestFormParams implements Arrayable, ElicitRequest
     #[\Override]
     public function jsonSerialize(): array
     {
-        return $this->toArray();
+        $data = $this->toArray();
+        $data['requestedSchema'] = $this->requestedSchema->jsonSerialize();
+
+        return $data;
     }
 }

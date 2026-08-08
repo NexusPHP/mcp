@@ -288,6 +288,20 @@ final class InputRequiredResultTest extends AbstractMcpTestCase
         ];
     }
 
+    public function testJsonSerializeEmitsANestedRequestedSchemasEmptyPropertiesAsAnObject(): void
+    {
+        $result = new InputRequiredResult(inputRequests: ['github_login' => new ElicitRequest(
+            params: new ElicitRequestFormParams(message: 'm', requestedSchema: new ElicitRequestedSchema(properties: [])),
+        )]);
+
+        self::assertStringContainsString('"requestedSchema":{"type":"object","properties":{}}', (string) json_encode($result));
+        $serialized = $result->jsonSerialize();
+        self::assertArrayHasKey('inputRequests', $serialized);
+        self::assertIsArray($serialized['inputRequests']);
+        self::assertArrayHasKey('github_login', $serialized['inputRequests']);
+        self::assertIsArray($serialized['inputRequests']['github_login']);
+    }
+
     /**
      * @return array<string, ElicitRequest>
      */
@@ -298,7 +312,7 @@ final class InputRequiredResultTest extends AbstractMcpTestCase
 
     private static function elicitRequest(): ElicitRequest
     {
-        return new ElicitRequest(new ElicitRequestFormParams(
+        return new ElicitRequest(params: new ElicitRequestFormParams(
             message: 'Please provide your GitHub username',
             requestedSchema: new ElicitRequestedSchema(properties: ['name' => new StringSchema()]),
         ));

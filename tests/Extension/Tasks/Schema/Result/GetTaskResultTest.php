@@ -463,6 +463,31 @@ final class GetTaskResultTest extends AbstractMcpTestCase
         ]);
     }
 
+    public function testJsonSerializeEmitsANestedRequestedSchemasEmptyPropertiesAsAnObject(): void
+    {
+        $result = new GetTaskResult(
+            taskId: 'task-1',
+            status: TaskStatus::InputRequired,
+            createdAt: '2026-01-01T00:00:00+00:00',
+            lastUpdatedAt: '2026-01-01T00:00:00+00:00',
+            ttlMs: null,
+            inputRequests: ['ask' => new ElicitRequest(
+                params: new ElicitRequestFormParams(
+                    message: 'm',
+                    requestedSchema: new ElicitRequestedSchema(properties: []),
+                ),
+            )],
+        );
+
+        self::assertStringContainsString('"requestedSchema":{"type":"object","properties":{}}', (string) json_encode($result));
+
+        $serialized = $result->jsonSerialize();
+        self::assertArrayHasKey('inputRequests', $serialized);
+        self::assertIsArray($serialized['inputRequests']);
+        self::assertArrayHasKey('ask', $serialized['inputRequests']);
+        self::assertIsArray($serialized['inputRequests']['ask']);
+    }
+
     private static function createWorking(): GetTaskResult
     {
         return new GetTaskResult(
@@ -476,7 +501,7 @@ final class GetTaskResultTest extends AbstractMcpTestCase
 
     private static function createElicitRequest(): ElicitRequest
     {
-        return new ElicitRequest(new ElicitRequestFormParams(
+        return new ElicitRequest(params: new ElicitRequestFormParams(
             message: 'Please provide your GitHub username',
             requestedSchema: new ElicitRequestedSchema(properties: ['name' => new StringSchema()]),
         ));

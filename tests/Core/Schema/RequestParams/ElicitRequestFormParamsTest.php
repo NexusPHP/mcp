@@ -177,4 +177,14 @@ final class ElicitRequestFormParamsTest extends AbstractMcpTestCase
             '"params.requestedSchema" must be a string-keyed object.',
         ];
     }
+
+    public function testJsonSerializeEmitsANestedSchemasEmptyPropertiesAsAnObject(): void
+    {
+        $params = new ElicitRequestFormParams(
+            message: 'm',
+            requestedSchema: new ElicitRequestedSchema(properties: []),
+        );
+
+        self::assertStringContainsString('"requestedSchema":{"type":"object","properties":{}}', (string) json_encode($params));
+    }
 }

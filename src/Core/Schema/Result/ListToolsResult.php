@@ -122,6 +122,15 @@ final readonly class ListToolsResult extends PaginatedResult implements ServerRe
     }
 
     #[\Override]
+    public function jsonSerialize(): array
+    {
+        $data = $this->toArray();
+        $data['tools'] = array_map(static fn(Tool $tool): array => $tool->jsonSerialize(), $this->tools);
+
+        return $data;
+    }
+
+    #[\Override]
     public function rebuildWithMeta(ResultMetaObject $meta): static
     {
         return new self(

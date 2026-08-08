@@ -318,4 +318,12 @@ final class ElicitRequestedSchemaTest extends AbstractMcpTestCase
             '"requestedSchema.$schema" must be a non-empty string or null, int given.',
         ];
     }
+
+    public function testJsonSerializeEmitsEmptyPropertiesAsAnObject(): void
+    {
+        $schema = new ElicitRequestedSchema(properties: []);
+
+        self::assertSame('{"type":"object","properties":{}}', json_encode($schema));
+        self::assertSame(['type' => 'object', 'properties' => []], $schema->toArray());
+    }
 }

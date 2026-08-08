@@ -433,6 +433,98 @@ final class ToolTest extends AbstractMcpTestCase
         self::assertSame('read-file', $tool->getDisplayName());
     }
 
+    public function testJsonSerializeEmitsAnEmptySubSchemaAsAnObject(): void
+    {
+        $tool = new Tool(name: 'ping', inputSchema: [
+            'type' => 'object',
+            'properties' => [],
+            'required' => [],
+        ]);
+
+        self::assertSame(
+            '{"name":"ping","inputSchema":{"type":"object","properties":{},"required":[]}}',
+            json_encode($tool),
+        );
+    }
+
+    public function testJsonSerializeEmitsAnEmptySubSchemaValueAsAnObject(): void
+    {
+        $tool = new Tool(name: 'ping', inputSchema: [
+            'type' => 'object',
+            'properties' => ['anything' => []],
+            'items' => [],
+        ]);
+
+        self::assertSame(
+            '{"name":"ping","inputSchema":{"type":"object","properties":{"anything":{}},"items":{}}}',
+            json_encode($tool),
+        );
+    }
+
+    public function testJsonSerializeRecursesThroughEverySubSchemaKeyword(): void
+    {
+        $tool = new Tool(name: 'ping', inputSchema: [
+            'type' => 'object',
+            '$defs' => ['X' => ['type' => 'object', 'properties' => []]],
+            'properties' => ['a' => ['type' => 'array', 'items' => ['type' => 'object', 'properties' => []]]],
+            'oneOf' => [['type' => 'object', 'properties' => []]],
+        ]);
+
+        self::assertSame(3, substr_count((string) json_encode($tool), '"properties":{}'));
+    }
+
+    public function testJsonSerializeEmitsAnEmptyOutputSchemaSlotAsAnObject(): void
+    {
+        $tool = new Tool(
+            name: 'ping',
+            inputSchema: ['type' => 'object'],
+            outputSchema: ['type' => 'object', 'properties' => []],
+        );
+
+        self::assertStringContainsString('"outputSchema":{"type":"object","properties":{}}', (string) json_encode($tool));
+    }
+
+    public function testJsonSerializeEmitsAWhollyEmptyOutputSchemaAsAnObject(): void
+    {
+        $tool = new Tool(name: 'ping', inputSchema: ['type' => 'object'], outputSchema: []);
+
+        self::assertSame('{"name":"ping","inputSchema":{"type":"object"},"outputSchema":{}}', json_encode($tool));
+    }
+
+    public function testJsonSerializeRecursesThroughContentSchema(): void
+    {
+        $tool = new Tool(name: 'ping', inputSchema: [
+            'type' => 'object',
+            'properties' => ['a' => ['contentSchema' => ['type' => 'object', 'properties' => []]]],
+            'contentSchema' => [],
+        ]);
+
+        self::assertSame(2, substr_count((string) json_encode($tool), '"contentSchema":'));
+        self::assertStringContainsString('"contentSchema":{"type":"object","properties":{}}', (string) json_encode($tool));
+        self::assertStringContainsString('"contentSchema":{}', (string) json_encode($tool));
+    }
+
+    public function testJsonSerializeEmitsAnEmptyObjectValuedKeywordAsAnObjectWithoutRecursing(): void
+    {
+        $tool = new Tool(name: 'ping', inputSchema: [
+            'type' => 'object',
+            'dependentRequired' => [],
+            '$vocabulary' => [],
+        ]);
+
+        self::assertStringContainsString('"dependentRequired":{},"$vocabulary":{}', (string) json_encode($tool));
+    }
+
+    public function testJsonSerializeKeepsDependentRequiredEntriesAsLists(): void
+    {
+        $tool = new Tool(name: 'ping', inputSchema: [
+            'type' => 'object',
+            'dependentRequired' => ['a' => []],
+        ]);
+
+        self::assertStringContainsString('"dependentRequired":{"a":[]}', (string) json_encode($tool));
+    }
+
     /**
      * @return array{type: 'object', '$schema'?: non-empty-string, properties?: array<string, array<string, mixed>>, required?: list<string>}
      */

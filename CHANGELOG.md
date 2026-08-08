@@ -18,6 +18,10 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Fixed
 
+- A tool's `inputSchema` and `outputSchema` emit an empty sub-schema as `{}` rather than `[]`, at any
+  nesting depth, so `{"type":"object","properties":{}}` survives a round trip as valid JSON Schema. An
+  elicitation's `requestedSchema` does the same, including when it rides on a `tools/call` or
+  `tasks/get` result.
 - A `_meta` name made only of digits is decoded rather than refused. `json_decode` turns such a key into
   a PHP int, which the guard read as a malformed object.
 - A tool can now return an array, string, number or boolean as its structured content, not only an object.
