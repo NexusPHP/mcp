@@ -35,7 +35,7 @@ interface TaskClientInterface
      * parameters re-issue a call that answered an `InputRequiredResult`.
      *
      * @param non-empty-string                                $name
-     * @param null|array<string, mixed>                       $arguments
+     * @param null|array<array-key, mixed>                    $arguments
      * @param null|array<int|non-empty-string, InputResponse> $inputResponses
      */
     public function callToolAsTask(string $name, ?array $arguments = null, ?array $inputResponses = null, ?string $requestState = null): CallToolResult|CreateTaskResult|InputRequiredResult;

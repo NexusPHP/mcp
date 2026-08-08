@@ -154,13 +154,16 @@ final class GetPromptRequestParamsTest extends AbstractMcpTestCase
         new GetPromptRequestParams(name: '', meta: RequestMetaObjectFactory::create());
     }
 
-    public function testConstructorRejectsListKeyedArguments(): void
+    public function testConstructorAcceptsAnArgumentNameThatIsAllDigits(): void
     {
-        $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageIs('"params.arguments" must be a string-keyed map.');
+        $params = new GetPromptRequestParams(
+            name: 'topic',
+            meta: RequestMetaObjectFactory::create(),
+            arguments: ['v1', 'v2'],
+        );
 
-        // @phpstan-ignore argument.type
-        new GetPromptRequestParams(name: 'topic', meta: RequestMetaObjectFactory::create(), arguments: ['v1', 'v2']);
+        self::assertSame([0, 1], array_keys($params->arguments ?? []));
+        self::assertStringContainsString('"arguments":{"0":"v1","1":"v2"}', (string) json_encode($params));
     }
 
     public function testConstructorRejectsNonStringArgumentValue(): void
@@ -252,11 +255,6 @@ final class GetPromptRequestParamsTest extends AbstractMcpTestCase
         yield 'arguments not an object' => [
             ['name' => 'topic', 'arguments' => 'oops'],
             '"params.arguments" must be an object, string given.',
-        ];
-
-        yield 'arguments list-keyed' => [
-            ['name' => 'topic', 'arguments' => ['v']],
-            '"params.arguments" must be a string-keyed object.',
         ];
 
         yield 'argument value not a string' => [

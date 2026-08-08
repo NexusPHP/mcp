@@ -227,11 +227,15 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
         return $data;
     }
 
+    /**
+     * @return array{inputSchema: array<array-key, mixed>, ...<string, mixed>}
+     */
     #[\Override]
     public function jsonSerialize(): array
     {
         $data = $this->toArray();
-        $data['inputSchema'] = self::encodeSubSchema($this->inputSchema);
+        // The root always carries `type`, so it is never the empty schema `encodeSubSchema` substitutes for.
+        $data['inputSchema'] = self::encodeSchema($this->inputSchema);
 
         if (null !== $this->outputSchema) {
             $data['outputSchema'] = self::encodeSubSchema($this->outputSchema);

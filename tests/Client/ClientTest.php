@@ -533,9 +533,9 @@ final class ClientTest extends AbstractMcpTestCase
     }
 
     /**
-     * @param mixed $arguments Out-of-contract arguments, so the params constructor rejects them
+     * @param mixed $name Out-of-contract tool name, so the params constructor rejects it
      */
-    public function testACallToolThatThrowsBeforeDispatchLeavesNoTimerArmed(mixed $arguments = [1, 2, 3]): void
+    public function testACallToolThatThrowsBeforeDispatchLeavesNoTimerArmed(mixed $name = ''): void
     {
         $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
@@ -552,13 +552,13 @@ final class ClientTest extends AbstractMcpTestCase
         $fault = null;
 
         try {
-            // @phpstan-ignore argument.type (an int-keyed list drives the runtime guard PHPStan rejects statically)
-            $client->callTool('slow', $arguments, static fn(): null => null);
+            // @phpstan-ignore argument.type (an empty name drives the runtime guard PHPStan rejects statically)
+            $client->callTool($name, null, static fn(): null => null);
         } catch (\Throwable $e) {
             $fault = $e;
         }
 
-        self::assertInstanceOf(\InvalidArgumentException::class, $fault, 'The params constructor rejects an int-keyed argument map.');
+        self::assertInstanceOf(\InvalidArgumentException::class, $fault, 'The params constructor rejects an empty tool name.');
 
         // The deadline arms on construction, before the request is even built, so a throw in between must
         // still disarm it rather than hold the loop open for the ceiling.

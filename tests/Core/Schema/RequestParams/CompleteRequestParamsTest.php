@@ -233,18 +233,17 @@ final class CompleteRequestParamsTest extends AbstractMcpTestCase
         );
     }
 
-    public function testConstructorRejectsNonMapContextArguments(): void
+    public function testConstructorAcceptsAContextArgumentNameThatIsAllDigits(): void
     {
-        $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageIs('"params.context.arguments" must be a string-keyed object.');
-
-        new CompleteRequestParams(
+        $params = new CompleteRequestParams(
             ref: new PromptReference(name: 'code-review'),
             argument: ['name' => 'topic', 'value' => 'auth'],
             meta: RequestMetaObjectFactory::create(),
-            // @phpstan-ignore argument.type
             context: ['arguments' => ['v']],
         );
+
+        self::assertSame([0], array_keys($params->context['arguments'] ?? []));
+        self::assertStringContainsString('"context":{"arguments":{"0":"v"}}', (string) json_encode($params));
     }
 
     public function testConstructorRejectsNonStringContextArgumentValue(): void
@@ -356,11 +355,6 @@ final class CompleteRequestParamsTest extends AbstractMcpTestCase
         yield 'context arguments not an object' => [
             ['ref' => ['type' => 'ref/prompt', 'name' => 'code-review'], 'argument' => ['name' => 'topic', 'value' => 'auth'], 'context' => ['arguments' => 'oops']],
             '"params.context.arguments" must be an object, string given.',
-        ];
-
-        yield 'context arguments list-keyed' => [
-            ['ref' => ['type' => 'ref/prompt', 'name' => 'code-review'], 'argument' => ['name' => 'topic', 'value' => 'auth'], 'context' => ['arguments' => ['v']]],
-            '"params.context.arguments" must be a string-keyed object.',
         ];
 
         yield 'context argument value not a string' => [

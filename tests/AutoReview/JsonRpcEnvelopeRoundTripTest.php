@@ -214,7 +214,7 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
 
         yield 'ReadResourceRequest' => ['wrapper' => ReadResourceRequest::class, 'inner' => null, 'encodingPathsDiverge' => true];
 
-        yield 'CompleteRequest' => ['wrapper' => CompleteRequest::class, 'inner' => null];
+        yield 'CompleteRequest' => ['wrapper' => CompleteRequest::class, 'inner' => null, 'encodingPathsDiverge' => true];
 
         yield 'GetPromptRequest' => ['wrapper' => GetPromptRequest::class, 'inner' => null, 'encodingPathsDiverge' => true];
 

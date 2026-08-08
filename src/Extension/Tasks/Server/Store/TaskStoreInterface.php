@@ -32,8 +32,8 @@ interface TaskStoreInterface
     /**
      * Creates a durable record in the `working` status and returns it.
      *
-     * @param non-empty-string          $toolName
-     * @param null|array<string, mixed> $arguments
+     * @param non-empty-string             $toolName
+     * @param null|array<array-key, mixed> $arguments
      */
     public function createTask(string $toolName, ?array $arguments, ?int $ttlMs, int $pollIntervalMs): TaskRecord;
 

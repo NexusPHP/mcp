@@ -247,7 +247,7 @@ final class CompletionStoreTest extends AbstractMcpTestCase
     {
         $provider = new class implements CompletionProviderInterface {
             /**
-             * @param null|array<string, string> $contextArguments
+             * @param null|array<array-key, string> $contextArguments
              */
             #[\Override]
             public function complete(string $argumentValue, ?array $contextArguments, ServerContext $context): CompleteResult

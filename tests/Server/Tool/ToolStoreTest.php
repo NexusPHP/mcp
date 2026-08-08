@@ -458,6 +458,66 @@ final class ToolStoreTest extends AbstractMcpTestCase
         (new ToolStore())->addTool(new Tool(name: 'Project Files', inputSchema: ['type' => 'object']), new ClosureToolExecutor(static fn(?array $a, ServerContext $c): CallToolResult => new CallToolResult(content: [])));
     }
 
+    public function testCallValidatesAnArgumentNameThatIsAllDigits(): void
+    {
+        $seen = null;
+        $store = new ToolStore();
+        $store->addTool(
+            Tool::fromArray([
+                'name' => 'digit',
+                'inputSchema' => [
+                    'type' => 'object',
+                    'properties' => ['0' => ['type' => 'string'], 'a' => ['type' => 'string']],
+                ],
+            ]),
+            new ClosureToolExecutor(static function (?array $arguments) use (&$seen): CallToolResult {
+                $seen = $arguments;
+
+                return new CallToolResult(content: [new TextContent(text: 'ok')]);
+            }),
+        );
+
+        $store->call('digit', ['0' => 'v'], self::makeContext());
+
+        self::assertSame([0 => 'v'], $seen);
+    }
+
+    public function testCallValidatesAgainstASchemaWhosePropertyNamesAreAllDigits(): void
+    {
+        $store = new ToolStore();
+        $store->addTool(
+            Tool::fromArray([
+                'name' => 'digit-only',
+                'inputSchema' => ['type' => 'object', 'properties' => ['0' => ['type' => 'string']]],
+            ]),
+            new ClosureToolExecutor(static fn(): CallToolResult => new CallToolResult(content: [new TextContent(text: 'ok')])),
+        );
+
+        $result = $store->call('digit-only', ['a' => 'b'], self::makeContext());
+
+        self::assertInstanceOf(CallToolResult::class, $result);
+    }
+
+    public function testCallRejectsAnArgumentThatViolatesADigitNamedProperty(): void
+    {
+        $store = new ToolStore();
+        $store->addTool(
+            Tool::fromArray([
+                'name' => 'digit',
+                'inputSchema' => [
+                    'type' => 'object',
+                    'properties' => ['0' => ['type' => 'string']],
+                    'required' => ['0'],
+                ],
+            ]),
+            new ClosureToolExecutor(static fn(): CallToolResult => new CallToolResult(content: [new TextContent(text: 'ok')])),
+        );
+
+        $this->expectException(InvalidParamsException::class);
+
+        $store->call('digit', ['a' => 'b'], self::makeContext());
+    }
+
     /**
      * @param non-empty-string $name
      */

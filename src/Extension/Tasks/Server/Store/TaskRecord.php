@@ -29,7 +29,7 @@ final readonly class TaskRecord
      * @param non-empty-string                           $toolName             The `tools/call` tool the task runs
      * @param non-empty-string                           $createdAt            ISO 8601
      * @param non-empty-string                           $lastUpdatedAt        ISO 8601
-     * @param null|array<string, mixed>                  $arguments            The original call arguments
+     * @param null|array<array-key, mixed>               $arguments            The original call arguments
      * @param null|array<string, mixed>                  $result               The stored result payload, once completed
      * @param null|array<string, mixed>                  $error                The stored error payload, once failed
      * @param array<int|non-empty-string, InputRequest>  $pendingInputRequests Input requests awaiting `tasks/update` answers

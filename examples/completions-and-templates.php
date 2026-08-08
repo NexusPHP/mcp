@@ -51,7 +51,7 @@ use function Amp\async;
  *
  * @param list<string> $candidates
  *
- * @return Closure(string, ?array<string, string>, ServerContext): CompleteResult
+ * @return Closure(string, ?array<array-key, string>, ServerContext): CompleteResult
  */
 function prefixCompletion(array $candidates): Closure
 {

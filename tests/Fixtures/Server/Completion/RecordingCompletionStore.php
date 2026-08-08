@@ -28,7 +28,7 @@ use Nexus\Mcp\Server\ServerContext;
  *     ref: PromptReference|ResourceTemplateReference,
  *     argumentName: string,
  *     argumentValue: string,
- *     contextArguments: null|array<string, string>,
+ *     contextArguments: null|array<array-key, string>,
  *     context: ServerContext,
  * }
  */

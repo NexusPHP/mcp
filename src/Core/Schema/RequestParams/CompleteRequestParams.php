@@ -29,7 +29,7 @@ use Nexus\Mcp\Core\Schema\Resource\ResourceTemplateReference;
  *   _meta: template-type<RequestMetaObject, MetaObject, 'T'>,
  *   ref: array<string, mixed>,
  *   argument: array{name: string, value: string},
- *   context?: array{arguments?: array<string, string>},
+ *   context?: array{arguments?: array<array-key, string>},
  * }>
  *
  * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#completerequestparams
@@ -42,13 +42,13 @@ final readonly class CompleteRequestParams extends RequestParams
     public array $argument;
 
     /**
-     * @var null|array{arguments?: array<string, string>}
+     * @var null|array{arguments?: array<array-key, string>}
      */
     public ?array $context;
 
     /**
-     * @param array{name: string, value: string}            $argument
-     * @param null|array{arguments?: array<string, string>} $context
+     * @param array{name: string, value: string}               $argument
+     * @param null|array{arguments?: array<array-key, string>} $context
      */
     public function __construct(
         public PromptReference|ResourceTemplateReference $ref,
@@ -62,7 +62,6 @@ final readonly class CompleteRequestParams extends RequestParams
         if (null !== $context && \array_key_exists('arguments', $context)) {
             Assert::that($context['arguments'])
                 ->isArray('"params.context.arguments" must be an object, {type} given.')
-                ->isMap('"params.context.arguments" must be a string-keyed object.')
                 ->values()->isString('each "params.context.arguments" must be a string, {type} given.')
             ;
         }
@@ -106,7 +105,6 @@ final readonly class CompleteRequestParams extends RequestParams
             if (\array_key_exists('arguments', $data['context'])) {
                 Assert::that($data['context']['arguments'])
                     ->isArray('"params.context.arguments" must be an object, {type} given.')
-                    ->isMap('"params.context.arguments" must be a string-keyed object.')
                     ->values()->isString('each "params.context.arguments" must be a string, {type} given.')
                 ;
                 $context['arguments'] = $data['context']['arguments'];
@@ -139,6 +137,19 @@ final readonly class CompleteRequestParams extends RequestParams
 
         if ([] !== ($this->context['arguments'] ?? [])) {
             $data['context'] = $this->context;
+        }
+
+        return $data;
+    }
+
+    #[\Override]
+    public function jsonSerialize(): array
+    {
+        $data = parent::jsonSerialize();
+        $arguments = $this->context['arguments'] ?? [];
+
+        if ([] !== $arguments && array_is_list($arguments)) {
+            $data['context'] = ['arguments' => (object) $arguments];
         }
 
         return $data;

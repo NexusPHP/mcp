@@ -159,13 +159,16 @@ final class CallToolRequestParamsTest extends AbstractMcpTestCase
         new CallToolRequestParams(name: '', meta: RequestMetaObjectFactory::create());
     }
 
-    public function testConstructorRejectsListKeyedArguments(): void
+    public function testConstructorAcceptsAnArgumentNameThatIsAllDigits(): void
     {
-        $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageIs('"params.arguments" must be a string-keyed map or null.');
+        $params = new CallToolRequestParams(
+            name: 'read-file',
+            meta: RequestMetaObjectFactory::create(),
+            arguments: ['v1', 'v2'],
+        );
 
-        // @phpstan-ignore argument.type
-        new CallToolRequestParams(name: 'read-file', meta: RequestMetaObjectFactory::create(), arguments: ['v1', 'v2']);
+        self::assertSame([0, 1], array_keys($params->arguments ?? []));
+        self::assertStringContainsString('"arguments":{"0":"v1","1":"v2"}', (string) json_encode($params));
     }
 
     public function testConstructionWithInputResponsesAndRequestState(): void
@@ -291,11 +294,6 @@ final class CallToolRequestParamsTest extends AbstractMcpTestCase
         yield 'arguments not an object' => [
             ['name' => 'read-file', 'arguments' => 'oops'],
             '"params.arguments" must be an object, string given.',
-        ];
-
-        yield 'arguments list-keyed' => [
-            ['name' => 'read-file', 'arguments' => ['v']],
-            '"params.arguments" must be a string-keyed object.',
         ];
 
         yield 'missing _meta' => [

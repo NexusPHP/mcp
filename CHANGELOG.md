@@ -22,9 +22,12 @@ in `0.x`, minor releases may include breaking changes.
   object. Covers a tool's `inputSchema` and `outputSchema`, an elicitation's `requestedSchema`, and an
   elicit result's `content`, whose keys are those same names. An empty `content` now emits `{}` too.
   A JSON array arriving in one of those object-typed slots is normalised to an object rather than
-  refused, since `json_decode` cannot tell it from an object whose names run `0`…`n-1`. Not yet
-  covered: a tool's `arguments` still holds string keys, so a tool declaring such a property cannot
-  yet be called.
+  refused, since `json_decode` cannot tell it from an object whose names run `0`…`n-1`.
+- A tool or prompt argument name made only of digits is decoded rather than refused, and re-encodes as
+  an object. Covers `tools/call` and `prompts/get` `arguments` plus `completion/complete`'s
+  `context.arguments`, whose names are the schema property names widened above, so a tool declaring
+  such a property can now be called as well as listed. `ParameterHeaderValidationMiddleware` no longer
+  drops those arguments before checking them against the `Mcp-Param-*` headers.
 - A server-assigned `inputRequests` / `inputResponses` key made only of digits is decoded rather than
   refused, and re-encodes as an object. The spec puts no format on those keys, so a server numbering
   them from a counter had its whole multi-round-trip exchange rejected. A JSON array in one of those

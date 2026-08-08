@@ -42,7 +42,7 @@ final class ParameterHeaders
      * argument is null, absent, or not a permitted primitive is omitted.
      *
      * @param list<ParameterHeaderBinding> $bindings
-     * @param array<string, mixed>         $arguments
+     * @param array<array-key, mixed>      $arguments
      *
      * @return array<non-empty-string, string>
      */
@@ -68,7 +68,7 @@ final class ParameterHeaders
      * mismatch to reject with, or null when every binding agrees.
      *
      * @param list<ParameterHeaderBinding> $bindings
-     * @param array<string, mixed>         $arguments
+     * @param array<array-key, mixed>      $arguments
      * @param array<string, string>        $headers   Header lines keyed by header name (matched case-insensitively)
      */
     public static function validate(array $bindings, array $arguments, array $headers): ?HeaderMismatchError
@@ -132,8 +132,8 @@ final class ParameterHeaders
     }
 
     /**
-     * @param array<string, mixed> $arguments
-     * @param list<string>         $path
+     * @param array<array-key, mixed> $arguments
+     * @param list<string>            $path
      */
     private static function readValueAtPath(array $arguments, array $path): mixed
     {

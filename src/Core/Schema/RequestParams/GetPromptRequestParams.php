@@ -25,7 +25,7 @@ use Nexus\Mcp\Core\Schema\Result\InputResponse;
  * @extends InputResponseRequestParams<array{
  *   _meta: template-type<RequestMetaObject, MetaObject, 'T'>,
  *   name: non-empty-string,
- *   arguments?: array<string, string>,
+ *   arguments?: array<array-key, string>,
  *   inputResponses?: array<int|non-empty-string, array<string, mixed>>,
  *   requestState?: string,
  * }>
@@ -36,7 +36,7 @@ final readonly class GetPromptRequestParams extends InputResponseRequestParams
 {
     /**
      * @param non-empty-string                                $name
-     * @param null|array<string, string>                      $arguments
+     * @param null|array<array-key, string>                   $arguments
      * @param null|array<int|non-empty-string, InputResponse> $inputResponses
      */
     public function __construct(
@@ -49,10 +49,7 @@ final readonly class GetPromptRequestParams extends InputResponseRequestParams
         Assert::that($name)->isNonEmptyString('"params.name" must be a non-empty string, {type} given.');
 
         if (null !== $arguments) {
-            Assert::that($arguments)
-                ->isMap('"params.arguments" must be a string-keyed map.')
-                ->values()->isString('"params.arguments" values must all be strings, {type} given.')
-            ;
+            Assert::that($arguments)->values()->isString('"params.arguments" values must all be strings, {type} given.');
         }
 
         parent::__construct(inputResponses: $inputResponses, requestState: $requestState, meta: $meta);
@@ -70,7 +67,6 @@ final readonly class GetPromptRequestParams extends InputResponseRequestParams
         if (\array_key_exists('arguments', $data)) {
             Assert::that($data['arguments'])
                 ->isArray('"params.arguments" must be an object, {type} given.')
-                ->isMap('"params.arguments" must be a string-keyed object.')
                 ->values()->isString('"params.arguments" value must be a string, {type} given.')
             ;
             $arguments = $data['arguments'];
@@ -154,6 +150,10 @@ final readonly class GetPromptRequestParams extends InputResponseRequestParams
             if (array_is_list($this->inputResponses)) {
                 $data['inputResponses'] = (object) $data['inputResponses'];
             }
+        }
+
+        if (null !== $this->arguments && array_is_list($this->arguments) && [] !== $this->arguments) {
+            $data['arguments'] = (object) $this->arguments;
         }
 
         return $data;
