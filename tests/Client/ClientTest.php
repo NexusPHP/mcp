@@ -3339,6 +3339,79 @@ final class ClientTest extends AbstractMcpTestCase
         $transport->close();
     }
 
+    public function testAThrowingCloseStillDetachesTheTransport(): void
+    {
+        $seen = [];
+        $client = self::clientRecordingCancellations($seen);
+
+        $detached = new SupervisableRecordingTransport();
+        $detached->closeError = new \RuntimeException('drain failed on the way down');
+        $client->connect($detached);
+
+        try {
+            $client->disconnect();
+        } catch (\RuntimeException) {
+            // The failure propagates, but detaching must still have happened.
+        }
+
+        $client->connect(new RecordingTransport());
+        $detached->emitMessage(self::cancellationOf(7));
+        delay(0.01);
+
+        self::assertSame([], $seen, 'A close that throws must still detach the transport it was closing.');
+    }
+
+    public function testAConnectLandingDuringASuspendingCloseKeepsItsOwnListeners(): void
+    {
+        $seen = [];
+        $client = self::clientRecordingCancellations($seen);
+
+        $retiring = new SupervisableRecordingTransport();
+        $retiring->closeDelay = 0.05;
+        $client->connect($retiring);
+
+        // `close()` suspends, so this `connect()` lands mid-disconnect and registers on the same field.
+        $disconnect = async(static fn() => $client->disconnect());
+        delay(0.01);
+        $live = new RecordingTransport();
+        $client->connect($live);
+        $disconnect->await();
+
+        $live->emitMessage(self::cancellationOf(7));
+        delay(0.01);
+
+        self::assertSame(['handled'], $seen, 'The retiring transport must not dispose the live connection\'s listeners.');
+    }
+
+    public function testANotificationFromADetachedTransportDoesNotReachALiveHandler(): void
+    {
+        $seen = [];
+        $client = (new ClientBuilder())
+            ->setClientInfo('demo', '1.0.0')
+            ->addNotificationHandler('notifications/cancelled', new ClosureNotificationHandler(
+                static function () use (&$seen): void {
+                    $seen[] = 'handled';
+                },
+            ))
+            ->build()
+        ;
+
+        $detached = new RecordingTransport();
+        $client->connect($detached);
+        $client->disconnect();
+
+        $client->connect(new RecordingTransport());
+
+        $detached->emitMessage([
+            'jsonrpc' => '2.0',
+            'method' => 'notifications/cancelled',
+            'params' => ['requestId' => 7],
+        ]);
+        delay(0.01);
+
+        self::assertSame([], $seen, 'A transport this client let go of must drive nothing it still serves.');
+    }
+
     /**
      * @param list<SupervisableRecordingTransport>                $spawned
      * @param null|\Closure(SupervisableRecordingTransport): void $onSpawn
@@ -3615,6 +3688,36 @@ final class ClientTest extends AbstractMcpTestCase
 
         $transport->emitMessage(self::discoverResponse($request->id->id, $serverName, $serverVersion, $capabilities));
         $deferred->await();
+    }
+
+    /**
+     * A client whose only job is to record that a `notifications/cancelled` reached a live handler.
+     *
+     * @param list<string> $seen
+     */
+    private static function clientRecordingCancellations(array &$seen): Client
+    {
+        return (new ClientBuilder())
+            ->setClientInfo('demo', '1.0.0')
+            ->addNotificationHandler('notifications/cancelled', new ClosureNotificationHandler(
+                static function () use (&$seen): void {
+                    $seen[] = 'handled';
+                },
+            ))
+            ->build()
+        ;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function cancellationOf(int $requestId): array
+    {
+        return [
+            'jsonrpc' => '2.0',
+            'method' => 'notifications/cancelled',
+            'params' => ['requestId' => $requestId],
+        ];
     }
 
     /**

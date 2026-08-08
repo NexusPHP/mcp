@@ -18,12 +18,10 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Fixed
 
-- A header-mismatch retry no longer re-lists tools without bound. A server answering every page with the
-  same cursor drove `tools/list` in a loop inside the `tools/call` the caller was awaiting, which no
-  per-request deadline could end because every page was answered. The walk now stops on a cursor it has
-  already followed and at 100 pages either way, and is skipped entirely on a transport that caches no
-  header bindings. Giving up forgets the tool's cached declarations, so the retry goes out unmirrored
-  rather than carrying the header the server just rejected.
+- A client reconnected to a new transport is no longer driven by the old one. `disconnect()` left its five
+  listeners attached, so a stale error, reconnect, or message could still reach the live connection.
+- A header-mismatch retry no longer re-lists tools without bound. The walk stops on a repeated cursor or
+  at 100 pages, and a tool it never reaches is retried unmirrored rather than with the rejected header.
 - A JSON Schema property name made only of digits is decoded rather than refused, and re-encodes as an
   object. Covers a tool's `inputSchema` and `outputSchema`, an elicitation's `requestedSchema`, and an
   elicit result's `content`, whose keys are those same names. An empty `content` now emits `{}` too.
