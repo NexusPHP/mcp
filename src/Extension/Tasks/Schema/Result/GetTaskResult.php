@@ -40,8 +40,8 @@ use Nexus\Mcp\Extension\Tasks\Schema\Enum\TaskStatus;
  *   ttlMs: null|int,
  *   statusMessage?: non-empty-string,
  *   pollIntervalMs?: int,
- *   result?: array<string, mixed>,
- *   error?: array<string, mixed>,
+ *   result?: array<array-key, mixed>,
+ *   error?: array<array-key, mixed>,
  *   inputRequests?: array<int|non-empty-string, array<string, mixed>>,
  * }>
  *
@@ -58,8 +58,8 @@ final readonly class GetTaskResult extends Result implements ServerResult
      * @param non-empty-string                               $taskId
      * @param non-empty-string                               $createdAt
      * @param non-empty-string                               $lastUpdatedAt
-     * @param null|array<string, mixed>                      $result
-     * @param null|array<string, mixed>                      $error
+     * @param null|array<array-key, mixed>                   $result
+     * @param null|array<array-key, mixed>                   $error
      * @param null|array<int|non-empty-string, InputRequest> $inputRequests
      * @param null|non-empty-string                          $statusMessage
      */
@@ -76,8 +76,13 @@ final readonly class GetTaskResult extends Result implements ServerResult
         public ?int $pollIntervalMs = null,
         ResultMetaObject $meta = new GenericResultMetaObject(),
     ) {
-        Assert::that($result)->nullOr()->isMap('"result.result" must be a string-keyed object.');
-        Assert::that($error)->nullOr()->isMap('"result.error" must be a string-keyed object.');
+        if (null !== $result) {
+            Assert::that($result)->not()->isNonEmptyList('"result.result" must be a string-keyed object.');
+        }
+
+        if (null !== $error) {
+            Assert::that($error)->not()->isNonEmptyList('"result.error" must be a string-keyed object.');
+        }
 
         $inputRequests = [] === $inputRequests ? null : $inputRequests;
 
@@ -240,6 +245,15 @@ final readonly class GetTaskResult extends Result implements ServerResult
     {
         $data = $this->toArray();
 
+        // Both slots carry an object, so a list-shaped one must not encode as an array.
+        if (null !== $this->result && array_is_list($this->result)) {
+            $data['result'] = (object) $this->result;
+        }
+
+        if (null !== $this->error && array_is_list($this->error)) {
+            $data['error'] = (object) $this->error;
+        }
+
         if (null !== $this->inputRequests) {
             $data['inputRequests'] = array_map(
                 static fn(InputRequest $request): array|\stdClass => $request->jsonSerialize(),
@@ -279,8 +293,8 @@ final readonly class GetTaskResult extends Result implements ServerResult
     }
 
     /**
-     * @param null|array<string, mixed>                      $result
-     * @param null|array<string, mixed>                      $error
+     * @param null|array<array-key, mixed>                   $result
+     * @param null|array<array-key, mixed>                   $error
      * @param null|array<int|non-empty-string, InputRequest> $inputRequests
      */
     private static function assertStatusPayload(TaskStatus $status, ?array $result, ?array $error, ?array $inputRequests): void

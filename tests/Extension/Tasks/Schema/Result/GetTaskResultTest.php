@@ -290,7 +290,6 @@ final class GetTaskResultTest extends AbstractMcpTestCase
             createdAt: '2026-08-04T12:00:00+00:00',
             lastUpdatedAt: '2026-08-04T12:00:00+00:00',
             ttlMs: null,
-            // @phpstan-ignore argument.type
             result: ['a', 'b'],
         );
     }
@@ -306,7 +305,6 @@ final class GetTaskResultTest extends AbstractMcpTestCase
             createdAt: '2026-08-04T12:00:00+00:00',
             lastUpdatedAt: '2026-08-04T12:00:00+00:00',
             ttlMs: null,
-            // @phpstan-ignore argument.type
             error: ['a', 'b'],
         );
     }
@@ -517,6 +515,51 @@ final class GetTaskResultTest extends AbstractMcpTestCase
             // @phpstan-ignore argument.type
             inputRequests: ['' => self::createElicitRequest()],
         );
+    }
+
+    public function testJsonSerializeEmitsAnEmptyResultAsAnObject(): void
+    {
+        $result = new GetTaskResult(
+            taskId: 'task-1',
+            status: TaskStatus::Completed,
+            createdAt: '2026-08-04T12:00:00+00:00',
+            lastUpdatedAt: '2026-08-04T12:00:00+00:00',
+            ttlMs: null,
+            result: [],
+        );
+
+        self::assertStringContainsString('"result":{}', (string) json_encode($result));
+        self::assertSame([], $result->toArray()['result'] ?? null);
+    }
+
+    public function testJsonSerializeEmitsAnEmptyErrorAsAnObject(): void
+    {
+        $result = new GetTaskResult(
+            taskId: 'task-1',
+            status: TaskStatus::Failed,
+            createdAt: '2026-08-04T12:00:00+00:00',
+            lastUpdatedAt: '2026-08-04T12:00:00+00:00',
+            ttlMs: null,
+            error: [],
+        );
+
+        self::assertStringContainsString('"error":{}', (string) json_encode($result));
+        self::assertSame([], $result->toArray()['error'] ?? null);
+    }
+
+    public function testConstructorAcceptsAResultKeyThatIsAllDigits(): void
+    {
+        $result = new GetTaskResult(
+            taskId: 'task-1',
+            status: TaskStatus::Completed,
+            createdAt: '2026-08-04T12:00:00+00:00',
+            lastUpdatedAt: '2026-08-04T12:00:00+00:00',
+            ttlMs: null,
+            result: ['2024' => 'v'],
+        );
+
+        self::assertSame([2_024 => 'v'], $result->result);
+        self::assertStringContainsString('"result":{"2024":"v"}', (string) json_encode($result));
     }
 
     private static function createWorking(): GetTaskResult
