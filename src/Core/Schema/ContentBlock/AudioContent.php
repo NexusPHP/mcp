@@ -81,7 +81,7 @@ final readonly class AudioContent implements Arrayable, ContentBlock
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
                 ->isArray('audio content "_meta" must be an object, {type} given.')
-                ->isMap('audio content "_meta" must be a string-keyed object.')
+                ->not()->isNonEmptyList('audio content "_meta" must be a string-keyed object.')
             ;
             $meta = PayloadMetaObject::fromArray($data['_meta']);
         }

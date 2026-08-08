@@ -16,7 +16,7 @@ namespace Nexus\Mcp\Core\Schema;
 /**
  * Interface for classes that can be converted to and from arrays.
  *
- * @template-covariant T of array<string, mixed> = array<string, mixed>
+ * @template-covariant T of array<array-key, mixed> = array<string, mixed>
  */
 interface Arrayable extends \JsonSerializable
 {

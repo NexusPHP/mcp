@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Extension\Tasks\Schema\Result;
 
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Enum\ResultType;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\MetaObject\GenericResultMetaObject;
 use Nexus\Mcp\Core\Schema\MetaObject\ResultMetaObject;
 use Nexus\Mcp\Core\Schema\Result;
@@ -28,7 +29,7 @@ use Nexus\Mcp\Extension\Tasks\Schema\Enum\TaskStatus;
  * the long-running task the client polls with `tasks/get`.
  *
  * @extends Result<array{
- *   _meta?: array<string, mixed>,
+ *   _meta?: template-type<ResultMetaObject, MetaObject, 'T'>,
  *   resultType: non-empty-string,
  *   taskId: non-empty-string,
  *   status: non-empty-string,
@@ -103,7 +104,7 @@ final readonly class CreateTaskResult extends Result implements ServerResult, Ta
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
                 ->isArray('"result._meta" must be an object, {type} given.')
-                ->isMap('"result._meta" must be a string-keyed object.')
+                ->not()->isNonEmptyList('"result._meta" must be a string-keyed object.')
             ;
             $meta = GenericResultMetaObject::fromArray($data['_meta']);
         }

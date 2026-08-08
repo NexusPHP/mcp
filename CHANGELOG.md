@@ -18,6 +18,8 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Fixed
 
+- A `_meta` name made only of digits is decoded rather than refused. `json_decode` turns such a key into
+  a PHP int, which the guard read as a malformed object.
 - A tool can now return an array, string, number or boolean as its structured content, not only an object.
   `CallToolResult` previously refused everything but an object on both construction and decode.
 - A peer's tool, prompt, resource or resource-template name is decoded whatever characters it carries.

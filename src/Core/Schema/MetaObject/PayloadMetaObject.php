@@ -20,7 +20,7 @@ use Nexus\Mcp\Core\Schema\MetaObject;
  * itself, such as a tool, a resource, a prompt, or a content block. It reserves no
  * keys of its own, so every entry is an extra.
  *
- * @extends MetaObject<array<string, mixed>>
+ * @extends MetaObject<array<array-key, mixed>>
  */
 final readonly class PayloadMetaObject extends MetaObject
 {

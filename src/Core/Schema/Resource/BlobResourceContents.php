@@ -60,7 +60,7 @@ final readonly class BlobResourceContents extends ResourceContents
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
                 ->isArray('blob resource contents "_meta" must be an object, {type} given.')
-                ->isMap('blob resource contents "_meta" must be a string-keyed object.')
+                ->not()->isNonEmptyList('blob resource contents "_meta" must be a string-keyed object.')
             ;
             $meta = PayloadMetaObject::fromArray($data['_meta']);
         }

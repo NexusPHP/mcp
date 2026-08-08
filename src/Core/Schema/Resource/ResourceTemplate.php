@@ -116,7 +116,7 @@ final readonly class ResourceTemplate extends BaseMetadata implements Arrayable,
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
                 ->isArray('resource template "_meta" must be an object, {type} given.')
-                ->isMap('resource template "_meta" must be a string-keyed object.')
+                ->not()->isNonEmptyList('resource template "_meta" must be a string-keyed object.')
             ;
             $meta = PayloadMetaObject::fromArray($data['_meta']);
         }

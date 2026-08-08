@@ -78,7 +78,7 @@ final readonly class EmbeddedResource implements Arrayable, ContentBlock
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
                 ->isArray('embedded resource "_meta" must be an object, {type} given.')
-                ->isMap('embedded resource "_meta" must be a string-keyed object.')
+                ->not()->isNonEmptyList('embedded resource "_meta" must be a string-keyed object.')
             ;
             $meta = PayloadMetaObject::fromArray($data['_meta']);
         }

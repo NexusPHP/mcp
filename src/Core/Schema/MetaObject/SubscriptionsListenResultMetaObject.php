@@ -28,7 +28,7 @@ final readonly class SubscriptionsListenResultMetaObject extends ResultMetaObjec
     public const string SUBSCRIPTION_ID_KEY = 'io.modelcontextprotocol/subscriptionId';
 
     /**
-     * @param array<string, mixed> $extras
+     * @param array<array-key, mixed> $extras
      */
     public function __construct(
         public RequestId $subscriptionId,

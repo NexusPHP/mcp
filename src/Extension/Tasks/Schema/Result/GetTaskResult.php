@@ -16,6 +16,7 @@ namespace Nexus\Mcp\Extension\Tasks\Schema\Result;
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\JsonRpc\InputRequestDispatcher;
 use Nexus\Mcp\Core\Schema\Enum\ResultType;
+use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\MetaObject\GenericResultMetaObject;
 use Nexus\Mcp\Core\Schema\MetaObject\ResultMetaObject;
 use Nexus\Mcp\Core\Schema\Request\InputRequest;
@@ -30,7 +31,7 @@ use Nexus\Mcp\Extension\Tasks\Schema\Enum\TaskStatus;
  * carries `inputRequests`, and `working`/`cancelled` carry none of the three.
  *
  * @extends Result<array{
- *   _meta?: array<string, mixed>,
+ *   _meta?: template-type<ResultMetaObject, MetaObject, 'T'>,
  *   resultType: non-empty-string,
  *   taskId: non-empty-string,
  *   status: non-empty-string,
@@ -169,7 +170,7 @@ final readonly class GetTaskResult extends Result implements ServerResult
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
                 ->isArray('"result._meta" must be an object, {type} given.')
-                ->isMap('"result._meta" must be a string-keyed object.')
+                ->not()->isNonEmptyList('"result._meta" must be a string-keyed object.')
             ;
             $meta = GenericResultMetaObject::fromArray($data['_meta']);
         }

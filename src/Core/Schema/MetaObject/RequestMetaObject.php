@@ -33,7 +33,7 @@ use Nexus\Mcp\Core\Validation\EnumValueValidator;
  *   'io.modelcontextprotocol/clientCapabilities': template-type<ClientCapabilities, Arrayable, 'T'>,
  *   'io.modelcontextprotocol/logLevel'?: value-of<LoggingLevel>,
  *   progressToken?: int|non-empty-string,
- *   ...<string, mixed>,
+ *   ...<array-key, mixed>,
  * }>
  *
  * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#requestmetaobject
@@ -46,7 +46,7 @@ final readonly class RequestMetaObject extends MetaObject
     public const string LOG_LEVEL_KEY = 'io.modelcontextprotocol/logLevel';
 
     /**
-     * @param array<string, mixed> $extras
+     * @param array<array-key, mixed> $extras
      */
     public function __construct(
         public ProtocolVersion $protocolVersion,

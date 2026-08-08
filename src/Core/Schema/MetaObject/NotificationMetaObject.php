@@ -21,7 +21,7 @@ use Nexus\Mcp\Core\Schema\RequestId;
  * Extends `MetaObject` with additional notification-specific fields.
  * All key naming rules from `MetaObject` apply.
  *
- * @extends MetaObject<array<string, mixed>>
+ * @extends MetaObject<array<array-key, mixed>>
  *
  * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#notificationmetaobject
  */
@@ -30,7 +30,7 @@ final readonly class NotificationMetaObject extends MetaObject
     public const string SUBSCRIPTION_ID_KEY = 'io.modelcontextprotocol/subscriptionId';
 
     /**
-     * @param array<string, mixed> $extras
+     * @param array<array-key, mixed> $extras
      */
     public function __construct(public ?RequestId $subscriptionId = null, array $extras = [])
     {

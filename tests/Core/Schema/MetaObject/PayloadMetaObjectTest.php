@@ -77,4 +77,20 @@ final class PayloadMetaObjectTest extends AbstractMcpTestCase
         self::assertInstanceOf(\stdClass::class, $meta->jsonSerialize());
         self::assertSame('{}', json_encode($meta));
     }
+
+    public function testFromArrayKeepsANameThatIsAllDigits(): void
+    {
+        $meta = PayloadMetaObject::fromArray(['2024' => 'a', 'name' => 'b']);
+
+        self::assertSame([2_024 => 'a', 'name' => 'b'], $meta->extras);
+        self::assertSame('{"2024":"a","name":"b"}', json_encode($meta));
+    }
+
+    public function testJsonSerializeSubstitutesStdClassWhenAnyNameIsAllDigits(): void
+    {
+        $meta = PayloadMetaObject::fromArray(['2024' => 'a']);
+
+        self::assertInstanceOf(\stdClass::class, $meta->jsonSerialize());
+        self::assertSame('{"2024":"a"}', json_encode($meta));
+    }
 }

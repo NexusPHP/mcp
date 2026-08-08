@@ -21,7 +21,7 @@ use Nexus\Mcp\Core\Schema\MetaObject;
  * Extends `MetaObject` with additional result-specific fields.
  * All key naming rules from `MetaObject` apply.
  *
- * @extends MetaObject<array<string, mixed>>
+ * @extends MetaObject<array<array-key, mixed>>
  *
  * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#resultmetaobject
  */
@@ -30,7 +30,7 @@ abstract readonly class ResultMetaObject extends MetaObject
     public const string SERVER_INFO_KEY = 'io.modelcontextprotocol/serverInfo';
 
     /**
-     * @param array<string, mixed> $extras
+     * @param array<array-key, mixed> $extras
      */
     public function __construct(public ?Implementation $serverInfo = null, array $extras = [])
     {
@@ -65,9 +65,9 @@ abstract readonly class ResultMetaObject extends MetaObject
     /**
      * Splits the typed server identity out of a raw `_meta` map, leaving the rest as extras.
      *
-     * @param array<string, mixed> $data
+     * @param array<array-key, mixed> $data
      *
-     * @return array{null|Implementation, array<string, mixed>}
+     * @return array{null|Implementation, array<array-key, mixed>}
      */
     protected static function splitServerInfo(array $data): array
     {

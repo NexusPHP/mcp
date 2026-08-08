@@ -127,7 +127,7 @@ final readonly class Resource extends BaseMetadata implements Arrayable, Icons
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
                 ->isArray('resource "_meta" must be an object, {type} given.')
-                ->isMap('resource "_meta" must be a string-keyed object.')
+                ->not()->isNonEmptyList('resource "_meta" must be a string-keyed object.')
             ;
             $meta = PayloadMetaObject::fromArray($data['_meta']);
         }

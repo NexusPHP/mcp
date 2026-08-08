@@ -69,7 +69,7 @@ final readonly class TextContent implements Arrayable, ContentBlock
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
                 ->isArray('text content "_meta" must be an object, {type} given.')
-                ->isMap('text content "_meta" must be a string-keyed object.')
+                ->not()->isNonEmptyList('text content "_meta" must be a string-keyed object.')
             ;
             $meta = PayloadMetaObject::fromArray($data['_meta']);
         }

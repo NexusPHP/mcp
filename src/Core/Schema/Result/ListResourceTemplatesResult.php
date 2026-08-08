@@ -90,7 +90,7 @@ final readonly class ListResourceTemplatesResult extends PaginatedResult impleme
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
                 ->isArray('"result._meta" must be an object, {type} given.')
-                ->isMap('"result._meta" must be a string-keyed object.')
+                ->not()->isNonEmptyList('"result._meta" must be a string-keyed object.')
             ;
             $meta = GenericResultMetaObject::fromArray($data['_meta']);
         }

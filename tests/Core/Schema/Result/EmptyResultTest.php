@@ -87,4 +87,12 @@ final class EmptyResultTest extends AbstractMcpTestCase
 
         self::assertSame($original->toArray(), EmptyResult::fromArray($original->toArray())->toArray());
     }
+
+    public function testFromArrayKeepsAMetaNameThatIsAllDigits(): void
+    {
+        $result = EmptyResult::fromArray(['_meta' => ['2024' => 'a']]);
+
+        self::assertSame([2_024 => 'a'], $result->meta->extras);
+        self::assertSame('{"_meta":{"2024":"a"},"resultType":"complete"}', json_encode($result));
+    }
 }

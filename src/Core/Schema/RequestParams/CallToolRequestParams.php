@@ -92,7 +92,7 @@ final readonly class CallToolRequestParams extends InputResponseRequestParams
         Assert::that($data)->hasOffset('_meta', '"params" is missing the required "_meta" key.');
         Assert::that($data['_meta'])
             ->isArray('"params._meta" must be an object, {type} given.')
-            ->isMap('"params._meta" must be a string-keyed object.')
+            ->not()->isNonEmptyList('"params._meta" must be a string-keyed object.')
         ;
         $meta = RequestMetaObject::fromArray($data['_meta']);
 

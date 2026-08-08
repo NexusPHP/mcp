@@ -105,7 +105,7 @@ final readonly class Prompt extends BaseMetadata implements Arrayable, Icons
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
                 ->isArray('prompt "_meta" must be an object, {type} given.')
-                ->isMap('prompt "_meta" must be a string-keyed object.')
+                ->not()->isNonEmptyList('prompt "_meta" must be a string-keyed object.')
             ;
             $meta = PayloadMetaObject::fromArray($data['_meta']);
         }

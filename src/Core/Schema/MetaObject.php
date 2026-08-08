@@ -36,7 +36,7 @@ namespace Nexus\Mcp\Core\Schema;
  * - Unless empty, MUST start and end with an alphanumeric character (`[a-z0-9A-Z]`).
  * - Interior characters may be alphanumeric, hyphens (`-`), underscores (`_`), or dots (`.`).
  *
- * @template-covariant T of array<string, mixed> = array<string, mixed>
+ * @template-covariant T of array<array-key, mixed> = array<array-key, mixed>
  *
  * @implements Arrayable<T>
  *
@@ -45,17 +45,24 @@ namespace Nexus\Mcp\Core\Schema;
 abstract readonly class MetaObject implements Arrayable
 {
     /**
-     * @param array<string, mixed> $extras
+     * @param array<array-key, mixed> $extras
      */
     public function __construct(public array $extras = [])
     {
     }
 
+    /**
+     * @param array<array-key, mixed> $data
+     */
+    #[\Override]
+    abstract public static function fromArray(array $data): static;
+
     #[\Override]
     public function jsonSerialize(): array|\stdClass
     {
         $out = $this->toArray();
+        $map = array_filter($out, is_string(...), \ARRAY_FILTER_USE_KEY);
 
-        return [] === $out ? new \stdClass() : $out;
+        return [] !== $out && $map === $out ? $map : (object) $out;
     }
 }

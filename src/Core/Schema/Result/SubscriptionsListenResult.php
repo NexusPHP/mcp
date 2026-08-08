@@ -48,7 +48,7 @@ final readonly class SubscriptionsListenResult extends Result implements ServerR
         Assert::that($data)->hasOffset('_meta', '"result" is missing the required "_meta" key.');
         Assert::that($data['_meta'])
             ->isArray('"result._meta" must be an object, {type} given.')
-            ->isMap('"result._meta" must be a string-keyed object.')
+            ->not()->isNonEmptyList('"result._meta" must be a string-keyed object.')
         ;
 
         return new self(meta: SubscriptionsListenResultMetaObject::fromArray($data['_meta']));

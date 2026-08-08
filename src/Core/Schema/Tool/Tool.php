@@ -148,7 +148,7 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
         if (\array_key_exists('_meta', $data)) {
             Assert::that($data['_meta'])
                 ->isArray('Tool "_meta" must be an object, {type} given.')
-                ->isMap('Tool "_meta" must be a string-keyed object.')
+                ->not()->isNonEmptyList('Tool "_meta" must be a string-keyed object.')
             ;
             $meta = PayloadMetaObject::fromArray($data['_meta']);
         }
