@@ -88,7 +88,7 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
         self::assertSame(413, $response->getStatusCode());
     }
 
-    public function testABodyOfUnknownSizeEscapesTheCapWithNoToolStore(): void
+    public function testABodyOfUnknownSizeEscapesTheCap(): void
     {
         $handler = self::handler();
         $request = self::request(null)->withBody(new NonSeekableStream(str_repeat('x', 2_048)));
@@ -99,7 +99,7 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
         self::assertSame(200, $response->getStatusCode());
     }
 
-    public function testABodyOfUnknownSizeIsCappedOnceAToolStoreMakesItDeterminate(): void
+    public function testABodyOfUnknownSizeEscapesTheCapWithAToolStoreToo(): void
     {
         $handler = self::handler();
         $request = self::request(null)->withBody(new NonSeekableStream(str_repeat('x', 2_048)));
@@ -108,8 +108,8 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
             ->handle($request)
         ;
 
-        self::assertFalse($handler->called);
-        self::assertSame(413, $response->getStatusCode(), 'Header validation re-seats the body, so its size is known.');
+        self::assertTrue($handler->called, 'The cap answers before header validation re-seats the body.');
+        self::assertSame(200, $response->getStatusCode());
     }
 
     public function testOmitsTheBodySizeCapByDefault(): void
@@ -154,6 +154,20 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
         self::assertSame(403, $response->getStatusCode());
     }
 
+    public function testAnswersTheBodySizeCapAheadOfParameterHeaderValidation(): void
+    {
+        $handler = self::handler();
+        $store = self::toolStore();
+
+        $response = self::endpoint($handler, ['*'], maxBodyBytes: 16, toolStore: $store)
+            ->handle(self::buildMismatchedToolCall('us-east1'))
+        ;
+
+        self::assertFalse($handler->called);
+        self::assertSame(413, $response->getStatusCode());
+        self::assertSame(0, $store->listCalls, 'An oversized body is refused before anything decodes it.');
+    }
+
     public function testAnUnauthenticatedRequestIsTurnedAwayBeforeTheHandler(): void
     {
         $handler = self::handler();
@@ -189,6 +203,18 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
 
         self::assertSame(403, $response->getStatusCode());
         self::assertSame('', $response->getHeaderLine('WWW-Authenticate'));
+        self::assertFalse($handler->called);
+    }
+
+    public function testAnOversizedBodyIsRefusedOnlyAfterAuthentication(): void
+    {
+        $handler = self::handler();
+
+        $response = self::endpoint($handler, ['*'], maxBodyBytes: 16, authentication: self::authentication())
+            ->handle(self::request(null, 2_048))
+        ;
+
+        self::assertSame(401, $response->getStatusCode());
         self::assertFalse($handler->called);
     }
 
@@ -236,7 +262,7 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
         );
     }
 
-    private static function toolStore(): ToolStoreInterface
+    private static function toolStore(): PagedToolStore
     {
         return new PagedToolStore([[
             new Tool(name: 'echo', inputSchema: [
