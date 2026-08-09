@@ -25,8 +25,7 @@ use Nexus\Mcp\Core\Transport\Subscription;
 use Nexus\Mcp\Core\Transport\SubscriptionInterface;
 
 /**
- * In-memory implementation of `TransportInterface` for tests. Records every
- * send and exposes hooks to drive the inbound listener chain manually.
+ * In-memory `TransportInterface` double recording every send.
  *
  * @internal
  */
@@ -41,8 +40,6 @@ final class RecordingTransport implements AbortableTransportInterface, Cancellab
     public array $sent = [];
 
     /**
-     * Ids the protocol layer asked this transport to stop work for, in order.
-     *
      * @var list<int|non-empty-string>
      */
     public array $aborted = [];
@@ -199,9 +196,6 @@ final class RecordingTransport implements AbortableTransportInterface, Cancellab
         });
     }
 
-    /**
-     * Drives the registered `onCancel` listeners, standing in for a peer abandoning a request.
-     */
     public function emitCancel(RequestId $id): void
     {
         foreach ($this->cancelListeners as $listener) {
@@ -210,8 +204,6 @@ final class RecordingTransport implements AbortableTransportInterface, Cancellab
     }
 
     /**
-     * Drives the registered `onMessage` listeners with a synthetic envelope.
-     *
      * @param array<string, mixed> $envelope
      */
     public function emitMessage(array $envelope, ?ReceiveContext $context = null): void
@@ -231,9 +223,7 @@ final class RecordingTransport implements AbortableTransportInterface, Cancellab
     }
 
     /**
-     * Fires the registered `onClose` listeners without touching the `$closed`
-     * flag, simulating a transport whose underlying stream signals close more
-     * than once.
+     * Fires the registered `onClose` listeners without touching the `$closed` flag.
      */
     public function emitClose(): void
     {

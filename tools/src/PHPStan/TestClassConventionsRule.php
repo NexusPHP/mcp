@@ -26,8 +26,7 @@ use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
- * Enforces the test-class conventions: structure and `@internal`, recognised `#[Group]` names,
- * and a `#[CoversClass]` chain reaching every in-package ancestor of the covered class.
+ * Rule enforcing the test-class conventions.
  *
  * @implements Rule<InClassNode>
  *

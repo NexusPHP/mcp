@@ -23,16 +23,13 @@ use Nexus\Mcp\Extension\Tasks\Schema\Result\CreateTaskResult;
 use Nexus\Mcp\Extension\Tasks\Schema\Result\GetTaskResult;
 
 /**
- * Client-side surface of the tasks extension: task-aware tool calls, the
- * typed `tasks/*` methods, and a polling loop that drives a task to a
- * terminal state.
+ * Client-side surface of the tasks extension.
  */
 interface TaskClientInterface
 {
     /**
-     * Calls a tool, decoding the server's per-request choice: the direct
-     * result, a synchronous input request, or a task handle. The continuation
-     * parameters re-issue a call that answered an `InputRequiredResult`.
+     * Calls a tool, the continuation parameters re-issuing a call that answered
+     * an `InputRequiredResult`.
      *
      * @param non-empty-string                                $name
      * @param null|array<array-key, mixed>                    $arguments
@@ -41,8 +38,6 @@ interface TaskClientInterface
     public function callToolAsTask(string $name, ?array $arguments = null, ?array $inputResponses = null, ?string $requestState = null): CallToolResult|CreateTaskResult|InputRequiredResult;
 
     /**
-     * Polls the current state of a task.
-     *
      * @param non-empty-string $taskId
      */
     public function getTask(string $taskId): GetTaskResult;
@@ -65,8 +60,7 @@ interface TaskClientInterface
     /**
      * Polls a task at the server-suggested interval until it settles,
      * dispatching new input requests to `$resolveInputRequests` and answering
-     * through `tasks/update`. Returns the terminal state, whichever terminal
-     * status it carries. Cancelling `$cancellation` aborts the poll loop.
+     * through `tasks/update`, unless `$cancellation` aborts the loop.
      *
      * @param null|\Closure(array<int|non-empty-string, InputRequest>): array<int|non-empty-string, InputResponse> $resolveInputRequests
      *

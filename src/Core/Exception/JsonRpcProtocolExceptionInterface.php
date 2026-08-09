@@ -20,8 +20,5 @@ use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
  */
 interface JsonRpcProtocolExceptionInterface extends McpExceptionInterface
 {
-    /**
-     * The JSON-RPC error code corresponding to this exception's category.
-     */
     public static function getErrorCode(): ProtocolErrorCode;
 }

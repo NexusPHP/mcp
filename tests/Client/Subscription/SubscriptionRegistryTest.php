@@ -125,7 +125,6 @@ final class SubscriptionRegistryTest extends AbstractMcpTestCase
         $registry = new SubscriptionRegistry();
         $registry->register(self::buildSubscription(new RequestId(id: 7)));
 
-        // MCP admits both int and string request ids, so "7" names a different stream than 7.
         self::assertNull($registry->get(new RequestId(id: '7')));
     }
 

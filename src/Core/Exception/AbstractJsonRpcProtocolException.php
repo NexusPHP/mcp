@@ -16,14 +16,10 @@ namespace Nexus\Mcp\Core\Exception;
 use Nexus\Mcp\Core\Schema\RequestId;
 
 /**
- * Base for every JSON-RPC protocol-level failure raised by the SDK. Concrete
- * subclasses pin a JSON-RPC error category and may carry category-specific context.
+ * Base for every JSON-RPC protocol-level failure raised by the SDK.
  */
 abstract class AbstractJsonRpcProtocolException extends \RuntimeException implements JsonRpcProtocolExceptionInterface
 {
-    /**
-     * @param mixed $errorData Payload for the error response's `data` slot, omitted when null
-     */
     public function __construct(
         public readonly ?RequestId $requestId,
         string $message,

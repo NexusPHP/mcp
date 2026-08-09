@@ -51,7 +51,6 @@ final class ProgressListenerRegistryTest extends AbstractMcpTestCase
 
         $registry->register(new ProgressToken(token: 7), $listener);
 
-        // A distinct ProgressToken instance with the same value resolves the listener.
         self::assertSame($listener, $registry->get(new ProgressToken(token: 7)));
     }
 

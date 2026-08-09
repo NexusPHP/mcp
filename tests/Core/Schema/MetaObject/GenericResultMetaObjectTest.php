@@ -151,8 +151,6 @@ final class GenericResultMetaObjectTest extends AbstractMcpTestCase
 
     public function testDeclaresServerInfoSeesTheKeyAmongTheExtras(): void
     {
-        // `fromArray` hoists the key into the typed slot, but a directly constructed instance
-        // can still carry it here, and `toArray` would drop it in favour of a later stamp.
         $meta = new GenericResultMetaObject(extras: [ResultMetaObject::SERVER_INFO_KEY => ['name' => 'x', 'version' => '1']]);
 
         self::assertTrue($meta->declaresServerInfo());

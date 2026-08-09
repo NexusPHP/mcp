@@ -18,8 +18,6 @@ use Nexus\Mcp\Core\Schema\Arrayable;
 
 /**
  * Content Security Policy allow-lists a UI resource declares for its sandbox.
- * The spec treats an empty list and an omitted one identically, so empty
- * lists are omitted from the encoded form.
  *
  * @implements Arrayable<array{
  *   connectDomains?: list<non-empty-string>,

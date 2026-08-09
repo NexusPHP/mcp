@@ -18,15 +18,14 @@ use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitorAbstract;
 
 /**
- * Answers whether an expression assigns as it is evaluated.
+ * Finder for an assignment made while an expression is evaluated.
  *
  * @internal
  */
 final class AssignmentFinder
 {
     /**
-     * A closure body runs later rather than during evaluation, and a call argument is reported
-     * against its own call, so both bound the walk and keep each assignment reported once.
+     * A closure body runs after evaluation and a call argument is reported against its own call, so both bound the walk.
      *
      * @param list<Node> $nodes
      */

@@ -14,8 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Http;
 
 /**
- * Codec for a Streamable HTTP header value, wrapping non-header-safe values in the `=?base64?...?=`
- * sentinel. Carries the `Mcp-Name` and `Mcp-Param-{Name}` values.
+ * Codec for the Streamable HTTP `Mcp-Name` and `Mcp-Param-{Name}` header values.
  *
  * @internal
  *
@@ -36,9 +35,8 @@ final class HeaderValueCodec
     }
 
     /**
-     * Decodes a header value, returning the decoded string, or `null` when a sentinel-wrapped payload is
-     * not canonical Base64 or does not decode to valid UTF-8. A value without the sentinel is returned
-     * unchanged.
+     * Decodes a header value, returning one without the sentinel unchanged and `null` when a wrapped payload
+     * is not canonical Base64 or does not decode to valid UTF-8.
      */
     public static function decode(string $value): ?string
     {
@@ -50,12 +48,10 @@ final class HeaderValueCodec
         $decoded = base64_decode($payload, true);
 
         if (false === $decoded || base64_encode($decoded) !== $payload) {
-            // Reject a non-canonical payload (invalid alphabet or wrong padding).
             return null;
         }
 
         if (preg_match('//u', $decoded) !== 1) {
-            // Reject a payload that does not decode to valid UTF-8.
             return null;
         }
 
@@ -76,7 +72,6 @@ final class HeaderValueCodec
             return true;
         }
 
-        // Any byte outside horizontal tab and the visible ASCII range forces Base64.
         return preg_match('/[^\x09\x20-\x7E]/', $value) === 1;
     }
 

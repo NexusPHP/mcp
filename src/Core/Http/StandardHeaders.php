@@ -17,8 +17,7 @@ use Nexus\Mcp\Core\Schema\Error\HeaderMismatchError;
 use Nexus\Mcp\Core\Schema\MetaObject\RequestMetaObject;
 
 /**
- * Builds and cross-checks the standard request headers (`MCP-Protocol-Version`, `Mcp-Method`, `Mcp-Name`)
- * against the request body.
+ * Builder and validator for the standard request headers (`MCP-Protocol-Version`, `Mcp-Method`, `Mcp-Name`).
  *
  * @internal
  *
@@ -31,10 +30,10 @@ final class StandardHeaders
     private const string NAME_HEADER = 'Mcp-Name';
 
     /**
-     * Builds the standard headers mirroring an outbound request envelope. A header whose source value the
-     * body does not carry is omitted, since the client has nothing to mirror.
+     * Builds the standard headers mirroring an outbound request envelope, omitting one whose source value
+     * the body does not carry.
      *
-     * @param array<string, mixed> $body Encoded JSON-RPC request envelope
+     * @param array<string, mixed> $body
      *
      * @return array<non-empty-string, string>
      */
@@ -63,11 +62,11 @@ final class StandardHeaders
     }
 
     /**
-     * Validates the standard headers a request carries against its body. Returns the mismatch to reject
-     * with, or null when the headers agree.
+     * Validates the standard headers a request carries against its body, returning the mismatch to reject
+     * with or null when they agree.
      *
-     * @param array<string, string> $headers Header lines keyed by header name (matched case-insensitively)
-     * @param array<string, mixed>  $body    Decoded JSON-RPC request envelope
+     * @param array<string, string> $headers
+     * @param array<string, mixed>  $body
      */
     public static function validate(array $headers, array $body): ?HeaderMismatchError
     {
@@ -134,7 +133,6 @@ final class StandardHeaders
         $header = self::readLine($headers, self::NAME_HEADER);
 
         if (null === $header) {
-            // A missing source value is a params fault. Only reject when the body actually carries one.
             return null === $source
                 ? null
                 : new HeaderMismatchError('The Mcp-Name header is required but absent.');

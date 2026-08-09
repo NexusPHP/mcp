@@ -54,7 +54,6 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
 
     public function testTheAcknowledgementOmitsTypesTheServerCannotDeliver(): void
     {
-        // The spec has the server report the honoured subset, omitting rather than denying what it lacks.
         $store = new SubscriptionStore(toolsListChanged: true);
         $sender = new RecordingSender();
 
@@ -101,7 +100,6 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
 
     public function testABurstOfChangesReachesTheStreamOnce(): void
     {
-        // `list_changed` carries no payload, so collapsing a synchronous burst loses nothing.
         $store = new SubscriptionStore(toolsListChanged: true);
         $sender = new RecordingSender();
         $store->open(new RequestId(id: 1), new SubscriptionFilter(toolsListChanged: true), $sender);
@@ -253,7 +251,6 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
             $sender,
         );
 
-        // An all-null filter is an empty object on the message, not an empty array.
         self::assertInstanceOf(\stdClass::class, self::paramsOf($sender, 0)['notifications'] ?? null);
 
         $store->emitToolListChanged();
@@ -335,7 +332,6 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
 
     public function testAnAllDigitResourceUriSurvivesTheArrayKeyCoercion(): void
     {
-        // PHP turns a decimal-int-string key into an int, so the coalescing map hands back an int URI.
         $store = new SubscriptionStore(resourceSubscriptions: true);
         $sender = new RecordingSender();
         $store->open(new RequestId(id: 1), new SubscriptionFilter(resourceSubscriptions: ['123']), $sender);
@@ -362,7 +358,6 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
         $filter = new SubscriptionFilter(toolsListChanged: true);
         $reachable = new RecordingSender();
 
-        // The acknowledgement goes out before the stream is registered, so the peer vanishes after it.
         $sends = 0;
         $vanished = self::createStub(SenderInterface::class);
         $vanished->method('sendNotification')->willReturnCallback(
@@ -396,7 +391,6 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
         $sender = new RecordingSender();
         $entry = $store->open(new RequestId(id: 1), new SubscriptionFilter(toolsListChanged: true), $sender);
 
-        // The emit is coalesced to the end of the tick, so the teardown lands between it and the broadcast.
         $store->emitToolListChanged();
         $entry->closed->complete();
         delay(0.0);
@@ -449,13 +443,11 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
         $store = new SubscriptionStore(toolsListChanged: true);
         $store->closeAll();
 
-        // `Amp\async()` only queues a handler, so a listen dispatched before the drain can first run after it.
         $sender = new RecordingSender();
         $entry = $store->open(new RequestId(id: 1), new SubscriptionFilter(toolsListChanged: true), $sender);
 
         self::assertTrue($entry->closed->isComplete(), 'A late stream must not outlive the drain that already ran.');
 
-        // Never registered, so the teardown has nothing to announce.
         $store->close($entry);
 
         self::assertSame(['notifications/subscriptions/acknowledged'], self::methodsOf($sender));
@@ -463,7 +455,6 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
 
     public function testTwoStreamsSharingASubscriptionIdStayIndependent(): void
     {
-        // Request ids are unique per connection, and a sessionless endpoint serves many through one store.
         $store = new SubscriptionStore(toolsListChanged: true);
         $first = new RecordingSender();
         $second = new RecordingSender();

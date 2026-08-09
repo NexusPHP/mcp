@@ -19,15 +19,6 @@ use Nexus\Mcp\Client\Auth\AuthorizationCallback;
 use Nexus\Mcp\Client\Auth\AuthorizationRedirect;
 use Nexus\Mcp\Client\Auth\UserAuthorizationInterface;
 
-/**
- * Completes Keycloak's login form without a browser or a human.
- *
- * A real client opens `$redirect->url` in a user-agent and reports where it
- * landed. This one plays the user-agent itself: it fetches the login page,
- * posts the demo credentials to the form, and reads the redirect Keycloak
- * answers with. The SDK still owns PKCE, `state`, and issuer validation, so
- * nothing here weakens the flow being demonstrated.
- */
 final class KeycloakLogin implements UserAuthorizationInterface
 {
     public function __construct(private readonly string $username, private readonly string $password)
@@ -37,13 +28,8 @@ final class KeycloakLogin implements UserAuthorizationInterface
     #[Override]
     public function authorize(AuthorizationRedirect $redirect, Cancellation $cancellation): AuthorizationCallback
     {
-        // The redirect back to the client is the answer, so following it would
-        // discard the thing being read.
         $client = (new HttpClientBuilder())->followRedirects(0)->build();
-
         $page = $client->request(new Request($redirect->url), $cancellation);
-
-        // An SSO cookie from an earlier login skips the form entirely.
         $location = $page->getHeader('location');
 
         if (is_string($location) && '' !== $location) {
@@ -81,9 +67,6 @@ final class KeycloakLogin implements UserAuthorizationInterface
         return new AuthorizationCallback($location);
     }
 
-    /**
-     * The auth-session cookies the login form's POST must present back.
-     */
     private static function cookiesFrom(Response $response): string
     {
         $pairs = [];

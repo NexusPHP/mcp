@@ -59,7 +59,7 @@ enum LoggingLevel: string
     case Alert = 'alert';
 
     /**
-     * A panic condition. The system is unusable.
+     * A panic condition rendering the system unusable.
      */
     case Emergency = 'emergency';
 }

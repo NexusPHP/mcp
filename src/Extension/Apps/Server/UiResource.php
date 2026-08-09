@@ -22,12 +22,7 @@ use Nexus\Mcp\Extension\Apps\Apps;
 use Nexus\Mcp\Extension\Apps\Schema\UiResourceMeta;
 
 /**
- * A UI resource declaration: composes a `Resource` bound to the `ui://`
- * scheme and the `text/html;profile=mcp-app` mime type, with the `_meta.ui`
- * slot carrying the given metadata. Pass `$resource` to
- * `ServerBuilder::addResource()` with a reader returning the HTML document,
- * and reuse `$resource->meta` on the read contents so both positions carry
- * the same metadata.
+ * A `Resource` bound to the `ui://` scheme and the `text/html;profile=mcp-app` mime type.
  */
 final readonly class UiResource
 {

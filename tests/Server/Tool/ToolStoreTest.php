@@ -59,8 +59,6 @@ final class ToolStoreTest extends AbstractMcpTestCase
 
     public function testListPreservesRegistrationOrderDeterministically(): void
     {
-        // Names are intentionally not alphabetical so registration order is
-        // distinguishable from a sorted order.
         $store = new ToolStore(self::makeEntries('zeta', 'alpha', 'mike', 'bravo'));
 
         $expected = ['zeta', 'alpha', 'mike', 'bravo'];
@@ -123,8 +121,6 @@ final class ToolStoreTest extends AbstractMcpTestCase
 
     public function testAnAllDigitNameIsServedDespiteBecomingAnIntegerKey(): void
     {
-        // The name rules permit all digits, and PHP turns such a key into an int. Pagination must still
-        // mint a cursor that names the entry rather than its position.
         $store = new ToolStore(['123' => new ToolEntry(self::makeTool('123'), self::makeExecutor()), 'beta' => new ToolEntry(self::makeTool('beta'), self::makeExecutor())], pageSize: 1);
 
         $first = $store->list(null);
@@ -350,7 +346,6 @@ final class ToolStoreTest extends AbstractMcpTestCase
 
     public function testCallSkipsOutputValidationForAnInputRequiredResult(): void
     {
-        // The output schema demands an `n` property, which a result still awaiting input cannot carry.
         $asked = new InputRequiredResult(requestState: 'state-1');
         $store = new ToolStore([
             'report' => new ToolEntry(

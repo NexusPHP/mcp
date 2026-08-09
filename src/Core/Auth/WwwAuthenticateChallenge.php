@@ -15,7 +15,6 @@ namespace Nexus\Mcp\Core\Auth;
 
 /**
  * One `WWW-Authenticate` challenge: an authentication scheme and the `auth-param` pairs it carries.
- * Parameter names are matched and stored case-insensitively.
  *
  * @internal
  *
@@ -37,8 +36,7 @@ final readonly class WwwAuthenticateChallenge
     private const string QUOTED_STRING = '"((?:[^"\\\\]|\\\\.)*)"';
 
     /**
-     * RFC 7230 `quoted-string` with the closing delimiter optional, so an unterminated one still spans to
-     * the end of the value rather than surrendering its commas to the segment split.
+     * RFC 7230 `quoted-string` with the closing delimiter optional.
      */
     private const string QUOTED_SPAN = '"(?:[^"\\\\]|\\\\.)*"?';
 
@@ -63,8 +61,6 @@ final readonly class WwwAuthenticateChallenge
     }
 
     /**
-     * Parses every challenge a `WWW-Authenticate` header value carries.
-     *
      * @return list<self>
      */
     public static function parseAll(string $header): array
@@ -107,9 +103,6 @@ final readonly class WwwAuthenticateChallenge
         return $challenges;
     }
 
-    /**
-     * Finds the `Bearer` challenge a `WWW-Authenticate` header value carries, or `null` when it offers none.
-     */
     public static function findBearer(string $header): ?self
     {
         foreach (self::parseAll($header) as $challenge) {
@@ -126,9 +119,6 @@ final readonly class WwwAuthenticateChallenge
         return $this->parameters[strtolower($name)] ?? null;
     }
 
-    /**
-     * Renders the challenge as a `WWW-Authenticate` header value.
-     */
     public function toHeaderValue(): string
     {
         $rendered = [];
@@ -195,7 +185,6 @@ final readonly class WwwAuthenticateChallenge
         }
 
         if (preg_match('/^'.self::QUOTED_STRING.'/s', $rest, $matches) !== 1) {
-            // An unterminated quoted-string carries no value.
             return null;
         }
 

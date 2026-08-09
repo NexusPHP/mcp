@@ -34,9 +34,7 @@ use Psr\Log\LogLevel;
 use Revolt\EventLoop;
 
 /**
- * Drives the transport against a scripted subprocess. Every real spawn lives in
- * `AmpSubprocessLauncherTest`, because an Infection mutant cannot start a process and a test that
- * tries scores as a false kill.
+ * Drives the transport against a scripted subprocess, since a real spawn cannot validate an Infection mutant and lives in `AmpSubprocessLauncherTest`.
  *
  * @internal
  */
@@ -45,9 +43,6 @@ use Revolt\EventLoop;
 #[Group('client-tests')]
 final class StdioClientTransportTest extends AbstractMcpTestCase
 {
-    /**
-     * Never spawned, so never resolved against PATH.
-     */
     private const array COMMAND = ['mcp-server', '--stdio'];
 
     public function testEmptyCommandThrows(): void
@@ -408,8 +403,6 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
 
         $transport->start();
         $transport->close();
-        // The cancellation lands on the next loop turn, so let it before the exit arrives. A real
-        // subprocess exit is I/O and can never reach the watch in the same turn as `close()`.
         EventLoop::run();
         $launcher->lastSubprocess()->exitWith(3);
         EventLoop::run();

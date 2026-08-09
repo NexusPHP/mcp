@@ -121,8 +121,7 @@ final readonly class ServerCapabilities implements Arrayable
     }
 
     /**
-     * Substitutes `\stdClass` for empty arrays so `json_encode` emits `{}`. Safe
-     * because every capability slot is spec-typed as an object (no list-typed leaves).
+     * Substitutes `\stdClass` for empty arrays so `json_encode` emits `{}`.
      *
      * @param array<array-key, mixed> $data
      *

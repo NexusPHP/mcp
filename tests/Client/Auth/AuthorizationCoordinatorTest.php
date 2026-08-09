@@ -307,10 +307,8 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
         $store = new InMemoryTokenStore();
         $store->write(self::RESOURCE, new AccessToken('from-an-earlier-run', self::ISSUER));
         $http = (new RecordingHttpClient())
-            // The well-known probes miss, so the stored token cannot be checked and is not presented.
             ->willAnswerJson([], 404)
             ->willAnswerJson([], 404)
-            // Only the URL the challenge advertises serves the document.
             ->willAnswerJson(self::resourceDocument())
             ->willAnswerJson(self::serverDocument())
             ->willAnswerJson(['client_id' => 'the-registered-client'])
@@ -326,7 +324,6 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
             new NullCancellation(),
         );
 
-        // Holding an unchecked token must not swallow the challenge that says where to check it.
         self::assertSame('the-new-token', $token->value);
         self::assertSame('https://mcp.example.com/custom/prm', (string) $http->readRequest(2)->getUri());
     }
@@ -478,8 +475,6 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
         $holder = async(static fn(): AccessToken => $coordinator->reauthorize(null, null, new NullCancellation()));
         delay(0);
         $queued = async(static fn(): AccessToken => $coordinator->reauthorize(null, null, new TimeoutCancellation(0.01)));
-        // The fixture holds no I/O of its own, so a referenced timer past the deadline is what lets the
-        // loop reach it.
         delay(0.05);
 
         $refusal = null;
@@ -514,8 +509,6 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
         $abandoned = async(static fn(): AccessToken => $coordinator->reauthorize(null, null, new TimeoutCancellation(0.01)));
         delay(0.05);
         $abandoned->ignore();
-        // Queued behind a caller that has already given up, so it only ever runs if the lock that one is
-        // still owed comes free.
         $served = null;
         $behind = async(static function () use ($coordinator, &$served): void {
             $served = $coordinator->reauthorize(null, null, new NullCancellation())->value;
@@ -523,8 +516,6 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
         $behind->ignore();
         delay(0);
         $gate->complete();
-        // Reached as a plain value rather than an await, so a lock that never came free reads as a caller
-        // still waiting instead of taking the loop down with it.
         delay(0.05);
 
         self::assertSame('the-access-token', $holder->await()->value);
@@ -545,8 +536,6 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
         $user = new ScriptedUserAuthorization();
         $coordinator = self::coordinator($http, $user);
 
-        // Both of these run in the main context, so they share the fiber whose re-entry escape the second
-        // one must not inherit from the first.
         $first = $coordinator->reauthorize(null, null, new NullCancellation());
 
         /** @var Future<AccessToken> $holder */
@@ -626,8 +615,6 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
     {
         $gate = new DeferredFuture();
         $http = self::scriptFullFlow(tokenOverrides: ['expires_in' => 1, 'refresh_token' => 'the-refresh-token'])
-            // The renewal the first caller drives lands already spent, so handing it to the second caller
-            // unchecked would present a token that lapsed before it was ever sent.
             ->willAnswerJson(['access_token' => 'the-spent-renewal', 'token_type' => 'Bearer', 'expires_in' => 1], gate: $gate->getFuture())
             ->willAnswerJson(['access_token' => 'the-usable-renewal', 'token_type' => 'Bearer'])
         ;
@@ -657,8 +644,6 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
         $store->write(self::RESOURCE, new AccessToken('from-this-process', self::ISSUER));
         $coordinator->fetchToken(new NullCancellation());
 
-        // A store shared with another process can be written behind this coordinator's back, long after
-        // discovery settled what the resource is protected by.
         $store->write(self::RESOURCE, new AccessToken('from-another-process', self::FORMER_ISSUER));
 
         self::assertNull($coordinator->fetchToken(new NullCancellation()));
@@ -671,8 +656,6 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
         $store->write(self::RESOURCE, new AccessToken('from-an-earlier-run', self::ISSUER, scopes: ['files:read', 'files:write']));
         $coordinator = self::coordinator(self::scriptFullFlow(), new ScriptedUserAuthorization(), $store);
 
-        // The held token names the challenged scope, but nothing has confirmed it is even for this
-        // resource, so it cannot stand in for the grant the step-up asks for.
         $token = $coordinator->upgradeScopes(null, new ScopeSet(['files:write']), null, new NullCancellation());
 
         self::assertSame('the-access-token', $token->value);
@@ -800,7 +783,6 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
         $gate = new DeferredFuture();
         $other = 'https://other.example.com/mcp';
         $theirHttp = (new RecordingHttpClient())
-            // Theirs parks on its own metadata, which must not hold ours up.
             ->willAnswerJson(['resource' => $other, 'authorization_servers' => [self::ISSUER]], gate: $gate->getFuture())
             ->willAnswerJson(self::serverDocument())
             ->willAnswerJson(['client_id' => 'the-registered-client'])
@@ -874,8 +856,6 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
         $upgrade->await();
         $fetch->await();
 
-        // The step-up holds the lock until the gate opens, and a token that is already usable must not queue
-        // behind it.
         self::assertSame(['fetch', 'upgrade'], $order);
     }
 
@@ -889,7 +869,6 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
         $user = new ScriptedUserAuthorization();
         $coordinator = self::coordinator($http, $user);
 
-        // Warming discovery and the registration leaves the token endpoint as the only leg still to run.
         $presented = $coordinator->reauthorize(null, null, new NullCancellation());
 
         $first = async(static fn(): AccessToken => $coordinator->upgradeScopes($presented, new ScopeSet(['files:read']), null, new NullCancellation()));
@@ -1017,7 +996,6 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
             self::assertSame('The token request failed with "invalid_request": The token endpoint answered 502 with a body that is not a JSON object.', $e->getMessage());
         }
 
-        // The gateway said nothing about the grant, so the refresh token it never reached is still good.
         self::assertSame('the-refresh-token', $store->read(self::RESOURCE)?->refreshToken);
     }
 
@@ -1046,7 +1024,6 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
         self::assertNotNull($token);
         self::assertSame('the-fresh-token', $token->value);
         self::assertSame('the-fresh-token', $store->read(self::RESOURCE)?->value);
-        // What the spent token held is re-asked for rather than narrowed away.
         self::assertSame(['files:read'], $strategy->readContext()->scopes->values);
     }
 
@@ -1059,8 +1036,6 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
 
         self::coordinator($http, $strategy, $store)->fetchToken(new NullCancellation());
 
-        // Discovering again would repeat both documents, and without a challenge it could not reach a
-        // resource document that only a challenge names.
         self::assertSame([
             'https://mcp.example.com/.well-known/oauth-protected-resource/mcp',
             'https://auth.example.com/.well-known/oauth-authorization-server',
@@ -1076,8 +1051,6 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
 
         $token = self::coordinator($http, $strategy, $store)->fetchToken(new NullCancellation());
 
-        // The registration a refresh resolves is not the one an unattended strategy authenticates with, so
-        // the refresh token is left unredeemed and nothing reaches the token endpoint.
         self::assertSame('the-fresh-token', $token?->value);
         self::assertCount(1, $strategy->contexts);
         self::assertCount(2, $http->requests);
@@ -1094,8 +1067,6 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
             self::fail('The renewal should have propagated.');
         } catch (\OutOfBoundsException $e) {
             self::assertSame('No token was scripted for this grant.', $e->getMessage());
-            // The spent token is dropped before the grant runs, so a failed renewal leaves nothing
-            // presentable behind.
             self::assertNull($store->read(self::RESOURCE));
         }
     }

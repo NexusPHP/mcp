@@ -18,21 +18,7 @@ use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
- * Pins the shape of standalone schema payload types: value objects
- * that appear inside JSON-RPC envelopes but also have meaningful identity
- * on their own. Each fixture is a hand-authored, pretty-printed JSON file
- * under `schema-payload/{Class}/{variant}.json`. The test decodes the
- * fixture, reconstructs the instance via `Arrayable::fromArray`, re-encodes
- * with `JSON_PRETTY_PRINT`, and asserts the string round-trips byte-for-byte.
- *
- * The registry auto-discovers every concrete `Arrayable` outside the
- * envelope namespaces (those are covered by
- * `JsonRpcEnvelopeRoundTripTest`). Adding a new payload class therefore
- * forces a fixture or the auto-review build fails.
- *
- * Variant convention is two files per class: `all-props.json` (every optional
- * field populated) and `none.json` (only required fields). With no optional
- * params they collapse to a single `all-props.json`.
+ * Round-trip gate for every concrete `Arrayable` outside the envelope namespaces.
  *
  * @internal
  */
@@ -40,12 +26,6 @@ use PHPUnit\Framework\Attributes\Group;
 #[Group('auto-review')]
 final class SchemaPayloadRoundTripTest extends AbstractRoundTripTestCase
 {
-    /**
-     * Concrete `Arrayable` classes under these namespaces ship inside a
-     * JSON-RPC envelope and are exercised by `JsonRpcEnvelopeRoundTripTest`
-     * (request/notification/result/error wrappers, plus the params bags
-     * carried by their parent request/notification).
-     */
     private const array WIRE_ENVELOPE_NAMESPACES = [
         'Nexus\\Mcp\\Core\\Schema\\Error\\',
         'Nexus\\Mcp\\Core\\Schema\\JsonRpc\\',
@@ -60,15 +40,6 @@ final class SchemaPayloadRoundTripTest extends AbstractRoundTripTestCase
         'Nexus\\Mcp\\Extension\\Tasks\\Schema\\Result\\',
         'Nexus\\Mcp\\Extension\\Tasks\\Schema\\ResultResponse\\',
     ];
-
-    /**
-     * Short names of payload classes whose `jsonSerialize` substitutes
-     * `\stdClass` for an empty object slot that `toArray` returns as `[]`,
-     * either directly or via composition through a nested class that does
-     * (e.g. `MetaObject`, `ClientCapabilities`). Listing a class here
-     * disables the cross-path encoding check. The canonical-shape check
-     * against the hand-authored fixture still runs.
-     */
     private const array ENCODING_PATHS_DIVERGE = [
         'Annotations' => true,
         'ClientCapabilities' => true,
@@ -112,11 +83,6 @@ final class SchemaPayloadRoundTripTest extends AbstractRoundTripTestCase
     }
 
     /**
-     * Schema payload fixture registry, auto-derived from `src/Core/Schema/`:
-     * every concrete `Arrayable` outside the envelope namespaces
-     * appears here keyed by short class name, and each must have on-disk
-     * fixtures under `schema-payload/{ShortName}/`.
-     *
      * @return iterable<string, array{class: class-string, encodingPathsDiverge?: bool}>
      */
     #[\Override]

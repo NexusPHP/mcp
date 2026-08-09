@@ -230,7 +230,6 @@ final class TaskClientTest extends AbstractMcpTestCase
             ],
         ]]), 0);
 
-        // The resolver's answers ride a tasks/update before polling resumes.
         self::awaitSendCount($transport, 2);
         self::assertArrayHasKey(1, $transport->sent);
         $update = $transport->sent[1]['message'];
@@ -254,8 +253,6 @@ final class TaskClientTest extends AbstractMcpTestCase
             $slept[] = $seconds;
         });
 
-        // Neither the handle nor the first poll carries an interval, so the
-        // first sleep uses the fallback and the second the suggested interval.
         $payload = self::buildTaskPayload('working');
         unset($payload['pollIntervalMs']);
         $handle = CreateTaskResult::fromArray($payload);
@@ -326,7 +323,6 @@ final class TaskClientTest extends AbstractMcpTestCase
             self::fail('Expected the stall ceiling to trip after the answered round.');
         } catch (StalledTaskException $e) {
             self::assertSame('Task "task-1" stayed input_required for 1 polls without new input requests.', $e->getMessage());
-            // One answered round (poll + update) plus exactly one stalled poll.
             self::assertCount(3, $transport->sent);
         } finally {
             $stopped[0] = true;
@@ -353,11 +349,8 @@ final class TaskClientTest extends AbstractMcpTestCase
         [$tasks, $transport] = self::buildTaskClient(sleep: static function (): void {});
         $handle = CreateTaskResult::fromArray(self::buildTaskPayload('working'));
         $await = async(static fn(): GetTaskResult => $tasks->awaitTask($handle, $resolver));
-        // Should the loop fail before `await()`, an unobserved future error
-        // would poison the event loop for every later test in the process.
         $await->ignore();
 
-        // Round 1: 'confirm' requested and answered.
         self::respondToNextTasksGet($transport, self::buildTaskPayload('input_required', ['inputRequests' => self::buildInputRequestsPayload()]), 0);
         self::awaitSendCount($transport, 2);
         self::assertArrayHasKey(1, $transport->sent);
@@ -366,8 +359,6 @@ final class TaskClientTest extends AbstractMcpTestCase
         self::assertSame('tasks/update', $update::getMethod());
         $transport->emitMessage(['jsonrpc' => '2.0', 'id' => $update->id->id, 'result' => ['resultType' => 'complete']]);
 
-        // Round 2: the answered 'confirm' is still listed next to a new key,
-        // so only 'extra' may reach the resolver.
         self::respondToNextTasksGet($transport, self::buildTaskPayload('input_required', ['inputRequests' => [
             ...self::buildInputRequestsPayload(),
             ...self::buildInputRequestsPayload('extra'),
@@ -379,8 +370,6 @@ final class TaskClientTest extends AbstractMcpTestCase
         self::assertSame('tasks/update', $update::getMethod());
         $transport->emitMessage(['jsonrpc' => '2.0', 'id' => $update->id->id, 'result' => ['resultType' => 'complete']]);
 
-        // Round 3: both answered keys are listed again. The accumulated ledger
-        // leaves nothing unanswered, so this poll stalls without a resolver call.
         self::respondToNextTasksGet($transport, self::buildTaskPayload('input_required', ['inputRequests' => [
             ...self::buildInputRequestsPayload(),
             ...self::buildInputRequestsPayload('extra'),
@@ -456,8 +445,6 @@ final class TaskClientTest extends AbstractMcpTestCase
     {
         $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
-            // A finite request timeout turns an exhausted response script into
-            // a fast failure instead of a hang.
             ->setRequestTimeout(0.5)
             ->enableExtension(new TasksClientExtension())
             ->build()
@@ -492,10 +479,7 @@ final class TaskClientTest extends AbstractMcpTestCase
     }
 
     /**
-     * Answers every `tasks/get` with the same parked `input_required` state
-     * and every `tasks/update` with an ack, until stopped. The response cap
-     * refuses a runaway poll loop: past it the client's next request starves
-     * into its request timeout instead of sustaining an endless exchange.
+     * Capped so a runaway poll starves instead of looping forever.
      *
      * @param \ArrayObject<int, bool> $stopped
      *

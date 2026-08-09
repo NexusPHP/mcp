@@ -25,7 +25,7 @@ use Nexus\Mcp\Core\Http\HttpStatus;
 use Nexus\Mcp\Extension\Auth\Exception\IdentityAssertionExchangeFailedException;
 
 /**
- * Runs the RFC 8693 token exchange at the enterprise IdP: an identity assertion in, an ID-JAG out.
+ * The RFC 8693 token exchange at the enterprise IdP: an identity assertion in, an ID-JAG out.
  *
  * @internal
  *
@@ -53,8 +53,7 @@ final readonly class IdentityAssertionExchanger
     }
 
     /**
-     * The ID-JAG the enterprise IdP issued for the assertion, kept opaque for the resource authorization
-     * server to redeem.
+     * The ID-JAG the enterprise IdP issued for the assertion.
      *
      * @param non-empty-string $audience The resource authorization server's issuer identifier
      *
@@ -91,8 +90,6 @@ final readonly class IdentityAssertionExchanger
                 throw $e;
             }
 
-            // An error status whose body will not parse is the infrastructure in front of the IdP talking,
-            // not the IdP refusing the exchange.
             throw new IdentityAssertionExchangeFailedException(\sprintf(
                 'The enterprise IdP answered %d with a body that is not a JSON object.',
                 $status,

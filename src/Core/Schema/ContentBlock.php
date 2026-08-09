@@ -14,8 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema;
 
 /**
- * Marker for a content block that can be embedded in a prompt message or tool
- * call result. Each variant carries its own `type` discriminator.
+ * Marker for a content block embeddable in a prompt message or tool call result.
  *
  * @see https://modelcontextprotocol.io/specification/2026-07-28/schema#contentblock
  */

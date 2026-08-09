@@ -20,10 +20,7 @@ use Nexus\Mcp\Extension\Tasks\Schema\Request\UpdateTaskRequest;
 use Nexus\Mcp\Extension\Tasks\Tasks;
 
 /**
- * The official tasks extension (`io.modelcontextprotocol/tasks`, SEP-2663)
- * for the client: advertises support on every request and declares the
- * `tasks/*` methods it sends, so the outbound gate refuses them against a
- * server that did not advertise the extension.
+ * The official tasks extension (`io.modelcontextprotocol/tasks`, SEP-2663) for the client.
  */
 final readonly class TasksClientExtension implements ClientExtensionInterface
 {

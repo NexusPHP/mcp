@@ -41,28 +41,13 @@ use Nexus\Mcp\Core\Schema\MetaObject\PayloadMetaObject;
  */
 final readonly class Tool extends BaseMetadata implements Arrayable, Icons
 {
-    /**
-     * JSON Schema keywords whose value is an object of sub-schemas.
-     */
     private const array SUBSCHEMA_MAP_KEYWORDS = ['$defs', 'definitions', 'dependentSchemas', 'patternProperties', 'properties'];
-
-    /**
-     * JSON Schema keywords whose value is a list of sub-schemas.
-     */
     private const array SUBSCHEMA_LIST_KEYWORDS = ['allOf', 'anyOf', 'oneOf', 'prefixItems'];
-
-    /**
-     * JSON Schema keywords whose value is a single sub-schema.
-     */
-    private const array SUBSCHEMA_KEYWORDS = [
+    private const array SINGLE_SUBSCHEMA_KEYWORDS = [
         'additionalProperties', 'contains', 'contentSchema', 'else', 'if',
         'not', 'propertyNames', 'then', 'unevaluatedItems', 'unevaluatedProperties',
     ];
-
-    /**
-     * JSON Schema keywords whose value is an object of something other than sub-schemas.
-     */
-    private const array OBJECT_KEYWORDS = ['$vocabulary', 'dependentRequired'];
+    private const array NON_SUBSCHEMA_OBJECT_KEYWORDS = ['$vocabulary', 'dependentRequired'];
 
     /**
      * @var ToolInputSchemaShape
@@ -234,7 +219,6 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
     public function jsonSerialize(): array
     {
         $data = $this->toArray();
-        // The root always carries `type`, so it is never the empty schema `encodeSubSchema` substitutes for.
         $data['inputSchema'] = self::encodeSchema($this->inputSchema);
 
         if (null !== $this->outputSchema) {
@@ -265,9 +249,9 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
                 $schema[$keyword] = array_map(self::encodeSubSchema(...), $value);
             } elseif ('items' === $keyword) {
                 $schema[$keyword] = self::encodeItems($value);
-            } elseif (\in_array($keyword, self::SUBSCHEMA_KEYWORDS, true)) {
+            } elseif (\in_array($keyword, self::SINGLE_SUBSCHEMA_KEYWORDS, true)) {
                 $schema[$keyword] = self::encodeSubSchema($value);
-            } elseif (array_is_list($value) && \in_array($keyword, self::OBJECT_KEYWORDS, true)) {
+            } elseif (array_is_list($value) && \in_array($keyword, self::NON_SUBSCHEMA_OBJECT_KEYWORDS, true)) {
                 $schema[$keyword] = (object) $value;
             }
         }
@@ -276,9 +260,8 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
     }
 
     /**
-     * A sub-schema is an object or a boolean, so anything else passes through untouched.
-     * A list here decoded from an object whose names run 0..n-1, since no sub-schema slot
-     * takes an array.
+     * A sub-schema is an object or a boolean, so anything else passes through and a list here can only have
+     * decoded from an object whose names run 0..n-1.
      */
     private static function encodeSubSchema(mixed $value): mixed
     {
@@ -310,7 +293,7 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
     }
 
     /**
-     * Validates and returns a tool `inputSchema`. The root must be `type: "object"`.
+     * Validates and returns a tool `inputSchema`, whose root must be `type: "object"`.
      *
      * @param array<string, mixed> $schema
      *
@@ -326,8 +309,6 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
     }
 
     /**
-     * Validates and returns a tool `outputSchema`.
-     *
      * @param array<string, mixed> $schema
      *
      * @return array<string, mixed>
@@ -356,8 +337,6 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
             Assert::that($properties)->isArray(\sprintf('%s "properties" must be an object, {type} given.', $context));
 
             foreach ($properties as $entry) {
-                // JSON Schema 2020-12 spells a sub-schema as an object or a boolean, where `true` admits
-                // every instance and `false` admits none.
                 if (\is_bool($entry)) {
                     continue;
                 }

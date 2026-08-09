@@ -19,8 +19,7 @@ use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
 
 /**
- * Rejects an assignment mixed into a control-flow expression: `return $x = …;` and
- * `while`/`if`/`elseif`/`foreach` headers that assign while they test.
+ * Rule rejecting an assignment mixed into a control-flow expression.
  *
  * @implements Rule<Node\Stmt>
  *
@@ -37,7 +36,7 @@ final class NoAssignmentInControlFlowExpressionRule implements Rule
     #[\Override]
     public function processNode(Node $node, Scope $scope): array
     {
-        $keyword = self::resolveKeyword($node);
+        $keyword = self::resolveOffendingKeyword($node);
 
         if (null === $keyword) {
             return [];
@@ -53,10 +52,7 @@ final class NoAssignmentInControlFlowExpressionRule implements Rule
         ];
     }
 
-    /**
-     * The offending keyword, or null when the statement is clean.
-     */
-    private static function resolveKeyword(Node\Stmt $node): ?string
+    private static function resolveOffendingKeyword(Node\Stmt $node): ?string
     {
         // A nested call argument is `NoAssignmentInCallArgumentRule`'s concern, reported against its own call.
         if ($node instanceof Node\Stmt\Return_) {

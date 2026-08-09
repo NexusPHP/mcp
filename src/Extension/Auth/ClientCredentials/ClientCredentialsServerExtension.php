@@ -17,8 +17,7 @@ use Nexus\Mcp\Server\ServerExtensionInterface;
 
 /**
  * The official OAuth client credentials extension (`io.modelcontextprotocol/oauth-client-credentials`,
- * SEP-1046) for the server: advertises the extension slot for discoverability. The extension defines no
- * JSON-RPC methods, so there is nothing to serve or gate.
+ * SEP-1046) for the server.
  */
 final readonly class ClientCredentialsServerExtension implements ServerExtensionInterface
 {

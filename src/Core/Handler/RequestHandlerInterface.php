@@ -17,10 +17,8 @@ use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\Result;
 
 /**
- * Handles a single inbound JSON-RPC request and returns the typed result.
- *
- * `TMethod` binds the literal returned by `static::getMethod()` on the matching
- * request class so the registry can store handlers heterogeneously.
+ * Handler for a single inbound JSON-RPC request, `TMethod` binding the literal its request class returns
+ * from `static::getMethod()`.
  *
  * @template-covariant TMethod of non-empty-string
  * @template-covariant TResult of Result

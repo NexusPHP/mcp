@@ -16,8 +16,7 @@ namespace Nexus\Mcp\Extension\Apps\Client\Exception;
 use Nexus\Mcp\Core\Exception\McpExceptionInterface;
 
 /**
- * Thrown when a `ui://` read returns a content item whose mime type is not
- * one of the accepted UI types.
+ * Thrown when a `ui://` read returns a content item whose mime type is not one of the accepted UI types.
  */
 final class InvalidUiResourceContentsException extends \RuntimeException implements McpExceptionInterface
 {

@@ -17,11 +17,8 @@ use Nexus\Assert\Assert;
 use Nexus\Assert\ExpectationFailedException;
 
 /**
- * Enforces the RFC 3986 absolute-URI shape on a string: ASCII-printable only
- * (no whitespace or control characters) and a scheme + optional authority +
- * path/query/fragment structure. Used by spec types whose `uri` field is a
- * generic resource identifier with no scheme restriction (e.g. `Resource`,
- * `ResourceContents`).
+ * Enforces the RFC 3986 absolute-URI shape on a string: ASCII-printable only, with a scheme plus optional
+ * authority and path/query/fragment.
  *
  * @internal
  *

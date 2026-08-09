@@ -20,8 +20,7 @@ use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
 
 /**
- * Holds a native `assert()` in `src/` to a condition carrying nothing Infection can mutate: an
- * `instanceof` or a single-argument `is_*()` call, over a plain variable or property.
+ * Rule holding a native `assert()` in `src/` to a condition carrying nothing Infection can mutate.
  *
  * @implements Rule<Node\Expr\FuncCall>
  *

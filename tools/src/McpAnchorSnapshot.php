@@ -14,9 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tools;
 
 /**
- * Snapshots the heading anchor IDs rendered on each MCP spec docs page so the
- * auto-review test can verify that every `@see` URL in schema classes points
- * at an anchor that actually resolves on the live site.
+ * Snapshot of the heading anchor IDs rendered on each MCP spec docs page.
  *
  * @internal
  */
@@ -24,12 +22,6 @@ final class McpAnchorSnapshot
 {
     public const string SPEC_BASE_URL = 'https://modelcontextprotocol.io/specification/2026-07-28';
     public const string SNAPSHOT_PATH = __DIR__.'/../../tests/AutoReview/data/spec-anchors.json';
-
-    /**
-     * Spec docs pages whose anchors `@see` URLs may target. Add a page here
-     * when extending `@see` references to a new spec area. The test reads the
-     * snapshot keyed by the full URL of each page.
-     */
     private const array SPEC_PAGES = [
         'schema',
         'basic',
@@ -38,10 +30,7 @@ final class McpAnchorSnapshot
     ];
 
     /**
-     * Concept-page anchors that aren't backed by a top-level `$defs` key but
-     * are still referenced from `@see` URLs. Keys are page-relative paths
-     * (matching {@see self::SPEC_PAGES} entries). Values are anchor IDs to
-     * keep when intersecting against the schema's `$defs`.
+     * Anchor IDs backed by no top-level `$defs` key, keyed by page-relative path.
      */
     private const array EXTRA_VALID_ANCHORS = [
         'basic' => ['_meta', 'icons'],
@@ -50,12 +39,6 @@ final class McpAnchorSnapshot
     ];
 
     /**
-     * Fetches every page in {@see self::SPEC_PAGES}, intersects each page's
-     * rendered heading anchors with the lowercased `$defs` keys from the
-     * upstream schema (plus the {@see self::EXTRA_VALID_ANCHORS} carve-outs),
-     * and writes the snapshot to disk. Sub-property anchors and page chrome
-     * IDs are filtered out implicitly because they don't appear in `$defs`.
-     *
      * @return array<string, list<string>>
      */
     public static function fetchAndSaveAnchorSnapshot(): array
@@ -96,10 +79,6 @@ final class McpAnchorSnapshot
     }
 
     /**
-     * Reads the saved snapshot from disk, returning the page-URL → anchor-IDs
-     * map. Throws when the snapshot file is missing or malformed. Refresh via
-     * `composer spec:snapshot-anchors`.
-     *
      * @return array<string, list<string>>
      */
     public static function loadAnchorSnapshot(): array
@@ -126,11 +105,6 @@ final class McpAnchorSnapshot
     }
 
     /**
-     * Extracts every `id="..."` attribute from the HTML and returns the
-     * subset that's in `$allowed` (lowercased `$defs` keys plus the
-     * concept-page extras). Page chrome, sub-property anchors, and
-     * framework-internal IDs fall away because they don't appear in `$allowed`.
-     *
      * @param list<string> $allowed
      *
      * @return list<string>

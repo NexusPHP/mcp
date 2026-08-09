@@ -23,8 +23,7 @@ use Nexus\Mcp\Extension\Tasks\Server\Store\TaskStoreInterface;
 use Nexus\Mcp\Server\ServerContext;
 
 /**
- * Handles the `tasks/get` poll by projecting the store record onto the
- * status-discriminated result shape.
+ * Handles the `tasks/get` request by delegating to a `TaskStoreInterface`.
  *
  * @implements RequestHandlerInterface<'tasks/get', GetTaskResult, ServerContext>
  */

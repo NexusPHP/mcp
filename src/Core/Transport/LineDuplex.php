@@ -41,8 +41,8 @@ final class LineDuplex
     private TransportState $state = TransportState::Idle;
 
     /**
-     * Re-entry guard for `close()`, held from the first call until the state flips. `state` alone
-     * cannot serve: it stays `Running` across the drain so a listener may still send.
+     * Re-entry guard for `close()`, which `state` cannot serve as it stays `Running` across the drain so a
+     * listener may still send.
      */
     private bool $closing = false;
 
@@ -79,11 +79,9 @@ final class LineDuplex
      * @param class-string                                $hostTransport
      * @param non-empty-string                            $label
      * @param null|(\Closure(JsonRpcErrorResponse): void) $onParseFailure
-     * @param null|\Closure(): void                       $onBeforeClose  Tears the outbound side down. Runs
-     *                                                                    after the drain, so a listener's
-     *                                                                    last send still reaches the peer.
-     *                                                                    Inbound teardown is not its job:
-     *                                                                    `close()` closes every source.
+     * @param null|\Closure(): void                       $onBeforeClose  Tears the outbound side down after
+     *                                                                    the drain, so a listener's last
+     *                                                                    send still reaches the peer
      */
     public function __construct(
         private readonly string $hostTransport,
@@ -184,8 +182,6 @@ final class LineDuplex
         );
 
         try {
-            // Force EOF on every parked read so the drain below cannot hang waiting for a loop that
-            // only its own source can end.
             $this->readable->close();
 
             foreach ($this->sideChannelSources as $source) {
@@ -270,13 +266,10 @@ final class LineDuplex
     private function settle(): void
     {
         try {
-            // After the drain, never before: both stdio hosts tear the outbound stream down here,
-            // and a drain listener settling its last exchange still has to write.
             if (null !== $this->onBeforeClose) {
                 ($this->onBeforeClose)();
             }
         } finally {
-            // Flipped only once draining is done, so that last send is not refused by state.
             $this->state = TransportState::Closed;
 
             $this->events->emitClose();
@@ -285,18 +278,13 @@ final class LineDuplex
     }
 
     /**
-     * Blocks until the backgrounded read loop and side-channel loops have run to
-     * completion, so a force-close cannot leave a fiber suspended on a stream
-     * read once the host process tears the event loop down.
+     * Blocks until the backgrounded loops finish, so a force-close leaves no fiber suspended on a read.
      */
     private function drainBackgroundLoops(): void
     {
         $current = \Fiber::getCurrent();
 
-        // A backgrounded fiber that triggers close() mid-run (the read loop on
-        // EOF/error or a synchronous send failure, or a side-channel onLine
-        // calling close()) must not await its own completion: only that fiber
-        // fulfils it, once it returns.
+        // A fiber that triggers close() mid-run must not await its own completion, which only it fulfils on return.
         if ($current !== $this->readLoopFiber) {
             $this->readLoopCompletion?->getFuture()->await();
         }
@@ -318,9 +306,6 @@ final class LineDuplex
                 $this->processLine($line);
             }
         } catch (\Throwable $e) {
-            // A read failure once a close is under way is the expected result of tearing the stream
-            // down, not a transport error to report. `closing` is the signal, not the state, which
-            // stays `Running` across the drain.
             if (! $this->closing) {
                 $this->logger->error(
                     '{label} transport read loop failed. Closing.',

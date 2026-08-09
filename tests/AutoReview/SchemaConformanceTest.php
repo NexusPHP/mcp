@@ -63,21 +63,12 @@ use PHPUnit\Framework\Attributes\Group;
 #[Group('auto-review')]
 final class SchemaConformanceTest extends AbstractMcpTestCase
 {
-    /**
-     * Spec keys that the SDK represents on the class as a constant or static
-     * accessor instead of a constructor parameter (always-required values).
-     */
     private const array SPEC_KEY_TO_NON_PROPERTY_REPRESENTATION = [
         'jsonrpc' => ['kind' => 'constant', 'name' => 'JSONRPC_VERSION'],
         'method' => ['kind' => 'static-method', 'name' => 'getMethod'],
         'resultType' => ['kind' => 'method', 'name' => 'getResultType'],
         'type' => ['kind' => 'constant', 'name' => 'TYPE'],
     ];
-
-    /**
-     * DNS-prefixed `_meta` claim keys whose PHP property name is not derivable
-     * by the default `ltrim('_')` rule.
-     */
     private const array SPEC_KEY_TO_PHP_NAME = [
         'io.modelcontextprotocol/protocolVersion' => 'protocolVersion',
         'io.modelcontextprotocol/clientInfo' => 'clientInfo',
@@ -86,19 +77,9 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
         'io.modelcontextprotocol/serverInfo' => 'serverInfo',
         'io.modelcontextprotocol/subscriptionId' => 'subscriptionId',
     ];
-
     private const string SCHEMA_ANCHOR_BASE_URL = 'https://modelcontextprotocol.io/specification/2026-07-28/schema#';
     private const string JSON_RPC_ERROR_OBJECT_URL = 'https://www.jsonrpc.org/specification#error_object';
     private const string TS_SCHEMA_FILE_URL = 'https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2026-07-28/schema.ts';
-
-    /**
-     * Schema classes whose `@see` cannot be the default 1:1 schema-anchor URL,
-     * because either (a) the class has no dedicated spec def, (b) the class's
-     * spec def is on a different docs page than the schema reference, or
-     * (c) the spec def exists in the TypeScript schema but the docs site
-     * does not render it as a navigable anchor (abstract bases and unions).
-     * Each entry pins the exact URL the class must reference instead.
-     */
     private const array NON_SCHEMA_ANCHOR_SEE_URLS = [
         BaseMetadata::class => self::TS_SCHEMA_FILE_URL,
         ElicitRequestedSchema::class => self::TS_SCHEMA_FILE_URL,
@@ -128,11 +109,6 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
         ServerResult::class => self::TS_SCHEMA_FILE_URL,
         TaskHandleResult::class => 'https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/seps/2663-tasks-extension.md',
     ];
-
-    /**
-     * Schema classes intentionally not annotated with `@see` because they are
-     * PHP-only infrastructure with no protocol mapping.
-     */
     private const array SEE_ANNOTATION_EXEMPT = [
         Arrayable::class,
         GenericResultResponse::class,
@@ -141,16 +117,6 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
         PayloadMetaObject::class,
         RequestParamsInterface::class,
     ];
-
-    /**
-     * Optional spec properties the SDK deliberately omits because the feature is
-     * deprecated and deleted from the SDK, while the spec retains the property
-     * through its deprecation window. Keyed by spec def. The property and
-     * array-shape conformance checks skip these keys.
-     * `testDeprecatedOmittedPropertiesStayOmittable` fails the moment any entry
-     * turns required, leaves the spec, or gains a PHP representation, forcing the
-     * entry's removal.
-     */
     private const array DEPRECATED_OMITTED_PROPERTIES = [
         'ClientCapabilities' => ['roots', 'sampling'],
         'ServerCapabilities' => ['logging'],
@@ -212,7 +178,6 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
         /** @var list<class-string> $exclusions */
         static $exclusions = [
             Error::class,
-            // Collapsed single-member union markers: the spec def mirrors the sole member's description, not the union.
             ClientNotification::class,
             ClientResult::class,
         ];
@@ -232,7 +197,7 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
     {
         $type = self::getSchemaProperty($schema, 'type');
         self::assertThat($type, self::logicalOr(self::isArray(), self::isString()), \sprintf('Type for schema "%s" is neither string nor array.', $schema));
-        \assert(\is_string($type) || \is_array($type)); // for phpstan only
+        \assert(\is_string($type) || \is_array($type));
 
         $reflection = new \ReflectionClass($schemaClass);
         $properties = $reflection->getProperties();
@@ -335,9 +300,6 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
                     return false;
                 }
 
-                // Error-response envelope defs (`error`/`id`/`jsonrpc`) are represented by an `Error`
-                // object carrying the pinned code and typed data, so the envelope shape does not align
-                // with the object. Their round-trip fixtures validate the shape instead.
                 $properties = $definition['properties'] ?? [];
 
                 return ! (is_subclass_of($class, Error::class) && \is_array($properties) && \array_key_exists('error', $properties));
@@ -432,8 +394,6 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
             end($tags),
         ));
 
-        // Off-site URLs (TS schema on github.com, JSON-RPC spec on
-        // jsonrpc.org) are not in the snapshot and are out of scope.
         if (parse_url($expectedUrl, \PHP_URL_HOST) !== 'modelcontextprotocol.io') {
             return;
         }
@@ -670,11 +630,6 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
             || ($unionData['allowsResultSubclass'] && is_subclass_of($implementer, Result::class));
 
         if (! $licensed) {
-            // Transitive license: the implementer is a subclass of a member.
-            // JSON-RPC envelope unions like `JSONRPCMessage` list the abstract
-            // bases (`JSONRPCRequest`, `JSONRPCNotification`, ...) as members;
-            // every concrete request/notification/response inherits the
-            // marker through one of those bases and is thereby licensed.
             foreach ($unionData['members'] as $memberBasename) {
                 $memberClass = self::$sortedSchema['processed_schema'][$memberBasename] ?? null;
 
@@ -720,9 +675,6 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
                 }
 
                 if (\array_key_exists($basename, self::getSpecUnions())) {
-                    // Candidate is itself a spec union (e.g. `JSONRPCResponse`
-                    // sitting under the broader `JSONRPCMessage`). License
-                    // it via its own union's members rather than the parent.
                     continue;
                 }
 
@@ -745,12 +697,6 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
     }
 
     /**
-     * Verify each spec property has a corresponding PHP representation and
-     * that required/optional matches: required spec keys must have no default,
-     * and optional spec keys must have a default. Spec keys backed by a constant
-     * or static method (jsonrpc, method) are always-required and verified
-     * to exist on the class.
-     *
      * @param \ReflectionClass<object>            $reflection
      * @param list<string>                        $specRequired
      * @param list<string>                        $specOptional
@@ -884,7 +830,7 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
                 );
             }
 
-            $specScalar = self::specScalarJsonType($specProperties[$key] ?? []);
+            $specScalar = self::resolveUnambiguousScalarJsonType($specProperties[$key] ?? []);
 
             if (
                 self::specAllowsAnyJsonValue($specProperties[$key] ?? [])
@@ -925,9 +871,6 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
     }
 
     /**
-     * A property carrying no `type` and no narrowing keyword takes any JSON value, which PHP can only
-     * model as `mixed`.
-     *
      * @param array<string, mixed> $propertyShape
      */
     private static function specAllowsAnyJsonValue(array $propertyShape): bool
@@ -942,13 +885,9 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
     }
 
     /**
-     * Return the property's scalar JSON type ("string", "integer", "number",
-     * or "boolean") with any "null" member stripped, or null when it is not an
-     * unambiguous scalar (ref, union, enum, const, object, array, multi-type).
-     *
      * @param array<string, mixed> $propertyShape
      */
-    private static function specScalarJsonType(array $propertyShape): ?string
+    private static function resolveUnambiguousScalarJsonType(array $propertyShape): ?string
     {
         foreach (['$ref', 'anyOf', 'oneOf', 'allOf', 'enum', 'const'] as $disqualifier) {
             if (\array_key_exists($disqualifier, $propertyShape)) {
@@ -968,22 +907,12 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
             : null;
     }
 
-    /**
-     * Map a spec property name to its expected PHP constructor parameter name.
-     * The leading underscore on `_meta` is dropped to match the project's
-     * convention of `$meta` for the meta value object. DNS-prefixed `_meta`
-     * claim keys map to their unprefixed PHP property.
-     */
     private static function specKeyToPhpName(string $key): string
     {
         return self::SPEC_KEY_TO_PHP_NAME[$key] ?? ltrim($key, '_');
     }
 
     /**
-     * Compare a parsed shape against the spec's required/optional sets and
-     * return human-readable findings explaining exactly what is wrong and how
-     * to fix it. An empty list means the shape matches the spec.
-     *
      * @param array{required: list<string>, optional: list<string>} $shape
      * @param list<string>                                          $specRequired
      * @param list<string>                                          $specOptional
@@ -1024,8 +953,6 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
     }
 
     /**
-     * Extract top-level keys from a class's array shape docblock.
-     *
      * @param \ReflectionClass<object> $reflection
      *
      * @return null|array{required: list<string>, optional: list<string>}
@@ -1043,9 +970,6 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
     }
 
     /**
-     * Find the literal `array{` opener using `$openerPattern`, balance-extract
-     * its inner content, then split into top-level keys.
-     *
      * @return null|array{required: list<string>, optional: list<string>}
      */
     private static function parseShapeAfter(string $docComment, string $openerPattern): ?array
@@ -1078,11 +1002,6 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
         return self::parseShapeKeys($inner);
     }
 
-    /**
-     * Walk forward from `$start` (just past an opening `{`), tracking nested
-     * `{}` and `<>` and quote runs, until the matching `}`. Returns the inner
-     * content (excluding the closing brace), or null if unbalanced.
-     */
     private static function extractBalancedBraces(string $haystack, int $start): ?string
     {
         $depth = 1;
@@ -1125,9 +1044,6 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
     }
 
     /**
-     * Split a shape body into top-level keys, distinguishing `key:` (required)
-     * from `key?:` (optional).
-     *
      * @return array{required: list<string>, optional: list<string>}
      */
     private static function parseShapeKeys(string $inner): array
@@ -1189,10 +1105,6 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
         return ['required' => $required, 'optional' => $optional];
     }
 
-    /**
-     * Extract the narrative prose of a docblock: lines between the opener and
-     * the first `@tag`, with the `*` line prefix stripped.
-     */
     private static function extractDocblockNarrative(string $docComment): string
     {
         $body = [];
@@ -1250,9 +1162,6 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
         self::$sortedSchema = McpSchemaProcessor::sortAndSaveSchema(self::$latestSchema);
     }
 
-    /**
-     * Retrieve a property from a schema definition with validation.
-     */
     private static function getSchemaProperty(string $schema, string $property): mixed
     {
         self::assertArrayHasKey($schema, self::$latestSchema, \sprintf('Schema key "%s" is missing in the latest schema definitions.', $schema));
@@ -1263,15 +1172,6 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
     }
 
     /**
-     * Resolve every spec-level `anyOf` union (direction unions like
-     * `ClientRequest`, content unions like `ContentBlock`, JSON-RPC envelope
-     * unions like `JSONRPCMessage`, etc.) to its explicit member basenames.
-     * The bare `{"$ref": "Result"}` entry appearing in `ClientResult` and
-     * `ServerResult` is recorded separately as a structural license, not
-     * folded into the explicit members list.
-     *
-     * Unions with no PHP marker class/interface are filtered out.
-     *
      * @return array<string, array{members: list<string>, allowsResultSubclass: bool}>
      */
     private static function getSpecUnions(): array
@@ -1292,7 +1192,6 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
             }
 
             if (! \is_string($name) || ! isset(self::$sortedSchema['processed_schema'][$name])) {
-                // Union whose PHP marker hasn't been built yet. Skip until it lands.
                 continue;
             }
 
@@ -1341,8 +1240,6 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
     }
 
     /**
-     * Generate and yield protocol schemas from the sorted schema definition.
-     *
      * @param null|(callable(string, string): bool) $filter
      *
      * @return iterable<string, array{string, class-string}>

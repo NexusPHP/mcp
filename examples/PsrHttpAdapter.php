@@ -22,15 +22,6 @@ use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\StreamInterface;
 use Psr\Http\Server\RequestHandlerInterface as PsrRequestHandler;
 
-/**
- * Serves a PSR-15 handler from an `amphp/http-server` request handler.
- *
- * The SDK ships no HTTP server of its own: the Streamable HTTP transport is a
- * PSR-15 handler, and the host binds it to a socket. This adapter is that
- * binding for `amphp/http-server`. An `text/event-stream` response is piped
- * frame by frame instead of buffered, so notifications reach the client while
- * the call that emits them is still running.
- */
 final readonly class PsrHttpAdapter implements AmpRequestHandler
 {
     private const int CHUNK = 8_192;
@@ -77,17 +68,12 @@ final readonly class PsrHttpAdapter implements AmpRequestHandler
             new ReadableIterableStream(self::readFrames($body)),
         );
 
-        // Retires the transport's stream when the client disconnects, so a
-        // dropped connection does not leave frames pushed into a dead socket.
         $ampResponse->onDispose($body->close(...));
 
         return $ampResponse;
     }
 
     /**
-     * PSR-7 admits an empty header name where `amphp/http-server` does not, so the
-     * slot is dropped rather than passed along.
-     *
      * @return array<non-empty-string, list<string>>
      */
     private static function headers(ResponseInterface $response): array

@@ -20,10 +20,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
- * Shared scaffolding for round-trip tests that pin a hand-authored JSON
- * fixture against a schema class's `toArray`/`jsonSerialize` output. Each
- * subclass binds the test to a fixture root and a registry of types, and
- * supplies the wrapper-aware reconstruction step.
+ * Shared scaffolding for round-trip tests that pin a hand-authored JSON fixture against a schema class's `toArray`/`jsonSerialize` output.
  *
  * @internal
  */
@@ -171,10 +168,6 @@ abstract class AbstractRoundTripTestCase extends AbstractMcpTestCase
      */
     abstract protected static function reconstruct(array $entry, array $decoded): \JsonSerializable;
 
-    /**
-     * Reads a fixture, normalising line endings and the trailing newline so the
-     * string compares byte-for-byte against a `JSON_PRETTY_PRINT` re-encode.
-     */
     protected static function readFixture(string $fixturePath): string
     {
         $jsonString = file_get_contents($fixturePath);
@@ -196,10 +189,6 @@ abstract class AbstractRoundTripTestCase extends AbstractMcpTestCase
     }
 
     /**
-     * Asserts the decoded fixture is a string-keyed map (a JSON object). PHPUnit
-     * has no built-in equivalent that produces the `array<string, mixed>` shape
-     * downstream callers need.
-     *
      * @param array<array-key, mixed> $value
      *
      * @phpstan-assert array<string, mixed> $value

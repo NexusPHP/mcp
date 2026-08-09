@@ -22,9 +22,7 @@ use Nexus\Mcp\Core\Schema\ContentBlock\ResourceLink;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 
 /**
- * Discriminates a `ContentBlock` payload by its `type` field and
- * dispatches to the matching concrete subclass. Used by `PromptMessage` and
- * `CallToolResult` (the two spec shapes carrying `ContentBlock` unions).
+ * Discriminator for `ContentBlock` payloads, keyed on the `type` field.
  *
  * @internal
  */

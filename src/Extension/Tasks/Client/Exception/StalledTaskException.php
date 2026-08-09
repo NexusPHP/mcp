@@ -16,8 +16,7 @@ namespace Nexus\Mcp\Extension\Tasks\Client\Exception;
 use Nexus\Mcp\Core\Exception\McpExceptionInterface;
 
 /**
- * Thrown when a polled task stays `input_required` with no new input requests
- * for the poll loop's stall ceiling.
+ * Thrown when a polled task stays `input_required` with no new input requests for the poll loop's stall ceiling.
  */
 final class StalledTaskException extends \RuntimeException implements McpExceptionInterface
 {

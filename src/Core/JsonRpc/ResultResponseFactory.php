@@ -52,8 +52,7 @@ use Nexus\Mcp\Core\Schema\ResultResponse\ReadResourceResultResponse;
 use Nexus\Mcp\Core\Schema\ResultResponse\SubscriptionsListenResultResponse;
 
 /**
- * Wraps a handler result in the typed `*ResultResponse` for its request method,
- * falling back to `GenericResultResponse` for results with no dedicated envelope.
+ * Factory for the typed `*ResultResponse` matching a handler result's request method.
  *
  * @internal
  */

@@ -24,8 +24,7 @@ use Nexus\Mcp\Core\Schema\ProtocolVersion;
 use Nexus\Mcp\Core\Validation\EnumValueValidator;
 
 /**
- * Extends `MetaObject` with additional request-specific fields.
- * All key naming rules from `MetaObject` apply.
+ * Extends `MetaObject` with additional request-specific fields. All key naming rules from `MetaObject` apply.
  *
  * @extends MetaObject<array{
  *   'io.modelcontextprotocol/protocolVersion': non-empty-string,

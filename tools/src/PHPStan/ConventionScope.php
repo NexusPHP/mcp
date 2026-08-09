@@ -17,9 +17,7 @@ use PHPStan\Reflection\ClassReflection;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Decides which analysed classes each convention rule governs. PHPStan walks `conformance`,
- * `examples`, `src`, `tests` and `tools`, while the conventions apply to `src` and to test
- * classes only.
+ * Scope predicates for the `src` and test classes the convention rules govern.
  *
  * @internal
  */
@@ -29,9 +27,6 @@ final class ConventionScope
     private const string TESTS_PREFIX = 'Nexus\\Mcp\\Tests\\';
     private const string TOOLS_PREFIX = 'Nexus\\Mcp\\Tools\\';
 
-    /**
-     * A shipped class under `src/`, which the root autoloader maps to the package prefix.
-     */
     public static function isSourceClass(ClassReflection $class): bool
     {
         $name = $class->getName();
@@ -42,7 +37,7 @@ final class ConventionScope
     }
 
     /**
-     * A PHPUnit test class under `tests/`. Fixtures live there too but extend nothing.
+     * Fixtures live under `tests/` too, so `TestCase` ancestry is what tells a test class apart.
      */
     public static function isTestClass(ClassReflection $class): bool
     {

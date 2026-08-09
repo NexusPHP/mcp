@@ -25,18 +25,14 @@ use Nexus\Mcp\Extension\Auth\Exception\UnsupportedClientAuthenticationException;
 use Nexus\Mcp\Extension\Auth\GrantTypeAdvertisement;
 
 /**
- * The OAuth 2.1 client credentials grant (SEP-1046): an unattended machine-to-machine flow presenting
- * credentials registered out of band, with no user and no consent screen.
+ * The OAuth 2.1 client credentials grant (SEP-1046), an unattended machine-to-machine flow with no user
+ * and no consent screen.
  *
  * @see https://github.com/modelcontextprotocol/ext-auth/blob/main/specification/draft/oauth-client-credentials.mdx
  */
 final readonly class ClientCredentialsGrant implements GrantStrategyInterface
 {
-    /**
-     * Signs the client assertion, or `null` when the credential authenticates with a secret.
-     */
-    private ?ClientAssertionSigner $signer;
-
+    private ?ClientAssertionSigner $privateKeyJwtSigner;
     private TokenEndpointAuthMethod $authMethod;
     private ?string $clientSecret;
 
@@ -48,14 +44,12 @@ final readonly class ClientCredentialsGrant implements GrantStrategyInterface
     public function __construct(private ClientSecretCredential|PrivateKeyJwtCredential $credential)
     {
         if ($credential instanceof PrivateKeyJwtCredential) {
-            // Built here so a missing signing dependency is reported while the client is being configured,
-            // rather than at the first request that needs a token.
-            $this->signer = new ClientAssertionSigner($credential);
+            $this->privateKeyJwtSigner = new ClientAssertionSigner($credential);
             $this->authMethod = TokenEndpointAuthMethod::PrivateKeyJwt;
             $this->clientSecret = null;
             $this->signingAlgorithm = $credential->algorithm;
         } else {
-            $this->signer = null;
+            $this->privateKeyJwtSigner = null;
             $this->authMethod = TokenEndpointAuthMethod::ClientSecretBasic;
             $this->clientSecret = $credential->clientSecret;
             $this->signingAlgorithm = null;
@@ -65,8 +59,6 @@ final readonly class ClientCredentialsGrant implements GrantStrategyInterface
     #[\Override]
     public function grant(GrantContext $context, Cancellation $cancellation): AccessToken
     {
-        // This grant's own credential carries the client identity, key material included, so a second one in
-        // the options would be outranked without saying so.
         if (null !== $context->options->preRegistered) {
             throw new UnsupportedClientAuthenticationException(
                 'The client credentials grant authenticates with the credential it was given, so the authorization options must not carry a pre-registered one as well.',
@@ -86,9 +78,9 @@ final readonly class ClientCredentialsGrant implements GrantStrategyInterface
             $parameters['scope'] = $scope;
         }
 
-        if (null !== $this->signer) {
+        if (null !== $this->privateKeyJwtSigner) {
             $parameters['client_assertion_type'] = ClientCredentials::CLIENT_ASSERTION_TYPE;
-            $parameters['client_assertion'] = $this->signer->signAssertion($server->issuer);
+            $parameters['client_assertion'] = $this->privateKeyJwtSigner->signAssertion($server->issuer);
         }
 
         $registration = new ClientRegistration(

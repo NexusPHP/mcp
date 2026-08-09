@@ -18,8 +18,7 @@ use Amp\DeferredCancellation;
 use Nexus\Mcp\Core\Schema\RequestId;
 
 /**
- * Tracks the inbound JSON-RPC request ids whose handler coroutines are still running, holding the
- * cancellation each one is dispatched under.
+ * Registry of the inbound JSON-RPC request ids whose handler coroutines are still running.
  *
  * @internal
  *

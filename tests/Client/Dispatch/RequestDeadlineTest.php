@@ -50,7 +50,6 @@ final class RequestDeadlineTest extends AbstractMcpTestCase
         $deadline->extend();
         delay(0.05);
 
-        // 0.10s since creation, so an unextended deadline would already have fired.
         self::assertFalse($deadline->getCancellation()->isRequested());
 
         delay(0.05);
@@ -70,8 +69,6 @@ final class RequestDeadlineTest extends AbstractMcpTestCase
         self::assertTrue($deadline->getCancellation()->isRequested());
         self::assertSame(0.12, $deadline->readElapsed(), 'The ceiling is what elapsed, not the idle window.');
 
-        // The last extend armed an idle timer that outlives the ceiling. Firing second, it must not
-        // restate what elapsed.
         delay(0.08);
 
         self::assertSame(0.12, $deadline->readElapsed());
@@ -79,8 +76,6 @@ final class RequestDeadlineTest extends AbstractMcpTestCase
 
     public function testACeilingNearerThanTheIdleTimeoutCannotPreemptIt(): void
     {
-        // A ceiling nearer than the idle timeout would pre-empt the very deadline it is meant to bound.
-        // This is the shape a per-request override longer than the client-wide ceiling produces.
         $deadline = new RequestDeadline(0.15, 0.05);
 
         delay(0.09);
@@ -104,7 +99,6 @@ final class RequestDeadlineTest extends AbstractMcpTestCase
             self::assertStringStartsWith('Event loop terminated without resuming the current suspension', $e->getMessage());
         }
 
-        // Neither timer was ever waited on, so the loop ran dry well before their window could elapse.
         self::assertFalse($deadline->getCancellation()->isRequested());
         self::assertSame(0.0, $deadline->readElapsed());
     }

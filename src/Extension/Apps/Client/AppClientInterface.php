@@ -25,28 +25,21 @@ use Nexus\Mcp\Extension\Apps\Schema\UiResourceMeta;
 use Nexus\Mcp\Extension\Apps\Schema\UiToolMeta;
 
 /**
- * Client-side surface of the MCP Apps extension: typed readers for the
- * `_meta.ui` metadata on tools and resources, and a verified read of a
- * `ui://` resource.
+ * Client-side surface of the MCP Apps extension.
  */
 interface AppClientInterface
 {
     /**
-     * Reads a tool's `_meta.ui` object, tolerating the deprecated flat
-     * `_meta["ui/resourceUri"]` key as a fallback when the nested form is
-     * absent or carries no `resourceUri`.
+     * Reads a tool's `_meta.ui` object, falling back to the deprecated flat
+     * `_meta["ui/resourceUri"]` key when the nested form carries no `resourceUri`.
      */
     public function resolveToolMeta(Tool $tool): ?UiToolMeta;
 
-    /**
-     * Reads the `_meta.ui` object off a resource descriptor or a read
-     * content item.
-     */
     public function resolveResourceMeta(Resource|ResourceContents $source): ?UiResourceMeta;
 
     /**
-     * The tools whose `_meta.ui` links a UI resource, paired with their
-     * resolved metadata. A tool whose metadata cannot be decoded is skipped.
+     * The tools whose `_meta.ui` links a UI resource, skipping any whose metadata
+     * cannot be decoded.
      *
      * @return list<AppTool>
      */
@@ -57,8 +50,7 @@ interface AppClientInterface
      * one of the accepted UI mime types.
      *
      * @param non-empty-string                                $uri
-     * @param null|array<int|non-empty-string, InputResponse> $inputResponses Answers to a prior `InputRequiredResult`, keyed as its `inputRequests` were
-     * @param null|string                                     $requestState   Echoed verbatim from the `InputRequiredResult` being answered
+     * @param null|array<int|non-empty-string, InputResponse> $inputResponses
      *
      * @throws InvalidUiResourceContentsException
      */

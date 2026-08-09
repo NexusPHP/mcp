@@ -12,25 +12,12 @@ declare(strict_types=1);
  */
 
 /**
- * Aggregates the referee's per-scenario `checks.json` files into a score.
- *
- * The referee writes one directory per scenario under `conformance/results/`,
- * each holding a `checks.json` array of check objects. This walks them and
- * reports how many scenarios and checks passed.
- *
- * Skipped checks are counted but kept out of the denominator: the referee skips
- * a check when the surface it needs is absent, so counting them as failures
- * would punish a scenario for probing a capability the SDK never advertised.
- *
- * A WARNING is an unmet SHOULD. The referee's exit code treats one exactly like
- * a FAILURE, so this does too: a scenario carrying a warning has not passed.
+ * Aggregates the referee's per-scenario `checks.json` files into a score, keeping skipped checks out of the
+ * denominator and treating a WARNING (an unmet SHOULD) as a failure.
  *
  *     php conformance/score.php            # markdown table
  *     php conformance/score.php --json     # machine-readable
  *     php conformance/score.php --badge    # rewrite conformance/badges/<mode>.json
- *
- * The badge files are committed, and CI regenerates them and fails when they differ
- * from the run, so the README badges cannot drift away from the measured score.
  */
 
 require __DIR__.'/bootstrap.php';
@@ -65,16 +52,9 @@ $findCheckFiles = static function (string $dir): array {
     return $files;
 };
 
-/**
- * The referee's directory name is `<scenario>-<timestamp>` (server runs prefix
- * it with `server-`), nested one level deeper for namespaced scenarios like
- * `auth/<name>`. The path below the mode directory is the name, with the
- * trailing timestamp stripped from its leaf.
- */
 $scenarioName = static function (string $checkFile) use ($resultsDir): string {
     $segments = explode('/', trim(str_replace($resultsDir, '', dirname($checkFile)), '/'));
 
-    // The first segment is the mode directory.
     array_shift($segments);
     $leaf = array_pop($segments) ?? '';
     $leaf = preg_replace('/-\d{4}-\d{2}-\d{2}T[\d.-]+Z?$/', '', $leaf) ?? $leaf;
@@ -82,27 +62,14 @@ $scenarioName = static function (string $checkFile) use ($resultsDir): string {
     return implode('/', [...$segments, $leaf]);
 };
 
-/**
- * Scenario-name prefixes of extension-tagged scenarios. The referee keeps them
- * out of every suite, so they score into their own bucket and badge instead of
- * diluting the specification score.
- */
 $extensionPrefixes = ['tasks-'];
 
-/**
- * Exact names of extension-tagged scenarios living inside a namespace the spec
- * suites also use, so a prefix cannot tell them apart.
- */
 $extensionScenarios = [
     'auth/client-credentials-basic',
     'auth/client-credentials-jwt',
     'auth/enterprise-managed-authorization',
 ];
 
-/**
- * The score bucket a scenario belongs to: `spec` for suite scenarios,
- * `extensions` for extension-tagged ones.
- */
 $bucketOf = static function (string $name, string $mode) use ($extensionPrefixes, $extensionScenarios): string {
     if (in_array($name, $extensionScenarios, true)) {
         return 'extensions';
@@ -119,10 +86,6 @@ $bucketOf = static function (string $name, string $mode) use ($extensionPrefixes
     return 'spec';
 };
 
-/**
- * Each runner writes under `results/<mode>/`, so the two modes can be scored
- * together without one overwriting the other.
- */
 $modeOf = static function (string $checkFile) use ($resultsDir): string {
     $relative = trim(str_replace($resultsDir, '', $checkFile), '/');
     $mode = strtok($relative, '/');
@@ -163,8 +126,7 @@ foreach ($findCheckFiles($resultsDir) as $checkFile) {
         }
     }
 
-    // A later run of the same scenario supersedes an earlier one, and the file
-    // list is sorted, so the newest timestamp wins.
+    // The file list is sorted, so the newest timestamp wins and supersedes an earlier run of the same scenario.
     $mode = $modeOf($checkFile);
     $scenarios[$name] = ['mode' => $mode, 'bucket' => $bucketOf($name, $mode), 'counts' => $counts, 'failures' => $failures];
 }
@@ -211,8 +173,6 @@ if ($writeBadges) {
         exit(1);
     }
 
-    // Only the badges this run actually covered are rewritten. Each CI job runs one
-    // mode, so touching the others would blank a badge that is still accurate.
     foreach ($perBadge as $file => $tally) {
         if ('unknown' === $tally['mode'] || 0 === $tally['scored']) {
             continue;
@@ -281,8 +241,6 @@ foreach ($scenarios as $scenario) {
         + $scenario['counts']['WARNING'];
 }
 
-// The buckets carry separate badges, so the split is only worth a line when
-// this run actually holds both.
 if (count($perBucket) > 1) {
     ksort($perBucket);
 
@@ -318,6 +276,5 @@ foreach ($rows as $scenario) {
     );
 }
 
-// Reporting only. The gate is the referee's own exit code against
-// expected-failures.yaml, which knows which failures are already accounted for.
+// Reporting only: the gate is the referee's own exit code against expected-failures.yaml.
 exit(0);

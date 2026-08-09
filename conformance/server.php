@@ -12,19 +12,11 @@ declare(strict_types=1);
  */
 
 /*
- * Serves `EverythingServer` and `MultiRoundServer` over Streamable HTTP for the
- * conformance referee.
+ * Serves the conformance fixtures over Streamable HTTP on every path, bound by `HOST` and `PORT`.
  *
- * The endpoint answers on every path, so the referee's `--url` may end in
- * `/mcp` or anything else. Bind address comes from `HOST` and `PORT`.
- *
- * Prefer `./conformance/run-server.sh`, which also boots the referee and tears
- * this process down. To run it alone:
+ * Prefer `./conformance/run-server.sh`, which also boots the referee. To run it alone:
  *
  *     PORT=3000 php conformance/server.php
- *
- * Serves with xdebug off and assertions not executing, restarting itself once
- * through `composer/xdebug-handler` when the invoking PHP has xdebug active.
  */
 
 require __DIR__.'/bootstrap.php';
@@ -53,12 +45,8 @@ use Nyholm\Psr7\Factory\Psr17Factory;
 
 use function Amp\trapSignal;
 
-// The restarted listener is a child process the run scripts tear down by process group.
 ProductionPosture::force('MCP_CONFORMANCE');
 
-/**
- * Reads an environment variable, falling back when it is unset or empty.
- */
 function conformanceEnv(string $name, string $fallback): string
 {
     $value = getenv($name);
@@ -115,13 +103,9 @@ $transport = new StreamableHttpServerTransport(
     keepAliveInterval: 10.0,
 );
 
-// `listen()` rather than `run()`: the transport is driven per HTTP request by the
-// host, so attaching the dispatcher must not block.
+// `listen()` rather than `run()`: the host drives the transport per HTTP request, so attaching must not block.
 $server->listen($transport);
 
-// Both spellings of the loopback authority. The runner reaches the endpoint by whichever
-// one its URL carries, and the DNS-rebinding scenario sends a matching Origin, so the two
-// lists have to admit the same set or the accepted-Origin check fails on one spelling only.
 $authorities = [$address, sprintf('localhost:%d', $port)];
 $origins = [];
 
@@ -140,10 +124,7 @@ $endpoint = new SecuredHttpEndpoint(
     logger: $logger,
 );
 
-// One connection per response on macOS only: a kept-alive loopback connection the
-// referee reuses after an idle gap can stall into TCP retransmission for 10+ seconds
-// there, tripping the referee's request timeout on checks that pause between requests.
-// Other platforms keep connection reuse so the suite exercises it.
+// One connection per response on macOS only, where a reused idle loopback connection can stall for 10+ seconds.
 $handler = new PsrHttpAdapter($endpoint, $psr17, $psr17);
 
 if (PHP_OS_FAMILY === 'Darwin') {
@@ -169,12 +150,10 @@ $httpServer->start($handler, new DefaultErrorHandler());
 
 fwrite(\STDERR, sprintf("Conformance server listening on http://%s\n", $address));
 
-// With ext-pcntl loaded, Revolt's loop consumes a signal no callback is registered for, so
-// an untrapped Ctrl-C leaves the fixture running and squatting the port.
+// With ext-pcntl loaded, Revolt consumes untrapped signals, so an unhandled Ctrl-C would squat the port.
 if (defined('SIGINT')) {
     trapSignal([\SIGINT, \SIGTERM]);
 } else {
-    // ext-pcntl absent, so there is no signal to trap. Ctrl-C ends the process.
     (new DeferredFuture())->getFuture()->await();
 }
 

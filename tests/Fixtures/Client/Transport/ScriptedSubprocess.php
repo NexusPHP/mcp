@@ -22,9 +22,7 @@ use Amp\Process\ProcessException;
 use Nexus\Mcp\Client\Transport\SubprocessInterface;
 
 /**
- * In-memory subprocess whose streams and exit are driven by the test rather than by a real
- * process. Spawning a real one is impossible inside an Infection mutant, whose `file://` stream
- * wrapper makes `proc_open()` fail.
+ * In-memory subprocess driven by the test, since an Infection mutant's `file://` stream wrapper makes `proc_open()` fail.
  */
 final class ScriptedSubprocess implements SubprocessInterface
 {
@@ -85,9 +83,6 @@ final class ScriptedSubprocess implements SubprocessInterface
         $this->endOutputStreams();
     }
 
-    /**
-     * Reads whatever the transport has written to the subprocess' STDIN so far.
-     */
     public function readWrittenLine(): ?string
     {
         return $this->stdin->getSource()->read();
@@ -116,8 +111,7 @@ final class ScriptedSubprocess implements SubprocessInterface
     }
 
     /**
-     * A real subprocess takes its pipes down with it, and the transport's stdout read loop and
-     * stderr forwarder both wait on EOF to finish.
+     * A real subprocess takes its pipes down with it, and both output waiters finish on EOF.
      */
     private function endOutputStreams(): void
     {

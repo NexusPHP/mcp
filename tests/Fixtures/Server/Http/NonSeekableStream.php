@@ -16,9 +16,7 @@ namespace Nexus\Mcp\Tests\Fixtures\Server\Http;
 use Psr\Http\Message\StreamInterface;
 
 /**
- * A request body that cannot rewind, as a streaming PSR-7 host delivers. PSR-7 has `__toString()` only
- * *attempt* the seek, so a second read yields the empty string. Its size is unknown and its offset advances,
- * matching what a real PSR-7 stream over a pipe reports.
+ * Request body that cannot rewind, so a second read yields the empty string.
  *
  * @internal
  */

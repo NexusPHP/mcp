@@ -22,9 +22,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
- * Starts real subprocesses, alongside `AmpSubprocessLauncherTest`. Nothing here declares coverage
- * of `StdioClientTransport`, so Infection never selects these tests to validate one of its
- * mutants: a mutant cannot spawn a process, and every such run would report a false kill.
+ * Starts real subprocesses, declaring no coverage of `StdioClientTransport` so Infection never selects these tests and scores a false kill.
  *
  * @internal
  */

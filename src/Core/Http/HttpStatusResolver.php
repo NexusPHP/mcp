@@ -17,10 +17,7 @@ use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Enum\SdkErrorCode;
 
 /**
- * Resolves the HTTP status the Streamable HTTP transport answers a JSON-RPC error with.
- *
- * A handler-produced error rides HTTP 200 with the error in the body. A transport or protocol error
- * raised before or around dispatch carries a real HTTP status.
+ * HTTP status resolver for the JSON-RPC errors the Streamable HTTP transport answers with.
  *
  * @internal
  *
@@ -29,13 +26,10 @@ use Nexus\Mcp\Core\Schema\Enum\SdkErrorCode;
 final class HttpStatusResolver
 {
     /**
-     * @param int  $code        The error's JSON-RPC code
      * @param bool $fromHandler Whether the error was produced by a request handler (rides HTTP 200)
      */
     public static function resolve(int $code, bool $fromHandler): int
     {
-        // The spec pins this one to 400 wherever it was raised, and only a handler can know that
-        // serving the request needs a capability the client withheld.
         if (ProtocolErrorCode::MissingRequiredClientCapability->value === $code) {
             return HttpStatus::BadRequest->value;
         }

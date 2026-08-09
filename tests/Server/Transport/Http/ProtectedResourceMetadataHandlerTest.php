@@ -155,7 +155,6 @@ final class ProtectedResourceMetadataHandlerTest extends AbstractMcpTestCase
         $factory = new Psr17Factory();
         $handler = new ProtectedResourceMetadataHandler($resource, [self::ISSUER], $factory, $factory);
 
-        // The client half derives its probe URLs independently, and the two halves of the wire must agree.
         foreach (WellKnownUri::forProtectedResource($resource) as $url) {
             $response = $handler->handle($factory->createServerRequest('GET', $url));
 

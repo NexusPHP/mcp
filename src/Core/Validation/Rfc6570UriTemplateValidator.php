@@ -17,11 +17,8 @@ use Nexus\Assert\Assert;
 use Nexus\Assert\ExpectationFailedException;
 
 /**
- * Enforces the RFC 6570 URI Template shape on a string: ASCII-printable only
- * (no whitespace or control characters), a scheme prefix per RFC 3986, and a
- * body composed of literals and well-formed `{expression}` segments. Used by
- * spec types whose `uri` / `uriTemplate` field carries the `format: uri-template`
- * hint (e.g. `ResourceTemplate`, `ResourceTemplateReference`).
+ * Enforces the RFC 6570 URI Template shape on a string: ASCII-printable only, an RFC 3986 scheme prefix, and
+ * a body of literals and well-formed `{expression}` segments.
  *
  * @internal
  *

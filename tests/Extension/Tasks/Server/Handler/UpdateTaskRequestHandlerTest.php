@@ -67,7 +67,6 @@ final class UpdateTaskRequestHandlerTest extends AbstractMcpTestCase
         $taskId = $store->createTask('slow_compute', null, null, 1_000)->taskId;
         $store->trySetCompleted($taskId, ['resultType' => 'complete']);
 
-        // The runner stays unbound: any re-dispatch attempt would throw.
         $handler = new UpdateTaskRequestHandler($store, self::buildUnboundRunner($store));
 
         $handler->handle(self::buildRequest($taskId), self::buildContext());
@@ -152,7 +151,6 @@ final class UpdateTaskRequestHandlerTest extends AbstractMcpTestCase
         $handler = new UpdateTaskRequestHandler($store, $runner);
         $handler->handle(self::buildRequest($taskId, ['confirm' => ['action' => 'accept']]), self::buildContext());
 
-        // The status flip precedes the background fiber's first turn.
         $flipped = $store->findTask($taskId);
         self::assertInstanceOf(TaskRecord::class, $flipped);
         self::assertSame(TaskStatus::Working, $flipped->status);

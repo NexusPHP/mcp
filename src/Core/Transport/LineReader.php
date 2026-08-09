@@ -17,8 +17,7 @@ use Amp\ByteStream\ReadableStream;
 use Nexus\Assert\Assert;
 
 /**
- * Reads `\n`-delimited lines from a byte stream with a configurable per-line
- * byte cap. Strips trailing `\r` so CRLF input yields the same lines as LF.
+ * Reads `\n`-delimited lines from a byte stream under a per-line byte cap, stripping a trailing `\r`.
  *
  * @internal
  */

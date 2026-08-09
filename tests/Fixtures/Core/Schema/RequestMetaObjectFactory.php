@@ -21,10 +21,7 @@ use Nexus\Mcp\Core\Schema\ProgressToken;
 use Nexus\Mcp\Core\Schema\ProtocolVersion;
 
 /**
- * Builds a canonical `RequestMetaObject` for client-to-server request construction in tests.
- *
- * The client capabilities carry a non-empty `experimental` slot so the `toArray()` and
- * `jsonSerialize()` paths agree (no empty-object substitution to reconcile).
+ * Factory for a canonical `RequestMetaObject` whose capabilities keep a non-empty `experimental` slot.
  *
  * @internal
  */
@@ -55,7 +52,7 @@ final class RequestMetaObjectFactory
     }
 
     /**
-     * The `toArray()` shape produced by `create()`, for embedding in expected envelopes.
+     * The `toArray()` shape produced by `create()`.
      *
      * @param array<string, mixed>  $extras
      * @param null|non-empty-string $protocolVersion

@@ -90,7 +90,6 @@ final class SubscriptionStreamTest extends AbstractMcpTestCase
 
         $stream->close();
 
-        // The spec answers an abrupt close with nothing, so awaiting would suspend the caller for good.
         $this->expectException(SubscriptionClosedException::class);
         $stream->await();
     }

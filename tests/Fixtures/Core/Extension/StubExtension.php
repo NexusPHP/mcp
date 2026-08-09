@@ -22,8 +22,7 @@ use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\Result;
 
 /**
- * An extension declaration assembled from constructor arguments, for
- * exercising collection validation and builder registration.
+ * Extension declaration assembled from constructor arguments.
  *
  * @internal
  *

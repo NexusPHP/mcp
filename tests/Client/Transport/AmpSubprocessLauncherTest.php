@@ -23,10 +23,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
- * Starts real subprocesses, alongside `AmpSubprocessTest`. Nothing here declares coverage of
- * `StdioClientTransport`, so Infection never selects these tests to validate one of its mutants: a
- * mutant cannot spawn a process, and every such run would report a false kill. That is what lets the
- * last test drive the transport end to end without costing it its mutation score.
+ * Starts real subprocesses, declaring no coverage of `StdioClientTransport` so Infection never selects these tests and scores a false kill.
  *
  * @internal
  */

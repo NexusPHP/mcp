@@ -24,8 +24,7 @@ use Nexus\Mcp\Core\Transport\TransportEvents;
 use function Amp\delay;
 
 /**
- * In-memory `SupervisableTransportInterface` for supervision tests. Records sends and exposes hooks to
- * drive each listener chain, including the unexpected-exit signal a real subprocess would raise.
+ * In-memory `SupervisableTransportInterface` double recording every send.
  *
  * @internal
  */
@@ -40,19 +39,9 @@ final class SupervisableRecordingTransport implements SupervisableTransportInter
     public array $sent = [];
 
     public ?\Throwable $startError = null;
-
-    /**
-     * Seconds `start()` suspends for, standing in for a real subprocess launch.
-     */
     public float $startDelay = 0.0;
-
     public ?\Throwable $closeError = null;
-
-    /**
-     * Seconds `close()` suspends for, standing in for a transport that drains on the way down.
-     */
     public float $closeDelay = 0.0;
-
     public ?\Throwable $sendError = null;
 
     /**
@@ -92,8 +81,6 @@ final class SupervisableRecordingTransport implements SupervisableTransportInter
     public function send(JsonRpcMessage $message, ?SendContext $context = null): void
     {
         if (null !== $this->onSend) {
-            // Stands in for a peer that dies mid-write, where the supervisor has already decided on a
-            // replacement by the time the failure reaches the caller.
             ($this->onSend)($this);
         }
 
@@ -118,8 +105,6 @@ final class SupervisableRecordingTransport implements SupervisableTransportInter
         }
 
         if (null !== $this->closeError) {
-            // Mirrors LineDuplex, which drains its background loops before emitting close, so a failure
-            // there means the caller never sees the peer's own close event.
             throw $this->closeError;
         }
 
@@ -163,10 +148,7 @@ final class SupervisableRecordingTransport implements SupervisableTransportInter
     }
 
     /**
-     * Stands in for the peer dying on its own. The stream EOF and the exit status travel independently in
-     * a real transport: with `$streamClosesFirst` the streams tear down first and this transport closes
-     * itself, otherwise only the status lands and the streams stay open, as when something else inherited
-     * them. In the second case only an explicit `close()` can still release this transport.
+     * A false `$streamClosesFirst` leaves the streams open, so only an explicit `close()` releases this.
      */
     public function emitUnexpectedExit(?int $exitCode = 1, bool $streamClosesFirst = true): void
     {
@@ -193,8 +175,7 @@ final class SupervisableRecordingTransport implements SupervisableTransportInter
     }
 
     /**
-     * Fires the close listeners without touching the `$closed` flag, standing in for a stream that
-     * signals close more than once.
+     * Fires the close listeners without touching the `$closed` flag.
      */
     public function emitClose(): void
     {

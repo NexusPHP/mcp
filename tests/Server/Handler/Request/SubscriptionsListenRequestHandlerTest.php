@@ -82,8 +82,6 @@ final class SubscriptionsListenRequestHandlerTest extends AbstractMcpTestCase
 
     public function testTheSubscriptionIsNamedByTheIdThePeerSentNotTheDispatchedOne(): void
     {
-        // A request-scoped transport dispatches under an id of its own, and the client can only correlate
-        // the stream by the id it sent.
         $store = new SubscriptionStore();
         $handler = new SubscriptionsListenRequestHandler($store);
         $sender = new RecordingSender();
@@ -128,7 +126,6 @@ final class SubscriptionsListenRequestHandlerTest extends AbstractMcpTestCase
         $deferred->cancel();
         $running->await();
 
-        // The dispatcher drops this result, which is what the spec means by an abrupt close carrying none.
         $store->emitToolListChanged();
         delay(0.0);
 

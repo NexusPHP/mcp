@@ -20,8 +20,7 @@ use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 
 /**
- * A client-sendable request bound to a vendor method literal absent from the
- * default registry, used to exercise vendor-method parsing and server dispatch.
+ * Client-sendable request bound to a vendor method literal absent from the default registry.
  *
  * @internal
  *

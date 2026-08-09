@@ -18,8 +18,7 @@ use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 
 /**
- * A non-registry request class declaring the spec `server/discover` method,
- * for exercising the registry-envelope-class guards.
+ * Non-registry request declaring the spec `server/discover` method.
  *
  * @internal
  *

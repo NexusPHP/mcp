@@ -19,8 +19,7 @@ use Nexus\Mcp\Client\Auth\AuthorizationRedirect;
 use Nexus\Mcp\Client\Auth\UserAuthorizationInterface;
 
 /**
- * User-agent double that records each redirect it was handed and answers with a callback echoing the state
- * the SDK recorded, so the response validates without a browser.
+ * User-authorization double that answers each redirect without a browser.
  *
  * @internal
  */
@@ -32,8 +31,6 @@ final class ScriptedUserAuthorization implements UserAuthorizationInterface
     public array $redirects = [];
 
     /**
-     * The cancellation each redirect was handed.
-     *
      * @var list<Cancellation>
      */
     public array $cancellations = [];
@@ -57,17 +54,12 @@ final class ScriptedUserAuthorization implements UserAuthorizationInterface
         ]));
     }
 
-    /**
-     * The recorded redirect at `$index`.
-     */
     public function readRedirect(int $index = 0): AuthorizationRedirect
     {
         return $this->redirects[$index] ?? throw new \OutOfBoundsException(\sprintf('No redirect was recorded at index %d.', $index));
     }
 
     /**
-     * The scopes the recorded redirect at `$index` asked for.
-     *
      * @return list<non-empty-string>
      */
     public function readRequestedScopes(int $index = 0): array

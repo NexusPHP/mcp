@@ -19,7 +19,7 @@ use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
 
 /**
- * Rejects the `*Trait` suffix.
+ * Rule rejecting the `*Trait` suffix.
  *
  * @implements Rule<Node\Stmt\Trait_>
  *

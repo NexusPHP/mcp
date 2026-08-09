@@ -21,8 +21,6 @@ namespace Nexus\Mcp\Core\Schema;
 interface Arrayable extends \JsonSerializable
 {
     /**
-     * Create an instance of the class from an array.
-     *
      * @template TData of array<string, mixed>
      *
      * @param TData $data
@@ -32,8 +30,6 @@ interface Arrayable extends \JsonSerializable
     public static function fromArray(array $data): static;
 
     /**
-     * Convert the instance to an array.
-     *
      * @return T
      */
     public function toArray(): array;

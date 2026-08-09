@@ -27,11 +27,6 @@ final class ComposerScripts
     private const string INFECTION_TMP_DIR = self::PROJECT_ROOT.'/build/infection';
     private const array MUTATION_SOURCE_DIRECTORIES = ['src', 'tests'];
     private const string PHPUNIT_CLOVER = self::PROJECT_ROOT.'/build/phpunit/clover.xml';
-
-    /**
-     * Native binaries used by the doc-lint composer scripts, mapped to their
-     * Homebrew formula names.
-     */
     private const array DOC_LINTER_BINARIES = [
         'typos' => 'typos-cli',
         'markdownlint-cli2' => 'markdownlint-cli2',
@@ -62,10 +57,6 @@ final class ComposerScripts
         self::updateVscodeIntelephenseEnvironmentIncludePaths($settingsContents);
     }
 
-    /**
-     * Installs the native binaries used by the `lint:*` composer scripts when
-     * missing.
-     */
     public static function installDocLinters(): void
     {
         $missing = [];
@@ -113,10 +104,6 @@ final class ComposerScripts
         }
     }
 
-    /**
-     * Reclaims the per-mutant PHPUnit result-cache directories that Infection
-     * leaves in its temp dir (one `--cache-directory` per forked mutant).
-     */
     public static function cleanInfectionResultCaches(): void
     {
         self::pruneInfectionResultCaches();
@@ -124,10 +111,7 @@ final class ComposerScripts
     }
 
     /**
-     * Runs Infection scoped to the diff against `origin/1.x`, including
-     * untracked files that `git diff` would not otherwise see. Marks each
-     * untracked source file as intent-to-add for the duration of the run, then
-     * clears the markers on exit so the working tree returns to its prior state.
+     * Runs Infection scoped to the diff against `origin/1.x`.
      */
     public static function runFilteredMutation(): void
     {
@@ -164,10 +148,7 @@ final class ComposerScripts
     }
 
     /**
-     * Fails the build when any executable statement line under `src/` is left
-     * uncovered. Reads the Clover report emitted by `test:unit`, so it must run
-     * after it. Bridges the gap Infection cannot see: a line with no generated
-     * mutant stays invisible to MSI even when no test exercises it.
+     * Fails the build when any executable statement line under `src/` is uncovered.
      */
     public static function checkCoverage(): void
     {

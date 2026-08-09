@@ -130,8 +130,6 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
     #[DataProvider('provideResponseShapedBodyIsRejectedCases')]
     public function testResponseShapedBodyIsRejected(array $body): void
     {
-        // A response envelope is not a valid client-to-server message. The dispatcher discards it without
-        // replying, so the transport must reject it rather than register a sink that never resolves.
         $response = self::makeTransport()->handle(self::makePost($body));
 
         self::assertSame(400, $response->getStatusCode());
@@ -279,8 +277,6 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
 
     public function testAListenRequestStreamsEvenUnderTheJsonResponseMode(): void
     {
-        // A listen request is answered only when its stream ends, so the buffered path would hold the POST
-        // open with nowhere to push the acknowledgement.
         $transport = self::makeTransport(responseMode: ResponseMode::Json);
         $transport->onMessage(static function (array $envelope) use ($transport): void {
             $id = $envelope['id'] ?? null;
@@ -300,7 +296,6 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
             'params' => ['notifications' => [], '_meta' => RequestMetaObjectFactory::shape()],
         ], self::standardHeaders('subscriptions/listen')));
 
-        // The body stays open for the stream's lifetime, so the content type is what proves the carve-out.
         self::assertSame('text/event-stream', $response->getHeaderLine('Content-Type'));
         self::assertSame(200, $response->getStatusCode());
 
@@ -309,9 +304,6 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
 
     public function testAClientCancellationNotificationIsAcceptedButNotDispatched(): void
     {
-        // The spec makes closing the response stream the cancellation signal here, so this message is
-        // neither required nor expected. Its `requestId` names the client's own id space, which no sink is
-        // keyed by, so dispatching it would cancel whichever request holds that internal id.
         $logger = new ArrayLogger();
         $transport = self::makeTransport(logger: $logger);
 
@@ -372,7 +364,6 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
 
         self::assertSame(400, $response->getStatusCode());
         self::assertSame(ProtocolErrorCode::InvalidRequest->value, self::errorPayload($response)['code'] ?? null);
-        // A rejected notification is never emitted to the dispatcher.
         self::assertFalse($emitted);
     }
 
@@ -465,7 +456,6 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
             'params' => ['_meta' => RequestMetaObjectFactory::shape()],
         ], self::standardHeaders('server/discover'));
 
-        // Both coroutines start on `async()`, so awaiting them one after the other still runs them concurrently.
         $firstPending = async(static fn(): ResponseInterface => $transport->handle($post));
         $secondPending = async(static fn(): ResponseInterface => $transport->handle(self::makePost([
             'jsonrpc' => '2.0',
@@ -483,14 +473,12 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
         self::assertSame(200, $second->getStatusCode());
         self::assertSame(1, self::decode($first)['id'] ?? null);
         self::assertSame(1, self::decode($second)['id'] ?? null);
-        // Re-keying to distinct internal ids keeps the shared client id from being rejected as a duplicate.
         self::assertArrayHasKey('result', self::decode($first));
         self::assertArrayHasKey('result', self::decode($second));
     }
 
     public function testInternalRequestIdsAscendFromOneOnTheStreamingPath(): void
     {
-        // `Sse` answers with the stream straight away, so `handle()` returns without a dispatcher attached.
         $transport = self::makeTransport(responseMode: ResponseMode::Sse);
         $log = self::captureInternalIds($transport);
 
@@ -498,13 +486,11 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
         $transport->handle(self::discoverPost());
         $transport->handle(self::discoverPost());
 
-        // The exact sequence is the contract: ids must climb, never restart, and never step backwards.
         self::assertSame([1, 2, 3], $log->ids);
     }
 
     public function testInternalRequestIdsAscendFromOneOnTheBufferedPath(): void
     {
-        // Both dispatch paths mint from the one counter, so each needs its own sequence pinned.
         $transport = self::makeTransport(start: false);
         self::listen($transport);
         $log = self::captureInternalIds($transport);
@@ -518,13 +504,11 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
 
     public function testAReleasedInternalIdIsNeverMintedAgain(): void
     {
-        // An id must stay spoken for as long as its handler could still send a response, not merely as long
-        // as its sink is registered. Recycling one routes an earlier client's response to a later client.
         $transport = self::makeTransport(responseMode: ResponseMode::Sse);
         $log = self::captureInternalIds($transport);
 
         $body = $transport->handle(self::discoverPost())->getBody();
-        $body->close();                              // a client disconnect retires the sink
+        $body->close();
         $transport->handle(self::discoverPost());
 
         self::assertSame([1, 2], $log->ids, 'The retired id must not be handed to the next request.');
@@ -537,7 +521,6 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
     #[DataProvider('provideHeaderValidationFailureReturnsHeaderMismatchCases')]
     public function testHeaderValidationFailureReturnsHeaderMismatch(array $headers, array $body): void
     {
-        // The mismatch is caught before dispatch, so no listener is attached.
         $response = self::makeTransport()->handle(self::makePost($body, $headers));
 
         self::assertSame(400, $response->getStatusCode());
@@ -595,7 +578,6 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
         $transport = self::makeTransport(start: false);
         self::listen($transport);
 
-        // An empty `_meta` fails request-params decoding inside the parser: an envelope-level -32602.
         $response = self::handle($transport, self::makePost(
             ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'server/discover', 'params' => ['_meta' => []]],
             self::standardHeaders('server/discover'),
@@ -607,8 +589,6 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
 
     public function testHandlerProducedProtocolErrorRidesHttp200(): void
     {
-        // A handler that raises the same -32602 code as the envelope-level case above, but from execution,
-        // so it rides HTTP 200 with the JSON-RPC error in the body.
         $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->replaceRequestHandler('server/discover', new ClosureRequestHandler(
@@ -685,8 +665,6 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
 
     public function testRequestBeforeStartIsRefusedWith503(): void
     {
-        // Nothing is listening, so no dispatch would resolve the request. The endpoint must answer rather
-        // than suspend on a response that cannot arrive.
         $response = self::makeTransport(start: false)->handle(self::discoverPost());
 
         self::assertSame(503, $response->getStatusCode());
@@ -708,7 +686,6 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
 
     public function testNotificationBeforeStartIsRefusedWith503(): void
     {
-        // A 202 would tell the client the notification was accepted when nothing consumed it.
         $response = self::makeTransport(start: false)->handle(self::makePost([
             'jsonrpc' => '2.0',
             'method' => 'notifications/tools/list_changed',
@@ -719,7 +696,6 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
 
     public function testNotificationMethodSentAsRequestIsAnsweredRatherThanLeftPending(): void
     {
-        // The dispatcher rejects the envelope. Were that rejection silent, this POST would never resolve.
         $transport = self::makeTransport(start: false);
         self::listen($transport);
 
@@ -737,7 +713,6 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
 
     public function testAShedRequestCarriesServiceUnavailable(): void
     {
-        // The one path where the in-flight cap meets the status resolver end to end.
         $transport = self::makeTransport(start: false);
         self::listen($transport, (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
@@ -768,8 +743,6 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
 
     public function testResponseCarryingANonSpecErrorCodeResolvesToBadRequest(): void
     {
-        // Error::$code is a plain int, so a consumer-sent code outside ProtocolErrorCode must not strand
-        // the awaiting request.
         $transport = self::makeTransport();
         $internalId = null;
         $transport->onMessage(static function (array $envelope) use (&$internalId): void {
@@ -794,7 +767,6 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
 
     public function testNonPostIsAnsweredEvenWhenTheEndpointIsNotAccepting(): void
     {
-        // The method check is pure HTTP and does not depend on the transport serving MCP traffic.
         $response = self::makeTransport(start: false)->handle((new Psr17Factory())->createServerRequest('GET', 'https://mcp.test/'));
 
         self::assertSame(405, $response->getStatusCode());
@@ -911,7 +883,6 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
         });
 
         $transport->close();
-        // A second close is a no-op: the listeners fire exactly once.
         $transport->close();
 
         self::assertSame(['drain', 'close'], $order);
@@ -936,7 +907,6 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
             self::assertSame('drain boom', $e->getMessage());
         }
 
-        // The close signal still fired, and the transport is closed despite the drain failure.
         self::assertTrue($closed);
         $this->expectException(TransportAlreadyClosedException::class);
         $transport->send(new ToolListChangedNotification(params: new EmptyNotificationParams()));
@@ -998,7 +968,6 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
         self::assertStringContainsString('"id":7', $body);
         self::assertStringContainsString('"result"', $body);
 
-        // Closing the fully-read body is a no-op: the stream already ended.
         $response->getBody()->close();
     }
 
@@ -1009,9 +978,9 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
 
         $eof = async(static function () use ($transport): string {
             $body = $transport->handle(self::progressRequest(7))->getBody();
-            $body->read(65_536); // drains the progress and final-result frames
+            $body->read(65_536);
 
-            return $body->read(65_536); // end-of-body once the stream has ended
+            return $body->read(65_536);
         })->await();
 
         self::assertSame('', $eof);
@@ -1063,9 +1032,7 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
 
         async(static function () use ($transport): void {
             $response = $transport->handle(self::progressRequest(7));
-            // The client disconnects before consuming the stream.
             $response->getBody()->close();
-            // Let the queued dispatch coroutine run: it is now cancelled.
             delay(0.01);
         })->await();
 
@@ -1079,8 +1046,6 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
 
     public function testAGracefullyEndedStreamDoesNotCancelAnything(): void
     {
-        // `endStream()` retires the sink after the final frame, so the host disposing the body afterwards
-        // must not be mistaken for the peer walking away.
         $transport = self::makeTransport(new ArrayLogger(), ResponseMode::Sse, start: false);
         self::listen($transport, self::progressServer());
         $cancelled = [];
@@ -1091,7 +1056,6 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
         async(static function () use ($transport): void {
             $response = $transport->handle(self::progressRequest(7));
             delay(0.01);
-            // The handler has answered by now, so this is the host tidying up a finished body.
             $response->getBody()->close();
         })->await();
 
@@ -1133,9 +1097,6 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
         new StreamableHttpServerTransport($factory, $factory, keepAliveInterval: 0.0);
     }
 
-    /**
-     * Records the transport-internal id of every request emitted to the dispatcher.
-     */
     private static function captureInternalIds(StreamableHttpServerTransport $transport): RequestIdLog
     {
         $log = new RequestIdLog();
@@ -1150,10 +1111,6 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
         return $log;
     }
 
-    /**
-     * @param bool $start Whether to start the transport, which `handle()` requires. Pass `false` when the
-     *                    caller attaches a server with `listen()`, which starts it.
-     */
     private static function makeTransport(
         ?ArrayLogger $logger = null,
         ResponseMode $responseMode = ResponseMode::Auto,
@@ -1175,9 +1132,6 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
         ($server ?? (new ServerBuilder())->setServerInfo('demo', '1.0.0')->build())->listen($transport);
     }
 
-    /**
-     * A well-formed `server/discover` POST, headers included.
-     */
     private static function discoverPost(): ServerRequestInterface
     {
         return self::makePost([
@@ -1210,9 +1164,6 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
     }
 
     /**
-     * Drives a request whose response body must be read on the event loop (an SSE stream), returning the
-     * response together with its fully read body.
-     *
      * @return array{ResponseInterface, string}
      */
     private static function handleAndRead(StreamableHttpServerTransport $transport, ServerRequestInterface $request): array
@@ -1220,17 +1171,12 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
         $response = async(static fn(): ResponseInterface => $transport->handle($request))->await();
         self::assertInstanceOf(ResponseInterface::class, $response);
 
-        // The SSE body is read on the loop: reading it drives the queued dispatch coroutine to completion.
         $body = async(static fn(): string => (string) $response->getBody())->await();
         self::assertIsString($body);
 
         return [$response, $body];
     }
 
-    /**
-     * A server whose `server/discover` handler reports one progress update, optionally staying busy after,
-     * then returns an empty result.
-     */
     private static function progressServer(float $busyFor = 0.0): Server
     {
         return (new ServerBuilder())
@@ -1261,8 +1207,6 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
     }
 
     /**
-     * The standard request-metadata headers a conforming POST carries, matching the request bodies below.
-     *
      * @return array<string, string>
      */
     private static function standardHeaders(string $method, ?string $name = null): array

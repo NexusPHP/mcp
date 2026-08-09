@@ -22,8 +22,6 @@ case "${1:-}" in
         MODE="$1"
         shift
         ;;
-    # Everything else is a referee argument and passes through, but a bare word in the mode position is a
-    # mistyped mode rather than one of those.
     ''|-*) ;;
     *)
         echo "Unknown mode \"$1\". Expected \"server\", \"client\", or no mode at all." >&2

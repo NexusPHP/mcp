@@ -126,7 +126,7 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
     {
         $handler = self::handler();
 
-        $response = self::endpoint($handler, ['*'], toolStore: self::toolStore())->handle(self::toolCall('us-east1'));
+        $response = self::endpoint($handler, ['*'], toolStore: self::toolStore())->handle(self::buildMismatchedToolCall('us-east1'));
 
         self::assertFalse($handler->called);
         self::assertSame(400, $response->getStatusCode());
@@ -136,7 +136,7 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
     {
         $handler = self::handler();
 
-        $response = self::endpoint($handler, ['*'])->handle(self::toolCall('us-east1'));
+        $response = self::endpoint($handler, ['*'])->handle(self::buildMismatchedToolCall('us-east1'));
 
         self::assertTrue($handler->called);
         self::assertSame(200, $response->getStatusCode());
@@ -144,11 +144,10 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
 
     public function testAnswersRebindingAheadOfParameterHeaderValidation(): void
     {
-        // The cheap origin gate must run before the body is peeked at.
         $handler = self::handler();
 
         $response = self::endpoint($handler, ['https://app.test'], toolStore: self::toolStore())
-            ->handle(self::toolCall('us-east1')->withHeader('Origin', 'https://evil.test'))
+            ->handle(self::buildMismatchedToolCall('us-east1')->withHeader('Origin', 'https://evil.test'))
         ;
 
         self::assertFalse($handler->called);
@@ -247,10 +246,7 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
         ]]);
     }
 
-    /**
-     * A `tools/call` whose `Mcp-Param-Region` header disagrees with its body argument.
-     */
-    private static function toolCall(string $header): ServerRequestInterface
+    private static function buildMismatchedToolCall(string $header): ServerRequestInterface
     {
         $factory = new Psr17Factory();
 

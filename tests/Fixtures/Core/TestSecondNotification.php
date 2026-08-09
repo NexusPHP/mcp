@@ -19,8 +19,7 @@ use Nexus\Mcp\Core\Schema\NotificationParams;
 use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
 
 /**
- * A second vendor notification, for tests that need two distinct
- * notification methods side by side.
+ * Second vendor notification.
  *
  * @internal
  *

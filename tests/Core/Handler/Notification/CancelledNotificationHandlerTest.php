@@ -65,8 +65,6 @@ final class CancelledNotificationHandlerTest extends AbstractMcpTestCase
 
     public function testIgnoresAnIdThatIsNotInFlight(): void
     {
-        // The spec has the receiver ignore an unknown id: the request may have completed before the
-        // notification arrived.
         $logger = new ArrayLogger();
 
         (new CancelledNotificationHandler(new PendingInboundRequests(), $logger))->handle(self::notificationFor(7));

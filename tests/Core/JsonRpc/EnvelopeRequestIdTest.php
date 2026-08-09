@@ -73,7 +73,6 @@ final class EnvelopeRequestIdTest extends AbstractMcpTestCase
     {
         yield 'absent' => [['jsonrpc' => '2.0']];
 
-        // MCP narrows the JSON-RPC id, which allows null, to int|non-empty-string.
         yield 'null' => [['id' => null]];
 
         yield 'empty string' => [['id' => '']];

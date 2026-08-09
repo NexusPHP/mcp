@@ -17,8 +17,7 @@ use Nexus\Mcp\Client\ClientExtensionInterface;
 
 /**
  * The official OAuth client credentials extension (`io.modelcontextprotocol/oauth-client-credentials`,
- * SEP-1046) for the client: declares the extension on every request's `_meta` capabilities. The flow itself
- * runs at the HTTP layer through `ClientCredentialsGrant`.
+ * SEP-1046) for the client.
  */
 final readonly class ClientCredentialsClientExtension implements ClientExtensionInterface
 {

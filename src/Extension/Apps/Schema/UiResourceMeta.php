@@ -17,10 +17,8 @@ use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Arrayable;
 
 /**
- * The `_meta.ui` object on a UI resource, carried by both its
- * `resources/list` descriptor and its `resources/read` contents. An empty
- * `$csp` or `$permissions` is equivalent to an omitted one and collapses to
- * null.
+ * The `_meta.ui` object on a UI resource, carried by both its `resources/list`
+ * descriptor and its `resources/read` contents.
  *
  * @implements Arrayable<array{
  *   csp?: array{

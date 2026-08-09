@@ -22,8 +22,7 @@ use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Server\ServerExtensionInterface;
 
 /**
- * A server extension declaration assembled from constructor arguments, for
- * exercising `ServerBuilder::enableExtension()`.
+ * Server extension declaration assembled from constructor arguments.
  *
  * @internal
  */

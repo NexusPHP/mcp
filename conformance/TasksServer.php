@@ -24,13 +24,7 @@ use Nexus\Mcp\Server\ServerContext;
 use function Amp\delay;
 
 /**
- * Tools exercised by the referee's `tasks-*` scenarios (SEP-2663). The
- * per-tool task policies live in `server.php`'s `TasksServerExtension`
- * registration.
- *
- * An answered-but-not-accepted round completes instead of re-asking: input
- * request keys are unique over a task's lifetime, so a task-mode re-ask with
- * the same key would fail the task.
+ * Tools exercised by the referee's `tasks-*` scenarios (SEP-2663).
  */
 final class TasksServer
 {
@@ -49,10 +43,6 @@ final class TasksServer
         return sprintf('Hello, %s!', $name);
     }
 
-    /**
-     * @param float  $seconds How long the computation runs
-     * @param string $label   Names the run in its result
-     */
     #[AsTool(name: 'slow_compute', description: 'Computes for the given number of seconds.')]
     public function slowCompute(float $seconds, string $label, ServerContext $context): string
     {
@@ -91,11 +81,11 @@ final class TasksServer
     #[AsTool(name: 'confirm_delete', description: 'Asks for confirmation, then deletes.')]
     public function confirmDelete(string $filename, ServerContext $context): CallToolResult|InputRequiredResult
     {
-        if (self::readAnswer($context, 'confirm_delete', 'confirm') === true) {
+        if (self::readAcceptedAnswer($context, 'confirm_delete', 'confirm') === true) {
             return new CallToolResult(content: [new TextContent(text: sprintf('Deleted %s.', $filename))]);
         }
 
-        if (self::hasAnswer($context, 'confirm_delete')) {
+        if (self::hasAnyAnswer($context, 'confirm_delete')) {
             return new CallToolResult(content: [new TextContent(text: sprintf('Left %s in place.', $filename))]);
         }
 
@@ -105,14 +95,14 @@ final class TasksServer
     #[AsTool(name: 'multi_input', description: 'Fans out two input requests at once.')]
     public function multiInput(ServerContext $context): CallToolResult|InputRequiredResult
     {
-        $name = self::readAnswer($context, 'multi_name', 'name');
-        $confirmed = self::readAnswer($context, 'multi_confirm', 'confirm');
+        $name = self::readAcceptedAnswer($context, 'multi_name', 'name');
+        $confirmed = self::readAcceptedAnswer($context, 'multi_confirm', 'confirm');
 
         if (is_string($name) && true === $confirmed) {
             return new CallToolResult(content: [new TextContent(text: sprintf('Ran for %s.', $name))]);
         }
 
-        if (self::hasAnswer($context, 'multi_name') || self::hasAnswer($context, 'multi_confirm')) {
+        if (self::hasAnyAnswer($context, 'multi_name') || self::hasAnyAnswer($context, 'multi_confirm')) {
             return new CallToolResult(content: [new TextContent(text: 'Run cancelled.')]);
         }
 
@@ -132,13 +122,13 @@ final class TasksServer
     #[AsTool(name: 'test_tool_with_task', description: 'Asks for a name synchronously, then greets it from a task.')]
     public function toolWithTask(ServerContext $context): CallToolResult|InputRequiredResult
     {
-        $name = self::readAnswer($context, 'task_user_name', 'name');
+        $name = self::readAcceptedAnswer($context, 'task_user_name', 'name');
 
         if (is_string($name) && '' !== $name) {
             return new CallToolResult(content: [new TextContent(text: sprintf('Hello, %s!', $name))]);
         }
 
-        if (self::hasAnswer($context, 'task_user_name')) {
+        if (self::hasAnyAnswer($context, 'task_user_name')) {
             return new CallToolResult(content: [new TextContent(text: 'Hello, stranger!')]);
         }
 

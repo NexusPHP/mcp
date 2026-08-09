@@ -19,7 +19,7 @@ namespace Nexus\Mcp\Core\Transport;
 interface SubscriptionInterface
 {
     /**
-     * Removes the underlying listener. Idempotent: subsequent calls are no-ops.
+     * Removes the underlying listener, subsequent calls being no-ops.
      */
     public function dispose(): void;
 }

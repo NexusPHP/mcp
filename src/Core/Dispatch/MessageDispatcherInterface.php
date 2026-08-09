@@ -18,15 +18,11 @@ use Nexus\Mcp\Core\Transport\ReceiveContext;
 use Nexus\Mcp\Core\Transport\TransportInterface;
 
 /**
- * Per-envelope inbound dispatch contract shared by the Server and Client
- * runtimes. Each side owns one implementation and exposes it to a
- * transport's `onMessage` / `onDrain` listeners.
+ * Per-envelope inbound dispatch contract shared by the Server and Client runtimes.
  */
 interface MessageDispatcherInterface
 {
     /**
-     * Processes a single inbound JSON-RPC envelope.
-     *
      * @param array<string, mixed> $envelope
      */
     public function dispatch(array $envelope, TransportInterface $transport, ReceiveContext $context): void;

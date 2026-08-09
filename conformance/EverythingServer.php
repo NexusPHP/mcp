@@ -42,12 +42,7 @@ use Nexus\Mcp\Server\Tool\MutableToolStoreInterface;
 use function Amp\delay;
 
 /**
- * The fixture the conformance referee drives.
- *
- * Every capability is a public method carrying a discovery attribute, so
- * `ServerBuilder::register()` derives each `inputSchema` from the parameter
- * types and `@param` lines. Tool names are pinned explicitly because the
- * referee looks them up by the names the canonical fixture uses.
+ * The fixture the conformance referee drives, its tool names pinned to the ones the referee looks up.
  */
 #[AsServer(
     name: 'mcp-conformance-test-server',
@@ -56,24 +51,13 @@ use function Amp\delay;
 )]
 final class EverythingServer
 {
-    /**
-     * A 1x1 red PNG.
-     */
     private const string RED_PIXEL_PNG = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
-
-    /**
-     * A minimal silent WAV.
-     */
     private const string SILENT_WAV = 'UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
 
     private int $mutations = 0;
     private ?MutableToolStoreInterface $toolStore = null;
     private ?MutablePromptStoreInterface $promptStore = null;
 
-    /**
-     * Hands the fixture the stores `build()` assembled, so the diagnostic triggers below can mutate the
-     * same listings the handlers serve.
-     */
     public function useStores(MutableToolStoreInterface $tools, MutablePromptStoreInterface $prompts): void
     {
         $this->toolStore = $tools;
@@ -199,10 +183,8 @@ final class EverythingServer
     }
 
     /**
-     * The `http-custom-header-server-validation` scenario mirrors `message` into
-     * `Mcp-Param-Message` and asserts the server checks the two agree. `x-mcp-header`
-     * sits on the property rather than the tool, so the schema is supplied rather
-     * than derived from the signature.
+     * The `http-custom-header-server-validation` scenario asserts `message` agrees with `Mcp-Param-Message`, and
+     * `x-mcp-header` sits on the property, so the schema is supplied rather than derived.
      *
      * @param string $message Echoed back, and mirrored into `Mcp-Param-Message`.
      */
@@ -237,9 +219,8 @@ final class EverythingServer
     }
 
     /**
-     * The `server-stateless` scenario calls this without a `logLevel` in the request
-     * `_meta` and asserts no log notification comes back. The SDK emits none at all,
-     * so the requirement holds trivially.
+     * The `server-stateless` scenario calls this without a `logLevel` in the request `_meta` and asserts no log
+     * notification comes back.
      */
     #[AsTool(name: 'test_logging_tool', description: 'Would log if the request asked for logs.')]
     public function loggingTool(ServerContext $context): string
@@ -248,10 +229,8 @@ final class EverythingServer
     }
 
     /**
-     * Advertises a hand-written JSON Schema 2020-12 document. The scanner derives a
-     * schema from the signature for every other tool, but this scenario asserts the
-     * server preserves `$schema`, `$defs`, and `additionalProperties` verbatim, so
-     * the schema is supplied rather than derived.
+     * Advertises a hand-written JSON Schema 2020-12 document, since the scenario asserts the server preserves
+     * `$schema`, `$defs`, and `additionalProperties` verbatim.
      *
      * @param null|array<string, mixed> $arguments
      */

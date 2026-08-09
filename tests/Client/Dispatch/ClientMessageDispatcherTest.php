@@ -178,7 +178,6 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $dispatcher = self::buildDispatcher($outbound, logger: $logger);
         $transport = new RecordingTransport();
 
-        // Error responses are the only response shape where the JSON-RPC spec allows `id: null`.
         $dispatcher->dispatch([
             'jsonrpc' => '2.0',
             'id' => null,
@@ -264,7 +263,6 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
         $dispatcher->flushPending();
 
-        // The finally block must have released the id.
         $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
         $dispatcher->flushPending();
 
@@ -762,8 +760,6 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
 
     public function testErrorResponseUsesExceptionRequestIdWhenSetEvenIfDifferentFromIncomingRequestId(): void
     {
-        // The toErrorResponse helper coalesces $exception->requestId over the fallback. ResourceNotFoundException
-        // carries no requestId, so the fallback (request->id) is used.
         $outbound = new PendingOutboundRequests();
         $dispatcher = self::buildDispatcher(
             $outbound,
@@ -936,7 +932,6 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
                         try {
                             delay(1.0, cancellation: $context->cancellation);
                         } catch (CancelledException) {
-                            // Swallowed, so the coroutine reaches the send with a result in hand.
                         }
 
                         return new EmptyResult();
@@ -1064,8 +1059,6 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
             ++$stolen;
         }));
 
-        // The spec keeps this key off progress notifications. A peer that stamps one anyway must not divert
-        // progress away from the per-call route that extends the request deadline.
         $dispatcher->dispatch([
             'jsonrpc' => '2.0',
             'method' => 'notifications/progress',

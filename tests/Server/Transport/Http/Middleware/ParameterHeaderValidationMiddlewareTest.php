@@ -161,8 +161,6 @@ final class ParameterHeaderValidationMiddlewareTest extends AbstractMcpTestCase
 
         yield 'another method' => [['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/list']];
 
-        // `prompts/get` also carries `params.name`. Only a tool call mirrors arguments into headers, so a
-        // prompt sharing a bound tool's name must not be validated against that tool's bindings.
         yield 'another method whose params.name matches a bound tool' => [[
             'jsonrpc' => '2.0',
             'id' => 1,
@@ -219,7 +217,6 @@ final class ParameterHeaderValidationMiddlewareTest extends AbstractMcpTestCase
         $handler = self::handler();
         $store = new PagedToolStore([[
             new Tool(name: 'broken', inputSchema: [
-                // `number` is not a permitted type, so the declaration set cannot be trusted.
                 'type' => 'object',
                 'properties' => ['size' => ['type' => 'number', 'x-mcp-header' => 'Size']],
             ]),

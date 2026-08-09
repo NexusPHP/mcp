@@ -22,8 +22,7 @@ use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Server\Tool\ToolStoreInterface;
 
 /**
- * Tool store double that serves a fixed sequence of pages and counts how often it was listed. A walk over
- * the pages visits each one once, so the double refuses to serve a page it has already handed out.
+ * Tool store double serving a fixed sequence of pages, refusing to serve one it has already handed out.
  *
  * @internal
  */
@@ -37,7 +36,7 @@ final class PagedToolStore implements ToolStoreInterface
     private array $served = [];
 
     /**
-     * @param list<list<Tool>> $pages One entry per page, in cursor order
+     * @param list<list<Tool>> $pages
      */
     public function __construct(private readonly array $pages)
     {

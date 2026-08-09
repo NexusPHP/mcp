@@ -22,14 +22,11 @@ use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
 use Nexus\Mcp\Server\ServerContext;
 
 /**
- * Elicitation scaffolding shared by the fixture servers: building
- * one-question `InputRequiredResult`s and reading the answers back.
+ * Elicitation scaffolding shared by the fixture servers.
  */
 trait ElicitationHelpers
 {
     /**
-     * Builds a one-question `InputRequiredResult`.
-     *
      * @param non-empty-string $key
      * @param non-empty-string $message
      * @param non-empty-string $field
@@ -62,20 +59,12 @@ trait ElicitationHelpers
         ));
     }
 
-    /**
-     * Whether the client supplied any answer at all under `$key`, accepted
-     * or otherwise.
-     */
-    private static function hasAnswer(ServerContext $context, string $key): bool
+    private static function hasAnyAnswer(ServerContext $context, string $key): bool
     {
         return isset($context->inputResponses[$key]);
     }
 
-    /**
-     * The named field of an accepted elicitation answer, or null while the
-     * client has not supplied one.
-     */
-    private static function readAnswer(ServerContext $context, string $key, string $field): mixed
+    private static function readAcceptedAnswer(ServerContext $context, string $key, string $field): mixed
     {
         $response = $context->inputResponses[$key] ?? null;
 

@@ -66,8 +66,6 @@ final readonly class SubscriptionsListenResult extends Result implements ServerR
     #[\Override]
     public function rebuildWithMeta(ResultMetaObject $meta): static
     {
-        // `_meta` is required here and names the stream, so a caller handing over a
-        // plain `ResultMetaObject` keeps this result's own subscription identity.
         return new self(meta: new SubscriptionsListenResultMetaObject(
             subscriptionId: $this->meta->subscriptionId,
             serverInfo: $meta->serverInfo,

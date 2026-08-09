@@ -117,8 +117,6 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
 
     public function testEmitsAnErrorResponseSoThePendingRequestCanReject(): void
     {
-        // A 400 HeaderMismatch still carries the id, so it must reach the protocol layer rather than be
-        // swallowed as a transport fault.
         $envelope = ['jsonrpc' => '2.0', 'id' => 1, 'error' => ['code' => -32_020, 'message' => 'Header mismatch']];
         $http = (new RecordingHttpClient())->willAnswerJson($envelope, status: 400);
         $transport = self::makeTransport($http);
@@ -176,9 +174,6 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
 
     public function testAResourceUriRidesTheNameHeaderVerbatim(): void
     {
-        // Both values `Mcp-Name` can carry are constrained to subsets of the header-safe set: a tool or
-        // prompt name to the MCP identifier set, and a resource URI to RFC 3986's printable ASCII. Neither
-        // can reach the sentinel path, which `StandardHeadersTest` covers directly instead.
         $http = (new RecordingHttpClient())->willAnswerJson(self::resultEnvelope());
         $transport = self::makeTransport($http);
         $uri = 'file:///tmp/notes.txt';
@@ -195,8 +190,6 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
 
     public function testDropsAnOutboundResponseTheSpecForbidsAClientFromSending(): void
     {
-        // "The body of the HTTP POST MUST be a single JSON-RPC request or notification. The client MUST NOT
-        // send JSON-RPC responses."
         $logger = new ArrayLogger();
         $http = new RecordingHttpClient();
         $transport = self::makeTransport($http, logger: $logger);
@@ -259,7 +252,6 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
 
     public function testReadsAJsonBodyWhoseContentTypeParameterNamesAStream(): void
     {
-        // The media type is the head of the value, so an event-stream spelling inside a parameter is not one.
         $http = (new RecordingHttpClient())->willAnswerWithContentType(
             'application/json; note="text/event-stream"',
             [json_encode(self::resultEnvelope(), \JSON_THROW_ON_ERROR)],
@@ -272,11 +264,6 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
         self::assertSame([self::resultEnvelope()], $received->envelopes, 'A buffered body must be read as one.');
     }
 
-    /**
-     * Both malformed shapes are exercised inside a stream: an undecodable payload and a decodable one that
-     * is not an envelope. Each is caught per frame, so the stream survives either. The good frame shares the
-     * bad one's chunk, so recovery has to happen within the batch rather than on the next read.
-     */
     #[DataProvider('provideKeepsReadingAfterAMalformedFrameCases')]
     public function testKeepsReadingAfterAMalformedFrame(string $payload): void
     {
@@ -305,8 +292,6 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
 
     public function testAListenerFaultOnAFrameIsNotMistakenForAnUnreadableOne(): void
     {
-        // The protocol layer's parser rejects an envelope with `InvalidArgumentException`, the very type the
-        // per-frame guard catches, so only the decode may sit inside it.
         $http = (new RecordingHttpClient())->willAnswerStream([self::frame(self::resultEnvelope())]);
         $transport = self::makeTransport($http);
         $faults = self::captureFaults($transport);
@@ -327,7 +312,6 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
 
     public function testCloseCancelsAnOpenStreamWithoutReportingAFault(): void
     {
-        // A `subscriptions/listen` stream never ends, so shutdown has to abort it rather than await it.
         $http = (new RecordingHttpClient())->willAnswerOpenStream([self::frame(self::resultEnvelope())]);
         $transport = self::makeTransport($http);
         $received = self::captureMessages($transport);
@@ -362,7 +346,6 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
         $resume->complete();
         delay(0.05);
 
-        // The gated frame belongs to stream 2, so its arrival is what proves the abort reached only 1.
         self::assertSame(
             [self::resultEnvelope(), self::resultEnvelope(), $later],
             $received->envelopes,
@@ -392,7 +375,6 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
         $resume->complete();
         delay(0.05);
 
-        // The live exchange is untouched, so naming an id nobody sent reached nothing.
         self::assertSame([self::resultEnvelope(), $later], $received->envelopes);
 
         $transport->close();
@@ -413,7 +395,6 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
         $transport->send(self::discoverRequest(id: '1'));
         delay(0.05);
 
-        // MCP admits both int and string request ids, so "1" is a different exchange than 1.
         $transport->abort(new RequestId(id: '1'));
         $resume->complete();
         delay(0.05);
@@ -442,7 +423,6 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
         $transport->send(self::discoverRequest(id: 1));
         delay(0.05);
 
-        // A notification carries no id, so nothing names its exchange and the request keeps its own.
         $resume->complete();
         delay(0.05);
 
@@ -471,7 +451,6 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
         $resume->complete();
         delay(0.05);
 
-        // The server spoke again, and nobody was listening.
         self::assertSame([self::resultEnvelope()], $received->envelopes, 'An aborted exchange stops reading its stream.');
 
         $transport->close();
@@ -498,7 +477,6 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
         $resume->complete();
         delay(0.05);
 
-        // The second abort names an exchange that is already gone, and must not reach the live one.
         self::assertSame([self::resultEnvelope(), self::resultEnvelope(), $later], $received->envelopes);
         self::assertSame([], $faults->messages);
 
@@ -520,7 +498,6 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
         $transport->send(self::discoverRequest(id: 1));
         delay(0.05);
 
-        // The failed exchange still released itself, so the transport keeps serving.
         self::exchange($transport, self::discoverRequest(id: 2));
 
         self::assertSame([self::resultEnvelope()], $received->envelopes);
@@ -540,7 +517,6 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
         try {
             $transport->close();
         } catch (\RuntimeException) {
-            // The drain fault propagates, but shutdown must still complete.
         }
 
         self::assertTrue($closed);
@@ -585,8 +561,6 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
 
     public function testReportsANotificationFailureUncorrelated(): void
     {
-        // A notification has no id and so no caller awaiting a response. Wrapping it would name a request
-        // that does not exist.
         $http = (new RecordingHttpClient())->willFail(new HttpException('connection refused'));
         $transport = self::makeTransport($http);
         $faults = self::captureFaults($transport);
@@ -633,7 +607,6 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
 
     public function testAnUnreadableStreamFrameDoesNotEndTheExchange(): void
     {
-        // Unlike a buffered body, one bad frame is not the whole answer: the response may still follow.
         $http = (new RecordingHttpClient())->willAnswerStream([
             "data: {\"jsonrpc\":\n\n",
             'data: '.json_encode(self::resultEnvelope(), \JSON_THROW_ON_ERROR)."\n\n",
@@ -721,8 +694,6 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
 
     public function testCloseAwaitsAnInFlightExchange(): void
     {
-        // Cancelling the lifetime first is what lets the await terminate, so `close()` is the only thing
-        // driving this exchange to completion.
         $http = (new RecordingHttpClient())->willAnswerJson(self::resultEnvelope());
         $transport = self::makeTransport($http);
         $received = self::captureMessages($transport);
@@ -735,8 +706,6 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
 
     public function testAnErrorStatusFailsTheRequestItsExchangeCarries(): void
     {
-        // An OAuth-style error body is valid JSON but no envelope, so emitting it would
-        // strand the request as a discarded-malformed-envelope instead of failing it.
         $http = (new RecordingHttpClient())->willAnswerJson(['error' => 'insufficient_scope'], 403);
         $transport = self::makeTransport($http);
         $received = self::captureMessages($transport);
@@ -790,8 +759,6 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
      */
     public static function provideAnUncorrelatedBodyOnAnErrorStatusFailsTheRequestCases(): iterable
     {
-        // The spec lets a refused POST carry an id-less error envelope, and this SDK's own
-        // server emits one for every failure whose id it could not recover.
         yield 'an id-less error envelope' => [['jsonrpc' => '2.0', 'error' => ['code' => -32_600, 'message' => 'Invalid Request']]];
 
         yield 'an error envelope answering some other id' => [['jsonrpc' => '2.0', 'id' => 99, 'error' => ['code' => -32_600, 'message' => 'Invalid Request']]];
@@ -805,8 +772,6 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
 
     public function testAnOversizedErrorBodyStillReportsTheStatus(): void
     {
-        // The status is the diagnosis. Reporting the oversized body instead would misname a
-        // refused exchange as a response-size problem.
         $http = (new RecordingHttpClient())->willAnswerJson(str_repeat('a', 512), 502);
         $transport = new StreamableHttpClientTransport('https://mcp.test/mcp', $http, maxResponseBytes: 64);
         $transport->start();
@@ -896,7 +861,6 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
 
     public function testAbandonsABufferedBodyThatOutgrowsTheResponseCap(): void
     {
-        // amphp buffers to PHP_INT_MAX by default, so an oversized reply would be held whole in memory.
         $http = (new RecordingHttpClient())->willAnswerJson(str_repeat('a', 512));
         $transport = new StreamableHttpClientTransport('https://mcp.test/mcp', $http, maxResponseBytes: 64);
         $transport->start();
@@ -999,7 +963,6 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
     #[DataProvider('provideRejectsANonPositiveMaxResponseSizeCases')]
     public function testRejectsANonPositiveMaxResponseSize(int $maxResponseBytes, string $expected): void
     {
-        // A cap of zero or less rejects every response, including the ones the client asked for.
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expected);
 
@@ -1018,7 +981,6 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
 
     public function testDisablesTheTransferTimeoutAndAppliesTheReadTimeout(): void
     {
-        // amphp defaults the transfer timeout to 10s, which would sever a long-lived stream mid-flight.
         $http = (new RecordingHttpClient())->willAnswerJson(self::resultEnvelope());
         $transport = new StreamableHttpClientTransport('https://mcp.test/mcp', $http, readTimeout: 45.0);
         $transport->start();
@@ -1030,8 +992,7 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
     }
 
     /**
-     * Drives one complete round trip. `send()` detaches the POST, so the loop has to turn before the
-     * response is emitted. `close()` cannot do the driving: it cancels in-flight exchanges.
+     * Drives one complete round trip, turning the loop for the detached POST since `close()` would cancel the exchange instead.
      */
     private static function exchange(StreamableHttpClientTransport $transport, JsonRpcMessage $message, ?SendContext $context = null): void
     {

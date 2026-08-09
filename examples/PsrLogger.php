@@ -14,20 +14,9 @@ declare(strict_types=1);
 use Psr\Log\AbstractLogger;
 use Psr\Log\LogLevel;
 
-/**
- * Severity-filtering STDERR logger for the examples, printing the interpolated
- * PSR-3 message followed by the JSON-encoded context on its own line.
- *
- * MCP servers MUST NOT write to STDOUT outside the JSON-RPC stream, so all
- * diagnostics go to STDERR. The threshold starts at `info`, or `debug` when the
- * `DEBUG` environment variable is set.
- */
 final class PsrLogger extends AbstractLogger
 {
-    /**
-     * RFC 5424 severity index (0 = most severe, 7 = least), keyed by PSR-3 level name.
-     */
-    private const array SEVERITY = [
+    private const array RFC5424_SEVERITY = [
         LogLevel::EMERGENCY => 0,
         LogLevel::ALERT => 1,
         LogLevel::CRITICAL => 2,
@@ -43,14 +32,14 @@ final class PsrLogger extends AbstractLogger
     public function __construct()
     {
         $debug = in_array(strtolower((string) getenv('DEBUG')), ['1', 'true', 'on', 'yes'], true);
-        $this->threshold = $debug ? self::SEVERITY[LogLevel::DEBUG] : self::SEVERITY[LogLevel::INFO];
+        $this->threshold = $debug ? self::RFC5424_SEVERITY[LogLevel::DEBUG] : self::RFC5424_SEVERITY[LogLevel::INFO];
     }
 
     #[Override]
     public function log($level, string|Stringable $message, array $context = []): void
     {
         $name = is_string($level) ? $level : LogLevel::ERROR;
-        $severity = self::SEVERITY[$name] ?? self::SEVERITY[LogLevel::ERROR];
+        $severity = self::RFC5424_SEVERITY[$name] ?? self::RFC5424_SEVERITY[LogLevel::ERROR];
 
         if ($severity > $this->threshold) {
             return;

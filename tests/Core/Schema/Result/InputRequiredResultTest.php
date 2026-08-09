@@ -36,9 +36,6 @@ use PHPUnit\Framework\Attributes\Group;
 #[Group('core-tests')]
 final class InputRequiredResultTest extends AbstractMcpTestCase
 {
-    /**
-     * The encoded shape produced by `self::inputRequests()`.
-     */
     private const array INPUT_REQUESTS_WIRE = [
         'github_login' => [
             'method' => 'elicitation/create',

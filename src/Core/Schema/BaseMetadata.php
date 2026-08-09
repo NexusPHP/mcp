@@ -35,8 +35,7 @@ abstract readonly class BaseMetadata
     }
 
     /**
-     * Resolves the spec-defined display name: `title` when set, otherwise the
-     * programmatic `name`. Subclasses override to insert additional fallbacks.
+     * Resolves the spec-defined display name: `title` when set, otherwise the programmatic `name`.
      *
      * @return non-empty-string
      */

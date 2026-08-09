@@ -19,8 +19,7 @@ use Nexus\Mcp\Extension\Tasks\Schema\Enum\TaskStatus;
 use Nexus\Mcp\Extension\Tasks\Server\Exception\InputRequestKeyReusedException;
 
 /**
- * Process-local task store keeping every record in an array, with retention
- * expiry applied on lookup and swept opportunistically on task creation.
+ * In-memory implementation of `TaskStoreInterface`.
  */
 final class InMemoryTaskStore implements TaskStoreInterface
 {
@@ -30,9 +29,6 @@ final class InMemoryTaskStore implements TaskStoreInterface
     private array $records = [];
 
     /**
-     * Wall-clock instants of each record's terminal transition, keyed by task
-     * id, from which the retention window is measured.
-     *
      * @var array<non-empty-string, \DateTimeImmutable>
      */
     private array $terminalAt = [];
@@ -43,7 +39,7 @@ final class InMemoryTaskStore implements TaskStoreInterface
     private readonly \Closure $clock;
 
     /**
-     * @param null|\Closure(): \DateTimeImmutable $clock Supplies both the record timestamps and the retention arithmetic
+     * @param null|\Closure(): \DateTimeImmutable $clock
      */
     public function __construct(?\Closure $clock = null)
     {
@@ -53,8 +49,6 @@ final class InMemoryTaskStore implements TaskStoreInterface
     #[\Override]
     public function createTask(string $toolName, ?array $arguments, ?int $ttlMs, int $pollIntervalMs): TaskRecord
     {
-        // Terminal records whose retention lapsed would otherwise survive until
-        // something polls their exact id again.
         foreach (array_keys($this->terminalAt) as $taskId) {
             $this->findTask($taskId);
         }
@@ -215,9 +209,6 @@ final class InMemoryTaskStore implements TaskStoreInterface
         }
 
         if (! $changed) {
-            // Every supplied key was unknown, already answered, or aimed at a
-            // terminal record (whose pending set is empty), so the record
-            // acknowledges without change.
             return $record;
         }
 
@@ -228,11 +219,6 @@ final class InMemoryTaskStore implements TaskStoreInterface
     }
 
     /**
-     * Replaces the record with a copy advanced to `$status`: identity fields
-     * carry over, `$changes` names what the transition touches, and both
-     * `lastUpdatedAt` and (for a terminal status) the retention anchor are
-     * stamped from a single clock read.
-     *
      * @param array{
      *   result?: null|array<string, mixed>,
      *   error?: null|array<string, mixed>,

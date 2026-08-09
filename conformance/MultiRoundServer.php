@@ -25,32 +25,23 @@ use Nexus\Mcp\Server\RequestStateSigner;
 use Nexus\Mcp\Server\ServerContext;
 
 /**
- * The multi-round-trip half of the conformance fixture: every method here
- * answers over two or more rounds.
- *
- * Each method returns an `InputRequiredResult` while it still needs input from the
- * client, and a complete result once it has what it asked for. A client resends only
- * the newest round's `inputResponses`, so anything a later round needs travels in the
- * opaque `requestState` rather than in the answers.
+ * The multi-round-trip half of the conformance fixture server.
  */
 final class MultiRoundServer
 {
     use ElicitationHelpers;
 
-    /**
-     * A per-process signing key.
-     */
-    private readonly RequestStateSigner $states;
+    private readonly RequestStateSigner $signer;
 
     public function __construct()
     {
-        $this->states = RequestStateSigner::generate();
+        $this->signer = RequestStateSigner::generate();
     }
 
     #[AsTool(name: 'test_input_required_result_elicitation', description: 'Asks for a name, then greets it.')]
     public function elicitation(ServerContext $context): CallToolResult|InputRequiredResult
     {
-        $name = self::readAnswer($context, 'user_name', 'name');
+        $name = self::readAcceptedAnswer($context, 'user_name', 'name');
 
         if (! is_string($name) || '' === $name) {
             return self::ask('user_name', 'What is your name?', 'name');
@@ -65,10 +56,10 @@ final class MultiRoundServer
         $state = $context->requestState;
 
         if (null === $state) {
-            return self::ask('confirm', 'Please confirm', 'ok', new BooleanSchema(), $this->states->sign('confirm'));
+            return self::ask('confirm', 'Please confirm', 'ok', new BooleanSchema(), $this->signer->sign('confirm'));
         }
 
-        if ($this->states->verify($state) === null) {
+        if ($this->signer->verify($state) === null) {
             throw new InvalidParamsException($context->requestId, 'The "requestState" failed its integrity check.');
         }
 
@@ -78,21 +69,21 @@ final class MultiRoundServer
     #[AsTool(name: 'test_input_required_result_multi_round', description: 'Asks two questions in sequence, evolving the continuation token.')]
     public function multiRound(ServerContext $context): CallToolResult|InputRequiredResult
     {
-        $round = null === $context->requestState ? null : $this->states->verify($context->requestState);
+        $round = null === $context->requestState ? null : $this->signer->verify($context->requestState);
 
         if (null === $round) {
-            return self::ask('step1', 'Step 1: What is your name?', 'name', state: $this->states->sign('round-1'));
+            return self::ask('step1', 'Step 1: What is your name?', 'name', state: $this->signer->sign('round-1'));
         }
 
         if (str_starts_with($round, 'round-1')) {
-            $name = self::readAnswer($context, 'step1', 'name');
+            $name = self::readAcceptedAnswer($context, 'step1', 'name');
             // The client will not resend this answer, so the next round carries it in the state.
             $carried = is_string($name) ? $name : 'friend';
 
-            return self::ask('step2', 'Step 2: Which colour do you like best?', 'color', state: $this->states->sign('round-2|'.$carried));
+            return self::ask('step2', 'Step 2: Which colour do you like best?', 'color', state: $this->signer->sign('round-2|'.$carried));
         }
 
-        $color = self::readAnswer($context, 'step2', 'color');
+        $color = self::readAcceptedAnswer($context, 'step2', 'color');
 
         return new CallToolResult(content: [new TextContent(text: sprintf(
             '%s likes %s.',
@@ -107,23 +98,20 @@ final class MultiRoundServer
         $state = $context->requestState;
 
         if (null === $state) {
-            return self::ask('confirm', 'Please confirm', 'ok', new BooleanSchema(), $this->states->sign('confirm'));
+            return self::ask('confirm', 'Please confirm', 'ok', new BooleanSchema(), $this->signer->sign('confirm'));
         }
 
-        if ($this->states->verify($state) === null) {
+        if ($this->signer->verify($state) === null) {
             throw new InvalidParamsException($context->requestId, 'The "requestState" failed its integrity check.');
         }
 
         return new CallToolResult(content: [new TextContent(text: 'State verified.')]);
     }
 
-    /**
-     * `InputRequiredResult` is not tool-only: the same shape answers `prompts/get`.
-     */
     #[AsPrompt(name: 'test_input_required_result_prompt', description: 'Asks for context, then renders a message using it.')]
     public function prompt(ServerContext $context): GetPromptResult|InputRequiredResult
     {
-        $userContext = self::readAnswer($context, 'user_context', 'context');
+        $userContext = self::readAcceptedAnswer($context, 'user_context', 'context');
 
         if (! is_string($userContext) || '' === $userContext) {
             return self::ask('user_context', 'What context should the prompt use?', 'context');

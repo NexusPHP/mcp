@@ -195,11 +195,6 @@ final class ServerTest extends AbstractMcpTestCase
         $this->expectNotToPerformAssertions();
     }
 
-    /**
-     * `InMemoryTransport` throws `TransportAlreadyClosedException` on
-     * send-after-close, so without the drain step the async dispatch coroutine
-     * would lose the race and the client would never see a response.
-     */
     public function testRunDrainsInFlightDispatchBeforeTransportFullyCloses(): void
     {
         [$serverSide, $clientSide] = InMemoryTransport::createPair();
@@ -235,8 +230,6 @@ final class ServerTest extends AbstractMcpTestCase
         $transport = new RecordingTransport();
         $server = self::buildServer();
 
-        // A blocking call here would hang the test: `listen()` must return once
-        // the transport is started, unlike `run()` which awaits the close signal.
         $server->listen($transport);
 
         self::assertTrue($transport->started);
@@ -263,8 +256,6 @@ final class ServerTest extends AbstractMcpTestCase
 
     public function testATransportReportedCancellationSuppressesTheResponse(): void
     {
-        // A peer that abandons a stream never says so in a message, so the transport reports it and the
-        // dispatcher must treat it exactly like `notifications/cancelled`.
         $transport = new RecordingTransport();
         $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')

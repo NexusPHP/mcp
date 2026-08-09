@@ -135,14 +135,11 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
             );
         }
 
-        // The refusal is what matters: the target was never requested, so the token never left.
         self::assertCount(6, $http->requests);
     }
 
     public function testASchemeDowngradeIsRefusedBeforeTheCredentialTravels(): void
     {
-        // The hop amphp would have taken: same authority, so it kept the header, and cleartext, so the
-        // token travelled in the open. Nothing is sent to it now.
         $http = self::scriptChallengeAndFlow()->willRedirectTo('http://127.0.0.1:1/mcp');
 
         try {
@@ -206,7 +203,6 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 
         yield '305 use proxy' => [305, false];
 
-        // A 307 or 308 preserves the method, and this request is a POST, so neither is replayed.
         yield '307 temporary redirect' => [307, false];
 
         yield '308 permanent redirect' => [308, false];
@@ -216,8 +212,6 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 
     public function testAnUntokenedRequestToThisServerIsStillRedirectControlled(): void
     {
-        // The bare first request carries whatever headers the caller set, and no token is held yet. It
-        // reaches this origin, so its hops are refused the same way a tokened one's are.
         $http = (new RecordingHttpClient())->willRedirectTo('http://127.0.0.1:1/mcp');
         $request = self::mcpRequest();
         $request->setHeader('Authorization', 'Bearer a-token-of-the-callers-own');
@@ -229,7 +223,6 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 
     public function testAChallengeCannotBeAnsweredFromOffOrigin(): void
     {
-        // The challenge steers the grant, so an answer to it must not come from somewhere else.
         $http = (new RecordingHttpClient())->willRedirectTo('https://attacker.example.com/mcp');
 
         try {
@@ -243,7 +236,6 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
     #[DataProvider('provideAGetIsReplayedByAMethodPreservingRedirectCases')]
     public function testAGetIsReplayedByAMethodPreservingRedirect(int $status): void
     {
-        // 307 and 308 preserve the method, so they are followed for a GET where a POST is not.
         $http = self::scriptChallengeAndFlow()
             ->willAnswerWithHeaders($status, ['location' => 'https://127.0.0.1:1/mcp/v2'])
             ->willAnswerJson(['ok' => true])
@@ -329,7 +321,6 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 
     public function testAnEndlessRedirectLoopIsReportedAsTooManyRedirects(): void
     {
-        // One hop past the budget, then an answer the loop must never reach.
         $http = self::scriptChallengeAndFlow();
 
         for ($hop = 1; $hop <= 11; ++$hop) {
@@ -338,8 +329,6 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 
         $http->willAnswerJson(['ok' => true]);
 
-        // The same answer the client's own follower gives, so sealing changes who counts the hops rather
-        // than what a caller catches.
         $this->expectException(TooManyRedirectsException::class);
 
         self::client($http)->request(self::mcpRequest(), new NullCancellation());
@@ -354,7 +343,6 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 
         $response = self::client($http)->request(self::mcpRequest(), new NullCancellation());
 
-        // The chain a caller walks is the one the client's own follower would have left.
         self::assertSame(302, $response->getPreviousResponse()?->getStatus());
     }
 
@@ -409,7 +397,6 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
         );
 
         self::assertSame(401, $response->getStatus());
-        // Nothing followed the challenge: no discovery, no consent screen, no token exchange.
         self::assertCount(1, $http->requests);
     }
 
@@ -492,8 +479,6 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 
     public function testAnInsufficientScopeChallengeStepsTheScopesUpAndRetries(): void
     {
-        // The first round stores the client identifier and what discovery found, so the step-up repeats
-        // neither and goes straight back to the token endpoint.
         $http = self::scriptChallengeAndFlow()
             ->willChallenge(403, 'Bearer error="insufficient_scope", scope="files:write"')
             ->willAnswerJson(['access_token' => 'the-wider-token', 'token_type' => 'Bearer'])
@@ -588,8 +573,6 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 
         self::assertSame(200, $response->getStatus());
         self::assertCount(10, $http->requests);
-        // The server granted neither challenged scope, so only the accumulation carries `files:write` into
-        // the second consent screen.
         self::assertSame(['files:write', 'files:read'], $user->readRequestedScopes(1));
         self::assertSame(['files:admin', 'files:write', 'files:read'], $user->readRequestedScopes(2));
     }
@@ -614,8 +597,6 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
         $client = self::client($http);
         $client->request(self::mcpRequest(), new NullCancellation());
 
-        // The second grant came back narrower than the first, so what the client was granted at some point
-        // no longer says anything about what the refused token carried.
         $response = $client->request(self::mcpRequest(), new NullCancellation());
 
         self::assertSame(200, $response->getStatus());
@@ -666,8 +647,6 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
             self::assertSame(['files:write'], $e->required);
         }
 
-        // What distinguishes the policy from a spent budget: the report happens before the budget is
-        // even consulted, so no giving-up warning is logged.
         self::assertSame([], $logger->recordsMatching(LogLevel::WARNING, 'Giving up on {resource} after {attempts} scope upgrades.'));
     }
 
@@ -691,8 +670,6 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
             self::assertSame(['files:read'], $e->required);
         }
 
-        // What distinguishes the policy from the unwinnable-challenge branch: the report happens
-        // before the token's scopes are compared, so no challenge warning is logged.
         self::assertSame([], $logger->recordsMatching(LogLevel::WARNING, 'The scope challenge from {resource} names {scopes}.'));
     }
 
@@ -778,8 +755,6 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 
             self::fail('A spent upgrade budget must be reported to the caller.');
         } catch (InsufficientScopeException $e) {
-            // The union across every upgrade round, not just the final challenge: re-requesting
-            // only the last scope would trade the wider token away.
             self::assertSame(['files:write', 'files:admin'], $e->required);
         }
 
@@ -981,7 +956,6 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
     public function testATokenWellClearOfTheLeewayIsPresentedAsItIs(): void
     {
         $tokens = new InMemoryTokenStore();
-        // A lifetime near the leeway would flip if the wall clock ticked between the write and the read.
         $tokens->write(self::RESOURCE, new AccessToken('the-stored-token', 'https://auth.test', time() + 3_600, 'the-refresh-token'));
         $http = (new RecordingHttpClient())
             ->willAnswerJson(self::resourceDocument())
@@ -1029,17 +1003,11 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 
         $response = self::client($http, $user)->request(self::mcpRequest(), new NullCancellation());
 
-        // One re-authorization is spent on the first `401`, so the `401` that follows the step-up is taken
-        // as the server's answer rather than as a third grant.
         self::assertSame(401, $response->getStatus());
         self::assertCount(2, $user->redirects);
         self::assertCount(8, $http->requests);
     }
 
-    /**
-     * Queues the challenge and the four authorization exchanges that answer it. The caller queues what the
-     * retried MCP request is answered with.
-     */
     public function testAGrantStrategyRunsTheFlowWithoutAnyUserAuthorization(): void
     {
         $http = (new RecordingHttpClient())
@@ -1104,9 +1072,6 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
         );
     }
 
-    /**
-     * Puts the fake client behind a builder, since the decorator derives its own sealed client from one.
-     */
     private static function builderFor(RecordingHttpClient $http): HttpClientBuilder
     {
         return (new HttpClientBuilder())->intercept(new DelegatingInterceptor($http));

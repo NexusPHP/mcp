@@ -19,7 +19,7 @@ use Nexus\Mcp\Client\Auth\GrantContext;
 use Nexus\Mcp\Client\Auth\GrantStrategyInterface;
 
 /**
- * Grant-strategy double that records each context it was handed and answers from a queue of canned tokens.
+ * Grant-strategy double answering from a queue of canned tokens.
  *
  * @internal
  */
@@ -54,9 +54,6 @@ final class ScriptedGrantStrategy implements GrantStrategyInterface
         return $this->renewsByFreshGrant;
     }
 
-    /**
-     * The recorded context at `$index`.
-     */
     public function readContext(int $index = 0): GrantContext
     {
         return $this->contexts[$index] ?? throw new \OutOfBoundsException(\sprintf('No context was recorded at index %d.', $index));

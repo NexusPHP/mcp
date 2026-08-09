@@ -24,8 +24,7 @@ use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
 
 /**
- * Enforces the shipped-class conventions on every class under `src/`: docblock shape, naming,
- * property and method visibility, and faithfulness to the declared interfaces.
+ * Rule enforcing the shipped-class conventions on every class under `src/`.
  *
  * @implements Rule<InClassNode>
  *
@@ -36,12 +35,8 @@ final class SourceClassConventionsRule implements Rule
     private const int DOCBLOCK_SUMMARY_MAX_WIDTH = 120;
 
     /**
-     * Classes that intentionally provide a public method outside their declared interface
-     * contract, each for a constraint PHP interfaces cannot express:
-     *
-     * - `InMemoryTransport::createPair()`: paired-construction factory with a private constructor.
-     * - `JsonRpcResultResponse::toArray()`: the success-response envelope has no method-name
-     *   discriminator for results, so it cannot fulfil the `fromArray()` half of `Arrayable`.
+     * Classes carrying a public method outside their declared interface for a constraint PHP interfaces cannot
+     * express: paired construction behind a private constructor, and a half-`Arrayable` envelope.
      */
     private const array INTERFACE_FAITHFULNESS_EXEMPT = [
         InMemoryTransport::class,
@@ -380,8 +375,7 @@ final class SourceClassConventionsRule implements Rule
     }
 
     /**
-     * The physical docblock lines forming the summary (everything before the first `@`-tag), so
-     * width is measured as rendered, including the leading ` * `.
+     * The lines before the first `@`-tag, kept with their leading ` * ` so width is measured as rendered.
      *
      * @return list<string>
      */

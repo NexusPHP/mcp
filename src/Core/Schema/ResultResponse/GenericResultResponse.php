@@ -19,9 +19,7 @@ use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 
 /**
- * Result-response envelope for results with no dedicated typed response. The
- * dispatchers use it to send such results (e.g. `EmptyResult`), and `fromArray`
- * decodes a bare success response into an `EmptyResult`.
+ * Result-response envelope for results with no dedicated typed response.
  *
  * @internal
  *

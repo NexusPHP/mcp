@@ -25,7 +25,7 @@ use Amp\Http\Client\Response;
 use function Amp\ByteStream\buffer;
 
 /**
- * HTTP client double that records the requests it was handed and answers each from a queued script.
+ * HTTP client double answering from a queued script.
  *
  * @internal
  */
@@ -37,16 +37,13 @@ final class RecordingHttpClient implements DelegateHttpClient
     public array $requests = [];
 
     /**
-     * Whether the body of the answer at each index was read to its end, keyed by request index. A body that
-     * was never drained leaves no entry, which is how amphp decides to tear the connection down.
+     * Absent at a request index whose answer was never drained.
      *
      * @var array<int, bool>
      */
     public array $drainedBodies = [];
 
     /**
-     * The cancellation each request was handed, keyed by request index.
-     *
      * @var list<Cancellation>
      */
     public array $cancellations = [];
@@ -67,9 +64,6 @@ final class RecordingHttpClient implements DelegateHttpClient
     private array $script = [];
 
     /**
-     * Queues a buffered JSON response, optionally withheld until `$gate` completes, which parks the caller
-     * mid-flow so a second one can be let in behind it.
-     *
      * @param array<string, mixed>|string $body
      * @param null|Future<mixed>          $gate
      */
@@ -84,8 +78,6 @@ final class RecordingHttpClient implements DelegateHttpClient
     }
 
     /**
-     * Queues an SSE response, one stream chunk per entry, so a frame can be split across chunks.
-     *
      * @param list<string> $chunks
      */
     public function willAnswerStream(array $chunks, int $status = 200): self
@@ -94,9 +86,6 @@ final class RecordingHttpClient implements DelegateHttpClient
     }
 
     /**
-     * Queues a response whose media type is spelled exactly as given, so content-type sniffing can be
-     * exercised.
-     *
      * @param non-empty-string $contentType
      * @param list<string>     $chunks
      */
@@ -106,12 +95,9 @@ final class RecordingHttpClient implements DelegateHttpClient
     }
 
     /**
-     * Queues an SSE response that emits its chunks then stays open, the way a `subscriptions/listen` stream
-     * does. Reading it after the chunks run out suspends until the caller's cancellation fires.
-     *
      * @param list<string>       $chunks
-     * @param null|Future<mixed> $resume Held mid-stream, so a test can speak again after a consumer stopped
-     * @param list<string>       $later  Delivered once `$resume` completes
+     * @param null|Future<mixed> $resume
+     * @param list<string>       $later
      */
     public function willAnswerOpenStream(array $chunks, ?Future $resume = null, array $later = []): self
     {
@@ -127,19 +113,11 @@ final class RecordingHttpClient implements DelegateHttpClient
         return $this;
     }
 
-    /**
-     * Queues a response carrying a `WWW-Authenticate` challenge, the way a protected MCP server answers a
-     * request it will not serve.
-     */
     public function willChallenge(int $status, string $challenge, string $body = '{}'): self
     {
         return $this->willAnswer($status, ['content-type' => 'application/json', 'www-authenticate' => $challenge], [$body]);
     }
 
-    /**
-     * Queues a challenge whose body fails partway through being read, the way a malformed chunked encoding
-     * or an inactivity timeout mid-drain does.
-     */
     public function willChallengeWithAnUnreadableBody(int $status, string $challenge, HttpException $failure): self
     {
         $this->script[] = [
@@ -152,17 +130,11 @@ final class RecordingHttpClient implements DelegateHttpClient
         return $this;
     }
 
-    /**
-     * Queues a bodiless `202 Accepted`, the answer to a notification POST.
-     */
     public function willAcceptNotification(): self
     {
         return $this->willAnswer(202, [], []);
     }
 
-    /**
-     * Queues a transport-level failure.
-     */
     public function willFail(HttpException $exception): self
     {
         $this->script[] = $exception;
@@ -170,18 +142,12 @@ final class RecordingHttpClient implements DelegateHttpClient
         return $this;
     }
 
-    /**
-     * Queues a miss whose body is larger than a caller is willing to drain.
-     */
     public function willAnswer404WithBody(string $body): self
     {
         return $this->willAnswer(404, ['content-type' => 'application/json'], [$body]);
     }
 
     /**
-     * Queues the answer a client that follows redirects returns: the response names the URL it was finally
-     * answered from rather than the one the caller sent to.
-     *
      * @param array<string, mixed> $body
      */
     public function willAnswerFrom(string $url, array $body = []): self
@@ -190,10 +156,6 @@ final class RecordingHttpClient implements DelegateHttpClient
     }
 
     /**
-     * Queues the answer a client that follows redirects returns after passing through `$hops`, named in the
-     * order it requested them. Each becomes a response in the chain the answer carries, so a caller that
-     * walks it back sees every URL the request visited rather than only the last.
-     *
      * @param non-empty-list<string> $hops
      * @param array<string, mixed>   $body
      */
@@ -207,17 +169,12 @@ final class RecordingHttpClient implements DelegateHttpClient
         );
     }
 
-    /**
-     * Queues a redirect answer, as a client that does not follow them hands back.
-     */
     public function willRedirectTo(string $location, int $status = 302): self
     {
         return $this->willAnswer($status, ['location' => $location], ['']);
     }
 
     /**
-     * Queues an answer with arbitrary headers, for the shapes a redirect resolver must refuse to act on.
-     *
      * @param array<non-empty-string, list<string>|string> $headers
      */
     public function willAnswerWithHeaders(int $status, array $headers, string $body = ''): self
@@ -273,17 +230,12 @@ final class RecordingHttpClient implements DelegateHttpClient
         );
     }
 
-    /**
-     * The recorded request at `$index`.
-     */
     public function readRequest(int $index = 0): Request
     {
         return $this->requests[$index] ?? throw new \OutOfBoundsException(\sprintf('No request was recorded at index %d.', $index));
     }
 
     /**
-     * The body the recorded request at `$index` carried.
-     *
      * @return array<string, mixed>
      */
     public function readSentEnvelope(int $index = 0): array
@@ -294,8 +246,6 @@ final class RecordingHttpClient implements DelegateHttpClient
     }
 
     /**
-     * Yields the chunks, then records that the consumer read the body to its end.
-     *
      * @param list<string> $chunks
      *
      * @return \Traversable<int, string>
@@ -304,17 +254,13 @@ final class RecordingHttpClient implements DelegateHttpClient
     {
         yield from $chunks;
 
-        // Emitting one more chunk parks this generator until the consumer asks for it, so a consumer that
-        // gives up after the last real chunk never reaches the line below. Recording straight after the
-        // chunks would instead mark an abandoned body drained.
+        // Emitting one more chunk parks this generator until the consumer asks for it, so an abandoned body is never marked drained.
         yield '';
 
         $this->drainedBodies[$index] = true;
     }
 
     /**
-     * Yields the chunks, then fails the way a body the parser cannot finish reading does.
-     *
      * @param list<string> $chunks
      *
      * @return \Traversable<int, string>
@@ -327,9 +273,6 @@ final class RecordingHttpClient implements DelegateHttpClient
     }
 
     /**
-     * Yields the chunks, then suspends forever. A read past the end unblocks only when the caller cancels,
-     * which is how a real long-lived stream behaves.
-     *
      * @param list<string>       $chunks
      * @param null|Future<mixed> $resume
      * @param list<string>       $later
@@ -341,8 +284,6 @@ final class RecordingHttpClient implements DelegateHttpClient
         yield from $chunks;
 
         if (null !== $resume) {
-            // A stream that goes quiet and then speaks again, so a consumer that stopped reading can be
-            // told apart from one that merely had nothing left to read.
             $resume->await();
 
             yield from $later;

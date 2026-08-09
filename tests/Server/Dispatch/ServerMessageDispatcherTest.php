@@ -72,9 +72,7 @@ use function Amp\delay;
 final class ServerMessageDispatcherTest extends AbstractMcpTestCase
 {
     /**
-     * Seconds a cancellation test's handler waits. `RecordingTransport` holds no I/O of its own, so the
-     * handler needs referenced loop work to suspend on. It must also self-terminate, or a cancellation
-     * that never arrives would dangle a suspension on a dry loop.
+     * Seconds a cancellation test's handler waits, since `RecordingTransport` holds no I/O and needs self-terminating referenced loop work.
      */
     private const float CANCELLATION_ANCHOR = 1.0;
 
@@ -336,10 +334,6 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
 
     public function testRequestForSpecMethodWithNoRegisteredHandlerReturnsMethodNotFoundError(): void
     {
-        // Parser accepts the method (it is in `JsonRpcMethodRegistry`), but the
-        // dispatcher's handler registry is empty, so the throw expression on the
-        // request path fires `MethodNotFoundException` and rides the same
-        // protocol-error catch-arm to a `MethodNotFound` error response.
         $transport = new RecordingTransport();
         $dispatcher = self::buildDispatcher();
 
@@ -352,17 +346,12 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
         self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
         self::assertSame('req-2', $message->id?->id);
         self::assertSame(ProtocolErrorCode::MethodNotFound->value, $message->error->code);
-        // A framework routing miss carries protocol origin, not handler origin.
         $context = $transport->sent[0]['context'];
         self::assertFalse(null !== $context && $context->fromHandler);
     }
 
     public function testServerRejectsNonClientRequestMethodWithMethodNotFound(): void
     {
-        // The parser recognises the method (it is registered), but its request type is not a
-        // `ClientRequest`. The server services only `ClientRequest` methods, so the dispatcher
-        // answers MethodNotFound with the id preserved rather than reading `->meta` and silently
-        // dropping the response.
         $transport = new RecordingTransport();
         $dispatcher = self::buildDispatcher(
             parser: new JsonRpcMessageParser(requests: ['tests/test-request' => TestRequest::class]),
@@ -381,8 +370,6 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
 
     public function testNonClientRequestMethodIsRejectedByDirectionEvenWhenAHandlerIsRegistered(): void
     {
-        // Registering a handler for a non-ClientRequest method is a misconfiguration. The dispatcher
-        // must reject by direction before the handler runs, not invoke it.
         $invoked = false;
         $transport = new RecordingTransport();
         $dispatcher = self::buildDispatcher(
@@ -471,8 +458,6 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
 
     public function testServerDiscoverIsGatedByTheProtocolVersionToo(): void
     {
-        // The version gate is uniform: even server/discover (the version-negotiation probe) is rejected
-        // for an unsupported version. The error's data.supported still lets the client learn the set.
         $transport = new RecordingTransport();
         $dispatcher = self::buildDispatcher(
             requestHandlers: ['server/discover' => new DiscoverRequestHandler(new ServerCapabilities())],
@@ -572,14 +557,11 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
 
     public function testACancelledRequestWhoseHandlerReturnsTidilyIsStillNotAnswered(): void
     {
-        // A cooperative handler may swallow the cancellation and finish, so the drop gate has to key on
-        // the cancellation itself rather than on how the handler returned.
         [$dispatcher, $transport, $logger] = self::buildCancellableDispatcher(
             static function ($request, AbstractContext $context): Result {
                 try {
                     delay(self::CANCELLATION_ANCHOR, cancellation: $context->cancellation);
                 } catch (CancelledException) {
-                    // Finish tidily instead of propagating.
                 }
 
                 return new EmptyResult();
@@ -604,7 +586,6 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
                 try {
                     delay(self::CANCELLATION_ANCHOR, cancellation: $context->cancellation);
                 } catch (CancelledException) {
-                    // Fall through to the protocol error below.
                 }
 
                 throw new InvalidParamsException($context->requestId, 'bad arguments');
@@ -625,7 +606,6 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
                 try {
                     delay(self::CANCELLATION_ANCHOR, cancellation: $context->cancellation);
                 } catch (CancelledException) {
-                    // Fall through to the uncaught failure below.
                 }
 
                 throw new \RuntimeException('boom');
@@ -641,7 +621,6 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
 
     public function testCancelRequestReachesTheInFlightSetDirectly(): void
     {
-        // The transport reports an abandoned stream through this seam rather than through a message.
         $inboundRequests = new PendingInboundRequests();
         $dispatcher = self::buildDispatcher(
             requestHandlers: ['tools/list' => new ClosureRequestHandler(
@@ -724,8 +703,6 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
 
     public function testLeavesAnIdentityTheHandlerCarriedAmongTheMetaExtras(): void
     {
-        // A proxy forwarding an upstream `_meta` verbatim holds the identity as a raw extras key
-        // rather than in the typed slot, and `toArray` would drop it in favour of the stamp.
         $forwarded = [ResultMetaObject::SERVER_INFO_KEY => ['name' => 'upstream-server', 'version' => '9.9.9']];
         $transport = new RecordingTransport();
         $dispatcher = self::buildDispatcher(
@@ -744,8 +721,6 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
 
     public function testLeavesAnIdentityTheHandlerDeclaredItselfUntouched(): void
     {
-        // A handler that names an identity of its own (a proxy forwarding an upstream server's) knows
-        // something the dispatcher does not, so the configured identity must not overwrite it.
         $upstream = new Implementation(name: 'upstream-server', version: '9.9.9');
         $transport = new RecordingTransport();
         $dispatcher = self::buildDispatcher(
@@ -778,8 +753,6 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
 
     public function testRequestPastTheInFlightCapIsShedAsOverloaded(): void
     {
-        // `async()` schedules without running, so both envelopes are dispatched before the loop turns
-        // and the second one meets a saturated dispatcher.
         $transport = new RecordingTransport();
         $dispatcher = self::buildDispatcher(requestHandlers: ['tools/list' => self::okHandler()], maxInFlight: 1);
 
@@ -798,7 +771,6 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
 
     public function testAShedRequestLeavesItsIdFreeForARetry(): void
     {
-        // Shedding happens before the id is claimed, so retrying under the same id is not a duplicate.
         $transport = new RecordingTransport();
         $dispatcher = self::buildDispatcher(requestHandlers: ['tools/list' => self::okHandler()], maxInFlight: 1);
 
@@ -947,11 +919,9 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
 
         self::assertCount(2, $transport->sent);
 
-        // First handler threw, so the id must be released despite the early return.
         self::assertInstanceOf(JsonRpcErrorResponse::class, $transport->sent[0]['message']);
         self::assertSame(ProtocolErrorCode::InternalError->value, $transport->sent[0]['message']->error->code);
 
-        // Reusing the same id succeeds, proving the `finally` released it on the throw path.
         self::assertInstanceOf(JsonRpcResultResponse::class, $transport->sent[1]['message']);
         self::assertSame(1, $transport->sent[1]['message']->id->id);
     }
@@ -999,7 +969,6 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
         self::assertSame(1, $message->id?->id);
         // SEP-2164: the error data echoes the URI that was not found.
         self::assertSame(['uri' => 'file:///missing'], $message->error->toArray()['data'] ?? null);
-        // A protocol error the handler raised carries handler origin.
         $context = $transport->sent[0]['context'];
         self::assertInstanceOf(SendContext::class, $context);
         self::assertTrue($context->fromHandler);
@@ -1029,7 +998,6 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
         self::assertSame('Internal error', $message->error->message);
         self::assertStringNotContainsString('mysql://', $message->error->message);
         self::assertStringNotContainsString('hunter2', $message->error->message);
-        // An uncaught handler exception is a handler-origin error.
         $context = $transport->sent[0]['context'];
         self::assertInstanceOf(SendContext::class, $context);
         self::assertTrue($context->fromHandler);
@@ -1196,8 +1164,6 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
 
         $dispatcher->flushPending();
 
-        // The notification emitted via $ctx->reportProgress() should be tagged with
-        // the originating request id, proving the request-scoped sender binding.
         $progressSend = null;
 
         foreach ($transport->sent as $entry) {
@@ -1400,9 +1366,6 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
     }
 
     /**
-     * Composes the dispatcher the way `ServerBuilder` does, sharing one in-flight set with the
-     * `notifications/cancelled` handler, and answers `tools/list` with `$handler`.
-     *
      * @param \Closure(JsonRpcRequest<non-empty-string>, AbstractContext): Result $handler
      *
      * @return array{ServerMessageDispatcher, RecordingTransport, ArrayLogger}
@@ -1438,9 +1401,6 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
         ];
     }
 
-    /**
-     * Reads the single result the transport was handed.
-     */
     private static function sentResult(RecordingTransport $transport): Result
     {
         self::assertCount(1, $transport->sent);

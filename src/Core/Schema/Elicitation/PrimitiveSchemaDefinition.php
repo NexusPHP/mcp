@@ -16,8 +16,7 @@ namespace Nexus\Mcp\Core\Schema\Elicitation;
 use Nexus\Mcp\Core\Schema\Arrayable;
 
 /**
- * Restricted schema definitions that only allow primitive types
- * without nested objects or arrays.
+ * Restricted schema definitions that only allow primitive types without nested objects or arrays.
  *
  * @template-covariant T of array<string, mixed> = array<string, mixed>
  *

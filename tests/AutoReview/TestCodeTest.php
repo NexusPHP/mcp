@@ -43,9 +43,7 @@ final class TestCodeTest extends AbstractMcpTestCase
     private static array $coveredClassesByTest = [];
 
     /**
-     * Verify each concrete source class has either a same-named test class
-     * (e.g. `Foo\Bar` → `Tests\Foo\BarTest`) or is referenced via `#[CoversClass]`
-     * in some test class. Catches source classes that ship with zero tests.
+     * Verify each concrete source class has a same-named test class or is referenced via `#[CoversClass]` somewhere.
      *
      * @param class-string $class
      */

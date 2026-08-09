@@ -14,8 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Auth;
 
 /**
- * The OpenID Connect application type a client declares during Dynamic Client Registration, which decides
- * the redirect URIs an OIDC-aware authorization server will accept.
+ * The OpenID Connect application type a client declares during Dynamic Client Registration.
  *
  * @see https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata
  */

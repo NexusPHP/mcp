@@ -512,7 +512,6 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
             ), outboundRequests: ['acme/lookup']);
             self::fail('The spec-owned method must be rejected.');
         } catch (ExpectationFailedException) {
-            // Rejected as a whole: "tools/call" cannot be keyed to a class declaring another method.
         }
 
         self::assertNull($collection->findRequestOwner(TestRequest::getMethod()));

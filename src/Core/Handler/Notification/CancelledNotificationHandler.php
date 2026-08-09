@@ -21,7 +21,7 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
 /**
- * Cancels the in-flight request a `notifications/cancelled` names.
+ * Handler for `notifications/cancelled`, cancelling the in-flight request it names.
  *
  * @implements NotificationHandlerInterface<'notifications/cancelled'>
  *
@@ -42,8 +42,6 @@ final readonly class CancelledNotificationHandler implements NotificationHandler
         $requestId = $params->requestId;
 
         if (! $this->inboundRequests->cancel($requestId)) {
-            // The spec has the receiver ignore an id it does not know: the request may have completed
-            // before the notification arrived, or never existed.
             $this->logger->debug(
                 'Ignoring cancellation for a request that is not in flight.',
                 ['id' => $requestId->id],

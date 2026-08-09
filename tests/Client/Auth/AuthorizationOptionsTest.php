@@ -133,7 +133,6 @@ final class AuthorizationOptionsTest extends AbstractMcpTestCase
         self::assertSame([], $options->defaultScopes);
         self::assertSame(InsufficientScopePolicy::Reauthorize, $options->onInsufficientScope);
         self::assertSame(10.0, $options->timeout);
-        // A cleartext authorization server is opt-in, never the default.
         self::assertFalse($options->allowInsecureLoopback);
     }
 }

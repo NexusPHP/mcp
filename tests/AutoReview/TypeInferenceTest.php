@@ -59,10 +59,6 @@ final class TypeInferenceTest extends TypeInferenceTestCase
     }
 
     /**
-     * Asserts the data file contains a `ShortName::getMethod()` reference for
-     * every concrete subclass of the given base. A class with no entry could
-     * widen its return type to `non-empty-string` unnoticed.
-     *
      * @param class-string $base
      */
     private static function assertEveryConcreteHasMethodAssertion(string $base, string $dataFile): void

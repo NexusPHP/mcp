@@ -24,12 +24,12 @@ enum TransportState
     case Idle;
 
     /**
-     * `start()` has been called. Sending and receiving is allowed.
+     * `start()` has been called, so sending and receiving are allowed.
      */
     case Running;
 
     /**
-     * `close()` has been called. The instance is terminal.
+     * `close()` has been called and the instance is terminal.
      */
     case Closed;
 }

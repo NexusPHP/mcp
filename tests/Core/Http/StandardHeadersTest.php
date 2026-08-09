@@ -82,9 +82,6 @@ final class StandardHeadersTest extends AbstractMcpTestCase
             self::makeBody('tools/list'),
         ];
 
-        // `Mcp-Name` is defined only for tools/call, prompts/get, resources/read, and the tasks
-        // methods. A server must not expect it elsewhere, so a stray one is ignored rather than
-        // decoded and rejected.
         yield 'a stray malformed name on a method that defines none' => [
             ['mcp-protocol-version' => '2026-07-28', 'mcp-method' => 'tools/list', 'mcp-name' => '=?base64?not-base64!?='],
             self::makeBody('tools/list'),
@@ -273,7 +270,6 @@ final class StandardHeadersTest extends AbstractMcpTestCase
             ['MCP-Protocol-Version' => '2026-07-28', 'Mcp-Method' => 'tools/call'],
         ];
 
-        // A notification's `_meta` carries no protocol version, so there is nothing to mirror.
         yield 'a body without a protocol version omits the header' => [
             self::makeBody('tools/list', version: null),
             ['Mcp-Method' => 'tools/list'],
@@ -289,7 +285,6 @@ final class StandardHeadersTest extends AbstractMcpTestCase
 
     public function testBuildProducesHeadersItsOwnValidatorAccepts(): void
     {
-        // The two directions are one contract: anything build() emits must survive validate().
         $body = self::makeBody('resources/read', ['uri' => 'file:///tmp/note with spaces.txt']);
 
         self::assertNull(StandardHeaders::validate(StandardHeaders::build($body), $body));

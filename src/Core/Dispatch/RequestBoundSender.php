@@ -22,9 +22,7 @@ use Nexus\Mcp\Core\Transport\SendContext;
 use Nexus\Mcp\Core\Transport\TransportInterface;
 
 /**
- * `SenderInterface` implementation scoped to a single inbound request. Tags
- * outbound notifications with `relatedRequestId` so the transport can route
- * them back to the originating session (used by streamable HTTP).
+ * `SenderInterface` implementation scoped to a single inbound request.
  */
 final readonly class RequestBoundSender implements SenderInterface
 {

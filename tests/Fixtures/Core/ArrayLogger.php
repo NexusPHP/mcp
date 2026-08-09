@@ -16,7 +16,7 @@ namespace Nexus\Mcp\Tests\Fixtures\Core;
 use Psr\Log\AbstractLogger;
 
 /**
- * PSR-3 logger that accumulates every call into an in-memory array.
+ * In-memory PSR-3 logger.
  *
  * @internal
  */

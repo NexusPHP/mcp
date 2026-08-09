@@ -13,26 +13,10 @@
 
 set -euo pipefail
 
-# The referee version, overridable by the weekly drift job.
-#
-# Bump it and reconcile expected-failures.yaml in the same change: a new release
-# routinely adds scenarios and checks.
-#
-# npm's `latest` tag is the older 0.1.x line. The 2026-07-28 scenarios ship under `alpha`.
 CONFORMANCE_VERSION="${CONFORMANCE_VERSION:-0.2.0-alpha.10}"
-
-# The SDK targets MCP 2026-07-28 only. The referee filters scenarios by the
-# `removedIn` field, so this is also what drops the 2025-era scenarios for
-# features this SDK does not implement (initialize, logging, sampling,
-# resources/subscribe) rather than failing them.
 SPEC_VERSION="2026-07-28"
-
 HOST="${HOST:-127.0.0.1}"
 PORT="${PORT:-3000}"
-
-# The authority the referee reaches the fixture by, which defaults to the address it
-# binds. Keeping the two separable is what lets a run exercise the other spelling of
-# loopback against the same listener, since only the Origin check tells them apart.
 URL_HOST="${URL_HOST:-$HOST}"
 SERVER_URL="http://${URL_HOST}:${PORT}/mcp"
 
@@ -40,19 +24,13 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(dirname "$SCRIPT_DIR")"
 cd "$REPO_ROOT"
 
-# Refuse to start when the port is already taken. The readiness probe below
-# cannot tell our fixture from a stale one, so a leftover listener would mean
-# silently scoring old code.
+# Refuse to start when the port is already taken.
 if (: > "/dev/tcp/${HOST}/${PORT}") 2>/dev/null; then
     echo "Error: port ${PORT} is already in use." >&2
     echo "Stop the stale process (lsof -ti:${PORT} -sTCP:LISTEN | xargs kill) or set PORT to a free port." >&2
     exit 1
 fi
 
-# With xdebug active the fixture restarts itself through composer/xdebug-handler, so
-# SERVER_PID can be a waiting parent rather than the listener. Job control gives the
-# fixture its own process group, and the teardown kills the whole group so a restarted
-# listener cannot outlive its parent and squat the port.
 echo "Starting conformance fixture on ${HOST}:${PORT}..."
 set -m
 HOST="$HOST" PORT="$PORT" php conformance/server.php &
@@ -65,8 +43,6 @@ cleanup() {
 }
 trap cleanup EXIT
 
-# --max-time keeps a wedged listener from hanging the loop, and a dead child
-# fails fast instead of burning the full retry budget.
 echo "Waiting for the fixture to answer..."
 for _ in $(seq 1 30); do
     if ! kill -0 "$SERVER_PID" 2>/dev/null; then
@@ -87,8 +63,7 @@ if ! curl -s --max-time 2 -o /dev/null "$SERVER_URL"; then
 fi
 
 echo "Running the conformance suite (referee conformance@${CONFORMANCE_VERSION}, spec ${SPEC_VERSION})..."
-# `-o` is what persists per-scenario checks.json files. Without it the referee
-# only prints, and there is nothing for score.php to read.
+
 REFEREE_STATUS=0
 npx -y -q "@modelcontextprotocol/conformance@${CONFORMANCE_VERSION}" server \
     --url "$SERVER_URL" \
@@ -97,9 +72,6 @@ npx -y -q "@modelcontextprotocol/conformance@${CONFORMANCE_VERSION}" server \
     --output-dir ./conformance/results/server \
     "$@" || REFEREE_STATUS=$?
 
-# Supersede older runs of the same scenarios, keeping results/ one directory
-# per scenario. Pruning runs even on a failed referee so a red run cannot
-# leave duplicates behind.
 ./conformance/prune-results.sh
 
 exit "$REFEREE_STATUS"

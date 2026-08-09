@@ -293,7 +293,6 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
         $record = $store->findTask($taskId);
         self::assertInstanceOf(TaskRecord::class, $record);
         self::assertSame(TaskStatus::Working, $record->status);
-        // The unanswered 'second' is abandoned: a re-dispatch starts fresh.
         self::assertSame([], $record->pendingInputRequests);
         self::assertSame(['first' => $answer], $record->inputResponses);
         self::assertSame('state-1', $record->requestState);
@@ -311,7 +310,6 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
         $record = $store->findTask($taskId);
         self::assertInstanceOf(TaskRecord::class, $record);
         self::assertSame(TaskStatus::Cancelled, $record->status);
-        // Leftover pending requests would make the cancelled record unprojectable.
         self::assertSame([], $record->pendingInputRequests);
         self::assertSame([], $record->inputResponses);
         self::assertNull($record->requestState);

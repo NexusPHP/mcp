@@ -14,19 +14,13 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Transport;
 
 /**
- * A transport whose peer runs as a process it owns, and which reports that the peer stopped serving
- * without the shutdown having been requested.
+ * A transport whose peer runs as a process it owns.
  */
 interface SupervisableTransportInterface extends TransportInterface
 {
     /**
-     * Registers a listener invoked with the peer's exit code when the transport tears down without
-     * `close()` having been called, whether the peer exited on its own or stopped serving and was
-     * killed. Calling `close()` notifies nobody.
-     *
-     * The reporting instance is spent once this fires: a supervisor respawns by building a fresh
-     * transport, not by restarting this one. The exit code is null when the peer ended without
-     * reporting a status.
+     * Registers a listener invoked with the peer's exit code (null when it reported none) when the transport
+     * tears down without `close()`, after which the instance is spent and a supervisor builds a fresh one.
      *
      * @param \Closure(null|int): void $listener
      */

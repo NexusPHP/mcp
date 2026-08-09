@@ -20,15 +20,11 @@ use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcMessage;
 
 /**
  * Bidirectional JSON-RPC envelope duplex between this SDK and a connected peer.
- *
- * - Listeners fire in registration order.
- * - A throw aborts the chain.
- * - A dispose mid-dispatch applies on the next emit.
  */
 interface TransportInterface
 {
     /**
-     * Begins consuming inbound envelopes from the peer. Returns immediately.
+     * Begins consuming inbound envelopes from the peer, returning immediately.
      *
      * @throws TransportAlreadyStartedException
      * @throws TransportAlreadyClosedException
@@ -36,9 +32,7 @@ interface TransportInterface
     public function start(): void;
 
     /**
-     * Enqueues an outbound JSON-RPC message to the peer.
-     *
-     * On write failure, close listeners fire before the exception is rethrown.
+     * Enqueues an outbound JSON-RPC message to the peer, close listeners firing before a write failure is rethrown.
      *
      * @throws TransportNotStartedException
      * @throws TransportAlreadyClosedException
@@ -47,26 +41,17 @@ interface TransportInterface
     public function send(JsonRpcMessage $message, ?SendContext $context = null): void;
 
     /**
-     * Closes the connection. The `onClose()` listener fires once after the
-     * underlying streams are closed. Subsequent calls are no-ops.
-     *
-     * Implementations MUST guarantee that `onClose()` listeners fire after a
-     * fatal error too, not only after explicit `close()`. `Server::run()`
-     * blocks on the close signal, so a transport that raises errors without
-     * eventually closing would hang the server loop.
+     * Closes the connection once, firing `onClose()` after the underlying streams close, which an
+     * implementation MUST also do after a fatal error since `Server::run()` blocks on that signal.
      */
     public function close(): void;
 
     /**
-     * Register an inbound-envelope listener.
-     *
      * @param \Closure(array<string, mixed>, ReceiveContext): void $listener
      */
     public function onMessage(\Closure $listener): SubscriptionInterface;
 
     /**
-     * Register an error listener.
-     *
      * @param \Closure(\Throwable): void $listener
      */
     public function onError(\Closure $listener): SubscriptionInterface;
@@ -79,8 +64,6 @@ interface TransportInterface
     public function onDrain(\Closure $listener): SubscriptionInterface;
 
     /**
-     * Register a close listener.
-     *
      * @param \Closure(): void $listener
      */
     public function onClose(\Closure $listener): SubscriptionInterface;

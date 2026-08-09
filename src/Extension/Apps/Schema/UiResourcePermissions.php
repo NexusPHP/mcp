@@ -17,9 +17,7 @@ use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Arrayable;
 
 /**
- * Sandbox permissions a UI resource requests from the host. Each requested
- * permission is encoded as a key with an empty-object value, so `toArray()`
- * carries `\stdClass` values and both encoding paths emit `{}`.
+ * Sandbox permissions a UI resource requests from the host.
  *
  * @implements Arrayable<array{
  *   camera?: \stdClass,

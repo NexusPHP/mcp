@@ -16,7 +16,7 @@ namespace Nexus\Mcp\Core\Http;
 use Nexus\Mcp\Core\Schema\Error\HeaderMismatchError;
 
 /**
- * Builds and validates the `Mcp-Param-{Name}` headers mirrored from tool-call arguments.
+ * Builder and validator for the `Mcp-Param-{Name}` headers mirrored from tool-call arguments.
  *
  * @internal
  *
@@ -27,8 +27,7 @@ final class ParameterHeaders
     public const string HEADER_PREFIX = 'Mcp-Param-';
 
     /**
-     * A strict decimal, gating the numeric comparison so the looser forms `Number()` would accept
-     * (`0x1a`, ` 42 `, `1e3`) never coerce.
+     * A strict decimal, excluding the looser forms `Number()` would accept (`0x1a`, ` 42 `, `1e3`).
      */
     private const string DECIMAL_PATTERN = '/\A-?\d+(\.\d+)?\z/';
 
@@ -38,8 +37,8 @@ final class ParameterHeaders
     private const int SAFE_INTEGER_MAX = 9_007_199_254_740_991;
 
     /**
-     * Builds the client's outbound `Mcp-Param-{Name}` headers for one `tools/call`. A binding whose
-     * argument is null, absent, or not a permitted primitive is omitted.
+     * Builds the client's outbound `Mcp-Param-{Name}` headers for one `tools/call`, omitting a binding whose
+     * argument is null, absent, or not a permitted primitive.
      *
      * @param list<ParameterHeaderBinding> $bindings
      * @param array<array-key, mixed>      $arguments
@@ -64,12 +63,12 @@ final class ParameterHeaders
     }
 
     /**
-     * Validates the `Mcp-Param-{Name}` headers a request carries against its body arguments. Returns the
-     * mismatch to reject with, or null when every binding agrees.
+     * Validates the `Mcp-Param-{Name}` headers a request carries against its body arguments, returning the
+     * mismatch to reject with or null when every binding agrees.
      *
      * @param list<ParameterHeaderBinding> $bindings
      * @param array<array-key, mixed>      $arguments
-     * @param array<string, string>        $headers   Header lines keyed by header name (matched case-insensitively)
+     * @param array<string, string>        $headers
      */
     public static function validate(array $bindings, array $arguments, array $headers): ?HeaderMismatchError
     {
@@ -80,7 +79,6 @@ final class ParameterHeaders
             $bodyString = self::stringifyPrimitive($bodyValue);
 
             if (null === $bodyString) {
-                // A null/absent argument (or a non-primitive that params validation owns) expects no header.
                 continue;
             }
 

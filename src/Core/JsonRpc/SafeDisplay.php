@@ -14,9 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\JsonRpc;
 
 /**
- * Renders a peer-derived string into a form safe for formatting into log
- * lines, exception messages, and JSON-RPC error payloads. Non-printable bytes
- * are escaped as `\xNN`. The result is capped at 80 bytes (ellipsis appended).
+ * Renderer for the peer-derived strings appearing in log lines, exception messages, and JSON-RPC error payloads.
  *
  * @internal
  */

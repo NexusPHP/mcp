@@ -17,14 +17,8 @@ use Nexus\Assert\Assert;
 use Nexus\Assert\ExpectationFailedException;
 
 /**
- * Enforces the subset of RFC 6570 URI templates that `Matcher` can
- * reverse-match. Stricter than `Rfc6570UriTemplateValidator`,
- * which accepts the full RFC 6570 grammar on spec schema types
- * (`ResourceTemplate`, `ResourceTemplateReference`). This validator gates
- * registration into reader pipelines, accepting only Level 1 `{name}`
- * expressions where `name` matches `[A-Za-z_][A-Za-z0-9_]*`, and requiring
- * at least one literal character between two consecutive expressions so a
- * captured segment has an unambiguous end.
+ * Enforces the subset of RFC 6570 that `Matcher` can reverse-match: Level 1 `{name}` expressions over
+ * `[A-Za-z_][A-Za-z0-9_]*`, separated by at least one literal.
  *
  * @internal
  *

@@ -424,7 +424,6 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
     public function testServerInfoRidesTheMetaOfAResultOtherThanDiscover(): void
     {
-        // The spec asks for the identity on every response, not only on the discovery probe.
         $server = (new ServerBuilder())
             ->setServerInfo('demo-srv', '2.3.4')
             ->addTool(
@@ -449,8 +448,6 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
     public function testTheInFlightCapReachesTheDispatcher(): void
     {
-        // `listen()` attaches without awaiting close, so both envelopes are dispatched before the
-        // loop turns and the second one meets a saturated dispatcher.
         $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->setMaxInFlightDispatches(1)
@@ -517,7 +514,6 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
     public function testDiscoverCarriesTheFullIdentityEvenWhenOtherResultsAreTrimmed(): void
     {
-        // The rich fields are display material a client collects once, at discovery.
         $server = (new ServerBuilder())
             ->setServerInfo('demo-srv', '2.3.4', title: 'Demo', description: 'A demo.')
             ->setServerInfoDisclosure(ServerInfoDisclosure::NameAndVersion)
@@ -574,7 +570,6 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
         $result = $this->dispatch($server, 'tools/call', ['name' => 'report']);
 
-        // The default opis validator would reject the non-integer n and yield a generic error result.
         self::assertInstanceOf(CallToolResult::class, $result);
         self::assertNull($result->isError);
         self::assertSame(['n' => 'not-an-int'], $result->structuredContent);
@@ -1250,7 +1245,6 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             ->build()
         ;
 
-        // The request declares no extension capability, so a gated handler would refuse it.
         $result = $this->dispatch($server, 'tools/call', ['name' => 'report']);
 
         self::assertInstanceOf(CallToolResult::class, $result);
@@ -1860,8 +1854,6 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
     public function testTheServedToolStoreIsTheSameInstanceTheAccessorReturns(): void
     {
-        // `SecuredHttpEndpoint` validates `Mcp-Param-{Name}` against this store, so it must be the one
-        // the request handlers serve rather than a second copy.
         $builder = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->addTool(
@@ -1877,8 +1869,6 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
     public function testCancellingAnInFlightRequestSuppressesItsResponse(): void
     {
-        // `notifications/cancelled` is served by default, so a built server honours the spec's rule that a
-        // cancelled request draws no response without the consumer registering anything.
         $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->addTool(
@@ -1999,7 +1989,6 @@ final class ServerBuilderTest extends AbstractMcpTestCase
     #[DataProvider('provideResourceListChangedFollowsEitherResourceStoreCases')]
     public function testResourceListChangedFollowsEitherResourceStore(\Closure $compose, array $expected): void
     {
-        // Both stores fan into `notifications/resources/list_changed`, so either one reporting is enough.
         $builder = $compose((new ServerBuilder())->setServerInfo('demo', '1.0.0'))
             ->setSubscriptionStore(new SubscriptionStore(resourcesListChanged: true))
         ;
@@ -2114,7 +2103,6 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             self::fail('Every entry-built store reports its own changes.');
         }
 
-        // Mutating each store must reach the stream, which is what proves the builder routed all three.
         self::assertInstanceOf(MutableToolStoreInterface::class, $toolStore);
         self::assertInstanceOf(MutablePromptStoreInterface::class, $promptStore);
         self::assertInstanceOf(MutableResourceStoreInterface::class, $resourceStore);
@@ -2148,7 +2136,6 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             self::fail('The entry-built resource template store must support runtime mutation.');
         }
 
-        // A template expansion changes what the server can read, so it is a resource list change.
         $templateStore->removeResourceTemplate('mem://alpha/{path}');
         delay(0.0);
 
@@ -2160,7 +2147,6 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
     public function testACapabilityIsNotAdvertisedWhenTheSubscriptionStoreWillNotHonourIt(): void
     {
-        // A store that honours nothing is the default shape, so the builder must not promise on its behalf.
         $capabilities = $this->discoverResultFor(
             self::registerFeatureTriples((new ServerBuilder())->setServerInfo('demo', '1.0.0'))
                 ->setSubscriptionStore(new SubscriptionStore())
@@ -2178,8 +2164,6 @@ final class ServerBuilderTest extends AbstractMcpTestCase
     #[DataProvider('provideEveryRegistrationIsRefusedAfterBuildCases')]
     public function testEveryRegistrationIsRefusedAfterBuild(\Closure $mutate): void
     {
-        // The built server holds the stores and the list-change listeners, so a later registration would be
-        // dropped without a trace.
         $builder = (new ServerBuilder())->setServerInfo('demo', '1.0.0');
         $builder->build();
 
@@ -2235,8 +2219,6 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
         yield 'addResourceTemplateCompletion' => [static fn(ServerBuilder $b): ServerBuilder => $b->addResourceTemplateCompletion('file:///{path}', 'path', static fn(): CompleteResult => new CompleteResult(completion: ['values' => []]))];
 
-        // A source carrying only `#[AsServer]` contributes without reaching a guarded `add*()`, so this is
-        // the case that proves `register()` needs a guard of its own.
         yield 'register' => [static fn(ServerBuilder $b): ServerBuilder => $b->register(new #[AsServer(name: 'late', version: '1.0.0')] class {})];
 
         yield 'addRequestHandler' => [static fn(ServerBuilder $b): ServerBuilder => $b->addRequestHandler('completion/complete', new ClosureRequestHandler(static fn(): EmptyResult => new EmptyResult()), TestClientRequest::class)];
@@ -2340,7 +2322,6 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
     public function testResourceStoreIsAssembledWhenOnlyTemplatesAreRegistered(): void
     {
-        // `resources/read` composes the two stores, so a template alone still needs a resource store.
         $store = self::builderWithResourceTemplate()->getResourceStore();
 
         if (! $store instanceof ResourceStoreInterface) {
@@ -2855,10 +2836,6 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         return $icon;
     }
 
-    /**
-     * Drives the constructed server with a synthetic `server/discover` request and
-     * returns the typed result captured off the recording transport.
-     */
     private function discoverResultFor(Server $server): DiscoverResult
     {
         $result = $this->dispatch($server, 'server/discover');
@@ -2868,9 +2845,6 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         return $result;
     }
 
-    /**
-     * The server identity the built server advertises on its `server/discover` result `_meta`.
-     */
     private function serverInfoFor(Server $server): Implementation
     {
         $serverInfo = $this->discoverResultFor($server)->meta->serverInfo;
@@ -2882,9 +2856,6 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         return $serverInfo;
     }
 
-    /**
-     * Registers three entries of every paginated feature, so a page size of two leaves a remainder.
-     */
     private static function registerFeatureTriples(ServerBuilder $builder): ServerBuilder
     {
         foreach (['alpha', 'beta', 'gamma'] as $name) {
@@ -2912,9 +2883,6 @@ final class ServerBuilderTest extends AbstractMcpTestCase
     }
 
     /**
-     * Drives the built server with a single operation request, returning the
-     * typed result of the operation response.
-     *
      * @param array<string, mixed> $params
      */
     private function dispatch(Server $server, string $method, array $params = []): Result

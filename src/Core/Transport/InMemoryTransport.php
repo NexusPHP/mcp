@@ -19,14 +19,12 @@ use Nexus\Mcp\Core\Exception\TransportNotStartedException;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcMessage;
 
 /**
- * In-process JSON-RPC duplex between two `TransportInterface` instances. Each
- * side's `send()` becomes the other side's inbound message. Pre-start inbound
- * envelopes queue and drain on `start()`. `close()` cascades to the peer.
+ * In-process JSON-RPC duplex between two `TransportInterface` instances.
  */
 final class InMemoryTransport implements TransportInterface
 {
     /**
-     * Envelopes the peer's `send()` delivered before this side called `start()`. Drained in arrival order on `start()`.
+     * Envelopes the peer's `send()` delivered before this side called `start()`, drained there in arrival order.
      *
      * @var list<array<string, mixed>>
      */
@@ -42,10 +40,6 @@ final class InMemoryTransport implements TransportInterface
     }
 
     /**
-     * Returns two linked transports. Each side's `send()` delivers to the
-     * other side's `onMessage` listeners. Use one for the server, the other
-     * for the client.
-     *
      * @return array{self, self}
      */
     public static function createPair(): array
@@ -75,9 +69,8 @@ final class InMemoryTransport implements TransportInterface
     }
 
     /**
-     * `$context`'s `relatedRequestId` is a streamable-HTTP concern with no in-process
-     * equivalent. The parameter is accepted for `TransportInterface` conformance and
-     * intentionally dropped.
+     * `$context` is accepted for `TransportInterface` conformance and dropped, its `relatedRequestId` having
+     * no in-process equivalent.
      *
      * @throws TransportAlreadyClosedException
      * @throws TransportNotStartedException
@@ -122,8 +115,7 @@ final class InMemoryTransport implements TransportInterface
     }
 
     /**
-     * In-memory transport has no I/O failure surface, so registered error
-     * listeners are accepted for contract conformance but never invoked.
+     * An in-memory transport has no I/O failure surface, so an error listener is accepted but never invoked.
      */
     #[\Override]
     public function onError(\Closure $listener): SubscriptionInterface
@@ -144,8 +136,8 @@ final class InMemoryTransport implements TransportInterface
     }
 
     /**
-     * Cross-instance hand-off invoked by the peer's `send()`. Queues into
-     * `pendingInbound` while this side is `Idle`, otherwise emits to listeners.
+     * Cross-instance hand-off invoked by the peer's `send()`, queuing into `pendingInbound` while this side
+     * is `Idle`.
      *
      * @param array<string, mixed> $envelope
      */

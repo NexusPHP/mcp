@@ -22,8 +22,6 @@ use Nexus\Mcp\Core\Schema\RequestId;
 interface CancellableTransportInterface extends TransportInterface
 {
     /**
-     * Registers a listener invoked with the id of a request the peer abandoned.
-     *
      * @param \Closure(RequestId): void $listener
      */
     public function onCancel(\Closure $listener): SubscriptionInterface;

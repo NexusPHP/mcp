@@ -11,17 +11,11 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-/*
- * Shared bootstrap for the conformance harness, layered on the examples' own
- * bootstrap and PSR-15 to `amphp/http-server` bridge.
- */
-
 require __DIR__.'/../examples/bootstrap.php';
 require __DIR__.'/../examples/PsrHttpAdapter.php';
 
 /**
- * The command-line arguments, read from `$_SERVER` rather than `$argv` because
- * the latter exists only when `register_argc_argv` is on.
+ * `$argv` exists only when `register_argc_argv` is on, so the arguments come from `$_SERVER`.
  *
  * @return list<string>
  */

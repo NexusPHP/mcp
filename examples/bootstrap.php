@@ -11,13 +11,6 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-/*
- * Shared bootstrap for the runnable examples: registers the Composer autoloader,
- * loads `PsrLogger` (a severity-filtering STDERR logger), and installs an
- * uncaught-exception handler. Each example starts with
- * `require __DIR__.'/bootstrap.php';`.
- */
-
 require __DIR__.'/../vendor/autoload.php';
 require __DIR__.'/PsrLogger.php';
 

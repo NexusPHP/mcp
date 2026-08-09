@@ -22,8 +22,7 @@ use Nexus\Mcp\Core\Transport\SubscriptionInterface;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
 
 /**
- * `RecordingTransport` wearing the parameter-header marker, so the client treats it as a transport that
- * mirrors `x-mcp-header` tool parameters.
+ * `RecordingTransport` wearing the parameter-header mirroring marker.
  *
  * @internal
  */

@@ -11,25 +11,6 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-/*
- * An MCP server protected by the Keycloak realm `compose.yaml` stands up.
- *
- * Every request must present a bearer token minted by the realm, validated by
- * `JwksAccessTokenValidator` against the realm's JWKS, bound to this server's
- * canonical URI by `BearerAuthenticationMiddleware`, and scoped `mcp:use`.
- * `ProtectedResourceMetadataHandler` publishes the metadata document clients
- * walk to find the realm on their own.
- *
- * Run with:
- *
- *     docker compose -f examples/keycloak-e2e/compose.yaml up --wait
- *     php examples/keycloak-e2e/server.php
- *
- * Then drive it from a second terminal:
- *
- *     php examples/keycloak-e2e/client.php
- */
-
 require __DIR__.'/../bootstrap.php';
 require __DIR__.'/../PsrHttpAdapter.php';
 
@@ -65,9 +46,8 @@ $logger = new PsrLogger();
 $psr17 = new Psr17Factory();
 
 /*
- * One startup fetch of the realm's signing keys. A production server refreshes
- * them instead (`Firebase\JWT\CachedKeySet` with any PSR-18 client and PSR-6
- * cache), which survives Keycloak rotating a key while the server runs.
+ * One startup fetch of the realm's signing keys, where a production server would refresh them through
+ * `Firebase\JWT\CachedKeySet` to survive a rotation.
  */
 $jwksUrl = ISSUER.'/protocol/openid-connect/certs';
 $jwksJson = @file_get_contents($jwksUrl);
@@ -123,8 +103,7 @@ $transport = new StreamableHttpServerTransport(
     keepAliveInterval: 10.0,
 );
 
-// `listen()` rather than `run()`: the transport is driven per HTTP request by the
-// host, so attaching the dispatcher must not block.
+// `listen()` rather than `run()`: the host drives the transport per HTTP request, so attaching must not block.
 $server->listen($transport);
 
 $endpoint = new SecuredHttpEndpoint(
@@ -154,9 +133,8 @@ $metadata = new ProtectedResourceMetadataHandler(
 );
 
 /*
- * The metadata document lives beside the endpoint, not behind it: RFC 9728
- * lookups are unauthenticated GETs, so they must not pass through the bearer
- * middleware. The handler itself answers 404 off its two well-known paths.
+ * The metadata document lives beside the endpoint, since RFC 9728 lookups are unauthenticated GETs that must not
+ * pass through the bearer middleware.
  */
 $router = new readonly class ($endpoint, $metadata) implements RequestHandlerInterface {
     public function __construct(private RequestHandlerInterface $endpoint, private RequestHandlerInterface $metadata)
@@ -183,7 +161,6 @@ fwrite(\STDOUT, sprintf("Protected MCP endpoint listening on %s (Ctrl-C to stop)
 if (defined('SIGINT')) {
     trapSignal([\SIGINT, \SIGTERM]);
 } else {
-    // ext-pcntl absent, so there is no signal to trap. Ctrl-C ends the process.
     (new DeferredFuture())->getFuture()->await();
 }
 

@@ -26,9 +26,6 @@ use Nexus\Mcp\Extension\Auth\ClientCredentials\PrivateKeyJwtCredential;
  */
 final readonly class ClientAssertionSigner
 {
-    /**
-     * Seconds an assertion stays presentable after it is signed.
-     */
     private const int ASSERTION_LIFETIME_SECONDS = 300;
 
     public function __construct(private PrivateKeyJwtCredential $credential)

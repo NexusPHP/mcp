@@ -44,8 +44,6 @@ final readonly class ProtocolVersion
      */
     public function __construct(public string $version)
     {
-        // The spec types this as a plain string, and a version the server does not recognise must reach
-        // the support check so it is answered with -32022 rather than rejected as malformed params.
         Assert::that($version)->isNonEmptyString('"protocolVersion" must be a non-empty string.');
     }
 }

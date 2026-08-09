@@ -19,8 +19,7 @@ use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
 
 /**
- * Rejects an argument that assigns while it is passed, as in `foo($x = bar())`. The assignment
- * belongs on its own statement ahead of the call.
+ * Rule rejecting an argument that assigns while it is passed, as in `foo($x = bar())`.
  *
  * @implements Rule<Node\Arg>
  *

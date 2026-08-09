@@ -13,8 +13,6 @@
 
 set -euo pipefail
 
-# Keep in step with run-server.sh. Both legs read the same baseline file, so a
-# referee bump has to be reconciled against both at once.
 CONFORMANCE_VERSION="${CONFORMANCE_VERSION:-0.2.0-alpha.10}"
 SPEC_VERSION="2026-07-28"
 
@@ -31,9 +29,6 @@ npx -y -q "@modelcontextprotocol/conformance@${CONFORMANCE_VERSION}" client \
     --output-dir ./conformance/results/client \
     "$@" || REFEREE_STATUS=$?
 
-# Supersede older runs of the same scenarios, keeping results/ one directory
-# per scenario. Pruning runs even on a failed referee so a red run cannot
-# leave duplicates behind.
 ./conformance/prune-results.sh
 
 exit "$REFEREE_STATUS"

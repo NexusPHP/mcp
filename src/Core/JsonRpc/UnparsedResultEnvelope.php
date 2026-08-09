@@ -16,12 +16,8 @@ namespace Nexus\Mcp\Core\JsonRpc;
 use Nexus\Mcp\Core\Schema\RequestId;
 
 /**
- * Parser-state shape returned by `JsonRpcMessageParser::parse()` for a JSON-RPC
- * success response envelope when no expected `Result` class was supplied.
- *
- * Carries the request id and the raw `result` payload so consumers without an
- * outbound-request correlation table can log or discard the envelope without
- * the parser raising an error.
+ * Parser-state shape returned by `JsonRpcMessageParser::parse()` for a success response envelope supplied no
+ * expected `Result` class.
  */
 final readonly class UnparsedResultEnvelope
 {

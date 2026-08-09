@@ -12,23 +12,14 @@ declare(strict_types=1);
  */
 
 /**
- * The client the conformance referee drives.
- *
- * In client mode the referee is the server: it stands up a mock per scenario,
- * then spawns this process once per scenario with the mock's URL appended as the
- * final argument. Which behaviour to perform is named by an environment
- * variable, so this is a scenario-name to closure registry.
- *
- * Contract, in full:
+ * The client the conformance referee drives, best run through `./conformance/run-client.sh`,
+ * which sets up its contract:
  *
  * - the server URL arrives as the last argv entry
  * - `MCP_CONFORMANCE_SCENARIO` names the scenario, and is the routing key
  * - `MCP_CONFORMANCE_CONTEXT` carries scenario JSON when there is any
  * - `MCP_CONFORMANCE_PROTOCOL_VERSION` carries the resolved spec version
  * - exit 0 passes, non-zero fails, except where a scenario expects the failure
- *
- * Prefer `./conformance/run-client.sh`, which drives the referee. Running this
- * directly needs the environment set by hand.
  */
 
 require __DIR__.'/bootstrap.php';
@@ -62,7 +53,6 @@ use Nexus\Mcp\Core\Schema\Enum\ElicitAction;
 use Nexus\Mcp\Core\Schema\RequestParams\ElicitRequestFormParams;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
-use Nexus\Mcp\Core\Schema\Result\InputResponse;
 use Nexus\Mcp\Extension\Auth\ClientCredentials\ClientCredentialsClientExtension;
 use Nexus\Mcp\Extension\Auth\ClientCredentials\ClientCredentialsGrant;
 use Nexus\Mcp\Extension\Auth\ClientCredentials\ClientSecretCredential;
@@ -77,9 +67,7 @@ $register = static function (string $name, Closure $handler) use (&$scenarios): 
     $scenarios[$name] = $handler;
 };
 
-/** Connects a plain client to the referee's mock, with no authorization. */
 $connect = static function (string $serverUrl): Client {
-    // The URL arrives from argv, so this is the boundary where it earns its type.
     Assert::that($serverUrl)->isNonEmptyString('The conformance runner must supply a server URL.');
 
     $client = (new ClientBuilder())
@@ -119,11 +107,7 @@ $toolCallsFromContext = static function (): array {
     return $normalized;
 };
 
-/*
- * Lists the tools, then makes whatever calls the runner asked for. Listing first
- * is load-bearing on the header scenarios: it is what records each tool's
- * `x-mcp-header` bindings, so a later call can mirror them into `Mcp-Param-*`.
- */
+// Lists the tools before calling them, since listing is what records each tool's `x-mcp-header` bindings.
 $listThenCall = static function (string $serverUrl) use ($connect, $toolCallsFromContext): void {
     $client = $connect($serverUrl);
 
@@ -146,7 +130,6 @@ $register('tools_call', static function (string $serverUrl) use ($connect, $tool
         $calls = $toolCallsFromContext();
 
         if ([] === $calls) {
-            // The mock advertises this tool when the runner supplies no calls of its own.
             $calls = [['name' => 'add_numbers', 'arguments' => ['a' => 5, 'b' => 3]]];
         }
 
@@ -178,8 +161,6 @@ $register('http-invalid-tool-headers', static function (string $serverUrl) use (
     try {
         $client->listTools();
 
-        // The scenario's point is that one malformed tool definition must not
-        // poison the rest of the listing, so a well-formed tool has to be called.
         $calls = $toolCallsFromContext();
         $calls = [] === $calls ? [['name' => 'valid_tool', 'arguments' => []]] : $calls;
 
@@ -195,8 +176,6 @@ $register('json-schema-ref-no-deref', static function (string $serverUrl) use ($
     $client = $connect($serverUrl);
 
     try {
-        // Listing is the whole test: the advertised tool carries a network `$ref`
-        // that the client must pass through rather than fetch.
         $client->listTools();
     } finally {
         $client->disconnect();
@@ -221,19 +200,12 @@ $register('json-schema-2020-12-preservation', static function (string $serverUrl
             throw new RuntimeException('The mock server did not advertise "json_schema_2020_12_tool".');
         }
 
-        // Echoing the observed schema back verbatim is what lets the referee diff
-        // it against its fixture for stripped 2020-12 keywords.
         $client->callTool(name: 'json_schema_echo', arguments: ['schema' => $schema]);
     } finally {
         $client->disconnect();
     }
 });
 
-/**
- * Accepts every input a server asked for, answering each field from its declared type.
- *
- * @return array<int|non-empty-string, InputResponse>
- */
 $acceptInputRequests = static function (InputRequiredResult $result): array {
     $responses = [];
 
@@ -261,7 +233,6 @@ $acceptInputRequests = static function (InputRequiredResult $result): array {
 $register('sep-2322-client-request-state', static function (string $serverUrl) use ($connect, $acceptInputRequests): void {
     $client = $connect($serverUrl);
 
-    /** Fails loudly rather than skipping a round, which would read as a passing scenario. */
     $demandInput = static function (CallToolResult|InputRequiredResult $result, string $tool): InputRequiredResult {
         if (! $result instanceof InputRequiredResult) {
             throw new RuntimeException(sprintf('The "%s" tool answered without asking for input.', $tool));
@@ -273,20 +244,16 @@ $register('sep-2322-client-request-state', static function (string $serverUrl) u
     try {
         $client->listTools();
 
-        // The state this round carries is opaque, so the answer echoes it back untouched under a
-        // fresh JSON-RPC id, which `Client` mints per request.
         $stateful = $demandInput($client->callTool(name: 'test_mrtr_echo_state'), 'test_mrtr_echo_state');
 
         // Between the two rounds, so a call of its own proves the pending round leaks nothing into it.
         $client->callTool(name: 'test_mrtr_unrelated');
-
         $client->callTool(
             name: 'test_mrtr_echo_state',
             inputResponses: $acceptInputRequests($stateful),
             requestState: $stateful->requestState,
         );
 
-        // This round carries no state, and answering it must not invent one.
         $stateless = $demandInput($client->callTool(name: 'test_mrtr_no_state'), 'test_mrtr_no_state');
         $client->callTool(
             name: 'test_mrtr_no_state',
@@ -294,20 +261,15 @@ $register('sep-2322-client-request-state', static function (string $serverUrl) u
             requestState: $stateless->requestState,
         );
 
-        // A result naming no `resultType` is complete, so there is nothing here to answer.
         $client->callTool(name: 'test_mrtr_no_result_type');
     } finally {
         $client->disconnect();
     }
 });
 
-/*
- * The `client_id` the CIMD scenario expects to see. The referee compares the string and never
- * fetches the document, so nothing has to serve it.
- */
+// The `client_id` the CIMD scenario expects, compared as a string and never fetched, so nothing serves it.
 $clientIdMetadataDocumentUrl = 'https://conformance-test.local/client-metadata.json';
 
-/** The scenario context the referee supplies, decoded once. */
 $scenarioContext = static function (): array {
     $raw = getenv('MCP_CONFORMANCE_CONTEXT');
     $context = is_string($raw) && '' !== $raw ? json_decode($raw, true, 512, \JSON_THROW_ON_ERROR) : [];
@@ -315,27 +277,19 @@ $scenarioContext = static function (): array {
     return is_array($context) ? $context : [];
 };
 
-/** The pre-registered credentials the scenario issued out of band, or null when it issued none. */
 $preRegisteredFromContext = static function (array $context): ?ClientRegistration {
     $clientId = is_string($context['client_id'] ?? null) ? $context['client_id'] : null;
     $clientSecret = is_string($context['client_secret'] ?? null) ? $context['client_secret'] : null;
 
-    // The credentials name no authorization server, so the registration stays unbound until discovery
-    // names one.
     return null !== $clientId ? new ClientRegistration(clientId: $clientId, clientSecret: $clientSecret) : null;
 };
 
-/*
- * Connects a client over an already-composed authorized HTTP client and runs the exercise. Everything
- * that differs between the interactive and unattended paths is decided before this point.
- */
 $runAuthorized = static function (
     string $serverUrl,
     AuthorizedHttpClient $http,
     Closure $exercise,
     ?ClientExtensionInterface $extension = null,
 ): void {
-    // The URL arrives from argv, so this is the boundary where it earns its type.
     Assert::that($serverUrl)->isNonEmptyString('The conformance runner must supply a server URL.');
 
     $builder = (new ClientBuilder())
@@ -363,11 +317,6 @@ $runAuthorized = static function (
     }
 };
 
-/*
- * Every OAuth scenario runs the same client, and what differs between them lives in the referee's
- * mock authorization server and in the context it supplies. What the client does once it holds a
- * token is the exception, so that part is the argument.
- */
 $withAuthorization = static function (Closure $exercise) use ($clientIdMetadataDocumentUrl, $scenarioContext, $preRegisteredFromContext, $runAuthorized): Closure {
     return static function (string $serverUrl) use ($exercise, $clientIdMetadataDocumentUrl, $scenarioContext, $preRegisteredFromContext, $runAuthorized): void {
         $http = new AuthorizedHttpClient(
@@ -378,8 +327,7 @@ $withAuthorization = static function (Closure $exercise) use ($clientIdMetadataD
                 clientIdMetadataDocumentUrl: $clientIdMetadataDocumentUrl,
                 preRegistered: $preRegisteredFromContext($scenarioContext()),
                 requestOfflineAccess: true,
-                // The referee's mock authorization server runs on plain HTTP over
-                // loopback, which the spec does not exempt, so the harness opts in.
+                // The referee's mock authorization server runs on plain HTTP over loopback, so the harness opts in.
                 allowInsecureLoopback: true,
             ),
             new HeadlessUserAuthorization(),
@@ -423,19 +371,13 @@ foreach ([
     $register($authScenario, $authorize);
 }
 
-/*
- * Listing needs only the scope the first challenge named. Calling a tool is what the mock guards
- * behind a second one, so the insufficient-scope answer that drives a step-up has to be provoked.
- */
+// The mock guards the tool call behind a second scope, so calling one provokes the step-up listing never would.
 $register('auth/scope-step-up', $withAuthorization(static function (Client $client): void {
     $client->listTools();
     $client->callTool(name: 'test-tool');
 }));
 
-/*
- * The resource names its new authorization server only after one request has already succeeded
- * against the old one, so the migration is invisible to a client that stops after the first.
- */
+// The resource names its new authorization server only after one request has succeeded against the old one.
 $register('auth/authorization-server-migration', $withAuthorization(static function (Client $client): void {
     $client->listTools();
     $client->listTools();
@@ -449,11 +391,6 @@ $contextString = static function (array $context, string $key): string {
     return $value;
 };
 
-/*
- * Runs a `listTools` exercise the way `$withAuthorization` does, but with an unattended grant strategy in
- * place of the user-agent round trip. The client credentials grant carries its own credential, so only the
- * enterprise scenario pre-registers one for the resource authorization server.
- */
 $withGrantStrategy = static function (
     ClientCredentialsGrant|IdentityAssertionGrant $strategy,
     ClientExtensionInterface $extension,
@@ -465,8 +402,6 @@ $withGrantStrategy = static function (
             new AuthorizationOptions(
                 clientName: 'Nexus MCP SDK conformance client',
                 preRegistered: $preRegistered,
-                // The referee's mock authorization server runs on plain HTTP over
-                // loopback, which the spec does not exempt, so the harness opts in.
                 allowInsecureLoopback: true,
             ),
             null,
@@ -521,8 +456,7 @@ $register('auth/enterprise-managed-authorization', static function (string $serv
 });
 
 /**
- * Resolves the spec-mandated refusal a negative scenario drove the client into, or null when the
- * throwable is a genuine failure that should keep the loud uncaught-exception handler.
+ * Null means the throwable is a genuine failure rather than a refusal the scenario expects.
  */
 function resolveDeliberateRefusal(Throwable $throwable): ?Throwable
 {
@@ -584,8 +518,7 @@ try {
         throw $e;
     }
 
-    // The refusal is this scenario's pass condition, so it exits non-zero without the
-    // stack trace the uncaught-exception handler would print for a genuine failure.
+    // The refusal is this scenario's pass condition, so it exits non-zero without a stack trace.
     (new PsrLogger())->notice(
         'The client refused, as this scenario expects: {message}',
         ['message' => $refusal->getMessage()],

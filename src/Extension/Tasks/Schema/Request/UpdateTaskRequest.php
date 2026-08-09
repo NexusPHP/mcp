@@ -21,8 +21,7 @@ use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Extension\Tasks\Schema\RequestParams\UpdateTaskRequestParams;
 
 /**
- * Sent from the client to the server, to supply input responses to a task
- * waiting in the `input_required` status.
+ * Sent from the client to the server, to supply input responses to a task waiting in the `input_required` status.
  *
  * @property-read UpdateTaskRequestParams $params
  *

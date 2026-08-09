@@ -18,8 +18,7 @@ use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\MetaObject\PayloadMetaObject;
 
 /**
- * Text-encoded resource contents. The `text` payload is set only when the
- * resource can actually be represented as text (not binary data).
+ * Text-encoded resource contents, whose `text` payload is set only when the resource can be represented as text.
  *
  * @extends ResourceContents<array{
  *   uri: non-empty-string,

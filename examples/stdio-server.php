@@ -11,24 +11,6 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-/**
- * An interactive MCP server speaking line-framed JSON-RPC over STDIN/STDOUT.
- *
- * "Interactive" here means tools that emit server-to-client traffic during
- * execution: `notifications/progress` (per-step progress reports).
- *
- * Spawn from an MCP client (e.g. Claude Desktop) with:
- *
- *     {
- *         "mcpServers": {
- *             "nexus-example": {
- *                 "command": "php",
- *                 "args": ["/absolute/path/to/mcp-sdk/examples/stdio-server.php"]
- *             }
- *         }
- *     }
- */
-
 require __DIR__.'/bootstrap.php';
 
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;

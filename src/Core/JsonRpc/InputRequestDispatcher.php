@@ -18,9 +18,7 @@ use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequest;
 use Nexus\Mcp\Core\Schema\Request\InputRequest;
 
 /**
- * Discriminates an `InputRequest` payload by its `method` field and
- * dispatches to the matching concrete subclass. Used by the `inputRequests`
- * maps of `InputRequiredResult` and the tasks extension's `GetTaskResult`.
+ * Discriminator for `InputRequest` payloads, keyed on the `method` field.
  *
  * @internal
  */

@@ -30,18 +30,15 @@ use Psr\Log\LoggerInterface;
 use function Amp\async;
 
 /**
- * Runs a task's tool call in a background fiber and maps its outcome onto the
- * store: any complete result (an `isError` tool failure included) completes
- * the task, an `InputRequiredResult` parks it, a protocol exception fails it,
- * and cancellation settles it as cancelled.
+ * Runs a task's tool call in a background fiber and maps its outcome onto the store.
  *
  * @internal
  */
 final class ToolTaskRunner
 {
     /**
-     * The effective `tools/call` handler the broker decorates, bound when the
-     * builder applies the decorator and therefore before any task can start.
+     * Bound when the builder applies the decorator, and therefore before any task
+     * can start.
      *
      * @var null|RequestHandlerInterface<non-empty-string, Result, ServerContext>
      */
@@ -65,14 +62,9 @@ final class ToolTaskRunner
     /**
      * Starts the task's tool call in a background fiber bound to its own
      * cancellation source, detached from the creating request's lifecycle.
-     * The caller supplies the continuation state the background context runs
-     * with, whether carried over from the origin request or accumulated by
-     * the store.
      *
      * @param non-empty-string                                $taskId
-     * @param ServerContext                                   $origin         The context of the request that triggered the run
-     * @param null|array<int|non-empty-string, InputResponse> $inputResponses Continuation answers for the background context
-     * @param null|string                                     $requestState   Continuation token for the background context
+     * @param null|array<int|non-empty-string, InputResponse> $inputResponses
      */
     public function startTask(string $taskId, CallToolRequest $request, ServerContext $origin, ?array $inputResponses, ?string $requestState): void
     {
@@ -93,7 +85,6 @@ final class ToolTaskRunner
         );
 
         async(function () use ($taskId, $request, $background, $inner): void {
-            // `settleOutcome()` catches every throwable, so the release always runs.
             $this->settleOutcome($taskId, $inner, $request, $background);
             $this->cancellations->release($taskId);
         })->ignore();
@@ -110,8 +101,6 @@ final class ToolTaskRunner
 
             if ($result instanceof InputRequiredResult) {
                 if (null === $result->inputRequests || [] === $result->inputRequests) {
-                    // An input_required task must surface requests a client can
-                    // answer, so a requestState-only park is unresumable.
                     $this->store->trySetFailed($taskId, ErrorFactory::create(
                         ProtocolErrorCode::InternalError,
                         'The tool parked the task without any input requests.',
@@ -127,7 +116,6 @@ final class ToolTaskRunner
 
             $this->store->trySetCompleted($taskId, $result->toArray());
         } catch (CancelledException) {
-            // `tasks/cancel` already marked the record, so this is a no-op there.
             $this->store->trySetCancelled($taskId);
         } catch (InputRequestKeyReusedException $e) {
             $this->store->trySetFailed($taskId, ErrorFactory::create(
@@ -141,7 +129,6 @@ final class ToolTaskRunner
                 $e->errorData,
             )->toArray());
         } catch (\Throwable $e) {
-            // Generic peer-facing payload. Raw $e->getMessage() can carry paths or secrets.
             $this->logger->error(
                 'Uncaught task executor exception. Failing task {taskId} with a generic error.',
                 ['taskId' => $taskId, 'exception' => $e],

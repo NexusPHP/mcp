@@ -127,7 +127,6 @@ final class SecureEndpointTest extends AbstractMcpTestCase
 
         yield 'a query is left alone' => ['https://auth.example.com/token?tenant=a'];
 
-        // Where the URL leads is the operator's business. This guard is about the transport it names.
         yield 'a loopback address over HTTPS is accepted' => ['https://127.0.0.1:9000/token'];
 
         yield 'a private-network address over HTTPS is accepted' => ['https://10.0.0.5:8443/token'];
@@ -152,9 +151,6 @@ final class SecureEndpointTest extends AbstractMcpTestCase
     {
         yield 'a remote cleartext host is refused' => ['http://auth.example.com/token'];
 
-        // The spec exempts only the redirect URI from HTTPS, so by default an authorization server on
-        // loopback earns nothing from the MCP server also being there. Opting in changes that, which the
-        // cases below cover.
         yield 'a loopback address earns no exemption' => ['http://127.0.0.1:9000/token'];
 
         yield 'nor does loopback by name' => ['http://localhost:9000/token'];
@@ -211,7 +207,6 @@ final class SecureEndpointTest extends AbstractMcpTestCase
     {
         yield 'a remote cleartext host is still refused' => ['http://auth.example.com/token'];
 
-        // A private-network address is not loopback: it leaves the host.
         yield 'a private-network address is still refused' => ['http://10.0.0.5:8443/token'];
 
         yield 'a host merely starting with the loopback name is still refused' => ['http://localhost.evil.example.com/token'];

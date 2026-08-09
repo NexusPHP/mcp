@@ -51,8 +51,6 @@ final class PendingCoroutinesTest extends AbstractMcpTestCase
 
     public function testACoroutineHoldingNoSlotIsStillAwaitedOnDrain(): void
     {
-        // A coroutine that opens a subscription rather than processing a request holds no slot. The drain
-        // must still wait for it.
         $coroutines = new PendingCoroutines();
         $working = new DeferredFuture();
         $parked = new DeferredFuture();
@@ -110,8 +108,6 @@ final class PendingCoroutinesTest extends AbstractMcpTestCase
         $coroutines = new PendingCoroutines();
         $trackedDuringFlush = false;
 
-        // Suspend A so it is still pending when flushPending snapshots the set.
-        // A then tracks B from inside its own body, mid-flush.
         $futureA = async(static function () use ($coroutines, &$trackedDuringFlush): void {
             delay(0);
             $coroutines->track(async(static function () use (&$trackedDuringFlush): void {
@@ -140,8 +136,6 @@ final class PendingCoroutinesTest extends AbstractMcpTestCase
 
     public function testAnEscapedCoroutineExceptionIsReported(): void
     {
-        // `awaitAll()` collects failures instead of raising them, so without this the only trace of a
-        // coroutine that died outside its handler guard is a response the peer never receives.
         $logger = new ArrayLogger();
         $coroutines = new PendingCoroutines($logger);
         $failure = new \RuntimeException('boom');

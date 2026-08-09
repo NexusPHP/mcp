@@ -84,7 +84,6 @@ final class BearerAuthenticationMiddlewareTest extends AbstractMcpTestCase
 
     public function testConfiguredLeewayToleratesATokenExpiredWithinIt(): void
     {
-        // A validator set up for clock skew keeps its own leeway, which does not reach here.
         $handler = self::handler();
         $token = new VerifiedAccessToken([self::RESOURCE], subject: 'the-subject', expiresAt: 940);
 
@@ -116,7 +115,6 @@ final class BearerAuthenticationMiddlewareTest extends AbstractMcpTestCase
         $validator = self::createStub(AccessTokenValidatorInterface::class);
         $validator->method('validate')->willReturn($recognised);
 
-        // Constructed without an expiry leeway, so the constructor's own default is what is under test.
         $middleware = new BearerAuthenticationMiddleware(
             $validator,
             self::RESOURCE,
@@ -148,7 +146,6 @@ final class BearerAuthenticationMiddlewareTest extends AbstractMcpTestCase
 
     public function testATokenReportingNoExpiryIsAccepted(): void
     {
-        // An opaque-token validator may have no expiry to report, and that is not a reason to refuse.
         $handler = self::handler();
         $token = new VerifiedAccessToken([self::RESOURCE], subject: 'the-subject');
 
@@ -194,8 +191,7 @@ final class BearerAuthenticationMiddlewareTest extends AbstractMcpTestCase
 
         $response = self::middleware()->process(self::request(null)->withHeader('Authorization', $header), $handler);
 
-        // RFC 6750 section 3 puts an unsupported authentication method with a request that carried no
-        // credentials at all, and asks that neither be told an error code.
+        // RFC 6750 section 3 asks that neither an unsupported authentication method nor a credential-less request be told an error code.
         self::assertSame(401, $response->getStatusCode());
         self::assertFalse($handler->called);
         self::assertSame(['resource_metadata' => self::METADATA_URL], self::readChallenge($response));

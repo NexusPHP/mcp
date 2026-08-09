@@ -35,7 +35,7 @@ final class JwksAccessTokenValidatorTest extends AbstractMcpTestCase
 
     public function testAValidTokenMapsTheStandardClaims(): void
     {
-        $verified = self::validator()->validate(self::encode([
+        $verified = self::validator()->validate(self::encodeWithIssuerAndExpiry([
             'aud' => ['https://mcp.example.com/mcp', 'https://spare.example.com'],
             'scope' => 'mcp:use files:read',
             'sub' => 'user-7',
@@ -53,7 +53,7 @@ final class JwksAccessTokenValidatorTest extends AbstractMcpTestCase
 
     public function testAStringAudienceBecomesASingleEntryList(): void
     {
-        $verified = self::validator()->validate(self::encode(['aud' => 'https://mcp.example.com/mcp']));
+        $verified = self::validator()->validate(self::encodeWithIssuerAndExpiry(['aud' => 'https://mcp.example.com/mcp']));
 
         self::assertNotNull($verified);
         self::assertSame(['https://mcp.example.com/mcp'], $verified->audience);
@@ -61,7 +61,7 @@ final class JwksAccessTokenValidatorTest extends AbstractMcpTestCase
 
     public function testNonStringAudienceEntriesAreDropped(): void
     {
-        $verified = self::validator()->validate(self::encode(['aud' => ['https://mcp.example.com/mcp', 42]]));
+        $verified = self::validator()->validate(self::encodeWithIssuerAndExpiry(['aud' => ['https://mcp.example.com/mcp', 42]]));
 
         self::assertNotNull($verified);
         self::assertSame(['https://mcp.example.com/mcp'], $verified->audience);
@@ -69,7 +69,7 @@ final class JwksAccessTokenValidatorTest extends AbstractMcpTestCase
 
     public function testAMissingAudienceIsEmpty(): void
     {
-        $verified = self::validator()->validate(self::encode(['sub' => 'user-7']));
+        $verified = self::validator()->validate(self::encodeWithIssuerAndExpiry(['sub' => 'user-7']));
 
         self::assertNotNull($verified);
         self::assertSame([], $verified->audience);
@@ -78,7 +78,7 @@ final class JwksAccessTokenValidatorTest extends AbstractMcpTestCase
 
     public function testScpAsAListIsReadAsScopes(): void
     {
-        $verified = self::validator()->validate(self::encode(['scp' => ['mcp:use', '', 7, 'files:read']]));
+        $verified = self::validator()->validate(self::encodeWithIssuerAndExpiry(['scp' => ['mcp:use', '', 7, 'files:read']]));
 
         self::assertNotNull($verified);
         self::assertSame(['mcp:use', 'files:read'], $verified->scopes);
@@ -86,7 +86,7 @@ final class JwksAccessTokenValidatorTest extends AbstractMcpTestCase
 
     public function testScpAsAStringIsSplitLikeScope(): void
     {
-        $verified = self::validator()->validate(self::encode(['scp' => 'mcp:use files:read']));
+        $verified = self::validator()->validate(self::encodeWithIssuerAndExpiry(['scp' => 'mcp:use files:read']));
 
         self::assertNotNull($verified);
         self::assertSame(['mcp:use', 'files:read'], $verified->scopes);
@@ -94,7 +94,7 @@ final class JwksAccessTokenValidatorTest extends AbstractMcpTestCase
 
     public function testScopeOutranksScp(): void
     {
-        $verified = self::validator()->validate(self::encode(['scope' => 'mcp:use', 'scp' => ['other']]));
+        $verified = self::validator()->validate(self::encodeWithIssuerAndExpiry(['scope' => 'mcp:use', 'scp' => ['other']]));
 
         self::assertNotNull($verified);
         self::assertSame(['mcp:use'], $verified->scopes);
@@ -102,7 +102,7 @@ final class JwksAccessTokenValidatorTest extends AbstractMcpTestCase
 
     public function testNoScopeClaimMeansNoScopes(): void
     {
-        $verified = self::validator()->validate(self::encode(['scope' => 42]));
+        $verified = self::validator()->validate(self::encodeWithIssuerAndExpiry(['scope' => 42]));
 
         self::assertNotNull($verified);
         self::assertSame([], $verified->scopes);
@@ -112,10 +112,10 @@ final class JwksAccessTokenValidatorTest extends AbstractMcpTestCase
     {
         $validator = self::validator();
 
-        $azp = $validator->validate(self::encode(['azp' => 'from-azp', 'client_id' => 'from-client-id', 'cid' => 'from-cid']));
-        $clientId = $validator->validate(self::encode(['client_id' => 'from-client-id', 'cid' => 'from-cid']));
-        $cid = $validator->validate(self::encode(['cid' => 'from-cid']));
-        $nonString = $validator->validate(self::encode(['azp' => 99]));
+        $azp = $validator->validate(self::encodeWithIssuerAndExpiry(['azp' => 'from-azp', 'client_id' => 'from-client-id', 'cid' => 'from-cid']));
+        $clientId = $validator->validate(self::encodeWithIssuerAndExpiry(['client_id' => 'from-client-id', 'cid' => 'from-cid']));
+        $cid = $validator->validate(self::encodeWithIssuerAndExpiry(['cid' => 'from-cid']));
+        $nonString = $validator->validate(self::encodeWithIssuerAndExpiry(['azp' => 99]));
 
         self::assertSame('from-azp', $azp?->clientId);
         self::assertSame('from-client-id', $clientId?->clientId);
@@ -125,7 +125,7 @@ final class JwksAccessTokenValidatorTest extends AbstractMcpTestCase
 
     public function testANonStringSubjectIsDropped(): void
     {
-        $verified = self::validator()->validate(self::encode(['sub' => 12_345]));
+        $verified = self::validator()->validate(self::encodeWithIssuerAndExpiry(['sub' => 12_345]));
 
         self::assertNotNull($verified);
         self::assertNull($verified->subject);
@@ -133,7 +133,7 @@ final class JwksAccessTokenValidatorTest extends AbstractMcpTestCase
 
     public function testAnExpiredTokenIsRefused(): void
     {
-        self::assertNull(self::validator()->validate(self::encode(['exp' => time() - 60])));
+        self::assertNull(self::validator()->validate(self::encodeWithIssuerAndExpiry(['exp' => time() - 60])));
     }
 
     public function testAForeignSignatureIsRefused(): void
@@ -155,29 +155,33 @@ final class JwksAccessTokenValidatorTest extends AbstractMcpTestCase
         self::assertNull(self::validator()->validate($token));
     }
 
-    #[DataProvider('provideAnyNumericExpiryIsAcceptedCases')]
-    public function testAnyNumericExpiryIsAccepted(float|int|string $expiry, int $expected): void
-    {
-        // The library accepts and expiry-checks every numeric shape, so refusing one turns away a
-        // token it already validated.
-        $verified = self::validator()->validate(self::encode(['exp' => $expiry]));
-
-        self::assertNotNull($verified);
-        self::assertSame($expected, $verified->expiresAt);
-    }
-
     /**
-     * @return iterable<string, array{0: float|int|string, 1: int}>
+     * @param \Closure(int): (float|int|string) $spell
      */
-    public static function provideAnyNumericExpiryIsAcceptedCases(): iterable
+    #[DataProvider('provideAnyNumericExpiryIsAcceptedCases')]
+    public function testAnyNumericExpiryIsAccepted(\Closure $spell): void
     {
         $expiry = time() + 60;
 
-        yield 'integer' => [$expiry, $expiry];
+        $verified = self::validator()->validate(self::encodeWithIssuerAndExpiry(['exp' => $spell($expiry)]));
 
-        yield 'fractional' => [$expiry + 0.75, $expiry];
+        self::assertNotNull($verified);
+        self::assertSame($expiry, $verified->expiresAt);
+    }
 
-        yield 'numeric string' => [(string) $expiry, $expiry];
+    /**
+     * The expiry is spelled from a base the test resolves, since one baked in here would age past
+     * the token's lifetime on a slow run.
+     *
+     * @return iterable<string, array{0: \Closure(int): (float|int|string)}>
+     */
+    public static function provideAnyNumericExpiryIsAcceptedCases(): iterable
+    {
+        yield 'integer' => [static fn(int $expiry): int => $expiry];
+
+        yield 'fractional' => [static fn(int $expiry): float => $expiry + 0.75];
+
+        yield 'numeric string' => [static fn(int $expiry): string => (string) $expiry];
     }
 
     public function testATokenFromAnotherIssuerIsRefused(): void
@@ -213,12 +217,9 @@ final class JwksAccessTokenValidatorTest extends AbstractMcpTestCase
     }
 
     /**
-     * Mints a token with the issuer and expiry every accepted token needs, so a case states only the
-     * claims it is about.
-     *
      * @param array<string, mixed> $claims
      */
-    private static function encode(array $claims): string
+    private static function encodeWithIssuerAndExpiry(array $claims): string
     {
         return self::encodeExactly($claims + ['iss' => self::ISSUER, 'exp' => time() + 60]);
     }

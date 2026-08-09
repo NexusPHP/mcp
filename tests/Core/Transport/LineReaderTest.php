@@ -127,8 +127,6 @@ final class LineReaderTest extends AbstractMcpTestCase
 
     public function testThrowsWhenTrailingPartialLineAtEofExceedsCap(): void
     {
-        // The cap trips during the read loop, not at EOF. A 65-byte chunk with
-        // no delimiter is rejected on the post-chunk guard.
         $reader = new LineReader(
             new ReadableIterableStream(new \ArrayIterator(['a', str_repeat('b', 65)])),
             maxLineBytes: 64,

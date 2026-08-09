@@ -19,7 +19,7 @@ use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\Result;
 
 /**
- * Adapts a closure into a `RequestHandlerInterface` for ad-hoc test wiring.
+ * Closure adapter for `RequestHandlerInterface`.
  *
  * @internal
  *

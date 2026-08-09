@@ -164,8 +164,6 @@ final class AuthorizationRequestTest extends AbstractMcpTestCase
         $this->expectException(UntrustedAuthorizationMetadataException::class);
         $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the authorization endpoint "https://auth.example.com/authorize#done" carries a fragment.');
 
-        // A fragment would swallow the `state` and `code_challenge` this builder appends, leaving the
-        // authorization server to answer a request it never saw either of.
         self::build(new ScopeSet(), 'https://auth.example.com/authorize#done');
     }
 

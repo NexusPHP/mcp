@@ -62,19 +62,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
- * Pins the exact JSON-RPC envelope shape that every concrete request,
- * notification, result response, and error response writes to the envelope.
- *
- * Each fixture is a hand-authored, pretty-printed JSON file under
- * `envelope-shapes/{Class}/{variant}.json`. The test decodes the fixture,
- * reconstructs the schema instance, re-encodes with `JSON_PRETTY_PRINT`,
- * and asserts the string round-trips byte-for-byte. Companion gates
- * ensure every concrete spec class has at least one fixture and that no
- * orphan fixture directory exists on disk.
- *
- * Variant convention is two files per class: `all-props.json` (every optional
- * field populated) and `none.json` (only required fields). With no optional
- * params they collapse to a single `all-props.json`.
+ * Pins the exact JSON-RPC envelope shape every concrete request, notification, result response, and error response writes, two fixtures per class: `all-props.json` and `none.json`.
  *
  * @internal
  */
@@ -195,21 +183,13 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
     }
 
     /**
-     * Envelope fixture registry. Each entry binds a fixture directory to
-     * a wrapper class and (for parameterized response wrappers) the inner
-     * payload class needed to reconstruct the envelope. The optional
-     * `encodingPathsDiverge` flag disables the cross-path encoding check
-     * for entries whose `jsonSerialize` substitutes `\stdClass` for an
-     * empty object slot that `toArray` returns as `[]` (directly or via
-     * composition). Result responses inherit this from `Result`, which
-     * applies the substitution at the result level.
+     * Envelope fixture registry binding a fixture directory to its wrapper class, inner payload class, and optional `encodingPathsDiverge` flag.
      *
      * @return iterable<string, array{wrapper: class-string, inner: null|class-string<Result>, encodingPathsDiverge?: bool}>
      */
     #[\Override]
     protected static function registry(): iterable
     {
-        // Concrete requests.
         yield 'DiscoverRequest' => ['wrapper' => DiscoverRequest::class, 'inner' => null];
 
         yield 'ReadResourceRequest' => ['wrapper' => ReadResourceRequest::class, 'inner' => null, 'encodingPathsDiverge' => true];
@@ -236,7 +216,6 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
 
         yield 'CancelTaskRequest' => ['wrapper' => CancelTaskRequest::class, 'inner' => null];
 
-        // Concrete notifications.
         yield 'CancelledNotification' => ['wrapper' => CancelledNotification::class, 'inner' => null];
 
         yield 'ProgressNotification' => ['wrapper' => ProgressNotification::class, 'inner' => null];
@@ -251,9 +230,6 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
 
         yield 'SubscriptionsAcknowledgedNotification' => ['wrapper' => SubscriptionsAcknowledgedNotification::class, 'inner' => null, 'encodingPathsDiverge' => true];
 
-        // Result responses. Typed envelopes self-decode via `fromArray`; the
-        // generic writer carries results with no dedicated envelope (`EmptyResult`)
-        // and is reconstructed from its inner result.
         yield 'CallToolResult' => ['wrapper' => CallToolResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => null];
 
         yield 'CompleteResult' => ['wrapper' => CompleteResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => null];
@@ -282,8 +258,6 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
 
         yield 'GetTaskResult' => ['wrapper' => GenericResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => GetTaskResult::class];
 
-        // Error responses, organised per Error subclass even though
-        // `JsonRpcErrorResponse::fromArray` self-dispatches on `code`.
         yield 'JsonRpcErrorResponse-HeaderMismatchError' => ['wrapper' => JsonRpcErrorResponse::class, 'inner' => null];
 
         yield 'JsonRpcErrorResponse-InternalError' => ['wrapper' => JsonRpcErrorResponse::class, 'inner' => null];

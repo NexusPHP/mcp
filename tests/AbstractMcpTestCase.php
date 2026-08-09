@@ -17,8 +17,7 @@ use PHPUnit\Framework\TestCase;
 
 if (method_exists(TestCase::class, 'expectExceptionMessageIs')) {
     /**
-     * Base class every test extends, so the suite runs on both PHPUnit majors the
-     * supported PHP range resolves to.
+     * Base class every test extends.
      *
      * @internal
      */
@@ -27,8 +26,7 @@ if (method_exists(TestCase::class, 'expectExceptionMessageIs')) {
     }
 } else {
     /**
-     * Base class every test extends, so the suite runs on both PHPUnit majors the
-     * supported PHP range resolves to.
+     * Base class every test extends.
      *
      * @internal
      */

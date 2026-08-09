@@ -17,19 +17,15 @@ use Nexus\Assert\Assert;
 use Nexus\Assert\ExpectationFailedException;
 
 /**
- * Shared helpers for JSON shapes that discriminate concrete subtypes by a
- * `type` field. Used by `PromptMessage` to dispatch over `ContentBlock`
- * concretes and by `CompleteRequestParams` to dispatch between the two
- * `Reference` shapes.
+ * Shared helpers for JSON shapes that discriminate concrete subtypes by a `type` field.
  *
  * @internal
  */
 final class MessageDiscriminator
 {
     /**
-     * Reads and validates the discriminator `type` field from a payload.
-     * The `$context` prefix scopes both error messages to the calling shape
-     * (e.g. `"PromptMessage content"`, `"CompleteRequestParams ref"`).
+     * Reads and validates the discriminator `type` field from a payload, `$context` scoping both error
+     * messages to the calling shape.
      *
      * @param array<string, mixed> $data
      * @param non-empty-string     $context
@@ -44,10 +40,6 @@ final class MessageDiscriminator
     }
 
     /**
-     * Builds the exception for a payload whose `type` did not match any
-     * allowed discriminator. The allowed values appear quoted in the message,
-     * e.g. `must be one of "ref/prompt", "ref/resource"`.
-     *
      * @param non-empty-string                 $context
      * @param non-empty-list<non-empty-string> $allowedTypes
      */

@@ -26,8 +26,8 @@ use Nexus\Mcp\Extension\Auth\Exception\UnsupportedGrantException;
 final readonly class GrantTypeAdvertisement
 {
     /**
-     * Refuses a grant type an authorization server published a list without. A server that publishes no
-     * list at all is taken on trust, since RFC 8414 leaves the field optional.
+     * Refuses a grant type absent from a published list, taking a server that publishes no list on trust
+     * since RFC 8414 leaves the field optional.
      *
      * @param non-empty-string $grantType
      *

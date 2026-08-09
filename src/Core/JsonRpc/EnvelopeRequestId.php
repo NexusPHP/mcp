@@ -16,9 +16,8 @@ namespace Nexus\Mcp\Core\JsonRpc;
 use Nexus\Mcp\Core\Schema\RequestId;
 
 /**
- * Recovers the `id` of a raw JSON-RPC envelope, so a malformed message can still be answered to the request
- * that sent it. MCP narrows the JSON-RPC id to `int|non-empty-string`, so anything else yields `null` and is
- * answered id-less.
+ * Recovers the `id` of a raw JSON-RPC envelope, yielding `null` for anything outside MCP's
+ * `int|non-empty-string` narrowing.
  *
  * @internal
  */

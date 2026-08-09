@@ -18,9 +18,7 @@ use Nexus\Mcp\Core\Schema\Result\InputResponse;
 use Nexus\Mcp\Extension\Tasks\Schema\Enum\TaskStatus;
 
 /**
- * A store-side snapshot of one task: its lifecycle state, the payload its
- * terminal status carries, and the continuation state the input-required
- * flow re-dispatches with.
+ * A store-side snapshot of one task.
  */
 final readonly class TaskRecord
 {

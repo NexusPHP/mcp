@@ -20,13 +20,7 @@ use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
 
 /**
- * Requires a constructor parameter assigned unchanged to a same-named property to be promoted,
- * so a declared type lives on the parameter where callers can see it rather than on a separate
- * property declaration.
- *
- * Three shapes are deliberately left alone, because promotion would change behaviour or lose a
- * type: a parameter reassigned before it is stored, one whose stored value is transformed, and
- * one whose property type is narrower than the parameter accepts.
+ * Rule requiring a constructor parameter stored unchanged in a same-named property to be promoted.
  *
  * @implements Rule<Node\Stmt\ClassMethod>
  *
@@ -115,8 +109,7 @@ final class PromotableConstructorPropertyRule implements Rule
     }
 
     /**
-     * Names assigned anywhere in the constructor body, which promotion would silently discard
-     * because a promoted property is set before the body runs.
+     * A promoted property is set before the body runs, so promotion would silently discard these.
      *
      * @return array<string, true>
      */
@@ -134,8 +127,6 @@ final class PromotableConstructorPropertyRule implements Rule
     }
 
     /**
-     * Names stored verbatim as `$this->name = $name;`.
-     *
      * @return list<string>
      */
     private static function findIdentityAssignments(Node\Stmt\ClassMethod $constructor): array

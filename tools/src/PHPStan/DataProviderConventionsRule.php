@@ -21,8 +21,7 @@ use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
 
 /**
- * Enforces the naming and return shape of PHPUnit data providers: a `provide*Cases` name, a
- * native `iterable` return type, and a `@return` naming both the case key and the argument shape.
+ * Rule enforcing the naming and return shape of PHPUnit data providers.
  *
  * @implements Rule<InClassMethodNode>
  *
@@ -53,8 +52,7 @@ final class DataProviderConventionsRule implements Rule
 
         return [
             ...self::checkNaming($method),
-            // The type-inference data files drive PHPStan itself, so their providers yield file paths
-            // rather than case shapes.
+            // The type-inference data files drive PHPStan itself, so their providers yield file paths, not cases.
             ...str_ends_with($class->getName(), 'TypeInferenceTest') ? [] : self::checkReturnShape($method),
         ];
     }

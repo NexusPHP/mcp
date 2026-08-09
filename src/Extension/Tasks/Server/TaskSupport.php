@@ -14,8 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Extension\Tasks\Server;
 
 /**
- * How a tool participates in task execution. A tool with no policy always
- * runs synchronously.
+ * How a tool participates in task execution.
  */
 enum TaskSupport
 {

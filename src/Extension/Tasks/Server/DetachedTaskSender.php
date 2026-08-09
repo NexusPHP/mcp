@@ -21,11 +21,7 @@ use Nexus\Mcp\Core\Schema\RequestId;
 use Psr\Log\LoggerInterface;
 
 /**
- * Sender for detached task fibers: the creating request's channel is gone by
- * the time the task runs, and the extension forbids progress and log
- * notifications on the tasks channel, so notifications are dropped with a
- * debug log and requests are refused. A tool that needs client input from a
- * task returns an `InputRequiredResult` instead of sending a request.
+ * Sender for detached task fibers, dropping notifications and refusing requests.
  *
  * @internal
  */

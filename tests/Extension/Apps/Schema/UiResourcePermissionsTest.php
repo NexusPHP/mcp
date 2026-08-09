@@ -103,7 +103,6 @@ final class UiResourcePermissionsTest extends AbstractMcpTestCase
     {
         $permissions = new UiResourcePermissions(camera: true, geolocation: true);
 
-        // json_decode(assoc) renders each `{}` value as an empty array.
         $reconstructed = UiResourcePermissions::fromArray(['camera' => [], 'geolocation' => []]);
 
         self::assertSame(

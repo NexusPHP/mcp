@@ -657,8 +657,6 @@ final class ClientBuilderTest extends AbstractMcpTestCase
         $transport->emitMessage(self::discoverResponse(1, ['tools' => []]));
         $deferred->await();
 
-        // A second factory-minted id must increment, not reset to 1. Guards against an
-        // arrow-function factory whose by-value counter capture never persists.
         $list = async(static fn() => $client->listTools());
         $transport->nextSend()->await();
         self::assertCount(2, $transport->sent);

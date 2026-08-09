@@ -19,8 +19,7 @@ use Nexus\Mcp\Core\Schema\MetaObject\GenericResultMetaObject;
 use Nexus\Mcp\Core\Schema\MetaObject\ResultMetaObject;
 
 /**
- * Common shape for results that paginate via an opaque cursor. Subclasses add their own
- * payload field alongside the optional `nextCursor`.
+ * Common shape for results that paginate via an opaque cursor.
  *
  * @template-covariant T of array<string, mixed>
  *

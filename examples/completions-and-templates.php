@@ -11,17 +11,6 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-/*
- * Demonstrates two server features the other examples skip: RFC 6570 templated
- * resources (`users://{userId}`) and argument completion (`completion/complete`)
- * for both a resource template and a prompt. Server and client run in one
- * process over `InMemoryTransport::createPair()`.
- *
- * Run with:
- *
- *     php examples/completions-and-templates.php
- */
-
 require __DIR__.'/bootstrap.php';
 
 use Nexus\Mcp\Client\ClientBuilder;
@@ -46,9 +35,6 @@ use Psr\Log\NullLogger;
 use function Amp\async;
 
 /**
- * Builds a completion callback that suggests whichever candidates start with what
- * has been typed so far.
- *
  * @param list<string> $candidates
  *
  * @return Closure(string, ?array<array-key, string>, ServerContext): CompleteResult
@@ -139,11 +125,10 @@ try {
         new ResourceTemplateReference(uri: 'users://{userId}'),
         ['name' => 'userId', 'value' => 'al'],
     );
-    fwrite(\STDOUT, sprintf("    suggestions: %s\n\n", implode(', ', $userIds->completion['values'])));
 
+    fwrite(\STDOUT, sprintf("    suggestions: %s\n\n", implode(', ', $userIds->completion['values'])));
     fwrite(\STDOUT, "=== resources/read users://alice (matched against the template) ===\n");
 
-    // A read can answer `InputRequiredResult` when the server needs input first. See docs/client.md.
     $resource = $client->readResource('users://alice');
 
     if ($resource instanceof ReadResourceResult) {
@@ -159,8 +144,8 @@ try {
         new PromptReference(name: 'greet'),
         ['name' => 'style', 'value' => 'c'],
     );
-    fwrite(\STDOUT, sprintf("    suggestions: %s\n\n", implode(', ', $styles->completion['values'])));
 
+    fwrite(\STDOUT, sprintf("    suggestions: %s\n\n", implode(', ', $styles->completion['values'])));
     fwrite(\STDOUT, "=== prompts/get greet (style='formal') ===\n");
 
     $prompt = $client->getPrompt('greet', ['style' => 'formal']);

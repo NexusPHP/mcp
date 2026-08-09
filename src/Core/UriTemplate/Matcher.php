@@ -14,10 +14,8 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\UriTemplate;
 
 /**
- * Reverse-matches a concrete URI against an RFC 6570 Level 1 URI template,
- * producing variable bindings on success or null on no-match. Captured values
- * are `rawurldecode`d, so callers treating a binding as a path component must
- * sanitise the decoded result themselves.
+ * Reverse-matches a concrete URI against an RFC 6570 Level 1 URI template, producing `rawurldecode`d
+ * bindings a caller must sanitise itself.
  *
  * @internal
  *
@@ -26,8 +24,7 @@ namespace Nexus\Mcp\Core\UriTemplate;
 final class Matcher
 {
     /**
-     * Compiles a template into a ready-to-use PCRE pattern. Callers in hot paths
-     * should compile once and pass the result to `matchCompiled()` per request.
+     * Compiles a template once into a PCRE pattern to hand to `matchCompiled()` per request.
      *
      * @param non-empty-string $template A template already passed through `Validator`
      *
@@ -47,7 +44,6 @@ final class Matcher
             $body .= preg_quote(substr($template, $cursor, $exprStart - $cursor), '~');
 
             if (\in_array($name, $seen, true)) {
-                // Repeated name: backreference so it must capture the same text.
                 $body .= \sprintf('(?P=%s)', $name);
             } else {
                 $body .= \sprintf('(?P<%s>[^/?#]+)', $name);

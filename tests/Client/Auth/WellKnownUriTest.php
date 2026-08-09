@@ -136,8 +136,7 @@ final class WellKnownUriTest extends AbstractMcpTestCase
 
     public function testAResourceQueryIsKeptOnThePathScopedUrlAndDroppedFromTheRootFallback(): void
     {
-        // The root form is the URL RFC 9728 assigns to `https://mcp.example.com?tenant=acme`, a resource
-        // this one is not, so asking for it under this query would read another resource's document.
+        // The root form is the URL RFC 9728 assigns to another resource, so asking for it under this query would read that one's document.
         self::assertSame([
             'https://mcp.example.com/.well-known/oauth-protected-resource/mcp?tenant=acme',
             'https://mcp.example.com/.well-known/oauth-protected-resource',

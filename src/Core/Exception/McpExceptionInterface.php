@@ -14,8 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Exception;
 
 /**
- * Marker for every exception thrown by this SDK. Consumers can catch this
- * interface to handle any SDK-originated error with a single `catch` block.
+ * Marker for every exception thrown by this SDK.
  */
 interface McpExceptionInterface extends \Throwable
 {

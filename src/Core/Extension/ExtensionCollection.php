@@ -28,9 +28,7 @@ use Nexus\Mcp\Core\Validation\ExtensionIdentifierValidator;
 use Nexus\Mcp\Core\Validation\MethodClassValidator;
 
 /**
- * Collects the extensions a builder enables, validates each declaration, and
- * owns the method-ownership ledgers. Declarations are snapshotted at `add()`
- * time, so the maps served to the builders are the ones that were validated.
+ * Collection of the extensions a builder enables, owning the method-ownership ledgers.
  *
  * @internal
  *
@@ -81,8 +79,7 @@ final class ExtensionCollection
     private array $outboundOwners = [];
 
     /**
-     * Stored behind an opaque closure supertype: the server-side decorator
-     * seam owns the real signature, and the builder re-narrows on read.
+     * Stored behind an opaque closure supertype: the server-side decorator seam owns the real signature.
      *
      * @var array<non-empty-string, array<non-empty-string, StoredRequestDecorator>>
      */
@@ -90,11 +87,10 @@ final class ExtensionCollection
 
     /**
      * @param ExtensionInterface<TContext>                    $extension
-     * @param list<non-empty-string>                          $claimedRequests       Methods a builder-registered request handler already owns
-     * @param list<non-empty-string>                          $claimedNotifications  Methods a builder-registered notification handler already owns
-     * @param list<non-empty-string>                          $outboundRequests      Client-to-server methods the extension invokes
-     * @param bool                                            $requireClientRequests Require each request class to implement `ClientRequest`
-     * @param array<non-empty-string, StoredRequestDecorator> $requestDecorators     Decorators keyed by the spec-registry method they wrap
+     * @param list<non-empty-string>                          $claimedRequests      Methods a builder-registered request handler already owns
+     * @param list<non-empty-string>                          $claimedNotifications Methods a builder-registered notification handler already owns
+     * @param list<non-empty-string>                          $outboundRequests     Client-to-server methods the extension invokes
+     * @param array<non-empty-string, StoredRequestDecorator> $requestDecorators
      *
      * @throws DuplicateExtensionException
      * @throws ExtensionMethodCollisionException
@@ -189,8 +185,6 @@ final class ExtensionCollection
     }
 
     /**
-     * Refuses a builder-registered handler for a method an enabled extension owns.
-     *
      * @param non-empty-string $method
      *
      * @throws ExtensionMethodCollisionException
@@ -210,8 +204,6 @@ final class ExtensionCollection
     }
 
     /**
-     * The identifier of the enabled extension owning `$method` as a request, if any.
-     *
      * @return null|non-empty-string
      */
     public function findRequestOwner(string $method): ?string
@@ -220,8 +212,6 @@ final class ExtensionCollection
     }
 
     /**
-     * The identifier of the enabled extension owning `$method` as a notification, if any.
-     *
      * @return null|non-empty-string
      */
     public function findNotificationOwner(string $method): ?string
@@ -260,8 +250,6 @@ final class ExtensionCollection
     }
 
     /**
-     * The validated request handlers of every enabled extension, merged.
-     *
      * @return array<non-empty-string, RequestHandlerInterface<non-empty-string, Result, TContext>>
      */
     public function buildRequestHandlers(): array
@@ -276,8 +264,6 @@ final class ExtensionCollection
     }
 
     /**
-     * The validated notification handlers of every enabled extension, merged.
-     *
      * @return array<non-empty-string, NotificationHandlerInterface<non-empty-string>>
      */
     public function buildNotificationHandlers(): array
@@ -296,7 +282,7 @@ final class ExtensionCollection
     }
 
     /**
-     * Outbound method to owning identifier, for the client's send gate.
+     * Outbound method to owning identifier.
      *
      * @return array<non-empty-string, non-empty-string>
      */
@@ -306,8 +292,7 @@ final class ExtensionCollection
     }
 
     /**
-     * The validated request decorators keyed by owning identifier, in enable
-     * order so the last-enabled extension wraps outermost.
+     * The validated request decorators keyed by owning identifier, in enable order so the last wraps outermost.
      *
      * @return array<non-empty-string, array<non-empty-string, StoredRequestDecorator>>
      */

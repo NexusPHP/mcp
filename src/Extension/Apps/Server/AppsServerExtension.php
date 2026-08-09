@@ -17,9 +17,7 @@ use Nexus\Mcp\Extension\Apps\Apps;
 use Nexus\Mcp\Server\ServerExtensionInterface;
 
 /**
- * The official MCP Apps extension (`io.modelcontextprotocol/ui`, SEP-1865)
- * for the server: advertises the extension slot. The extension defines no
- * JSON-RPC methods, so there is nothing to serve or gate.
+ * The official MCP Apps extension (`io.modelcontextprotocol/ui`, SEP-1865) for the server.
  */
 final readonly class AppsServerExtension implements ServerExtensionInterface
 {

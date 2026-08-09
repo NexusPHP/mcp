@@ -11,17 +11,6 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-/*
- * Runs a server and a client in a single process over `InMemoryTransport::createPair()`,
- * with no subprocess. The server runs in a background coroutine while the client
- * drives it through the typed surface. This is the pattern for embedding an MCP
- * server inside a host application or exercising one in tests.
- *
- * Run with:
- *
- *     php examples/in-memory.php
- */
-
 require __DIR__.'/bootstrap.php';
 
 use Nexus\Mcp\Client\ClientBuilder;
@@ -71,8 +60,6 @@ $client = (new ClientBuilder())
     ->build()
 ;
 
-// The server blocks while running its loop, so it lives in a background
-// coroutine. The client's awaiting calls below yield to it.
 $serverRun = async(static fn() => $server->run($serverSide));
 
 $client->connect($clientSide);
@@ -94,7 +81,6 @@ try {
     }
 
     fwrite(\STDOUT, "\n=== tools/call add (a=2, b=3) ===\n");
-    // A tool can answer `InputRequiredResult` when it needs input first. See docs/client.md.
     $result = $client->callTool(name: 'add', arguments: ['a' => 2, 'b' => 3]);
 
     if ($result instanceof CallToolResult) {

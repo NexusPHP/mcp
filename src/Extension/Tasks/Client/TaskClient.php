@@ -36,8 +36,7 @@ use Nexus\Mcp\Extension\Tasks\Schema\ResultResponse\TaskCallToolResultResponse;
 use function Amp\delay;
 
 /**
- * Task-aware client surface over `Client::sendRequest()`, stamping every
- * request with the lifecycle `_meta` the server-side gates check.
+ * Task-aware client surface over `Client::sendRequest()`.
  */
 final readonly class TaskClient implements TaskClientInterface
 {

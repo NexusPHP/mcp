@@ -16,10 +16,7 @@ namespace Nexus\Mcp\Core\Http;
 use Nexus\Mcp\Core\Exception\ResponseTooLargeException;
 
 /**
- * Incremental Server-Sent Events parser: absorbs response chunks and yields whole frames as they complete.
- *
- * Lines end with LF, CRLF, or CR. A line beginning with a colon is a comment, which servers emit as a
- * keep-alive and clients must ignore. A blank line dispatches the frame, unless no data accumulated.
+ * Incremental Server-Sent Events parser.
  *
  * @internal
  *
@@ -27,11 +24,7 @@ use Nexus\Mcp\Core\Exception\ResponseTooLargeException;
  */
 final class SseFrameParser
 {
-    /**
-     * Bytes one frame may absorb before the stream is abandoned.
-     */
     public const int DEFAULT_MAX_FRAME_BYTES = 10_485_760;
-
     private const string DEFAULT_EVENT = 'message';
 
     /**
@@ -59,24 +52,17 @@ final class SseFrameParser
      */
     private string $event = self::DEFAULT_EVENT;
 
-    /**
-     * @param int $maxFrameBytes Bytes one frame may absorb before the stream is abandoned
-     */
     public function __construct(private readonly int $maxFrameBytes = self::DEFAULT_MAX_FRAME_BYTES)
     {
     }
 
     /**
-     * Absorbs a chunk of the response body, returning every frame it completed.
-     *
      * @return list<SseFrame>
      *
      * @throws ResponseTooLargeException
      */
     public function feed(string $chunk): array
     {
-        // Neither a line nor a frame has to end for bytes to keep arriving, so the reader would otherwise
-        // hold an unterminated stream in memory for as long as a peer cares to send one.
         $this->frameBytes += \strlen($chunk);
 
         if ($this->frameBytes > $this->maxFrameBytes) {
@@ -84,8 +70,6 @@ final class SseFrameParser
         }
 
         if ($this->afterCarriageReturn && str_starts_with($chunk, "\n")) {
-            // The CR that ended the previous chunk and this LF are the two halves of one CRLF. Splitting
-            // on both would read the LF as a second, empty line and dispatch a frame the sender never ended.
             $chunk = substr($chunk, 1);
         }
 
@@ -93,13 +77,12 @@ final class SseFrameParser
         $this->afterCarriageReturn = str_ends_with($this->pending, "\r");
         $frames = [];
 
-        // The final segment carries no terminator yet, so it waits for the chunk that supplies one.
         $lines = preg_split('/\r\n|\n|\r/', $this->pending);
         \assert(\is_array($lines));
         $this->pending = (string) array_pop($lines);
 
         foreach ($lines as $line) {
-            $frame = $this->consume($line);
+            $frame = $this->consumeLine($line);
 
             if (null !== $frame) {
                 $frames[] = $frame;
@@ -110,18 +93,12 @@ final class SseFrameParser
         return $frames;
     }
 
-    /**
-     * Interprets one complete line, returning the frame it dispatched.
-     */
-    private function consume(string $line): ?SseFrame
+    private function consumeLine(string $line): ?SseFrame
     {
         if ('' === $line) {
             return $this->dispatch();
         }
 
-        // A comment line, which the transport keep-alive uses, opens with a colon and so splits to an empty
-        // field name that matches nothing below. `id` and `retry` are likewise ignored: a request-scoped MCP
-        // stream is not resumable.
         [$field, $value] = self::split($line);
 
         if ('data' === $field) {
@@ -134,7 +111,7 @@ final class SseFrameParser
     }
 
     /**
-     * Emits the accumulated frame and resets for the next one. A frame with no data is not dispatched.
+     * Emits the accumulated frame and resets for the next one, dispatching nothing when no data accumulated.
      */
     private function dispatch(): ?SseFrame
     {
@@ -148,8 +125,8 @@ final class SseFrameParser
     }
 
     /**
-     * Splits a field line on its first colon, stripping one optional space after it. A line with no colon
-     * is a field with an empty value.
+     * Splits a field line on its first colon, stripping one optional space after it, a colonless line being
+     * a field with an empty value.
      *
      * @return array{string, string}
      */

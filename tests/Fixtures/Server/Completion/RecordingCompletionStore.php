@@ -20,7 +20,7 @@ use Nexus\Mcp\Server\Completion\CompletionStoreInterface;
 use Nexus\Mcp\Server\ServerContext;
 
 /**
- * Records every `complete()` invocation in-memory for assertion in tests.
+ * In-memory `CompletionStoreInterface` recording every `complete()` call.
  *
  * @internal
  *

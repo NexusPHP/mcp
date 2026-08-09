@@ -16,8 +16,7 @@ namespace Nexus\Mcp\Core\Exception;
 use Nexus\Mcp\Core\Schema\RequestId;
 
 /**
- * Thrown when a transport cannot carry an outbound request to completion, naming the request whose response
- * can therefore never arrive.
+ * Thrown when a transport cannot carry an outbound request to completion.
  */
 final class OutboundRequestFailedException extends \RuntimeException implements McpExceptionInterface
 {

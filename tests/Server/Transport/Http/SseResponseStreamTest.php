@@ -118,8 +118,6 @@ final class SseResponseStreamTest extends AbstractMcpTestCase
             $anchor = EventLoop::delay(1.0, static fn(): null => null);
 
             try {
-                // A host copying into a fixed buffer must not be handed more bytes than it asked for, and
-                // every byte emitted has to count towards tell().
                 $first = $stream->read(4);
                 $rest = $stream->read(8_192);
 
@@ -141,7 +139,6 @@ final class SseResponseStreamTest extends AbstractMcpTestCase
         self::assertFalse($stream->eof());
 
         self::assertSame('ab', $stream->read(2));
-        // Drained but not ended: the consumer must keep waiting for more frames.
         self::assertFalse($stream->eof());
 
         $stream->end();

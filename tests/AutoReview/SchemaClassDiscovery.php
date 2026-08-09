@@ -14,18 +14,13 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\AutoReview;
 
 /**
- * Walks `src/` and exposes a cached, filtered view of the classes found
- * there. Shared between coverage gates that enumerate concrete subclasses
- * of an abstract/interface base (round-trip fixtures, type-inference
- * assertion files, schema conformance enforcement).
+ * Cached, filtered view of the classes under `src/`.
  *
  * @internal
  */
 trait SchemaClassDiscovery
 {
     /**
-     * Returns every concrete subclass of the given abstract/interface base.
-     *
      * @template T of object
      *
      * @param class-string<T> $base
@@ -56,8 +51,6 @@ trait SchemaClassDiscovery
     }
 
     /**
-     * Walks `src/` once and caches every concrete/abstract class found there.
-     *
      * @return list<class-string>
      */
     private static function sourceClasses(): array

@@ -18,8 +18,7 @@ use Nexus\Mcp\Core\Schema\Implementation;
 use Nexus\Mcp\Core\Schema\MetaObject;
 
 /**
- * Extends `MetaObject` with additional result-specific fields.
- * All key naming rules from `MetaObject` apply.
+ * Extends `MetaObject` with additional result-specific fields. All key naming rules from `MetaObject` apply.
  *
  * @extends MetaObject<array<array-key, mixed>>
  *
@@ -38,8 +37,7 @@ abstract readonly class ResultMetaObject extends MetaObject
     }
 
     /**
-     * Whether a server identity is present, in the typed slot or among the extras
-     * a directly constructed instance may still carry it in.
+     * Whether a server identity is present, in the typed slot or among the extras.
      *
      * @internal
      */
@@ -63,8 +61,6 @@ abstract readonly class ResultMetaObject extends MetaObject
     }
 
     /**
-     * Splits the typed server identity out of a raw `_meta` map, leaving the rest as extras.
-     *
      * @param array<array-key, mixed> $data
      *
      * @return array{null|Implementation, array<array-key, mixed>}

@@ -126,8 +126,6 @@ final class PendingInboundRequestsTest extends AbstractMcpTestCase
 
         $cancellation = $set->claim(new RequestId(id: 1));
 
-        // The deferred source must outlive the claim: its destructor cancels, so a map that held only
-        // the derived token would hand back an already-cancelled one.
         self::assertNotNull($cancellation);
         self::assertFalse($cancellation->isRequested());
     }

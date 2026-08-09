@@ -16,8 +16,7 @@ namespace Nexus\Mcp\Core\Exception;
 use Nexus\Mcp\Core\Schema\Error;
 
 /**
- * Thrown by the outbound-request `await` chain when the peer answers with a
- * `JsonRpcErrorResponse`.
+ * Thrown by the outbound-request `await` chain when the peer answers with a `JsonRpcErrorResponse`.
  */
 final class RemoteCallFailedException extends \RuntimeException implements McpExceptionInterface
 {

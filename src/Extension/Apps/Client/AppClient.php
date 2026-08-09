@@ -28,9 +28,7 @@ use Nexus\Mcp\Extension\Apps\Schema\UiResourceMeta;
 use Nexus\Mcp\Extension\Apps\Schema\UiToolMeta;
 
 /**
- * App-aware client surface reading the `_meta.ui` metadata the MCP Apps
- * extension defines and verifying `ui://` reads against the accepted mime
- * types.
+ * App-aware client surface for the MCP Apps extension.
  */
 final readonly class AppClient implements AppClientInterface
 {

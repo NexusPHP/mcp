@@ -16,14 +16,12 @@ namespace Nexus\Mcp\Extension\Auth\Enterprise;
 use Amp\Cancellation;
 
 /**
- * The consumer's seam to its own sign-on: hands the grant a current identity assertion each time one is
- * needed.
+ * The consumer's seam to its own sign-on.
  */
 interface IdentityAssertionProviderInterface
 {
     /**
-     * A currently valid identity assertion for the signed-in user. Called once per grant, so a fresh grant
-     * always presents a fresh assertion.
+     * A currently valid identity assertion for the signed-in user, called once per grant.
      */
     public function provideAssertion(Cancellation $cancellation): IdentityAssertion;
 }

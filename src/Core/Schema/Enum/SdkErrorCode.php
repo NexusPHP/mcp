@@ -14,11 +14,8 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\Enum;
 
 /**
- * JSON-RPC error codes this SDK allocates for itself, from the `-32000` to `-32019` range MCP
- * partitions for implementation-defined use. The specification never defines codes there, and a
- * receiver must not read cross-implementation meaning into them.
- *
- * The counterpart holding spec-defined codes is `ProtocolErrorCode`.
+ * JSON-RPC error codes this SDK allocates for itself, from the `-32000` to `-32019` range MCP partitions for
+ * implementation-defined use.
  *
  * @see https://www.jsonrpc.org/specification#error_object
  * @see https://modelcontextprotocol.io/specification/2026-07-28/basic/index#error-codes
@@ -26,8 +23,8 @@ namespace Nexus\Mcp\Core\Schema\Enum;
 enum SdkErrorCode: int
 {
     /**
-     * The server is already dispatching as many messages as it accepts at once.
-     * The request was not processed and may be retried.
+     * The server is already dispatching as many messages as it accepts at once, so the request went
+     * unprocessed and may be retried.
      */
     case Overloaded = -32_000;
 }

@@ -19,9 +19,6 @@ namespace Nexus\Mcp\Core\Exception;
  */
 final class UnexpectedHttpStatusException extends \RuntimeException implements McpExceptionInterface
 {
-    /**
-     * How many leading bytes of the answer's body are retained for diagnostics.
-     */
     private const int MAX_BODY_BYTES = 8_192;
 
     /**

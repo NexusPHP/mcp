@@ -22,8 +22,7 @@ use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\Result;
 
 /**
- * A client extension declaration assembled from constructor arguments, for
- * exercising `ClientBuilder::enableExtension()`.
+ * Client extension declaration assembled from constructor arguments.
  *
  * @internal
  */

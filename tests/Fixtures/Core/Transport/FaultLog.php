@@ -36,9 +36,6 @@ final class FaultLog
         $this->faults[] = $fault;
     }
 
-    /**
-     * The fault recorded at `$index`.
-     */
     public function readFault(int $index = 0): \Throwable
     {
         return $this->faults[$index] ?? throw new \OutOfBoundsException(\sprintf('No fault was recorded at index %d.', $index));

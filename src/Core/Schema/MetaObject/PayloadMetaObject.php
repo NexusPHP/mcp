@@ -16,9 +16,8 @@ namespace Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\MetaObject;
 
 /**
- * The `_meta` of a payload nested inside an envelope rather than of the envelope
- * itself, such as a tool, a resource, a prompt, or a content block. It reserves no
- * keys of its own, so every entry is an extra.
+ * The `_meta` of a payload nested inside an envelope (a tool, a resource, a prompt, a content block),
+ * reserving no keys of its own.
  *
  * @extends MetaObject<array<array-key, mixed>>
  */

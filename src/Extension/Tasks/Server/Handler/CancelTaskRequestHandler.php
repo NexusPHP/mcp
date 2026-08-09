@@ -24,9 +24,7 @@ use Nexus\Mcp\Extension\Tasks\Server\TaskCancellationRegistry;
 use Nexus\Mcp\Server\ServerContext;
 
 /**
- * Handles `tasks/cancel` cooperatively: the record is marked, any in-flight
- * fiber on this process is cancelled, and the acknowledgement is idempotent
- * on terminal tasks.
+ * Handles the `tasks/cancel` request, idempotently on a terminal task.
  *
  * @implements RequestHandlerInterface<'tasks/cancel', EmptyResult, ServerContext>
  */

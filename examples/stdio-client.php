@@ -11,18 +11,6 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-/*
- * An MCP client that spawns the `stdio-server.php` example as a subprocess and
- * drives it through the typed `Client` surface: handshake, `tools/list`, two
- * `tools/call`s, `resources/read`, and `prompts/list`. The `count_down` call
- * passes an `onProgress` callback, so the server's per-tick progress reports
- * stream back while the call is in flight.
- *
- * Run with:
- *
- *     php examples/stdio-client.php
- */
-
 require __DIR__.'/bootstrap.php';
 
 use Nexus\Mcp\Client\ClientBuilder;
@@ -80,7 +68,6 @@ try {
 
     fwrite(\STDOUT, "=== resources/read example://about ===\n");
 
-    // A read can answer `InputRequiredResult` when the server needs input first. See docs/client.md.
     $about = $client->readResource('example://about');
 
     if ($about instanceof ReadResourceResult) {
@@ -102,7 +89,6 @@ try {
 
 function renderText(CallToolResult|InputRequiredResult $result): string
 {
-    // A tool can ask for input before it will finish. See docs/client.md.
     if ($result instanceof InputRequiredResult) {
         return '(the server asked for input first)';
     }

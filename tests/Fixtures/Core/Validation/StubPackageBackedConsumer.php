@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Fixtures\Core\Validation;
 
 /**
- * Stands in for a class whose work is backed by a suggested package.
+ * Double for a class whose work is backed by a suggested package.
  *
  * @internal
  */

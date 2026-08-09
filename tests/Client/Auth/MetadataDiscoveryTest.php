@@ -121,8 +121,7 @@ final class MetadataDiscoveryTest extends AbstractMcpTestCase
 
     public function testTheRootDocumentMayNameTheOriginRatherThanTheEndpoint(): void
     {
-        // RFC 9728 assigns the origin-root well-known URL to the resource at the origin, so the document
-        // it serves names that origin. Refusing it would make the fallback unreachable by construction.
+        // RFC 9728 assigns the origin-root well-known URL to the resource at the origin, so the document it serves names that origin.
         $http = (new RecordingHttpClient())
             ->willAnswerJson([], 404)
             ->willAnswerJson(self::resourceDocument(['resource' => 'https://mcp.example.com']))
@@ -148,7 +147,6 @@ final class MetadataDiscoveryTest extends AbstractMcpTestCase
 
     public function testASiblingPathOnTheSameOriginIsStillRefused(): void
     {
-        // Origin tolerance is exactly the origin, not any path under it.
         $http = (new RecordingHttpClient())->willAnswerJson(self::resourceDocument(['resource' => 'https://mcp.example.com/other']));
 
         $this->expectException(UntrustedAuthorizationMetadataException::class);
@@ -297,7 +295,6 @@ final class MetadataDiscoveryTest extends AbstractMcpTestCase
 
         $metadata = (new MetadataDiscovery($http))->discoverResource(
             new ResourceIdentifier(self::RESOURCE),
-            // A trailing space passes `parse_url` and the origin check, then the URL builder refuses it.
             new WwwAuthenticateChallenge('Bearer', ['resource_metadata' => 'https://mcp.example.com/prm ']),
             new NullCancellation(),
         );
@@ -411,8 +408,6 @@ final class MetadataDiscoveryTest extends AbstractMcpTestCase
     {
         yield 'a remote cleartext issuer' => ['http://auth.example.com'];
 
-        // The spec exempts only the redirect URI from HTTPS, so an authorization server on loopback is
-        // refused even when the MCP server that named it is on loopback too.
         yield 'a loopback issuer' => ['http://localhost:9000'];
 
         yield 'an issuer that is not an absolute URL' => ['auth.example.com'];

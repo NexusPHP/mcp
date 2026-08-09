@@ -191,7 +191,6 @@ final class AnnotationsTest extends AbstractMcpTestCase
     {
         $annotations = new Annotations(lastModified: '2026-03-09T12:00:00.000456Z');
 
-        // Emitting only milliseconds would round this to a meaningless ".000".
         self::assertSame(
             ['lastModified' => '2026-03-09T12:00:00.000456+00:00'],
             $annotations->toArray(),

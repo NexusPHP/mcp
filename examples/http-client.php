@@ -11,24 +11,6 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-/*
- * An MCP client on the Streamable HTTP transport, driving the `http-server.php`
- * example over the network.
- *
- * The typed `Client` surface is the same one `stdio-client.php` uses. What the
- * transport changes is underneath: every message is its own POST, and a call
- * that reports progress comes back as an SSE stream parsed frame by frame, so
- * the notifications arrive while the call is still running.
- *
- * `whoami` shows the one client behaviour unique to HTTP. Its `tenant` argument
- * declares `x-mcp-header`, so `listTools()` records the binding and `callTool()`
- * mirrors the argument into an `Mcp-Param-Tenant` header alongside the body.
- *
- * Start `php examples/http-server.php` first, then run with:
- *
- *     php examples/http-client.php [endpoint]
- */
-
 require __DIR__.'/bootstrap.php';
 
 use Nexus\Mcp\Client\ClientBuilder;
@@ -51,8 +33,6 @@ $client = (new ClientBuilder())
 $transport = new StreamableHttpClientTransport(
     endpoint: $endpoint,
     logger: new PsrLogger(),
-    // Must exceed the server's SSE keep-alive interval (10s in `http-server.php`),
-    // or a quiet stream is abandoned between keep-alive frames.
     readTimeout: 30.0,
 );
 
@@ -69,8 +49,6 @@ try {
         $endpoint,
     ));
 
-    // `listTools()` also records each tool's `x-mcp-header` bindings, so it must
-    // run before a tool that declares one is called.
     fwrite(\STDOUT, "=== tools/list ===\n");
 
     foreach ($client->listTools()->tools as $tool) {
@@ -88,8 +66,8 @@ try {
             fwrite(\STDOUT, sprintf("    [progress] %g%s%s\n", $progress, $totalText, $messageText));
         },
     );
-    fwrite(\STDOUT, sprintf("    result: %s\n\n", renderText($greeting)));
 
+    fwrite(\STDOUT, sprintf("    result: %s\n\n", renderText($greeting)));
     fwrite(\STDOUT, "=== tools/call whoami: the tenant argument is mirrored into Mcp-Param-Tenant ===\n");
     $identity = $client->callTool(name: 'whoami', arguments: ['tenant' => 'acme']);
     fwrite(\STDOUT, sprintf("    result: %s\n", renderText($identity)));
@@ -99,7 +77,6 @@ try {
 
 function renderText(CallToolResult|InputRequiredResult $result): string
 {
-    // A tool can ask for input before it will finish. See docs/client.md.
     if ($result instanceof InputRequiredResult) {
         return '(the server asked for input first)';
     }
@@ -113,13 +90,6 @@ function renderText(CallToolResult|InputRequiredResult $result): string
     return '(no text content)';
 }
 
-/**
- * Fails fast when nothing is listening.
- *
- * The transport reports an unreachable endpoint on its own, but only once the
- * connect attempts run out. Probing first turns that wait into an immediate
- * answer that names the thing to start.
- */
 function requireReachable(string $endpoint): void
 {
     $host = parse_url($endpoint, \PHP_URL_HOST);

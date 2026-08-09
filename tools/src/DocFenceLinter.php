@@ -14,15 +14,11 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tools;
 
 /**
- * Lints every ```php fence in the repository's markdown against the declared PHP
- * floor, reporting a fence that parses on a newer runtime but not on the floor.
+ * Linter for the repository's markdown PHP fences against the declared PHP floor.
  */
 final class DocFenceLinter
 {
-    /**
-     * Directories holding third-party or generated markdown.
-     */
-    private const string EXCLUDED = '#/(vendor|node_modules|build|api/docs|\.git)/#';
+    private const string EXCLUDED_DIRECTORIES = '#/(vendor|node_modules|build|api/docs|\.git)/#';
 
     /**
      * @return int the process exit code
@@ -86,10 +82,6 @@ final class DocFenceLinter
         return 0;
     }
 
-    /**
-     * Reads the floor from the package manifest so the gate cannot drift from the
-     * version the package claims to support.
-     */
     private static function readDeclaredFloor(string $root): string
     {
         $manifest = $root.'/composer.json';
@@ -119,10 +111,6 @@ final class DocFenceLinter
         return $matches[1].'.'.$matches[2];
     }
 
-    /**
-     * A gate that silently tested the wrong runtime would be worse than no gate, so
-     * a missing or mismatched floor binary is fatal rather than a skip.
-     */
     private static function assertBinaryMatches(string $binary, string $floor): void
     {
         exec(escapeshellarg($binary).' -n -r "echo PHP_MAJOR_VERSION.\".\".PHP_MINOR_VERSION;" 2>&1', $output, $status);
@@ -160,7 +148,7 @@ final class DocFenceLinter
             \assert($entry instanceof \SplFileInfo);
             $path = $entry->getPathname();
 
-            if (! str_ends_with($path, '.md') || preg_match(self::EXCLUDED, $path) === 1) {
+            if (! str_ends_with($path, '.md') || preg_match(self::EXCLUDED_DIRECTORIES, $path) === 1) {
                 continue;
             }
 

@@ -11,18 +11,6 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-/*
- * Spawns the `stdio-server.php` example and inspects what it negotiated. The
- * client gates every typed request on the server's advertised capabilities, so
- * calling an unadvertised one (here `completion/complete`, which the example
- * server does not support) throws `ServerCapabilityNotSupportedException` before
- * anything reaches the transport. This shows how to degrade gracefully.
- *
- * Run with:
- *
- *     php examples/capability-aware-client.php
- */
-
 require __DIR__.'/bootstrap.php';
 
 use Nexus\Mcp\Client\ClientBuilder;

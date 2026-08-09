@@ -14,8 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Http;
 
 /**
- * Outcome of scanning a tool `inputSchema`: the collected `x-mcp-header` bindings, or the first
- * violated constraint.
+ * Outcome of scanning a tool `inputSchema`: the collected `x-mcp-header` bindings, or the first violated constraint.
  *
  * @internal
  */

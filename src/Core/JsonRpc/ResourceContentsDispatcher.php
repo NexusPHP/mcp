@@ -19,10 +19,7 @@ use Nexus\Mcp\Core\Schema\Resource\ResourceContents;
 use Nexus\Mcp\Core\Schema\Resource\TextResourceContents;
 
 /**
- * Discriminates a `ResourceContents` payload by the presence of `text` vs
- * `blob` and dispatches to the matching concrete subclass. Used by
- * `EmbeddedResource` and `ReadResourceResult` that carry a structurally
- * tagged union.
+ * Discriminator for `ResourceContents` payloads, keyed on the presence of `text` versus `blob`.
  *
  * @internal
  */

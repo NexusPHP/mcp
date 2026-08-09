@@ -20,8 +20,7 @@ use Amp\Http\Client\Request;
 use Amp\Http\Client\Response;
 
 /**
- * Puts a fake client behind an `HttpClientBuilder`, for a consumer that takes the builder rather than a
- * built client. It answers from the fake and never reaches the real stack.
+ * Interceptor routing an `HttpClientBuilder`'s traffic to a fake client.
  *
  * @internal
  */

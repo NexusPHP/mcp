@@ -20,29 +20,13 @@ namespace Nexus\Mcp\Extension\Apps;
  */
 final readonly class Apps
 {
-    /**
-     * The extension identifier used in capability negotiation.
-     */
     public const string IDENTIFIER = 'io.modelcontextprotocol/ui';
-
-    /**
-     * The mime type every UI resource carries.
-     */
     public const string MIME_TYPE = 'text/html;profile=mcp-app';
-
-    /**
-     * The URI scheme every UI resource uses.
-     */
     public const string URI_PREFIX = 'ui://';
-
-    /**
-     * The `_meta` key carrying UI metadata on tools, resources, and contents.
-     */
     public const string META_KEY = 'ui';
 
     /**
-     * Deprecated flat form of `_meta.ui.resourceUri`. The SDK reads it as a
-     * fallback and never emits it.
+     * Deprecated flat form of `_meta.ui.resourceUri`, read as a fallback and never emitted.
      */
     public const string DEPRECATED_RESOURCE_URI_KEY = 'ui/resourceUri';
 }

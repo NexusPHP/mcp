@@ -28,10 +28,7 @@ use Nexus\Mcp\Extension\Tasks\Server\ToolTaskRunner;
 use Nexus\Mcp\Server\ServerContext;
 
 /**
- * Handles `tasks/update` by merging the supplied answers into the record and,
- * once no request is outstanding, re-dispatching the tool call with the
- * accumulated responses and stored continuation token, exactly as a
- * synchronous client would re-issue it.
+ * Handles the `tasks/update` request, re-dispatching the tool call once no input request is outstanding.
  *
  * @implements RequestHandlerInterface<'tasks/update', EmptyResult, ServerContext>
  */
@@ -66,8 +63,6 @@ final readonly class UpdateTaskRequestHandler implements RequestHandlerInterface
         $updated = $this->store->resolveInputRequests($record->taskId, $accepted);
 
         if (null === $updated || TaskStatus::InputRequired !== $updated->status || [] !== $updated->pendingInputRequests) {
-            // Terminal records, tasks already running, and partially answered
-            // request sets all acknowledge without a re-dispatch.
             return new EmptyResult();
         }
 

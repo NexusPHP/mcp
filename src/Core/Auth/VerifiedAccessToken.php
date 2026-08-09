@@ -21,8 +21,7 @@ namespace Nexus\Mcp\Core\Auth;
 final readonly class VerifiedAccessToken
 {
     /**
-     * PSR-7 request attribute a validated token travels on, from the middleware that checked it to the
-     * transport that puts it on the receive context.
+     * PSR-7 request attribute a validated token travels on.
      */
     public const string REQUEST_ATTRIBUTE = 'nexus.mcp.access_token';
 

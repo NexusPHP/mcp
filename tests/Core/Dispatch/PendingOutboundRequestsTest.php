@@ -60,7 +60,6 @@ final class PendingOutboundRequestsTest extends AbstractMcpTestCase
         try {
             $pending->register(new RequestId(id: 1), GenericResultResponse::class);
         } catch (DuplicateOutboundRequestIdException) {
-            // expected
         }
 
         self::assertCount(1, $pending, 'A rejected register must not double-count the id.');

@@ -51,8 +51,6 @@ final class TaskCancellationRegistryTest extends AbstractMcpTestCase
         $registry->register('task-1');
         $registry->release('task-1');
 
-        // Dropping the source cancels its token via the destructor, which is
-        // harmless: release only runs once the bounded fiber has settled.
         $sources = (new \ReflectionProperty(TaskCancellationRegistry::class, 'sources'))->getValue($registry);
         self::assertSame([], $sources);
     }

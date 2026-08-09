@@ -17,10 +17,7 @@ use Amp\Cancellation;
 use Amp\DeferredCancellation;
 
 /**
- * In-process registry of the cancellation sources bounding running task
- * fibers. Cancellation does not survive the process: the store record does,
- * and a `tasks/cancel` on another node marks the record without stopping
- * work here.
+ * In-process registry of the cancellation sources bounding running task fibers.
  *
  * @internal
  */
@@ -32,8 +29,6 @@ final class TaskCancellationRegistry
     private array $sources = [];
 
     /**
-     * Registers a fresh cancellation source for `$taskId` and returns its token.
-     *
      * @param non-empty-string $taskId
      */
     public function register(string $taskId): Cancellation
@@ -45,8 +40,8 @@ final class TaskCancellationRegistry
     }
 
     /**
-     * Cancels the in-flight run of `$taskId`, if any. The source stays
-     * registered until the cancelled fiber settles and releases it.
+     * Cancels the in-flight run of `$taskId`, if any, leaving the source
+     * registered until the cancelled fiber releases it.
      *
      * @param non-empty-string $taskId
      */

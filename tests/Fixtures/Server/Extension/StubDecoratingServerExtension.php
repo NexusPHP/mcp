@@ -23,8 +23,7 @@ use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Server\ServerExtensionInterface;
 
 /**
- * A decorating server extension declaration assembled from constructor
- * arguments, for exercising the request-handler decorator seam.
+ * Decorating server extension declaration assembled from constructor arguments.
  *
  * @internal
  */

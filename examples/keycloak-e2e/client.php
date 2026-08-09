@@ -11,20 +11,6 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-/*
- * An MCP client walking the full authorization flow against `server.php`.
- *
- * The first request is refused with a 401. From that one challenge the SDK
- * discovers the realm through the server's metadata document, registers itself
- * anonymously, runs the authorization-code exchange with PKCE (the login form
- * answered headlessly by `KeycloakLogin`), and replays the request with the
- * minted token. Nothing Keycloak-specific is configured on the client.
- *
- * Start Keycloak and `php examples/keycloak-e2e/server.php` first, then run:
- *
- *     php examples/keycloak-e2e/client.php
- */
-
 require __DIR__.'/../bootstrap.php';
 require __DIR__.'/KeycloakLogin.php';
 
@@ -43,8 +29,6 @@ $http = new AuthorizedHttpClient(
     new AuthorizationOptions(
         clientName: 'Nexus Keycloak example client',
         redirectUri: 'http://127.0.0.1:8765/callback',
-        // Keycloak here runs on cleartext loopback, which the spec does not
-        // exempt, so the example opts in. Never set this in production.
         allowInsecureLoopback: true,
     ),
     new KeycloakLogin(username: 'demo', password: 'demo-password'),

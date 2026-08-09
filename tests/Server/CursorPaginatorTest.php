@@ -40,8 +40,6 @@ final class CursorPaginatorTest extends AbstractMcpTestCase
 
     public function testResumesFromADecimalIntStringKeyPhpTurnedIntoAnInt(): void
     {
-        // An all-digit entry name is a legal identifier, and PHP stores it as an int key. The cursor is a
-        // string either way, so resolution has to compare the keys stringified.
         $entries = ['123' => new \stdClass(), 'beta' => new \stdClass()];
         $paginator = new CursorPaginator(1);
 

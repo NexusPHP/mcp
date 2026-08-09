@@ -14,9 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema;
 
 /**
- * Marker for the params object carried by a JSON-RPC request. The heavy
- * `RequestParams` base (client-to-server, with required `_meta`) and the
- * standalone server-to-client params both implement it.
+ * Marker for the params object carried by a JSON-RPC request.
  *
  * @template-covariant T of array<string, mixed> = array<string, mixed>
  */

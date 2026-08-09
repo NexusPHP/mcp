@@ -14,9 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Dispatch;
 
 /**
- * Counts occurrences of a repeatable event and admits only the first and every
- * `interval`th one for logging, so a peer cannot amplify a flood into one log
- * record per message.
+ * Sampling gate for a repeatable log event, admitting the first occurrence and every `interval`th one.
  *
  * @internal
  */

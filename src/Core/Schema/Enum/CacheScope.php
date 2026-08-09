@@ -27,8 +27,8 @@ enum CacheScope: string
     case Public = 'public';
 
     /**
-     * Only the requesting user's client MAY cache the response. Shared caches (e.g., multi-tenant
-     * gateways) MUST NOT serve a cached copy to a different user.
+     * Only the requesting user's client MAY cache the response, and a shared cache MUST NOT serve a copy to
+     * a different user.
      */
     case Private = 'private';
 }

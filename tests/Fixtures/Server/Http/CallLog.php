@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Fixtures\Server\Http;
 
 /**
- * Ordered record of labels, shared across middleware doubles to observe pipeline execution order.
+ * Ordered record of labels shared across middleware doubles.
  *
  * @internal
  */

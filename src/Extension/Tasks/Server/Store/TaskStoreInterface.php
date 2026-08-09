@@ -18,14 +18,9 @@ use Nexus\Mcp\Core\Schema\Result\InputResponse;
 use Nexus\Mcp\Extension\Tasks\Server\Exception\InputRequestKeyReusedException;
 
 /**
- * Durable storage for task records.
- *
- * `createTask()` MUST make the record visible to `findTask()` before it
- * returns: a task handle may only reach the client once a poll for it would
- * resolve. The `trySet*` transitions are sticky: a record whose status is
- * terminal (`completed`, `cancelled`, `failed`) refuses further transitions
- * by returning `false`. Retention starts at the terminal transition, so a
- * live task never expires.
+ * Durable storage for task records. `createTask()` MUST make the record visible
+ * to `findTask()` before returning, and the `trySet*` transitions are sticky
+ * once terminal.
  */
 interface TaskStoreInterface
 {
@@ -55,8 +50,7 @@ interface TaskStoreInterface
     public function trySetWorking(string $taskId): bool;
 
     /**
-     * Completes the task with its stored result payload. A tool error result
-     * still completes: `failed` is reserved for protocol-level failures.
+     * Completes the task with its stored result payload, a tool error result included.
      *
      * @param non-empty-string     $taskId
      * @param array<string, mixed> $result
@@ -77,8 +71,6 @@ interface TaskStoreInterface
     public function trySetFailed(string $taskId, array $error, ?string $statusMessage = null): bool;
 
     /**
-     * Marks the task cancelled.
-     *
      * @param non-empty-string $taskId
      *
      * @return bool `false` when the record is terminal or absent
@@ -87,9 +79,8 @@ interface TaskStoreInterface
 
     /**
      * Parks the task in `input_required` with the given requests and the
-     * continuation token to re-dispatch with once they are answered. A key
-     * already issued over the task's lifetime is refused: request keys are
-     * unique per task.
+     * continuation token to re-dispatch with, refusing a key already issued
+     * since request keys are unique per task.
      *
      * @param non-empty-string                          $taskId
      * @param array<int|non-empty-string, InputRequest> $inputRequests
@@ -101,9 +92,9 @@ interface TaskStoreInterface
     public function trySetInputRequired(string $taskId, array $inputRequests, ?string $requestState): bool;
 
     /**
-     * Merges answers into the record: responses for keys that are not
-     * currently outstanding are ignored, answered keys leave the pending set,
-     * and every accepted answer accumulates for the next re-dispatch.
+     * Merges answers into the record, ignoring a response for a key that is not
+     * currently outstanding and accumulating every accepted answer for the next
+     * re-dispatch.
      *
      * @param non-empty-string                           $taskId
      * @param array<int|non-empty-string, InputResponse> $inputResponses

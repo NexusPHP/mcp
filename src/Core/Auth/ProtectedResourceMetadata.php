@@ -14,8 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Auth;
 
 /**
- * The OAuth 2.0 Protected Resource Metadata document an MCP server publishes to name the authorization
- * servers that issue tokens for it.
+ * The OAuth 2.0 Protected Resource Metadata document an MCP server publishes.
  *
  * @see https://datatracker.ietf.org/doc/html/rfc9728#section-2
  */

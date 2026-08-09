@@ -14,10 +14,6 @@ RESULTS_DIR="${1:-$SCRIPT_DIR/results}"
 for mode_dir in "$RESULTS_DIR"/*/; do
     [ -d "$mode_dir" ] || continue
 
-    # The referee names each directory `<scenario>-<ISO-8601 timestamp>`,
-    # nesting namespaced scenarios (`auth/...`) one level deeper, so a
-    # lexicographic sort puts the newest run last within each scenario group,
-    # and every line with a same-scenario successor is stale.
     find "$mode_dir" -mindepth 1 -maxdepth 2 -type d \
         | sort \
         | awk '{

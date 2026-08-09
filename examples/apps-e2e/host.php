@@ -11,25 +11,6 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-/**
- * The host backend of the MCP Apps end-to-end example.
- *
- * It runs the SDK's `Client` with `AppsClientExtension` enabled and the
- * `AppClient` facade on top, and exposes a small JSON API the browser host
- * page (`host.html`) consumes:
- *
- *   GET  /                → the host page
- *   GET  /api/app-tools   → the UI-linked tools, via `AppClient::findAppTools()`
- *   POST /api/call        → a tool call, proxied to the MCP server
- *   GET  /api/resource    → a `ui://` read, via `AppClient::readAppResource()`
- *
- * Start `php examples/apps-e2e/server.php` first, then run with:
- *
- *     php examples/apps-e2e/host.php
- *
- * and open http://127.0.0.1:8942 in a browser.
- */
-
 require __DIR__.'/../bootstrap.php';
 require __DIR__.'/../ProductionPosture.php';
 
@@ -50,8 +31,6 @@ use Nexus\Mcp\Extension\Apps\Client\AppsClientExtension;
 
 use function Amp\trapSignal;
 
-// An instrumented process can stall a streaming response long enough to look broken,
-// so the example serves in the production posture.
 ProductionPosture::force('MCP_APPS_EXAMPLE');
 
 const APPS_HOST_ADDRESS = '127.0.0.1:8942';
@@ -71,8 +50,6 @@ $client = (new ClientBuilder())
 $client->connect(new StreamableHttpClientTransport(
     endpoint: APPS_MCP_ENDPOINT,
     logger: $logger,
-    // Must exceed the server's SSE keep-alive interval (10s in `server.php`),
-    // or a quiet stream is abandoned between keep-alive frames.
     readTimeout: 30.0,
 ));
 $client->discover();
@@ -175,7 +152,6 @@ fwrite(\STDOUT, sprintf("Apps example host running: open http://%s in a browser 
 if (defined('SIGINT')) {
     trapSignal([\SIGINT, \SIGTERM]);
 } else {
-    // ext-pcntl absent, so there is no signal to trap. Ctrl-C ends the process.
     (new DeferredFuture())->getFuture()->await();
 }
 
@@ -199,9 +175,6 @@ function jsonError(int $status, string $message): Response
     return jsonResponse(['error' => $message], $status);
 }
 
-/**
- * Fails fast when the MCP server is not up, naming the thing to start.
- */
 function requireAppsServerReachable(string $endpoint): void
 {
     $host = parse_url($endpoint, \PHP_URL_HOST);

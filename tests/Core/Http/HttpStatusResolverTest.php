@@ -68,7 +68,6 @@ final class HttpStatusResolverTest extends AbstractMcpTestCase
 
         yield 'handler error ignores a parse-error code' => [ProtocolErrorCode::ParseError->value, true, 200];
 
-        // The spec pins this one to 400, and a handler is the only thing that can raise it.
         yield 'handler error keeps 400 for a missing client capability' => [ProtocolErrorCode::MissingRequiredClientCapability->value, true, 400];
     }
 }

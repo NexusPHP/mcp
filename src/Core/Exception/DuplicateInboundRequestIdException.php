@@ -17,8 +17,7 @@ use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\RequestId;
 
 /**
- * Thrown when an inbound request reuses an id whose handler coroutine is still
- * running on the same session.
+ * Thrown when an inbound request reuses an id whose handler coroutine is still running on the same session.
  */
 final class DuplicateInboundRequestIdException extends AbstractJsonRpcProtocolException
 {

@@ -18,9 +18,7 @@ use Nexus\Mcp\Client\ClientExtensionInterface;
 use Nexus\Mcp\Extension\Apps\Apps;
 
 /**
- * The official MCP Apps extension (`io.modelcontextprotocol/ui`, SEP-1865)
- * for the client: declares the renderable UI mime types on every request's
- * `_meta` capabilities.
+ * The official MCP Apps extension (`io.modelcontextprotocol/ui`, SEP-1865) for the client.
  */
 final readonly class AppsClientExtension implements ClientExtensionInterface
 {

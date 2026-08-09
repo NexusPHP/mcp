@@ -20,8 +20,7 @@ use Nexus\Mcp\Core\Schema\ProgressToken;
 use Nexus\Mcp\Core\Schema\RequestId;
 
 /**
- * Context passed to a request handler. Carries metadata about the incoming
- * request and exposes domain helpers for emitting out-of-band messages.
+ * Context passed to a request handler, carrying the inbound request's metadata and out-of-band helpers.
  */
 abstract readonly class AbstractContext
 {

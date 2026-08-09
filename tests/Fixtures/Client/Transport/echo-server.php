@@ -11,8 +11,6 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-// Test fixture for the real-subprocess tests. Echoes each stdin line back on stdout.
-
 fwrite(\STDERR, "echo-server fixture ready\n");
 
 while (true) {

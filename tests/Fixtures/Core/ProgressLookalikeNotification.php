@@ -18,8 +18,7 @@ use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
 
 /**
- * A non-registry notification class declaring the spec `notifications/progress`
- * method, for exercising the registry-envelope-class guards.
+ * Non-registry notification declaring the spec `notifications/progress` method.
  *
  * @internal
  *

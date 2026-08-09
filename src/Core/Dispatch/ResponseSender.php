@@ -24,8 +24,7 @@ use Nexus\Mcp\Core\Transport\TransportInterface;
 use Psr\Log\LoggerInterface;
 
 /**
- * Delivers JSON-RPC responses on a transport for the Server and Client dispatchers,
- * demoting the predictable "peer hung up" failure to an info log.
+ * JSON-RPC response sender for the Server and Client dispatchers.
  *
  * @internal
  */

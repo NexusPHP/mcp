@@ -16,9 +16,8 @@ namespace Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\Result\InputResponse;
 
 /**
- * Params that may continue an exchange a prior `InputRequiredResult` suspended. The spec
- * spells this as `InputResponseRequestParams`, which `ReadResourceRequestParams` also extends
- * without being able to inherit from it in PHP.
+ * Params that may continue an exchange a prior `InputRequiredResult` suspended, spelled
+ * `InputResponseRequestParams` in the spec.
  */
 interface InputResponseCarrierInterface
 {

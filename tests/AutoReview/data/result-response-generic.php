@@ -40,7 +40,6 @@ use function PHPStan\Testing\assertType;
 
 $id = new RequestId(id: 1);
 
-// The three MRTR envelopes narrow `$result` to their result union with `InputRequiredResult`.
 $callTool = new CallToolResultResponse(id: $id, result: new CallToolResult(content: []));
 assertType('Nexus\Mcp\Core\Schema\ResultResponse\CallToolResultResponse', $callTool);
 assertType('Nexus\Mcp\Core\Schema\Result\CallToolResult|Nexus\Mcp\Core\Schema\Result\InputRequiredResult', $callTool->result);
@@ -53,7 +52,6 @@ $readResource = new ReadResourceResultResponse(id: $id, result: new ReadResource
 assertType('Nexus\Mcp\Core\Schema\ResultResponse\ReadResourceResultResponse', $readResource);
 assertType('Nexus\Mcp\Core\Schema\Result\InputRequiredResult|Nexus\Mcp\Core\Schema\Result\ReadResourceResult', $readResource->result);
 
-// The six non-MRTR envelopes narrow `$result` to their single result type.
 $complete = new CompleteResultResponse(id: $id, result: new CompleteResult(completion: ['values' => []]));
 assertType('Nexus\Mcp\Core\Schema\ResultResponse\CompleteResultResponse', $complete);
 assertType('Nexus\Mcp\Core\Schema\Result\CompleteResult', $complete->result);
@@ -84,7 +82,6 @@ $listTools = new ListToolsResultResponse(id: $id, result: new ListToolsResult(to
 assertType('Nexus\Mcp\Core\Schema\ResultResponse\ListToolsResultResponse', $listTools);
 assertType('Nexus\Mcp\Core\Schema\Result\ListToolsResult', $listTools->result);
 
-// The generic writer keeps the wide base `Result` type (no per-method narrowing).
 $generic = new GenericResultResponse(id: $id, result: new EmptyResult());
 assertType('Nexus\Mcp\Core\Schema\ResultResponse\GenericResultResponse', $generic);
 assertType('Nexus\Mcp\Core\Schema\Result', $generic->result);

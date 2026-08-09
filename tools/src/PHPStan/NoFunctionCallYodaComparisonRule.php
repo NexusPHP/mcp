@@ -20,8 +20,7 @@ use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
 
 /**
- * Rejects a comparison holding a literal on the left and a call on the right. The `yoda_style`
- * fixer leaves call operands alone, so the convention is enforced here instead.
+ * Rule rejecting a comparison with a literal on the left and a call on the right, which the `yoda_style` fixer skips.
  *
  * @implements Rule<Node\Expr\BinaryOp>
  *

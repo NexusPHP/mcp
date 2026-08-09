@@ -161,8 +161,6 @@ final class ClientTest extends AbstractMcpTestCase
 
         $client->disconnect();
 
-        // Nothing has been discovered about the next server yet, so the accessors' documented
-        // "null until discovery has run" is the only honest answer.
         self::assertNull($client->getServerInfo());
         self::assertNull($client->getServerCapabilities());
 
@@ -177,15 +175,12 @@ final class ClientTest extends AbstractMcpTestCase
         $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $first = new RecordingTransport();
         $client->connect($first);
-        // Server A advertises nothing, so every typed call is refused while it is attached.
         self::discover($client, $first, capabilities: []);
 
         $client->disconnect();
         $second = new RecordingTransport();
         $client->connect($second);
 
-        // A refused call never sends or gets awaited, so bound the wait and mark it handled to keep a
-        // regression on this test rather than the next one.
         $call = async(static fn(): CallToolResult|InputRequiredResult => $client->callTool('demo'))->ignore();
         $second->nextSend()->await(new TimeoutCancellation(1.0));
 
@@ -235,7 +230,6 @@ final class ClientTest extends AbstractMcpTestCase
         self::assertCount(1, $transport->sent);
         self::assertSame($request, $transport->sent[0]['message']);
 
-        // Drive the inbound response so the future resolves.
         $transport->emitMessage(['jsonrpc' => '2.0', 'id' => 1, 'result' => ['tools' => [], 'ttlMs' => 0, 'cacheScope' => 'private']]);
 
         $response = $deferredCall->await();
@@ -280,8 +274,6 @@ final class ClientTest extends AbstractMcpTestCase
         } catch (TransportAlreadyClosedException) {
         }
 
-        // Re-sending the same id surfaces the send failure again only if the
-        // failed registration was freed. A leak would raise a duplicate-id error.
         try {
             $client->sendRequest($request, ListToolsResultResponse::class);
             self::fail('Expected the transport send failure to propagate.');
@@ -307,9 +299,6 @@ final class ClientTest extends AbstractMcpTestCase
         } catch (TransportAlreadyClosedException) {
         }
 
-        // The second discover reuses the same minted id. It surfaces the send
-        // failure again only if the failed registration was freed (a leak would
-        // raise a duplicate-id error instead).
         try {
             $client->discover();
             self::fail('Expected the transport send failure to propagate.');
@@ -351,7 +340,6 @@ final class ClientTest extends AbstractMcpTestCase
         $transport->emitError($error);
 
         try {
-            // Bounded: without it, a client that never fails the caller reads as a hang, not a failure.
             $deferred->await(new TimeoutCancellation(1.0));
             self::fail('Expected the caller to be failed rather than left awaiting a response that cannot arrive.');
         } catch (OutboundRequestFailedException $e) {
@@ -370,7 +358,6 @@ final class ClientTest extends AbstractMcpTestCase
         $deferred = async(static fn(): DiscoverResult => $client->discover());
         $transport->nextSend()->await();
 
-        // A failure naming an id nobody awaits must not disturb the request that is genuinely in flight.
         $transport->emitError(new OutboundRequestFailedException(new RequestId(id: 99), new \RuntimeException('connection refused')));
 
         self::assertCount(1, $transport->sent);
@@ -395,7 +382,6 @@ final class ClientTest extends AbstractMcpTestCase
             self::assertSame(1, $e->requestId->id);
         }
 
-        // The peer is told to stop working on a result nobody will read.
         self::assertCount(2, $transport->sent);
         $cancelled = $transport->sent[1]['message'];
         self::assertInstanceOf(CancelledNotification::class, $cancelled);
@@ -413,7 +399,6 @@ final class ClientTest extends AbstractMcpTestCase
         try {
             self::awaitPastDeadline(static fn(): DiscoverResult => $client->discover(), 0.05);
         } catch (RequestTimeoutException) {
-            // Expected: the assertion below is about what the timeout left behind.
         }
 
         $transport->emitMessage(self::discoverResponse(1));
@@ -443,8 +428,6 @@ final class ClientTest extends AbstractMcpTestCase
         $transport->emitMessage(self::discoverResponse(1));
         $deferred->await();
 
-        // Both deadlines outlive the response by minutes, so leaving either armed would hold the event
-        // loop open long after the client has nothing left to do.
         self::assertSame([], array_values(array_diff(EventLoop::getIdentifiers(), $quiescent)));
     }
 
@@ -458,7 +441,6 @@ final class ClientTest extends AbstractMcpTestCase
         $deferred = async(static fn(): DiscoverResult => $client->discover());
         $transport->nextSend()->await();
 
-        // The transport dies between the request going out and the deadline elapsing.
         $transport->sendError = new TransportAlreadyClosedException(operation: 'send');
 
         // A deadline is never the loop's work, so the loop needs work of its own to reach one.
@@ -522,7 +504,6 @@ final class ClientTest extends AbstractMcpTestCase
 
         $request = new ListToolsRequest(id: new RequestId(id: 1), params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create()));
 
-        // A ceiling shorter than the override would cut the caller short of the deadline it asked for.
         $this->expectException(RequestTimeoutException::class);
         $this->expectExceptionMessageIs('Request 1 went unanswered for 0.2 seconds.');
 
@@ -533,7 +514,7 @@ final class ClientTest extends AbstractMcpTestCase
     }
 
     /**
-     * @param mixed $name Out-of-contract tool name, so the params constructor rejects it
+     * @param mixed $name Out-of-contract tool name
      */
     public function testACallToolThatThrowsBeforeDispatchLeavesNoTimerArmed(mixed $name = ''): void
     {
@@ -560,8 +541,6 @@ final class ClientTest extends AbstractMcpTestCase
 
         self::assertInstanceOf(\InvalidArgumentException::class, $fault, 'The params constructor rejects an empty tool name.');
 
-        // The deadline arms on construction, before the request is even built, so a throw in between must
-        // still disarm it rather than hold the loop open for the ceiling.
         self::assertSame([], array_values(array_diff(EventLoop::getIdentifiers(), $quiescent)));
     }
 
@@ -581,7 +560,6 @@ final class ClientTest extends AbstractMcpTestCase
         $progressToken = $request->params->meta->progressToken;
         self::assertNotNull($progressToken);
 
-        // Three quiet windows in a row, each shorter than the deadline but longer in sum.
         for ($tick = 0; $tick < 3; ++$tick) {
             delay(0.07);
             $transport->emitMessage([
@@ -682,7 +660,6 @@ final class ClientTest extends AbstractMcpTestCase
 
         self::assertSame('srv', $result->meta->serverInfo->name);
 
-        // No notification follows the discover response.
         self::assertCount(1, $transport->sent);
 
         $serverInfo = $client->getServerInfo();
@@ -696,11 +673,8 @@ final class ClientTest extends AbstractMcpTestCase
         $transport = new RecordingTransport();
         $client->connect($transport);
 
-        // The first discover caches the server capabilities, arming the gate.
         self::discover($client, $transport);
 
-        // `server/discover` carries no capability requirement, so a second discover
-        // (now that capabilities are cached) must clear the gate's `default` arm.
         $deferred = async(static fn() => $client->discover());
         $transport->nextSend()->await();
         self::assertCount(2, $transport->sent);
@@ -900,15 +874,12 @@ final class ClientTest extends AbstractMcpTestCase
         $transport = new RecordingTransport();
         $client->connect($transport);
 
-        // Spawn an in-flight notification handler.
         $transport->emitMessage([
             'jsonrpc' => '2.0',
             'method' => 'notifications/cancelled',
             'params' => ['requestId' => 1],
         ]);
 
-        // close() emits the drain listener first. flushPending awaits the handler coroutine,
-        // so the handler's RuntimeException reaches the logger before close completes.
         $transport->close();
 
         $matches = $logger->recordsMatching(LogLevel::ERROR, 'Uncaught notification handler exception.');
@@ -1419,7 +1390,6 @@ final class ClientTest extends AbstractMcpTestCase
         $progressToken = $request->params->meta->progressToken;
         self::assertNotNull($progressToken);
 
-        // Server streams progress against the minted token while the call is in flight.
         $transport->emitMessage([
             'jsonrpc' => '2.0',
             'method' => 'notifications/progress',
@@ -1431,7 +1401,6 @@ final class ClientTest extends AbstractMcpTestCase
             ],
         ]);
 
-        // Let the tracked notification coroutine run before the result disposes the listener.
         delay(0.01);
         self::assertSame([[1.0, 2.0, '1 remaining']], $received);
 
@@ -1473,7 +1442,6 @@ final class ClientTest extends AbstractMcpTestCase
         ]);
         $deferred->await();
 
-        // A late progress notification for the same token must no longer reach the callback.
         $transport->emitMessage([
             'jsonrpc' => '2.0',
             'method' => 'notifications/progress',
@@ -1531,7 +1499,6 @@ final class ClientTest extends AbstractMcpTestCase
         $client->connect($transport);
         self::discover($client, $transport);
 
-        // No callTool in flight, so the token matches no per-call listener and falls through.
         $transport->emitMessage([
             'jsonrpc' => '2.0',
             'method' => 'notifications/progress',
@@ -1544,8 +1511,6 @@ final class ClientTest extends AbstractMcpTestCase
 
     public function testListToolsExcludesAToolWhoseDeclarationsAreInvalid(): void
     {
-        // "Clients using the Streamable HTTP transport MUST reject tool definitions where any x-mcp-header
-        // value violates these constraints ... the client MUST exclude the invalid tool."
         $logger = new ArrayLogger();
         $transport = new MirroringRecordingTransport();
         $client = self::connectMirroring($transport, $logger);
@@ -1563,7 +1528,6 @@ final class ClientTest extends AbstractMcpTestCase
 
     public function testListToolsKeepsEveryToolOnATransportThatDoesNotMirror(): void
     {
-        // Stdio may ignore the annotations entirely, so an invalid one must not cost the user a usable tool.
         $logger = new ArrayLogger();
         $transport = new RecordingTransport();
         $client = self::connectMirroring($transport, $logger);
@@ -1598,8 +1562,6 @@ final class ClientTest extends AbstractMcpTestCase
 
     public function testCallToolSendsNoHeadersForAToolItNeverListed(): void
     {
-        // Nothing cached means nothing to mirror. The server answers success here, so the
-        // header-mismatch recovery never engages.
         $transport = new MirroringRecordingTransport();
         $client = self::connectMirroring($transport);
 
@@ -1624,7 +1586,6 @@ final class ClientTest extends AbstractMcpTestCase
             'error' => ['code' => ProtocolErrorCode::HeaderMismatch->value, 'message' => 'Header mismatch'],
         ]);
 
-        // The re-listing renames the header, so the retry must carry the new one.
         $transport->nextSend()->await();
         $transport->emitMessage([
             'jsonrpc' => '2.0',
@@ -1720,7 +1681,6 @@ final class ClientTest extends AbstractMcpTestCase
         $call = async(static fn() => $client->callTool('good', ['region' => 'us-west1']));
         self::settleHeaderMismatch($transport);
 
-        // The tool is on this page, which still advertises another. The walk must not fetch it.
         $transport->nextSend()->await();
         $transport->emitMessage([
             'jsonrpc' => '2.0',
@@ -1749,8 +1709,6 @@ final class ClientTest extends AbstractMcpTestCase
         $call = async(static fn() => $client->callTool('good', ['region' => 'us-west1']));
         self::settleHeaderMismatch($transport);
 
-        // Every page names the same next cursor and never yields the tool, so the walk must break
-        // rather than re-request the page forever.
         for ($page = 0; $page < 2; ++$page) {
             $transport->nextSend()->await();
             $transport->emitMessage([
@@ -1765,10 +1723,8 @@ final class ClientTest extends AbstractMcpTestCase
             ]);
         }
 
-        // Counted before the retry is settled, so a broken guard trips this rather than the parser.
         self::assertSame(3, self::countRequests($transport, ListToolsRequest::class), 'The opening listing plus two refresh pages.');
 
-        // The refresh failed, so the stale binding is forgotten and the retry carries no header.
         $transport->nextSend()->await();
         self::assertSame([], self::lastContext($transport)->headers);
         self::settleToolCall($transport, awaitSend: false);
@@ -1789,7 +1745,6 @@ final class ClientTest extends AbstractMcpTestCase
         $call = async(static fn() => $client->callTool('good', ['region' => 'us-west1']));
         self::settleHeaderMismatch($transport);
 
-        // A fresh cursor every time defeats the repeat guard, so only the ceiling ends the walk.
         for ($page = 0; $page < 100; ++$page) {
             $transport->nextSend()->await();
             $transport->emitMessage([
@@ -1804,10 +1759,8 @@ final class ClientTest extends AbstractMcpTestCase
             ]);
         }
 
-        // Counted before the retry is settled, so a broken ceiling trips this rather than the parser.
         self::assertSame(101, self::countRequests($transport, ListToolsRequest::class), 'The opening listing plus the 100-page ceiling.');
 
-        // The refresh never reached the tool, so the stale binding is forgotten.
         $transport->nextSend()->await();
         self::assertSame([], self::lastContext($transport)->headers);
         self::settleToolCall($transport, awaitSend: false);
@@ -1827,8 +1780,6 @@ final class ClientTest extends AbstractMcpTestCase
         $call = async(static fn() => $client->callTool('good', ['region' => 'us-west1']));
         self::settleHeaderMismatch($transport);
 
-        // No binding cache exists to refresh, so the retry goes straight back out. Counted before the
-        // retry is settled, so a broken guard trips this rather than the parser.
         $transport->nextSend()->await();
         self::assertSame(0, self::countRequests($transport, ListToolsRequest::class));
 
@@ -1889,8 +1840,6 @@ final class ClientTest extends AbstractMcpTestCase
 
     public function testRelistingAToolWhoseDeclarationsTurnedInvalidDropsItsBindings(): void
     {
-        // The tool stays callable by name, so bindings the earlier listing cached would keep mirroring
-        // headers for a tool this listing excludes.
         $transport = new MirroringRecordingTransport();
         $client = self::connectMirroring($transport);
         self::listToolsWithDeclarations($client, $transport);
@@ -1921,8 +1870,6 @@ final class ClientTest extends AbstractMcpTestCase
 
     public function testARequestCarryingNoTypedParamsIsNotRetried(): void
     {
-        // `sendRequest()` takes any `JsonRpcRequest`, and a subclass may leave `params` null. Such a
-        // request carries no `_meta` to restamp, so there is nothing to renegotiate.
         $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
@@ -2190,14 +2137,10 @@ final class ClientTest extends AbstractMcpTestCase
             $propagated = $e->getMessage();
         }
 
-        // Asserted outside the try: PHPUnit's failure exceptions extend RuntimeException, so a fail()
-        // inside it would be caught by the arm above and reported as the wrong thing.
         self::assertSame('pipe is gone', $propagated);
 
-        // The correlation slot is free, so a late answer for that id reads as an orphan.
         $transport->emitMessage(['jsonrpc' => '2.0', 'id' => 7, 'error' => ['code' => -32_603, 'message' => 'too late']]);
 
-        // And the notification route is free, so nothing reaches the abandoned listener.
         $transport->emitMessage([
             'jsonrpc' => '2.0',
             'method' => 'notifications/tools/list_changed',
@@ -2224,7 +2167,6 @@ final class ClientTest extends AbstractMcpTestCase
         $stream = $client->listen(new SubscriptionFilter(toolsListChanged: true), static function (): void {});
         $stream->close();
 
-        // A server that answers anyway is answering a stream the client already retired.
         $transport->emitMessage(['jsonrpc' => '2.0', 'id' => 7, 'error' => ['code' => -32_603, 'message' => 'too late']]);
         EventLoop::run();
 
@@ -2245,8 +2187,6 @@ final class ClientTest extends AbstractMcpTestCase
         $transport->emitMessage(['jsonrpc' => '2.0', 'id' => 7, 'error' => ['code' => -32_603, 'message' => 'no subscriptions here']]);
         EventLoop::run();
 
-        // Dropping the last reference destroys the future. An unconsumed error there reaches the loop as an
-        // UnhandledFutureError and takes the whole run down.
         unset($stream);
         gc_collect_cycles();
         EventLoop::run();
@@ -2300,11 +2240,8 @@ final class ClientTest extends AbstractMcpTestCase
 
         $stream = $client->listen(new SubscriptionFilter(toolsListChanged: true), static function (): void {});
 
-        // Every real transport refuses a send once its peer is gone, which the recording double does not
-        // model on its own.
         $transport->sendError = new TransportAlreadyClosedException(operation: 'send');
 
-        // A `finally { $stream->close(); }` must not raise over the failure that caused the teardown.
         $stream->close();
 
         $matches = $logger->recordsMatching(LogLevel::DEBUG, 'Could not tell the server that subscription {id} was closed.');
@@ -2333,7 +2270,6 @@ final class ClientTest extends AbstractMcpTestCase
 
         $stream->close();
 
-        // The spec has a cancellation name a request that SHOULD still be in flight.
         self::assertCount(1, $transport->sent, 'A stream the server already answered has nothing left to cancel.');
     }
 
@@ -2350,8 +2286,6 @@ final class ClientTest extends AbstractMcpTestCase
         $stream = $client->listen(new SubscriptionFilter(toolsListChanged: true), static function (): void {});
         $stream->close();
 
-        // Telling the server is not enough on HTTP: the POST carrying the stream keeps reading until
-        // something stops it, and a `subscriptions/listen` never ends on its own.
         self::assertSame([7], $transport->aborted);
     }
 
@@ -2393,7 +2327,6 @@ final class ClientTest extends AbstractMcpTestCase
             self::awaitPastDeadline(static fn(): ListToolsResult => $client->listTools(), 0.01);
             self::fail('Expected the deadline to abandon the request.');
         } catch (RequestTimeoutException) {
-            // Asserted outside the try: PHPUnit's failure exceptions would otherwise be caught here.
         }
 
         self::assertSame([7], $transport->aborted);
@@ -2431,14 +2364,10 @@ final class ClientTest extends AbstractMcpTestCase
             self::fail('The replacement peer should have been sent the listen request again.');
         }
 
-        // The subscription id is the request id, and the caller still holds it, so re-listening under a
-        // fresh one would leave them naming a stream the server has never heard of.
         self::assertSame($id, $replayed->id->id);
         self::assertSame($id, $stream->subscriptionId->id);
         self::assertTrue($replayed->params->notifications->toolsListChanged);
 
-        // A fresh peer knows nothing, so the replay has to carry the same self-describing `_meta` the
-        // first send did.
         self::assertSame(ProtocolVersion::LATEST_VERSION, $replayed->params->meta->protocolVersion->version);
         self::assertSame('demo', $replayed->params->meta->clientInfo?->name);
 
@@ -2460,8 +2389,6 @@ final class ClientTest extends AbstractMcpTestCase
         self::supervisedPeer($spawned, 0)->emitUnexpectedExit();
         EventLoop::run();
 
-        // Asserted before driving a notification through: the route survives the peer death on its own, so
-        // without this the callback would fire even if the re-open never happened.
         self::assertCount(1, self::supervisedPeer($spawned, 1)->sent);
 
         self::supervisedPeer($spawned, 1)->emitMessage([
@@ -2488,7 +2415,6 @@ final class ClientTest extends AbstractMcpTestCase
         self::supervisedPeer($spawned, 0)->emitUnexpectedExit();
         EventLoop::run();
 
-        // The replacement now owns the stream, so the answer that ends it arrives from there.
         self::supervisedPeer($spawned, 1)->emitMessage([
             'jsonrpc' => '2.0',
             'id' => $stream->subscriptionId->id,
@@ -2515,7 +2441,6 @@ final class ClientTest extends AbstractMcpTestCase
             EventLoop::run();
         }
 
-        // No further peer is coming, so a stream still waiting would wait for the life of the process.
         $this->expectException(SupervisionExhaustedException::class);
 
         try {
@@ -2537,9 +2462,6 @@ final class ClientTest extends AbstractMcpTestCase
 
         self::supervisedPeer($spawned, 0)->emitUnexpectedExit();
 
-        // Let the loss actually reach the stream while the replacement is still pending. The stream
-        // absorbs it by design and keeps waiting, so from here only the disconnect can end it. Without
-        // this the absorption is still queued and the close alone settles the stream.
         delay(0.001);
 
         $client->disconnect();
@@ -2559,7 +2481,6 @@ final class ClientTest extends AbstractMcpTestCase
 
         self::supervisedPeer($spawned, 0)->emitUnexpectedExit();
 
-        // Absorbed while the replacement is pending, exactly as designed.
         delay(0.001);
 
         $settledEarly = false;
@@ -2575,14 +2496,11 @@ final class ClientTest extends AbstractMcpTestCase
 
         self::assertFalse($settledEarly, 'The premise: the stream is still waiting on a replacement.');
 
-        // Shutting the transport down without going through the client is a documented path, and it is
-        // the last chance the stream has to hear anything.
         $transport->close();
 
         $settled = async(static fn(): mixed => $stream->await());
 
-        // Referenced loop work, so a stream that never settles reads as still pending rather than as the
-        // dry-loop error an in-memory fixture would otherwise produce.
+        // Referenced loop work, so a stream that never settles reads as still pending rather than as an in-memory fixture's dry-loop error.
         delay(0.05);
 
         self::assertTrue($settled->isComplete(), 'A close no replacement follows must end the stream.');
@@ -2608,7 +2526,6 @@ final class ClientTest extends AbstractMcpTestCase
         self::supervisedPeer($spawned, 0)->emitUnexpectedExit();
         delay(0.001);
 
-        // The premise: absorbed while the replacement is pending, so only the close can end it.
         self::assertFalse($call->isComplete());
 
         $transport->close();
@@ -2626,8 +2543,6 @@ final class ClientTest extends AbstractMcpTestCase
 
         $client->listen(new SubscriptionFilter(toolsListChanged: true), static function (): void {});
 
-        // Killed first, so a respawn is genuinely pending when the disconnect lands. Without that, no
-        // re-open was possible either way and the assertion below would hold on its own.
         self::supervisedPeer($spawned, 0)->emitUnexpectedExit();
         $client->disconnect();
         EventLoop::run();
@@ -2651,8 +2566,6 @@ final class ClientTest extends AbstractMcpTestCase
         self::supervisedPeer($second, 0)->emitUnexpectedExit();
         EventLoop::run();
 
-        // The disconnect claimed every record, so the stream belonging to the retired connection cannot
-        // reach a server that never served it.
         self::assertSame([], self::supervisedPeer($second, 1)->sent);
 
         $transport->close();
@@ -2671,8 +2584,6 @@ final class ClientTest extends AbstractMcpTestCase
 
         $stream = $client->listen(new SubscriptionFilter(toolsListChanged: true), static function (): void {});
 
-        // A peer that answers "no" is answering. However replaceable it is, the stream is over, and a
-        // caller waiting on it must not be left for the life of the process.
         self::supervisedPeer($spawned, 0)->emitMessage([
             'jsonrpc' => '2.0',
             'id' => 7,
@@ -2736,7 +2647,6 @@ final class ClientTest extends AbstractMcpTestCase
             $client->listen(new SubscriptionFilter(toolsListChanged: true), static function (): void {});
             self::fail('Expected the colliding id to be refused.');
         } catch (DuplicateOutboundRequestIdException) {
-            // Asserted outside the try: PHPUnit's failure exceptions would otherwise be caught here.
         }
 
         $transport->emitMessage([
@@ -2776,8 +2686,6 @@ final class ClientTest extends AbstractMcpTestCase
 
         self::assertSame(7, $replayed->id->id);
 
-        // Answered by the replacement under the original id, so the caller's await never noticed the peer
-        // it started against had died.
         self::supervisedPeer($spawned, 1)->emitMessage([
             'jsonrpc' => '2.0',
             'id' => 7,
@@ -2832,8 +2740,6 @@ final class ClientTest extends AbstractMcpTestCase
     }
 
     /**
-     * Every entry of the retryable-method allowlist.
-     *
      * @return iterable<string, array{\Closure(Client): mixed, non-empty-string}>
      */
     public static function provideEveryRetryableMethodIsSentAgainCases(): iterable
@@ -2883,23 +2789,18 @@ final class ClientTest extends AbstractMcpTestCase
         self::supervisedPeer($spawned, 0)->emitUnexpectedExit();
         EventLoop::run();
 
-        // Names a state-reading method, but resumes an exchange the dead peer suspended. Sending it again
-        // hands a one-time answer over twice and quotes a token no replacement issued.
         self::assertSame([], self::supervisedPeer($spawned, 1)->sent);
 
         try {
             $call->await();
             self::fail('Expected the continuation to reach the caller rather than the replacement.');
         } catch (TransportAlreadyClosedException) {
-            // Asserted outside the try, as above.
         }
 
         $transport->close();
     }
 
     /**
-     * Both params shapes that carry continuation state, and each field on its own.
-     *
      * @return iterable<string, array{JsonRpcRequest<non-empty-string>, class-string<JsonRpcResultResponse>}>
      */
     public static function provideAnMrtrContinuationIsNotSentAgainCases(): iterable
@@ -2968,7 +2869,6 @@ final class ClientTest extends AbstractMcpTestCase
         $call = async(static fn(): ListToolsResult => $client->listTools());
         delay(0.001);
 
-        // Nothing replaces a transport that cannot reconnect, so retention must not outlive its close.
         $transport->close();
 
         $this->expectException(TransportAlreadyClosedException::class);
@@ -2985,13 +2885,10 @@ final class ClientTest extends AbstractMcpTestCase
         $client->connect($second);
 
         async(static function () use ($second): void {
-            // The send lands before the loop turns, so this only has to outlive the queued close decision.
             delay(0.001);
             $second->emitMessage(['jsonrpc' => '2.0', 'id' => 1, 'result' => ['tools' => [], 'ttlMs' => 0, 'cacheScope' => 'private']]);
         });
 
-        // Called from this fiber on purpose: the register and the send run before the loop turns, so the
-        // retired transport's queued close decision lands while this request is in flight.
         $result = $client->listTools();
 
         self::assertSame([], $result->tools);
@@ -3017,15 +2914,12 @@ final class ClientTest extends AbstractMcpTestCase
         self::supervisedPeer($spawned, 0)->emitUnexpectedExit();
         EventLoop::run();
 
-        // A retry is at-least-once and the peer may have charged the card before it died. Asserted before
-        // the await, which would otherwise report a re-sent call as a dry event loop rather than as this.
         self::assertSame([], self::supervisedPeer($spawned, 1)->sent);
 
         try {
             $call->await();
             self::fail('Expected the lost tool call to reach the caller.');
         } catch (TransportAlreadyClosedException) {
-            // Asserted outside the try: PHPUnit's failure exceptions would otherwise be caught here.
         }
 
         $transport->close();
@@ -3054,7 +2948,6 @@ final class ClientTest extends AbstractMcpTestCase
             $call->await();
             self::fail('Expected the lost request to reach the caller.');
         } catch (TransportAlreadyClosedException) {
-            // Asserted outside the try, as above.
         }
 
         $transport->close();
@@ -3065,7 +2958,6 @@ final class ClientTest extends AbstractMcpTestCase
         $outbound = new PendingOutboundRequests();
         $spawned = [];
 
-        // The builder always passes the flag, so only a client assembled by hand exercises the default.
         $client = new Client(
             new Implementation(name: 'demo', version: '1.0.0'),
             new ClientCapabilities(),
@@ -3093,7 +2985,6 @@ final class ClientTest extends AbstractMcpTestCase
             $call->await();
             self::fail('Expected the lost request to reach the caller.');
         } catch (TransportAlreadyClosedException) {
-            // Asserted outside the try, as above.
         }
 
         $transport->close();
@@ -3118,7 +3009,6 @@ final class ClientTest extends AbstractMcpTestCase
         self::supervisedPeer($spawned, 0)->emitUnexpectedExit();
         EventLoop::run();
 
-        // The routing metadata belongs to the request, not to the connection that first carried it.
         self::assertSame($context, self::supervisedPeer($spawned, 1)->sent[0]['context'] ?? null);
 
         $call->ignore();
@@ -3141,7 +3031,6 @@ final class ClientTest extends AbstractMcpTestCase
 
         self::supervisedPeer($spawned, 0)->emitUnexpectedExit();
 
-        // Absorbed while the replacement is pending, so from here only the disconnect can end it.
         delay(0.001);
 
         $client->disconnect();
@@ -3166,8 +3055,6 @@ final class ClientTest extends AbstractMcpTestCase
                 return;
             }
 
-            // Dies while taking the re-send, so a further replacement is already decided on by the time
-            // the failure surfaces.
             $peer->onSend = static function (SupervisableRecordingTransport $dying): void {
                 $dying->emitUnexpectedExit();
             };
@@ -3175,7 +3062,6 @@ final class ClientTest extends AbstractMcpTestCase
         });
         $client->connect($transport);
 
-        // Two of them, so a walk that stopped at the first failure would leave the second unattempted.
         $first = async(static fn(): ListToolsResult => $client->listTools());
         $second = async(static fn(): ListPromptsResult => $client->listPrompts());
         delay(0.001);
@@ -3187,7 +3073,6 @@ final class ClientTest extends AbstractMcpTestCase
         self::assertCount(2, $matches);
         self::assertSame([1, 2], [$matches[0]['context']['id'] ?? null, $matches[1]['context']['id'] ?? null]);
 
-        // Still retained, so the peer after the one that died gets both.
         self::assertCount(2, self::supervisedPeer($spawned, 2)->sent);
         self::assertFalse($first->isComplete(), 'A request another peer will carry is not the caller\'s failure yet.');
         self::assertFalse($second->isComplete());
@@ -3217,7 +3102,6 @@ final class ClientTest extends AbstractMcpTestCase
             EventLoop::run();
         }
 
-        // No further peer is coming, so the request has nothing left to be sent to.
         $this->expectException(SupervisionExhaustedException::class);
 
         try {
@@ -3250,7 +3134,6 @@ final class ClientTest extends AbstractMcpTestCase
         self::supervisedPeer($spawned, 0)->emitUnexpectedExit();
         EventLoop::run();
 
-        // Nothing else will carry it, so the caller hears now rather than at the deadline.
         $this->expectException(TransportAlreadyClosedException::class);
 
         try {
@@ -3266,7 +3149,6 @@ final class ClientTest extends AbstractMcpTestCase
         $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $transport = self::supervisedTransport($spawned);
 
-        // Registered before the client's, so it runs first and would abort the chain if it were unguarded.
         $transport->onReconnect(static function (): void {
             throw new \RuntimeException('listener blew up');
         });
@@ -3313,7 +3195,6 @@ final class ClientTest extends AbstractMcpTestCase
         ;
         $attempts = 0;
         $transport = self::supervisedTransport($spawned, onSpawn: static function (SupervisableRecordingTransport $peer) use (&$attempts): void {
-            // The first replacement cannot take the re-open. The one after it can.
             if (2 === ++$attempts) {
                 $peer->sendError = new TransportAlreadyClosedException(operation: 'send');
             }
@@ -3329,7 +3210,6 @@ final class ClientTest extends AbstractMcpTestCase
         self::assertCount(1, $matches);
         self::assertSame(7, $matches[0]['context']['id'] ?? null);
 
-        // Still registered, so the peer after this one gets another go at it.
         self::supervisedPeer($spawned, 1)->emitMessage(['jsonrpc' => '2.0', 'method' => 'notifications/tools/list_changed', 'params' => []]);
         self::supervisedPeer($spawned, 1)->emitUnexpectedExit();
         EventLoop::run();
@@ -3351,7 +3231,6 @@ final class ClientTest extends AbstractMcpTestCase
         try {
             $client->disconnect();
         } catch (\RuntimeException) {
-            // The failure propagates, but detaching must still have happened.
         }
 
         $client->connect(new RecordingTransport());
@@ -3370,7 +3249,6 @@ final class ClientTest extends AbstractMcpTestCase
         $retiring->closeDelay = 0.05;
         $client->connect($retiring);
 
-        // `close()` suspends, so this `connect()` lands mid-disconnect and registers on the same field.
         $disconnect = async(static fn() => $client->disconnect());
         delay(0.01);
         $live = new RecordingTransport();
@@ -3472,9 +3350,7 @@ final class ClientTest extends AbstractMcpTestCase
     }
 
     /**
-     * Runs a call its deadline is expected to abandon, keeping the event loop busy until well past it. A
-     * deadline is never the loop's own work, so reaching one takes a transport holding I/O open, which is
-     * what a request in flight has and what these in-memory fixtures do not.
+     * Runs a call its deadline is expected to abandon, keeping the loop busy past it since these in-memory fixtures hold no I/O to reach one.
      *
      * @template TReturn
      *
@@ -3503,16 +3379,11 @@ final class ClientTest extends AbstractMcpTestCase
         return $client;
     }
 
-    /**
-     * Drives one `tools/list`, answering with a valid and an invalid `x-mcp-header` declaration.
-     */
     private static function listToolsWithDeclarations(Client $client, MirroringRecordingTransport|RecordingTransport $transport): ListToolsResult
     {
         return self::driveToolListing($client, $transport, [
             [
                 'name' => 'bad',
-                // `number` is not a permitted x-mcp-header type. Listed first, so skipping it must
-                // not also skip what follows.
                 'inputSchema' => [
                     'type' => 'object',
                     'properties' => ['size' => ['type' => 'number', 'x-mcp-header' => 'Size']],
@@ -3532,8 +3403,6 @@ final class ClientTest extends AbstractMcpTestCase
     }
 
     /**
-     * Drives one `tools/list`, answering with the given tool definitions.
-     *
      * @param list<array<string, mixed>> $tools
      */
     private static function driveToolListing(Client $client, MirroringRecordingTransport|RecordingTransport $transport, array $tools): ListToolsResult
@@ -3605,8 +3474,6 @@ final class ClientTest extends AbstractMcpTestCase
     }
 
     /**
-     * One `tools/list` entry for a tool whose single `region` argument mirrors into the given header.
-     *
      * @return array<string, mixed>
      */
     private static function toolListedUnder(string $name, string $header): array
@@ -3663,9 +3530,6 @@ final class ClientTest extends AbstractMcpTestCase
     }
 
     /**
-     * Runs `discover()` against the transport and resolves it with a synthetic
-     * `DiscoverResult` envelope, leaving the discover request as `sent[0]`.
-     *
      * @param array<string, mixed> $capabilities
      */
     private static function discover(
@@ -3691,8 +3555,6 @@ final class ClientTest extends AbstractMcpTestCase
     }
 
     /**
-     * A client whose only job is to record that a `notifications/cancelled` reached a live handler.
-     *
      * @param list<string> $seen
      */
     private static function clientRecordingCancellations(array &$seen): Client

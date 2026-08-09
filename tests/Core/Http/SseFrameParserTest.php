@@ -100,8 +100,6 @@ final class SseFrameParserTest extends AbstractMcpTestCase
     #[DataProvider('provideIgnoresCommentsAndEmptyFramesCases')]
     public function testIgnoresCommentsAndEmptyFrames(string $stream, array $expected): void
     {
-        // The spec has servers emit a comment line as a keep-alive, and clients must not treat it as
-        // malformed input or dispatch it as an event.
         self::assertSame($expected, self::flatten((new SseFrameParser())->feed($stream)));
     }
 
@@ -152,26 +150,19 @@ final class SseFrameParserTest extends AbstractMcpTestCase
 
         yield 'mixed terminators' => [["data: a\r\ndata: b\n\r\n"], [['message', "a\nb"]]];
 
-        // A chunk ending on CR cannot be interpreted until the next byte proves whether an LF follows.
         yield 'a CRLF split across chunks' => [["data: split\r", "\n\r\n"], [['message', 'split']]];
 
         yield 'a CR ending a chunk followed by data' => [["data: one\r", "data: two\r\r"], [['message', "one\ntwo"]]];
 
-        // The LF opening the second chunk completes the CR that closed the first. Reading it as a line of
-        // its own would end the frame early and ship the first data line on its own.
         yield 'a CRLF split mid-frame' => [["data: a\r", "\ndata: b\r\n\r\n"], [['message', "a\nb"]]];
 
-        // Same split, but the premature blank line would also reset the event type back to the default.
         yield 'a CRLF split after the event line' => [["event: progress\r", "\ndata: x\r\n\r\n"], [['progress', 'x']]];
     }
 
     public function testAbandonsAStreamThatOutgrowsTheFrameCap(): void
     {
-        // Neither a line nor a frame has to end for a peer to keep sending, so without a cap the reader
-        // holds the whole stream.
         $parser = new SseFrameParser(maxFrameBytes: 32);
 
-        // A frame filling the cap exactly is still within it.
         self::assertSame([], self::flatten($parser->feed(str_repeat('a', 32))));
 
         $this->expectException(ResponseTooLargeException::class);
@@ -182,8 +173,6 @@ final class SseFrameParserTest extends AbstractMcpTestCase
 
     public function testTheFrameCapCountsFromTheLastDispatchedFrame(): void
     {
-        // A long-lived stream is bounded per frame, not for its whole lifetime, so a healthy stream of many
-        // frames never trips the cap.
         $parser = new SseFrameParser(maxFrameBytes: 32);
 
         for ($frame = 0; $frame < 20; ++$frame) {
@@ -215,7 +204,6 @@ final class SseFrameParserTest extends AbstractMcpTestCase
 
     public function testAnUnterminatedTrailingFrameIsNotDispatched(): void
     {
-        // The stream ended mid-frame, so there is nothing to hand the caller.
         self::assertSame([], self::flatten((new SseFrameParser())->feed("event: message\ndata: truncated\n")));
     }
 

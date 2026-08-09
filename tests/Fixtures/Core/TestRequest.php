@@ -18,8 +18,7 @@ use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParamsInterface;
 
 /**
- * A request bound to a vendor method literal absent from the default registry,
- * used to exercise user-supplied method-map parsing and handler dispatch.
+ * Request bound to a vendor method literal absent from the default registry.
  *
  * @internal
  *

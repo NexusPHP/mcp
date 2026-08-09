@@ -27,17 +27,15 @@ use Nexus\Mcp\Extension\Auth\GrantTypeAdvertisement;
 use Psr\Log\LoggerInterface;
 
 /**
- * The enterprise-managed authorization grant (SEP-990): an identity assertion from the client's own sign-on
- * is exchanged at the enterprise IdP for an ID-JAG, which the resource authorization server redeems as an
- * RFC 7523 JWT authorization grant. The user is never redirected.
+ * The enterprise-managed authorization grant (SEP-990), a two-legged token exchange with no user redirect.
  *
  * @see https://github.com/modelcontextprotocol/ext-auth/blob/main/specification/stable/enterprise-managed-authorization.mdx
  */
 final readonly class IdentityAssertionGrant implements GrantStrategyInterface
 {
     /**
-     * @param non-empty-string      $idpTokenEndpoint      The enterprise IdP's token endpoint, configured out of band
-     * @param null|non-empty-string $idpClientId           The client's identifier at the enterprise IdP, sent on the exchange when given
+     * @param non-empty-string      $idpTokenEndpoint
+     * @param null|non-empty-string $idpClientId
      * @param bool                  $allowInsecureLoopback Admits an IdP reached over cleartext HTTP on a loopback host, which the spec does not exempt. For local development and conformance runs, never production
      */
     public function __construct(
@@ -49,8 +47,6 @@ final readonly class IdentityAssertionGrant implements GrantStrategyInterface
         Assert::that($idpTokenEndpoint)->isNonEmptyString('"idpTokenEndpoint" must be a non-empty string.');
         Assert::that($idpClientId)->nullOr()->isNonEmptyString('"idpClientId" must be a non-empty string or null.');
 
-        // The endpoint is fixed for the life of the grant, so it earns its scheme here rather than at the
-        // first request that needs a token.
         SecureEndpoint::verifyAuthorizationServerUrl($idpTokenEndpoint, 'IdP token endpoint', $allowInsecureLoopback);
     }
 

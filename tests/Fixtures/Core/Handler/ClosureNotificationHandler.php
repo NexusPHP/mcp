@@ -17,7 +17,7 @@ use Nexus\Mcp\Core\Handler\NotificationHandlerInterface;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 
 /**
- * Adapts a closure into a `NotificationHandlerInterface` for ad-hoc test wiring.
+ * Closure adapter for `NotificationHandlerInterface`.
  *
  * @internal
  *

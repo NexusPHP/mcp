@@ -14,8 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\MetaObject;
 
 /**
- * The `_meta` of a result that reserves no keys beyond the ones every result may
- * carry. It is what a result slot holds unless its method names a narrower shape.
+ * The `_meta` of a result reserving no keys beyond the ones every result may carry.
  */
 final readonly class GenericResultMetaObject extends ResultMetaObject
 {

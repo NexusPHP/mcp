@@ -19,8 +19,7 @@ use Nexus\Mcp\Core\Validation\EnumValueValidator;
 use Nexus\Mcp\Core\Validation\Iso8601DateTimeValidator;
 
 /**
- * Optional annotations for the client. The client can use annotations to inform how objects are
- * used or displayed.
+ * Optional annotations for the client. The client can use annotations to inform how objects are used or displayed.
  *
  * @implements Arrayable<array{
  *   audience?: list<'assistant'|'user'>,

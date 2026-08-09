@@ -31,12 +31,9 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
 /**
- * The official tasks extension (`io.modelcontextprotocol/tasks`, SEP-2663)
- * for the server: serves `tasks/get`, `tasks/update`, and `tasks/cancel`, and
- * brokers `tools/call` into long-running tasks per the given tool policies.
- *
- * Enable one instance on exactly one builder: the task runner binds the built
- * server's `tools/call` handler.
+ * The official tasks extension (`io.modelcontextprotocol/tasks`, SEP-2663) for
+ * the server. Use one instance per builder, since the runner binds that
+ * builder's `tools/call` handler.
  */
 final readonly class TasksServerExtension implements RequestHandlerDecoratorInterface, ServerExtensionInterface
 {
@@ -44,9 +41,8 @@ final readonly class TasksServerExtension implements RequestHandlerDecoratorInte
     private ToolTaskRunner $runner;
 
     /**
-     * @param array<non-empty-string, ToolTaskPolicy> $toolPolicies          Keyed by tool name, absence meaning always-synchronous
-     * @param null|int                                $defaultTtlMs          Retention after a terminal transition, `null` for unlimited
-     * @param int                                     $defaultPollIntervalMs Poll interval suggested to clients
+     * @param array<non-empty-string, ToolTaskPolicy> $toolPolicies Keyed by tool name, absence meaning always-synchronous
+     * @param null|int                                $defaultTtlMs Retention after a terminal transition, `null` for unlimited
      */
     public function __construct(
         private TaskStoreInterface $store = new InMemoryTaskStore(),

@@ -156,7 +156,6 @@ final class LineDuplexTest extends AbstractMcpTestCase
             $events[] = 'close';
         });
 
-        // The read loop is queued but has not had its first turn, so it has claimed no fiber yet.
         $duplex->start(new ReadableBuffer("{}\n"), new WritableBuffer());
         $duplex->close();
         $events[] = 'returned';
@@ -191,7 +190,6 @@ final class LineDuplexTest extends AbstractMcpTestCase
 
         $duplex->start($pipe->getSource(), new WritableBuffer());
 
-        // Let the read loop pick the line up and suspend inside the listener.
         delay(0.001);
 
         $duplex->close();
@@ -205,7 +203,6 @@ final class LineDuplexTest extends AbstractMcpTestCase
         $sink = $pipe->getSink();
         $outbound = new WritableBuffer();
         $events = [];
-        // Both stdio hosts tear the outbound stream down here, so the drain must already have run.
         $duplex = self::buildDuplex(
             onBeforeClose: static function () use ($sink, $outbound): void {
                 $sink->close();
@@ -214,7 +211,6 @@ final class LineDuplexTest extends AbstractMcpTestCase
         );
         $duplex->onDrain(static function () use (&$events, &$duplex): void {
             $events[] = 'drain:start';
-            // A real drain listener suspends, which is what let close() overtake it.
             delay(0.01);
 
             try {
@@ -360,11 +356,8 @@ final class LineDuplexTest extends AbstractMcpTestCase
 
         $duplex->start($pipe->getSource(), new WritableBuffer());
 
-        // Let the read loop start and park on its still-open source read.
         delay(0.01);
 
-        // close() must run the parked read loop to completion (firing drain)
-        // before it emits close, so no fiber is left suspended on the read.
         $duplex->close();
 
         self::assertSame(['drain', 'close'], $events);
@@ -386,10 +379,8 @@ final class LineDuplexTest extends AbstractMcpTestCase
         );
         $sink->write("tail\n");
 
-        // Let the side-channel loop take the line and suspend inside the callback.
         delay(0.001);
 
-        // No start(), so only the side-channel drain can carry this to completion.
         $duplex->close();
 
         self::assertSame(['start:tail', 'end:tail'], $lines);
@@ -413,7 +404,6 @@ final class LineDuplexTest extends AbstractMcpTestCase
 
         delay(0.001);
 
-        // Closing from a fiber other than the side channel's own must still await it.
         async(static function () use ($duplex): void {
             $duplex->close();
         })->await();
@@ -439,8 +429,6 @@ final class LineDuplexTest extends AbstractMcpTestCase
 
         $duplex->start($pipe->getSource(), new WritableBuffer());
 
-        // Let the read loop park on the still-open source. With no onBeforeClose,
-        // only close() closing the readable itself can force the EOF the drain needs.
         delay(0.01);
 
         $duplex->close();
@@ -492,9 +480,6 @@ final class LineDuplexTest extends AbstractMcpTestCase
                 static function (): void {},
             );
 
-            // The side-channel loop fails, then its failure logger throws too.
-            // close() must still return: the completion fires in the `finally`,
-            // so the drain await is not left hanging on it.
             $duplex->close();
 
             $this->expectNotToPerformAssertions();
@@ -532,8 +517,6 @@ final class LineDuplexTest extends AbstractMcpTestCase
 
             self::assertFalse($secondDrainFired);
             self::assertTrue($closed);
-            // A consumer listener that throws must not strand the outbound stream, which for the
-            // stdio client is a live subprocess.
             self::assertTrue($tornDown);
         } finally {
             EventLoop::setErrorHandler($previousHandler);
@@ -561,7 +544,6 @@ final class LineDuplexTest extends AbstractMcpTestCase
 
         self::assertTrue($closed);
 
-        // A failed teardown must not leave the transport accepting sends.
         $this->expectException(TransportAlreadyClosedException::class);
 
         $duplex->send(new DiscoverRequest(id: new RequestId(id: 1), params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create())));
@@ -1062,8 +1044,6 @@ final class LineDuplexTest extends AbstractMcpTestCase
 
         EventLoop::run();
 
-        // Awaiting an already completed future is a no-op, so the pruning has no
-        // observable on the public surface to assert against.
         $completions = (new \ReflectionProperty(LineDuplex::class, 'sideChannelCompletions'))->getValue($duplex);
         $fibers = (new \ReflectionProperty(LineDuplex::class, 'sideChannelFibers'))->getValue($duplex);
 
@@ -1136,9 +1116,6 @@ final class LineDuplexTest extends AbstractMcpTestCase
         );
     }
 
-    /**
-     * A source whose every read fails. `LineReader` only ever calls `read()` on its source.
-     */
     private static function buildThrowingSource(\Throwable $error): ReadableStream
     {
         $source = self::createStub(ReadableStream::class);
@@ -1148,8 +1125,6 @@ final class LineDuplexTest extends AbstractMcpTestCase
     }
 
     /**
-     * A sink whose every write fails. `LineDuplex` only ever calls `write()` on its sink.
-     *
      * @param null|\Closure(): void $beforeThrow Runs inside the write, before it fails
      */
     private static function buildThrowingSink(\Throwable $error, ?\Closure $beforeThrow = null): WritableStream

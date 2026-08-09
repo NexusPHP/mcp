@@ -19,20 +19,14 @@ use Nexus\Mcp\Client\Auth\AuthorizationRedirect;
 use Nexus\Mcp\Client\Auth\UserAuthorizationInterface;
 
 /**
- * Completes the authorization step without a browser or a human.
- *
- * The referee's mock authorization server grants consent on the first request
- * and answers with a redirect, so following the URL once with redirects
- * disabled and reading `Location` yields the callback the SDK expects. A real
- * implementation opens the URL in a user-agent instead.
+ * Browserless authorization reading the callback from the mock server's `Location` header.
  */
 final class HeadlessUserAuthorization implements UserAuthorizationInterface
 {
     #[Override]
     public function authorize(AuthorizationRedirect $redirect, Cancellation $cancellation): AuthorizationCallback
     {
-        // The redirect *is* the answer, so following it would discard the thing
-        // being read. `buildDefault()` follows up to 10, hence the explicit 0.
+        // The redirect *is* the answer, so following it would discard what is being read.
         $client = (new HttpClientBuilder())->followRedirects(0)->build();
 
         $response = $client->request(new Request($redirect->url), $cancellation);

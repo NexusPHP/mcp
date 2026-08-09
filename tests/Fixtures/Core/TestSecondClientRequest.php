@@ -20,8 +20,7 @@ use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 
 /**
- * A second client-sendable vendor request, for tests that need two distinct
- * dispatchable vendor methods side by side.
+ * Second client-sendable vendor request.
  *
  * @internal
  *

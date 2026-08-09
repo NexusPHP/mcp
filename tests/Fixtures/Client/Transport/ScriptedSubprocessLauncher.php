@@ -18,7 +18,7 @@ use Nexus\Mcp\Client\Transport\SubprocessInterface;
 use Nexus\Mcp\Client\Transport\SubprocessLauncherInterface;
 
 /**
- * Hands out `ScriptedSubprocess` instances and records every launch request.
+ * Launcher double handing out `ScriptedSubprocess` instances.
  *
  * @phpstan-type LaunchRequest array{command: list<string>, workingDirectory: null|string, environment: array<string, string>}
  */

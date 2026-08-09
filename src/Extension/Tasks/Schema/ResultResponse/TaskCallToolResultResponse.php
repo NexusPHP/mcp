@@ -21,8 +21,7 @@ use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
 use Nexus\Mcp\Extension\Tasks\Schema\Result\CreateTaskResult;
 
 /**
- * Response envelope for a task-aware `tools/call`: the result decodes on its
- * `resultType` into the direct result, an input request, or a task handle.
+ * Response envelope for a task-aware `tools/call`.
  *
  * @property-read CallToolResult|CreateTaskResult|InputRequiredResult $result
  *

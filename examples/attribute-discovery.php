@@ -11,18 +11,6 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-/**
- * An MCP server assembled from attribute-marked methods instead of explicit
- * `addTool()` / `addPrompt()` / `addResource()` calls.
- *
- * `ServerBuilder::register()` reflects each source object: the class-level
- * `#[AsServer]` supplies the server identity and instructions, parameter types and
- * `@param` lines become the tool `inputSchema` and the prompt arguments, a
- * `ServerContext` parameter is injected rather than exposed to the client, and a
- * plain return value (string, content block, or schema object) is adapted to the
- * matching result. Run it the same way as `stdio-server.php`.
- */
-
 require __DIR__.'/bootstrap.php';
 
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
@@ -46,14 +34,9 @@ use Nexus\Mcp\Server\Transport\StdioServerTransport;
 )]
 final class Concierge
 {
-    /**
-     * @param string $city The city to look up.
-     * @param string $unit Either "celsius" or "fahrenheit".
-     */
     #[AsTool(description: 'Returns a canned weather report for a city.')]
     public function weather(string $city, ServerContext $context, string $unit = 'celsius'): string
     {
-        // Progress is the one out-of-band signal a handler can raise mid-call.
         $context->reportProgress(progress: 1.0, total: 1.0, message: sprintf('Looking up weather for %s.', $city));
 
         $temperature = 'fahrenheit' === $unit ? '72 °F' : '22 °C';
@@ -61,9 +44,6 @@ final class Concierge
         return sprintf('It is %s and sunny in %s.', $temperature, $city);
     }
 
-    /**
-     * @param string $topic What the haiku should be about.
-     */
     #[AsPrompt(name: 'haiku', description: 'Asks the model to compose a haiku.')]
     public function haiku(string $topic): GetPromptResult
     {
@@ -81,10 +61,11 @@ final class Concierge
         return 'A Nexus MCP SDK example server built entirely from attribute-marked methods.';
     }
 
-    /**
-     * @param string $city The city captured from the URI.
-     */
-    #[AsResourceTemplate(uriTemplate: 'weather://{city}', name: 'weather_by_city', description: 'Weather for a city addressed by URI.')]
+    #[AsResourceTemplate(
+        uriTemplate: 'weather://{city}',
+        name: 'weather_by_city',
+        description: 'Weather for a city addressed by URI.',
+    )]
     public function weatherResource(string $uri, string $city): string
     {
         return sprintf('Weather report resource for %s (%s).', $city, $uri);
@@ -92,7 +73,6 @@ final class Concierge
 }
 
 $logger = new PsrLogger();
-
 $server = (new ServerBuilder())
     ->setLogger($logger)
     ->register(new Concierge())

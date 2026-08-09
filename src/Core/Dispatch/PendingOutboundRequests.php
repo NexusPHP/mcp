@@ -22,9 +22,7 @@ use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Transport\SendContext;
 
 /**
- * Correlates outbound JSON-RPC requests with their inbound responses. Senders
- * register a `RequestId` and receive a `Future` that resolves once a matching
- * response arrives on the transport.
+ * Correlation map from outbound JSON-RPC requests to their inbound responses.
  *
  * @internal
  *
@@ -43,11 +41,7 @@ final class PendingOutboundRequests implements \Countable
     private array $map = [];
 
     /**
-     * Registers an outbound request id and returns the future that resolves
-     * once `resolve()` or `reject()` is called for the same id.
-     *
-     * Passing `$request` retains it, marking the entry as one a caller means to send again if the peer
-     * carrying it goes away. Entries registered without one are the caller's to fail on peer loss.
+     * Retains `$request` to mark the entry as one to send again on peer loss.
      *
      * @template TResponse of JsonRpcResultResponse = JsonRpcResultResponse
      *
@@ -83,9 +77,6 @@ final class PendingOutboundRequests implements \Countable
     }
 
     /**
-     * Returns the response envelope class registered for `$id`, or `null` if no
-     * entry exists.
-     *
      * @return null|class-string<JsonRpcResultResponse>
      */
     public function resolveResponseClass(RequestId $id): ?string
@@ -100,8 +91,7 @@ final class PendingOutboundRequests implements \Countable
     }
 
     /**
-     * Completes the future for `$id` with the given response. Returns false
-     * if no entry was registered for that id.
+     * Completes the future for `$id` with the given response, returning false if no entry was registered for it.
      */
     public function resolve(RequestId $id, JsonRpcResultResponse $response): bool
     {
@@ -119,8 +109,7 @@ final class PendingOutboundRequests implements \Countable
     }
 
     /**
-     * Fails the future for `$id` with the given error. Returns false if no
-     * entry was registered for that id.
+     * Fails the future for `$id` with the given error, returning false if no entry was registered for it.
      */
     public function reject(RequestId $id, \Throwable $error): bool
     {
@@ -138,8 +127,7 @@ final class PendingOutboundRequests implements \Countable
     }
 
     /**
-     * Removes the entry for `$id` without completing its future. Returns false
-     * if no entry was registered for that id.
+     * Removes the entry for `$id` without completing its future, returning false if no entry was registered for it.
      */
     public function forget(RequestId $id): bool
     {
@@ -154,9 +142,6 @@ final class PendingOutboundRequests implements \Countable
         return true;
     }
 
-    /**
-     * Fails every pending future with the given error and empties the map.
-     */
     public function cancelAll(\Throwable $error): void
     {
         $pending = $this->map;

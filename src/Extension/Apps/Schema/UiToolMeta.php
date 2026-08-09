@@ -20,8 +20,7 @@ use Nexus\Mcp\Extension\Apps\Apps;
 use Nexus\Mcp\Extension\Apps\Schema\Enum\ToolVisibility;
 
 /**
- * The `_meta.ui` object on a tool, linking it to the UI resource that renders
- * its results.
+ * The `_meta.ui` object on a tool, linking it to the UI resource that renders its results.
  *
  * @implements Arrayable<array{
  *   resourceUri?: non-empty-string,

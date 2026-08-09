@@ -20,8 +20,5 @@ namespace Nexus\Mcp\Extension\Tasks;
  */
 final readonly class Tasks
 {
-    /**
-     * The extension identifier used in capability negotiation.
-     */
     public const string IDENTIFIER = 'io.modelcontextprotocol/tasks';
 }

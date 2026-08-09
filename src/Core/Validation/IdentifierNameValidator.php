@@ -17,9 +17,8 @@ use Nexus\Assert\Assert;
 use Nexus\Assert\ExpectationFailedException;
 
 /**
- * Enforces the format the spec recommends for tool names, applied to every handle the SDK authors:
- * tools, prompts, resources and resource templates. The rule is SHOULD and the schema carries no
- * `pattern`, so it never runs on a decode path, which takes whatever a peer sends.
+ * Enforces the format the spec recommends for every handle the SDK authors, never on a decode path since
+ * the rule is only SHOULD and the schema carries no `pattern`.
  *
  * @internal
  *

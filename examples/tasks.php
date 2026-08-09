@@ -11,27 +11,6 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-/*
- * The tasks extension (`io.modelcontextprotocol/tasks`, SEP-2663) end to end in
- * one process, over `InMemoryTransport::createPair()`.
- *
- * The server enables `TasksServerExtension` with per-tool policies, so a
- * `tools/call` from a client that declared the extension answers immediately
- * with a task handle while the tool runs in a background fiber. The client
- * pairs `TasksClientExtension` (the per-request declaration) with the
- * `TaskClient` facade: `callToolAsTask()` decodes the handle, `getTask()` is
- * one typed poll, `awaitTask()` polls at the server-suggested interval until
- * the task settles, and `cancelTask()` requests cooperative cancellation.
- *
- * A client that does not declare the extension calls the same tools and gets
- * ordinary synchronous answers: with `TaskSupport::Optional` the policy only
- * applies per request, to clients that opted in.
- *
- * Run with:
- *
- *     php examples/tasks.php
- */
-
 require __DIR__.'/bootstrap.php';
 
 use Nexus\Mcp\Client\ClientBuilder;
@@ -70,8 +49,6 @@ $server = (new ServerBuilder())
             $steps = is_int($args['steps'] ?? null) ? $args['steps'] : 5;
 
             for ($step = 1; $step <= $steps; ++$step) {
-                // The task's cancellation token rides the context, so a
-                // cooperative tool passes it to every wait.
                 delay(0.4, cancellation: $context->cancellation);
             }
 
@@ -88,8 +65,6 @@ $server = (new ServerBuilder())
             description: 'Runs until cancelled, to demonstrate tasks/cancel.',
         ),
         static function (?array $args, ServerContext $context): CallToolResult {
-            // Never finishes on its own: the delay aborts with `CancelledException`
-            // when `tasks/cancel` fires the token, settling the task as cancelled.
             delay(3_600.0, cancellation: $context->cancellation);
 
             return new CallToolResult(content: [new TextContent(text: 'Unreachable.')]);
@@ -100,8 +75,6 @@ $server = (new ServerBuilder())
             'slow_report' => new ToolTaskPolicy(support: TaskSupport::Optional),
             'endless_job' => new ToolTaskPolicy(support: TaskSupport::Optional),
         ],
-        // Short retention and a fast poll keep the example snappy. The defaults
-        // are 300s and 1s.
         defaultTtlMs: 60_000,
         defaultPollIntervalMs: 200,
     ))
@@ -114,8 +87,6 @@ $client = (new ClientBuilder())
     ->build()
 ;
 
-// The server blocks while running its loop, so it lives in a background
-// coroutine. The client's awaiting calls below yield to it.
 $serverRun = async(static fn() => $server->run($serverSide));
 
 $client->connect($clientSide);
@@ -163,8 +134,6 @@ try {
 
     if ($endless instanceof CreateTaskResult) {
         $tasks->cancelTask($endless->taskId);
-        // The ack is immediate. The task settles once its fiber observes the
-        // cancelled token, which the next polls pick up.
         $cancelled = $tasks->awaitTask($endless);
         fwrite(\STDOUT, sprintf("    status: %s\n", $cancelled->status->value));
     }

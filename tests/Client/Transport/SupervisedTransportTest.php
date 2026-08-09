@@ -45,8 +45,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
     private array $built = [];
 
     /**
-     * A supervisor left open keeps an armed respawn watcher in the process-global event loop, which the
-     * next test would run. Closing cancels it.
+     * A supervisor left open keeps an armed respawn watcher in the process-global event loop that the next test would run.
      */
     #[\Override]
     protected function tearDown(): void
@@ -102,10 +101,8 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         try {
             $transport->start();
         } catch (\Throwable) {
-            // Asserted by testStartFailureOnTheFirstConnectionPropagates.
         }
 
-        // A transport that never started is neither running nor closed, so the caller may try again.
         $transport->start();
 
         self::assertTrue(self::connectionAt($spawned, 1)->started);
@@ -124,16 +121,12 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         $transport->start();
 
         try {
-            // The status lands first, so the close this instance emits is the one that throws. The real
-            // transport catches what its exit listeners raise, so mirror that here.
             self::connectionAt($spawned, 0)->emitUnexpectedExit(streamClosesFirst: false);
         } catch (\RuntimeException) {
-            // Expected: TransportInterface documents that a throw aborts the listener chain.
         }
 
         EventLoop::run();
 
-        // The replacement's close would throw the same way, and teardown is not the assertion.
         $subscription->dispose();
 
         self::assertCount(2, $spawned, 'A throwing listener must not silently disable supervision.');
@@ -299,7 +292,6 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
 
         $transport->start();
 
-        // The fixture fires its close listeners *and* the exit signal, as a dying subprocess does.
         self::connectionAt($spawned, 0)->emitUnexpectedExit();
         EventLoop::run();
 
@@ -337,7 +329,6 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         $transport->start();
         $transport->close();
 
-        // Client maps onDrain to flushPending(), so losing it turns a graceful shutdown into an abrupt one.
         self::assertSame(1, $drains);
     }
 
@@ -347,7 +338,6 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         $transport = $this->buildTransport($spawned);
         $transport->start();
 
-        // Model a peer whose exit status lands while its streams are still held open elsewhere.
         self::connectionAt($spawned, 0)->emitUnexpectedExit(streamClosesFirst: false);
         EventLoop::run();
 
@@ -373,12 +363,10 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         try {
             $transport->close();
         } catch (\RuntimeException) {
-            // The peer's failure propagates, but not before the caller has been told.
         }
 
         self::assertSame(1, $closes, 'A peer failing on the way down must not swallow the close signal.');
 
-        // Released regardless, or the next send() would route to a peer that is already gone.
         $this->expectException(TransportAlreadyClosedException::class);
         $transport->send(self::notification());
     }
@@ -397,7 +385,6 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         try {
             $transport->close();
         } catch (\RuntimeException) {
-            // Expected: the listener chain aborts, but the peer must still come down.
         }
 
         $subscription->dispose();
@@ -420,7 +407,6 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         try {
             $transport->start();
         } catch (\Throwable) {
-            // Asserted by testStartFailureOnTheFirstConnectionPropagates.
         }
 
         $transport->close();
@@ -447,7 +433,6 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
                 EventLoop::run();
             }
         } catch (\RuntimeException) {
-            // Expected: the error chain aborts, but supervision must still shut down.
         }
 
         $this->expectException(TransportAlreadyClosedException::class);
@@ -475,8 +460,6 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
 
         $reentries = 0;
         $transport->onClose(static function () use (&$transport, &$reentries): void {
-            // An application that treats a lost connection as terminal. The peer's death has already
-            // been reported at this point, so supervision must not spawn a replacement behind its back.
             if (++$reentries > 2) {
                 self::fail('close() must not drive unbounded re-entry through its own close listeners.');
             }
@@ -490,7 +473,6 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
 
         self::assertCount(1, $spawned);
 
-        // A closed transport does no respawn bookkeeping at all: no budget spent, no attempt announced.
         self::assertSame([], $logger->recordsMatching(
             LogLevel::WARNING,
             '{label} transport respawning the peer after an unexpected exit (code {exitCode}), attempt {attempt} of {budget}.',
@@ -581,8 +563,6 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
 
         $transport->start();
 
-        // A replacement that answers and dies again is still a crash loop. The protocol layer replays its
-        // own state on every reconnect, so a peer serving something proves nothing about its health.
         for ($i = 0; $i < 2; ++$i) {
             self::connectionAt($spawned, $i)->emitMessage(['served' => $i]);
             self::connectionAt($spawned, $i)->emitUnexpectedExit();
@@ -613,8 +593,6 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         self::connectionAt($spawned, 0)->emitUnexpectedExit();
         EventLoop::run();
 
-        // Past the window, so the peer that dies next opens a budget of its own instead of spending the
-        // one the first death opened.
         $now = 10.5;
 
         self::connectionAt($spawned, 1)->emitUnexpectedExit();
@@ -655,8 +633,6 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         self::connectionAt($spawned, 0)->emitUnexpectedExit();
         EventLoop::run();
 
-        // Exactly one window later. The window has not yet elapsed, so this death spends the same budget
-        // rather than opening a new one.
         $now = 10.0;
 
         self::connectionAt($spawned, 1)->emitUnexpectedExit();
@@ -670,7 +646,6 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
     public function testTheWindowOpensAtTheFirstRestartNotAtTheClocksOrigin(): void
     {
         $spawned = [];
-        // Starts inside the window, as a monotonic source does in a freshly booted container.
         $now = 5.0;
         $transport = $this->buildTransport(
             $spawned,
@@ -690,8 +665,6 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         self::connectionAt($spawned, 0)->emitUnexpectedExit();
         EventLoop::run();
 
-        // Seven seconds after the first restart, so well inside its window. Measured from the clock's
-        // origin instead, twelve seconds would have elapsed and this would open a fresh budget.
         $now = 12.0;
 
         self::connectionAt($spawned, 1)->emitUnexpectedExit();
@@ -716,8 +689,6 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         self::connectionAt($spawned, 0)->emitUnexpectedExit();
         EventLoop::run();
 
-        // Real elapsed time, not an injected reading: a default clock that never advances would leave
-        // `maxRestarts` a lifetime budget.
         delay(0.05);
 
         self::connectionAt($spawned, 1)->emitUnexpectedExit();
@@ -733,7 +704,6 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         $transport = $this->built[] = new SupervisedTransport(
             static function () use (&$spawned): SupervisableTransportInterface {
                 $inner = new SupervisableRecordingTransport();
-                // The second peer suspends on the way up, exactly as a real subprocess launch does.
                 $inner->startDelay = [] === $spawned ? 0.0 : 0.05;
                 $spawned[] = $inner;
 
@@ -755,8 +725,6 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         $transport->start();
         self::connectionAt($spawned, 0)->emitUnexpectedExit();
 
-        // Lands while the replacement is still starting: it is a live connection owing its own close, not
-        // a promised one owing an extra.
         async(static function () use ($transport): void {
             delay(0.01);
             $transport->close();
@@ -789,12 +757,9 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
             $transport->close();
         });
 
-        // The status lands without the streams tearing down, so the supervisor's own retire is what
-        // closes the peer, and that suspends.
         self::connectionAt($spawned, 0)->emitUnexpectedExit(streamClosesFirst: false);
         EventLoop::run();
 
-        // A peer minted after the close would be live, unsupervised, and closed by nothing.
         self::assertCount(1, $spawned);
     }
 
@@ -811,7 +776,6 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         $transport->start();
         self::connectionAt($spawned, 0)->emitUnexpectedExit();
 
-        // Registered after the peer's own close, so only the abandonment emission reaches it.
         $reached = [];
         $transport->onClose(static function (): void {
             throw new \RuntimeException('listener blew up');
@@ -850,7 +814,6 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
 
         $transport->start();
 
-        // Three deaths with no message in between: two respawns, then the budget is spent.
         for ($i = 0; $i < 3; ++$i) {
             self::connectionAt($spawned, $i)->emitUnexpectedExit();
             EventLoop::run();
@@ -936,8 +899,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
                 ++$attempts;
 
                 if ($attempts > 8) {
-                    // Budget arithmetic that stopped terminating would otherwise recurse here until the
-                    // suite is killed on the clock rather than failing on an assertion.
+                    // Budget arithmetic that stopped terminating would otherwise recurse until the suite is killed on the clock.
                     self::fail('A spent budget must stop the respawn recursion.');
                 }
 
@@ -1023,11 +985,9 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
             $envelopes[] = $envelope;
         });
 
-        // The first connection is minted but throws out of start(), so the caller never sees it.
         try {
             $transport->start();
         } catch (\Throwable) {
-            // Asserted by testStartFailureOnTheFirstConnectionPropagates.
         }
 
         self::connectionAt($spawned, 0)->emitMessage(['orphaned' => true]);
@@ -1106,7 +1066,6 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         self::connectionAt($spawned, 0)->emitUnexpectedExit();
         $afterExit = $closes;
 
-        // Withdrawing the promised replacement is the only signal a caller holding state for it will get.
         $transport->close();
 
         self::assertSame(['close'], $afterExit, 'The dead connection has ended, and a replacement is still promised.');
@@ -1185,7 +1144,6 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         self::connectionAt($spawned, 0)->emitUnexpectedExit();
         EventLoop::run();
 
-        // A served message clears the budget, so the second death is another first-attempt respawn.
         self::connectionAt($spawned, 1)->emitMessage(['served' => true]);
         self::connectionAt($spawned, 1)->emitUnexpectedExit();
         EventLoop::run();
@@ -1219,8 +1177,6 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         $transport = $this->buildTransport($spawned);
 
         $transport->onReconnect(static function () use ($transport): void {
-            // The whole point of the signal: a listener rebuilding per-connection state must be able to
-            // write it to the fresh peer from inside the callback.
             $transport->send(self::notification());
         });
 
@@ -1260,8 +1216,6 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         self::connectionAt($spawned, 0)->emitUnexpectedExit();
         EventLoop::run();
 
-        // The second attempt failed to start and the third took its place, so exactly one reconnect
-        // is owed, not two.
         self::assertCount(3, $spawned);
         self::assertSame([true], $reconnects);
     }

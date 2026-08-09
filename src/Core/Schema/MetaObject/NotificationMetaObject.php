@@ -18,8 +18,7 @@ use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\RequestId;
 
 /**
- * Extends `MetaObject` with additional notification-specific fields.
- * All key naming rules from `MetaObject` apply.
+ * Extends `MetaObject` with additional notification-specific fields. All key naming rules from `MetaObject` apply.
  *
  * @extends MetaObject<array<array-key, mixed>>
  *

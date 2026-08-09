@@ -21,9 +21,7 @@ use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\Result;
 
 /**
- * Declares one MCP extension (SEP-2133): its capability identifier, settings,
- * and the methods it serves. The declaration is fixed at enable-time and
- * consumed by the builder.
+ * One MCP extension declaration (SEP-2133).
  *
  * @template TContext of AbstractContext
  *
@@ -39,25 +37,18 @@ interface ExtensionInterface
     public function getIdentifier(): string;
 
     /**
-     * Settings advertised under `capabilities.extensions[identifier]`. Empty
-     * means supported with no settings.
+     * Settings advertised under `capabilities.extensions[identifier]`, empty meaning supported with none.
      *
      * @return array<string, mixed>
      */
     public function getSettings(): array;
 
     /**
-     * The inbound request methods this extension serves, each naming the class
-     * that parses its envelopes.
-     *
      * @return array<non-empty-string, class-string<JsonRpcRequest<non-empty-string>>>
      */
     public function getRequests(): array;
 
     /**
-     * The inbound notification methods this extension consumes, each naming
-     * the class that parses its envelopes.
-     *
      * @return array<non-empty-string, class-string<JsonRpcNotification<non-empty-string>>>
      */
     public function getNotifications(): array;

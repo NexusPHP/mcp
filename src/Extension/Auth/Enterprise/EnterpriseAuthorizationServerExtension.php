@@ -17,9 +17,7 @@ use Nexus\Mcp\Server\ServerExtensionInterface;
 
 /**
  * The official enterprise-managed authorization extension
- * (`io.modelcontextprotocol/enterprise-managed-authorization`, SEP-990) for the server: advertises the
- * extension slot for discoverability. The extension defines no JSON-RPC methods, so there is nothing to
- * serve or gate.
+ * (`io.modelcontextprotocol/enterprise-managed-authorization`, SEP-990) for the server.
  */
 final readonly class EnterpriseAuthorizationServerExtension implements ServerExtensionInterface
 {

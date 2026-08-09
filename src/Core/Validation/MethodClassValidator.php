@@ -19,8 +19,7 @@ use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 
 /**
- * Enforces that an envelope class declares the method it is registered for,
- * keeping `getMethod()` the single source of truth for dispatch.
+ * Enforces that an envelope class declares the method it is registered for.
  *
  * @internal
  */

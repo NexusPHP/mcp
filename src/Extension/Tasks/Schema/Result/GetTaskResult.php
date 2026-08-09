@@ -26,9 +26,7 @@ use Nexus\Mcp\Core\Validation\EnumValueValidator;
 use Nexus\Mcp\Extension\Tasks\Schema\Enum\TaskStatus;
 
 /**
- * The current state of a task, one envelope shape discriminated by `status`:
- * `completed` carries `result`, `failed` carries `error`, `input_required`
- * carries `inputRequests`, and `working`/`cancelled` carry none of the three.
+ * The current state of a task, one envelope shape discriminated by `status`.
  *
  * @extends Result<array{
  *   _meta?: template-type<ResultMetaObject, MetaObject, 'T'>,

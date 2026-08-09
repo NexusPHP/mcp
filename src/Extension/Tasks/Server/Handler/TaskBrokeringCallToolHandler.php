@@ -27,10 +27,7 @@ use Nexus\Mcp\Server\Handler\Request\ExtensionDeclarationGate;
 use Nexus\Mcp\Server\ServerContext;
 
 /**
- * Decorates the `tools/call` handler with the server's per-request task
- * decision: a policied tool called by a declaring client runs as a task, a
- * non-declaring client falls through to synchronous execution or, for a
- * task-required tool, is refused.
+ * Decorates the `tools/call` handler with the server's per-request task decision.
  *
  * @internal
  *
@@ -75,8 +72,6 @@ final readonly class TaskBrokeringCallToolHandler implements RequestHandlerInter
         }
 
         if ($policy->resolvesInputFirst && null === $context->requestState) {
-            // Input-required exchanges resolve synchronously before a task is
-            // created, so rounds without a continuation token pass through.
             return $this->inner->handle($request, $context);
         }
 

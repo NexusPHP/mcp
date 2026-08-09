@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Http;
 
 /**
- * Scans a tool `inputSchema` for `x-mcp-header` bindings and enforces the constraints on them.
+ * Scanner for the `x-mcp-header` bindings a tool `inputSchema` declares.
  *
  * @internal
  *
@@ -30,7 +30,7 @@ final class ParameterHeaderScanner
     private const string TOKEN_PATTERN = '/\A[!#$%&\'*+\-.^_`|~0-9A-Za-z]+\z/';
 
     /**
-     * JSON Schema `type` values permitted on an `x-mcp-header` property. The spec excludes `number`.
+     * JSON Schema `type` values permitted on an `x-mcp-header` property, the spec excluding `number`.
      */
     private const array PERMITTED_TYPES = ['string', 'integer', 'boolean'];
 
@@ -159,7 +159,6 @@ final class ParameterHeaderScanner
     private static function resolveBranches(string $keyword, mixed $value): array
     {
         if (! \is_array($value)) {
-            // A scalar keyword value (e.g. `additionalProperties: false`) carries no subschema to visit.
             return [];
         }
 

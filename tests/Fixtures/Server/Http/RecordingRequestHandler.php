@@ -18,8 +18,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
 /**
- * PSR-15 handler double that records whether it was invoked and with which request, then returns a
- * preset response.
+ * PSR-15 handler double recording its invocation and returning a preset response.
  *
  * @internal
  */

@@ -18,8 +18,7 @@ use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\MetaObject\PayloadMetaObject;
 
 /**
- * Binary resource contents. The `blob` payload carries a base64-encoded
- * representation of the binary data.
+ * Binary resource contents, whose `blob` payload carries a base64-encoded representation of the data.
  *
  * @extends ResourceContents<array{
  *   uri: non-empty-string,

@@ -89,9 +89,6 @@ final class JsonRpcMethodRegistryTest extends AbstractMcpTestCase
     }
 
     /**
-     * Asserts the registry's iteration order matches `sort()` on its keys, so
-     * entries stay grouped by method-name prefix.
-     *
      * @param array<non-empty-string, class-string> $registry
      */
     private static function assertRegistryIsSortedByKey(array $registry, string $label): void

@@ -281,7 +281,6 @@ final class ResourceTemplateStoreTest extends AbstractMcpTestCase
         self::assertSame([], $store->list(null)->resourceTemplates);
         self::assertSame(1, $changes);
 
-        // The compiled pattern must go with the entry, or `read()` still matches a removed template.
         $this->expectException(ResourceNotFoundException::class);
         $store->read('file:///a', self::makeContext());
     }

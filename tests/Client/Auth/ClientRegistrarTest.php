@@ -72,7 +72,6 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
 
     public function testUnboundCredentialsTakeTheDiscoveredIssuer(): void
     {
-        // Credentials issued out of band name no server of their own, so discovery names it for them.
         $http = new RecordingHttpClient();
 
         $registration = self::resolve($http, self::metadata(), self::options(

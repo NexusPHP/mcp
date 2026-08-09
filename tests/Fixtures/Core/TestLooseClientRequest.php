@@ -19,8 +19,7 @@ use Nexus\Mcp\Core\Schema\Request\ClientRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 
 /**
- * A client-sendable vendor request whose `fromArray` tolerates absent params,
- * for exercising the dispatcher's params-contract guard.
+ * Client-sendable vendor request whose `fromArray` tolerates absent params.
  *
  * @internal
  *

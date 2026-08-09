@@ -23,10 +23,6 @@ final class McpSchemaProcessor
     public const string SORTED_SCHEMA_JSON_PATH = __DIR__.'/../../sorted-schema.json';
     public const string LATEST_SCHEMA_TS_URL = 'https://raw.githubusercontent.com/modelcontextprotocol/modelcontextprotocol/main/schema/2026-07-28/schema.ts';
     public const string LATEST_SCHEMA_TS_PATH = __DIR__.'/../../latest-schema.ts';
-
-    /**
-     * Spec defs the SDK represents inline as native PHP types rather than as a dedicated class.
-     */
     private const array INLINED_SPEC_DEFS = [
         'JSONValue',
         'JSONObject',
@@ -35,11 +31,6 @@ final class McpSchemaProcessor
         'InputResponses',
     ];
 
-    /**
-     * Fetches the upstream `schema.ts` source and saves it locally as a
-     * developer reference for inheritance and type aliases that the JSON schema
-     * does not preserve. The file is git-ignored.
-     */
     public static function fetchAndSaveLatestSchemaTs(): void
     {
         $schemaTs = file_get_contents(self::LATEST_SCHEMA_TS_URL);
@@ -52,11 +43,7 @@ final class McpSchemaProcessor
     }
 
     /**
-     * Loads the latest schema. Resolution priority:
-     *
-     * - `MCP_FETCH_LATEST_SCHEMA` is truthy: fetch from the remote URL and overwrite the local cache.
-     * - Local cache `latest-schema.json` exists: read from disk.
-     * - Otherwise: fetch from the remote URL and write the local cache (fresh-clone bootstrap).
+     * Fetches when `MCP_FETCH_LATEST_SCHEMA` is truthy or the local cache is absent, and reads it otherwise.
      *
      * @return array<string, mixed>
      */
@@ -184,10 +171,7 @@ final class McpSchemaProcessor
     }
 
     /**
-     * Spec def names carrying an `@deprecated` JSDoc tag in the upstream
-     * TypeScript schema. The TS is the only source: the generated JSON schema
-     * drops the tag. Used to separate deliberately-omitted deprecated defs from
-     * genuinely not-yet-modelled ones in `unprocessed_schema`.
+     * Read from the TypeScript schema, since the generated JSON drops the `@deprecated` tag.
      *
      * @return list<string>
      */
@@ -209,13 +193,6 @@ final class McpSchemaProcessor
     }
 
     /**
-     * Resolves a class basename to the matching top-level spec key, accounting
-     * for naming conventions that differ between PHP (camelCase `JsonRpc`,
-     * `Url`) and the MCP spec (uppercase-acronym `JSONRPC`, `URL`). Each
-     * acronym fragment is rewritten wherever it appears in the basename, not
-     * just at the start, so e.g. `ElicitRequestUrlParams` maps to spec
-     * `ElicitRequestURLParams`.
-     *
      * @param array<string, mixed> $schemaDefs
      *
      * @return null|non-empty-string
@@ -236,10 +213,6 @@ final class McpSchemaProcessor
     }
 
     /**
-     * Inlines `$ref` aliases that point to other top-level `$defs` entries, so
-     * aliased schemas (e.g. `EmptyResult = { "$ref": "#/$defs/Result" }`) expose
-     * the same fields as the underlying definition for conformance testing.
-     *
      * @param array<string, mixed> $defs
      *
      * @return array<string, mixed>

@@ -14,8 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\Enum;
 
 /**
- * Indicates the type of a `Result` object, allowing the client to
- * determine how to parse the response.
+ * Indicates the type of a `Result` object, allowing the client to determine how to parse the response.
  *
  * complete - the request completed successfully and the result contains the final content.
  * input_required - the request requires additional input and the result contains an `InputRequiredResult`

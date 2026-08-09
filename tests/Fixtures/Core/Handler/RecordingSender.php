@@ -21,7 +21,7 @@ use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Core\Schema\ResultResponse\GenericResultResponse;
 
 /**
- * Records every outbound message in-memory for assertion in tests.
+ * In-memory `SenderInterface` recording every outbound message.
  *
  * @internal
  */

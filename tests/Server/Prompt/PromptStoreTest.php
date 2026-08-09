@@ -93,8 +93,6 @@ final class PromptStoreTest extends AbstractMcpTestCase
 
     public function testAnAllDigitNameIsServedDespiteBecomingAnIntegerKey(): void
     {
-        // The name rules permit all digits, and PHP turns such a key into an int. Pagination must still
-        // mint a cursor that names the entry rather than its position.
         $store = new PromptStore(['123' => new PromptEntry(new Prompt(name: '123'), self::makeRenderer()), 'beta' => new PromptEntry(new Prompt(name: 'beta'), self::makeRenderer())], pageSize: 1);
 
         $first = $store->list(null);

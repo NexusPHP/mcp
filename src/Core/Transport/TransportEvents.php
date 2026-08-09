@@ -14,8 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Transport;
 
 /**
- * Listener bookkeeping shared by transports. Owns the four event buckets
- * (`message`, `error`, `drain`, `close`) and fan-out.
+ * Listener bookkeeping shared by transports, owning the `message`, `error`, `drain`, and `close` buckets.
  *
  * @internal
  */
