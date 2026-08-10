@@ -24,6 +24,8 @@ in `0.x`, minor releases may include breaking changes.
 
 - Every peer value this SDK quotes back in a JSON-RPC error, a log record, or a client-side exception is
   bounded and escaped. `error.data.uri` and `RemoteCallFailedException::$error` still carry it whole.
+- A malformed envelope is no longer copied whole into the log record reporting it. The reason and the
+  request id ride the logged exception as before.
 - A parsed OAuth scope is held to the RFC 6749 `scope-token` grammar, and a segment that is not one is
   dropped.
 - A resource-template variable that percent-decodes out of the segment it matched is refused rather than

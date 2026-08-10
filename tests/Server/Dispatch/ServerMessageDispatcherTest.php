@@ -180,7 +180,6 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
             'Dropping malformed notification (JSON-RPC 2.0 §4.1 forbids responses to notifications).',
         );
         self::assertCount(1, $matches);
-        self::assertSame($envelope, $matches[0]['context']['envelope'] ?? null);
         self::assertInstanceOf(AbstractJsonRpcProtocolException::class, $matches[0]['context']['exception'] ?? null);
     }
 
@@ -202,7 +201,6 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
             'Rejecting envelope whose method was sent under the wrong JSON-RPC shape.',
         );
         self::assertCount(1, $matches);
-        self::assertSame($envelope, $matches[0]['context']['envelope'] ?? null);
         self::assertInstanceOf(MethodMisroutedException::class, $matches[0]['context']['exception'] ?? null);
     }
 
@@ -234,7 +232,6 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
             'Rejecting envelope whose method was sent under the wrong JSON-RPC shape.',
         );
         self::assertCount(1, $matches);
-        self::assertSame($envelope, $matches[0]['context']['envelope'] ?? null);
         self::assertInstanceOf(MethodMisroutedException::class, $matches[0]['context']['exception'] ?? null);
     }
 
@@ -287,7 +284,6 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
             'Dropping malformed notification (JSON-RPC 2.0 §4.1 forbids responses to notifications).',
         );
         self::assertCount(1, $matches);
-        self::assertSame($envelope, $matches[0]['context']['envelope'] ?? null);
     }
 
     public function testNotificationWithMalformedParamsIsDroppedAndLoggedNotAnsweredWithError(): void
@@ -311,7 +307,6 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
             'Dropping malformed notification (JSON-RPC 2.0 §4.1 forbids responses to notifications).',
         );
         self::assertCount(1, $matches);
-        self::assertSame($envelope, $matches[0]['context']['envelope'] ?? null);
     }
 
     public function testRequestForUnknownMethodReturnsMethodNotFoundError(): void
@@ -1375,6 +1370,28 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
 
         $matches = $logger->recordsMatching(LogLevel::ERROR, 'Uncaught notification handler exception.');
         self::assertCount(1, $matches);
+    }
+
+    public function testAParseFailureLogsNothingOfThePeerEnvelopeBeyondTheException(): void
+    {
+        $transport = new RecordingTransport();
+        $logger = new ArrayLogger();
+        $dispatcher = self::buildDispatcher(logger: $logger);
+
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'method' => 'notifications/cancelled',
+            'params' => ['requestId' => null, 'reason' => str_repeat('a', 5_000)."\x1b[2K"],
+        ], $transport, new ReceiveContext());
+
+        $dispatcher->flushPending();
+
+        $matches = $logger->recordsMatching(
+            LogLevel::INFO,
+            'Dropping malformed notification (JSON-RPC 2.0 §4.1 forbids responses to notifications).',
+        );
+        self::assertCount(1, $matches);
+        self::assertSame(['exception'], array_keys($matches[0]['context']), 'The peer envelope must not ride the log record.');
     }
 
     /**

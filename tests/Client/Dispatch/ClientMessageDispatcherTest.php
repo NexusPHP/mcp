@@ -287,7 +287,6 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
 
         $matches = $logger->recordsMatching(LogLevel::WARNING, 'Discarding malformed response envelope from peer.');
         self::assertCount(1, $matches);
-        self::assertSame($envelope, $matches[0]['context']['envelope'] ?? null);
         self::assertInstanceOf(\Throwable::class, $matches[0]['context']['exception'] ?? null);
     }
 
@@ -584,7 +583,6 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
 
         $matches = $logger->recordsMatching(LogLevel::WARNING, 'Rejecting envelope whose method was sent under the wrong JSON-RPC shape.');
         self::assertCount(1, $matches);
-        self::assertSame($envelope, $matches[0]['context']['envelope'] ?? null);
         self::assertInstanceOf(MethodMisroutedException::class, $matches[0]['context']['exception'] ?? null);
     }
 
@@ -604,7 +602,6 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
 
         $matches = $logger->recordsMatching(LogLevel::WARNING, 'Rejecting envelope whose method was sent under the wrong JSON-RPC shape.');
         self::assertCount(1, $matches);
-        self::assertSame($envelope, $matches[0]['context']['envelope'] ?? null);
         self::assertInstanceOf(AbstractJsonRpcProtocolException::class, $matches[0]['context']['exception'] ?? null);
     }
 
@@ -641,7 +638,6 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         self::assertSame([], $transport->sent, 'Notifications must not produce responses, even when malformed.');
         $matches = $logger->recordsMatching(LogLevel::INFO, 'Dropping malformed notification (JSON-RPC 2.0 §4.1 forbids responses to notifications).');
         self::assertCount(1, $matches);
-        self::assertSame($envelope, $matches[0]['context']['envelope'] ?? null);
         self::assertInstanceOf(AbstractJsonRpcProtocolException::class, $matches[0]['context']['exception'] ?? null);
     }
 
@@ -1139,6 +1135,25 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
 
         self::assertSame(0, $stolen);
         self::assertSame(1, $handled);
+    }
+
+    public function testAParseFailureLogsNothingOfThePeerEnvelopeBeyondTheException(): void
+    {
+        $logger = new ArrayLogger();
+        $dispatcher = self::buildDispatcher(new PendingOutboundRequests(), logger: $logger);
+        $transport = new RecordingTransport();
+
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'method' => 'notifications/cancelled',
+            'params' => ['requestId' => null, 'reason' => str_repeat('a', 5_000)."\x1b[2K"],
+        ], $transport, new ReceiveContext());
+
+        $dispatcher->flushPending();
+
+        $matches = $logger->recordsMatching(LogLevel::INFO, 'Dropping malformed notification (JSON-RPC 2.0 §4.1 forbids responses to notifications).');
+        self::assertCount(1, $matches);
+        self::assertSame(['exception'], array_keys($matches[0]['context']), 'The peer envelope must not ride the log record.');
     }
 
     /**
