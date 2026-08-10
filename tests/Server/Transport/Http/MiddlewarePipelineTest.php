@@ -90,6 +90,21 @@ final class MiddlewarePipelineTest extends AbstractMcpTestCase
         self::assertSame([], $log->labels);
     }
 
+    public function testAcceptsMiddlewareGivenAsNamedArguments(): void
+    {
+        $log = new CallLog();
+        $handler = self::handler();
+
+        (new MiddlewarePipeline(
+            $handler,
+            outer: new RecordingMiddleware('a', $log),
+            inner: new RecordingMiddleware('b', $log),
+        ))->handle(self::request());
+
+        self::assertSame(['a', 'b'], $log->labels);
+        self::assertTrue($handler->called);
+    }
+
     public function testIsReentrantAcrossCalls(): void
     {
         $log = new CallLog();
