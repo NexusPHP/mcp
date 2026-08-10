@@ -6,6 +6,27 @@ for *when* breaking changes may land and how they are communicated lives in
 
 ## v0.11.0 to Unreleased
 
+### The in-flight dispatch cap is on by default, on both peers
+
+`ServerBuilder` and `ClientBuilder` both default `maxInFlight` to `DEFAULT_MAX_IN_FLIGHT` (1024), where the
+server previously defaulted to no cap and the client had no cap available at all. Past the cap a request is
+answered `-32000` (`SdkErrorCode::Overloaded`) and a notification is dropped, so a peer that sends faster than
+your handlers finish now meets backpressure instead of exhausting memory.
+
+A workload legitimately running more than 1024 handlers at once must say so, and can opt out entirely:
+
+```php
+->setMaxInFlightDispatches(4_096) // raise it
+->setMaxInFlightDispatches(null)  // restore the old uncapped behaviour
+```
+
+Two methods are exempt. `subscriptions/listen` on a server that serves it, so a held-open stream neither
+occupies a slot nor is refused, and `notifications/cancelled` on both peers, since it frees slots rather than
+occupying one.
+
+A handler that blocks on a human holds its slot for the whole wait. Return an `InputRequiredResult` or start a
+task instead, both of which complete the request and free the slot while the work continues.
+
 ## v0.10.0 to v0.11.0
 
 ### Schema constructors no longer enforce the identifier-name format

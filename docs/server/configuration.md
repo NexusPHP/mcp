@@ -62,20 +62,27 @@ NOT write to STDOUT outside of the JSON-RPC stream. Target STDERR or a file.
 
 ## In-flight dispatch cap
 
-Optional and off by default. Without it, a peer that sends faster than handlers finish accumulates one
-coroutine per message until the process runs out of memory. `setMaxInFlightDispatches()` bounds that.
+On by default at `ServerBuilder::DEFAULT_MAX_IN_FLIGHT` (1024). Without a cap, a peer that sends faster than
+handlers finish accumulates one coroutine per message until the process runs out of memory.
 
 ```php
-->setMaxInFlightDispatches(64)
+->setMaxInFlightDispatches(64)   // tighter
+->setMaxInFlightDispatches(null) // uncapped, at that risk
 ```
+
+The default is high enough that a legitimate workload should not reach it.
 
 Past the cap, a request is answered `-32000` (`SdkErrorCode::Overloaded`) and a notification is dropped
 without a reply, because JSON-RPC 2.0 §4.1 forbids answering one. Shedding happens before the request id is
 claimed, so the server holds no state for a shed request and a retry is never rejected as a duplicate.
 
-`subscriptions/listen` is the one exception, and only on a server that serves it: it is admitted however
-saturated the cap is, because it opens a stream rather than occupying a slot. See
-[Subscriptions](subscriptions.md).
+Two methods are exempt. `subscriptions/listen` is admitted however saturated the cap is, on a server that
+serves it, because it opens a stream rather than occupying a slot (see [Subscriptions](subscriptions.md)).
+`notifications/cancelled` is admitted because it frees slots rather than occupying one.
+
+A handler that waits on a human holds its slot for the whole wait. Return an
+[`InputRequiredResult`](input-required.md) or start a [task](tasks.md) instead, both of which
+complete the request and free the slot while the work continues.
 
 Pick a number from what your handlers cost, not from request rate: the cap counts handlers running
 concurrently, and it releases as each one finishes. The budget is shared, so a registered notification

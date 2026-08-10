@@ -31,6 +31,7 @@ use Nexus\Mcp\Core\Handler\NotificationHandlerInterface;
 use Nexus\Mcp\Core\Handler\RequestHandlerInterface;
 use Nexus\Mcp\Core\JsonRpc\JsonRpcMessageParser;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
+use Nexus\Mcp\Core\Schema\Enum\SdkErrorCode;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
@@ -1156,9 +1157,150 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         self::assertSame(['exception'], array_keys($matches[0]['context']), 'The peer envelope must not ride the log record.');
     }
 
+    public function testInboundRequestPastTheInFlightCapIsShedAsOverloaded(): void
+    {
+        $logger = new ArrayLogger();
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher(new PendingOutboundRequests(), logger: $logger, maxInFlight: 1);
+
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 2, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+
+        $dispatcher->flushPending();
+
+        self::assertCount(2, $transport->sent);
+        $shed = $transport->sent[0]['message'];
+        self::assertInstanceOf(JsonRpcErrorResponse::class, $shed);
+        self::assertSame(2, $shed->id?->id, 'The shed response must answer the request that was refused.');
+        self::assertSame(SdkErrorCode::Overloaded->value, $shed->error->code);
+        self::assertSame('Client overloaded', $shed->error->message);
+        $matches = $logger->recordsMatching(
+            LogLevel::WARNING,
+            'Shed {count} inbound message(s) so far. The client is at its in-flight dispatch cap.',
+        );
+        self::assertCount(1, $matches);
+        self::assertSame(['count' => 1, 'method' => 'tests/test-request'], $matches[0]['context']);
+    }
+
+    public function testInboundNotificationPastTheInFlightCapIsDroppedWithoutAResponse(): void
+    {
+        $handled = 0;
+        $logger = new ArrayLogger();
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher(
+            new PendingOutboundRequests(),
+            notificationHandlers: [
+                'notifications/tools/list_changed' => new ClosureNotificationHandler(static function () use (&$handled): void {
+                    ++$handled;
+                }),
+            ],
+            logger: $logger,
+            maxInFlight: 1,
+        );
+
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'method' => 'notifications/tools/list_changed'], $transport, new ReceiveContext());
+
+        $dispatcher->flushPending();
+
+        self::assertSame(0, $handled, 'A shed notification must not reach its handler.');
+        self::assertCount(1, $transport->sent, 'JSON-RPC 2.0 §4.1 forbids answering a notification.');
+        $matches = $logger->recordsMatching(
+            LogLevel::WARNING,
+            'Shed {count} inbound message(s) so far. The client is at its in-flight dispatch cap.',
+        );
+        self::assertCount(1, $matches);
+        self::assertSame(['count' => 1, 'method' => 'notifications/tools/list_changed'], $matches[0]['context']);
+    }
+
+    public function testCancellationIsAdmittedPastTheInFlightCap(): void
+    {
+        $cancelled = null;
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher(
+            new PendingOutboundRequests(),
+            notificationHandlers: [
+                'notifications/cancelled' => new ClosureNotificationHandler(static function () use (&$cancelled): void {
+                    $cancelled = true;
+                }),
+            ],
+            maxInFlight: 1,
+        );
+
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $dispatcher->dispatch(
+            ['jsonrpc' => '2.0', 'method' => 'notifications/cancelled', 'params' => ['requestId' => 1]],
+            $transport,
+            new ReceiveContext(),
+        );
+
+        $dispatcher->flushPending();
+
+        self::assertTrue($cancelled, 'The one notification that frees a slot must not be shed by the cap it would relieve.');
+    }
+
+    public function testRepeatedSheddingLogsOnceRatherThanPerMessage(): void
+    {
+        $logger = new ArrayLogger();
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher(
+            new PendingOutboundRequests(),
+            notificationHandlers: [
+                'notifications/tools/list_changed' => new ClosureNotificationHandler(static fn() => null),
+            ],
+            logger: $logger,
+            maxInFlight: 1,
+        );
+
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+
+        for ($i = 0; $i < 3; ++$i) {
+            $dispatcher->dispatch(['jsonrpc' => '2.0', 'method' => 'notifications/tools/list_changed'], $transport, new ReceiveContext());
+        }
+
+        $dispatcher->flushPending();
+
+        $matches = $logger->recordsMatching(
+            LogLevel::WARNING,
+            'Shed {count} inbound message(s) so far. The client is at its in-flight dispatch cap.',
+        );
+        self::assertCount(1, $matches, 'A flood must not become the flood of log records reporting it.');
+    }
+
+    public function testSubscriptionDeliveryPastTheInFlightCapIsDropped(): void
+    {
+        $listeners = new SubscriptionRegistry();
+        $logger = new ArrayLogger();
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher(new PendingOutboundRequests(), logger: $logger, subscriptions: $listeners, maxInFlight: 1);
+
+        $seen = [];
+        $listeners->register(self::buildSubscription(new RequestId(id: 7), static function (JsonRpcNotification $notification) use (&$seen): void {
+            $seen[] = $notification::getMethod();
+        }));
+
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'method' => 'notifications/tools/list_changed',
+            'params' => ['_meta' => [NotificationMetaObject::SUBSCRIPTION_ID_KEY => 7]],
+        ], $transport, new ReceiveContext());
+
+        $dispatcher->flushPending();
+
+        self::assertSame([], $seen, 'A shed delivery must not reach the subscription listener.');
+        $matches = $logger->recordsMatching(
+            LogLevel::WARNING,
+            'Shed {count} inbound message(s) so far. The client is at its in-flight dispatch cap.',
+        );
+        self::assertCount(1, $matches);
+        self::assertSame(['count' => 1, 'method' => 'notifications/tools/list_changed'], $matches[0]['context']);
+    }
+
     /**
      * @param array<non-empty-string, RequestHandlerInterface<non-empty-string, Result, ClientContext>> $requestHandlers
      * @param array<non-empty-string, NotificationHandlerInterface<non-empty-string>>                   $notificationHandlers
+     * @param null|int<1, max>                                                                          $maxInFlight
      */
     private static function buildDispatcher(
         PendingOutboundRequests $outbound,
@@ -1166,6 +1308,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         array $notificationHandlers = [],
         ?ArrayLogger $logger = null,
         ?SubscriptionRegistry $subscriptions = null,
+        ?int $maxInFlight = null,
     ): ClientMessageDispatcher {
         return new ClientMessageDispatcher(
             new HandlerRegistry($requestHandlers, RequestHandlerInterface::class, 'Request handler'),
@@ -1174,6 +1317,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
             logger: $logger ?? new ArrayLogger(),
             parser: new JsonRpcMessageParser(requests: ['tests/test-request' => TestRequest::class]),
             subscriptions: $subscriptions ?? new SubscriptionRegistry(),
+            maxInFlight: $maxInFlight,
         );
     }
 

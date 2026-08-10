@@ -42,6 +42,7 @@ use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\MetaObject\GenericResultMetaObject;
+use Nexus\Mcp\Core\Schema\Notification\CancelledNotification;
 use Nexus\Mcp\Core\Schema\ProtocolVersion;
 use Nexus\Mcp\Core\Schema\Request\ClientRequest;
 use Nexus\Mcp\Core\Schema\Request\SubscriptionsListenRequest;
@@ -342,7 +343,9 @@ final readonly class ServerMessageDispatcher implements MessageDispatcherInterfa
             return;
         }
 
-        if ($this->isSaturated()) {
+        $freesSlot = CancelledNotification::getMethod() === $method;
+
+        if (! $freesSlot && $this->isSaturated()) {
             if ($this->shedNotifications->admits()) {
                 $this->logger->warning(
                     'Shed {count} notification(s) so far. The server is at its in-flight dispatch cap.',

@@ -825,6 +825,32 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
         self::assertInstanceOf(JsonRpcResultResponse::class, $transport->sent[0]['message']);
     }
 
+    public function testCancellationIsAdmittedPastTheInFlightCap(): void
+    {
+        $cancelled = null;
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher(
+            requestHandlers: ['tools/list' => self::okHandler()],
+            notificationHandlers: [
+                'notifications/cancelled' => new ClosureNotificationHandler(static function () use (&$cancelled): void {
+                    $cancelled = true;
+                }),
+            ],
+            maxInFlight: 1,
+        );
+
+        $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
+        $dispatcher->dispatch(
+            ['jsonrpc' => '2.0', 'method' => 'notifications/cancelled', 'params' => ['requestId' => 1]],
+            $transport,
+            new ReceiveContext(),
+        );
+
+        $dispatcher->flushPending();
+
+        self::assertTrue($cancelled, 'The one notification that frees a slot must not be shed by the cap it would relieve.');
+    }
+
     public function testSubscriptionsListenIsStillShedByAServerThatDoesNotServeIt(): void
     {
         $transport = new RecordingTransport();
@@ -898,7 +924,7 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
         $dispatcher = self::buildDispatcher(
             requestHandlers: ['tools/list' => self::okHandler()],
             notificationHandlers: [
-                'notifications/cancelled' => new ClosureNotificationHandler(static function () use (&$handled): void {
+                'notifications/progress' => new ClosureNotificationHandler(static function () use (&$handled): void {
                     $handled = true;
                 }),
             ],
@@ -908,7 +934,7 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
 
         $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
         $dispatcher->dispatch(
-            ['jsonrpc' => '2.0', 'method' => 'notifications/cancelled', 'params' => ['requestId' => 9]],
+            ['jsonrpc' => '2.0', 'method' => 'notifications/progress', 'params' => ['progressToken' => 'p-1', 'progress' => 1.0]],
             $transport,
             new ReceiveContext(),
         );

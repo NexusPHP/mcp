@@ -21,6 +21,8 @@ use Nexus\Mcp\Core\Exception\ExtensionMethodCollisionException;
 use Nexus\Mcp\Core\Exception\MissingNotificationClassException;
 use Nexus\Mcp\Core\Handler\AbstractContext;
 use Nexus\Mcp\Core\Schema\ClientCapabilities;
+use Nexus\Mcp\Core\Schema\Enum\SdkErrorCode;
+use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\ProtocolVersion;
 use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
@@ -43,6 +45,7 @@ use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
+use Revolt\EventLoop;
 
 use function Amp\async;
 use function Amp\delay;
@@ -397,6 +400,50 @@ final class ClientBuilderTest extends AbstractMcpTestCase
         ), TestNotification::class);
     }
 
+    public function testSetMaxInFlightDispatchesRejectsANonPositiveCap(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('Maximum in-flight dispatches must be a positive integer or null, 0 given.');
+
+        (new ClientBuilder())->setMaxInFlightDispatches(0);
+    }
+
+    public function testTheDefaultInFlightCapAdmitsExactlyItsBoundaryAndShedsTheNext(): void
+    {
+        $transport = new RecordingTransport();
+        self::connectServableClient(new ClientBuilder(), $transport);
+
+        for ($id = 1; $id <= 1_024; ++$id) {
+            $transport->emitMessage(['jsonrpc' => '2.0', 'id' => $id, 'method' => TestRequest::getMethod()]);
+        }
+
+        self::assertCount(0, $transport->sent, 'Nothing up to the cap may be shed.');
+
+        $transport->emitMessage(['jsonrpc' => '2.0', 'id' => 1_025, 'method' => TestRequest::getMethod()]);
+
+        self::assertCount(1, $transport->sent);
+        $shed = $transport->sent[0]['message'];
+        self::assertInstanceOf(JsonRpcErrorResponse::class, $shed);
+        self::assertSame(1_025, $shed->id?->id);
+        self::assertSame(SdkErrorCode::Overloaded->value, $shed->error->code);
+
+        EventLoop::run();
+    }
+
+    public function testANullInFlightCapLiftsTheDefault(): void
+    {
+        $transport = new RecordingTransport();
+        self::connectServableClient((new ClientBuilder())->setMaxInFlightDispatches(null), $transport);
+
+        for ($id = 1; $id <= 1_025; ++$id) {
+            $transport->emitMessage(['jsonrpc' => '2.0', 'id' => $id, 'method' => TestRequest::getMethod()]);
+        }
+
+        self::assertCount(0, $transport->sent, 'A lifted cap must shed nothing.');
+
+        EventLoop::run();
+    }
+
     public function testExtensionRequestHandlersServeInboundRequests(): void
     {
         $marker = new EmptyResult();
@@ -734,6 +781,23 @@ final class ClientBuilderTest extends AbstractMcpTestCase
 
         self::assertSame('progress-1', $firstRequest->params->meta->progressToken?->token);
         self::assertSame('progress-2', $secondRequest->params->meta->progressToken?->token);
+    }
+
+    /**
+     * Connects a client that serves `TestRequest`, so an inbound one occupies a dispatch slot.
+     */
+    private static function connectServableClient(ClientBuilder $builder, RecordingTransport $transport): void
+    {
+        $builder
+            ->setClientInfo('demo', '1.0.0')
+            ->enableExtension(new StubClientExtension(
+                identifier: 'com.example/feature',
+                requests: [TestRequest::getMethod() => TestRequest::class],
+                requestHandlers: [TestRequest::getMethod() => new ClosureRequestHandler(static fn(): EmptyResult => new EmptyResult())],
+            ))
+            ->build()
+            ->connect($transport)
+        ;
     }
 
     /**
