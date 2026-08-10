@@ -71,7 +71,9 @@ A `subscriptions/listen` always answers over SSE, whatever
 [`ResponseMode`](../transports.md#streamablehttpservertransport) the transport is configured with. The buffered
 path would hold the POST open with nowhere to push the acknowledgement.
 
-A held-open listen coroutine does not count against
-[`setMaxInFlightDispatches()`](configuration.md#in-flight-dispatch-cap), because it opens a subscription rather than being
-processed. `maxSubscriptions` is what bounds streams. The exemption is that narrow: a tool handler awaiting
-slow I/O still holds a slot, since shedding a pile-up of those is what the cap is for.
+A held-open listen coroutine neither counts against
+[`setMaxInFlightDispatches()`](configuration.md#in-flight-dispatch-cap) nor is refused once that cap is full,
+because it opens a subscription rather than being processed. `maxSubscriptions` is therefore the only bound on
+open streams. The exemption is that narrow: a tool handler awaiting slow I/O still holds a slot, since shedding
+a pile-up of those is what the cap is for. A server that registers no `subscriptions/listen` handler sheds one
+like any other request.

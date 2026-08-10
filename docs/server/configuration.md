@@ -73,6 +73,10 @@ Past the cap, a request is answered `-32000` (`SdkErrorCode::Overloaded`) and a 
 without a reply, because JSON-RPC 2.0 §4.1 forbids answering one. Shedding happens before the request id is
 claimed, so the server holds no state for a shed request and a retry is never rejected as a duplicate.
 
+`subscriptions/listen` is the one exception, and only on a server that serves it: it is admitted however
+saturated the cap is, because it opens a stream rather than occupying a slot. See
+[Subscriptions](subscriptions.md).
+
 Pick a number from what your handlers cost, not from request rate: the cap counts handlers running
 concurrently, and it releases as each one finishes. The budget is shared, so a registered notification
 handler occupies a slot for as long as it runs. A notification whose method has no handler costs nothing.

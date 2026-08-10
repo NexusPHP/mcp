@@ -8,6 +8,10 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp/commits/1.x)
 
+### Fixed
+
+- `subscriptions/listen` is no longer refused by the in-flight dispatch cap on a server that serves it.
+
 ## [v0.11.0](https://github.com/NexusPHP/mcp/compare/v0.10.0...v0.11.0) - 2026-08-10
 
 Closes a family of security defects where peer-supplied bytes reached a renderer unbounded and

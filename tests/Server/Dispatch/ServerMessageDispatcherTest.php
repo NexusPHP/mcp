@@ -802,6 +802,46 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
         self::assertSame('Server overloaded', $shed->error->message);
     }
 
+    public function testSubscriptionsListenIsAdmittedPastTheInFlightCap(): void
+    {
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher(
+            requestHandlers: [
+                'tools/list' => self::okHandler(),
+                'subscriptions/listen' => self::okHandler(),
+            ],
+            maxInFlight: 1,
+        );
+
+        $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
+        $dispatcher->dispatch(self::subscriptionsListenEnvelope(2), $transport, new ReceiveContext());
+
+        $dispatcher->flushPending();
+
+        self::assertCount(2, $transport->sent);
+        $admitted = $transport->sent[1]['message'];
+        self::assertInstanceOf(JsonRpcResultResponse::class, $admitted);
+        self::assertSame(2, $admitted->id->id, 'The admitted response must answer the listen, not the request that saturated the cap.');
+        self::assertInstanceOf(JsonRpcResultResponse::class, $transport->sent[0]['message']);
+    }
+
+    public function testSubscriptionsListenIsStillShedByAServerThatDoesNotServeIt(): void
+    {
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher(requestHandlers: ['tools/list' => self::okHandler()], maxInFlight: 1);
+
+        $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
+        $dispatcher->dispatch(self::subscriptionsListenEnvelope(2), $transport, new ReceiveContext());
+
+        $dispatcher->flushPending();
+
+        self::assertCount(2, $transport->sent);
+        $shed = $transport->sent[0]['message'];
+        self::assertInstanceOf(JsonRpcErrorResponse::class, $shed);
+        self::assertSame(2, $shed->id?->id);
+        self::assertSame(SdkErrorCode::Overloaded->value, $shed->error->code);
+    }
+
     public function testAShedRequestLeavesItsIdFreeForARetry(): void
     {
         $transport = new RecordingTransport();
@@ -1473,6 +1513,22 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
     private static function okHandler(): RequestHandlerInterface
     {
         return new ClosureRequestHandler(static fn() => new EmptyResult());
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function subscriptionsListenEnvelope(int|string $id): array
+    {
+        return [
+            'jsonrpc' => '2.0',
+            'id' => $id,
+            'method' => 'subscriptions/listen',
+            'params' => [
+                '_meta' => RequestMetaObjectFactory::shape(),
+                'notifications' => ['toolsListChanged' => true],
+            ],
+        ];
     }
 
     /**

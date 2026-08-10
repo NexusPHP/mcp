@@ -183,8 +183,9 @@ final readonly class ServerMessageDispatcher implements MessageDispatcherInterfa
     private function dispatchRequest(JsonRpcRequest $request, TransportInterface $transport, ReceiveContext $context): void
     {
         $method = $request::getMethod();
+        $holdsOpen = SubscriptionsListenRequest::getMethod() === $method && $this->requestHandlers->get($method) !== null;
 
-        if ($this->isSaturated()) {
+        if (! $holdsOpen && $this->isSaturated()) {
             $this->responseSender->send($transport, new JsonRpcErrorResponse(
                 id: $request->id,
                 error: new UnknownProtocolError(
@@ -204,8 +205,6 @@ final readonly class ServerMessageDispatcher implements MessageDispatcherInterfa
 
             return;
         }
-
-        $holdsOpen = SubscriptionsListenRequest::getMethod() === $method;
 
         $this->coroutines->track(async(function () use ($request, $transport, $method, $context, $cancellation): void {
             try {
