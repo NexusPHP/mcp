@@ -56,11 +56,15 @@ final class JwtAccessTokenValidator implements AccessTokenValidatorInterface
             return null;
         }
 
+        // An identity claim that is absent, empty, or not a string names nobody, so normalise all three to null.
+        $subject = $claims['sub'] ?? null;
+        $clientId = $claims['client_id'] ?? null;
+
         return new VerifiedAccessToken(
             audience: $claims['aud'],
             scopes: explode(' ', $claims['scope'] ?? ''),
-            subject: $claims['sub'] ?? null,
-            clientId: $claims['client_id'] ?? null,
+            subject: is_string($subject) && '' !== $subject ? $subject : null,
+            clientId: is_string($clientId) && '' !== $clientId ? $clientId : null,
             expiresAt: (int) $claims['exp'],
         );
     }
@@ -137,10 +141,17 @@ The validated token reaches handlers on the receive context:
 
 ```php
 $builder->addTool(new Tool(name: 'whoami'), function (CallToolRequest $request, ServerContext $context) {
-    $subject = $context->receiveContext->authInfo?->subject ?? 'anonymous';
+    $authInfo = $context->receiveContext->authInfo;
+    $subject = match (true) {
+        null === $authInfo => 'anonymous',
+        null === $authInfo->subject => 'authenticated, unnamed',
+        default => $authInfo->subject,
+    };
 
     return new CallToolResult(content: [new TextContent(text: $subject)]);
 });
 ```
 
-It is `null` on an unprotected endpoint and over stdio.
+`authInfo` is `null` on an unprotected endpoint and over stdio. Its `subject` is separately `null` for an
+accepted token carrying no non-empty string `sub` claim, which is why the two are tested apart above: an
+authenticated caller the token cannot name is not an anonymous one.

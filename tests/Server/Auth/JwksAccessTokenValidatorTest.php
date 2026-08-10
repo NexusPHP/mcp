@@ -116,11 +116,13 @@ final class JwksAccessTokenValidatorTest extends AbstractMcpTestCase
         $clientId = $validator->validate(self::encodeWithIssuerAndExpiry(['client_id' => 'from-client-id', 'cid' => 'from-cid']));
         $cid = $validator->validate(self::encodeWithIssuerAndExpiry(['cid' => 'from-cid']));
         $nonString = $validator->validate(self::encodeWithIssuerAndExpiry(['azp' => 99]));
+        $masking = $validator->validate(self::encodeWithIssuerAndExpiry(['azp' => 99, 'client_id' => 'from-client-id']));
 
         self::assertSame('from-azp', $azp?->clientId);
         self::assertSame('from-client-id', $clientId?->clientId);
         self::assertSame('from-cid', $cid?->clientId);
         self::assertNull($nonString?->clientId);
+        self::assertSame('from-client-id', $masking?->clientId, 'A claim naming nobody is skipped, not treated as the answer.');
     }
 
     public function testANonStringSubjectIsDropped(): void
@@ -129,6 +131,30 @@ final class JwksAccessTokenValidatorTest extends AbstractMcpTestCase
 
         self::assertNotNull($verified);
         self::assertNull($verified->subject);
+    }
+
+    public function testAnEmptySubjectIsDropped(): void
+    {
+        $verified = self::validator()->validate(self::encodeWithIssuerAndExpiry(['sub' => '']));
+
+        self::assertNotNull($verified);
+        self::assertNull($verified->subject, 'An empty subject names nobody, so it must not read as a caller identity.');
+    }
+
+    public function testAnEmptyClientIdIsDropped(): void
+    {
+        $verified = self::validator()->validate(self::encodeWithIssuerAndExpiry(['azp' => '']));
+
+        self::assertNotNull($verified);
+        self::assertNull($verified->clientId, 'An empty client id names nobody, so it must not read as a caller identity.');
+    }
+
+    public function testAnEmptyClientIdClaimDoesNotMaskALaterOne(): void
+    {
+        $verified = self::validator()->validate(self::encodeWithIssuerAndExpiry(['azp' => '', 'client_id' => 'acme']));
+
+        self::assertNotNull($verified);
+        self::assertSame('acme', $verified->clientId);
     }
 
     public function testAnExpiredTokenIsRefused(): void

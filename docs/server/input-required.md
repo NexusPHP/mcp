@@ -21,7 +21,10 @@ $builder->addTool(
                         required: ['ok'],
                     ),
                 ))],
-                requestState: $signer->sign('awaiting-confirmation'),
+                requestState: $signer->sign(
+                    'awaiting-confirmation',
+                    $context->receiveContext->authInfo?->subject ?? '',
+                ),
             );
         }
 
@@ -40,23 +43,36 @@ accumulated `inputResponses` map.
 untouched, so a hostile one may echo back something else entirely. `RequestStateSigner` mints and checks it:
 
 ```php
-// Minting, when the handler asks for input.
-$state = $signer->sign('awaiting-confirmation');
+$caller = $context->receiveContext->authInfo?->subject ?? '';
 
-// Checking, when the call comes back.
-$payload = $signer->verify($context->requestState)
-    ?? throw new InvalidParamsException($context->requestId, 'The "requestState" failed its integrity check.');
+// Minting, when the handler asks for input.
+$state = $signer->sign('awaiting-confirmation', $caller);
+
+// Checking, when the call comes back. A null state is a first call, not a forgery.
+$payload = null === $context->requestState
+    ? null
+    : $signer->verify($context->requestState, $caller)
+        ?? throw new InvalidParamsException($context->requestId, 'The "requestState" failed its integrity check.');
 ```
 
-`verify()` returns the payload it signed, or `null` for a state this server did not mint. Distinguish that
-from a first call, where `$context->requestState` is `null` and the handler should ask rather than reject.
-`RequestStateSigner::generate()` draws a key for a server whose states never outlive its own process. Anything
-longer-lived wants a key from configuration, so a state survives a restart or a second instance behind a load
-balancer.
+`verify()` returns the payload it signed, or `null` for a state this server did not mint or minted under a
+different binding. `RequestStateSigner::generate()` draws a key for a server whose states never outlive its
+own process. Anything longer-lived wants a key from configuration, so a state survives a restart or a second
+instance behind a load balancer.
+
+**Bind the state to whoever is entitled to resume it.** The signature answers "did a server holding this
+secret mint this", which on its own lets any caller replay any other caller's state, and a configuration key
+shared across instances widens that to the whole deployment. The second argument to `sign()` and `verify()` is
+folded into the signature, so a state minted for one binding will not verify under another. The authenticated
+subject is the usual choice. It is `null` over stdio, on an unprotected endpoint, and for an accepted token
+carrying no non-empty `sub` claim, and `?? ''` in each case is the same as passing no binding at all. Anything a
+replaying caller can also send is worthless here, so an endpoint serving more than one caller has no
+trustworthy caller identity until something authenticates them, whether that is the endpoint itself or a
+proxy in front of it.
 
 The payload is signed, not encrypted, and travels in the clear: put a continuation marker in it, never a
-secret. Expiry is not built in either. Encode a timestamp in the payload and check it after `verify()` if a
-state should go stale.
+secret. Expiry is not built in. Encode a timestamp in the payload and check it after `verify()` if a state
+should go stale. A binding stops another caller replaying a state, not the same caller replaying it later.
 
 **Only elicitation is available to ask for.** The spec's `InputRequest` union also admits
 `sampling/createMessage` and `roots/list`, but both are deprecated as of 2026-07-28 (SEP-2577) and this SDK
@@ -117,4 +133,5 @@ the request's `_meta` carries that declaration per request, so check
 `$context->meta->clientCapabilities->elicitation` before choosing a mode.
 
 [`conformance/MultiRoundServer.php`](../../conformance/MultiRoundServer.php) is the worked example, covering a
-single round, a signed continuation token, a two-question sequence, and the same flow on a prompt.
+single round, a signed continuation token, a two-question sequence, and the same flow on a prompt. It runs
+unauthenticated, so it signs unbound: there is no caller identity there to bind to.

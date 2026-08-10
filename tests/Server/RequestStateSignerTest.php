@@ -56,6 +56,72 @@ final class RequestStateSignerTest extends AbstractMcpTestCase
         self::assertSame($signer->sign('payload'), $signer->sign('payload'));
     }
 
+    public function testVerifyReturnsThePayloadWhenTheBindingMatches(): void
+    {
+        $signer = new RequestStateSigner('secret');
+
+        self::assertSame('round-2', $signer->verify($signer->sign('round-2', 'user-alice'), 'user-alice'));
+    }
+
+    public function testAStateBoundToOneCallerIsRefusedForAnother(): void
+    {
+        $signer = new RequestStateSigner('secret');
+
+        self::assertNull($signer->verify($signer->sign('round-2', 'user-alice'), 'user-bob'));
+    }
+
+    public function testABoundStateIsRefusedWhenTheBindingIsOmitted(): void
+    {
+        $signer = new RequestStateSigner('secret');
+
+        self::assertNull($signer->verify($signer->sign('round-2', 'user-alice')));
+    }
+
+    public function testAnUnboundStateIsRefusedForABoundCaller(): void
+    {
+        $signer = new RequestStateSigner('secret');
+
+        self::assertNull($signer->verify($signer->sign('round-2'), 'user-alice'));
+    }
+
+    public function testTheBindingCannotBeShiftedIntoThePayload(): void
+    {
+        $signer = new RequestStateSigner('secret');
+
+        self::assertNotSame(
+            $signer->sign('c', 'ab'),
+            $signer->sign('bc', 'a'),
+            'Length-prefixing is what stops one signing input serving two binding-and-payload pairs.',
+        );
+    }
+
+    /**
+     * Pins the signature format, since a state minted by one instance must verify on another.
+     */
+    #[DataProvider('provideTheSignatureFormatIsPinnedCases')]
+    public function testTheSignatureFormatIsPinned(string $payload, string $binding, string $expected): void
+    {
+        self::assertSame($expected, (new RequestStateSigner('secret'))->sign($payload, $binding));
+    }
+
+    /**
+     * @return iterable<string, array{string, string, string}>
+     */
+    public static function provideTheSignatureFormatIsPinnedCases(): iterable
+    {
+        yield 'bound' => [
+            'round-2',
+            'user-alice',
+            'round-2.e5d866e7d054283b1f0674c2b640dd37a84c1d2018cf812a4112d250d315a92f',
+        ];
+
+        yield 'unbound' => [
+            'round-2',
+            '',
+            'round-2.4d02aaa8b774574e17218fa69b962651e907fd265a2ecdad591dfda265e2e69e',
+        ];
+    }
+
     #[DataProvider('provideVerifyRejectsATamperedStateCases')]
     public function testVerifyRejectsATamperedState(string $state): void
     {

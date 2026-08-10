@@ -6,6 +6,47 @@ for *when* breaking changes may land and how they are communicated lives in
 
 ## v0.11.0 to Unreleased
 
+### `RequestStateSigner` signatures changed shape
+
+The signed material is now length-prefixed with the binding, so a `requestState` minted by an earlier release
+no longer verifies. This applies whether or not you adopt bindings, since the prefix is unconditional.
+
+A server keyed by `generate()` is unaffected, its states never outliving the process that minted them. One
+keyed from configuration takes the whole break, and that is the topology the shared key exists for: during a
+rolling deploy the fleet is mixed-version, so every state minted by an old instance fails at a new one until
+the rollout finishes. A handler already treats `null` from `verify()` as "this server did not mint it", which
+is the right answer for a stale state too, so the failure is an error the client can restart from, not a crash.
+
+Bind the state to whoever may resume it, since an unbound one is replayable by any caller the server talks to:
+
+```php
+$caller = $context->receiveContext->authInfo?->subject ?? '';
+
+$state = $signer->sign('awaiting-confirmation', $caller);
+```
+
+See [Asking the client for input](docs/server/input-required.md) for the checking half, which has to treat a
+null `requestState` as a first call rather than passing it to `verify()`.
+
+### `VerifiedAccessToken` narrows `$subject` and `$clientId` to `non-empty-string`
+
+Both are documented `null|non-empty-string`, since a claim naming nobody is indistinguishable from an absent
+one. The native types are still `?string`, so what changes for a *consumer* is static analysis: a custom
+`AccessTokenValidatorInterface` passing a plain `string` or `?string` is flagged, and the fix is the guard the
+shipped validator uses.
+
+One observable behaviour did change, and it is called out here rather than buried, since the taxonomy lists
+observable behaviour as breaking. `JwksAccessTokenValidator` now reads an empty or non-string `sub`, `azp`,
+`client_id` or `cid` as absent, where an empty one previously reached the handler as `''` and a non-string one
+masked every later claim in the fallback chain. A handler branching on `null === $token->subject` sees the
+first case join the second rather than arriving as an empty string.
+
+```php
+$subject = $claims['sub'] ?? null;
+
+subject: is_string($subject) && '' !== $subject ? $subject : null,
+```
+
 ### The in-flight dispatch cap is on by default, on both peers
 
 `ServerBuilder` and `ClientBuilder` both default `maxInFlight` to `DEFAULT_MAX_IN_FLIGHT` (1024), where the

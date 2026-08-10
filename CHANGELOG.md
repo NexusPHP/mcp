@@ -11,11 +11,17 @@ in `0.x`, minor releases may include breaking changes.
 ### Added
 
 - `ClientBuilder::setMaxInFlightDispatches()` caps how many inbound messages a client processes at once.
+- `RequestStateSigner::sign()` and `verify()` take an optional binding, so a state minted for one caller
+  does not verify for another.
 
 ### Changed
 
 - The in-flight dispatch cap is on by default on both peers, at `DEFAULT_MAX_IN_FLIGHT` (1024). See
   [BREAKING_CHANGES.md](BREAKING_CHANGES.md).
+- `RequestStateSigner` signatures changed shape, so a state minted before this release no longer verifies.
+- `VerifiedAccessToken::$subject` and `$clientId` are `non-empty-string`, and an empty or non-string identity
+  claim reads as absent rather than reaching a handler or masking a later one.
+  See [BREAKING_CHANGES.md](BREAKING_CHANGES.md).
 
 ### Fixed
 
