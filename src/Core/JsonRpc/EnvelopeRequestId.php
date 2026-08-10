@@ -24,7 +24,7 @@ use Nexus\Mcp\Core\Schema\RequestId;
 final class EnvelopeRequestId
 {
     /**
-     * @param array<string, mixed> $envelope
+     * @param array<array-key, mixed> $envelope
      */
     public static function recover(array $envelope): ?RequestId
     {
