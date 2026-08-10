@@ -13,7 +13,7 @@
 
 set -euo pipefail
 
-CONFORMANCE_VERSION="${CONFORMANCE_VERSION:-0.2.0-alpha.10}"
+CONFORMANCE_VERSION="${CONFORMANCE_VERSION:-0.2.0-alpha.11}"
 SPEC_VERSION="2026-07-28"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

@@ -41,4 +41,22 @@ server:
   - input-required-result-multiple-input-requests
   - input-required-result-capability-check
 
+  # `wire-schema-valid` arrived in referee 0.2.0-alpha.11 and validates every message the
+  # implementation sent against the base schema for the negotiated spec version. A task-supporting
+  # `tools/call` answers with SEP-2663's `CreateTaskResult`, and the base 2026-07-28 schema defines no
+  # task shape at all, so the check reads the response as a `CallToolResult` and reports the missing
+  # `content`. The referee contradicts itself on the same message: `tasks-per-request-meta-opt-in`
+  # passes only because that response IS a `CreateTaskResult`.
+  #
+  # No work on this side retires these. They go when the referee's validator gains a `resultType: "task"`
+  # branch, tracked upstream at https://github.com/modelcontextprotocol/conformance/issues/424.
+  - tasks-capability-negotiation:wire-schema-valid
+  - tasks-dispatch-and-envelope:wire-schema-valid
+  - tasks-lifecycle:wire-schema-valid
+  - tasks-mrtr-composition:wire-schema-valid
+  - tasks-mrtr-input:wire-schema-valid
+  - tasks-request-headers:wire-schema-valid
+  - tasks-request-state-removal:wire-schema-valid
+  - tasks-wire-fields:wire-schema-valid
+
 client: []

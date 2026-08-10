@@ -24,18 +24,22 @@ The published governance page ([`docs/community/sdk-tiers.mdx`](https://github.c
 
 This is the single source of truth for measured standing. Every requirement below links here rather than restating a number.
 
-**Referee**: `@modelcontextprotocol/conformance@0.2.0-alpha.10`, pinned in [`conformance/run-server.sh`](../conformance/run-server.sh) and [`conformance/run-client.sh`](../conformance/run-client.sh). **Spec**: `2026-07-28`.
+**Referee**: `@modelcontextprotocol/conformance@0.2.0-alpha.11`, pinned in [`conformance/run-server.sh`](../conformance/run-server.sh) and [`conformance/run-client.sh`](../conformance/run-client.sh). **Spec**: `2026-07-28`.
 
 Two measurements answer different questions, and conflating them is what makes tier numbers look inconsistent:
 
 | | Suite | Server | Client | What it answers |
 | --- | --- | --- | --- | --- |
 | **Tier score** | referee default (`active`) | 20/20 scenarios | 15/15 scenarios | What `tier-check` counts toward the tier percentage |
-| **Full sweep** | `--suite all` | 46/50 scenarios, 142/146 checks | 35/35 scenarios, 348/348 checks | What this SDK's own CI gates on |
+| **Full sweep** | `--suite all` | 38/50 scenarios, 180/192 checks | 36/36 scenarios, 358/358 checks | What this SDK's own CI gates on |
 
-Full-sweep totals: **81/85 scenarios, 490/494 checks (99.2%)**, split 439/443 spec checks and 51/51 extension checks, with 0 unmet SHOULD checks and 14 skipped (excluded from the denominator).
+Full-sweep totals: **74/86 scenarios, 538/550 checks (97.8%)**, split 486/490 spec checks and 52/60 extension checks, with 0 unmet SHOULD checks and 14 skipped (excluded from the denominator).
 
-Both tier-scored legs pass outright at 100%. The 4 full-sweep failures are the four entries in [`conformance/expected-failures.yaml`](../conformance/expected-failures.yaml), none of which sit in the `active` suite, so they do not bear on the tier score. Each needs the server to emit an `InputRequest` for `sampling/createMessage` or `roots/list`, both of which `latest-schema.ts` marks `@deprecated` as of 2026-07-28 (SEP-2577). The upstream resolution is tracked at [conformance#439](https://github.com/modelcontextprotocol/conformance/issues/439). The client half of the baseline is empty.
+Both tier-scored legs pass outright at 100%. The 12 full-sweep failures are the twelve entries in [`conformance/expected-failures.yaml`](../conformance/expected-failures.yaml), none of which sit in the `active` suite, so they do not bear on the tier score. The client half of the baseline is empty.
+
+Four need the server to emit an `InputRequest` for `sampling/createMessage` or `roots/list`, both of which `latest-schema.ts` marks `@deprecated` as of 2026-07-28 (SEP-2577). The upstream resolution is tracked at [conformance#439](https://github.com/modelcontextprotocol/conformance/issues/439).
+
+The other eight are the `wire-schema-valid` check the referee validates each sent message with. A task-supporting `tools/call` answers with SEP-2663's `CreateTaskResult`, and the base 2026-07-28 schema defines no task shape, so the check reads that response as a `CallToolResult` and reports the missing `content`. The referee's own `tasks-per-request-meta-opt-in` passes on the same message for the opposite reason, and its `requirements/2026-07-28.yaml` marks every tasks scenario `not_scored` as `pending against the reference fixture`, so nothing on this side retires them. The upstream resolution is tracked at [conformance#424](https://github.com/modelcontextprotocol/conformance/issues/424).
 
 Reproduce with `composer conformance:server`, `composer conformance:client`, then `composer conformance:score`. The referee exits non-zero on an unlisted failure and on a stale baseline entry, so the list burns down rather than rotting.
 
