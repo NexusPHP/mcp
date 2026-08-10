@@ -15,7 +15,7 @@ namespace Nexus\Mcp\Core\UriTemplate;
 
 /**
  * Reverse-matches a concrete URI against an RFC 6570 Level 1 URI template, producing `rawurldecode`d
- * bindings a caller must sanitise itself.
+ * bindings that cannot escape the segment they matched.
  *
  * @internal
  *
@@ -72,9 +72,17 @@ final class Matcher
         $bindings = [];
 
         foreach ($captures as $key => $value) {
-            if (\is_string($key)) {
-                $bindings[$key] = rawurldecode($value);
+            if (! \is_string($key)) {
+                continue;
             }
+
+            $decoded = rawurldecode($value);
+
+            if (strpbrk($decoded, "/?#\0") !== false || '.' === $decoded || '..' === $decoded) {
+                return null;
+            }
+
+            $bindings[$key] = $decoded;
         }
 
         return $bindings;

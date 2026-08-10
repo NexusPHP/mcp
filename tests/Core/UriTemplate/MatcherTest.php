@@ -68,6 +68,64 @@ final class MatcherTest extends AbstractMcpTestCase
         self::assertNull(self::match('file:///{path}', 'file:///etc#frag'));
     }
 
+    /**
+     * @param non-empty-string $template
+     */
+    #[DataProvider('provideAValueDecodingOutOfItsSegmentDoesNotMatchCases')]
+    public function testAValueDecodingOutOfItsSegmentDoesNotMatch(string $template, string $uri): void
+    {
+        self::assertNull(self::match($template, $uri));
+    }
+
+    /**
+     * @return iterable<string, array{non-empty-string, string}>
+     */
+    public static function provideAValueDecodingOutOfItsSegmentDoesNotMatchCases(): iterable
+    {
+        yield 'encoded traversal' => ['files://{path}', 'files://%2E%2E%2F%2E%2E%2Fetc%2Fpasswd'];
+
+        yield 'encoded slash' => ['files://{path}', 'files://%2Fetc%2Fshadow'];
+
+        yield 'encoded query delimiter' => ['files://{path}', 'files://%3Fq=1'];
+
+        yield 'encoded fragment delimiter' => ['files://{path}', 'files://%23frag'];
+
+        yield 'encoded NUL byte' => ['files://{path}', 'files://a%00.txt'];
+
+        yield 'bare parent dot-segment' => ['files://{path}', 'files://%2E%2E'];
+
+        yield 'bare current dot-segment' => ['files://{path}', 'files://%2E'];
+
+        yield 'literal parent dot-segment' => ['files://{path}', 'files://..'];
+
+        yield 'a later variable poisons the whole match' => ['files://{area}/{path}', 'files://docs/%2Fetc%2Fshadow'];
+    }
+
+    /**
+     * @param non-empty-string $template
+     */
+    #[DataProvider('provideAValueStayingInsideItsSegmentStillMatchesCases')]
+    public function testAValueStayingInsideItsSegmentStillMatches(string $template, string $uri, string $expected): void
+    {
+        self::assertSame(['path' => $expected], self::match($template, $uri));
+    }
+
+    /**
+     * @return iterable<string, array{non-empty-string, string, string}>
+     */
+    public static function provideAValueStayingInsideItsSegmentStillMatchesCases(): iterable
+    {
+        yield 'a dot inside a name' => ['files://{path}', 'files://report.txt', 'report.txt'];
+
+        yield 'doubled dots inside a name' => ['files://{path}', 'files://a..b', 'a..b'];
+
+        yield 'a leading dot' => ['files://{path}', 'files://.env', '.env'];
+
+        yield 'an encoded space' => ['files://{path}', 'files://my%20report', 'my report'];
+
+        yield 'an encoded percent' => ['files://{path}', 'files://100%25', '100%'];
+    }
+
     public function testDifferentLiteralPrefixDoesNotMatch(): void
     {
         self::assertNull(self::match('file:///{path}', 'http://example.com/etc'));

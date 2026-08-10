@@ -18,6 +18,8 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Fixed
 
+- A resource-template variable that percent-decodes out of the segment it matched is refused rather than
+  handed to the reader. `files://%2E%2E%2Fetc` resolved where `files://../etc` never matched.
 - A client reconnected to a new transport is no longer driven by the old one. `disconnect()` left its five
   listeners attached, so a stale error, reconnect, or message could still reach the live connection.
 - A header-mismatch retry no longer re-lists tools without bound. The walk stops on a repeated cursor or

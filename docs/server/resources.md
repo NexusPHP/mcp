@@ -46,6 +46,13 @@ use Nexus\Mcp\Core\Schema\Resource\ResourceTemplate;
 `$vars` carries the resolved template variables (`['userId' => '123']` for `users://123`). The reader can
 be a `\Closure` or a `ResourceReaderInterface` / `TemplatedResourceReaderInterface`.
 
+A variable matches one URI segment and is percent-decoded after matching. A value decoding back out of
+that segment (a `/`, `?`, `#`, a bare `.` or `..`, or a NUL byte) is refused, so `users://%2E%2E%2Fadmin`
+does not match. That is the URI-template half of the resources spec's security requirement that a server
+MUST prevent directory traversal attacks when serving `file://` resources. Inside the segment the value
+is still whatever the peer sent, so the other half is yours: validate it against what you are about to
+open, index, or query.
+
 ## Attribute sugar
 
 `#[AsResource]` and `#[AsResourceTemplate]` mark reader methods, discovered through the same

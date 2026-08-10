@@ -170,6 +170,20 @@ final class ResourceTemplateStoreTest extends AbstractMcpTestCase
         $store->read('http://example.com/etc', self::makeContext());
     }
 
+    public function testReadNeverHandsAReaderAnEncodedTraversal(): void
+    {
+        $this->expectException(ResourceNotFoundException::class);
+        $this->expectExceptionMessageMatches('/^No resource registered under URI "file:\/\/\/%2E%2E%2F%2E%2E%2Fetc%2Fpasswd"\.$/');
+
+        $store = new ResourceTemplateStore([
+            'file:///{path}' => self::entry(
+                new ResourceTemplate(name: 'files', uriTemplate: 'file:///{path}'),
+                static fn(): never => throw new \LogicException('the reader must not be reached'),
+            ),
+        ]);
+        $store->read('file:///%2E%2E%2F%2E%2E%2Fetc%2Fpasswd', self::makeContext());
+    }
+
     public function testReadDelegatesToFirstMatchingTemplateWithBindings(): void
     {
         $captured = ['uri' => null, 'bindings' => null];
