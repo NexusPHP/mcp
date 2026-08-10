@@ -191,6 +191,72 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         self::assertSame(['error' => 'parse error'], $matches[0]['context']);
     }
 
+    public function testAHostileOrphanErrorResponseIsBoundedAndEscapedBeforeItReachesTheLog(): void
+    {
+        $outbound = new PendingOutboundRequests();
+        $logger = new ArrayLogger();
+        $dispatcher = self::buildDispatcher($outbound, logger: $logger);
+        $transport = new RecordingTransport();
+
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => str_repeat('i', 100)."\x1b",
+            'error' => ['code' => -32_603, 'message' => str_repeat('m', 300)."\x07"],
+        ], $transport, new ReceiveContext());
+
+        $dispatcher->flushPending();
+
+        $matches = $logger->recordsMatching(LogLevel::WARNING, 'Discarding orphan error response for unknown request id.');
+        self::assertCount(1, $matches);
+        self::assertSame(
+            [
+                'id' => str_repeat('i', 77).'...',
+                'error' => str_repeat('m', 253).'...',
+            ],
+            $matches[0]['context'],
+        );
+    }
+
+    public function testAHostileNullIdErrorResponseIsBoundedBeforeItReachesTheLog(): void
+    {
+        $outbound = new PendingOutboundRequests();
+        $logger = new ArrayLogger();
+        $dispatcher = self::buildDispatcher($outbound, logger: $logger);
+        $transport = new RecordingTransport();
+
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => null,
+            'error' => ['code' => -32_700, 'message' => "parse\x1b]0;forged\x07"],
+        ], $transport, new ReceiveContext());
+
+        $dispatcher->flushPending();
+
+        $matches = $logger->recordsMatching(LogLevel::WARNING, 'Discarding error response with null id. No correlation to an outbound request is possible.');
+        self::assertCount(1, $matches);
+        self::assertSame(['error' => 'parse\\x1b]0;forged\\x07'], $matches[0]['context']);
+    }
+
+    public function testAHostileOrphanSuccessResponseIdIsBoundedBeforeItReachesTheLog(): void
+    {
+        $outbound = new PendingOutboundRequests();
+        $logger = new ArrayLogger();
+        $dispatcher = self::buildDispatcher($outbound, logger: $logger);
+        $transport = new RecordingTransport();
+
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => "req\x1b]0;forged\x07",
+            'result' => [],
+        ], $transport, new ReceiveContext());
+
+        $dispatcher->flushPending();
+
+        $matches = $logger->recordsMatching(LogLevel::WARNING, 'Discarding orphan success response for unknown request id.');
+        self::assertCount(1, $matches);
+        self::assertSame(['id' => 'req\\x1b]0;forged\\x07'], $matches[0]['context']);
+    }
+
     public function testSuccessResponseWithMalformedResultPayloadRejectsTheFuture(): void
     {
         $outbound = new PendingOutboundRequests();

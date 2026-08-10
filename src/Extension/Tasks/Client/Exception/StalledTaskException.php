@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Extension\Tasks\Client\Exception;
 
 use Nexus\Mcp\Core\Exception\McpExceptionInterface;
+use Nexus\Mcp\Core\SafeDisplay;
 
 /**
  * Thrown when a polled task stays `input_required` with no new input requests for the poll loop's stall ceiling.
@@ -25,6 +26,10 @@ final class StalledTaskException extends \RuntimeException implements McpExcepti
      */
     public function __construct(string $taskId, int $polls)
     {
-        parent::__construct(\sprintf('Task "%s" stayed input_required for %d polls without new input requests.', $taskId, $polls));
+        parent::__construct(\sprintf(
+            'Task "%s" stayed input_required for %d polls without new input requests.',
+            SafeDisplay::sanitise($taskId),
+            $polls,
+        ));
     }
 }

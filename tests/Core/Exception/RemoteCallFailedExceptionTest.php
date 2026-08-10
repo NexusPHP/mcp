@@ -35,4 +35,13 @@ final class RemoteCallFailedExceptionTest extends AbstractMcpTestCase
         self::assertSame('peer blew up', $exception->getMessage());
         self::assertSame(ProtocolErrorCode::InternalError->value, $exception->getCode());
     }
+
+    public function testBoundsAndEscapesAHostilePeerMessageWhileKeepingTheErrorWhole(): void
+    {
+        $message = str_repeat('m', 300)."\x1b";
+        $exception = new RemoteCallFailedException(new InternalError(message: $message));
+
+        self::assertSame(str_repeat('m', 253).'...', $exception->getMessage());
+        self::assertSame($message, $exception->error->message, 'The consumer can still read the peer message in full off the error.');
+    }
 }

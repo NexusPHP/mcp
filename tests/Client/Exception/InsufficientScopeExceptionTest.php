@@ -46,4 +46,27 @@ final class InsufficientScopeExceptionTest extends AbstractMcpTestCase
     {
         self::assertSame(['files:write'], (new InsufficientScopeException(['files:write']))->required);
     }
+
+    public function testBoundsAndEscapesAHostileScopeList(): void
+    {
+        self::assertSame(
+            \sprintf('The MCP server requires the scope "%s...".', str_repeat('s', 253)),
+            (new InsufficientScopeException([str_repeat('s', 300)."\x1b"]))->getMessage(),
+        );
+    }
+
+    public function testTheRequiredScopesArePreservedUnsanitised(): void
+    {
+        $scope = str_repeat('s', 300)."\x1b";
+
+        self::assertSame([$scope], (new InsufficientScopeException([$scope]))->required);
+    }
+
+    public function testMessageDistinguishesAChallengeWhoseScopesWereAllDropped(): void
+    {
+        self::assertSame(
+            'The MCP server named only scopes that are not RFC 6749 scope-tokens, so none can be requested.',
+            (new InsufficientScopeException([], named: true))->getMessage(),
+        );
+    }
 }

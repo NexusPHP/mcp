@@ -145,6 +145,21 @@ final class IdentityAssertionExchangerTest extends AbstractMcpTestCase
         self::exchange($http);
     }
 
+    public function testAHostileIssuedTokenTypeIsBoundedAndEscapedInTheRefusal(): void
+    {
+        $http = (new RecordingHttpClient())->willAnswerJson(self::exchangeResponse([
+            'issued_token_type' => str_repeat('u', 200)."\x1b",
+        ]));
+
+        $this->expectException(IdentityAssertionExchangeFailedException::class);
+        $this->expectExceptionMessageIs(\sprintf(
+            'The enterprise IdP issued a "%s..." token where an ID-JAG was requested.',
+            str_repeat('u', 77),
+        ));
+
+        self::exchange($http);
+    }
+
     public function testACleartextIdpEndpointIsRefused(): void
     {
         $this->expectException(UntrustedAuthorizationMetadataException::class);

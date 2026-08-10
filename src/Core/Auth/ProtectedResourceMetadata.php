@@ -56,7 +56,7 @@ final readonly class ProtectedResourceMetadata
         return new self(
             new ResourceIdentifier(MetadataReader::readRequiredString($data, 'resource', self::LABEL)),
             MetadataReader::readStringList($data, 'authorization_servers', self::LABEL) ?? [],
-            null === $scopes ? null : new ScopeSet($scopes),
+            null === $scopes ? null : ScopeSet::fromList($scopes),
             MetadataReader::readStringList($data, 'bearer_methods_supported', self::LABEL),
             MetadataReader::readString($data, 'resource_name', self::LABEL),
         );

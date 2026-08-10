@@ -68,4 +68,18 @@ final class GrantTypeAdvertisementTest extends AbstractMcpTestCase
             'urn:ietf:params:oauth:grant-type:jwt-bearer',
         );
     }
+
+    public function testAHostileIssuerIsBoundedAndEscapedInTheRefusal(): void
+    {
+        $this->expectException(UnsupportedGrantException::class);
+        $this->expectExceptionMessageIs(\sprintf(
+            'The authorization server "%s..." does not advertise the "client_credentials" grant type.',
+            'https://'.str_repeat('a', 245),
+        ));
+
+        GrantTypeAdvertisement::verify(
+            new AuthorizationServerMetadata('https://'.str_repeat('a', 300)."\x1b", grantTypesSupported: ['authorization_code']),
+            'client_credentials',
+        );
+    }
 }

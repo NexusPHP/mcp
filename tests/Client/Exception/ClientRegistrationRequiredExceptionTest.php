@@ -33,4 +33,12 @@ final class ClientRegistrationRequiredExceptionTest extends AbstractMcpTestCase
             (new ClientRegistrationRequiredException('https://auth.example.com'))->getMessage(),
         );
     }
+
+    public function testBoundsAndEscapesAHostileIssuer(): void
+    {
+        self::assertSame(
+            \sprintf('The authorization server "%s..." supports neither Client ID Metadata Documents nor Dynamic Client Registration, so a client identifier must be supplied for it.', str_repeat('i', 253)),
+            (new ClientRegistrationRequiredException(str_repeat('i', 300)."\x1b"))->getMessage(),
+        );
+    }
 }

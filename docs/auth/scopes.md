@@ -50,6 +50,16 @@ try {
 }
 ```
 
+`required` carries no control bytes. Every scope the SDK reads from a peer, whether from a challenge, a token
+response, or an authorization server's `scopes_supported`, is held to the RFC 6749 `scope-token` grammar, so
+it carries no space, quote, backslash, or byte outside printable ASCII. A value naming anything else is
+dropped rather than carried into your consent screen, and the same holds for
+`AuthorizationRedirect::$requestedScopes`. Length is bounded only by what the transport accepted, so cap it
+yourself before rendering.
+
+When a challenge names scopes and every one of them is dropped, the exception says so rather than claiming
+the server named none.
+
 A `401` re-authorizes once, and carries the rejected token's scopes into the new grant for the same reason. A
 second `401` on the token that came back is taken as the server's answer and returned to the caller.
 

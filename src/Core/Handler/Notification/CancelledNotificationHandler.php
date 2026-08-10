@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Core\Handler\Notification;
 
 use Nexus\Mcp\Core\Dispatch\PendingInboundRequests;
 use Nexus\Mcp\Core\Handler\NotificationHandlerInterface;
+use Nexus\Mcp\Core\SafeDisplay;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 use Nexus\Mcp\Core\Schema\Notification\CancelledNotification;
 use Psr\Log\LoggerInterface;
@@ -44,7 +45,7 @@ final readonly class CancelledNotificationHandler implements NotificationHandler
         if (! $this->inboundRequests->cancel($requestId)) {
             $this->logger->debug(
                 'Ignoring cancellation for a request that is not in flight.',
-                ['id' => $requestId->id],
+                ['id' => SafeDisplay::sanitiseId($requestId->id)],
             );
 
             return;
@@ -52,7 +53,10 @@ final readonly class CancelledNotificationHandler implements NotificationHandler
 
         $this->logger->debug(
             'Cancelled an in-flight request.',
-            ['id' => $requestId->id, 'reason' => $params->reason],
+            [
+                'id' => SafeDisplay::sanitiseId($requestId->id),
+                'reason' => null === $params->reason ? null : SafeDisplay::sanitiseCause($params->reason),
+            ],
         );
     }
 }

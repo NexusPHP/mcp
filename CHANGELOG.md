@@ -8,6 +8,10 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp/commits/1.x)
 
+### Added
+
+- `SafeDisplay` is public API, for bounding and escaping a peer value your own handler quotes back.
+
 ### Changed
 
 - `AuthorizedHttpClient` takes an `HttpClientBuilder` and runs credentialed traffic on a client that
@@ -18,6 +22,10 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Fixed
 
+- Every peer value this SDK quotes back in a JSON-RPC error, a log record, or a client-side exception is
+  bounded and escaped. `error.data.uri` and `RemoteCallFailedException::$error` still carry it whole.
+- A parsed OAuth scope is held to the RFC 6749 `scope-token` grammar, and a segment that is not one is
+  dropped.
 - A resource-template variable that percent-decodes out of the segment it matched is refused rather than
   handed to the reader. `files://%2E%2E%2Fetc` resolved where `files://../etc` never matched.
 - A client reconnected to a new transport is no longer driven by the old one. `disconnect()` left its five

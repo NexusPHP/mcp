@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Extension\Apps\Client\Exception;
 
 use Nexus\Mcp\Core\Exception\McpExceptionInterface;
+use Nexus\Mcp\Core\SafeDisplay;
 
 /**
  * Thrown when a `ui://` read returns a content item whose mime type is not one of the accepted UI types.
@@ -28,8 +29,8 @@ final class InvalidUiResourceContentsException extends \RuntimeException impleme
     {
         parent::__construct(\sprintf(
             'UI resource "%s" returned contents of mime type "%s", expected one of "%s".',
-            $uri,
-            $mimeType ?? '',
+            SafeDisplay::sanitiseCause($uri),
+            SafeDisplay::sanitise($mimeType ?? ''),
             implode('", "', $acceptedMimeTypes),
         ));
     }

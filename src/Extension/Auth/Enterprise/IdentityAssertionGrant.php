@@ -21,6 +21,7 @@ use Nexus\Mcp\Client\Auth\GrantContext;
 use Nexus\Mcp\Client\Auth\GrantStrategyInterface;
 use Nexus\Mcp\Client\Auth\SecureEndpoint;
 use Nexus\Mcp\Core\Auth\AuthorizationServerMetadata;
+use Nexus\Mcp\Core\SafeDisplay;
 use Nexus\Mcp\Extension\Auth\Exception\UnsupportedClientAuthenticationException;
 use Nexus\Mcp\Extension\Auth\Exception\UnsupportedGrantException;
 use Nexus\Mcp\Extension\Auth\GrantTypeAdvertisement;
@@ -102,7 +103,7 @@ final readonly class IdentityAssertionGrant implements GrantStrategyInterface
 
         if (null === $profiles) {
             $logger->info('The authorization server {issuer} publishes no authorization grant profiles, so ID-JAG support is taken on trust.', [
-                'issuer' => $server->issuer,
+                'issuer' => SafeDisplay::sanitiseCause($server->issuer),
             ]);
 
             return;
@@ -111,7 +112,7 @@ final readonly class IdentityAssertionGrant implements GrantStrategyInterface
         if (! \in_array(EnterpriseAuthorization::GRANT_PROFILE, $profiles, true)) {
             throw new UnsupportedGrantException(\sprintf(
                 'The authorization server "%s" does not advertise the "%s" authorization grant profile.',
-                $server->issuer,
+                SafeDisplay::sanitiseCause($server->issuer),
                 EnterpriseAuthorization::GRANT_PROFILE,
             ));
         }
@@ -136,7 +137,7 @@ final readonly class IdentityAssertionGrant implements GrantStrategyInterface
         if (null === $options->preRegistered && true !== $server->clientIdMetadataDocumentSupported) {
             throw new UnsupportedClientAuthenticationException(\sprintf(
                 'The authorization server "%s" does not support Client ID Metadata Documents.',
-                $server->issuer,
+                SafeDisplay::sanitiseCause($server->issuer),
             ));
         }
 

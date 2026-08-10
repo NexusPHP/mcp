@@ -511,6 +511,19 @@ final class TokenEndpointTest extends AbstractMcpTestCase
         );
     }
 
+    public function testAHostileTokenTypeIsBoundedAndEscapedInTheRefusal(): void
+    {
+        $http = (new RecordingHttpClient())->willAnswerJson(self::tokenResponse(['token_type' => str_repeat('D', 200)."\x1b"]));
+
+        $this->expectException(TokenRequestFailedException::class);
+        $this->expectExceptionMessageIs(\sprintf(
+            'The token request failed with "unsupported_token_type": MCP clients can only present bearer tokens, "%s..." given.',
+            str_repeat('D', 77),
+        ));
+
+        self::exchange($http);
+    }
+
     private static function exchange(
         RecordingHttpClient $http,
         ?ClientRegistration $registration = null,

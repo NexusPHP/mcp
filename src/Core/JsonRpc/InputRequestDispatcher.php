@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\JsonRpc;
 
 use Nexus\Assert\Assert;
+use Nexus\Mcp\Core\SafeDisplay;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequest;
 use Nexus\Mcp\Core\Schema\Request\InputRequest;
 

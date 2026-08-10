@@ -20,6 +20,7 @@ use Nexus\Mcp\Core\Exception\MethodMisroutedException;
 use Nexus\Mcp\Core\Exception\MethodNotFoundException;
 use Nexus\Mcp\Core\JsonRpc\JsonRpcMessageParser;
 use Nexus\Mcp\Core\JsonRpc\UnparsedResultEnvelope;
+use Nexus\Mcp\Core\SafeDisplay;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
@@ -187,7 +188,9 @@ final class JsonRpcMessageParserTest extends AbstractMcpTestCase
 
         if (! $parsed instanceof TestNotification) {
             self::fail(\sprintf('Expected TestNotification, got %s.', $parsed::class));
-        }        self::assertSame(['vendor' => 'x'], $parsed->params->meta->extras);
+        }
+
+        self::assertSame(['vendor' => 'x'], $parsed->params->meta->extras);
     }
 
     public function testParseDispatchesNotificationWithoutParams(): void
@@ -381,6 +384,33 @@ final class JsonRpcMessageParserTest extends AbstractMcpTestCase
             self::assertSame(1, $e->requestId?->id);
             self::assertSame(ProtocolErrorCode::InvalidParams, InvalidParamsException::getErrorCode());
             self::assertSame('Invalid "server/discover" request: "params" must be an object, string given.', $e->getMessage());
+        }
+    }
+
+    public function testParseBoundsAPeerValueReflectedThroughANestedCause(): void
+    {
+        try {
+            $parser = new JsonRpcMessageParser();
+            $parser->parse(self::completionEnvelopeWithRefType(str_repeat('A', 200_000)));
+            self::fail('Expected InvalidParamsException.');
+        } catch (InvalidParamsException $e) {
+            $prefix = 'Invalid "completion/complete" request: ';
+
+            self::assertStringStartsWith($prefix, $e->getMessage());
+            self::assertSame(SafeDisplay::MAX_CAUSE_LENGTH, \strlen($e->getMessage()) - \strlen($prefix));
+            self::assertStringEndsWith('...', $e->getMessage());
+        }
+    }
+
+    public function testParseEscapesControlBytesReflectedThroughANestedCause(): void
+    {
+        try {
+            $parser = new JsonRpcMessageParser();
+            $parser->parse(self::completionEnvelopeWithRefType("seg\x1b[2K\x1b[1GFORGED\x07"));
+            self::fail('Expected InvalidParamsException.');
+        } catch (InvalidParamsException $e) {
+            self::assertStringContainsString('\\x1b[2K\\x1b[1GFORGED\\x07', $e->getMessage());
+            self::assertDoesNotMatchRegularExpression('/[^\x20-\x7E]/', $e->getMessage());
         }
     }
 
@@ -613,5 +643,25 @@ final class JsonRpcMessageParserTest extends AbstractMcpTestCase
         } catch (InvalidRequestException $e) {
             self::assertNull($e->requestId, 'An empty-string envelope id cannot be wrapped into a RequestId, so the exception carries null.');
         }
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function completionEnvelopeWithRefType(string $type): array
+    {
+        return [
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'completion/complete',
+            'params' => [
+                '_meta' => [
+                    'io.modelcontextprotocol/protocolVersion' => '2026-07-28',
+                    'io.modelcontextprotocol/clientCapabilities' => [],
+                ],
+                'ref' => ['type' => $type, 'name' => 'x'],
+                'argument' => ['name' => 'a', 'value' => 'v'],
+            ],
+        ];
     }
 }

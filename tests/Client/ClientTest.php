@@ -777,6 +777,42 @@ final class ClientTest extends AbstractMcpTestCase
         $deferred->await();
     }
 
+    public function testAHostileRejectionMessageIsBoundedBeforeItReachesTheRetryLog(): void
+    {
+        $logger = new ArrayLogger();
+        $client = (new ClientBuilder())->setLogger($logger)->setClientInfo('demo', '1.0.0')->build();
+        $transport = new RecordingTransport();
+        $client->connect($transport);
+
+        $deferred = async(static fn() => $client->discover());
+        $transport->nextSend()->await();
+        self::assertCount(1, $transport->sent);
+        $first = $transport->sent[0]['message'];
+        self::assertInstanceOf(DiscoverRequest::class, $first);
+
+        $transport->emitMessage(self::unsupportedVersionResponse(
+            $first->id->id,
+            [ProtocolVersion::LATEST_VERSION],
+            str_repeat('m', 300)."\x1b",
+        ));
+        $transport->nextSend()->await();
+
+        self::assertCount(2, $transport->sent);
+        $retry = $transport->sent[1]['message'];
+        self::assertInstanceOf(DiscoverRequest::class, $retry);
+
+        $matches = $logger->recordsMatching(
+            LogLevel::INFO,
+            'Retrying request {id} as {retry}: the server does not support {requested}.',
+        );
+        self::assertCount(1, $matches);
+        self::assertSame(str_repeat('m', 253).'...', $matches[0]['context']['requested'] ?? null);
+
+        $transport->emitMessage(self::discoverResponse($retry->id->id));
+
+        $deferred->await();
+    }
+
     public function testDoesNotRetryWhenTheRejectionNamesNoVersionThisSdkSpeaks(): void
     {
         $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
@@ -1526,6 +1562,64 @@ final class ClientTest extends AbstractMcpTestCase
         self::assertIsString($matches[0]['context']['reason'] ?? null);
     }
 
+    public function testListToolsBoundsAndEscapesAHostileToolNameAndReasonBeforeTheyReachTheLog(): void
+    {
+        $logger = new ArrayLogger();
+        $transport = new MirroringRecordingTransport();
+        $client = self::connectMirroring($transport, $logger);
+
+        self::driveToolListing($client, $transport, [
+            [
+                'name' => str_repeat('t', 200)."\x1b",
+                'inputSchema' => [
+                    'type' => 'object',
+                    'properties' => [str_repeat('p', 200)."\x07" => ['type' => 'number', 'x-mcp-header' => 'Size']],
+                ],
+            ],
+        ]);
+
+        $matches = $logger->recordsMatching(LogLevel::WARNING, 'Excluding tool {tool} from the listing: its "x-mcp-header" declarations are invalid.');
+        self::assertCount(1, $matches);
+        self::assertSame(str_repeat('t', 77).'...', $matches[0]['context']['tool'] ?? null);
+
+        $reason = \sprintf(
+            '%s\\x07: x-mcp-header is only permitted on a string, integer, or boolean property.',
+            str_repeat('p', 200),
+        );
+        self::assertSame(substr($reason, 0, 253).'...', $matches[0]['context']['reason'] ?? null);
+    }
+
+    public function testListToolsBoundsAReasonThatQuotesADuplicatedPeerHeaderTwice(): void
+    {
+        $logger = new ArrayLogger();
+        $transport = new MirroringRecordingTransport();
+        $client = self::connectMirroring($transport, $logger);
+        $header = str_repeat('H', 200);
+
+        self::driveToolListing($client, $transport, [
+            [
+                'name' => 'dupe',
+                'inputSchema' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'a' => ['type' => 'string', 'x-mcp-header' => $header],
+                        'b' => ['type' => 'string', 'x-mcp-header' => strtolower($header)],
+                    ],
+                ],
+            ],
+        ]);
+
+        $matches = $logger->recordsMatching(LogLevel::WARNING, 'Excluding tool {tool} from the listing: its "x-mcp-header" declarations are invalid.');
+        self::assertCount(1, $matches);
+
+        $reason = \sprintf(
+            'x-mcp-header "%s" is not case-insensitively unique (also declared as "%s").',
+            strtolower($header),
+            $header,
+        );
+        self::assertSame(substr($reason, 0, 253).'...', $matches[0]['context']['reason'] ?? null);
+    }
+
     public function testListToolsKeepsEveryToolOnATransportThatDoesNotMirror(): void
     {
         $logger = new ArrayLogger();
@@ -1733,6 +1827,39 @@ final class ClientTest extends AbstractMcpTestCase
         $matches = $logger->recordsMatching(LogLevel::WARNING, 'Server sent cursor {cursor} again while re-listing tool {tool}, first seen on page {page}, so the refresh stopped.');
         self::assertCount(1, $matches);
         self::assertSame(['cursor' => 'stuck', 'tool' => 'good', 'page' => 1], $matches[0]['context']);
+    }
+
+    public function testAHostileRepeatedCursorIsBoundedAndEscapedBeforeItReachesTheLog(): void
+    {
+        $logger = new ArrayLogger();
+        $transport = new MirroringRecordingTransport();
+        $client = self::connectMirroring($transport, $logger);
+        self::listToolsWithDeclarations($client, $transport);
+
+        $call = async(static fn() => $client->callTool('good', ['region' => 'us-west1']));
+        self::settleHeaderMismatch($transport);
+
+        for ($page = 0; $page < 2; ++$page) {
+            $transport->nextSend()->await();
+            $transport->emitMessage([
+                'jsonrpc' => '2.0',
+                'id' => self::lastRequestId($transport),
+                'result' => [
+                    'tools' => [self::toolListedUnder('other', 'Other')],
+                    'nextCursor' => str_repeat('c', 200)."\x1b",
+                    'ttlMs' => 0,
+                    'cacheScope' => 'private',
+                ],
+            ]);
+        }
+
+        $transport->nextSend()->await();
+        self::settleToolCall($transport, awaitSend: false);
+        $call->await();
+
+        $matches = $logger->recordsMatching(LogLevel::WARNING, 'Server sent cursor {cursor} again while re-listing tool {tool}, first seen on page {page}, so the refresh stopped.');
+        self::assertCount(1, $matches);
+        self::assertSame(str_repeat('c', 77).'...', $matches[0]['context']['cursor'] ?? null);
     }
 
     public function testHeaderMismatchRefreshStopsAtItsPageCeiling(): void
@@ -3336,14 +3463,14 @@ final class ClientTest extends AbstractMcpTestCase
      *
      * @return array<string, mixed>
      */
-    private static function unsupportedVersionResponse(int|string $id, array $supported): array
+    private static function unsupportedVersionResponse(int|string $id, array $supported, string $message = 'Unsupported protocol version'): array
     {
         return [
             'jsonrpc' => '2.0',
             'id' => $id,
             'error' => [
                 'code' => ProtocolErrorCode::UnsupportedProtocolVersion->value,
-                'message' => 'Unsupported protocol version',
+                'message' => $message,
                 'data' => ['supported' => $supported, 'requested' => ProtocolVersion::LATEST_VERSION],
             ],
         ];

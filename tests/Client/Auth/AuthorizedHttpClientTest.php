@@ -528,6 +528,34 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
         );
     }
 
+    public function testAScopeChallengeNamingOnlyUnusableScopesSaysSoRatherThanClaimingItNamedNone(): void
+    {
+        $http = self::scriptChallengeAndFlow()->willChallenge(403, "Bearer error=\"insufficient_scope\", scope=\"fil\xc3\xa9s:read\"");
+        $user = new ScriptedUserAuthorization();
+        $logger = new ArrayLogger();
+
+        try {
+            self::client($http, $user, logger: $logger)->request(self::mcpRequest(), new NullCancellation());
+
+            self::fail('A challenge naming only unusable scopes must be reported to the caller.');
+        } catch (InsufficientScopeException $e) {
+            self::assertSame([], $e->required);
+            self::assertSame(
+                'The MCP server named only scopes that are not RFC 6749 scope-tokens, so none can be requested.',
+                $e->getMessage(),
+            );
+        }
+
+        self::assertSame(
+            [['level' => LogLevel::WARNING, 'message' => 'The scope challenge from {resource} names {scopes}.', 'context' => [
+                'resource' => self::RESOURCE,
+                'scopes' => 'only scopes that are not RFC 6749 scope-tokens',
+            ]]],
+            $logger->recordsMatching(LogLevel::WARNING, 'The scope challenge from {resource} names {scopes}.'),
+            'The log record must not claim the challenge named nothing when it named a scope this client dropped.',
+        );
+    }
+
     public function testAScopeChallengeNamingNoScopeAtAllIsReported(): void
     {
         $http = self::scriptChallengeAndFlow()->willChallenge(403, 'Bearer error="insufficient_scope"');
@@ -540,6 +568,7 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
             self::fail('An unwinnable scope challenge must be reported to the caller.');
         } catch (InsufficientScopeException $e) {
             self::assertSame([], $e->required);
+            self::assertSame('The MCP server answered insufficient_scope without naming a scope.', $e->getMessage());
         }
 
         self::assertCount(6, $http->requests);
@@ -611,6 +640,28 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 
         $this->expectException(InsufficientScopeException::class);
         $this->expectExceptionMessageIs('The MCP server requires the scope "files:write files:admin".');
+
+        self::client($http, $user, policy: InsufficientScopePolicy::Fail)->request(self::mcpRequest(), new NullCancellation());
+    }
+
+    public function testTheFailPolicyDistinguishesAChallengeThatNamedNoScope(): void
+    {
+        $http = self::scriptChallengeAndFlow()->willChallenge(403, 'Bearer error="insufficient_scope"');
+        $user = new ScriptedUserAuthorization();
+
+        $this->expectException(InsufficientScopeException::class);
+        $this->expectExceptionMessageIs('The MCP server answered insufficient_scope without naming a scope.');
+
+        self::client($http, $user, policy: InsufficientScopePolicy::Fail)->request(self::mcpRequest(), new NullCancellation());
+    }
+
+    public function testTheFailPolicyDistinguishesAChallengeWhoseScopesWereAllDropped(): void
+    {
+        $http = self::scriptChallengeAndFlow()->willChallenge(403, "Bearer error=\"insufficient_scope\", scope=\"fil\xc3\xa9s:read\"");
+        $user = new ScriptedUserAuthorization();
+
+        $this->expectException(InsufficientScopeException::class);
+        $this->expectExceptionMessageIs('The MCP server named only scopes that are not RFC 6749 scope-tokens, so none can be requested.');
 
         self::client($http, $user, policy: InsufficientScopePolicy::Fail)->request(self::mcpRequest(), new NullCancellation());
     }
@@ -766,6 +817,37 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
             ]]],
             $logger->recordsMatching(LogLevel::WARNING, 'Giving up on {resource} after {attempts} scope upgrades.'),
         );
+    }
+
+    public function testASpentUpgradeBudgetDistinguishesAChallengeThatNamedNoScope(): void
+    {
+        $http = self::scriptChallengeAndFlow()->willChallenge(403, 'Bearer error="insufficient_scope"');
+
+        try {
+            self::client($http, maxScopeUpgrades: 0)->request(self::mcpRequest(), new NullCancellation());
+
+            self::fail('A spent upgrade budget must be reported to the caller.');
+        } catch (InsufficientScopeException $e) {
+            self::assertSame([], $e->required);
+            self::assertSame('The MCP server answered insufficient_scope without naming a scope.', $e->getMessage());
+        }
+    }
+
+    public function testASpentUpgradeBudgetDistinguishesAChallengeWhoseScopesWereAllDropped(): void
+    {
+        $http = self::scriptChallengeAndFlow()->willChallenge(403, "Bearer error=\"insufficient_scope\", scope=\"fil\xc3\xa9s:read\"");
+
+        try {
+            self::client($http, maxScopeUpgrades: 0)->request(self::mcpRequest(), new NullCancellation());
+
+            self::fail('A spent upgrade budget must be reported to the caller.');
+        } catch (InsufficientScopeException $e) {
+            self::assertSame([], $e->required);
+            self::assertSame(
+                'The MCP server named only scopes that are not RFC 6749 scope-tokens, so none can be requested.',
+                $e->getMessage(),
+            );
+        }
     }
 
     public function testAnUnauthorizedAnswerWithNoChallengeStillStartsDiscovery(): void

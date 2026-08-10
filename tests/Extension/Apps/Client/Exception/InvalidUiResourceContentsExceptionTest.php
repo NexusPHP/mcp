@@ -43,4 +43,14 @@ final class InvalidUiResourceContentsExceptionTest extends AbstractMcpTestCase
             (new InvalidUiResourceContentsException('ui://demo/panel', null, ['text/html;profile=mcp-app']))->getMessage(),
         );
     }
+
+    public function testBoundsAndEscapesAHostileMimeType(): void
+    {
+        $exception = new InvalidUiResourceContentsException('ui://demo/panel', "text/plain\x1b]0;forged\x07", ['text/html']);
+
+        self::assertSame(
+            'UI resource "ui://demo/panel" returned contents of mime type "text/plain\\x1b]0;forged\\x07", expected one of "text/html".',
+            $exception->getMessage(),
+        );
+    }
 }

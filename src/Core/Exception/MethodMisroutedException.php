@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Exception;
 
-use Nexus\Mcp\Core\JsonRpc\SafeDisplay;
+use Nexus\Mcp\Core\SafeDisplay;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\RequestId;
 

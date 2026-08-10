@@ -63,8 +63,27 @@ response rather than letting it escape:
   the not-found exceptions (`ToolNotFoundException`, `PromptNotFoundException`, `ResourceNotFoundException`,
   `InvalidCursorException`) map to -32602 (the named entity is treated as an invalid parameter).
 - Any of them may also carry an `errorData` payload, which becomes the error response's `data` slot and is
-  omitted when null. `ResourceNotFoundException` uses it for SEP-2164's `data.uri`, and
-  `MissingRequiredClientCapabilityException` for the `data.requiredCapabilities` its code requires.
+  omitted when null. `ResourceNotFoundException` uses it for the `data.uri` the spec's resource-not-found
+  example shows, and `MissingRequiredClientCapabilityException` for the `data.requiredCapabilities` its
+  code requires. Only the latter is required: `data` is "defined by the sender", so the URI echo is this
+  SDK's choice and is deliberately left uncapped so a client can match it against the URI it sent. That is
+  safe because `params.uri` is already confined to printable ASCII by the RFC 3986 grammar, so the echo
+  carries no control bytes and is never longer than the URI the peer itself sent.
+- An error `message` quoting a peer-supplied value is bounded, and every byte outside printable ASCII
+  (`\x20-\x7E`) is rendered as `\xNN` before it leaves the server, so non-ASCII text comes back escaped
+  too (an `é` reads as `\xc3\xa9`). A short identifier (a tool name, a cursor, a protocol version) is cut
+  to 80 bytes with a trailing `...`, and a URI or a whole nested cause to 256. The spec asks that a
+  `message` stay "a concise single sentence", and an unbounded echo is both a response amplifier and a way
+  to put terminal escapes into whatever renders the error. The same treatment reaches a `data` slot the
+  request grammar does not already confine: `UnsupportedProtocolVersionError`'s `data.requested` is capped
+  and escaped, because `_meta` accepts any non-empty string as a protocol version.
+- The policy covers the values this SDK composes, and stops there. A protocol exception thrown by a
+  handler of your own reaches the peer with both its `message` and its `errorData` unchanged, so that the
+  SDK never rewrites an error you meant to send. The tasks extension stores the same two on the task
+  record, where a later `tasks/get` returns them. A handler that interpolates request arguments into
+  either inherits none of the bounding above, and should apply it with
+  [`SafeDisplay`](../src/Core/SafeDisplay.php): `SafeDisplay::sanitise()` for a short identifier,
+  `SafeDisplay::sanitiseCause()` for a URI or a composed message.
 - A handler that needs a client capability the request did not declare raises
   `MissingRequiredClientCapabilityException` with the `ClientCapabilities` it wanted. That answers -32021,
   and the Streamable HTTP transport pins it to `400` even though handler-raised errors otherwise ride `200`.

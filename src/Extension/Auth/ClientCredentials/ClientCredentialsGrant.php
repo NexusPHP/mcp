@@ -20,6 +20,7 @@ use Nexus\Mcp\Client\Auth\GrantContext;
 use Nexus\Mcp\Client\Auth\GrantStrategyInterface;
 use Nexus\Mcp\Core\Auth\AuthorizationServerMetadata;
 use Nexus\Mcp\Core\Auth\TokenEndpointAuthMethod;
+use Nexus\Mcp\Core\SafeDisplay;
 use Nexus\Mcp\Extension\Auth\ClientAssertionSigner;
 use Nexus\Mcp\Extension\Auth\Exception\UnsupportedClientAuthenticationException;
 use Nexus\Mcp\Extension\Auth\GrantTypeAdvertisement;
@@ -110,7 +111,7 @@ final readonly class ClientCredentialsGrant implements GrantStrategyInterface
         if (null === $methods || ! \in_array($this->authMethod->value, $methods, true)) {
             throw new UnsupportedClientAuthenticationException(\sprintf(
                 'The authorization server "%s" does not advertise the "%s" token endpoint authentication method.',
-                $server->issuer,
+                SafeDisplay::sanitiseCause($server->issuer),
                 $this->authMethod->value,
             ));
         }
@@ -120,7 +121,7 @@ final readonly class ClientCredentialsGrant implements GrantStrategyInterface
         if (null !== $this->signingAlgorithm && null !== $algorithms && ! \in_array($this->signingAlgorithm, $algorithms, true)) {
             throw new UnsupportedClientAuthenticationException(\sprintf(
                 'The authorization server "%s" does not advertise the "%s" client assertion signing algorithm.',
-                $server->issuer,
+                SafeDisplay::sanitiseCause($server->issuer),
                 $this->signingAlgorithm,
             ));
         }

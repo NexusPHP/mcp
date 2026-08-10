@@ -19,6 +19,7 @@ use Nexus\Mcp\Core\Exception\InvalidParamsException;
 use Nexus\Mcp\Core\Exception\InvalidRequestException;
 use Nexus\Mcp\Core\Exception\MethodMisroutedException;
 use Nexus\Mcp\Core\Exception\MethodNotFoundException;
+use Nexus\Mcp\Core\SafeDisplay;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcMessage;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
@@ -77,7 +78,7 @@ final class JsonRpcMessageParser
             } catch (\InvalidArgumentException $e) {
                 throw new InvalidRequestException(
                     EnvelopeRequestId::recover($message),
-                    \sprintf('Invalid error response: %s', $e->getMessage()),
+                    \sprintf('Invalid error response: %s', SafeDisplay::sanitiseCause($e->getMessage())),
                 );
             }
         }
@@ -88,7 +89,7 @@ final class JsonRpcMessageParser
                 Assert::that($message['id'])->isIntOrNonEmptyString('"id" must be an int or non-empty string, {type} given.');
                 $id = new RequestId(id: $message['id']);
             } catch (\InvalidArgumentException $e) {
-                throw new InvalidRequestException(null, \sprintf('Invalid success response: %s', $e->getMessage()));
+                throw new InvalidRequestException(null, \sprintf('Invalid success response: %s', SafeDisplay::sanitiseCause($e->getMessage())));
             }
 
             if (null === $response) {
@@ -98,7 +99,7 @@ final class JsonRpcMessageParser
             try {
                 return $response::fromArray($message);
             } catch (\InvalidArgumentException $e) {
-                throw new InvalidRequestException($id, \sprintf('Invalid success response: %s', $e->getMessage()));
+                throw new InvalidRequestException($id, \sprintf('Invalid success response: %s', SafeDisplay::sanitiseCause($e->getMessage())));
             }
         }
 
@@ -106,7 +107,7 @@ final class JsonRpcMessageParser
             Assert::that($message)->hasOffset('method', 'JSON-RPC envelope must carry a "method" (request or notification), an "error" (error response), or a "result" (success response).');
             Assert::that($message['method'])->isNonEmptyString('JSON-RPC envelope "method" must be a non-empty string, {type} given.');
         } catch (\InvalidArgumentException $e) {
-            throw new InvalidRequestException(EnvelopeRequestId::recover($message), $e->getMessage());
+            throw new InvalidRequestException(EnvelopeRequestId::recover($message), SafeDisplay::sanitiseCause($e->getMessage()));
         }
 
         $method = $message['method'];
@@ -118,7 +119,7 @@ final class JsonRpcMessageParser
             } catch (\InvalidArgumentException $e) {
                 throw new InvalidRequestException(
                     null,
-                    \sprintf('Invalid "%s" request: %s', SafeDisplay::sanitise($method), $e->getMessage()),
+                    \sprintf('Invalid "%s" request: %s', SafeDisplay::sanitise($method), SafeDisplay::sanitiseCause($e->getMessage())),
                 );
             }
 
@@ -142,7 +143,7 @@ final class JsonRpcMessageParser
             } catch (\InvalidArgumentException $e) {
                 throw new InvalidParamsException(
                     $id,
-                    \sprintf('Invalid "%s" request: %s', SafeDisplay::sanitise($method), $e->getMessage()),
+                    \sprintf('Invalid "%s" request: %s', SafeDisplay::sanitise($method), SafeDisplay::sanitiseCause($e->getMessage())),
                 );
             }
         }
@@ -166,7 +167,7 @@ final class JsonRpcMessageParser
         } catch (\InvalidArgumentException $e) {
             throw new InvalidParamsException(
                 null,
-                \sprintf('Invalid "%s" notification: %s', SafeDisplay::sanitise($method), $e->getMessage()),
+                \sprintf('Invalid "%s" notification: %s', SafeDisplay::sanitise($method), SafeDisplay::sanitiseCause($e->getMessage())),
             );
         }
     }

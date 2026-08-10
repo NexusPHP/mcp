@@ -25,6 +25,7 @@ use Nexus\Mcp\Core\Handler\Notification\CancelledNotificationHandler;
 use Nexus\Mcp\Core\Handler\NotificationHandlerInterface;
 use Nexus\Mcp\Core\Handler\RequestHandlerInterface;
 use Nexus\Mcp\Core\JsonRpc\JsonRpcMessageParser;
+use Nexus\Mcp\Core\SafeDisplay;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Enum\SdkErrorCode;
 use Nexus\Mcp\Core\Schema\Error\UnsupportedProtocolVersionError;
@@ -58,6 +59,7 @@ use Nexus\Mcp\Tests\Fixtures\Core\TestLooseClientRequest;
 use Nexus\Mcp\Tests\Fixtures\Core\TestRequest;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use Psr\Log\LogLevel;
 
@@ -454,6 +456,42 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
         }
 
         self::assertSame('v999.0.0', $error->requested);
+    }
+
+    /**
+     * @param non-empty-string $requested
+     */
+    #[DataProvider('provideAHostileProtocolVersionIsBoundedBeforeItReachesErrorDataCases')]
+    public function testAHostileProtocolVersionIsBoundedBeforeItReachesErrorData(string $requested, string $expected): void
+    {
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher();
+
+        $dispatcher->dispatch(self::toolsListEnvelope(1, protocolVersion: $requested), $transport, new ReceiveContext());
+
+        $dispatcher->flushPending();
+
+        self::assertCount(1, $transport->sent);
+        $message = $transport->sent[0]['message'];
+        self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
+
+        $error = $message->error;
+
+        if (! $error instanceof UnsupportedProtocolVersionError) {
+            self::fail('Expected an UnsupportedProtocolVersionError.');
+        }
+
+        self::assertSame($expected, $error->requested);
+    }
+
+    /**
+     * @return iterable<string, array{non-empty-string, string}>
+     */
+    public static function provideAHostileProtocolVersionIsBoundedBeforeItReachesErrorDataCases(): iterable
+    {
+        yield 'oversized' => [str_repeat('A', 200), str_repeat('A', SafeDisplay::MAX_LENGTH - 3).'...'];
+
+        yield 'control bytes' => ["2026-07-28\x1b]0;pwned\x07", '2026-07-28\x1b]0;pwned\x07'];
     }
 
     public function testServerDiscoverIsGatedByTheProtocolVersionToo(): void
@@ -967,7 +1005,6 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
         self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
         self::assertSame(ProtocolErrorCode::InvalidParams->value, $message->error->code);
         self::assertSame(1, $message->id?->id);
-        // SEP-2164: the error data echoes the URI that was not found.
         self::assertSame(['uri' => 'file:///missing'], $message->error->toArray()['data'] ?? null);
         $context = $transport->sent[0]['context'];
         self::assertInstanceOf(SendContext::class, $context);

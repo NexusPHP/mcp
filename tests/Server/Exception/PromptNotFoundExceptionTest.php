@@ -53,4 +53,18 @@ final class PromptNotFoundExceptionTest extends AbstractMcpTestCase
     {
         self::assertSame(ProtocolErrorCode::InvalidParams, PromptNotFoundException::getErrorCode());
     }
+
+    public function testBoundsAnOverlongValueInTheMessage(): void
+    {
+        $e = new PromptNotFoundException(str_repeat('a', 200_000));
+
+        self::assertSame(\sprintf('No prompt registered under name "%s...".', str_repeat('a', 77)), $e->getMessage());
+    }
+
+    public function testEscapesControlBytesInTheMessage(): void
+    {
+        $e = new PromptNotFoundException("ev\x1b[2K\x07il");
+
+        self::assertSame('No prompt registered under name "ev\\x1b[2K\\x07il".', $e->getMessage());
+    }
 }

@@ -62,7 +62,7 @@ final readonly class AuthorizationServerMetadata
             MetadataReader::readString($data, 'authorization_endpoint', self::LABEL),
             MetadataReader::readString($data, 'token_endpoint', self::LABEL),
             MetadataReader::readString($data, 'registration_endpoint', self::LABEL),
-            null === $scopes ? null : new ScopeSet($scopes),
+            null === $scopes ? null : ScopeSet::fromList($scopes),
             MetadataReader::readStringList($data, 'code_challenge_methods_supported', self::LABEL),
             MetadataReader::readBool($data, 'authorization_response_iss_parameter_supported', self::LABEL),
             MetadataReader::readBool($data, 'client_id_metadata_document_supported', self::LABEL),

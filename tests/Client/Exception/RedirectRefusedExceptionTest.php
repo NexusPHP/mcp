@@ -33,4 +33,15 @@ final class RedirectRefusedExceptionTest extends AbstractMcpTestCase
             (new RedirectRefusedException('https://auth.example.com/token', 'http://127.0.0.1:6379/token'))->getMessage(),
         );
     }
+
+    public function testBoundsAndEscapesAHostileRedirectTarget(): void
+    {
+        self::assertSame(
+            \sprintf(
+                'The request to "https://mcp.example.com" was answered from "%s..." after a redirect. Credentials are never carried across one.',
+                'https://'.str_repeat('e', 245),
+            ),
+            (new RedirectRefusedException('https://mcp.example.com', 'https://'.str_repeat('e', 300)))->getMessage(),
+        );
+    }
 }

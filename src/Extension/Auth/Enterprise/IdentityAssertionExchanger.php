@@ -22,6 +22,7 @@ use Nexus\Mcp\Client\Exception\MalformedAuthorizationResponseException;
 use Nexus\Mcp\Core\Auth\MetadataReader;
 use Nexus\Mcp\Core\Auth\ResourceIdentifier;
 use Nexus\Mcp\Core\Http\HttpStatus;
+use Nexus\Mcp\Core\SafeDisplay;
 use Nexus\Mcp\Extension\Auth\Exception\IdentityAssertionExchangeFailedException;
 
 /**
@@ -112,7 +113,7 @@ final readonly class IdentityAssertionExchanger
         if (EnterpriseAuthorization::ID_JAG_TOKEN_TYPE !== $issuedType) {
             throw new IdentityAssertionExchangeFailedException(\sprintf(
                 'The enterprise IdP issued a "%s" token where an ID-JAG was requested.',
-                $issuedType,
+                SafeDisplay::sanitise($issuedType),
             ));
         }
 

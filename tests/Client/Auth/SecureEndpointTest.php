@@ -232,6 +232,17 @@ final class SecureEndpointTest extends AbstractMcpTestCase
         SecureEndpoint::verifyAuthorizationServerUrl('https://auth.example.com/authorize#done', 'authorization endpoint');
     }
 
+    public function testAHostileAuthorizationServerUrlIsBoundedAndEscapedInTheRefusal(): void
+    {
+        $this->expectException(UntrustedAuthorizationMetadataException::class);
+        $this->expectExceptionMessageIs(\sprintf(
+            'The authorization metadata cannot be trusted because the token endpoint "%s..." is not an absolute HTTPS URL.',
+            'ftp://'.str_repeat('a', 247),
+        ));
+
+        SecureEndpoint::verifyAuthorizationServerUrl('ftp://'.str_repeat('a', 300)."\x1b", 'token endpoint');
+    }
+
     public function testAnHttpsMetadataDocumentUrlWithAPathIsAccepted(): void
     {
         $this->expectNotToPerformAssertions();

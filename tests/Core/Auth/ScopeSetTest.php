@@ -131,4 +131,53 @@ final class ScopeSetTest extends AbstractMcpTestCase
     {
         self::assertSame(['files:read'], (new ScopeSet(['files:read']))->without('offline_access')->values);
     }
+
+    /**
+     * @param non-empty-string $scope
+     */
+    #[DataProvider('provideParseHoldsScopesToTheRfc6749GrammarCases')]
+    public function testParseHoldsScopesToTheRfc6749Grammar(string $scope, bool $kept): void
+    {
+        self::assertSame($kept ? [$scope] : [], ScopeSet::parse($scope)->values);
+    }
+
+    /**
+     * @return iterable<string, array{non-empty-string, bool}>
+     */
+    public static function provideParseHoldsScopesToTheRfc6749GrammarCases(): iterable
+    {
+        yield 'a colon-delimited scope' => ['files:read', true];
+
+        yield 'a bare scope' => ['openid', true];
+
+        yield 'a URL-shaped scope' => ['https://graph.microsoft.com/.default', true];
+
+        yield 'a dotted API scope' => ['api://a-b/access_as_user', true];
+
+        yield 'an escape sequence is dropped' => ["\x1b[2Jadmin", false];
+
+        yield 'a quote is dropped' => ['a"b', false];
+
+        yield 'a backslash is dropped' => ['a\\b', false];
+
+        yield 'a high byte is dropped' => ["read\xc3\xa9", false];
+    }
+
+    public function testParseKeepsTheConformingScopesAlongsideOneItDrops(): void
+    {
+        self::assertSame(['files:read', 'files:write'], ScopeSet::parse("files:read \x1b[2Jadmin files:write")->values);
+    }
+
+    public function testFromListDropsAValueThatIsNotAScopeToken(): void
+    {
+        self::assertSame(
+            ['files:read', 'files:write'],
+            ScopeSet::fromList(['files:read', "adm\x1b[2Jin", 'files:write', 'wr"ite'])->values,
+        );
+    }
+
+    public function testFromListKeepsASpaceBearingValueOut(): void
+    {
+        self::assertSame([], ScopeSet::fromList(['files:read files:write'])->values);
+    }
 }

@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Exception;
 
+use Nexus\Mcp\Core\SafeDisplay;
 use Nexus\Mcp\Core\Schema\Error;
 
 /**
@@ -22,6 +23,6 @@ final class RemoteCallFailedException extends \RuntimeException implements McpEx
 {
     public function __construct(public readonly Error $error)
     {
-        parent::__construct($error->message, $error->code);
+        parent::__construct(SafeDisplay::sanitiseCause($error->message), $error->code);
     }
 }

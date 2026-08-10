@@ -93,6 +93,41 @@ final class CancelledNotificationHandlerTest extends AbstractMcpTestCase
         self::assertTrue($stringCancellation->isRequested());
     }
 
+    public function testAHostileIdAndReasonAreBoundedAndEscapedBeforeTheyReachTheLog(): void
+    {
+        $inboundRequests = new PendingInboundRequests();
+        $id = str_repeat('r', 100)."\x1b";
+        $inboundRequests->claim(new RequestId(id: $id));
+        $logger = new ArrayLogger();
+
+        (new CancelledNotificationHandler($inboundRequests, $logger))->handle(
+            self::notificationFor($id, str_repeat('w', 300)."\x07"),
+        );
+
+        $records = $logger->recordsMatching(LogLevel::DEBUG, 'Cancelled an in-flight request.');
+        self::assertCount(1, $records);
+        self::assertSame(
+            [
+                'id' => str_repeat('r', 77).'...',
+                'reason' => str_repeat('w', 253).'...',
+            ],
+            $records[0]['context'],
+        );
+    }
+
+    public function testAHostileIdThatIsNotInFlightIsBoundedAndEscapedBeforeItReachesTheLog(): void
+    {
+        $logger = new ArrayLogger();
+
+        (new CancelledNotificationHandler(new PendingInboundRequests(), $logger))->handle(
+            self::notificationFor("req\x1b]0;forged\x07"),
+        );
+
+        $records = $logger->recordsMatching(LogLevel::DEBUG, 'Ignoring cancellation for a request that is not in flight.');
+        self::assertCount(1, $records);
+        self::assertSame(['id' => 'req\\x1b]0;forged\\x07'], $records[0]['context']);
+    }
+
     /**
      * @param int|non-empty-string  $requestId
      * @param null|non-empty-string $reason

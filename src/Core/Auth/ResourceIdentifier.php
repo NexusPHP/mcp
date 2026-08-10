@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Auth;
 
 use Nexus\Assert\Assert;
+use Nexus\Mcp\Core\SafeDisplay;
 
 /**
  * The canonical URI of an MCP server, as carried by the OAuth `resource` parameter.
@@ -32,7 +33,7 @@ final readonly class ResourceIdentifier
 
         Assert::that($canonical)->isArray(\sprintf(
             'The MCP server resource identifier must be an absolute URI carrying no fragment or userinfo, "%s" given.',
-            $uri,
+            SafeDisplay::sanitiseCause($uri),
         ));
 
         [$this->value, $this->origin] = $canonical;

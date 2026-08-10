@@ -16,6 +16,7 @@ namespace Nexus\Mcp\Tests\Server\Tool;
 use Amp\NullCancellation;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Exception\InvalidParamsException;
+use Nexus\Mcp\Core\SafeDisplay;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\RequestId;
@@ -193,6 +194,32 @@ final class ToolStoreTest extends AbstractMcpTestCase
         $this->expectExceptionMessageMatches('/^Invalid arguments for tool "search": /');
 
         $store->call('search', ['q' => 123], self::makeContext());
+    }
+
+    public function testCallBoundsAPeerPropertyNameQuotedByTheValidator(): void
+    {
+        $store = self::closedSchemaStore();
+
+        try {
+            $store->call('search', [str_repeat('A', 200_000) => 1], self::makeContext());
+            self::fail('Expected InvalidParamsException.');
+        } catch (InvalidParamsException $e) {
+            self::assertSame(SafeDisplay::MAX_CAUSE_LENGTH, \strlen($e->getMessage()));
+            self::assertStringEndsWith('...', $e->getMessage());
+        }
+    }
+
+    public function testCallEscapesControlBytesInAPeerPropertyName(): void
+    {
+        $store = self::closedSchemaStore();
+
+        try {
+            $store->call('search', ["ev\x1b[2K\x07il" => 1], self::makeContext());
+            self::fail('Expected InvalidParamsException.');
+        } catch (InvalidParamsException $e) {
+            self::assertStringContainsString('ev\\x1b[2K\\x07il', $e->getMessage());
+            self::assertDoesNotMatchRegularExpression('/[^\x20-\x7E]/', $e->getMessage());
+        }
     }
 
     public function testCallAcceptsArgumentsSatisfyingRequiredInputSchema(): void
@@ -530,6 +557,20 @@ final class ToolStoreTest extends AbstractMcpTestCase
             'type' => 'object',
             'properties' => ['n' => ['type' => 'integer']],
             'required' => ['n'],
+        ]);
+    }
+
+    private static function closedSchemaStore(): ToolStore
+    {
+        return new ToolStore([
+            'search' => new ToolEntry(
+                new Tool(name: 'search', inputSchema: [
+                    'type' => 'object',
+                    'properties' => ['q' => ['type' => 'string']],
+                    'additionalProperties' => false,
+                ]),
+                self::makeExecutor(),
+            ),
         ]);
     }
 

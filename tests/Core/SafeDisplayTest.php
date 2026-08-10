@@ -11,9 +11,9 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Nexus\Mcp\Tests\Core\JsonRpc;
+namespace Nexus\Mcp\Tests\Core;
 
-use Nexus\Mcp\Core\JsonRpc\SafeDisplay;
+use Nexus\Mcp\Core\SafeDisplay;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -58,6 +58,26 @@ final class SafeDisplayTest extends AbstractMcpTestCase
             'expected' => '\\x1b[31mtools/list\\x1b[0m',
         ];
 
+        yield 'the byte below the printable floor is hex-escaped' => [
+            'input' => "a\x1fb",
+            'expected' => 'a\\x1fb',
+        ];
+
+        yield 'the space at the printable floor passes through' => [
+            'input' => 'a b',
+            'expected' => 'a b',
+        ];
+
+        yield 'the tilde at the printable ceiling passes through' => [
+            'input' => 'a~b',
+            'expected' => 'a~b',
+        ];
+
+        yield 'the delete byte above the printable ceiling is hex-escaped' => [
+            'input' => "a\x7fb",
+            'expected' => 'a\\x7fb',
+        ];
+
         yield 'RTL override is hex-escaped (UTF-8 three-byte sequence)' => [
             'input' => "tools\u{202E}list",
             'expected' => 'tools\\xe2\\x80\\xaelist',
@@ -91,6 +111,70 @@ final class SafeDisplayTest extends AbstractMcpTestCase
         yield 'hex-escape expansion that pushes past the cap is truncated' => [
             'input' => str_repeat("\n", 30),
             'expected' => str_repeat('\\x0a', 19).'\\...',
+        ];
+    }
+
+    #[DataProvider('provideSanitiseCauseCases')]
+    public function testSanitiseCause(string $input, string $expected): void
+    {
+        self::assertSame($expected, SafeDisplay::sanitiseCause($input));
+    }
+
+    /**
+     * @return iterable<string, array{input: string, expected: string}>
+     */
+    public static function provideSanitiseCauseCases(): iterable
+    {
+        yield 'a message longer than the value cap survives whole' => [
+            'input' => str_repeat('a', 200),
+            'expected' => str_repeat('a', 200),
+        ];
+
+        yield 'a message at exactly the 256-byte cap is returned unchanged' => [
+            'input' => str_repeat('a', 256),
+            'expected' => str_repeat('a', 256),
+        ];
+
+        yield 'a message one byte beyond the cap is truncated with ellipsis' => [
+            'input' => str_repeat('a', 257),
+            'expected' => str_repeat('a', 253).'...',
+        ];
+
+        yield 'ANSI escape is hex-escaped' => [
+            'input' => "cause\x1b[2Kforged\x07",
+            'expected' => 'cause\\x1b[2Kforged\\x07',
+        ];
+    }
+
+    #[DataProvider('provideSanitiseIdCases')]
+    public function testSanitiseId(int|string $input, int|string $expected): void
+    {
+        self::assertSame($expected, SafeDisplay::sanitiseId($input));
+    }
+
+    /**
+     * @return iterable<string, array{input: int|string, expected: int|string}>
+     */
+    public static function provideSanitiseIdCases(): iterable
+    {
+        yield 'an int id stays an int' => [
+            'input' => 42,
+            'expected' => 42,
+        ];
+
+        yield 'a negative int id stays an int' => [
+            'input' => -1,
+            'expected' => -1,
+        ];
+
+        yield 'a string id is escaped' => [
+            'input' => "req\x1b]0;forged\x07",
+            'expected' => 'req\\x1b]0;forged\\x07',
+        ];
+
+        yield 'a string id is capped at the value cap' => [
+            'input' => str_repeat('r', 200),
+            'expected' => str_repeat('r', 77).'...',
         ];
     }
 }

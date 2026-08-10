@@ -53,4 +53,18 @@ final class ToolNotFoundExceptionTest extends AbstractMcpTestCase
     {
         self::assertSame(ProtocolErrorCode::InvalidParams, ToolNotFoundException::getErrorCode());
     }
+
+    public function testBoundsAnOverlongValueInTheMessage(): void
+    {
+        $e = new ToolNotFoundException(str_repeat('a', 200_000));
+
+        self::assertSame(\sprintf('No tool registered under name "%s...".', str_repeat('a', 77)), $e->getMessage());
+    }
+
+    public function testEscapesControlBytesInTheMessage(): void
+    {
+        $e = new ToolNotFoundException("ev\x1b[2K\x07il");
+
+        self::assertSame('No tool registered under name "ev\\x1b[2K\\x07il".', $e->getMessage());
+    }
 }

@@ -51,4 +51,18 @@ final class InvalidCursorExceptionTest extends AbstractMcpTestCase
     {
         self::assertSame(ProtocolErrorCode::InvalidParams, InvalidCursorException::getErrorCode());
     }
+
+    public function testBoundsAnOverlongValueInTheMessage(): void
+    {
+        $e = new InvalidCursorException(str_repeat('a', 200_000));
+
+        self::assertSame(\sprintf('Cursor "%s..." does not match any registered entry.', str_repeat('a', 77)), $e->getMessage());
+    }
+
+    public function testEscapesControlBytesInTheMessage(): void
+    {
+        $e = new InvalidCursorException("cur\x1b[2K\x07");
+
+        self::assertSame('Cursor "cur\\x1b[2K\\x07" does not match any registered entry.', $e->getMessage());
+    }
 }

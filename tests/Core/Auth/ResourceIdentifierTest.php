@@ -191,4 +191,15 @@ final class ResourceIdentifierTest extends AbstractMcpTestCase
 
         yield 'a query is not part of the origin' => ['https://mcp.example.com/mcp?a=b', 'https://mcp.example.com'];
     }
+
+    public function testBoundsAndEscapesAHostileUriInTheRefusal(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs(\sprintf(
+            'The MCP server resource identifier must be an absolute URI carrying no fragment or userinfo, "%s..." given.',
+            str_repeat('u', 253),
+        ));
+
+        new ResourceIdentifier(str_repeat('u', 300)."\x1b");
+    }
 }

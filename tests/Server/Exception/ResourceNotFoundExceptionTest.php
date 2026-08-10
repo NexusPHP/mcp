@@ -56,9 +56,31 @@ final class ResourceNotFoundExceptionTest extends AbstractMcpTestCase
 
     public function testEchoesTheUriInTheErrorData(): void
     {
-        // SEP-2164: a resource-not-found error SHOULD carry the URI that was not found.
         $e = new ResourceNotFoundException('file:///missing');
 
         self::assertSame(['uri' => 'file:///missing'], $e->errorData);
+    }
+
+    public function testTheErrorDataKeepsTheUriVerbatimWhileTheMessageIsBounded(): void
+    {
+        $uri = \sprintf('file:///%s', str_repeat('a', 400));
+        $e = new ResourceNotFoundException($uri);
+
+        self::assertSame(['uri' => $uri], $e->errorData);
+        self::assertSame(\sprintf('No resource registered under URI "file:///%s...".', str_repeat('a', 245)), $e->getMessage());
+    }
+
+    public function testBoundsAnOverlongValueInTheMessage(): void
+    {
+        $e = new ResourceNotFoundException(str_repeat('a', 200_000));
+
+        self::assertSame(\sprintf('No resource registered under URI "%s...".', str_repeat('a', 253)), $e->getMessage());
+    }
+
+    public function testEscapesControlBytesInTheMessage(): void
+    {
+        $e = new ResourceNotFoundException("ev\x1b[2K\x07il");
+
+        self::assertSame('No resource registered under URI "ev\\x1b[2K\\x07il".', $e->getMessage());
     }
 }

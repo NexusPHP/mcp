@@ -16,6 +16,7 @@ namespace Nexus\Mcp\Tests\Server\Discovery;
 use Amp\NullCancellation;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Exception\InvalidParamsException;
+use Nexus\Mcp\Core\SafeDisplay;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Server\Discovery\ArgumentBinder;
 use Nexus\Mcp\Server\Exception\UnsupportedNestedParameterException;
@@ -97,6 +98,28 @@ final class ArgumentBinderTest extends AbstractMcpTestCase
     public function testHydratesPureEnumByCaseName(): void
     {
         self::assertSame([PureEnum::Yes], $this->bind('pureCase', ['flag' => 'Yes']));
+    }
+
+    public function testBoundsAnOverlongPeerArgumentInTheError(): void
+    {
+        try {
+            $this->bind('backedString', ['color' => str_repeat('\'', 200_000)]);
+            self::fail('Expected InvalidParamsException.');
+        } catch (InvalidParamsException $e) {
+            self::assertSame(SafeDisplay::MAX_CAUSE_LENGTH, \strlen($e->getMessage()));
+            self::assertStringEndsWith('...', $e->getMessage());
+        }
+    }
+
+    public function testEscapesControlBytesInAPeerArgumentInTheError(): void
+    {
+        try {
+            $this->bind('pureCase', ['flag' => "ev\x1b[2K\x07il"]);
+            self::fail('Expected InvalidParamsException.');
+        } catch (InvalidParamsException $e) {
+            self::assertStringContainsString('\'ev\\x1b[2K\\x07il\'', $e->getMessage());
+            self::assertDoesNotMatchRegularExpression('/[^\x20-\x7E]/', $e->getMessage());
+        }
     }
 
     public function testPassesThroughNonEnumClassValue(): void

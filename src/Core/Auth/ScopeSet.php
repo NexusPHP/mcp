@@ -30,6 +30,11 @@ final readonly class ScopeSet
     public const string OFFLINE_ACCESS = 'offline_access';
 
     /**
+     * RFC 6749 section 3.3 `scope-token` syntax (`1*( %x21 / %x23-5B / %x5D-7E )`).
+     */
+    private const string SCOPE_TOKEN_PATTERN = '/\A[\x21\x23-\x5B\x5D-\x7E]+\z/';
+
+    /**
      * @var list<non-empty-string>
      */
     public array $values;
@@ -46,22 +51,31 @@ final readonly class ScopeSet
 
     /**
      * Parses a space-delimited `scope` parameter, treating an absent or blank one as the empty set.
+     *
+     * A segment that is not an RFC 6749 `scope-token` is dropped, so never build the *required* side of a
+     * `containsAll()` grant decision from this.
      */
     public static function parse(?string $scope): self
     {
-        if (null === $scope) {
-            return new self();
-        }
+        return null === $scope ? new self() : self::fromList(explode(' ', $scope));
+    }
 
-        $values = [];
+    /**
+     * Builds a set from peer-supplied values, dropping each that is not an RFC 6749 `scope-token`.
+     *
+     * @param list<string> $values
+     */
+    public static function fromList(array $values): self
+    {
+        $kept = [];
 
-        foreach (explode(' ', $scope) as $value) {
-            if ('' !== $value) {
-                $values[] = $value;
+        foreach ($values as $value) {
+            if (preg_match(self::SCOPE_TOKEN_PATTERN, $value) === 1) {
+                $kept[] = $value;
             }
         }
 
-        return new self($values);
+        return new self($kept);
     }
 
     /**
