@@ -4,7 +4,9 @@ This file is the upgrade guide: what breaks at each version boundary and how to 
 for *when* breaking changes may land and how they are communicated lives in
 [VERSIONING.md](VERSIONING.md).
 
-## v0.10.0 to Unreleased
+## v0.11.0 to Unreleased
+
+## v0.10.0 to v0.11.0
 
 ### Schema constructors no longer enforce the identifier-name format
 
