@@ -20,7 +20,7 @@ use Psr\Log\NullLogger;
 use function Amp\Future\awaitAll;
 
 /**
- * Tracker for the `Amp\Future` coroutines spawned during inbound dispatch.
+ * Tracker for the `Amp\Future` instances inbound dispatch holds against a budget.
  *
  * @internal
  */
@@ -32,8 +32,6 @@ final class PendingCoroutines implements \Countable
     private \SplObjectStorage $pending;
 
     /**
-     * The subset of `$pending` holding a slot against the dispatch cap.
-     *
      * @var \SplObjectStorage<Future<mixed>, null>
      */
     private \SplObjectStorage $occupied;
@@ -46,9 +44,7 @@ final class PendingCoroutines implements \Countable
 
     /**
      * @param Future<mixed> $future
-     * @param bool          $occupiesSlot Whether this coroutine holds a slot against the dispatch cap, which
-     *                                    a handler awaiting slow I/O still does since the cap exists to shed
-     *                                    exactly that pile-up
+     * @param bool          $occupiesSlot Whether this future holds a slot against the budget
      */
     public function track(Future $future, bool $occupiesSlot = true): void
     {
@@ -74,11 +70,6 @@ final class PendingCoroutines implements \Countable
         }
     }
 
-    /**
-     * How many tracked coroutines hold a slot against the dispatch cap, always at most the number awaited on drain.
-     *
-     * @return int<0, max>
-     */
     #[\Override]
     public function count(): int
     {

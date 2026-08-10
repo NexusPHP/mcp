@@ -72,6 +72,10 @@ A `subscriptions/listen` always answers over SSE, whatever
 path would hold the POST open with nowhere to push the acknowledgement.
 
 A held-open listen coroutine does not count against
-[`setMaxInFlightDispatches()`](configuration.md#in-flight-dispatch-cap), because it opens a subscription rather than being
-processed. `maxSubscriptions` is what bounds streams. The exemption is that narrow: a tool handler awaiting
-slow I/O still holds a slot, since shedding a pile-up of those is what the cap is for.
+[`setMaxInFlightDispatches()`](configuration.md#in-flight-dispatch-cap), and no number of full slots refuses
+one, because it opens a subscription rather than being processed. `maxSubscriptions` bounds the streams they
+open. `setMaxInFlightDispatches()` sizes a second, separate budget over the listens admitted and not yet
+started, so listens arriving faster than the loop can start them are shed with `-32000`. Being separate, that
+budget can refuse a listen while every slot is free. The exemption is that narrow: a tool handler awaiting
+slow I/O still holds a slot, since shedding a pile-up of those is what the cap is for. A server that registers
+no `subscriptions/listen` handler sheds one like any other request.

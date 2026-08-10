@@ -50,7 +50,7 @@ The SDK also defines its own code outside the spec's bands, in
 
 | Code | Name | Meaning |
 | --- | --- | --- |
-| -32000 | `Overloaded` | The server is at its in-flight dispatch cap and shed the request. See [`setMaxInFlightDispatches()`](server/configuration.md#in-flight-dispatch-cap). |
+| -32000 | `Overloaded` | The peer shed the request at one of its dispatch budgets. See `setMaxInFlightDispatches()` on the [server](server/configuration.md#in-flight-dispatch-cap) and the [client](client/configuration.md#in-flight-dispatch-cap). |
 
 ## Server side: handler failures become error responses
 
