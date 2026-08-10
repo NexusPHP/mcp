@@ -44,7 +44,7 @@ final readonly class CancelledNotificationHandler implements NotificationHandler
 
         if (! $this->inboundRequests->cancel($requestId)) {
             $this->logger->debug(
-                'Ignoring cancellation for a request that is not in flight.',
+                'Ignoring a cancellation naming a request that is not in flight or is already cancelled.',
                 ['id' => SafeDisplay::sanitiseId($requestId->id)],
             );
 

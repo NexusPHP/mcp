@@ -8,9 +8,21 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp/commits/1.x)
 
+### Added
+
+- `ClientBuilder::setMaxInFlightDispatches()` caps how many inbound messages a client processes at once.
+
+### Changed
+
+- The in-flight dispatch cap is on by default on both peers, at `DEFAULT_MAX_IN_FLIGHT` (1024). See
+  [BREAKING_CHANGES.md](BREAKING_CHANGES.md).
+
 ### Fixed
 
-- `subscriptions/listen` is no longer refused by the in-flight dispatch cap on a server that serves it.
+- `subscriptions/listen` no longer occupies an in-flight dispatch slot on a server that serves it, and
+  listens arriving faster than the loop starts them are shed with `-32000`.
+- The first `notifications/cancelled` naming a request in flight is no longer shed by the in-flight
+  dispatch cap, and is cancelled on admission when the cap is reached.
 
 ## [v0.11.0](https://github.com/NexusPHP/mcp/compare/v0.10.0...v0.11.0) - 2026-08-10
 

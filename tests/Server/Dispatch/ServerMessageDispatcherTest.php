@@ -13,7 +13,9 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Server\Dispatch;
 
+use Amp\Cancellation;
 use Amp\CancelledException;
+use Amp\DeferredFuture;
 use Nexus\Mcp\Core\Dispatch\PendingInboundRequests;
 use Nexus\Mcp\Core\Exception\AbstractJsonRpcProtocolException;
 use Nexus\Mcp\Core\Exception\InvalidParamsException;
@@ -825,6 +827,197 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
         self::assertInstanceOf(JsonRpcResultResponse::class, $transport->sent[0]['message']);
     }
 
+    public function testListensArrivingFasterThanTheLoopStartsThemAreShed(): void
+    {
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher(
+            requestHandlers: ['subscriptions/listen' => self::okHandler()],
+            maxInFlight: 1,
+        );
+
+        $dispatcher->dispatch(self::subscriptionsListenEnvelope(1), $transport, new ReceiveContext());
+        $dispatcher->dispatch(self::subscriptionsListenEnvelope(2), $transport, new ReceiveContext());
+
+        self::assertCount(1, $transport->sent, 'The second listen is refused before its coroutine is spawned.');
+        $shed = $transport->sent[0]['message'];
+        self::assertInstanceOf(JsonRpcErrorResponse::class, $shed);
+        self::assertSame(2, $shed->id?->id);
+        self::assertSame(SdkErrorCode::Overloaded->value, $shed->error->code);
+
+        $dispatcher->flushPending();
+    }
+
+    public function testAListenParkedInItsHandlerReleasesItsBudgetSlot(): void
+    {
+        $parked = new DeferredFuture();
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher(
+            requestHandlers: ['subscriptions/listen' => new ClosureRequestHandler(
+                static function () use ($parked): Result {
+                    $parked->getFuture()->await();
+
+                    return new EmptyResult();
+                },
+            )],
+            maxInFlight: 1,
+        );
+
+        foreach ([1, 2, 3] as $id) {
+            $dispatcher->dispatch(self::subscriptionsListenEnvelope($id), $transport, new ReceiveContext());
+            delay(0.0);
+        }
+
+        self::assertCount(0, $transport->sent, 'A listen already parked in its handler no longer occupies the backlog.');
+
+        $parked->complete();
+        $dispatcher->flushPending();
+    }
+
+    public function testCancellationIsAdmittedPastTheInFlightCap(): void
+    {
+        $cancelled = null;
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher(
+            requestHandlers: ['tools/list' => self::okHandler()],
+            notificationHandlers: [
+                'notifications/cancelled' => new ClosureNotificationHandler(static function () use (&$cancelled): void {
+                    $cancelled = true;
+                }),
+            ],
+            maxInFlight: 1,
+        );
+
+        $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
+        $dispatcher->dispatch(
+            ['jsonrpc' => '2.0', 'method' => 'notifications/cancelled', 'params' => ['requestId' => 1]],
+            $transport,
+            new ReceiveContext(),
+        );
+
+        $dispatcher->flushPending();
+
+        self::assertTrue($cancelled, 'The one notification that frees a slot must not be shed by the cap it would relieve.');
+    }
+
+    public function testACancellationNamingNothingInFlightIsShedAtTheCap(): void
+    {
+        $cancelled = 0;
+        $logger = new ArrayLogger();
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher(
+            requestHandlers: ['tools/list' => self::okHandler()],
+            notificationHandlers: [
+                'notifications/cancelled' => new ClosureNotificationHandler(static function () use (&$cancelled): void {
+                    ++$cancelled;
+                }),
+            ],
+            logger: $logger,
+            maxInFlight: 1,
+        );
+
+        $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
+        $dispatcher->dispatch(self::cancelEnvelope(99), $transport, new ReceiveContext());
+
+        $dispatcher->flushPending();
+
+        self::assertSame(0, $cancelled, 'A cancellation that frees nothing must meet the cap.');
+        $matches = $logger->recordsMatching(
+            LogLevel::WARNING,
+            'Shed {count} notification(s) so far. The server is at its in-flight dispatch cap.',
+        );
+        self::assertCount(1, $matches);
+        self::assertSame(['count' => 1], $matches[0]['context']);
+    }
+
+    public function testOnlyTheFirstCancellationNamingARequestIsAdmittedAtTheCap(): void
+    {
+        $cancelled = 0;
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher(
+            requestHandlers: ['tools/list' => self::okHandler()],
+            notificationHandlers: [
+                'notifications/cancelled' => new ClosureNotificationHandler(static function () use (&$cancelled): void {
+                    ++$cancelled;
+                }),
+            ],
+            maxInFlight: 1,
+        );
+
+        $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
+        $dispatcher->dispatch(self::cancelEnvelope(1), $transport, new ReceiveContext());
+        $dispatcher->dispatch(self::cancelEnvelope(1), $transport, new ReceiveContext());
+
+        $dispatcher->flushPending();
+
+        self::assertSame(1, $cancelled, 'Each request in flight funds the exemption once.');
+    }
+
+    public function testACancellationBelowTheCapLeavesTheCancelToItsHandler(): void
+    {
+        /** @var DeferredFuture<null> $parked */
+        $parked = new DeferredFuture();
+        $observed = null;
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher(
+            requestHandlers: ['tools/list' => new ClosureRequestHandler(
+                static function ($request, AbstractContext $context) use ($parked, &$observed): Result {
+                    $observed = $context->cancellation;
+                    $parked->getFuture()->await();
+
+                    return new EmptyResult();
+                },
+            )],
+            notificationHandlers: ['notifications/cancelled' => new ClosureNotificationHandler(static fn() => null)],
+        );
+
+        $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
+        delay(0.0);
+        $dispatcher->dispatch(self::cancelEnvelope(1), $transport, new ReceiveContext());
+        delay(0.0);
+
+        if (! $observed instanceof Cancellation) {
+            self::fail('The handler must have observed its cancellation token.');
+        }
+
+        self::assertFalse($observed->isRequested(), 'Below the cap the registered handler owns the cancel, and this one declined it.');
+
+        $parked->complete(null);
+        $dispatcher->flushPending();
+    }
+
+    public function testAnAdmittedCancellationTakesEffectOnAdmission(): void
+    {
+        /** @var DeferredFuture<null> $parked */
+        $parked = new DeferredFuture();
+        $observed = null;
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher(
+            requestHandlers: ['tools/list' => new ClosureRequestHandler(
+                static function ($request, AbstractContext $context) use ($parked, &$observed): Result {
+                    $observed = $context->cancellation;
+                    $parked->getFuture()->await();
+
+                    return new EmptyResult();
+                },
+            )],
+            notificationHandlers: ['notifications/cancelled' => new ClosureNotificationHandler(static fn() => null)],
+            maxInFlight: 1,
+        );
+
+        $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
+        delay(0.0);
+        $dispatcher->dispatch(self::cancelEnvelope(1), $transport, new ReceiveContext());
+
+        if (! $observed instanceof Cancellation) {
+            self::fail('The handler must have observed its cancellation token.');
+        }
+
+        self::assertTrue($observed->isRequested(), 'Admission past the cap is funded by the cancel itself.');
+
+        $parked->complete(null);
+        $dispatcher->flushPending();
+    }
+
     public function testSubscriptionsListenIsStillShedByAServerThatDoesNotServeIt(): void
     {
         $transport = new RecordingTransport();
@@ -898,7 +1091,7 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
         $dispatcher = self::buildDispatcher(
             requestHandlers: ['tools/list' => self::okHandler()],
             notificationHandlers: [
-                'notifications/cancelled' => new ClosureNotificationHandler(static function () use (&$handled): void {
+                'notifications/progress' => new ClosureNotificationHandler(static function () use (&$handled): void {
                     $handled = true;
                 }),
             ],
@@ -908,7 +1101,7 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
 
         $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
         $dispatcher->dispatch(
-            ['jsonrpc' => '2.0', 'method' => 'notifications/cancelled', 'params' => ['requestId' => 9]],
+            ['jsonrpc' => '2.0', 'method' => 'notifications/progress', 'params' => ['progressToken' => 'p-1', 'progress' => 1.0]],
             $transport,
             new ReceiveContext(),
         );

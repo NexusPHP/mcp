@@ -62,20 +62,32 @@ NOT write to STDOUT outside of the JSON-RPC stream. Target STDERR or a file.
 
 ## In-flight dispatch cap
 
-Optional and off by default. Without it, a peer that sends faster than handlers finish accumulates one
-coroutine per message until the process runs out of memory. `setMaxInFlightDispatches()` bounds that.
+On by default at `ServerBuilder::DEFAULT_MAX_IN_FLIGHT` (1024). Without a cap, a peer that sends faster than
+handlers finish accumulates one coroutine per message until the process runs out of memory.
 
 ```php
-->setMaxInFlightDispatches(64)
+->setMaxInFlightDispatches(64)   // tighter
+->setMaxInFlightDispatches(null) // uncapped, at that risk
 ```
+
+The default is high enough that a legitimate workload should not reach it.
 
 Past the cap, a request is answered `-32000` (`SdkErrorCode::Overloaded`) and a notification is dropped
 without a reply, because JSON-RPC 2.0 §4.1 forbids answering one. Shedding happens before the request id is
 claimed, so the server holds no state for a shed request and a retry is never rejected as a duplicate.
 
-`subscriptions/listen` is the one exception, and only on a server that serves it: it is admitted however
-saturated the cap is, because it opens a stream rather than occupying a slot. See
-[Subscriptions](subscriptions.md).
+Two methods are exempt. `subscriptions/listen` occupies no slot, and no number of full slots refuses it, on a
+server that serves it, because it opens a stream rather than being processed (see
+[Subscriptions](subscriptions.md)). A listen answers instead to a separate budget of the same size over those
+admitted and not yet started, so listens arriving faster than the loop can start them are shed rather than
+queued without limit. The two are independent, so a listen can be refused while every slot is free.
+`notifications/cancelled` is admitted past the cap only when it actually frees work: the first one naming a
+request in flight, which is cancelled on admission. Any other cancellation meets the cap like any
+notification, so a flood of them cannot occupy memory the cap exists to bound.
+
+A handler that waits on a human holds its slot for the whole wait. Return an
+[`InputRequiredResult`](input-required.md) or start a [task](tasks.md) instead, both of which
+complete the request and free the slot while the work continues.
 
 Pick a number from what your handlers cost, not from request rate: the cap counts handlers running
 concurrently, and it releases as each one finishes. The budget is shared, so a registered notification
@@ -84,6 +96,7 @@ handler occupies a slot for as long as it runs. A notification whose method has 
 Over Streamable HTTP a shed request carries `503 Service Unavailable` under the default `ResponseMode::Auto`
 and under `ResponseMode::Json`. Under `ResponseMode::Sse` it carries `200` with the error in a stream frame,
 as every dispatcher-produced error does there: an SSE response commits its status when the stream opens,
-before any frame exists. Front a proxy that keys on `503` with `Auto` or `Json`.
+before any frame exists. A shed `subscriptions/listen` carries `200` in every mode, since the transport
+streams that method whatever it is set to. Front a proxy that keys on `503` with `Auto` or `Json`.
 
 This composes with `RequestBodySizeLimitMiddleware`, which caps a single body rather than concurrency.

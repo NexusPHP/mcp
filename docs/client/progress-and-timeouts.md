@@ -47,7 +47,9 @@ an orphan.
 
 In the other direction, an inbound `notifications/cancelled` cancels the request the client is serving under
 that id, and the response is then suppressed, the same as on the server. Register your own
-`notifications/cancelled` handler to replace that behaviour.
+`notifications/cancelled` handler to replace that behaviour below the
+[in-flight dispatch cap](configuration.md#in-flight-dispatch-cap). At the cap the dispatcher itself cancels
+the named request, since performing the cancel is what admits the notification past it.
 
 The idle timer restarting on progress is what makes a long tool call safe under a short default: a call that
 reports progress stays alive indefinitely, up to the ceiling. That only applies to a call that asked for

@@ -36,6 +36,28 @@ are logged here.
 ->setLogger($psrLogger)
 ```
 
+## In-flight dispatch cap
+
+On by default at `ClientBuilder::DEFAULT_MAX_IN_FLIGHT` (1024). It bounds what the *server* can make this
+client do: without a cap, a server that emits notifications faster than your listeners return accumulates one
+coroutine per message until the process runs out of memory.
+
+```php
+->setMaxInFlightDispatches(64)   // tighter
+->setMaxInFlightDispatches(null) // uncapped, at that risk
+```
+
+Past the cap a server-to-client request is answered `-32000` (`SdkErrorCode::Overloaded`) and a
+notification is dropped without a reply. A client cannot answer a notification, so dropping is the only
+backpressure available to it. The first drop logs a warning naming the method, throttled so the log cannot
+become the flood. A subscription delivery is the exception: shedding one [ends its stream](subscriptions.md),
+with `await()` throwing `SubscriptionDeliveryDroppedException`. Call `listen()` again to resubscribe.
+
+Size it by inbound messages, not by operations. One `tools/call` that reports progress spends a slot per
+progress notification, so a handful of concurrent calls can occupy far more than a handful of slots.
+`notifications/cancelled` is exempt only when it actually frees work: the first one naming a request in
+flight is admitted past the cap and cancelled on admission, and any other cancellation meets the cap.
+
 ## Request-id and progress-token factories
 
 Optional. Both default to a monotonically-incrementing factory (`1`, `2`, … for request ids;

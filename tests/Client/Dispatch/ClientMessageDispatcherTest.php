@@ -13,10 +13,12 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Client\Dispatch;
 
+use Amp\Cancellation;
 use Amp\CancelledException;
 use Amp\DeferredFuture;
 use Nexus\Mcp\Client\ClientContext;
 use Nexus\Mcp\Client\Dispatch\ClientMessageDispatcher;
+use Nexus\Mcp\Client\Exception\SubscriptionDeliveryDroppedException;
 use Nexus\Mcp\Client\Subscription\OpenSubscription;
 use Nexus\Mcp\Client\Subscription\SubscriptionRegistry;
 use Nexus\Mcp\Core\Dispatch\PendingOutboundRequests;
@@ -31,6 +33,7 @@ use Nexus\Mcp\Core\Handler\NotificationHandlerInterface;
 use Nexus\Mcp\Core\Handler\RequestHandlerInterface;
 use Nexus\Mcp\Core\JsonRpc\JsonRpcMessageParser;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
+use Nexus\Mcp\Core\Schema\Enum\SdkErrorCode;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
@@ -1156,9 +1159,326 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         self::assertSame(['exception'], array_keys($matches[0]['context']), 'The peer envelope must not ride the log record.');
     }
 
+    public function testInboundRequestPastTheInFlightCapIsShedAsOverloaded(): void
+    {
+        $logger = new ArrayLogger();
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher(new PendingOutboundRequests(), logger: $logger, maxInFlight: 1);
+
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 2, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+
+        $dispatcher->flushPending();
+
+        self::assertCount(2, $transport->sent);
+        $shed = $transport->sent[0]['message'];
+        self::assertInstanceOf(JsonRpcErrorResponse::class, $shed);
+        self::assertSame(2, $shed->id?->id, 'The shed response must answer the request that was refused.');
+        self::assertSame(SdkErrorCode::Overloaded->value, $shed->error->code);
+        self::assertSame('Client overloaded', $shed->error->message);
+        $matches = $logger->recordsMatching(
+            LogLevel::WARNING,
+            'Shed {count} inbound message(s) so far. The client is at its in-flight dispatch cap.',
+        );
+        self::assertCount(1, $matches);
+        self::assertSame(['count' => 1, 'method' => 'tests/test-request'], $matches[0]['context']);
+    }
+
+    public function testInboundNotificationPastTheInFlightCapIsDroppedWithoutAResponse(): void
+    {
+        $handled = 0;
+        $logger = new ArrayLogger();
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher(
+            new PendingOutboundRequests(),
+            notificationHandlers: [
+                'notifications/tools/list_changed' => new ClosureNotificationHandler(static function () use (&$handled): void {
+                    ++$handled;
+                }),
+            ],
+            logger: $logger,
+            maxInFlight: 1,
+        );
+
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'method' => 'notifications/tools/list_changed'], $transport, new ReceiveContext());
+
+        $dispatcher->flushPending();
+
+        self::assertSame(0, $handled, 'A shed notification must not reach its handler.');
+        self::assertCount(1, $transport->sent, 'JSON-RPC 2.0 §4.1 forbids answering a notification.');
+        $matches = $logger->recordsMatching(
+            LogLevel::WARNING,
+            'Shed {count} inbound message(s) so far. The client is at its in-flight dispatch cap.',
+        );
+        self::assertCount(1, $matches);
+        self::assertSame(['count' => 1, 'method' => 'notifications/tools/list_changed'], $matches[0]['context']);
+    }
+
+    public function testCancellationIsAdmittedPastTheInFlightCap(): void
+    {
+        $cancelled = null;
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher(
+            new PendingOutboundRequests(),
+            notificationHandlers: [
+                'notifications/cancelled' => new ClosureNotificationHandler(static function () use (&$cancelled): void {
+                    $cancelled = true;
+                }),
+            ],
+            maxInFlight: 1,
+        );
+
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $dispatcher->dispatch(
+            ['jsonrpc' => '2.0', 'method' => 'notifications/cancelled', 'params' => ['requestId' => 1]],
+            $transport,
+            new ReceiveContext(),
+        );
+
+        $dispatcher->flushPending();
+
+        self::assertTrue($cancelled, 'The one notification that frees a slot must not be shed by the cap it would relieve.');
+    }
+
+    public function testACancellationNamingNothingInFlightIsShedAtTheCap(): void
+    {
+        $cancelled = 0;
+        $logger = new ArrayLogger();
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher(
+            new PendingOutboundRequests(),
+            notificationHandlers: [
+                'notifications/cancelled' => new ClosureNotificationHandler(static function () use (&$cancelled): void {
+                    ++$cancelled;
+                }),
+            ],
+            logger: $logger,
+            maxInFlight: 1,
+        );
+
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $dispatcher->dispatch(
+            ['jsonrpc' => '2.0', 'method' => 'notifications/cancelled', 'params' => ['requestId' => 99]],
+            $transport,
+            new ReceiveContext(),
+        );
+
+        $dispatcher->flushPending();
+
+        self::assertSame(0, $cancelled, 'A cancellation that frees nothing must meet the cap.');
+        $matches = $logger->recordsMatching(
+            LogLevel::WARNING,
+            'Shed {count} inbound message(s) so far. The client is at its in-flight dispatch cap.',
+        );
+        self::assertCount(1, $matches);
+        self::assertSame(['count' => 1, 'method' => 'notifications/cancelled'], $matches[0]['context']);
+    }
+
+    public function testOnlyTheFirstCancellationNamingARequestIsAdmittedAtTheCap(): void
+    {
+        $cancelled = 0;
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher(
+            new PendingOutboundRequests(),
+            notificationHandlers: [
+                'notifications/cancelled' => new ClosureNotificationHandler(static function () use (&$cancelled): void {
+                    ++$cancelled;
+                }),
+            ],
+            maxInFlight: 1,
+        );
+
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $cancellation = ['jsonrpc' => '2.0', 'method' => 'notifications/cancelled', 'params' => ['requestId' => 1]];
+        $dispatcher->dispatch($cancellation, $transport, new ReceiveContext());
+        $dispatcher->dispatch($cancellation, $transport, new ReceiveContext());
+
+        $dispatcher->flushPending();
+
+        self::assertSame(1, $cancelled, 'Each request in flight funds the exemption once.');
+    }
+
+    public function testACancellationBelowTheCapLeavesTheCancelToItsHandler(): void
+    {
+        /** @var DeferredFuture<null> $parked */
+        $parked = new DeferredFuture();
+        $observed = null;
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher(
+            new PendingOutboundRequests(),
+            requestHandlers: ['tests/test-request' => new ClosureRequestHandler(
+                static function ($request, AbstractContext $context) use ($parked, &$observed): Result {
+                    $observed = $context->cancellation;
+                    $parked->getFuture()->await();
+
+                    return new EmptyResult();
+                },
+            )],
+            notificationHandlers: ['notifications/cancelled' => new ClosureNotificationHandler(static fn() => null)],
+        );
+
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        delay(0.0);
+        $dispatcher->dispatch(
+            ['jsonrpc' => '2.0', 'method' => 'notifications/cancelled', 'params' => ['requestId' => 1]],
+            $transport,
+            new ReceiveContext(),
+        );
+        delay(0.0);
+
+        if (! $observed instanceof Cancellation) {
+            self::fail('The handler must have observed its cancellation token.');
+        }
+
+        self::assertFalse($observed->isRequested(), 'Below the cap the registered handler owns the cancel, and this one declined it.');
+
+        $parked->complete(null);
+        $dispatcher->flushPending();
+    }
+
+    public function testAnAdmittedCancellationTakesEffectOnAdmission(): void
+    {
+        /** @var DeferredFuture<null> $parked */
+        $parked = new DeferredFuture();
+        $observed = null;
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher(
+            new PendingOutboundRequests(),
+            requestHandlers: ['tests/test-request' => new ClosureRequestHandler(
+                static function ($request, AbstractContext $context) use ($parked, &$observed): Result {
+                    $observed = $context->cancellation;
+                    $parked->getFuture()->await();
+
+                    return new EmptyResult();
+                },
+            )],
+            notificationHandlers: ['notifications/cancelled' => new ClosureNotificationHandler(static fn() => null)],
+            maxInFlight: 1,
+        );
+
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        delay(0.0);
+        $dispatcher->dispatch(
+            ['jsonrpc' => '2.0', 'method' => 'notifications/cancelled', 'params' => ['requestId' => 1]],
+            $transport,
+            new ReceiveContext(),
+        );
+
+        if (! $observed instanceof Cancellation) {
+            self::fail('The handler must have observed its cancellation token.');
+        }
+
+        self::assertTrue($observed->isRequested(), 'Admission past the cap is funded by the cancel itself.');
+
+        $parked->complete(null);
+        $dispatcher->flushPending();
+    }
+
+    public function testRepeatedSheddingLogsOnceRatherThanPerMessage(): void
+    {
+        $logger = new ArrayLogger();
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher(
+            new PendingOutboundRequests(),
+            notificationHandlers: [
+                'notifications/tools/list_changed' => new ClosureNotificationHandler(static fn() => null),
+            ],
+            logger: $logger,
+            maxInFlight: 1,
+        );
+
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+
+        for ($i = 0; $i < 3; ++$i) {
+            $dispatcher->dispatch(['jsonrpc' => '2.0', 'method' => 'notifications/tools/list_changed'], $transport, new ReceiveContext());
+        }
+
+        $dispatcher->flushPending();
+
+        $matches = $logger->recordsMatching(
+            LogLevel::WARNING,
+            'Shed {count} inbound message(s) so far. The client is at its in-flight dispatch cap.',
+        );
+        self::assertCount(1, $matches, 'A flood must not become the flood of log records reporting it.');
+    }
+
+    public function testASubscriptionDeliveryShedAtTheInFlightCapEndsItsStream(): void
+    {
+        $listeners = new SubscriptionRegistry();
+        $logger = new ArrayLogger();
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher(new PendingOutboundRequests(), logger: $logger, subscriptions: $listeners, maxInFlight: 1);
+
+        /** @var DeferredFuture<SubscriptionsListenResult> $outcome */
+        $outcome = new DeferredFuture();
+        $seen = [];
+        $listeners->register(self::buildSubscription(new RequestId(id: 7), static function (JsonRpcNotification $notification) use (&$seen): void {
+            $seen[] = $notification::getMethod();
+        }, $outcome));
+
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'method' => 'notifications/tools/list_changed',
+            'params' => ['_meta' => [NotificationMetaObject::SUBSCRIPTION_ID_KEY => 7]],
+        ], $transport, new ReceiveContext());
+
+        $dispatcher->flushPending();
+
+        self::assertSame([], $seen, 'A shed delivery must not reach the subscription listener.');
+        self::assertNull($listeners->get(new RequestId(id: 7)), 'The ended stream must leave the registry.');
+        $matches = $logger->recordsMatching(
+            LogLevel::WARNING,
+            'Ended subscription {subscriptionId} after shedding one of its deliveries at the in-flight dispatch cap.',
+        );
+        self::assertCount(1, $matches);
+        self::assertSame(['subscriptionId' => 7, 'method' => 'notifications/tools/list_changed'], $matches[0]['context']);
+
+        try {
+            $outcome->getFuture()->await();
+            self::fail('The stream outcome must fail so an awaiting caller learns the loss.');
+        } catch (SubscriptionDeliveryDroppedException $e) {
+            self::assertSame(7, $e->subscriptionId->id);
+            self::assertSame('Subscription 7 was ended because a delivery was shed at the client\'s in-flight dispatch cap.', $e->getMessage());
+        }
+    }
+
+    public function testADeliveryForAnAlreadyEndedStreamFallsThroughWithoutSettlingItAgain(): void
+    {
+        $listeners = new SubscriptionRegistry();
+        $logger = new ArrayLogger();
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher(new PendingOutboundRequests(), logger: $logger, subscriptions: $listeners, maxInFlight: 1);
+
+        /** @var DeferredFuture<SubscriptionsListenResult> $outcome */
+        $outcome = new DeferredFuture();
+        $outcome->getFuture()->ignore();
+        $listeners->register(self::buildSubscription(new RequestId(id: 7), static fn() => null, $outcome));
+
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+
+        $delivery = [
+            'jsonrpc' => '2.0',
+            'method' => 'notifications/tools/list_changed',
+            'params' => ['_meta' => [NotificationMetaObject::SUBSCRIPTION_ID_KEY => 7]],
+        ];
+        $dispatcher->dispatch($delivery, $transport, new ReceiveContext());
+        $dispatcher->dispatch($delivery, $transport, new ReceiveContext());
+
+        $dispatcher->flushPending();
+
+        $matches = $logger->recordsMatching(
+            LogLevel::WARNING,
+            'Ended subscription {subscriptionId} after shedding one of its deliveries at the in-flight dispatch cap.',
+        );
+        self::assertCount(1, $matches, 'A stream ends once, so a later delivery must not settle its outcome again.');
+    }
+
     /**
      * @param array<non-empty-string, RequestHandlerInterface<non-empty-string, Result, ClientContext>> $requestHandlers
      * @param array<non-empty-string, NotificationHandlerInterface<non-empty-string>>                   $notificationHandlers
+     * @param null|int<1, max>                                                                          $maxInFlight
      */
     private static function buildDispatcher(
         PendingOutboundRequests $outbound,
@@ -1166,6 +1486,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         array $notificationHandlers = [],
         ?ArrayLogger $logger = null,
         ?SubscriptionRegistry $subscriptions = null,
+        ?int $maxInFlight = null,
     ): ClientMessageDispatcher {
         return new ClientMessageDispatcher(
             new HandlerRegistry($requestHandlers, RequestHandlerInterface::class, 'Request handler'),
@@ -1174,16 +1495,20 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
             logger: $logger ?? new ArrayLogger(),
             parser: new JsonRpcMessageParser(requests: ['tests/test-request' => TestRequest::class]),
             subscriptions: $subscriptions ?? new SubscriptionRegistry(),
+            maxInFlight: $maxInFlight,
         );
     }
 
     /**
      * @param \Closure(JsonRpcNotification<non-empty-string>): void $onNotification
+     * @param null|DeferredFuture<SubscriptionsListenResult>        $outcome
      */
-    private static function buildSubscription(RequestId $id, \Closure $onNotification): OpenSubscription
+    private static function buildSubscription(RequestId $id, \Closure $onNotification, ?DeferredFuture $outcome = null): OpenSubscription
     {
-        /** @var DeferredFuture<SubscriptionsListenResult> $outcome */
-        $outcome = new DeferredFuture();
+        if (null === $outcome) {
+            /** @var DeferredFuture<SubscriptionsListenResult> $outcome */
+            $outcome = new DeferredFuture();
+        }
 
         return new OpenSubscription($id, new SubscriptionFilter(), $onNotification, $outcome);
     }

@@ -158,14 +158,14 @@ final class PendingInboundRequestsTest extends AbstractMcpTestCase
         self::assertFalse($set->cancel($id));
     }
 
-    public function testCancellingTwiceIsHarmless(): void
+    public function testCancellingTwiceIsHarmlessAndOnlyTheFirstReportsIt(): void
     {
         $set = new PendingInboundRequests();
         $id = new RequestId(id: 1);
         $cancellation = $set->claim($id);
 
         self::assertTrue($set->cancel($id));
-        self::assertTrue($set->cancel($id));
+        self::assertFalse($set->cancel($id));
         self::assertNotNull($cancellation);
         self::assertTrue($cancellation->isRequested());
     }

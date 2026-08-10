@@ -50,13 +50,13 @@ final class PendingInboundRequests implements \Countable
     }
 
     /**
-     * Requests cancellation of `$id`, reporting whether a request was in flight under it.
+     * True only when this is the first cancel of a request in flight.
      */
     public function cancel(RequestId $id): bool
     {
         $deferred = $this->map[self::buildKey($id)] ?? null;
 
-        if (null === $deferred) {
+        if (null === $deferred || $deferred->isCancelled()) {
             return false;
         }
 

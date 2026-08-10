@@ -69,7 +69,7 @@ final class CancelledNotificationHandlerTest extends AbstractMcpTestCase
 
         (new CancelledNotificationHandler(new PendingInboundRequests(), $logger))->handle(self::notificationFor(7));
 
-        $records = $logger->recordsMatching(LogLevel::DEBUG, 'Ignoring cancellation for a request that is not in flight.');
+        $records = $logger->recordsMatching(LogLevel::DEBUG, 'Ignoring a cancellation naming a request that is not in flight or is already cancelled.');
         self::assertCount(1, $records);
         self::assertSame(['id' => 7], $records[0]['context']);
         self::assertSame(
@@ -123,7 +123,7 @@ final class CancelledNotificationHandlerTest extends AbstractMcpTestCase
             self::notificationFor("req\x1b]0;forged\x07"),
         );
 
-        $records = $logger->recordsMatching(LogLevel::DEBUG, 'Ignoring cancellation for a request that is not in flight.');
+        $records = $logger->recordsMatching(LogLevel::DEBUG, 'Ignoring a cancellation naming a request that is not in flight or is already cancelled.');
         self::assertCount(1, $records);
         self::assertSame(['id' => 'req\\x1b]0;forged\\x07'], $records[0]['context']);
     }

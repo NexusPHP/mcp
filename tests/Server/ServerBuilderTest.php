@@ -446,6 +446,56 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         (new ServerBuilder())->setMaxInFlightDispatches(0);
     }
 
+    public function testTheDefaultCapAdmitsExactlyItsBoundaryAndShedsTheNext(): void
+    {
+        $server = (new ServerBuilder())->setServerInfo('demo', '1.0.0')->build();
+
+        $transport = new RecordingTransport();
+        $server->listen($transport);
+
+        for ($id = 1; $id <= 1_024; ++$id) {
+            $transport->emitMessage(self::discoverEnvelope($id));
+        }
+
+        self::assertCount(0, $transport->sent, 'Nothing up to the cap may be shed.');
+
+        $transport->emitMessage(self::discoverEnvelope(1_025));
+
+        self::assertCount(1, $transport->sent);
+        $shed = $transport->sent[0]['message'];
+        self::assertInstanceOf(JsonRpcErrorResponse::class, $shed);
+        self::assertSame(1_025, $shed->id?->id);
+        self::assertSame(SdkErrorCode::Overloaded->value, $shed->error->code);
+
+        EventLoop::run();
+    }
+
+    public function testANullCapLiftsTheDefault(): void
+    {
+        $server = (new ServerBuilder())
+            ->setServerInfo('demo', '1.0.0')
+            ->setMaxInFlightDispatches(null)
+            ->build()
+        ;
+
+        $transport = new RecordingTransport();
+        $server->listen($transport);
+
+        for ($id = 1; $id <= 1_025; ++$id) {
+            $transport->emitMessage(self::discoverEnvelope($id));
+        }
+
+        EventLoop::run();
+
+        $shed = array_filter(
+            $transport->sent,
+            static fn(array $record): bool => $record['message'] instanceof JsonRpcErrorResponse,
+        );
+
+        self::assertCount(1_025, $transport->sent);
+        self::assertCount(0, $shed, 'A lifted cap must shed nothing.');
+    }
+
     public function testTheInFlightCapReachesTheDispatcher(): void
     {
         $server = (new ServerBuilder())

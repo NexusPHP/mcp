@@ -239,6 +239,9 @@ What the caller sees:
   further peer is coming. `Client::disconnect()` fails them with `TransportAlreadyClosedException`, and so
   does closing the transport directly while a replacement is pending.
 - A stream the caller closed before the restart is not restored.
+- A delivery shed at the client's [in-flight dispatch cap](client/configuration.md#in-flight-dispatch-cap)
+  ends the stream on any transport, restart or none, with `await()` throwing
+  `SubscriptionDeliveryDroppedException`.
 - A reconnect listener that throws is reported through `onError()` and the rest of the chain still runs, so
   one consumer's failure cannot strand another's streams.
 
