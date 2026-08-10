@@ -144,6 +144,19 @@ final class ClientCredentialsGrantTest extends AbstractMcpTestCase
         );
     }
 
+    public function testAnAdvertisedAlgorithmListIsIgnoredWhenTheCredentialSignsNothing(): void
+    {
+        $http = (new RecordingHttpClient())->willAnswerJson(self::tokenResponse());
+        $grant = new ClientCredentialsGrant(new ClientSecretCredential('the-client', 'the-secret'));
+
+        $token = $grant->grant(
+            self::context($http, self::metadata(algorithms: ['RS256'])),
+            new NullCancellation(),
+        );
+
+        self::assertSame('the-access-token', $token->value);
+    }
+
     public function testAGrantTypeListWithoutClientCredentialsIsRefused(): void
     {
         $grant = new ClientCredentialsGrant(new ClientSecretCredential('the-client', 'the-secret'));
