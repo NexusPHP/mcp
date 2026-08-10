@@ -621,4 +621,27 @@ final class TypeNodeSchemaMapperTest extends AbstractMcpTestCase
 
         self::assertSame($union, $this->mapper->resolveTypeNode($union, null));
     }
+
+    public function testBuildArraySchemaOmitsItemsWhenThereAreNone(): void
+    {
+        self::assertSame(['type' => 'array'], TypeNodeSchemaMapper::buildArraySchema([]));
+    }
+
+    public function testBuildArraySchemaCarriesTheItemSchema(): void
+    {
+        self::assertSame(
+            ['type' => 'array', 'items' => ['type' => 'string']],
+            TypeNodeSchemaMapper::buildArraySchema(['type' => 'string']),
+        );
+    }
+
+    public function testAsSubSchemaSubstitutesTrueForAnUnconstrainedType(): void
+    {
+        self::assertTrue(TypeNodeSchemaMapper::asSubSchema([]));
+    }
+
+    public function testAsSubSchemaLeavesAConstrainedTypeAlone(): void
+    {
+        self::assertSame(['type' => 'string'], TypeNodeSchemaMapper::asSubSchema(['type' => 'string']));
+    }
 }

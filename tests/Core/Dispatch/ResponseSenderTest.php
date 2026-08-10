@@ -111,4 +111,16 @@ final class ResponseSenderTest extends AbstractMcpTestCase
 
         self::assertArrayNotHasKey('data', $response->error->toArray());
     }
+
+    public function testLogSkippedDeliveryReportsTheClosedTransport(): void
+    {
+        $logger = new ArrayLogger();
+        $exception = new TransportAlreadyClosedException('send');
+
+        (new ResponseSender($logger))->logSkippedDelivery('tools/list', $exception);
+
+        $matches = $logger->recordsMatching(LogLevel::INFO, 'Skipping response delivery. Transport is closed.');
+        self::assertCount(1, $matches);
+        self::assertSame(['method' => 'tools/list', 'exception' => $exception], $matches[0]['context']);
+    }
 }

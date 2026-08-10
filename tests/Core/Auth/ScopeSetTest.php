@@ -180,4 +180,14 @@ final class ScopeSetTest extends AbstractMcpTestCase
     {
         self::assertSame([], ScopeSet::fromList(['files:read files:write'])->values);
     }
+
+    public function testContainsFindsAHeldScope(): void
+    {
+        self::assertTrue((new ScopeSet(['files:read', 'files:write']))->contains('files:write'));
+    }
+
+    public function testContainsRejectsAnUnheldScope(): void
+    {
+        self::assertFalse((new ScopeSet(['files:read']))->contains('files:write'));
+    }
 }
