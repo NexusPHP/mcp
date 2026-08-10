@@ -19,12 +19,15 @@ use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
+use Nexus\Mcp\Core\Schema\SubscriptionFilter;
 use Nexus\Mcp\Core\Transport\InMemoryTransport;
 use Nexus\Mcp\Server\Server;
 use Nexus\Mcp\Server\ServerBuilder;
+use Nexus\Mcp\Server\Subscription\SubscriptionStore;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\ClosureRequestHandler;
+use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -252,6 +255,23 @@ final class ServerTest extends AbstractMcpTestCase
         EventLoop::run();
 
         self::assertCount(1, $transport->sent);
+    }
+
+    public function testADrainingTransportClosesEveryOpenSubscription(): void
+    {
+        $subscriptions = new SubscriptionStore();
+        $transport = new RecordingTransport();
+        $server = (new ServerBuilder())
+            ->setServerInfo('demo', '1.0.0')
+            ->setSubscriptionStore($subscriptions)
+            ->build()
+        ;
+
+        $server->listen($transport);
+        $entry = $subscriptions->open(new RequestId(id: 1), new SubscriptionFilter(), new RecordingSender());
+        $transport->close();
+
+        self::assertTrue($entry->closed->isComplete());
     }
 
     public function testATransportReportedCancellationSuppressesTheResponse(): void
