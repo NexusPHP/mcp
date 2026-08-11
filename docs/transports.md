@@ -427,7 +427,9 @@ $response = $transport->handle($request);
 PSR-17 factories are constructor-injected, never discovered. `Server::listen()` is the non-blocking
 counterpart to `run()`: it attaches the dispatcher's listeners and starts the transport, then returns, because
 the HTTP host owns the loop. Calling `handle()` on a transport that is not running answers `503` rather than
-suspending on a response that can never arrive.
+suspending on a response that can never arrive. Closing one settles what is already in flight rather than
+abandoning it: an open SSE stream reaches end-of-body, and a buffered request still awaiting its response gets
+that same `503`.
 
 [examples/http-server.php](../examples/http-server.php) is a working mount, with
 [examples/PsrHttpAdapter.php](../examples/PsrHttpAdapter.php) as the host binding for `amphp/http-server`.

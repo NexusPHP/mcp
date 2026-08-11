@@ -29,6 +29,9 @@ in `0.x`, minor releases may include breaking changes.
   listens arriving faster than the loop starts them are shed with `-32000`.
 - The first `notifications/cancelled` naming a request in flight is no longer shed by the in-flight
   dispatch cap, and is cancelled on admission when the cap is reached.
+- `StreamableHttpServerTransport` no longer leaks a request's sink when an `onMessage` listener throws.
+- `StreamableHttpServerTransport` no longer strands an in-flight request whose response or notification
+  cannot be encoded or built, and settles those still in flight when `close()` runs.
 
 ## [v0.11.0](https://github.com/NexusPHP/mcp/compare/v0.10.0...v0.11.0) - 2026-08-10
 

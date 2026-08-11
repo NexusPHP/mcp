@@ -30,5 +30,6 @@ enum HttpStatus: int
     case MethodNotAllowed = 405;
     case NotAcceptable = 406;
     case ContentTooLarge = 413;
+    case InternalServerError = 500;
     case ServiceUnavailable = 503;
 }

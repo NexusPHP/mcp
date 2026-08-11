@@ -19,15 +19,18 @@ use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyStartedException;
 use Nexus\Mcp\Core\Exception\TransportNotStartedException;
 use Nexus\Mcp\Core\Handler\AbstractContext;
+use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Enum\SdkErrorCode;
 use Nexus\Mcp\Core\Schema\Error\InternalError;
 use Nexus\Mcp\Core\Schema\Error\UnknownProtocolError;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
+use Nexus\Mcp\Core\Schema\Notification\ProgressNotification;
 use Nexus\Mcp\Core\Schema\Notification\SubscriptionsAcknowledgedNotification;
 use Nexus\Mcp\Core\Schema\Notification\ToolListChangedNotification;
 use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
+use Nexus\Mcp\Core\Schema\NotificationParams\ProgressNotificationParams;
 use Nexus\Mcp\Core\Schema\NotificationParams\SubscriptionsAcknowledgedNotificationParams;
 use Nexus\Mcp\Core\Schema\ProgressToken;
 use Nexus\Mcp\Core\Schema\ProtocolVersion;
@@ -35,7 +38,10 @@ use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
 use Nexus\Mcp\Core\Schema\Result;
+use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
+use Nexus\Mcp\Core\Schema\ResultResponse\CallToolResultResponse;
+use Nexus\Mcp\Core\Schema\ResultResponse\GenericResultResponse;
 use Nexus\Mcp\Core\Schema\SubscriptionFilter;
 use Nexus\Mcp\Core\Transport\ReceiveContext;
 use Nexus\Mcp\Core\Transport\SendContext;
@@ -53,8 +59,12 @@ use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
+use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\StreamFactoryInterface;
+use Psr\Http\Message\StreamInterface;
+use Psr\Log\AbstractLogger;
 use Psr\Log\LogLevel;
 
 use function Amp\async;
@@ -824,6 +834,385 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
         self::assertCount(0, $logger->recordsMatching(LogLevel::WARNING, 'Dropping an unexpected server-initiated request.'));
     }
 
+    #[DataProvider('provideAThrowingListenerUnwindsItsSinkCases')]
+    public function testAThrowingListenerUnwindsItsSink(ResponseMode $responseMode): void
+    {
+        $logger = new ArrayLogger();
+        $transport = self::makeTransport($logger, $responseMode);
+        $transport->onMessage(static function (): void {
+            throw new \RuntimeException('listener blew up');
+        });
+
+        try {
+            self::handle($transport, self::discoverPost());
+            self::fail('The transport must not swallow a listener throw.');
+        } catch (\RuntimeException $e) {
+            self::assertSame('listener blew up', $e->getMessage());
+        }
+
+        $transport->send(new JsonRpcErrorResponse(id: new RequestId(id: 1), error: new InternalError(message: 'boom')));
+
+        self::assertCount(
+            1,
+            $logger->recordsMatching(LogLevel::WARNING, 'Discarding an orphan response with no in-flight request.'),
+            'A sink left registered by a throwing listener would route this response instead of orphaning it.',
+        );
+    }
+
+    /**
+     * @return iterable<string, array{ResponseMode}>
+     */
+    public static function provideAThrowingListenerUnwindsItsSinkCases(): iterable
+    {
+        yield 'buffered' => [ResponseMode::Json];
+
+        yield 'streaming' => [ResponseMode::Sse];
+    }
+
+    public function testABufferedResponseJsonCannotEncodeIsAnsweredWithAnInternalError(): void
+    {
+        $logger = new ArrayLogger();
+        $transport = self::makeTransport($logger, ResponseMode::Json);
+        $transport->onMessage(static function (array $envelope) use ($transport): void {
+            $transport->send(self::unencodableResponse($envelope));
+        });
+
+        $response = self::handle($transport, self::discoverPost('req-abc'));
+
+        self::assertSame(500, $response->getStatusCode());
+        self::assertSame('req-abc', self::decode($response)['id'] ?? null, 'The error echoes the id the client sent, not the transport-internal one.');
+        self::assertSame(ProtocolErrorCode::InternalError->value, self::errorPayload($response)['code'] ?? null);
+        self::assertSame('The response could not be encoded.', self::errorPayload($response)['message'] ?? null);
+
+        $records = $logger->recordsMatching(LogLevel::ERROR, 'Replacing a response JSON cannot encode with an internal error: {reason}.');
+        self::assertCount(1, $records);
+        self::assertSame(['reason' => 'Malformed UTF-8 characters, possibly incorrectly encoded'], $records[0]['context']);
+    }
+
+    public function testAStreamedResponseJsonCannotEncodeIsFramedAsAnInternalError(): void
+    {
+        $transport = self::makeTransport(responseMode: ResponseMode::Sse, keepAliveInterval: 0.01);
+        $transport->onMessage(static function (array $envelope) use ($transport): void {
+            $transport->send(self::unencodableResponse($envelope));
+        });
+
+        $body = $transport->handle(self::discoverPost('req-abc'))->getBody();
+        $frame = $body->read(8_192);
+
+        self::assertSame(
+            "event: message\ndata: {\"jsonrpc\":\"2.0\",\"id\":\"req-abc\",\"error\":{\"code\":-32603,\"message\":\"The response could not be encoded.\"}}\n\n",
+            $frame,
+        );
+        self::assertTrue($body->eof(), 'The substituted error still retires the stream, so the consumer reaches end-of-body.');
+    }
+
+    public function testANotificationJsonCannotEncodeLeavesTheRequestAnswerable(): void
+    {
+        $transport = self::makeTransport();
+        $transport->onMessage(static function (array $envelope) use ($transport): void {
+            $id = $envelope['id'] ?? null;
+            self::assertIsInt($id);
+            $related = new SendContext(relatedRequestId: new RequestId(id: $id));
+
+            try {
+                $transport->send(self::unencodableProgress(), $related);
+                self::fail('The transport must not swallow a notification JSON cannot encode.');
+            } catch (\JsonException $e) {
+                self::assertSame('Malformed UTF-8 characters, possibly incorrectly encoded', $e->getMessage());
+            }
+
+            $transport->send(new GenericResultResponse(id: new RequestId(id: $id), result: new EmptyResult()), $related);
+        });
+
+        $response = self::handle($transport, self::discoverPost());
+
+        self::assertSame(200, $response->getStatusCode());
+        self::assertSame('application/json', $response->getHeaderLine('Content-Type'));
+        self::assertArrayHasKey('result', self::decode($response));
+    }
+
+    public function testACloseRacingAResponseBeingWrittenDoesNotSettleItTwice(): void
+    {
+        $streamFactory = new class implements StreamFactoryInterface {
+            public ?StreamableHttpServerTransport $transport = null;
+            public int $closes = 0;
+            private readonly Psr17Factory $delegate;
+
+            public function __construct()
+            {
+                $this->delegate = new Psr17Factory();
+            }
+
+            #[\Override]
+            public function createStream(string $content = ''): StreamInterface
+            {
+                if (null !== $this->transport) {
+                    ++$this->closes;
+                    $this->transport->close();
+                }
+
+                return $this->delegate->createStream($content);
+            }
+
+            #[\Override]
+            public function createStreamFromFile(string $filename, string $mode = 'r'): never
+            {
+                throw new \BadMethodCallException('unused');
+            }
+
+            /**
+             * @param resource $resource
+             */
+            #[\Override]
+            public function createStreamFromResource($resource): never
+            {
+                throw new \BadMethodCallException('unused');
+            }
+        };
+
+        $transport = new StreamableHttpServerTransport(new Psr17Factory(), $streamFactory, new ArrayLogger(), ResponseMode::Json);
+        $streamFactory->transport = $transport;
+        $transport->start();
+        $transport->onMessage(static function (array $envelope) use ($transport): void {
+            $id = $envelope['id'] ?? null;
+            self::assertIsInt($id);
+            $transport->send(new GenericResultResponse(id: new RequestId(id: $id), result: new EmptyResult()));
+        });
+
+        $response = self::handle($transport, self::discoverPost());
+
+        self::assertSame(1, $streamFactory->closes, 'The close must land while the response body is being built.');
+        self::assertSame(
+            200,
+            $response->getStatusCode(),
+            'The sink is retired before the body is built, so a close in between cannot settle it first.',
+        );
+    }
+
+    public function testAnUpgradeTheTransportCannotBuildLeavesTheRequestBuffered(): void
+    {
+        $transport = new StreamableHttpServerTransport(self::factoryFailingOnce(), new Psr17Factory(), new ArrayLogger());
+        $transport->start();
+        $transport->onMessage(static function (array $envelope) use ($transport): void {
+            $id = $envelope['id'] ?? null;
+            self::assertIsInt($id);
+            $related = new SendContext(relatedRequestId: new RequestId(id: $id));
+
+            try {
+                $transport->send(new ProgressNotification(params: new ProgressNotificationParams(
+                    progressToken: new ProgressToken('tok-1'),
+                    progress: 0.5,
+                )), $related);
+                self::fail('The transport must not swallow a response factory failure.');
+            } catch (\RuntimeException $e) {
+                self::assertSame('response factory is broken', $e->getMessage());
+            }
+
+            $transport->send(new GenericResultResponse(id: new RequestId(id: $id), result: new EmptyResult()), $related);
+        });
+
+        $response = self::handle($transport, self::discoverPost());
+
+        self::assertSame(200, $response->getStatusCode());
+        self::assertSame('application/json', $response->getHeaderLine('Content-Type'), 'A stream that was never handed back leaves the request buffered.');
+        self::assertArrayHasKey('result', self::decode($response));
+    }
+
+    public function testAStreamTheTransportCannotBuildRegistersNoSink(): void
+    {
+        $logger = new ArrayLogger();
+        $transport = new StreamableHttpServerTransport(self::factoryFailingOnce(), new Psr17Factory(), $logger, ResponseMode::Sse);
+        $transport->start();
+        $transport->onMessage(static function (): void {});
+
+        try {
+            $transport->handle(self::discoverPost());
+            self::fail('The transport must not swallow a response factory failure.');
+        } catch (\RuntimeException $e) {
+            self::assertSame('response factory is broken', $e->getMessage());
+        }
+
+        $transport->send(new JsonRpcErrorResponse(id: new RequestId(id: 1), error: new InternalError(message: 'boom')));
+
+        self::assertCount(
+            1,
+            $logger->recordsMatching(LogLevel::WARNING, 'Discarding an orphan response with no in-flight request.'),
+            'A sink registered before its response was built would route this into a stream nobody holds.',
+        );
+    }
+
+    public function testAResponseTheTransportCannotBuildFailsTheRequest(): void
+    {
+        $responseFactory = new class implements ResponseFactoryInterface {
+            #[\Override]
+            public function createResponse(int $code = 200, string $reasonPhrase = ''): never
+            {
+                throw new \RuntimeException('response factory is broken');
+            }
+        };
+
+        $transport = new StreamableHttpServerTransport($responseFactory, new Psr17Factory(), new ArrayLogger(), ResponseMode::Json);
+        $transport->start();
+        $transport->onMessage(static function (array $envelope) use ($transport): void {
+            async(static function () use ($transport, $envelope): void {
+                $id = $envelope['id'] ?? null;
+                self::assertIsInt($id);
+
+                try {
+                    $transport->send(new GenericResultResponse(id: new RequestId(id: $id), result: new EmptyResult()));
+                } catch (\RuntimeException $e) {
+                    self::assertSame('response factory is broken', $e->getMessage());
+                }
+            })->ignore();
+        });
+
+        try {
+            self::handle($transport, self::discoverPost());
+            self::fail('Expected the response factory failure to reach the caller.');
+        } catch (\RuntimeException $e) {
+            self::assertSame('response factory is broken', $e->getMessage(), 'A response that cannot be built fails the request instead of parking it forever.');
+        }
+    }
+
+    public function testASinkThatCannotBeAnsweredCostsOnlyItself(): void
+    {
+        $transport = new StreamableHttpServerTransport(self::factoryFailingOnce(), new Psr17Factory(), new ArrayLogger(), ResponseMode::Json);
+        $transport->start();
+        $transport->onMessage(static function (): void {});
+
+        $closed = false;
+        $transport->onClose(static function () use (&$closed): void {
+            $closed = true;
+        });
+
+        $first = async(static fn(): ResponseInterface => $transport->handle(self::discoverPost()));
+        $second = async(static fn(): ResponseInterface => $transport->handle(self::discoverPost('req-2')));
+        delay(0.0);
+
+        try {
+            $transport->close();
+            self::fail('Expected the response factory failure to propagate.');
+        } catch (\RuntimeException $e) {
+            self::assertSame('response factory is broken', $e->getMessage());
+        }
+
+        try {
+            $first->await();
+            self::fail('Expected the unanswerable request to fail rather than park.');
+        } catch (\RuntimeException $e) {
+            self::assertSame('response factory is broken', $e->getMessage(), 'A sink whose error cannot be built fails, instead of hanging forever.');
+        }
+
+        $response = $second->await();
+        self::assertInstanceOf(ResponseInterface::class, $response);
+        self::assertSame(503, $response->getStatusCode(), 'A sink retired after the failing one must still be answered.');
+        self::assertTrue($closed, 'A sink that cannot be answered must not cost the transport its close signal.');
+    }
+
+    public function testAThrowingLoggerCannotStrandTheSubstitutedResponse(): void
+    {
+        $factory = new Psr17Factory();
+        $logger = new class extends AbstractLogger {
+            /**
+             * @param array<array-key, mixed> $context
+             */
+            #[\Override]
+            public function log(mixed $level, string|\Stringable $message, array $context = []): never
+            {
+                throw new \RuntimeException('logger is broken');
+            }
+        };
+
+        $transport = new StreamableHttpServerTransport($factory, $factory, $logger, ResponseMode::Json);
+        $transport->start();
+        $transport->onMessage(static function (array $envelope) use ($transport): void {
+            async(static function () use ($transport, $envelope): void {
+                try {
+                    $transport->send(self::unencodableResponse($envelope));
+                } catch (\RuntimeException $e) {
+                    self::assertSame('logger is broken', $e->getMessage());
+                }
+            })->ignore();
+        });
+
+        $response = self::handle($transport, self::discoverPost());
+
+        self::assertSame(500, $response->getStatusCode(), 'The substitute is written even when reporting the failure throws.');
+    }
+
+    public function testACloseRacingAnUpgradeLeavesTheRequestSettledOnce(): void
+    {
+        $responseFactory = new class implements ResponseFactoryInterface {
+            public ?StreamableHttpServerTransport $transport = null;
+            public int $closes = 0;
+            private readonly Psr17Factory $delegate;
+
+            public function __construct()
+            {
+                $this->delegate = new Psr17Factory();
+            }
+
+            #[\Override]
+            public function createResponse(int $code = 200, string $reasonPhrase = ''): ResponseInterface
+            {
+                if (null !== $this->transport && 0 === $this->closes) {
+                    ++$this->closes;
+                    $this->transport->close();
+                }
+
+                return $this->delegate->createResponse($code, $reasonPhrase);
+            }
+        };
+
+        $transport = new StreamableHttpServerTransport($responseFactory, new Psr17Factory(), new ArrayLogger());
+        $responseFactory->transport = $transport;
+        $transport->start();
+        $transport->onMessage(static function (array $envelope) use ($transport): void {
+            $id = $envelope['id'] ?? null;
+            self::assertIsInt($id);
+
+            $transport->send(new ProgressNotification(params: new ProgressNotificationParams(
+                progressToken: new ProgressToken('tok-1'),
+                progress: 0.5,
+            )), new SendContext(relatedRequestId: new RequestId(id: $id)));
+        });
+
+        $response = self::handle($transport, self::discoverPost());
+
+        self::assertSame(1, $responseFactory->closes, 'The close must land while the SSE response is being built.');
+        self::assertSame(503, $response->getStatusCode(), 'A close that settled the request leaves the upgrade nothing to do.');
+    }
+
+    public function testCloseRetiresEveryRequestStillInFlight(): void
+    {
+        $transport = self::makeTransport(responseMode: ResponseMode::Json, keepAliveInterval: 0.01);
+        $transport->onMessage(static function (): void {});
+
+        $cancelled = [];
+        $transport->onCancel(static function (RequestId $id) use (&$cancelled): void {
+            $cancelled[] = $id->id;
+        });
+
+        $streamed = $transport->handle(self::listenPost())->getBody();
+        $buffered = async(static fn(): ResponseInterface => $transport->handle(self::discoverPost()));
+        delay(0.0);
+
+        $transport->close();
+
+        self::assertSame('', $streamed->read(8_192), 'An ended stream reads empty instead of yielding another keep-alive.');
+        self::assertTrue($streamed->eof());
+
+        $streamed->close();
+        self::assertSame([], $cancelled, 'A stream retired at close is no longer registered, so closing its body reports no cancellation.');
+
+        $response = $buffered->await();
+        self::assertInstanceOf(ResponseInterface::class, $response);
+        self::assertSame(503, $response->getStatusCode());
+        self::assertSame(1, self::decode($response)['id'] ?? null, 'The error echoes the id the client sent, not the transport-internal one.');
+        self::assertSame(ProtocolErrorCode::InternalError->value, self::errorPayload($response)['code'] ?? null);
+        self::assertSame('The MCP endpoint is shutting down.', self::errorPayload($response)['message'] ?? null);
+    }
+
     /**
      * @param int|non-empty-string $id
      */
@@ -1132,11 +1521,75 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
         ($server ?? (new ServerBuilder())->setServerInfo('demo', '1.0.0')->build())->listen($transport);
     }
 
-    private static function discoverPost(): ServerRequestInterface
+    /**
+     * A tool result whose text is a bare UTF-8 continuation byte, which `json_encode` refuses.
+     *
+     * @param array<string, mixed> $envelope
+     */
+    private static function unencodableResponse(array $envelope): CallToolResultResponse
+    {
+        $id = $envelope['id'] ?? null;
+        self::assertIsInt($id);
+
+        return new CallToolResultResponse(
+            id: new RequestId(id: $id),
+            result: new CallToolResult(content: [new TextContent(text: "\xB1\x31")]),
+        );
+    }
+
+    /**
+     * A response factory that fails its first call and delegates every later one.
+     */
+    private static function factoryFailingOnce(): ResponseFactoryInterface
+    {
+        return new class implements ResponseFactoryInterface {
+            private int $calls = 0;
+            private readonly Psr17Factory $delegate;
+
+            public function __construct()
+            {
+                $this->delegate = new Psr17Factory();
+            }
+
+            #[\Override]
+            public function createResponse(int $code = 200, string $reasonPhrase = ''): ResponseInterface
+            {
+                if (1 === ++$this->calls) {
+                    throw new \RuntimeException('response factory is broken');
+                }
+
+                return $this->delegate->createResponse($code, $reasonPhrase);
+            }
+        };
+    }
+
+    /**
+     * A `subscriptions/listen` POST, which streams in every response mode.
+     */
+    private static function listenPost(): ServerRequestInterface
     {
         return self::makePost([
             'jsonrpc' => '2.0',
             'id' => 1,
+            'method' => 'subscriptions/listen',
+            'params' => ['notifications' => [], '_meta' => RequestMetaObjectFactory::shape()],
+        ], self::standardHeaders('subscriptions/listen'));
+    }
+
+    private static function unencodableProgress(): ProgressNotification
+    {
+        return new ProgressNotification(params: new ProgressNotificationParams(
+            progressToken: new ProgressToken('tok-1'),
+            progress: 0.5,
+            message: "\xB1\x31",
+        ));
+    }
+
+    private static function discoverPost(int|string $id = 1): ServerRequestInterface
+    {
+        return self::makePost([
+            'jsonrpc' => '2.0',
+            'id' => $id,
             'method' => 'server/discover',
             'params' => ['_meta' => RequestMetaObjectFactory::shape()],
         ], self::standardHeaders('server/discover'));
