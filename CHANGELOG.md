@@ -27,6 +27,8 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Fixed
 
+- `awaitTask()`'s stall ceiling now counts polls that sent no answers, so a resolver answering outside
+  the offered set can no longer defeat it, and a key re-issued after a `working` round is offered again.
 - `InMemoryTaskStore` now fails a task that has not settled by `createdAt + ttlMs` and sweeps it,
   instead of retaining a parked task forever.
 - `HeaderMismatchError` now carries `data` like its sibling errors, instead of silently dropping it on

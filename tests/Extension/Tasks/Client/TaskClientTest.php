@@ -27,6 +27,7 @@ use Nexus\Mcp\Extension\Tasks\Client\Exception\StalledTaskException;
 use Nexus\Mcp\Extension\Tasks\Client\TaskClient;
 use Nexus\Mcp\Extension\Tasks\Client\TasksClientExtension;
 use Nexus\Mcp\Extension\Tasks\Schema\Enum\TaskStatus;
+use Nexus\Mcp\Extension\Tasks\Schema\RequestParams\UpdateTaskRequestParams;
 use Nexus\Mcp\Extension\Tasks\Schema\Result\CreateTaskResult;
 use Nexus\Mcp\Extension\Tasks\Schema\Result\GetTaskResult;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
@@ -271,6 +272,17 @@ final class TaskClientTest extends AbstractMcpTestCase
         self::assertSame([1.0, 0.001], $slept);
     }
 
+    public function testConstructorRejectsANonPositiveStallCeiling(): void
+    {
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('Task stall ceiling must be a positive integer, 0 given.');
+
+        // @phpstan-ignore argument.type
+        new TaskClient($client, stallCeiling: 0);
+    }
+
     public function testAwaitTaskStallsAtTheDefaultCeiling(): void
     {
         $stopped = new \ArrayObject([false]);
@@ -383,6 +395,121 @@ final class TaskClientTest extends AbstractMcpTestCase
         self::assertCount(6, $transport->sent);
     }
 
+    public function testAwaitTaskStallsWhenTheResolverAnswersOutsideTheOfferedSet(): void
+    {
+        $stopped = new \ArrayObject([false]);
+        [$tasks, $transport] = self::buildTaskClient(stallCeiling: 2, sleep: static function (): void {});
+        $handle = CreateTaskResult::fromArray(self::buildTaskPayload('working'));
+        $responder = self::startInputRequiredResponder($transport, $stopped);
+
+        try {
+            $tasks->awaitTask($handle, static fn(array $requests): array => [
+                'bogus' => new ElicitResult(action: ElicitAction::Accept),
+            ]);
+            self::fail('Expected the stall ceiling to trip on answers outside the offered set.');
+        } catch (StalledTaskException $e) {
+            self::assertSame('Task "task-1" stayed input_required for 2 polls without new input requests.', $e->getMessage());
+            self::assertCount(2, $transport->sent);
+        } finally {
+            $stopped[0] = true;
+            $responder->await();
+        }
+    }
+
+    public function testAwaitTaskSendsOnlyTheOfferedKeys(): void
+    {
+        [$tasks, $transport] = self::buildTaskClient(sleep: static function (): void {});
+        $handle = CreateTaskResult::fromArray(self::buildTaskPayload('working'));
+        $await = async(static fn(): GetTaskResult => $tasks->awaitTask($handle, static fn(array $requests): array => [
+            'confirm' => new ElicitResult(action: ElicitAction::Accept),
+            'bogus' => new ElicitResult(action: ElicitAction::Accept),
+        ]));
+        $await->ignore();
+
+        self::respondToNextTasksGet($transport, self::buildTaskPayload('input_required', ['inputRequests' => self::buildInputRequestsPayload()]), 0);
+        self::awaitSendCount($transport, 2);
+        self::assertArrayHasKey(1, $transport->sent);
+        $update = $transport->sent[1]['message'];
+        self::assertInstanceOf(JsonRpcRequest::class, $update);
+        self::assertSame('tasks/update', $update::getMethod());
+
+        if (! $update->params instanceof UpdateTaskRequestParams) {
+            self::fail('Expected tasks/update params.');
+        }
+
+        self::assertSame(['confirm'], array_keys($update->params->inputResponses));
+        $transport->emitMessage(['jsonrpc' => '2.0', 'id' => $update->id->id, 'result' => ['resultType' => 'complete']]);
+
+        self::respondToNextTasksGet($transport, self::buildTaskPayload('completed', ['result' => ['resultType' => 'complete', 'content' => []]]), 2);
+
+        $state = $await->await();
+        self::assertInstanceOf(GetTaskResult::class, $state);
+        self::assertSame(TaskStatus::Completed, $state->status);
+    }
+
+    public function testAwaitTaskOffersAKeyReissuedAfterAWorkingRound(): void
+    {
+        $seen = [];
+        $resolver = static function (array $requests) use (&$seen): array {
+            Assert::that($requests)->keys()->isIntOrNonEmptyString();
+
+            $seen[] = array_keys($requests);
+            $answers = [];
+
+            foreach (array_keys($requests) as $key) {
+                $answers[$key] = new ElicitResult(action: ElicitAction::Accept);
+            }
+
+            return $answers;
+        };
+
+        [$tasks, $transport] = self::buildTaskClient(sleep: static function (): void {});
+        $handle = CreateTaskResult::fromArray(self::buildTaskPayload('working'));
+        $await = async(static fn(): GetTaskResult => $tasks->awaitTask($handle, $resolver));
+        $await->ignore();
+
+        self::respondToNextTasksGet($transport, self::buildTaskPayload('input_required', ['inputRequests' => self::buildInputRequestsPayload()]), 0);
+        self::awaitSendCount($transport, 2);
+        self::assertArrayHasKey(1, $transport->sent);
+        $update = $transport->sent[1]['message'];
+        self::assertInstanceOf(JsonRpcRequest::class, $update);
+        $transport->emitMessage(['jsonrpc' => '2.0', 'id' => $update->id->id, 'result' => ['resultType' => 'complete']]);
+
+        self::respondToNextTasksGet($transport, self::buildTaskPayload('working'), 2);
+        self::respondToNextTasksGet($transport, self::buildTaskPayload('input_required', ['inputRequests' => self::buildInputRequestsPayload()]), 3);
+        self::awaitSendCount($transport, 5);
+        self::assertArrayHasKey(4, $transport->sent);
+        $update = $transport->sent[4]['message'];
+        self::assertInstanceOf(JsonRpcRequest::class, $update);
+        self::assertSame('tasks/update', $update::getMethod());
+        $transport->emitMessage(['jsonrpc' => '2.0', 'id' => $update->id->id, 'result' => ['resultType' => 'complete']]);
+
+        self::respondToNextTasksGet($transport, self::buildTaskPayload('completed', ['result' => ['resultType' => 'complete', 'content' => []]]), 5);
+
+        $await->await();
+
+        self::assertSame([['confirm'], ['confirm']], $seen);
+        self::assertCount(6, $transport->sent);
+    }
+
+    public function testAwaitTaskStallStreakBreaksOnAWorkingPoll(): void
+    {
+        [$tasks, $transport] = self::buildTaskClient(stallCeiling: 2, sleep: static function (): void {});
+        $handle = CreateTaskResult::fromArray(self::buildTaskPayload('working'));
+        $await = async(static fn(): GetTaskResult => $tasks->awaitTask($handle));
+        $await->ignore();
+
+        self::respondToNextTasksGet($transport, self::buildTaskPayload('input_required', ['inputRequests' => self::buildInputRequestsPayload()]), 0);
+        self::respondToNextTasksGet($transport, self::buildTaskPayload('working'), 1);
+        self::respondToNextTasksGet($transport, self::buildTaskPayload('input_required', ['inputRequests' => self::buildInputRequestsPayload()]), 2);
+        self::respondToNextTasksGet($transport, self::buildTaskPayload('input_required', ['inputRequests' => self::buildInputRequestsPayload()]), 3);
+
+        $this->expectException(StalledTaskException::class);
+        $this->expectExceptionMessageIs('Task "task-1" stayed input_required for 2 polls without new input requests.');
+
+        $await->await();
+    }
+
     public function testAwaitTaskSleepsForRealByDefault(): void
     {
         [$tasks, $transport] = self::buildTaskClient();
@@ -437,6 +564,7 @@ final class TaskClientTest extends AbstractMcpTestCase
     }
 
     /**
+     * @param null|int<1, max>           $stallCeiling
      * @param null|\Closure(float): void $sleep
      *
      * @return array{TaskClient, RecordingTransport}

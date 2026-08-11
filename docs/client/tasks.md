@@ -76,9 +76,12 @@ $terminal = $tasks->awaitTask($handle, static fn(array $inputRequests): array =>
 The resolver receives the unanswered requests keyed by their request key, and answers what it
 can. Anything unanswered stays pending on the server.
 
-Keys already answered are not re-dispatched. A task that stays `input_required` without producing
-new requests for `stallCeiling` consecutive polls (default 60, constructor-tunable) throws
-`StalledTaskException` rather than spinning forever. A task that stays `working` is polled for as
+Keys already answered in the current park are not re-dispatched, a key the server re-issues after
+the task resumes `working` is offered again, and an answer for a key that was never offered is
+discarded rather than sent. A task that stays `input_required` while the resolver sends nothing
+for `stallCeiling` consecutive polls (default 60, constructor-tunable) throws
+`StalledTaskException` rather than spinning forever, and a `working` poll breaks the streak. A
+task that stays `working` is polled for as
 long as it takes: pass an `Amp\Cancellation` as the third argument to bound the wait, and the
 loop aborts with `CancelledException` when it fires.
 
