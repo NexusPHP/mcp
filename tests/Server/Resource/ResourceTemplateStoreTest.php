@@ -159,7 +159,7 @@ final class ResourceTemplateStoreTest extends AbstractMcpTestCase
     public function testReadThrowsWhenNoTemplateMatches(): void
     {
         $this->expectException(ResourceNotFoundException::class);
-        $this->expectExceptionMessageMatches('/^No resource registered under URI "http:\/\/example\.com\/etc"\.$/');
+        $this->expectExceptionMessageMatches('/^Resource "http:\/\/example\.com\/etc" not found\.$/');
 
         $store = new ResourceTemplateStore([
             'file:///{path}' => self::entry(
@@ -173,7 +173,7 @@ final class ResourceTemplateStoreTest extends AbstractMcpTestCase
     public function testReadNeverHandsAReaderAnEncodedTraversal(): void
     {
         $this->expectException(ResourceNotFoundException::class);
-        $this->expectExceptionMessageMatches('/^No resource registered under URI "file:\/\/\/%2E%2E%2F%2E%2E%2Fetc%2Fpasswd"\.$/');
+        $this->expectExceptionMessageMatches('/^Resource "file:\/\/\/%2E%2E%2F%2E%2E%2Fetc%2Fpasswd" not found\.$/');
 
         $store = new ResourceTemplateStore([
             'file:///{path}' => self::entry(

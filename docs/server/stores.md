@@ -36,4 +36,7 @@ store may implement `ListChangeSourceInterface` alone when it can observe change
 (a database-backed listing, say), and stays a plain read surface when it cannot. `CompositeResourceStore`
 forwards `onListChanged()` to whichever of its two inner stores reports changes. When a custom store and the matching `add*()` entries are both supplied, the custom store wins
 and those entries are ignored. A custom resource store still composes with a resource template store (custom
-or entry-built) for `resources/read`.
+or entry-built) for `resources/read`. In that composition, throw `ResourceNotRegisteredException` for a URI
+the store does not hold, which is the one miss that falls through to templates. A
+`ResourceNotFoundException` is authoritative: it ends the read without consulting templates, so a reader's
+deliberate refusal is never answered by an overlapping template.

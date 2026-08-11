@@ -19,7 +19,7 @@ use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Resource\Resource;
 use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
-use Nexus\Mcp\Server\Exception\ResourceNotFoundException;
+use Nexus\Mcp\Server\Exception\ResourceNotRegisteredException;
 use Nexus\Mcp\Server\Resource\ClosureResourceReader;
 use Nexus\Mcp\Server\Resource\ResourceEntry;
 use Nexus\Mcp\Server\Resource\ResourceStore;
@@ -157,7 +157,7 @@ final class ResourceStoreTest extends AbstractMcpTestCase
     {
         $store = new ResourceStore();
 
-        $this->expectException(ResourceNotFoundException::class);
+        $this->expectException(ResourceNotRegisteredException::class);
         $this->expectExceptionMessageMatches('/^No resource registered under URI "file:\\/\\/\\/missing"\.$/');
 
         $store->read('file:///missing', self::makeContext());

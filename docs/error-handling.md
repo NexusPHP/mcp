@@ -61,10 +61,11 @@ response rather than letting it escape:
   [`JsonRpcProtocolExceptionInterface`](../src/Core/Exception/JsonRpcProtocolExceptionInterface.php) pin a
   code via `getErrorCode()`. `InvalidParamsException` maps to -32602, `MethodNotFoundException` to -32601, and
   the not-found exceptions (`ToolNotFoundException`, `PromptNotFoundException`, `ResourceNotFoundException`,
-  `InvalidCursorException`) map to -32602 (the named entity is treated as an invalid parameter).
+  `ResourceNotRegisteredException`, `InvalidCursorException`) map to -32602 (the named entity is treated as
+  an invalid parameter).
 - Any of them may also carry an `errorData` payload, which becomes the error response's `data` slot and is
-  omitted when null. `ResourceNotFoundException` uses it for the `data.uri` the spec's resource-not-found
-  example shows, and `MissingRequiredClientCapabilityException` for the `data.requiredCapabilities` its
+  omitted when null. `ResourceNotFoundException` and `ResourceNotRegisteredException` use it for the
+  `data.uri` the spec's resource-not-found example shows, and `MissingRequiredClientCapabilityException` for the `data.requiredCapabilities` its
   code requires. Only the latter is required: `data` is "defined by the sender", so the URI echo is this
   SDK's choice and is deliberately left uncapped so a client can match it against the URI it sent. That is
   safe because `params.uri` is already confined to printable ASCII by the RFC 3986 grammar, so the echo

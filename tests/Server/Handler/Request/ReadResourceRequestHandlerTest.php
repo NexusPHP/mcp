@@ -20,7 +20,7 @@ use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\ReadResourceRequestParams;
 use Nexus\Mcp\Core\Schema\Resource\Resource;
 use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
-use Nexus\Mcp\Server\Exception\ResourceNotFoundException;
+use Nexus\Mcp\Server\Exception\ResourceNotRegisteredException;
 use Nexus\Mcp\Server\Handler\Request\ReadResourceRequestHandler;
 use Nexus\Mcp\Server\Resource\ClosureResourceReader;
 use Nexus\Mcp\Server\Resource\ResourceEntry;
@@ -86,7 +86,7 @@ final class ReadResourceRequestHandlerTest extends AbstractMcpTestCase
     {
         $handler = new ReadResourceRequestHandler(new ResourceStore());
 
-        $this->expectException(ResourceNotFoundException::class);
+        $this->expectException(ResourceNotRegisteredException::class);
         $this->expectExceptionMessageMatches('/^No resource registered under URI "file:\\/\\/\\/missing"\.$/');
 
         $handler->handle(

@@ -16,7 +16,7 @@ namespace Nexus\Mcp\Tests\Server\Exception;
 use Nexus\Mcp\Core\Exception\AbstractJsonRpcProtocolException;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\RequestId;
-use Nexus\Mcp\Server\Exception\ResourceNotFoundException;
+use Nexus\Mcp\Server\Exception\ResourceNotRegisteredException;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
@@ -24,25 +24,25 @@ use PHPUnit\Framework\Attributes\Group;
 /**
  * @internal
  */
-#[CoversClass(ResourceNotFoundException::class)]
+#[CoversClass(ResourceNotRegisteredException::class)]
 #[CoversClass(AbstractJsonRpcProtocolException::class)]
 #[Group('unit-tests')]
 #[Group('server-tests')]
-final class ResourceNotFoundExceptionTest extends AbstractMcpTestCase
+final class ResourceNotRegisteredExceptionTest extends AbstractMcpTestCase
 {
     public function testCarriesUriAndComposesMessage(): void
     {
-        $e = new ResourceNotFoundException('file:///missing');
+        $e = new ResourceNotRegisteredException('file:///missing');
 
         self::assertSame('file:///missing', $e->uri);
         self::assertNull($e->requestId);
-        self::assertSame('Resource "file:///missing" not found.', $e->getMessage());
+        self::assertSame('No resource registered under URI "file:///missing".', $e->getMessage());
     }
 
     public function testCarriesProvidedRequestIdAndPrevious(): void
     {
         $previous = new \RuntimeException('inner');
-        $e = new ResourceNotFoundException('file:///missing', new RequestId(id: 42), $previous);
+        $e = new ResourceNotRegisteredException('file:///missing', new RequestId(id: 42), $previous);
 
         self::assertSame('file:///missing', $e->uri);
         self::assertSame(42, $e->requestId?->id);
@@ -51,12 +51,12 @@ final class ResourceNotFoundExceptionTest extends AbstractMcpTestCase
 
     public function testReportsInvalidParamsErrorCode(): void
     {
-        self::assertSame(ProtocolErrorCode::InvalidParams, ResourceNotFoundException::getErrorCode());
+        self::assertSame(ProtocolErrorCode::InvalidParams, ResourceNotRegisteredException::getErrorCode());
     }
 
     public function testEchoesTheUriInTheErrorData(): void
     {
-        $e = new ResourceNotFoundException('file:///missing');
+        $e = new ResourceNotRegisteredException('file:///missing');
 
         self::assertSame(['uri' => 'file:///missing'], $e->errorData);
     }
@@ -64,23 +64,16 @@ final class ResourceNotFoundExceptionTest extends AbstractMcpTestCase
     public function testTheErrorDataKeepsTheUriVerbatimWhileTheMessageIsBounded(): void
     {
         $uri = \sprintf('file:///%s', str_repeat('a', 400));
-        $e = new ResourceNotFoundException($uri);
+        $e = new ResourceNotRegisteredException($uri);
 
         self::assertSame(['uri' => $uri], $e->errorData);
-        self::assertSame(\sprintf('Resource "file:///%s..." not found.', str_repeat('a', 245)), $e->getMessage());
-    }
-
-    public function testBoundsAnOverlongValueInTheMessage(): void
-    {
-        $e = new ResourceNotFoundException(str_repeat('a', 200_000));
-
-        self::assertSame(\sprintf('Resource "%s..." not found.', str_repeat('a', 253)), $e->getMessage());
+        self::assertSame(\sprintf('No resource registered under URI "file:///%s...".', str_repeat('a', 245)), $e->getMessage());
     }
 
     public function testEscapesControlBytesInTheMessage(): void
     {
-        $e = new ResourceNotFoundException("ev\x1b[2K\x07il");
+        $e = new ResourceNotRegisteredException("ev\x1b[2K\x07il");
 
-        self::assertSame('Resource "ev\\x1b[2K\\x07il" not found.', $e->getMessage());
+        self::assertSame('No resource registered under URI "ev\\x1b[2K\\x07il".', $e->getMessage());
     }
 }

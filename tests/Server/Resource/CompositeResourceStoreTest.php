@@ -110,6 +110,41 @@ final class CompositeResourceStoreTest extends AbstractMcpTestCase
         $composite->read('http://example.com/etc', self::makeContext());
     }
 
+    public function testAReaderRaisedRefusalPropagatesRatherThanServingATemplate(): void
+    {
+        $templateCalled = false;
+
+        $composite = new CompositeResourceStore(
+            new ResourceStore([
+                'db://users/42' => new ResourceEntry(
+                    new Resource(name: 'user', uri: 'db://users/42'),
+                    new ClosureResourceReader(static fn(): never => throw new ResourceNotFoundException('db://users/42')),
+                ),
+            ]),
+            new ResourceTemplateStore([
+                'db://users/{id}' => new ResourceTemplateEntry(
+                    new ResourceTemplate(name: 'users', uriTemplate: 'db://users/{id}'),
+                    new ClosureTemplatedResourceReader(
+                        static function () use (&$templateCalled): ReadResourceResult {
+                            $templateCalled = true;
+
+                            return new ReadResourceResult(contents: [new TextResourceContents(uri: 'db://users/42', text: 'template fallback')], ttlMs: 0, cacheScope: CacheScope::Private);
+                        },
+                    ),
+                ),
+            ]),
+        );
+
+        try {
+            $composite->read('db://users/42', self::makeContext());
+            self::fail('A refusal the reader raised must reach the caller.');
+        } catch (ResourceNotFoundException $e) {
+            self::assertSame('Resource "db://users/42" not found.', $e->getMessage());
+        }
+
+        self::assertFalse($templateCalled, 'An overlapping template must not answer a read its reader refused.');
+    }
+
     public function testListDelegatesToPrimaryUnchanged(): void
     {
         $static = new Resource(name: 'etc', uri: 'file:///etc');

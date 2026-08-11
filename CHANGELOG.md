@@ -27,6 +27,9 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Fixed
 
+- A resource reader's own `ResourceNotFoundException` ends the read instead of being answered by an
+  overlapping resource template. A registry miss still falls through, signalled by the new
+  `ResourceNotRegisteredException` (see [BREAKING_CHANGES.md](BREAKING_CHANGES.md)).
 - An authorization caller that stops waiting for the coordinator's lock now returns the permit it is
   eventually handed, so later token operations no longer depend on collection timing to proceed.
 - `SubscriptionStore` counts a stream whose acknowledgement is still in flight against `maxSubscriptions`,

@@ -6,6 +6,26 @@ for *when* breaking changes may land and how they are communicated lives in
 
 ## v0.11.0 to Unreleased
 
+### A custom resource store signals a registry miss with `ResourceNotRegisteredException`
+
+`CompositeResourceStore` used to fall through to templates on any `ResourceNotFoundException`, so a
+reader's deliberate refusal was answered by an overlapping template instead of reaching the client. The
+fallback now happens only on `ResourceNotRegisteredException`, which the built-in `ResourceStore` throws
+for a URI it does not hold.
+
+```php
+// before: any not-found fell through to templates
+throw new ResourceNotFoundException($uri);
+// after: decline, so templates may answer
+throw new ResourceNotRegisteredException($uri);
+```
+
+A custom `ResourceStoreInterface` implementation composed with a template store must throw
+`ResourceNotRegisteredException` for a URI it does not hold. A `ResourceNotFoundException` is now
+authoritative and ends the read. A store used without a template store is unaffected, since both encode
+the same `-32602` with `data.uri`. `ResourceNotFoundException`'s message also changed, from
+`No resource registered under URI "..."` (now the miss exception's message) to `Resource "..." not found.`
+
 ### The transport listener handle is renamed `ListenerHandleInterface`
 
 `Core\Transport\SubscriptionInterface` is now `ListenerHandleInterface`, leaving the word "subscription"
