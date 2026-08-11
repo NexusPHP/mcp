@@ -102,6 +102,45 @@ final class CompleteRequestHandlerTest extends AbstractMcpTestCase
         self::assertSame(['folder' => 'docs'], $call['contextArguments']);
     }
 
+    public function testTruncatesValuesBeyondTheSpecCapAndMarksTheOverflow(): void
+    {
+        $values = array_map(static fn(int $i): string => \sprintf('v%d', $i), range(1, 150));
+        $store = new RecordingCompletionStore(new CompleteResult(completion: ['values' => $values]));
+        $handler = new CompleteRequestHandler($store);
+
+        $result = $handler->handle(self::makePromptRequest(), self::makeContext());
+
+        self::assertCount(100, $result->completion['values']);
+        self::assertSame(\array_slice($values, 0, 100), $result->completion['values']);
+        self::assertSame(150, $result->completion['total'] ?? null);
+        self::assertTrue($result->completion['hasMore'] ?? null);
+    }
+
+    public function testTruncationKeepsAProviderSuppliedTotal(): void
+    {
+        $values = array_map(static fn(int $i): string => \sprintf('v%d', $i), range(1, 101));
+        $store = new RecordingCompletionStore(new CompleteResult(completion: ['values' => $values, 'total' => 5_000]));
+        $handler = new CompleteRequestHandler($store);
+
+        $result = $handler->handle(self::makePromptRequest(), self::makeContext());
+
+        self::assertCount(100, $result->completion['values']);
+        self::assertSame(5_000, $result->completion['total'] ?? null);
+        self::assertTrue($result->completion['hasMore'] ?? null);
+    }
+
+    public function testExactlyOneHundredValuesPassThroughUntouched(): void
+    {
+        $values = array_map(static fn(int $i): string => \sprintf('v%d', $i), range(1, 100));
+        $original = new CompleteResult(completion: ['values' => $values, 'hasMore' => false]);
+        $store = new RecordingCompletionStore($original);
+        $handler = new CompleteRequestHandler($store);
+
+        $result = $handler->handle(self::makePromptRequest(), self::makeContext());
+
+        self::assertSame($original, $result);
+    }
+
     public function testPassesNullContextArgumentsWhenParamsHaveNoContext(): void
     {
         $store = new RecordingCompletionStore(new CompleteResult(completion: ['values' => []]));
@@ -139,6 +178,18 @@ final class CompleteRequestHandlerTest extends AbstractMcpTestCase
         $handler->handle($request, self::makeContext());
 
         self::assertNull(self::firstCall($store)['contextArguments']);
+    }
+
+    private static function makePromptRequest(): CompleteRequest
+    {
+        return new CompleteRequest(
+            id: new RequestId(id: 7),
+            params: new CompleteRequestParams(
+                ref: new PromptReference(name: 'my-prompt'),
+                argument: ['name' => 'arg', 'value' => 'partial'],
+                meta: RequestMetaObjectFactory::create(),
+            ),
+        );
     }
 
     /**

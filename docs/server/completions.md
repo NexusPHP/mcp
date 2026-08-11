@@ -110,6 +110,8 @@ final class BranchCompletionStore implements CompletionStoreInterface
 `$ref` names what is being completed: a `PromptReference` for a prompt argument, or a
 `ResourceTemplateReference` for a variable in a resource template's URI.
 
-The spec caps `values` at 100 entries. Set `total` when you know how many exist beyond what you returned,
-and `hasMore` when the list is truncated. The client-side counterpart is
+The spec caps `values` at 100 entries, and the handler enforces it: an over-long list is truncated to
+100 with `hasMore: true` and, unless the provider set its own, `total` set to the full count. Set
+`total` yourself when you know how many exist beyond what you returned, and `hasMore` when your own
+list is already partial. The client-side counterpart is
 [`complete()`](../client/requests.md#typed-requests).

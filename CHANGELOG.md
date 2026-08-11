@@ -27,6 +27,8 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Fixed
 
+- A completion answering more than the spec's 100-value cap is truncated with `hasMore: true` and a
+  `total`, instead of shipping an over-long list.
 - `Icon` decodes any RFC 3986 URI `src` instead of aborting a whole listing on an unusual scheme. The
   http/data restriction moved to the authoring surfaces (stores and builders).
   See [BREAKING_CHANGES.md](BREAKING_CHANGES.md).
