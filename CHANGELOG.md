@@ -25,6 +25,8 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Fixed
 
+- `SubscriptionStore` counts a stream whose acknowledgement is still in flight against `maxSubscriptions`,
+  so the limit holds against a peer that stops reading.
 - `subscriptions/listen` no longer occupies an in-flight dispatch slot on a server that serves it, and
   listens arriving faster than the loop starts them are shed with `-32000`.
 - The first `notifications/cancelled` naming a request in flight is no longer shed by the in-flight

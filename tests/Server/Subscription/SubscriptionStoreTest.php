@@ -13,10 +13,12 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Server\Subscription;
 
+use Amp\DeferredFuture;
 use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
 use Nexus\Mcp\Core\Handler\SenderInterface;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
+use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\Notification\CancelledNotification;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\SubscriptionFilter;
@@ -30,6 +32,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use Psr\Log\LogLevel;
 
+use function Amp\async;
 use function Amp\delay;
 
 /**
@@ -417,6 +420,78 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
         }
 
         self::assertSame([], self::methodsOf($sender), 'A refused stream is never acknowledged.');
+    }
+
+    public function testAStreamWhoseAcknowledgementIsStillInFlightHoldsItsSlotAgainstTheLimit(): void
+    {
+        $store = new SubscriptionStore(toolsListChanged: true, maxSubscriptions: 1);
+
+        /** @var DeferredFuture<null> $gate */
+        $gate = new DeferredFuture();
+        $parked = new class ($gate) implements SenderInterface {
+            /**
+             * @param DeferredFuture<null> $gate
+             */
+            public function __construct(private readonly DeferredFuture $gate)
+            {
+            }
+
+            #[\Override]
+            public function sendNotification(JsonRpcNotification $notification): void
+            {
+                $this->gate->getFuture()->await();
+            }
+
+            #[\Override]
+            public function sendRequest(JsonRpcRequest $request): never
+            {
+                throw new \BadMethodCallException('The store sends no requests.');
+            }
+        };
+
+        $first = async(static fn(): mixed => $store->open(new RequestId(id: 1), new SubscriptionFilter(toolsListChanged: true), $parked));
+        delay(0.0);
+
+        $sender = new RecordingSender();
+
+        try {
+            $store->open(new RequestId(id: 2), new SubscriptionFilter(toolsListChanged: true), $sender);
+            self::fail('A slot held by a suspended acknowledgement must still count against the limit.');
+        } catch (SubscriptionLimitReachedException $e) {
+            self::assertSame('Subscription limit reached: this server holds at most 1 open streams.', $e->getMessage());
+        }
+
+        self::assertSame([], self::methodsOf($sender), 'A refused stream is never acknowledged.');
+
+        $gate->complete(null);
+        $first->await();
+
+        try {
+            $store->open(new RequestId(id: 3), new SubscriptionFilter(toolsListChanged: true), new RecordingSender());
+            self::fail('The registered stream must occupy the slot its reservation held.');
+        } catch (SubscriptionLimitReachedException $e) {
+            self::assertSame('Subscription limit reached: this server holds at most 1 open streams.', $e->getMessage());
+        }
+    }
+
+    public function testAStreamWhoseAcknowledgementFailedReleasesItsSlot(): void
+    {
+        $store = new SubscriptionStore(toolsListChanged: true, maxSubscriptions: 1);
+
+        $vanished = self::createStub(SenderInterface::class);
+        $vanished->method('sendNotification')->willThrowException(new TransportAlreadyClosedException('send a notification'));
+
+        try {
+            $store->open(new RequestId(id: 1), new SubscriptionFilter(toolsListChanged: true), $vanished);
+            self::fail('A failed acknowledgement must reach the caller.');
+        } catch (TransportAlreadyClosedException $e) {
+            self::assertSame('Cannot send a notification on a closed transport.', $e->getMessage());
+        }
+
+        $sender = new RecordingSender();
+        $store->open(new RequestId(id: 2), new SubscriptionFilter(toolsListChanged: true), $sender);
+
+        self::assertSame(['notifications/subscriptions/acknowledged'], self::methodsOf($sender));
     }
 
     #[DataProvider('provideTheSubscriptionLimitMustBePositiveCases')]
