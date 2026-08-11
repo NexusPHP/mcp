@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Transport;
 
+use Nexus\Mcp\Core\Transport\ListenerHandleInterface;
 use Nexus\Mcp\Core\Transport\ReceiveContext;
-use Nexus\Mcp\Core\Transport\SubscriptionInterface;
 use Nexus\Mcp\Core\Transport\TransportEvents;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -115,8 +115,8 @@ final class TransportEventsTest extends AbstractMcpTestCase
     }
 
     /**
-     * @param \Closure(TransportEvents): SubscriptionInterface $register
-     * @param 'close'|'drain'|'error'|'message'                $kind
+     * @param \Closure(TransportEvents): ListenerHandleInterface $register
+     * @param 'close'|'drain'|'error'|'message'                  $kind
      */
     #[DataProvider('provideOnChangeFiresPerEventKindCases')]
     public function testOnChangeFiresPerEventKind(\Closure $register, string $kind): void
@@ -138,7 +138,7 @@ final class TransportEventsTest extends AbstractMcpTestCase
     }
 
     /**
-     * @return iterable<string, array{0: \Closure(TransportEvents): SubscriptionInterface, 1: 'close'|'drain'|'error'|'message'}>
+     * @return iterable<string, array{0: \Closure(TransportEvents): ListenerHandleInterface, 1: 'close'|'drain'|'error'|'message'}>
      */
     public static function provideOnChangeFiresPerEventKindCases(): iterable
     {

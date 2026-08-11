@@ -15,10 +15,10 @@ namespace Nexus\Mcp\Tests\Fixtures\Client\Http;
 
 use Amp\Future;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcMessage;
+use Nexus\Mcp\Core\Transport\ListenerHandleInterface;
 use Nexus\Mcp\Core\Transport\ParameterHeaderMirroringInterface;
 use Nexus\Mcp\Core\Transport\ReceiveContext;
 use Nexus\Mcp\Core\Transport\SendContext;
-use Nexus\Mcp\Core\Transport\SubscriptionInterface;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
 
 /**
@@ -60,25 +60,25 @@ final class MirroringRecordingTransport implements ParameterHeaderMirroringInter
     }
 
     #[\Override]
-    public function onMessage(\Closure $listener): SubscriptionInterface
+    public function onMessage(\Closure $listener): ListenerHandleInterface
     {
         return $this->recorder->onMessage($listener);
     }
 
     #[\Override]
-    public function onError(\Closure $listener): SubscriptionInterface
+    public function onError(\Closure $listener): ListenerHandleInterface
     {
         return $this->recorder->onError($listener);
     }
 
     #[\Override]
-    public function onDrain(\Closure $listener): SubscriptionInterface
+    public function onDrain(\Closure $listener): ListenerHandleInterface
     {
         return $this->recorder->onDrain($listener);
     }
 
     #[\Override]
-    public function onClose(\Closure $listener): SubscriptionInterface
+    public function onClose(\Closure $listener): ListenerHandleInterface
     {
         return $this->recorder->onClose($listener);
     }

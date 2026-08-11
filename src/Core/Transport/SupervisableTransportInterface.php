@@ -24,5 +24,5 @@ interface SupervisableTransportInterface extends TransportInterface
      *
      * @param \Closure(null|int): void $listener
      */
-    public function onUnexpectedExit(\Closure $listener): SubscriptionInterface;
+    public function onUnexpectedExit(\Closure $listener): ListenerHandleInterface;
 }

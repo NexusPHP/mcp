@@ -6,6 +6,23 @@ for *when* breaking changes may land and how they are communicated lives in
 
 ## v0.11.0 to Unreleased
 
+### The transport listener handle is renamed `ListenerHandleInterface`
+
+`Core\Transport\SubscriptionInterface` is now `ListenerHandleInterface`, leaving the word "subscription"
+to the spec's `subscriptions/listen` feature. Behaviour is unchanged, and the handle still exposes
+`dispose()` alone.
+
+```php
+// before
+public function onMessage(\Closure $listener): SubscriptionInterface;
+// after
+public function onMessage(\Closure $listener): ListenerHandleInterface;
+```
+
+A transport of your own updates the return type on each `on*` registration method and any
+`use Nexus\Mcp\Core\Transport\SubscriptionInterface;` import. Code that only *holds* handles keeps
+working unchanged if it never names the type.
+
 ### `RequestStateSigner` signatures changed shape
 
 The signed material is now length-prefixed with the binding, so a `requestState` minted by an earlier release

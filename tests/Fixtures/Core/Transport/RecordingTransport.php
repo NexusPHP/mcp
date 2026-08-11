@@ -19,10 +19,10 @@ use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcMessage;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Transport\AbortableTransportInterface;
 use Nexus\Mcp\Core\Transport\CancellableTransportInterface;
+use Nexus\Mcp\Core\Transport\ListenerHandle;
+use Nexus\Mcp\Core\Transport\ListenerHandleInterface;
 use Nexus\Mcp\Core\Transport\ReceiveContext;
 use Nexus\Mcp\Core\Transport\SendContext;
-use Nexus\Mcp\Core\Transport\Subscription;
-use Nexus\Mcp\Core\Transport\SubscriptionInterface;
 
 /**
  * In-memory `TransportInterface` double recording every send.
@@ -132,11 +132,11 @@ final class RecordingTransport implements AbortableTransportInterface, Cancellab
     }
 
     #[\Override]
-    public function onMessage(\Closure $listener): SubscriptionInterface
+    public function onMessage(\Closure $listener): ListenerHandleInterface
     {
         $this->messageListeners[] = $listener;
 
-        return new Subscription(function () use ($listener): void {
+        return new ListenerHandle(function () use ($listener): void {
             $this->messageListeners = array_values(array_filter(
                 $this->messageListeners,
                 static fn(\Closure $candidate): bool => $candidate !== $listener,
@@ -145,11 +145,11 @@ final class RecordingTransport implements AbortableTransportInterface, Cancellab
     }
 
     #[\Override]
-    public function onClose(\Closure $listener): SubscriptionInterface
+    public function onClose(\Closure $listener): ListenerHandleInterface
     {
         $this->closeListeners[] = $listener;
 
-        return new Subscription(function () use ($listener): void {
+        return new ListenerHandle(function () use ($listener): void {
             $this->closeListeners = array_values(array_filter(
                 $this->closeListeners,
                 static fn(\Closure $candidate): bool => $candidate !== $listener,
@@ -158,11 +158,11 @@ final class RecordingTransport implements AbortableTransportInterface, Cancellab
     }
 
     #[\Override]
-    public function onError(\Closure $listener): SubscriptionInterface
+    public function onError(\Closure $listener): ListenerHandleInterface
     {
         $this->errorListeners[] = $listener;
 
-        return new Subscription(function () use ($listener): void {
+        return new ListenerHandle(function () use ($listener): void {
             $this->errorListeners = array_values(array_filter(
                 $this->errorListeners,
                 static fn(\Closure $candidate): bool => $candidate !== $listener,
@@ -171,11 +171,11 @@ final class RecordingTransport implements AbortableTransportInterface, Cancellab
     }
 
     #[\Override]
-    public function onDrain(\Closure $listener): SubscriptionInterface
+    public function onDrain(\Closure $listener): ListenerHandleInterface
     {
         $this->drainListeners[] = $listener;
 
-        return new Subscription(function () use ($listener): void {
+        return new ListenerHandle(function () use ($listener): void {
             $this->drainListeners = array_values(array_filter(
                 $this->drainListeners,
                 static fn(\Closure $candidate): bool => $candidate !== $listener,
@@ -184,11 +184,11 @@ final class RecordingTransport implements AbortableTransportInterface, Cancellab
     }
 
     #[\Override]
-    public function onCancel(\Closure $listener): SubscriptionInterface
+    public function onCancel(\Closure $listener): ListenerHandleInterface
     {
         $this->cancelListeners[] = $listener;
 
-        return new Subscription(function () use ($listener): void {
+        return new ListenerHandle(function () use ($listener): void {
             $this->cancelListeners = array_values(array_filter(
                 $this->cancelListeners,
                 static fn(\Closure $candidate): bool => $candidate !== $listener,

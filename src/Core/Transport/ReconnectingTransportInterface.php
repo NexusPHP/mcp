@@ -24,7 +24,7 @@ interface ReconnectingTransportInterface extends TransportInterface
      *
      * @param \Closure(): void $listener
      */
-    public function onReconnect(\Closure $listener): SubscriptionInterface;
+    public function onReconnect(\Closure $listener): ListenerHandleInterface;
 
     /**
      * Whether a replacement connection is still on its way, read when a per-connection operation fails

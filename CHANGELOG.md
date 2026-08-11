@@ -16,6 +16,8 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Changed
 
+- `Core\Transport\SubscriptionInterface` is renamed `ListenerHandleInterface`
+  (see [BREAKING_CHANGES.md](BREAKING_CHANGES.md)).
 - The in-flight dispatch cap is on by default on both peers, at `DEFAULT_MAX_IN_FLIGHT` (1024). See
   [BREAKING_CHANGES.md](BREAKING_CHANGES.md).
 - `RequestStateSigner` signatures changed shape, so a state minted before this release no longer verifies.

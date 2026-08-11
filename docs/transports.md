@@ -26,10 +26,10 @@ interface TransportInterface
     public function send(JsonRpcMessage $message, ?SendContext $context = null): void;
     public function close(): void;
 
-    public function onMessage(\Closure $listener): SubscriptionInterface;
-    public function onError(\Closure $listener): SubscriptionInterface;
-    public function onDrain(\Closure $listener): SubscriptionInterface;
-    public function onClose(\Closure $listener): SubscriptionInterface;
+    public function onMessage(\Closure $listener): ListenerHandleInterface;
+    public function onError(\Closure $listener): ListenerHandleInterface;
+    public function onDrain(\Closure $listener): ListenerHandleInterface;
+    public function onClose(\Closure $listener): ListenerHandleInterface;
 }
 ```
 

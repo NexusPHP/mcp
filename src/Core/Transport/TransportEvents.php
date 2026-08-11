@@ -50,13 +50,13 @@ final class TransportEvents
     /**
      * @param \Closure(array<string, mixed>, ReceiveContext): void $listener
      */
-    public function onMessage(\Closure $listener): SubscriptionInterface
+    public function onMessage(\Closure $listener): ListenerHandleInterface
     {
         $id = spl_object_id($listener);
         $this->messageListeners[$id] = $listener;
         $this->notify('message', 'register', \count($this->messageListeners));
 
-        return new Subscription(function () use ($id): void {
+        return new ListenerHandle(function () use ($id): void {
             unset($this->messageListeners[$id]);
             $this->notify('message', 'dispose', \count($this->messageListeners));
         });
@@ -65,13 +65,13 @@ final class TransportEvents
     /**
      * @param \Closure(\Throwable): void $listener
      */
-    public function onError(\Closure $listener): SubscriptionInterface
+    public function onError(\Closure $listener): ListenerHandleInterface
     {
         $id = spl_object_id($listener);
         $this->errorListeners[$id] = $listener;
         $this->notify('error', 'register', \count($this->errorListeners));
 
-        return new Subscription(function () use ($id): void {
+        return new ListenerHandle(function () use ($id): void {
             unset($this->errorListeners[$id]);
             $this->notify('error', 'dispose', \count($this->errorListeners));
         });
@@ -80,13 +80,13 @@ final class TransportEvents
     /**
      * @param \Closure(): void $listener
      */
-    public function onDrain(\Closure $listener): SubscriptionInterface
+    public function onDrain(\Closure $listener): ListenerHandleInterface
     {
         $id = spl_object_id($listener);
         $this->drainListeners[$id] = $listener;
         $this->notify('drain', 'register', \count($this->drainListeners));
 
-        return new Subscription(function () use ($id): void {
+        return new ListenerHandle(function () use ($id): void {
             unset($this->drainListeners[$id]);
             $this->notify('drain', 'dispose', \count($this->drainListeners));
         });
@@ -95,13 +95,13 @@ final class TransportEvents
     /**
      * @param \Closure(): void $listener
      */
-    public function onClose(\Closure $listener): SubscriptionInterface
+    public function onClose(\Closure $listener): ListenerHandleInterface
     {
         $id = spl_object_id($listener);
         $this->closeListeners[$id] = $listener;
         $this->notify('close', 'register', \count($this->closeListeners));
 
-        return new Subscription(function () use ($id): void {
+        return new ListenerHandle(function () use ($id): void {
             unset($this->closeListeners[$id]);
             $this->notify('close', 'dispose', \count($this->closeListeners));
         });

@@ -231,7 +231,7 @@ final class LineDuplex
     /**
      * @param \Closure(array<string, mixed>, ReceiveContext): void $listener
      */
-    public function onMessage(\Closure $listener): SubscriptionInterface
+    public function onMessage(\Closure $listener): ListenerHandleInterface
     {
         return $this->events->onMessage($listener);
     }
@@ -239,7 +239,7 @@ final class LineDuplex
     /**
      * @param \Closure(\Throwable): void $listener
      */
-    public function onError(\Closure $listener): SubscriptionInterface
+    public function onError(\Closure $listener): ListenerHandleInterface
     {
         return $this->events->onError($listener);
     }
@@ -247,7 +247,7 @@ final class LineDuplex
     /**
      * @param \Closure(): void $listener
      */
-    public function onDrain(\Closure $listener): SubscriptionInterface
+    public function onDrain(\Closure $listener): ListenerHandleInterface
     {
         return $this->events->onDrain($listener);
     }
@@ -255,7 +255,7 @@ final class LineDuplex
     /**
      * @param \Closure(): void $listener
      */
-    public function onClose(\Closure $listener): SubscriptionInterface
+    public function onClose(\Closure $listener): ListenerHandleInterface
     {
         return $this->events->onClose($listener);
     }

@@ -24,5 +24,5 @@ interface CancellableTransportInterface extends TransportInterface
     /**
      * @param \Closure(RequestId): void $listener
      */
-    public function onCancel(\Closure $listener): SubscriptionInterface;
+    public function onCancel(\Closure $listener): ListenerHandleInterface;
 }

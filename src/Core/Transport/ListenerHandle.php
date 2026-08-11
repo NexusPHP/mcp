@@ -16,7 +16,7 @@ namespace Nexus\Mcp\Core\Transport;
 /**
  * @internal
  */
-final class Subscription implements SubscriptionInterface
+final class ListenerHandle implements ListenerHandleInterface
 {
     private bool $disposed = false;
 

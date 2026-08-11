@@ -49,22 +49,22 @@ interface TransportInterface
     /**
      * @param \Closure(array<string, mixed>, ReceiveContext): void $listener
      */
-    public function onMessage(\Closure $listener): SubscriptionInterface;
+    public function onMessage(\Closure $listener): ListenerHandleInterface;
 
     /**
      * @param \Closure(\Throwable): void $listener
      */
-    public function onError(\Closure $listener): SubscriptionInterface;
+    public function onError(\Closure $listener): ListenerHandleInterface;
 
     /**
      * Register a drain listener that fires before `close()`.
      *
      * @param \Closure(): void $listener
      */
-    public function onDrain(\Closure $listener): SubscriptionInterface;
+    public function onDrain(\Closure $listener): ListenerHandleInterface;
 
     /**
      * @param \Closure(): void $listener
      */
-    public function onClose(\Closure $listener): SubscriptionInterface;
+    public function onClose(\Closure $listener): ListenerHandleInterface;
 }

@@ -16,7 +16,7 @@ namespace Nexus\Mcp\Core\Transport;
 /**
  * Opaque handle returned by transport listener registrations.
  */
-interface SubscriptionInterface
+interface ListenerHandleInterface
 {
     /**
      * Removes the underlying listener, subsequent calls being no-ops.
