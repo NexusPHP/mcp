@@ -169,4 +169,14 @@ final class SampleToolHandlers
     public function methodDefinition(int $ignored): void
     {
     }
+
+    #[InputSchema(description: 'MY METHOD DESCRIPTION', additionalProperties: false)]
+    public function methodConstraints(string $unit): void
+    {
+    }
+
+    #[InputSchema(properties: ['other' => ['type' => 'integer']])]
+    public function methodPropertiesOverride(string $unit): void
+    {
+    }
 }

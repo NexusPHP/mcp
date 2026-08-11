@@ -211,6 +211,27 @@ final class InputSchemaGeneratorTest extends AbstractMcpTestCase
         ], self::generate('methodDefinition'));
     }
 
+    public function testMethodConstraintsMergeOverTheInferredSchema(): void
+    {
+        self::assertSame([
+            'type' => 'object',
+            '$schema' => self::DIALECT,
+            'properties' => ['unit' => ['type' => 'string']],
+            'required' => ['unit'],
+            'description' => 'MY METHOD DESCRIPTION',
+            'additionalProperties' => false,
+        ], self::generate('methodConstraints'));
+    }
+
+    public function testAMethodPropertiesOverrideDiscardsTheInferredRequiredList(): void
+    {
+        self::assertSame([
+            'type' => 'object',
+            '$schema' => self::DIALECT,
+            'properties' => ['other' => ['type' => 'integer']],
+        ], self::generate('methodPropertiesOverride'));
+    }
+
     public function testUnsupportedParameterTypeThrows(): void
     {
         $this->expectException(SchemaGenerationException::class);

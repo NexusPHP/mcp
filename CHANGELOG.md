@@ -30,6 +30,8 @@ in `0.x`, minor releases may include breaking changes.
 - A prompt or template completion registered under an all-digit name no longer fails `build()`.
 - A discovered tool's nullable parameter now accepts the `null` its advertised schema permits, at the top
   level and inside an expanded object, instead of answering `-32602`.
+- A method-level `#[InputSchema(...)]` without `definition` now merges its constraints over the inferred
+  schema instead of being silently discarded.
 - A `subscriptions/listen` acknowledgement no longer promises a `listChanged` type no registered store can
   produce, matching what `server/discover` advertises.
 - A stdio transport closed from the main context before its read loop's first turn now drains that loop
