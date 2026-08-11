@@ -95,6 +95,31 @@ final class ErrorFactoryTest extends AbstractMcpTestCase
         self::assertSame(['elicitation' => []], $error->requiredCapabilities->toArray());
     }
 
+    #[DataProvider('provideCreateRefusesADataCarryingCodeWithoutDataCases')]
+    public function testCreateRefusesADataCarryingCodeWithoutData(ProtocolErrorCode $code, string $expectedMessage): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs($expectedMessage);
+
+        ErrorFactory::create($code, 'message text');
+    }
+
+    /**
+     * @return iterable<string, array{ProtocolErrorCode, non-empty-string}>
+     */
+    public static function provideCreateRefusesADataCarryingCodeWithoutDataCases(): iterable
+    {
+        yield 'missing required client capability' => [
+            ProtocolErrorCode::MissingRequiredClientCapability,
+            'error "data" is required for code -32021 and must carry "requiredCapabilities".',
+        ];
+
+        yield 'unsupported protocol version' => [
+            ProtocolErrorCode::UnsupportedProtocolVersion,
+            'error "data" is required for code -32022 and must carry "supported" and "requested".',
+        ];
+    }
+
     public function testCreatePropagatesData(): void
     {
         $data = ['trace_id' => 'abc123'];
