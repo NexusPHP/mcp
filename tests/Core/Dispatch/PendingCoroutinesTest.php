@@ -65,7 +65,7 @@ final class PendingCoroutinesTest extends AbstractMcpTestCase
 
         self::assertCount(0, $coroutines, 'No slot is held, yet the parked coroutine is still tracked.');
 
-        $flush = async(static fn(): null => $coroutines->flushPending());
+        $flush = async(static function () use ($coroutines): void { $coroutines->flushPending(); });
         delay(0.0);
 
         self::assertFalse($flush->isComplete(), 'The drain waits on a coroutine that holds no slot.');

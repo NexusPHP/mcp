@@ -221,7 +221,7 @@ final class InMemoryTransportTest extends AbstractMcpTestCase
     {
         [$a] = InMemoryTransport::createPair();
 
-        $subscription = $a->onError(static fn(\Throwable $e) => null);
+        $subscription = $a->onError(static function (): void {});
         $subscription->dispose();
 
         $this->expectNotToPerformAssertions();

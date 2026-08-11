@@ -1476,6 +1476,24 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
         self::assertCount(1, $cancelled, 'A disposed listener stops hearing about disconnects.');
     }
 
+    public function testADisconnectOnAnUpgradedStreamReportsTheAbandonedRequest(): void
+    {
+        $transport = self::makeTransport(new ArrayLogger(), ResponseMode::Auto, start: false);
+        self::listen($transport, self::progressServer(busyFor: 0.05));
+        $cancelled = [];
+        $transport->onCancel(static function (RequestId $id) use (&$cancelled): void {
+            $cancelled[] = $id->id;
+        });
+
+        async(static function () use ($transport): void {
+            $response = $transport->handle(self::progressRequest(7));
+            $response->getBody()->close();
+            delay(0.01);
+        })->await();
+
+        self::assertCount(1, $cancelled, 'Abandoning a stream the progress upgrade opened must cancel its request.');
+    }
+
     public function testConstructorRejectsNonPositiveKeepAliveInterval(): void
     {
         $factory = new Psr17Factory();

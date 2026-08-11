@@ -570,7 +570,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
         /** @var Future<AccessToken> $holder */
         $holder = async(static fn(): AccessToken => $coordinator->reauthorize($first, null, new NullCancellation()));
         delay(0);
-        EventLoop::delay(0.02, static fn() => $gate->complete());
+        EventLoop::delay(0.02, static function () use ($gate): void { $gate->complete(); });
 
         $second = $coordinator->reauthorize($first, null, new NullCancellation());
 

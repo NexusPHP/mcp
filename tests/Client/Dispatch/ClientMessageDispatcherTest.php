@@ -1315,7 +1315,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
                     return new EmptyResult();
                 },
             )],
-            notificationHandlers: ['notifications/cancelled' => new ClosureNotificationHandler(static fn() => null)],
+            notificationHandlers: ['notifications/cancelled' => new ClosureNotificationHandler(static function (): void {})],
         );
 
         $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
@@ -1353,7 +1353,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
                     return new EmptyResult();
                 },
             )],
-            notificationHandlers: ['notifications/cancelled' => new ClosureNotificationHandler(static fn() => null)],
+            notificationHandlers: ['notifications/cancelled' => new ClosureNotificationHandler(static function (): void {})],
             maxInFlight: 1,
         );
 
@@ -1382,7 +1382,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $dispatcher = self::buildDispatcher(
             new PendingOutboundRequests(),
             notificationHandlers: [
-                'notifications/tools/list_changed' => new ClosureNotificationHandler(static fn() => null),
+                'notifications/tools/list_changed' => new ClosureNotificationHandler(static function (): void {}),
             ],
             logger: $logger,
             maxInFlight: 1,
@@ -1454,7 +1454,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         /** @var DeferredFuture<SubscriptionsListenResult> $outcome */
         $outcome = new DeferredFuture();
         $outcome->getFuture()->ignore();
-        $listeners->register(self::buildSubscription(new RequestId(id: 7), static fn() => null, $outcome));
+        $listeners->register(self::buildSubscription(new RequestId(id: 7), static function (): void {}, $outcome));
 
         $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
 

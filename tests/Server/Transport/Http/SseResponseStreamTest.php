@@ -31,7 +31,7 @@ final class SseResponseStreamTest extends AbstractMcpTestCase
 {
     public function testReadsAllPushedContentThenReportsEof(): void
     {
-        $stream = new SseResponseStream(60.0, static fn(): null => null);
+        $stream = new SseResponseStream(60.0, static function (): void {});
         $stream->push('alpha');
         $stream->push('beta');
         $stream->end();
@@ -43,7 +43,7 @@ final class SseResponseStreamTest extends AbstractMcpTestCase
 
     public function testReadHonoursTheRequestedLength(): void
     {
-        $stream = new SseResponseStream(60.0, static fn(): null => null);
+        $stream = new SseResponseStream(60.0, static function (): void {});
         $stream->push('abcdef');
         $stream->end();
 
@@ -54,7 +54,7 @@ final class SseResponseStreamTest extends AbstractMcpTestCase
 
     public function testGetContentsReadsPayloadsLargerThanOneChunk(): void
     {
-        $stream = new SseResponseStream(60.0, static fn(): null => null);
+        $stream = new SseResponseStream(60.0, static function (): void {});
         $payload = str_repeat('x', 10_000);
         $stream->push($payload);
         $stream->end();
@@ -65,7 +65,7 @@ final class SseResponseStreamTest extends AbstractMcpTestCase
     public function testPushWakesABlockedReader(): void
     {
         $chunk = async(static function (): string {
-            $stream = new SseResponseStream(60.0, static fn(): null => null);
+            $stream = new SseResponseStream(60.0, static function (): void {});
 
             EventLoop::queue(static function () use ($stream): void {
                 $stream->push('woke');
@@ -80,7 +80,7 @@ final class SseResponseStreamTest extends AbstractMcpTestCase
     public function testEndWakesABlockedReader(): void
     {
         $chunk = async(static function (): string {
-            $stream = new SseResponseStream(60.0, static fn(): null => null);
+            $stream = new SseResponseStream(60.0, static function (): void {});
 
             EventLoop::queue(static function () use ($stream): void {
                 $stream->end();
@@ -95,10 +95,10 @@ final class SseResponseStreamTest extends AbstractMcpTestCase
     public function testAnIdleReadYieldsAKeepAliveFrame(): void
     {
         $frame = async(static function (): string {
-            $stream = new SseResponseStream(0.01, static fn(): null => null);
+            $stream = new SseResponseStream(0.01, static function (): void {});
 
             // The keep-alive timeout is unreferenced, so keep the loop alive long enough for it to fire.
-            $anchor = EventLoop::delay(1.0, static fn(): null => null);
+            $anchor = EventLoop::delay(1.0, static function (): void {});
 
             try {
                 return $stream->read(8_192);
@@ -114,8 +114,8 @@ final class SseResponseStreamTest extends AbstractMcpTestCase
     {
         /** @var array{string, string, int} $observed */
         $observed = async(static function (): array {
-            $stream = new SseResponseStream(0.01, static fn(): null => null);
-            $anchor = EventLoop::delay(1.0, static fn(): null => null);
+            $stream = new SseResponseStream(0.01, static function (): void {});
+            $anchor = EventLoop::delay(1.0, static function (): void {});
 
             try {
                 $first = $stream->read(4);
@@ -134,7 +134,7 @@ final class SseResponseStreamTest extends AbstractMcpTestCase
 
     public function testEofTogglesAsTheStreamFillsDrainsAndEnds(): void
     {
-        $stream = new SseResponseStream(60.0, static fn(): null => null);
+        $stream = new SseResponseStream(60.0, static function (): void {});
         $stream->push('ab');
         self::assertFalse($stream->eof());
 
@@ -147,7 +147,7 @@ final class SseResponseStreamTest extends AbstractMcpTestCase
 
     public function testFramesPushedAfterEndAreDiscarded(): void
     {
-        $stream = new SseResponseStream(60.0, static fn(): null => null);
+        $stream = new SseResponseStream(60.0, static function (): void {});
         $stream->end();
         $stream->push('late');
 
@@ -157,7 +157,7 @@ final class SseResponseStreamTest extends AbstractMcpTestCase
 
     public function testToStringDrainsTheStream(): void
     {
-        $stream = new SseResponseStream(60.0, static fn(): null => null);
+        $stream = new SseResponseStream(60.0, static function (): void {});
         $stream->push('hello');
         $stream->end();
 
@@ -166,7 +166,7 @@ final class SseResponseStreamTest extends AbstractMcpTestCase
 
     public function testExposesReadOnlyNonSeekableCapabilities(): void
     {
-        $stream = new SseResponseStream(60.0, static fn(): null => null);
+        $stream = new SseResponseStream(60.0, static function (): void {});
 
         self::assertTrue($stream->isReadable());
         self::assertFalse($stream->isWritable());
@@ -176,7 +176,7 @@ final class SseResponseStreamTest extends AbstractMcpTestCase
 
     public function testGetMetadataReturnsAnEmptyMapOrNullForAKey(): void
     {
-        $stream = new SseResponseStream(60.0, static fn(): null => null);
+        $stream = new SseResponseStream(60.0, static function (): void {});
 
         self::assertSame([], $stream->getMetadata());
         self::assertNull($stream->getMetadata('uri'));
@@ -187,7 +187,7 @@ final class SseResponseStreamTest extends AbstractMcpTestCase
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessageMatches('/^An SSE response body is not writable\.$/');
 
-        (new SseResponseStream(60.0, static fn(): null => null))->write('nope');
+        (new SseResponseStream(60.0, static function (): void {}))->write('nope');
     }
 
     public function testSeekThrows(): void
@@ -195,7 +195,7 @@ final class SseResponseStreamTest extends AbstractMcpTestCase
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessageMatches('/^An SSE response body is not seekable\.$/');
 
-        (new SseResponseStream(60.0, static fn(): null => null))->seek(0);
+        (new SseResponseStream(60.0, static function (): void {}))->seek(0);
     }
 
     public function testRewindThrows(): void
@@ -203,7 +203,7 @@ final class SseResponseStreamTest extends AbstractMcpTestCase
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessageMatches('/^An SSE response body is not seekable\.$/');
 
-        (new SseResponseStream(60.0, static fn(): null => null))->rewind();
+        (new SseResponseStream(60.0, static function (): void {}))->rewind();
     }
 
     public function testCloseEndsTheStreamAndInvokesTheCloseHook(): void

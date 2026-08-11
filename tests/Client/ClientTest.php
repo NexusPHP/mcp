@@ -534,7 +534,7 @@ final class ClientTest extends AbstractMcpTestCase
 
         try {
             // @phpstan-ignore argument.type (an empty name drives the runtime guard PHPStan rejects statically)
-            $client->callTool($name, null, static fn(): null => null);
+            $client->callTool($name, null, static function (): void {});
         } catch (\Throwable $e) {
             $fault = $e;
         }
@@ -551,7 +551,7 @@ final class ClientTest extends AbstractMcpTestCase
         $client->connect($transport);
         self::discover($client, $transport);
 
-        $deferred = async(static fn(): CallToolResult|InputRequiredResult => $client->callTool('slow', null, static fn(): null => null));
+        $deferred = async(static fn(): CallToolResult|InputRequiredResult => $client->callTool('slow', null, static function (): void {}));
         $transport->nextSend()->await();
 
         self::assertCount(2, $transport->sent);
@@ -587,7 +587,7 @@ final class ClientTest extends AbstractMcpTestCase
         $client->connect($transport);
         self::discover($client, $transport);
 
-        $deferred = async(static fn(): CallToolResult|InputRequiredResult => $client->callTool('endless', null, static fn(): null => null));
+        $deferred = async(static fn(): CallToolResult|InputRequiredResult => $client->callTool('endless', null, static function (): void {}));
         $transport->nextSend()->await();
 
         self::assertCount(2, $transport->sent);
@@ -1358,7 +1358,7 @@ final class ClientTest extends AbstractMcpTestCase
 
         $deferred = async(static fn() => $client->callTool(
             name: 'greet',
-            onProgress: static fn(): null => null,
+            onProgress: static function (): void {},
             inputResponses: ['user_name' => $answer],
             requestState: 'state-with-progress',
         ));

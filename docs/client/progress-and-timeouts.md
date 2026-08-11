@@ -57,7 +57,7 @@ progress, since only then does the SDK mint a token to match notifications again
 
 ```php
 // Survives well past 60s as long as the server keeps reporting.
-$client->callTool('reindex', $args, onProgress: static fn(float $done): null => null);
+$client->callTool('reindex', $args, onProgress: static function (float $done): void {});
 ```
 
 A long call that reports nothing needs a wider deadline of its own. `sendRequest()` takes a per-request

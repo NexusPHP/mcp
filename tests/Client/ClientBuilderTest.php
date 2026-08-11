@@ -194,7 +194,7 @@ final class ClientBuilderTest extends AbstractMcpTestCase
         );
 
         (new ClientBuilder())->addNotificationHandler('vendor/custom-done', new ClosureNotificationHandler(
-            static fn() => null,
+            static function (): void {},
         ), TestNotification::class);
     }
 
@@ -218,7 +218,7 @@ final class ClientBuilderTest extends AbstractMcpTestCase
         );
 
         (new ClientBuilder())->addNotificationHandler('notifications/progress', new ClosureNotificationHandler(
-            static fn() => null,
+            static function (): void {},
         ), ProgressLookalikeNotification::class);
     }
 
@@ -230,7 +230,7 @@ final class ClientBuilderTest extends AbstractMcpTestCase
         );
 
         (new ClientBuilder())->addNotificationHandler('vendor/custom-done', new ClosureNotificationHandler(
-            static fn() => null,
+            static function (): void {},
         ));
     }
 
@@ -343,7 +343,7 @@ final class ClientBuilderTest extends AbstractMcpTestCase
     public function testEnableExtensionRejectsANotificationMethodABuilderHandlerOwns(): void
     {
         $builder = (new ClientBuilder())->addNotificationHandler(TestNotification::getMethod(), new ClosureNotificationHandler(
-            static fn() => null,
+            static function (): void {},
         ), TestNotification::class);
 
         $this->expectException(ExtensionMethodCollisionException::class);
@@ -355,7 +355,7 @@ final class ClientBuilderTest extends AbstractMcpTestCase
             identifier: 'com.example/feature',
             notifications: [TestNotification::getMethod() => TestNotification::class],
             notificationHandlers: [TestNotification::getMethod() => new ClosureNotificationHandler(
-                static fn() => null,
+                static function (): void {},
             )],
         ));
     }
@@ -386,7 +386,7 @@ final class ClientBuilderTest extends AbstractMcpTestCase
             identifier: 'com.example/feature',
             notifications: [TestNotification::getMethod() => TestNotification::class],
             notificationHandlers: [TestNotification::getMethod() => new ClosureNotificationHandler(
-                static fn() => null,
+                static function (): void {},
             )],
         ));
 
@@ -396,7 +396,7 @@ final class ClientBuilderTest extends AbstractMcpTestCase
         );
 
         $builder->addNotificationHandler(TestNotification::getMethod(), new ClosureNotificationHandler(
-            static fn() => null,
+            static function (): void {},
         ), TestNotification::class);
     }
 
@@ -540,7 +540,7 @@ final class ClientBuilderTest extends AbstractMcpTestCase
 
         $returned = $builder->addNotificationHandler(
             'notifications/cancelled',
-            new ClosureNotificationHandler(static fn() => null),
+            new ClosureNotificationHandler(static function (): void {}),
         );
 
         self::assertSame($builder, $returned);

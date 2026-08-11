@@ -68,9 +68,9 @@ optional resolver, and its answers ride `tasks/update`:
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitResult;
 use Nexus\Mcp\Core\Schema\Enum\ElicitAction;
 
-$terminal = $tasks->awaitTask($handle, static function (array $inputRequests): array {
-    return ['confirm_delete' => new ElicitResult(action: ElicitAction::Accept, content: ['confirm' => true])];
-});
+$terminal = $tasks->awaitTask($handle, static fn(array $inputRequests): array => [
+    'confirm_delete' => new ElicitResult(action: ElicitAction::Accept, content: ['confirm' => true]),
+]);
 ```
 
 The resolver receives the unanswered requests keyed by their request key, and answers what it

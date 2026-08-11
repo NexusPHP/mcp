@@ -316,7 +316,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
         $duplex->start($source, new WritableBuffer());
         delay(0.001);
 
-        async(static fn() => $duplex->close())->await();
+        async(static function () use ($duplex): void { $duplex->close(); })->await();
 
         self::assertSame(
             ['read:start', 'read:eof', 'drain', 'close'],

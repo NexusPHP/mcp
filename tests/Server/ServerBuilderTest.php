@@ -2423,11 +2423,11 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
         yield 'replaceRequestHandler' => [static fn(ServerBuilder $b): ServerBuilder => $b->replaceRequestHandler('tools/list', new ClosureRequestHandler(static fn(): EmptyResult => new EmptyResult()))];
 
-        yield 'addNotificationHandler' => [static fn(ServerBuilder $b): ServerBuilder => $b->addNotificationHandler('notifications/progress', new ClosureNotificationHandler(static fn() => null), TestNotification::class)];
+        yield 'addNotificationHandler' => [static fn(ServerBuilder $b): ServerBuilder => $b->addNotificationHandler('notifications/progress', new ClosureNotificationHandler(static function (): void {}), TestNotification::class)];
 
         yield 'enableExtension' => [static fn(ServerBuilder $b): ServerBuilder => $b->enableExtension(new StubServerExtension(identifier: 'com.example/feature'))];
 
-        yield 'replaceNotificationHandler' => [static fn(ServerBuilder $b): ServerBuilder => $b->replaceNotificationHandler('notifications/cancelled', new ClosureNotificationHandler(static fn() => null))];
+        yield 'replaceNotificationHandler' => [static fn(ServerBuilder $b): ServerBuilder => $b->replaceNotificationHandler('notifications/cancelled', new ClosureNotificationHandler(static function (): void {}))];
     }
 
     public function testBuildingTwiceIsRefused(): void

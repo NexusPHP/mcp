@@ -967,7 +967,7 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
                     return new EmptyResult();
                 },
             )],
-            notificationHandlers: ['notifications/cancelled' => new ClosureNotificationHandler(static fn() => null)],
+            notificationHandlers: ['notifications/cancelled' => new ClosureNotificationHandler(static function (): void {})],
         );
 
         $dispatcher->dispatch(self::toolsListEnvelope(1), $transport, new ReceiveContext());
@@ -1000,7 +1000,7 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
                     return new EmptyResult();
                 },
             )],
-            notificationHandlers: ['notifications/cancelled' => new ClosureNotificationHandler(static fn() => null)],
+            notificationHandlers: ['notifications/cancelled' => new ClosureNotificationHandler(static function (): void {})],
             maxInFlight: 1,
         );
 

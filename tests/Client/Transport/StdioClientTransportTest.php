@@ -66,9 +66,9 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
     {
         $transport = self::buildTransport(new ScriptedSubprocessLauncher());
 
-        $error = $transport->onError(static fn() => null);
-        $drain = $transport->onDrain(static fn() => null);
-        $close = $transport->onClose(static fn() => null);
+        $error = $transport->onError(static function (): void {});
+        $drain = $transport->onDrain(static function (): void {});
+        $close = $transport->onClose(static function (): void {});
 
         self::assertNotSame($error, $drain);
         self::assertNotSame($drain, $close);
