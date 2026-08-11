@@ -99,6 +99,21 @@ final class ReflectedHandlers
         return \sprintf('%s,%s,%s', $point->latitude, $point->longitude, $point->label->value);
     }
 
+    public function withNullableCoordinate(?Coordinate $point): string
+    {
+        return null === $point ? 'none' : \sprintf('%s,%s', $point->latitude, $point->longitude);
+    }
+
+    public function withNullableEnum(?BackedStringEnum $colour): string
+    {
+        return $colour->value ?? 'none';
+    }
+
+    public function withWaypoint(Waypoint $stop): string
+    {
+        return \sprintf('%s:%s', $stop->tag->value ?? '-', $stop->note ?? '-');
+    }
+
     public function withEmpty(EmptyDto $thing): string
     {
         return $thing::class;

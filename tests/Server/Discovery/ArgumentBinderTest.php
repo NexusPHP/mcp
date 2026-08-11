@@ -31,6 +31,7 @@ use Nexus\Mcp\Tests\Fixtures\Server\Discovery\EmptyDto;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\NestedDto;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\PureEnum;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\ReflectedHandlers;
+use Nexus\Mcp\Tests\Fixtures\Server\Discovery\Waypoint;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 
@@ -203,6 +204,49 @@ final class ArgumentBinderTest extends AbstractMcpTestCase
         }
 
         self::assertSame(BackedStringEnum::A, $point->label);
+    }
+
+    public function testBindsNullToANullableDtoParameter(): void
+    {
+        self::assertSame([null], $this->bind('withNullableCoordinate', ['point' => null]));
+    }
+
+    public function testBindsNullToANullableEnumParameter(): void
+    {
+        self::assertSame([null], $this->bind('withNullableEnum', ['colour' => null]));
+    }
+
+    public function testBindsNullToANullableEnumFieldInsideADto(): void
+    {
+        $bound = $this->bind('withWaypoint', ['stop' => ['tag' => null, 'note' => null]]);
+        $stop = $bound[0] ?? null;
+
+        if (! $stop instanceof Waypoint) {
+            self::fail('Expected a Waypoint instance.');
+        }
+
+        self::assertNull($stop->tag);
+        self::assertNull($stop->note);
+    }
+
+    public function testANullableDtoParameterStillConstructsFromAMap(): void
+    {
+        $bound = $this->bind('withNullableCoordinate', ['point' => ['latitude' => 3.5, 'longitude' => 4.5]]);
+        $point = $bound[0] ?? null;
+
+        if (! $point instanceof Coordinate) {
+            self::fail('Expected a Coordinate instance.');
+        }
+
+        self::assertSame(3.5, $point->latitude);
+    }
+
+    public function testNullIsStillRefusedForANonNullableDtoParameter(): void
+    {
+        $this->expectException(InvalidParamsException::class);
+        $this->expectExceptionMessageIs(\sprintf('%s must be constructed from an object, null given.', Coordinate::class));
+
+        $this->bind('withCoordinate', ['point' => null]);
     }
 
     public function testConstructsADtoWithoutAConstructor(): void
