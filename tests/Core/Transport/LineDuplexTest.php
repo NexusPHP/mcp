@@ -17,8 +17,11 @@ use Amp\ByteStream\Pipe;
 use Amp\ByteStream\ReadableBuffer;
 use Amp\ByteStream\ReadableIterableStream;
 use Amp\ByteStream\ReadableStream;
+use Amp\ByteStream\ReadableStreamIteratorAggregate;
 use Amp\ByteStream\WritableBuffer;
 use Amp\ByteStream\WritableStream;
+use Amp\Cancellation;
+use Amp\DeferredFuture;
 use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyStartedException;
 use Nexus\Mcp\Core\Exception\TransportNotStartedException;
@@ -163,6 +166,163 @@ final class LineDuplexTest extends AbstractMcpTestCase
         EventLoop::run();
 
         self::assertSame(['drain', 'close', 'returned'], $events);
+    }
+
+    public function testCloseBeforeTheReadLoopsFirstTurnStillDrainsItBeforeReturning(): void
+    {
+        $events = [];
+        $source = new class implements \IteratorAggregate, ReadableStream {
+            use ReadableStreamIteratorAggregate;
+
+            /**
+             * @var null|\Closure(): void
+             */
+            public ?\Closure $onRead = null;
+
+            private bool $closed = false;
+
+            #[\Override]
+            public function read(?Cancellation $cancellation = null): ?string
+            {
+                if (null !== $this->onRead) {
+                    ($this->onRead)();
+                }
+
+                return null;
+            }
+
+            #[\Override]
+            public function isReadable(): bool
+            {
+                return ! $this->closed;
+            }
+
+            #[\Override]
+            public function close(): void
+            {
+                $this->closed = true;
+            }
+
+            #[\Override]
+            public function isClosed(): bool
+            {
+                return $this->closed;
+            }
+
+            #[\Override]
+            public function onClose(\Closure $onClose): void
+            {
+            }
+        };
+        $source->onRead = static function () use (&$events): void {
+            $events[] = 'read';
+        };
+
+        $duplex = self::buildDuplex();
+        $duplex->onDrain(static function () use (&$events): void {
+            $events[] = 'drain';
+        });
+        $duplex->onClose(static function () use (&$events): void {
+            $events[] = 'close';
+        });
+
+        $duplex->start($source, new WritableBuffer());
+        $duplex->close();
+        $events[] = 'returned';
+
+        EventLoop::run();
+
+        self::assertSame(['read', 'drain', 'close', 'returned'], $events, 'A close before the read loop\'s first turn must still drain it before returning.');
+    }
+
+    public function testCloseFromAFiberDrainsAParkedReadLoopBeforeDrainListeners(): void
+    {
+        $events = [];
+
+        /** @var DeferredFuture<null> $gate */
+        $gate = new DeferredFuture();
+        $source = new class ($gate) implements \IteratorAggregate, ReadableStream {
+            use ReadableStreamIteratorAggregate;
+
+            /**
+             * @var null|\Closure(string): void
+             */
+            public ?\Closure $onEvent = null;
+
+            private bool $closed = false;
+
+            /**
+             * @param DeferredFuture<null> $gate
+             */
+            public function __construct(private readonly DeferredFuture $gate)
+            {
+            }
+
+            #[\Override]
+            public function read(?Cancellation $cancellation = null): ?string
+            {
+                if (null !== $this->onEvent) {
+                    ($this->onEvent)('read:start');
+                }
+
+                $this->gate->getFuture()->await();
+
+                if (null !== $this->onEvent) {
+                    ($this->onEvent)('read:eof');
+                }
+
+                return null;
+            }
+
+            #[\Override]
+            public function isReadable(): bool
+            {
+                return ! $this->closed;
+            }
+
+            #[\Override]
+            public function close(): void
+            {
+                $this->closed = true;
+
+                if (! $this->gate->isComplete()) {
+                    $this->gate->complete();
+                }
+            }
+
+            #[\Override]
+            public function isClosed(): bool
+            {
+                return $this->closed;
+            }
+
+            #[\Override]
+            public function onClose(\Closure $onClose): void
+            {
+            }
+        };
+        $source->onEvent = static function (string $event) use (&$events): void {
+            $events[] = $event;
+        };
+
+        $duplex = self::buildDuplex();
+        $duplex->onDrain(static function () use (&$events): void {
+            $events[] = 'drain';
+        });
+        $duplex->onClose(static function () use (&$events): void {
+            $events[] = 'close';
+        });
+
+        $duplex->start($source, new WritableBuffer());
+        delay(0.001);
+
+        async(static fn() => $duplex->close())->await();
+
+        self::assertSame(
+            ['read:start', 'read:eof', 'drain', 'close'],
+            $events,
+            'A close from a foreign fiber must drain the parked read loop before drain listeners run.',
+        );
     }
 
     public function testCloseWaitsForAnInFlightMessageListenerBeforeDraining(): void

@@ -285,7 +285,7 @@ final class LineDuplex
         $current = \Fiber::getCurrent();
 
         // A fiber that triggers close() mid-run must not await its own completion, which only it fulfils on return.
-        if ($current !== $this->readLoopFiber) {
+        if (null === $current || $current !== $this->readLoopFiber) {
             $this->readLoopCompletion?->getFuture()->await();
         }
 

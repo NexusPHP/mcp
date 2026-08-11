@@ -27,6 +27,8 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Fixed
 
+- A stdio transport closed from the main context before its read loop's first turn now drains that loop
+  before `close()` returns, the same as every other close path.
 - A resource reader's own `ResourceNotFoundException` ends the read instead of being answered by an
   overlapping resource template. A registry miss still falls through, signalled by the new
   `ResourceNotRegisteredException` (see [BREAKING_CHANGES.md](BREAKING_CHANGES.md)).
