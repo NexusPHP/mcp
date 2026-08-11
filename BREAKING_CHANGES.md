@@ -6,6 +6,14 @@ for *when* breaking changes may land and how they are communicated lives in
 
 ## v0.11.0 to Unreleased
 
+### `ServerCapabilities` keeps unknown capabilities and models `logging`
+
+`ServerCapabilities` gained a `logging` slot (the spec's deprecated member) and an `extras` slot for
+capabilities outside the named set, mirroring `ClientCapabilities`. `logging` sits before `$prompts`,
+so positional construction past the third argument changes meaning: use named arguments. Decoding no
+longer drops unknown keys, at the top level or nested inside `prompts`, `resources`, and `tools`, so a
+re-encoded capabilities object can now carry keys it previously silently lost.
+
 ### A custom resource store signals a registry miss with `ResourceNotRegisteredException`
 
 `CompositeResourceStore` used to fall through to templates on any `ResourceNotFoundException`, so a

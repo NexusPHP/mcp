@@ -192,15 +192,52 @@ final class ServerCapabilitiesTest extends AbstractMcpTestCase
         self::assertSame([], $caps->tools);
     }
 
-    public function testFromArrayIgnoresUnknownNestedKeys(): void
+    public function testFromArrayKeepsUnknownNestedKeys(): void
     {
         $caps = ServerCapabilities::fromArray([
-            'prompts' => ['listChanged' => true, 'extra' => 'ignored'],
+            'prompts' => ['listChanged' => true, 'extra' => 'kept'],
             'resources' => ['subscribe' => true, 'unknown' => 1],
+            'tools' => ['vendor' => ['a' => 1]],
         ]);
 
-        self::assertSame(['listChanged' => true], $caps->prompts);
-        self::assertSame(['subscribe' => true], $caps->resources);
+        self::assertSame(['listChanged' => true, 'extra' => 'kept'], $caps->prompts);
+        self::assertSame(['subscribe' => true, 'unknown' => 1], $caps->resources);
+        self::assertSame(['vendor' => ['a' => 1]], $caps->tools);
+    }
+
+    public function testFromArrayKeepsUnknownTopLevelCapabilitiesInExtras(): void
+    {
+        $caps = ServerCapabilities::fromArray([
+            'tools' => ['listChanged' => true],
+            'com.example/vendor' => ['mode' => 'fast'],
+            'logging' => [],
+        ]);
+
+        self::assertSame(['com.example/vendor' => ['mode' => 'fast']], $caps->extras);
+        self::assertSame([], $caps->logging);
+        self::assertSame([
+            'logging' => [],
+            'tools' => ['listChanged' => true],
+            'com.example/vendor' => ['mode' => 'fast'],
+        ], $caps->toArray());
+    }
+
+    public function testFromArrayRoundTripsExtrasAndLogging(): void
+    {
+        $payload = [
+            'logging' => ['levels' => ['error']],
+            'tools' => ['listChanged' => false],
+            'com.example/vendor' => ['mode' => 'fast'],
+        ];
+
+        self::assertSame($payload, ServerCapabilities::fromArray($payload)->toArray());
+    }
+
+    public function testJsonEncodeEmitsAnEmptyObjectForAnEmptyVendorCapability(): void
+    {
+        $caps = ServerCapabilities::fromArray(['com.example/vendor' => []]);
+
+        self::assertSame('{"com.example\/vendor":{}}', json_encode($caps));
     }
 
     public function testFromArrayResourcesPartialFields(): void
@@ -234,6 +271,11 @@ final class ServerCapabilitiesTest extends AbstractMcpTestCase
      */
     public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
+        yield 'logging not an object' => [
+            ['logging' => 'oops'],
+            '"capabilities.logging" must be an object, string given.',
+        ];
+
         yield 'completions not an object' => [
             ['completions' => 'oops'],
             '"capabilities.completions" must be an object, string given.',

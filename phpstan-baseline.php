@@ -14,6 +14,18 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/src/Core/Dispatch/ResponseSender.php',
 ];
 $ignoreErrors[] = [
+	'rawMessage' => 'Method Nexus\\Mcp\\Core\\Schema\\ServerCapabilities::extractListChangedOnly() should return array{listChanged?: bool, ...<string, mixed>}|null but returns array<string, mixed>.',
+	'identifier' => 'return.type',
+	'count' => 1,
+	'path' => __DIR__ . '/src/Core/Schema/ServerCapabilities.php',
+];
+$ignoreErrors[] = [
+	'rawMessage' => 'Method Nexus\\Mcp\\Core\\Schema\\ServerCapabilities::extractResources() should return array{listChanged?: bool, subscribe?: bool, ...<string, mixed>}|null but returns array<string, mixed>.',
+	'identifier' => 'return.type',
+	'count' => 1,
+	'path' => __DIR__ . '/src/Core/Schema/ServerCapabilities.php',
+];
+$ignoreErrors[] = [
 	'rawMessage' => 'Strict comparison using === between Nexus\\Mcp\\Core\\Transport\\TransportState::Closed and Nexus\\Mcp\\Core\\Transport\\TransportState::Running will always evaluate to false.',
 	'identifier' => 'identical.alwaysFalse',
 	'count' => 1,

@@ -27,6 +27,9 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Fixed
 
+- `ServerCapabilities` now keeps unknown capabilities (top level in a new `extras` slot, nested keys in
+  place) and models the deprecated `logging` member, honouring the spec's open-set rule.
+  See [BREAKING_CHANGES.md](BREAKING_CHANGES.md).
 - `awaitTask()`'s stall ceiling now counts polls that sent no answers, so a resolver answering outside
   the offered set can no longer defeat it, and a key re-issued after a `working` round is offered again.
 - `InMemoryTaskStore` now fails a task that has not settled by `createdAt + ttlMs` and sweeps it,

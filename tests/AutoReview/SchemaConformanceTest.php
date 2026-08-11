@@ -119,7 +119,6 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
     ];
     private const array DEPRECATED_OMITTED_PROPERTIES = [
         'ClientCapabilities' => ['roots', 'sampling'],
-        'ServerCapabilities' => ['logging'],
     ];
 
     /**
