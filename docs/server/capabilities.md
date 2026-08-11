@@ -10,9 +10,12 @@
 | `completions` | At least one `addPromptCompletion(...)` / `addResourceTemplateCompletion(...)`, `setCompletionStore(...)`, or `completion/complete` `replaceRequestHandler(...)`. |
 | `extensions` | One entry per `enableExtension(...)`, keyed by the extension's identifier with its settings object (`{}` when it has none). Never derived: no enable, no entry. |
 
-`listChanged` and `resources.subscribe` are advertised only when the subscription store says it will honour
-that notification type **and** the feature's own store can report its changes (it implements
-`ListChangeSourceInterface`, as the built-in in-memory stores do). The store is the single declarer: the
-builder asks it what it honours rather than deciding independently, so a capability can never promise more
-than an acknowledgement will grant. Advertising either without both is a promise the server cannot keep, and
-the conformance suite scores an undelivered `list_changed` as a failure.
+`listChanged` is advertised only when the subscription store says it will honour that notification type
+**and** the feature's own store can report its changes (it implements `ListChangeSourceInterface`, as the
+built-in in-memory stores do). `resources.subscribe` follows the subscription store's flag alone, since
+resource updates come from your own `emitResourceUpdated()` calls rather than from a store. The builder
+holds the two surfaces to the same set: it asks the store what it honours to derive the capabilities, and
+narrows every listen request to the `listChanged` types a change-reporting store backs, so neither a
+capability nor an acknowledgement can promise more than the other. Advertising `listChanged` without both
+is a promise the server cannot keep, and the conformance suite scores an undelivered `list_changed` as a
+failure.

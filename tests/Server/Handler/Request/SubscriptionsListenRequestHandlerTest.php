@@ -132,6 +132,71 @@ final class SubscriptionsListenRequestHandlerTest extends AbstractMcpTestCase
         self::assertCount(1, $sender->notifications, 'A closed stream hears nothing more.');
     }
 
+    public function testTheAcknowledgementOmitsATypeNoRegisteredStoreCanProduce(): void
+    {
+        $store = new SubscriptionStore(toolsListChanged: true, promptsListChanged: true, resourcesListChanged: true);
+        $sender = new RecordingSender();
+        $handler = new SubscriptionsListenRequestHandler(
+            $store,
+            new SubscriptionFilter(promptsListChanged: true, resourcesListChanged: true),
+        );
+
+        $running = async(static fn(): SubscriptionsListenResult => $handler->handle(
+            new SubscriptionsListenRequest(
+                id: new RequestId(id: 1),
+                params: new SubscriptionsListenRequestParams(
+                    notifications: new SubscriptionFilter(toolsListChanged: true, promptsListChanged: true, resourcesListChanged: true),
+                    meta: RequestMetaObjectFactory::create(),
+                ),
+            ),
+            self::contextFor(1, $sender),
+        ));
+        delay(0.0);
+        $store->closeAll();
+        $running->await();
+
+        $ack = $sender->notifications[0] ?? null;
+        self::assertNotNull($ack);
+        $params = $ack->jsonSerialize()['params'] ?? [];
+        self::assertIsArray($params);
+        self::assertSame(
+            ['promptsListChanged' => true, 'resourcesListChanged' => true],
+            $params['notifications'] ?? null,
+            'The acknowledgement must promise only what a registered store can produce.',
+        );
+    }
+
+    public function testResourceSubscriptionsPassTheDeliverableMaskUntouched(): void
+    {
+        $store = new SubscriptionStore(resourceSubscriptions: true);
+        $sender = new RecordingSender();
+        $handler = new SubscriptionsListenRequestHandler($store, new SubscriptionFilter());
+
+        $running = async(static fn(): SubscriptionsListenResult => $handler->handle(
+            new SubscriptionsListenRequest(
+                id: new RequestId(id: 1),
+                params: new SubscriptionsListenRequestParams(
+                    notifications: new SubscriptionFilter(resourceSubscriptions: ['file:///a']),
+                    meta: RequestMetaObjectFactory::create(),
+                ),
+            ),
+            self::contextFor(1, $sender),
+        ));
+        delay(0.0);
+        $store->closeAll();
+        $running->await();
+
+        $ack = $sender->notifications[0] ?? null;
+        self::assertNotNull($ack);
+        $params = $ack->jsonSerialize()['params'] ?? [];
+        self::assertIsArray($params);
+        self::assertSame(
+            ['resourceSubscriptions' => ['file:///a']],
+            $params['notifications'] ?? null,
+            'Resource subscriptions are delivered by consumer emits, so the mask does not gate them.',
+        );
+    }
+
     /**
      * @param int|non-empty-string $id
      */

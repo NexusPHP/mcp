@@ -27,6 +27,8 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Fixed
 
+- A `subscriptions/listen` acknowledgement no longer promises a `listChanged` type no registered store can
+  produce, matching what `server/discover` advertises.
 - A stdio transport closed from the main context before its read loop's first turn now drains that loop
   before `close()` returns, the same as every other close path.
 - A resource reader's own `ResourceNotFoundException` ends the read instead of being answered by an

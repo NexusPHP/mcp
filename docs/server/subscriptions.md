@@ -21,7 +21,8 @@ $builder->setSubscriptionStore($subscriptions);
 
 The constructor flags say what this server can actually deliver, and they are what `build()` reads to derive
 the `listChanged` and `subscribe` capabilities. A listen request is acknowledged with the intersection of
-what the client asked for and what those flags allow, and the acknowledgement is always the first message on
+what the client asked for, what those flags allow, and the `listChanged` types a change-reporting store
+backs, which is the same set the capabilities advertise. The acknowledgement is always the first message on
 the stream. Types the server cannot deliver are omitted from it rather than denied. A store left at its
 defaults honours nothing, so nothing is advertised.
 

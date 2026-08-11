@@ -33,6 +33,7 @@ use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
+use Nexus\Mcp\Core\Schema\Notification\SubscriptionsAcknowledgedNotification;
 use Nexus\Mcp\Core\Schema\Prompt\Prompt;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\ElicitRequestFormParams;
@@ -52,6 +53,7 @@ use Nexus\Mcp\Core\Schema\Result\ListResourcesResult;
 use Nexus\Mcp\Core\Schema\Result\ListResourceTemplatesResult;
 use Nexus\Mcp\Core\Schema\Result\ListToolsResult;
 use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
+use Nexus\Mcp\Core\Schema\ServerCapabilities;
 use Nexus\Mcp\Core\Schema\SubscriptionFilter;
 use Nexus\Mcp\Core\Schema\Tool\Tool;
 use Nexus\Mcp\Server\Attribute\AsServer;
@@ -2034,6 +2036,135 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
     /**
      * @param \Closure(ServerBuilder): ServerBuilder $compose
+     */
+    #[DataProvider('provideTheAcknowledgementAndDiscoverAgreeOnEveryListChangedTypeCases')]
+    public function testTheAcknowledgementAndDiscoverAgreeOnEveryListChangedType(\Closure $compose): void
+    {
+        $server = $compose((new ServerBuilder())->setServerInfo('demo', '1.0.0'))
+            ->setSubscriptionStore(new SubscriptionStore(
+                toolsListChanged: true,
+                promptsListChanged: true,
+                resourcesListChanged: true,
+            ))
+            ->build()
+        ;
+
+        [$capabilities, $notifications] = $this->discoverAndAcknowledgementFor($server);
+
+        $advertised = [
+            'toolsListChanged' => true === (($capabilities->tools ?? [])['listChanged'] ?? null),
+            'promptsListChanged' => true === (($capabilities->prompts ?? [])['listChanged'] ?? null),
+            'resourcesListChanged' => true === (($capabilities->resources ?? [])['listChanged'] ?? null),
+        ];
+
+        self::assertSame(
+            array_keys(array_filter($advertised)),
+            array_keys($notifications),
+            'The full-filter acknowledgement and server/discover must promise the same listChanged set.',
+        );
+    }
+
+    /**
+     * @return iterable<string, array{\Closure(ServerBuilder): ServerBuilder}>
+     */
+    public static function provideTheAcknowledgementAndDiscoverAgreeOnEveryListChangedTypeCases(): iterable
+    {
+        yield 'immutable tool store' => [
+            static fn(ServerBuilder $b): ServerBuilder => $b
+                ->setToolStore(new PagedToolStore([[new Tool(name: 't', inputSchema: ['type' => 'object'])]])),
+        ];
+
+        yield 'mutable feature triples' => [
+            static fn(ServerBuilder $b): ServerBuilder => self::registerFeatureTriples($b),
+        ];
+
+        yield 'template store only' => [
+            static fn(ServerBuilder $b): ServerBuilder => $b
+                ->addResourceTemplate(
+                    new ResourceTemplate(name: 'logs', uriTemplate: 'file:///logs/{name}'),
+                    static fn(string $uri, array $vars, ServerContext $c): ReadResourceResult => new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private),
+                ),
+        ];
+
+        yield 'immutable prompt store' => [
+            static fn(ServerBuilder $b): ServerBuilder => $b
+                ->setPromptStore(self::createStub(PromptStoreInterface::class)),
+        ];
+    }
+
+    public function testTheAcknowledgementPromisesNoMoreThanDiscoverAdvertises(): void
+    {
+        $server = (new ServerBuilder())
+            ->setServerInfo('demo', '1.0.0')
+            ->setToolStore(new PagedToolStore([[new Tool(name: 't', inputSchema: ['type' => 'object'])]]))
+            ->setSubscriptionStore(new SubscriptionStore(toolsListChanged: true))
+            ->build()
+        ;
+
+        self::assertSame(
+            [],
+            $this->acknowledgedNotificationsFor($server),
+            'A type the tool store cannot report must not be promised on the stream.',
+        );
+    }
+
+    public function testTheAcknowledgementGrantsEveryTypeAChangeReportingStoreBacks(): void
+    {
+        $server = self::registerFeatureTriples((new ServerBuilder())->setServerInfo('demo', '1.0.0'))
+            ->setSubscriptionStore(new SubscriptionStore(
+                toolsListChanged: true,
+                promptsListChanged: true,
+                resourcesListChanged: true,
+            ))
+            ->build()
+        ;
+
+        self::assertSame(
+            ['toolsListChanged' => true, 'promptsListChanged' => true, 'resourcesListChanged' => true],
+            $this->acknowledgedNotificationsFor($server),
+        );
+    }
+
+    public function testAChangeReportingResourceStoreBacksThePromiseWhenTemplatesCannot(): void
+    {
+        $server = (new ServerBuilder())
+            ->setServerInfo('demo', '1.0.0')
+            ->addResource(
+                new Resource(name: 'r', uri: 'mem://r'),
+                static fn(string $uri, $c): ReadResourceResult => new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private),
+            )
+            ->setResourceTemplateStore(self::createStub(ResourceTemplateStoreInterface::class))
+            ->setSubscriptionStore(new SubscriptionStore(resourcesListChanged: true))
+            ->build()
+        ;
+
+        self::assertSame(
+            ['resourcesListChanged' => true],
+            $this->acknowledgedNotificationsFor($server),
+        );
+    }
+
+    public function testAChangeReportingTemplateStoreBacksTheResourcesPromise(): void
+    {
+        $server = (new ServerBuilder())
+            ->setServerInfo('demo', '1.0.0')
+            ->setResourceStore(self::createStub(ResourceStoreInterface::class))
+            ->addResourceTemplate(
+                new ResourceTemplate(name: 'logs', uriTemplate: 'file:///logs/{name}'),
+                static fn(string $uri, array $vars, ServerContext $c): ReadResourceResult => new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private),
+            )
+            ->setSubscriptionStore(new SubscriptionStore(resourcesListChanged: true))
+            ->build()
+        ;
+
+        self::assertSame(
+            ['resourcesListChanged' => true],
+            $this->acknowledgedNotificationsFor($server),
+        );
+    }
+
+    /**
+     * @param \Closure(ServerBuilder): ServerBuilder $compose
      * @param array<string, bool>                    $expected
      */
     #[DataProvider('provideResourceListChangedFollowsEitherResourceStoreCases')]
@@ -2777,6 +2908,84 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         );
         self::assertInstanceOf(ListResourceTemplatesResult::class, $withEntry);
         self::assertSame(['mem://{id}'], array_map(static fn(ResourceTemplate $template): string => $template->uriTemplate, $withEntry->resourceTemplates));
+    }
+
+    /**
+     * The `notifications` slot of the acknowledgement a full-filter `subscriptions/listen` earns.
+     *
+     * @return array<array-key, mixed>
+     */
+    private function acknowledgedNotificationsFor(Server $server): array
+    {
+        return $this->discoverAndAcknowledgementFor($server)[1];
+    }
+
+    /**
+     * One server run answering `server/discover` and a full-filter `subscriptions/listen`, so both
+     * promise surfaces come from the same built instance.
+     *
+     * @return array{ServerCapabilities, array<array-key, mixed>}
+     */
+    private function discoverAndAcknowledgementFor(Server $server): array
+    {
+        $transport = new RecordingTransport();
+        $serverRun = \Amp\async(static function () use ($server, $transport): void {
+            $server->run($transport);
+        });
+
+        $started = $transport->nextSend();
+
+        EventLoop::queue(static function () use ($transport): void {
+            $transport->emitMessage([
+                'jsonrpc' => '2.0',
+                'id' => 2,
+                'method' => 'server/discover',
+                'params' => ['_meta' => RequestMetaObjectFactory::shape()],
+            ]);
+            $transport->emitMessage([
+                'jsonrpc' => '2.0',
+                'id' => 3,
+                'method' => 'subscriptions/listen',
+                'params' => [
+                    '_meta' => RequestMetaObjectFactory::shape(),
+                    'notifications' => ['toolsListChanged' => true, 'promptsListChanged' => true, 'resourcesListChanged' => true],
+                ],
+            ]);
+        });
+
+        $started->await();
+
+        EventLoop::queue(static function () use ($transport): void {
+            $transport->close();
+        });
+
+        $serverRun->await();
+
+        $capabilities = null;
+        $ack = null;
+
+        foreach ($transport->sent as $entry) {
+            $msg = $entry['message'];
+
+            if ($msg instanceof JsonRpcResultResponse && 2 === $msg->id->id && $msg->result instanceof DiscoverResult) {
+                $capabilities = $msg->result->capabilities;
+            }
+
+            if ($msg instanceof SubscriptionsAcknowledgedNotification) {
+                $ack = $msg;
+            }
+        }
+
+        self::assertNotNull($capabilities, 'The discover request must be answered.');
+        self::assertNotNull($ack, 'The listen must be acknowledged.');
+        $encoded = json_decode(json_encode($ack, \JSON_THROW_ON_ERROR), true, flags: \JSON_THROW_ON_ERROR);
+        self::assertIsArray($encoded);
+        $params = $encoded['params'] ?? null;
+        self::assertIsArray($params);
+        $notifications = $params['notifications'] ?? null;
+        self::assertIsArray($notifications);
+
+        return [$capabilities, $notifications];
     }
 
     private static function buildServerExtension(): StubServerExtension
