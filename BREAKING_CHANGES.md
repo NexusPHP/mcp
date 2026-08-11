@@ -6,6 +6,17 @@ for *when* breaking changes may land and how they are communicated lives in
 
 ## v0.11.0 to Unreleased
 
+### `Icon.src` validation split into permissive decode and conservative authoring
+
+`Icon`'s constructor accepts any RFC 3986 absolute URI, so decoding a peer's listing no longer fails
+on an unusual scheme, a non-base64 `data:` URI, or a parameterised one. The old http/data restriction
+now runs where the SDK authors icons: the four server stores, the builders' `add*` methods,
+`setServerInfo()`/`setClientInfo()`, and `#[AsServer]` at `build()`, with the message
+`... "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data`. Code that relied
+on `new Icon(...)` throwing for a non-http/data `src` must enforce that shape itself before
+construction, and a registration carrying a `file://` icon that previously slipped through
+decode-only paths now fails at registration.
+
 ### `ServerCapabilities` keeps unknown capabilities and models `logging`
 
 `ServerCapabilities` gained a `logging` slot (the spec's deprecated member) and an `extras` slot for

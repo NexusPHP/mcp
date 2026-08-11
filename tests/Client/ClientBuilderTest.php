@@ -22,6 +22,7 @@ use Nexus\Mcp\Core\Exception\MissingNotificationClassException;
 use Nexus\Mcp\Core\Handler\AbstractContext;
 use Nexus\Mcp\Core\Schema\ClientCapabilities;
 use Nexus\Mcp\Core\Schema\Enum\SdkErrorCode;
+use Nexus\Mcp\Core\Schema\Icon;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\ProtocolVersion;
@@ -71,8 +72,15 @@ final class ClientBuilderTest extends AbstractMcpTestCase
         $builder = new ClientBuilder();
 
         $returned = $builder->setClientInfo('demo', '1.0.0');
-
         self::assertSame($builder, $returned);
+    }
+
+    public function testSetClientInfoRefusesANonConservativeIconSrc(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs('clientInfo "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.');
+
+        (new ClientBuilder())->setClientInfo('demo', '1.0.0', icons: [new Icon(src: 'ftp://example.com/icon.png')]);
     }
 
     public function testSetClientCapabilitiesIsFluent(): void

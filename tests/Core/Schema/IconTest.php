@@ -91,13 +91,34 @@ final class IconTest extends AbstractMcpTestCase
     {
         yield 'empty string' => ['', '"icons.src" must be a non-empty string.'];
 
-        yield 'invalid protocol' => ['ftp://example.com/icon.png', '"icons.src" must be a valid HTTP/HTTPS URL or a data URI with base64-encoded data.'];
+        yield 'relative path' => ['/path/to/icon.png', '"icons.src" must be a valid RFC 3986 absolute URI, \'/path/to/icon.png\' given.'];
 
-        yield 'relative path' => ['/path/to/icon.png', '"icons.src" must be a valid HTTP/HTTPS URL or a data URI with base64-encoded data.'];
+        yield 'embedded whitespace' => ['https://example.com/icon a.png', '"icons.src" must contain only ASCII printable characters (no whitespace or control characters), \'https://example.com/icon a.png\' given.'];
+    }
 
-        yield 'data URI without base64' => ['data:image/png,notbase64', '"icons.src" must be a valid HTTP/HTTPS URL or a data URI with base64-encoded data.'];
+    /**
+     * @param non-empty-string $src
+     */
+    #[DataProvider('provideIconAcceptsAnyAbsoluteUriSchemeCases')]
+    public function testIconAcceptsAnyAbsoluteUriScheme(string $src): void
+    {
+        self::assertSame($src, (new Icon(src: $src))->src);
+    }
 
-        yield 'data URI without semicolon' => ['data:image/pngbase64,abc', '"icons.src" must be a valid HTTP/HTTPS URL or a data URI with base64-encoded data.'];
+    /**
+     * @return iterable<string, array{non-empty-string}>
+     */
+    public static function provideIconAcceptsAnyAbsoluteUriSchemeCases(): iterable
+    {
+        yield 'file URI' => ['file:///icons/a.png'];
+
+        yield 'ftp URI' => ['ftp://example.com/icon.png'];
+
+        yield 'data URI without base64' => ['data:image/png,notbase64'];
+
+        yield 'data URI with a charset parameter before base64' => ['data:image/svg+xml;charset=utf-8;base64,PHN2Zz48L3N2Zz4='];
+
+        yield 'minimal data URI' => ['data:;base64,aWNvbg=='];
     }
 
     /**

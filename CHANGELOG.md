@@ -27,6 +27,9 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Fixed
 
+- `Icon` decodes any RFC 3986 URI `src` instead of aborting a whole listing on an unusual scheme. The
+  http/data restriction moved to the authoring surfaces (stores and builders).
+  See [BREAKING_CHANGES.md](BREAKING_CHANGES.md).
 - `ServerCapabilities` now keeps unknown capabilities (top level in a new `extras` slot, nested keys in
   place) and models the deprecated `logging` member, honouring the spec's open-set rule.
   See [BREAKING_CHANGES.md](BREAKING_CHANGES.md).

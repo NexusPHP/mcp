@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema;
 
 use Nexus\Assert\Assert;
+use Nexus\Mcp\Core\Validation\Rfc3986UriValidator;
 
 /**
  * An optionally-sized icon that can be displayed in a user interface.
@@ -41,13 +42,7 @@ final readonly class Icon implements Arrayable
         public ?array $sizes = null,
         public ?string $theme = null,
     ) {
-        Assert::that($src)
-            ->isNonEmptyString('"icons.src" must be a non-empty string.')
-            ->matchesRegularExpression(
-                '/\A(?:https?:\/\/\S+|data:[^;]+;base64,[A-Za-z0-9+\/]+={0,2})\z/',
-                '"icons.src" must be a valid HTTP/HTTPS URL or a data URI with base64-encoded data.',
-            )
-        ;
+        Rfc3986UriValidator::validate($src, '"icons.src"');
         Assert::that($mimeType)
             ->nullOr()
             ->isNonEmptyString('"icons.mimeType" must be a non-empty string or null.')

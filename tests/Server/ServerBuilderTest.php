@@ -2640,6 +2640,79 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         ];
     }
 
+    /**
+     * @param \Closure(ServerBuilder): ServerBuilder $register
+     */
+    #[DataProvider('provideRegisteringANonConservativeIconSrcIsRefusedCases')]
+    public function testRegisteringANonConservativeIconSrcIsRefused(\Closure $register, string $expectedMessage): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs($expectedMessage);
+
+        $register(new ServerBuilder());
+    }
+
+    /**
+     * @return iterable<string, array{\Closure(ServerBuilder): ServerBuilder, string}>
+     */
+    public static function provideRegisteringANonConservativeIconSrcIsRefusedCases(): iterable
+    {
+        yield 'addTool' => [
+            static fn(ServerBuilder $b): ServerBuilder => $b->addTool(
+                new Tool(name: 't', inputSchema: ['type' => 'object'], icons: [new Icon(src: 'ftp://example.com/icon.png')]),
+                static fn(?array $a, ServerContext $c): CallToolResult => new CallToolResult(content: []),
+            ),
+            'tool "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.',
+        ];
+
+        yield 'addPrompt' => [
+            static fn(ServerBuilder $b): ServerBuilder => $b->addPrompt(
+                new Prompt(name: 'p', icons: [new Icon(src: 'ftp://example.com/icon.png')]),
+                static fn(?array $a, ServerContext $c): GetPromptResult => new GetPromptResult(messages: []),
+            ),
+            'prompt "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.',
+        ];
+
+        yield 'addResource' => [
+            static fn(ServerBuilder $b): ServerBuilder => $b->addResource(
+                new Resource(name: 'r', uri: 'mem://r', icons: [new Icon(src: 'ftp://example.com/icon.png')]),
+                static fn(string $u, ServerContext $c): ReadResourceResult => new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private),
+            ),
+            'resource "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.',
+        ];
+
+        yield 'addResourceTemplate' => [
+            static fn(ServerBuilder $b): ServerBuilder => $b->addResourceTemplate(
+                new ResourceTemplate(name: 't', uriTemplate: 'mem://{path}', icons: [new Icon(src: 'ftp://example.com/icon.png')]),
+                static fn(string $u, array $bindings, ServerContext $c): ReadResourceResult => new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private),
+            ),
+            'resource template "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.',
+        ];
+
+        yield 'setServerInfo' => [
+            static fn(ServerBuilder $b): ServerBuilder => $b->setServerInfo('demo', '1.0.0', icons: [new Icon(src: 'ftp://example.com/icon.png')]),
+            'serverInfo "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.',
+        ];
+    }
+
+    public function testANonConservativeAsServerIconSrcIsRefusedAtBuild(): void
+    {
+        $source = new #[AsServer(name: 'demo', version: '1.0.0', icons: [new Icon(src: 'ftp://example.com/icon.png')])] class {
+            #[AsTool(name: 'noop')]
+            public function noop(): CallToolResult
+            {
+                return new CallToolResult(content: []);
+            }
+        };
+
+        $builder = (new ServerBuilder())->register($source);
+
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs('serverInfo "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.');
+
+        $builder->build();
+    }
+
     public function testAToolMayAnswerWithAnInputRequiredResult(): void
     {
         $server = (new ServerBuilder())

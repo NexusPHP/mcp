@@ -19,6 +19,7 @@ use Nexus\Mcp\Core\Exception\InvalidParamsException;
 use Nexus\Mcp\Core\SafeDisplay;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
+use Nexus\Mcp\Core\Schema\Icon;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
@@ -478,6 +479,22 @@ final class ToolStoreTest extends AbstractMcpTestCase
         $this->expectExceptionMessageIs('tool "name" must be 1-128 characters of A-Z, a-z, 0-9, ".", "-", or "_", \'Project Files\' given.');
 
         (new ToolStore())->addTool(new Tool(name: 'Project Files', inputSchema: ['type' => 'object']), new ClosureToolExecutor(static fn(?array $a, ServerContext $c): CallToolResult => new CallToolResult(content: [])));
+    }
+
+    public function testConstructorRefusesANonConservativeIconSrc(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs('tool "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.');
+
+        new ToolStore(['t' => new ToolEntry(new Tool(name: 't', inputSchema: ['type' => 'object'], icons: [new Icon(src: 'ftp://example.com/icon.png')]), new ClosureToolExecutor(static fn(?array $a, ServerContext $c): CallToolResult => new CallToolResult(content: [])))]);
+    }
+
+    public function testAddRefusesANonConservativeIconSrc(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs('tool "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.');
+
+        (new ToolStore())->addTool(new Tool(name: 't', inputSchema: ['type' => 'object'], icons: [new Icon(src: 'ftp://example.com/icon.png')]), new ClosureToolExecutor(static fn(?array $a, ServerContext $c): CallToolResult => new CallToolResult(content: [])));
     }
 
     public function testCallValidatesAnArgumentNameThatIsAllDigits(): void
