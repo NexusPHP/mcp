@@ -121,6 +121,14 @@ final class ResourceStoreTest extends AbstractMcpTestCase
         new ResourceStore(['' => new ResourceEntry(new Resource(name: 'one', uri: 'file:///one'), self::makeReader())]);
     }
 
+    public function testConstructorRejectsAnEntryKeyThatDoesNotMatchItsResourceUri(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('Resource store entry key "\'file:///WRONG\'" must match its resource URI "\'file:///actual\'".');
+
+        new ResourceStore(['file:///WRONG' => new ResourceEntry(new Resource(name: 'r', uri: 'file:///actual'), self::makeReader())]);
+    }
+
     public function testReadInvokesTheReaderMatchingTheUri(): void
     {
         $alphaResult = new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private);

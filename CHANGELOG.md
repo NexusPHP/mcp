@@ -32,6 +32,8 @@ in `0.x`, minor releases may include breaking changes.
   level and inside an expanded object, instead of answering `-32602`.
 - A method-level `#[InputSchema(...)]` without `definition` now merges its constraints over the inferred
   schema instead of being silently discarded.
+- `ResourceStore` refuses an entry whose key differs from its resource's URI at construction, the same
+  check its three sibling stores already run.
 - A `subscriptions/listen` acknowledgement no longer promises a `listChanged` type no registered store can
   produce, matching what `server/discover` advertises.
 - A stdio transport closed from the main context before its read loop's first turn now drains that loop
