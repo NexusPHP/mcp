@@ -1739,6 +1739,23 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         self::assertSame(['csv'], $closureTemplateResult->completion['values']);
     }
 
+    public function testAnAllDigitPromptNameWithACompletionProviderBuilds(): void
+    {
+        $server = (new ServerBuilder())
+            ->setServerInfo('demo', '1.0.0')
+            ->addPrompt(new Prompt(name: '0'), static fn(?array $a, $c): GetPromptResult => new GetPromptResult(messages: []))
+            ->addPromptCompletion('0', 'who', static fn(): CompleteResult => new CompleteResult(completion: ['values' => ['zero']]))
+            ->build()
+        ;
+
+        $result = $this->dispatch($server, 'completion/complete', [
+            'ref' => ['type' => 'ref/prompt', 'name' => '0'],
+            'argument' => ['name' => 'who', 'value' => 'z'],
+        ]);
+        self::assertInstanceOf(CompleteResult::class, $result);
+        self::assertSame(['zero'], $result->completion['values']);
+    }
+
     public function testRegisterDiscoversCompletionProviders(): void
     {
         $server = (new ServerBuilder())

@@ -180,13 +180,42 @@ final class CompletionStoreTest extends AbstractMcpTestCase
         new CompletionStore(promptCompletions: ['' => []]);
     }
 
-    public function testConstructorRejectsIntegerPromptKey(): void
+    public function testAnAllDigitPromptNameSurvivesPhpKeyCoercion(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageMatches('/^Completion store prompt key must be a non-empty string\.$/');
+        $store = new CompletionStore(promptCompletions: [
+            '0' => [
+                'who' => static fn(): CompleteResult => new CompleteResult(completion: ['values' => ['zero']]),
+            ],
+        ]);
 
-        // @phpstan-ignore argument.type
-        new CompletionStore(promptCompletions: [1 => []]);
+        $result = $store->complete(
+            new PromptReference(name: '0'),
+            'who',
+            'z',
+            null,
+            self::makeContext(),
+        );
+
+        self::assertSame(['zero'], $result->completion['values']);
+    }
+
+    public function testAnAllDigitArgumentNameSurvivesPhpKeyCoercion(): void
+    {
+        $store = new CompletionStore(promptCompletions: [
+            'my-prompt' => [
+                '7' => static fn(): CompleteResult => new CompleteResult(completion: ['values' => ['seven']]),
+            ],
+        ]);
+
+        $result = $store->complete(
+            new PromptReference(name: 'my-prompt'),
+            '7',
+            's',
+            null,
+            self::makeContext(),
+        );
+
+        self::assertSame(['seven'], $result->completion['values']);
     }
 
     public function testConstructorRejectsEmptyStringTemplateKey(): void
@@ -198,13 +227,15 @@ final class CompletionStoreTest extends AbstractMcpTestCase
         new CompletionStore(templateCompletions: ['' => []]);
     }
 
-    public function testConstructorRejectsIntegerTemplateKey(): void
+    public function testAnIntegerTemplateKeyIsAcceptedAsItsStringForm(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageMatches('/^Completion store template key must be a non-empty string\.$/');
+        new CompletionStore(templateCompletions: [
+            1 => [
+                'path' => static fn(): CompleteResult => new CompleteResult(completion: ['values' => ['one']]),
+            ],
+        ]);
 
-        // @phpstan-ignore argument.type
-        new CompletionStore(templateCompletions: [1 => []]);
+        $this->expectNotToPerformAssertions();
     }
 
     public function testConstructorRejectsAnEmptyArgumentKey(): void

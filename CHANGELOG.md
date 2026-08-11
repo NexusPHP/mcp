@@ -27,6 +27,7 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Fixed
 
+- A prompt or template completion registered under an all-digit name no longer fails `build()`.
 - A `subscriptions/listen` acknowledgement no longer promises a `listChanged` type no registered store can
   produce, matching what `server/discover` advertises.
 - A stdio transport closed from the main context before its read loop's first turn now drains that loop
