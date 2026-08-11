@@ -81,10 +81,11 @@ task fiber are dropped with a debug log, and outbound requests throw.
 
 ## Storage and retention
 
-`TasksServerExtension` takes a `TaskStoreInterface` (default: `InMemoryTaskStore`). Retention
-starts at the terminal transition: a live task never expires, and a terminal record stays
-readable for `ttlMs` milliseconds after it settles (`null` retains it indefinitely). Defaults are
-`ttlMs: 300_000` and `pollIntervalMs: 1_000`, both constructor-tunable.
+`TasksServerExtension` takes a `TaskStoreInterface` (default: `InMemoryTaskStore`). A task that
+has not settled by `createdAt + ttlMs` is failed at its next observation, and a terminal record,
+that failure included, stays readable for `ttlMs` milliseconds after it settles. A `null` ttl
+retains the task indefinitely and never force-fails it. Defaults are `ttlMs: 300_000` and
+`pollIntervalMs: 1_000`, both constructor-tunable.
 
 The in-memory store confines tasks to the process. The record survives in whatever store you
 implement, but the in-process cancellation map does not, so cancellation is cooperative only

@@ -315,13 +315,116 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
         self::assertNull($record->requestState);
     }
 
-    public function testALiveTaskNeverExpires(): void
+    public function testANonTerminalTaskFailsOnceItsTtlElapses(): void
     {
         $store = $this->buildStore();
         $taskId = $store->createTask('slow_compute', null, 1_000, 1_000)->taskId;
-        $this->now = new \DateTimeImmutable('2026-08-05T12:00:00+00:00');
 
+        $this->now = new \DateTimeImmutable('2026-08-04T12:00:00.999+00:00');
+        $record = $store->findTask($taskId);
+
+        if (! $record instanceof TaskRecord) {
+            self::fail('Expected the task to still be live within its ttl.');
+        }
+
+        self::assertSame(TaskStatus::Working, $record->status);
+
+        $this->now = new \DateTimeImmutable('2026-08-04T12:00:01+00:00');
+        $record = $store->findTask($taskId);
+
+        if (! $record instanceof TaskRecord) {
+            self::fail('Expected the overdue task to be observable as failed.');
+        }
+
+        self::assertSame(TaskStatus::Failed, $record->status);
+        self::assertSame(['code' => -32_603, 'message' => 'The task did not settle within its ttl.'], $record->error);
+    }
+
+    public function testAParkedTaskFailingOnItsTtlClearsThePark(): void
+    {
+        $store = $this->buildStore();
+        $taskId = $store->createTask('needs_input', null, 1_000, 1_000)->taskId;
+        self::assertTrue($store->trySetInputRequired($taskId, ['city' => self::buildElicitRequest()], 'state-token'));
+
+        $this->now = new \DateTimeImmutable('2026-08-04T12:00:02+00:00');
+        $record = $store->findTask($taskId);
+
+        if (! $record instanceof TaskRecord) {
+            self::fail('Expected the overdue task to be observable as failed.');
+        }
+
+        self::assertSame(TaskStatus::Failed, $record->status);
+        self::assertSame([], $record->pendingInputRequests);
+        self::assertNull($record->requestState);
+    }
+
+    public function testACompletionArrivingAfterTheTtlElapsedIsRefused(): void
+    {
+        $store = $this->buildStore();
+        $taskId = $store->createTask('slow_compute', null, 1_000, 1_000)->taskId;
+
+        $this->now = new \DateTimeImmutable('2026-08-04T12:00:02+00:00');
+
+        self::assertFalse($store->trySetCompleted($taskId, ['resultType' => 'complete']));
+    }
+
+    public function testAnExpiryFailureIsRetainedForTtlAfterTheFailure(): void
+    {
+        $store = $this->buildStore();
+        $taskId = $store->createTask('slow_compute', null, 1_000, 1_000)->taskId;
+
+        $this->now = new \DateTimeImmutable('2026-08-04T12:00:05+00:00');
+        $record = $store->findTask($taskId);
+
+        if (! $record instanceof TaskRecord) {
+            self::fail('Expected the overdue task to be observable as failed.');
+        }
+
+        self::assertSame(TaskStatus::Failed, $record->status);
+
+        $this->now = new \DateTimeImmutable('2026-08-04T12:00:05.999+00:00');
         self::assertInstanceOf(TaskRecord::class, $store->findTask($taskId));
+
+        $this->now = new \DateTimeImmutable('2026-08-04T12:00:06+00:00');
+        self::assertNull($store->findTask($taskId));
+    }
+
+    public function testALiveTaskWithANullTtlNeverFails(): void
+    {
+        $store = $this->buildStore();
+        $taskId = $store->createTask('slow_compute', null, null, 1_000)->taskId;
+        $this->now = new \DateTimeImmutable('2027-08-04T12:00:00+00:00');
+
+        $record = $store->findTask($taskId);
+
+        if (! $record instanceof TaskRecord) {
+            self::fail('Expected a null-ttl task to stay live.');
+        }
+
+        self::assertSame(TaskStatus::Working, $record->status);
+    }
+
+    public function testCreateTaskSweepsOverdueNonTerminalRecords(): void
+    {
+        $store = $this->buildStore();
+        $overdue = $store->createTask('slow_compute', null, 1_000, 1_000)->taskId;
+
+        $this->now = $this->now->modify('+2 seconds');
+        $store->createTask('slow_compute', null, 1_000, 1_000);
+
+        $records = (new \ReflectionProperty(InMemoryTaskStore::class, 'records'))->getValue($store);
+        self::assertIsArray($records);
+        self::assertArrayHasKey($overdue, $records);
+        $record = $records[$overdue];
+        self::assertInstanceOf(TaskRecord::class, $record);
+        self::assertSame(TaskStatus::Failed, $record->status);
+
+        $this->now = $this->now->modify('+2 seconds');
+        $store->createTask('slow_compute', null, 1_000, 1_000);
+
+        $records = (new \ReflectionProperty(InMemoryTaskStore::class, 'records'))->getValue($store);
+        self::assertIsArray($records);
+        self::assertArrayNotHasKey($overdue, $records);
     }
 
     public function testATerminalTaskExpiresAtItsRetentionBoundary(): void

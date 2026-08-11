@@ -27,6 +27,8 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Fixed
 
+- `InMemoryTaskStore` now fails a task that has not settled by `createdAt + ttlMs` and sweeps it,
+  instead of retaining a parked task forever.
 - `HeaderMismatchError` now carries `data` like its sibling errors, instead of silently dropping it on
   construction and decode.
 - Building a `-32021` or `-32022` error without its `data` payload now fails with a message naming the

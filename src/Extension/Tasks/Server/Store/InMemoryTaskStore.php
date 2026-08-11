@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Extension\Tasks\Server\Store;
 
+use Nexus\Mcp\Core\JsonRpc\ErrorFactory;
+use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Request\InputRequest;
 use Nexus\Mcp\Core\Schema\Result\InputResponse;
 use Nexus\Mcp\Extension\Tasks\Schema\Enum\TaskStatus;
@@ -49,7 +51,7 @@ final class InMemoryTaskStore implements TaskStoreInterface
     #[\Override]
     public function createTask(string $toolName, ?array $arguments, ?int $ttlMs, int $pollIntervalMs): TaskRecord
     {
-        foreach (array_keys($this->terminalAt) as $taskId) {
+        foreach (array_keys($this->records) as $taskId) {
             $this->findTask($taskId);
         }
 
@@ -85,6 +87,15 @@ final class InMemoryTaskStore implements TaskStoreInterface
             unset($this->records[$taskId], $this->terminalAt[$taskId]);
 
             return null;
+        }
+
+        if ($this->hasOverstayed($record)) {
+            return $this->replaceRecord($record, TaskStatus::Failed, [
+                'error' => ErrorFactory::create(ProtocolErrorCode::InternalError, 'The task did not settle within its ttl.')->toArray(),
+                'pendingInputRequests' => [],
+                'inputResponses' => [],
+                'requestState' => null,
+            ]);
         }
 
         return $record;
@@ -292,6 +303,21 @@ final class InMemoryTaskStore implements TaskStoreInterface
         }
 
         $elapsedMs = self::toMillisecondTimestamp(($this->clock)()) - self::toMillisecondTimestamp($terminalAt);
+
+        return $elapsedMs >= $record->ttlMs;
+    }
+
+    /**
+     * True when a non-terminal record has outlived `createdAt + ttlMs`, which SEP-2663 allows failing.
+     */
+    private function hasOverstayed(TaskRecord $record): bool
+    {
+        if (null === $record->ttlMs || self::isTerminal($record->status)) {
+            return false;
+        }
+
+        $elapsedMs = self::toMillisecondTimestamp(($this->clock)())
+            - self::toMillisecondTimestamp(new \DateTimeImmutable($record->createdAt));
 
         return $elapsedMs >= $record->ttlMs;
     }
