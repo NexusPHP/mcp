@@ -54,6 +54,37 @@ final class HeaderMismatchErrorTest extends AbstractMcpTestCase
         self::assertSame(['code' => -32_020, 'message' => 'header mismatch'], $error->toArray());
     }
 
+    public function testCanIncludeData(): void
+    {
+        $data = ['header' => 'Mcp-Method'];
+        $error = new HeaderMismatchError(message: 'header mismatch', data: $data);
+
+        self::assertSame($data, $error->data);
+    }
+
+    public function testToArrayCarriesData(): void
+    {
+        $error = new HeaderMismatchError(message: 'header mismatch', data: ['header' => 'Mcp-Method']);
+
+        self::assertSame([
+            'code' => -32_020,
+            'message' => 'header mismatch',
+            'data' => ['header' => 'Mcp-Method'],
+        ], $error->toArray());
+    }
+
+    public function testJsonSerializeCarriesData(): void
+    {
+        $data = ['header' => 'Mcp-Method'];
+        $error = new HeaderMismatchError(message: 'header mismatch', data: $data);
+
+        self::assertSame([
+            'code' => -32_020,
+            'message' => 'header mismatch',
+            'data' => $data,
+        ], $error->jsonSerialize());
+    }
+
     public function testJsonSerializeMatchesToArray(): void
     {
         $error = new HeaderMismatchError(message: 'header mismatch');
@@ -69,6 +100,18 @@ final class HeaderMismatchErrorTest extends AbstractMcpTestCase
     public function testFromArrayReadsMessage(): void
     {
         self::assertSame('boom', HeaderMismatchError::fromArray(['message' => 'boom'])->message);
+    }
+
+    public function testFromArrayReadsData(): void
+    {
+        $error = HeaderMismatchError::fromArray(['message' => 'boom', 'data' => ['header' => 'Mcp-Method']]);
+
+        self::assertSame(['header' => 'Mcp-Method'], $error->data);
+    }
+
+    public function testFromArrayWithoutDataReadsNull(): void
+    {
+        self::assertNull(HeaderMismatchError::fromArray(['message' => 'boom'])->data);
     }
 
     public function testFromArrayRejectsNonStringMessage(): void

@@ -43,7 +43,7 @@ final class ErrorFactory
             ProtocolErrorCode::MethodNotFound => new MethodNotFoundError(message: $message, data: $data),
             ProtocolErrorCode::InvalidParams => new InvalidParamsError(message: $message, data: $data),
             ProtocolErrorCode::InternalError => new InternalError(message: $message, data: $data),
-            ProtocolErrorCode::HeaderMismatch => new HeaderMismatchError(message: $message),
+            ProtocolErrorCode::HeaderMismatch => new HeaderMismatchError(message: $message, data: $data),
             ProtocolErrorCode::MissingRequiredClientCapability => MissingRequiredClientCapabilityError::fromArray([
                 'message' => $message,
                 'data' => self::requireData($data, $code, '"requiredCapabilities"'),

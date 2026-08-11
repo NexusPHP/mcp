@@ -120,6 +120,14 @@ final class ErrorFactoryTest extends AbstractMcpTestCase
         ];
     }
 
+    public function testCreatePropagatesDataForHeaderMismatch(): void
+    {
+        $error = ErrorFactory::create(ProtocolErrorCode::HeaderMismatch, 'header mismatch', ['header' => 'Mcp-Method']);
+
+        self::assertInstanceOf(HeaderMismatchError::class, $error);
+        self::assertSame(['header' => 'Mcp-Method'], $error->data);
+    }
+
     public function testCreatePropagatesData(): void
     {
         $data = ['trace_id' => 'abc123'];

@@ -27,6 +27,8 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Fixed
 
+- `HeaderMismatchError` now carries `data` like its sibling errors, instead of silently dropping it on
+  construction and decode.
 - Building a `-32021` or `-32022` error without its `data` payload now fails with a message naming the
   code and the keys it requires, instead of a generic decode error.
 - A prompt or template completion registered under an all-digit name no longer fails `build()`.

@@ -33,9 +33,9 @@ final readonly class HeaderMismatchError extends Error
     /**
      * @param non-empty-string $message
      */
-    public function __construct(string $message = self::DEFAULT_MESSAGE)
+    public function __construct(string $message = self::DEFAULT_MESSAGE, mixed $data = null)
     {
-        parent::__construct(code: ProtocolErrorCode::HeaderMismatch, message: $message);
+        parent::__construct(code: ProtocolErrorCode::HeaderMismatch, message: $message, data: $data);
     }
 
     #[\Override]
@@ -44,15 +44,23 @@ final readonly class HeaderMismatchError extends Error
         $message = $data['message'] ?? self::DEFAULT_MESSAGE;
         Assert::that($message)->isNonEmptyString('error "message" must be a non-empty string, {type} given.');
 
-        return new self(message: $message);
+        return new self(message: $message, data: $data['data'] ?? null);
     }
 
     #[\Override]
     public function toArray(): array
     {
-        return [
+        $result = [
             'code' => ProtocolErrorCode::HeaderMismatch->value,
             'message' => $this->message,
         ];
+
+        $data = $this->data ?? [];
+
+        if ([] !== $data) {
+            $result['data'] = $data;
+        }
+
+        return $result;
     }
 }

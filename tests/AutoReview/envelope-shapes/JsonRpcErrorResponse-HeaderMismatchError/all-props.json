@@ -3,6 +3,10 @@
     "id": 7,
     "error": {
         "code": -32020,
-        "message": "The \"Mcp-Method\" header does not match the request body."
+        "message": "The \"Mcp-Method\" header does not match the request body.",
+        "data": {
+            "header": "Mcp-Method",
+            "expected": "tools/call"
+        }
     }
 }
