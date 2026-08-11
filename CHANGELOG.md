@@ -27,6 +27,8 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Fixed
 
+- An authorization caller that stops waiting for the coordinator's lock now returns the permit it is
+  eventually handed, so later token operations no longer depend on collection timing to proceed.
 - `SubscriptionStore` counts a stream whose acknowledgement is still in flight against `maxSubscriptions`,
   so the limit holds against a peer that stops reading.
 - `subscriptions/listen` no longer occupies an in-flight dispatch slot on a server that serves it, and

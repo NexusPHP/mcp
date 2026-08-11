@@ -18,6 +18,7 @@ use Amp\CancelledException;
 use Amp\DeferredFuture;
 use Amp\Future;
 use Amp\NullCancellation;
+use Amp\Sync\Semaphore;
 use Amp\TimeoutCancellation;
 use Nexus\Mcp\Client\Auth\AccessToken;
 use Nexus\Mcp\Client\Auth\AuthorizationCallback;
@@ -39,6 +40,7 @@ use Nexus\Mcp\Core\Auth\ResourceIdentifier;
 use Nexus\Mcp\Core\Auth\ScopeSet;
 use Nexus\Mcp\Core\Auth\WwwAuthenticateChallenge;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
+use Nexus\Mcp\Tests\Fixtures\Client\Auth\RetainingSemaphore;
 use Nexus\Mcp\Tests\Fixtures\Client\Auth\ScriptedGrantStrategy;
 use Nexus\Mcp\Tests\Fixtures\Client\Auth\ScriptedUserAuthorization;
 use Nexus\Mcp\Tests\Fixtures\Client\Http\RecordingHttpClient;
@@ -520,6 +522,33 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
 
         self::assertSame('the-access-token', $holder->await()->value);
         self::assertSame('the-access-token', $served);
+    }
+
+    public function testAWaiterThatGaveUpReturnsThePermitItIsHandedWithoutWaitingOnCollection(): void
+    {
+        $gate = new DeferredFuture();
+        $http = (new RecordingHttpClient())
+            ->willAnswerJson(self::resourceDocument(), gate: $gate->getFuture())
+            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson(['client_id' => 'the-registered-client'])
+            ->willAnswerJson(['access_token' => 'the-access-token', 'token_type' => 'Bearer'])
+        ;
+        $semaphore = new RetainingSemaphore();
+        $coordinator = self::coordinator($http, new ScriptedUserAuthorization(), lock: $semaphore);
+
+        /** @var Future<AccessToken> $holder */
+        $holder = async(static fn(): AccessToken => $coordinator->reauthorize(null, null, new NullCancellation()));
+        delay(0);
+        $abandoned = async(static fn(): AccessToken => $coordinator->reauthorize(null, null, new TimeoutCancellation(0.01)));
+        delay(0.05);
+        $abandoned->ignore();
+
+        $gate->complete();
+        $holder->await();
+        delay(0);
+
+        self::assertSame(2, $semaphore->released, 'The holder and the abandoned waiter must each return their permit explicitly.');
+        self::assertFalse($semaphore->isHeld(), 'A permit no one holds must be free for the next caller.');
     }
 
     public function testTheReEntryEscapeLastsOnlyAsLongAsTheCallThatTookTheLock(): void
@@ -1104,6 +1133,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
         bool $offlineAccess = false,
         array $defaultScopes = [],
         string $resource = self::RESOURCE,
+        ?Semaphore $lock = null,
     ): AuthorizationCoordinator {
         return new AuthorizationCoordinator(
             new ResourceIdentifier($resource),
@@ -1120,6 +1150,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
                 defaultScopes: $defaultScopes,
             ),
             $logger ?? new ArrayLogger(),
+            ...(null === $lock ? [] : ['lock' => $lock]),
         );
     }
 
