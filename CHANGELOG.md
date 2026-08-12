@@ -10,6 +10,8 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Fixed
 
+- `ServerBuilder::register()` refuses a discovered entry whose key an earlier source already declared,
+  throwing `DuplicateDiscoveredEntryException` naming both sources, instead of silently overwriting.
 - `ElicitResult` accepts an empty string inside a `string[]` content value, matching the spec's
   unconstrained item type, instead of failing the whole retry with `-32602`.
 

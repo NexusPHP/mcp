@@ -56,11 +56,16 @@ use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
 use Nexus\Mcp\Core\Schema\ServerCapabilities;
 use Nexus\Mcp\Core\Schema\SubscriptionFilter;
 use Nexus\Mcp\Core\Schema\Tool\Tool;
+use Nexus\Mcp\Server\Attribute\AsCompletion;
+use Nexus\Mcp\Server\Attribute\AsPrompt;
+use Nexus\Mcp\Server\Attribute\AsResource;
+use Nexus\Mcp\Server\Attribute\AsResourceTemplate;
 use Nexus\Mcp\Server\Attribute\AsServer;
 use Nexus\Mcp\Server\Attribute\AsTool;
 use Nexus\Mcp\Server\Completion\CompletionProviderInterface;
 use Nexus\Mcp\Server\Completion\CompletionStore;
 use Nexus\Mcp\Server\Exception\BuilderAlreadyBuiltException;
+use Nexus\Mcp\Server\Exception\DuplicateDiscoveredEntryException;
 use Nexus\Mcp\Server\Exception\DuplicateServerMetadataException;
 use Nexus\Mcp\Server\Exception\MissingDiscoveryAttributeException;
 use Nexus\Mcp\Server\Exception\ReservedMethodException;
@@ -99,6 +104,7 @@ use Nexus\Mcp\Tests\Fixtures\Core\TestSecondClientRequest;
 use Nexus\Mcp\Tests\Fixtures\Core\TestSecondNotification;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
 use Nexus\Mcp\Tests\Fixtures\Server\Completion\RecordingCompletionStore;
+use Nexus\Mcp\Tests\Fixtures\Server\Discovery\CollidingSearchTool;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\CompletionHandlers;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\DiscoverableServer;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\SelfDescribingServer;
@@ -1003,6 +1009,189 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             }
         };
         (new ServerBuilder())->register($source);
+    }
+
+    /**
+     * @param non-empty-string $expectedPattern
+     */
+    #[DataProvider('provideRegisterRefusesADuplicateDiscoveredEntryCases')]
+    public function testRegisterRefusesADuplicateDiscoveredEntry(object $first, object $second, string $expectedPattern): void
+    {
+        $this->expectException(DuplicateDiscoveredEntryException::class);
+        $this->expectExceptionMessageMatches($expectedPattern);
+
+        (new ServerBuilder())->register($first, $second);
+    }
+
+    /**
+     * @return iterable<string, array{object, object, non-empty-string}>
+     */
+    public static function provideRegisterRefusesADuplicateDiscoveredEntryCases(): iterable
+    {
+        yield 'tool' => [
+            new class {
+                #[AsTool(name: 'search')]
+                public function a(): string
+                {
+                    return 'a';
+                }
+            },
+            new class {
+                #[AsTool(name: 'search')]
+                public function b(): string
+                {
+                    return 'b';
+                }
+            },
+            '/^"class@anonymous[^"]*" declares tool "search", which "class@anonymous[^"]*" already declares\.$/',
+        ];
+
+        yield 'prompt' => [
+            new class {
+                #[AsPrompt(name: 'compose')]
+                public function a(): string
+                {
+                    return 'a';
+                }
+            },
+            new class {
+                #[AsPrompt(name: 'compose')]
+                public function b(): string
+                {
+                    return 'b';
+                }
+            },
+            '/^"class@anonymous[^"]*" declares prompt "compose", which "class@anonymous[^"]*" already declares\.$/',
+        ];
+
+        yield 'resource' => [
+            new class {
+                #[AsResource(uri: 'config://app')]
+                public function a(string $uri): string
+                {
+                    return 'a';
+                }
+            },
+            new class {
+                #[AsResource(uri: 'config://app')]
+                public function b(string $uri): string
+                {
+                    return 'b';
+                }
+            },
+            '/^"class@anonymous[^"]*" declares resource "config:\/\/app", which "class@anonymous[^"]*" already declares\.$/',
+        ];
+
+        yield 'resource template' => [
+            new class {
+                #[AsResourceTemplate(uriTemplate: 'users://{id}')]
+                public function a(string $uri, string $id): string
+                {
+                    return 'a';
+                }
+            },
+            new class {
+                #[AsResourceTemplate(uriTemplate: 'users://{id}')]
+                public function b(string $uri, string $id): string
+                {
+                    return 'b';
+                }
+            },
+            '/^"class@anonymous[^"]*" declares resource template "users:\/\/\{id\}", which "class@anonymous[^"]*" already declares\.$/',
+        ];
+
+        yield 'prompt completion' => [
+            new class {
+                /**
+                 * @return list<string>
+                 */
+                #[AsCompletion(argument: 'topic', prompt: 'compose')]
+                public function a(string $value): array
+                {
+                    return [];
+                }
+            },
+            new class {
+                /**
+                 * @return list<string>
+                 */
+                #[AsCompletion(argument: 'topic', prompt: 'compose')]
+                public function b(string $value): array
+                {
+                    return [];
+                }
+            },
+            '/^"class@anonymous[^"]*" declares prompt completion "compose:topic", which "class@anonymous[^"]*" already declares\.$/',
+        ];
+
+        yield 'resource template completion' => [
+            new class {
+                /**
+                 * @return list<string>
+                 */
+                #[AsCompletion(argument: 'id', uriTemplate: 'users://{id}')]
+                public function a(string $value): array
+                {
+                    return [];
+                }
+            },
+            new class {
+                /**
+                 * @return list<string>
+                 */
+                #[AsCompletion(argument: 'id', uriTemplate: 'users://{id}')]
+                public function b(string $value): array
+                {
+                    return [];
+                }
+            },
+            '/^"class@anonymous[^"]*" declares resource template completion "users:\/\/\{id\}:id", which "class@anonymous[^"]*" already declares\.$/',
+        ];
+    }
+
+    public function testRegisterNamesBothSourcesOnACollision(): void
+    {
+        $this->expectException(DuplicateDiscoveredEntryException::class);
+        $this->expectExceptionMessageIs(
+            '"Nexus\Mcp\Tests\Fixtures\Server\Discovery\CollidingSearchTool" declares tool "search", which "Nexus\Mcp\Tests\Fixtures\Server\Discovery\CollidingSearchTool" already declares.',
+        );
+
+        (new ServerBuilder())->register(new CollidingSearchTool(), new CollidingSearchTool());
+    }
+
+    public function testRegisterMayReplaceAnExplicitlyAddedEntry(): void
+    {
+        $builder = (new ServerBuilder())
+            ->addTool(
+                new Tool(name: 'search', inputSchema: ['type' => 'object']),
+                static fn(?array $args, $ctx): CallToolResult => new CallToolResult(content: []),
+            )
+            ->register(new CollidingSearchTool())
+        ;
+
+        self::assertNotNull($builder->getToolStore());
+    }
+
+    public function testAToolAndAPromptMayShareADiscoveredName(): void
+    {
+        $source = new class {
+            #[AsTool(name: 'shared')]
+            public function tool(): string
+            {
+                return 't';
+            }
+
+            #[AsPrompt(name: 'shared')]
+            public function prompt(): string
+            {
+                return 'p';
+            }
+        };
+
+        $builder = (new ServerBuilder())->register($source);
+
+        self::assertNotNull($builder->getToolStore());
+        self::assertNotNull($builder->getPromptStore());
     }
 
     public function testExplicitInstructionsTakePrecedenceOverAttribute(): void

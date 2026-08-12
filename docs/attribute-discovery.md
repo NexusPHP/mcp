@@ -42,6 +42,11 @@ $server->run(new StdioServerTransport());
 `#[AsServer]` and no attribute-marked method throws `MissingDiscoveryAttributeException`, which catches
 typo'd attribute names and objects passed in by mistake.
 
+Two discovered entries may not share a key: a tool or prompt name, a resource URI, a template's URI
+template, or a completion's ref-argument pair declared twice throws `DuplicateDiscoveredEntryException`
+naming both sources. Names default to the method name, so two sources each exposing a `search()` tool
+collide. The explicit `add*` methods keep their last-call-wins behaviour.
+
 ## What the attributes map to
 
 | Attribute | Target | Becomes |
