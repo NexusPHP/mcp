@@ -20,6 +20,8 @@ in `0.x`, minor releases may include breaking changes.
   `db://literal` is reachable behind an earlier `db://{table}`. Ties keep registration order.
 - A discovered `#[AsResourceTemplate]` naming a template variable `uri` is refused at registration,
   instead of the variable silently shadowing the `$uri` parameter's request URI.
+- The stdio client's spawn log names only the subprocess binary and its argument count, keeping
+  credentials passed in argv out of log records.
 - `ElicitResult` accepts an empty string inside a `string[]` content value, matching the spec's
   unconstrained item type, instead of failing the whole retry with `-32602`.
 

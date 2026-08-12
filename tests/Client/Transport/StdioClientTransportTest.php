@@ -50,6 +50,7 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('Stdio client command must not be empty.');
 
+        // @phpstan-ignore argument.type (deliberately empty to exercise the runtime guard)
         new StdioClientTransport([]);
     }
 
@@ -138,13 +139,28 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
 
         $matches = $logger->recordsMatching(
             LogLevel::INFO,
-            '{label} transport spawned subprocess. Command: {command} (PID {pid}).',
+            '{label} transport spawned subprocess. Command: {command} ({argumentCount} arguments, PID {pid}).',
         );
         self::assertCount(1, $matches);
         self::assertSame(
-            ['label' => 'Stdio client', 'command' => 'mcp-server --stdio', 'pid' => 4_242],
+            ['label' => 'Stdio client', 'command' => 'mcp-server', 'argumentCount' => 1, 'pid' => 4_242],
             $matches[0]['context'],
         );
+    }
+
+    public function testStartLogsNoSubprocessArgument(): void
+    {
+        $logger = new ArrayLogger();
+        $transport = new StdioClientTransport(
+            ['mcp-server', '--api-key', 's3cr3t-value'],
+            logger: $logger,
+            launcher: new ScriptedSubprocessLauncher(),
+        );
+
+        $transport->start();
+        $transport->close();
+
+        self::assertStringNotContainsString('s3cr3t-value', json_encode($logger->records, \JSON_THROW_ON_ERROR));
     }
 
     public function testStartAfterStartThrowsAndTearsTheSecondSubprocessDown(): void
