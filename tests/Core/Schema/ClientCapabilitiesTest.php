@@ -204,6 +204,27 @@ final class ClientCapabilitiesTest extends AbstractMcpTestCase
         self::assertSame('{"sampling":{}}', json_encode($caps, \JSON_THROW_ON_ERROR));
     }
 
+    public function testJsonEncodeKeepsAnEmptyListNestedInAVendorCapability(): void
+    {
+        $caps = ClientCapabilities::fromArray(['com.example/vendor' => ['modes' => []]]);
+
+        self::assertSame('{"com.example\/vendor":{"modes":[]}}', json_encode($caps, \JSON_THROW_ON_ERROR));
+    }
+
+    public function testJsonEncodeNormalisesEverySlotAfterAnEmptyOne(): void
+    {
+        $caps = new ClientCapabilities(experimental: [], extras: ['sampling' => []]);
+
+        self::assertSame('{"experimental":{},"sampling":{}}', json_encode($caps, \JSON_THROW_ON_ERROR));
+    }
+
+    public function testJsonEncodeNormalisesEverySlotAfterAScalarOne(): void
+    {
+        $caps = new ClientCapabilities(extras: ['flag' => true, 'sampling' => []]);
+
+        self::assertSame('{"flag":true,"sampling":{}}', json_encode($caps, \JSON_THROW_ON_ERROR));
+    }
+
     /**
      * @param array<string, mixed> $payload
      */

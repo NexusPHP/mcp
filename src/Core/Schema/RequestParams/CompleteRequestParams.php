@@ -42,7 +42,7 @@ final readonly class CompleteRequestParams extends RequestParams
     public array $argument;
 
     /**
-     * @var null|array{arguments?: array<array-key, string>}
+     * @var null|array{arguments: non-empty-array<array-key, string>}
      */
     public ?array $context;
 
@@ -67,9 +67,8 @@ final readonly class CompleteRequestParams extends RequestParams
         }
 
         $this->argument = ['name' => $argument['name'], 'value' => $argument['value']];
-        $this->context = null === $context ? null : (
-            \array_key_exists('arguments', $context) ? ['arguments' => $context['arguments']] : []
-        );
+        $arguments = $context['arguments'] ?? [];
+        $this->context = [] === $arguments ? null : ['arguments' => $arguments];
 
         parent::__construct(meta: $meta);
     }
@@ -135,7 +134,7 @@ final readonly class CompleteRequestParams extends RequestParams
             'argument' => $this->argument,
         ];
 
-        if ([] !== ($this->context['arguments'] ?? [])) {
+        if (null !== $this->context) {
             $data['context'] = $this->context;
         }
 

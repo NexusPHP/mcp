@@ -24,6 +24,12 @@ in `0.x`, minor releases may include breaking changes.
   credentials passed in argv out of log records.
 - `WWW-Authenticate` parameter values are stripped of the control octets RFC 7230 forbids as they are
   parsed, so a hostile challenge cannot smuggle terminal escapes into logs and exception messages.
+- `CompleteRequestParams` normalises a `context` carrying no resolved arguments to null, so the property
+  agrees with the encoders that already omitted it.
+- `ClientCapabilities` and `ServerCapabilities` keep an empty array nested inside a vendor capability as
+  `[]` when encoding. The capability slot itself still encodes as `{}` when empty.
+- `Icon`'s constructor applies the same `sizes` list guard as its decoder, so an icon the SDK cannot
+  re-read is refused at construction.
 - `ElicitResult` accepts an empty string inside a `string[]` content value, matching the spec's
   unconstrained item type, instead of failing the whole retry with `-32602`.
 

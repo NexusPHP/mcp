@@ -1,0 +1,7 @@
+{
+    "com.example/empty": {},
+    "com.example/vendor": {
+        "flag": true,
+        "modes": []
+    }
+}

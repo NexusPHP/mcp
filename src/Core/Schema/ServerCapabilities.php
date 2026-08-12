@@ -145,8 +145,19 @@ final readonly class ServerCapabilities implements Arrayable
         }
 
         foreach ($data as $key => $value) {
-            if (\is_array($value)) {
-                $data[$key] = [] === $value ? new \stdClass() : self::normalizeEmptyObjects($value);
+            if (! \is_array($value)) {
+                continue;
+            }
+
+            if ([] === $value) {
+                $data[$key] = new \stdClass();
+
+                continue;
+            }
+
+            // A vendor capability's interior is schema-less, so its nested empty arrays stay lists.
+            if (! \array_key_exists($key, $this->extras)) {
+                $data[$key] = self::normalizeEmptyObjects($value);
             }
         }
 

@@ -240,6 +240,27 @@ final class ServerCapabilitiesTest extends AbstractMcpTestCase
         self::assertSame('{"com.example\/vendor":{}}', json_encode($caps));
     }
 
+    public function testJsonEncodeKeepsAnEmptyListNestedInAVendorCapability(): void
+    {
+        $caps = ServerCapabilities::fromArray(['com.example/vendor' => ['modes' => []]]);
+
+        self::assertSame('{"com.example\/vendor":{"modes":[]}}', json_encode($caps));
+    }
+
+    public function testJsonEncodeNormalisesEverySlotAfterAnEmptyOne(): void
+    {
+        $caps = ServerCapabilities::fromArray(['prompts' => [], 'com.example/vendor' => []]);
+
+        self::assertSame('{"prompts":{},"com.example\/vendor":{}}', json_encode($caps));
+    }
+
+    public function testJsonEncodeNormalisesEverySlotAfterAScalarOne(): void
+    {
+        $caps = ServerCapabilities::fromArray(['com.example/flag' => true, 'com.example/vendor' => []]);
+
+        self::assertSame('{"com.example\/flag":true,"com.example\/vendor":{}}', json_encode($caps));
+    }
+
     public function testFromArrayResourcesPartialFields(): void
     {
         $caps = ServerCapabilities::fromArray(['resources' => ['listChanged' => false]]);

@@ -62,7 +62,7 @@ final class CompleteRequestParamsTest extends AbstractMcpTestCase
         self::assertSame($meta, $params->meta);
     }
 
-    public function testConstructionAcceptsEmptyContext(): void
+    public function testConstructionNormalisesAnEmptyContextToNull(): void
     {
         $params = new CompleteRequestParams(
             ref: new PromptReference(name: 'code-review'),
@@ -71,7 +71,21 @@ final class CompleteRequestParamsTest extends AbstractMcpTestCase
             context: [],
         );
 
-        self::assertSame([], $params->context);
+        self::assertNull($params->context);
+        self::assertArrayNotHasKey('context', $params->toArray());
+    }
+
+    public function testConstructionNormalisesAContextOfEmptyArgumentsToNull(): void
+    {
+        $params = new CompleteRequestParams(
+            ref: new PromptReference(name: 'code-review'),
+            argument: ['name' => 'topic', 'value' => 'auth'],
+            meta: RequestMetaObjectFactory::create(),
+            context: ['arguments' => []],
+        );
+
+        self::assertNull($params->context);
+        self::assertArrayNotHasKey('context', $params->toArray());
     }
 
     public function testToArrayMinimal(): void
@@ -190,7 +204,8 @@ final class CompleteRequestParamsTest extends AbstractMcpTestCase
             '_meta' => RequestMetaObjectFactory::shape(),
         ]);
 
-        self::assertSame([], $params->context);
+        self::assertNull($params->context);
+        self::assertArrayNotHasKey('context', $params->toArray());
     }
 
     public function testFromArrayFullRoundTrip(): void

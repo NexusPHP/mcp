@@ -1,0 +1,10 @@
+{
+    "prompts": {
+        "listChanged": true
+    },
+    "com.example/empty": {},
+    "com.example/vendor": {
+        "flag": true,
+        "modes": []
+    }
+}

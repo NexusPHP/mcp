@@ -74,6 +74,15 @@ final class IconTest extends AbstractMcpTestCase
         self::assertSame('dark', $icon->theme);
     }
 
+    public function testConstructorRejectsStringKeyedSizes(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs('"icons.sizes" must be a list of strings or null, array given.');
+
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
+        new Icon(src: 'https://example.com/icon.png', sizes: ['sm' => '48x48']);
+    }
+
     #[DataProvider('provideIconSrcValidationCases')]
     public function testIconSrcValidation(string $src, string $expectedMessage): void
     {

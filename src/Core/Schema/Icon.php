@@ -54,6 +54,7 @@ final readonly class Icon implements Arrayable
 
         if (null !== $sizes) {
             Assert::that($sizes)
+                ->isList('"icons.sizes" must be a list of strings or null, {type} given.')
                 ->values()
                 ->isNonEmptyString('each "icons.sizes" must be a non-empty string.')
                 ->matchesRegularExpression('/\A(\d+x\d+|any)\z/', 'each "icons.sizes" must be in the format "WIDTHxHEIGHT" or "any".')
