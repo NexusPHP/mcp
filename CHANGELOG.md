@@ -8,6 +8,13 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp/commits/1.x)
 
+## [v0.12.0](https://github.com/NexusPHP/mcp/compare/v0.11.0...v0.12.0) - 2026-08-12
+
+Lifecycle correctness on both peers: close/drain ordering, in-flight caps that hold under pressure,
+subscription accounting, and task expiry and stall guarantees. The schema side now honours the spec's
+open capability set and the empty `{}` sub-schemas the decoder collapses to `[]`. Seven breaking
+changes ride along (see [BREAKING_CHANGES.md](BREAKING_CHANGES.md)).
+
 ### Added
 
 - `ClientBuilder::setMaxInFlightDispatches()` caps how many inbound messages a client processes at once.
