@@ -27,6 +27,9 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Fixed
 
+- An empty `{}` sub-schema, which `json_decode(..., true)` renders as PHP `[]`, no longer fails every
+  `tools/call` with a bare internal error: the default validator restores it in every sub-schema position.
+- `#[InputSchema(definition: [])]` is refused at construction instead of being read differently per level.
 - A completion answering more than the spec's 100-value cap is truncated with `hasMore: true` and a
   `total`, instead of shipping an over-long list.
 - `Icon` decodes any RFC 3986 URI `src` instead of aborting a whole listing on an unusual scheme. The

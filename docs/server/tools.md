@@ -135,8 +135,11 @@ A tool call is validated against the tool's schemas on the way in and on the way
   the client as a generic error result, so malformed structured data is never sent.
 
 Validation is backed by [opis/json-schema](https://github.com/opis/json-schema) (JSON Schema draft
-2020-12) by default. Supply your own engine by implementing `SchemaValidatorInterface` and registering it
-with `ServerBuilder::setSchemaValidator()`.
+2020-12) by default. The `[]`-versus-`{}` ambiguity exists inside a schema too: `json_decode(..., true)`
+renders the always-valid `{}` as PHP `[]`, so the default validator restores it in every sub-schema
+position (a `properties` value, `items`, an `allOf` element, and the rest) before validating. Supply your
+own engine by implementing `SchemaValidatorInterface` and registering it with
+`ServerBuilder::setSchemaValidator()`.
 
 ```php
 use Nexus\Mcp\Server\Validation\SchemaValidatorInterface;

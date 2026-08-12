@@ -16,6 +16,7 @@ namespace Nexus\Mcp\Tests\Server\Validation;
 use Nexus\Mcp\Server\Validation\OpisSchemaValidator;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
@@ -64,5 +65,93 @@ final class OpisSchemaValidatorTest extends AbstractMcpTestCase
         $errors = (new OpisSchemaValidator())->validate(['a' => 1, 'b' => 'x'], $schema);
 
         self::assertGreaterThan(1, \count($errors));
+    }
+
+    /**
+     * @param array<string, mixed> $schema
+     */
+    #[DataProvider('provideAnEmptySubSchemaValidatesAsAlwaysTrueCases')]
+    public function testAnEmptySubSchemaValidatesAsAlwaysTrue(array $schema, mixed $data): void
+    {
+        self::assertSame([], (new OpisSchemaValidator())->validate($data, $schema));
+    }
+
+    /**
+     * @return iterable<string, array{array<string, mixed>, mixed}>
+     */
+    public static function provideAnEmptySubSchemaValidatesAsAlwaysTrueCases(): iterable
+    {
+        yield 'additionalProperties' => [['type' => 'object', 'additionalProperties' => []], ['a' => 1]];
+
+        yield 'contains' => [['type' => 'array', 'contains' => []], [1]];
+
+        yield 'else' => [['if' => ['type' => 'integer'], 'else' => []], 'x'];
+
+        yield 'if' => [['if' => [], 'then' => ['type' => 'string']], 'x'];
+
+        yield 'items' => [['type' => 'array', 'items' => []], [1]];
+
+        yield 'propertyNames' => [['type' => 'object', 'propertyNames' => []], ['a' => 1]];
+
+        yield 'then' => [['if' => ['type' => 'string'], 'then' => []], 'x'];
+
+        yield 'unevaluatedItems' => [['type' => 'array', 'unevaluatedItems' => []], [1]];
+
+        yield 'unevaluatedProperties' => [['type' => 'object', 'unevaluatedProperties' => []], ['a' => 1]];
+
+        yield '$defs value reached through $ref' => [
+            ['type' => 'object', 'properties' => ['a' => ['$ref' => '#/$defs/x']], '$defs' => ['x' => []]],
+            ['a' => 1],
+        ];
+
+        yield 'dependentSchemas value' => [['type' => 'object', 'dependentSchemas' => ['a' => []]], ['a' => 1]];
+
+        yield 'patternProperties value' => [['type' => 'object', 'patternProperties' => ['^a' => []]], ['a' => 1]];
+
+        yield 'properties value' => [['type' => 'object', 'properties' => ['extra' => []]], ['extra' => 'anything']];
+
+        yield 'empty dependentSchemas map' => [['type' => 'object', 'dependentSchemas' => []], ['a' => 1]];
+
+        yield 'empty patternProperties map' => [['type' => 'object', 'patternProperties' => []], ['a' => 1]];
+
+        yield 'empty properties map' => [['type' => 'object', 'properties' => []], ['a' => 1]];
+
+        yield 'empty map followed by a later map keyword' => [
+            ['type' => 'object', 'dependentSchemas' => [], 'properties' => ['extra' => []]],
+            ['extra' => 'anything'],
+        ];
+
+        yield 'allOf element' => [['allOf' => [[]]], 'x'];
+
+        yield 'anyOf element' => [['anyOf' => [['type' => 'integer'], []]], 'x'];
+
+        yield 'oneOf element' => [['oneOf' => [['type' => 'integer'], []]], 'x'];
+
+        yield 'prefixItems element' => [['type' => 'array', 'prefixItems' => [[]]], ['anything']];
+
+        yield 'nested empty sub-schema' => [
+            ['type' => 'object', 'properties' => ['a' => ['type' => 'object', 'properties' => ['b' => []]]]],
+            ['a' => ['b' => 1]],
+        ];
+
+        yield 'empty sub-schema under a single-schema keyword' => [
+            ['type' => 'array', 'items' => ['type' => 'object', 'properties' => ['b' => []]]],
+            [['b' => 1]],
+        ];
+    }
+
+    public function testAnEmptyNotSubSchemaRejectsEveryValue(): void
+    {
+        self::assertNotSame([], (new OpisSchemaValidator())->validate('x', ['not' => []]));
+    }
+
+    public function testAnEmptyRequiredListStaysAList(): void
+    {
+        self::assertSame([], (new OpisSchemaValidator())->validate(['a' => 1], ['type' => 'object', 'required' => []]));
+    }
+
+    public function testAnEmptyConstStaysAnEmptyArrayValue(): void
+    {
+        self::assertSame([], (new OpisSchemaValidator())->validate([], ['const' => []]));
     }
 }

@@ -278,6 +278,22 @@ final class ToolStoreTest extends AbstractMcpTestCase
         yield 'map' => [['k' => 'v']];
     }
 
+    public function testCallSurvivesAnEmptySubSchemaInAHandWrittenInputSchema(): void
+    {
+        $result = new CallToolResult(content: []);
+        $store = new ToolStore([
+            'loose' => new ToolEntry(
+                new Tool(name: 'loose', inputSchema: [
+                    'type' => 'object',
+                    'properties' => ['extra' => []],
+                ]),
+                self::makeExecutorReturning($result),
+            ),
+        ]);
+
+        self::assertSame($result, $store->call('loose', ['extra' => 'anything'], self::makeContext()));
+    }
+
     public function testCallAcceptsEmptyArrayArgumentsAsEmptyObject(): void
     {
         $result = new CallToolResult(content: []);

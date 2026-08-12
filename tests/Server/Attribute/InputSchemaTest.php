@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Server\Attribute;
 
+use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Server\Attribute\InputSchema;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -30,6 +31,15 @@ final class InputSchemaTest extends AbstractMcpTestCase
     public function testEmptyWhenNoKeywordsSet(): void
     {
         self::assertSame([], (new InputSchema())->toArray());
+    }
+
+    public function testAnEmptyDefinitionIsRefused(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs('input schema "definition" must not be an empty array.');
+
+        // @phpstan-ignore argument.type (deliberately empty to exercise the runtime guard)
+        new InputSchema(definition: []);
     }
 
     public function testDefinitionShortCircuitsAndIgnoresOtherKeywords(): void
