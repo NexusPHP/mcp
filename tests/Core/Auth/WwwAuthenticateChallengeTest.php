@@ -208,6 +208,33 @@ final class WwwAuthenticateChallengeTest extends AbstractMcpTestCase
         ];
     }
 
+    public function testParseAllStripsControlOctetsFromAQuotedValue(): void
+    {
+        $challenges = WwwAuthenticateChallenge::parseAll(
+            "Bearer scope=\"mcp:use \x1b[2K\x1b[1GFORGED-ADMIN-GRANT\x07\", realm=\"a\rb\nc\x7Fd\"",
+        );
+
+        self::assertCount(1, $challenges);
+        self::assertSame('mcp:use [2K[1GFORGED-ADMIN-GRANT', $challenges[0]->readParameter('scope'));
+        self::assertSame('abcd', $challenges[0]->readParameter('realm'));
+    }
+
+    public function testParseAllStripsAControlOctetSmuggledThroughAQuotedPair(): void
+    {
+        $challenges = WwwAuthenticateChallenge::parseAll("Bearer realm=\"x\\\x1by\"");
+
+        self::assertCount(1, $challenges);
+        self::assertSame('xy', $challenges[0]->readParameter('realm'));
+    }
+
+    public function testParseAllKeepsTabsAndNonAsciiInAQuotedValue(): void
+    {
+        $challenges = WwwAuthenticateChallenge::parseAll("Bearer realm=\"gr\xC3\xBCn\tbar\"");
+
+        self::assertCount(1, $challenges);
+        self::assertSame("grün\tbar", $challenges[0]->readParameter('realm'));
+    }
+
     public function testReadParameterMatchesCaseInsensitively(): void
     {
         $challenge = new WwwAuthenticateChallenge('Bearer', ['scope' => 'files:read']);

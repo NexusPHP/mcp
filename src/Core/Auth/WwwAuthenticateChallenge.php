@@ -30,15 +30,25 @@ final readonly class WwwAuthenticateChallenge
      */
     private const string TOKEN = '[!#$%&\'*+.^_`|~0-9A-Za-z-]+';
 
-    /**
-     * RFC 7230 `quoted-string`, capturing the delimited content.
-     */
-    private const string QUOTED_STRING = '"((?:[^"\\\\]|\\\\.)*)"';
+    private const string SEGMENT_PATTERN = '/^('.self::TOKEN.')[ \t]*(.*)$/s';
+    private const string INLINE_PARAMETER_PATTERN = '/^('.self::TOKEN.')[ \t]*=[ \t]*(.*)$/s';
+    private const string TOKEN_VALUE_PATTERN = '/^'.self::TOKEN.'/';
 
     /**
-     * RFC 7230 `quoted-string` with the closing delimiter optional.
+     * A leading RFC 7230 `quoted-string`, capturing the delimited content.
      */
-    private const string QUOTED_SPAN = '"(?:[^"\\\\]|\\\\.)*"?';
+    private const string QUOTED_VALUE_PATTERN = '/^"((?:[^"\\\\]|\\\\.)*)"/s';
+
+    /**
+     * Quoted spans (closing delimiter optional), runs outside quotes, and separator commas.
+     */
+    private const string SEGMENT_PIECES_PATTERN = '/"(?:[^"\\\\]|\\\\.)*"?|[^,"]+|,/s';
+
+    /**
+     * The control octets RFC 7230's `quoted-string` forbids, stripped so a header cannot smuggle
+     * terminal escapes into logs.
+     */
+    private const string FORBIDDEN_OCTETS = '/[\x00-\x08\x0A-\x1F\x7F]/';
 
     /**
      * @var array<non-empty-string, string>
@@ -70,7 +80,7 @@ final readonly class WwwAuthenticateChallenge
         $parameters = [];
 
         foreach (self::splitSegments($header) as $segment) {
-            if (preg_match('/^('.self::TOKEN.')[ \t]*(.*)$/s', trim($segment, " \t"), $matches) !== 1) {
+            if (preg_match(self::SEGMENT_PATTERN, trim($segment, " \t"), $matches) !== 1) {
                 continue;
             }
 
@@ -138,7 +148,7 @@ final readonly class WwwAuthenticateChallenge
      */
     private static function splitSegments(string $header): array
     {
-        preg_match_all('/'.self::QUOTED_SPAN.'|[^,"]+|,/s', $header, $matches);
+        preg_match_all(self::SEGMENT_PIECES_PATTERN, $header, $matches);
 
         $segments = [];
         $current = '';
@@ -166,7 +176,7 @@ final readonly class WwwAuthenticateChallenge
      */
     private static function readInlineParameter(string $rest): array
     {
-        if (preg_match('/^('.self::TOKEN.')[ \t]*=[ \t]*(.*)$/s', $rest, $matches) !== 1) {
+        if (preg_match(self::INLINE_PARAMETER_PATTERN, $rest, $matches) !== 1) {
             return [];
         }
 
@@ -181,13 +191,15 @@ final readonly class WwwAuthenticateChallenge
     private static function readValue(string $rest): ?string
     {
         if (! str_starts_with($rest, '"')) {
-            return preg_match('/^'.self::TOKEN.'/', $rest, $matches) === 1 ? $matches[0] : null;
+            return preg_match(self::TOKEN_VALUE_PATTERN, $rest, $matches) === 1 ? $matches[0] : null;
         }
 
-        if (preg_match('/^'.self::QUOTED_STRING.'/s', $rest, $matches) !== 1) {
+        if (preg_match(self::QUOTED_VALUE_PATTERN, $rest, $matches) !== 1) {
             return null;
         }
 
-        return preg_replace('/\\\\(.)/s', '$1', $matches[1]);
+        $unescaped = (string) preg_replace('/\\\\(.)/s', '$1', $matches[1]);
+
+        return preg_replace(self::FORBIDDEN_OCTETS, '', $unescaped);
     }
 }

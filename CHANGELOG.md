@@ -22,6 +22,8 @@ in `0.x`, minor releases may include breaking changes.
   instead of the variable silently shadowing the `$uri` parameter's request URI.
 - The stdio client's spawn log names only the subprocess binary and its argument count, keeping
   credentials passed in argv out of log records.
+- `WWW-Authenticate` parameter values are stripped of the control octets RFC 7230 forbids as they are
+  parsed, so a hostile challenge cannot smuggle terminal escapes into logs and exception messages.
 - `ElicitResult` accepts an empty string inside a `string[]` content value, matching the spec's
   unconstrained item type, instead of failing the whole retry with `-32602`.
 
