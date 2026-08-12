@@ -32,6 +32,13 @@ final class MatcherTest extends AbstractMcpTestCase
         self::assertSame(['path' => 'etc'], self::match('file:///{path}', 'file:///etc'));
     }
 
+    public function testMatchesAVariableNameAtTheValidatorsBound(): void
+    {
+        $name = str_repeat('a', 32);
+
+        self::assertSame([$name => 'etc'], self::match(\sprintf('file:///{%s}', $name), 'file:///etc'));
+    }
+
     public function testMatchesMultipleDistinctVariables(): void
     {
         self::assertSame(

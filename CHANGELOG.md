@@ -12,6 +12,8 @@ in `0.x`, minor releases may include breaking changes.
 
 - `ServerBuilder::register()` refuses a discovered entry whose key an earlier source already declared,
   throwing `DuplicateDiscoveredEntryException` naming both sources, instead of silently overwriting.
+- A resource template variable name longer than 32 characters is refused at registration, instead of
+  compiling to a pattern PCRE rejects so the template silently never matches.
 - `ElicitResult` accepts an empty string inside a `string[]` content value, matching the spec's
   unconstrained item type, instead of failing the whole retry with `-32602`.
 

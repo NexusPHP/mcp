@@ -17,7 +17,7 @@ Nexus\Mcp\
 │   ├── JsonRpc\        Envelope parser, method registry, parser-state value objects
 │   ├── Schema\         Types only (value objects, enums, interfaces). No behaviour
 │   ├── Transport\      Transport contract, lifecycle event keys, shared line-framed duplex, in-memory paired transports for tests
-│   ├── UriTemplate\    RFC 6570 expansion plus matching
+│   ├── UriTemplate\    RFC 6570 Level 1 matching
 │   └── Validation\     URI templates, RFC 3339, enum-value coercion
 ├── Server\             Server-side composition. Depends on Core only
 │   ├── Attribute\      #[AsTool], #[AsPrompt], #[AsResource], #[AsResourceTemplate], #[AsCompletion], #[AsServer]

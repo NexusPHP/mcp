@@ -18,7 +18,7 @@ use Nexus\Assert\ExpectationFailedException;
 
 /**
  * Enforces the subset of RFC 6570 that `Matcher` can reverse-match: Level 1 `{name}` expressions over
- * `[A-Za-z_][A-Za-z0-9_]*`, separated by at least one literal.
+ * `[A-Za-z_][A-Za-z0-9_]*` of at most 32 characters, separated by at least one literal.
  *
  * @internal
  *
@@ -26,6 +26,11 @@ use Nexus\Assert\ExpectationFailedException;
  */
 final class Validator
 {
+    /**
+     * PCRE2's group-name limit before 10.44, which `Matcher::compile` names its capture groups with.
+     */
+    private const int MAX_VARIABLE_NAME_LENGTH = 32;
+
     /**
      * @param non-empty-string $context Label prefix for the error message (e.g. "ResourceTemplate")
      *
@@ -45,6 +50,15 @@ final class Validator
             ->contains('}{', \sprintf(
                 '%s URI template must include literal text between adjacent expressions, got "%s".',
                 $context,
+                $template,
+            ))
+        ;
+        Assert::that($template)
+            ->not()
+            ->matchesRegularExpression(\sprintf('/\{[A-Za-z_][A-Za-z0-9_]{%d,}\}/', self::MAX_VARIABLE_NAME_LENGTH), \sprintf(
+                '%s URI template variable names must be at most %d characters, got "%s".',
+                $context,
+                self::MAX_VARIABLE_NAME_LENGTH,
                 $template,
             ))
         ;

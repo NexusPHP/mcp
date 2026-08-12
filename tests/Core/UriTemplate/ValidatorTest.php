@@ -52,6 +52,8 @@ final class ValidatorTest extends AbstractMcpTestCase
         yield 'underscore name' => ['file:///{_root}'];
 
         yield 'alphanumeric name' => ['file:///{path1}'];
+
+        yield 'name at the 32-character bound' => [\sprintf('file:///{%s}', str_repeat('a', 32))];
     }
 
     #[DataProvider('provideRejectsLevel2OrHigherExpressionCases')]
@@ -97,6 +99,19 @@ final class ValidatorTest extends AbstractMcpTestCase
         yield 'name contains dot' => ['file:///{a.b}'];
 
         yield 'name contains space' => ['file:///{a b}'];
+    }
+
+    public function testRejectsAVariableNamePastTheGroupNameBound(): void
+    {
+        $name = str_repeat('a', 33);
+
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs(\sprintf(
+            'ResourceTemplate URI template variable names must be at most 32 characters, got "file:///{%s}".',
+            $name,
+        ));
+
+        Validator::validate(\sprintf('file:///{%s}', $name), 'ResourceTemplate');
     }
 
     public function testRejectsAdjacentExpressions(): void
