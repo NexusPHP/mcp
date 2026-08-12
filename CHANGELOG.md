@@ -16,6 +16,10 @@ in `0.x`, minor releases may include breaking changes.
   compiling to a pattern PCRE rejects so the template silently never matches.
 - A tool declaring an `outputSchema` whose non-error result carries no `structuredContent` now fails the
   call like a non-conforming result, instead of passing unvalidated.
+- Resource-template matching prefers the template with the most literal characters, so an exact
+  `db://literal` is reachable behind an earlier `db://{table}`. Ties keep registration order.
+- A discovered `#[AsResourceTemplate]` naming a template variable `uri` is refused at registration,
+  instead of the variable silently shadowing the `$uri` parameter's request URI.
 - `ElicitResult` accepts an empty string inside a `string[]` content value, matching the spec's
   unconstrained item type, instead of failing the whole retry with `-32602`.
 

@@ -46,6 +46,10 @@ use Nexus\Mcp\Core\Schema\Resource\ResourceTemplate;
 `$vars` carries the resolved template variables (`['userId' => '123']` for `users://123`). The reader can
 be a `\Closure` or a `ResourceReaderInterface` / `TemplatedResourceReaderInterface`.
 
+When several templates match a URI, the one with the most literal characters answers, so an exact
+`db://literal` beats `db://{table}` regardless of registration order. Equally specific templates keep
+registration order.
+
 A variable matches one URI segment and is percent-decoded after matching. A value decoding back out of
 that segment (a `/`, `?`, `#`, a bare `.` or `..`, or a NUL byte) is refused, so `users://%2E%2E%2Fadmin`
 does not match. That is the URI-template half of the resources spec's security requirement that a server
@@ -57,8 +61,8 @@ open, index, or query.
 
 `#[AsResource]` and `#[AsResourceTemplate]` mark reader methods, discovered through the same
 [`ServerBuilder::register()`](../attribute-discovery.md) walk as the other attributes. A `$uri` parameter
-receives the resolved URI, template variables are bound to parameters by name, and a `ServerContext`
-parameter is injected:
+receives the resolved URI, template variables are bound to parameters by name (so a variable named `uri`
+is refused at registration, since `$uri` is taken), and a `ServerContext` parameter is injected:
 
 ```php
 use Nexus\Mcp\Server\Attribute\AsResource;

@@ -237,6 +237,60 @@ final class ResourceTemplateStoreTest extends AbstractMcpTestCase
         self::assertTrue($firstCalled);
     }
 
+    public function testReadPrefersTheTemplateWithMoreLiteralText(): void
+    {
+        $expected = new ReadResourceResult(contents: [new TextResourceContents(uri: 'db://literal', text: 'exact')], ttlMs: 0, cacheScope: CacheScope::Private);
+
+        $store = new ResourceTemplateStore([
+            'db://{table}' => self::entry(
+                new ResourceTemplate(name: 'generic', uriTemplate: 'db://{table}'),
+                static fn(): never => throw new \LogicException('the generic template must not answer an exact literal'),
+            ),
+            'db://literal' => self::entry(
+                new ResourceTemplate(name: 'exact', uriTemplate: 'db://literal'),
+                static fn(): ReadResourceResult => $expected,
+            ),
+        ]);
+
+        self::assertSame($expected, $store->read('db://literal', self::makeContext()));
+    }
+
+    public function testReadFallsBackToTheGenericTemplateForOtherUris(): void
+    {
+        $expected = new ReadResourceResult(contents: [new TextResourceContents(uri: 'db://users', text: 'generic')], ttlMs: 0, cacheScope: CacheScope::Private);
+
+        $store = new ResourceTemplateStore([
+            'db://{table}' => self::entry(
+                new ResourceTemplate(name: 'generic', uriTemplate: 'db://{table}'),
+                static fn(): ReadResourceResult => $expected,
+            ),
+            'db://literal' => self::entry(
+                new ResourceTemplate(name: 'exact', uriTemplate: 'db://literal'),
+                static fn(): never => throw new \LogicException('the exact template must not answer another URI'),
+            ),
+        ]);
+
+        self::assertSame($expected, $store->read('db://users', self::makeContext()));
+    }
+
+    public function testATemplateAddedLaterStillWinsWithMoreLiteralText(): void
+    {
+        $expected = new ReadResourceResult(contents: [new TextResourceContents(uri: 'db://literal', text: 'exact')], ttlMs: 0, cacheScope: CacheScope::Private);
+
+        $store = new ResourceTemplateStore([
+            'db://{table}' => self::entry(
+                new ResourceTemplate(name: 'generic', uriTemplate: 'db://{table}'),
+                static fn(): never => throw new \LogicException('the generic template must not answer an exact literal'),
+            ),
+        ]);
+        $store->addResourceTemplate(
+            new ResourceTemplate(name: 'exact', uriTemplate: 'db://literal'),
+            new ClosureTemplatedResourceReader(static fn(): ReadResourceResult => $expected),
+        );
+
+        self::assertSame($expected, $store->read('db://literal', self::makeContext()));
+    }
+
     public function testAddResourceTemplateRegistersItAndAnnouncesTheChange(): void
     {
         $store = new ResourceTemplateStore();

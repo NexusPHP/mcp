@@ -26,6 +26,7 @@ use Nexus\Mcp\Server\Completion\PromptCompletionEntry;
 use Nexus\Mcp\Server\Completion\ResourceTemplateCompletionEntry;
 use Nexus\Mcp\Server\Discovery\AttributeScanner;
 use Nexus\Mcp\Server\Exception\InvalidCompletionAttributeException;
+use Nexus\Mcp\Server\Exception\ReservedTemplateVariableException;
 use Nexus\Mcp\Server\Exception\UnsupportedParameterTypeException;
 use Nexus\Mcp\Server\Exception\UnsupportedVariadicParameterException;
 use Nexus\Mcp\Server\Prompt\PromptEntry;
@@ -414,6 +415,21 @@ final class AttributeScannerTest extends AbstractMcpTestCase
             public function config(int $uri): string
             {
                 return (string) $uri;
+            }
+        };
+        iterator_to_array((new AttributeScanner())->scan($source), false);
+    }
+
+    public function testATemplateVariableNamedUriIsRejected(): void
+    {
+        $this->expectException(ReservedTemplateVariableException::class);
+        $this->expectExceptionMessageMatches('/^\S+\:\:doc\(\) declares template variable "\{uri\}", which is reserved for the injected request URI\. Rename the variable\.$/');
+
+        $source = new class {
+            #[AsResourceTemplate(uriTemplate: 'res://{uri}')]
+            public function doc(string $uri): string
+            {
+                return $uri;
             }
         };
         iterator_to_array((new AttributeScanner())->scan($source), false);
