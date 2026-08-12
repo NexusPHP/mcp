@@ -47,6 +47,9 @@ interface TransportInterface
     public function close(): void;
 
     /**
+     * A transport multiplexing several peers MUST namespace or rewrite inbound request ids before
+     * emitting them, since the protocol layer correlates and cancels by id alone.
+     *
      * @param \Closure(array<string, mixed>, ReceiveContext): void $listener
      */
     public function onMessage(\Closure $listener): ListenerHandleInterface;

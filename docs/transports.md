@@ -37,6 +37,12 @@ The four `on*` methods are listener registration. The `Server` registers listene
 `onError` (log), `onDrain` (await in-flight coroutines), and `onClose` (resolve the run-future) once,
 before calling `start()`.
 
+Inbound request ids are the dispatcher's only correlation key: `notifications/cancelled` is honoured by
+id alone, with no connection dimension. A transport serving several peers at once MUST namespace or
+rewrite inbound ids so two peers' ids can never collide, or one peer can cancel or answer another's
+request. `StreamableHttpServerTransport` replaces every inbound id with an internal one for exactly this
+reason, and the stdio transports have a single peer, so ids pass through.
+
 `SendContext` carries three slots, all of which a transport is free to ignore:
 
 - `relatedRequestId` ties an out-of-band message (such as a progress notification) to the in-flight request
