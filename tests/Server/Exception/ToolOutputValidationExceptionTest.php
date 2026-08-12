@@ -40,6 +40,14 @@ final class ToolOutputValidationExceptionTest extends AbstractMcpTestCase
         );
     }
 
+    public function testMessageNamesTheMissingStructuredContentWhenNoErrorsAreGiven(): void
+    {
+        self::assertSame(
+            'Tool "report" declares an outputSchema but its result carries no structuredContent.',
+            (new ToolOutputValidationException('report', []))->getMessage(),
+        );
+    }
+
     public function testWrapsThePreviousThrowable(): void
     {
         $previous = new \RuntimeException('root cause');

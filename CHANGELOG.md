@@ -14,6 +14,8 @@ in `0.x`, minor releases may include breaking changes.
   throwing `DuplicateDiscoveredEntryException` naming both sources, instead of silently overwriting.
 - A resource template variable name longer than 32 characters is refused at registration, instead of
   compiling to a pattern PCRE rejects so the template silently never matches.
+- A tool declaring an `outputSchema` whose non-error result carries no `structuredContent` now fails the
+  call like a non-conforming result, instead of passing unvalidated.
 - `ElicitResult` accepts an empty string inside a `string[]` content value, matching the spec's
   unconstrained item type, instead of failing the whole retry with `-32602`.
 

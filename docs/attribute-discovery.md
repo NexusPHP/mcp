@@ -138,6 +138,10 @@ A handler may return the full result object (`CallToolResult`, `GetPromptResult`
 | resource | a `string` (wrapped as `TextResourceContents` bound to the URI), a `ResourceContents`, or a list of `ResourceContents` |
 | completion | a list of strings (wrapped as the `values` of a `CompleteResult`), so returning the full `CompleteResult` is only needed for `total` or `hasMore` |
 
+A tool declaring an `outputSchema` must use the array shorthand or a `CallToolResult` carrying
+`structuredContent`: the other shorthands produce content-only results, which fail the call as missing
+structured content.
+
 ## Server identity precedence
 
 When both `#[AsServer]` and an explicit `setServerInfo()` / `setInstructions()` are present, the explicit

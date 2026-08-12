@@ -329,14 +329,19 @@ final class ToolStoreTest extends AbstractMcpTestCase
         $store->call('report', null, self::makeContext());
     }
 
-    public function testCallSkipsOutputValidationWhenResultHasNoStructuredContent(): void
+    public function testCallRejectsAResultCarryingNoStructuredContentWhenOutputSchemaIsDeclared(): void
     {
-        $result = new CallToolResult(content: [new TextContent(text: 'hi')]);
         $store = new ToolStore([
-            'report' => new ToolEntry(self::makeToolWithOutputSchema('report'), self::makeExecutorReturning($result)),
+            'report' => new ToolEntry(
+                self::makeToolWithOutputSchema('report'),
+                self::makeExecutorReturning(new CallToolResult(content: [new TextContent(text: 'hi')])),
+            ),
         ]);
 
-        self::assertSame($result, $store->call('report', null, self::makeContext()));
+        $this->expectException(ToolOutputValidationException::class);
+        $this->expectExceptionMessageIs('Tool "report" declares an outputSchema but its result carries no structuredContent.');
+
+        $store->call('report', null, self::makeContext());
     }
 
     public function testCallSkipsOutputValidationForErrorResults(): void

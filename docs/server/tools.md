@@ -116,8 +116,8 @@ so a tool with an array `outputSchema` has to build its `CallToolResult` explici
 PHP spells an empty object and an empty array the same, so an empty `structuredContent` is validated as
 whichever the declared `outputSchema` asks for. On the encoding side it always emits `[]`, which a peer
 re-validating against `{"type": "object"}` will refuse. A tool whose `outputSchema` is `{"type": "null"}`
-is not supported: `null` structured content is indistinguishable from none and is omitted from the
-result unvalidated.
+is not supported: `null` structured content is indistinguishable from none, so every call fails as
+missing structured content.
 
 For backwards compatibility, the spec recommends that a tool returning `structuredContent` also return
 the serialised JSON in a `TextContent` block. When the executor leaves `content` empty, the handler adds
@@ -130,9 +130,9 @@ A tool call is validated against the tool's schemas on the way in and on the way
 
 - The call `arguments` are validated against the tool's `inputSchema`. A non-conforming payload fails the
   call with a JSON-RPC `InvalidParams` error before the executor runs.
-- When a (non-error) result carries `structuredContent` and the tool declares an `outputSchema`, the
-  result is validated against that schema. A non-conforming result is logged server-side and surfaced to
-  the client as a generic error result, so malformed structured data is never sent.
+- When the tool declares an `outputSchema`, a (non-error) result must carry `structuredContent`
+  conforming to it. A non-conforming or missing one is logged server-side and surfaced to the client as
+  a generic error result, so malformed structured data is never sent.
 
 Validation is backed by [opis/json-schema](https://github.com/opis/json-schema) (JSON Schema draft
 2020-12) by default. The `[]`-versus-`{}` ambiguity exists inside a schema too: `json_decode(..., true)`

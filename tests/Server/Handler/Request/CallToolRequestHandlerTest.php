@@ -24,6 +24,7 @@ use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
 use Nexus\Mcp\Core\Schema\Tool\Tool;
 use Nexus\Mcp\Server\Exception\ToolNotFoundException;
+use Nexus\Mcp\Server\Exception\ToolOutputValidationException;
 use Nexus\Mcp\Server\Handler\Request\CallToolRequestHandler;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Server\Tool\ClosureToolExecutor;
@@ -273,10 +274,48 @@ final class CallToolRequestHandlerTest extends AbstractMcpTestCase
 
         $matches = $logger->recordsMatching(
             LogLevel::ERROR,
-            'Tool returned structuredContent that does not conform to its outputSchema.',
+            'Tool result violated the declared outputSchema.',
         );
         self::assertCount(1, $matches);
         self::assertSame('report', $matches[0]['context']['tool'] ?? null);
+    }
+
+    public function testMissingStructuredContentYieldsGenericErrorResultAndIsLogged(): void
+    {
+        $store = new ToolStore([
+            'report' => new ToolEntry(
+                new Tool(name: 'report', inputSchema: ['type' => 'object'], outputSchema: [
+                    'type' => 'object',
+                    'properties' => ['n' => ['type' => 'integer']],
+                    'required' => ['n'],
+                ]),
+                new ClosureToolExecutor(static fn(?array $arguments, ServerContext $context): CallToolResult => new CallToolResult(content: [new TextContent(text: 'hi')])),
+            ),
+        ]);
+        $logger = new ArrayLogger();
+        $handler = new CallToolRequestHandler($store, $logger);
+
+        $result = $handler->handle(
+            new CallToolRequest(id: new RequestId(id: 1), params: new CallToolRequestParams(name: 'report', meta: RequestMetaObjectFactory::create())),
+            self::makeContext(),
+        );
+
+        if (! $result instanceof CallToolResult) {
+            self::fail('Expected a CallToolResult.');
+        }
+
+        self::assertTrue($result->isError);
+
+        $matches = $logger->recordsMatching(
+            LogLevel::ERROR,
+            'Tool result violated the declared outputSchema.',
+        );
+        self::assertCount(1, $matches);
+        self::assertSame('report', $matches[0]['context']['tool'] ?? null);
+        self::assertInstanceOf(
+            ToolOutputValidationException::class,
+            $matches[0]['context']['exception'] ?? null,
+        );
     }
 
     public function testPropagatesToolNotFoundFromStore(): void
