@@ -27,6 +27,8 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Fixed
 
+- A `close()` racing an in-progress close on the stdio transports now blocks until that close settles,
+  instead of returning early while `send()` was still accepted.
 - An empty `{}` sub-schema, which `json_decode(..., true)` renders as PHP `[]`, no longer fails every
   `tools/call` with a bare internal error: the default validator restores it in every sub-schema position.
 - `#[InputSchema(definition: [])]` is refused at construction instead of being read differently per level.

@@ -41,10 +41,20 @@ final class LineDuplex
     private TransportState $state = TransportState::Idle;
 
     /**
-     * Re-entry guard for `close()`, which `state` cannot serve as it stays `Running` across the drain so a
-     * listener may still send.
+     * True from the first `close()` on, which `state` cannot signal as it stays `Running` across the
+     * drain so a listener may still send.
      */
     private bool $closing = false;
+
+    /**
+     * @var null|\Fiber<mixed, mixed, mixed, mixed> The close owner, `null` while no close is in progress or when {main} owns it
+     */
+    private ?\Fiber $closingFiber = null;
+
+    /**
+     * @var null|DeferredFuture<null>
+     */
+    private ?DeferredFuture $closeCompletion = null;
 
     private readonly TransportEvents $events;
     private ReadableStream $readable;
@@ -171,11 +181,22 @@ final class LineDuplex
 
     public function close(): void
     {
-        if (TransportState::Closed === $this->state || $this->closing) {
+        if ($this->closing) {
+            if ($this->participatesInClose()) {
+                return;
+            }
+
+            $this->closeCompletion?->getFuture()->await();
+
             return;
         }
 
         $this->closing = true;
+        $this->closingFiber = \Fiber::getCurrent();
+
+        /** @var DeferredFuture<null> $completion */
+        $completion = new DeferredFuture();
+        $this->closeCompletion = $completion;
         $this->logger->info(
             '{label} transport closing from {priorState} state.',
             ['label' => $this->label, 'priorState' => $this->state->name],
@@ -191,7 +212,11 @@ final class LineDuplex
             $this->drainBackgroundLoops();
             $this->events->emitDrain();
         } finally {
-            $this->settle();
+            try {
+                $this->settle();
+            } finally {
+                $completion->complete();
+            }
         }
     }
 
@@ -258,6 +283,25 @@ final class LineDuplex
     public function onClose(\Closure $listener): ListenerHandleInterface
     {
         return $this->events->onClose($listener);
+    }
+
+    /**
+     * Whether the caller is the close owner or a loop fiber the drain waits on, either of which would
+     * deadlock awaiting the close it is part of.
+     */
+    private function participatesInClose(): bool
+    {
+        $current = \Fiber::getCurrent();
+
+        if ($current === $this->closingFiber) {
+            return true;
+        }
+
+        if (null === $current) {
+            return false;
+        }
+
+        return $current === $this->readLoopFiber || \in_array($current, $this->sideChannelFibers, true);
     }
 
     /**

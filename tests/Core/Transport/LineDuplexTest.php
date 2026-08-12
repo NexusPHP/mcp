@@ -621,6 +621,195 @@ final class LineDuplexTest extends AbstractMcpTestCase
         self::assertTrue($closed, 'close() from inside a side-channel onLine must return, not await its own fiber.');
     }
 
+    public function testAConcurrentCloseBlocksUntilTheFirstHasDrained(): void
+    {
+        $pipe = new Pipe(8_192);
+        $sink = $pipe->getSink();
+        $events = [];
+        $duplex = self::buildDuplex(
+            onBeforeClose: static function () use ($sink): void {
+                $sink->close();
+            },
+        );
+        $duplex->onDrain(static function () use (&$events): void {
+            $events[] = 'drain:start';
+            delay(0.02);
+            $events[] = 'drain:end';
+        });
+
+        $duplex->start($pipe->getSource(), new WritableBuffer());
+        delay(0.001);
+
+        $first = async(static function () use ($duplex, &$events): void {
+            $duplex->close();
+            $events[] = 'first:returned';
+        });
+        $second = async(static function () use ($duplex, &$events): void {
+            delay(0.01);
+            $duplex->close();
+            $events[] = 'second:returned';
+
+            try {
+                $duplex->send(new CancelledNotification(params: new CancelledNotificationParams(requestId: new RequestId(id: 1))));
+                $events[] = 'second:sent';
+            } catch (TransportAlreadyClosedException) {
+                $events[] = 'second:send-refused';
+            }
+        });
+        $first->await();
+        $second->await();
+
+        self::assertSame(
+            ['drain:start', 'drain:end', 'first:returned', 'second:returned', 'second:send-refused'],
+            $events,
+            'A concurrent close must block until the first has drained, and a send after it returns must be refused.',
+        );
+    }
+
+    public function testADrainListenerReenteringCloseReturnsImmediately(): void
+    {
+        $events = [];
+        $duplex = self::buildDuplex();
+        $duplex->onDrain(static function () use (&$events, &$duplex): void {
+            $events[] = 'drain:start';
+            $duplex->close();
+            $events[] = 'drain:end';
+        });
+        $duplex->onClose(static function () use (&$events): void {
+            $events[] = 'close';
+        });
+
+        $duplex->close();
+
+        self::assertSame(['drain:start', 'drain:end', 'close'], $events);
+    }
+
+    public function testAMessageListenerCallingCloseDuringAConcurrentCloseReturnsEarly(): void
+    {
+        $pipe = new Pipe(8_192);
+        $sink = $pipe->getSink();
+        $sink->write('{"jsonrpc":"2.0","id":1,"method":"tools/list"}'."\n");
+        $events = [];
+        $duplex = self::buildDuplex(
+            onBeforeClose: static function () use ($sink): void {
+                $sink->close();
+            },
+        );
+        $duplex->onMessage(static function (array $envelope, ReceiveContext $context) use (&$events, &$duplex): void {
+            $events[] = 'message:start';
+            delay(0.02);
+            $duplex->close();
+            $events[] = 'message:end';
+        });
+        $duplex->onDrain(static function () use (&$events): void {
+            $events[] = 'drain';
+        });
+
+        $duplex->start($pipe->getSource(), new WritableBuffer());
+        delay(0.005);
+
+        $duplex->close();
+        $events[] = 'returned';
+
+        self::assertSame(
+            ['message:start', 'message:end', 'drain', 'returned'],
+            $events,
+            'A message listener closing during a concurrent close must return early, not deadlock the drain awaiting it.',
+        );
+    }
+
+    public function testASideChannelOnLineCallingCloseDuringAConcurrentCloseReturnsEarly(): void
+    {
+        $pipe = new Pipe(8_192);
+        $sink = $pipe->getSink();
+        $events = [];
+        $duplex = self::buildDuplex();
+        $duplex->forwardLines(
+            $pipe->getSource(),
+            static function (string $line) use (&$events, &$duplex): void {
+                $events[] = 'line:start';
+                delay(0.02);
+                $duplex->close();
+                $events[] = 'line:end';
+            },
+        );
+        $sink->write("tail\n");
+        delay(0.005);
+
+        $duplex->close();
+        $events[] = 'returned';
+
+        self::assertSame(
+            ['line:start', 'line:end', 'returned'],
+            $events,
+            'A side-channel listener closing during a concurrent close must return early, not deadlock the drain awaiting it.',
+        );
+    }
+
+    public function testAConcurrentCloseStillReturnsWhenTheOwnersTeardownThrows(): void
+    {
+        $events = [];
+        $duplex = self::buildDuplex(
+            onBeforeClose: static function (): void {
+                throw new \RuntimeException('teardown boom');
+            },
+        );
+        $duplex->onDrain(static function () use (&$events): void {
+            $events[] = 'drain';
+            delay(0.01);
+        });
+
+        $owner = async(static function () use ($duplex, &$events): void {
+            try {
+                $duplex->close();
+            } catch (\RuntimeException $e) {
+                $events[] = 'owner:'.$e->getMessage();
+            }
+        });
+        $concurrent = async(static function () use ($duplex, &$events): void {
+            delay(0.005);
+            $duplex->close();
+            $events[] = 'concurrent:returned';
+        });
+        $owner->await();
+        $concurrent->await();
+
+        self::assertSame(
+            ['drain', 'owner:teardown boom', 'concurrent:returned'],
+            $events,
+            'A teardown failure must still release a concurrent close, not leave it awaiting forever.',
+        );
+    }
+
+    public function testAConcurrentCloseFromMainAwaitsAFiberOwnedCloseOfAnIdleDuplex(): void
+    {
+        /** @var DeferredFuture<null> $gate */
+        $gate = new DeferredFuture();
+        $events = [];
+        $duplex = self::buildDuplex();
+        $duplex->onDrain(static function () use ($gate, &$events): void {
+            $events[] = 'drain:start';
+            $gate->getFuture()->await();
+            $events[] = 'drain:end';
+        });
+
+        $owner = async(static function () use ($duplex, &$events): void {
+            $duplex->close();
+            $events[] = 'owner:returned';
+        });
+        async(static function () use ($gate): void {
+            delay(0.01);
+            $gate->complete();
+        });
+        delay(0.005);
+
+        $duplex->close();
+        $events[] = 'main:returned';
+        $owner->await();
+
+        self::assertSame(['drain:start', 'drain:end', 'owner:returned', 'main:returned'], $events);
+    }
+
     public function testCloseStillReturnsWhenSideChannelFailureLoggerThrows(): void
     {
         $previousHandler = EventLoop::getErrorHandler();
