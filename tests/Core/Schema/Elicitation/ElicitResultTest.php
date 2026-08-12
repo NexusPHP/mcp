@@ -133,10 +133,28 @@ final class ElicitResultTest extends AbstractMcpTestCase
         new ElicitResult(action: ElicitAction::Accept, content: ['x' => ['k' => 'v']]);
     }
 
+    public function testAnEmptyStringInsideAListValueIsAccepted(): void
+    {
+        $result = new ElicitResult(action: ElicitAction::Accept, content: ['tags' => ['a', '']]);
+
+        self::assertSame(['tags' => ['a', '']], $result->content);
+
+        $rebuilt = ElicitResult::fromArray($result->toArray());
+
+        self::assertSame($result->toArray(), $rebuilt->toArray());
+    }
+
+    public function testAnEmptyStringScalarValueIsAccepted(): void
+    {
+        $result = new ElicitResult(action: ElicitAction::Accept, content: ['note' => '']);
+
+        self::assertSame(['note' => ''], $result->content);
+    }
+
     public function testConstructorRejectsListWithNonStringEntries(): void
     {
         $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageIs('each elicit result "x" list entry must be a non-empty string, int given.');
+        $this->expectExceptionMessageIs('each elicit result "x" list entry must be a string, int given.');
 
         // @phpstan-ignore argument.type
         new ElicitResult(action: ElicitAction::Accept, content: ['x' => [1, 2]]);
@@ -186,7 +204,7 @@ final class ElicitResultTest extends AbstractMcpTestCase
 
         yield 'content entry list with non-string' => [
             ['action' => 'accept', 'content' => ['x' => [1]]],
-            'each elicit result "content entry x" list entry must be a non-empty string, int given.',
+            'each elicit result "content entry x" list entry must be a string, int given.',
         ];
     }
 }

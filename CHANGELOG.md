@@ -8,6 +8,11 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp/commits/1.x)
 
+### Fixed
+
+- `ElicitResult` accepts an empty string inside a `string[]` content value, matching the spec's
+  unconstrained item type, instead of failing the whole retry with `-32602`.
+
 ## [v0.12.0](https://github.com/NexusPHP/mcp/compare/v0.11.0...v0.12.0) - 2026-08-12
 
 Lifecycle correctness on both peers: close/drain ordering, in-flight caps that hold under pressure,

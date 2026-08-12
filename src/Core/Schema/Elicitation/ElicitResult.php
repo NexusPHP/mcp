@@ -98,7 +98,7 @@ final readonly class ElicitResult implements InputResponse
 
         Assert::that($value)
             ->isList(\sprintf('elicit result "%s" must be a string, int, float, bool, or list of strings, non-list array given.', $context))
-            ->values()->isNonEmptyString(\sprintf('each elicit result "%s" list entry must be a non-empty string, {type} given.', $context))
+            ->values()->isString(\sprintf('each elicit result "%s" list entry must be a string, {type} given.', $context))
         ;
     }
 }
