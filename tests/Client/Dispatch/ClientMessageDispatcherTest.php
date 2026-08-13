@@ -23,6 +23,7 @@ use Nexus\Mcp\Client\Subscription\OpenSubscription;
 use Nexus\Mcp\Client\Subscription\SubscriptionRegistry;
 use Nexus\Mcp\Core\Dispatch\PendingOutboundRequests;
 use Nexus\Mcp\Core\Exception\AbstractJsonRpcProtocolException;
+use Nexus\Mcp\Core\Exception\InvalidRequestException;
 use Nexus\Mcp\Core\Exception\MethodMisroutedException;
 use Nexus\Mcp\Core\Exception\MethodNotFoundException;
 use Nexus\Mcp\Core\Exception\RemoteCallFailedException;
@@ -274,6 +275,34 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         self::assertTrue($future->isComplete());
         $this->expectException(\Throwable::class);
         $future->await();
+    }
+
+    public function testMalformedErrorResponseForAPendingIdFailsThatRequest(): void
+    {
+        $outbound = new PendingOutboundRequests();
+        $future = $outbound->register(new RequestId(id: 1), CallToolResultResponse::class);
+        $logger = new ArrayLogger();
+        $dispatcher = self::buildDispatcher($outbound, logger: $logger);
+        $transport = new RecordingTransport();
+
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'error' => ['code' => ProtocolErrorCode::MissingRequiredClientCapability->value, 'message' => 'boom'],
+        ], $transport, new ReceiveContext());
+
+        $dispatcher->flushPending();
+
+        self::assertTrue($future->isComplete());
+
+        try {
+            $future->await();
+            self::fail('Future should have been rejected.');
+        } catch (InvalidRequestException $e) {
+            self::assertSame('Invalid error response: error "data" is required for code -32021 and must carry "requiredCapabilities".', $e->getMessage());
+        }
+
+        self::assertSame([], $logger->recordsMatching(LogLevel::WARNING, 'Discarding malformed response envelope from peer.'));
     }
 
     public function testMalformedResponseEnvelopeIsLoggedAndDropped(): void
@@ -553,6 +582,31 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         self::assertInstanceOf(JsonRpcErrorResponse::class, $transport->sent[0]['message']);
         self::assertSame(ProtocolErrorCode::InvalidRequest->value, $transport->sent[0]['message']->error->code);
         self::assertInstanceOf(JsonRpcResultResponse::class, $transport->sent[1]['message']);
+    }
+
+    public function testARefusedDuplicateInboundRequestIdDoesNotReleaseTheOriginalClaim(): void
+    {
+        $outbound = new PendingOutboundRequests();
+        $invocations = 0;
+        $dispatcher = self::buildDispatcher(
+            $outbound,
+            requestHandlers: ['tests/test-request' => new ClosureRequestHandler(static function () use (&$invocations): EmptyResult {
+                ++$invocations;
+                delay(0.03);
+
+                return new EmptyResult();
+            })],
+        );
+        $transport = new RecordingTransport();
+
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        delay(0.01);
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+
+        $dispatcher->flushPending();
+
+        self::assertSame(1, $invocations, 'While the original claim is live, every reuse of its id must be refused.');
     }
 
     public function testNotificationMethodSentAsRequestIsAnsweredWithInvalidRequestEchoingTheId(): void

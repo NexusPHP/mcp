@@ -10,6 +10,8 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Fixed
 
+- A malformed error response whose recovered id matches a pending client request now fails that request
+  with the parse diagnostic, instead of leaving the caller to wait out its deadline.
 - `ServerBuilder::register()` refuses a discovered entry whose key an earlier source already declared,
   throwing `DuplicateDiscoveredEntryException` naming both sources, instead of silently overwriting.
 - A resource template variable name longer than 32 characters is refused at registration, instead of
