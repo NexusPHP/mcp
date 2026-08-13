@@ -1277,6 +1277,24 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
         self::assertSame(['drain', 'close'], $order);
     }
 
+    public function testADrainListenerReenteringCloseFiresListenersOnce(): void
+    {
+        $transport = self::makeTransport();
+
+        $order = [];
+        $transport->onDrain(static function () use (&$order, $transport): void {
+            $order[] = 'drain';
+            $transport->close();
+        });
+        $transport->onClose(static function () use (&$order): void {
+            $order[] = 'close';
+        });
+
+        $transport->close();
+
+        self::assertSame(['drain', 'close'], $order);
+    }
+
     public function testCloseSignalsCloseEvenWhenADrainListenerThrows(): void
     {
         $transport = self::makeTransport();

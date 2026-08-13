@@ -26,6 +26,9 @@ use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 
+use function Amp\async;
+use function Amp\delay;
+
 /**
  * @internal
  */
@@ -168,6 +171,49 @@ final class InMemoryTransportTest extends AbstractMcpTestCase
         $a->close();
 
         self::assertSame(1, $closeCount);
+    }
+
+    public function testADrainListenerReenteringCloseFiresListenersOnce(): void
+    {
+        [$a] = InMemoryTransport::createPair();
+        $order = [];
+        $a->onDrain(static function () use (&$order, $a): void {
+            $order[] = 'drain';
+            $a->close();
+        });
+        $a->onClose(static function () use (&$order): void {
+            $order[] = 'close';
+        });
+        $a->start();
+
+        $a->close();
+
+        self::assertSame(['drain', 'close'], $order);
+    }
+
+    public function testAConcurrentCloseDoesNotRefireListeners(): void
+    {
+        [$a] = InMemoryTransport::createPair();
+        $order = [];
+        $a->onDrain(static function () use (&$order): void {
+            $order[] = 'drain:start';
+            delay(0.02);
+            $order[] = 'drain:end';
+        });
+        $a->onClose(static function () use (&$order): void {
+            $order[] = 'close';
+        });
+        $a->start();
+
+        $first = async(static fn() => $a->close());
+        $second = async(static function () use ($a): void {
+            delay(0.01);
+            $a->close();
+        });
+        $first->await();
+        $second->await();
+
+        self::assertSame(['drain:start', 'drain:end', 'close'], $order);
     }
 
     public function testCloseCascadeTransitionsPeerToClosedSoPeerSendFails(): void

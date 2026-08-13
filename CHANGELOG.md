@@ -30,6 +30,8 @@ in `0.x`, minor releases may include breaking changes.
   `[]` when encoding. The capability slot itself still encodes as `{}` when empty.
 - `Icon`'s constructor applies the same `sizes` list guard as its decoder, so an icon the SDK cannot
   re-read is refused at construction.
+- A `close()` re-entered from a listener or a concurrent fiber during the drain no longer fires
+  `onDrain` and `onClose` twice on the HTTP transports and `InMemoryTransport`.
 - `ElicitResult` accepts an empty string inside a `string[]` content value, matching the spec's
   unconstrained item type, instead of failing the whole retry with `-32602`.
 
