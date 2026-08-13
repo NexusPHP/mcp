@@ -39,6 +39,10 @@ in `0.x`, minor releases may include breaking changes.
   `start()` fires both instead of neither, releasing a caller blocked on the close signal.
 - A second `start()` on the stdio client, or one after `close()`, is refused before a subprocess is
   spawned, instead of spawning one only to kill it.
+- The SSE parser's frame budget restarts at every frame boundary, so a keep-alive-only stream is no
+  longer torn down once the comments accumulate past the cap.
+- The SSE parser no longer loses a chunk-final carriage return when the next chunk is empty, which split
+  one multi-line frame into two.
 - `ElicitResult` accepts an empty string inside a `string[]` content value, matching the spec's
   unconstrained item type, instead of failing the whole retry with `-32602`.
 

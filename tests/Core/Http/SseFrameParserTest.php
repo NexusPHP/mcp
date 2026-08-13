@@ -180,6 +180,53 @@ final class SseFrameParserTest extends AbstractMcpTestCase
         }
     }
 
+    public function testTheFrameCapCountsAcrossFieldLinesWithinOneFrame(): void
+    {
+        $parser = new SseFrameParser(maxFrameBytes: 32);
+
+        $this->expectException(ResponseTooLargeException::class);
+        $this->expectExceptionMessageIs('The response exceeded the 32 byte limit the client accepts.');
+
+        for ($line = 0; $line < 4; ++$line) {
+            $parser->feed("data: aaaaaaaa\n");
+        }
+    }
+
+    public function testAKeepAliveOnlyStreamNeverOutgrowsTheFrameCap(): void
+    {
+        $parser = new SseFrameParser(maxFrameBytes: 32);
+
+        for ($tick = 0; $tick < 20; ++$tick) {
+            self::assertSame([], self::flatten($parser->feed(": keep-alive\n\n")));
+        }
+
+        self::assertSame([['message', 'still alive']], self::flatten($parser->feed("data: still alive\n\n")));
+    }
+
+    public function testAPendingCarriageReturnSurvivesAnEmptyChunk(): void
+    {
+        $parser = new SseFrameParser();
+        $frames = [];
+
+        foreach (["data: a\r", '', "\ndata: b\n\n"] as $chunk) {
+            $frames = [...$frames, ...$parser->feed($chunk)];
+        }
+
+        self::assertSame([['message', "a\nb"]], self::flatten($frames));
+    }
+
+    public function testAConsumedCarriageReturnDoesNotSwallowTheNextChunksNewline(): void
+    {
+        $parser = new SseFrameParser();
+        $frames = [];
+
+        foreach (["data: a\r", "\n", "\ndata: b\n\n"] as $chunk) {
+            $frames = [...$frames, ...$parser->feed($chunk)];
+        }
+
+        self::assertSame([['message', 'a'], ['message', 'b']], self::flatten($frames));
+    }
+
     public function testAssemblesAFrameSplitAcrossChunks(): void
     {
         $parser = new SseFrameParser();

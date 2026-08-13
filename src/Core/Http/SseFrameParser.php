@@ -28,7 +28,7 @@ final class SseFrameParser
     private const string DEFAULT_EVENT = 'message';
 
     /**
-     * Bytes absorbed since the last frame was dispatched.
+     * Bytes absorbed since the last frame boundary.
      */
     private int $frameBytes = 0;
 
@@ -71,10 +71,15 @@ final class SseFrameParser
 
         if ($this->afterCarriageReturn && str_starts_with($chunk, "\n")) {
             $chunk = substr($chunk, 1);
+            $this->afterCarriageReturn = false;
         }
 
         $this->pending .= $chunk;
-        $this->afterCarriageReturn = str_ends_with($this->pending, "\r");
+
+        if ('' !== $chunk) {
+            $this->afterCarriageReturn = str_ends_with($chunk, "\r");
+        }
+
         $frames = [];
 
         $lines = preg_split('/\r\n|\n|\r/', $this->pending);
@@ -84,9 +89,13 @@ final class SseFrameParser
         foreach ($lines as $line) {
             $frame = $this->consumeLine($line);
 
+            // A blank line is a frame boundary whether or not it dispatched, so the budget restarts.
+            if ('' === $line) {
+                $this->frameBytes = \strlen($this->pending);
+            }
+
             if (null !== $frame) {
                 $frames[] = $frame;
-                $this->frameBytes = \strlen($this->pending);
             }
         }
 
