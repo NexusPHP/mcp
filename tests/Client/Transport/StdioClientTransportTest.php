@@ -33,6 +33,9 @@ use PHPUnit\Framework\Attributes\Group;
 use Psr\Log\LogLevel;
 use Revolt\EventLoop;
 
+use function Amp\async;
+use function Amp\delay;
+
 /**
  * Drives the transport against a scripted subprocess, since a real spawn cannot validate an Infection mutant and lives in `AmpSubprocessLauncherTest`.
  *
@@ -163,7 +166,7 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
         self::assertStringNotContainsString('s3cr3t-value', json_encode($logger->records, \JSON_THROW_ON_ERROR));
     }
 
-    public function testStartAfterStartThrowsAndTearsTheSecondSubprocessDown(): void
+    public function testStartAfterStartThrowsWithoutSpawningASecondSubprocess(): void
     {
         $launcher = new ScriptedSubprocessLauncher();
         $transport = self::buildTransport($launcher);
@@ -175,16 +178,40 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
 
             $transport->start();
         } finally {
-            self::assertCount(2, $launcher->subprocesses);
-            $abandoned = $launcher->lastSubprocess();
-            self::assertTrue($abandoned->getStdin()->isClosed());
-            self::assertSame(1, $abandoned->killCount);
+            self::assertCount(1, $launcher->subprocesses);
 
             $transport->close();
         }
     }
 
-    public function testStartAfterCloseThrowsAndTearsTheSubprocessDown(): void
+    public function testAConcurrentStartDuringTheLaunchTearsItsOwnSubprocessDown(): void
+    {
+        $launcher = new ScriptedSubprocessLauncher(launchDelay: 0.01);
+        $transport = self::buildTransport($launcher);
+
+        $first = async(static fn() => $transport->start());
+        $second = async(static function () use ($transport): void {
+            delay(0.005);
+            $transport->start();
+        });
+
+        $first->await();
+
+        try {
+            $second->await();
+            self::fail('Expected the second start to throw.');
+        } catch (TransportAlreadyStartedException) {
+        }
+
+        self::assertCount(2, $launcher->subprocesses);
+        $abandoned = $launcher->lastSubprocess();
+        self::assertTrue($abandoned->getStdin()->isClosed());
+        self::assertSame(1, $abandoned->killCount);
+
+        $transport->close();
+    }
+
+    public function testStartAfterCloseThrowsWithoutSpawningASubprocess(): void
     {
         $launcher = new ScriptedSubprocessLauncher();
         $transport = self::buildTransport($launcher);
@@ -195,9 +222,7 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
 
             $transport->start();
         } finally {
-            $abandoned = $launcher->lastSubprocess();
-            self::assertTrue($abandoned->getStdin()->isClosed());
-            self::assertSame(1, $abandoned->killCount);
+            self::assertCount(0, $launcher->subprocesses);
         }
     }
 

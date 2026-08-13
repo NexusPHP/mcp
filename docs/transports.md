@@ -214,6 +214,8 @@ line-framed duplex underneath it is single-use.
 - **Intentional close**: `close()` stops supervision permanently and cancels a pending respawn, so shutting
   down never races a restart. When it cancels one, it emits a second `onClose()`: the connection's own close
   already went out, and a caller holding state for the promised replacement needs to hear that it withdrew.
+  An explicit close drains the live connection before its close goes out, and a close before `start()`
+  still fires `onDrain` then `onClose` once.
 - **Reconnect signal**: it implements `ReconnectingTransportInterface`, whose `onReconnect()` fires once per
   replacement that has started serving, after the close for the connection it replaces and never for the
   first connection. A protocol layer holding per-connection state rebuilds it there. `Client` uses it to

@@ -119,16 +119,27 @@ final class LineDuplex
     }
 
     /**
+     * Pre-flight for a host acquiring resources before `start()`, so a refused start spawns nothing.
+     *
      * @throws TransportAlreadyClosedException
      * @throws TransportAlreadyStartedException
      */
-    public function start(ReadableStream $readable, WritableStream $writable): void
+    public function assertIsStartable(): void
     {
         match ($this->state) {
             TransportState::Running => throw new TransportAlreadyStartedException(transport: $this->hostTransport),
             TransportState::Closed => throw new TransportAlreadyClosedException(operation: 'start'),
             TransportState::Idle => null,
         };
+    }
+
+    /**
+     * @throws TransportAlreadyClosedException
+     * @throws TransportAlreadyStartedException
+     */
+    public function start(ReadableStream $readable, WritableStream $writable): void
+    {
+        $this->assertIsStartable();
 
         $this->state = TransportState::Running;
         $this->readable = $readable;

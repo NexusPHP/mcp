@@ -17,6 +17,8 @@ use Amp\Process\ProcessException;
 use Nexus\Mcp\Client\Transport\SubprocessInterface;
 use Nexus\Mcp\Client\Transport\SubprocessLauncherInterface;
 
+use function Amp\delay;
+
 /**
  * Launcher double handing out `ScriptedSubprocess` instances.
  *
@@ -41,7 +43,7 @@ final class ScriptedSubprocessLauncher implements SubprocessLauncherInterface
 
     private ?ScriptedSubprocess $latestSubprocess = null;
 
-    public function __construct(private readonly ?ProcessException $failure = null)
+    public function __construct(private readonly ?ProcessException $failure = null, private readonly float $launchDelay = 0.0)
     {
     }
 
@@ -54,6 +56,10 @@ final class ScriptedSubprocessLauncher implements SubprocessLauncherInterface
             'environment' => $environment,
         ];
         $this->launches[] = $this->latestLaunch;
+
+        if ($this->launchDelay > 0.0) {
+            delay($this->launchDelay);
+        }
 
         if (null !== $this->failure) {
             throw $this->failure;

@@ -392,16 +392,19 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         self::assertTrue(self::connectionAt($spawned, 0)->closed, 'A listener must not be able to leak the peer.');
     }
 
-    public function testAFailedStartOwesNoCloseWhenTheTransportIsLaterClosed(): void
+    public function testAFailedStartStillGetsDrainAndCloseWhenLaterClosed(): void
     {
         $inner = new SupervisableRecordingTransport();
         $inner->startError = new \RuntimeException('cannot start');
 
         $transport = $this->built[] = new SupervisedTransport(static fn(): SupervisableTransportInterface => $inner);
 
-        $closes = 0;
-        $transport->onClose(static function () use (&$closes): void {
-            ++$closes;
+        $events = [];
+        $transport->onDrain(static function () use (&$events): void {
+            $events[] = 'drain';
+        });
+        $transport->onClose(static function () use (&$events): void {
+            $events[] = 'close';
         });
 
         try {
@@ -411,7 +414,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
 
         $transport->close();
 
-        self::assertSame(0, $closes, 'A connection that never started owes the caller no close.');
+        self::assertSame(['drain', 'close'], $events, 'A caller blocking on close must be released even when the start failed.');
     }
 
     public function testAThrowingErrorListenerStillClosesTheExhaustedTransport(): void
@@ -496,19 +499,81 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         self::assertSame(1, $closes);
     }
 
-    public function testCloseBeforeStartEmitsNoCloseEvent(): void
+    public function testCloseAfterAFailedRespawnCatchesAThrowingCloseListener(): void
+    {
+        $spawned = [];
+        $transport = $this->built[] = new SupervisedTransport(
+            static function () use (&$spawned): SupervisableTransportInterface {
+                $inner = new SupervisableRecordingTransport();
+
+                if ([] !== $spawned) {
+                    $inner->startError = new \RuntimeException('respawn fails');
+                }
+
+                $spawned[] = $inner;
+
+                return $inner;
+            },
+            restartDelay: 0.01,
+        );
+
+        $errors = [];
+        $closes = 0;
+        $transport->onError(static function (\Throwable $e) use (&$errors): void {
+            $errors[] = $e;
+        });
+        $transport->onClose(static function () use (&$closes): void {
+            if (++$closes > 1) {
+                throw new \RuntimeException('close listener boom');
+            }
+        });
+
+        $transport->start();
+        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+        delay(0.015);
+
+        $transport->close();
+
+        self::assertSame(2, $closes);
+        self::assertNotSame([], $errors);
+        self::assertSame('close listener boom', end($errors)->getMessage());
+    }
+
+    public function testExplicitCloseFiresDrainBeforeClose(): void
     {
         $spawned = [];
         $transport = $this->buildTransport($spawned);
+        $transport->start();
 
-        $closes = 0;
-        $transport->onClose(static function () use (&$closes): void {
-            ++$closes;
+        $events = [];
+        $transport->onDrain(static function () use (&$events): void {
+            $events[] = 'drain';
+        });
+        $transport->onClose(static function () use (&$events): void {
+            $events[] = 'close';
         });
 
         $transport->close();
 
-        self::assertSame(0, $closes);
+        self::assertSame(['drain', 'close'], $events, 'The drain must release in-flight work before close cancels the awaiting callers.');
+    }
+
+    public function testCloseBeforeStartFiresDrainThenCloseWithoutSpawning(): void
+    {
+        $spawned = [];
+        $transport = $this->buildTransport($spawned);
+
+        $events = [];
+        $transport->onDrain(static function () use (&$events): void {
+            $events[] = 'drain';
+        });
+        $transport->onClose(static function () use (&$events): void {
+            $events[] = 'close';
+        });
+
+        $transport->close();
+
+        self::assertSame(['drain', 'close'], $events);
         self::assertSame([], $spawned);
     }
 

@@ -35,6 +35,10 @@ in `0.x`, minor releases may include breaking changes.
 - A malformed JSON line on the stdio transports, and a malformed or non-object body on the Streamable
   HTTP server, now reach the `onError` listeners. Before, only the stdio non-object arm did.
 - A JSON-RPC version-mismatch error names the offending method when the envelope carries one.
+- `SupervisedTransport`'s explicit `close()` fires `onDrain` before `onClose`, and a close before
+  `start()` fires both instead of neither, releasing a caller blocked on the close signal.
+- A second `start()` on the stdio client, or one after `close()`, is refused before a subprocess is
+  spawned, instead of spawning one only to kill it.
 - `ElicitResult` accepts an empty string inside a `string[]` content value, matching the spec's
   unconstrained item type, instead of failing the whole retry with `-32602`.
 
