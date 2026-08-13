@@ -204,9 +204,7 @@ final class ParameterHeaderValidationMiddlewareTest extends AbstractMcpTestCase
 
         self::middleware()->process($request, $handler);
 
-        if (! $handler->received instanceof ServerRequestInterface) {
-            self::fail('The inner handler was not reached.');
-        }
+        self::assertInstanceOf(ServerRequestInterface::class, $handler->received);
 
         self::assertNotSame('', (string) $handler->received->getBody(), 'Peeking at the body must not consume it.');
     }

@@ -323,18 +323,14 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
         $this->now = new \DateTimeImmutable('2026-08-04T12:00:00.999+00:00');
         $record = $store->findTask($taskId);
 
-        if (! $record instanceof TaskRecord) {
-            self::fail('Expected the task to still be live within its ttl.');
-        }
+        self::assertInstanceOf(TaskRecord::class, $record);
 
         self::assertSame(TaskStatus::Working, $record->status);
 
         $this->now = new \DateTimeImmutable('2026-08-04T12:00:01+00:00');
         $record = $store->findTask($taskId);
 
-        if (! $record instanceof TaskRecord) {
-            self::fail('Expected the overdue task to be observable as failed.');
-        }
+        self::assertInstanceOf(TaskRecord::class, $record);
 
         self::assertSame(TaskStatus::Failed, $record->status);
         self::assertSame(['code' => -32_603, 'message' => 'The task did not settle within its ttl.'], $record->error);
@@ -349,9 +345,7 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
         $this->now = new \DateTimeImmutable('2026-08-04T12:00:02+00:00');
         $record = $store->findTask($taskId);
 
-        if (! $record instanceof TaskRecord) {
-            self::fail('Expected the overdue task to be observable as failed.');
-        }
+        self::assertInstanceOf(TaskRecord::class, $record);
 
         self::assertSame(TaskStatus::Failed, $record->status);
         self::assertSame([], $record->pendingInputRequests);
@@ -376,9 +370,7 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
         $this->now = new \DateTimeImmutable('2026-08-04T12:00:05+00:00');
         $record = $store->findTask($taskId);
 
-        if (! $record instanceof TaskRecord) {
-            self::fail('Expected the overdue task to be observable as failed.');
-        }
+        self::assertInstanceOf(TaskRecord::class, $record);
 
         self::assertSame(TaskStatus::Failed, $record->status);
 
@@ -397,9 +389,7 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
 
         $record = $store->findTask($taskId);
 
-        if (! $record instanceof TaskRecord) {
-            self::fail('Expected a null-ttl task to stay live.');
-        }
+        self::assertInstanceOf(TaskRecord::class, $record);
 
         self::assertSame(TaskStatus::Working, $record->status);
     }

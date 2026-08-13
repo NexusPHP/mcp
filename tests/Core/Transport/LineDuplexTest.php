@@ -698,9 +698,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
         self::assertSame('demo', $matches[0]['context']['label'] ?? null);
         $exception = $matches[0]['context']['exception'] ?? null;
 
-        if (! $exception instanceof \RuntimeException) {
-            self::fail('Expected the stream close failure in the log context.');
-        }
+        self::assertInstanceOf(\RuntimeException::class, $exception);
 
         self::assertSame('close boom', $exception->getMessage());
     }

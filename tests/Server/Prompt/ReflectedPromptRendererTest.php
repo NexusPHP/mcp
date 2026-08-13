@@ -54,9 +54,7 @@ final class ReflectedPromptRendererTest extends AbstractMcpTestCase
         $message = self::firstMessage($result);
         self::assertSame(Role::User, $message->role);
 
-        if (! $message->content instanceof TextContent) {
-            self::fail('Expected a TextContent message.');
-        }
+        self::assertInstanceOf(TextContent::class, $message->content);
 
         self::assertSame('Write about AI', $message->content->text);
     }
@@ -115,9 +113,7 @@ final class ReflectedPromptRendererTest extends AbstractMcpTestCase
 
         $result = $renderer->render($arguments, self::makeContext());
 
-        if (! $result instanceof GetPromptResult) {
-            self::fail('Expected a GetPromptResult.');
-        }
+        self::assertInstanceOf(GetPromptResult::class, $result);
 
         return $result;
     }
@@ -126,9 +122,7 @@ final class ReflectedPromptRendererTest extends AbstractMcpTestCase
     {
         $message = $result->messages[0] ?? null;
 
-        if (! $message instanceof PromptMessage) {
-            self::fail('Expected a PromptMessage.');
-        }
+        self::assertInstanceOf(PromptMessage::class, $message);
 
         return $message;
     }

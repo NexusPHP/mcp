@@ -69,9 +69,7 @@ final class CursorPaginatorTest extends AbstractMcpTestCase
 
         self::assertSame([$entries['alpha'], $entries['beta']], $page->entries);
 
-        if (! $page->nextCursor instanceof Cursor) {
-            self::fail('Expected a next cursor when entries remain beyond the page.');
-        }
+        self::assertInstanceOf(Cursor::class, $page->nextCursor);
 
         self::assertSame('beta', $page->nextCursor->cursor);
     }

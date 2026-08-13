@@ -60,9 +60,7 @@ final class CompleteRequestHandlerTest extends AbstractMcpTestCase
         $call = self::firstCall($store);
         $ref = $call['ref'];
 
-        if (! $ref instanceof PromptReference) {
-            self::fail('Expected PromptReference.');
-        }
+        self::assertInstanceOf(PromptReference::class, $ref);
 
         self::assertSame('my-prompt', $ref->name);
         self::assertSame('arg', $call['argumentName']);
@@ -93,9 +91,7 @@ final class CompleteRequestHandlerTest extends AbstractMcpTestCase
         $call = self::firstCall($store);
         $ref = $call['ref'];
 
-        if (! $ref instanceof ResourceTemplateReference) {
-            self::fail('Expected ResourceTemplateReference.');
-        }
+        self::assertInstanceOf(ResourceTemplateReference::class, $ref);
 
         self::assertSame('file:///{folder}/{filename}', $ref->uri);
         self::assertSame('filename', $call['argumentName']);

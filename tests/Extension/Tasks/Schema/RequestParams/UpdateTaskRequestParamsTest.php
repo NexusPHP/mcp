@@ -110,9 +110,7 @@ final class UpdateTaskRequestParamsTest extends AbstractMcpTestCase
         self::assertArrayHasKey('github_login', $params->inputResponses);
         $response = $params->inputResponses['github_login'];
 
-        if (! $response instanceof ElicitResult) {
-            self::fail('The parsable entry was not decoded to an ElicitResult.');
-        }
+        self::assertInstanceOf(ElicitResult::class, $response);
 
         self::assertSame(['action' => 'accept'], $response->toArray());
     }

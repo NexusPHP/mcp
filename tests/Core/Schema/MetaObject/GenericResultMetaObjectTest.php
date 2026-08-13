@@ -90,9 +90,7 @@ final class GenericResultMetaObjectTest extends AbstractMcpTestCase
             'vendor' => 'x',
         ]);
 
-        if (! $meta->serverInfo instanceof Implementation) {
-            self::fail('Expected the server info to be parsed.');
-        }
+        self::assertInstanceOf(Implementation::class, $meta->serverInfo);
 
         self::assertSame('server', $meta->serverInfo->name);
         self::assertSame('2.1.0', $meta->serverInfo->version);

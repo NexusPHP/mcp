@@ -766,9 +766,7 @@ final class AttributeScannerTest extends AbstractMcpTestCase
     {
         $argument = ($prompt->arguments ?? [])[$index] ?? null;
 
-        if (! $argument instanceof PromptArgument) {
-            self::fail(\sprintf('Prompt "%s" has no argument at index %d.', $prompt->name, $index));
-        }
+        self::assertInstanceOf(PromptArgument::class, $argument);
 
         return $argument;
     }

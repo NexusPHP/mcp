@@ -640,9 +640,7 @@ final class ClientTest extends AbstractMcpTestCase
         self::assertSame(1, $sentId, 'Default factory mints the discover request id starting at 1.');
         self::assertSame(ProtocolVersion::LATEST_VERSION, $sentRequest->params->meta->protocolVersion->version);
 
-        if (! $sentRequest->params->meta->clientInfo instanceof Implementation) {
-            self::fail('Expected the client to stamp its own info onto the request "_meta".');
-        }
+        self::assertInstanceOf(Implementation::class, $sentRequest->params->meta->clientInfo);
 
         self::assertSame('demo', $sentRequest->params->meta->clientInfo->name);
         self::assertSame('1.2.3', $sentRequest->params->meta->clientInfo->version);
@@ -654,9 +652,7 @@ final class ClientTest extends AbstractMcpTestCase
 
         self::assertInstanceOf(DiscoverResult::class, $result);
 
-        if (! $result->meta->serverInfo instanceof Implementation) {
-            self::fail('Expected the discover result "_meta" to carry the server info.');
-        }
+        self::assertInstanceOf(Implementation::class, $result->meta->serverInfo);
 
         self::assertSame('srv', $result->meta->serverInfo->name);
 
@@ -2487,9 +2483,7 @@ final class ClientTest extends AbstractMcpTestCase
 
         $replayed = self::supervisedPeer($spawned, 1)->sent[0]['message'] ?? null;
 
-        if (! $replayed instanceof SubscriptionsListenRequest) {
-            self::fail('The replacement peer should have been sent the listen request again.');
-        }
+        self::assertInstanceOf(SubscriptionsListenRequest::class, $replayed);
 
         self::assertSame($id, $replayed->id->id);
         self::assertSame($id, $stream->subscriptionId->id);
@@ -2807,9 +2801,7 @@ final class ClientTest extends AbstractMcpTestCase
 
         $replayed = self::supervisedPeer($spawned, 1)->sent[0]['message'] ?? null;
 
-        if (! $replayed instanceof ListToolsRequest) {
-            self::fail('The replacement peer should have been sent the lost request again.');
-        }
+        self::assertInstanceOf(ListToolsRequest::class, $replayed);
 
         self::assertSame(7, $replayed->id->id);
 
@@ -2821,9 +2813,7 @@ final class ClientTest extends AbstractMcpTestCase
 
         $result = $call->await();
 
-        if (! $result instanceof ListToolsResult) {
-            self::fail('The replacement peer\'s answer should have reached the original caller.');
-        }
+        self::assertInstanceOf(ListToolsResult::class, $result);
 
         self::assertSame([], $result->tools);
 
@@ -2855,9 +2845,7 @@ final class ClientTest extends AbstractMcpTestCase
 
         $replayed = self::supervisedPeer($spawned, 1)->sent[0]['message'] ?? null;
 
-        if (! $replayed instanceof JsonRpcRequest) {
-            self::fail(\sprintf('%s should have been sent again to the replacement peer.', $expectedMethod));
-        }
+        self::assertInstanceOf(JsonRpcRequest::class, $replayed);
 
         self::assertSame($expectedMethod, $replayed::getMethod());
         self::assertSame(7, $replayed->id->id);
@@ -3451,9 +3439,11 @@ final class ClientTest extends AbstractMcpTestCase
     {
         $peer = $spawned[$index] ?? null;
 
-        if (! $peer instanceof SupervisableRecordingTransport) {
-            self::fail(\sprintf('Expected a spawned peer at index %d, got %d in all.', $index, \count($spawned)));
-        }
+        self::assertInstanceOf(
+            SupervisableRecordingTransport::class,
+            $peer,
+            \sprintf('Expected a spawned peer at index %d, got %d in all.', $index, \count($spawned)),
+        );
 
         return $peer;
     }
@@ -3570,9 +3560,7 @@ final class ClientTest extends AbstractMcpTestCase
     {
         $context = self::lastSent($transport)['context'];
 
-        if (! $context instanceof SendContext) {
-            self::fail('The tool call carried no send context.');
-        }
+        self::assertInstanceOf(SendContext::class, $context);
 
         return $context;
     }
@@ -3634,9 +3622,7 @@ final class ClientTest extends AbstractMcpTestCase
     {
         $request = self::lastSent($transport)['message'];
 
-        if (! $request instanceof JsonRpcRequest) {
-            self::fail('The transport last recorded something other than a request.');
-        }
+        self::assertInstanceOf(JsonRpcRequest::class, $request);
 
         return $request->id->id;
     }

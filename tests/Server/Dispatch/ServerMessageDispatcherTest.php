@@ -221,9 +221,7 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
         $message = $transport->sent[0]['message'];
         self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
 
-        if (! $message->id instanceof RequestId) {
-            self::fail('An envelope that carried an id is a request, so the error response must echo it.');
-        }
+        self::assertInstanceOf(RequestId::class, $message->id);
 
         self::assertSame(7, $message->id->id);
         self::assertSame(ProtocolErrorCode::InvalidRequest->value, $message->error->code);
@@ -260,9 +258,7 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
         $message = $transport->sent[0]['message'];
         self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
 
-        if (! $message->id instanceof RequestId) {
-            self::fail('The rejection must echo the request id.');
-        }
+        self::assertInstanceOf(RequestId::class, $message->id);
 
         self::assertSame(5, $message->id->id);
         self::assertSame(ProtocolErrorCode::InvalidRequest->value, $message->error->code);
@@ -424,9 +420,7 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
 
         $error = $message->error;
 
-        if (! $error instanceof UnsupportedProtocolVersionError) {
-            self::fail('Expected an UnsupportedProtocolVersionError.');
-        }
+        self::assertInstanceOf(UnsupportedProtocolVersionError::class, $error);
 
         self::assertSame(ProtocolErrorCode::UnsupportedProtocolVersion->value, $error->code);
         self::assertSame('2025-11-25', $error->requested);
@@ -448,9 +442,7 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
 
         $error = $message->error;
 
-        if (! $error instanceof UnsupportedProtocolVersionError) {
-            self::fail('Expected an UnsupportedProtocolVersionError.');
-        }
+        self::assertInstanceOf(UnsupportedProtocolVersionError::class, $error);
 
         self::assertSame('v999.0.0', $error->requested);
     }
@@ -474,9 +466,7 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
 
         $error = $message->error;
 
-        if (! $error instanceof UnsupportedProtocolVersionError) {
-            self::fail('Expected an UnsupportedProtocolVersionError.');
-        }
+        self::assertInstanceOf(UnsupportedProtocolVersionError::class, $error);
 
         self::assertSame($expected, $error->requested);
     }
@@ -708,9 +698,7 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
         self::assertCount(1, $transport->sent, 'Only the cancelled request loses its response.');
         $message = $transport->sent[0]['message'];
 
-        if (! $message instanceof JsonRpcResultResponse) {
-            self::fail('Expected the uncancelled request to be answered with a result.');
-        }
+        self::assertInstanceOf(JsonRpcResultResponse::class, $message);
 
         self::assertSame(2, $message->id->id);
     }
@@ -975,9 +963,7 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
         $dispatcher->dispatch(self::cancelEnvelope(1), $transport, new ReceiveContext());
         delay(0.0);
 
-        if (! $observed instanceof Cancellation) {
-            self::fail('The handler must have observed its cancellation token.');
-        }
+        self::assertInstanceOf(Cancellation::class, $observed);
 
         self::assertFalse($observed->isRequested(), 'Below the cap the registered handler owns the cancel, and this one declined it.');
 
@@ -1008,9 +994,7 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
         delay(0.0);
         $dispatcher->dispatch(self::cancelEnvelope(1), $transport, new ReceiveContext());
 
-        if (! $observed instanceof Cancellation) {
-            self::fail('The handler must have observed its cancellation token.');
-        }
+        self::assertInstanceOf(Cancellation::class, $observed);
 
         self::assertTrue($observed->isRequested(), 'Admission past the cap is funded by the cancel itself.');
 
@@ -1693,9 +1677,7 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
         self::assertCount(1, $transport->sent);
         $message = $transport->sent[0]['message'];
 
-        if (! $message instanceof JsonRpcResultResponse) {
-            self::fail(\sprintf('Expected a result response, got %s.', $message::class));
-        }
+        self::assertInstanceOf(JsonRpcResultResponse::class, $message);
 
         return $message->result;
     }

@@ -220,9 +220,7 @@ final class PromptStoreTest extends AbstractMcpTestCase
 
         $result = $store->get('alpha', null, self::makeContext());
 
-        if (! $result instanceof GetPromptResult) {
-            self::fail('Expected a prompt result.');
-        }
+        self::assertInstanceOf(GetPromptResult::class, $result);
 
         self::assertSame([], $result->messages);
     }

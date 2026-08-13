@@ -320,9 +320,7 @@ final class ResourceTemplateStoreTest extends AbstractMcpTestCase
 
         $result = $store->read('file:///a', self::makeContext());
 
-        if (! $result instanceof ReadResourceResult) {
-            self::fail('Expected a resource result.');
-        }
+        self::assertInstanceOf(ReadResourceResult::class, $result);
 
         self::assertSame([], $result->contents);
     }

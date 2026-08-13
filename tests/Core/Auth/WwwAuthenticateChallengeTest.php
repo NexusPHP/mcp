@@ -182,9 +182,7 @@ final class WwwAuthenticateChallengeTest extends AbstractMcpTestCase
             return;
         }
 
-        if (! $challenge instanceof WwwAuthenticateChallenge) {
-            self::fail('Expected a Bearer challenge to be found.');
-        }
+        self::assertInstanceOf(WwwAuthenticateChallenge::class, $challenge);
 
         self::assertSame($expected, [$challenge->scheme, $challenge->parameters]);
     }
@@ -293,9 +291,7 @@ final class WwwAuthenticateChallengeTest extends AbstractMcpTestCase
 
         $parsed = WwwAuthenticateChallenge::findBearer($challenge->toHeaderValue());
 
-        if (! $parsed instanceof WwwAuthenticateChallenge) {
-            self::fail('Expected the rendered challenge to parse back.');
-        }
+        self::assertInstanceOf(WwwAuthenticateChallenge::class, $parsed);
 
         self::assertSame($challenge->parameters, $parsed->parameters);
     }

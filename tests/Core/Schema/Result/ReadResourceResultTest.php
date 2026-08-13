@@ -185,15 +185,11 @@ final class ReadResourceResultTest extends AbstractMcpTestCase
 
         self::assertCount(2, $result->contents);
 
-        if (! $result->contents[0] instanceof TextResourceContents) {
-            self::fail('Expected TextResourceContents at index 0.');
-        }
+        self::assertInstanceOf(TextResourceContents::class, $result->contents[0]);
 
         self::assertSame('hi', $result->contents[0]->text);
 
-        if (! $result->contents[1] instanceof BlobResourceContents) {
-            self::fail('Expected BlobResourceContents at index 1.');
-        }
+        self::assertInstanceOf(BlobResourceContents::class, $result->contents[1]);
 
         self::assertSame('aGVsbG8=', $result->contents[1]->blob);
     }

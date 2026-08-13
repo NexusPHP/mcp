@@ -41,9 +41,7 @@ final class PromptMessageTest extends AbstractMcpTestCase
 
         self::assertSame(Role::User, $message->role);
 
-        if (! $message->content instanceof TextContent) {
-            self::fail('Expected content to be TextContent.');
-        }
+        self::assertInstanceOf(TextContent::class, $message->content);
 
         self::assertSame('hello', $message->content->text);
     }
@@ -75,9 +73,7 @@ final class PromptMessageTest extends AbstractMcpTestCase
             'content' => ['type' => 'text', 'text' => 'hello'],
         ]);
 
-        if (! $message->content instanceof TextContent) {
-            self::fail('Expected content to be TextContent.');
-        }
+        self::assertInstanceOf(TextContent::class, $message->content);
 
         self::assertSame('hello', $message->content->text);
     }

@@ -564,9 +564,7 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
     {
         $notification = $sender->notifications[$index] ?? null;
 
-        if (! $notification instanceof JsonRpcNotification) {
-            self::fail(\sprintf('Expected a notification at index %d.', $index));
-        }
+        self::assertInstanceOf(JsonRpcNotification::class, $notification);
 
         $params = $notification->jsonSerialize()['params'] ?? [];
         self::assertIsArray($params);

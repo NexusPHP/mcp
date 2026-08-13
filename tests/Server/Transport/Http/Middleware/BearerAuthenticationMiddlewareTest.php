@@ -163,9 +163,7 @@ final class BearerAuthenticationMiddlewareTest extends AbstractMcpTestCase
 
         $token = $handler->received?->getAttribute(VerifiedAccessToken::REQUEST_ATTRIBUTE);
 
-        if (! $token instanceof VerifiedAccessToken) {
-            self::fail('Expected the validated token to reach the handler.');
-        }
+        self::assertInstanceOf(VerifiedAccessToken::class, $token);
 
         self::assertSame('the-subject', $token->subject);
     }
@@ -457,9 +455,7 @@ final class BearerAuthenticationMiddlewareTest extends AbstractMcpTestCase
     {
         $challenge = WwwAuthenticateChallenge::findBearer($response->getHeaderLine('WWW-Authenticate'));
 
-        if (! $challenge instanceof WwwAuthenticateChallenge) {
-            self::fail('Expected the response to carry a Bearer challenge.');
-        }
+        self::assertInstanceOf(WwwAuthenticateChallenge::class, $challenge);
 
         return $challenge->parameters;
     }

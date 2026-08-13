@@ -116,9 +116,7 @@ final class MissingRequiredClientCapabilityExceptionTest extends AbstractMcpTest
 
         $error = ResponseSender::buildErrorResponse($exception, new RequestId(id: 7))->error;
 
-        if (! $error instanceof MissingRequiredClientCapabilityError) {
-            self::fail('Expected a MissingRequiredClientCapabilityError.');
-        }
+        self::assertInstanceOf(MissingRequiredClientCapabilityError::class, $error);
 
         self::assertSame(['elicitation' => []], $error->requiredCapabilities->toArray());
     }

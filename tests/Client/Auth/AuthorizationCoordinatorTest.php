@@ -658,9 +658,8 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
         $firstToken = $first->await();
         $secondToken = $second->await();
 
-        if (! $firstToken instanceof AccessToken || ! $secondToken instanceof AccessToken) {
-            self::fail('Both callers should have been handed a token.');
-        }
+        self::assertInstanceOf(AccessToken::class, $firstToken, 'Both callers should have been handed a token.');
+        self::assertInstanceOf(AccessToken::class, $secondToken, 'Both callers should have been handed a token.');
 
         self::assertSame('the-spent-renewal', $firstToken->value);
         self::assertSame('the-usable-renewal', $secondToken->value);

@@ -65,9 +65,7 @@ final class JsonRpcMessageParserTest extends AbstractMcpTestCase
         $parser = new JsonRpcMessageParser();
         $parsed = $parser->parse($original->toArray());
 
-        if (! $parsed instanceof DiscoverRequest) {
-            self::fail(\sprintf('Expected DiscoverRequest, got %s.', $parsed::class));
-        }
+        self::assertInstanceOf(DiscoverRequest::class, $parsed);
 
         self::assertSame(42, $parsed->id->id);
         self::assertSame(RequestMetaObjectFactory::shape(), $parsed->params->meta->toArray());
@@ -107,9 +105,7 @@ final class JsonRpcMessageParserTest extends AbstractMcpTestCase
         $parser = new JsonRpcMessageParser();
         $parsed = $parser->parse($envelope);
 
-        if (! $parsed instanceof DiscoverRequest) {
-            self::fail(\sprintf('Expected DiscoverRequest, got %s.', $parsed::class));
-        }
+        self::assertInstanceOf(DiscoverRequest::class, $parsed);
 
         $progressToken = $parsed->params->meta->progressToken;
 
@@ -130,9 +126,7 @@ final class JsonRpcMessageParserTest extends AbstractMcpTestCase
             CallToolResultResponse::class,
         );
 
-        if (! $parsed instanceof CallToolResultResponse) {
-            self::fail(\sprintf('Expected CallToolResultResponse, got %s.', $parsed::class));
-        }
+        self::assertInstanceOf(CallToolResultResponse::class, $parsed);
 
         self::assertInstanceOf(CallToolResult::class, $parsed->result);
         self::assertSame(42, $parsed->id->id);
@@ -186,9 +180,7 @@ final class JsonRpcMessageParserTest extends AbstractMcpTestCase
             'params' => ['_meta' => ['vendor' => 'x']],
         ]);
 
-        if (! $parsed instanceof TestNotification) {
-            self::fail(\sprintf('Expected TestNotification, got %s.', $parsed::class));
-        }
+        self::assertInstanceOf(TestNotification::class, $parsed);
 
         self::assertSame(['vendor' => 'x'], $parsed->params->meta->extras);
     }
@@ -574,15 +566,11 @@ final class JsonRpcMessageParserTest extends AbstractMcpTestCase
             CallToolResultResponse::class,
         );
 
-        if (! $parsed instanceof JsonRpcResultResponse) {
-            self::fail(\sprintf('Expected JsonRpcResultResponse, got %s.', $parsed::class));
-        }
+        self::assertInstanceOf(JsonRpcResultResponse::class, $parsed);
 
         $result = $parsed->result;
 
-        if (! $result instanceof InputRequiredResult) {
-            self::fail(\sprintf('Expected InputRequiredResult, got %s.', $result::class));
-        }
+        self::assertInstanceOf(InputRequiredResult::class, $result);
 
         self::assertSame('tok', $result->requestState);
         self::assertSame(7, $parsed->id->id);
@@ -596,9 +584,7 @@ final class JsonRpcMessageParserTest extends AbstractMcpTestCase
             CallToolResultResponse::class,
         );
 
-        if (! $parsed instanceof JsonRpcResultResponse) {
-            self::fail(\sprintf('Expected JsonRpcResultResponse, got %s.', $parsed::class));
-        }
+        self::assertInstanceOf(JsonRpcResultResponse::class, $parsed);
 
         self::assertInstanceOf(CallToolResult::class, $parsed->result);
     }

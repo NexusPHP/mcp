@@ -433,9 +433,7 @@ final class TaskClientTest extends AbstractMcpTestCase
         self::assertInstanceOf(JsonRpcRequest::class, $update);
         self::assertSame('tasks/update', $update::getMethod());
 
-        if (! $update->params instanceof UpdateTaskRequestParams) {
-            self::fail('Expected tasks/update params.');
-        }
+        self::assertInstanceOf(UpdateTaskRequestParams::class, $update->params);
 
         self::assertSame(['confirm'], array_keys($update->params->inputResponses));
         $transport->emitMessage(['jsonrpc' => '2.0', 'id' => $update->id->id, 'result' => ['resultType' => 'complete']]);

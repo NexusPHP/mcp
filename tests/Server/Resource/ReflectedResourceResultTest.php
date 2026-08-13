@@ -45,9 +45,7 @@ final class ReflectedResourceResultTest extends AbstractMcpTestCase
 
         $contents = $result->contents[0] ?? null;
 
-        if (! $contents instanceof TextResourceContents) {
-            self::fail('Expected TextResourceContents.');
-        }
+        self::assertInstanceOf(TextResourceContents::class, $contents);
 
         self::assertSame('mem://greeting', $contents->uri);
         self::assertSame('hello', $contents->text);
@@ -113,9 +111,7 @@ final class ReflectedResourceResultTest extends AbstractMcpTestCase
     {
         $adapted = ReflectedResourceResult::adapt($result, $uri, new \ReflectionMethod(ReflectedHandlers::class, 'resourceResult'));
 
-        if (! $adapted instanceof ReadResourceResult) {
-            self::fail('Expected a ReadResourceResult.');
-        }
+        self::assertInstanceOf(ReadResourceResult::class, $adapted);
 
         return $adapted;
     }

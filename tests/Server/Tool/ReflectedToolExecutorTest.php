@@ -142,9 +142,7 @@ final class ReflectedToolExecutorTest extends AbstractMcpTestCase
 
         $result = $executor->execute($arguments, self::makeContext());
 
-        if (! $result instanceof CallToolResult) {
-            self::fail('Expected a CallToolResult.');
-        }
+        self::assertInstanceOf(CallToolResult::class, $result);
 
         return $result;
     }
@@ -153,9 +151,7 @@ final class ReflectedToolExecutorTest extends AbstractMcpTestCase
     {
         $block = $result->content[0] ?? null;
 
-        if (! $block instanceof TextContent) {
-            self::fail('Expected a TextContent block.');
-        }
+        self::assertInstanceOf(TextContent::class, $block);
 
         return $block->text;
     }

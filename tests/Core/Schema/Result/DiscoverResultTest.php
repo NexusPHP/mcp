@@ -192,9 +192,7 @@ final class DiscoverResultTest extends AbstractMcpTestCase
             'cacheScope' => 'private',
         ]);
 
-        if (! $result->meta->serverInfo instanceof Implementation) {
-            self::fail('Expected the server info to be parsed from the result "_meta".');
-        }
+        self::assertInstanceOf(Implementation::class, $result->meta->serverInfo);
 
         self::assertSame('srv', $result->meta->serverInfo->name);
     }

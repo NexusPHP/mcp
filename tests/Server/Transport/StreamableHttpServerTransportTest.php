@@ -702,9 +702,7 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
 
         self::handle($transport, $post);
 
-        if (! $captured instanceof ServerContext) {
-            self::fail('The request handler was not invoked with a ServerContext.');
-        }
+        self::assertInstanceOf(ServerContext::class, $captured);
 
         self::assertSame($post, $captured->receiveContext->request);
     }

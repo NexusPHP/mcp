@@ -303,9 +303,7 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
 
         $fault = $faults->readFault();
 
-        if (! $fault instanceof OutboundRequestFailedException) {
-            self::fail('A listener fault must fail the request it carried rather than read on as if the frame were unreadable.');
-        }
+        self::assertInstanceOf(OutboundRequestFailedException::class, $fault);
 
         self::assertSame('the protocol layer rejected this envelope', $fault->getPrevious()?->getMessage());
     }
@@ -551,9 +549,7 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
 
         $fault = $faults->readFault();
 
-        if (! $fault instanceof OutboundRequestFailedException) {
-            self::fail('Expected the failure to name the request it was carrying.');
-        }
+        self::assertInstanceOf(OutboundRequestFailedException::class, $fault);
 
         self::assertSame(1, $fault->requestId->id, 'The caller awaiting this id is the one to fail.');
         self::assertInstanceOf(HttpException::class, $fault->getPrevious(), 'The underlying fault stays reachable.');
@@ -733,15 +729,11 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
         self::assertSame([], $received->envelopes);
         $fault = $faults->readFault();
 
-        if (! $fault instanceof OutboundRequestFailedException) {
-            self::fail('An error status must still fail the request it was carrying.');
-        }
+        self::assertInstanceOf(OutboundRequestFailedException::class, $fault);
 
         $cause = $fault->getPrevious();
 
-        if (! $cause instanceof UnexpectedHttpStatusException) {
-            self::fail('The failure must name the unexpected status.');
-        }
+        self::assertInstanceOf(UnexpectedHttpStatusException::class, $cause);
 
         self::assertSame(403, $cause->status);
         self::assertSame('The endpoint answered 403 where 200 or 202 was expected.', $cause->getMessage());
@@ -764,9 +756,7 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
         self::assertSame([], $received->envelopes, 'An envelope that cannot settle this request must not be emitted.');
         $fault = $faults->readFault();
 
-        if (! $fault instanceof OutboundRequestFailedException) {
-            self::fail('An uncorrelatable answer must fail the request its exchange carries.');
-        }
+        self::assertInstanceOf(OutboundRequestFailedException::class, $fault);
 
         self::assertInstanceOf(UnexpectedHttpStatusException::class, $fault->getPrevious());
     }
@@ -798,15 +788,11 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
 
         $fault = $faults->readFault();
 
-        if (! $fault instanceof OutboundRequestFailedException) {
-            self::fail('An oversized error body must still fail the request it was carrying.');
-        }
+        self::assertInstanceOf(OutboundRequestFailedException::class, $fault);
 
         $cause = $fault->getPrevious();
 
-        if (! $cause instanceof UnexpectedHttpStatusException) {
-            self::fail('The failure must name the unexpected status, not the size cap.');
-        }
+        self::assertInstanceOf(UnexpectedHttpStatusException::class, $cause);
 
         self::assertSame(502, $cause->status);
         self::assertNull($cause->body);
@@ -822,15 +808,11 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
 
         $fault = $faults->readFault();
 
-        if (! $fault instanceof OutboundRequestFailedException) {
-            self::fail('An error status on a stream must fail the request without consuming the stream.');
-        }
+        self::assertInstanceOf(OutboundRequestFailedException::class, $fault);
 
         $cause = $fault->getPrevious();
 
-        if (! $cause instanceof UnexpectedHttpStatusException) {
-            self::fail('The failure must name the unexpected status.');
-        }
+        self::assertInstanceOf(UnexpectedHttpStatusException::class, $cause);
 
         self::assertSame(503, $cause->status);
         self::assertNull($cause->body, 'A stream that was never read leaves no body to report.');
@@ -846,15 +828,11 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
 
         $fault = $faults->readFault();
 
-        if (! $fault instanceof OutboundRequestFailedException) {
-            self::fail('A request answered with a bodiless acknowledgement must fail rather than dangle.');
-        }
+        self::assertInstanceOf(OutboundRequestFailedException::class, $fault);
 
         $cause = $fault->getPrevious();
 
-        if (! $cause instanceof UnexpectedHttpStatusException) {
-            self::fail('The failure must name the unexpected status.');
-        }
+        self::assertInstanceOf(UnexpectedHttpStatusException::class, $cause);
 
         self::assertSame(202, $cause->status);
     }
@@ -869,9 +847,7 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
 
         $fault = $faults->readFault();
 
-        if (! $fault instanceof UnexpectedHttpStatusException) {
-            self::fail('A refused notification has no request to fail, so the status surfaces raw.');
-        }
+        self::assertInstanceOf(UnexpectedHttpStatusException::class, $fault);
 
         self::assertSame(403, $fault->status);
     }
@@ -889,9 +865,7 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
         self::assertSame([], $received->envelopes);
         $fault = $faults->readFault();
 
-        if (! $fault instanceof OutboundRequestFailedException) {
-            self::fail('An abandoned response must still fail the request it was carrying.');
-        }
+        self::assertInstanceOf(OutboundRequestFailedException::class, $fault);
 
         self::assertInstanceOf(ResponseTooLargeException::class, $fault->getPrevious());
     }
@@ -907,9 +881,7 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
 
         $fault = $faults->readFault();
 
-        if (! $fault instanceof OutboundRequestFailedException) {
-            self::fail('An abandoned stream must still fail the request it was carrying.');
-        }
+        self::assertInstanceOf(OutboundRequestFailedException::class, $fault);
 
         self::assertInstanceOf(ResponseTooLargeException::class, $fault->getPrevious());
     }

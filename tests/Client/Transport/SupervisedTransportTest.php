@@ -1311,9 +1311,11 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
     {
         $inner = $spawned[$index] ?? null;
 
-        if (! $inner instanceof SupervisableRecordingTransport) {
-            self::fail(\sprintf('Expected a spawned connection at index %d, got %d in all.', $index, \count($spawned)));
-        }
+        self::assertInstanceOf(
+            SupervisableRecordingTransport::class,
+            $inner,
+            \sprintf('Expected a spawned connection at index %d, got %d in all.', $index, \count($spawned)),
+        );
 
         return $inner;
     }

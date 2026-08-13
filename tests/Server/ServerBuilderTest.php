@@ -672,9 +672,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         foreach (['tools/list', 'prompts/list', 'resources/list', 'resources/templates/list'] as $method) {
             $result = $this->dispatch($server, $method);
 
-            if (! $result instanceof CacheableResult) {
-                self::fail(\sprintf('"%s" did not return a cacheable result.', $method));
-            }
+            self::assertInstanceOf(CacheableResult::class, $result);
 
             self::assertSame(60_000, $result->ttlMs, \sprintf('"%s" did not carry the builder TTL.', $method));
             self::assertSame(CacheScope::Public, $result->cacheScope, \sprintf('"%s" did not carry the builder cache scope.', $method));
@@ -767,9 +765,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         self::assertInstanceOf(ReadResourceResult::class, $staticRead);
         $staticEntry = $staticRead->contents[0] ?? null;
 
-        if (! $staticEntry instanceof TextResourceContents) {
-            self::fail('Expected first static read entry to be TextResourceContents.');
-        }
+        self::assertInstanceOf(TextResourceContents::class, $staticEntry);
 
         self::assertSame('static', $staticEntry->text);
 
@@ -777,9 +773,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         self::assertInstanceOf(ReadResourceResult::class, $templatedRead);
         $templatedEntry = $templatedRead->contents[0] ?? null;
 
-        if (! $templatedEntry instanceof TextResourceContents) {
-            self::fail('Expected first templated read entry to be TextResourceContents.');
-        }
+        self::assertInstanceOf(TextResourceContents::class, $templatedEntry);
 
         self::assertSame('templated:other', $templatedEntry->text);
     }
@@ -818,9 +812,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         self::assertInstanceOf(ReadResourceResult::class, $result);
         $entry = $result->contents[0] ?? null;
 
-        if (! $entry instanceof TextResourceContents) {
-            self::fail('Expected a TextResourceContents entry.');
-        }
+        self::assertInstanceOf(TextResourceContents::class, $entry);
 
         self::assertSame('templated:etc', $entry->text);
     }
@@ -864,9 +856,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
         $block = $result->content[0] ?? null;
 
-        if (! $block instanceof TextContent) {
-            self::fail('Expected a TextContent block.');
-        }
+        self::assertInstanceOf(TextContent::class, $block);
 
         self::assertSame('5', $block->text);
     }
@@ -1491,9 +1481,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         self::assertInstanceOf(CallToolResult::class, $result);
         $content = $result->content[0] ?? null;
 
-        if (! $content instanceof TextContent) {
-            self::fail('The decorated tool result must carry a text block.');
-        }
+        self::assertInstanceOf(TextContent::class, $content);
 
         self::assertSame('outer(inner)', $content->text);
     }
@@ -1514,9 +1502,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         self::assertInstanceOf(CallToolResult::class, $result);
         $content = $result->content[0] ?? null;
 
-        if (! $content instanceof TextContent) {
-            self::fail('The decorated tool result must carry a text block.');
-        }
+        self::assertInstanceOf(TextContent::class, $content);
 
         self::assertSame('outer(replaced)', $content->text);
     }
@@ -1539,9 +1525,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         self::assertInstanceOf(CallToolResult::class, $result);
         $content = $result->content[0] ?? null;
 
-        if (! $content instanceof TextContent) {
-            self::fail('The decorated tool result must carry a text block.');
-        }
+        self::assertInstanceOf(TextContent::class, $content);
 
         self::assertSame('second(first(inner))', $content->text);
     }
@@ -2093,9 +2077,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             ->getToolStore()
         ;
 
-        if (! $store instanceof ToolStoreInterface) {
-            self::fail('Expected a tool store.');
-        }
+        self::assertInstanceOf(ToolStoreInterface::class, $store);
 
         self::assertSame(['entry_tool'], array_map(static fn(Tool $tool): string => $tool->name, $store->list(null)->tools));
     }
@@ -2444,9 +2426,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
         $toolStore = $builder->getToolStore();
 
-        if (! $toolStore instanceof MutableToolStoreInterface) {
-            self::fail('The entry-built tool store must support runtime mutation.');
-        }
+        self::assertInstanceOf(MutableToolStoreInterface::class, $toolStore);
 
         $toolStore->addTool(new Tool(name: 'added', inputSchema: ['type' => 'object']), new ClosureToolExecutor(
             static fn(?array $a, ServerContext $c): CallToolResult => new CallToolResult(content: []),
@@ -2519,9 +2499,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
         $templateStore = $builder->getResourceTemplateStore();
 
-        if (! $templateStore instanceof MutableResourceTemplateStoreInterface) {
-            self::fail('The entry-built resource template store must support runtime mutation.');
-        }
+        self::assertInstanceOf(MutableResourceTemplateStoreInterface::class, $templateStore);
 
         $templateStore->removeResourceTemplate('mem://alpha/{path}');
         delay(0.0);
@@ -2641,9 +2619,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
         $resourceStore = $builder->getResourceStore();
 
-        if (! $resourceStore instanceof MutableResourceStoreInterface) {
-            self::fail('The entry-built resource store must support runtime mutation.');
-        }
+        self::assertInstanceOf(MutableResourceStoreInterface::class, $resourceStore);
 
         $resourceStore->removeResource('file:///etc/cfg');
         delay(0.0);
@@ -2663,9 +2639,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
     {
         $store = self::builderWithPrompt()->getPromptStore();
 
-        if (! $store instanceof PromptStoreInterface) {
-            self::fail('Expected a prompt store.');
-        }
+        self::assertInstanceOf(PromptStoreInterface::class, $store);
 
         self::assertSame(['hello'], array_map(static fn(Prompt $p): string => $p->name, $store->list(null)->prompts));
     }
@@ -2697,9 +2671,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
     {
         $store = self::builderWithResource()->getResourceStore();
 
-        if (! $store instanceof ResourceStoreInterface) {
-            self::fail('Expected a resource store.');
-        }
+        self::assertInstanceOf(ResourceStoreInterface::class, $store);
 
         self::assertSame(
             ['file:///etc/cfg'],
@@ -2711,9 +2683,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
     {
         $store = self::builderWithResourceTemplate()->getResourceStore();
 
-        if (! $store instanceof ResourceStoreInterface) {
-            self::fail('Expected a resource store alongside the template store.');
-        }
+        self::assertInstanceOf(ResourceStoreInterface::class, $store);
 
         self::assertSame([], $store->list(null)->resources);
     }
@@ -2745,9 +2715,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
     {
         $store = self::builderWithResourceTemplate()->getResourceTemplateStore();
 
-        if (! $store instanceof ResourceTemplateStoreInterface) {
-            self::fail('Expected a resource template store.');
-        }
+        self::assertInstanceOf(ResourceTemplateStoreInterface::class, $store);
 
         self::assertSame(
             ['file:///{path}'],
@@ -2921,9 +2889,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
         $result = $this->dispatch($server, 'tools/call', ['name' => 'ask', 'arguments' => []]);
 
-        if (! $result instanceof InputRequiredResult) {
-            self::fail('Expected an InputRequiredResult.');
-        }
+        self::assertInstanceOf(InputRequiredResult::class, $result);
 
         self::assertSame('state-1', $result->requestState);
         self::assertSame(['who'], array_keys($result->inputRequests ?? []));
@@ -3367,9 +3333,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
     {
         $icon = ($info->icons ?? [])[0] ?? null;
 
-        if (! $icon instanceof Icon) {
-            self::fail('Expected an icon.');
-        }
+        self::assertInstanceOf(Icon::class, $icon);
 
         return $icon;
     }
@@ -3387,9 +3351,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
     {
         $serverInfo = $this->discoverResultFor($server)->meta->serverInfo;
 
-        if (! $serverInfo instanceof Implementation) {
-            self::fail('Expected the discover result "_meta" to carry the server info.');
-        }
+        self::assertInstanceOf(Implementation::class, $serverInfo);
 
         return $serverInfo;
     }

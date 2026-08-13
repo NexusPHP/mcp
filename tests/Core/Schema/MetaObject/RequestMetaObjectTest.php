@@ -140,9 +140,7 @@ final class RequestMetaObjectTest extends AbstractMcpTestCase
 
         self::assertSame('2026-07-28', $meta->protocolVersion->version);
 
-        if (! $meta->clientInfo instanceof Implementation) {
-            self::fail('Expected the client info to be parsed.');
-        }
+        self::assertInstanceOf(Implementation::class, $meta->clientInfo);
 
         self::assertSame('client', $meta->clientInfo->name);
         self::assertSame(['acme.experimental' => ['enabled' => true]], $meta->clientCapabilities->experimental);

@@ -465,9 +465,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
             requestHandlers: [
                 'tests/test-request' => new ClosureRequestHandler(
                     static function ($req, $ctx) use (&$handled, &$captured): EmptyResult {
-                        if (! $ctx instanceof ClientContext) {
-                            self::fail('Expected a ClientContext.');
-                        }
+                        self::assertInstanceOf(ClientContext::class, $ctx);
 
                         $handled = true;
                         $captured = $ctx->progressToken;
@@ -630,9 +628,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $message = $transport->sent[0]['message'];
         self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
 
-        if (! $message->id instanceof RequestId) {
-            self::fail('An envelope that carried an id is a request, so the error response must echo it.');
-        }
+        self::assertInstanceOf(RequestId::class, $message->id);
 
         self::assertSame(7, $message->id->id);
         self::assertSame(ProtocolErrorCode::InvalidRequest->value, $message->error->code);
@@ -910,9 +906,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
             requestHandlers: [
                 'tests/test-request' => new ClosureRequestHandler(
                     static function ($req, $ctx) use (&$captured): EmptyResult {
-                        if (! $ctx instanceof ClientContext) {
-                            self::fail('Expected a ClientContext.');
-                        }
+                        self::assertInstanceOf(ClientContext::class, $ctx);
 
                         $captured['requestId'] = $ctx->requestId->id;
 
@@ -1381,9 +1375,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         );
         delay(0.0);
 
-        if (! $observed instanceof Cancellation) {
-            self::fail('The handler must have observed its cancellation token.');
-        }
+        self::assertInstanceOf(Cancellation::class, $observed);
 
         self::assertFalse($observed->isRequested(), 'Below the cap the registered handler owns the cancel, and this one declined it.');
 
@@ -1419,9 +1411,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
             new ReceiveContext(),
         );
 
-        if (! $observed instanceof Cancellation) {
-            self::fail('The handler must have observed its cancellation token.');
-        }
+        self::assertInstanceOf(Cancellation::class, $observed);
 
         self::assertTrue($observed->isRequested(), 'Admission past the cap is funded by the cancel itself.');
 
