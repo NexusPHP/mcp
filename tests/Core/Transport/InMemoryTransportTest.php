@@ -173,6 +173,44 @@ final class InMemoryTransportTest extends AbstractMcpTestCase
         self::assertSame(1, $closeCount);
     }
 
+    public function testAReceiverListenerFaultStaysOffTheSendersCall(): void
+    {
+        [$a, $b] = InMemoryTransport::createPair();
+        $boom = new \RuntimeException('receiver boom');
+        $errors = [];
+        $b->onMessage(static function () use ($boom): void {
+            throw $boom;
+        });
+        $b->onError(static function (\Throwable $e) use (&$errors): void {
+            $errors[] = $e;
+        });
+        $a->start();
+        $b->start();
+
+        $a->send(new DiscoverRequest(id: new RequestId(id: 1), params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create())));
+
+        self::assertSame([$boom], $errors);
+    }
+
+    public function testAQueuedEnvelopeListenerFaultStaysOffTheStartCall(): void
+    {
+        [$a, $b] = InMemoryTransport::createPair();
+        $boom = new \RuntimeException('receiver boom');
+        $errors = [];
+        $b->onMessage(static function () use ($boom): void {
+            throw $boom;
+        });
+        $b->onError(static function (\Throwable $e) use (&$errors): void {
+            $errors[] = $e;
+        });
+        $a->start();
+
+        $a->send(new DiscoverRequest(id: new RequestId(id: 1), params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create())));
+        $b->start();
+
+        self::assertSame([$boom], $errors);
+    }
+
     public function testADrainListenerReenteringCloseFiresListenersOnce(): void
     {
         [$a] = InMemoryTransport::createPair();

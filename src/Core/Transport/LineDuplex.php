@@ -214,10 +214,18 @@ final class LineDuplex
         );
 
         try {
-            $this->readable->close();
+            // The forced EOF only unparks a read, so a stream whose close() throws must not cost the drain.
+            try {
+                $this->readable->close();
 
-            foreach ($this->sideChannelSources as $source) {
-                $source->close();
+                foreach ($this->sideChannelSources as $source) {
+                    $source->close();
+                }
+            } catch (\Throwable $e) {
+                $this->logger->warning(
+                    '{label} transport could not close an inbound stream.',
+                    ['label' => $this->label, 'exception' => $e],
+                );
             }
 
             $this->drainBackgroundLoops();

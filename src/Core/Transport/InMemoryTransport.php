@@ -71,7 +71,7 @@ final class InMemoryTransport implements TransportInterface
         $this->state = TransportState::Running;
 
         foreach ($this->pendingInbound as $envelope) {
-            $this->events->emitMessage($envelope, new ReceiveContext());
+            $this->deliver($envelope);
         }
     }
 
@@ -124,7 +124,8 @@ final class InMemoryTransport implements TransportInterface
     }
 
     /**
-     * An in-memory transport has no I/O failure surface, so an error listener is accepted but never invoked.
+     * An in-memory transport has no I/O failure surface, so the error listeners see only faults thrown
+     * by this side's own message listeners.
      */
     #[\Override]
     public function onError(\Closure $listener): ListenerHandleInterface
@@ -158,6 +159,21 @@ final class InMemoryTransport implements TransportInterface
             return;
         }
 
-        $this->events->emitMessage($envelope, new ReceiveContext());
+        $this->deliver($envelope);
+    }
+
+    /**
+     * Emits an inbound envelope, keeping a listener fault on this side instead of surfacing it through
+     * the peer's `send()`.
+     *
+     * @param array<string, mixed> $envelope
+     */
+    private function deliver(array $envelope): void
+    {
+        try {
+            $this->events->emitMessage($envelope, new ReceiveContext());
+        } catch (\Throwable $e) {
+            $this->events->emitError($e);
+        }
     }
 }

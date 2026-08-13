@@ -621,6 +621,90 @@ final class LineDuplexTest extends AbstractMcpTestCase
         self::assertTrue($closed, 'close() from inside a side-channel onLine must return, not await its own fiber.');
     }
 
+    public function testAThrowingReadableCloseStillDrainsBeforeClose(): void
+    {
+        $events = [];
+
+        /** @var DeferredFuture<null> $gate */
+        $gate = new DeferredFuture();
+        $source = new class ($gate) implements \IteratorAggregate, ReadableStream {
+            use ReadableStreamIteratorAggregate;
+
+            private bool $closed = false;
+
+            /**
+             * @param DeferredFuture<null> $gate
+             */
+            public function __construct(private readonly DeferredFuture $gate)
+            {
+            }
+
+            #[\Override]
+            public function read(?Cancellation $cancellation = null): ?string
+            {
+                $this->gate->getFuture()->await();
+
+                return null;
+            }
+
+            #[\Override]
+            public function isReadable(): bool
+            {
+                return ! $this->closed;
+            }
+
+            #[\Override]
+            public function close(): void
+            {
+                $this->closed = true;
+
+                if (! $this->gate->isComplete()) {
+                    $this->gate->complete();
+                }
+
+                throw new \RuntimeException('close boom');
+            }
+
+            #[\Override]
+            public function isClosed(): bool
+            {
+                return $this->closed;
+            }
+
+            #[\Override]
+            public function onClose(\Closure $onClose): void
+            {
+            }
+        };
+
+        $logger = new ArrayLogger();
+        $duplex = self::buildDuplex(logger: $logger);
+        $duplex->onDrain(static function () use (&$events): void {
+            $events[] = 'drain';
+        });
+        $duplex->onClose(static function () use (&$events): void {
+            $events[] = 'close';
+        });
+
+        $duplex->start($source, new WritableBuffer());
+        delay(0.001);
+
+        $duplex->close();
+
+        self::assertSame(['drain', 'close'], $events, 'A readable whose close() throws must not cost the drain.');
+
+        $matches = $logger->recordsMatching(LogLevel::WARNING, '{label} transport could not close an inbound stream.');
+        self::assertCount(1, $matches);
+        self::assertSame('demo', $matches[0]['context']['label'] ?? null);
+        $exception = $matches[0]['context']['exception'] ?? null;
+
+        if (! $exception instanceof \RuntimeException) {
+            self::fail('Expected the stream close failure in the log context.');
+        }
+
+        self::assertSame('close boom', $exception->getMessage());
+    }
+
     public function testAConcurrentCloseBlocksUntilTheFirstHasDrained(): void
     {
         $pipe = new Pipe(8_192);

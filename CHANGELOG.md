@@ -43,6 +43,10 @@ in `0.x`, minor releases may include breaking changes.
   longer torn down once the comments accumulate past the cap.
 - The SSE parser no longer loses a chunk-final carriage return when the next chunk is empty, which split
   one multi-line frame into two.
+- A readable stream whose `close()` throws no longer costs the stdio transports their drain: the failure
+  is logged and the drain proceeds.
+- A fault thrown by an `InMemoryTransport` message listener stays on the receiving side's `onError`,
+  instead of surfacing through the peer's `send()`.
 - `ElicitResult` accepts an empty string inside a `string[]` content value, matching the spec's
   unconstrained item type, instead of failing the whole retry with `-32602`.
 

@@ -408,8 +408,9 @@ eagerly rather than as silently dropped envelopes:
 
 ### `onError`
 
-`onError` accepts listeners for `TransportInterface` conformance but never fires (there is no I/O failure
-surface for an in-process pair).
+`onError` fires only for faults thrown by this side's own message listeners (there is no I/O failure
+surface for an in-process pair). A listener fault stays on the receiving side rather than surfacing
+through the peer's `send()`.
 
 ## `StreamableHttpServerTransport`
 
