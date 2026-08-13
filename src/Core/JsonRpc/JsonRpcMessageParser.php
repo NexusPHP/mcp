@@ -180,12 +180,17 @@ final class JsonRpcMessageParser
         $version = $message['jsonrpc'] ?? null;
 
         if (JsonRpcMessage::JSONRPC_VERSION !== $version) {
+            $method = $message['method'] ?? null;
+
             throw new InvalidRequestException(
                 EnvelopeRequestId::recover($message),
                 \sprintf(
-                    'Invalid JSON-RPC version: expected "%s", got %s.',
+                    'Invalid JSON-RPC version: expected "%s", got %s%s.',
                     JsonRpcMessage::JSONRPC_VERSION,
                     null === $version ? 'null' : SafeDisplay::sanitise(var_export($version, true)),
+                    \is_string($method) && '' !== $method
+                        ? \sprintf(' for method %s', SafeDisplay::sanitise(var_export($method, true)))
+                        : '',
                 ),
             );
         }

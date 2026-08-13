@@ -429,10 +429,19 @@ final class JsonRpcMessageParserTest extends AbstractMcpTestCase
     public function testParseRejectsMissingVersion(): void
     {
         $this->expectException(InvalidRequestException::class);
-        $this->expectExceptionMessageIs('Invalid JSON-RPC version: expected "2.0", got null.');
+        $this->expectExceptionMessageIs('Invalid JSON-RPC version: expected "2.0", got null for method \'tests/test-request\'.');
 
         $parser = new JsonRpcMessageParser();
         $parser->parse(['id' => 1, 'method' => 'tests/test-request']);
+    }
+
+    public function testParseRejectsWrongVersionWithoutAMethodTailWhenTheEnvelopeNamesNone(): void
+    {
+        $this->expectException(InvalidRequestException::class);
+        $this->expectExceptionMessageIs('Invalid JSON-RPC version: expected "2.0", got \'1.0\'.');
+
+        $parser = new JsonRpcMessageParser();
+        $parser->parse(['jsonrpc' => '1.0', 'id' => 1]);
     }
 
     public function testParseEscapesControlCharactersInWrongVersionMessage(): void
@@ -443,10 +452,24 @@ final class JsonRpcMessageParserTest extends AbstractMcpTestCase
             self::fail('Expected InvalidRequestException.');
         } catch (InvalidRequestException $e) {
             self::assertSame(
-                'Invalid JSON-RPC version: expected "2.0", got \'1.0\x0ainjected\'.',
+                'Invalid JSON-RPC version: expected "2.0", got \'1.0\x0ainjected\' for method \'tests/test-request\'.',
                 $e->getMessage(),
             );
             self::assertStringNotContainsString("\n", $e->getMessage());
+        }
+    }
+
+    public function testParseEscapesControlCharactersInTheWrongVersionMethodTail(): void
+    {
+        try {
+            (new JsonRpcMessageParser())->parse(['jsonrpc' => '1.0', 'id' => 1, 'method' => "evil\x1bmethod"]);
+            self::fail('Expected InvalidRequestException.');
+        } catch (InvalidRequestException $e) {
+            self::assertSame(
+                'Invalid JSON-RPC version: expected "2.0", got \'1.0\' for method \'evil\x1bmethod\'.',
+                $e->getMessage(),
+            );
+            self::assertStringNotContainsString("\x1b", $e->getMessage());
         }
     }
 

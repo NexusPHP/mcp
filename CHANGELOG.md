@@ -32,6 +32,9 @@ in `0.x`, minor releases may include breaking changes.
   re-read is refused at construction.
 - A `close()` re-entered from a listener or a concurrent fiber during the drain no longer fires
   `onDrain` and `onClose` twice on the HTTP transports and `InMemoryTransport`.
+- A malformed JSON line on the stdio transports, and a malformed or non-object body on the Streamable
+  HTTP server, now reach the `onError` listeners. Before, only the stdio non-object arm did.
+- A JSON-RPC version-mismatch error names the offending method when the envelope carries one.
 - `ElicitResult` accepts an empty string inside a `string[]` content value, matching the spec's
   unconstrained item type, instead of failing the whole retry with `-32602`.
 

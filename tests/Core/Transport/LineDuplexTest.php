@@ -959,7 +959,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
         self::assertSame(-32_600, $reported[0]->error->code, 'Non-object envelope must surface an InvalidRequestError (-32600).');
     }
 
-    public function testParseFailureIsSilentWhenNoOnParseFailureClosureIsConfigured(): void
+    public function testMalformedJsonFiresErrorListenerEvenWithoutOnParseFailure(): void
     {
         $errors = [];
         $duplex = self::buildDuplex();
@@ -973,7 +973,8 @@ final class LineDuplexTest extends AbstractMcpTestCase
         );
         EventLoop::run();
 
-        self::assertSame([], $errors, 'A parse failure with no onParseFailure closure must not invoke a null callback.');
+        self::assertCount(1, $errors, 'A malformed line must reach the error listeners, matching the non-object arm.');
+        self::assertInstanceOf(\JsonException::class, $errors[0]);
     }
 
     public function testNonObjectEnvelopeFiresErrorListenerAndReportsParseFailure(): void

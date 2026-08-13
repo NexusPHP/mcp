@@ -111,6 +111,42 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
         yield 'plain text' => ['not json at all'];
     }
 
+    public function testUndecodableBodyLogsAndFiresErrorListener(): void
+    {
+        $logger = new ArrayLogger();
+        $transport = self::makeTransport($logger);
+        $errors = [];
+        $transport->onError(static function (\Throwable $e) use (&$errors): void {
+            $errors[] = $e;
+        });
+
+        $transport->handle(self::makePost('{not json}'));
+
+        $matches = $logger->recordsMatching(LogLevel::WARNING, 'Rejected a malformed JSON body.');
+        self::assertCount(1, $matches);
+        self::assertInstanceOf(\JsonException::class, $matches[0]['context']['exception'] ?? null);
+        self::assertCount(1, $errors);
+        self::assertInstanceOf(\JsonException::class, $errors[0]);
+    }
+
+    public function testNonObjectEnvelopeLogsAndFiresErrorListener(): void
+    {
+        $logger = new ArrayLogger();
+        $transport = self::makeTransport($logger);
+        $errors = [];
+        $transport->onError(static function (\Throwable $e) use (&$errors): void {
+            $errors[] = $e;
+        });
+
+        $transport->handle(self::makePost('[1,2,3]'));
+
+        $matches = $logger->recordsMatching(LogLevel::WARNING, 'Rejected a non-object envelope.');
+        self::assertCount(1, $matches);
+        self::assertInstanceOf(\InvalidArgumentException::class, $matches[0]['context']['exception'] ?? null);
+        self::assertCount(1, $errors);
+        self::assertInstanceOf(\InvalidArgumentException::class, $errors[0]);
+    }
+
     #[DataProvider('provideValidJsonThatIsNotAnObjectReturnsInvalidRequestCases')]
     public function testValidJsonThatIsNotAnObjectReturnsInvalidRequest(string $body): void
     {
