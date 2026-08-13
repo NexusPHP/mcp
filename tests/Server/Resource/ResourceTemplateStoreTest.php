@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Tests\Server\Resource;
 
 use Amp\NullCancellation;
 use Nexus\Assert\ExpectationFailedException;
+use Nexus\Mcp\Core\Exception\InvalidParamsException;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\Icon;
 use Nexus\Mcp\Core\Schema\RequestId;
@@ -412,6 +413,23 @@ final class ResourceTemplateStoreTest extends AbstractMcpTestCase
         $this->expectExceptionMessageIs('resource template "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.');
 
         (new ResourceTemplateStore())->addResourceTemplate(new ResourceTemplate(name: 't', uriTemplate: 'mem://{p}', icons: [new Icon(src: 'ftp://example.com/icon.png')]), new ClosureTemplatedResourceReader(static fn(): never => throw new \LogicException('unreachable')));
+    }
+
+    public function testReadWrapsABindingFailureWithTheResourceUri(): void
+    {
+        $store = new ResourceTemplateStore([
+            'file:///{name}.txt' => self::entry(
+                new ResourceTemplate(name: 'alpha', uriTemplate: 'file:///{name}.txt'),
+                static function (string $uri, array $bindings, ServerContext $context): ReadResourceResult {
+                    throw new InvalidParamsException($context->requestId, '"name" must be one of [\'a\', \'b\'], \'z\' given.');
+                },
+            ),
+        ]);
+
+        $this->expectException(InvalidParamsException::class);
+        $this->expectExceptionMessageIs('Invalid arguments for resource "file:///z.txt": "name" must be one of [\'a\', \'b\'], \'z\' given.');
+
+        $store->read('file:///z.txt', self::makeContext());
     }
 
     /**

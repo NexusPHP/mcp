@@ -192,7 +192,7 @@ final class ToolStoreTest extends AbstractMcpTestCase
         ]);
 
         $this->expectException(InvalidParamsException::class);
-        $this->expectExceptionMessageMatches('/^Invalid arguments for tool "search": /');
+        $this->expectExceptionMessageIs('Invalid arguments for tool "search": "q" must be a string, int given.');
 
         $store->call('search', ['q' => 123], self::makeContext());
     }
@@ -479,9 +479,7 @@ final class ToolStoreTest extends AbstractMcpTestCase
 
         $result = $store->call('alpha', null, self::makeContext());
 
-        if (! $result instanceof CallToolResult) {
-            self::fail('Expected a tool result.');
-        }
+        self::assertInstanceOf(CallToolResult::class, $result);
 
         self::assertSame([], $result->content);
     }
@@ -576,6 +574,23 @@ final class ToolStoreTest extends AbstractMcpTestCase
         $this->expectException(InvalidParamsException::class);
 
         $store->call('digit', ['a' => 'b'], self::makeContext());
+    }
+
+    public function testCallWrapsABindingFailureWithTheToolName(): void
+    {
+        $store = new ToolStore([
+            'search' => new ToolEntry(
+                self::makeTool('search'),
+                new ClosureToolExecutor(static function (?array $arguments, ServerContext $context): CallToolResult {
+                    throw new InvalidParamsException($context->requestId, 'missing the required "q" key.');
+                }),
+            ),
+        ]);
+
+        $this->expectException(InvalidParamsException::class);
+        $this->expectExceptionMessageIs('Invalid arguments for tool "search": missing the required "q" key.');
+
+        $store->call('search', [], self::makeContext());
     }
 
     /**

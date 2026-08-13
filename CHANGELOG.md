@@ -15,6 +15,13 @@ in `0.x`, minor releases may include breaking changes.
 - Datetime fields are validated against the RFC 3339 grammar before parsing, where timezone names,
   colon-less and hour-only offsets, a space before the offset, and single-digit date or time fields
   previously parsed.
+- A discovered handler's binding failure names the argument instead of the parameter's PHP class
+  name, and the owning tool, prompt, or resource wraps it with its identity, matching the
+  schema-validation stage's messages.
+- A discovered handler parameter typed `object` or `\stdClass` now receives the decoded arguments as
+  an object, instead of failing the call with a `TypeError`.
+- Schema-validation diagnostics for tool arguments and `structuredContent` follow the documented
+  message conventions, and report up to eight violations instead of stopping at the first.
 - `ServerBuilder::register()` refuses a discovered entry whose key an earlier source already declared,
   throwing `DuplicateDiscoveredEntryException` naming both sources, instead of silently overwriting.
 - A resource template variable name longer than 32 characters is refused at registration, instead of

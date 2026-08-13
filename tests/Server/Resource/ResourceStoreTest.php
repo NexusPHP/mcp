@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Tests\Server\Resource;
 
 use Amp\NullCancellation;
 use Nexus\Assert\ExpectationFailedException;
+use Nexus\Mcp\Core\Exception\InvalidParamsException;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\Icon;
 use Nexus\Mcp\Core\Schema\RequestId;
@@ -279,6 +280,23 @@ final class ResourceStoreTest extends AbstractMcpTestCase
         $this->expectExceptionMessageIs('resource "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.');
 
         (new ResourceStore())->addResource(new Resource(name: 'r', uri: 'file:///x', icons: [new Icon(src: 'ftp://example.com/icon.png')]), self::makeReader());
+    }
+
+    public function testReadWrapsABindingFailureWithTheResourceUri(): void
+    {
+        $store = new ResourceStore([
+            'file:///a.txt' => new ResourceEntry(
+                new Resource(name: 'a', uri: 'file:///a.txt'),
+                new ClosureResourceReader(static function (string $uri, ServerContext $context): ReadResourceResult {
+                    throw new InvalidParamsException($context->requestId, '"uri" must be a string, int given.');
+                }),
+            ),
+        ]);
+
+        $this->expectException(InvalidParamsException::class);
+        $this->expectExceptionMessageIs('Invalid arguments for resource "file:///a.txt": "uri" must be a string, int given.');
+
+        $store->read('file:///a.txt', self::makeContext());
     }
 
     /**

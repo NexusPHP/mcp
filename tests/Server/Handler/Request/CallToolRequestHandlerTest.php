@@ -103,10 +103,7 @@ final class CallToolRequestHandlerTest extends AbstractMcpTestCase
             self::makeContext(),
         );
 
-        if (! $result instanceof CallToolResult) {
-            self::fail('Expected a CallToolResult.');
-        }
-
+        self::assertInstanceOf(CallToolResult::class, $result);
         self::assertSame($expected, $result);
     }
 
@@ -131,17 +128,12 @@ final class CallToolRequestHandlerTest extends AbstractMcpTestCase
             self::makeContext(),
         );
 
-        if (! $result instanceof CallToolResult) {
-            self::fail('Expected a CallToolResult.');
-        }
-
+        self::assertInstanceOf(CallToolResult::class, $result);
         self::assertCount(1, $result->content);
+
         $block = $result->content[0];
 
-        if (! $block instanceof TextContent) {
-            self::fail('Mirrored content must be TextContent.');
-        }
-
+        self::assertInstanceOf(TextContent::class, $block);
         self::assertSame('{"path":"docs/intro","lines":42}', $block->text);
         self::assertSame($structured, $result->structuredContent);
         self::assertFalse($result->isError);
@@ -167,10 +159,7 @@ final class CallToolRequestHandlerTest extends AbstractMcpTestCase
             self::makeContext(),
         );
 
-        if (! $result instanceof CallToolResult) {
-            self::fail('Expected a CallToolResult.');
-        }
-
+        self::assertInstanceOf(CallToolResult::class, $result);
         self::assertSame($expected, $result);
     }
 
@@ -193,18 +182,12 @@ final class CallToolRequestHandlerTest extends AbstractMcpTestCase
             self::makeContext(),
         );
 
-        if (! $result instanceof CallToolResult) {
-            self::fail('Expected a CallToolResult.');
-        }
-
+        self::assertInstanceOf(CallToolResult::class, $result);
         self::assertTrue($result->isError);
         self::assertCount(1, $result->content);
         $block = $result->content[0];
 
-        if (! $block instanceof TextContent) {
-            self::fail('Wrapped error content must be TextContent.');
-        }
-
+        self::assertInstanceOf(TextContent::class, $block);
         self::assertSame('Tool execution failed.', $block->text);
         self::assertCount(
             1,
@@ -230,7 +213,7 @@ final class CallToolRequestHandlerTest extends AbstractMcpTestCase
         $handler = new CallToolRequestHandler($store);
 
         $this->expectException(InvalidParamsException::class);
-        $this->expectExceptionMessageMatches('/^Invalid arguments for tool "search": /');
+        $this->expectExceptionMessageIs('Invalid arguments for tool "search": "q" must be a string, int given.');
 
         $handler->handle(
             new CallToolRequest(id: new RequestId(id: 1), params: new CallToolRequestParams(name: 'search', meta: RequestMetaObjectFactory::create(), arguments: ['q' => 123])),
@@ -258,18 +241,12 @@ final class CallToolRequestHandlerTest extends AbstractMcpTestCase
             self::makeContext(),
         );
 
-        if (! $result instanceof CallToolResult) {
-            self::fail('Expected a CallToolResult.');
-        }
-
+        self::assertInstanceOf(CallToolResult::class, $result);
         self::assertTrue($result->isError);
         self::assertCount(1, $result->content);
         $block = $result->content[0];
 
-        if (! $block instanceof TextContent) {
-            self::fail('Wrapped error content must be TextContent.');
-        }
-
+        self::assertInstanceOf(TextContent::class, $block);
         self::assertSame('Tool execution failed.', $block->text);
 
         $matches = $logger->recordsMatching(
@@ -300,10 +277,7 @@ final class CallToolRequestHandlerTest extends AbstractMcpTestCase
             self::makeContext(),
         );
 
-        if (! $result instanceof CallToolResult) {
-            self::fail('Expected a CallToolResult.');
-        }
-
+        self::assertInstanceOf(CallToolResult::class, $result);
         self::assertTrue($result->isError);
 
         $matches = $logger->recordsMatching(
@@ -350,10 +324,7 @@ final class CallToolRequestHandlerTest extends AbstractMcpTestCase
             self::makeContext(),
         );
 
-        if (! $result instanceof CallToolResult) {
-            self::fail('Expected a CallToolResult.');
-        }
-
+        self::assertInstanceOf(CallToolResult::class, $result);
         self::assertTrue($result->isError);
         self::assertNull($result->structuredContent);
         self::assertCount(1, $result->content);
@@ -393,18 +364,12 @@ final class CallToolRequestHandlerTest extends AbstractMcpTestCase
             self::makeContext(),
         );
 
-        if (! $result instanceof CallToolResult) {
-            self::fail('Expected a CallToolResult.');
-        }
-
+        self::assertInstanceOf(CallToolResult::class, $result);
         self::assertTrue($result->isError);
         self::assertCount(1, $result->content);
         $block = $result->content[0];
 
-        if (! $block instanceof TextContent) {
-            self::fail('Wrapped error content must be TextContent.');
-        }
-
+        self::assertInstanceOf(TextContent::class, $block);
         self::assertSame('Tool execution failed.', $block->text);
 
         $matches = $logger->recordsMatching(

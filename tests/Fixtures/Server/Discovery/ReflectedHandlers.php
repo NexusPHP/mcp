@@ -74,6 +74,21 @@ final class ReflectedHandlers
         return (string) $value;
     }
 
+    public function shapeParam(object $shape): string
+    {
+        return implode(',', array_keys(get_object_vars($shape)));
+    }
+
+    public function interfaceParam(\DateTimeInterface $when): string
+    {
+        return $when->format('c');
+    }
+
+    public function untypedParam(mixed $value): string
+    {
+        return get_debug_type($value);
+    }
+
     public function mixedOrder(string $name, ServerContext $context, int $age = 1): string
     {
         return \sprintf('%s/%s/%d', $name, $context->meta->clientInfo->name ?? 'anonymous', $age);

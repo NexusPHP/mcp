@@ -28,14 +28,11 @@ final class ToolOutputValidationExceptionTest extends AbstractMcpTestCase
 {
     public function testMessageNamesTheToolAndJoinsTheErrors(): void
     {
-        $errors = ['the n field must be an integer', 'the q field is required'];
+        $errors = ['"n" must be an integer, string given.', 'missing the required "q" key.'];
         $exception = new ToolOutputValidationException('report', $errors);
 
         self::assertSame(
-            \sprintf(
-                'Tool "report" returned structuredContent that does not conform to its outputSchema: %s',
-                implode('; ', $errors),
-            ),
+            'Tool "report" returned structuredContent that does not conform to its outputSchema: "n" must be an integer, string given. missing the required "q" key.',
             $exception->getMessage(),
         );
     }

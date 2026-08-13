@@ -282,6 +282,12 @@ scope in the inner message.
    );
    ```
 
+Tool argument and `structuredContent` conformance failures follow the same shape: the server's
+`ValidationErrorFormatter` renders each leaf schema violation with the dotted data path double-quoted
+(bare at the root, whose scope the `Invalid arguments for tool "x": ...` wrapper supplies) and the
+`<type> given.` idiom. `ArgumentBinder`'s failures speak the same grammar, and the owning store wraps
+them with the same feature identity.
+
 ### Reusable validators
 
 `Core/Validation/` exposes five field-format validators. Each takes the value plus a `$context` label

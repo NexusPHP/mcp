@@ -81,7 +81,7 @@ final class ArgumentBinderTest extends AbstractMcpTestCase
     public function testThrowsWhenRequiredValueMissing(): void
     {
         $this->expectException(InvalidParamsException::class);
-        $this->expectExceptionMessageIs('The "name" argument is required.');
+        $this->expectExceptionMessageIs('missing the required "name" key.');
 
         $this->bind('requiredString', []);
     }
@@ -130,9 +130,64 @@ final class ArgumentBinderTest extends AbstractMcpTestCase
         self::assertSame([$payload], $this->bind('objectParam', ['payload' => $payload]));
     }
 
+    public function testCastsAMapToAnObjectTypedParameter(): void
+    {
+        $bound = $this->bind('shapeParam', ['shape' => ['a' => 1, 'b' => 2]]);
+        $shape = $bound[0] ?? null;
+
+        self::assertInstanceOf(\stdClass::class, $shape);
+        self::assertSame(['a' => 1, 'b' => 2], get_object_vars($shape));
+    }
+
+    public function testCastsAMapToAStdClassTypedParameter(): void
+    {
+        $bound = $this->bind('objectParam', ['payload' => ['k' => 'v']]);
+        $payload = $bound[0] ?? null;
+
+        self::assertInstanceOf(\stdClass::class, $payload);
+        self::assertSame(['k' => 'v'], get_object_vars($payload));
+    }
+
+    public function testCastsAnEmptyMapToAnEmptyObject(): void
+    {
+        $bound = $this->bind('shapeParam', ['shape' => []]);
+        $shape = $bound[0] ?? null;
+
+        self::assertInstanceOf(\stdClass::class, $shape);
+        self::assertSame([], get_object_vars($shape));
+    }
+
+    public function testRejectsAScalarForAnObjectTypedParameter(): void
+    {
+        $this->expectException(InvalidParamsException::class);
+        $this->expectExceptionMessageIs('"shape" must be an object, string given.');
+
+        $this->bind('shapeParam', ['shape' => 'scalar']);
+    }
+
+    public function testRejectsAListForAnObjectTypedParameter(): void
+    {
+        $this->expectException(InvalidParamsException::class);
+        $this->expectExceptionMessageIs('"shape" must be an object, array given.');
+
+        $this->bind('shapeParam', ['shape' => [1, 2]]);
+    }
+
     public function testPassesThroughUnionTypedValue(): void
     {
         self::assertSame([5], $this->bind('unionParam', ['value' => 5]));
+    }
+
+    public function testPassesThroughAnInterfaceTypedValue(): void
+    {
+        $when = new \DateTimeImmutable('2026-05-10T12:00:00+00:00');
+
+        self::assertSame([$when], $this->bind('interfaceParam', ['when' => $when]));
+    }
+
+    public function testBindsNullToAnUntypedParameter(): void
+    {
+        self::assertSame([null], $this->bind('untypedParam', ['value' => null]));
     }
 
     public function testBindsParametersInDeclarationOrder(): void
@@ -175,7 +230,7 @@ final class ArgumentBinderTest extends AbstractMcpTestCase
     public function testRejectsANonListVariadicValue(): void
     {
         $this->expectException(InvalidParamsException::class);
-        $this->expectExceptionMessageIs('The "tags" argument must be a list, string given.');
+        $this->expectExceptionMessageIs('"tags" must be a list, string given.');
 
         $this->bind('variadicStrings', ['tags' => 'solo']);
     }
@@ -185,10 +240,7 @@ final class ArgumentBinderTest extends AbstractMcpTestCase
         $bound = $this->bind('withCoordinate', ['point' => ['latitude' => 1.5, 'longitude' => 2.5, 'label' => 'b']]);
         $point = $bound[0] ?? null;
 
-        if (! $point instanceof Coordinate) {
-            self::fail('Expected a Coordinate instance.');
-        }
-
+        self::assertInstanceOf(Coordinate::class, $point);
         self::assertSame(1.5, $point->latitude);
         self::assertSame(2.5, $point->longitude);
         self::assertSame(BackedStringEnum::B, $point->label);
@@ -199,10 +251,7 @@ final class ArgumentBinderTest extends AbstractMcpTestCase
         $bound = $this->bind('withCoordinate', ['point' => ['latitude' => 1.0, 'longitude' => 2.0]]);
         $point = $bound[0] ?? null;
 
-        if (! $point instanceof Coordinate) {
-            self::fail('Expected a Coordinate instance.');
-        }
-
+        self::assertInstanceOf(Coordinate::class, $point);
         self::assertSame(BackedStringEnum::A, $point->label);
     }
 
@@ -221,10 +270,7 @@ final class ArgumentBinderTest extends AbstractMcpTestCase
         $bound = $this->bind('withWaypoint', ['stop' => ['tag' => null, 'note' => null]]);
         $stop = $bound[0] ?? null;
 
-        if (! $stop instanceof Waypoint) {
-            self::fail('Expected a Waypoint instance.');
-        }
-
+        self::assertInstanceOf(Waypoint::class, $stop);
         self::assertNull($stop->tag);
         self::assertNull($stop->note);
     }
@@ -234,17 +280,14 @@ final class ArgumentBinderTest extends AbstractMcpTestCase
         $bound = $this->bind('withNullableCoordinate', ['point' => ['latitude' => 3.5, 'longitude' => 4.5]]);
         $point = $bound[0] ?? null;
 
-        if (! $point instanceof Coordinate) {
-            self::fail('Expected a Coordinate instance.');
-        }
-
+        self::assertInstanceOf(Coordinate::class, $point);
         self::assertSame(3.5, $point->latitude);
     }
 
     public function testNullIsStillRefusedForANonNullableDtoParameter(): void
     {
         $this->expectException(InvalidParamsException::class);
-        $this->expectExceptionMessageIs(\sprintf('%s must be constructed from an object, null given.', Coordinate::class));
+        $this->expectExceptionMessageIs('"point" must be an object, null given.');
 
         $this->bind('withCoordinate', ['point' => null]);
     }
@@ -259,7 +302,7 @@ final class ArgumentBinderTest extends AbstractMcpTestCase
     public function testRejectsANonObjectDtoValue(): void
     {
         $this->expectException(InvalidParamsException::class);
-        $this->expectExceptionMessageMatches('/must be constructed from an object/');
+        $this->expectExceptionMessageIs('"point" must be an object, string given.');
 
         $this->bind('withCoordinate', ['point' => 'scalar']);
     }
@@ -279,7 +322,7 @@ final class ArgumentBinderTest extends AbstractMcpTestCase
     public function testDtoRejectsAMissingRequiredMember(): void
     {
         $this->expectException(InvalidParamsException::class);
-        $this->expectExceptionMessageIs('The "longitude" argument is required.');
+        $this->expectExceptionMessageIs('"point" is missing the required "longitude" key.');
 
         $this->bind('withCoordinate', ['point' => ['latitude' => 1.0]]);
     }
@@ -287,7 +330,7 @@ final class ArgumentBinderTest extends AbstractMcpTestCase
     public function testRejectsUnknownBackedEnumValue(): void
     {
         $this->expectException(InvalidParamsException::class);
-        $this->expectExceptionMessageIs('Parameter "$color" must be one of [\'a\', \'b\'], \'zzz\' given.');
+        $this->expectExceptionMessageIs('"color" must be one of [\'a\', \'b\'], \'zzz\' given.');
 
         $this->bind('backedString', ['color' => 'zzz']);
     }
@@ -295,7 +338,7 @@ final class ArgumentBinderTest extends AbstractMcpTestCase
     public function testCatchesTypeErrorWhenIntBackedEnumGetsString(): void
     {
         $this->expectException(InvalidParamsException::class);
-        $this->expectExceptionMessageIs('Parameter "$level" must be one of [1, 2], \'2\' given.');
+        $this->expectExceptionMessageIs('"level" must be one of [1, 2], \'2\' given.');
 
         $this->bind('backedInt', ['level' => '2']);
     }
@@ -303,7 +346,7 @@ final class ArgumentBinderTest extends AbstractMcpTestCase
     public function testRejectsUnknownPureEnumCaseName(): void
     {
         $this->expectException(InvalidParamsException::class);
-        $this->expectExceptionMessageIs('Parameter "$flag" must be one of [\'Yes\', \'No\'], \'Nope\' given.');
+        $this->expectExceptionMessageIs('"flag" must be one of [\'Yes\', \'No\'], \'Nope\' given.');
 
         $this->bind('pureCase', ['flag' => 'Nope']);
     }
@@ -311,7 +354,7 @@ final class ArgumentBinderTest extends AbstractMcpTestCase
     public function testRejectsPureEnumValueOfNonStringType(): void
     {
         $this->expectException(InvalidParamsException::class);
-        $this->expectExceptionMessageIs('Parameter "$flag" must be one of [\'Yes\', \'No\'], 5 given.');
+        $this->expectExceptionMessageIs('"flag" must be one of [\'Yes\', \'No\'], 5 given.');
 
         $this->bind('pureCase', ['flag' => 5]);
     }

@@ -40,18 +40,18 @@ final class OpisSchemaValidatorTest extends AbstractMcpTestCase
 
     public function testNonConformingDataReturnsErrorMessages(): void
     {
-        $errors = (new OpisSchemaValidator())->validate(['n' => 'not-an-int'], self::SCHEMA);
-
-        self::assertNotSame([], $errors);
-
-        foreach ($errors as $error) {
-            self::assertNotSame('', $error);
-        }
+        self::assertSame(
+            ['"n" must be an integer, string given.'],
+            (new OpisSchemaValidator())->validate(['n' => 'not-an-int'], self::SCHEMA),
+        );
     }
 
     public function testMissingRequiredPropertyReturnsErrorMessages(): void
     {
-        self::assertNotSame([], (new OpisSchemaValidator())->validate(['other' => 1], self::SCHEMA));
+        self::assertSame(
+            ['missing the required "n" key.'],
+            (new OpisSchemaValidator())->validate(['other' => 1], self::SCHEMA),
+        );
     }
 
     public function testReportsEveryViolationNotJustTheFirst(): void
@@ -64,7 +64,10 @@ final class OpisSchemaValidatorTest extends AbstractMcpTestCase
 
         $errors = (new OpisSchemaValidator())->validate(['a' => 1, 'b' => 'x'], $schema);
 
-        self::assertGreaterThan(1, \count($errors));
+        self::assertSame(
+            ['"a" must be a string, int given.', '"b" must be an integer, string given.'],
+            $errors,
+        );
     }
 
     /**

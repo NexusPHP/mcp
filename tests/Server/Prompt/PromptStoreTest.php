@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Tests\Server\Prompt;
 
 use Amp\NullCancellation;
 use Nexus\Assert\ExpectationFailedException;
+use Nexus\Mcp\Core\Exception\InvalidParamsException;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\Icon;
 use Nexus\Mcp\Core\Schema\Prompt\Prompt;
@@ -256,6 +257,23 @@ final class PromptStoreTest extends AbstractMcpTestCase
         $this->expectExceptionMessageIs('prompt "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.');
 
         (new PromptStore())->addPrompt(new Prompt(name: 'p', icons: [new Icon(src: 'ftp://example.com/icon.png')]), self::makeRenderer());
+    }
+
+    public function testGetWrapsABindingFailureWithThePromptName(): void
+    {
+        $store = new PromptStore([
+            'brief' => new PromptEntry(
+                new Prompt(name: 'brief'),
+                new ClosurePromptRenderer(static function (?array $arguments, ServerContext $context): GetPromptResult {
+                    throw new InvalidParamsException($context->requestId, 'missing the required "topic" key.');
+                }),
+            ),
+        ]);
+
+        $this->expectException(InvalidParamsException::class);
+        $this->expectExceptionMessageIs('Invalid arguments for prompt "brief": missing the required "topic" key.');
+
+        $store->get('brief', [], self::makeContext());
     }
 
     /**
