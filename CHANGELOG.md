@@ -12,6 +12,9 @@ in `0.x`, minor releases may include breaking changes.
 
 - A malformed error response whose recovered id matches a pending client request now fails that request
   with the parse diagnostic, instead of leaving the caller to wait out its deadline.
+- Datetime fields are validated against the RFC 3339 grammar before parsing, where timezone names,
+  colon-less and hour-only offsets, a space before the offset, and single-digit date or time fields
+  previously parsed.
 - `ServerBuilder::register()` refuses a discovered entry whose key an earlier source already declared,
   throwing `DuplicateDiscoveredEntryException` naming both sources, instead of silently overwriting.
 - A resource template variable name longer than 32 characters is refused at registration, instead of

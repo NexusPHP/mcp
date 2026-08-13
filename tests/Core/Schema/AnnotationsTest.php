@@ -110,19 +110,23 @@ final class AnnotationsTest extends AbstractMcpTestCase
      */
     public static function provideAnnotationsRejectsInvalidLastModifiedCases(): iterable
     {
-        yield 'invalid text' => ['not-a-date', '"annotations.lastModified" must be a valid ISO 8601 datetime.'];
+        $shapeMessage = '"annotations.lastModified" must be an RFC 3339 datetime: "YYYY-MM-DDThh:mm:ss", an optional "." fraction, then "Z" or "+hh:mm"/"-hh:mm".';
 
-        yield 'missing timezone' => ['2026-03-09T12:00:00', '"annotations.lastModified" must be a valid ISO 8601 datetime.'];
+        yield 'invalid text' => ['not-a-date', $shapeMessage];
+
+        yield 'missing timezone' => ['2026-03-09T12:00:00', $shapeMessage];
 
         yield 'overflowed date and time' => ['2026-13-45T25:99:99+00:00', '"annotations.lastModified" must be a valid ISO 8601 datetime: The parsed date was invalid.'];
 
-        yield 'space separator' => ['2026-03-09 12:00:00+00:00', '"annotations.lastModified" must be a valid ISO 8601 datetime.'];
+        yield 'space separator' => ['2026-03-09 12:00:00+00:00', $shapeMessage];
 
-        yield 'prefixed garbage' => ['foo2026-03-09T12:00:00+00:00', '"annotations.lastModified" must be a valid ISO 8601 datetime.'];
+        yield 'prefixed garbage' => ['foo2026-03-09T12:00:00+00:00', $shapeMessage];
 
-        yield 'suffixed garbage' => ['2026-03-09T12:00:00+00:00bar', '"annotations.lastModified" must be a valid ISO 8601 datetime.'];
+        yield 'suffixed garbage' => ['2026-03-09T12:00:00+00:00bar', $shapeMessage];
 
-        yield 'null byte in value' => ["2026-03-09T12:00:00+00:00\0", '"annotations.lastModified" must not contain NULL bytes.'];
+        yield 'timezone name instead of an offset' => ['2026-03-09T12:00:00UTC', $shapeMessage];
+
+        yield 'null byte in value' => ["2026-03-09T12:00:00+00:00\0", $shapeMessage];
     }
 
     public function testAnnotationsFromArrayParsesLastModified(): void
