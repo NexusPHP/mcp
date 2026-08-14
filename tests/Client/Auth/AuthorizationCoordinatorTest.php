@@ -35,10 +35,10 @@ use Nexus\Mcp\Client\Auth\TokenEndpoint;
 use Nexus\Mcp\Client\Auth\UserAuthorizationInterface;
 use Nexus\Mcp\Client\Exception\ClientRegistrationRejectedException;
 use Nexus\Mcp\Client\Exception\InvalidAuthorizationResponseException;
-use Nexus\Mcp\Client\Exception\TokenRequestFailedException;
 use Nexus\Mcp\Core\Auth\ResourceIdentifier;
 use Nexus\Mcp\Core\Auth\ScopeSet;
 use Nexus\Mcp\Core\Auth\WwwAuthenticateChallenge;
+use Nexus\Mcp\Core\Exception\RuntimeException;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Client\Auth\RetainingSemaphore;
 use Nexus\Mcp\Tests\Fixtures\Client\Auth\ScriptedGrantStrategy;
@@ -717,7 +717,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
         try {
             $coordinator->fetchToken(new NullCancellation());
             self::fail('The refusal should have surfaced.');
-        } catch (TokenRequestFailedException $e) {
+        } catch (RuntimeException $e) {
             self::assertSame('The token request failed with "server_error".', $e->getMessage());
         }
 
@@ -1020,7 +1020,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
         try {
             $coordinator->fetchToken(new NullCancellation());
             self::fail('The gateway failure should have surfaced.');
-        } catch (TokenRequestFailedException $e) {
+        } catch (RuntimeException $e) {
             self::assertSame('The token request failed with "invalid_request": The token endpoint answered 502 with a body that is not a JSON object.', $e->getMessage());
         }
 

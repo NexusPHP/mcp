@@ -55,6 +55,30 @@ Docs sync: after any change that renames, deletes, moves, or adds a top-level bu
 - `Nexus\Mcp\Core\JsonRpc\*`: JSON-RPC envelope behaviour (parser, guards). The envelope-parsing guard lives here, not under `Schema\`, even though schema classes consume it.
 - `Nexus\Mcp\Core\Exception\*`: every SDK exception implements the `McpExceptionInterface` marker so consumers can `catch (McpExceptionInterface $e)`.
 
+### Exception classes
+
+Two shared final classes carry every message-only failure: `Core\Exception\LogicException` (SDK misuse,
+surfaced at composition time) and `Core\Exception\RuntimeException` (flow diagnostics). Both implement
+`McpExceptionInterface`. Throw them with the full message composed at the site. When one template serves
+several sites, single-source it in a private `: never` helper (or an exception-building factory where the
+site needs the object, e.g. a `match` arm).
+
+Do **not** mint a new exception class unless at least one of these holds:
+
+1. **The type is peer-visible.** The `AbstractJsonRpcProtocolException` family, whose `getErrorCode()`
+   decides the JSON-RPC error code. Message composition *into* another diagnostic does not count: the
+   composing site owns the wrapper template and the composed class can still collapse.
+2. **Something branches on the type**: an `src/` catch that does more than re-compose the message, the
+   conformance client's refusal list, or a documented consumer pattern (`ClientRegistrationRequiredException`
+   triggering DCR, `StalledTaskException` triggering a later poll).
+3. **It carries a property read somewhere other than its own constructor and its own dedicated test**
+   (`RemoteCallFailedException::$error`, the `onError` signal objects). A property only interpolated into
+   the message is not a property: drop it.
+4. **A shared catch would over-match.** A typed catch that scopes recovery to one failure
+   (`TypeNodeSchemaMapper::isMappable()` converting `UnsupportedSchemaTypeException` to `false`) cannot
+   widen to the shared class without swallowing unrelated errors, and a class whose template serves
+   several files (`UnsupportedReturnValueException`) is that message's single source.
+
 ### Method naming
 
 - **Methods are verb-first**, private helpers included: `readLine()`, `resolveNameField()`, `resolveBindings()`, not `line()`, `nameField()`, `bindingsFor()`. A noun name reads as a property accessor and hides that the call does work. Interface-mandated names (`list()`, `call()`) are exempt, as is anything a third-party contract fixes.

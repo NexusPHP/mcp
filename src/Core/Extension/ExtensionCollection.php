@@ -14,8 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Extension;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\Exception\DuplicateExtensionException;
-use Nexus\Mcp\Core\Exception\ExtensionMethodCollisionException;
+use Nexus\Mcp\Core\Exception\LogicException;
 use Nexus\Mcp\Core\Handler\AbstractContext;
 use Nexus\Mcp\Core\Handler\NotificationHandlerInterface;
 use Nexus\Mcp\Core\Handler\RequestHandlerInterface;
@@ -92,8 +91,7 @@ final class ExtensionCollection
      * @param list<non-empty-string>                          $outboundRequests     Client-to-server methods the extension invokes
      * @param array<non-empty-string, StoredRequestDecorator> $requestDecorators
      *
-     * @throws DuplicateExtensionException
-     * @throws ExtensionMethodCollisionException
+     * @throws LogicException
      */
     public function add(
         ExtensionInterface $extension,
@@ -107,7 +105,7 @@ final class ExtensionCollection
         ExtensionIdentifierValidator::validate($identifier);
 
         if (\array_key_exists($identifier, $this->settings)) {
-            throw new DuplicateExtensionException($identifier);
+            self::refuseDuplicateDeclaration($identifier);
         }
 
         $settings = $extension->getSettings();
@@ -147,11 +145,11 @@ final class ExtensionCollection
             $claimant = \sprintf('Extension "%s"', $identifier);
 
             if (\array_key_exists($method, $specRequests)) {
-                throw new ExtensionMethodCollisionException($claimant, $method, 'the MCP specification');
+                self::refuseMethodClaim($claimant, $method, 'the MCP specification');
             }
 
             if (\array_key_exists($method, $this->outboundOwners)) {
-                throw new ExtensionMethodCollisionException($claimant, $method, \sprintf('extension "%s"', $this->outboundOwners[$method]));
+                self::refuseMethodClaim($claimant, $method, \sprintf('extension "%s"', $this->outboundOwners[$method]));
             }
         }
 
@@ -187,14 +185,14 @@ final class ExtensionCollection
     /**
      * @param non-empty-string $method
      *
-     * @throws ExtensionMethodCollisionException
+     * @throws LogicException
      */
     public function assertNotOwned(string $method, bool $isNotification = false): void
     {
         $owner = $isNotification ? $this->findNotificationOwner($method) : $this->findRequestOwner($method);
 
         if (null !== $owner) {
-            throw new ExtensionMethodCollisionException(
+            self::refuseMethodClaim(
                 'A builder-registered handler',
                 $method,
                 \sprintf('extension "%s"', $owner),
@@ -301,6 +299,11 @@ final class ExtensionCollection
         return $this->requestDecoratorGroups;
     }
 
+    public static function refuseDuplicateDeclaration(string $identifier): never
+    {
+        throw new LogicException(\sprintf('Extension "%s" is declared more than once.', $identifier));
+    }
+
     /**
      * @param list<non-empty-string> $classMethods
      * @param list<non-empty-string> $handlerMethods
@@ -329,15 +332,15 @@ final class ExtensionCollection
         $claimant = \sprintf('Extension "%s"', $identifier);
 
         if (\array_key_exists($method, JsonRpcMethodRegistry::requests())) {
-            throw new ExtensionMethodCollisionException($claimant, $method, 'the MCP specification');
+            self::refuseMethodClaim($claimant, $method, 'the MCP specification');
         }
 
         if (\array_key_exists($method, $this->requestOwners)) {
-            throw new ExtensionMethodCollisionException($claimant, $method, \sprintf('extension "%s"', $this->requestOwners[$method]));
+            self::refuseMethodClaim($claimant, $method, \sprintf('extension "%s"', $this->requestOwners[$method]));
         }
 
         if (\in_array($method, $claimed, true)) {
-            throw new ExtensionMethodCollisionException($claimant, $method, 'a builder-registered handler');
+            self::refuseMethodClaim($claimant, $method, 'a builder-registered handler');
         }
     }
 
@@ -351,15 +354,26 @@ final class ExtensionCollection
         $claimant = \sprintf('Extension "%s"', $identifier);
 
         if (\array_key_exists($method, JsonRpcMethodRegistry::notifications())) {
-            throw new ExtensionMethodCollisionException($claimant, $method, 'the MCP specification', isNotification: true);
+            self::refuseMethodClaim($claimant, $method, 'the MCP specification', isNotification: true);
         }
 
         if (\array_key_exists($method, $this->notificationOwners)) {
-            throw new ExtensionMethodCollisionException($claimant, $method, \sprintf('extension "%s"', $this->notificationOwners[$method]), isNotification: true);
+            self::refuseMethodClaim($claimant, $method, \sprintf('extension "%s"', $this->notificationOwners[$method]), isNotification: true);
         }
 
         if (\in_array($method, $claimed, true)) {
-            throw new ExtensionMethodCollisionException($claimant, $method, 'a builder-registered handler', isNotification: true);
+            self::refuseMethodClaim($claimant, $method, 'a builder-registered handler', isNotification: true);
         }
+    }
+
+    private static function refuseMethodClaim(string $claimant, string $method, string $owner, bool $isNotification = false): never
+    {
+        throw new LogicException(\sprintf(
+            '%s cannot claim the %s method "%s" already owned by %s.',
+            $claimant,
+            $isNotification ? 'notification' : 'request',
+            $method,
+            $owner,
+        ));
     }
 }

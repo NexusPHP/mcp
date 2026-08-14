@@ -38,7 +38,7 @@ $builder->getToolStore()->addTool($tool, $executor);  // reaches every stream th
 ```
 
 `build()` may be called once per builder, and every registration method is closed once it has run. A second
-`build()`, or any `add*()` / `set*()` / `register()` after one, throws `BuilderAlreadyBuiltException` rather
+`build()`, or any `add*()` / `set*()` / `register()` after one, throws `LogicException` rather
 than being silently dropped: the built server already holds the stores and the list-change listeners.
 
 Resource *contents* changing is not something a store can observe, so publish it yourself:

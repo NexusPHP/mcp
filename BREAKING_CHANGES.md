@@ -6,6 +6,28 @@ for *when* breaking changes may land and how they are communicated lives in
 
 ## v0.12.0 to Unreleased
 
+### Message-only exceptions collapsed into `LogicException` and `RuntimeException`
+
+Twenty-eight exception classes whose type carried nothing beyond their message are removed in favour
+of two final classes in `Nexus\Mcp\Core\Exception`, thrown with the same messages: `LogicException`
+(SDK misuse, extending `\LogicException`) replaces `BuilderAlreadyBuiltException`,
+`ClientAlreadyConnectedException`, `ClientNotConnectedException`, `DuplicateDiscoveredEntryException`,
+`DuplicateExtensionException`, `DuplicateOutboundRequestIdException`, `DuplicateServerMetadataException`,
+`ExtensionMethodCollisionException`, `InvalidCompletionAttributeException`,
+`MissingDiscoveryAttributeException`, `MissingNotificationClassException`,
+`MissingSuggestedDependencyException`, `ReservedMethodException`, `ReservedTemplateVariableException`,
+`SchemaGenerationException`, `SubscriptionClosedException`, `UnreservedMethodException`,
+`UnsupportedNestedParameterException`, `UnsupportedParameterTypeException`, and
+`UnsupportedVariadicParameterException`, and `RuntimeException` (flow diagnostics, extending
+`\RuntimeException`) replaces `AuthorizationDeniedException`, `AuthorizationDiscoveryFailedException`,
+`ClientRegistrationFailedException`, `IdentityAssertionExchangeFailedException`,
+`InvalidUiResourceContentsException`, `TokenRequestFailedException`,
+`UnsupportedClientAuthenticationException`, and `UnsupportedGrantException`. Both implement
+`McpExceptionInterface`. A `catch` naming a removed class becomes the matching shared class, or
+`McpExceptionInterface` where the distinction never mattered. Every typed exception that a consumer
+branches on, that carries a read property, or that the SDK catches keeps its class.
+`AuthorizationGrantRejectedException::$error` is removed: it only restated the message.
+
 ## v0.11.0 to v0.12.0
 
 ### `Icon.src` validation split into permissive decode and conservative authoring

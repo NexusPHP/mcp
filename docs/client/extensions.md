@@ -35,7 +35,7 @@ since there is nothing to check against. Notifications stay ungated on both side
 
 Enabled extensions merge into whatever `setClientCapabilities()` declared, in either call order.
 The same identifier declared both manually and via `enableExtension()` is refused at `build()`
-with `DuplicateExtensionException`: there is no silent precedence.
+with `LogicException`: there is no silent precedence.
 
 ## Sending extension requests
 

@@ -21,9 +21,9 @@ use Nexus\Mcp\Client\Auth\SecureEndpoint;
 use Nexus\Mcp\Client\Exception\MalformedAuthorizationResponseException;
 use Nexus\Mcp\Core\Auth\MetadataReader;
 use Nexus\Mcp\Core\Auth\ResourceIdentifier;
+use Nexus\Mcp\Core\Exception\RuntimeException;
 use Nexus\Mcp\Core\Http\HttpStatus;
 use Nexus\Mcp\Core\SafeDisplay;
-use Nexus\Mcp\Extension\Auth\Exception\IdentityAssertionExchangeFailedException;
 
 /**
  * The RFC 8693 token exchange at the enterprise IdP: an identity assertion in, an ID-JAG out.
@@ -91,7 +91,7 @@ final readonly class IdentityAssertionExchanger
                 throw $e;
             }
 
-            throw new IdentityAssertionExchangeFailedException(\sprintf(
+            throw new RuntimeException(\sprintf(
                 'The enterprise IdP answered %d with a body that is not a JSON object.',
                 $status,
             ));
@@ -101,7 +101,7 @@ final readonly class IdentityAssertionExchanger
             $error = MetadataReader::readErrorField($data, 'error', self::LABEL) ?? 'invalid_request';
             $description = MetadataReader::readErrorField($data, 'error_description', self::LABEL);
 
-            throw new IdentityAssertionExchangeFailedException(\sprintf(
+            throw new RuntimeException(\sprintf(
                 'The enterprise IdP refused the token exchange with "%s"%s',
                 $error,
                 null === $description ? '.' : \sprintf(': %s', $description),
@@ -111,7 +111,7 @@ final readonly class IdentityAssertionExchanger
         $issuedType = MetadataReader::readRequiredString($data, 'issued_token_type', self::LABEL);
 
         if (EnterpriseAuthorization::ID_JAG_TOKEN_TYPE !== $issuedType) {
-            throw new IdentityAssertionExchangeFailedException(\sprintf(
+            throw new RuntimeException(\sprintf(
                 'The enterprise IdP issued a "%s" token where an ID-JAG was requested.',
                 SafeDisplay::sanitise($issuedType),
             ));

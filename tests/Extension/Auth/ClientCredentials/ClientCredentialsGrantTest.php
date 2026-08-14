@@ -27,11 +27,10 @@ use Nexus\Mcp\Core\Auth\AuthorizationServerMetadata;
 use Nexus\Mcp\Core\Auth\ProtectedResourceMetadata;
 use Nexus\Mcp\Core\Auth\ResourceIdentifier;
 use Nexus\Mcp\Core\Auth\ScopeSet;
+use Nexus\Mcp\Core\Exception\RuntimeException;
 use Nexus\Mcp\Extension\Auth\ClientCredentials\ClientCredentialsGrant;
 use Nexus\Mcp\Extension\Auth\ClientCredentials\ClientSecretCredential;
 use Nexus\Mcp\Extension\Auth\ClientCredentials\PrivateKeyJwtCredential;
-use Nexus\Mcp\Extension\Auth\Exception\UnsupportedClientAuthenticationException;
-use Nexus\Mcp\Extension\Auth\Exception\UnsupportedGrantException;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Client\Http\RecordingHttpClient;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
@@ -115,7 +114,7 @@ final class ClientCredentialsGrantTest extends AbstractMcpTestCase
     {
         $grant = new ClientCredentialsGrant(new ClientSecretCredential('the-client', 'the-secret'));
 
-        $this->expectException(UnsupportedClientAuthenticationException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs('The authorization server "https://auth.example.com" does not advertise the "client_secret_basic" token endpoint authentication method.');
 
         $grant->grant(self::context(new RecordingHttpClient(), self::metadata(methods: null)), new NullCancellation());
@@ -125,7 +124,7 @@ final class ClientCredentialsGrantTest extends AbstractMcpTestCase
     {
         $grant = new ClientCredentialsGrant(new PrivateKeyJwtCredential('the-client', self::generatePrivateKey(), 'ES256'));
 
-        $this->expectException(UnsupportedClientAuthenticationException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs('The authorization server "https://auth.example.com" does not advertise the "private_key_jwt" token endpoint authentication method.');
 
         $grant->grant(self::context(new RecordingHttpClient(), self::metadata(methods: ['client_secret_basic'])), new NullCancellation());
@@ -135,7 +134,7 @@ final class ClientCredentialsGrantTest extends AbstractMcpTestCase
     {
         $grant = new ClientCredentialsGrant(new PrivateKeyJwtCredential('the-client', self::generatePrivateKey(), 'ES256'));
 
-        $this->expectException(UnsupportedClientAuthenticationException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs('The authorization server "https://auth.example.com" does not advertise the "ES256" client assertion signing algorithm.');
 
         $grant->grant(
@@ -161,7 +160,7 @@ final class ClientCredentialsGrantTest extends AbstractMcpTestCase
     {
         $grant = new ClientCredentialsGrant(new ClientSecretCredential('the-client', 'the-secret'));
 
-        $this->expectException(UnsupportedGrantException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs('The authorization server "https://auth.example.com" does not advertise the "client_credentials" grant type.');
 
         $grant->grant(
@@ -195,7 +194,7 @@ final class ClientCredentialsGrantTest extends AbstractMcpTestCase
         try {
             $grant->grant(self::context($http, self::metadata(), options: $options), new NullCancellation());
             self::fail('The grant should have been refused.');
-        } catch (UnsupportedClientAuthenticationException $e) {
+        } catch (RuntimeException $e) {
             self::assertSame(
                 'The client credentials grant authenticates with the credential it was given, so the authorization options must not carry a pre-registered one as well.',
                 $e->getMessage(),

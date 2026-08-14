@@ -39,11 +39,11 @@ $server->run(new StdioServerTransport());
 
 `register()` takes any number of source objects and returns the builder, so it chains with the manual
 `add*` / `set*` methods. Each source must carry at least one discoverable attribute. A source with no
-`#[AsServer]` and no attribute-marked method throws `MissingDiscoveryAttributeException`, which catches
+`#[AsServer]` and no attribute-marked method throws `LogicException`, which catches
 typo'd attribute names and objects passed in by mistake.
 
 Two discovered entries may not share a key: a tool or prompt name, a resource URI, a template's URI
-template, or a completion's ref-argument pair declared twice throws `DuplicateDiscoveredEntryException`
+template, or a completion's ref-argument pair declared twice throws `LogicException`
 naming both sources. Names default to the method name, so two sources each exposing a `search()` tool
 collide. The explicit `add*` methods keep their last-call-wins behaviour.
 
@@ -74,7 +74,7 @@ For a prompt, each parameter becomes a prompt argument: its `@param` line suppli
 parameter without a default value is marked required. Prompt arguments and resource URI variables are bound
 from strings, so a prompt, resource, or resource-template parameter must accept one: `string`, a string-backed
 or pure enum, or an untyped parameter. Other types (non-string scalars, int-backed enums, classes,
-intersection types) throw `UnsupportedParameterTypeException` at registration.
+intersection types) throw `LogicException` at registration.
 
 A `ServerContext` parameter is injected and left out of the schema. All other arguments are bound to
 parameters by name, and backed or pure enum parameters are hydrated from the argument value.
@@ -83,17 +83,17 @@ A completion method's parameters are bound by type instead: a `ServerContext` pa
 context, an `array` parameter the client's resolved context arguments, and any other parameter the partial
 value being typed. That last kind must take a raw string (`string`, `mixed`, a union containing one, or
 untyped), with no enum hydration on this path, so an enum parameter throws
-`UnsupportedParameterTypeException` at registration even though a prompt method could declare it.
+the same `LogicException` at registration even though a prompt method could declare it.
 
 A variadic tool parameter (`T ...$x`) maps to an array input (`{"type": "array", "items": <T>}`), is never
 required, and the supplied list is spread back into the call. Variadic parameters are accepted only on tools,
 since prompts and resources receive flat string values. A variadic on a prompt, resource, or resource
-template throws `UnsupportedVariadicParameterException`.
+template throws `LogicException`.
 
 A tool parameter typed as an instantiable class is expanded into an object schema built from that class's
 constructor parameters, and the handler receives a constructed instance. Expansion goes one level: a
 constructor parameter that is itself a class (a nested object), along with interfaces, abstract classes, and
-built-in classes such as `\DateTimeImmutable`, is not expanded and throws `SchemaGenerationException` at
+built-in classes such as `\DateTimeImmutable`, is not expanded and throws `LogicException` at
 registration.
 
 ```php
@@ -150,7 +150,7 @@ call wins per field and the attribute fills only the gaps it left, regardless of
 `description` keeps your name and version while picking up the title and description from the attribute.
 
 At most one registered source may declare `#[AsServer]`. A second one throws
-`DuplicateServerMetadataException`. The setters keep their normal last-call-wins behaviour. Only conflicting
+`LogicException`. The setters keep their normal last-call-wins behaviour. Only conflicting
 attributes are rejected.
 
 ## Limitations
@@ -158,9 +158,9 @@ attributes are rejected.
 - Only public methods are scanned.
 - Tool arguments are typed by the validated `inputSchema`, but prompt arguments and resource URI variables
   arrive as strings. A prompt, resource, or resource-template parameter that a string cannot satisfy throws
-  `UnsupportedParameterTypeException` at registration.
+  `LogicException` at registration.
 - Variadic parameters are accepted only on tools. On prompts and resources they throw
-  `UnsupportedVariadicParameterException`.
+  `LogicException`.
 - Object (DTO) expansion is one level deep and tool-only. A constructor parameter typed as another class, a
   list of objects, an interface, or an abstract class is not expanded and throws.
 - There is no filesystem auto-discovery and no class-level handler backend. `register()` takes explicit

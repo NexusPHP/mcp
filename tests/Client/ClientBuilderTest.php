@@ -16,9 +16,7 @@ namespace Nexus\Mcp\Tests\Client;
 use Amp\CancelledException;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Client\ClientBuilder;
-use Nexus\Mcp\Core\Exception\DuplicateExtensionException;
-use Nexus\Mcp\Core\Exception\ExtensionMethodCollisionException;
-use Nexus\Mcp\Core\Exception\MissingNotificationClassException;
+use Nexus\Mcp\Core\Exception\LogicException;
 use Nexus\Mcp\Core\Handler\AbstractContext;
 use Nexus\Mcp\Core\Schema\ClientCapabilities;
 use Nexus\Mcp\Core\Schema\Enum\SdkErrorCode;
@@ -232,7 +230,7 @@ final class ClientBuilderTest extends AbstractMcpTestCase
 
     public function testAddNotificationHandlerRequiresTheClassForAVendorMethod(): void
     {
-        $this->expectException(MissingNotificationClassException::class);
+        $this->expectException(LogicException::class);
         $this->expectExceptionMessageIs(
             'Notification method "vendor/custom-done" is not defined by the MCP specification, so its handler registration must name the $notificationClass that parses it.',
         );
@@ -291,7 +289,7 @@ final class ClientBuilderTest extends AbstractMcpTestCase
             ->enableExtension(new StubClientExtension(identifier: 'com.example/feature'))
         ;
 
-        $this->expectException(DuplicateExtensionException::class);
+        $this->expectException(LogicException::class);
         $this->expectExceptionMessageIs('Extension "com.example/feature" is declared more than once.');
 
         $builder->build();
@@ -299,7 +297,7 @@ final class ClientBuilderTest extends AbstractMcpTestCase
 
     public function testEnableExtensionRejectsAnOutboundSpecMethod(): void
     {
-        $this->expectException(ExtensionMethodCollisionException::class);
+        $this->expectException(LogicException::class);
         $this->expectExceptionMessageIs(
             'Extension "com.example/feature" cannot claim the request method "tools/call" already owned by the MCP specification.',
         );
@@ -317,7 +315,7 @@ final class ClientBuilderTest extends AbstractMcpTestCase
             outboundRequests: ['acme/lookup'],
         ));
 
-        $this->expectException(ExtensionMethodCollisionException::class);
+        $this->expectException(LogicException::class);
         $this->expectExceptionMessageIs(
             'Extension "com.example/other" cannot claim the request method "acme/lookup" already owned by extension "com.example/feature".',
         );
@@ -334,7 +332,7 @@ final class ClientBuilderTest extends AbstractMcpTestCase
             static fn(): EmptyResult => new EmptyResult(),
         ), TestRequest::class);
 
-        $this->expectException(ExtensionMethodCollisionException::class);
+        $this->expectException(LogicException::class);
         $this->expectExceptionMessageIs(
             'Extension "com.example/feature" cannot claim the request method "tests/test-request" already owned by a builder-registered handler.',
         );
@@ -354,7 +352,7 @@ final class ClientBuilderTest extends AbstractMcpTestCase
             static function (): void {},
         ), TestNotification::class);
 
-        $this->expectException(ExtensionMethodCollisionException::class);
+        $this->expectException(LogicException::class);
         $this->expectExceptionMessageIs(
             'Extension "com.example/feature" cannot claim the notification method "tests/test-notification" already owned by a builder-registered handler.',
         );
@@ -378,7 +376,7 @@ final class ClientBuilderTest extends AbstractMcpTestCase
             )],
         ));
 
-        $this->expectException(ExtensionMethodCollisionException::class);
+        $this->expectException(LogicException::class);
         $this->expectExceptionMessageIs(
             'A builder-registered handler cannot claim the request method "tests/test-request" already owned by extension "com.example/feature".',
         );
@@ -398,7 +396,7 @@ final class ClientBuilderTest extends AbstractMcpTestCase
             )],
         ));
 
-        $this->expectException(ExtensionMethodCollisionException::class);
+        $this->expectException(LogicException::class);
         $this->expectExceptionMessageIs(
             'A builder-registered handler cannot claim the notification method "tests/test-notification" already owned by extension "com.example/feature".',
         );

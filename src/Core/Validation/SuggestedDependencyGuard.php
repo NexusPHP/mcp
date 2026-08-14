@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Validation;
 
-use Nexus\Mcp\Core\Exception\MissingSuggestedDependencyException;
+use Nexus\Mcp\Core\Exception\LogicException;
 
 /**
  * Verifies a suggested package is installed before the class that needs it does any work.
@@ -28,7 +28,7 @@ final class SuggestedDependencyGuard
      * @param non-empty-string $package    The composer package name
      * @param non-empty-string $constraint The version constraint to install with
      *
-     * @throws MissingSuggestedDependencyException
+     * @throws LogicException
      */
     public static function verify(string $consumer, string $class, string $package, string $constraint): void
     {
@@ -36,7 +36,7 @@ final class SuggestedDependencyGuard
             return;
         }
 
-        throw new MissingSuggestedDependencyException(\sprintf(
+        throw new LogicException(\sprintf(
             '%s requires the suggested "%s" package. Install it with "composer require %s:%s".',
             $consumer,
             $package,

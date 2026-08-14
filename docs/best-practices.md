@@ -33,7 +33,7 @@ call `Server::run()`.
 
 **Connect, then call.** Each request stands on its own, so typed calls can start as soon as `connect()`
 returns. Typed methods
-throw `ClientNotConnectedException` if called before `connect()`. Always pair `connect()` with a
+throw `LogicException` if called before `connect()`. Always pair `connect()` with a
 `disconnect()` in a `finally` so the transport closes even when a call throws:
 
 ```php

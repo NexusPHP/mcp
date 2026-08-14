@@ -14,8 +14,8 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Exception;
 
 /**
- * Thrown when a class backed by a suggested package is used while that package is not installed.
+ * Runtime failure whose message is the whole diagnostic, with no branch a consumer takes on the type.
  */
-final class MissingSuggestedDependencyException extends \LogicException implements McpExceptionInterface
+final class RuntimeException extends \RuntimeException implements McpExceptionInterface
 {
 }

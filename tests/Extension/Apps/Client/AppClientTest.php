@@ -16,6 +16,7 @@ namespace Nexus\Mcp\Tests\Extension\Apps\Client;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Client\Client;
 use Nexus\Mcp\Client\ClientBuilder;
+use Nexus\Mcp\Core\Exception\RuntimeException;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\MetaObject\PayloadMetaObject;
@@ -27,7 +28,6 @@ use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
 use Nexus\Mcp\Core\Schema\Tool\Tool;
 use Nexus\Mcp\Extension\Apps\Client\AppClient;
 use Nexus\Mcp\Extension\Apps\Client\AppsClientExtension;
-use Nexus\Mcp\Extension\Apps\Client\Exception\InvalidUiResourceContentsException;
 use Nexus\Mcp\Extension\Apps\Schema\Enum\ToolVisibility;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
@@ -269,7 +269,7 @@ final class AppClientTest extends AbstractMcpTestCase
         try {
             $read->await();
             self::fail('Expected the non-conforming contents to be rejected.');
-        } catch (InvalidUiResourceContentsException $exception) {
+        } catch (RuntimeException $exception) {
             self::assertSame(
                 'UI resource "ui://demo/panel" returned contents of mime type "text/html", expected one of "text/html;profile=mcp-app".',
                 $exception->getMessage(),

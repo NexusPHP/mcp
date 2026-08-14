@@ -27,7 +27,7 @@ $validator = new JwksAccessTokenValidator(
 );
 ```
 
-Constructing it without the package installed throws a `MissingSuggestedDependencyException` naming that
+Constructing it without the package installed throws a `LogicException` naming that
 install command. The validator refuses a token whose signature does not verify, whose `iss` is absent or
 is not the issuer you named, or which carries no `exp` at all. A key set may sign for several issuers, so
 the issuer is what bounds the tenant rather than the audience alone, and a token minted with no expiry

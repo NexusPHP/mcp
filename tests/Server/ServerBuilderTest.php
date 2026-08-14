@@ -14,8 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Server;
 
 use Nexus\Assert\ExpectationFailedException;
-use Nexus\Mcp\Core\Exception\DuplicateExtensionException;
-use Nexus\Mcp\Core\Exception\ExtensionMethodCollisionException;
+use Nexus\Mcp\Core\Exception\LogicException;
 use Nexus\Mcp\Core\Handler\AbstractContext;
 use Nexus\Mcp\Core\Handler\RequestHandlerInterface;
 use Nexus\Mcp\Core\Schema\ClientCapabilities;
@@ -64,12 +63,6 @@ use Nexus\Mcp\Server\Attribute\AsServer;
 use Nexus\Mcp\Server\Attribute\AsTool;
 use Nexus\Mcp\Server\Completion\CompletionProviderInterface;
 use Nexus\Mcp\Server\Completion\CompletionStore;
-use Nexus\Mcp\Server\Exception\BuilderAlreadyBuiltException;
-use Nexus\Mcp\Server\Exception\DuplicateDiscoveredEntryException;
-use Nexus\Mcp\Server\Exception\DuplicateServerMetadataException;
-use Nexus\Mcp\Server\Exception\MissingDiscoveryAttributeException;
-use Nexus\Mcp\Server\Exception\ReservedMethodException;
-use Nexus\Mcp\Server\Exception\UnreservedMethodException;
 use Nexus\Mcp\Server\ListChangeSourceInterface;
 use Nexus\Mcp\Server\Prompt\MutablePromptStoreInterface;
 use Nexus\Mcp\Server\Prompt\PromptStore;
@@ -983,14 +976,14 @@ final class ServerBuilderTest extends AbstractMcpTestCase
     {
         $second = new #[AsServer(name: 'second-server', version: '5.0.0')] class {};
 
-        $this->expectException(DuplicateServerMetadataException::class);
+        $this->expectException(LogicException::class);
 
         (new ServerBuilder())->register(new SelfDescribingServer(), $second);
     }
 
     public function testRegisterRejectsASourceWithoutDiscoverableAttributes(): void
     {
-        $this->expectException(MissingDiscoveryAttributeException::class);
+        $this->expectException(LogicException::class);
 
         $source = new class {
             public function notAttributed(): string
@@ -1007,7 +1000,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
     #[DataProvider('provideRegisterRefusesADuplicateDiscoveredEntryCases')]
     public function testRegisterRefusesADuplicateDiscoveredEntry(object $first, object $second, string $expectedPattern): void
     {
-        $this->expectException(DuplicateDiscoveredEntryException::class);
+        $this->expectException(LogicException::class);
         $this->expectExceptionMessageMatches($expectedPattern);
 
         (new ServerBuilder())->register($first, $second);
@@ -1141,7 +1134,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
     public function testRegisterNamesBothSourcesOnACollision(): void
     {
-        $this->expectException(DuplicateDiscoveredEntryException::class);
+        $this->expectException(LogicException::class);
         $this->expectExceptionMessageIs(
             '"Nexus\Mcp\Tests\Fixtures\Server\Discovery\CollidingSearchTool" declares tool "search", which "Nexus\Mcp\Tests\Fixtures\Server\Discovery\CollidingSearchTool" already declares.',
         );
@@ -1275,7 +1268,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
     #[DataProvider('provideAddRequestHandlerRejectsReservedSpecMethodCases')]
     public function testAddRequestHandlerRejectsReservedSpecMethod(string $method): void
     {
-        $this->expectException(ReservedMethodException::class);
+        $this->expectException(LogicException::class);
         $this->expectExceptionMessageIs(\sprintf(
             'Request method "%s" is reserved by the MCP specification. Use replaceRequestHandler() to attach a handler to it.',
             $method,
@@ -1363,7 +1356,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
     #[DataProvider('provideAddNotificationHandlerRejectsReservedSpecMethodCases')]
     public function testAddNotificationHandlerRejectsReservedSpecMethod(string $method): void
     {
-        $this->expectException(ReservedMethodException::class);
+        $this->expectException(LogicException::class);
         $this->expectExceptionMessageIs(\sprintf(
             'Notification method "%s" is reserved by the MCP specification. Use replaceNotificationHandler() to attach a handler to it.',
             $method,
@@ -1679,7 +1672,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
     {
         $builder = (new ServerBuilder())->enableExtension(new StubServerExtension(identifier: 'com.example/feature'));
 
-        $this->expectException(DuplicateExtensionException::class);
+        $this->expectException(LogicException::class);
         $this->expectExceptionMessageIs('Extension "com.example/feature" is declared more than once.');
 
         $builder->enableExtension(new StubServerExtension(identifier: 'com.example/feature'));
@@ -1691,7 +1684,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             static fn(): EmptyResult => new EmptyResult(),
         ), TestClientRequest::class);
 
-        $this->expectException(ExtensionMethodCollisionException::class);
+        $this->expectException(LogicException::class);
         $this->expectExceptionMessageIs(
             'Extension "com.example/feature" cannot claim the request method "tests/test-client-request" already owned by a builder-registered handler.',
         );
@@ -1705,7 +1698,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             static function (): void {},
         ), TestNotification::class);
 
-        $this->expectException(ExtensionMethodCollisionException::class);
+        $this->expectException(LogicException::class);
         $this->expectExceptionMessageIs(
             'Extension "com.example/feature" cannot claim the notification method "tests/test-notification" already owned by a builder-registered handler.',
         );
@@ -1723,7 +1716,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
     {
         $builder = (new ServerBuilder())->enableExtension(self::buildServerExtension());
 
-        $this->expectException(ExtensionMethodCollisionException::class);
+        $this->expectException(LogicException::class);
         $this->expectExceptionMessageIs(
             'A builder-registered handler cannot claim the request method "tests/test-client-request" already owned by extension "com.example/feature".',
         );
@@ -1743,7 +1736,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             )],
         ));
 
-        $this->expectException(ExtensionMethodCollisionException::class);
+        $this->expectException(LogicException::class);
         $this->expectExceptionMessageIs(
             'A builder-registered handler cannot claim the notification method "tests/test-notification" already owned by extension "com.example/feature".',
         );
@@ -1771,7 +1764,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
     public function testReplaceRequestHandlerRejectsVendorExtensionMethod(): void
     {
-        $this->expectException(UnreservedMethodException::class);
+        $this->expectException(LogicException::class);
         $this->expectExceptionMessageIs(
             'Request method "acme/snapshot" is not reserved by the MCP specification. Use addRequestHandler() to register a vendor extension.',
         );
@@ -1783,7 +1776,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
     public function testReplaceNotificationHandlerRejectsVendorExtensionMethod(): void
     {
-        $this->expectException(UnreservedMethodException::class);
+        $this->expectException(LogicException::class);
         $this->expectExceptionMessageIs(
             'Notification method "acme/snapshot-done" is not reserved by the MCP specification. Use addNotificationHandler() to register a vendor extension.',
         );
@@ -2532,7 +2525,8 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         $builder = (new ServerBuilder())->setServerInfo('demo', '1.0.0');
         $builder->build();
 
-        $this->expectException(BuilderAlreadyBuiltException::class);
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessageIs('This builder has already been built. Construct a new ServerBuilder for another server.');
 
         $mutate($builder);
     }
@@ -2602,7 +2596,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         $builder = (new ServerBuilder())->setServerInfo('demo', '1.0.0');
         $builder->build();
 
-        $this->expectException(BuilderAlreadyBuiltException::class);
+        $this->expectException(LogicException::class);
         $this->expectExceptionMessageIs('This builder has already been built. Construct a new ServerBuilder for another server.');
 
         $builder->build();

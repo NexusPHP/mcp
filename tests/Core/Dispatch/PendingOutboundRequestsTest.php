@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Core\Dispatch;
 
 use Nexus\Mcp\Core\Dispatch\PendingOutboundRequests;
-use Nexus\Mcp\Core\Exception\DuplicateOutboundRequestIdException;
+use Nexus\Mcp\Core\Exception\LogicException;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Core\Schema\ResultResponse\GenericResultResponse;
@@ -41,12 +41,12 @@ final class PendingOutboundRequestsTest extends AbstractMcpTestCase
         self::assertCount(1, $pending);
     }
 
-    public function testDuplicateRegisterThrowsDuplicateOutboundRequestIdException(): void
+    public function testDuplicateRegisterThrowsLogicException(): void
     {
         $pending = new PendingOutboundRequests();
         $pending->register(new RequestId(id: 1), GenericResultResponse::class);
 
-        $this->expectException(DuplicateOutboundRequestIdException::class);
+        $this->expectException(LogicException::class);
         $this->expectExceptionMessageMatches('/^Outbound request id 1 is already pending\./');
 
         $pending->register(new RequestId(id: 1), GenericResultResponse::class);
@@ -59,7 +59,7 @@ final class PendingOutboundRequestsTest extends AbstractMcpTestCase
 
         try {
             $pending->register(new RequestId(id: 1), GenericResultResponse::class);
-        } catch (DuplicateOutboundRequestIdException) {
+        } catch (LogicException) {
         }
 
         self::assertCount(1, $pending, 'A rejected register must not double-count the id.');
@@ -70,7 +70,7 @@ final class PendingOutboundRequestsTest extends AbstractMcpTestCase
         $pending = new PendingOutboundRequests();
         $pending->register(new RequestId(id: 'corr-token'), GenericResultResponse::class);
 
-        $this->expectException(DuplicateOutboundRequestIdException::class);
+        $this->expectException(LogicException::class);
         $this->expectExceptionMessageMatches('/^Outbound request id \'corr-token\' is already pending\\./');
 
         $pending->register(new RequestId(id: 'corr-token'), GenericResultResponse::class);

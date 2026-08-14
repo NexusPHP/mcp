@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Extension\Auth;
 
 use Nexus\Mcp\Core\Auth\AuthorizationServerMetadata;
-use Nexus\Mcp\Extension\Auth\Exception\UnsupportedGrantException;
+use Nexus\Mcp\Core\Exception\RuntimeException;
 use Nexus\Mcp\Extension\Auth\GrantTypeAdvertisement;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -49,7 +49,7 @@ final class GrantTypeAdvertisementTest extends AbstractMcpTestCase
 
     public function testAListWithoutTheGrantTypeIsRefused(): void
     {
-        $this->expectException(UnsupportedGrantException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs('The authorization server "https://auth.example.com" does not advertise the "client_credentials" grant type.');
 
         GrantTypeAdvertisement::verify(
@@ -60,7 +60,7 @@ final class GrantTypeAdvertisementTest extends AbstractMcpTestCase
 
     public function testAnEmptyListRefusesEveryGrantType(): void
     {
-        $this->expectException(UnsupportedGrantException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs('The authorization server "https://auth.example.com" does not advertise the "urn:ietf:params:oauth:grant-type:jwt-bearer" grant type.');
 
         GrantTypeAdvertisement::verify(
@@ -71,7 +71,7 @@ final class GrantTypeAdvertisementTest extends AbstractMcpTestCase
 
     public function testAHostileIssuerIsBoundedAndEscapedInTheRefusal(): void
     {
-        $this->expectException(UnsupportedGrantException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs(\sprintf(
             'The authorization server "%s..." does not advertise the "client_credentials" grant type.',
             'https://'.str_repeat('a', 245),

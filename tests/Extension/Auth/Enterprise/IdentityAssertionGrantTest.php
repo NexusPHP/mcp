@@ -30,12 +30,11 @@ use Nexus\Mcp\Core\Auth\ProtectedResourceMetadata;
 use Nexus\Mcp\Core\Auth\ResourceIdentifier;
 use Nexus\Mcp\Core\Auth\ScopeSet;
 use Nexus\Mcp\Core\Auth\TokenEndpointAuthMethod;
+use Nexus\Mcp\Core\Exception\RuntimeException;
 use Nexus\Mcp\Extension\Auth\Enterprise\IdentityAssertion;
 use Nexus\Mcp\Extension\Auth\Enterprise\IdentityAssertionGrant;
 use Nexus\Mcp\Extension\Auth\Enterprise\IdentityAssertionProviderInterface;
 use Nexus\Mcp\Extension\Auth\Enterprise\IdentityAssertionType;
-use Nexus\Mcp\Extension\Auth\Exception\UnsupportedClientAuthenticationException;
-use Nexus\Mcp\Extension\Auth\Exception\UnsupportedGrantException;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Client\Http\RecordingHttpClient;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
@@ -118,7 +117,7 @@ final class IdentityAssertionGrantTest extends AbstractMcpTestCase
     {
         $grant = new IdentityAssertionGrant(self::IDP_ENDPOINT, self::provider());
 
-        $this->expectException(UnsupportedGrantException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs('The authorization server "https://auth.example.com" does not advertise the "urn:ietf:params:oauth:grant-type:jwt-bearer" grant type.');
 
         $grant->grant(
@@ -131,7 +130,7 @@ final class IdentityAssertionGrantTest extends AbstractMcpTestCase
     {
         $grant = new IdentityAssertionGrant(self::IDP_ENDPOINT, self::provider());
 
-        $this->expectException(UnsupportedGrantException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs('The authorization server "https://auth.example.com" does not advertise the "urn:ietf:params:oauth:grant-profile:id-jag" authorization grant profile.');
 
         $grant->grant(
@@ -166,7 +165,7 @@ final class IdentityAssertionGrantTest extends AbstractMcpTestCase
         try {
             $grant->grant(self::context($http, self::metadata(), new AuthorizationOptions('Example MCP Client')), new NullCancellation());
             self::fail('The grant should have been refused.');
-        } catch (UnsupportedClientAuthenticationException $e) {
+        } catch (RuntimeException $e) {
             self::assertSame(
                 'Enterprise-managed authorization needs pre-registered credentials or a Client ID Metadata Document URL, and the authorization options carry neither.',
                 $e->getMessage(),
@@ -179,7 +178,7 @@ final class IdentityAssertionGrantTest extends AbstractMcpTestCase
     {
         $grant = new IdentityAssertionGrant(self::IDP_ENDPOINT, self::provider());
 
-        $this->expectException(UnsupportedClientAuthenticationException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs('The authorization server "https://auth.example.com" does not support Client ID Metadata Documents.');
 
         $grant->grant(

@@ -16,11 +16,12 @@ namespace Nexus\Mcp\Tests\Client\Auth;
 use Amp\NullCancellation;
 use Nexus\Mcp\Client\Auth\JsonHttpExchange;
 use Nexus\Mcp\Client\Auth\MetadataDiscovery;
-use Nexus\Mcp\Client\Exception\AuthorizationDiscoveryFailedException;
 use Nexus\Mcp\Client\Exception\PkceNotSupportedException;
 use Nexus\Mcp\Client\Exception\UntrustedAuthorizationMetadataException;
 use Nexus\Mcp\Core\Auth\ResourceIdentifier;
 use Nexus\Mcp\Core\Auth\WwwAuthenticateChallenge;
+use Nexus\Mcp\Core\Exception\RuntimeException;
+use Nexus\Mcp\Core\SafeDisplay;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Client\Http\RecordingHttpClient;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -162,10 +163,30 @@ final class MetadataDiscoveryTest extends AbstractMcpTestCase
             ->willAnswerJson([], 404)
         ;
 
-        $this->expectException(AuthorizationDiscoveryFailedException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs('No protected resource metadata was served for "https://mcp.example.com/mcp". Probed: https://mcp.example.com/.well-known/oauth-protected-resource/mcp, https://mcp.example.com/.well-known/oauth-protected-resource.');
 
         (new MetadataDiscovery($http))->discoverResource(new ResourceIdentifier(self::RESOURCE), null, new NullCancellation());
+    }
+
+    public function testAnOverlongProbedUrlIsBoundedInTheReport(): void
+    {
+        $http = (new RecordingHttpClient())
+            ->willAnswerJson([], 404)
+            ->willAnswerJson([], 404)
+        ;
+        $resource = 'https://mcp.example.com/'.str_repeat('a', 400);
+
+        try {
+            (new MetadataDiscovery($http))->discoverResource(new ResourceIdentifier($resource), null, new NullCancellation());
+            self::fail('Expected discovery to fail.');
+        } catch (RuntimeException $e) {
+            self::assertStringContainsString('...', $e->getMessage());
+            self::assertDoesNotMatchRegularExpression(
+                \sprintf('/[a]{%d}/', SafeDisplay::MAX_CAUSE_LENGTH + 1),
+                $e->getMessage(),
+            );
+        }
     }
 
     #[DataProvider('provideAnAdvertisedUrlOffTheMcpServersOriginIsDroppedCases')]
@@ -283,7 +304,7 @@ final class MetadataDiscoveryTest extends AbstractMcpTestCase
             ->willAnswerJson('"not-an-object"')
         ;
 
-        $this->expectException(AuthorizationDiscoveryFailedException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs('No protected resource metadata was served for "https://mcp.example.com/mcp". Probed: https://mcp.example.com/.well-known/oauth-protected-resource/mcp, https://mcp.example.com/.well-known/oauth-protected-resource.');
 
         (new MetadataDiscovery($http))->discoverResource(new ResourceIdentifier(self::RESOURCE), null, new NullCancellation());
@@ -442,7 +463,7 @@ final class MetadataDiscoveryTest extends AbstractMcpTestCase
             ->willAnswerJson([], 404)
         ;
 
-        $this->expectException(AuthorizationDiscoveryFailedException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs('No authorization server metadata was served for "https://auth.example.com". Probed: https://auth.example.com/.well-known/oauth-authorization-server, https://auth.example.com/.well-known/openid-configuration.');
 
         (new MetadataDiscovery($http))->discoverServer(self::ISSUER, new NullCancellation());

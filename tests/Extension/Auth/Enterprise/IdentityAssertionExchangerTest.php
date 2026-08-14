@@ -18,10 +18,10 @@ use Amp\NullCancellation;
 use Nexus\Mcp\Client\Exception\MalformedAuthorizationResponseException;
 use Nexus\Mcp\Client\Exception\UntrustedAuthorizationMetadataException;
 use Nexus\Mcp\Core\Auth\ResourceIdentifier;
+use Nexus\Mcp\Core\Exception\RuntimeException;
 use Nexus\Mcp\Extension\Auth\Enterprise\IdentityAssertion;
 use Nexus\Mcp\Extension\Auth\Enterprise\IdentityAssertionExchanger;
 use Nexus\Mcp\Extension\Auth\Enterprise\IdentityAssertionType;
-use Nexus\Mcp\Extension\Auth\Exception\IdentityAssertionExchangeFailedException;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Client\Http\RecordingHttpClient;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -98,7 +98,7 @@ final class IdentityAssertionExchangerTest extends AbstractMcpTestCase
             400,
         );
 
-        $this->expectException(IdentityAssertionExchangeFailedException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs('The enterprise IdP refused the token exchange with "invalid_grant": The assertion has expired.');
 
         self::exchange($http);
@@ -108,7 +108,7 @@ final class IdentityAssertionExchangerTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())->willAnswerJson(['error' => 'invalid_target'], 400);
 
-        $this->expectException(IdentityAssertionExchangeFailedException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs('The enterprise IdP refused the token exchange with "invalid_target".');
 
         self::exchange($http);
@@ -118,7 +118,7 @@ final class IdentityAssertionExchangerTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())->willChallenge(502, 'Bearer', '<html>Bad gateway</html>');
 
-        $this->expectException(IdentityAssertionExchangeFailedException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs('The enterprise IdP answered 502 with a body that is not a JSON object.');
 
         self::exchange($http);
@@ -139,7 +139,7 @@ final class IdentityAssertionExchangerTest extends AbstractMcpTestCase
             'issued_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
         ]));
 
-        $this->expectException(IdentityAssertionExchangeFailedException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs('The enterprise IdP issued a "urn:ietf:params:oauth:token-type:access_token" token where an ID-JAG was requested.');
 
         self::exchange($http);
@@ -151,7 +151,7 @@ final class IdentityAssertionExchangerTest extends AbstractMcpTestCase
             'issued_token_type' => str_repeat('u', 200)."\x1b",
         ]));
 
-        $this->expectException(IdentityAssertionExchangeFailedException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs(\sprintf(
             'The enterprise IdP issued a "%s..." token where an ID-JAG was requested.',
             str_repeat('u', 77),

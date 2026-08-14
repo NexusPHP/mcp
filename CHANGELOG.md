@@ -8,6 +8,12 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp/commits/1.x)
 
+### Changed
+
+- Twenty-eight message-only exception classes are replaced by `Nexus\Mcp\Core\Exception\LogicException`
+  (SDK misuse) and `Nexus\Mcp\Core\Exception\RuntimeException` (flow diagnostics), with messages
+  unchanged. See BREAKING_CHANGES.md for the list.
+
 ### Fixed
 
 - A malformed error response whose recovered id matches a pending client request now fails that request
@@ -23,7 +29,7 @@ in `0.x`, minor releases may include breaking changes.
 - Schema-validation diagnostics for tool arguments and `structuredContent` follow the documented
   message conventions, and report up to eight violations instead of stopping at the first.
 - `ServerBuilder::register()` refuses a discovered entry whose key an earlier source already declared,
-  throwing `DuplicateDiscoveredEntryException` naming both sources, instead of silently overwriting.
+  throwing `LogicException` naming both sources, instead of silently overwriting.
 - A resource template variable name longer than 32 characters is refused at registration, instead of
   compiling to a pattern PCRE rejects so the template silently never matches.
 - A tool declaring an `outputSchema` whose non-error result carries no `structuredContent` now fails the

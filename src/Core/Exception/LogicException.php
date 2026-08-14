@@ -11,13 +11,11 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Nexus\Mcp\Extension\Auth\Exception;
-
-use Nexus\Mcp\Core\Exception\McpExceptionInterface;
+namespace Nexus\Mcp\Core\Exception;
 
 /**
- * Thrown when an authorization server's metadata contradicts the grant the client is configured to run.
+ * Developer-facing SDK misuse, surfaced at composition time and never sent to a peer.
  */
-final class UnsupportedGrantException extends \RuntimeException implements McpExceptionInterface
+final class LogicException extends \LogicException implements McpExceptionInterface
 {
 }

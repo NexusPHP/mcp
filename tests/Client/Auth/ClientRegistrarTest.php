@@ -20,13 +20,13 @@ use Nexus\Mcp\Client\Auth\ClientRegistrar;
 use Nexus\Mcp\Client\Auth\ClientRegistration;
 use Nexus\Mcp\Client\Auth\InMemoryClientRegistrationStore;
 use Nexus\Mcp\Client\Exception\AuthorizationServerMismatchException;
-use Nexus\Mcp\Client\Exception\ClientRegistrationFailedException;
 use Nexus\Mcp\Client\Exception\ClientRegistrationRequiredException;
 use Nexus\Mcp\Client\Exception\MalformedAuthorizationResponseException;
 use Nexus\Mcp\Client\Exception\UntrustedAuthorizationMetadataException;
 use Nexus\Mcp\Core\Auth\ApplicationType;
 use Nexus\Mcp\Core\Auth\AuthorizationServerMetadata;
 use Nexus\Mcp\Core\Auth\TokenEndpointAuthMethod;
+use Nexus\Mcp\Core\Exception\RuntimeException;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Client\Http\RecordingHttpClient;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -271,7 +271,7 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
             'token_endpoint_auth_method' => $method,
         ]);
 
-        $this->expectException(ClientRegistrationFailedException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs(\sprintf('Dynamic Client Registration failed with "invalid_client_metadata": The client was registered with the unsupported "%s" token endpoint authentication method.', $method));
 
         self::resolve($http, self::metadata(registrationEndpoint: 'https://auth.example.com/register'), self::options());
@@ -306,7 +306,7 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
             400,
         );
 
-        $this->expectException(ClientRegistrationFailedException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs('Dynamic Client Registration failed with "invalid_redirect_uri": Loopback redirect URIs are not permitted.');
 
         self::resolve($http, self::metadata(registrationEndpoint: 'https://auth.example.com/register'), self::options());
@@ -316,7 +316,7 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())->willAnswerJson([], 400);
 
-        $this->expectException(ClientRegistrationFailedException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs('Dynamic Client Registration failed with "invalid_client_metadata".');
 
         self::resolve($http, self::metadata(registrationEndpoint: 'https://auth.example.com/register'), self::options());

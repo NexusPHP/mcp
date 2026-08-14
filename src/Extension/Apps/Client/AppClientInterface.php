@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Extension\Apps\Client;
 
+use Nexus\Mcp\Core\Exception\RuntimeException;
 use Nexus\Mcp\Core\Schema\Resource\Resource;
 use Nexus\Mcp\Core\Schema\Resource\ResourceContents;
 use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
@@ -20,7 +21,6 @@ use Nexus\Mcp\Core\Schema\Result\InputResponse;
 use Nexus\Mcp\Core\Schema\Result\ListToolsResult;
 use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
 use Nexus\Mcp\Core\Schema\Tool\Tool;
-use Nexus\Mcp\Extension\Apps\Client\Exception\InvalidUiResourceContentsException;
 use Nexus\Mcp\Extension\Apps\Schema\UiResourceMeta;
 use Nexus\Mcp\Extension\Apps\Schema\UiToolMeta;
 
@@ -52,7 +52,7 @@ interface AppClientInterface
      * @param non-empty-string                                $uri
      * @param null|array<int|non-empty-string, InputResponse> $inputResponses
      *
-     * @throws InvalidUiResourceContentsException
+     * @throws RuntimeException
      */
     public function readAppResource(string $uri, ?array $inputResponses = null, ?string $requestState = null): InputRequiredResult|ReadResourceResult;
 }

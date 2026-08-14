@@ -53,8 +53,7 @@ if (null !== $client->getServerCapabilities()?->tools) {
 detaches it (a no-op when not connected), so the client can `connect()` to a new transport afterwards. It
 also forgets what the old server advertised, so `getServerInfo()` and `getServerCapabilities()` return
 `null` again and the next server is gated on its own `discover()` rather than the last one's.
-Calling `connect()` twice throws `ClientAlreadyConnectedException`, and using the client before `connect()`
-throws `ClientNotConnectedException`.
+Calling `connect()` twice, or using the client before `connect()`, throws `LogicException`.
 
 ```php
 $client->disconnect();

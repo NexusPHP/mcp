@@ -33,9 +33,4 @@ final class AuthorizationGrantRejectedExceptionTest extends AbstractMcpTestCase
             (new AuthorizationGrantRejectedException('invalid_grant', 'The refresh token was revoked.'))->getMessage(),
         );
     }
-
-    public function testItExposesTheErrorCode(): void
-    {
-        self::assertSame('invalid_scope', (new AuthorizationGrantRejectedException('invalid_scope'))->error);
-    }
 }

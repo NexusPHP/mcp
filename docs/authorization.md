@@ -69,24 +69,21 @@ Every exception below implements `McpExceptionInterface`.
 
 | Exception | Raised when |
 | --- | --- |
-| `AuthorizationDiscoveryFailedException` | No probed URL served the metadata document. |
 | `UntrustedAuthorizationMetadataException` | A document named a resource or issuer other than the one it was served for, or an authorization server URL is not HTTPS or carries a fragment. |
 | `PkceNotSupportedException` | The authorization server does not advertise `S256`. |
 | `InsecureAuthorizationEndpointException` | The configured redirect URI is plain HTTP on a non-loopback host. |
 | `ClientRegistrationRequiredException` | The server offers no registration mechanism the client can use. |
-| `ClientRegistrationFailedException` | Dynamic Client Registration was refused, or granted on unusable terms. |
 | `AuthorizationServerMismatchException` | Supplied credentials belong to a different authorization server. |
 | `InvalidAuthorizationResponseException` | The response failed `state`, `iss`, or code validation. |
-| `AuthorizationDeniedException` | The authorization server answered with an OAuth error. |
-| `TokenRequestFailedException` | The token endpoint refused the request on terms granting again will not clear. |
 | `AuthorizationGrantRejectedException` | The token endpoint refused the request because the grant is spent. |
 | `ClientRegistrationRejectedException` | The token endpoint does not recognise the client identifier presented to it. |
 | `MalformedAuthorizationResponseException` | An authorization or metadata endpoint answered with something other than a JSON object. |
 | `RedirectRefusedException` | A response arrived from a URL other than the one the request was sent to. |
 | `InsufficientScopeException` | The server answered `insufficient_scope` and asking the resource owner cannot help: the client is set to report rather than ask, the upgrade budget is spent, or the challenge names nothing the token lacks. |
+| `RuntimeException` | Every remaining flow failure whose message is the whole diagnostic: no probed URL served a metadata document, Dynamic Client Registration was refused, the authorization server answered with an OAuth error, or the token endpoint refused on terms granting again will not clear. |
 
-`AuthorizationGrantRejectedException` extends `TokenRequestFailedException` and is raised for the RFC 6749
-codes that mean granting again would help: `invalid_grant` and `invalid_scope`. That is the split the SDK acts
+`AuthorizationGrantRejectedException` is raised for the RFC 6749 codes that mean granting again would
+help: `invalid_grant` and `invalid_scope`. That is the split the SDK acts
 on. A refresh that hits one of those drops the stored token and re-authorizes, while `invalid_client`,
 `unsupported_grant_type`, `server_error` and the rest surface to you with the token left alone, because no
 number of browser round trips fixes a misconfigured client or an authorization server that is down.

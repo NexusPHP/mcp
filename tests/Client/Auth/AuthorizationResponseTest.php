@@ -17,9 +17,9 @@ use Nexus\Mcp\Client\Auth\AuthorizationCallback;
 use Nexus\Mcp\Client\Auth\AuthorizationRedirect;
 use Nexus\Mcp\Client\Auth\AuthorizationResponse;
 use Nexus\Mcp\Client\Auth\PkcePair;
-use Nexus\Mcp\Client\Exception\AuthorizationDeniedException;
 use Nexus\Mcp\Client\Exception\InvalidAuthorizationResponseException;
 use Nexus\Mcp\Core\Auth\ScopeSet;
+use Nexus\Mcp\Core\Exception\RuntimeException;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -157,7 +157,7 @@ final class AuthorizationResponseTest extends AbstractMcpTestCase
 
     public function testReadCodeSurfacesTheErrorWithItsDescription(): void
     {
-        $this->expectException(AuthorizationDeniedException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs('The authorization server denied the request with "access_denied": The user refused consent.');
 
         AuthorizationResponse::readCode(
@@ -172,7 +172,7 @@ final class AuthorizationResponseTest extends AbstractMcpTestCase
 
     public function testReadCodeSurfacesAnErrorWithNoDescription(): void
     {
-        $this->expectException(AuthorizationDeniedException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs('The authorization server denied the request with "invalid_scope".');
 
         AuthorizationResponse::readCode(
@@ -181,20 +181,15 @@ final class AuthorizationResponseTest extends AbstractMcpTestCase
         );
     }
 
-    public function testTheDeniedExceptionExposesTheErrorCode(): void
+    public function testADenialNamesTheErrorCodeInTheMessage(): void
     {
-        try {
-            AuthorizationResponse::readCode(
-                self::buildRedirect(),
-                self::buildCallback(['state' => self::STATE, 'error' => 'invalid_scope']),
-            );
-        } catch (AuthorizationDeniedException $e) {
-            self::assertSame('invalid_scope', $e->error);
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessageIs('The authorization server denied the request with "invalid_scope".');
 
-            return;
-        }
-
-        self::fail('Expected the authorization response to be denied.');
+        AuthorizationResponse::readCode(
+            self::buildRedirect(),
+            self::buildCallback(['state' => self::STATE, 'error' => 'invalid_scope']),
+        );
     }
 
     public function testReadCodeRejectsAResponseWithNoCode(): void

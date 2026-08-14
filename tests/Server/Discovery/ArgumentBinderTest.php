@@ -16,10 +16,10 @@ namespace Nexus\Mcp\Tests\Server\Discovery;
 use Amp\NullCancellation;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Exception\InvalidParamsException;
+use Nexus\Mcp\Core\Exception\LogicException;
 use Nexus\Mcp\Core\SafeDisplay;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Server\Discovery\ArgumentBinder;
-use Nexus\Mcp\Server\Exception\UnsupportedNestedParameterException;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
@@ -309,7 +309,7 @@ final class ArgumentBinderTest extends AbstractMcpTestCase
 
     public function testRejectsADtoWithANestedObjectParameter(): void
     {
-        $this->expectException(UnsupportedNestedParameterException::class);
+        $this->expectException(LogicException::class);
         $this->expectExceptionMessageIs(\sprintf(
             '%s declares constructor parameter "$origin" of type "%s", which the binder cannot construct from a value map. Nested object expansion is not supported.',
             NestedDto::class,

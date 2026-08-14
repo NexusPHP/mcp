@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Server\Discovery;
 
+use Nexus\Mcp\Core\Exception\LogicException;
 use Nexus\Mcp\Server\Discovery\InputSchemaGenerator;
-use Nexus\Mcp\Server\Exception\SchemaGenerationException;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\AbstractShape;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\BackedStringEnum;
@@ -234,7 +234,7 @@ final class InputSchemaGeneratorTest extends AbstractMcpTestCase
 
     public function testUnsupportedParameterTypeThrows(): void
     {
-        $this->expectException(SchemaGenerationException::class);
+        $this->expectException(LogicException::class);
         $this->expectExceptionMessageMatches('/parameter "\$when".+SampleToolHandlers::unsupported/');
 
         self::generate('unsupported');
@@ -367,7 +367,7 @@ final class InputSchemaGeneratorTest extends AbstractMcpTestCase
 
     public function testNestedClassParameterThrows(): void
     {
-        $this->expectException(SchemaGenerationException::class);
+        $this->expectException(LogicException::class);
         $this->expectExceptionMessageMatches('/parameter "\$at".+Place::__construct/');
 
         self::generate('nestedObject');
@@ -375,14 +375,14 @@ final class InputSchemaGeneratorTest extends AbstractMcpTestCase
 
     public function testAbstractClassParameterThrows(): void
     {
-        $this->expectException(SchemaGenerationException::class);
+        $this->expectException(LogicException::class);
 
         self::generate('abstractObject');
     }
 
     public function testInterfaceParameterThrows(): void
     {
-        $this->expectException(SchemaGenerationException::class);
+        $this->expectException(LogicException::class);
 
         self::generate('interfaceObject');
     }

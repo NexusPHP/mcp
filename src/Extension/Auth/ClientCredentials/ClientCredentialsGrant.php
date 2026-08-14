@@ -20,9 +20,9 @@ use Nexus\Mcp\Client\Auth\GrantContext;
 use Nexus\Mcp\Client\Auth\GrantStrategyInterface;
 use Nexus\Mcp\Core\Auth\AuthorizationServerMetadata;
 use Nexus\Mcp\Core\Auth\TokenEndpointAuthMethod;
+use Nexus\Mcp\Core\Exception\RuntimeException;
 use Nexus\Mcp\Core\SafeDisplay;
 use Nexus\Mcp\Extension\Auth\ClientAssertionSigner;
-use Nexus\Mcp\Extension\Auth\Exception\UnsupportedClientAuthenticationException;
 use Nexus\Mcp\Extension\Auth\GrantTypeAdvertisement;
 
 /**
@@ -61,7 +61,7 @@ final readonly class ClientCredentialsGrant implements GrantStrategyInterface
     public function grant(GrantContext $context, Cancellation $cancellation): AccessToken
     {
         if (null !== $context->options->preRegistered) {
-            throw new UnsupportedClientAuthenticationException(
+            throw new RuntimeException(
                 'The client credentials grant authenticates with the credential it was given, so the authorization options must not carry a pre-registered one as well.',
             );
         }
@@ -109,7 +109,7 @@ final readonly class ClientCredentialsGrant implements GrantStrategyInterface
         $methods = $server->tokenEndpointAuthMethodsSupported;
 
         if (null === $methods || ! \in_array($this->authMethod->value, $methods, true)) {
-            throw new UnsupportedClientAuthenticationException(\sprintf(
+            throw new RuntimeException(\sprintf(
                 'The authorization server "%s" does not advertise the "%s" token endpoint authentication method.',
                 SafeDisplay::sanitiseCause($server->issuer),
                 $this->authMethod->value,
@@ -119,7 +119,7 @@ final readonly class ClientCredentialsGrant implements GrantStrategyInterface
         $algorithms = $server->tokenEndpointAuthSigningAlgValuesSupported;
 
         if (null !== $this->signingAlgorithm && null !== $algorithms && ! \in_array($this->signingAlgorithm, $algorithms, true)) {
-            throw new UnsupportedClientAuthenticationException(\sprintf(
+            throw new RuntimeException(\sprintf(
                 'The authorization server "%s" does not advertise the "%s" client assertion signing algorithm.',
                 SafeDisplay::sanitiseCause($server->issuer),
                 $this->signingAlgorithm,

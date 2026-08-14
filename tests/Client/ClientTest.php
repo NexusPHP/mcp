@@ -17,13 +17,10 @@ use Amp\TimeoutCancellation;
 use Nexus\Mcp\Client\Client;
 use Nexus\Mcp\Client\ClientBuilder;
 use Nexus\Mcp\Client\Dispatch\ClientMessageDispatcher;
-use Nexus\Mcp\Client\Exception\ClientAlreadyConnectedException;
-use Nexus\Mcp\Client\Exception\ClientNotConnectedException;
 use Nexus\Mcp\Client\Exception\ServerCapabilityNotSupportedException;
-use Nexus\Mcp\Client\Exception\SubscriptionClosedException;
 use Nexus\Mcp\Client\Transport\SupervisedTransport;
 use Nexus\Mcp\Core\Dispatch\PendingOutboundRequests;
-use Nexus\Mcp\Core\Exception\DuplicateOutboundRequestIdException;
+use Nexus\Mcp\Core\Exception\LogicException;
 use Nexus\Mcp\Core\Exception\OutboundRequestFailedException;
 use Nexus\Mcp\Core\Exception\RemoteCallFailedException;
 use Nexus\Mcp\Core\Exception\RequestTimeoutException;
@@ -124,12 +121,12 @@ final class ClientTest extends AbstractMcpTestCase
         self::assertSame([], $matches[0]['context']);
     }
 
-    public function testConnectTwiceThrowsClientAlreadyConnectedException(): void
+    public function testConnectTwiceThrowsLogicException(): void
     {
         $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $client->connect(new RecordingTransport());
 
-        $this->expectException(ClientAlreadyConnectedException::class);
+        $this->expectException(LogicException::class);
         $this->expectExceptionMessageMatches('/already connected/');
 
         $client->connect(new RecordingTransport());
@@ -204,13 +201,13 @@ final class ClientTest extends AbstractMcpTestCase
         $this->expectNotToPerformAssertions();
     }
 
-    public function testSendRequestBeforeConnectThrowsClientNotConnectedException(): void
+    public function testSendRequestBeforeConnectThrowsLogicException(): void
     {
         $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
         $request = new ListToolsRequest(id: new RequestId(id: 1), params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create()));
 
-        $this->expectException(ClientNotConnectedException::class);
-        $this->expectExceptionMessageMatches('/not connected/');
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessageIs('Client is not connected. Call connect() first.');
 
         $client->sendRequest($request, ListToolsResultResponse::class);
     }
@@ -613,12 +610,12 @@ final class ClientTest extends AbstractMcpTestCase
         }
     }
 
-    public function testDiscoverBeforeConnectThrowsClientNotConnectedException(): void
+    public function testDiscoverBeforeConnectThrowsLogicException(): void
     {
         $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
 
-        $this->expectException(ClientNotConnectedException::class);
-        $this->expectExceptionMessageMatches('/not connected/');
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessageIs('Client is not connected. Call connect() first.');
 
         $client->discover();
     }
@@ -2230,7 +2227,7 @@ final class ClientTest extends AbstractMcpTestCase
     {
         $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
 
-        $this->expectException(ClientNotConnectedException::class);
+        $this->expectException(LogicException::class);
 
         $client->listen(new SubscriptionFilter(toolsListChanged: true), static function (): void {});
     }
@@ -2464,7 +2461,7 @@ final class ClientTest extends AbstractMcpTestCase
         $stream = $client->listen(new SubscriptionFilter(toolsListChanged: true), static function (): void {});
         $stream->close();
 
-        $this->expectException(SubscriptionClosedException::class);
+        $this->expectException(LogicException::class);
         $stream->await();
     }
 
@@ -2609,7 +2606,7 @@ final class ClientTest extends AbstractMcpTestCase
         try {
             $stream->await();
             $settledEarly = true;
-        } catch (RemoteCallFailedException|SubscriptionClosedException) {
+        } catch (LogicException|RemoteCallFailedException) {
             $settledEarly = true;
         } catch (\Throwable) {
             // A dry event loop, which is what "still waiting" looks like in an in-memory fixture.
@@ -2767,7 +2764,7 @@ final class ClientTest extends AbstractMcpTestCase
         try {
             $client->listen(new SubscriptionFilter(toolsListChanged: true), static function (): void {});
             self::fail('Expected the colliding id to be refused.');
-        } catch (DuplicateOutboundRequestIdException) {
+        } catch (LogicException) {
         }
 
         $transport->emitMessage([

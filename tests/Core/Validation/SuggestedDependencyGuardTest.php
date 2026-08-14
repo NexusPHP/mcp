@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Validation;
 
-use Nexus\Mcp\Core\Exception\MissingSuggestedDependencyException;
+use Nexus\Mcp\Core\Exception\LogicException;
 use Nexus\Mcp\Core\Validation\SuggestedDependencyGuard;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Validation\StubPackageBackedConsumer;
@@ -37,7 +37,7 @@ final class SuggestedDependencyGuardTest extends AbstractMcpTestCase
 
     public function testAMissingPackageNamesTheConsumerAndTheInstallCommand(): void
     {
-        $this->expectException(MissingSuggestedDependencyException::class);
+        $this->expectException(LogicException::class);
         $this->expectExceptionMessageIs(
             'Nexus\Mcp\Tests\Fixtures\Core\Validation\StubPackageBackedConsumer requires the suggested "acme/jwt" package. Install it with "composer require acme/jwt:^1.0".',
         );

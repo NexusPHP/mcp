@@ -56,9 +56,9 @@ parameter and the selected scopes, and with JWT authentication `client_id` stays
 the assertion itself names the client.
 
 SEP-1046 makes `token_endpoint_auth_methods_supported` a mandatory discovery signal, so the grant
-refuses with `UnsupportedClientAuthenticationException` when the authorization server's metadata
+refuses with `RuntimeException` when the authorization server's metadata
 omits the configured method (or, for JWT, advertises a signing-algorithm list without the
-configured algorithm), and with `UnsupportedGrantException` when a published `grant_types_supported`
+configured algorithm), and with the same `RuntimeException` when a published `grant_types_supported`
 list omits `client_credentials`.
 
 ## Enterprise-managed authorization (SEP-990)
@@ -112,7 +112,7 @@ An OIDC ID token rides the exchange as-is. A SAML sign-on is first exchanged for
 out of band, offered as `IdentityAssertionType::RefreshToken`. The exchange asks for
 `urn:ietf:params:oauth:token-type:id-jag` with the resource authorization server's issuer as the
 `audience` and the MCP server's resource identifier as `resource`, and the answer must say it
-issued an ID-JAG, or the grant fails with `IdentityAssertionExchangeFailedException`. The ID-JAG
+issued an ID-JAG, or the grant fails with `RuntimeException`. The ID-JAG
 itself stays opaque to the client.
 
 At the resource's authorization server the client authenticates with credentials registered out of

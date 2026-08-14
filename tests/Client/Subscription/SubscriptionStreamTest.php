@@ -14,8 +14,8 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Client\Subscription;
 
 use Amp\DeferredFuture;
-use Nexus\Mcp\Client\Exception\SubscriptionClosedException;
 use Nexus\Mcp\Client\Subscription\SubscriptionStream;
+use Nexus\Mcp\Core\Exception\LogicException;
 use Nexus\Mcp\Core\Exception\RemoteCallFailedException;
 use Nexus\Mcp\Core\Schema\Error\InternalError;
 use Nexus\Mcp\Core\Schema\MetaObject\SubscriptionsListenResultMetaObject;
@@ -90,7 +90,7 @@ final class SubscriptionStreamTest extends AbstractMcpTestCase
 
         $stream->close();
 
-        $this->expectException(SubscriptionClosedException::class);
+        $this->expectException(LogicException::class);
         $stream->await();
     }
 }

@@ -21,9 +21,8 @@ use Nexus\Mcp\Client\Auth\GrantContext;
 use Nexus\Mcp\Client\Auth\GrantStrategyInterface;
 use Nexus\Mcp\Client\Auth\SecureEndpoint;
 use Nexus\Mcp\Core\Auth\AuthorizationServerMetadata;
+use Nexus\Mcp\Core\Exception\RuntimeException;
 use Nexus\Mcp\Core\SafeDisplay;
-use Nexus\Mcp\Extension\Auth\Exception\UnsupportedClientAuthenticationException;
-use Nexus\Mcp\Extension\Auth\Exception\UnsupportedGrantException;
 use Nexus\Mcp\Extension\Auth\GrantTypeAdvertisement;
 use Psr\Log\LoggerInterface;
 
@@ -110,7 +109,7 @@ final readonly class IdentityAssertionGrant implements GrantStrategyInterface
         }
 
         if (! \in_array(EnterpriseAuthorization::GRANT_PROFILE, $profiles, true)) {
-            throw new UnsupportedGrantException(\sprintf(
+            throw new RuntimeException(\sprintf(
                 'The authorization server "%s" does not advertise the "%s" authorization grant profile.',
                 SafeDisplay::sanitiseCause($server->issuer),
                 EnterpriseAuthorization::GRANT_PROFILE,
@@ -129,13 +128,13 @@ final readonly class IdentityAssertionGrant implements GrantStrategyInterface
         $options = $context->options;
 
         if (null === $options->preRegistered && null === $options->clientIdMetadataDocumentUrl) {
-            throw new UnsupportedClientAuthenticationException(
+            throw new RuntimeException(
                 'Enterprise-managed authorization needs pre-registered credentials or a Client ID Metadata Document URL, and the authorization options carry neither.',
             );
         }
 
         if (null === $options->preRegistered && true !== $server->clientIdMetadataDocumentSupported) {
-            throw new UnsupportedClientAuthenticationException(\sprintf(
+            throw new RuntimeException(\sprintf(
                 'The authorization server "%s" does not support Client ID Metadata Documents.',
                 SafeDisplay::sanitiseCause($server->issuer),
             ));

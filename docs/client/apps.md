@@ -55,7 +55,7 @@ resolve. The SDK itself never emits the deprecated key.
 `readAppResource()` wraps `Client::readResource()` for `ui://` URIs: it rejects any other scheme
 up front and verifies every returned content item carries one of the accepted mime types (the
 `mimeTypes` the facade was constructed with, defaulting to `text/html;profile=mcp-app`),
-throwing `InvalidUiResourceContentsException` when the server drifts. An `InputRequiredResult`
+throwing `RuntimeException` when the server drifts. An `InputRequiredResult`
 passes through untouched, like any other [input-required flow](input-required.md):
 
 ```php

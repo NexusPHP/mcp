@@ -15,7 +15,7 @@ namespace Nexus\Mcp\Core\Dispatch;
 
 use Amp\DeferredFuture;
 use Amp\Future;
-use Nexus\Mcp\Core\Exception\DuplicateOutboundRequestIdException;
+use Nexus\Mcp\Core\Exception\LogicException;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\RequestId;
@@ -50,7 +50,7 @@ final class PendingOutboundRequests implements \Countable
      *
      * @return Future<TResponse>
      *
-     * @throws DuplicateOutboundRequestIdException
+     * @throws LogicException
      */
     public function register(
         RequestId $id,
@@ -61,7 +61,10 @@ final class PendingOutboundRequests implements \Countable
         $key = self::buildKey($id);
 
         if (\array_key_exists($key, $this->map)) {
-            throw new DuplicateOutboundRequestIdException($id);
+            throw new LogicException(\sprintf(
+                'Outbound request id %s is already pending. The id-generation strategy must produce unique ids per in-flight request.',
+                var_export($id->id, true),
+            ));
         }
 
         /** @var DeferredFuture<TResponse> $deferred */

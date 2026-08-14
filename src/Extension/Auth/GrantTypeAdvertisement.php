@@ -14,8 +14,8 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Extension\Auth;
 
 use Nexus\Mcp\Core\Auth\AuthorizationServerMetadata;
+use Nexus\Mcp\Core\Exception\RuntimeException;
 use Nexus\Mcp\Core\SafeDisplay;
-use Nexus\Mcp\Extension\Auth\Exception\UnsupportedGrantException;
 
 /**
  * Holds an authorization server to the grant types it published.
@@ -32,14 +32,14 @@ final readonly class GrantTypeAdvertisement
      *
      * @param non-empty-string $grantType
      *
-     * @throws UnsupportedGrantException
+     * @throws RuntimeException
      */
     public static function verify(AuthorizationServerMetadata $server, string $grantType): void
     {
         $advertised = $server->grantTypesSupported;
 
         if (null !== $advertised && ! \in_array($grantType, $advertised, true)) {
-            throw new UnsupportedGrantException(\sprintf(
+            throw new RuntimeException(\sprintf(
                 'The authorization server "%s" does not advertise the "%s" grant type.',
                 SafeDisplay::sanitiseCause($server->issuer),
                 $grantType,

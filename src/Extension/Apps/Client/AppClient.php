@@ -16,6 +16,8 @@ namespace Nexus\Mcp\Extension\Apps\Client;
 use Nexus\Assert\Assert;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Client\Client;
+use Nexus\Mcp\Core\Exception\RuntimeException;
+use Nexus\Mcp\Core\SafeDisplay;
 use Nexus\Mcp\Core\Schema\Resource\Resource;
 use Nexus\Mcp\Core\Schema\Resource\ResourceContents;
 use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
@@ -23,7 +25,6 @@ use Nexus\Mcp\Core\Schema\Result\ListToolsResult;
 use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
 use Nexus\Mcp\Core\Schema\Tool\Tool;
 use Nexus\Mcp\Extension\Apps\Apps;
-use Nexus\Mcp\Extension\Apps\Client\Exception\InvalidUiResourceContentsException;
 use Nexus\Mcp\Extension\Apps\Schema\UiResourceMeta;
 use Nexus\Mcp\Extension\Apps\Schema\UiToolMeta;
 
@@ -125,7 +126,12 @@ final readonly class AppClient implements AppClientInterface
 
         foreach ($result->contents as $contents) {
             if (! \in_array($contents->mimeType, $this->mimeTypes, true)) {
-                throw new InvalidUiResourceContentsException($uri, $contents->mimeType, $this->mimeTypes);
+                throw new RuntimeException(\sprintf(
+                    'UI resource "%s" returned contents of mime type "%s", expected one of "%s".',
+                    SafeDisplay::sanitiseCause($uri),
+                    SafeDisplay::sanitise($contents->mimeType ?? ''),
+                    implode('", "', $this->mimeTypes),
+                ));
             }
         }
 

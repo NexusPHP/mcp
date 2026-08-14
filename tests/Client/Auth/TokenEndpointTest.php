@@ -22,12 +22,12 @@ use Nexus\Mcp\Client\Auth\TokenEndpoint;
 use Nexus\Mcp\Client\Exception\AuthorizationGrantRejectedException;
 use Nexus\Mcp\Client\Exception\ClientRegistrationRejectedException;
 use Nexus\Mcp\Client\Exception\MalformedAuthorizationResponseException;
-use Nexus\Mcp\Client\Exception\TokenRequestFailedException;
 use Nexus\Mcp\Client\Exception\UntrustedAuthorizationMetadataException;
 use Nexus\Mcp\Core\Auth\AuthorizationServerMetadata;
 use Nexus\Mcp\Core\Auth\ResourceIdentifier;
 use Nexus\Mcp\Core\Auth\ScopeSet;
 use Nexus\Mcp\Core\Auth\TokenEndpointAuthMethod;
+use Nexus\Mcp\Core\Exception\RuntimeException;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Client\Http\RecordingHttpClient;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -291,7 +291,7 @@ final class TokenEndpointTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())->willAnswerJson('<html>Bad Gateway</html>', 502);
 
-        $this->expectException(TokenRequestFailedException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs('The token request failed with "invalid_request": The token endpoint answered 502 with a body that is not a JSON object.');
 
         self::exchange($http);
@@ -324,7 +324,7 @@ final class TokenEndpointTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())->willAnswerJson([], 400);
 
-        $this->expectException(TokenRequestFailedException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs('The token request failed with "invalid_request".');
 
         self::exchange($http);
@@ -334,7 +334,7 @@ final class TokenEndpointTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())->willAnswerJson(['error' => 'server_error'], 500);
 
-        $this->expectException(TokenRequestFailedException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs('The token request failed with "server_error".');
 
         self::exchange($http);
@@ -364,9 +364,9 @@ final class TokenEndpointTest extends AbstractMcpTestCase
 
         yield 'a client the server does not know' => ['invalid_client', ClientRegistrationRejectedException::class];
 
-        yield 'a malformed request' => ['invalid_request', TokenRequestFailedException::class];
+        yield 'a malformed request' => ['invalid_request', RuntimeException::class];
 
-        yield 'a server fault' => ['server_error', TokenRequestFailedException::class];
+        yield 'a server fault' => ['server_error', RuntimeException::class];
     }
 
     public function testAnUnknownClientIsToldApartByItsMessage(): void
@@ -386,7 +386,7 @@ final class TokenEndpointTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())->willAnswerJson(self::tokenResponse(['token_type' => 'DPoP']));
 
-        $this->expectException(TokenRequestFailedException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs('The token request failed with "unsupported_token_type": MCP clients can only present bearer tokens, "DPoP" given.');
 
         self::exchange($http);
@@ -515,7 +515,7 @@ final class TokenEndpointTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())->willAnswerJson(self::tokenResponse(['token_type' => str_repeat('D', 200)."\x1b"]));
 
-        $this->expectException(TokenRequestFailedException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs(\sprintf(
             'The token request failed with "unsupported_token_type": MCP clients can only present bearer tokens, "%s..." given.',
             str_repeat('D', 77),
