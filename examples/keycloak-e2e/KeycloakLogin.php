@@ -21,8 +21,10 @@ use Nexus\Mcp\Client\Auth\UserAuthorizationInterface;
 
 final class KeycloakLogin implements UserAuthorizationInterface
 {
-    public function __construct(private readonly string $username, private readonly string $password)
-    {
+    public function __construct(
+        private readonly string $username,
+        private readonly string $password,
+    ) {
     }
 
     #[Override]

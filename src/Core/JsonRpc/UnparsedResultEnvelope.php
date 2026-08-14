@@ -21,7 +21,9 @@ use Nexus\Mcp\Core\Schema\RequestId;
  */
 final readonly class UnparsedResultEnvelope
 {
-    public function __construct(public RequestId $id, public mixed $result)
-    {
+    public function __construct(
+        public RequestId $id,
+        public mixed $result,
+    ) {
     }
 }

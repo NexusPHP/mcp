@@ -31,8 +31,10 @@ abstract readonly class ResultMetaObject extends MetaObject
     /**
      * @param array<array-key, mixed> $extras
      */
-    public function __construct(public ?Implementation $serverInfo = null, array $extras = [])
-    {
+    public function __construct(
+        public ?Implementation $serverInfo = null,
+        array $extras = [],
+    ) {
         parent::__construct(extras: $extras);
     }
 

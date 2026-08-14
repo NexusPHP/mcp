@@ -24,8 +24,10 @@ final readonly class IdentityAssertion
     /**
      * @param non-empty-string $token
      */
-    public function __construct(public string $token, public IdentityAssertionType $type)
-    {
+    public function __construct(
+        public string $token,
+        public IdentityAssertionType $type,
+    ) {
         Assert::that($token)->isNonEmptyString('"token" must be a non-empty string.');
     }
 }

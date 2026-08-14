@@ -30,8 +30,10 @@ use Psr\Log\NullLogger;
  */
 final readonly class CancelledNotificationHandler implements NotificationHandlerInterface
 {
-    public function __construct(private PendingInboundRequests $inboundRequests, private LoggerInterface $logger = new NullLogger())
-    {
+    public function __construct(
+        private PendingInboundRequests $inboundRequests,
+        private LoggerInterface $logger = new NullLogger(),
+    ) {
     }
 
     #[\Override]

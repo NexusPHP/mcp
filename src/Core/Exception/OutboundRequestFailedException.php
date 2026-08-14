@@ -20,8 +20,10 @@ use Nexus\Mcp\Core\Schema\RequestId;
  */
 final class OutboundRequestFailedException extends \RuntimeException implements McpExceptionInterface
 {
-    public function __construct(public readonly RequestId $requestId, \Throwable $previous)
-    {
+    public function __construct(
+        public readonly RequestId $requestId,
+        \Throwable $previous,
+    ) {
         parent::__construct(
             \sprintf('The exchange carrying request %s failed before a response arrived.', var_export($requestId->id, true)),
             previous: $previous,

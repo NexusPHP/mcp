@@ -32,8 +32,10 @@ use Nexus\Mcp\Core\Schema\SubscriptionFilter;
  */
 final readonly class SubscriptionsAcknowledgedNotificationParams extends NotificationParams
 {
-    public function __construct(public SubscriptionFilter $notifications, NotificationMetaObject $meta = new NotificationMetaObject())
-    {
+    public function __construct(
+        public SubscriptionFilter $notifications,
+        NotificationMetaObject $meta = new NotificationMetaObject(),
+    ) {
         parent::__construct(meta: $meta);
     }
 

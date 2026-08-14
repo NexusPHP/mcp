@@ -30,8 +30,10 @@ use Nexus\Mcp\Server\ServerContext;
  */
 final readonly class CancelTaskRequestHandler implements RequestHandlerInterface
 {
-    public function __construct(private TaskStoreInterface $store, private TaskCancellationRegistry $cancellations)
-    {
+    public function __construct(
+        private TaskStoreInterface $store,
+        private TaskCancellationRegistry $cancellations,
+    ) {
     }
 
     #[\Override]

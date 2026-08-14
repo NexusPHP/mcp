@@ -38,8 +38,10 @@ use Nexus\Mcp\Core\Validation\EnumValueValidator;
  */
 final readonly class PromptMessage implements Arrayable
 {
-    public function __construct(public Role $role, public AudioContent|EmbeddedResource|ImageContent|ResourceLink|TextContent $content)
-    {
+    public function __construct(
+        public Role $role,
+        public AudioContent|EmbeddedResource|ImageContent|ResourceLink|TextContent $content,
+    ) {
     }
 
     #[\Override]

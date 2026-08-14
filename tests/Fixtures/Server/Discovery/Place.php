@@ -15,7 +15,9 @@ namespace Nexus\Mcp\Tests\Fixtures\Server\Discovery;
 
 final readonly class Place
 {
-    public function __construct(public string $name, public Coordinate $at)
-    {
+    public function __construct(
+        public string $name,
+        public Coordinate $at,
+    ) {
     }
 }

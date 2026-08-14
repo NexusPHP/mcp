@@ -26,8 +26,10 @@ abstract readonly class BaseMetadata
      * @param non-empty-string      $name
      * @param null|non-empty-string $title
      */
-    public function __construct(public string $name, public ?string $title = null)
-    {
+    public function __construct(
+        public string $name,
+        public ?string $title = null,
+    ) {
         $label = basename(strtr(static::class, '\\', '/'));
 
         Assert::that($name)->isNonEmptyString(\sprintf('%s name must be a non-empty string.', $label));

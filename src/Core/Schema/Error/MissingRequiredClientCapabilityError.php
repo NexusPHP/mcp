@@ -38,8 +38,10 @@ final readonly class MissingRequiredClientCapabilityError extends Error
     /**
      * @param non-empty-string $message
      */
-    public function __construct(public ClientCapabilities $requiredCapabilities, string $message = self::DEFAULT_MESSAGE)
-    {
+    public function __construct(
+        public ClientCapabilities $requiredCapabilities,
+        string $message = self::DEFAULT_MESSAGE,
+    ) {
         parent::__construct(
             code: ProtocolErrorCode::MissingRequiredClientCapability,
             message: $message,

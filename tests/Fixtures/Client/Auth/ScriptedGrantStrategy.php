@@ -35,8 +35,10 @@ final class ScriptedGrantStrategy implements GrantStrategyInterface
      */
     private array $tokens;
 
-    public function __construct(private readonly bool $renewsByFreshGrant, AccessToken ...$tokens)
-    {
+    public function __construct(
+        private readonly bool $renewsByFreshGrant,
+        AccessToken ...$tokens,
+    ) {
         $this->tokens = array_values($tokens);
     }
 

@@ -34,8 +34,10 @@ use Nexus\Mcp\Server\ServerContext;
  */
 final readonly class UpdateTaskRequestHandler implements RequestHandlerInterface
 {
-    public function __construct(private TaskStoreInterface $store, private ToolTaskRunner $runner)
-    {
+    public function __construct(
+        private TaskStoreInterface $store,
+        private ToolTaskRunner $runner,
+    ) {
     }
 
     #[\Override]

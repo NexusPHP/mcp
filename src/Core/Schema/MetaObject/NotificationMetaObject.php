@@ -31,8 +31,10 @@ final readonly class NotificationMetaObject extends MetaObject
     /**
      * @param array<array-key, mixed> $extras
      */
-    public function __construct(public ?RequestId $subscriptionId = null, array $extras = [])
-    {
+    public function __construct(
+        public ?RequestId $subscriptionId = null,
+        array $extras = [],
+    ) {
         parent::__construct(extras: $extras);
     }
 

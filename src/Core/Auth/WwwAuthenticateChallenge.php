@@ -59,8 +59,10 @@ final readonly class WwwAuthenticateChallenge
      * @param non-empty-string                $scheme
      * @param array<non-empty-string, string> $parameters
      */
-    public function __construct(public string $scheme, array $parameters = [])
-    {
+    public function __construct(
+        public string $scheme,
+        array $parameters = [],
+    ) {
         $lowercased = [];
 
         foreach ($parameters as $name => $value) {

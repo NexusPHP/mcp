@@ -31,8 +31,10 @@ use Nexus\Mcp\Core\Schema\RequestParamsInterface;
  */
 abstract readonly class JsonRpcRequest extends Request implements Arrayable, JsonRpcMessage
 {
-    public function __construct(public RequestId $id, ?RequestParamsInterface $params = null)
-    {
+    public function __construct(
+        public RequestId $id,
+        ?RequestParamsInterface $params = null,
+    ) {
         parent::__construct(params: $params);
     }
 

@@ -36,8 +36,10 @@ final readonly class AppClient implements AppClientInterface
     /**
      * @param list<non-empty-string> $mimeTypes The accepted UI mime types, matching the enabled extension's declaration
      */
-    public function __construct(private Client $client, private array $mimeTypes = [Apps::MIME_TYPE])
-    {
+    public function __construct(
+        private Client $client,
+        private array $mimeTypes = [Apps::MIME_TYPE],
+    ) {
         Assert::that($mimeTypes)->isList('"mimeTypes" must be a list, {type} given.');
         Assert::that(\count($mimeTypes))->isPositiveInt('"mimeTypes" must not be empty.');
         Assert::that($mimeTypes)

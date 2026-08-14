@@ -29,8 +29,10 @@ final readonly class EnumOption implements Arrayable
      * @param non-empty-string $const
      * @param non-empty-string $title
      */
-    public function __construct(public string $const, public string $title)
-    {
+    public function __construct(
+        public string $const,
+        public string $title,
+    ) {
         Assert::that($const)->isNonEmptyString('"oneOf.const" must be a non-empty string.');
         Assert::that($title)->isNonEmptyString('"oneOf.title" must be a non-empty string.');
     }

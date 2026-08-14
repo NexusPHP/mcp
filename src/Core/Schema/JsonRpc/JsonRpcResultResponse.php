@@ -30,8 +30,10 @@ use Nexus\Mcp\Core\Schema\Result;
  */
 abstract readonly class JsonRpcResultResponse implements Arrayable, JsonRpcResponse
 {
-    public function __construct(public RequestId $id, public Result $result)
-    {
+    public function __construct(
+        public RequestId $id,
+        public Result $result,
+    ) {
     }
 
     #[\Override]

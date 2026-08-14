@@ -21,7 +21,9 @@ use Nexus\Mcp\Extension\Apps\Schema\UiToolMeta;
  */
 final readonly class AppTool
 {
-    public function __construct(public Tool $tool, public UiToolMeta $uiMeta)
-    {
+    public function __construct(
+        public Tool $tool,
+        public UiToolMeta $uiMeta,
+    ) {
     }
 }

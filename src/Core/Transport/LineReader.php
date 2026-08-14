@@ -25,8 +25,10 @@ final readonly class LineReader
 {
     public const int DEFAULT_MAX_LINE_BYTES = 4 * 1_024 * 1_024;
 
-    public function __construct(private ReadableStream $source, private int $maxLineBytes = self::DEFAULT_MAX_LINE_BYTES)
-    {
+    public function __construct(
+        private ReadableStream $source,
+        private int $maxLineBytes = self::DEFAULT_MAX_LINE_BYTES,
+    ) {
         Assert::that($maxLineBytes)->isPositiveInt('maxLineBytes must be a positive integer, {value} given.');
     }
 

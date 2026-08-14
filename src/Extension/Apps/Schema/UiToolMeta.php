@@ -35,8 +35,10 @@ final readonly class UiToolMeta implements Arrayable
      * @param null|non-empty-string     $resourceUri
      * @param null|list<ToolVisibility> $visibility  Omission means the spec default `["model", "app"]`
      */
-    public function __construct(public ?string $resourceUri = null, public ?array $visibility = null)
-    {
+    public function __construct(
+        public ?string $resourceUri = null,
+        public ?array $visibility = null,
+    ) {
         if (null !== $resourceUri) {
             Assert::that($resourceUri)->startsWith(Apps::URI_PREFIX, \sprintf('"_meta.ui.resourceUri" must start with "%s".', Apps::URI_PREFIX));
         }

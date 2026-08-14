@@ -27,8 +27,10 @@ use Psr\Log\LoggerInterface;
  */
 final readonly class DetachedTaskSender implements SenderInterface
 {
-    public function __construct(private LoggerInterface $logger, private RequestId $requestId)
-    {
+    public function __construct(
+        private LoggerInterface $logger,
+        private RequestId $requestId,
+    ) {
     }
 
     #[\Override]

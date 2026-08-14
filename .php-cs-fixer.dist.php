@@ -37,6 +37,10 @@ $finder = Finder::create()
 ;
 
 $overrides = [
+    'multiline_promoted_properties' => [
+        'keep_blank_lines' => false,
+        'minimum_number_of_parameters' => 2,
+    ],
     'numeric_literal_separator' => [
         'override_existing' => false,
         'strategy' => 'use_separator',

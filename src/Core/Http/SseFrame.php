@@ -24,7 +24,9 @@ final readonly class SseFrame
      * @param non-empty-string $event The `event` field, or `message` when the frame declared none
      * @param string           $data  The frame's `data` lines, joined with newlines
      */
-    public function __construct(public string $event, public string $data)
-    {
+    public function __construct(
+        public string $event,
+        public string $data,
+    ) {
     }
 }

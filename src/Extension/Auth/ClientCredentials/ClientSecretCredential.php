@@ -26,8 +26,10 @@ final readonly class ClientSecretCredential
      * @param non-empty-string $clientId
      * @param non-empty-string $clientSecret
      */
-    public function __construct(public string $clientId, public string $clientSecret)
-    {
+    public function __construct(
+        public string $clientId,
+        public string $clientSecret,
+    ) {
         Assert::that($clientId)->isNonEmptyString('"clientId" must be a non-empty string.');
         Assert::that($clientSecret)->isNonEmptyString('"clientSecret" must be a non-empty string.');
     }

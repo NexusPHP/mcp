@@ -33,8 +33,10 @@ final readonly class ElicitResult implements InputResponse
     /**
      * @param null|array<int|non-empty-string, bool|float|int|list<string>|string> $content
      */
-    public function __construct(public ElicitAction $action, public ?array $content = null)
-    {
+    public function __construct(
+        public ElicitAction $action,
+        public ?array $content = null,
+    ) {
         if (null !== $content) {
             Assert::that($content)->keys()->isIntOrNonEmptyString('each elicit result "content" key must be an int or non-empty string.');
 

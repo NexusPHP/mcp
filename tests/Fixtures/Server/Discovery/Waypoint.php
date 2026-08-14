@@ -15,7 +15,9 @@ namespace Nexus\Mcp\Tests\Fixtures\Server\Discovery;
 
 final readonly class Waypoint
 {
-    public function __construct(public ?BackedStringEnum $tag = null, public ?string $note = null)
-    {
+    public function __construct(
+        public ?BackedStringEnum $tag = null,
+        public ?string $note = null,
+    ) {
     }
 }

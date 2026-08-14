@@ -137,8 +137,10 @@ $metadata = new ProtectedResourceMetadataHandler(
  * pass through the bearer middleware.
  */
 $router = new readonly class ($endpoint, $metadata) implements RequestHandlerInterface {
-    public function __construct(private RequestHandlerInterface $endpoint, private RequestHandlerInterface $metadata)
-    {
+    public function __construct(
+        private RequestHandlerInterface $endpoint,
+        private RequestHandlerInterface $metadata,
+    ) {
     }
 
     #[Override]

@@ -18,8 +18,10 @@ namespace Nexus\Mcp\Core\Exception;
  */
 final class SupervisionExhaustedException extends \RuntimeException implements McpExceptionInterface
 {
-    public function __construct(public readonly int $restarts, ?\Throwable $previous = null)
-    {
+    public function __construct(
+        public readonly int $restarts,
+        ?\Throwable $previous = null,
+    ) {
         parent::__construct(
             \sprintf('Gave up supervising the peer after %d restart attempt(s) in one window.', $restarts),
             previous: $previous,

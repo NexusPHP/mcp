@@ -27,8 +27,10 @@ final class RecordingMiddleware implements MiddlewareInterface
 {
     private bool $inFlight = false;
 
-    public function __construct(private readonly string $label, private readonly CallLog $log)
-    {
+    public function __construct(
+        private readonly string $label,
+        private readonly CallLog $log,
+    ) {
     }
 
     #[\Override]

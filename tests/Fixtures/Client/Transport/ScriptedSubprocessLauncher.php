@@ -43,8 +43,10 @@ final class ScriptedSubprocessLauncher implements SubprocessLauncherInterface
 
     private ?ScriptedSubprocess $latestSubprocess = null;
 
-    public function __construct(private readonly ?ProcessException $failure = null, private readonly float $launchDelay = 0.0)
-    {
+    public function __construct(
+        private readonly ?ProcessException $failure = null,
+        private readonly float $launchDelay = 0.0,
+    ) {
     }
 
     #[\Override]

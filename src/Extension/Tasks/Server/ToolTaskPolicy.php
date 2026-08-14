@@ -22,7 +22,9 @@ final readonly class ToolTaskPolicy
      * @param bool $resolvesInputFirst Delegate synchronously until the call carries a continuation
      *                                 token, so input-required exchanges resolve before a task is created
      */
-    public function __construct(public TaskSupport $support, public bool $resolvesInputFirst = false)
-    {
+    public function __construct(
+        public TaskSupport $support,
+        public bool $resolvesInputFirst = false,
+    ) {
     }
 }

@@ -31,8 +31,10 @@ abstract readonly class ResourceRequestParams extends RequestParams
     /**
      * @param non-empty-string $uri
      */
-    public function __construct(public string $uri, RequestMetaObject $meta)
-    {
+    public function __construct(
+        public string $uri,
+        RequestMetaObject $meta,
+    ) {
         Rfc3986UriValidator::validate($uri, '"params.uri"');
 
         parent::__construct(meta: $meta);

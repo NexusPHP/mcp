@@ -34,8 +34,10 @@ use Nexus\Mcp\Core\Schema\RequestId;
  */
 final readonly class JsonRpcErrorResponse implements Arrayable, JsonRpcResponse
 {
-    public function __construct(public ?RequestId $id, public Error $error)
-    {
+    public function __construct(
+        public ?RequestId $id,
+        public Error $error,
+    ) {
     }
 
     #[\Override]

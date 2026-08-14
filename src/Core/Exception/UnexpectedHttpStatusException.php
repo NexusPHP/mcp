@@ -26,8 +26,10 @@ final class UnexpectedHttpStatusException extends \RuntimeException implements M
      */
     public readonly ?string $body;
 
-    public function __construct(public readonly int $status, ?string $body = null)
-    {
+    public function __construct(
+        public readonly int $status,
+        ?string $body = null,
+    ) {
         $this->body = null === $body ? null : substr($body, 0, self::MAX_BODY_BYTES);
 
         parent::__construct(\sprintf('The endpoint answered %d where 200 or 202 was expected.', $status));

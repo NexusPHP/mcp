@@ -33,8 +33,10 @@ final readonly class GetTaskRequestParams extends RequestParams
     /**
      * @param non-empty-string $taskId
      */
-    public function __construct(public string $taskId, RequestMetaObject $meta)
-    {
+    public function __construct(
+        public string $taskId,
+        RequestMetaObject $meta,
+    ) {
         parent::__construct(meta: $meta);
     }
 

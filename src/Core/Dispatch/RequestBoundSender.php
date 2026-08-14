@@ -28,8 +28,10 @@ final readonly class RequestBoundSender implements SenderInterface
 {
     private SendContext $outboundContext;
 
-    public function __construct(private TransportInterface $transport, private RequestId $requestId)
-    {
+    public function __construct(
+        private TransportInterface $transport,
+        private RequestId $requestId,
+    ) {
         $this->outboundContext = new SendContext(relatedRequestId: $this->requestId);
     }
 
