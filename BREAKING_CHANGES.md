@@ -4,7 +4,9 @@ This file is the upgrade guide: what breaks at each version boundary and how to 
 for *when* breaking changes may land and how they are communicated lives in
 [VERSIONING.md](VERSIONING.md).
 
-## v0.12.0 to Unreleased
+## v0.13.0 to Unreleased
+
+## v0.12.0 to v0.13.0
 
 ### Message-only exceptions collapsed into `LogicException` and `RuntimeException`
 

@@ -8,6 +8,14 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp/commits/1.x)
 
+## [v0.13.0](https://github.com/NexusPHP/mcp/compare/v0.12.0...v0.13.0) - 2026-08-14
+
+Peer-visible diagnostics now speak one documented grammar, from schema validation through argument
+binding, and datetime fields are held to RFC 3339. The exception surface shrinks with it: twenty-eight
+message-only classes collapse into two shared ones, the one breaking change riding along (see
+[BREAKING_CHANGES.md](BREAKING_CHANGES.md)). Registration refuses magic-method handlers and duplicate
+discovered entries, and extension notifications gain the client-side capability gate.
+
 ### Changed
 
 - Twenty-eight message-only exception classes are replaced by `Nexus\Mcp\Core\Exception\LogicException`
