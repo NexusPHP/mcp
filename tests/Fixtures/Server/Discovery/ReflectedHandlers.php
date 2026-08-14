@@ -170,6 +170,26 @@ final class ReflectedHandlers
         return new ImageContent(data: 'aW1n', mimeType: 'image/png');
     }
 
+    public function toolSingleText(): TextContent
+    {
+        return new TextContent(text: 't');
+    }
+
+    public function toolSingleAudio(): AudioContent
+    {
+        return new AudioContent(data: 'YXVk', mimeType: 'audio/mpeg');
+    }
+
+    public function toolSingleEmbedded(): EmbeddedResource
+    {
+        return new EmbeddedResource(resource: new TextResourceContents(uri: 'mem://embedded', text: 'e'));
+    }
+
+    public function toolSingleLink(): ResourceLink
+    {
+        return new ResourceLink(name: 'link', uri: 'mem://link');
+    }
+
     /**
      * @return list<AudioContent|EmbeddedResource|ImageContent|ResourceLink|TextContent>
      */

@@ -14,7 +14,10 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Server\Tool;
 
 use Amp\NullCancellation;
+use Nexus\Mcp\Core\Schema\ContentBlock\AudioContent;
+use Nexus\Mcp\Core\Schema\ContentBlock\EmbeddedResource;
 use Nexus\Mcp\Core\Schema\ContentBlock\ImageContent;
+use Nexus\Mcp\Core\Schema\ContentBlock\ResourceLink;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
@@ -26,6 +29,7 @@ use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\ReflectedHandlers;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
@@ -61,13 +65,33 @@ final class ReflectedToolExecutorTest extends AbstractMcpTestCase
         self::assertSame(['ok' => true, 'count' => 2], $result->structuredContent);
     }
 
-    public function testWrapsSingleContentBlock(): void
+    /**
+     * @param class-string $expectedClass
+     */
+    #[DataProvider('provideWrapsSingleContentBlockCases')]
+    public function testWrapsSingleContentBlock(string $method, string $expectedClass): void
     {
-        $result = self::execute('toolSingleBlock');
+        $result = self::execute($method);
 
         self::assertCount(1, $result->content);
-        self::assertInstanceOf(ImageContent::class, $result->content[0]);
+        self::assertInstanceOf($expectedClass, $result->content[0]);
         self::assertNull($result->structuredContent);
+    }
+
+    /**
+     * @return iterable<string, array{non-empty-string, class-string}>
+     */
+    public static function provideWrapsSingleContentBlockCases(): iterable
+    {
+        yield 'audio' => ['toolSingleAudio', AudioContent::class];
+
+        yield 'embedded resource' => ['toolSingleEmbedded', EmbeddedResource::class];
+
+        yield 'image' => ['toolSingleBlock', ImageContent::class];
+
+        yield 'resource link' => ['toolSingleLink', ResourceLink::class];
+
+        yield 'text' => ['toolSingleText', TextContent::class];
     }
 
     public function testWrapsListOfContentBlocks(): void
