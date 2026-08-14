@@ -16,6 +16,9 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Fixed
 
+- A discovery attribute on a magic method throws `LogicException` at registration, where
+  `#[AsTool]` on `__construct` previously registered a tool that re-ran the constructor on the live
+  handler.
 - A malformed error response whose recovered id matches a pending client request now fails that request
   with the parse diagnostic, instead of leaving the caller to wait out its deadline.
 - Datetime fields are validated against the RFC 3339 grammar before parsing, where timezone names,

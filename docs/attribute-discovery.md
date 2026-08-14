@@ -155,7 +155,8 @@ attributes are rejected.
 
 ## Limitations
 
-- Only public methods are scanned.
+- Only public methods are scanned, and a discovery attribute on a magic method (`__construct`,
+  `__invoke`, and the rest of the `__` prefix) throws `LogicException` at registration.
 - Tool arguments are typed by the validated `inputSchema`, but prompt arguments and resource URI variables
   arrive as strings. A prompt, resource, or resource-template parameter that a string cannot satisfy throws
   `LogicException` at registration.

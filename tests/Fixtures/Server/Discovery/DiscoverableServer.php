@@ -59,7 +59,7 @@ final class DiscoverableServer
      * @param string $topic The subject to write about.
      * @param string $tone  The desired tone.
      */
-    #[AsPrompt(name: 'compose', description: 'Composes a message.')]
+    #[AsPrompt(name: 'compose', description: 'Composes a message.', meta: ['audience' => 'writers'])]
     public function compose(string $topic, string $tone = 'neutral'): string
     {
         return \sprintf('Write about %s in a %s tone.', $topic, $tone);
@@ -118,6 +118,7 @@ final class DiscoverableServer
         name: 'user_profile',
         description: 'A user profile.',
         annotations: new Annotations(priority: 0.7),
+        meta: ['versioned' => true],
     )]
     public function userProfile(string $uri, string $id): string
     {

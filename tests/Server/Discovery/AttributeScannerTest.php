@@ -41,6 +41,7 @@ use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\BackedIntEnum;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\BackedStringEnum;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\CompletionHandlers;
+use Nexus\Mcp\Tests\Fixtures\Server\Discovery\ConstructorMarkedTool;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\DiscoverableServer;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\PureEnum;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -56,6 +57,91 @@ use PHPUnit\Framework\Attributes\Group;
 final class AttributeScannerTest extends AbstractMcpTestCase
 {
     private const string REJECTION_PATTERN = '/^\S+\:\:rank\(\) declares parameter "\$level" of unsupported type "%s"\. It is bound from a string value\./';
+
+    public function testAToolAttributeOnTheConstructorIsRefused(): void
+    {
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessageIs(\sprintf(
+            '%s::__construct() is a magic method and cannot be a #[AsTool] handler. Move the attribute to a regular public method.',
+            ConstructorMarkedTool::class,
+        ));
+
+        iterator_to_array((new AttributeScanner())->scan(new ConstructorMarkedTool()), false);
+    }
+
+    #[DataProvider('provideADiscoveryAttributeOnAMagicMethodIsRefusedCases')]
+    public function testADiscoveryAttributeOnAMagicMethodIsRefused(object $source, string $attribute): void
+    {
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessageMatches(\sprintf(
+            '/ is a magic method and cannot be a #\[%s\] handler\. Move the attribute to a regular public method\.$/',
+            $attribute,
+        ));
+
+        iterator_to_array((new AttributeScanner())->scan($source), false);
+    }
+
+    /**
+     * @return iterable<string, array{object, non-empty-string}>
+     */
+    public static function provideADiscoveryAttributeOnAMagicMethodIsRefusedCases(): iterable
+    {
+        yield 'prompt on __invoke' => [new class {
+            #[AsPrompt]
+            public function __invoke(): string
+            {
+                return '';
+            }
+        }, 'AsPrompt'];
+
+        yield 'resource on __get' => [new class {
+            #[AsResource(uri: 'mem://fixed')]
+            public function __get(string $name): string
+            {
+                return '';
+            }
+        }, 'AsResource'];
+
+        yield 'resource template on __call' => [new class {
+            /**
+             * @param list<mixed> $arguments
+             */
+            #[AsResourceTemplate(uriTemplate: 'mem://{id}')]
+            public function __call(string $name, array $arguments): string
+            {
+                return '';
+            }
+        }, 'AsResourceTemplate'];
+
+        yield 'completion on __destruct' => [new class {
+            #[AsCompletion(argument: 'a', prompt: 'p')]
+            public function __destruct()
+            {
+            }
+        }, 'AsCompletion'];
+    }
+
+    public function testAnUnmarkedMagicMethodIsIgnored(): void
+    {
+        $source = new class implements \Stringable {
+            #[AsTool(description: 'A real tool.')]
+            public function run(): string
+            {
+                return 'ok';
+            }
+
+            #[\Override]
+            public function __toString(): string
+            {
+                return 'source';
+            }
+        };
+
+        $entries = iterator_to_array((new AttributeScanner())->scan($source), false);
+
+        self::assertCount(1, $entries);
+        self::assertInstanceOf(ToolEntry::class, $entries[0]);
+    }
 
     public function testToolFallsBackToTheMethodName(): void
     {
@@ -101,6 +187,8 @@ final class AttributeScannerTest extends AbstractMcpTestCase
     public function testPromptDerivesArgumentsFromParameters(): void
     {
         $prompt = self::promptEntry('compose')->prompt;
+
+        self::assertSame(['audience' => 'writers'], $prompt->meta->extras);
 
         $topic = self::argument($prompt, 0);
         self::assertSame('topic', $topic->name);
@@ -169,6 +257,7 @@ final class AttributeScannerTest extends AbstractMcpTestCase
         self::assertSame('users://{id}', $template->uriTemplate);
         self::assertSame('A user profile.', $template->description);
         self::assertSame(0.7, $template->annotations->priority);
+        self::assertSame(['versioned' => true], $template->meta->extras);
     }
 
     public function testResourceTemplateFallsBackToTheMethodName(): void
