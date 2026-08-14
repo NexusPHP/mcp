@@ -275,6 +275,19 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
         self::assertSame(['label' => 'Stdio client'], $matches[0]['context']);
     }
 
+    public function testCloseLogsTheEndOfTheExitWatchAtDebug(): void
+    {
+        $logger = new ArrayLogger();
+        $transport = self::buildTransport(new ScriptedSubprocessLauncher(), $logger);
+        $transport->start();
+        $transport->close();
+        delay(0);
+
+        $matches = $logger->recordsMatching(LogLevel::DEBUG, '{label} transport stopped watching for the subprocess exit.');
+        self::assertCount(1, $matches);
+        self::assertSame(['label' => 'Stdio client'], $matches[0]['context']);
+    }
+
     public function testDeliversAnEnvelopeReadFromTheSubprocessStdout(): void
     {
         $launcher = new ScriptedSubprocessLauncher();
