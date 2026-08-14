@@ -126,12 +126,14 @@
         "lint:typos:fix": "typos --write-changes",
         "mutation:check": [
             "@putenv XDEBUG_MODE=coverage",
+            "Nexus\\Mcp\\Tools\\ComposerScripts::exportMutationIni",
             "Nexus\\Mcp\\Tools\\ComposerScripts::cleanInfectionResultCaches",
             "Composer\\Config::disableProcessTimeout",
             "tools/vendor/bin/infection --with-uncovered --static-analysis-tool=phpstan"
         ],
         "mutation:filter": [
             "@putenv XDEBUG_MODE=coverage",
+            "Nexus\\Mcp\\Tools\\ComposerScripts::exportMutationIni",
             "Nexus\\Mcp\\Tools\\ComposerScripts::cleanInfectionResultCaches",
             "Composer\\Config::disableProcessTimeout",
             "Nexus\\Mcp\\Tools\\ComposerScripts::runFilteredMutation"

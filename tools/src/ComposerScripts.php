@@ -104,6 +104,15 @@ final class ComposerScripts
         }
     }
 
+    /**
+     * Scans `tools/ini` after the default INI directory, so Infection's forked PHPUnit children run
+     * with the shipped artefact's `zend.assertions=-1` like the CI mutation job.
+     */
+    public static function exportMutationIni(): void
+    {
+        putenv('PHP_INI_SCAN_DIR='.\PATH_SEPARATOR.self::PROJECT_ROOT.'/tools/ini');
+    }
+
     public static function cleanInfectionResultCaches(): void
     {
         self::pruneInfectionResultCaches();
