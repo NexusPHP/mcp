@@ -432,6 +432,14 @@ final class TypeNodeSchemaMapperTest extends AbstractMcpTestCase
         $this->mapper->map(new UnionTypeNode([new IdentifierTypeNode('null'), new IdentifierTypeNode('null')]));
     }
 
+    public function testAMixedConstUnionNamesTheUnsupportedMember(): void
+    {
+        $this->expectException(UnsupportedSchemaTypeException::class);
+        $this->expectExceptionMessageIs('Type "1.5" is not supported by the input schema generator.');
+
+        $this->mapper->map($this->resolver->parseNativeType('int|1.5'));
+    }
+
     public function testNullableWidensScalarType(): void
     {
         self::assertSame(
