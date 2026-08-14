@@ -84,13 +84,7 @@ final class PendingOutboundRequests implements \Countable
      */
     public function resolveResponseClass(RequestId $id): ?string
     {
-        $key = self::buildKey($id);
-
-        if (! \array_key_exists($key, $this->map)) {
-            return null;
-        }
-
-        return $this->map[$key]['response'];
+        return $this->map[self::buildKey($id)]['response'] ?? null;
     }
 
     /**
