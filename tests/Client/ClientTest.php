@@ -1701,6 +1701,40 @@ final class ClientTest extends AbstractMcpTestCase
         self::assertInstanceOf(CallToolResult::class, $call->await());
     }
 
+    public function testARefreshFailureSurfacesTheOriginalHeaderMismatch(): void
+    {
+        $transport = new MirroringRecordingTransport();
+        $client = self::connectMirroring($transport);
+        self::listToolsWithDeclarations($client, $transport);
+
+        $call = async(static fn() => $client->callTool('good', ['region' => 'us-west1']));
+
+        $transport->nextSend()->await();
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => self::lastRequestId($transport),
+            'error' => ['code' => ProtocolErrorCode::HeaderMismatch->value, 'message' => 'Header mismatch'],
+        ]);
+
+        $transport->nextSend()->await();
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => self::lastRequestId($transport),
+            'error' => ['code' => ProtocolErrorCode::InternalError->value, 'message' => 'Listing broke'],
+        ]);
+
+        try {
+            $call->await();
+            self::fail('Expected the original header mismatch to surface.');
+        } catch (RemoteCallFailedException $e) {
+            self::assertSame('Header mismatch', $e->getMessage());
+            self::assertSame(ProtocolErrorCode::HeaderMismatch->value, $e->getCode());
+            $previous = $e->getPrevious();
+            self::assertInstanceOf(RemoteCallFailedException::class, $previous);
+            self::assertSame('Listing broke', $previous->getMessage());
+        }
+    }
+
     public function testCallToolPropagatesAnErrorThatIsNotAHeaderMismatch(): void
     {
         $transport = new MirroringRecordingTransport();

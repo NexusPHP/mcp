@@ -241,6 +241,37 @@ final class AppClientTest extends AbstractMcpTestCase
         $transport->close();
     }
 
+    public function testRejectsAReadThatReturnedNoContents(): void
+    {
+        [$app, $transport] = self::buildAppClient();
+
+        $read = async(static fn(): InputRequiredResult|ReadResourceResult => $app->readAppResource('ui://demo/panel'));
+        $transport->nextSend()->await();
+
+        self::assertArrayHasKey(0, $transport->sent);
+        $sent = $transport->sent[0]['message'];
+        self::assertInstanceOf(JsonRpcRequest::class, $sent);
+
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => $sent->id->id,
+            'result' => [
+                'contents' => [],
+                'ttlMs' => 0,
+                'cacheScope' => 'private',
+            ],
+        ]);
+
+        try {
+            $read->await();
+            self::fail('Expected the empty read to be rejected.');
+        } catch (RuntimeException $exception) {
+            self::assertSame('UI resource "ui://demo/panel" returned no contents.', $exception->getMessage());
+        }
+
+        $transport->close();
+    }
+
     public function testRejectsAReadWhoseContentsAreNotTheUiProfile(): void
     {
         [$app, $transport] = self::buildAppClient();

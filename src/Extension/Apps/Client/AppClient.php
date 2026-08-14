@@ -124,6 +124,13 @@ final readonly class AppClient implements AppClientInterface
             return $result;
         }
 
+        if ([] === $result->contents) {
+            throw new RuntimeException(\sprintf(
+                'UI resource "%s" returned no contents.',
+                SafeDisplay::sanitiseCause($uri),
+            ));
+        }
+
         foreach ($result->contents as $contents) {
             if (! \in_array($contents->mimeType, $this->mimeTypes, true)) {
                 throw new RuntimeException(\sprintf(

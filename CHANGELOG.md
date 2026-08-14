@@ -16,6 +16,12 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Fixed
 
+- An extension-owned notification from a server that did not advertise the extension is dropped with
+  a warning, matching the request-side gate.
+- A tool call refused with a header mismatch keeps that error when the binding refresh also fails,
+  chaining the refresh failure as `previous`.
+- `readAppResource()` refuses a `ui://` read that returned zero contents, instead of handing the host
+  an empty result where it expected a document.
 - A discovery attribute on a magic method throws `LogicException` at registration, where
   `#[AsTool]` on `__construct` previously registered a tool that re-ran the constructor on the live
   handler.

@@ -28,8 +28,9 @@ enable-time), bound to `ClientContext`, plus one client-only declaration:
 
 The extension's inbound request handlers are gated the same way in the other direction: once
 `discover()` has run, an extension-owned request from a server that did not advertise the
-extension is answered `-32601` and the handler never runs. Before discovery the request is served,
-since there is nothing to check against. Notifications stay ungated on both sides.
+extension is answered `-32601` and the handler never runs, and an extension-owned notification is
+dropped with a warning logged. Before discovery both are served, since there is nothing to check
+against. Server-side, extension notifications stay ungated.
 
 ## Capabilities merge
 
