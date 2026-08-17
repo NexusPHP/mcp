@@ -35,6 +35,11 @@ use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
  */
 final readonly class PromptListChangedNotification extends JsonRpcNotification implements ServerNotification
 {
+    public function __construct(EmptyNotificationParams $params = new EmptyNotificationParams())
+    {
+        parent::__construct(params: $params);
+    }
+
     #[\Override]
     public static function getMethod(): string
     {
