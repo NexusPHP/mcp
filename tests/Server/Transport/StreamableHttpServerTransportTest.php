@@ -1156,9 +1156,11 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
              * @param array<array-key, mixed> $context
              */
             #[\Override]
-            public function log(mixed $level, string|\Stringable $message, array $context = []): never
+            public function log(mixed $level, string|\Stringable $message, array $context = []): void
             {
-                throw new \RuntimeException('logger is broken');
+                if (LogLevel::ERROR === $level) {
+                    throw new \RuntimeException('logger is broken');
+                }
             }
         };
 
@@ -1296,6 +1298,29 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
         $this->expectException(TransportAlreadyClosedException::class);
 
         $transport->start();
+    }
+
+    public function testStartLogsTheStartAtInfo(): void
+    {
+        $logger = new ArrayLogger();
+        self::makeTransport($logger);
+
+        $matches = $logger->recordsMatching(LogLevel::INFO, '{label} transport started.');
+        self::assertCount(1, $matches);
+        self::assertSame(['label' => 'Streamable HTTP server'], $matches[0]['context']);
+    }
+
+    public function testCloseLogsTheClosureOnce(): void
+    {
+        $logger = new ArrayLogger();
+        $transport = self::makeTransport($logger);
+
+        $transport->close();
+        $transport->close();
+
+        $matches = $logger->recordsMatching(LogLevel::INFO, '{label} transport closed.');
+        self::assertCount(1, $matches);
+        self::assertSame(['label' => 'Streamable HTTP server'], $matches[0]['context']);
     }
 
     public function testCloseDrainsBeforeSignallingCloseAndIsIdempotent(): void

@@ -921,6 +921,18 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
         );
     }
 
+    public function testCloseLogsTheClosure(): void
+    {
+        $logger = new ArrayLogger();
+        $transport = self::makeTransport(new RecordingHttpClient(), logger: $logger);
+
+        $transport->close();
+
+        $matches = $logger->recordsMatching(LogLevel::INFO, '{label} transport closed.');
+        self::assertCount(1, $matches);
+        self::assertSame(['label' => 'Streamable HTTP client'], $matches[0]['context']);
+    }
+
     public function testRejectsAnEmptyEndpoint(): void
     {
         $this->expectException(ExpectationFailedException::class);

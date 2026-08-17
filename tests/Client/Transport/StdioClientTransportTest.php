@@ -275,6 +275,26 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
         self::assertSame(['label' => 'Stdio client'], $matches[0]['context']);
     }
 
+    public function testStartLogsTheSpawnBeforeTheDuplexStart(): void
+    {
+        $logger = new ArrayLogger();
+        $transport = self::buildTransport(new ScriptedSubprocessLauncher(), $logger);
+        $transport->start();
+
+        $lifecycle = array_values(array_filter(
+            $logger->records,
+            static fn(array $record): bool => \in_array($record['message'], [
+                '{label} transport spawned subprocess. Command: {command} ({argumentCount} arguments, PID {pid}).',
+                '{label} transport started.',
+            ], true),
+        ));
+        self::assertCount(2, $lifecycle);
+        self::assertSame('{label} transport spawned subprocess. Command: {command} ({argumentCount} arguments, PID {pid}).', $lifecycle[0]['message']);
+        self::assertSame('{label} transport started.', $lifecycle[1]['message']);
+
+        $transport->close();
+    }
+
     public function testCloseLogsTheEndOfTheExitWatchAtDebug(): void
     {
         $logger = new ArrayLogger();
