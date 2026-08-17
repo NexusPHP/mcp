@@ -76,8 +76,8 @@ final class ResultResponseFactory
             $request instanceof ListResourceTemplatesRequest && $result instanceof ListResourceTemplatesResult => new ListResourceTemplatesResultResponse(id: $id, result: $result),
             $request instanceof ListToolsRequest && $result instanceof ListToolsResult => new ListToolsResultResponse(id: $id, result: $result),
             $request instanceof SubscriptionsListenRequest && $result instanceof SubscriptionsListenResult => new SubscriptionsListenResultResponse(id: $id, result: $result),
-            $request instanceof CallToolRequest && $result instanceof TaskHandleResult => new GenericResultResponse(id: $id, result: $result),
-            ! \array_key_exists($request::getMethod(), JsonRpcMethodRegistry::requests()) => new GenericResultResponse(id: $id, result: $result),
+            $request instanceof CallToolRequest && $result instanceof TaskHandleResult,
+            ! \array_key_exists($request::getMethod(), JsonRpcMethodRegistry::requests()),
             $result instanceof EmptyResult => new GenericResultResponse(id: $id, result: $result),
             default => throw new \InvalidArgumentException(\sprintf(
                 'Handler for "%s" returned %s, which is not a valid result for that method.',
