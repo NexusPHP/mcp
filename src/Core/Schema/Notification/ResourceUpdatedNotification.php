@@ -63,7 +63,7 @@ final readonly class ResourceUpdatedNotification extends JsonRpcNotification imp
     {
         return [
             'jsonrpc' => self::JSONRPC_VERSION,
-            'method' => static::getMethod(),
+            'method' => self::getMethod(),
             'params' => $this->params->toArray(),
         ];
     }

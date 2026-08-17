@@ -68,7 +68,7 @@ final readonly class ListPromptsRequest extends PaginatedRequest implements Clie
         return [
             'jsonrpc' => self::JSONRPC_VERSION,
             'id' => $this->id->id,
-            'method' => static::getMethod(),
+            'method' => self::getMethod(),
             'params' => $this->params->toArray(),
         ];
     }

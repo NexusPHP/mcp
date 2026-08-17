@@ -58,7 +58,7 @@ final readonly class ProgressLookalikeNotification extends JsonRpcNotification
     {
         $envelope = [
             'jsonrpc' => self::JSONRPC_VERSION,
-            'method' => static::getMethod(),
+            'method' => self::getMethod(),
         ];
 
         $params = $this->params->toArray();

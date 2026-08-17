@@ -53,7 +53,7 @@ final readonly class DiscoverLookalikeRequest extends JsonRpcRequest
         return [
             'jsonrpc' => self::JSONRPC_VERSION,
             'id' => $this->id->id,
-            'method' => static::getMethod(),
+            'method' => self::getMethod(),
         ];
     }
 }

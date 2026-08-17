@@ -68,7 +68,7 @@ final readonly class CallToolRequest extends JsonRpcRequest implements ClientReq
         return [
             'jsonrpc' => self::JSONRPC_VERSION,
             'id' => $this->id->id,
-            'method' => static::getMethod(),
+            'method' => self::getMethod(),
             'params' => $this->params->toArray(),
         ];
     }

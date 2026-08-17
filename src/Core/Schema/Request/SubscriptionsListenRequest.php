@@ -73,7 +73,7 @@ final readonly class SubscriptionsListenRequest extends JsonRpcRequest implement
         return [
             'jsonrpc' => self::JSONRPC_VERSION,
             'id' => $this->id->id,
-            'method' => static::getMethod(),
+            'method' => self::getMethod(),
             'params' => $this->params->toArray(),
         ];
     }

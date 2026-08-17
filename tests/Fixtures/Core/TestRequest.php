@@ -58,7 +58,7 @@ final readonly class TestRequest extends JsonRpcRequest
         $envelope = [
             'jsonrpc' => self::JSONRPC_VERSION,
             'id' => $this->id->id,
-            'method' => static::getMethod(),
+            'method' => self::getMethod(),
         ];
 
         if (null !== $this->params) {

@@ -71,7 +71,7 @@ final readonly class ReadResourceRequest extends JsonRpcRequest implements Clien
         return [
             'jsonrpc' => self::JSONRPC_VERSION,
             'id' => $this->id->id,
-            'method' => static::getMethod(),
+            'method' => self::getMethod(),
             'params' => $this->params->toArray(),
         ];
     }

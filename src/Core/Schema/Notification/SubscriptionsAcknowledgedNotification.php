@@ -67,7 +67,7 @@ final readonly class SubscriptionsAcknowledgedNotification extends JsonRpcNotifi
     {
         return [
             'jsonrpc' => self::JSONRPC_VERSION,
-            'method' => static::getMethod(),
+            'method' => self::getMethod(),
             'params' => $this->params->toArray(),
         ];
     }

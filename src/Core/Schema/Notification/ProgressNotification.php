@@ -61,7 +61,7 @@ final readonly class ProgressNotification extends JsonRpcNotification implements
     {
         return [
             'jsonrpc' => self::JSONRPC_VERSION,
-            'method' => static::getMethod(),
+            'method' => self::getMethod(),
             'params' => $this->params->toArray(),
         ];
     }

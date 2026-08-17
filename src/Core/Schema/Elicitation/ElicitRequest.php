@@ -68,7 +68,7 @@ final readonly class ElicitRequest extends Request implements InputRequest
     public function toArray(): array
     {
         return [
-            'method' => static::getMethod(),
+            'method' => self::getMethod(),
             'params' => $this->params->toArray(),
         ];
     }
@@ -77,7 +77,7 @@ final readonly class ElicitRequest extends Request implements InputRequest
     public function jsonSerialize(): array
     {
         return [
-            'method' => static::getMethod(),
+            'method' => self::getMethod(),
             'params' => $this->params->jsonSerialize(),
         ];
     }

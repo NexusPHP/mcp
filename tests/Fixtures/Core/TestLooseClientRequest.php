@@ -54,7 +54,7 @@ final readonly class TestLooseClientRequest extends JsonRpcRequest implements Cl
         return [
             'jsonrpc' => self::JSONRPC_VERSION,
             'id' => $this->id->id,
-            'method' => static::getMethod(),
+            'method' => self::getMethod(),
         ];
     }
 }
