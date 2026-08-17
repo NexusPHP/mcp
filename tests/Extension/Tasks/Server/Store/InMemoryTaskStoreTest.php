@@ -36,6 +36,7 @@ use PHPUnit\Framework\Attributes\Group;
 final class InMemoryTaskStoreTest extends AbstractMcpTestCase
 {
     private \DateTimeImmutable $now;
+    private int $clockReads = 0;
 
     #[\Override]
     protected function setUp(): void
@@ -415,6 +416,27 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
         $records = (new \ReflectionProperty(InMemoryTaskStore::class, 'records'))->getValue($store);
         self::assertIsArray($records);
         self::assertArrayNotHasKey($overdue, $records);
+    }
+
+    public function testCreateTaskReadsTheClockOnceForTheWholeSweep(): void
+    {
+        $store = new InMemoryTaskStore(function (): \DateTimeImmutable {
+            ++$this->clockReads;
+
+            return $this->now;
+        });
+
+        for ($i = 0; $i < 3; ++$i) {
+            $taskId = $store->createTask('slow_compute', null, 300_000, 1_000)->taskId;
+            $store->trySetCompleted($taskId, ['resultType' => 'complete']);
+        }
+
+        $store->createTask('slow_compute', null, 300_000, 1_000);
+        $this->clockReads = 0;
+
+        $store->createTask('slow_compute', null, 300_000, 1_000);
+
+        self::assertSame(1, $this->clockReads);
     }
 
     public function testATerminalTaskExpiresAtItsRetentionBoundary(): void

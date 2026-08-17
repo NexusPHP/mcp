@@ -51,11 +51,14 @@ final class InMemoryTaskStore implements TaskStoreInterface
     #[\Override]
     public function createTask(string $toolName, ?array $arguments, ?int $ttlMs, int $pollIntervalMs): TaskRecord
     {
+        $instant = ($this->clock)();
+        $nowMs = self::toMillisecondTimestamp($instant);
+
         foreach (array_keys($this->records) as $taskId) {
-            $this->findTask($taskId);
+            $this->resolveTask($taskId, $nowMs);
         }
 
-        $now = ($this->clock)()->format(\DateTimeInterface::ATOM);
+        $now = $instant->format(\DateTimeInterface::ATOM);
         $taskId = bin2hex(random_bytes(16));
 
         $record = new TaskRecord(
@@ -77,28 +80,7 @@ final class InMemoryTaskStore implements TaskStoreInterface
     #[\Override]
     public function findTask(string $taskId): ?TaskRecord
     {
-        $record = $this->records[$taskId] ?? null;
-
-        if (null === $record) {
-            return null;
-        }
-
-        if ($this->hasExpired($taskId, $record)) {
-            unset($this->records[$taskId], $this->terminalAt[$taskId]);
-
-            return null;
-        }
-
-        if ($this->hasOverstayed($record)) {
-            return $this->replaceRecord($record, TaskStatus::Failed, [
-                'error' => ErrorFactory::create(ProtocolErrorCode::InternalError, 'The task did not settle within its ttl.')->toArray(),
-                'pendingInputRequests' => [],
-                'inputResponses' => [],
-                'requestState' => null,
-            ]);
-        }
-
-        return $record;
+        return $this->resolveTask($taskId, null);
     }
 
     #[\Override]
@@ -230,6 +212,37 @@ final class InMemoryTaskStore implements TaskStoreInterface
     }
 
     /**
+     * `findTask()` with the current time in epoch milliseconds precomputed, or `null` to read the clock on demand.
+     *
+     * @param non-empty-string $taskId
+     */
+    private function resolveTask(string $taskId, ?int $nowMs): ?TaskRecord
+    {
+        $record = $this->records[$taskId] ?? null;
+
+        if (null === $record) {
+            return null;
+        }
+
+        if ($this->hasExpired($taskId, $record, $nowMs)) {
+            unset($this->records[$taskId], $this->terminalAt[$taskId]);
+
+            return null;
+        }
+
+        if ($this->hasOverstayed($record, $nowMs)) {
+            return $this->replaceRecord($record, TaskStatus::Failed, [
+                'error' => ErrorFactory::create(ProtocolErrorCode::InternalError, 'The task did not settle within its ttl.')->toArray(),
+                'pendingInputRequests' => [],
+                'inputResponses' => [],
+                'requestState' => null,
+            ]);
+        }
+
+        return $record;
+    }
+
+    /**
      * @param array{
      *   result?: null|array<string, mixed>,
      *   error?: null|array<string, mixed>,
@@ -290,7 +303,7 @@ final class InMemoryTaskStore implements TaskStoreInterface
     /**
      * @param non-empty-string $taskId
      */
-    private function hasExpired(string $taskId, TaskRecord $record): bool
+    private function hasExpired(string $taskId, TaskRecord $record, ?int $nowMs): bool
     {
         if (null === $record->ttlMs) {
             return false;
@@ -302,24 +315,23 @@ final class InMemoryTaskStore implements TaskStoreInterface
             return false;
         }
 
-        $elapsedMs = self::toMillisecondTimestamp(($this->clock)()) - self::toMillisecondTimestamp($terminalAt);
+        $nowMs ??= self::toMillisecondTimestamp(($this->clock)());
 
-        return $elapsedMs >= $record->ttlMs;
+        return $record->ttlMs <= $nowMs - self::toMillisecondTimestamp($terminalAt);
     }
 
     /**
      * True when a non-terminal record has outlived `createdAt + ttlMs`, which SEP-2663 allows failing.
      */
-    private function hasOverstayed(TaskRecord $record): bool
+    private function hasOverstayed(TaskRecord $record, ?int $nowMs): bool
     {
         if (null === $record->ttlMs || self::isTerminal($record->status)) {
             return false;
         }
 
-        $elapsedMs = self::toMillisecondTimestamp(($this->clock)())
-            - self::toMillisecondTimestamp(new \DateTimeImmutable($record->createdAt));
+        $nowMs ??= self::toMillisecondTimestamp(($this->clock)());
 
-        return $elapsedMs >= $record->ttlMs;
+        return $record->ttlMs <= $nowMs - self::toMillisecondTimestamp(new \DateTimeImmutable($record->createdAt));
     }
 
     private static function isTerminal(TaskStatus $status): bool
