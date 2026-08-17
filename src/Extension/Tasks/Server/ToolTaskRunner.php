@@ -100,7 +100,7 @@ final class ToolTaskRunner
             $result = $inner->handle($request, $context);
 
             if ($result instanceof InputRequiredResult) {
-                if (null === $result->inputRequests || [] === $result->inputRequests) {
+                if (null === $result->inputRequests) {
                     $this->store->trySetFailed($taskId, ErrorFactory::create(
                         ProtocolErrorCode::InternalError,
                         'The tool parked the task without any input requests.',
