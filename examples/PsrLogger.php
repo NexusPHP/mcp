@@ -57,18 +57,26 @@ final class PsrLogger extends AbstractLogger
                     $value instanceof Stringable => (string) $value,
                     default => $value,
                 };
-                $encodable[$key] = $normalized;
+                $placeholder = sprintf('{%s}', $key);
 
-                if (is_scalar($normalized) && preg_match('/^[A-Za-z0-9_.]+$/', (string) $key) === 1) {
-                    $replacements[sprintf('{%s}', $key)] = (string) $normalized;
+                if (is_scalar($normalized) && preg_match('/^[A-Za-z0-9_.]+$/', (string) $key) === 1 && str_contains($rendered, $placeholder)) {
+                    $replacements[$placeholder] = (string) $normalized;
+
+                    continue;
                 }
+
+                $encodable[$key] = $normalized;
             }
 
-            $rendered = sprintf(
-                '%s %s',
-                strtr($rendered, $replacements),
-                json_encode($encodable, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES),
-            );
+            $rendered = strtr($rendered, $replacements);
+
+            if ([] !== $encodable) {
+                $rendered = sprintf(
+                    '%s %s',
+                    $rendered,
+                    json_encode($encodable, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES),
+                );
+            }
         }
 
         fwrite(\STDERR, sprintf("[%s] %s: %s\n", date(\DATE_RFC3339), $name, $rendered));
