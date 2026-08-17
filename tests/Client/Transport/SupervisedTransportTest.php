@@ -356,6 +356,10 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         $transport->onClose(static function () use (&$closes): void {
             ++$closes;
         });
+        $relayed = [];
+        $transport->onMessage(static function (array $envelope) use (&$relayed): void {
+            $relayed[] = $envelope;
+        });
 
         $transport->start();
         self::connectionAt($spawned, 0)->closeError = new \RuntimeException('drain failed');
@@ -366,6 +370,9 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         }
 
         self::assertSame(1, $closes, 'A peer failing on the way down must not swallow the close signal.');
+
+        self::connectionAt($spawned, 0)->emitMessage(['jsonrpc' => '2.0', 'method' => 'notifications/progress']);
+        self::assertSame([], $relayed, 'A peer failing on the way down must still be released.');
 
         $this->expectException(TransportAlreadyClosedException::class);
         $transport->send(self::notification());
