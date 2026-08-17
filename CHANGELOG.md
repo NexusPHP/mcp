@@ -8,6 +8,10 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp/commits/1.x)
 
+### Changed
+
+- `ClientBuilder` refuses every registration after `build()`, matching `ServerBuilder`.
+
 ## [v0.13.0](https://github.com/NexusPHP/mcp/compare/v0.12.0...v0.13.0) - 2026-08-14
 
 Peer-visible diagnostics now speak one documented grammar, from schema validation through argument

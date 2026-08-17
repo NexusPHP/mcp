@@ -65,6 +65,62 @@ final class ClientBuilderTest extends AbstractMcpTestCase
         (new ClientBuilder())->build();
     }
 
+    /**
+     * @param \Closure(ClientBuilder): ClientBuilder $mutate
+     */
+    #[DataProvider('provideEveryRegistrationIsRefusedAfterBuildCases')]
+    public function testEveryRegistrationIsRefusedAfterBuild(\Closure $mutate): void
+    {
+        $builder = (new ClientBuilder())->setClientInfo('demo', '1.0.0');
+        $builder->build();
+
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessageIs('This builder has already been built. Construct a new ClientBuilder for another client.');
+
+        $mutate($builder);
+    }
+
+    /**
+     * @return iterable<string, array{\Closure(ClientBuilder): ClientBuilder}>
+     */
+    public static function provideEveryRegistrationIsRefusedAfterBuildCases(): iterable
+    {
+        yield 'setClientInfo' => [static fn(ClientBuilder $b): ClientBuilder => $b->setClientInfo('x', '1.0.0')];
+
+        yield 'setClientCapabilities' => [static fn(ClientBuilder $b): ClientBuilder => $b->setClientCapabilities(new ClientCapabilities())];
+
+        yield 'setLogger' => [static fn(ClientBuilder $b): ClientBuilder => $b->setLogger(new ArrayLogger())];
+
+        yield 'setRequestTimeout' => [static fn(ClientBuilder $b): ClientBuilder => $b->setRequestTimeout(1.0)];
+
+        yield 'setMaxRequestTimeout' => [static fn(ClientBuilder $b): ClientBuilder => $b->setMaxRequestTimeout(1.0)];
+
+        yield 'setRetryLostRequests' => [static fn(ClientBuilder $b): ClientBuilder => $b->setRetryLostRequests(true)];
+
+        yield 'setMaxInFlightDispatches' => [static fn(ClientBuilder $b): ClientBuilder => $b->setMaxInFlightDispatches(2)];
+
+        yield 'setRequestIdFactory' => [static fn(ClientBuilder $b): ClientBuilder => $b->setRequestIdFactory(static fn(): int => 1)];
+
+        yield 'setProgressTokenFactory' => [static fn(ClientBuilder $b): ClientBuilder => $b->setProgressTokenFactory(static fn(): int => 1)];
+
+        yield 'addRequestHandler' => [static fn(ClientBuilder $b): ClientBuilder => $b->addRequestHandler(TestRequest::getMethod(), new ClosureRequestHandler(static fn(): EmptyResult => new EmptyResult()), TestRequest::class)];
+
+        yield 'addNotificationHandler' => [static fn(ClientBuilder $b): ClientBuilder => $b->addNotificationHandler('notifications/progress', new ClosureNotificationHandler(static function (): void {}))];
+
+        yield 'enableExtension' => [static fn(ClientBuilder $b): ClientBuilder => $b->enableExtension(new StubClientExtension(identifier: 'com.example/feature'))];
+    }
+
+    public function testBuildingTwiceIsRefused(): void
+    {
+        $builder = (new ClientBuilder())->setClientInfo('demo', '1.0.0');
+        $builder->build();
+
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessageIs('This builder has already been built. Construct a new ClientBuilder for another client.');
+
+        $builder->build();
+    }
+
     public function testSetClientInfoIsFluent(): void
     {
         $builder = new ClientBuilder();
