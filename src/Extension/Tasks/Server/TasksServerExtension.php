@@ -49,7 +49,7 @@ final readonly class TasksServerExtension implements RequestHandlerDecoratorInte
         private array $toolPolicies = [],
         private ?int $defaultTtlMs = 300_000,
         private int $defaultPollIntervalMs = 1_000,
-        private LoggerInterface $logger = new NullLogger(),
+        LoggerInterface $logger = new NullLogger(),
     ) {
         $this->cancellations = new TaskCancellationRegistry();
         $this->runner = new ToolTaskRunner($store, $this->cancellations, $logger);
