@@ -139,7 +139,7 @@ Reproduce with `composer conformance:server`, `composer conformance:client`, the
 - [ ] **Security & Critical Bug Resolution Within 7 Days**
   - Reference: SEP-1730 Tier 1 requirement
   - Security Policy File: SECURITY.md
-  - Evidence/Notes: SECURITY.md present. The 7-day resolution SLA is not formally committed
+  - Evidence/Notes: SECURITY.md commits to acknowledgement within 3 business days and an assessment with a fix plan within 7 days. The Tier 1 7-day *resolution* SLA is deliberately not committed
 
 - [ ] **Stable Release & Versioning Clearly Documented**
   - Reference: Published versioning policy

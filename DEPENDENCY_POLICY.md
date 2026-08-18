@@ -52,8 +52,9 @@ CI by `composer deps:check` (shipmonk/composer-dependency-analyser).
 ## End-of-life
 
 While in `0.x`, only the latest minor receives fixes. There are no long-term-support branches before
-1.0. From 1.0 onward, the supported-release window is defined alongside the 1.0 release. An SDK release
-stops receiving updates once a newer release supersedes it under these rules.
+1.0. From 1.0 onward, fixes land on the latest minor of the current major, and when a new major ships,
+the previous major receives security fixes for six months after its successor's first stable release.
+An SDK release stops receiving updates once a newer release supersedes it under these rules.
 
 ## See also
 
