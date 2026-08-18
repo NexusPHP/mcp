@@ -86,7 +86,45 @@ Run it through [MCP Inspector](https://github.com/modelcontextprotocol/inspector
 npx @modelcontextprotocol/inspector php hello.php
 ```
 
-See [Getting started](docs/getting-started.md) for the client side and a full walkthrough.
+The client ships in the same package. This spawns the server above and calls its tool:
+
+```php
+<?php
+
+declare(strict_types=1);
+
+require __DIR__.'/vendor/autoload.php';
+
+use Nexus\Mcp\Client\ClientBuilder;
+use Nexus\Mcp\Client\Transport\StdioClientTransport;
+use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
+use Nexus\Mcp\Core\Schema\Result\CallToolResult;
+
+$client = (new ClientBuilder())
+    ->setClientInfo(name: 'hello-client', version: '0.1.0')
+    ->build()
+;
+
+$client->connect(new StdioClientTransport(command: [PHP_BINARY, __DIR__.'/hello.php']));
+
+try {
+    $client->discover();
+
+    $result = $client->callTool(name: 'greet', arguments: ['name' => 'Ada']);
+
+    if ($result instanceof CallToolResult) {
+        foreach ($result->content as $block) {
+            if ($block instanceof TextContent) {
+                echo $block->text, PHP_EOL;
+            }
+        }
+    }
+} finally {
+    $client->disconnect();
+}
+```
+
+See [Getting started](docs/getting-started.md) for the full walkthrough.
 
 ## Documentation
 
@@ -95,7 +133,7 @@ See [Getting started](docs/getting-started.md) for the client side and a full wa
   handlers).
 - [Attribute discovery](docs/attribute-discovery.md): declare features with `#[AsTool]`, `#[AsServer]`, and
   friends, registered via `ServerBuilder::register()`.
-- [Client API](docs/client.md): `ClientBuilder` and `Client` reference (handshake, typed requests,
+- [Client API](docs/client.md): `ClientBuilder` and `Client` reference (`server/discover`, typed requests,
   streaming progress).
 - [Transports](docs/transports.md): the stdio and Streamable HTTP transports, the PSR-15 middleware stack
   that secures the HTTP endpoint, and the in-memory paired transport.

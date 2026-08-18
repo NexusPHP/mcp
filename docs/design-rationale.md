@@ -49,7 +49,7 @@ gain HTTP without a breaking change. See [docs/transports.md](transports.md).
 When a choice trades protocol strictness for SDK-side ease, the SDK takes the strict reading and pushes
 the cost onto its own surrounding code, never onto the message contract. Schema classes are value objects
 locked to the MCP shape. Internal micro-DRY is declined where it would add an abstraction layer over
-byte-identical, spec-fixed structures. Spec-covered edge cases (failed handshake, malformed envelopes,
+byte-identical, spec-fixed structures. Spec-covered edge cases (failed discovery, malformed envelopes,
 out-of-order notifications) are treated as required, not optional.
 
 ## Empty optional strings are absent

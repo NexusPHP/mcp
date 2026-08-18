@@ -103,6 +103,60 @@ optional. The server reads JSON-RPC
 envelopes one per line on STDIN and writes responses to STDOUT. Useful for scripting smoke tests. Less useful for
 interactive exploration.
 
+## Your first MCP client
+
+The client ships in the same package. Create `hello-client.php` next to `hello.php`:
+
+```php
+<?php
+
+declare(strict_types=1);
+
+require __DIR__.'/vendor/autoload.php';
+
+use Nexus\Mcp\Client\ClientBuilder;
+use Nexus\Mcp\Client\Transport\StdioClientTransport;
+use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
+use Nexus\Mcp\Core\Schema\Result\CallToolResult;
+
+$client = (new ClientBuilder())
+    ->setClientInfo(name: 'hello-client', version: '0.1.0')
+    ->build()
+;
+
+$client->connect(new StdioClientTransport(command: [PHP_BINARY, __DIR__.'/hello.php']));
+
+try {
+    $client->discover();
+
+    $result = $client->callTool(name: 'greet', arguments: ['name' => 'Ada']);
+
+    if ($result instanceof CallToolResult) {
+        foreach ($result->content as $block) {
+            if ($block instanceof TextContent) {
+                echo $block->text, PHP_EOL;
+            }
+        }
+    }
+} finally {
+    $client->disconnect();
+}
+```
+
+`StdioClientTransport` spawns the server as a subprocess and speaks the same line-framed JSON-RPC over
+its STDIN/STDOUT. `discover()` sends `server/discover`, learning the server's identity and recording its
+capabilities, which the typed request methods check before sending. The protocol is sessionless, so this
+establishes nothing: it is a plain request any other may precede. `callTool()` answers with a typed result (the union includes
+`InputRequiredResult`, covered in [When the server asks for input first](client/input-required.md)), so
+branch on the type rather than assuming the happy path.
+
+```bash
+php hello-client.php
+```
+
+prints `Hello, Ada!`. For a client and server in one process with no subprocess, see
+[examples/in-memory.php](../examples/in-memory.php).
+
 ## Logging
 
 MCP servers MUST NOT write to STDOUT outside of the JSON-RPC stream. The SDK uses

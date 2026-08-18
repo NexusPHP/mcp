@@ -226,7 +226,7 @@ line-framed duplex underneath it is single-use.
   first connection. A protocol layer holding per-connection state rebuilds it there. `Client` uses it to
   re-open every open `subscriptions/listen` stream (see [Subscriptions across a restart](#subscriptions-across-a-restart)).
 
-No re-handshake is needed after a respawn. This protocol revision is sessionless: every request carries its
+No fresh discovery is needed after a respawn. This protocol revision is sessionless: every request carries its
 own identity and capabilities in `_meta`, so a fresh peer serves the next request without further protocol
 setup.
 
