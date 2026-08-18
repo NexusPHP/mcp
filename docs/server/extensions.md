@@ -76,8 +76,27 @@ capability.
 
 ## Official extensions
 
-Two official extensions ship with the SDK. The [tasks extension](tasks.md) exercises the whole
+Four official extensions ship with the SDK. The [tasks extension](tasks.md) exercises the whole
 surface above: owned methods, handlers, and a `tools/call` decorator. The
 [apps extension](apps.md) sits at the other end: it defines no methods, so
 `AppsServerExtension` only advertises the capability slot and the substance is typed `_meta.ui`
 metadata on the tools and resources you already register.
+
+The two [OAuth extensions](../client/auth-extensions.md) (client credentials, SEP-1046, and
+enterprise-managed authorization, SEP-990) are advertisement-only on the server too. Their grants
+run at the HTTP layer inside the client's `AuthorizedHttpClient`, so
+`ClientCredentialsServerExtension` and `EnterpriseAuthorizationServerExtension` declare no methods
+and no settings: enabling one advertises under `capabilities.extensions` which authorization model
+the deployment runs, and the [resource server](../auth/server.md) validates the resulting tokens
+like any other.
+
+```php
+use Nexus\Mcp\Extension\Auth\ClientCredentials\ClientCredentialsServerExtension;
+use Nexus\Mcp\Extension\Auth\Enterprise\EnterpriseAuthorizationServerExtension;
+
+$server = (new ServerBuilder())
+    ->setServerInfo('acme', '1.0.0')
+    ->enableExtension(new ClientCredentialsServerExtension())
+    ->enableExtension(new EnterpriseAuthorizationServerExtension())
+    ->build();
+```

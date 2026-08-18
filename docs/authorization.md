@@ -17,6 +17,10 @@ the metadata fetches all ride on machinery the SDK already carries.
   grant means for scopes granted earlier.
 - **[Resource server](auth/server.md)**: validating tokens, publishing the metadata document, and reading
   the token in a handler.
+- **[OAuth extension grants](client/auth-extensions.md)**: the ratified client credentials (SEP-1046) and
+  enterprise-managed authorization (SEP-990) extensions, unattended machine grants for
+  `AuthorizedHttpClient`, with the [server-side advertisement](server/extensions.md#official-extensions)
+  each pairs with.
 
 Provider recipes, each covering the provider-side configuration, the token validator, and the quirks the
 generic pages cannot know:
