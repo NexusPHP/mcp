@@ -66,8 +66,12 @@ Shipped in a minor (backward-compatible):
 
 ## Deprecations
 
-Symbols slated for removal are marked with the native `#[\Deprecated]` attribute and recorded under a
-`Deprecated` heading in [CHANGELOG.md](CHANGELOG.md). A deprecated symbol survives for at least one
+Symbols slated for removal are marked with the `@deprecated` PHPDoc tag, naming the replacement, and
+recorded under a `Deprecated` heading in [CHANGELOG.md](CHANGELOG.md). The tag covers every symbol kind
+the compatibility promise does (classes, interfaces, enum cases, methods, properties), and
+`phpstan/phpstan-deprecation-rules` reports usages statically. Once the PHP floor reaches 8.4, the
+native `#[\Deprecated]` attribute is added as a runtime signal where PHP supports it (methods and class
+constants), alongside the tag rather than replacing it. A deprecated symbol survives for at least one
 subsequent minor before it is removed in the next major. While in `0.x` a deprecation may be removed in the
 following minor, so treat every `0.x` deprecation as imminent. This short window covers SDK-originated
 deprecations only: a deprecation that mirrors a spec feature follows the spec's longer lifecycle instead
@@ -83,8 +87,7 @@ stays in the spec for at least twelve months before it becomes eligible for **Re
 that lifecycle:
 
 - A revision that only adds features or marks deprecations is adopted as a backwards-compatible **minor**.
-  The new surface is added, and the SDK symbols for any newly deprecated spec feature are marked
-  `#[\Deprecated]`.
+  The new surface is added, and the SDK symbols for any newly deprecated spec feature are marked `@deprecated`.
 - A **major** (or, while in `0.x`, a minor) is reserved for when the SDK drops a removed feature or makes an
   otherwise incompatible change. Per SEP-2596 a spec removal does not oblige the SDK to drop the feature at
   once. The removal timeline is set by this policy, not by the spec's release date.
