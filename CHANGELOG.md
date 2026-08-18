@@ -15,6 +15,8 @@ in `0.x`, minor releases may include breaking changes.
   new transport serves live streams again. See BREAKING_CHANGES.md.
 - A concurrent `close()` on the HTTP transports and `InMemoryTransport` now blocks until the close
   settles, matching stdio, and `TransportInterface::close()` documents the guarantee.
+- The extension contracts move into `Server\Extension` and `Client\Extension`, mirroring
+  `Core\Extension`. See BREAKING_CHANGES.md.
 
 ### Security
 

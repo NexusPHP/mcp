@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Extension\Apps\Client;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Client\ClientExtensionInterface;
+use Nexus\Mcp\Client\Extension\ClientExtensionInterface;
 use Nexus\Mcp\Extension\Apps\Apps;
 
 /**

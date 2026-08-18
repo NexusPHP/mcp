@@ -25,8 +25,8 @@ use Nexus\Mcp\Extension\Tasks\Server\Handler\UpdateTaskRequestHandler;
 use Nexus\Mcp\Extension\Tasks\Server\Store\InMemoryTaskStore;
 use Nexus\Mcp\Extension\Tasks\Server\Store\TaskStoreInterface;
 use Nexus\Mcp\Extension\Tasks\Tasks;
-use Nexus\Mcp\Server\RequestHandlerDecoratorInterface;
-use Nexus\Mcp\Server\ServerExtensionInterface;
+use Nexus\Mcp\Server\Extension\RequestHandlerDecoratorInterface;
+use Nexus\Mcp\Server\Extension\ServerExtensionInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 

@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Extension\Auth\ClientCredentials;
 
-use Nexus\Mcp\Server\ServerExtensionInterface;
+use Nexus\Mcp\Server\Extension\ServerExtensionInterface;
 
 /**
  * The official OAuth client credentials extension (`io.modelcontextprotocol/oauth-client-credentials`,

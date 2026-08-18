@@ -6,6 +6,14 @@ for *when* breaking changes may land and how they are communicated lives in
 
 ## v0.13.0 to Unreleased
 
+### The extension contracts move under `Extension` namespaces
+
+`Nexus\Mcp\Server\ServerExtensionInterface` and `Nexus\Mcp\Server\RequestHandlerDecoratorInterface`
+are now `Nexus\Mcp\Server\Extension\{ServerExtensionInterface, RequestHandlerDecoratorInterface}`, and
+`Nexus\Mcp\Client\ClientExtensionInterface` is now
+`Nexus\Mcp\Client\Extension\ClientExtensionInterface`, mirroring `Nexus\Mcp\Core\Extension`. Update
+the `use` statements. Nothing else about the contracts changed.
+
 ### `SubscriptionStoreInterface::open()` gains a `$peer` parameter
 
 `open()` now takes `?string $peer = null`, the stable identity the per-peer subscription budget is

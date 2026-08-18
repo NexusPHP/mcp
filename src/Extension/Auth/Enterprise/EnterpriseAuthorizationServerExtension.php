@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Extension\Auth\Enterprise;
 
-use Nexus\Mcp\Server\ServerExtensionInterface;
+use Nexus\Mcp\Server\Extension\ServerExtensionInterface;
 
 /**
  * The official enterprise-managed authorization extension

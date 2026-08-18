@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Fixtures\Client\Extension;
 
 use Nexus\Mcp\Client\ClientContext;
-use Nexus\Mcp\Client\ClientExtensionInterface;
+use Nexus\Mcp\Client\Extension\ClientExtensionInterface;
 use Nexus\Mcp\Core\Handler\NotificationHandlerInterface;
 use Nexus\Mcp\Core\Handler\RequestHandlerInterface;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;

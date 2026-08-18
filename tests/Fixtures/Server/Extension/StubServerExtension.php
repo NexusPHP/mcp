@@ -18,8 +18,8 @@ use Nexus\Mcp\Core\Handler\RequestHandlerInterface;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\Result;
+use Nexus\Mcp\Server\Extension\ServerExtensionInterface;
 use Nexus\Mcp\Server\ServerContext;
-use Nexus\Mcp\Server\ServerExtensionInterface;
 
 /**
  * Server extension declaration assembled from constructor arguments.

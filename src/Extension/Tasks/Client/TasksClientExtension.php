@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Extension\Tasks\Client;
 
-use Nexus\Mcp\Client\ClientExtensionInterface;
+use Nexus\Mcp\Client\Extension\ClientExtensionInterface;
 use Nexus\Mcp\Extension\Tasks\Schema\Request\CancelTaskRequest;
 use Nexus\Mcp\Extension\Tasks\Schema\Request\GetTaskRequest;
 use Nexus\Mcp\Extension\Tasks\Schema\Request\UpdateTaskRequest;

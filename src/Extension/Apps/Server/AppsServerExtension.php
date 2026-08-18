@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Extension\Apps\Server;
 
 use Nexus\Mcp\Extension\Apps\Apps;
-use Nexus\Mcp\Server\ServerExtensionInterface;
+use Nexus\Mcp\Server\Extension\ServerExtensionInterface;
 
 /**
  * The official MCP Apps extension (`io.modelcontextprotocol/ui`, SEP-1865) for the server.
