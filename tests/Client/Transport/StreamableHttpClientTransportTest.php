@@ -51,6 +51,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use Psr\Log\LogLevel;
 
+use function Amp\async;
 use function Amp\ByteStream\buffer;
 use function Amp\delay;
 
@@ -937,6 +938,95 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
             ['label' => 'Streamable HTTP client', 'verb' => 'registered', 'article' => 'a', 'kind' => 'message', 'count' => 1],
             $records[0]['context'],
         );
+    }
+
+    public function testAConcurrentCloseStillReturnsWhenACloseListenerThrows(): void
+    {
+        $transport = self::makeTransport(new RecordingHttpClient());
+        $transport->onDrain(static function (): void {
+            delay(0.02);
+        });
+        $transport->onClose(static function (): void {
+            throw new \RuntimeException('close listener blew up');
+        });
+
+        $events = [];
+        $second = async(static function () use ($transport, &$events): void {
+            delay(0.01);
+            $transport->close();
+            $events[] = 'second:returned';
+        });
+
+        try {
+            $transport->close();
+        } catch (\RuntimeException) {
+            $events[] = 'first:threw';
+        }
+
+        $second->await();
+
+        self::assertSame(
+            ['first:threw', 'second:returned'],
+            $events,
+            'The close must settle for concurrent closers even when a close listener throws.',
+        );
+    }
+
+    public function testAConcurrentCloseBlocksUntilTheFirstHasSettled(): void
+    {
+        $transport = self::makeTransport(new RecordingHttpClient());
+        $events = [];
+        $transport->onDrain(static function () use (&$events): void {
+            $events[] = 'drain:start';
+            delay(0.02);
+            $events[] = 'drain:end';
+        });
+
+        $first = async(static function () use ($transport, &$events): void {
+            $transport->close();
+            $events[] = 'first:returned';
+        });
+        $second = async(static function () use ($transport, &$events): void {
+            delay(0.01);
+            $transport->close();
+            $events[] = 'second:returned';
+
+            try {
+                $transport->send(self::discoverRequest());
+                $events[] = 'second:sent';
+            } catch (TransportAlreadyClosedException) {
+                $events[] = 'second:send-refused';
+            }
+        });
+        $first->await();
+        $second->await();
+
+        self::assertSame(
+            ['drain:start', 'drain:end', 'first:returned', 'second:returned', 'second:send-refused'],
+            $events,
+            'A concurrent close must block until the first has settled, and a send after it returns must be refused.',
+        );
+    }
+
+    public function testAnErrorListenerReenteringCloseFromAnExchangeReturnsImmediately(): void
+    {
+        $gate = new DeferredFuture();
+        $http = (new RecordingHttpClient())->willAnswerJson(self::resultEnvelope(), gate: $gate->getFuture());
+        $transport = self::makeTransport($http);
+        $events = [];
+        $transport->onError(static function () use ($transport, &$events): void {
+            $events[] = 'error';
+            $transport->close();
+            $events[] = 'listener:returned';
+        });
+
+        $transport->send(self::discoverRequest());
+        delay(0.0);
+        async(static fn() => $gate->error(new HttpException('exchange failed')));
+        $transport->close();
+        $events[] = 'close:returned';
+
+        self::assertSame(['error', 'listener:returned', 'close:returned'], $events);
     }
 
     public function testCloseLogsTheClosure(): void

@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Transport;
 
+use Amp\DeferredFuture;
 use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyStartedException;
 use Nexus\Mcp\Core\Exception\TransportNotStartedException;
@@ -37,6 +38,16 @@ final class InMemoryTransport implements TransportInterface
      * drain so a listener may still send.
      */
     private bool $closing = false;
+
+    /**
+     * @var null|\Fiber<mixed, mixed, mixed, mixed> The close owner, `null` while no close is in progress or when {main} owns it
+     */
+    private ?\Fiber $closingFiber = null;
+
+    /**
+     * @var null|DeferredFuture<null>
+     */
+    private ?DeferredFuture $closeCompletion = null;
 
     private ?self $peer = null;
     private readonly TransportEvents $events;
@@ -98,22 +109,37 @@ final class InMemoryTransport implements TransportInterface
     public function close(): void
     {
         if ($this->closing) {
+            if (\Fiber::getCurrent() === $this->closingFiber) {
+                return;
+            }
+
+            $this->closeCompletion?->getFuture()->await();
+
             return;
         }
 
         $this->closing = true;
+        $this->closingFiber = \Fiber::getCurrent();
+
+        /** @var DeferredFuture<null> $completion */
+        $completion = new DeferredFuture();
+        $this->closeCompletion = $completion;
 
         try {
             $this->events->emitDrain();
         } finally {
             $this->state = TransportState::Closed;
 
-            $peer = $this->peer;
-            $this->peer = null;
+            try {
+                $peer = $this->peer;
+                $this->peer = null;
 
-            $peer?->close();
+                $peer?->close();
 
-            $this->events->emitClose();
+                $this->events->emitClose();
+            } finally {
+                $completion->complete();
+            }
         }
     }
 

@@ -229,6 +229,76 @@ final class InMemoryTransportTest extends AbstractMcpTestCase
         self::assertSame(['drain', 'close'], $order);
     }
 
+    public function testAConcurrentCloseStillReturnsWhenACloseListenerThrows(): void
+    {
+        [$transport] = InMemoryTransport::createPair();
+        $transport->start();
+        $transport->onDrain(static function (): void {
+            delay(0.02);
+        });
+        $transport->onClose(static function (): void {
+            throw new \RuntimeException('close listener blew up');
+        });
+
+        $events = [];
+        $second = async(static function () use ($transport, &$events): void {
+            delay(0.01);
+            $transport->close();
+            $events[] = 'second:returned';
+        });
+
+        try {
+            $transport->close();
+        } catch (\RuntimeException) {
+            $events[] = 'first:threw';
+        }
+
+        $second->await();
+
+        self::assertSame(
+            ['first:threw', 'second:returned'],
+            $events,
+            'The close must settle for concurrent closers even when a close listener throws.',
+        );
+    }
+
+    public function testAConcurrentCloseBlocksUntilTheFirstHasSettled(): void
+    {
+        [$transport] = InMemoryTransport::createPair();
+        $transport->start();
+        $events = [];
+        $transport->onDrain(static function () use (&$events): void {
+            $events[] = 'drain:start';
+            delay(0.02);
+            $events[] = 'drain:end';
+        });
+
+        $first = async(static function () use ($transport, &$events): void {
+            $transport->close();
+            $events[] = 'first:returned';
+        });
+        $second = async(static function () use ($transport, &$events): void {
+            delay(0.01);
+            $transport->close();
+            $events[] = 'second:returned';
+
+            try {
+                $transport->send(new ToolListChangedNotification());
+                $events[] = 'second:sent';
+            } catch (TransportAlreadyClosedException) {
+                $events[] = 'second:send-refused';
+            }
+        });
+        $first->await();
+        $second->await();
+
+        self::assertSame(
+            ['drain:start', 'drain:end', 'first:returned', 'second:returned', 'second:send-refused'],
+            $events,
+            'A concurrent close must block until the first has settled, and a send after it returns must be refused.',
+        );
+    }
+
     public function testAConcurrentCloseDoesNotRefireListeners(): void
     {
         [$a] = InMemoryTransport::createPair();

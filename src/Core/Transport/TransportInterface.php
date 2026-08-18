@@ -43,6 +43,8 @@ interface TransportInterface
     /**
      * Closes the connection once, firing `onClose()` after the underlying streams close, which an
      * implementation MUST also do after a fatal error since `Server::run()` blocks on that signal.
+     * A call from another fiber while a close is in progress MUST block until that close settles,
+     * while one re-entering from the closing fiber returns immediately.
      */
     public function close(): void;
 

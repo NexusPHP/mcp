@@ -13,6 +13,8 @@ in `0.x`, minor releases may include breaking changes.
 - `ClientBuilder` refuses every registration after `build()`, matching `ServerBuilder`.
 - `SubscriptionStoreInterface` gains `reopen()`, called by `Server` on attach, so a store reused on a
   new transport serves live streams again. See BREAKING_CHANGES.md.
+- A concurrent `close()` on the HTTP transports and `InMemoryTransport` now blocks until the close
+  settles, matching stdio, and `TransportInterface::close()` documents the guarantee.
 
 ### Security
 

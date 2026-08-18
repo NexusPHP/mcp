@@ -37,6 +37,11 @@ The four `on*` methods are listener registration. The `Server` registers listene
 `onError` (log), `onDrain` (await in-flight coroutines), and `onClose` (resolve the run-future) once,
 before calling `start()`.
 
+`close()` blocks until the close settles: a `close()` arriving from another fiber while one is in
+progress awaits that close's completion, so no caller returns while the drain is still running, and a
+`send()` after any returned `close()` throws. A close re-entering from the closing fiber itself (a drain
+listener, a cascade peer) returns immediately. All bundled transports honour this uniformly.
+
 Inbound request ids are the dispatcher's only correlation key: `notifications/cancelled` is honoured by
 id alone, with no connection dimension. A transport serving several peers at once MUST namespace or
 rewrite inbound ids so two peers' ids can never collide, or one peer can cancel or answer another's

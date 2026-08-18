@@ -1341,6 +1341,74 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
         self::assertSame(['label' => 'Streamable HTTP server'], $matches[0]['context']);
     }
 
+    public function testAConcurrentCloseStillReturnsWhenACloseListenerThrows(): void
+    {
+        $transport = self::makeTransport();
+        $transport->onDrain(static function (): void {
+            delay(0.02);
+        });
+        $transport->onClose(static function (): void {
+            throw new \RuntimeException('close listener blew up');
+        });
+
+        $events = [];
+        $second = async(static function () use ($transport, &$events): void {
+            delay(0.01);
+            $transport->close();
+            $events[] = 'second:returned';
+        });
+
+        try {
+            $transport->close();
+        } catch (\RuntimeException) {
+            $events[] = 'first:threw';
+        }
+
+        $second->await();
+
+        self::assertSame(
+            ['first:threw', 'second:returned'],
+            $events,
+            'The close must settle for concurrent closers even when a close listener throws.',
+        );
+    }
+
+    public function testAConcurrentCloseBlocksUntilTheFirstHasSettled(): void
+    {
+        $transport = self::makeTransport();
+        $events = [];
+        $transport->onDrain(static function () use (&$events): void {
+            $events[] = 'drain:start';
+            delay(0.02);
+            $events[] = 'drain:end';
+        });
+
+        $first = async(static function () use ($transport, &$events): void {
+            $transport->close();
+            $events[] = 'first:returned';
+        });
+        $second = async(static function () use ($transport, &$events): void {
+            delay(0.01);
+            $transport->close();
+            $events[] = 'second:returned';
+
+            try {
+                $transport->send(new ToolListChangedNotification(params: new EmptyNotificationParams()));
+                $events[] = 'second:sent';
+            } catch (TransportAlreadyClosedException) {
+                $events[] = 'second:send-refused';
+            }
+        });
+        $first->await();
+        $second->await();
+
+        self::assertSame(
+            ['drain:start', 'drain:end', 'first:returned', 'second:returned', 'second:send-refused'],
+            $events,
+            'A concurrent close must block until the first has settled, and a send after it returns must be refused.',
+        );
+    }
+
     public function testCloseDrainsBeforeSignallingCloseAndIsIdempotent(): void
     {
         $transport = self::makeTransport();
