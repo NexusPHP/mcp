@@ -8,6 +8,14 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp/commits/1.x)
 
+## [v0.14.0](https://github.com/NexusPHP/mcp/compare/v0.13.0...v0.14.0) - 2026-08-18
+
+Subscription streams are now budgeted per authorized peer alongside the server-wide cap, and a store
+reused across transports serves live streams again. A concurrent `close()` blocks until the close
+settles on every transport, and `ClientBuilder` refuses registration after `build()`. The extension
+contracts move under `Server\Extension` and `Client\Extension` (see
+[BREAKING_CHANGES.md](BREAKING_CHANGES.md)).
+
 ### Changed
 
 - `ClientBuilder` refuses every registration after `build()`, matching `ServerBuilder`.
