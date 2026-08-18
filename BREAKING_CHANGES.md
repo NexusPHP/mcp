@@ -6,6 +6,12 @@ for *when* breaking changes may land and how they are communicated lives in
 
 ## v0.13.0 to Unreleased
 
+### `SubscriptionStoreInterface` gains `reopen()`
+
+A store reused on a new transport must clear its drained state, so the interface now declares
+`reopen(): void` and `Server` calls it when attaching to a transport. A custom implementation adds the
+method (for the bundled `SubscriptionStore` it resets the flag `closeAll()` sets).
+
 ## v0.12.0 to v0.13.0
 
 ### Message-only exceptions collapsed into `LogicException` and `RuntimeException`

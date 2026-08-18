@@ -46,6 +46,19 @@ use function Amp\delay;
 #[Group('server-tests')]
 final class ServerTest extends AbstractMcpTestCase
 {
+    public function testAttachingANewTransportReopensADrainedStore(): void
+    {
+        $subscriptions = new SubscriptionStore(toolsListChanged: true);
+        $server = (new ServerBuilder())->setServerInfo('demo', '1.0.0')->setSubscriptionStore($subscriptions)->build();
+
+        $subscriptions->closeAll();
+        $server->listen(new RecordingTransport());
+
+        $entry = $subscriptions->open(new RequestId(id: 1), new SubscriptionFilter(toolsListChanged: true), new RecordingSender());
+
+        self::assertFalse($entry->closed->isComplete(), 'A store reused on a new transport must serve live streams again.');
+    }
+
     public function testRunStartsTheTransport(): void
     {
         $transport = new RecordingTransport();

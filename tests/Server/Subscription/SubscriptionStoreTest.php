@@ -333,6 +333,27 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
         self::assertTrue($second->closed->isComplete());
     }
 
+    public function testAStreamOpenedAfterTheDrainSettlesAtOnce(): void
+    {
+        $store = new SubscriptionStore();
+        $store->closeAll();
+
+        $entry = $store->open(new RequestId(id: 1), new SubscriptionFilter(), new RecordingSender());
+
+        self::assertTrue($entry->closed->isComplete());
+    }
+
+    public function testReopenLetsAReusedStoreServeLiveStreamsAgain(): void
+    {
+        $store = new SubscriptionStore();
+        $store->closeAll();
+        $store->reopen();
+
+        $entry = $store->open(new RequestId(id: 1), new SubscriptionFilter(), new RecordingSender());
+
+        self::assertFalse($entry->closed->isComplete());
+    }
+
     public function testAnAllDigitResourceUriSurvivesTheArrayKeyCoercion(): void
     {
         $store = new SubscriptionStore(resourceSubscriptions: true);

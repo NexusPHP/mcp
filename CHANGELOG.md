@@ -11,6 +11,8 @@ in `0.x`, minor releases may include breaking changes.
 ### Changed
 
 - `ClientBuilder` refuses every registration after `build()`, matching `ServerBuilder`.
+- `SubscriptionStoreInterface` gains `reopen()`, called by `Server` on attach, so a store reused on a
+  new transport serves live streams again. See BREAKING_CHANGES.md.
 
 ## [v0.13.0](https://github.com/NexusPHP/mcp/compare/v0.12.0...v0.13.0) - 2026-08-14
 

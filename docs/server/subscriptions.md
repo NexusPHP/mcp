@@ -62,7 +62,8 @@ whose client already walked away, which announces nothing.
 
 `Server` calls `closeAll()` on drain, before awaiting in-flight coroutines, so a held-open stream cannot
 block shutdown. A stream opened after that point is settled immediately rather than held, since `Amp\async()`
-only queues a handler and a listen request can first run after the drain began.
+only queues a handler and a listen request can first run after the drain began. Attaching the server to a
+new transport calls `reopen()`, clearing that drained state so a reused store serves live streams again.
 
 Over Streamable HTTP the SDK ignores an inbound `notifications/cancelled` from a client. The spec makes
 closing the response stream the cancellation signal there, and a client's request id names its own id space
