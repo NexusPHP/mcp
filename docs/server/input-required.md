@@ -132,6 +132,7 @@ A client declares which modes it supports under its `elicitation` capability (`f
 the request's `_meta` carries that declaration per request, so check
 `$context->meta->clientCapabilities->elicitation` before choosing a mode.
 
-[`conformance/MultiRoundServer.php`](../../conformance/MultiRoundServer.php) is the worked example, covering a
-single round, a signed continuation token, a two-question sequence, and the same flow on a prompt. It runs
-unauthenticated, so it signs unbound: there is no caller identity there to bind to.
+[`examples/input-required.php`](../../examples/input-required.php) runs the round trip in one process, and
+[`conformance/MultiRoundServer.php`](../../conformance/MultiRoundServer.php) is the fuller worked example,
+covering a single round, a signed continuation token, a two-question sequence, and the same flow on a
+prompt. Both run unauthenticated, so they sign unbound: there is no caller identity there to bind to.

@@ -40,3 +40,6 @@ supports, and MUST NOT push a type that was not asked for.
   than settling. A server that *refuses* the subscription has answered it, so that still ends the stream on
   any transport. See [Subscriptions across a restart](../transports.md#subscriptions-across-a-restart) for the
   full list of what ends a stream for good.
+
+[`examples/subscriptions.php`](../../examples/subscriptions.php) runs both halves in one process: a
+filtered stream, a runtime tool addition, and a published resource update.
