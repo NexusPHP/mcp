@@ -921,6 +921,24 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
         );
     }
 
+    public function testListenerChurnIsLoggedAtDebug(): void
+    {
+        $logger = new ArrayLogger();
+        $transport = self::makeTransport(new RecordingHttpClient(), start: false, logger: $logger);
+
+        $transport->onMessage(static function (): void {});
+
+        $records = $logger->recordsMatching(
+            LogLevel::DEBUG,
+            '{label} transport {verb} {article} {kind} listener. {count} active.',
+        );
+        self::assertCount(1, $records);
+        self::assertSame(
+            ['label' => 'Streamable HTTP client', 'verb' => 'registered', 'article' => 'a', 'kind' => 'message', 'count' => 1],
+            $records[0]['context'],
+        );
+    }
+
     public function testCloseLogsTheClosure(): void
     {
         $logger = new ArrayLogger();

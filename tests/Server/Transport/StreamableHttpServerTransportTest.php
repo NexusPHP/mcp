@@ -1300,6 +1300,24 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
         $transport->start();
     }
 
+    public function testListenerChurnIsLoggedAtDebug(): void
+    {
+        $logger = new ArrayLogger();
+        $transport = self::makeTransport($logger, start: false);
+
+        $transport->onMessage(static function (): void {});
+
+        $records = $logger->recordsMatching(
+            LogLevel::DEBUG,
+            '{label} transport {verb} {article} {kind} listener. {count} active.',
+        );
+        self::assertCount(1, $records);
+        self::assertSame(
+            ['label' => 'Streamable HTTP server', 'verb' => 'registered', 'article' => 'a', 'kind' => 'message', 'count' => 1],
+            $records[0]['context'],
+        );
+    }
+
     public function testStartLogsTheStartAtInfo(): void
     {
         $logger = new ArrayLogger();

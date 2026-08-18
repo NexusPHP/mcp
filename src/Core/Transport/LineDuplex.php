@@ -103,19 +103,7 @@ final class LineDuplex
     ) {
         $this->readable = new ReadableBuffer('');
         $this->writable = new WritableBuffer();
-        $this->events = new TransportEvents(
-            onChange: function (string $kind, string $action, int $count): void {
-                $verb = match ($action) {
-                    'register' => 'registered',
-                    'dispose' => 'disposed',
-                };
-                $article = 'error' === $kind ? 'an' : 'a';
-                $this->logger->debug(
-                    '{label} transport {verb} {article} {kind} listener. {count} active.',
-                    ['label' => $this->label, 'verb' => $verb, 'article' => $article, 'kind' => $kind, 'count' => $count],
-                );
-            },
-        );
+        $this->events = TransportEvents::create($logger, $label);
     }
 
     /**

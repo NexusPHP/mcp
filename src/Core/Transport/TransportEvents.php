@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Transport;
 
+use Psr\Log\LoggerInterface;
+
 /**
  * Listener bookkeeping shared by transports, owning the `message`, `error`, `drain`, and `close` buckets.
  *
@@ -45,6 +47,28 @@ final class TransportEvents
      */
     public function __construct(private readonly ?\Closure $onChange = null)
     {
+    }
+
+    /**
+     * Creates an instance whose listener churn is logged through `$logger` at debug level.
+     *
+     * @param non-empty-string $label
+     */
+    public static function create(LoggerInterface $logger, string $label): self
+    {
+        return new self(
+            onChange: static function (string $kind, string $action, int $count) use ($logger, $label): void {
+                $verb = match ($action) {
+                    'register' => 'registered',
+                    'dispose' => 'disposed',
+                };
+                $article = 'error' === $kind ? 'an' : 'a';
+                $logger->debug(
+                    '{label} transport {verb} {article} {kind} listener. {count} active.',
+                    ['label' => $label, 'verb' => $verb, 'article' => $article, 'kind' => $kind, 'count' => $count],
+                );
+            },
+        );
     }
 
     /**

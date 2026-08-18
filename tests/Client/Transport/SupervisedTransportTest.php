@@ -347,6 +347,25 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         );
     }
 
+    public function testListenerChurnIsLoggedAtDebug(): void
+    {
+        $spawned = [];
+        $logger = new ArrayLogger();
+        $transport = $this->buildTransport($spawned, logger: $logger);
+
+        $transport->onMessage(static function (): void {});
+
+        $records = $logger->recordsMatching(
+            LogLevel::DEBUG,
+            '{label} transport {verb} {article} {kind} listener. {count} active.',
+        );
+        self::assertCount(1, $records);
+        self::assertSame(
+            ['label' => 'Supervised client', 'verb' => 'registered', 'article' => 'a', 'kind' => 'message', 'count' => 1],
+            $records[0]['context'],
+        );
+    }
+
     public function testAPeerThatThrowsOnCloseStillReportsTheCloseAndIsReleased(): void
     {
         $spawned = [];

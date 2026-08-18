@@ -17,9 +17,11 @@ use Nexus\Mcp\Core\Transport\ListenerHandleInterface;
 use Nexus\Mcp\Core\Transport\ReceiveContext;
 use Nexus\Mcp\Core\Transport\TransportEvents;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
+use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
+use Psr\Log\LogLevel;
 
 /**
  * @internal
@@ -149,6 +151,53 @@ final class TransportEventsTest extends AbstractMcpTestCase
         yield 'drain' => [static fn(TransportEvents $events) => $events->onDrain(static function (): void {}), 'drain'];
 
         yield 'close' => [static fn(TransportEvents $events) => $events->onClose(static function (): void {}), 'close'];
+    }
+
+    /**
+     * @param 'close'|'drain'|'error'|'message' $kind
+     * @param 'a'|'an'                          $article
+     */
+    #[DataProvider('provideCreateLogsListenerChurnAtDebugCases')]
+    public function testCreateLogsListenerChurnAtDebug(string $kind, string $article): void
+    {
+        $logger = new ArrayLogger();
+        $events = TransportEvents::create($logger, 'Churny');
+
+        $subscription = match ($kind) {
+            'message' => $events->onMessage(static function (): void {}),
+            'error' => $events->onError(static function (): void {}),
+            'drain' => $events->onDrain(static function (): void {}),
+            'close' => $events->onClose(static function (): void {}),
+        };
+        $subscription->dispose();
+
+        $records = $logger->recordsMatching(
+            LogLevel::DEBUG,
+            '{label} transport {verb} {article} {kind} listener. {count} active.',
+        );
+        self::assertCount(2, $records);
+        self::assertSame(
+            ['label' => 'Churny', 'verb' => 'registered', 'article' => $article, 'kind' => $kind, 'count' => 1],
+            $records[0]['context'],
+        );
+        self::assertSame(
+            ['label' => 'Churny', 'verb' => 'disposed', 'article' => $article, 'kind' => $kind, 'count' => 0],
+            $records[1]['context'],
+        );
+    }
+
+    /**
+     * @return iterable<string, array{'close'|'drain'|'error'|'message', 'a'|'an'}>
+     */
+    public static function provideCreateLogsListenerChurnAtDebugCases(): iterable
+    {
+        yield 'message' => ['message', 'a'];
+
+        yield 'drain' => ['drain', 'a'];
+
+        yield 'close' => ['close', 'a'];
+
+        yield 'error' => ['error', 'an'];
     }
 
     public function testOnChangeIsOptional(): void
