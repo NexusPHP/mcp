@@ -443,6 +443,87 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
         self::assertSame([], self::methodsOf($sender), 'A refused stream is never acknowledged.');
     }
 
+    public function testOpeningPastThePerPeerLimitIsRefused(): void
+    {
+        $store = new SubscriptionStore(maxSubscriptionsPerPeer: 1);
+        $store->open(new RequestId(id: 1), new SubscriptionFilter(), new RecordingSender(), peer: 'alice');
+        $sender = new RecordingSender();
+
+        try {
+            $store->open(new RequestId(id: 2), new SubscriptionFilter(), $sender, peer: 'alice');
+            self::fail('The store must refuse a stream past its per-peer limit.');
+        } catch (SubscriptionLimitReachedException $e) {
+            self::assertSame('Subscription limit reached: this server holds at most 1 open streams per client.', $e->getMessage());
+            self::assertSame(ProtocolErrorCode::InternalError, $e::getErrorCode());
+        }
+
+        self::assertSame([], self::methodsOf($sender), 'A refused stream is never acknowledged.');
+    }
+
+    public function testDistinctPeersSpendSeparateBudgets(): void
+    {
+        $store = new SubscriptionStore(maxSubscriptionsPerPeer: 1);
+        $store->open(new RequestId(id: 1), new SubscriptionFilter(), new RecordingSender(), peer: 'alice');
+
+        $entry = $store->open(new RequestId(id: 2), new SubscriptionFilter(), new RecordingSender(), peer: 'bob');
+
+        self::assertFalse($entry->closed->isComplete());
+    }
+
+    public function testAnAnonymousStreamSpendsNoPerPeerBudget(): void
+    {
+        $store = new SubscriptionStore(maxSubscriptionsPerPeer: 1);
+        $store->open(new RequestId(id: 1), new SubscriptionFilter(), new RecordingSender());
+
+        $entry = $store->open(new RequestId(id: 2), new SubscriptionFilter(), new RecordingSender());
+
+        self::assertFalse($entry->closed->isComplete());
+    }
+
+    public function testClosingAStreamReleasesItsPeerSlot(): void
+    {
+        $store = new SubscriptionStore(maxSubscriptionsPerPeer: 2);
+        $first = $store->open(new RequestId(id: 1), new SubscriptionFilter(), new RecordingSender(), peer: 'alice');
+        $store->open(new RequestId(id: 2), new SubscriptionFilter(), new RecordingSender(), peer: 'alice');
+
+        $store->close($first);
+        $store->open(new RequestId(id: 3), new SubscriptionFilter(), new RecordingSender(), peer: 'alice');
+
+        $this->expectException(SubscriptionLimitReachedException::class);
+        $this->expectExceptionMessageIs('Subscription limit reached: this server holds at most 2 open streams per client.');
+
+        $store->open(new RequestId(id: 4), new SubscriptionFilter(), new RecordingSender(), peer: 'alice');
+    }
+
+    public function testAFailedAcknowledgementReleasesThePeerSlot(): void
+    {
+        $store = new SubscriptionStore(maxSubscriptionsPerPeer: 1);
+        $vanished = self::createStub(SenderInterface::class);
+        $vanished->method('sendNotification')->willThrowException(new TransportAlreadyClosedException('send a notification'));
+
+        try {
+            $store->open(new RequestId(id: 1), new SubscriptionFilter(), $vanished, peer: 'alice');
+            self::fail('The acknowledgement failure must surface.');
+        } catch (TransportAlreadyClosedException) {
+        }
+
+        $entry = $store->open(new RequestId(id: 2), new SubscriptionFilter(), new RecordingSender(), peer: 'alice');
+
+        self::assertFalse($entry->closed->isComplete());
+    }
+
+    public function testAStreamSettledByTheDrainReleasesThePeerSlot(): void
+    {
+        $store = new SubscriptionStore(maxSubscriptionsPerPeer: 1);
+        $store->closeAll();
+        $store->open(new RequestId(id: 1), new SubscriptionFilter(), new RecordingSender(), peer: 'alice');
+
+        $store->reopen();
+        $entry = $store->open(new RequestId(id: 2), new SubscriptionFilter(), new RecordingSender(), peer: 'alice');
+
+        self::assertFalse($entry->closed->isComplete());
+    }
+
     public function testAStreamWhoseAcknowledgementIsStillInFlightHoldsItsSlotAgainstTheLimit(): void
     {
         $store = new SubscriptionStore(toolsListChanged: true, maxSubscriptions: 1);
@@ -516,22 +597,43 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
     }
 
     #[DataProvider('provideTheSubscriptionLimitMustBePositiveCases')]
-    public function testTheSubscriptionLimitMustBePositive(int $limit): void
+    public function testTheSubscriptionLimitMustBePositive(mixed $limit, string $expectedMessage): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs(\sprintf('The maximum open subscriptions must be a positive integer, %d given.', $limit));
+        $this->expectExceptionMessageIs($expectedMessage);
 
+        // @phpstan-ignore argument.type
         new SubscriptionStore(maxSubscriptions: $limit);
     }
 
     /**
-     * @return iterable<string, array{int}>
+     * @return iterable<string, array{mixed, string}>
      */
     public static function provideTheSubscriptionLimitMustBePositiveCases(): iterable
     {
-        yield 'zero' => [0];
+        yield 'zero' => [0, 'The maximum open subscriptions must be a positive integer, 0 given.'];
 
-        yield 'negative' => [-1];
+        yield 'negative' => [-1, 'The maximum open subscriptions must be a positive integer, -1 given.'];
+    }
+
+    #[DataProvider('provideThePerPeerSubscriptionLimitMustBePositiveCases')]
+    public function testThePerPeerSubscriptionLimitMustBePositive(mixed $limit, string $expectedMessage): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs($expectedMessage);
+
+        // @phpstan-ignore argument.type
+        new SubscriptionStore(maxSubscriptionsPerPeer: $limit);
+    }
+
+    /**
+     * @return iterable<string, array{mixed, string}>
+     */
+    public static function provideThePerPeerSubscriptionLimitMustBePositiveCases(): iterable
+    {
+        yield 'zero' => [0, 'The maximum open subscriptions per peer must be a positive integer, 0 given.'];
+
+        yield 'negative' => [-1, 'The maximum open subscriptions per peer must be a positive integer, -1 given.'];
     }
 
     public function testAStreamOpenedAfterTheDrainIsSettledAtOnce(): void

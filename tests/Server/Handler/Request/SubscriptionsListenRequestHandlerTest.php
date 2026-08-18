@@ -15,12 +15,14 @@ namespace Nexus\Mcp\Tests\Server\Handler\Request;
 
 use Amp\DeferredCancellation;
 use Amp\NullCancellation;
+use Nexus\Mcp\Core\Auth\VerifiedAccessToken;
 use Nexus\Mcp\Core\Schema\Request\SubscriptionsListenRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\SubscriptionsListenRequestParams;
 use Nexus\Mcp\Core\Schema\Result\SubscriptionsListenResult;
 use Nexus\Mcp\Core\Schema\SubscriptionFilter;
 use Nexus\Mcp\Core\Transport\ReceiveContext;
+use Nexus\Mcp\Server\Exception\SubscriptionLimitReachedException;
 use Nexus\Mcp\Server\Handler\Request\SubscriptionsListenRequestHandler;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Server\Subscription\SubscriptionStore;
@@ -106,6 +108,55 @@ final class SubscriptionsListenRequestHandlerTest extends AbstractMcpTestCase
         $params = $ack->jsonSerialize()['params'] ?? [];
         self::assertIsArray($params);
         self::assertSame(['io.modelcontextprotocol/subscriptionId' => 'client-7'], $params['_meta'] ?? null);
+    }
+
+    public function testTheStreamIsBudgetedByTheTokensClientIdOverItsSubject(): void
+    {
+        $store = new SubscriptionStore(toolsListChanged: true, maxSubscriptionsPerPeer: 1);
+        $handler = new SubscriptionsListenRequestHandler($store);
+
+        $running = async(static fn(): SubscriptionsListenResult => $handler->handle(
+            self::listenRequest(1),
+            self::authorizedContextFor(1, new RecordingSender(), clientId: 'cli-1', subject: 'sub-a'),
+        ));
+        delay(0.0);
+
+        try {
+            $handler->handle(
+                self::listenRequest(2),
+                self::authorizedContextFor(2, new RecordingSender(), clientId: 'cli-1', subject: 'sub-b'),
+            );
+            self::fail('A second stream for the same OAuth client must be refused.');
+        } catch (SubscriptionLimitReachedException $e) {
+            self::assertSame('Subscription limit reached: this server holds at most 1 open streams per client.', $e->getMessage());
+        }
+
+        $store->closeAll();
+        $running->await();
+    }
+
+    public function testTheStreamIsBudgetedByTheSubjectWhenTheTokenNamesNoClient(): void
+    {
+        $store = new SubscriptionStore(toolsListChanged: true, maxSubscriptionsPerPeer: 1);
+        $handler = new SubscriptionsListenRequestHandler($store);
+
+        $running = async(static fn(): SubscriptionsListenResult => $handler->handle(
+            self::listenRequest(1),
+            self::authorizedContextFor(1, new RecordingSender(), clientId: null, subject: 'sub-1'),
+        ));
+        delay(0.0);
+
+        $this->expectException(SubscriptionLimitReachedException::class);
+
+        try {
+            $handler->handle(
+                self::listenRequest(2),
+                self::authorizedContextFor(2, new RecordingSender(), clientId: null, subject: 'sub-1'),
+            );
+        } finally {
+            $store->closeAll();
+            $running->await();
+        }
     }
 
     public function testAnAbandonedStreamStopsTheHandlerAndDeregistersIt(): void
@@ -221,6 +272,26 @@ final class SubscriptionsListenRequestHandlerTest extends AbstractMcpTestCase
             new NullCancellation(),
             RequestMetaObjectFactory::create(),
             $sender,
+        );
+    }
+
+    /**
+     * @param int|non-empty-string  $id
+     * @param null|non-empty-string $clientId
+     * @param null|non-empty-string $subject
+     */
+    private static function authorizedContextFor(int|string $id, RecordingSender $sender, ?string $clientId, ?string $subject): ServerContext
+    {
+        return new ServerContext(
+            new RequestId(id: $id),
+            new NullCancellation(),
+            RequestMetaObjectFactory::create(),
+            $sender,
+            new ReceiveContext(authInfo: new VerifiedAccessToken(
+                audience: ['https://mcp.test'],
+                subject: $subject,
+                clientId: $clientId,
+            )),
         );
     }
 }

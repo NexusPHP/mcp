@@ -14,6 +14,11 @@ in `0.x`, minor releases may include breaking changes.
 - `SubscriptionStoreInterface` gains `reopen()`, called by `Server` on attach, so a store reused on a
   new transport serves live streams again. See BREAKING_CHANGES.md.
 
+### Security
+
+- `SubscriptionStore` budgets streams per authorized peer (`maxSubscriptionsPerPeer`, default 256), so
+  one OAuth client cannot exhaust the server-wide subscription cap. See BREAKING_CHANGES.md.
+
 ## [v0.13.0](https://github.com/NexusPHP/mcp/compare/v0.12.0...v0.13.0) - 2026-08-14
 
 Peer-visible diagnostics now speak one documented grammar, from schema validation through argument

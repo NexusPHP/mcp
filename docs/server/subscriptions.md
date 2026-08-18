@@ -10,6 +10,7 @@ $subscriptions = new SubscriptionStore(
     resourcesListChanged: true,
     resourceSubscriptions: true,
     maxSubscriptions: 1024,
+    maxSubscriptionsPerPeer: 256,
 );
 
 $builder->setSubscriptionStore($subscriptions);
@@ -18,6 +19,11 @@ $builder->setSubscriptionStore($subscriptions);
 `maxSubscriptions` bounds how many streams one store holds open, defaulting to
 `SubscriptionStore::DEFAULT_MAX_SUBSCRIPTIONS` (1024). A listen request past the limit is refused with
 `-32603` before any acknowledgement, so the client never sees a stream it does not have.
+
+`maxSubscriptionsPerPeer` (default `DEFAULT_MAX_SUBSCRIPTIONS_PER_PEER`, 256) bounds the streams one
+authorized client holds, so a single tenant cannot exhaust the shared budget. The peer is the verified
+token's OAuth client id, or its subject when the token names no client. On an unprotected endpoint
+requests carry no identity, so only the server-wide cap applies.
 
 The constructor flags say what this server can actually deliver, and they are what `build()` reads to derive
 the `listChanged` and `subscribe` capabilities. A listen request is acknowledged with the intersection of

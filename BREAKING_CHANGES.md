@@ -6,6 +6,13 @@ for *when* breaking changes may land and how they are communicated lives in
 
 ## v0.13.0 to Unreleased
 
+### `SubscriptionStoreInterface::open()` gains a `$peer` parameter
+
+`open()` now takes `?string $peer = null`, the stable identity the per-peer subscription budget is
+keyed by. `SubscriptionsListenRequestHandler` passes the verified token's client id (or subject), and
+the bundled `SubscriptionStore` refuses a peer holding `maxSubscriptionsPerPeer` streams (default 256).
+A custom implementation adds the parameter and may ignore it.
+
 ### `SubscriptionStoreInterface` gains `reopen()`
 
 A store reused on a new transport must clear its drained state, so the interface now declares
