@@ -43,7 +43,7 @@ The other eight are the `wire-schema-valid` check the referee validates each sen
 
 Reproduce with `composer conformance:server`, `composer conformance:client`, then `composer conformance:score`. The referee exits non-zero on an unlisted failure and on a stale baseline entry, so the list burns down rather than rotting.
 
-**Tier verdict**: `tier-check` reports **Tier 3**, with `Stable Release` as the single failing check. Conformance, labels (12 of 12), triage, and P0 resolution all pass. `Policy Signals` reports partial because this repository keeps `DEPENDENCY_POLICY.md`, `ROADMAP.md`, `BREAKING_CHANGES.md`, and `VERSIONING.md` at the root rather than under `docs/`, and uses `.github/dependabot.yml` in place of a Renovate config.
+**Tier verdict**: `tier-check` reports **Tier 3**, with `Stable Release` as the single failing check. Conformance, labels (12 of 12), triage, and P0 resolution all pass. `Policy Signals` reports partial because this repository keeps `DEPENDENCY_POLICY.md`, `ROADMAP.md`, `BREAKING_CHANGES.md`, and `VERSIONING.md` at the root rather than under `docs/`, and uses `.github/dependabot.yml` in place of a Renovate config. The partial is accepted: every document the check wants exists and is current, root placement is where GitHub and consumers look for policy files, and dependency tooling is not chosen to satisfy a scorer's proxy. Do not add `docs/` pointer stubs or a Renovate config for this signal.
 
 ---
 
