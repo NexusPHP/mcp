@@ -4,7 +4,7 @@ This document is the SDK's forward plan: what is queued for the next releases, a
 tracks MCP spec revisions and PHP language versions.
 
 It carries no history. For what already ships, see [docs/architecture.md](docs/architecture.md) and the
-per-feature map in [docs/features.md](docs/features.md). For what changed in a given release, see
+guides under [docs/](docs/). For what changed in a given release, see
 [CHANGELOG.md](CHANGELOG.md), and for porting between revisions, [BREAKING_CHANGES.md](BREAKING_CHANGES.md).
 
 The SDK targets MCP spec **2026-07-28** and is published on Packagist as a pre-stable `0.x` line.
@@ -78,4 +78,4 @@ Tracked, but not engineering work in this repository.
 - **[Client API](docs/client.md)**: client builder + typed request reference.
 - **[Transports](docs/transports.md)**: stdio contract + HTTP planning.
 - **[Architecture](docs/architecture.md)**: dispatch kernel, layering, spec compliance.
-- **[Features](docs/features.md)**: the SEP-1730 feature list, row by row.
+- **[Tiering checklist](.github/TIERING_CHECKLIST.md)**: the SEP-1730 assessment, including the features the targeted revision removed.

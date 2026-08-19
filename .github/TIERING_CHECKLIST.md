@@ -164,7 +164,22 @@ Reproduce with `composer conformance:server`, `composer conformance:client`, the
     - [x] Transport configuration (docs/transports.md)
     - [x] Error handling (docs/error-handling.md)
     - [x] Best practices (docs/best-practices.md)
-  - Evidence/Notes: scores 37 of 48 on the SEP-1730 canonical feature list. All 11 misses are features the SDK deliberately does not implement because 2026-07-28 removed or deprecated them, each named with its SEP in [docs/features.md](../docs/features.md). No feature the SDK ships is undocumented, and no documented feature lacks an example. The scoring model is raised upstream at [conformance#441](https://github.com/modelcontextprotocol/conformance/issues/441)
+  - Evidence/Notes: scores 37 of 48 on the SEP-1730 canonical feature list. All 11 misses are features the SDK deliberately does not implement because 2026-07-28 removed or deprecated them, each named with its SEP in the table below. No feature the SDK ships is undocumented, and no documented feature lacks an example. The scoring model is raised upstream at [conformance#441](https://github.com/modelcontextprotocol/conformance/issues/441)
+  - The 11 misses (canonical-list row, why absent, what replaces it):
+
+    | # | Feature | Why absent, and the replacement |
+    | --- | --- | --- |
+    | 14 | Resources: subscribing | `resources/subscribe` removed by SEP-2575. The filter-based `subscriptions/listen` (docs/server/subscriptions.md) replaces it. |
+    | 15 | Resources: unsubscribing | Removed with row 14. A client closes the stream instead (docs/client/subscriptions.md). |
+    | 23 | Sampling | Deprecated by SEP-2577. See deliberate non-features in docs/design-rationale.md. |
+    | 29 | Elicitation: complete notification | `notifications/elicitation/complete` was removed from the 2026-07-28 revision before its final tag and is absent from its schema. |
+    | 30 | Roots: listing | Deprecated by SEP-2577. See deliberate non-features in docs/design-rationale.md. |
+    | 31 | Roots: change notifications | Deprecated with row 30. |
+    | 32 | Logging: log messages | `notifications/message` deprecated by SEP-2577. The SDK logs to PSR-3 instead (docs/server/configuration.md). |
+    | 33 | Logging: setting level | `logging/setLevel` removed outright by SEP-2575. Its per-request replacement, the `io.modelcontextprotocol/logLevel` `_meta` field, is parsed and exposed to handlers (docs/server/context.md). |
+    | 36 | Ping | Removed by SEP-2575 with the session it kept alive. The protocol is stateless. |
+    | 39 | SSE transport, legacy (client) | The HTTP+SSE transport was deprecated in 2025-03-26 and is absent from the targeted revision. |
+    | 40 | SSE transport, legacy (server) | Absent with row 39. |
 
 - [x] **Published Dependency Update Policy**
   - Reference: SEP-1730 requirement
