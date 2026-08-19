@@ -11,20 +11,22 @@
     ],
     "require": {
         "php": "^8.3",
-        "amphp/amp": "^3.1",
+        "amphp/amp": "^3.1.1",
         "amphp/http-client": "^5.0",
-        "nexusphp/assert": "^1.0",
+        "nexusphp/assert": "^1.4",
         "nexusphp/mcp-client": "self.version",
         "nexusphp/mcp-core": "self.version",
         "nexusphp/mcp-server": "self.version",
         "psr/log": "^3.0",
-        "revolt/event-loop": "^1.0"
+        "revolt/event-loop": "^1.0.8"
+    },
+    "conflict": {
+        "amphp/pipeline": "<1.2.1",
+        "league/uri-interfaces": "<7.6"
     },
     "suggest": {
         "firebase/php-jwt": "Required to sign private_key_jwt client assertions with ClientCredentialsGrant (^7.0)."
     },
-    "minimum-stability": "dev",
-    "prefer-stable": true,
     "autoload": {
         "psr-4": {
             "Nexus\\Mcp\\Extension\\": ""

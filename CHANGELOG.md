@@ -8,6 +8,12 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp/commits/1.x)
 
+### Changed
+
+- Dependency floors are raised to the oldest versions the suite passes on (`amphp/amp` `^3.1.1`,
+  `nexusphp/assert` `^1.4`, `revolt/event-loop` `^1.0.8`), and `conflict` blocks the broken
+  `amphp/pipeline` `<1.2.1` and `league/uri-interfaces` `<7.6`.
+
 ## [v0.14.0](https://github.com/NexusPHP/mcp/compare/v0.13.0...v0.14.0) - 2026-08-18
 
 Subscription streams are now budgeted per authorized peer alongside the server-wide cap, and a store

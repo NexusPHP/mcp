@@ -49,7 +49,7 @@ jobs:
         run: composer validate --strict
 
   unit-tests:
-    name: Tests on PHP ${{ matrix.php-version }}
+    name: Tests on PHP ${{ matrix.php-version }} (${{ matrix.dependencies }})
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs: validate
@@ -61,6 +61,11 @@ jobs:
           - '8.3'
           - '8.4'
           - '8.5'
+        dependencies:
+          - highest
+        include:
+          - php-version: '8.3'
+            dependencies: lowest
 
     steps:
       - name: Checkout code
@@ -89,7 +94,7 @@ jobs:
             composer-
 
       - name: Install dependencies
-        run: composer update --ansi
+        run: composer update --ansi ${{ matrix.dependencies == 'lowest' && '--prefer-lowest --prefer-stable' || '' }}
 
       - name: Run Composer security audit
         run: composer audit --ansi --abandoned=report
