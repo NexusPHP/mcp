@@ -1,5 +1,8 @@
 # Getting started
 
+This tutorial takes you from an empty directory to a working pair: a stdio MCP server that exposes one
+tool, and a PHP client that spawns the server and calls that tool. Every step is copy-paste runnable.
+
 ## Requirements
 
 - PHP 8.3 or newer.
