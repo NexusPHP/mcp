@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-      - '**'
+      - 'v[0-9]+.[0-9]+.[0-9]+*'
 
 jobs:
   build:
@@ -17,7 +17,6 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Extract release notes from changelog
-        id: notes
         env:
           TAG: ${{ github.ref_name }}
         run: |
@@ -41,8 +40,8 @@ jobs:
           ' | sed '/./,$!d')"
 
           if [ -z "$(printf '%s' "$body" | tr -d '[:space:]')" ]; then
-            echo 'found=false' >> "$GITHUB_OUTPUT"
-            exit 0
+            echo "::error::CHANGELOG.md has no '## [$TAG]' section. Prepare the changelog before tagging (see .github/RELEASE.md)."
+            exit 1
           fi
 
           url="$(grep -m1 -F "## [$TAG]" CHANGELOG.md | sed -nE 's/^[^(]*\(([^)]+)\).*/\1/p')"
@@ -53,10 +52,8 @@ jobs:
               printf '\n**Full Changelog**: %s\n' "$url"
             fi
           } > release-notes.md
-          echo 'found=true' >> "$GITHUB_OUTPUT"
 
       - name: Create release from changelog
-        if: steps.notes.outputs.found == 'true'
         env:
           TAG: ${{ github.ref_name }}
           GITHUB_TOKEN: ${{ secrets.RELEASE_ACTIONS_TOKEN }}
@@ -65,14 +62,3 @@ jobs:
             --title "$TAG" \
             --draft \
             --notes-file release-notes.md
-
-      - name: Create release with generated notes
-        if: steps.notes.outputs.found == 'false'
-        env:
-          TAG: ${{ github.ref_name }}
-          GITHUB_TOKEN: ${{ secrets.RELEASE_ACTIONS_TOKEN }}
-        run: |
-          gh release create "$TAG" \
-            --title "$TAG" \
-            --draft \
-            --generate-notes
