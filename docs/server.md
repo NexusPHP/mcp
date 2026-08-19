@@ -17,7 +17,7 @@ $server->run(new StdioServerTransport());
 ```
 
 `Server::run()` returns when the transport closes (stdin EOF for the stdio transport). A request-scoped
-transport such as [Streamable HTTP](transports.md#streamablehttpservertransport) uses `Server::listen()`
+transport such as [Streamable HTTP](transports/streamable-http.md#streamablehttpservertransport) uses `Server::listen()`
 instead, which attaches the dispatcher and returns so the HTTP host keeps driving the loop.
 
 ## Guide

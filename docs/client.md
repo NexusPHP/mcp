@@ -75,7 +75,7 @@ none, or the retry is rejected in turn, the error reaches the caller as a `Remot
 
 Losing the peer is not the same as shutting down. Behind a `SupervisedTransport`, a pending request can be
 sent again to the replacement instead of failing, which
-[Retrying a lost request](transports.md#retrying-a-lost-request) covers. It is off by default and limited to
+[Retrying a lost request](transports/supervised.md#retrying-a-lost-request) covers. It is off by default and limited to
 methods that read state.
 
 ## See also

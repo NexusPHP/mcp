@@ -76,7 +76,7 @@ closing the response stream the cancellation signal there, and a client's reques
 rather than the transport-internal one the server dispatches under.
 
 A `subscriptions/listen` always answers over SSE, whatever
-[`ResponseMode`](../transports.md#streamablehttpservertransport) the transport is configured with. The buffered
+[`ResponseMode`](../transports/streamable-http.md#streamablehttpservertransport) the transport is configured with. The buffered
 path would hold the POST open with nowhere to push the acknowledgement.
 
 A held-open listen coroutine does not count against

@@ -117,7 +117,7 @@ supplied that way keeps its own values and ignores the builder-level defaults:
 with its executor. `PromptEntry`, `ResourceEntry`, and `ResourceTemplateEntry` do the same for the other
 stores. Building a store yourself is also how you hand the same instance to something else that needs it,
 such as the `Mcp-Param-{Name}` validation on
-[`SecuredHttpEndpoint`](../transports.md#securing-the-endpoint).
+[`SecuredHttpEndpoint`](../transports/streamable-http.md#securing-the-endpoint).
 
 ```php
 use Nexus\Mcp\Server\Tool\ClosureToolExecutor;

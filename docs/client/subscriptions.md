@@ -38,7 +38,7 @@ supports, and MUST NOT push a type that was not asked for.
 - **A restart does not spend the stream.** Behind a `SupervisedTransport`, an open stream is re-sent to each
   replacement peer under the same subscription id, so the callback keeps firing and `await()` resumes rather
   than settling. A server that *refuses* the subscription has answered it, so that still ends the stream on
-  any transport. See [Subscriptions across a restart](../transports.md#subscriptions-across-a-restart) for the
+  any transport. See [Subscriptions across a restart](../transports/supervised.md#subscriptions-across-a-restart) for the
   full list of what ends a stream for good.
 
 [`examples/subscriptions.php`](../../examples/subscriptions.php) runs both halves in one process: a
