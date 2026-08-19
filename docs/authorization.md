@@ -25,6 +25,10 @@ the metadata fetches all ride on machinery the SDK already carries.
 Provider recipes, each covering the provider-side configuration, the token validator, and the quirks the
 generic pages cannot know:
 
+[`examples/authorization.php`](../examples/authorization.php) runs the whole client flow in one process
+against a stub authorization server, with no Docker and no browser.
+[`examples/keycloak-e2e/`](../examples/keycloak-e2e/) is the same flow against a real identity provider.
+
 - **[Keycloak](auth/keycloak.md)**, the self-hostable reference with anonymous client registration.
 - **[Microsoft Entra ID](auth/entra.md)**, pre-registered clients and `scp` claims.
 - **[Auth0](auth/auth0.md)**, audience via tenant configuration rather than RFC 8707.
