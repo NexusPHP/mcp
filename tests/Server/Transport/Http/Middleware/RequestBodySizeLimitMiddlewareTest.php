@@ -16,11 +16,13 @@ namespace Nexus\Mcp\Tests\Server\Transport\Http\Middleware;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Server\Transport\Http\Middleware\RequestBodySizeLimitMiddleware;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
+use Nexus\Mcp\Tests\Fixtures\Server\Http\CountingStream;
 use Nexus\Mcp\Tests\Fixtures\Server\Http\RecordingRequestHandler;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\StreamInterface;
 
 /**
  * @internal
@@ -69,6 +71,66 @@ final class RequestBodySizeLimitMiddlewareTest extends AbstractMcpTestCase
         self::assertSame('The request body exceeds the permitted size.', $payload['error']['message'] ?? null);
     }
 
+    public function testAReportedOversizeIsRejectedWithoutReadingTheBody(): void
+    {
+        $handler = self::recordingHandler();
+        $stream = new CountingStream(str_repeat('a', 2_048), reportedSize: 2_048);
+
+        $response = self::middleware(1_024)->process(self::requestWithBody($stream), $handler);
+
+        self::assertFalse($handler->called);
+        self::assertSame(413, $response->getStatusCode());
+        self::assertSame(0, $stream->bytesRead);
+    }
+
+    public function testAnUnknownSizeBodyOverTheCapIsRejectedWithoutBufferingIt(): void
+    {
+        $handler = self::recordingHandler();
+        $stream = new CountingStream(str_repeat('a', 8 * 1_024 * 1_024));
+
+        $response = self::middleware(1_024)->process(self::requestWithBody($stream), $handler);
+
+        self::assertFalse($handler->called);
+        self::assertSame(413, $response->getStatusCode());
+        self::assertLessThanOrEqual(1_025, $stream->bytesRead);
+    }
+
+    public function testAnUnknownSizeBodyAtTheCapReachesTheHandlerWhole(): void
+    {
+        $handler = self::recordingHandler();
+        $content = str_repeat('a', 1_024);
+
+        $response = self::middleware(1_024)->process(self::requestWithBody(new CountingStream($content)), $handler);
+
+        self::assertTrue($handler->called);
+        self::assertSame(200, $response->getStatusCode());
+        self::assertNotNull($handler->received);
+        self::assertSame($content, (string) $handler->received->getBody());
+    }
+
+    public function testAnUnknownSizeBodyUnderTheCapReachesTheHandlerWhole(): void
+    {
+        $handler = self::recordingHandler();
+
+        self::middleware(1_024)->process(self::requestWithBody(new CountingStream('hello')), $handler);
+
+        self::assertNotNull($handler->received);
+        self::assertSame('hello', (string) $handler->received->getBody());
+    }
+
+    public function testAStalledUnknownSizeBodyPassesWhatItServed(): void
+    {
+        $handler = self::recordingHandler();
+        $stream = new CountingStream(str_repeat('a', 512), stallAfterBytes: 10);
+
+        $response = self::middleware(1_024)->process(self::requestWithBody($stream), $handler);
+
+        self::assertTrue($handler->called);
+        self::assertSame(200, $response->getStatusCode());
+        self::assertNotNull($handler->received);
+        self::assertSame(str_repeat('a', 10), (string) $handler->received->getBody());
+    }
+
     public function testRejectsANegativeLimit(): void
     {
         $this->expectException(\InvalidArgumentException::class);
@@ -90,11 +152,12 @@ final class RequestBodySizeLimitMiddlewareTest extends AbstractMcpTestCase
 
     private static function request(int $bytes): ServerRequestInterface
     {
-        $factory = new Psr17Factory();
+        return self::requestWithBody((new Psr17Factory())->createStream(str_repeat('a', $bytes)));
+    }
 
-        return $factory->createServerRequest('POST', 'https://mcp.test/')
-            ->withBody($factory->createStream(str_repeat('a', $bytes)))
-        ;
+    private static function requestWithBody(StreamInterface $body): ServerRequestInterface
+    {
+        return (new Psr17Factory())->createServerRequest('POST', 'https://mcp.test/')->withBody($body);
     }
 
     private static function recordingHandler(): RecordingRequestHandler

@@ -88,18 +88,18 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
         self::assertSame(413, $response->getStatusCode());
     }
 
-    public function testABodyOfUnknownSizeEscapesTheCap(): void
+    public function testABodyOfUnknownSizeIsHeldToTheCap(): void
     {
         $handler = self::handler();
         $request = self::request(null)->withBody(new NonSeekableStream(str_repeat('x', 2_048)));
 
         $response = self::endpoint($handler, ['*'], maxBodyBytes: 1_024)->handle($request);
 
-        self::assertTrue($handler->called, 'Nothing measured the body, so the host owns the cap.');
-        self::assertSame(200, $response->getStatusCode());
+        self::assertFalse($handler->called, 'The cap measures an unreported size by reading past it.');
+        self::assertSame(413, $response->getStatusCode());
     }
 
-    public function testABodyOfUnknownSizeEscapesTheCapWithAToolStoreToo(): void
+    public function testABodyOfUnknownSizeIsHeldToTheCapWithAToolStoreToo(): void
     {
         $handler = self::handler();
         $request = self::request(null)->withBody(new NonSeekableStream(str_repeat('x', 2_048)));
@@ -108,8 +108,8 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
             ->handle($request)
         ;
 
-        self::assertTrue($handler->called, 'The cap answers before header validation re-seats the body.');
-        self::assertSame(200, $response->getStatusCode());
+        self::assertFalse($handler->called, 'The cap answers before header validation reads the body.');
+        self::assertSame(413, $response->getStatusCode());
     }
 
     public function testOmitsTheBodySizeCapByDefault(): void
