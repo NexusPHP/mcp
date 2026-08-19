@@ -1,6 +1,25 @@
 # Client authorization
 
-How the client obtains and presents a token.
+How the client obtains and presents a token. A client that starts tokenless walks the whole flow on its
+first request:
+
+```mermaid
+sequenceDiagram
+    participant App as Client
+    participant MCP as MCP server
+    participant AS as Authorization server
+    App->>MCP: POST (no token)
+    MCP-->>App: 401 with WWW-Authenticate
+    App->>MCP: read protected resource metadata (same origin)
+    App->>AS: read authorization server metadata
+    App->>AS: register, unless pre-registered or using a Client ID Metadata Document
+    App->>AS: authorization request (PKCE S256, state, resource)
+    Note over App,AS: the user consents in the user agent
+    AS-->>App: authorization code (state and iss verified)
+    App->>AS: token request (code, verifier, resource)
+    AS-->>App: access token
+    App->>MCP: POST with the Bearer token
+```
 
 ## Composing an authorized client
 

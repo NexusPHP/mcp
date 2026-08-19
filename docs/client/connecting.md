@@ -1,5 +1,8 @@
 # Connecting and discovery
 
+How to attach a transport and read what the server offers. `connect()` starts the session, and
+`discover()` asks the server to describe itself.
+
 ```php
 $client->connect($transport);
 $result = $client->discover();

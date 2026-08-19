@@ -1,6 +1,7 @@
 # Persisting tokens and registrations
 
-Both stores default to memory, so a restart authorizes again. Implement the interfaces to outlive the process:
+Both stores default to memory (the shipped `InMemoryTokenStore` and `InMemoryClientRegistrationStore`),
+so a restart authorizes again. Implement the interfaces to outlive the process:
 
 ```php
 interface TokenStoreInterface

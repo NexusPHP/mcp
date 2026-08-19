@@ -1,19 +1,23 @@
 # Typed requests
 
-Each method mints a request id, sends the request, and awaits the typed result. The list methods accept an
-optional `Cursor` for pagination.
+Each method mints a request id, sends the request, and awaits the typed result. The list methods accept
+an optional `Cursor` for pagination, and full signatures are in the
+[API reference](https://nexusphp.github.io/mcp/).
 
-| Method | JSON-RPC method | Returns |
+| Client method | JSON-RPC method | Returns |
 | --- | --- | --- |
-| `listTools(?Cursor $cursor = null)` | `tools/list` | `ListToolsResult` |
-| `listResources(?Cursor $cursor = null)` | `resources/list` | `ListResourcesResult` |
-| `listResourceTemplates(?Cursor $cursor = null)` | `resources/templates/list` | `ListResourceTemplatesResult` |
-| `listPrompts(?Cursor $cursor = null)` | `prompts/list` | `ListPromptsResult` |
-| `readResource(string $uri, ?array $inputResponses = null, ?string $requestState = null)` | `resources/read` | `ReadResourceResult\|InputRequiredResult` |
-| `getPrompt(string $name, ?array $arguments = null, ?array $inputResponses = null, ?string $requestState = null)` | `prompts/get` | `GetPromptResult\|InputRequiredResult` |
-| `complete(PromptReference\|ResourceTemplateReference $ref, array $argument, ?array $context = null)` | `completion/complete` | `CompleteResult` |
-| `callTool(string $name, ?array $arguments = null, ?\Closure $onProgress = null, ?array $inputResponses = null, ?string $requestState = null)` | `tools/call` | `CallToolResult\|InputRequiredResult` |
 | `discover()` | `server/discover` | `DiscoverResult` |
+| `listTools()` | `tools/list` | `ListToolsResult` |
+| `callTool()` | `tools/call` | `CallToolResult\|InputRequiredResult` |
+| `listResources()` | `resources/list` | `ListResourcesResult` |
+| `listResourceTemplates()` | `resources/templates/list` | `ListResourceTemplatesResult` |
+| `readResource()` | `resources/read` | `ReadResourceResult\|InputRequiredResult` |
+| `listPrompts()` | `prompts/list` | `ListPromptsResult` |
+| `getPrompt()` | `prompts/get` | `GetPromptResult\|InputRequiredResult` |
+| `complete()` | `completion/complete` | `CompleteResult` |
+
+An `InputRequiredResult` in a union means the server may ask for input before finishing. See
+[When the server asks for input first](input-required.md).
 
 ```php
 $tools = $client->listTools();
