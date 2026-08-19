@@ -212,12 +212,12 @@ final class ToolTest extends AbstractMcpTestCase
     {
         yield 'missing type' => [
             [],
-            'tool "inputSchema" missing "type".',
+            'tool "inputSchema" missing "type". MCP tool schemas must be objects: add "type" => "object".',
         ];
 
         yield 'type not "object"' => [
             ['type' => 'array'],
-            'tool "inputSchema" "type" must be \'object\', \'array\' given.',
+            'tool "inputSchema.type" must be \'object\', \'array\' given.',
         ];
 
         yield '$schema not non-empty string' => [

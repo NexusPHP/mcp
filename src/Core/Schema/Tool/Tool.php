@@ -301,8 +301,8 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
      */
     private static function validateInputSchema(array $schema): array
     {
-        Assert::that($schema)->hasOffset('type', 'tool "inputSchema" missing "type".');
-        Assert::that($schema['type'])->isIdentical('object', 'tool "inputSchema" "type" must be {other}, {value} given.');
+        Assert::that($schema)->hasOffset('type', 'tool "inputSchema" missing "type". MCP tool schemas must be objects: add "type" => "object".');
+        Assert::that($schema['type'])->isIdentical('object', 'tool "inputSchema.type" must be {other}, {value} given.');
         self::assertSchemaKeywords($schema, 'tool "inputSchema"');
 
         return $schema;

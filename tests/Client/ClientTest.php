@@ -968,7 +968,7 @@ final class ClientTest extends AbstractMcpTestCase
 
         $this->expectException(ServerCapabilityNotSupportedException::class);
         $this->expectExceptionMessageIs(\sprintf(
-            'Request method "%s" requires a server capability that was not advertised by server/discover.',
+            'Request method "%s" requires a server capability that was not advertised by server/discover. Check getServerCapabilities() before calling.',
             $method,
         ));
 
@@ -2060,7 +2060,7 @@ final class ClientTest extends AbstractMcpTestCase
 
         $this->expectException(ServerCapabilityNotSupportedException::class);
         $this->expectExceptionMessageIs(
-            'Request method "tests/test-request" requires a server capability that was not advertised by server/discover.',
+            'Request method "tests/test-request" requires a server capability that was not advertised by server/discover. Check getServerCapabilities() before calling.',
         );
 
         $client->sendRequest(new TestRequest(new RequestId(id: 51)), GenericResultResponse::class);

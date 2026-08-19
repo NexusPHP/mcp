@@ -36,7 +36,7 @@ final class ToolNotFoundExceptionTest extends AbstractMcpTestCase
 
         self::assertSame('missing', $e->name);
         self::assertNull($e->requestId);
-        self::assertSame('No tool registered under name "missing".', $e->getMessage());
+        self::assertSame('No tool registered under name "missing". The server registers tools with addTool() or register().', $e->getMessage());
     }
 
     public function testCarriesProvidedRequestIdAndPrevious(): void
@@ -58,13 +58,13 @@ final class ToolNotFoundExceptionTest extends AbstractMcpTestCase
     {
         $e = new ToolNotFoundException(str_repeat('a', 200_000));
 
-        self::assertSame(\sprintf('No tool registered under name "%s...".', str_repeat('a', 77)), $e->getMessage());
+        self::assertSame(\sprintf('No tool registered under name "%s...". The server registers tools with addTool() or register().', str_repeat('a', 77)), $e->getMessage());
     }
 
     public function testEscapesControlBytesInTheMessage(): void
     {
         $e = new ToolNotFoundException("ev\x1b[2K\x07il");
 
-        self::assertSame('No tool registered under name "ev\\x1b[2K\\x07il".', $e->getMessage());
+        self::assertSame('No tool registered under name "ev\\x1b[2K\\x07il". The server registers tools with addTool() or register().', $e->getMessage());
     }
 }

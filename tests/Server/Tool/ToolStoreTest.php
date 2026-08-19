@@ -173,7 +173,7 @@ final class ToolStoreTest extends AbstractMcpTestCase
         $store = new ToolStore();
 
         $this->expectException(ToolNotFoundException::class);
-        $this->expectExceptionMessageMatches('/^No tool registered under name "missing"\.$/');
+        $this->expectExceptionMessageMatches('/^No tool registered under name "missing"\. The server registers tools with addTool\(\) or register\(\)\.$/');
 
         $store->call('missing', null, self::makeContext());
     }

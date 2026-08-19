@@ -297,7 +297,7 @@ final class CallToolRequestHandlerTest extends AbstractMcpTestCase
         $handler = new CallToolRequestHandler(new ToolStore());
 
         $this->expectException(ToolNotFoundException::class);
-        $this->expectExceptionMessageMatches('/^No tool registered under name "missing"\.$/');
+        $this->expectExceptionMessageMatches('/^No tool registered under name "missing"\. The server registers tools with addTool\(\) or register\(\)\.$/');
 
         $handler->handle(
             new CallToolRequest(id: new RequestId(id: 1), params: new CallToolRequestParams(name: 'missing', meta: RequestMetaObjectFactory::create())),
