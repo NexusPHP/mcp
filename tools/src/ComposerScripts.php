@@ -281,7 +281,11 @@ final class ComposerScripts
 
     private static function commandExists(string $command): bool
     {
-        $output = shell_exec(\sprintf('command -v %s 2>/dev/null', escapeshellarg($command)));
+        $probe = 'Windows' === \PHP_OS_FAMILY
+            ? \sprintf('where %s 2>NUL', escapeshellarg($command))
+            : \sprintf('command -v %s 2>/dev/null', escapeshellarg($command));
+
+        $output = shell_exec($probe);
 
         return \is_string($output) && trim($output) !== '';
     }
