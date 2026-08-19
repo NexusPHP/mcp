@@ -572,6 +572,37 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
         }
     }
 
+    public function testDefaultEnvironmentMatchesInheritedNamesCaseInsensitively(): void
+    {
+        $environment = StdioClientTransport::buildDefaultEnvironment([
+            'Path' => 'C:\\Windows\\system32',
+            'windir' => 'C:\\Windows',
+            'MCP_SECRET' => 'topsecret',
+        ]);
+
+        self::assertSame(['PATH' => 'C:\\Windows\\system32'], $environment);
+    }
+
+    public function testDefaultEnvironmentPrefersAnExactNameOverACaseVariant(): void
+    {
+        $environment = StdioClientTransport::buildDefaultEnvironment([
+            'Path' => 'C:\\wrong',
+            'PATH' => '/usr/bin',
+        ]);
+
+        self::assertSame(['PATH' => '/usr/bin'], $environment);
+    }
+
+    public function testDefaultEnvironmentKeepsTheFirstOfTwoCaseVariants(): void
+    {
+        $environment = StdioClientTransport::buildDefaultEnvironment([
+            'Path' => 'C:\\first',
+            'path' => 'C:\\second',
+        ]);
+
+        self::assertSame(['PATH' => 'C:\\first'], $environment);
+    }
+
     public function testDefaultEnvironmentSkipsExportedShellFunctionValues(): void
     {
         $environment = StdioClientTransport::buildDefaultEnvironment([
