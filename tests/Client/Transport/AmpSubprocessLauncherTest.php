@@ -34,6 +34,16 @@ final class AmpSubprocessLauncherTest extends AbstractMcpTestCase
 {
     private const string ECHO_SERVER = __DIR__.'/../../Fixtures/Client/Transport/echo-server.php';
 
+    #[\Override]
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        if ('Windows' === \PHP_OS_FAMILY) {
+            self::markTestSkipped('amphp/process kills only its wrapper on Windows, so the child survives and the exit watch hangs.');
+        }
+    }
+
     public function testLaunchStartsTheCommandAndAnswersAnAmpSubprocess(): void
     {
         $subprocess = (new AmpSubprocessLauncher())->launch([\PHP_BINARY, '-r', 'exit(6);'], null, []);
