@@ -128,6 +128,8 @@ See [Getting started](docs/getting-started.md) for the full walkthrough.
 
 ## Documentation
 
+The **[docs index](docs/README.md)** maps every page. The entry points:
+
 - [Getting started](docs/getting-started.md): install plus a minimal server and client.
 - [Server API](docs/server.md): `ServerBuilder` reference (tools, prompts, resources, completions,
   handlers).

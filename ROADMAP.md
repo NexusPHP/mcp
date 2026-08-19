@@ -4,7 +4,7 @@ This document is the SDK's forward plan: what is queued for the next releases, a
 tracks MCP spec revisions and PHP language versions.
 
 It carries no history. For what already ships, see [docs/architecture.md](docs/architecture.md) and the
-guides under [docs/](docs/). For what changed in a given release, see
+[docs index](docs/README.md). For what changed in a given release, see
 [CHANGELOG.md](CHANGELOG.md), and for porting between revisions, [BREAKING_CHANGES.md](BREAKING_CHANGES.md).
 
 The SDK targets MCP spec **2026-07-28** and is published on Packagist as a pre-stable `0.x` line.
