@@ -1,5 +1,5 @@
 parameters:
-  title: Nexus MCP SDK
+  title: 'Nexus MCP SDK (1.x-dev)'
 
 services:
   analyzer.filter:

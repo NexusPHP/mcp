@@ -146,7 +146,7 @@ The **[docs index](docs/README.md)** maps every page. The entry points:
 - [Spec compliance](docs/spec-compliance.md): coverage against the targeted revision, and the deliberate omissions.
 - [Design rationale](docs/design-rationale.md): why the SDK is shaped this way.
 - [API reference](https://nexusphp.github.io/mcp/): the generated class-level reference for the public
-  `Nexus\Mcp\` API, published to GitHub Pages.
+  `Nexus\Mcp\` API, published to GitHub Pages and tracking the `1.x` development branch.
 - [Examples](examples/): runnable demo server and client.
 
 ## Development

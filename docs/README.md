@@ -67,7 +67,7 @@ up, or understand why it is built this way.
 - **[Error handling](error-handling.md)**: exception types, JSON-RPC error codes, and the diagnostic
   message grammar.
 - **[API reference](https://nexusphp.github.io/mcp/)**: the generated class-level reference for the
-  public `Nexus\Mcp\` API.
+  public `Nexus\Mcp\` API, tracking the `1.x` development branch.
 
 ## Explanation
 
