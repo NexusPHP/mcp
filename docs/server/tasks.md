@@ -53,7 +53,20 @@ and only the resumed call becomes a task.
 
 A task-bound call durably creates the record, starts the tool in a background fiber, and answers
 immediately with a flat `CreateTaskResult` (`resultType: "task"`, `taskId`, `status`, timestamps,
-`ttlMs`, `pollIntervalMs`). The outcome of the fiber settles the record:
+`ttlMs`, `pollIntervalMs`).
+
+```mermaid
+stateDiagram-v2
+    [*] --> working: a task-bound tools/call answers with CreateTaskResult
+    working --> completed: the fiber returns a CallToolResult, isError included
+    working --> input_required: the fiber returns an InputRequiredResult
+    input_required --> working: tasks/update answers every pending request
+    working --> failed: a protocol exception, or an unresumable park
+    working --> cancelled: tasks/cancel
+    input_required --> cancelled: tasks/cancel
+```
+
+The outcome of the fiber settles the record:
 
 - A `CallToolResult` completes the task, `isError` included: a tool-level failure is `completed`
   with `result.isError`, never the `failed` status.

@@ -1,5 +1,8 @@
 # Tools
 
+How to expose a tool: pair a spec `Tool` definition with the executor that serves its `tools/call`, and
+register both with `addTool()`.
+
 ```php
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
@@ -134,8 +137,9 @@ A tool call is validated against the tool's schemas on the way in and on the way
   conforming to it. A non-conforming or missing one is logged server-side and surfaced to the client as
   a generic error result, so malformed structured data is never sent.
 
-Validation is backed by [opis/json-schema](https://github.com/opis/json-schema) (JSON Schema draft
-2020-12) by default. The `[]`-versus-`{}` ambiguity exists inside a schema too: `json_decode(..., true)`
+Validation is backed by the shipped `OpisSchemaValidator` by default, built on
+[opis/json-schema](https://github.com/opis/json-schema) (JSON Schema draft 2020-12), so you register
+nothing to get it. The `[]`-versus-`{}` ambiguity exists inside a schema too: `json_decode(..., true)`
 renders the always-valid `{}` as PHP `[]`, so the default validator restores it in every sub-schema
 position (a `properties` value, `items`, an `allOf` element, and the rest) before validating. Supply your
 own engine by implementing `SchemaValidatorInterface` and registering it with

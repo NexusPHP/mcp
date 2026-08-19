@@ -1,6 +1,9 @@
 # Resources
 
-Static URIs:
+How to expose resources: a static URI pairs a spec `Resource` with a reader via `addResource()`, and an
+RFC 6570 template pairs a `ResourceTemplate` with one via `addResourceTemplate()`.
+
+A static URI:
 
 ```php
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;

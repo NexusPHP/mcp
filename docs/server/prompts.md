@@ -1,5 +1,8 @@
 # Prompts
 
+How to expose a prompt: pair a spec `Prompt` definition with the renderer that serves its
+`prompts/get`, and register both with `addPrompt()`.
+
 ```php
 use Nexus\Mcp\Core\Schema\Enum\Role;
 use Nexus\Mcp\Core\Schema\Prompt\Prompt;

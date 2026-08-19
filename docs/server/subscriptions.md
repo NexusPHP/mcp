@@ -35,6 +35,22 @@ defaults honours nothing, so nothing is advertised.
 Every message on a stream carries `io.modelcontextprotocol/subscriptionId` in `_meta`, naming the id the
 client sent on its `subscriptions/listen` request.
 
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant S as Server
+    C->>S: subscriptions/listen (id 7, filter)
+    S-->>C: notifications/subscriptions/acknowledged (the honoured set)
+    S-->>C: notifications/tools/list_changed (subscriptionId 7)
+    S-->>C: notifications/resources/updated (subscriptionId 7)
+    alt the client ends the stream
+        C->>S: notifications/cancelled (naming request 7)
+    else the server tears it down
+        S-->>C: notifications/cancelled (naming request 7)
+        S-->>C: the empty result answering request 7 (graceful closure)
+    end
+```
+
 Mutating a built-in store announces itself, because `build()` routes each store's `onListChanged()` to the
 matching emit. The resource template store routes to `notifications/resources/list_changed` alongside the
 resource store, since a template expansion changes what the server can read:

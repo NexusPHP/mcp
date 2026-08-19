@@ -4,6 +4,18 @@ A `tools/call`, `prompts/get` or `resources/read` handler that cannot finish wit
 client returns an `InputRequiredResult` instead of its normal result. The client fulfils the requests it
 names and calls the same method again, carrying its answers.
 
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant S as Server
+    C->>S: tools/call deploy (arguments)
+    S-->>C: InputRequiredResult (inputRequests, signed requestState)
+    Note over C: collect the answers from the user
+    C->>S: tools/call deploy (same arguments, inputResponses, echoed requestState)
+    Note over S: verify the requestState, read the answers
+    S-->>C: CallToolResult
+```
+
 ```php
 $signer = new RequestStateSigner($secretFromConfig);
 
