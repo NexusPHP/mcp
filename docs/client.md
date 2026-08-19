@@ -84,4 +84,4 @@ methods that read state.
 - **[Server API](server.md)**: the symmetric builder reference.
 - **[Transports](transports.md)**: `StdioClientTransport` (subprocess launcher),
   `StreamableHttpClientTransport` (one POST per message), and the in-memory paired transport.
-- **[Architecture](architecture.md)**: dispatch kernel, layering, spec compliance.
+- **[Architecture](architecture.md)**: dispatch kernel and layering.

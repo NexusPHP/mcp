@@ -1,7 +1,8 @@
 # Architecture
 
-This document covers how the SDK is laid out, the layering rules between namespaces, the dispatch kernel
-that drives every inbound JSON-RPC message, and what the SDK does and does not cover against the spec.
+How the SDK is laid out: the namespace tree, the layering rules between namespaces, and the dispatch
+kernel that drives every inbound JSON-RPC message. What the SDK covers against the spec is on
+[Spec compliance](spec-compliance.md).
 
 ## Namespaces
 
@@ -95,28 +96,20 @@ Both peers run a per-envelope inbound pipeline behind the shared
 [`ClientMessageDispatcher`](../src/Client/Dispatch/ClientMessageDispatcher.php) on the client. The two
 share the same shape. The structural difference is which direction owns response correlation.
 
-```text
-inbound envelope (array)
-   │
-   ├── response shape (`result` or `error` key) → server: discard with a warning (it issues no outbound requests)
-   │       → client: correlate to the matching pending outbound request (resolve / reject)
-   │
-   ▼
-JsonRpcMessageParser::parse()        ← classifies request/notification, raises typed protocol exceptions
-   │
-   ├── parse failed                                → the envelope's `id` decides, never the method it names:
-   │     ├── no `id`  (a notification per §4.1)         → drop, log, answer nothing
-   │     └── has `id` (a request per §4.1)              → `InvalidRequest` error per §5, echoing that id
-   │
-   └── parse succeeded
-         │
-         ├── JsonRpcRequest      → dispatchRequest()
-         │     ├── claim the request id (duplicate in-flight id → InvalidRequest error)
-         │     └── spawn async coroutine → resolve handler → emit response or error
-         │
-         └── JsonRpcNotification → dispatchNotification()
-               └── spawn async coroutine → call handler (no response)
+```mermaid
+flowchart TD
+    A["inbound envelope (array)"] --> B{"response shape?<br>a result or error key"}
+    B -- "server" --> C["discard with a warning:<br>it issues no outbound requests"]
+    B -- "client" --> D["correlate to the pending<br>outbound request: resolve or reject"]
+    B -- "not a response" --> E["JsonRpcMessageParser::parse()"]
+    E -- "parse failed, no id<br>(a notification per §4.1)" --> F["drop, log, answer nothing"]
+    E -- "parse failed, has id<br>(a request per §4.1)" --> G["InvalidRequest error per §5,<br>echoing that id"]
+    E -- "JsonRpcRequest" --> H["dispatchRequest(): claim the id,<br>spawn a coroutine, resolve the handler,<br>emit the response or error"]
+    E -- "JsonRpcNotification" --> I["dispatchNotification(): spawn a<br>coroutine, call the handler, no response"]
+    H -- "duplicate in-flight id" --> G
 ```
+
+On a parse failure, the envelope's `id` decides the answer, never the method the envelope names.
 
 The protocol is stateless: every inbound request dispatches immediately, carrying the client's identity and
 capabilities in its `_meta`, which the server-side handler reads through `ServerContext::$meta`.
@@ -131,20 +124,18 @@ request id could not be recovered, but MCP types `RequestId` as `int | non-empty
 `JsonRpcErrorResponse` drops the key instead of emitting `"id": null`. Such a frame goes out as
 `{"jsonrpc":"2.0","error":{…}}`, and a test pins that encoding.
 
-The diagram traces the server. The client shares the request and notification arms but diverges in two
-places. The first is the response-shape fork above: where the server discards a `result`/`error` envelope,
-the client correlates it to the pending outbound request it is awaiting, resolving on success or rejecting
-on error, and warns on an unknown ("orphan") id.
+The diagram traces both peers, and they diverge in two places. The first is the response-shape fork:
+the server discards a `result`/`error` envelope with a warning, while the client correlates it to the
+pending outbound request it is awaiting, resolving on success or rejecting on error, and warns on an
+unknown ("orphan") id.
 
-The second is the misrouted-method arm. The client never answers a misrouted envelope, whatever shape it
-arrived in, because the spec gives it no reply to send: *"servers do not initiate JSON-RPC requests and
-clients do not send JSON-RPC responses"*. The server's §5 obligation to answer an envelope carrying an id
-therefore has no client-side counterpart, and the client drops with a warning instead. The client is thus both a responder (it routes
-`notifications/progress` to per-call listeners) and a requester (it
-awaits the responses to the calls it makes, gating each *outbound* send on the server's advertised
-capabilities in `Client::sendRequest()`).
-
-A few pieces are worth calling out:
+The second is what each side serves. The revision defines no server-to-client request methods, so a
+built client's request registry is empty until a consumer registers a handler. The id rule still binds
+both dispatchers equally: an id-carrying envelope the client cannot serve is answered with an error
+echoing that id, and the same envelope without an id is dropped with a warning. The client is thus both
+a responder (it routes `notifications/progress` to per-call listeners, and answers what it cannot
+serve) and a requester (it awaits the responses to its own calls, gating each *outbound* send on the
+server's advertised capabilities in `Client::sendRequest()`).
 
 ### Coroutine draining
 
@@ -153,172 +144,10 @@ When the transport fires its `onDrain` listeners (before close), the dispatcher 
 coroutine so in-flight responses flush before the transport actually closes. Without this, a handler that
 finishes right as the transport closes would lose its response to a race with the close listeners.
 
-## Spec compliance
-
-- Target: **MCP spec 2026-07-28** only. No back-compat shims for earlier revisions (no JSON-RPC batching, no
-  protocol-version negotiation against older drafts).
-- The canonical schema lives at `latest-schema.json` in the repo root. The class-to-schema map is in
-  `sorted-schema.json`. Both are regenerated by `composer schema:generate`.
-- Auto-review tests (`tests/AutoReview/`) verify every PHP class with a spec counterpart matches the
-  canonical description, every `@see` link resolves to a real anchor in the spec docs, and every round-trip
-  fixture matches the canonical envelope shape.
-- What we have today: server-side handlers covering `server/discover`, tools, prompts, resources (static +
-  templated), and completions. Client-side covering `discover()` plus typed requests for the same surface
-  (`tools/call` with streaming progress, the list/read/get/complete methods). Both transports, stdio and
-  Streamable HTTP, on both sides, the latter with its PSR-15 security stack. OAuth 2.1 on both sides: the
-  client authorizes and re-authorizes itself, the server validates bearer tokens and publishes its protected
-  resource metadata. Attribute discovery via `#[AsTool]` and friends. Both halves of the
-  input-required flow: a client recognises an `InputRequiredResult`, collects what it asks for, and
-  answers by calling again with `inputResponses` and the `requestState` it carried, while a tool, prompt
-  or resource handler may return one to ask, reading the answers back off `ServerContext`. Tool call
-  arguments and results are validated against the tool's declared `inputSchema` / `outputSchema` (pluggable
-  via `SchemaValidatorInterface`), and a `structuredContent`-only result is mirrored into a `TextContent`
-  block for backwards compatibility.
-- Official extensions, each opt-in: Tasks and MCP Apps. See [server tasks](server/tasks.md) and
-  [server apps](server/apps.md).
-- What we deliberately omit: sampling, roots, and logging. SEP-2577 deprecated them, and the spec tells new
-  implementations not to adopt a deprecated feature, so a greenfield SDK carries none of them. One
-  consequence reaches the input-required flow: the spec's `InputRequest` union is
-  `CreateMessageRequest | ListRootsRequest | ElicitRequest`, and only the last is undeprecated, so a server
-  built on this SDK can ask for elicitation and nothing else. The two are not modelled even as payload
-  types that never travel as dispatchable methods, since emitting one is adopting the feature.
-
-## Diagnostic message conventions
-
-Every `Assert::that(...)` chain and bare `ExpectationFailedException` in `Core/Schema/` follows a fixed
-shape so consumers can parse messages programmatically and non-PHP clients can recognise the structure.
-
-### Field labels
-
-Each message identifies its target with the JSON field name in double quotes, optionally scoped by a
-parent key:
-
-- **Top-level request, result, notification, and error-response fields** use a dotted path from the
-  JSON-RPC envelope key:
-
-  ```text
-  '"params.name" must be a string, {type} given.'
-  '"result.completion.values" must be a list, non-list array given.'
-  '"params._meta" must be an object, {type} given.'
-  '"error.code" must be an integer, {type} given.'
-  ```
-
-- **Schema classes with a single canonical wrapping field** use that field as the label:
-
-  | Class                                                                                          | Label                  |
-  |------------------------------------------------------------------------------------------------|------------------------|
-  | `ServerCapabilities`, `ClientCapabilities`                                                     | `"capabilities"`       |
-  | `Annotations`, `ToolAnnotations`                                                               | `"annotations"`        |
-  | `Icon` (array item under `icons`)                                                              | `"icons"`              |
-  | `PromptArgument` (array item under `arguments`)                                                | `"arguments"`          |
-  | `MetaObject` and its `MetaObject\*` subclasses                                                 | `"_meta"`              |
-  | `RequestId`                                                                                    | `"id"`                 |
-  | `ProtocolVersion`                                                                              | `"protocolVersion"`    |
-  | `Cursor`                                                                                       | `"cursor"`             |
-  | `ElicitRequestedSchema`                                                                        | `"requestedSchema"`    |
-  | `EnumOption` (array item under `oneOf`)                                                        | `"oneOf"`              |
-
-- **Multi-context classes** (e.g. `Implementation`, referenced under both `serverInfo` and `clientInfo`)
-  drop the prefix entirely. Messages start with the field name directly:
-
-  ```text
-  '"name" must be a string, {type} given.'
-  ```
-
-- **Classes without a fixed wrapping field** use the lowercased space-separated form of their class
-  name as the prefix: `text content`, `image content`, `embedded resource`, `resource link`,
-  `boolean schema`, `number schema`, `tool`, `prompt`, `resource template`, `prompt message`,
-  et cetera.
-
-- **`*Request` and `*Notification` classes have no label.** Their messages start with the field name
-  directly:
-
-  ```text
-  '"id" must be an int or non-empty string, {type} given.'
-  'missing the required "params" key.'
-  ```
-
-### Envelope-kind wrapper
-
-The `JsonRpcMessageParser` prefixes every decode failure with one wrapper per envelope kind, so the
-inner message never repeats it:
-
-```text
-Invalid success response: "result" is missing the required "content" key.
-Invalid error response: "error.code" must be an integer, {type} given.
-Invalid "tools/call" request: "params" is missing the required "name" key.
-Invalid "notifications/progress" notification: "params" is missing the required "progressToken" key.
-```
-
-The four kinds (request, notification, success response, error response) are the only omitted top
-scope. Everything below the envelope (`params`, `result`, the `error` object, nested objects) keeps its
-scope in the inner message.
-
-### Rules
-
-1. JSON field names are double-quoted (`"name"`, `"capabilities.tasks.cancel"`).
-2. `Assert::that(...)->values()` and `->keys()` chains prepend `each` to the message, kept singular to
-   agree with it (`each "params.stopSequences" entry must be a string`, not `entries must be strings`).
-3. Type mismatches use the PHP idiom `<type> given.` (`int given.`, `array given.`).
-4. Required-key checks mirror the matching type-mismatch's scope, drop the envelope kind (the wrapper
-   above supplies it), and read `is missing`. Envelope-root fields stay bare, e.g.
-   `'missing the required "id" key.'`. Payload and deeper fields keep their scope, e.g.
-   `'"params" is missing the required "name" key.'` and
-   `'"error.data" is missing the required "elicitations" key.'`.
-5. Value mismatches against a constant use Assert's lazy `{value}` and `{other}` template tokens
-   instead of `\sprintf`, so the comparand renders via `var_export` at exception-render time.
-6. Bare `new ExpectationFailedException($template, $context)` constructions pre-`var_export` value
-   tokens in the context array to match Assert's auto-rendering. Example from
-   `MessageDiscriminator::buildUnknownTypeError()`:
-
-   ```php
-   return new ExpectationFailedException(
-       '{context} "type" must be one of "{allowed}", {value} given.',
-       [
-           'context' => $context,
-           'allowed' => implode('", "', $allowedTypes),
-           'value' => var_export($given, true),
-       ],
-   );
-   ```
-
-Tool argument and `structuredContent` conformance failures follow the same shape: the server's
-`ValidationErrorFormatter` renders each leaf schema violation with the dotted data path double-quoted
-(bare at the root, whose scope the `Invalid arguments for tool "x": ...` wrapper supplies) and the
-`<type> given.` idiom. `ArgumentBinder`'s failures speak the same grammar, and the owning store wraps
-them with the same feature identity.
-
-### Reusable validators
-
-`Core/Validation/` exposes five field-format validators. Each takes the value plus a `$context` label
-that becomes the message prefix:
-
-| Validator                                               | Purpose                                                    |
-|---------------------------------------------------------|------------------------------------------------------------|
-| `IdentifierNameValidator::validate($name, $context)`    | 1-128 chars from `[A-Za-z0-9._-]`, authoring only          |
-| `IconSrcValidator::validate($icons, $context)`          | HTTP/HTTPS URL or base64 `data:` URI, authoring only       |
-| `Rfc3986UriValidator::validate($uri, $context)`         | RFC 3986 absolute URI                                      |
-| `Rfc6570UriTemplateValidator::validate($uri, $context)` | RFC 6570 URI Template                                      |
-| `Iso8601DateTimeValidator::parse($value, $context)`     | ISO 8601 datetime parse                                    |
-
-The validator templates have no hardcoded field noun. Callers pass the full label they want in the
-emitted message (e.g. `'"params.name"'`, `'tool "name"'`, `'resource link "uri"'`,
-`'resource template "uriTemplate"'`).
-
-## Static analysis and runtime validation
-
-- **PHPStan level 10 + strict rules** across `src/`, `tests/`, and `tools/`. Type-inference lock-in tests
-  under `tests/AutoReview/data/` pin the generic contracts of the spec classes so a refactor that widens a
-  return type fails the build.
-- **Mutation testing** (Infection) gates at 100% MSI, 100% MCC, and 100% covered-code MSI. Infection's
-  `--static-analysis-tool=phpstan` flag is on by default so the type system also acts as a mutant killer.
-- **Runtime validation** uses [`nexusphp/assert`](https://github.com/NexusPHP/assert) at every envelope
-  boundary. The library's PHPStan extension narrows types after each assertion, so the value objects can
-  carry strict types throughout the codebase.
-
 ## See also
 
-- **[Getting started](getting-started.md)**: minimal server.
+- **[Spec compliance](spec-compliance.md)**: what ships against the targeted revision, and what is omitted.
 - **[Server API](server.md)**: builder reference.
 - **[Client API](client.md)**: client builder + typed request reference.
-- **[Transports](transports.md)**: stdio contract. HTTP planning.
+- **[Transports](transports.md)**: the transport contract and lifecycle.
+- **[Error handling](error-handling.md)**: error codes and the diagnostic message grammar.

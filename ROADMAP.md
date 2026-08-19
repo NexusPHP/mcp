@@ -77,5 +77,5 @@ Tracked, but not engineering work in this repository.
 - **[Server API](docs/server.md)**: builder reference.
 - **[Client API](docs/client.md)**: client builder + typed request reference.
 - **[Transports](docs/transports.md)**: stdio contract + HTTP planning.
-- **[Architecture](docs/architecture.md)**: dispatch kernel, layering, spec compliance.
+- **[Architecture](docs/architecture.md)**: dispatch kernel and layering. **[Spec compliance](docs/spec-compliance.md)**: coverage against the targeted revision.
 - **[Tiering checklist](.github/TIERING_CHECKLIST.md)**: the SEP-1730 assessment, including the features the targeted revision removed.

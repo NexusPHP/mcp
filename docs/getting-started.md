@@ -175,6 +175,6 @@ routes server diagnostics to a PSR-3 logger on STDERR.
   HTTP alike.
 - **[Error handling](error-handling.md)**: the exception model, JSON-RPC error codes, and which calls throw what.
 - **[Best practices](best-practices.md)**: conventions for servers and clients.
-- **[Architecture](architecture.md)**: namespacing, layering rules, dispatch kernel, spec-compliance notes.
+- **[Architecture](architecture.md)**: namespacing, layering rules, and the dispatch kernel.
 - **[Design rationale](design-rationale.md)**: the choices behind the SDK.
 - **[examples/](../examples/)**: runnable demo servers and clients, over stdio, in-memory, and HTTP.

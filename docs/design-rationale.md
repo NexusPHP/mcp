@@ -11,16 +11,18 @@ The codebase runs PHPStan at **level 10 with strict rules**, and production code
 than scattered inline suppressions. Runtime input validation at trust boundaries uses
 [`nexusphp/assert`](https://github.com/NexusPHP/assert), whose type-specifying extension feeds the
 narrowing back into PHPStan. The result is that the type information you see is the type information the
-analyser enforces.
+analyser enforces. Type-inference lock-in tests under `tests/AutoReview/data/` pin the generic contracts
+of the spec classes, so a refactor that widens a return type fails the build.
 
 ## Verified correctness, not just coverage
 
 Tests are held to **100% line coverage and 100% Mutation Score Indicator** (MSI), including covered-code
 MSI, via Infection. Mutation testing asks a sharper question than coverage: not "did a test execute this
 line" but "would any test notice if this line's behaviour changed". Escaped mutants fail the build, so a
-passing suite means the assertions actually pin the behaviour. This is why the SDK avoids constructs that
-generate equivalent mutants (defaulted exception codes, redundant guards): they would be untestable noise
-against that bar.
+passing suite means the assertions actually pin the behaviour. Infection also runs with
+`--static-analysis-tool=phpstan`, so the type system acts as a second mutant killer. This is why the SDK
+avoids constructs that generate equivalent mutants (defaulted exception codes, redundant guards): they
+would be untestable noise against that bar.
 
 ## Explicit composition over reflection magic
 

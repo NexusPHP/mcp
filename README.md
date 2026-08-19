@@ -140,7 +140,8 @@ See [Getting started](docs/getting-started.md) for the full walkthrough.
 - [Authorization](docs/authorization.md): the OAuth 2.1 client and resource-server halves.
 - [Error handling](docs/error-handling.md): the exception model and JSON-RPC error codes.
 - [Best practices](docs/best-practices.md): conventions the SDK is shaped to reward.
-- [Architecture](docs/architecture.md): layering, dispatch kernel, spec-compliance notes.
+- [Architecture](docs/architecture.md): layering and the dispatch kernel.
+- [Spec compliance](docs/spec-compliance.md): coverage against the targeted revision, and the deliberate omissions.
 - [Design rationale](docs/design-rationale.md): why the SDK is shaped this way.
 - [API reference](https://nexusphp.github.io/mcp/): the generated class-level reference for the public
   `Nexus\Mcp\` API, published to GitHub Pages.
