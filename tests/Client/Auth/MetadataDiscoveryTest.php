@@ -21,7 +21,6 @@ use Nexus\Mcp\Client\Exception\UntrustedAuthorizationMetadataException;
 use Nexus\Mcp\Core\Auth\ResourceIdentifier;
 use Nexus\Mcp\Core\Auth\WwwAuthenticateChallenge;
 use Nexus\Mcp\Core\Exception\RuntimeException;
-use Nexus\Mcp\Core\SafeDisplay;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Client\Http\RecordingHttpClient;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -183,7 +182,7 @@ final class MetadataDiscoveryTest extends AbstractMcpTestCase
         } catch (RuntimeException $e) {
             self::assertStringContainsString('...', $e->getMessage());
             self::assertDoesNotMatchRegularExpression(
-                \sprintf('/[a]{%d}/', SafeDisplay::MAX_CAUSE_LENGTH + 1),
+                \sprintf('/[a]{%d}/', 256 + 1),
                 $e->getMessage(),
             );
         }

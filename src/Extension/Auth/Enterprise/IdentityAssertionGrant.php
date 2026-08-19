@@ -33,6 +33,8 @@ use Psr\Log\LoggerInterface;
  */
 final readonly class IdentityAssertionGrant implements GrantStrategyInterface
 {
+    private SecureEndpoint $secureEndpoint;
+
     /**
      * @param non-empty-string      $idpTokenEndpoint
      * @param null|non-empty-string $idpClientId
@@ -42,12 +44,13 @@ final readonly class IdentityAssertionGrant implements GrantStrategyInterface
         private string $idpTokenEndpoint,
         private IdentityAssertionProviderInterface $assertions,
         private ?string $idpClientId = null,
-        private bool $allowInsecureLoopback = false,
+        bool $allowInsecureLoopback = false,
     ) {
         Assert::that($idpTokenEndpoint)->isNonEmptyString('"idpTokenEndpoint" must be a non-empty string.');
         Assert::that($idpClientId)->nullOr()->isNonEmptyString('"idpClientId" must be a non-empty string or null.');
 
-        SecureEndpoint::verifyAuthorizationServerUrl($idpTokenEndpoint, 'IdP token endpoint', $allowInsecureLoopback);
+        $this->secureEndpoint = new SecureEndpoint($allowInsecureLoopback);
+        $this->secureEndpoint->verifyAuthorizationServerUrl($idpTokenEndpoint, 'IdP token endpoint');
     }
 
     #[\Override]
@@ -62,7 +65,7 @@ final readonly class IdentityAssertionGrant implements GrantStrategyInterface
             $context->httpClient,
             $this->idpClientId,
             $context->options->timeout,
-            $this->allowInsecureLoopback,
+            $this->secureEndpoint,
         ))->exchangeForGrant(
             $this->assertions->provideAssertion($cancellation),
             $server->issuer,

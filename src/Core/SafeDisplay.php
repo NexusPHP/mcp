@@ -20,8 +20,8 @@ namespace Nexus\Mcp\Core;
  */
 final class SafeDisplay
 {
-    public const int MAX_LENGTH = 80;
-    public const int MAX_CAUSE_LENGTH = 256;
+    private const int MAX_LENGTH = 80;
+    private const int MAX_CAUSE_LENGTH = 256;
 
     /**
      * Escapes every byte outside printable ASCII as `\xNN` and caps a short identifier at `MAX_LENGTH`.

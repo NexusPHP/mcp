@@ -15,6 +15,7 @@ in `0.x`, minor releases may include breaking changes.
   `amphp/pipeline` `<1.2.1` and `league/uri-interfaces` `<7.6`.
 - `RequestBodySizeLimitMiddleware` holds a body of unreported size to the cap, reading at most one
   byte past it, instead of passing it through to the host's own limit.
+- `SafeDisplay`'s `MAX_LENGTH` and `MAX_CAUSE_LENGTH` constants are private. See BREAKING_CHANGES.md.
 
 ## [v0.14.0](https://github.com/NexusPHP/mcp/compare/v0.13.0...v0.14.0) - 2026-08-18
 

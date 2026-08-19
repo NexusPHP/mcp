@@ -20,7 +20,6 @@ use Nexus\Mcp\Core\Exception\MethodMisroutedException;
 use Nexus\Mcp\Core\Exception\MethodNotFoundException;
 use Nexus\Mcp\Core\JsonRpc\JsonRpcMessageParser;
 use Nexus\Mcp\Core\JsonRpc\UnparsedResultEnvelope;
-use Nexus\Mcp\Core\SafeDisplay;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
@@ -389,7 +388,7 @@ final class JsonRpcMessageParserTest extends AbstractMcpTestCase
             $prefix = 'Invalid "completion/complete" request: ';
 
             self::assertStringStartsWith($prefix, $e->getMessage());
-            self::assertSame(SafeDisplay::MAX_CAUSE_LENGTH, \strlen($e->getMessage()) - \strlen($prefix));
+            self::assertSame(256, \strlen($e->getMessage()) - \strlen($prefix));
             self::assertStringEndsWith('...', $e->getMessage());
         }
     }

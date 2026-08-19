@@ -17,7 +17,6 @@ use Amp\NullCancellation;
 use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Exception\InvalidParamsException;
 use Nexus\Mcp\Core\Exception\LogicException;
-use Nexus\Mcp\Core\SafeDisplay;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Server\Discovery\ArgumentBinder;
 use Nexus\Mcp\Server\ServerContext;
@@ -107,7 +106,7 @@ final class ArgumentBinderTest extends AbstractMcpTestCase
             $this->bind('backedString', ['color' => str_repeat('\'', 200_000)]);
             self::fail('Expected InvalidParamsException.');
         } catch (InvalidParamsException $e) {
-            self::assertSame(SafeDisplay::MAX_CAUSE_LENGTH, \strlen($e->getMessage()));
+            self::assertSame(256, \strlen($e->getMessage()));
             self::assertStringEndsWith('...', $e->getMessage());
         }
     }

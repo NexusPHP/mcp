@@ -27,7 +27,6 @@ use Nexus\Mcp\Core\Handler\Notification\CancelledNotificationHandler;
 use Nexus\Mcp\Core\Handler\NotificationHandlerInterface;
 use Nexus\Mcp\Core\Handler\RequestHandlerInterface;
 use Nexus\Mcp\Core\JsonRpc\JsonRpcMessageParser;
-use Nexus\Mcp\Core\SafeDisplay;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Enum\SdkErrorCode;
 use Nexus\Mcp\Core\Schema\Error\UnsupportedProtocolVersionError;
@@ -476,7 +475,7 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
      */
     public static function provideAHostileProtocolVersionIsBoundedBeforeItReachesErrorDataCases(): iterable
     {
-        yield 'oversized' => [str_repeat('A', 200), str_repeat('A', SafeDisplay::MAX_LENGTH - 3).'...'];
+        yield 'oversized' => [str_repeat('A', 200), str_repeat('A', 80 - 3).'...'];
 
         yield 'control bytes' => ["2026-07-28\x1b]0;pwned\x07", '2026-07-28\x1b]0;pwned\x07'];
     }

@@ -6,6 +6,12 @@ for *when* breaking changes may land and how they are communicated lives in
 
 ## v0.14.0 to Unreleased
 
+### `SafeDisplay`'s length caps are private
+
+`SafeDisplay::MAX_LENGTH` and `SafeDisplay::MAX_CAUSE_LENGTH` are now private. The methods still
+escape and bound their input the same way, and the numbers are simply no longer API, so they can be
+tuned without a major release. Code that read the constants inlines the current values (80 and 256).
+
 ## v0.13.0 to v0.14.0
 
 ### The extension contracts move under `Extension` namespaces

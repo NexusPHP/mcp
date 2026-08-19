@@ -34,7 +34,7 @@ final class SecureEndpointTest extends AbstractMcpTestCase
     {
         $this->expectNotToPerformAssertions();
 
-        SecureEndpoint::verifyRedirectUri($url);
+        (new SecureEndpoint())->verifyRedirectUri($url);
     }
 
     /**
@@ -66,7 +66,7 @@ final class SecureEndpointTest extends AbstractMcpTestCase
             $url,
         ));
 
-        SecureEndpoint::verifyRedirectUri($url);
+        (new SecureEndpoint())->verifyRedirectUri($url);
     }
 
     /**
@@ -93,7 +93,7 @@ final class SecureEndpointTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs(\sprintf('The redirect URI must be an absolute URL, "%s" given.', $url));
 
-        SecureEndpoint::verifyRedirectUri($url);
+        (new SecureEndpoint())->verifyRedirectUri($url);
     }
 
     /**
@@ -113,7 +113,7 @@ final class SecureEndpointTest extends AbstractMcpTestCase
     {
         $this->expectNotToPerformAssertions();
 
-        SecureEndpoint::verifyAuthorizationServerUrl($url, 'token endpoint');
+        (new SecureEndpoint())->verifyAuthorizationServerUrl($url, 'token endpoint');
     }
 
     /**
@@ -141,7 +141,7 @@ final class SecureEndpointTest extends AbstractMcpTestCase
             $url,
         ));
 
-        SecureEndpoint::verifyAuthorizationServerUrl($url, 'token endpoint');
+        (new SecureEndpoint())->verifyAuthorizationServerUrl($url, 'token endpoint');
     }
 
     /**
@@ -169,7 +169,7 @@ final class SecureEndpointTest extends AbstractMcpTestCase
     {
         $this->expectNotToPerformAssertions();
 
-        SecureEndpoint::verifyAuthorizationServerUrl($url, 'token endpoint', true);
+        (new SecureEndpoint(allowLoopback: true))->verifyAuthorizationServerUrl($url, 'token endpoint');
     }
 
     /**
@@ -197,7 +197,7 @@ final class SecureEndpointTest extends AbstractMcpTestCase
             $url,
         ));
 
-        SecureEndpoint::verifyAuthorizationServerUrl($url, 'token endpoint', true);
+        (new SecureEndpoint(allowLoopback: true))->verifyAuthorizationServerUrl($url, 'token endpoint');
     }
 
     /**
@@ -221,7 +221,7 @@ final class SecureEndpointTest extends AbstractMcpTestCase
         $this->expectException(UntrustedAuthorizationMetadataException::class);
         $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the authorization endpoint "http://127.0.0.1:9000/authorize#done" carries a fragment.');
 
-        SecureEndpoint::verifyAuthorizationServerUrl('http://127.0.0.1:9000/authorize#done', 'authorization endpoint', true);
+        (new SecureEndpoint(allowLoopback: true))->verifyAuthorizationServerUrl('http://127.0.0.1:9000/authorize#done', 'authorization endpoint');
     }
 
     public function testAnAuthorizationServerUrlCarryingAFragmentIsRefused(): void
@@ -229,7 +229,7 @@ final class SecureEndpointTest extends AbstractMcpTestCase
         $this->expectException(UntrustedAuthorizationMetadataException::class);
         $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the authorization endpoint "https://auth.example.com/authorize#done" carries a fragment.');
 
-        SecureEndpoint::verifyAuthorizationServerUrl('https://auth.example.com/authorize#done', 'authorization endpoint');
+        (new SecureEndpoint())->verifyAuthorizationServerUrl('https://auth.example.com/authorize#done', 'authorization endpoint');
     }
 
     public function testAHostileAuthorizationServerUrlIsBoundedAndEscapedInTheRefusal(): void
@@ -240,14 +240,14 @@ final class SecureEndpointTest extends AbstractMcpTestCase
             'ftp://'.str_repeat('a', 247),
         ));
 
-        SecureEndpoint::verifyAuthorizationServerUrl('ftp://'.str_repeat('a', 300)."\x1b", 'token endpoint');
+        (new SecureEndpoint())->verifyAuthorizationServerUrl('ftp://'.str_repeat('a', 300)."\x1b", 'token endpoint');
     }
 
     public function testAnHttpsMetadataDocumentUrlWithAPathIsAccepted(): void
     {
         $this->expectNotToPerformAssertions();
 
-        SecureEndpoint::verifyClientIdMetadataDocumentUrl('https://app.example.com/oauth/client.json');
+        (new SecureEndpoint())->verifyClientIdMetadataDocumentUrl('https://app.example.com/oauth/client.json');
     }
 
     #[DataProvider('provideAMetadataDocumentUrlOffTheSpecsShapeIsRefusedCases')]
@@ -259,7 +259,7 @@ final class SecureEndpointTest extends AbstractMcpTestCase
             $url,
         ));
 
-        SecureEndpoint::verifyClientIdMetadataDocumentUrl($url);
+        (new SecureEndpoint())->verifyClientIdMetadataDocumentUrl($url);
     }
 
     /**
@@ -281,6 +281,6 @@ final class SecureEndpointTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('The Client ID Metadata Document URL must be an absolute URL, "client.json" given.');
 
-        SecureEndpoint::verifyClientIdMetadataDocumentUrl('client.json');
+        (new SecureEndpoint())->verifyClientIdMetadataDocumentUrl('client.json');
     }
 }

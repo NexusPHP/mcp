@@ -47,9 +47,9 @@ final readonly class IdentityAssertionExchanger
         DelegateHttpClient $client,
         private ?string $clientId = null,
         float $timeout = 10.0,
-        bool $allowInsecureLoopback = false,
+        SecureEndpoint $secureEndpoint = new SecureEndpoint(),
     ) {
-        SecureEndpoint::verifyAuthorizationServerUrl($tokenEndpoint, 'IdP token endpoint', $allowInsecureLoopback);
+        $secureEndpoint->verifyAuthorizationServerUrl($tokenEndpoint, 'IdP token endpoint');
         $this->exchange = new JsonHttpExchange($client, $timeout);
     }
 
