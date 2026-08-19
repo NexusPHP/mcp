@@ -82,7 +82,7 @@ surface above: owned methods, handlers, and a `tools/call` decorator. The
 `AppsServerExtension` only advertises the capability slot and the substance is typed `_meta.ui`
 metadata on the tools and resources you already register.
 
-The two [OAuth extensions](../client/auth-extensions.md) (client credentials, SEP-1046, and
+The two [OAuth extensions](../auth/extension-grants.md) (client credentials, SEP-1046, and
 enterprise-managed authorization, SEP-990) are advertisement-only on the server too. Their grants
 run at the HTTP layer inside the client's `AuthorizedHttpClient`, so
 `ClientCredentialsServerExtension` and `EnterpriseAuthorizationServerExtension` declare no methods

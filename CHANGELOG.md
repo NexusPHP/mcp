@@ -300,7 +300,7 @@ migration. Three breaking changes ride along (see [BREAKING_CHANGES.md](BREAKING
   at the resource authorization server.
 - A public grant-strategy seam. `AuthorizedHttpClient` takes a `grantStrategy:`, so an OAuth grant the
   SDK does not model can be written by a consumer. See
-  [docs/client/auth-extensions.md](docs/client/auth-extensions.md#writing-your-own-grant).
+  [docs/auth/extension-grants.md](docs/auth/extension-grants.md#writing-your-own-grant).
 - `AuthorizationServerMetadata` reads the four `*_supported` discovery fields, and
   `TokenEndpointAuthMethod` gained `private_key_jwt`.
 - The three referee scenarios for these extensions, run via `composer conformance:extensions:client`.

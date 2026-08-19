@@ -1,4 +1,4 @@
-# OAuth extensions
+# OAuth extension grants
 
 Two ratified extensions from the official
 [ext-auth](https://github.com/modelcontextprotocol/ext-auth) line ship in
@@ -6,14 +6,14 @@ Two ratified extensions from the official
 (`io.modelcontextprotocol/oauth-client-credentials`, SEP-1046) and enterprise-managed authorization
 (`io.modelcontextprotocol/enterprise-managed-authorization`, SEP-990). Neither defines any JSON-RPC
 surface. Each is a capability declaration plus an HTTP-layer grant that runs inside
-[`AuthorizedHttpClient`](../auth/client.md) in place of the authorization-code round trip, so no
+[`AuthorizedHttpClient`](client.md) in place of the authorization-code round trip, so no
 user is ever put in front of a consent screen.
 
 Both grants implement the client's grant-strategy seam: pass one as `grantStrategy:` and leave the
 user-authorization argument `null`. Renewal is unattended too. When the machine token expires, the
-client runs the grant again rather than sending the request bare and waiting for a challenge, and
-it does so whether or not the authorization server issued a refresh token alongside the access
-token, since rerunning the grant costs the same as redeeming one.
+client runs the grant again rather than sending the request bare and waiting for a challenge. It
+does so whether or not the authorization server issued a refresh token alongside the access token,
+since rerunning the grant costs the same as redeeming one.
 
 Each grant carries its own credential, so the client credentials grant refuses an
 `AuthorizationOptions::$preRegistered` set alongside it rather than silently outranking it. The
@@ -55,20 +55,21 @@ issuer identifier, and lives for five minutes. The token request carries the RFC
 parameter and the selected scopes, and with JWT authentication `client_id` stays out of the body:
 the assertion itself names the client.
 
-SEP-1046 makes `token_endpoint_auth_methods_supported` a mandatory discovery signal, so the grant
-refuses with `RuntimeException` when the authorization server's metadata
-omits the configured method (or, for JWT, advertises a signing-algorithm list without the
-configured algorithm), and with the same `RuntimeException` when a published `grant_types_supported`
-list omits `client_credentials`.
+SEP-1046 makes `token_endpoint_auth_methods_supported` a mandatory discovery signal. The grant
+refuses with `RuntimeException` when the authorization server's metadata omits the configured
+method, or, for JWT, advertises a signing-algorithm list without the configured algorithm. A
+published `grant_types_supported` list that omits `client_credentials` is refused the same way.
 
 ## Enterprise-managed authorization (SEP-990)
 
 The ID-JAG profile: the user signs into the client application through the enterprise IdP, and
 that sign-on, not a redirect to the resource's authorization server, is what authorizes MCP access.
-The grant runs two legs. First an RFC 8693 token exchange at the enterprise IdP turns the sign-on's
-identity assertion into an ID-JAG (a JWT authorization grant the IdP subjects to admin policy),
-then an RFC 7523 JWT-bearer grant redeems that ID-JAG at the resource's authorization server for
-the access token.
+The grant runs two legs:
+
+1. An RFC 8693 token exchange at the enterprise IdP turns the sign-on's identity assertion into an
+   ID-JAG, a JWT authorization grant the IdP subjects to admin policy.
+2. An RFC 7523 JWT-bearer grant redeems that ID-JAG at the resource's authorization server for the
+   access token.
 
 The client's seam to its own sign-on is `IdentityAssertionProviderInterface`, asked for a current
 assertion once per grant:
@@ -116,7 +117,7 @@ issued an ID-JAG, or the grant fails with `RuntimeException`. The ID-JAG
 itself stays opaque to the client.
 
 At the resource's authorization server the client authenticates with credentials registered out of
-band (`preRegistered`) or with a [Client ID Metadata Document](../auth/client.md) URL, never
+band (`preRegistered`) or with a [Client ID Metadata Document](client.md) URL, never
 Dynamic Client Registration. A published `authorization_grant_profiles_supported` list without
 `urn:ietf:params:oauth:grant-profile:id-jag` is refused. An absent list only logs, since most
 authorization servers do not publish the field yet.
@@ -130,7 +131,7 @@ loopback IdP for local development.
 Each extension has a settings-free capability declaration for the client
 (`ClientCredentialsClientExtension`, `EnterpriseAuthorizationClientExtension`) and an advertising
 counterpart for the server (`ClientCredentialsServerExtension`,
-`EnterpriseAuthorizationServerExtension`), enabled like [any extension](extensions.md):
+`EnterpriseAuthorizationServerExtension`), enabled like [any extension](../client/extensions.md):
 
 ```php
 $client = (new ClientBuilder())
