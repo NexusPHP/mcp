@@ -61,7 +61,7 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: composer-${{ env.DEFAULT_PHP_VERSION }}-${{ hashFiles('**/composer.lock') }}
+          key: composer-${{ env.DEFAULT_PHP_VERSION }}-${{ hashFiles('**/composer.json') }}
           restore-keys: |
             composer-${{ env.DEFAULT_PHP_VERSION }}-
             composer-

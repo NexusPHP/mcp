@@ -88,7 +88,7 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: composer-${{ matrix.php-version }}-${{ hashFiles('**/composer.lock') }}
+          key: composer-${{ matrix.php-version }}-${{ hashFiles('**/composer.json') }}
           restore-keys: |
             composer-${{ matrix.php-version }}-
             composer-
@@ -138,7 +138,7 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: composer-windows-${{ hashFiles('**/composer.lock') }}
+          key: composer-windows-${{ hashFiles('**/composer.json') }}
           restore-keys: composer-windows-
 
       - name: Install dependencies
