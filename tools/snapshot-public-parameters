@@ -1,0 +1,40 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+/**
+ * This file is part of the Nexus MCP SDK package.
+ *
+ * (c) 2026 John Paul E. Balandan, CPA <paulbalandan@gmail.com>
+ *
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
+ */
+
+use Nexus\Mcp\Tools\PublicParameterSnapshot;
+
+if (! is_file(__DIR__.'/../composer.json')) {
+    throw new RuntimeException('Could not determine repository root. Are you running from the repository directory?');
+}
+
+require __DIR__.'/../vendor/autoload.php';
+
+try {
+    echo "\033[36mGenerating public parameter name snapshot...\033[0m\n\n";
+
+    $snapshot = PublicParameterSnapshot::generateAndSaveSnapshot();
+
+    printf(
+        "\033[32m✓\033[0m Recorded \033[33m%d\033[0m public parameter lists across \033[33m%d\033[0m classes\n",
+        array_sum(array_map(count(...), $snapshot)),
+        count($snapshot),
+    );
+    printf("\033[32m✓\033[0m Saved snapshot to %s\n", realpath(PublicParameterSnapshot::SNAPSHOT_PATH));
+
+    exit(0);
+} catch (Throwable $e) {
+    printf("\n\033[31m✗ Error:\033[0m %s\n", $e->getMessage());
+
+    exit(1);
+}

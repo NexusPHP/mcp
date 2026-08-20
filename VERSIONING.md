@@ -74,9 +74,14 @@ result is read rather than enforced: [.github/RELEASE.md](.github/RELEASE.md) ru
 write [BREAKING_CHANGES.md](BREAKING_CHANGES.md), and the `Backward Compatibility` workflow runs it on
 pull requests and on demand. From 1.0 it becomes a blocking check on every change.
 
-One gap in that tool is recorded in
+Two gaps in that tool are covered elsewhere, and both are recorded in
 [.roave-backward-compatibility-check.xml](.roave-backward-compatibility-check.xml):
 
+- A class that was `final` in the released version is routed through a reduced check set that omits
+  parameter renames. `composer bc:snapshot` records those names at release time and
+  `PublicParameterNameTest` refuses a later rename, which matters because most of the covered surface is
+  final value objects built with named arguments. Adding a class, or appending an optional parameter,
+  is not a break and does not disturb the snapshot.
 - Static reflection cannot evaluate a `new X()` or enum-case parameter default, so a change to one of
   those defaults is not compared. The baseline names the two skip messages narrowly, so an unrecognised
   skip still fails the run.

@@ -40,6 +40,15 @@ composer bc:check
 It compares committed work against the latest stable tag, so run it before the tag exists. A break is
 permitted through `0.x` and must be recorded, not silenced.
 
+Then re-record the parameter names it cannot compare on a final class, and commit any change:
+
+```bash
+composer bc:snapshot
+```
+
+The snapshot describes the surface this tag freezes, so a symbol added since the last release joins it
+here. Renaming one before this point was never a break, and after it is.
+
 ## 4. Prepare the changelog commit
 
 One commit, titled `Prepare changelog for vX.Y.Z`:

@@ -1,0 +1,2937 @@
+{
+    "Nexus\\Mcp\\Client\\Auth\\AccessToken": {
+        "__construct": [
+            "value",
+            "issuer",
+            "expiresAt",
+            "refreshToken",
+            "scopes"
+        ]
+    },
+    "Nexus\\Mcp\\Client\\Auth\\AuthorizationCallback": {
+        "__construct": [
+            "callbackUrl"
+        ]
+    },
+    "Nexus\\Mcp\\Client\\Auth\\AuthorizationOptions": {
+        "__construct": [
+            "clientName",
+            "redirectUri",
+            "clientIdMetadataDocumentUrl",
+            "preRegistered",
+            "applicationType",
+            "maxScopeUpgrades",
+            "requestOfflineAccess",
+            "defaultScopes",
+            "onInsufficientScope",
+            "timeout",
+            "allowInsecureLoopback"
+        ]
+    },
+    "Nexus\\Mcp\\Client\\Auth\\AuthorizationRedirect": {
+        "__construct": [
+            "url",
+            "state",
+            "expectedIssuer",
+            "issuerParameterRequired",
+            "pkce",
+            "requestedScopes"
+        ]
+    },
+    "Nexus\\Mcp\\Client\\Auth\\AuthorizedHttpClient": {
+        "__construct": [
+            "resource",
+            "options",
+            "userAuthorization",
+            "clientBuilder",
+            "tokens",
+            "registrations",
+            "logger",
+            "grantStrategy"
+        ],
+        "request": [
+            "request",
+            "cancellation"
+        ]
+    },
+    "Nexus\\Mcp\\Client\\Auth\\ClientRegistration": {
+        "__construct": [
+            "clientId",
+            "issuer",
+            "clientSecret",
+            "tokenEndpointAuthMethod"
+        ]
+    },
+    "Nexus\\Mcp\\Client\\Auth\\DiscoveredResource": {
+        "__construct": [
+            "metadata",
+            "server"
+        ]
+    },
+    "Nexus\\Mcp\\Client\\Auth\\GrantContext": {
+        "requestToken": [
+            "registration",
+            "parameters",
+            "cancellation",
+            "requestedScopes"
+        ],
+        "resolveRegistration": [
+            "cancellation"
+        ]
+    },
+    "Nexus\\Mcp\\Client\\Auth\\InMemoryClientRegistrationStore": {
+        "forget": [
+            "issuer"
+        ],
+        "read": [
+            "issuer"
+        ],
+        "write": [
+            "issuer",
+            "registration"
+        ]
+    },
+    "Nexus\\Mcp\\Client\\Auth\\InMemoryTokenStore": {
+        "forget": [
+            "resource"
+        ],
+        "read": [
+            "resource"
+        ],
+        "write": [
+            "resource",
+            "token"
+        ]
+    },
+    "Nexus\\Mcp\\Client\\Client": {
+        "__construct": [
+            "clientInfo",
+            "clientCapabilities",
+            "dispatcher",
+            "outboundRequests",
+            "requestIdFactory",
+            "progressTokenFactory",
+            "protocolVersion",
+            "progressListeners",
+            "subscriptions",
+            "logger",
+            "requestTimeout",
+            "maxRequestTimeout",
+            "retryLostRequests",
+            "extensionMethods",
+            "serverCapabilities"
+        ],
+        "callTool": [
+            "name",
+            "arguments",
+            "onProgress",
+            "inputResponses",
+            "requestState"
+        ],
+        "complete": [
+            "ref",
+            "argument",
+            "context"
+        ],
+        "connect": [
+            "transport"
+        ],
+        "getPrompt": [
+            "name",
+            "arguments",
+            "inputResponses",
+            "requestState"
+        ],
+        "listPrompts": [
+            "cursor"
+        ],
+        "listResourceTemplates": [
+            "cursor"
+        ],
+        "listResources": [
+            "cursor"
+        ],
+        "listTools": [
+            "cursor"
+        ],
+        "listen": [
+            "notifications",
+            "onNotification"
+        ],
+        "readResource": [
+            "uri",
+            "inputResponses",
+            "requestState"
+        ],
+        "sendRequest": [
+            "request",
+            "response",
+            "context",
+            "timeout"
+        ],
+        "stampMeta": [
+            "progressToken"
+        ]
+    },
+    "Nexus\\Mcp\\Client\\ClientBuilder": {
+        "addNotificationHandler": [
+            "method",
+            "handler",
+            "notificationClass"
+        ],
+        "addRequestHandler": [
+            "method",
+            "handler",
+            "requestClass"
+        ],
+        "enableExtension": [
+            "extension"
+        ],
+        "setClientCapabilities": [
+            "capabilities"
+        ],
+        "setClientInfo": [
+            "name",
+            "version",
+            "title",
+            "description",
+            "websiteUrl",
+            "icons"
+        ],
+        "setLogger": [
+            "logger"
+        ],
+        "setMaxInFlightDispatches": [
+            "max"
+        ],
+        "setMaxRequestTimeout": [
+            "seconds"
+        ],
+        "setProgressTokenFactory": [
+            "factory"
+        ],
+        "setRequestIdFactory": [
+            "factory"
+        ],
+        "setRequestTimeout": [
+            "seconds"
+        ],
+        "setRetryLostRequests": [
+            "retry"
+        ]
+    },
+    "Nexus\\Mcp\\Client\\Exception\\AuthorizationGrantRejectedException": {
+        "__construct": [
+            "error",
+            "description"
+        ]
+    },
+    "Nexus\\Mcp\\Client\\Exception\\AuthorizationServerMismatchException": {
+        "__construct": [
+            "registeredIssuer",
+            "currentIssuer"
+        ]
+    },
+    "Nexus\\Mcp\\Client\\Exception\\ClientRegistrationRejectedException": {
+        "__construct": [
+            "description"
+        ]
+    },
+    "Nexus\\Mcp\\Client\\Exception\\ClientRegistrationRequiredException": {
+        "__construct": [
+            "issuer"
+        ]
+    },
+    "Nexus\\Mcp\\Client\\Exception\\InsecureAuthorizationEndpointException": {
+        "__construct": [
+            "label",
+            "url"
+        ]
+    },
+    "Nexus\\Mcp\\Client\\Exception\\InsufficientScopeException": {
+        "__construct": [
+            "required",
+            "named"
+        ]
+    },
+    "Nexus\\Mcp\\Client\\Exception\\InvalidAuthorizationResponseException": {
+        "__construct": [
+            "reason"
+        ]
+    },
+    "Nexus\\Mcp\\Client\\Exception\\MalformedAuthorizationResponseException": {
+        "__construct": [
+            "label",
+            "previous"
+        ]
+    },
+    "Nexus\\Mcp\\Client\\Exception\\PkceNotSupportedException": {
+        "__construct": [
+            "issuer"
+        ]
+    },
+    "Nexus\\Mcp\\Client\\Exception\\RedirectRefusedException": {
+        "__construct": [
+            "sent",
+            "answered"
+        ]
+    },
+    "Nexus\\Mcp\\Client\\Exception\\ServerCapabilityNotSupportedException": {
+        "__construct": [
+            "method"
+        ]
+    },
+    "Nexus\\Mcp\\Client\\Exception\\SubscriptionDeliveryDroppedException": {
+        "__construct": [
+            "subscriptionId"
+        ]
+    },
+    "Nexus\\Mcp\\Client\\Exception\\UntrustedAuthorizationMetadataException": {
+        "__construct": [
+            "reason",
+            "previous"
+        ]
+    },
+    "Nexus\\Mcp\\Client\\Transport\\StdioClientTransport": {
+        "__construct": [
+            "command",
+            "workingDirectory",
+            "env",
+            "logger",
+            "maxLineBytes",
+            "launcher"
+        ],
+        "onClose": [
+            "listener"
+        ],
+        "onDrain": [
+            "listener"
+        ],
+        "onError": [
+            "listener"
+        ],
+        "onMessage": [
+            "listener"
+        ],
+        "onUnexpectedExit": [
+            "listener"
+        ],
+        "send": [
+            "message",
+            "context"
+        ]
+    },
+    "Nexus\\Mcp\\Client\\Transport\\StreamableHttpClientTransport": {
+        "__construct": [
+            "endpoint",
+            "client",
+            "logger",
+            "readTimeout",
+            "maxResponseBytes"
+        ],
+        "abort": [
+            "id"
+        ],
+        "onClose": [
+            "listener"
+        ],
+        "onDrain": [
+            "listener"
+        ],
+        "onError": [
+            "listener"
+        ],
+        "onMessage": [
+            "listener"
+        ],
+        "send": [
+            "message",
+            "context"
+        ]
+    },
+    "Nexus\\Mcp\\Client\\Transport\\SupervisedTransport": {
+        "__construct": [
+            "factory",
+            "maxRestarts",
+            "restartDelay",
+            "logger",
+            "restartWindow",
+            "clock"
+        ],
+        "onClose": [
+            "listener"
+        ],
+        "onDrain": [
+            "listener"
+        ],
+        "onError": [
+            "listener"
+        ],
+        "onMessage": [
+            "listener"
+        ],
+        "onReconnect": [
+            "listener"
+        ],
+        "send": [
+            "message",
+            "context"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Auth\\AuthorizationServerMetadata": {
+        "__construct": [
+            "issuer",
+            "authorizationEndpoint",
+            "tokenEndpoint",
+            "registrationEndpoint",
+            "scopesSupported",
+            "codeChallengeMethodsSupported",
+            "authorizationResponseIssParameterSupported",
+            "clientIdMetadataDocumentSupported",
+            "tokenEndpointAuthMethodsSupported",
+            "tokenEndpointAuthSigningAlgValuesSupported",
+            "grantTypesSupported",
+            "authorizationGrantProfilesSupported"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Auth\\ProtectedResourceMetadata": {
+        "__construct": [
+            "resource",
+            "authorizationServers",
+            "scopesSupported",
+            "bearerMethodsSupported",
+            "resourceName"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Auth\\ResourceIdentifier": {
+        "__construct": [
+            "uri"
+        ],
+        "matchesAudience": [
+            "audience"
+        ],
+        "sharesOriginWith": [
+            "uri"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Auth\\ScopeSet": {
+        "__construct": [
+            "values"
+        ],
+        "contains": [
+            "scope"
+        ],
+        "containsAll": [
+            "other"
+        ],
+        "fromList": [
+            "values"
+        ],
+        "mergeWith": [
+            "other"
+        ],
+        "parse": [
+            "scope"
+        ],
+        "without": [
+            "scope"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Auth\\VerifiedAccessToken": {
+        "__construct": [
+            "audience",
+            "scopes",
+            "subject",
+            "clientId",
+            "expiresAt"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Dispatch\\RequestBoundSender": {
+        "__construct": [
+            "transport",
+            "requestId"
+        ],
+        "sendNotification": [
+            "notification"
+        ],
+        "sendRequest": [
+            "request"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Exception\\DuplicateInboundRequestIdException": {
+        "__construct": [
+            "requestId",
+            "previous"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Exception\\MethodMisroutedException": {
+        "__construct": [
+            "method",
+            "expectedShape",
+            "receivedShape",
+            "requestId",
+            "previous"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Exception\\MethodNotFoundException": {
+        "__construct": [
+            "method",
+            "requestId",
+            "previous"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Exception\\OutboundRequestFailedException": {
+        "__construct": [
+            "requestId",
+            "previous"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Exception\\OutboundRequestsNotSupportedException": {
+        "__construct": [
+            "requestId",
+            "previous"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Exception\\RemoteCallFailedException": {
+        "__construct": [
+            "error",
+            "previous"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Exception\\RequestTimeoutException": {
+        "__construct": [
+            "requestId",
+            "seconds",
+            "previous"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Exception\\ResponseTooLargeException": {
+        "__construct": [
+            "maxBytes",
+            "previous"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Exception\\SupervisionExhaustedException": {
+        "__construct": [
+            "restarts",
+            "previous"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Exception\\TransportAlreadyClosedException": {
+        "__construct": [
+            "operation",
+            "previous"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Exception\\TransportAlreadyStartedException": {
+        "__construct": [
+            "transport"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Exception\\TransportNotStartedException": {
+        "__construct": [
+            "operation"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Exception\\UnexpectedHttpStatusException": {
+        "__construct": [
+            "status",
+            "body"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Handler\\HandlerRegistry": {
+        "__construct": [
+            "handlers",
+            "handlerInterface",
+            "label"
+        ],
+        "get": [
+            "method"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\JsonRpc\\JsonRpcMessageParser": {
+        "__construct": [
+            "requests",
+            "notifications"
+        ],
+        "parse": [
+            "message",
+            "response"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\JsonRpc\\UnparsedResultEnvelope": {
+        "__construct": [
+            "id",
+            "result"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\SafeDisplay": {
+        "sanitise": [
+            "value"
+        ],
+        "sanitiseCause": [
+            "message"
+        ],
+        "sanitiseId": [
+            "id"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Annotations": {
+        "__construct": [
+            "audience",
+            "priority",
+            "lastModified"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\ClientCapabilities": {
+        "__construct": [
+            "elicitation",
+            "experimental",
+            "extensions",
+            "extras"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\ContentBlock\\AudioContent": {
+        "__construct": [
+            "data",
+            "mimeType",
+            "annotations",
+            "meta"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\ContentBlock\\EmbeddedResource": {
+        "__construct": [
+            "resource",
+            "annotations",
+            "meta"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\ContentBlock\\ImageContent": {
+        "__construct": [
+            "data",
+            "mimeType",
+            "annotations",
+            "meta"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\ContentBlock\\ResourceLink": {
+        "__construct": [
+            "name",
+            "uri",
+            "title",
+            "description",
+            "mimeType",
+            "annotations",
+            "size",
+            "icons",
+            "meta"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\ContentBlock\\TextContent": {
+        "__construct": [
+            "text",
+            "annotations",
+            "meta"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Cursor": {
+        "__construct": [
+            "cursor"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Elicitation\\BooleanSchema": {
+        "__construct": [
+            "title",
+            "description",
+            "default"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Elicitation\\ElicitRequest": {
+        "__construct": [
+            "params"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Elicitation\\ElicitRequestedSchema": {
+        "__construct": [
+            "properties",
+            "required",
+            "schema"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Elicitation\\ElicitResult": {
+        "__construct": [
+            "action",
+            "content"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Elicitation\\EnumOption": {
+        "__construct": [
+            "const",
+            "title"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Elicitation\\LegacyTitledEnumSchema": {
+        "__construct": [
+            "enum",
+            "title",
+            "description",
+            "enumNames",
+            "default"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Elicitation\\NumberSchema": {
+        "__construct": [
+            "type",
+            "title",
+            "description",
+            "minimum",
+            "maximum",
+            "default"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Elicitation\\StringSchema": {
+        "__construct": [
+            "title",
+            "description",
+            "minLength",
+            "maxLength",
+            "format",
+            "default"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Elicitation\\TitledMultiSelectEnumSchema": {
+        "__construct": [
+            "items",
+            "title",
+            "description",
+            "minItems",
+            "maxItems",
+            "default"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Elicitation\\TitledSingleSelectEnumSchema": {
+        "__construct": [
+            "oneOf",
+            "title",
+            "description",
+            "default"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Elicitation\\UntitledMultiSelectEnumSchema": {
+        "__construct": [
+            "items",
+            "title",
+            "description",
+            "minItems",
+            "maxItems",
+            "default"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Elicitation\\UntitledSingleSelectEnumSchema": {
+        "__construct": [
+            "enum",
+            "title",
+            "description",
+            "default"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Error\\HeaderMismatchError": {
+        "__construct": [
+            "message",
+            "data"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Error\\InternalError": {
+        "__construct": [
+            "message",
+            "data"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Error\\InvalidParamsError": {
+        "__construct": [
+            "message",
+            "data"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Error\\InvalidRequestError": {
+        "__construct": [
+            "message",
+            "data"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Error\\MethodNotFoundError": {
+        "__construct": [
+            "message",
+            "data"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Error\\MissingRequiredClientCapabilityError": {
+        "__construct": [
+            "requiredCapabilities",
+            "message"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Error\\ParseError": {
+        "__construct": [
+            "message",
+            "data"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Error\\UnknownProtocolError": {
+        "__construct": [
+            "code",
+            "message",
+            "data"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Error\\UnsupportedProtocolVersionError": {
+        "__construct": [
+            "requested",
+            "supported",
+            "message"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Icon": {
+        "__construct": [
+            "src",
+            "mimeType",
+            "sizes",
+            "theme"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Implementation": {
+        "__construct": [
+            "name",
+            "version",
+            "title",
+            "description",
+            "websiteUrl",
+            "icons"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\JsonRpc\\JsonRpcErrorResponse": {
+        "__construct": [
+            "id",
+            "error"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\MetaObject\\GenericResultMetaObject": {
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\MetaObject\\NotificationMetaObject": {
+        "__construct": [
+            "subscriptionId",
+            "extras"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\MetaObject\\PayloadMetaObject": {
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\MetaObject\\RequestMetaObject": {
+        "__construct": [
+            "protocolVersion",
+            "clientCapabilities",
+            "clientInfo",
+            "logLevel",
+            "progressToken",
+            "extras"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\MetaObject\\SubscriptionsListenResultMetaObject": {
+        "__construct": [
+            "subscriptionId",
+            "serverInfo",
+            "extras"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\NotificationParams\\CancelledNotificationParams": {
+        "__construct": [
+            "requestId",
+            "reason",
+            "meta"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\NotificationParams\\EmptyNotificationParams": {
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\NotificationParams\\ProgressNotificationParams": {
+        "__construct": [
+            "progressToken",
+            "progress",
+            "total",
+            "message",
+            "meta"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\NotificationParams\\ResourceUpdatedNotificationParams": {
+        "__construct": [
+            "uri",
+            "meta"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\NotificationParams\\SubscriptionsAcknowledgedNotificationParams": {
+        "__construct": [
+            "notifications",
+            "meta"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Notification\\CancelledNotification": {
+        "__construct": [
+            "params"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Notification\\ProgressNotification": {
+        "__construct": [
+            "params"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Notification\\PromptListChangedNotification": {
+        "__construct": [
+            "params"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Notification\\ResourceListChangedNotification": {
+        "__construct": [
+            "params"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Notification\\ResourceUpdatedNotification": {
+        "__construct": [
+            "params"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Notification\\SubscriptionsAcknowledgedNotification": {
+        "__construct": [
+            "params"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Notification\\ToolListChangedNotification": {
+        "__construct": [
+            "params"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\ProgressToken": {
+        "__construct": [
+            "token"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Prompt\\Prompt": {
+        "__construct": [
+            "name",
+            "title",
+            "description",
+            "arguments",
+            "icons",
+            "meta"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Prompt\\PromptArgument": {
+        "__construct": [
+            "name",
+            "title",
+            "description",
+            "required"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Prompt\\PromptMessage": {
+        "__construct": [
+            "role",
+            "content"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Prompt\\PromptReference": {
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\ProtocolVersion": {
+        "__construct": [
+            "version"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\RequestId": {
+        "__construct": [
+            "id"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\RequestParams\\CallToolRequestParams": {
+        "__construct": [
+            "name",
+            "meta",
+            "arguments",
+            "inputResponses",
+            "requestState"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\RequestParams\\CompleteRequestParams": {
+        "__construct": [
+            "ref",
+            "argument",
+            "meta",
+            "context"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\RequestParams\\ElicitRequestFormParams": {
+        "__construct": [
+            "message",
+            "requestedSchema",
+            "mode"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\RequestParams\\ElicitRequestUrlParams": {
+        "__construct": [
+            "message",
+            "mode",
+            "url"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\RequestParams\\EmptyRequestParams": {
+        "__construct": [
+            "meta"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\RequestParams\\GetPromptRequestParams": {
+        "__construct": [
+            "name",
+            "meta",
+            "arguments",
+            "inputResponses",
+            "requestState"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\RequestParams\\PaginatedRequestParams": {
+        "__construct": [
+            "meta",
+            "cursor"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\RequestParams\\ReadResourceRequestParams": {
+        "__construct": [
+            "uri",
+            "meta",
+            "inputResponses",
+            "requestState"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\RequestParams\\SubscriptionsListenRequestParams": {
+        "__construct": [
+            "notifications",
+            "meta"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Request\\CallToolRequest": {
+        "__construct": [
+            "id",
+            "params"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Request\\CompleteRequest": {
+        "__construct": [
+            "id",
+            "params"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Request\\DiscoverRequest": {
+        "__construct": [
+            "id",
+            "params"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Request\\GetPromptRequest": {
+        "__construct": [
+            "id",
+            "params"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Request\\ListPromptsRequest": {
+        "__construct": [
+            "id",
+            "params"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Request\\ListResourceTemplatesRequest": {
+        "__construct": [
+            "id",
+            "params"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Request\\ListResourcesRequest": {
+        "__construct": [
+            "id",
+            "params"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Request\\ListToolsRequest": {
+        "__construct": [
+            "id",
+            "params"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Request\\ReadResourceRequest": {
+        "__construct": [
+            "id",
+            "params"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Request\\SubscriptionsListenRequest": {
+        "__construct": [
+            "id",
+            "params"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Resource\\BlobResourceContents": {
+        "__construct": [
+            "uri",
+            "blob",
+            "mimeType",
+            "meta"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Resource\\Resource": {
+        "__construct": [
+            "name",
+            "uri",
+            "title",
+            "description",
+            "mimeType",
+            "annotations",
+            "size",
+            "icons",
+            "meta"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Resource\\ResourceTemplate": {
+        "__construct": [
+            "name",
+            "uriTemplate",
+            "title",
+            "description",
+            "mimeType",
+            "annotations",
+            "icons",
+            "meta"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Resource\\ResourceTemplateReference": {
+        "__construct": [
+            "uri"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Resource\\TextResourceContents": {
+        "__construct": [
+            "uri",
+            "text",
+            "mimeType",
+            "meta"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\ResultResponse\\CallToolResultResponse": {
+        "__construct": [
+            "id",
+            "result"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\ResultResponse\\CompleteResultResponse": {
+        "__construct": [
+            "id",
+            "result"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\ResultResponse\\DiscoverResultResponse": {
+        "__construct": [
+            "id",
+            "result"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\ResultResponse\\GetPromptResultResponse": {
+        "__construct": [
+            "id",
+            "result"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\ResultResponse\\ListPromptsResultResponse": {
+        "__construct": [
+            "id",
+            "result"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\ResultResponse\\ListResourceTemplatesResultResponse": {
+        "__construct": [
+            "id",
+            "result"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\ResultResponse\\ListResourcesResultResponse": {
+        "__construct": [
+            "id",
+            "result"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\ResultResponse\\ListToolsResultResponse": {
+        "__construct": [
+            "id",
+            "result"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\ResultResponse\\ReadResourceResultResponse": {
+        "__construct": [
+            "id",
+            "result"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\ResultResponse\\SubscriptionsListenResultResponse": {
+        "__construct": [
+            "id",
+            "result"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Result\\CallToolResult": {
+        "__construct": [
+            "content",
+            "structuredContent",
+            "isError",
+            "meta"
+        ],
+        "fromArray": [
+            "data"
+        ],
+        "rebuildWithMeta": [
+            "meta"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Result\\CompleteResult": {
+        "__construct": [
+            "completion",
+            "meta"
+        ],
+        "fromArray": [
+            "data"
+        ],
+        "rebuildWithMeta": [
+            "meta"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Result\\DiscoverResult": {
+        "__construct": [
+            "supportedVersions",
+            "capabilities",
+            "ttlMs",
+            "cacheScope",
+            "instructions",
+            "meta"
+        ],
+        "fromArray": [
+            "data"
+        ],
+        "rebuildWithMeta": [
+            "meta"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Result\\EmptyResult": {
+        "__construct": [
+            "meta"
+        ],
+        "fromArray": [
+            "data"
+        ],
+        "rebuildWithMeta": [
+            "meta"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Result\\GetPromptResult": {
+        "__construct": [
+            "messages",
+            "description",
+            "meta"
+        ],
+        "fromArray": [
+            "data"
+        ],
+        "rebuildWithMeta": [
+            "meta"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Result\\InputRequiredResult": {
+        "__construct": [
+            "inputRequests",
+            "requestState",
+            "meta"
+        ],
+        "fromArray": [
+            "data"
+        ],
+        "rebuildWithMeta": [
+            "meta"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Result\\ListPromptsResult": {
+        "__construct": [
+            "prompts",
+            "ttlMs",
+            "cacheScope",
+            "nextCursor",
+            "meta"
+        ],
+        "fromArray": [
+            "data"
+        ],
+        "rebuildWithMeta": [
+            "meta"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Result\\ListResourceTemplatesResult": {
+        "__construct": [
+            "resourceTemplates",
+            "ttlMs",
+            "cacheScope",
+            "nextCursor",
+            "meta"
+        ],
+        "fromArray": [
+            "data"
+        ],
+        "rebuildWithMeta": [
+            "meta"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Result\\ListResourcesResult": {
+        "__construct": [
+            "resources",
+            "ttlMs",
+            "cacheScope",
+            "nextCursor",
+            "meta"
+        ],
+        "fromArray": [
+            "data"
+        ],
+        "rebuildWithMeta": [
+            "meta"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Result\\ListToolsResult": {
+        "__construct": [
+            "tools",
+            "ttlMs",
+            "cacheScope",
+            "nextCursor",
+            "meta"
+        ],
+        "fromArray": [
+            "data"
+        ],
+        "rebuildWithMeta": [
+            "meta"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Result\\ReadResourceResult": {
+        "__construct": [
+            "contents",
+            "ttlMs",
+            "cacheScope",
+            "meta"
+        ],
+        "fromArray": [
+            "data"
+        ],
+        "rebuildWithMeta": [
+            "meta"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Result\\SubscriptionsListenResult": {
+        "__construct": [
+            "meta"
+        ],
+        "fromArray": [
+            "data"
+        ],
+        "rebuildWithMeta": [
+            "meta"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\ServerCapabilities": {
+        "__construct": [
+            "completions",
+            "experimental",
+            "extensions",
+            "logging",
+            "prompts",
+            "resources",
+            "tools",
+            "extras"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\SubscriptionFilter": {
+        "__construct": [
+            "toolsListChanged",
+            "promptsListChanged",
+            "resourcesListChanged",
+            "resourceSubscriptions"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Tool\\Tool": {
+        "__construct": [
+            "name",
+            "inputSchema",
+            "title",
+            "description",
+            "outputSchema",
+            "annotations",
+            "icons",
+            "meta"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Schema\\Tool\\ToolAnnotations": {
+        "__construct": [
+            "title",
+            "readOnlyHint",
+            "destructiveHint",
+            "idempotentHint",
+            "openWorldHint"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Transport\\InMemoryTransport": {
+        "onClose": [
+            "listener"
+        ],
+        "onDrain": [
+            "listener"
+        ],
+        "onError": [
+            "listener"
+        ],
+        "onMessage": [
+            "listener"
+        ],
+        "send": [
+            "message",
+            "context"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Transport\\ReceiveContext": {
+        "__construct": [
+            "request",
+            "authInfo",
+            "peerRequestId"
+        ]
+    },
+    "Nexus\\Mcp\\Core\\Transport\\SendContext": {
+        "__construct": [
+            "relatedRequestId",
+            "fromHandler",
+            "headers"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Apps\\Client\\AppClient": {
+        "__construct": [
+            "client",
+            "mimeTypes"
+        ],
+        "findAppTools": [
+            "result"
+        ],
+        "readAppResource": [
+            "uri",
+            "inputResponses",
+            "requestState"
+        ],
+        "resolveResourceMeta": [
+            "source"
+        ],
+        "resolveToolMeta": [
+            "tool"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Apps\\Client\\AppTool": {
+        "__construct": [
+            "tool",
+            "uiMeta"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Apps\\Client\\AppsClientExtension": {
+        "__construct": [
+            "mimeTypes"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Apps\\Schema\\UiResourceCsp": {
+        "__construct": [
+            "connectDomains",
+            "resourceDomains",
+            "frameDomains",
+            "baseUriDomains"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Apps\\Schema\\UiResourceMeta": {
+        "__construct": [
+            "csp",
+            "permissions",
+            "domain",
+            "prefersBorder"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Apps\\Schema\\UiResourcePermissions": {
+        "__construct": [
+            "camera",
+            "microphone",
+            "geolocation",
+            "clipboardWrite"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Apps\\Schema\\UiToolMeta": {
+        "__construct": [
+            "resourceUri",
+            "visibility"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Apps\\Server\\UiResource": {
+        "__construct": [
+            "name",
+            "uri",
+            "title",
+            "description",
+            "uiMeta",
+            "annotations",
+            "size",
+            "icons"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Auth\\ClientCredentials\\ClientCredentialsGrant": {
+        "__construct": [
+            "credential"
+        ],
+        "grant": [
+            "context",
+            "cancellation"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Auth\\ClientCredentials\\ClientSecretCredential": {
+        "__construct": [
+            "clientId",
+            "clientSecret"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Auth\\ClientCredentials\\PrivateKeyJwtCredential": {
+        "__construct": [
+            "clientId",
+            "privateKeyPem",
+            "algorithm",
+            "keyId"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Auth\\Enterprise\\IdentityAssertion": {
+        "__construct": [
+            "token",
+            "type"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Auth\\Enterprise\\IdentityAssertionGrant": {
+        "__construct": [
+            "idpTokenEndpoint",
+            "assertions",
+            "idpClientId",
+            "allowInsecureLoopback"
+        ],
+        "grant": [
+            "context",
+            "cancellation"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Tasks\\Client\\Exception\\StalledTaskException": {
+        "__construct": [
+            "taskId",
+            "polls"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Tasks\\Client\\TaskClient": {
+        "__construct": [
+            "client",
+            "stallCeiling",
+            "sleep"
+        ],
+        "awaitTask": [
+            "task",
+            "resolveInputRequests",
+            "cancellation"
+        ],
+        "callToolAsTask": [
+            "name",
+            "arguments",
+            "inputResponses",
+            "requestState"
+        ],
+        "cancelTask": [
+            "taskId"
+        ],
+        "getTask": [
+            "taskId"
+        ],
+        "updateTask": [
+            "taskId",
+            "inputResponses"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Tasks\\Schema\\RequestParams\\CancelTaskRequestParams": {
+        "__construct": [
+            "taskId",
+            "meta"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Tasks\\Schema\\RequestParams\\GetTaskRequestParams": {
+        "__construct": [
+            "taskId",
+            "meta"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Tasks\\Schema\\RequestParams\\UpdateTaskRequestParams": {
+        "__construct": [
+            "taskId",
+            "inputResponses",
+            "meta"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Tasks\\Schema\\Request\\CancelTaskRequest": {
+        "__construct": [
+            "id",
+            "params"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Tasks\\Schema\\Request\\GetTaskRequest": {
+        "__construct": [
+            "id",
+            "params"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Tasks\\Schema\\Request\\UpdateTaskRequest": {
+        "__construct": [
+            "id",
+            "params"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Tasks\\Schema\\ResultResponse\\GetTaskResultResponse": {
+        "__construct": [
+            "id",
+            "result"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Tasks\\Schema\\ResultResponse\\TaskCallToolResultResponse": {
+        "__construct": [
+            "id",
+            "result"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Tasks\\Schema\\Result\\CreateTaskResult": {
+        "__construct": [
+            "taskId",
+            "status",
+            "createdAt",
+            "lastUpdatedAt",
+            "ttlMs",
+            "statusMessage",
+            "pollIntervalMs",
+            "meta"
+        ],
+        "fromArray": [
+            "data"
+        ],
+        "rebuildWithMeta": [
+            "meta"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Tasks\\Schema\\Result\\GetTaskResult": {
+        "__construct": [
+            "taskId",
+            "status",
+            "createdAt",
+            "lastUpdatedAt",
+            "ttlMs",
+            "result",
+            "error",
+            "inputRequests",
+            "statusMessage",
+            "pollIntervalMs",
+            "meta"
+        ],
+        "fromArray": [
+            "data"
+        ],
+        "rebuildWithMeta": [
+            "meta"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Tasks\\Server\\Exception\\InputRequestKeyReusedException": {
+        "__construct": [
+            "taskId",
+            "key"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Tasks\\Server\\Handler\\CancelTaskRequestHandler": {
+        "__construct": [
+            "store",
+            "cancellations"
+        ],
+        "handle": [
+            "request",
+            "context"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Tasks\\Server\\Handler\\GetTaskRequestHandler": {
+        "__construct": [
+            "store"
+        ],
+        "handle": [
+            "request",
+            "context"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Tasks\\Server\\Handler\\UpdateTaskRequestHandler": {
+        "__construct": [
+            "store",
+            "runner"
+        ],
+        "handle": [
+            "request",
+            "context"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Tasks\\Server\\Store\\InMemoryTaskStore": {
+        "__construct": [
+            "clock"
+        ],
+        "createTask": [
+            "toolName",
+            "arguments",
+            "ttlMs",
+            "pollIntervalMs"
+        ],
+        "findTask": [
+            "taskId"
+        ],
+        "resolveInputRequests": [
+            "taskId",
+            "inputResponses"
+        ],
+        "trySetCancelled": [
+            "taskId"
+        ],
+        "trySetCompleted": [
+            "taskId",
+            "result"
+        ],
+        "trySetFailed": [
+            "taskId",
+            "error",
+            "statusMessage"
+        ],
+        "trySetInputRequired": [
+            "taskId",
+            "inputRequests",
+            "requestState"
+        ],
+        "trySetWorking": [
+            "taskId"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Tasks\\Server\\Store\\TaskRecord": {
+        "__construct": [
+            "taskId",
+            "toolName",
+            "status",
+            "createdAt",
+            "lastUpdatedAt",
+            "ttlMs",
+            "pollIntervalMs",
+            "arguments",
+            "result",
+            "error",
+            "pendingInputRequests",
+            "inputResponses",
+            "requestState",
+            "issuedInputKeys",
+            "statusMessage"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Tasks\\Server\\TasksServerExtension": {
+        "__construct": [
+            "store",
+            "toolPolicies",
+            "defaultTtlMs",
+            "defaultPollIntervalMs",
+            "logger"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Tasks\\Server\\ToolTaskPolicy": {
+        "__construct": [
+            "support",
+            "resolvesInputFirst"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Attribute\\AsCompletion": {
+        "__construct": [
+            "argument",
+            "prompt",
+            "uriTemplate"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Attribute\\AsPrompt": {
+        "__construct": [
+            "name",
+            "title",
+            "description",
+            "icons",
+            "meta"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Attribute\\AsResource": {
+        "__construct": [
+            "uri",
+            "name",
+            "title",
+            "description",
+            "mimeType",
+            "annotations",
+            "size",
+            "icons",
+            "meta"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Attribute\\AsResourceTemplate": {
+        "__construct": [
+            "uriTemplate",
+            "name",
+            "title",
+            "description",
+            "mimeType",
+            "annotations",
+            "icons",
+            "meta"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Attribute\\AsServer": {
+        "__construct": [
+            "name",
+            "version",
+            "title",
+            "description",
+            "websiteUrl",
+            "instructions",
+            "icons"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Attribute\\AsTool": {
+        "__construct": [
+            "name",
+            "title",
+            "description",
+            "annotations",
+            "icons",
+            "outputSchema",
+            "meta"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Attribute\\InputSchema": {
+        "__construct": [
+            "definition",
+            "type",
+            "description",
+            "enum",
+            "format",
+            "minLength",
+            "maxLength",
+            "pattern",
+            "minimum",
+            "maximum",
+            "exclusiveMinimum",
+            "exclusiveMaximum",
+            "multipleOf",
+            "items",
+            "minItems",
+            "maxItems",
+            "uniqueItems",
+            "properties",
+            "required",
+            "additionalProperties"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Auth\\JwksAccessTokenValidator": {
+        "__construct": [
+            "keys",
+            "expectedIssuer"
+        ],
+        "validate": [
+            "token"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Completion\\ClosureCompletionProvider": {
+        "__construct": [
+            "closure"
+        ],
+        "complete": [
+            "argumentValue",
+            "contextArguments",
+            "context"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Completion\\CompletionStore": {
+        "__construct": [
+            "promptCompletions",
+            "templateCompletions"
+        ],
+        "complete": [
+            "ref",
+            "argumentName",
+            "argumentValue",
+            "contextArguments",
+            "context"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Completion\\PromptCompletionEntry": {
+        "__construct": [
+            "prompt",
+            "argument",
+            "provider"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Completion\\ReflectedCompletionProvider": {
+        "__construct": [
+            "handler",
+            "method"
+        ],
+        "complete": [
+            "argumentValue",
+            "contextArguments",
+            "context"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Completion\\ResourceTemplateCompletionEntry": {
+        "__construct": [
+            "uriTemplate",
+            "argument",
+            "provider"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Exception\\InvalidCursorException": {
+        "__construct": [
+            "cursor",
+            "requestId",
+            "previous"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Exception\\MissingRequiredClientCapabilityException": {
+        "__construct": [
+            "requiredCapabilities",
+            "requestId",
+            "previous"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Exception\\PromptNotFoundException": {
+        "__construct": [
+            "name",
+            "requestId",
+            "previous"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Exception\\ResourceNotFoundException": {
+        "__construct": [
+            "uri",
+            "requestId",
+            "previous"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Exception\\ResourceNotRegisteredException": {
+        "__construct": [
+            "uri",
+            "requestId",
+            "previous"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Exception\\SubscriptionLimitReachedException": {
+        "__construct": [
+            "limit",
+            "requestId",
+            "previous",
+            "perPeer"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Exception\\ToolNotFoundException": {
+        "__construct": [
+            "name",
+            "requestId",
+            "previous"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Exception\\ToolOutputValidationException": {
+        "__construct": [
+            "toolName",
+            "errors",
+            "previous"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Exception\\UnsupportedReturnValueException": {
+        "__construct": [
+            "class",
+            "method",
+            "expected",
+            "value"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Exception\\UnsupportedSchemaTypeException": {
+        "__construct": [
+            "type"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Handler\\Request\\CallToolRequestHandler": {
+        "__construct": [
+            "store",
+            "logger"
+        ],
+        "handle": [
+            "request",
+            "context"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Handler\\Request\\CompleteRequestHandler": {
+        "__construct": [
+            "store"
+        ],
+        "handle": [
+            "request",
+            "context"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Handler\\Request\\DiscoverRequestHandler": {
+        "__construct": [
+            "capabilities",
+            "instructions",
+            "ttlMs",
+            "cacheScope",
+            "meta",
+            "serverInfo"
+        ],
+        "handle": [
+            "request",
+            "context"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Handler\\Request\\GetPromptRequestHandler": {
+        "__construct": [
+            "store"
+        ],
+        "handle": [
+            "request",
+            "context"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Handler\\Request\\ListPromptsRequestHandler": {
+        "__construct": [
+            "store"
+        ],
+        "handle": [
+            "request",
+            "context"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Handler\\Request\\ListResourceTemplatesRequestHandler": {
+        "__construct": [
+            "store"
+        ],
+        "handle": [
+            "request",
+            "context"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Handler\\Request\\ListResourcesRequestHandler": {
+        "__construct": [
+            "store"
+        ],
+        "handle": [
+            "request",
+            "context"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Handler\\Request\\ListToolsRequestHandler": {
+        "__construct": [
+            "store"
+        ],
+        "handle": [
+            "request",
+            "context"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Handler\\Request\\ReadResourceRequestHandler": {
+        "__construct": [
+            "store"
+        ],
+        "handle": [
+            "request",
+            "context"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Prompt\\ClosurePromptRenderer": {
+        "__construct": [
+            "closure"
+        ],
+        "render": [
+            "arguments",
+            "context"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Prompt\\PromptEntry": {
+        "__construct": [
+            "prompt",
+            "renderer"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Prompt\\PromptStore": {
+        "__construct": [
+            "entries",
+            "pageSize",
+            "ttlMs",
+            "cacheScope"
+        ],
+        "addPrompt": [
+            "prompt",
+            "renderer"
+        ],
+        "get": [
+            "name",
+            "arguments",
+            "context"
+        ],
+        "list": [
+            "cursor"
+        ],
+        "onListChanged": [
+            "listener"
+        ],
+        "removePrompt": [
+            "name"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Prompt\\ReflectedPromptRenderer": {
+        "__construct": [
+            "handler",
+            "method",
+            "binder"
+        ],
+        "render": [
+            "arguments",
+            "context"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\RequestStateSigner": {
+        "__construct": [
+            "secret",
+            "algorithm"
+        ],
+        "sign": [
+            "payload",
+            "binding"
+        ],
+        "verify": [
+            "state",
+            "binding"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Resource\\ClosureResourceReader": {
+        "__construct": [
+            "closure"
+        ],
+        "read": [
+            "uri",
+            "context"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Resource\\ClosureTemplatedResourceReader": {
+        "__construct": [
+            "closure"
+        ],
+        "read": [
+            "uri",
+            "bindings",
+            "context"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Resource\\CompositeResourceStore": {
+        "__construct": [
+            "resourceStore",
+            "resourceTemplateStore"
+        ],
+        "list": [
+            "cursor"
+        ],
+        "onListChanged": [
+            "listener"
+        ],
+        "read": [
+            "uri",
+            "context"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Resource\\ReflectedResourceReader": {
+        "__construct": [
+            "handler",
+            "method",
+            "binder"
+        ],
+        "read": [
+            "uri",
+            "context"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Resource\\ReflectedTemplatedResourceReader": {
+        "__construct": [
+            "handler",
+            "method",
+            "binder"
+        ],
+        "read": [
+            "uri",
+            "bindings",
+            "context"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Resource\\ResourceEntry": {
+        "__construct": [
+            "resource",
+            "reader"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Resource\\ResourceStore": {
+        "__construct": [
+            "entries",
+            "pageSize",
+            "ttlMs",
+            "cacheScope"
+        ],
+        "addResource": [
+            "resource",
+            "reader"
+        ],
+        "list": [
+            "cursor"
+        ],
+        "onListChanged": [
+            "listener"
+        ],
+        "read": [
+            "uri",
+            "context"
+        ],
+        "removeResource": [
+            "uri"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Resource\\ResourceTemplateEntry": {
+        "__construct": [
+            "template",
+            "reader"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Resource\\ResourceTemplateStore": {
+        "__construct": [
+            "entries",
+            "pageSize",
+            "ttlMs",
+            "cacheScope"
+        ],
+        "addResourceTemplate": [
+            "template",
+            "reader"
+        ],
+        "list": [
+            "cursor"
+        ],
+        "onListChanged": [
+            "listener"
+        ],
+        "read": [
+            "uri",
+            "context"
+        ],
+        "removeResourceTemplate": [
+            "uriTemplate"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Server": {
+        "__construct": [
+            "dispatcher",
+            "logger",
+            "subscriptions"
+        ],
+        "listen": [
+            "transport"
+        ],
+        "run": [
+            "transport"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\ServerBuilder": {
+        "addNotificationHandler": [
+            "method",
+            "handler",
+            "notificationClass"
+        ],
+        "addPrompt": [
+            "prompt",
+            "renderer"
+        ],
+        "addPromptCompletion": [
+            "prompt",
+            "argument",
+            "provider"
+        ],
+        "addRequestHandler": [
+            "method",
+            "handler",
+            "requestClass"
+        ],
+        "addResource": [
+            "resource",
+            "reader"
+        ],
+        "addResourceTemplate": [
+            "template",
+            "reader"
+        ],
+        "addResourceTemplateCompletion": [
+            "uriTemplate",
+            "argument",
+            "provider"
+        ],
+        "addTool": [
+            "tool",
+            "executor"
+        ],
+        "enableExtension": [
+            "extension"
+        ],
+        "register": [
+            "sources"
+        ],
+        "replaceNotificationHandler": [
+            "method",
+            "handler"
+        ],
+        "replaceRequestHandler": [
+            "method",
+            "handler"
+        ],
+        "setCacheScope": [
+            "cacheScope"
+        ],
+        "setCompletionStore": [
+            "store"
+        ],
+        "setInstructions": [
+            "instructions"
+        ],
+        "setLogger": [
+            "logger"
+        ],
+        "setMaxInFlightDispatches": [
+            "max"
+        ],
+        "setPageSize": [
+            "pageSize"
+        ],
+        "setPromptStore": [
+            "store"
+        ],
+        "setResourceStore": [
+            "store"
+        ],
+        "setResourceTemplateStore": [
+            "store"
+        ],
+        "setSchemaValidator": [
+            "validator"
+        ],
+        "setServerInfo": [
+            "name",
+            "version",
+            "title",
+            "description",
+            "websiteUrl",
+            "icons"
+        ],
+        "setServerInfoDisclosure": [
+            "disclosure"
+        ],
+        "setSubscriptionStore": [
+            "store"
+        ],
+        "setToolStore": [
+            "store"
+        ],
+        "setTtlMs": [
+            "ttlMs"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\ServerContext": {
+        "__construct": [
+            "requestId",
+            "cancellation",
+            "meta",
+            "sender",
+            "receiveContext",
+            "inputResponses",
+            "requestState"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Subscription\\SubscriptionEntry": {
+        "__construct": [
+            "subscriptionId",
+            "honoured",
+            "sender",
+            "closed"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Subscription\\SubscriptionStore": {
+        "__construct": [
+            "toolsListChanged",
+            "promptsListChanged",
+            "resourcesListChanged",
+            "resourceSubscriptions",
+            "logger",
+            "maxSubscriptions",
+            "maxSubscriptionsPerPeer"
+        ],
+        "close": [
+            "entry"
+        ],
+        "discard": [
+            "entry"
+        ],
+        "emitResourceUpdated": [
+            "uri"
+        ],
+        "honour": [
+            "requested"
+        ],
+        "open": [
+            "subscriptionId",
+            "requested",
+            "sender",
+            "peer"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Tool\\ClosureToolExecutor": {
+        "__construct": [
+            "closure"
+        ],
+        "execute": [
+            "arguments",
+            "context"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Tool\\ReflectedToolExecutor": {
+        "__construct": [
+            "handler",
+            "method",
+            "binder"
+        ],
+        "execute": [
+            "arguments",
+            "context"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Tool\\ToolEntry": {
+        "__construct": [
+            "tool",
+            "executor"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Tool\\ToolStore": {
+        "__construct": [
+            "entries",
+            "pageSize",
+            "validator",
+            "ttlMs",
+            "cacheScope"
+        ],
+        "addTool": [
+            "tool",
+            "executor"
+        ],
+        "call": [
+            "name",
+            "arguments",
+            "context"
+        ],
+        "list": [
+            "cursor"
+        ],
+        "onListChanged": [
+            "listener"
+        ],
+        "removeTool": [
+            "name"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Transport\\Http\\MiddlewarePipeline": {
+        "__construct": [
+            "handler",
+            "middleware"
+        ],
+        "handle": [
+            "request"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Transport\\Http\\Middleware\\BearerAuthenticationMiddleware": {
+        "__construct": [
+            "validator",
+            "resource",
+            "resourceMetadataUrl",
+            "responseFactory",
+            "requiredScopes",
+            "expiryLeewaySeconds",
+            "clock"
+        ],
+        "process": [
+            "request",
+            "handler"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Transport\\Http\\Middleware\\CorsMiddleware": {
+        "__construct": [
+            "allowedOrigins",
+            "responseFactory",
+            "maxAge"
+        ],
+        "process": [
+            "request",
+            "handler"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Transport\\Http\\Middleware\\DnsRebindingProtectionMiddleware": {
+        "__construct": [
+            "allowedOrigins",
+            "allowedHosts",
+            "responseFactory",
+            "streamFactory"
+        ],
+        "process": [
+            "request",
+            "handler"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Transport\\Http\\Middleware\\ParameterHeaderValidationMiddleware": {
+        "__construct": [
+            "store",
+            "responseFactory",
+            "streamFactory",
+            "logger"
+        ],
+        "process": [
+            "request",
+            "handler"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Transport\\Http\\Middleware\\RequestBodySizeLimitMiddleware": {
+        "__construct": [
+            "maxBytes",
+            "responseFactory",
+            "streamFactory"
+        ],
+        "process": [
+            "request",
+            "handler"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Transport\\Http\\ProtectedResourceMetadataHandler": {
+        "__construct": [
+            "resource",
+            "authorizationServers",
+            "responseFactory",
+            "streamFactory",
+            "scopesSupported",
+            "resourceName"
+        ],
+        "handle": [
+            "request"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Transport\\Http\\SecuredHttpEndpoint": {
+        "__construct": [
+            "handler",
+            "allowedOrigins",
+            "responseFactory",
+            "streamFactory",
+            "allowedHosts",
+            "maxBodyBytes",
+            "toolStore",
+            "logger",
+            "authentication"
+        ],
+        "handle": [
+            "request"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Transport\\StdioServerTransport": {
+        "__construct": [
+            "stdin",
+            "stdout",
+            "logger",
+            "maxLineBytes"
+        ],
+        "onClose": [
+            "listener"
+        ],
+        "onDrain": [
+            "listener"
+        ],
+        "onError": [
+            "listener"
+        ],
+        "onMessage": [
+            "listener"
+        ],
+        "send": [
+            "message",
+            "context"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Transport\\StreamableHttpServerTransport": {
+        "__construct": [
+            "responseFactory",
+            "streamFactory",
+            "logger",
+            "responseMode",
+            "keepAliveInterval"
+        ],
+        "handle": [
+            "request"
+        ],
+        "onCancel": [
+            "listener"
+        ],
+        "onClose": [
+            "listener"
+        ],
+        "onDrain": [
+            "listener"
+        ],
+        "onError": [
+            "listener"
+        ],
+        "onMessage": [
+            "listener"
+        ],
+        "send": [
+            "message",
+            "context"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Validation\\OpisSchemaValidator": {
+        "validate": [
+            "data",
+            "schema"
+        ]
+    }
+}
