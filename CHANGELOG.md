@@ -15,6 +15,8 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Fixed
 
+- OAuth metadata discovery no longer follows redirects, so a hostile origin cannot point a well-known
+  probe at an internal host.
 - `ToolAnnotations` accepts `destructiveHint` and `idempotentHint` beside `readOnlyHint: true`, so one
   tool no longer makes a whole `tools/list` undecodable. See BREAKING_CHANGES.md.
 - An envelope naming a `method` alongside a `result` or an `error` is refused as an invalid request

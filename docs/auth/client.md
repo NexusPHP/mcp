@@ -48,9 +48,10 @@ $client = $builder->build();
 $client->connect(new StreamableHttpClientTransport($endpoint, $http));
 ```
 
-It takes the builder rather than a built client because it derives two: metadata discovery follows redirects,
-and everything carrying a credential runs on one that does not, so a hop off this server's origin is refused
-before the credential travels. A downgrade from `https` to `http` on the same host is such a hop, and it is
+It takes the builder rather than a built client because it derives two: the MCP requests run on the client
+you configured, and every authorization leg, metadata discovery included, on one that follows no redirect,
+so a hop off this server's origin is refused before the credential travels. A downgrade from `https` to
+`http` on the same host is such a hop, and it is
 the one an ordinary client would follow while keeping the `Authorization` header, since it strips headers
 only when the authority changes and an authority carries no scheme.
 

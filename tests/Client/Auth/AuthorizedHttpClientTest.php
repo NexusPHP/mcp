@@ -121,6 +121,28 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
         self::assertNull($http->readRequest(6)->getHeader('Authorization'));
     }
 
+    public function testAMetadataDiscoveryRedirectIsNeverFollowed(): void
+    {
+        $http = (new RecordingHttpClient())
+            ->willChallenge(401, self::CHALLENGE)
+            ->willRedirectTo('http://169.254.169.254/latest/meta-data')
+            ->willAnswerJson(self::resourceDocument())
+            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson(['client_id' => 'the-client'])
+            ->willAnswerJson(['access_token' => 'the-access-token', 'token_type' => 'Bearer'])
+            ->willAnswerJson(['ok' => true])
+        ;
+
+        $response = self::client($http)->request(self::mcpRequest(), new NullCancellation());
+
+        self::assertSame(200, $response->getStatus());
+        self::assertNotContains(
+            'http://169.254.169.254/latest/meta-data',
+            array_map(static fn(Request $request): string => (string) $request->getUri(), $http->requests),
+            'A redirected well-known probe must be skipped, never fetched.',
+        );
+    }
+
     public function testARedirectOffTheMcpServerIsRefusedBeforeTheCredentialTravels(): void
     {
         $http = self::scriptChallengeAndFlow()->willRedirectTo('https://attacker.example.com/mcp');
