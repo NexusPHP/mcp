@@ -57,7 +57,7 @@ composer arch:check
 composer deps:check
 
 # Backward compatibility of the public surface against the latest stable tag (roave/backward-compatibility-check)
-# Compares committed revisions only, so it sees no uncommitted work. Advisory through 0.x, blocking from 1.0.
+# Compares committed revisions only, so it sees no uncommitted work. Needs `composer update --working-dir=bc` once.
 composer bc:check
 
 # Mutation testing (checks for code quality via mutation detection)

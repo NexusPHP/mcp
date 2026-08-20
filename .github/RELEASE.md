@@ -34,13 +34,15 @@ The report names what to write under `BREAKING_CHANGES.md`, and from 1.0 it deci
 can be a minor at all:
 
 ```bash
+composer update --working-dir=bc
 composer bc:check
 ```
 
 It compares committed work against the latest stable tag, so run it before the tag exists. A break is
 permitted through `0.x` and must be recorded, not silenced.
 
-Then re-record the parameter names it cannot compare on a final class, and commit any change:
+Then re-record the parameter names it cannot compare on a final class, and commit any change as
+`Record the public parameter names frozen by vX.Y.Z`:
 
 ```bash
 composer bc:snapshot

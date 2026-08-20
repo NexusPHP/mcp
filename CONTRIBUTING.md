@@ -45,7 +45,7 @@ composer test:unit       # or test:client / test:core / test:server
 composer coverage:check  # enforce 100% line coverage (after test:unit)
 composer lint:docs       # typos, markdownlint
 composer lint:fences     # PHP fences in markdown parse on the declared floor
-composer bc:check        # public API against the latest stable tag (needs committed work, advisory until 1.0)
+composer bc:check        # public API against the latest stable tag (run `composer update --working-dir=bc` once first)
 ```
 
 Auto-fix what is fixable:

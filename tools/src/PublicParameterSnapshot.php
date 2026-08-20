@@ -122,8 +122,6 @@ final class PublicParameterSnapshot
             }
         }
 
-        sort($classes);
-
         return $classes;
     }
 
