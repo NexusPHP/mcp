@@ -8,6 +8,14 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp/commits/1.x)
 
+## [v0.15.0](https://github.com/NexusPHP/mcp/compare/v0.14.0...v0.15.0) - 2026-08-20
+
+The dependency floors are now tested: a prefer-lowest CI leg proved the declared minimums wrong, so
+the constraints rise to the oldest versions the suite passes on. `RequestBodySizeLimitMiddleware`
+holds a body of unreported size to its cap, the first-run error messages say what to do next, and a
+stdio server spawned on Windows inherits its search path (see
+[BREAKING_CHANGES.md](BREAKING_CHANGES.md) for `SafeDisplay`'s now-private caps).
+
 ### Changed
 
 - Dependency floors are raised to the oldest versions the suite passes on (`amphp/amp` `^3.1.1`,
@@ -16,6 +24,13 @@ in `0.x`, minor releases may include breaking changes.
 - `RequestBodySizeLimitMiddleware` holds a body of unreported size to the cap, reading at most one
   byte past it, instead of passing it through to the host's own limit.
 - `SafeDisplay`'s `MAX_LENGTH` and `MAX_CAUSE_LENGTH` constants are private. See BREAKING_CHANGES.md.
+- The tool-not-found, missing-`inputSchema.type`, and unadvertised-capability messages name the fix
+  alongside the problem.
+
+### Fixed
+
+- `StdioClientTransport`'s environment allowlist matches names case-insensitively, so a subprocess
+  spawned on Windows inherits `Path` instead of starting with no search path.
 
 ## [v0.14.0](https://github.com/NexusPHP/mcp/compare/v0.13.0...v0.14.0) - 2026-08-18
 
