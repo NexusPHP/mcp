@@ -56,6 +56,10 @@ composer arch:check
 # Dependency declarations (shadow/unused composer deps via shipmonk/composer-dependency-analyser)
 composer deps:check
 
+# Backward compatibility of the public surface against the latest stable tag (roave/backward-compatibility-check)
+# Compares committed revisions only, so it sees no uncommitted work. Advisory through 0.x, blocking from 1.0.
+composer bc:check
+
 # Mutation testing (checks for code quality via mutation detection)
 composer mutation:check      # runs Infection on whole codebase
 composer mutation:filter     # runs Infection on diff vs origin/1.x; includes untracked files via intent-to-add

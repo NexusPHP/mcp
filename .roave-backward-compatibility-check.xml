@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<roave-bc-check
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="bc/vendor/roave/backward-compatibility-check/Resources/schema.xsd">
+    <!--
+        Both regexes match reflection limits, not detected breaks: better-reflection cannot evaluate
+        `new X()` or an enum case used as a parameter or property default, and the tool counts each
+        such member toward its non-zero exit. Named narrowly so an unrecognised skip still fails.
+    -->
+    <baseline>
+        <ignored-regex>#^\[BC\] SKIPPED: Unable to compile initializer in class Nexus\\Mcp\\#</ignored-regex>
+        <ignored-regex>#^\[BC\] SKIPPED: An enum expression Nexus\\Mcp\\.+ is not supported in class Nexus\\Mcp\\#</ignored-regex>
+    </baseline>
+</roave-bc-check>

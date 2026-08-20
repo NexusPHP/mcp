@@ -4,6 +4,7 @@ globs:
 ignores:
   - '.claude/**'
   - 'api/vendor/**'
+  - 'bc/vendor/**'
   - 'build/**'
   - 'tools/vendor/**'
   - 'vendor/**'

@@ -55,6 +55,7 @@ Shipped in a major (or a `0.x` minor while pre-1.0):
 
 - Removing or renaming a public class, interface, enum case, method, or property.
 - Adding a required parameter, narrowing a parameter type, or incompatibly changing a return type.
+- Renaming a public parameter, since PHP 8 named arguments make the name part of the signature.
 - Changing observable behaviour or the type of exception a public method throws.
 - Raising the PHP version floor (see [DEPENDENCY_POLICY.md](DEPENDENCY_POLICY.md)).
 - Removing a previously deprecated symbol, or dropping SDK surface for a feature the spec has removed (see below).
@@ -63,6 +64,22 @@ Shipped in a minor (backward-compatible):
 
 - Adding a new class, interface, optional parameter, or method.
 - Marking a symbol deprecated without removing it.
+
+## How the promise is enforced
+
+`composer bc:check` compares the public surface of `HEAD` against the latest stable tag with
+[roave/backward-compatibility-check](https://github.com/Roave/BackwardCompatibilityCheck), installed as a
+sidecar project under `bc/`. Through the `0.x` line, where the table above already permits breaks, the
+result is read rather than enforced: [.github/RELEASE.md](.github/RELEASE.md) runs it before every tag to
+write [BREAKING_CHANGES.md](BREAKING_CHANGES.md), and the `Backward Compatibility` workflow runs it on
+pull requests and on demand. From 1.0 it becomes a blocking check on every change.
+
+One gap in that tool is recorded in
+[.roave-backward-compatibility-check.xml](.roave-backward-compatibility-check.xml):
+
+- Static reflection cannot evaluate a `new X()` or enum-case parameter default, so a change to one of
+  those defaults is not compared. The baseline names the two skip messages narrowly, so an unrecognised
+  skip still fails the run.
 
 ## Deprecations
 

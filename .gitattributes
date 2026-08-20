@@ -2,6 +2,7 @@
 
 /.*                               export-ignore
 /api/                             export-ignore
+/bc/                              export-ignore
 /conformance/                     export-ignore
 /docs/                            export-ignore
 /examples/                        export-ignore

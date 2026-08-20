@@ -1,0 +1,12 @@
+{
+    "description": "Backward-compatibility tooling for the Nexus MCP SDK public surface",
+    "license": "MIT",
+    "require": {
+        "php": "^8.3",
+        "roave/backward-compatibility-check": "^8.21"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    }
+}

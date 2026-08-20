@@ -109,6 +109,10 @@
             "api/vendor/bin/apigen src --output=api/docs --config=api/apigen.neon"
         ],
         "arch:check": "tools/vendor/bin/structarmed analyse src",
+        "bc:check": [
+            "@composer update --working-dir=bc --ansi",
+            "bc/vendor/bin/roave-backward-compatibility-check --ansi"
+        ],
         "conformance:badge": "@php conformance/score.php --badge",
         "conformance:client": "conformance/run-client.sh",
         "conformance:extensions": "conformance/run-extensions.sh",
@@ -207,6 +211,7 @@
     "scripts-descriptions": {
         "api:docs": "Generates the public API reference with ApiGen",
         "arch:check": "Checks architecture layer boundaries with StructArmed",
+        "bc:check": "Compares the public API against the latest stable tag for backward-compatibility breaks",
         "conformance:badge": "Rewrites the committed README score badges from the last run",
         "conformance:client": "Runs the MCP conformance suite in client mode (needs Node)",
         "conformance:extensions": "Runs the extension-tagged conformance scenarios in both modes (needs Node and a free port)",

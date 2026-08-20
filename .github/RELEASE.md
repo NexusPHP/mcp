@@ -28,7 +28,19 @@ composer conformance:badge
 
 Commit any badge change before the release-prep commit.
 
-## 3. Prepare the changelog commit
+## 3. Review the backward-compatibility report
+
+The report names what to write under `BREAKING_CHANGES.md`, and from 1.0 it decides whether the bump
+can be a minor at all:
+
+```bash
+composer bc:check
+```
+
+It compares committed work against the latest stable tag, so run it before the tag exists. A break is
+permitted through `0.x` and must be recorded, not silenced.
+
+## 4. Prepare the changelog commit
 
 One commit, titled `Prepare changelog for vX.Y.Z`:
 
@@ -41,7 +53,7 @@ One commit, titled `Prepare changelog for vX.Y.Z`:
 
 Push the commit and wait for CI.
 
-## 4. Tag
+## 5. Tag
 
 A GPG-signed annotated tag on the prep commit, named exactly like the changelog heading:
 
@@ -50,7 +62,7 @@ git tag -s vX.Y.Z -m vX.Y.Z
 git push origin vX.Y.Z
 ```
 
-## 5. Publish
+## 6. Publish
 
 The tag push triggers [release.yml](workflows/release.yml), which extracts the tag's
 changelog section and creates a **draft** release. Review the draft, then publish it. Packagist syncs
