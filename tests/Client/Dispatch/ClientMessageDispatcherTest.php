@@ -305,6 +305,93 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         self::assertSame([], $logger->recordsMatching(LogLevel::WARNING, 'Discarding malformed response envelope from peer.'));
     }
 
+    public function testAnIdCarryingEnvelopeNamingBothAMethodAndAResultIsAnsweredNotCorrelated(): void
+    {
+        $outbound = new PendingOutboundRequests();
+        $logger = new ArrayLogger();
+        $dispatcher = self::buildDispatcher($outbound, logger: $logger);
+        $transport = new RecordingTransport();
+
+        $dispatcher->dispatch(
+            ['jsonrpc' => '2.0', 'id' => 9, 'method' => 'tools/list', 'result' => null],
+            $transport,
+            new ReceiveContext(),
+        );
+
+        $dispatcher->flushPending();
+
+        self::assertCount(1, $transport->sent);
+        $message = $transport->sent[0]['message'];
+        self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
+        self::assertSame(9, $message->id?->id);
+        self::assertSame(ProtocolErrorCode::InvalidRequest->value, $message->error->code);
+        self::assertSame([], $logger->recordsMatching(LogLevel::WARNING, 'Discarding malformed response envelope from peer.'));
+    }
+
+    public function testAnAmbiguousEnvelopeSettlesTheOutboundRequestItNames(): void
+    {
+        $outbound = new PendingOutboundRequests();
+        $dispatcher = self::buildDispatcher($outbound);
+        $transport = new RecordingTransport();
+
+        $future = $outbound->register(new RequestId(id: 7), CallToolResultResponse::class);
+
+        $dispatcher->dispatch(
+            ['jsonrpc' => '2.0', 'id' => 7, 'method' => 'tools/list', 'result' => null],
+            $transport,
+            new ReceiveContext(),
+        );
+
+        $dispatcher->flushPending();
+
+        self::assertTrue($future->isComplete(), 'The peer answered id 7, so the awaiter must not keep waiting.');
+
+        try {
+            $future->await();
+            self::fail('Future should have been rejected.');
+        } catch (InvalidRequestException $e) {
+            self::assertSame('JSON-RPC envelope must not carry a "method" together with a "result" or an "error".', $e->getMessage());
+        }
+    }
+
+    public function testAMalformedInboundRequestLeavesAnOutboundRequestSharingItsIdPending(): void
+    {
+        $outbound = new PendingOutboundRequests();
+        $dispatcher = self::buildDispatcher($outbound);
+        $transport = new RecordingTransport();
+
+        $future = $outbound->register(new RequestId(id: 7), CallToolResultResponse::class);
+
+        $dispatcher->dispatch(
+            ['jsonrpc' => '2.0', 'id' => 7, 'method' => 'nope/nope'],
+            $transport,
+            new ReceiveContext(),
+        );
+
+        $dispatcher->flushPending();
+
+        self::assertFalse($future->isComplete(), 'Inbound request ids and outbound request ids are separate namespaces.');
+        self::assertCount(1, $transport->sent);
+    }
+
+    public function testAnEnvelopeCarryingNeitherMethodNorResultNorErrorIsAnswered(): void
+    {
+        $outbound = new PendingOutboundRequests();
+        $logger = new ArrayLogger();
+        $dispatcher = self::buildDispatcher($outbound, logger: $logger);
+        $transport = new RecordingTransport();
+
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 5], $transport, new ReceiveContext());
+
+        $dispatcher->flushPending();
+
+        self::assertCount(1, $transport->sent);
+        $message = $transport->sent[0]['message'];
+        self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
+        self::assertSame(5, $message->id?->id);
+        self::assertSame([], $logger->recordsMatching(LogLevel::WARNING, 'Discarding malformed response envelope from peer.'));
+    }
+
     public function testMalformedResponseEnvelopeIsLoggedAndDropped(): void
     {
         $outbound = new PendingOutboundRequests();

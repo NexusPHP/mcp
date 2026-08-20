@@ -13,6 +13,13 @@ pairing. Both now construct, and `fromArray()` decodes them, because the spec st
 in prose and documents a default for each field, so a conformant peer may send all three. Code that
 relied on the exception to detect the combination reads the properties instead.
 
+### An envelope naming a `method` beside a `result` or an `error` is refused
+
+`JsonRpcMessageParser::parse()` returned an `UnparsedResultEnvelope` (or a `JsonRpcErrorResponse`) for an
+envelope carrying both, letting the response half win. It now throws `InvalidRequestException` naming
+the recovered id. A server answers the envelope with `-32600` echoing that id instead of dropping it
+unanswered, and the streamable HTTP transport now echoes the id too.
+
 ## v0.14.0 to v0.15.0
 
 ### `SafeDisplay`'s length caps are private

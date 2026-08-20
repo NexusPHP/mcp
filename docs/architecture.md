@@ -98,7 +98,7 @@ share the same shape. The structural difference is which direction owns response
 
 ```mermaid
 flowchart TD
-    A["inbound envelope (array)"] --> B{"response shape?<br>a result or error key"}
+    A["inbound envelope (array)"] --> B{"response shape?<br>a result or error key<br>and no method"}
     B -- "server" --> C["discard with a warning:<br>it issues no outbound requests"]
     B -- "client" --> D["correlate to the pending<br>outbound request: resolve or reject"]
     B -- "not a response" --> E["JsonRpcMessageParser::parse()"]
@@ -124,10 +124,11 @@ request id could not be recovered, but MCP types `RequestId` as `int | non-empty
 `JsonRpcErrorResponse` drops the key instead of emitting `"id": null`. Such a frame goes out as
 `{"jsonrpc":"2.0","error":{…}}`, and a test pins that encoding.
 
-The diagram traces both peers, and they diverge in two places. The first is the response-shape fork:
-the server discards a `result`/`error` envelope with a warning, while the client correlates it to the
-pending outbound request it is awaiting, resolving on success or rejecting on error, and warns on an
-unknown ("orphan") id.
+The diagram traces both peers, and they diverge in two places. The first is the response-shape fork,
+which only an envelope naming no `method` reaches: the server discards a `result`/`error` envelope with
+a warning, while the client correlates it to the pending outbound request it is awaiting, resolving on
+success or rejecting on error, and warns on an unknown ("orphan") id. An envelope carrying a `method`
+alongside a `result` or an `error` is refused as an invalid request, echoing its id when it carries one.
 
 The second is what each side serves. The revision defines no server-to-client request methods, so a
 built client's request registry is empty until a consumer registers a handler. The id rule still binds

@@ -196,6 +196,51 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
         yield 'result response without an id' => [['jsonrpc' => '2.0', 'result' => []]];
     }
 
+    public function testABodyNamingBothAMethodAndAResultWithoutAnIdIsAcceptedAndLeftUnanswered(): void
+    {
+        $transport = self::makeTransport(start: false);
+        self::listen($transport);
+
+        $response = self::handle($transport, self::makePost(
+            ['jsonrpc' => '2.0', 'method' => 'tools/list', 'result' => null],
+            self::standardHeaders('tools/list'),
+        ));
+
+        self::assertSame(202, $response->getStatusCode());
+        self::assertSame('', (string) $response->getBody());
+    }
+
+    public function testABodyCarryingNeitherMethodNorResultNorErrorIsAnsweredWithTheEchoedId(): void
+    {
+        $transport = self::makeTransport(start: false);
+        self::listen($transport);
+
+        $response = self::handle($transport, self::makePost(
+            ['jsonrpc' => '2.0', 'id' => 5],
+            self::standardHeaders('server/discover'),
+        ));
+
+        self::assertSame(ProtocolErrorCode::InvalidRequest->value, self::errorPayload($response)['code'] ?? null);
+        self::assertSame(5, self::decode($response)['id'] ?? null);
+    }
+
+    public function testABodyNamingBothAMethodAndAResultIsAnsweredWithTheEchoedId(): void
+    {
+        $transport = self::makeTransport(start: false);
+        self::listen($transport);
+
+        $response = self::handle($transport, self::makePost([
+            'jsonrpc' => '2.0',
+            'id' => 9,
+            'method' => 'server/discover',
+            'params' => ['_meta' => RequestMetaObjectFactory::shape()],
+            'result' => null,
+        ], self::standardHeaders('server/discover')));
+
+        self::assertSame(ProtocolErrorCode::InvalidRequest->value, self::errorPayload($response)['code'] ?? null);
+        self::assertSame(9, self::decode($response)['id'] ?? null);
+    }
+
     #[DataProvider('providePresentButMalformedIdReturnsInvalidRequestCases')]
     public function testPresentButMalformedIdReturnsInvalidRequest(mixed $id): void
     {

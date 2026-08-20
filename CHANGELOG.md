@@ -12,6 +12,10 @@ in `0.x`, minor releases may include breaking changes.
 
 - `ToolAnnotations` accepts `destructiveHint` and `idempotentHint` beside `readOnlyHint: true`, so one
   tool no longer makes a whole `tools/list` undecodable. See BREAKING_CHANGES.md.
+- An envelope naming a `method` alongside a `result` or an `error` is refused as an invalid request
+  echoing its id, instead of being dropped unanswered. See BREAKING_CHANGES.md.
+- A client whose peer answers a pending request with such an envelope now settles the awaiting call
+  instead of leaving it to time out.
 
 ## [v0.15.0](https://github.com/NexusPHP/mcp/compare/v0.14.0...v0.15.0) - 2026-08-20
 

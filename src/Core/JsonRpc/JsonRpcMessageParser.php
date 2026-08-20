@@ -72,6 +72,13 @@ final class JsonRpcMessageParser
     {
         self::assertJsonRpcVersion($message);
 
+        if (\array_key_exists('method', $message) && (\array_key_exists('error', $message) || \array_key_exists('result', $message))) {
+            throw new InvalidRequestException(
+                EnvelopeRequestId::recover($message),
+                'JSON-RPC envelope must not carry a "method" together with a "result" or an "error".',
+            );
+        }
+
         if (\array_key_exists('error', $message)) {
             try {
                 return JsonRpcErrorResponse::fromArray($message);

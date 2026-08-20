@@ -775,6 +775,8 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
 
         yield 'an envelope without a result or error member' => [['jsonrpc' => '2.0', 'id' => 1]];
 
+        yield 'a correlated id naming both a method and a result' => [['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/list', 'result' => null]];
+
         yield 'a JSON scalar' => ['"nope"'];
     }
 

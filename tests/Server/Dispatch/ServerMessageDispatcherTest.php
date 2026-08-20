@@ -148,6 +148,55 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
         self::assertSame([], $logger->messagesAtLevel(LogLevel::INFO), 'Response envelopes must not fall through to the notification-drop log.');
     }
 
+    public function testAnIdCarryingEnvelopeNamingBothAMethodAndAResultIsAnsweredNotDropped(): void
+    {
+        $transport = new RecordingTransport();
+        $logger = new ArrayLogger();
+        $dispatcher = self::buildDispatcher(logger: $logger);
+
+        $envelope = ['jsonrpc' => '2.0', 'id' => 9, 'method' => 'tools/list', 'result' => null];
+        $dispatcher->dispatch($envelope, $transport, new ReceiveContext());
+
+        $dispatcher->flushPending();
+
+        self::assertCount(1, $transport->sent);
+        $message = $transport->sent[0]['message'];
+        self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
+        self::assertSame(9, $message->id?->id);
+        self::assertSame(ProtocolErrorCode::InvalidRequest->value, $message->error->code);
+        self::assertSame([], $logger->recordsMatching(LogLevel::WARNING, self::ORPHAN_LOG_MESSAGE));
+    }
+
+    public function testAnEnvelopeCarryingNeitherMethodNorResultNorErrorIsAnswered(): void
+    {
+        $transport = new RecordingTransport();
+        $logger = new ArrayLogger();
+        $dispatcher = self::buildDispatcher(logger: $logger);
+
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 5], $transport, new ReceiveContext());
+
+        $dispatcher->flushPending();
+
+        self::assertCount(1, $transport->sent);
+        $message = $transport->sent[0]['message'];
+        self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
+        self::assertSame(5, $message->id?->id);
+        self::assertSame(ProtocolErrorCode::InvalidRequest->value, $message->error->code);
+        self::assertSame([], $logger->recordsMatching(LogLevel::WARNING, self::ORPHAN_LOG_MESSAGE));
+    }
+
+    public function testAnEnvelopeNamingBothAMethodAndAResultWithoutAnIdStaysUnanswered(): void
+    {
+        $transport = new RecordingTransport();
+        $dispatcher = self::buildDispatcher();
+
+        $dispatcher->dispatch(['jsonrpc' => '2.0', 'method' => 'tools/list', 'result' => null], $transport, new ReceiveContext());
+
+        $dispatcher->flushPending();
+
+        self::assertSame([], $transport->sent);
+    }
+
     public function testParseFailureSendsErrorResponseWithRecoveredId(): void
     {
         $transport = new RecordingTransport();

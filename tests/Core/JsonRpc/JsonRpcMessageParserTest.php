@@ -484,6 +484,43 @@ final class JsonRpcMessageParserTest extends AbstractMcpTestCase
         self::assertSame([], $parsed->result);
     }
 
+    public function testParseRejectsAMethodCarryingAResultAndEchoesTheId(): void
+    {
+        $parser = new JsonRpcMessageParser();
+
+        try {
+            $parser->parse(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/list', 'result' => null]);
+            self::fail('Expected InvalidRequestException.');
+        } catch (InvalidRequestException $e) {
+            self::assertSame('JSON-RPC envelope must not carry a "method" together with a "result" or an "error".', $e->getMessage());
+            self::assertNotNull($e->requestId);
+            self::assertSame(1, $e->requestId->id);
+        }
+    }
+
+    public function testParseRejectsAMethodCarryingAnErrorAndEchoesTheId(): void
+    {
+        $parser = new JsonRpcMessageParser();
+
+        try {
+            $parser->parse(['jsonrpc' => '2.0', 'id' => 'abc', 'method' => 'tools/list', 'error' => ['code' => -1, 'message' => 'x']]);
+            self::fail('Expected InvalidRequestException.');
+        } catch (InvalidRequestException $e) {
+            self::assertSame('JSON-RPC envelope must not carry a "method" together with a "result" or an "error".', $e->getMessage());
+            self::assertNotNull($e->requestId);
+            self::assertSame('abc', $e->requestId->id);
+        }
+    }
+
+    public function testParseRejectsAMethodCarryingAResponsePayloadWithoutAnId(): void
+    {
+        $this->expectException(InvalidRequestException::class);
+        $this->expectExceptionMessageIs('JSON-RPC envelope must not carry a "method" together with a "result" or an "error".');
+
+        $parser = new JsonRpcMessageParser();
+        $parser->parse(['jsonrpc' => '2.0', 'method' => 'tools/list', 'result' => null]);
+    }
+
     public function testParseRejectsMissingIdOnResultEnvelopeEvenWhenResultClassOmitted(): void
     {
         $this->expectException(InvalidRequestException::class);
