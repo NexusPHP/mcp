@@ -289,6 +289,19 @@ final class ReadResourceRequestParamsTest extends AbstractMcpTestCase
             'tmp/a.txt',
             '"params.uri" must be a valid RFC 3986 absolute URI, \'tmp/a.txt\' given.',
         ];
+
+        yield 'longer than 8192 bytes' => [
+            'file:///'.str_repeat('a', 8_185),
+            '"params.uri" must not exceed 8192 bytes.',
+        ];
+    }
+
+    public function testConstructorAcceptsAUriOfExactly8192Bytes(): void
+    {
+        $uri = 'file:///'.str_repeat('a', 8_184);
+        $params = new ReadResourceRequestParams(uri: $uri, meta: RequestMetaObjectFactory::create());
+
+        self::assertSame($uri, $params->uri);
     }
 
     public function testJsonSerializeEmitsANestedInputResponsesDigitContentKeyAsAnObject(): void

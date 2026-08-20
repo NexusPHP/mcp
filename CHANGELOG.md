@@ -8,6 +8,11 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp/commits/1.x)
 
+### Changed
+
+- A `resources/read` URI is refused past 8192 bytes at decode, bounding the `data.uri` echo. See
+  BREAKING_CHANGES.md.
+
 ### Fixed
 
 - `ToolAnnotations` accepts `destructiveHint` and `idempotentHint` beside `readOnlyHint: true`, so one

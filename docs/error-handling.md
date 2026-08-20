@@ -67,9 +67,10 @@ response rather than letting it escape:
   omitted when null. `ResourceNotFoundException` and `ResourceNotRegisteredException` use it for the
   `data.uri` the spec's resource-not-found example shows, and `MissingRequiredClientCapabilityException` for the `data.requiredCapabilities` its
   code requires. Only the latter is required: `data` is "defined by the sender", so the URI echo is this
-  SDK's choice and is deliberately left uncapped so a client can match it against the URI it sent. That is
-  safe because `params.uri` is already confined to printable ASCII by the RFC 3986 grammar, so the echo
-  carries no control bytes and is never longer than the URI the peer itself sent.
+  SDK's choice and is deliberately echoed whole so a client can match it against the URI it sent. That is
+  safe because `params.uri` is already confined at decode to printable ASCII by the RFC 3986 grammar and
+  to 8192 bytes, so the echo carries no control bytes and is never longer than the URI the peer itself
+  sent.
 - An error `message` quoting a peer-supplied value is bounded, and every byte outside printable ASCII
   (`\x20-\x7E`) is rendered as `\xNN` before it leaves the server, so non-ASCII text comes back escaped
   too (an `é` reads as `\xc3\xa9`). A short identifier (a tool name, a cursor, a protocol version) is cut

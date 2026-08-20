@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Schema\RequestParams;
 
+use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\MetaObject\RequestMetaObject;
 use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Validation\Rfc3986UriValidator;
@@ -28,6 +29,8 @@ use Nexus\Mcp\Core\Validation\Rfc3986UriValidator;
  */
 abstract readonly class ResourceRequestParams extends RequestParams
 {
+    private const int MAX_URI_BYTES = 8_192;
+
     /**
      * @param non-empty-string $uri
      */
@@ -36,6 +39,10 @@ abstract readonly class ResourceRequestParams extends RequestParams
         RequestMetaObject $meta,
     ) {
         Rfc3986UriValidator::validate($uri, '"params.uri"');
+        Assert::that($uri)->hasMaxLength(
+            self::MAX_URI_BYTES,
+            \sprintf('"params.uri" must not exceed %d bytes.', self::MAX_URI_BYTES),
+        );
 
         parent::__construct(meta: $meta);
     }

@@ -20,6 +20,12 @@ envelope carrying both, letting the response half win. It now throws `InvalidReq
 the recovered id. A server answers the envelope with `-32600` echoing that id instead of dropping it
 unanswered, and the streamable HTTP transport now echoes the id too.
 
+### A `resources/read` URI longer than 8192 bytes is refused
+
+`ReadResourceRequestParams` accepted a URI of any length, so a store miss echoed it whole into the
+error's `data.uri`. Decode now refuses anything past 8192 bytes with `-32602`. The echo still carries
+the full URI for every accepted request.
+
 ## v0.14.0 to v0.15.0
 
 ### `SafeDisplay`'s length caps are private
