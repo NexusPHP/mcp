@@ -49,11 +49,6 @@ final readonly class ToolAnnotations implements Arrayable
         public ?bool $openWorldHint = null,
     ) {
         Assert::that($title)->nullOr()->isNonEmptyString('"annotations.title" must be a non-empty string or null.');
-
-        if (true === $this->readOnlyHint) {
-            Assert::that($this->destructiveHint)->isNull('"annotations.destructiveHint" must be null when "readOnlyHint" is true; the spec defines it only when readOnlyHint == false.');
-            Assert::that($this->idempotentHint)->isNull('"annotations.idempotentHint" must be null when "readOnlyHint" is true; the spec defines it only when readOnlyHint == false.');
-        }
     }
 
     #[\Override]

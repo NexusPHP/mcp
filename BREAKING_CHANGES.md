@@ -6,6 +6,13 @@ for *when* breaking changes may land and how they are communicated lives in
 
 ## v0.15.0 to Unreleased
 
+### `ToolAnnotations` no longer rejects the hints beside `readOnlyHint`
+
+`new ToolAnnotations(readOnlyHint: true, destructiveHint: ...)` threw, and so did the `idempotentHint`
+pairing. Both now construct, and `fromArray()` decodes them, because the spec states the relationship
+in prose and documents a default for each field, so a conformant peer may send all three. Code that
+relied on the exception to detect the combination reads the properties instead.
+
 ## v0.14.0 to v0.15.0
 
 ### `SafeDisplay`'s length caps are private

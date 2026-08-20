@@ -8,6 +8,11 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp/commits/1.x)
 
+### Fixed
+
+- `ToolAnnotations` accepts `destructiveHint` and `idempotentHint` beside `readOnlyHint: true`, so one
+  tool no longer makes a whole `tools/list` undecodable. See BREAKING_CHANGES.md.
+
 ## [v0.15.0](https://github.com/NexusPHP/mcp/compare/v0.14.0...v0.15.0) - 2026-08-20
 
 The dependency floors are now tested: a prefer-lowest CI leg proved the declared minimums wrong, so

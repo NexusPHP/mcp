@@ -65,20 +65,20 @@ final class ToolAnnotationsTest extends AbstractMcpTestCase
         new ToolAnnotations(title: '');
     }
 
-    public function testConstructorRejectsDestructiveHintWhenReadOnly(): void
+    public function testAReadOnlyToolMayStillCarryTheHintsTheSpecCallsMeaningless(): void
     {
-        $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageIs('"annotations.destructiveHint" must be null when "readOnlyHint" is true; the spec defines it only when readOnlyHint == false.');
+        $annotations = new ToolAnnotations(readOnlyHint: true, destructiveHint: false, idempotentHint: true);
 
-        new ToolAnnotations(readOnlyHint: true, destructiveHint: false);
+        self::assertTrue($annotations->readOnlyHint);
+        self::assertFalse($annotations->destructiveHint);
+        self::assertTrue($annotations->idempotentHint);
     }
 
-    public function testConstructorRejectsIdempotentHintWhenReadOnly(): void
+    public function testAReadOnlyToolDecodedWithBothHintsRoundTrips(): void
     {
-        $this->expectException(ExpectationFailedException::class);
-        $this->expectExceptionMessageIs('"annotations.idempotentHint" must be null when "readOnlyHint" is true; the spec defines it only when readOnlyHint == false.');
+        $data = ['readOnlyHint' => true, 'destructiveHint' => true, 'idempotentHint' => false];
 
-        new ToolAnnotations(readOnlyHint: true, idempotentHint: true);
+        self::assertSame($data, ToolAnnotations::fromArray($data)->toArray());
     }
 
     public function testConstructorAllowsReadOnlyAloneOrWithOpenWorld(): void
