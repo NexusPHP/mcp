@@ -17,6 +17,9 @@ in `0.x`, minor releases may include breaking changes.
 
 - OAuth metadata discovery no longer follows redirects, so a hostile origin cannot point a well-known
   probe at an internal host.
+- The bearer token is bound to the resource's path, not its whole origin: another path on the same host
+  is requested without the credential, and a redirect off the resource is refused. See
+  BREAKING_CHANGES.md.
 - `ToolAnnotations` accepts `destructiveHint` and `idempotentHint` beside `readOnlyHint: true`, so one
   tool no longer makes a whole `tools/list` undecodable. See BREAKING_CHANGES.md.
 - An envelope naming a `method` alongside a `result` or an `error` is refused as an invalid request

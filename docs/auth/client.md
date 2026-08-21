@@ -50,7 +50,7 @@ $client->connect(new StreamableHttpClientTransport($endpoint, $http));
 
 It takes the builder rather than a built client because it derives two: the MCP requests run on the client
 you configured, and every authorization leg, metadata discovery included, on one that follows no redirect,
-so a hop off this server's origin is refused before the credential travels. A downgrade from `https` to
+so a hop off this server's resource path is refused before the credential travels. A downgrade from `https` to
 `http` on the same host is such a hop, and it is
 the one an ordinary client would follow while keeping the `Authorization` header, since it strips headers
 only when the authority changes and an authority carries no scheme.
@@ -85,11 +85,12 @@ Nothing happens until the server challenges. On the first `401` the decorator re
 header, discovers the authorization server, obtains a token, and replays the request with it. Later requests
 present the stored token directly.
 
-The token goes only to the origin the decorator was built for, so handing the same client a request aimed
-somewhere else sends it unauthenticated rather than leaking the credential. A request that does reach that
-origin has its redirects resolved here, whether or not a token was ready: a hop leaving the origin is
-refused with `RedirectRefusedException` before it is sent, and running out of hops raises
-`TooManyRedirectsException` as the client's own follower would.
+The token goes only to the resource the decorator was built for, or a path under it, so handing the same
+client a request aimed anywhere else, another path on the same origin included, sends it unauthenticated
+rather than leaking the credential. A request that does reach the resource has its redirects resolved
+here, whether or not a token was ready: a hop leaving the resource's path is refused with
+`RedirectRefusedException` before it is sent, and running out of hops raises `TooManyRedirectsException`
+as the client's own follower would.
 
 The inner client carries the authorization traffic too, so an interceptor placed on it (proxy, logging,
 custom TLS) applies to discovery, registration, and token requests as well.

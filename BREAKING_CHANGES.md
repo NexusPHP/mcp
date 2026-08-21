@@ -20,6 +20,15 @@ envelope carrying both, letting the response half win. It now throws `InvalidReq
 the recovered id. A server answers the envelope with `-32600` echoing that id instead of dropping it
 unanswered, and the streamable HTTP transport now echoes the id too.
 
+### The bearer token no longer travels to other paths on the resource's origin
+
+`AuthorizedHttpClient` attached the token to any request sharing the resource's origin, and followed
+redirects with it anywhere on that origin. It now presents the token only to the canonical resource or a
+path under it: a request to any other path goes out unauthenticated, and a redirect off the resource is
+refused with `RedirectRefusedException`. On a multi-tenant host this stops cross-tenant credential
+presentation. A deployment that relied on one token serving several sibling paths gives each its own
+`AuthorizedHttpClient`, or roots the resource at the shared parent path.
+
 ### A `resources/read` URI longer than 8192 bytes is refused
 
 `ReadResourceRequestParams` accepted a URI of any length, so a store miss echoed it whole into the

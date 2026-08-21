@@ -170,6 +170,74 @@ final class ResourceIdentifierTest extends AbstractMcpTestCase
         yield 'a URL carrying userinfo is never trusted' => ['https://evil@mcp.example.com/prm', false];
     }
 
+    #[DataProvider('provideCoversCases')]
+    public function testCovers(string $resource, string $uri, bool $expected): void
+    {
+        self::assertSame($expected, (new ResourceIdentifier($resource))->covers($uri));
+    }
+
+    /**
+     * @return iterable<string, array{string, string, bool}>
+     */
+    public static function provideCoversCases(): iterable
+    {
+        $resource = 'https://mcp.example.com/tenant-a/mcp';
+
+        yield 'the resource itself' => [$resource, 'https://mcp.example.com/tenant-a/mcp', true];
+
+        yield 'a path under the resource' => [$resource, 'https://mcp.example.com/tenant-a/mcp/v2', true];
+
+        yield 'the resource with a trailing slash' => [$resource, 'https://mcp.example.com/tenant-a/mcp/', true];
+
+        yield 'the resource with a query' => [$resource, 'https://mcp.example.com/tenant-a/mcp?page=2', true];
+
+        yield 'the default port spelled out' => [$resource, 'https://mcp.example.com:443/tenant-a/mcp', true];
+
+        yield 'another tenant on the same origin' => [$resource, 'https://mcp.example.com/tenant-b/mcp', false];
+
+        yield 'a sibling path sharing the prefix bytes' => [$resource, 'https://mcp.example.com/tenant-a/mcpx', false];
+
+        yield 'a parent path' => [$resource, 'https://mcp.example.com/tenant-a', false];
+
+        yield 'the origin root' => [$resource, 'https://mcp.example.com/', false];
+
+        yield 'another host' => [$resource, 'https://attacker.example.com/tenant-a/mcp', false];
+
+        yield 'a scheme downgrade' => [$resource, 'http://mcp.example.com/tenant-a/mcp', false];
+
+        yield 'a non-default port' => [$resource, 'https://mcp.example.com:8443/tenant-a/mcp', false];
+
+        yield 'a relative URL names no resource' => [$resource, '/tenant-a/mcp', false];
+
+        yield 'userinfo is never trusted' => [$resource, 'https://evil@mcp.example.com/tenant-a/mcp', false];
+
+        yield 'a trailing-slash resource covers its subtree' => ['https://mcp.example.com/mcp/', 'https://mcp.example.com/mcp/tools', true];
+
+        yield 'a trailing-slash resource covers its slashless self' => ['https://mcp.example.com/mcp/', 'https://mcp.example.com/mcp', true];
+
+        yield 'a root resource covers every path on its origin' => ['https://mcp.example.com', 'https://mcp.example.com/anything/at/all', true];
+
+        yield 'a root resource covers the bare origin' => ['https://mcp.example.com', 'https://mcp.example.com', true];
+
+        yield 'a root resource does not cover another origin' => ['https://mcp.example.com', 'https://other.example.com/x', false];
+
+        yield 'a percent-encoded dot-segment traversal' => [$resource, 'https://mcp.example.com/tenant-a/mcp/%2e%2e/tenant-b/mcp', false];
+
+        yield 'an uppercase percent-encoded traversal' => [$resource, 'https://mcp.example.com/tenant-a/mcp/%2E%2E/tenant-b/mcp', false];
+
+        yield 'a literal dot-dot segment' => [$resource, 'https://mcp.example.com/tenant-a/mcp/../tenant-b/mcp', false];
+
+        yield 'a literal single-dot segment' => [$resource, 'https://mcp.example.com/tenant-a/mcp/./tools', false];
+
+        yield 'a trailing dot-dot segment' => [$resource, 'https://mcp.example.com/tenant-a/mcp/..', false];
+
+        yield 'a percent-encoded slash' => [$resource, 'https://mcp.example.com/tenant-a/mcp%2ftools', false];
+
+        yield 'a percent-encoded backslash' => [$resource, 'https://mcp.example.com/tenant-a/mcp/%5c../tenant-b', false];
+
+        yield 'a literal backslash' => [$resource, 'https://mcp.example.com/tenant-a/mcp/\..\tenant-b', false];
+    }
+
     #[DataProvider('provideTheOriginIsExposedCases')]
     public function testTheOriginIsExposed(string $uri, string $origin): void
     {

@@ -121,6 +121,41 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
         self::assertNull($http->readRequest(6)->getHeader('Authorization'));
     }
 
+    public function testATokenIsNeverSentToAnotherPathOnTheSameOrigin(): void
+    {
+        $http = (new RecordingHttpClient())
+            ->willChallenge(401, self::CHALLENGE)
+            ->willAnswerJson(self::resourceDocument())
+            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson(['client_id' => 'the-client'])
+            ->willAnswerJson(['access_token' => 'the-access-token', 'token_type' => 'Bearer'])
+            ->willAnswerJson(['ok' => true])
+            ->willAnswerJson(['ok' => true])
+        ;
+        $client = self::client($http);
+        $client->request(self::mcpRequest(), new NullCancellation());
+
+        $client->request(new Request('https://127.0.0.1:1/tenant-b/mcp', 'POST', '{}'), new NullCancellation());
+
+        self::assertSame('Bearer the-access-token', $http->readRequest(5)->getHeader('Authorization'));
+        self::assertNull($http->readRequest(6)->getHeader('Authorization'));
+    }
+
+    public function testASameOriginRedirectLeavingTheResourceIsRefused(): void
+    {
+        $http = self::scriptChallengeAndFlow()->willRedirectTo('https://127.0.0.1:1/admin/secrets');
+
+        try {
+            self::client($http)->request(self::mcpRequest(), new NullCancellation());
+            self::fail('The redirect should have been refused.');
+        } catch (RedirectRefusedException $e) {
+            self::assertSame(
+                'The request to "https://127.0.0.1:1/mcp" was answered from "https://127.0.0.1:1/admin/secrets" after a redirect. Credentials are never carried across one.',
+                $e->getMessage(),
+            );
+        }
+    }
+
     public function testAMetadataDiscoveryRedirectIsNeverFollowed(): void
     {
         $http = (new RecordingHttpClient())
