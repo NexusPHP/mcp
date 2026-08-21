@@ -196,6 +196,81 @@ final class ToolStoreTest extends AbstractMcpTestCase
         $store->call('search', ['q' => 123], self::makeContext());
     }
 
+    public function testCallListsEachArgumentViolationWithItsPointer(): void
+    {
+        $store = new ToolStore([
+            'search' => new ToolEntry(
+                new Tool(name: 'search', inputSchema: [
+                    'type' => 'object',
+                    'properties' => ['q' => ['type' => 'string'], 'limit' => ['type' => 'integer']],
+                    'required' => ['q'],
+                ]),
+                self::makeExecutor(),
+            ),
+        ]);
+
+        try {
+            $store->call('search', ['q' => 123, 'limit' => 'ten'], self::makeContext());
+            self::fail('Expected InvalidParamsException.');
+        } catch (InvalidParamsException $e) {
+            self::assertSame(
+                ['validation_errors' => [
+                    ['pointer' => '/q', 'message' => '"q" must be a string, int given.'],
+                    ['pointer' => '/limit', 'message' => '"limit" must be an integer, string given.'],
+                ]],
+                $e->errorData,
+            );
+        }
+    }
+
+    public function testCallReportsAtMostEightViolations(): void
+    {
+        $store = self::closedSchemaStore();
+        $arguments = [];
+
+        for ($i = 0; $i < 12; ++$i) {
+            $arguments['undeclared'.$i] = $i;
+        }
+
+        try {
+            $store->call('search', $arguments, self::makeContext());
+            self::fail('Expected InvalidParamsException.');
+        } catch (InvalidParamsException $e) {
+            self::assertIsArray($e->errorData);
+            self::assertArrayHasKey('validation_errors', $e->errorData);
+            self::assertIsArray($e->errorData['validation_errors']);
+            self::assertCount(8, $e->errorData['validation_errors']);
+            self::assertArrayHasKey(0, $e->errorData['validation_errors']);
+            self::assertSame(
+                ['pointer' => '', 'message' => 'carries the undeclared "undeclared0" key.'],
+                $e->errorData['validation_errors'][0],
+            );
+        }
+    }
+
+    public function testCallSanitisesAPeerPropertyNameInTheViolationList(): void
+    {
+        $store = self::closedSchemaStore();
+
+        try {
+            $store->call('search', ["ev\x1b[2K\x07il" => 1, str_repeat('A', 300) => 2], self::makeContext());
+            self::fail('Expected InvalidParamsException.');
+        } catch (InvalidParamsException $e) {
+            self::assertIsArray($e->errorData);
+            self::assertArrayHasKey('validation_errors', $e->errorData);
+            self::assertIsArray($e->errorData['validation_errors']);
+            self::assertArrayHasKey(0, $e->errorData['validation_errors']);
+            self::assertArrayHasKey(1, $e->errorData['validation_errors']);
+            [$escaped, $bounded] = $e->errorData['validation_errors'];
+            self::assertSame(['pointer' => '', 'message' => 'carries the undeclared "ev\x1b[2K\x07il" key.'], $escaped);
+            self::assertIsArray($bounded);
+            self::assertArrayHasKey('message', $bounded);
+            self::assertIsString($bounded['message']);
+            self::assertSame(256, \strlen($bounded['message']));
+            self::assertStringEndsWith('...', $bounded['message']);
+        }
+    }
+
     public function testCallBoundsAPeerPropertyNameQuotedByTheValidator(): void
     {
         $store = self::closedSchemaStore();

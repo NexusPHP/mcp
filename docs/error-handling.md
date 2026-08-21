@@ -65,9 +65,11 @@ response rather than letting it escape:
   an invalid parameter).
 - Any of them may also carry an `errorData` payload, which becomes the error response's `data` slot and is
   omitted when null. `ResourceNotFoundException` and `ResourceNotRegisteredException` use it for the
-  `data.uri` the spec's resource-not-found example shows, and `MissingRequiredClientCapabilityException` for the `data.requiredCapabilities` its
-  code requires. Only the latter is required: `data` is "defined by the sender", so the URI echo is this
-  SDK's choice and is deliberately echoed whole so a client can match it against the URI it sent. That is
+  `data.uri` the spec's resource-not-found example shows, a `tools/call` argument failure for the
+  `data.validation_errors` list described under [Diagnostic message conventions](#diagnostic-message-conventions),
+  and `MissingRequiredClientCapabilityException` for the `data.requiredCapabilities` its code requires.
+  Only the last is required: `data` is "defined by the sender", so the URI echo is this SDK's choice and
+  is deliberately echoed whole so a client can match it against the URI it sent. That is
   safe because `params.uri` is already confined at decode to printable ASCII by the RFC 3986 grammar and
   to 8192 bytes, so the echo carries no control bytes and is never longer than the URI the peer itself
   sent.
@@ -243,8 +245,10 @@ scope in the inner message.
 Tool argument and `structuredContent` conformance failures follow the same shape: the server's
 `ValidationErrorFormatter` renders each leaf schema violation with the dotted data path double-quoted
 (bare at the root, whose scope the `Invalid arguments for tool "x": ...` wrapper supplies) and the
-`<type> given.` idiom. `ArgumentBinder`'s failures speak the same grammar, and the owning store wraps
-them with the same feature identity.
+`<type> given.` idiom. An argument failure also lists each violation under `data.validation_errors` with
+its RFC 6901 pointer, capped at eight and sanitised like the message, since an undeclared key name or an
+`enum` value is the peer's own text. `ArgumentBinder`'s failures speak the same grammar, and the owning
+store wraps them with the same feature identity.
 
 ### Reusable validators
 

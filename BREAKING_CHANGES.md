@@ -45,6 +45,23 @@ new JwksAccessTokenValidator($keys, 'https://auth.example.com', 'https://mcp.exa
 A token whose audience does not name that URI is now refused by the validator itself. The middleware's
 own audience check stays, so a validator of your own that skips it is still caught.
 
+### `SchemaValidatorInterface::validate()` returns `SchemaViolation` objects
+
+The interface returned `list<string>`, one sentence per failure, which threw away the JSON pointer the
+engine had. It now returns `list<SchemaViolation>`, each carrying an RFC 6901 `pointer` and the same
+`message`. A validator of your own wraps each sentence:
+
+```php
+// before
+return ['"q" must be a string, int given.'];
+// after
+return [new SchemaViolation('/q', '"q" must be a string, int given.')];
+```
+
+`ToolOutputValidationException` takes the same list. The `-32602` an argument failure answers with is
+unchanged in `message` and gains `data.validation_errors`, a list of `{pointer, message}` objects capped
+at eight.
+
 ### A `resources/read` URI longer than 8192 bytes is refused
 
 `ReadResourceRequestParams` accepted a URI of any length, so a store miss echoed it whole into the

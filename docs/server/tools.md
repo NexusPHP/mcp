@@ -143,7 +143,9 @@ nothing to get it. The `[]`-versus-`{}` ambiguity exists inside a schema too: `j
 renders the always-valid `{}` as PHP `[]`, so the default validator restores it in every sub-schema
 position (a `properties` value, `items`, an `allOf` element, and the rest) before validating. Supply your
 own engine by implementing `SchemaValidatorInterface` and registering it with
-`ServerBuilder::setSchemaValidator()`.
+`ServerBuilder::setSchemaValidator()`. It returns one `SchemaViolation` per failure, each carrying an
+RFC 6901 pointer into the arguments and a one-sentence message. How the server reports them is covered
+under [error handling](../error-handling.md#diagnostic-message-conventions).
 
 ```php
 use Nexus\Mcp\Server\Validation\SchemaValidatorInterface;

@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Server\Validation;
 
+use Nexus\Mcp\Server\Validation\SchemaViolation;
 use Nexus\Mcp\Server\Validation\ValidationErrorFormatter;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Opis\JsonSchema\Helper;
@@ -176,12 +177,80 @@ final class ValidationErrorFormatterTest extends AbstractMcpTestCase
         );
     }
 
+    public function testARootViolationCarriesAnEmptyPointer(): void
+    {
+        self::assertSame(
+            [['pointer' => '', 'message' => 'must be an object, array given.']],
+            self::describe([1, 2], ['type' => 'object']),
+        );
+    }
+
+    public function testANestedViolationPointsAtTheOffendingValue(): void
+    {
+        self::assertSame(
+            [['pointer' => '/point/latitude', 'message' => '"point.latitude" must be a number, string given.']],
+            self::describe(
+                ['point' => ['latitude' => 'north']],
+                ['type' => 'object', 'properties' => ['point' => ['type' => 'object', 'properties' => ['latitude' => ['type' => 'number']]]]],
+            ),
+        );
+    }
+
+    public function testAnArrayElementViolationPointsAtItsIndex(): void
+    {
+        self::assertSame(
+            [['pointer' => '/tags/1', 'message' => '"tags.1" must be a string, int given.']],
+            self::describe(
+                ['tags' => ['ok', 7]],
+                ['type' => 'object', 'properties' => ['tags' => ['type' => 'array', 'items' => ['type' => 'string']]]],
+            ),
+        );
+    }
+
+    public function testAMissingKeyPointsAtTheObjectThatLacksIt(): void
+    {
+        self::assertSame(
+            [['pointer' => '/point', 'message' => '"point" is missing the required "longitude" key.']],
+            self::describe(
+                ['point' => ['latitude' => 1.5]],
+                ['type' => 'object', 'properties' => ['point' => ['type' => 'object', 'required' => ['latitude', 'longitude']]]],
+            ),
+        );
+    }
+
+    public function testPointerSegmentsEscapeTildeAndSlash(): void
+    {
+        self::assertSame(
+            [
+                ['pointer' => '/a~1b', 'message' => '"a/b" must be a string, int given.'],
+                ['pointer' => '/c~0d', 'message' => '"c~d" must be a string, int given.'],
+            ],
+            self::describe(
+                ['a/b' => 1, 'c~d' => 2],
+                ['type' => 'object', 'properties' => ['a/b' => ['type' => 'string'], 'c~d' => ['type' => 'string']]],
+            ),
+        );
+    }
+
     /**
      * @param array<string, mixed> $schema
      *
      * @return list<string>
      */
     private static function format(mixed $data, array $schema): array
+    {
+        return array_map(
+            static fn(SchemaViolation $violation): string => $violation->message,
+            self::violations($data, $schema),
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $schema
+     *
+     * @return list<SchemaViolation>
+     */
+    private static function violations(mixed $data, array $schema): array
     {
         $validator = new Validator(max_errors: 8);
         $error = $validator->validate(Helper::toJSON($data), (object) Helper::toJSON($schema))->error();
@@ -191,5 +260,18 @@ final class ValidationErrorFormatterTest extends AbstractMcpTestCase
         }
 
         return (new ValidationErrorFormatter())->format($error);
+    }
+
+    /**
+     * @param array<string, mixed> $schema
+     *
+     * @return list<array{pointer: string, message: string}>
+     */
+    private static function describe(mixed $data, array $schema): array
+    {
+        return array_map(
+            static fn(SchemaViolation $violation): array => $violation->toArray(),
+            self::violations($data, $schema),
+        );
     }
 }

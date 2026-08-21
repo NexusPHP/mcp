@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Server\Exception;
 
 use Nexus\Mcp\Server\Exception\ToolOutputValidationException;
+use Nexus\Mcp\Server\Validation\SchemaViolation;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
@@ -28,7 +29,10 @@ final class ToolOutputValidationExceptionTest extends AbstractMcpTestCase
 {
     public function testMessageNamesTheToolAndJoinsTheErrors(): void
     {
-        $errors = ['"n" must be an integer, string given.', 'missing the required "q" key.'];
+        $errors = [
+            new SchemaViolation('/n', '"n" must be an integer, string given.'),
+            new SchemaViolation('', 'missing the required "q" key.'),
+        ];
         $exception = new ToolOutputValidationException('report', $errors);
 
         self::assertSame(

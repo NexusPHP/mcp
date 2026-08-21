@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Server\Validation;
 
 use Nexus\Mcp\Server\Validation\OpisSchemaValidator;
+use Nexus\Mcp\Server\Validation\SchemaViolation;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -38,19 +39,19 @@ final class OpisSchemaValidatorTest extends AbstractMcpTestCase
         self::assertSame([], (new OpisSchemaValidator())->validate(['n' => 42], self::SCHEMA));
     }
 
-    public function testNonConformingDataReturnsErrorMessages(): void
+    public function testNonConformingDataReturnsALocatedViolation(): void
     {
         self::assertSame(
-            ['"n" must be an integer, string given.'],
-            (new OpisSchemaValidator())->validate(['n' => 'not-an-int'], self::SCHEMA),
+            [['pointer' => '/n', 'message' => '"n" must be an integer, string given.']],
+            self::describe((new OpisSchemaValidator())->validate(['n' => 'not-an-int'], self::SCHEMA)),
         );
     }
 
     public function testMissingRequiredPropertyReturnsErrorMessages(): void
     {
         self::assertSame(
-            ['missing the required "n" key.'],
-            (new OpisSchemaValidator())->validate(['other' => 1], self::SCHEMA),
+            [['pointer' => '', 'message' => 'missing the required "n" key.']],
+            self::describe((new OpisSchemaValidator())->validate(['other' => 1], self::SCHEMA)),
         );
     }
 
@@ -66,7 +67,7 @@ final class OpisSchemaValidatorTest extends AbstractMcpTestCase
 
         self::assertSame(
             ['"a" must be a string, int given.', '"b" must be an integer, string given.'],
-            $errors,
+            self::messagesOf($errors),
         );
     }
 
@@ -156,5 +157,25 @@ final class OpisSchemaValidatorTest extends AbstractMcpTestCase
     public function testAnEmptyConstStaysAnEmptyArrayValue(): void
     {
         self::assertSame([], (new OpisSchemaValidator())->validate([], ['const' => []]));
+    }
+
+    /**
+     * @param list<SchemaViolation> $violations
+     *
+     * @return list<array{pointer: string, message: string}>
+     */
+    private static function describe(array $violations): array
+    {
+        return array_map(static fn(SchemaViolation $violation): array => $violation->toArray(), $violations);
+    }
+
+    /**
+     * @param list<SchemaViolation> $violations
+     *
+     * @return list<string>
+     */
+    private static function messagesOf(array $violations): array
+    {
+        return array_map(static fn(SchemaViolation $violation): string => $violation->message, $violations);
     }
 }

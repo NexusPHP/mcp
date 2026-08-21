@@ -14,6 +14,8 @@ in `0.x`, minor releases may include breaking changes.
   BREAKING_CHANGES.md.
 - `JwksAccessTokenValidator` takes the resource it protects and refuses a token whose `aud` does not
   name it. See BREAKING_CHANGES.md.
+- `SchemaValidatorInterface::validate()` returns `SchemaViolation` objects, and a `tools/call` argument
+  failure lists them with their JSON pointers under `data.validation_errors`. See BREAKING_CHANGES.md.
 
 ### Fixed
 
