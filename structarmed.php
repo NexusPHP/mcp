@@ -12,6 +12,7 @@ declare(strict_types=1);
  */
 
 use Boundwize\StructArmed\Architecture;
+use Boundwize\StructArmed\Preset\Preset;
 
 return Architecture::define()
     ->layerPattern('Core', '/^Nexus\\\\Mcp\\\\Core\\\\/')
@@ -24,4 +25,5 @@ return Architecture::define()
         'Client' => ['Core'], // depends on Core only
         'Extension' => ['Core', 'Server', 'Client'], // official extensions; nothing depends on it
     ])
+    ->withPresets(Preset::YAGNI())
 ;
