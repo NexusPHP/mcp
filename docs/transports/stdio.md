@@ -1,8 +1,8 @@
 # Stdio transports
 
-The stdio binding has two classes. `StdioServerTransport` serves line-framed JSON-RPC over
-STDIN/STDOUT. `StdioClientTransport` starts a server as a subprocess and speaks the same framing. Both
-obey [the transport contract](../transports.md#the-contract).
+The stdio binding has two classes. `StdioServerTransport` serves line-framed JSON-RPC over STDIN and STDOUT.
+`StdioClientTransport` starts a server as a subprocess and speaks the same framing. Both obey
+[the transport contract](../transports.md#the-contract).
 
 ## `StdioServerTransport`
 
@@ -20,17 +20,16 @@ $transport = new StdioServerTransport(
 );
 ```
 
-The `stdin` and `stdout` parameters take `Amp\ByteStream\ReadableStream` and `WritableStream`
-implementations, not raw PHP stream resources. The defaults wrap the live process streams:
-`new ReadableResourceStream(\STDIN)` and `new WritableResourceStream(\STDOUT)` from
-`amphp/byte-stream`.
+The `stdin` and `stdout` parameters take `Amp\ByteStream\ReadableStream` and `WritableStream` implementations,
+not raw PHP stream resources. The defaults wrap the live process streams: `new ReadableResourceStream(\STDIN)` and
+`new WritableResourceStream(\STDOUT)` from `amphp/byte-stream`.
 
 ### Framing
 
-The transport reads one JSON-RPC envelope per line on STDIN. Each `send()` writes one envelope as a
-single line that ends in `\n`, and each write is flushed. An inbound line is capped at `$maxLineBytes`
-(default 4 MiB). A line that reaches the cap before its `\n` raises a read error and unwinds the loop,
-so a peer cannot exhaust memory with an unterminated stream.
+The transport reads one JSON-RPC envelope per line on STDIN. Each `send()` writes one envelope as a single line
+that ends in `\n`, and each write is flushed. An inbound line is capped at `$maxLineBytes` (default 4 MiB). A line
+that reaches the cap before its `\n` raises a read error and unwinds the loop, so a peer cannot exhaust memory
+with an unterminated stream.
 
 ### The read loop
 
@@ -42,37 +41,37 @@ so a peer cannot exhaust memory with an unterminated stream.
 | Decodes, but is not a JSON object (JSON-RPC batches included, which the SDK does not accept) | A `-32600 InvalidRequest` response |
 | A valid envelope | Emitted to the `onMessage` listeners |
 
-When STDIN closes, the read loop unwinds and its `finally` calls `close()`.
+When STDIN closes, the read loop unwinds, and its `finally` calls `close()`.
 
 ### Close
 
-`close()` is idempotent, and it is the only place `onDrain` fires. Every close path drains exactly
-once, a cold `close()` on a never-started transport included. A close runs these steps in order:
+`close()` is idempotent, and it is the only place `onDrain` fires. Every close path drains exactly once, a cold
+`close()` on a never-started transport included. A close runs these steps in order:
 
 1. Wait for the read loop and any side-channel loop to finish.
 2. Fire `onDrain`, so the dispatcher can await its pending coroutines.
 3. Transition to the `Closed` state.
 4. Fire `onClose`.
 
-The state flips only after the drain, so a drain listener that settles its last exchange can still
-`send()`. A `close()` from another fiber blocks until the running close settles. A `close()` that
-re-enters from a listener or a drained loop returns immediately. After the close, `send()` and
-`start()` throw `TransportAlreadyClosedException`.
+The state flips only after the drain, so a drain listener that settles its last exchange can still `send()`. A
+`close()` from another fiber blocks until the running close settles. A `close()` that re-enters from a listener
+or a drained loop returns immediately. After the close, `send()` and `start()` throw
+`TransportAlreadyClosedException`.
 
-A concurrent close (for example, EOF on the read loop) can land while a `send()` is suspended in the
-byte-stream `write()`. The transport wraps that stream failure into `TransportAlreadyClosedException`
-and keeps the original throwable as `getPrevious()`, so callers can demote uniformly. On the same path
-it emits a per-message-shape DEBUG log with the request id, the method, and the underlying throwable.
-Operators keep a granular audit trail even though the dispatcher reports the symptom at INFO.
+A concurrent close, for example EOF on the read loop, can land while a `send()` is suspended in the byte-stream
+`write()`. The transport wraps that stream failure into `TransportAlreadyClosedException` and keeps the original
+throwable as `getPrevious()`, so callers can demote uniformly. On the same path it emits a per-message-shape
+DEBUG log with the request ID, the method, and the underlying throwable. Operators keep a granular audit trail
+even though the dispatcher reports the symptom at INFO.
 
 ### STDOUT discipline
 
-MCP servers MUST NOT write anything to STDOUT outside the JSON-RPC stream. Send all diagnostic logs to
-STDERR through the PSR-3 logger you pass in.
+MCP servers MUST NOT write anything to STDOUT outside the JSON-RPC stream. Send all diagnostic logs to STDERR
+through the PSR-3 logger you pass in.
 
 ### Stdin / stdout substitution
 
-Useful in tests when you want to drive the transport from synthetic streams:
+Useful in tests, when you want to drive the transport from synthetic streams:
 
 ```php
 use Amp\ByteStream\BufferedReader;
@@ -98,15 +97,14 @@ $transport = new StdioClientTransport(
 );
 ```
 
-The transport launches an MCP server as a subprocess. It exchanges line-framed JSON-RPC envelopes over
-the subprocess's STDIN/STDOUT, with the same framing rules as the server transport: outbound writes go
-to the subprocess's stdin, and inbound lines come from its stdout.
+The transport launches an MCP server as a subprocess. It exchanges line-framed JSON-RPC envelopes over the
+subprocess's STDIN and STDOUT, with the same framing rules as the server transport. Outbound writes go to the
+subprocess's stdin, and inbound lines come from its stdout.
 
 ### Launch and environment
 
-`start()` runs the command through `Amp\Process\Process`. The first array element is the executable.
-The rest are its arguments. There is no shell interpretation, so pass arguments separately to avoid
-quoting bugs.
+`start()` runs the command through `Amp\Process\Process`. The first array element is the executable. The rest
+are its arguments. There is no shell interpretation, so pass the arguments separately to avoid quoting bugs.
 
 The `env` parameter has three modes:
 
@@ -119,25 +117,23 @@ The `env` parameter has three modes:
 ### The stderr pump
 
 A second pump runs in parallel. It forwards every subprocess stderr line to the logger as
-`info('Subprocess stderr: {line}', ['line' => $line])`. Each line is sanitised first: non-printable
-bytes are escaped to `\xNN`, and the line is capped at 80 bytes. A hostile subprocess therefore cannot
-smuggle control sequences into the logs. An error during the pump logs a warning and does not change
-the transport state.
+`info('Subprocess stderr: {line}', ['line' => $line])`. Each line is sanitised first. Non-printable bytes are
+escaped to `\xNN`, and the line is capped at 80 bytes. A hostile subprocess therefore cannot smuggle control
+sequences into the logs. An error during the pump logs a warning and does not change the transport state.
 
 ### Close
 
-`close()` closes the subprocess's stdin, which signals EOF. If the subprocess still runs, the transport
-sends `SIGKILL`. `SIGTERM` would be preferable, but `amphp/process` runs subprocesses behind a shell
-wrapper that ignores `SIGTERM`, so `SIGKILL` is the only signal guaranteed to terminate the child.
+`close()` closes the subprocess's stdin, which signals EOF. If the subprocess still runs, the transport sends
+`SIGKILL`. `SIGTERM` would be preferable, but `amphp/process` runs subprocesses behind a shell wrapper that
+ignores `SIGTERM`, so `SIGKILL` is the only signal guaranteed to terminate the child.
 
 ### Unexpected exit
 
 The transport implements
 [`SupervisableTransportInterface`](../../src/Core/Transport/SupervisableTransportInterface.php).
-`onUnexpectedExit(fn (?int $exitCode) => ...)` reports a teardown nobody asked for: the subprocess
-exited on its own, or it stopped serving and was killed. Calling `close()` notifies nobody. The
-transport is spent once this fires, so a supervisor respawns by building a fresh
-`StdioClientTransport`, not by restarting this one.
+`onUnexpectedExit(fn (?int $exitCode) => ...)` reports a teardown nobody asked for: the subprocess exited on its
+own, or it stopped serving and was killed. Calling `close()` notifies nobody. The transport is spent once this
+fires, so a supervisor respawns by building a fresh `StdioClientTransport`, not by restarting this one.
 
 ```php
 $transport->onUnexpectedExit(static function (?int $exitCode) use ($logger): void {

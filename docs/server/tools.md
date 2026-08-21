@@ -1,7 +1,7 @@
 # Tools
 
-How to expose a tool: pair a spec `Tool` definition with the executor that serves its `tools/call`, and
-register both with `addTool()`.
+How to expose a tool: pair a spec `Tool` definition with the executor that serves its `tools/call`, and register
+both with `addTool()`.
 
 ```php
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
@@ -27,17 +27,20 @@ use Nexus\Mcp\Server\ServerContext;
 )
 ```
 
-The executor can be either a `\Closure` or a class implementing `ToolExecutorInterface`. Registering at
-least one tool advertises the `tools` capability automatically.
+The executor is a `\Closure` or a class that implements `ToolExecutorInterface`. Registering at least one tool
+advertises the `tools` capability automatically.
 
-Runtime exceptions thrown out of a tool executor are converted into a `CallToolResult` with `isError: true`
-and a single `TextContent` carrying `"Tool execution failed."`. The underlying throwable is logged at `error`
-level on the PSR-3 logger configured via `ServerBuilder::setLogger()`. To surface error detail to the LLM,
-return `new CallToolResult(content: [...], isError: true)` from the executor instead of throwing.
-Protocol-level conditions (`ToolNotFoundException`, etc.) still surface as JSON-RPC errors.
+## Executor failures
+
+A runtime exception thrown out of a tool executor becomes a `CallToolResult` with `isError: true` and a single
+`TextContent` that carries `"Tool execution failed."`. The SDK logs the underlying throwable at `error` level on
+the PSR-3 logger you configured with `ServerBuilder::setLogger()`.
+
+To surface error detail to the LLM, return `new CallToolResult(content: [...], isError: true)` from the executor
+instead of throwing. Protocol-level conditions, such as `ToolNotFoundException`, still surface as JSON-RPC errors.
 
 > [!WARNING]
-> The generic-text wrap above only covers the `\Throwable` arm. Messages thrown via
+> The generic-text wrap above only covers the `\Throwable` arm. Messages thrown through
 > `AbstractJsonRpcProtocolException` subclasses (`InvalidParamsException` and similar) are surfaced
 > **verbatim** in the JSON-RPC `error.message` field. Keep those strings free of paths, credentials,
 > connection strings, and any other sensitive data. The recommended pattern for surfacing tool errors is
@@ -45,10 +48,10 @@ Protocol-level conditions (`ToolNotFoundException`, etc.) still surface as JSON-
 
 ## Attribute sugar
 
-`#[AsTool]` marks a method as a tool, discovered through the same
-[`ServerBuilder::register()`](../attribute-discovery.md) walk as the other attributes. The `inputSchema`
-is generated from the parameter types and `@param` docblocks, a `ServerContext` parameter is injected and
-left out of the schema, and the name falls back to the method name:
+`#[AsTool]` marks a method as a tool. The same [`ServerBuilder::register()`](../attribute-discovery.md) walk
+discovers it as the other attributes. The SDK generates the `inputSchema` from the parameter types and the
+`@param` docblocks. A `ServerContext` parameter is injected and left out of the schema. The name falls back to the
+method name:
 
 ```php
 use Nexus\Mcp\Server\Attribute\AsTool;
@@ -67,15 +70,14 @@ final class DocsTools
 }
 ```
 
-The method returns a full `CallToolResult` or a shorthand the SDK adapts: a string (wrapped as
-`TextContent`), a content block or a list of them, or an array treated as `structuredContent`. See
-[Attribute discovery](../attribute-discovery.md) for the schema-inference rules, per-parameter
+The method returns a full `CallToolResult`, or a shorthand the SDK adapts: a string (wrapped as `TextContent`), a
+content block or a list of them, or an array treated as `structuredContent`. See
+[Attribute discovery](../attribute-discovery.md) for the schema-inference rules, the per-parameter
 `#[InputSchema(...)]` overrides, variadics, and object expansion.
 
 ## Result content types
 
-`CallToolResult::$content` is a list of content blocks, and the five block types compose freely in one
-result:
+`CallToolResult::$content` is a list of content blocks. The five block types compose freely in one result:
 
 ```php
 use Nexus\Mcp\Core\Schema\ContentBlock\AudioContent;
@@ -94,14 +96,14 @@ return new CallToolResult(content: [
 ```
 
 `ImageContent` and `AudioContent` carry base64-encoded bytes plus a MIME type. `EmbeddedResource` inlines a
-resource's contents (`TextResourceContents` or `BlobResourceContents`) into the result, while `ResourceLink`
-names a resource by URI without inlining it, so the client can fetch it through `resources/read` when it
-wants the bytes. The same block types appear in [prompt messages](prompts.md#message-content-types).
+resource's contents (`TextResourceContents` or `BlobResourceContents`) into the result. `ResourceLink` names a
+resource by URI without inlining it, so the client can fetch the bytes through `resources/read` when it wants
+them. The same block types appear in [prompt messages](prompts.md#message-content-types).
 
 ## Structured content
 
-A tool may return `structuredContent` instead of, or alongside, its `content` blocks. It may be any
-JSON value the tool's `outputSchema` accepts:
+A tool may return `structuredContent` instead of, or beside, its `content` blocks. It may be any JSON value the
+tool's `outputSchema` accepts:
 
 ```php
 return new CallToolResult(
@@ -113,39 +115,52 @@ return new CallToolResult(
 return new CallToolResult(content: [], structuredContent: [['id' => '1'], ['id' => '2']]);
 ```
 
-A discovered `#[AsTool]` method cannot express the list form: a list return is read as content blocks,
-so a tool with an array `outputSchema` has to build its `CallToolResult` explicitly, as above.
+A discovered `#[AsTool]` method cannot express the list form. A list return is read as content blocks, so a tool
+with an array `outputSchema` has to build its `CallToolResult` explicitly, as above.
 
-PHP spells an empty object and an empty array the same, so an empty `structuredContent` is validated as
-whichever the declared `outputSchema` asks for. On the encoding side it always emits `[]`, which a peer
-re-validating against `{"type": "object"}` will refuse. A tool whose `outputSchema` is `{"type": "null"}`
-is not supported: `null` structured content is indistinguishable from none, so every call fails as
-missing structured content.
+### Empty values
 
-For backwards compatibility, the spec recommends that a tool returning `structuredContent` also return
-the serialised JSON in a `TextContent` block. When the executor leaves `content` empty, the handler adds
-that block for you. Provide your own `content` to keep control of the text representation. A non-empty
-`content` list is passed through untouched.
+PHP spells an empty object and an empty array the same, so the SDK validates an empty `structuredContent` as
+whichever the declared `outputSchema` asks for. On the encoding side it always emits `[]`, which a peer that
+re-validates against `{"type": "object"}` will refuse.
+
+A tool whose `outputSchema` is `{"type": "null"}` is not supported. A `null` structured content is
+indistinguishable from none, so every call fails as missing structured content.
+
+### The text mirror
+
+For backwards compatibility, the spec recommends that a tool returning `structuredContent` also returns the
+serialised JSON in a `TextContent` block. When the executor leaves `content` empty, the handler adds that block
+for you. Provide your own `content` to keep control of the text representation. A non-empty `content` list passes
+through untouched.
 
 ## Schema validation
 
-A tool call is validated against the tool's schemas on the way in and on the way out:
+The SDK validates a tool call against the tool's schemas on the way in and on the way out.
 
-- The call `arguments` are validated against the tool's `inputSchema`. A non-conforming payload fails the
-  call with a JSON-RPC `InvalidParams` error before the executor runs.
-- When the tool declares an `outputSchema`, a (non-error) result must carry `structuredContent`
-  conforming to it. A non-conforming or missing one is logged server-side and surfaced to the client as
-  a generic error result, so malformed structured data is never sent.
+On the way in, it validates the call `arguments` against the tool's `inputSchema`. A non-conforming payload fails
+the call with a JSON-RPC `InvalidParams` error before the executor runs.
 
-Validation is backed by the shipped `OpisSchemaValidator` by default, built on
-[opis/json-schema](https://github.com/opis/json-schema) (JSON Schema draft 2020-12), so you register
-nothing to get it. The `[]`-versus-`{}` ambiguity exists inside a schema too: `json_decode(..., true)`
-renders the always-valid `{}` as PHP `[]`, so the default validator restores it in every sub-schema
-position (a `properties` value, `items`, an `allOf` element, and the rest) before validating. Supply your
-own engine by implementing `SchemaValidatorInterface` and registering it with
-`ServerBuilder::setSchemaValidator()`. It returns one `SchemaViolation` per failure, each carrying an
-RFC 6901 pointer into the arguments and a one-sentence message. How the server reports them is covered
-under [error handling](../error-handling.md#diagnostic-message-conventions).
+On the way out, when the tool declares an `outputSchema`, a non-error result must carry a `structuredContent`
+that conforms to it. A non-conforming or missing one is logged on the server side and surfaced to the client as a
+generic error result, so malformed structured data is never sent.
+
+### The default validator
+
+The shipped `OpisSchemaValidator` backs validation by default. It is built on
+[opis/json-schema](https://github.com/opis/json-schema) (JSON Schema draft 2020-12), so you register nothing to
+get it.
+
+The `[]`-versus-`{}` ambiguity exists inside a schema too. `json_decode(..., true)` renders the always-valid `{}`
+as PHP `[]`, so the default validator restores it in every sub-schema position before it validates. That covers a
+`properties` value, `items`, an `allOf` element, and the rest.
+
+### Your own validator
+
+Supply your own engine by implementing `SchemaValidatorInterface` and registering it with
+`ServerBuilder::setSchemaValidator()`. It returns one `SchemaViolation` per failure. Each carries an RFC 6901
+pointer into the arguments and a one-sentence message. How the server reports them is covered under
+[error handling](../error-handling.md#diagnostic-message-conventions).
 
 ```php
 use Nexus\Mcp\Server\Validation\SchemaValidatorInterface;

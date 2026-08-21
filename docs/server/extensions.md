@@ -1,8 +1,8 @@
 # Extensions
 
-Extensions (SEP-2133) bundle a capability identifier, its settings, and the methods it owns into
-one object the builder consumes. They are disabled by default: nothing is advertised or served
-until you enable the extension explicitly.
+Extensions (SEP-2133) bundle a capability identifier, its settings, and the methods it owns into one object the
+builder consumes. They are disabled by default. Nothing is advertised or served until you enable the extension
+explicitly.
 
 ```php
 use Nexus\Mcp\Server\ServerBuilder;
@@ -15,8 +15,8 @@ $server = (new ServerBuilder())
 
 ## Declaring an extension
 
-A server extension implements `ServerExtensionInterface`, a closed declarative surface consumed at
-enable-time:
+A server extension implements `ServerExtensionInterface`, a closed declarative surface the builder consumes at
+enable time:
 
 | Method | Declares |
 | --- | --- |
@@ -27,29 +27,35 @@ enable-time:
 | `getRequestHandlers()` | A handler per `getRequests()` key. |
 | `getNotificationHandlers()` | A handler per `getNotifications()` key. |
 
-`enableExtension()` validates the whole declaration before accepting it: the identifier must follow
-the `_meta` key grammar with a mandatory prefix, the settings must be a string-keyed object, class
-and handler maps must pair the same method keys, every class must declare the method it is keyed
-under, request classes must implement the `ClientRequest` marker with `RequestParams`-typed params
-(the dispatcher rejects anything else), and a method may not collide with the MCP specification,
-another enabled extension, or a builder-registered handler. Collisions are symmetric:
-`addRequestHandler()` equally refuses a method an enabled extension owns. The declaration is
-snapshotted as validated, so later getter calls cannot change what the built server serves.
+### Validation at enable time
+
+`enableExtension()` validates the whole declaration before it accepts it:
+
+- The identifier must follow the `_meta` key grammar, with a mandatory prefix.
+- The settings must be a string-keyed object.
+- The class maps and the handler maps must pair the same method keys.
+- Every class must declare the method it is keyed under.
+- Request classes must implement the `ClientRequest` marker with `RequestParams`-typed params. The dispatcher
+  rejects anything else.
+- A method may not collide with the MCP specification, another enabled extension, or a builder-registered
+  handler. Collisions are symmetric: `addRequestHandler()` equally refuses a method an enabled extension owns.
+
+The builder snapshots the declaration as validated, so later getter calls cannot change what the built server
+serves.
 
 ## Negotiation and gating
 
-The capability entry rides the `server/discover` response, and the client declares its supported
-extensions on every request via the `_meta` `io.modelcontextprotocol/clientCapabilities` envelope.
-Every extension request handler is wrapped in a gate that enforces the client half: a request for
-an extension-owned method from a client whose per-request capabilities did not declare the
-extension is answered `-32021` (`MissingRequiredClientCapability`) naming the identifier both in
-the message (`extensions.{identifier}`) and in `error.data.requiredCapabilities`, and the handler
-never runs. An extension-owned method has no
-core behaviour to fall back to, so rejection is the only conformant answer.
+The capability entry rides the `server/discover` response. The client declares its supported extensions on every
+request through the `_meta` `io.modelcontextprotocol/clientCapabilities` envelope.
 
-Extension **notifications** are not gated: a notification's `_meta` carries no capability
-declaration to check, so notification-level enforcement, where an extension needs it, belongs to
-the handler itself.
+A gate wraps every extension request handler and enforces the client half. When a client whose per-request
+capabilities did not declare the extension requests an extension-owned method, the gate answers `-32021`
+(`MissingRequiredClientCapability`). It names the identifier both in the message (`extensions.{identifier}`) and
+in `error.data.requiredCapabilities`, and the handler never runs. An extension-owned method has no core behaviour
+to fall back to, so rejection is the only conformant answer.
+
+Extension **notifications** are not gated. A notification's `_meta` carries no capability declaration to check.
+Where an extension needs notification-level enforcement, that belongs to the handler itself.
 
 Handlers read the per-request declaration themselves when they need the settings:
 
@@ -59,36 +65,32 @@ $declared = $context->meta->clientCapabilities->extensions['com.example/snapshot
 
 ## Decorating built-in handlers
 
-An extension that changes how a specification method behaves, rather than adding methods of its
-own, additionally implements `RequestHandlerDecoratorInterface`. Its
-`getRequestHandlerDecorators()` map pairs a spec-registry request method with a closure that
-receives the handler finally serving that method, whether the built-in default or a
-`replaceRequestHandler()` replacement, and returns the wrapping handler. Decorators are applied
-at `build()`, a decorated method must have a handler to wrap or the build fails, and when several
-enabled extensions decorate the same method they compose with the last-enabled extension
-outermost.
+An extension that changes how a specification method behaves, rather than adding methods of its own, also
+implements `RequestHandlerDecoratorInterface`. Its `getRequestHandlerDecorators()` map pairs a spec-registry
+request method with a closure. The closure receives the handler that finally serves that method, whether the
+built-in default or a `replaceRequestHandler()` replacement, and returns the wrapping handler.
 
-A decorator's output is served ungated: unlike an extension-owned method, a spec method must keep
-serving clients that never declared the extension, so any per-request refusal is the decorator's
-own decision. The shipped [tasks extension](tasks.md) is the worked example: it decorates
-`tools/call` with a broker that only diverts a call into a task when the client declared the
-capability.
+Decorators are applied at `build()`. A decorated method must have a handler to wrap, or the build fails. When
+several enabled extensions decorate the same method, they compose with the last-enabled extension outermost.
+
+A decorator's output is served ungated. Unlike an extension-owned method, a spec method must keep serving clients
+that never declared the extension, so any per-request refusal is the decorator's own decision. The shipped
+[tasks extension](tasks.md) is the worked example. It decorates `tools/call` with a broker that only diverts a
+call into a task when the client declared the capability.
 
 ## Official extensions
 
-Four official extensions ship with the SDK. The [tasks extension](tasks.md) exercises the whole
-surface above: owned methods, handlers, and a `tools/call` decorator. The
-[apps extension](apps.md) sits at the other end: it defines no methods, so
-`AppsServerExtension` only advertises the capability slot and the substance is typed `_meta.ui`
-metadata on the tools and resources you already register.
+Four official extensions ship with the SDK. The [tasks extension](tasks.md) exercises the whole surface above:
+owned methods, handlers, and a `tools/call` decorator. The [apps extension](apps.md) sits at the other end. It
+defines no methods, so `AppsServerExtension` only advertises the capability slot, and the substance is typed
+`_meta.ui` metadata on the tools and resources you already register.
 
-The two [OAuth extensions](../auth/extension-grants.md) (client credentials, SEP-1046, and
-enterprise-managed authorization, SEP-990) are advertisement-only on the server too. Their grants
-run at the HTTP layer inside the client's `AuthorizedHttpClient`, so
-`ClientCredentialsServerExtension` and `EnterpriseAuthorizationServerExtension` declare no methods
-and no settings: enabling one advertises under `capabilities.extensions` which authorization model
-the deployment runs, and the [resource server](../auth/server.md) validates the resulting tokens
-like any other.
+The two [OAuth extensions](../auth/extension-grants.md) are advertisement-only on the server too. Those are client
+credentials (SEP-1046) and enterprise-managed authorization (SEP-990). Their grants run at the HTTP layer inside
+the client's `AuthorizedHttpClient`, so `ClientCredentialsServerExtension` and
+`EnterpriseAuthorizationServerExtension` declare no methods and no settings. Enabling one advertises under
+`capabilities.extensions` which authorization model the deployment runs. The [resource server](../auth/server.md)
+validates the resulting tokens like any other.
 
 ```php
 use Nexus\Mcp\Extension\Auth\ClientCredentials\ClientCredentialsServerExtension;

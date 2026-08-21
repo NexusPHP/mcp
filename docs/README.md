@@ -1,11 +1,11 @@
 # Nexus MCP SDK documentation
 
-Every page in one map, grouped by what you came to do: learn the SDK, get a task done, look something
-up, or understand why it is built this way.
+Every page in one map. The groups follow what you came to do: learn the SDK, get a task done, look something up, or
+understand why the SDK is built this way.
 
 ## Start here
 
-- **[Getting started](getting-started.md)**: the tutorial. From an empty directory to a stdio server
+- **[Getting started](getting-started.md)**: the tutorial. It takes you from an empty directory to a stdio server
   and a PHP client that calls it.
 
 ## How-to guides
@@ -29,14 +29,10 @@ up, or understand why it is built this way.
 ### Client
 
 - **[Client API overview](client.md)**: the builder, the lifecycle, and the guide to every feature page.
-- **[Connecting and discovery](client/connecting.md)**: attaching a transport and reading
-  `server/discover`.
-- **[Typed requests](client/requests.md)**: the per-method calls, mirrored tool parameters, and
-  `sendRequest()`.
-- **[When the server asks for input first](client/input-required.md)**: answering an
-  `InputRequiredResult`.
-- **[Progress and timeouts](client/progress-and-timeouts.md)**: streaming progress and request
-  deadlines.
+- **[Connecting and discovery](client/connecting.md)**: attaching a transport and reading `server/discover`.
+- **[Typed requests](client/requests.md)**: the per-method calls, mirrored tool parameters, and `sendRequest()`.
+- **[When the server asks for input first](client/input-required.md)**: answering an `InputRequiredResult`.
+- **[Progress and timeouts](client/progress-and-timeouts.md)**: streaming progress and request deadlines.
 - **[Notification handlers](client/notifications.md)**: reacting to server notifications.
 - **[Extensions](client/extensions.md)**: enabling SEP-2133 extensions and the outbound gate.
 - **[Tasks](client/tasks.md)**: calling tools as tasks and polling them to completion (SEP-2663).
@@ -50,8 +46,8 @@ up, or understand why it is built this way.
 - **[Resource server](auth/server.md)**: validating tokens and publishing the metadata document.
 - **[Persisting tokens and registrations](auth/persistence.md)**: the store interfaces.
 - **[Scopes and step-up](auth/scopes.md)**: scope selection and insufficient-scope retries.
-- **[OAuth extension grants](auth/extension-grants.md)**: client credentials (SEP-1046) and
-  enterprise-managed authorization (SEP-990).
+- **[OAuth extension grants](auth/extension-grants.md)**: client credentials (SEP-1046) and enterprise-managed
+  authorization (SEP-990).
 - Provider recipes: **[Keycloak](auth/keycloak.md)**, **[Microsoft Entra ID](auth/entra.md)**,
   **[Auth0](auth/auth0.md)**, **[Okta](auth/okta.md)**.
 
@@ -64,20 +60,19 @@ up, or understand why it is built this way.
 - **[Client configuration](client/configuration.md)**: everything `ClientBuilder` takes.
 - **[Capability advertisement](server/capabilities.md)**: how `ServerCapabilities` is derived.
 - **[ServerContext](server/context.md)**: what every handler receives.
-- **[Error handling](error-handling.md)**: exception types, JSON-RPC error codes, and the diagnostic
-  message grammar.
-- **[API reference](https://nexusphp.github.io/mcp/)**: the generated class-level reference for the
-  public `Nexus\Mcp\` API, tracking the `1.x` development branch.
+- **[Error handling](error-handling.md)**: exception types, JSON-RPC error codes, and the diagnostic message
+  grammar.
+- **[API reference](https://nexusphp.github.io/mcp/)**: the generated class-level reference for the public
+  `Nexus\Mcp\` API. It tracks the `1.x` development branch.
 
 ## Explanation
 
 - **[Architecture](architecture.md)**: the namespace tree, layering rules, and the dispatch kernel.
-- **[Spec compliance](spec-compliance.md)**: coverage against the targeted revision, and the deliberate
-  omissions.
+- **[Spec compliance](spec-compliance.md)**: coverage against the targeted revision, and the deliberate omissions.
 - **[Design rationale](design-rationale.md)**: the choices behind the SDK.
 - **[Best practices](best-practices.md)**: conventions the SDK is shaped to reward.
 
 ## Runnable code
 
-- **[examples/](../examples/)**: demo servers and clients over stdio, in-memory, and HTTP, including
-  the OAuth and MCP Apps end-to-end setups.
+- **[examples/](../examples/)**: demo servers and clients over stdio, in-memory, and HTTP. They include the OAuth
+  and MCP Apps end-to-end setups.

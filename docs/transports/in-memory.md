@@ -1,9 +1,8 @@
 # InMemoryTransport
 
-An in-process transport pair for tests, with no I/O underneath. Each side delivers the other side's
-`send()` calls as its own `onMessage` events, so an end-to-end server test runs without a subprocess.
-The lifecycle the pair shares with the production bindings is in
-[the transport contract](../transports.md#the-contract).
+An in-process transport pair for tests, with no I/O underneath. Each side delivers the other side's `send()`
+calls as its own `onMessage` events, so an end-to-end server test runs without a subprocess. The lifecycle the
+pair shares with the production bindings is in [the transport contract](../transports.md#the-contract).
 
 ```php
 use Nexus\Mcp\Core\Transport\InMemoryTransport;
@@ -13,9 +12,9 @@ use Nexus\Mcp\Core\Transport\InMemoryTransport;
 
 ## Pre-`start()` inbound queueing
 
-An envelope sent to a side that has not yet called `start()` is queued. The queue drains in arrival
-order the moment that side starts. A test can therefore pre-load the full request sequence before
-`Server::run()` registers its listeners and calls `start()` on the server-side transport:
+An envelope sent to a side that has not yet called `start()` is queued. The queue drains in arrival order the
+moment that side starts. A test can therefore pre-load the full request sequence before `Server::run()` registers
+its listeners and calls `start()` on the server-side transport:
 
 ```php
 use Nexus\Mcp\Core\Schema\ClientCapabilities;
@@ -57,13 +56,13 @@ $clientSide->close();
 $serverRun->await();
 ```
 
-Without the pre-start queue, the test would have to interleave each emission with the server's setup or
-risk sending into a transport whose listener chain isn't wired yet.
+Without the pre-start queue, the test would have to interleave each emission with the server's setup, or risk
+sending into a transport whose listener chain is not attached yet.
 
 ## Lifecycle cascade
 
-`close()` cascades to the peer. Closing one side closes the other. On each side, the drain listener chain
-fires first, then the close listener chain:
+`close()` cascades to the peer. Closing one side closes the other. On each side, the drain listener chain fires
+first, then the close listener chain:
 
 ```php
 $serverSide->close();
@@ -79,8 +78,8 @@ $serverSide->close();
 
 ## Send / start ordering errors
 
-The state machine rejects out-of-order operations with typed exceptions, so wiring mistakes surface
-eagerly rather than as silently dropped envelopes:
+The state machine rejects out-of-order operations with typed exceptions, so a setup mistake surfaces early rather
+than as silently dropped envelopes:
 
 | Operation | When it throws | Exception |
 | --- | --- | --- |
@@ -91,6 +90,5 @@ eagerly rather than as silently dropped envelopes:
 
 ## `onError`
 
-`onError` fires only for faults thrown by this side's own message listeners (there is no I/O failure
-surface for an in-process pair). A listener fault stays on the receiving side rather than surfacing
-through the peer's `send()`.
+`onError` fires only for faults thrown by this side's own message listeners. There is no I/O failure surface for
+an in-process pair. A listener fault stays on the receiving side rather than surface through the peer's `send()`.

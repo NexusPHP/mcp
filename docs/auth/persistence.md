@@ -1,6 +1,6 @@
 # Persisting tokens and registrations
 
-Both stores default to memory (the shipped `InMemoryTokenStore` and `InMemoryClientRegistrationStore`),
+Both stores default to memory, through the shipped `InMemoryTokenStore` and `InMemoryClientRegistrationStore`,
 so a restart authorizes again. Implement the interfaces to outlive the process:
 
 ```php
@@ -19,11 +19,17 @@ interface ClientRegistrationStoreInterface
 }
 ```
 
+## Keys and issuers
+
 Tokens are keyed by the MCP server, and registrations by the issuer. Each `AccessToken` carries the `issuer`
-that minted it, which is what makes an authorization server change safe: a token stamped with an issuer the
-resource no longer names is dropped rather than presented or refreshed at the new one. Reading a token back
-from a store therefore costs one discovery round trip before the first request goes out, because the SDK must
-not send a token to a server other than the one that issued it, and until discovery has run it cannot tell.
-Later requests in the same process present the stored token directly. A registration the authorization server
-stops recognising is dropped from the store rather than presented again, so an expired one heals on the next
-request instead of bricking the client. Store both confidentially. They are credentials.
+that minted it. That is what makes an authorization server change safe. A token stamped with an issuer the
+resource no longer names is dropped rather than presented or refreshed at the new one.
+
+Reading a token back from a store therefore costs one discovery round trip before the first request goes out.
+The SDK must not send a token to a server other than the one that issued it, and until discovery has run it
+cannot tell. Later requests in the same process present the stored token directly.
+
+A registration the authorization server stops recognising is dropped from the store rather than presented again.
+An expired one heals on the next request instead of bricking the client.
+
+Store both confidentially. They are credentials.

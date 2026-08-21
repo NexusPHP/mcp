@@ -1,11 +1,12 @@
 # Apps
 
-The MCP Apps extension (`io.modelcontextprotocol/ui`, SEP-1865) lets a tool link an interactive
-HTML view that the host renders in a sandboxed iframe. The branding says "apps", but every
-protocol literal says `ui`: the identifier is `io.modelcontextprotocol/ui`, the metadata rides
-the `_meta` key `ui`, and the view is an ordinary MCP resource under the `ui://` scheme with the
-`text/html;profile=mcp-app` mime type. It ships in `Nexus\Mcp\Extension\Apps` and, like every
-extension, is disabled until enabled explicitly:
+The MCP Apps extension (`io.modelcontextprotocol/ui`, SEP-1865) lets a tool link an interactive HTML view that
+the host renders in a sandboxed iframe. The branding says "apps", but every protocol literal says `ui`. The
+identifier is `io.modelcontextprotocol/ui`, the metadata rides the `_meta` key `ui`, and the view is an ordinary
+MCP resource under the `ui://` scheme with the `text/html;profile=mcp-app` mime type.
+
+The extension ships in `Nexus\Mcp\Extension\Apps`. Like every extension, it is disabled until you enable it
+explicitly:
 
 ```php
 use Nexus\Mcp\Extension\Apps\Schema\UiResourceCsp;
@@ -32,19 +33,20 @@ $server = (new ServerBuilder())
     ->build();
 ```
 
-The extension defines no JSON-RPC methods, so enabling it only advertises the
-`io.modelcontextprotocol/ui` capability slot. Everything else is metadata on the tools and
-resources the builder already registers.
+The extension defines no JSON-RPC methods, so enabling it only advertises the `io.modelcontextprotocol/ui`
+capability slot. Everything else is metadata on the tools and resources the builder already registers.
 
 ## Declaring a UI resource
 
-The spec binds a UI resource to three MUSTs: the URI starts with `ui://`, the mime type is
-exactly `text/html;profile=mcp-app`, and the content is a valid HTML5 document. `UiResource`
-composes a `Resource` that upholds the first two by construction, attaches the optional
-`_meta.ui` metadata (kept readable on `$uiResource->uiMeta`), and exposes the result on
-`$uiResource->resource` for `addResource()`. The HTML validity of what the reader returns stays
-your responsibility, as does serving the same mime type and metadata on the read contents,
-which reusing the composed `Resource`'s fields holds by construction:
+The spec binds a UI resource to three MUSTs. The URI starts with `ui://`. The mime type is exactly
+`text/html;profile=mcp-app`. The content is a valid HTML5 document.
+
+`UiResource` composes a `Resource` that upholds the first two by construction. It attaches the optional
+`_meta.ui` metadata, kept readable on `$uiResource->uiMeta`, and exposes the result on `$uiResource->resource` for
+`addResource()`.
+
+The HTML validity of what the reader returns stays your responsibility. So does serving the same mime type and
+metadata on the read contents, which reusing the composed `Resource`'s fields holds by construction:
 
 ```php
 use Nexus\Mcp\Core\Schema\Resource\TextResourceContents;
@@ -58,17 +60,16 @@ $contents = new TextResourceContents(
 );
 ```
 
-`UiResourceMeta` carries the sandbox configuration the host enforces: the CSP allow-lists
-(`UiResourceCsp`, where an empty list means the same as an omitted one), the requested
-`UiResourcePermissions` (each encoded as a key with an empty-object value), the host-defined
-dedicated `domain`, and the `prefersBorder` rendering hint. The spec puts the same shape on both
-the `resources/list` descriptor and each `resources/read` content item, so declare it in both
-places, as above.
+`UiResourceMeta` carries the sandbox configuration the host enforces: the CSP allow-lists (`UiResourceCsp`, where
+an empty list means the same as an omitted one), the requested `UiResourcePermissions` (each encoded as a key
+with an empty-object value), the host-defined dedicated `domain`, and the `prefersBorder` rendering hint. The spec
+puts the same shape on both the `resources/list` descriptor and each `resources/read` content item, so declare it
+in both places, as above.
 
 ## Linking a tool to its view
 
-A tool opts in through the `_meta.ui` object, built with `UiToolMeta` and attached through the
-`meta:` slot of manual or [attribute](../attribute-discovery.md) registration:
+A tool opts in through the `_meta.ui` object. Build it with `UiToolMeta` and attach it through the `meta:` slot of
+manual or [attribute](../attribute-discovery.md) registration:
 
 ```php
 use Nexus\Mcp\Extension\Apps\Schema\Enum\ToolVisibility;
@@ -83,26 +84,25 @@ public function weather(string $city): string { /* ... */ }
 ```
 
 `UiToolMeta` validates the `ui://` scheme on `resourceUri`, and
-`(new UiToolMeta(resourceUri: ..., visibility: [ToolVisibility::App]))->toArray()` produces the
-same array for the manual path. An omitted `visibility` means the spec default
-`["model", "app"]`, and the SDK never materialises the default on the envelope. The deprecated
-flat `_meta["ui/resourceUri"]` key is never emitted.
+`(new UiToolMeta(resourceUri: ..., visibility: [ToolVisibility::App]))->toArray()` produces the same array for the
+manual path. An omitted `visibility` means the spec default `["model", "app"]`, and the SDK never materialises the
+default on the envelope. The deprecated flat `_meta["ui/resourceUri"]` key is never emitted.
 
 ## Capability direction
 
-The negotiation is asymmetric. The client declares
-`{"mimeTypes": ["text/html;profile=mcp-app"]}` under the extension slot, and the spec prescribes
-no server-side settings, so `AppsServerExtension` advertises an empty object. The spec's guidance
-that servers check client capabilities before exposing UI-enabled tools is per-request under
-this revision: read `$context->meta->clientCapabilities->extensions['io.modelcontextprotocol/ui']`
-inside a handler when you want to branch. The SDK deliberately does not filter `tools/list` by
-that declaration: the tool metadata is inert for hosts that ignore it, the spec asks tools to
-keep a text-only fallback anyway, and varying a cacheable listing per client would fight the
-SEP-2549 cache semantics.
+The negotiation is asymmetric. The client declares `{"mimeTypes": ["text/html;profile=mcp-app"]}` under the
+extension slot. The spec prescribes no server-side settings, so `AppsServerExtension` advertises an empty object.
 
-Everything under the `ui/*` postMessage family (`ui/initialize`, the host notifications, the
-sandbox proxy) is the browser host's side of the extension and never touches the MCP connection,
-so the SDK does not model it.
+The spec's guidance that servers check client capabilities before they expose UI-enabled tools is per-request
+under this revision. Read `$context->meta->clientCapabilities->extensions['io.modelcontextprotocol/ui']` inside a
+handler when you want to branch.
+
+The SDK deliberately does not filter `tools/list` by that declaration. The tool metadata is inert for hosts that
+ignore it, the spec asks tools to keep a text-only fallback anyway, and varying a cacheable listing per client
+would fight the SEP-2549 cache semantics.
+
+Everything under the `ui/*` postMessage family is the browser host's side of the extension: `ui/initialize`, the
+host notifications, and the sandbox proxy. It never touches the MCP connection, so the SDK does not model it.
 
 The client half is documented in [Client apps](../client/apps.md), and
 [examples/apps-e2e/](../../examples/apps-e2e/) runs the whole flow, browser host included.

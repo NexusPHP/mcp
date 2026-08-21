@@ -1,6 +1,6 @@
 # Client authorization
 
-How the client obtains and presents a token. A client that starts tokenless walks the whole flow on its
+How the client obtains and presents a token. A client that starts without a token walks the whole flow on its
 first request:
 
 ```mermaid
@@ -48,15 +48,18 @@ $client = $builder->build();
 $client->connect(new StreamableHttpClientTransport($endpoint, $http));
 ```
 
-It takes the builder rather than a built client because it derives two: the MCP requests run on the client
-you configured, and every authorization leg, metadata discovery included, on one that follows no redirect,
-so a hop off this server's resource path is refused before the credential travels. A downgrade from `https` to
-`http` on the same host is such a hop, and it is
-the one an ordinary client would follow while keeping the `Authorization` header, since it strips headers
-only when the authority changes and an authority carries no scheme.
+### Why it takes a builder
 
-Configure the transport on the builder as usual (`usingPool()`, `intercept()`, `interceptNetwork()`,
-`retry()`). To route everything through a client of your own, short-circuit with an interceptor:
+The decorator takes the builder rather than a built client, because it derives two clients. The MCP requests run
+on the client you configured. Every authorization leg, metadata discovery included, runs on one that follows no
+redirect, so the decorator refuses a hop off this server's resource path before the credential travels.
+
+A downgrade from `https` to `http` on the same host is such a hop. It is the one an ordinary client would follow
+while it keeps the `Authorization` header, since it strips headers only when the authority changes, and an
+authority carries no scheme.
+
+Configure the transport on the builder as usual: `usingPool()`, `intercept()`, `interceptNetwork()`, `retry()`.
+To route everything through a client of your own, short-circuit with an interceptor:
 
 ```php
 use Amp\Cancellation;
@@ -78,29 +81,35 @@ final class MyTransport implements ApplicationInterceptor
 $builder = (new HttpClientBuilder())->intercept(new MyTransport($mine));
 ```
 
-Do not pass a builder carrying your own redirect follower for credentialed traffic. The decorator resolves
-redirects itself precisely so it can refuse one before sending.
+Do not pass a builder that carries your own redirect follower for credentialed traffic. The decorator resolves
+redirects itself, precisely so it can refuse one before sending.
 
-Nothing happens until the server challenges. On the first `401` the decorator reads the `WWW-Authenticate`
+### What the decorator does
+
+Nothing happens until the server challenges. On the first `401`, the decorator reads the `WWW-Authenticate`
 header, discovers the authorization server, obtains a token, and replays the request with it. Later requests
 present the stored token directly.
 
-The token goes only to the resource the decorator was built for, or a path under it, so handing the same
-client a request aimed anywhere else, another path on the same origin included, sends it unauthenticated
-rather than leaking the credential. A request that does reach the resource has its redirects resolved
-here, whether or not a token was ready: a hop leaving the resource's path is refused with
-`RedirectRefusedException` before it is sent, and running out of hops raises `TooManyRedirectsException`
-as the client's own follower would.
+The token goes only to the resource the decorator was built for, or a path under it. A request aimed anywhere
+else, another path on the same origin included, goes out unauthenticated rather than leak the credential.
 
-The inner client carries the authorization traffic too, so an interceptor placed on it (proxy, logging,
-custom TLS) applies to discovery, registration, and token requests as well.
+A request that does reach the resource has its redirects resolved here, whether or not a token was ready. A hop
+that leaves the resource's path is refused with `RedirectRefusedException` before it is sent. Running out of hops
+raises `TooManyRedirectsException`, as the client's own follower would.
 
-The authorization-code round trip is the default. A machine client with no user swaps it for an
-unattended grant strategy instead: pass `null` for the user authorization and one of the
-[OAuth extension grants](extension-grants.md) (client credentials, enterprise-managed
-authorization) as `grantStrategy:`. An unattended grant also renews itself when its token expires,
-since no refresh token is issued to redeem. The seam is public, so a grant this SDK does not model
-is one you can [write yourself](extension-grants.md#writing-your-own-grant).
+The inner client carries the authorization traffic too. An interceptor placed on it (proxy, logging, custom TLS)
+applies to discovery, registration, and token requests as well.
+
+### Unattended grants
+
+The authorization-code round trip is the default. A machine client with no user swaps it for an unattended grant
+strategy instead. Pass `null` for the user authorization and one of the
+[OAuth extension grants](extension-grants.md) (client credentials, enterprise-managed authorization) as
+`grantStrategy:`.
+
+An unattended grant also renews itself when its token expires, since no refresh token is issued to redeem. The
+seam is public, so a grant this SDK does not model is one you can
+[write yourself](extension-grants.md#writing-your-own-grant).
 
 ## Implementing the user-agent leg
 
@@ -124,33 +133,33 @@ final class ConsoleUserAuthorization implements UserAuthorizationInterface
 }
 ```
 
-An implementation only opens `$redirect->url` and reports where the user-agent landed. The SDK owns the PKCE
-pair, the `state` value, the expected issuer, and every validation of the response, so a callback that answers
-a different request, names a different issuer, or carries an error is rejected before the code is redeemed.
+An implementation only opens `$redirect->url` and reports where the user agent landed. The SDK owns the PKCE
+pair, the `state` value, the expected issuer, and every validation of the response. A callback that answers a
+different request, names a different issuer, or carries an error is rejected before the code is redeemed.
 
 Read the answer without blocking the event loop. A bare `fgets(\STDIN)` halts every fiber in the process,
-including the SSE streams the transport is holding open. `$cancellation` fires when the request that needs the
-token is abandoned, so honouring it is what lets a client shut down while a consent screen is still open.
+including the SSE streams the transport holds open. `$cancellation` fires when the request that needs the token
+is abandoned. Honour it, because that is what lets a client shut down while a consent screen is still open.
 
-A host that runs a loopback listener returns `new AuthorizationCallback((string) $request->getUri())` instead
-of prompting.
+A host that runs a loopback listener returns `new AuthorizationCallback((string) $request->getUri())` instead of
+prompting.
 
 ## Choosing a client identifier
 
-Clients are identified in one of three ways, and the SDK walks them in the order the spec fixes:
+Clients are identified in one of three ways. The SDK walks them in the order the spec fixes:
 
 1. **Pre-registration.** Credentials issued out of band, passed as `preRegistered`. They are bound to one
-   authorization server: presenting them to a different one is refused rather than silently attempted.
+   authorization server. Presenting them to a different one is refused rather than silently attempted.
 2. **Client ID Metadata Documents.** Host a JSON document at an HTTPS URL and pass that URL as
-   `clientIdMetadataDocumentUrl`. The URL *is* the `client_id`, so it works with any authorization server that
+   `clientIdMetadataDocumentUrl`. The URL *is* the `client_id`. It works with any authorization server that
    advertises `client_id_metadata_document_supported`, and it needs no registration at all.
 3. **Dynamic Client Registration.** Used when the server publishes a `registration_endpoint`. The SDK declares
-   `application_type` (defaulting to `native`, which is what loopback redirect URIs need) and stores the
-   resulting identifier against the issuer that minted it. Two clients sharing one registration store may
-   both register against the same authorization server at once, since nothing outside a single client can
-   serialise them. Both registrations are valid and the store keeps the last.
+   `application_type`, which defaults to `native`, the type loopback redirect URIs need. It stores the resulting
+   identifier against the issuer that minted it. Two clients that share one registration store may both register
+   against the same authorization server at once, since nothing outside a single client can serialise them. Both
+   registrations are valid, and the store keeps the last.
 
-When none of the three applies, `ClientRegistrationRequiredException` says so rather than failing obscurely.
+When none of the three applies, `ClientRegistrationRequiredException` says so rather than fail obscurely.
 
 ```php
 new AuthorizationOptions(
@@ -162,10 +171,9 @@ new AuthorizationOptions(
 
 ## Talking to a local authorization server
 
-The spec exempts only the redirect URI from HTTPS, so an authorization server on `http://localhost` is
-refused by default even when the MCP server is local too. That is correct for production and useless for
-development, where the authorization server is usually a container on a loopback port. Opt out for those
-runs:
+The spec exempts only the redirect URI from HTTPS, so an authorization server on `http://localhost` is refused by
+default, even when the MCP server is local too. That is correct for production and useless for development, where
+the authorization server is usually a container on a loopback port. Opt out for those runs:
 
 ```php
 new AuthorizationOptions(
@@ -175,7 +183,7 @@ new AuthorizationOptions(
 );
 ```
 
-It admits cleartext on `localhost`, `127.0.0.0/8`, and `[::1]`, and nothing else. A remote cleartext host
-is still refused, so is a private-network address, and so is a URL carrying a fragment. Never set it in
-production: it is the difference between a token that cannot leave the machine and one an observer on the
-network can read.
+The opt-out admits cleartext on `localhost`, `127.0.0.0/8`, and `[::1]`, and nothing else. A remote cleartext
+host is still refused. So is a private-network address, and so is a URL that carries a fragment. Never set it in
+production. It is the difference between a token that cannot leave the machine and one an observer on the network
+can read.

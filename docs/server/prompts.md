@@ -1,7 +1,7 @@
 # Prompts
 
-How to expose a prompt: pair a spec `Prompt` definition with the renderer that serves its
-`prompts/get`, and register both with `addPrompt()`.
+How to expose a prompt: pair a spec `Prompt` definition with the renderer that serves its `prompts/get`, and
+register both with `addPrompt()`.
 
 ```php
 use Nexus\Mcp\Core\Schema\Enum\Role;
@@ -20,14 +20,14 @@ use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
 )
 ```
 
-The renderer can be a `\Closure` or a `PromptRendererInterface`.
+The renderer is a `\Closure` or a `PromptRendererInterface`.
 
 ## Attribute sugar
 
-`#[AsPrompt]` marks a method as a prompt, discovered through the same
-[`ServerBuilder::register()`](../attribute-discovery.md) walk as the other attributes. Each parameter
-becomes a prompt argument, required when it has no default, with its `@param` text as the description,
-and the call's arguments are bound back to the parameters by name:
+`#[AsPrompt]` marks a method as a prompt. The same [`ServerBuilder::register()`](../attribute-discovery.md) walk
+discovers it as the other attributes. Each parameter becomes a prompt argument. It is required when it has no
+default, and its `@param` text becomes the description. The call's arguments are bound back to the parameters by
+name:
 
 ```php
 use Nexus\Mcp\Server\Attribute\AsPrompt;
@@ -46,14 +46,14 @@ final class SummaryPrompts
 ```
 
 A string return becomes a single `User` text message. A `PromptMessage`, a list of them, or a full
-`GetPromptResult` pass through. Prompt arguments arrive as strings, so every non-injected parameter must
-accept one (`string`, an enum hydrated from the value, or untyped).
-[Attribute discovery](../attribute-discovery.md) has the full binding rules.
+`GetPromptResult` passes through. Prompt arguments arrive as strings, so every non-injected parameter must accept
+one: `string`, an enum hydrated from the value, or untyped. [Attribute discovery](../attribute-discovery.md) has
+the full binding rules.
 
 ## Message content types
 
-`PromptMessage::$content` takes any single content block, so a prompt can carry images and embedded
-resources alongside text:
+`PromptMessage::$content` takes any single content block, so a prompt can carry images and embedded resources
+beside text:
 
 ```php
 use Nexus\Mcp\Core\Schema\ContentBlock\EmbeddedResource;
@@ -69,5 +69,5 @@ return new GetPromptResult(messages: [
 ]);
 ```
 
-Each message holds exactly one block. To pair a caption with an image, send two messages, as above. The
-block types are the same five a [tool result](tools.md#result-content-types) carries.
+Each message holds exactly one block. To pair a caption with an image, send two messages, as above. The block
+types are the same five a [tool result](tools.md#result-content-types) carries.

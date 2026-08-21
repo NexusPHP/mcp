@@ -1,7 +1,7 @@
 # Resources
 
-How to expose resources: a static URI pairs a spec `Resource` with a reader via `addResource()`, and an
-RFC 6570 template pairs a `ResourceTemplate` with one via `addResourceTemplate()`.
+How to expose resources. A static URI pairs a spec `Resource` with a reader through `addResource()`. An RFC 6570
+template pairs a `ResourceTemplate` with a reader through `addResourceTemplate()`.
 
 A static URI:
 
@@ -46,26 +46,28 @@ use Nexus\Mcp\Core\Schema\Resource\ResourceTemplate;
 )
 ```
 
-`$vars` carries the resolved template variables (`['userId' => '123']` for `users://123`). The reader can
-be a `\Closure` or a `ResourceReaderInterface` / `TemplatedResourceReaderInterface`.
+`$vars` carries the resolved template variables, for example `['userId' => '123']` for `users://123`. The reader
+is a `\Closure`, a `ResourceReaderInterface`, or a `TemplatedResourceReaderInterface`.
 
-When several templates match a URI, the one with the most literal characters answers, so an exact
-`db://literal` beats `db://{table}` regardless of registration order. Equally specific templates keep
-registration order.
+## Template matching
 
-A variable matches one URI segment and is percent-decoded after matching. A value decoding back out of
-that segment (a `/`, `?`, `#`, a bare `.` or `..`, or a NUL byte) is refused, so `users://%2E%2E%2Fadmin`
-does not match. That is the URI-template half of the resources spec's security requirement that a server
-MUST prevent directory traversal attacks when serving `file://` resources. Inside the segment the value
-is still whatever the peer sent, so the other half is yours: validate it against what you are about to
-open, index, or query.
+When several templates match a URI, the one with the most literal characters answers. An exact `db://literal`
+beats `db://{table}` regardless of registration order. Equally specific templates keep registration order.
+
+A variable matches one URI segment and is percent-decoded after matching. The SDK refuses a value that decodes
+back out of that segment: a `/`, `?`, `#`, a bare `.` or `..`, or a NUL byte. So `users://%2E%2E%2Fadmin` does not
+match. That is the URI-template half of the resources spec's security requirement: a server MUST prevent
+directory traversal attacks when it serves `file://` resources.
+
+Inside the segment the value is still whatever the peer sent, so the other half is yours. Validate the value
+against what you are about to open, index, or query.
 
 ## Attribute sugar
 
-`#[AsResource]` and `#[AsResourceTemplate]` mark reader methods, discovered through the same
-[`ServerBuilder::register()`](../attribute-discovery.md) walk as the other attributes. A `$uri` parameter
-receives the resolved URI, template variables are bound to parameters by name (so a variable named `uri`
-is refused at registration, since `$uri` is taken), and a `ServerContext` parameter is injected:
+`#[AsResource]` and `#[AsResourceTemplate]` mark reader methods. The same
+[`ServerBuilder::register()`](../attribute-discovery.md) walk discovers them as the other attributes. A `$uri`
+parameter receives the resolved URI. Template variables are bound to parameters by name, so a variable named
+`uri` is refused at registration, since `$uri` is taken. A `ServerContext` parameter is injected:
 
 ```php
 use Nexus\Mcp\Server\Attribute\AsResource;
@@ -90,37 +92,40 @@ final class AppResources
 }
 ```
 
-A string return is wrapped as `TextResourceContents` bound to the URI. A `ResourceContents`, a list of
-them, or a full `ReadResourceResult` pass through. Adapted returns carry the conservative cache hints
-(`ttlMs: 0`, `CacheScope::Private`), so return a `ReadResourceResult` to set your own. See
+A string return is wrapped as `TextResourceContents` bound to the URI. A `ResourceContents`, a list of them, or a
+full `ReadResourceResult` passes through. Adapted returns carry the conservative cache hints (`ttlMs: 0`,
+`CacheScope::Private`), so return a `ReadResourceResult` to set your own. See
 [Attribute discovery](../attribute-discovery.md) for the full binding rules.
 
 ## Cache hints
 
-`ReadResourceResult` and the `*/list` results require two cache hints the server returns to the client:
-`ttlMs` (how many milliseconds the client MAY treat the response as fresh, `0` meaning re-fetch every time)
-and `cacheScope` (`CacheScope::Public` for a response any shared cache MAY serve to any user, or
-`CacheScope::Private` for one only the requesting user's client MAY cache). Both default to `ttlMs: 0` and
-`CacheScope::Private`. `setTtlMs()` and `setCacheScope()` change them for every store the builder assembles
-from its `add*()` entries:
+`ReadResourceResult` and the `*/list` results require two cache hints that the server returns to the client.
+`ttlMs` is how many milliseconds the client MAY treat the response as fresh, where `0` means re-fetch every time.
+`cacheScope` is `CacheScope::Public` for a response any shared cache MAY serve to any user, or
+`CacheScope::Private` for one only the requesting user's client MAY cache.
+
+Both default to `ttlMs: 0` and `CacheScope::Private`. `setTtlMs()` and `setCacheScope()` change them for every
+store the builder assembles from its `add*()` entries:
 
 ```php
 ->setTtlMs(60_000)
 ->setCacheScope(CacheScope::Public)
 ```
 
-To vary them per feature, build that store yourself and pass it through the matching setter. A store
+### Per-feature values
+
+To vary the hints per feature, build that store yourself and pass it through the matching setter. A store
 supplied that way keeps its own values and ignores the builder-level defaults:
 
 ```php
 ->setToolStore(new ToolStore($entries, ttlMs: 60_000, cacheScope: CacheScope::Public))
 ```
 
-`$entries` is what `addTool()` would have built: a map of tool name to `ToolEntry`, each pairing a `Tool`
-with its executor. `PromptEntry`, `ResourceEntry`, and `ResourceTemplateEntry` do the same for the other
-stores. Building a store yourself is also how you hand the same instance to something else that needs it,
-such as the `Mcp-Param-{Name}` validation on
-[`SecuredHttpEndpoint`](../transports/streamable-http.md#securing-the-endpoint).
+`$entries` is what `addTool()` would have built: a map of tool name to `ToolEntry`, each pairing a `Tool` with its
+executor. `PromptEntry`, `ResourceEntry`, and `ResourceTemplateEntry` do the same for the other stores.
+
+Building a store yourself is also how you hand the same instance to something else that needs it, such as the
+`Mcp-Param-{Name}` validation on [`SecuredHttpEndpoint`](../transports/streamable-http.md#securing-the-endpoint).
 
 ```php
 use Nexus\Mcp\Server\Tool\ClosureToolExecutor;

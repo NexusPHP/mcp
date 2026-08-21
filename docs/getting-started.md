@@ -1,7 +1,7 @@
 # Getting started
 
-This tutorial takes you from an empty directory to a working pair: a stdio MCP server that exposes one
-tool, and a PHP client that spawns the server and calls that tool. Every step is copy-paste runnable.
+This tutorial takes you from an empty directory to a working pair. You build a stdio MCP server that exposes one
+tool, and a PHP client that spawns the server and calls that tool. You can copy and run every step.
 
 ## Requirements
 
@@ -14,9 +14,8 @@ tool, and a PHP client that spawns the server and calls that tool. Every step is
 composer require nexusphp/mcp
 ```
 
-The SDK targets MCP spec **2026-07-28** and runs on [AMPHP](https://amphp.org) and
-[Revolt](https://revolt.run), so its synchronous-looking API is fiber-driven. No further setup is needed
-to build a server.
+The SDK targets MCP spec **2026-07-28**. It runs on [AMPHP](https://amphp.org) and [Revolt](https://revolt.run),
+so its synchronous-looking API is fiber-driven. You need no further setup to build a server.
 
 ## Your first MCP server
 
@@ -62,26 +61,26 @@ $server = (new ServerBuilder())
 $server->run(new StdioServerTransport());
 ```
 
-That is a full, runnable MCP server. It advertises one tool (`greet`), exposes the `server/discover` /
-`tools/list` / `tools/call` handlers the SDK ships by default, and speaks line-framed JSON-RPC over
-STDIN/STDOUT.
+That is a full, runnable MCP server. It advertises one tool, `greet`. It exposes the `server/discover`,
+`tools/list`, and `tools/call` handlers the SDK ships by default. It speaks line-framed JSON-RPC over STDIN and
+STDOUT.
 
 ## Run it
 
 ### MCP Inspector (recommended)
 
-[MCP Inspector](https://github.com/modelcontextprotocol/inspector) gives you an interactive UI for poking
-at tools, prompts, and resources without writing a client:
+[MCP Inspector](https://github.com/modelcontextprotocol/inspector) gives you an interactive UI for tools, prompts,
+and resources. You write no client:
 
 ```bash
 npx @modelcontextprotocol/inspector php hello.php
 ```
 
-Open the URL it prints, click **Connect**, then invoke `greet` from the Tools panel.
+Open the URL it prints. Click **Connect**, then invoke `greet` from the Tools panel.
 
 ### Claude Desktop, Cursor, or any `mcpServers`-aware client
 
-Drop this into the client's MCP configuration:
+Add this to the client's MCP configuration:
 
 ```json
 {
@@ -100,11 +99,10 @@ Drop this into the client's MCP configuration:
 echo '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{"_meta":{"io.modelcontextprotocol/protocolVersion":"2026-07-28","io.modelcontextprotocol/clientInfo":{"name":"cli","version":"1.0.0"},"io.modelcontextprotocol/clientCapabilities":{}}}}' | php hello.php
 ```
 
-Every request carries a `_meta` block with the client's identity: `io.modelcontextprotocol/protocolVersion`
-and `io.modelcontextprotocol/clientCapabilities` are required, `io.modelcontextprotocol/clientInfo` is
-optional. The server reads JSON-RPC
-envelopes one per line on STDIN and writes responses to STDOUT. Useful for scripting smoke tests. Less useful for
-interactive exploration.
+Every request carries a `_meta` block with the client's identity. The keys `io.modelcontextprotocol/protocolVersion`
+and `io.modelcontextprotocol/clientCapabilities` are required. The key `io.modelcontextprotocol/clientInfo` is
+optional. The server reads one JSON-RPC envelope per line on STDIN and writes responses to STDOUT. This is useful
+for scripted smoke tests, and less useful for interactive exploration.
 
 ## Your first MCP client
 
@@ -146,38 +144,41 @@ try {
 }
 ```
 
-`StdioClientTransport` spawns the server as a subprocess and speaks the same line-framed JSON-RPC over
-its STDIN/STDOUT. `discover()` sends `server/discover`, learning the server's identity and recording its
-capabilities, which the typed request methods check before sending. The protocol is sessionless, so this
-establishes nothing: it is a plain request any other may precede. `callTool()` answers with a typed result (the union includes
-`InputRequiredResult`, covered in [When the server asks for input first](client/input-required.md)), so
-branch on the type rather than assuming the happy path.
+`StdioClientTransport` spawns the server as a subprocess. It speaks the same line-framed JSON-RPC over the
+subprocess's STDIN and STDOUT.
+
+`discover()` sends `server/discover`. The client learns the server's identity and records its capabilities, which
+the typed request methods check before they send. The protocol is sessionless, so this call establishes nothing.
+It is a plain request, and any other request may precede it.
+
+`callTool()` answers with a typed result. The union includes `InputRequiredResult`, which
+[When the server asks for input first](client/input-required.md) covers. Branch on the type. Do not assume the
+happy path.
 
 ```bash
 php hello-client.php
 ```
 
-prints `Hello, Ada!`. For a client and server in one process with no subprocess, see
+This prints `Hello, Ada!`. For a client and server in one process with no subprocess, see
 [examples/in-memory.php](../examples/in-memory.php).
 
 ## Logging
 
 MCP servers MUST NOT write to STDOUT outside of the JSON-RPC stream. The SDK uses
-[PSR-3](https://www.php-fig.org/psr/psr-3/) for diagnostic logging and writes nothing by default (a
-`NullLogger` is used unless you provide one). Pass a real logger via `ServerBuilder::setLogger()` and
-target STDERR. See [examples/stdio-server.php](../examples/stdio-server.php) for a worked example that
-routes server diagnostics to a PSR-3 logger on STDERR.
+[PSR-3](https://www.php-fig.org/psr/psr-3/) for diagnostic logging. It writes nothing by default, because it uses a
+`NullLogger` unless you provide one. Pass a real logger with `ServerBuilder::setLogger()` and target STDERR. See
+[examples/stdio-server.php](../examples/stdio-server.php) for a worked example that routes server diagnostics to a
+PSR-3 logger on STDERR.
 
 ## Next steps
 
-- **[Server API](server.md)**: full `ServerBuilder` reference covering tools, prompts, resources,
-  completions, custom request handlers, and the request/notification lifecycle.
-- **[Client API](client.md)**: `ClientBuilder` + `Client` reference covering `server/discover`, the typed
+- **[Server API](server.md)**: the full `ServerBuilder` reference. It covers tools, prompts, resources, completions,
+  custom request handlers, and the request and notification lifecycle.
+- **[Client API](client.md)**: the `ClientBuilder` and `Client` reference. It covers `server/discover`, the typed
   request methods, and streaming progress from `callTool`.
-- **[Transports](transports.md)**: what each transport does and doesn't guarantee, stdio and Streamable
-  HTTP alike.
-- **[Error handling](error-handling.md)**: the exception model, JSON-RPC error codes, and which calls throw what.
+- **[Transports](transports.md)**: what each transport guarantees, and what it does not.
+- **[Error handling](error-handling.md)**: the exception model, the JSON-RPC error codes, and which calls throw what.
 - **[Best practices](best-practices.md)**: conventions for servers and clients.
 - **[Architecture](architecture.md)**: namespacing, layering rules, and the dispatch kernel.
 - **[Design rationale](design-rationale.md)**: the choices behind the SDK.
-- **[examples/](../examples/)**: runnable demo servers and clients, over stdio, in-memory, and HTTP.
+- **[examples/](../examples/)**: runnable demo servers and clients over stdio, in-memory, and HTTP.
