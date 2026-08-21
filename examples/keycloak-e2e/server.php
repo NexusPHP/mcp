@@ -115,7 +115,7 @@ $endpoint = new SecuredHttpEndpoint(
     maxBodyBytes: 1_048_576,
     logger: $logger,
     authentication: new BearerAuthenticationMiddleware(
-        new JwksAccessTokenValidator($keys, ISSUER),
+        new JwksAccessTokenValidator($keys, ISSUER, RESOURCE),
         RESOURCE,
         METADATA_URL,
         $psr17,

@@ -29,6 +29,22 @@ refused with `RedirectRefusedException`. On a multi-tenant host this stops cross
 presentation. A deployment that relied on one token serving several sibling paths gives each its own
 `AuthorizedHttpClient`, or roots the resource at the shared parent path.
 
+### `JwksAccessTokenValidator` requires the resource it protects
+
+The validator verified the signature, the issuer, and the expiry but never read `aud`, so anywhere other
+than behind `BearerAuthenticationMiddleware` it accepted a token minted for any resource sharing the
+issuer. Name this server's canonical URI as the third constructor argument:
+
+```php
+// before
+new JwksAccessTokenValidator($keys, 'https://auth.example.com');
+// after
+new JwksAccessTokenValidator($keys, 'https://auth.example.com', 'https://mcp.example.com/mcp');
+```
+
+A token whose audience does not name that URI is now refused by the validator itself. The middleware's
+own audience check stays, so a validator of your own that skips it is still caught.
+
 ### A `resources/read` URI longer than 8192 bytes is refused
 
 `ReadResourceRequestParams` accepted a URI of any length, so a store miss echoed it whole into the

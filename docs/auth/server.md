@@ -24,12 +24,14 @@ $validator = new JwksAccessTokenValidator(
         300,
     ),
     'https://auth.example.com',  // the `iss` every accepted token must carry
+    'https://mcp.example.com/mcp',  // the resource every accepted token's `aud` must name
 );
 ```
 
 Constructing it without the package installed throws a `LogicException` naming that
 install command. The validator refuses a token whose signature does not verify, whose `iss` is absent or
-is not the issuer you named, or which carries no `exp` at all. A key set may sign for several issuers, so
+is not the issuer you named, whose `aud` does not name the resource, or which carries no `exp` at all.
+A key set may sign for several issuers, so
 the issuer is what bounds the tenant rather than the audience alone, and a token minted with no expiry
 would otherwise be a permanent credential. It maps the claim spellings the common providers use: `scope`
 or `scp` (string or list) for scopes, and `azp`, `client_id`, or `cid` for the authorizing client. The [provider recipes](../authorization.md#guide) name each
@@ -48,6 +50,10 @@ final class JwtAccessTokenValidator implements AccessTokenValidatorInterface
         $claims = $this->verifySignature($token);
 
         if (null === $claims || ($claims['iss'] ?? null) !== $this->expectedIssuer) {
+            return null;
+        }
+
+        if (! $this->resource->matchesAudience(array_values(array_filter((array) ($claims['aud'] ?? []), is_string(...))))) {
             return null;
         }
 
@@ -71,9 +77,10 @@ final class JwtAccessTokenValidator implements AccessTokenValidatorInterface
 }
 ```
 
-The validator owns signature checking, the issuer, and expiry. `BearerAuthenticationMiddleware` enforces
-the endpoint's own rules on top, so a token minted for another resource is refused even if the validator
-accepts it, and so is one handed over already expired.
+The validator owns signature checking, the issuer, the audience, and expiry. `BearerAuthenticationMiddleware`
+checks the audience again and enforces the endpoint's own rules on top, so a token minted for another
+resource is refused even if a validator of your own lets it through, and so is one handed over already
+expired.
 
 Its expiry check tolerates no clock skew by default, and a validator's own tolerance does not reach it. If
 you set `JWT::$leeway` for `firebase/php-jwt`, or your validator allows skew some other way, pass the same

@@ -12,6 +12,8 @@ in `0.x`, minor releases may include breaking changes.
 
 - A `resources/read` URI is refused past 8192 bytes at decode, bounding the `data.uri` echo. See
   BREAKING_CHANGES.md.
+- `JwksAccessTokenValidator` takes the resource it protects and refuses a token whose `aud` does not
+  name it. See BREAKING_CHANGES.md.
 
 ### Fixed
 
