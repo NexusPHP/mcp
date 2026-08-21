@@ -68,6 +68,15 @@ at eight.
 error's `data.uri`. Decode now refuses anything past 8192 bytes with `-32602`. The echo still carries
 the full URI for every accepted request.
 
+### The `Mcp-Param-{Name}` check compares every mirrorable argument
+
+`ParameterHeaderValidationMiddleware` skipped a binding whose body argument was a float, an integer beyond
+the safe range (past `2**53 - 1`), null, or absent, so a header could disagree with such an argument unchecked.
+It now treats an integral float as the integer JSON Schema reads it as, compares a large integer exactly, and
+answers `-32020` to a header whose body argument is absent, null, a fractional float, or not a primitive.
+An integer beyond the safe range may still arrive without a header, since a client cannot mirror it. On the
+client, `callTool()` now mirrors an integral float such as `5.0` as `5`.
+
 ## v0.14.0 to v0.15.0
 
 ### `SafeDisplay`'s length caps are private

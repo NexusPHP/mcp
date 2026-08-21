@@ -50,9 +50,10 @@ final class ParameterHeaders
         $headers = [];
 
         foreach ($bindings as $binding) {
-            $string = self::stringifyPrimitive(self::readValueAtPath($arguments, $binding->path));
+            $value = self::normaliseIntegralFloat(self::readValueAtPath($arguments, $binding->path));
+            $string = self::stringifyPrimitive($value);
 
-            if (null === $string) {
+            if (null === $string || self::exceedsSafeInteger($value)) {
                 continue;
             }
 
@@ -75,18 +76,21 @@ final class ParameterHeaders
         $headers = array_change_key_case($headers, \CASE_LOWER);
 
         foreach ($bindings as $binding) {
-            $bodyValue = self::readValueAtPath($arguments, $binding->path);
-            $bodyString = self::stringifyPrimitive($bodyValue);
-
-            if (null === $bodyString) {
-                continue;
-            }
-
             $name = self::HEADER_PREFIX.$binding->headerName;
             $key = strtolower($name);
+            $bodyValue = self::normaliseIntegralFloat(self::readValueAtPath($arguments, $binding->path));
+            $bodyString = self::stringifyPrimitive($bodyValue);
 
             if (! \array_key_exists($key, $headers)) {
+                if (null === $bodyString || self::exceedsSafeInteger($bodyValue)) {
+                    continue;
+                }
+
                 return new HeaderMismatchError(\sprintf('The %s header is absent but the request body carries its argument.', $name));
+            }
+
+            if (null === $bodyString) {
+                return new HeaderMismatchError(\sprintf('The %s header is present but the request body carries no argument it can mirror.', $name));
             }
 
             $decoded = HeaderValueCodec::decode($headers[$key]);
@@ -105,7 +109,7 @@ final class ParameterHeaders
 
     private static function matches(string $type, string $decoded, mixed $bodyValue, string $bodyString): bool
     {
-        if ('integer' === $type && \is_int($bodyValue) && preg_match(self::DECIMAL_PATTERN, $decoded) === 1) {
+        if ('integer' === $type && \is_int($bodyValue) && ! self::exceedsSafeInteger($bodyValue) && preg_match(self::DECIMAL_PATTERN, $decoded) === 1) {
             return (float) $decoded === (float) $bodyValue;
         }
 
@@ -122,11 +126,28 @@ final class ParameterHeaders
             return $value ? 'true' : 'false';
         }
 
-        if (\is_int($value) && $value >= -self::SAFE_INTEGER_MAX && $value <= self::SAFE_INTEGER_MAX) {
+        if (\is_int($value)) {
             return (string) $value;
         }
 
         return null;
+    }
+
+    /**
+     * The integer that JSON Schema and a JavaScript peer both read an integral float such as `5.0` as.
+     */
+    private static function normaliseIntegralFloat(mixed $value): mixed
+    {
+        if (\is_float($value) && is_finite($value) && abs($value) <= self::SAFE_INTEGER_MAX && (float) (int) $value === $value) {
+            return (int) $value;
+        }
+
+        return $value;
+    }
+
+    private static function exceedsSafeInteger(mixed $value): bool
+    {
+        return \is_int($value) && ($value > self::SAFE_INTEGER_MAX || $value < -self::SAFE_INTEGER_MAX);
     }
 
     /**

@@ -43,7 +43,8 @@ body. Supporting this is mandatory for a client on the Streamable HTTP transport
 
 - `listTools()` scans each tool's `inputSchema` and caches its declarations.
 - `callTool()` extracts the annotated arguments, encodes them, and sends them as `Mcp-Param-{Name}` headers. An
-  argument that is absent or `null` sends no header, which is what the server expects.
+  argument that is absent or `null` sends no header, which is what the server expects. An integral float such
+  as `5.0` is mirrored as `5`, the integer JSON Schema reads it as.
 - A `-32020 HeaderMismatch` rejection re-lists the tool and retries the call once, so a cached schema that has
   fallen behind the server's recovers on its own.
 

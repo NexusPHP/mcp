@@ -86,6 +86,36 @@ final class ParameterHeadersTest extends AbstractMcpTestCase
             [],
         ];
 
+        yield 'integral float is mirrored as its integer' => [
+            [new ParameterHeaderBinding(['count'], 'Count', 'integer')],
+            ['count' => 5.0],
+            ['Mcp-Param-Count' => '5'],
+        ];
+
+        yield 'fractional float is omitted' => [
+            [new ParameterHeaderBinding(['count'], 'Count', 'integer')],
+            ['count' => 5.5],
+            [],
+        ];
+
+        yield 'integral float beyond the safe range is omitted' => [
+            [new ParameterHeaderBinding(['count'], 'Count', 'integer')],
+            ['count' => 9_007_199_254_740_992.0],
+            [],
+        ];
+
+        yield 'integral float at the safe maximum is mirrored' => [
+            [new ParameterHeaderBinding(['count'], 'Count', 'integer')],
+            ['count' => 9_007_199_254_740_991.0],
+            ['Mcp-Param-Count' => '9007199254740991'],
+        ];
+
+        yield 'integral float at the safe minimum is mirrored' => [
+            [new ParameterHeaderBinding(['count'], 'Count', 'integer')],
+            ['count' => -9_007_199_254_740_991.0],
+            ['Mcp-Param-Count' => '-9007199254740991'],
+        ];
+
         yield 'integer at the safe maximum' => [
             [new ParameterHeaderBinding(['count'], 'Count', 'integer')],
             ['count' => 9_007_199_254_740_991],
@@ -163,6 +193,18 @@ final class ParameterHeadersTest extends AbstractMcpTestCase
         yield 'integer matched as a string' => [[$count], ['count' => 42], ['mcp-param-count' => '42']];
 
         yield 'integer matched numerically against a decimal header' => [[$count], ['count' => 42], ['mcp-param-count' => '42.0']];
+
+        yield 'integral float matched as its integer' => [[$count], ['count' => 5.0], ['mcp-param-count' => '5']];
+
+        yield 'integer beyond the safe range matched exactly' => [
+            [$count],
+            ['count' => 9_007_199_254_740_993],
+            ['mcp-param-count' => '9007199254740993'],
+        ];
+
+        yield 'integer beyond the safe range expects no header' => [[$count], ['count' => 9_007_199_254_740_993], []];
+
+        yield 'fractional float expects no header' => [[$count], ['count' => 5.5], []];
     }
 
     /**
@@ -199,6 +241,38 @@ final class ParameterHeadersTest extends AbstractMcpTestCase
         ];
 
         yield 'integer header does not match numerically' => [[$count], ['count' => 42], ['mcp-param-count' => '43']];
+
+        yield 'integral float header does not match' => [[$count], ['count' => 5.0], ['mcp-param-count' => '3']];
+
+        yield 'header absent while the body carries an integral float' => [[$count], ['count' => 5.0], []];
+
+        yield 'integer beyond the safe range does not match' => [
+            [$count],
+            ['count' => 9_007_199_254_740_993],
+            ['mcp-param-count' => '3'],
+        ];
+
+        yield 'integer beyond the safe range is not matched by its lossy double' => [
+            [$count],
+            ['count' => 9_007_199_254_740_993],
+            ['mcp-param-count' => '9007199254740992'],
+        ];
+
+        yield 'header present while the body argument is null' => [[$region], ['region' => null], ['mcp-param-region' => 'x']];
+
+        yield 'header present while the body argument is absent' => [[$region], [], ['mcp-param-region' => 'x']];
+
+        yield 'header present while the body argument is not a primitive' => [
+            [$region],
+            ['region' => ['a']],
+            ['mcp-param-region' => 'a'],
+        ];
+
+        yield 'header present while the body argument is a fractional float' => [
+            [$count],
+            ['count' => 5.5],
+            ['mcp-param-count' => '5.5'],
+        ];
 
         yield 'integer header in a non-decimal form falls back to a string mismatch' => [
             [$count],

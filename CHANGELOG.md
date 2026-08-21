@@ -21,6 +21,8 @@ in `0.x`, minor releases may include breaking changes.
 
 - OAuth metadata discovery no longer follows redirects, so a hostile origin cannot point a well-known
   probe at an internal host.
+- The `Mcp-Param-{Name}` check no longer skips a float or a large integer, and refuses a header whose body
+  argument is absent. The client mirrors an integral float as its integer. See BREAKING_CHANGES.md.
 - The bearer token is bound to the resource's path, not its whole origin: another path on the same host
   is requested without the credential, and a redirect off the resource is refused. See
   BREAKING_CHANGES.md.
