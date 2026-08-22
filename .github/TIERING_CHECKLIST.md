@@ -338,7 +338,7 @@ This table is the reason the suite passing is not the same as the spec being met
 | 2663 tasks | **None** (excluded as an extension) | Full self-verify (extension, not core) |
 | 2577 deprecate roots/sampling/logging | **None** | Moot: not implemented |
 | 2260 server-req association | yaml exists, **0 checks** (all 12 reqs excluded as subsumed by 2322) | The MUST-NOT (no standalone server streams) is untested |
-| 414 OTel `_meta` | **None** (only a unit-test fixture) | Full self-verify |
+| 414 OTel `_meta` | **None** | Full self-verify |
 
 Implemented-but-untraceable SEPs (scenarios exist, no `sep-*.yaml`, invisible to the manifest): 1034, 1330, 1613, 1699.
 
