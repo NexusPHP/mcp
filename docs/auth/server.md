@@ -22,6 +22,7 @@ $validator = new JwksAccessTokenValidator(
         $requestFactory,      // any PSR-17 request factory
         $cache,               // any PSR-6 cache
         300,
+        rateLimit: true,
     ),
     'https://auth.example.com',  // the `iss` every accepted token must carry
     'https://mcp.example.com/mcp',  // the resource every accepted token's `aud` must name
@@ -29,6 +30,12 @@ $validator = new JwksAccessTokenValidator(
 ```
 
 Constructing it without the package installed throws a `LogicException` that names the install command.
+
+`CachedKeySet` fetches the JWKS synchronously the first time it meets a `kid` it does not hold, and it meets
+that `kid` before the signature is checked, so an unsigned token naming an unknown one costs a fetch. A PSR-18
+client that blocks holds the event loop, and every other fiber with it, for the whole round trip. Keep
+`rateLimit: true`, which bounds those fetches to ten a minute per cache, and prefer a PSR-18 client built on
+`amphp/http-client`, which yields instead.
 
 ### What the validator refuses
 

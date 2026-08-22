@@ -27,6 +27,7 @@ $validator = new JwksAccessTokenValidator(
         $requestFactory,
         $cache,
         300,
+        rateLimit: true,
     ),
     'https://kc.example.com/realms/mcp',  // the realm issuer
     'https://mcp.example.com/mcp',  // this server's canonical URI
