@@ -21,7 +21,6 @@ use Nexus\Mcp\Core\Schema\MetaObject\ResultMetaObject;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\ServerResult;
 use Nexus\Mcp\Core\Schema\Result\TaskHandleResult;
-use Nexus\Mcp\Core\Validation\EnumValueValidator;
 use Nexus\Mcp\Extension\Tasks\Schema\Enum\TaskStatus;
 
 /**
@@ -71,7 +70,8 @@ final readonly class CreateTaskResult extends Result implements ServerResult, Ta
         Assert::that($taskId)->isNonEmptyString('"result.taskId" must be a non-empty string, {type} given.');
 
         Assert::that($data)->hasOffset('status', '"result" is missing the required "status" key.');
-        $status = EnumValueValidator::parse(TaskStatus::class, $data['status'], '"result.status"');
+        Assert::that($data['status'])->isOneOf(array_column(TaskStatus::cases(), 'value'), '"result.status" must be one of {choices}, {value} given.');
+        $status = TaskStatus::from($data['status']);
 
         Assert::that($data)->hasOffset('createdAt', '"result" is missing the required "createdAt" key.');
         $createdAt = $data['createdAt'];

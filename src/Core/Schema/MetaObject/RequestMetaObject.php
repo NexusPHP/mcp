@@ -21,7 +21,6 @@ use Nexus\Mcp\Core\Schema\Implementation;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\ProgressToken;
 use Nexus\Mcp\Core\Schema\ProtocolVersion;
-use Nexus\Mcp\Core\Validation\EnumValueValidator;
 
 /**
  * Extends `MetaObject` with additional request-specific fields. All key naming rules from `MetaObject` apply.
@@ -88,7 +87,11 @@ final readonly class RequestMetaObject extends MetaObject
         $logLevel = null;
 
         if (\array_key_exists(self::LOG_LEVEL_KEY, $data)) {
-            $logLevel = EnumValueValidator::parse(LoggingLevel::class, $data[self::LOG_LEVEL_KEY], \sprintf('"_meta.%s"', self::LOG_LEVEL_KEY));
+            Assert::that($data[self::LOG_LEVEL_KEY])->isOneOf(
+                array_column(LoggingLevel::cases(), 'value'),
+                \sprintf('"_meta.%s" must be one of {choices}, {value} given.', self::LOG_LEVEL_KEY),
+            );
+            $logLevel = LoggingLevel::from($data[self::LOG_LEVEL_KEY]);
             unset($data[self::LOG_LEVEL_KEY]);
         }
 

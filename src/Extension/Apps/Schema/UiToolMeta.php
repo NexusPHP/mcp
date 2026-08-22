@@ -15,7 +15,6 @@ namespace Nexus\Mcp\Extension\Apps\Schema;
 
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Arrayable;
-use Nexus\Mcp\Core\Validation\EnumValueValidator;
 use Nexus\Mcp\Extension\Apps\Apps;
 use Nexus\Mcp\Extension\Apps\Schema\Enum\ToolVisibility;
 
@@ -63,7 +62,11 @@ final readonly class UiToolMeta implements Arrayable
         if (isset($data['visibility'])) {
             Assert::that($data['visibility'])->isList('"_meta.ui.visibility" must be a list, {type} given.');
             $visibility = array_map(
-                static fn(mixed $entry): ToolVisibility => EnumValueValidator::parse(ToolVisibility::class, $entry, 'each "_meta.ui.visibility"'),
+                static function (mixed $entry): ToolVisibility {
+                    Assert::that($entry)->isOneOf(array_column(ToolVisibility::cases(), 'value'), 'each "_meta.ui.visibility" must be one of {choices}, {value} given.');
+
+                    return ToolVisibility::from($entry);
+                },
                 $data['visibility'],
             );
         }

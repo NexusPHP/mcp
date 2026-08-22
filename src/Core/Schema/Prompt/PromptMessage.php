@@ -22,7 +22,6 @@ use Nexus\Mcp\Core\Schema\ContentBlock\ImageContent;
 use Nexus\Mcp\Core\Schema\ContentBlock\ResourceLink;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Enum\Role;
-use Nexus\Mcp\Core\Validation\EnumValueValidator;
 
 /**
  * Describes a message returned as part of a prompt.
@@ -48,7 +47,8 @@ final readonly class PromptMessage implements Arrayable
     public static function fromArray(array $data): static
     {
         Assert::that($data)->hasOffset('role', 'prompt message is missing the required "role" key.');
-        $role = EnumValueValidator::parse(Role::class, $data['role'], 'prompt message "role"');
+        Assert::that($data['role'])->isOneOf(array_column(Role::cases(), 'value'), 'prompt message "role" must be one of {choices}, {value} given.');
+        $role = Role::from($data['role']);
 
         Assert::that($data)->hasOffset('content', 'prompt message is missing the required "content" key.');
         Assert::that($data['content'])

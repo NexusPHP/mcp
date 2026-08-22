@@ -16,7 +16,6 @@ namespace Nexus\Mcp\Core\Schema\Elicitation;
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Enum\ElicitAction;
 use Nexus\Mcp\Core\Schema\Result\InputResponse;
-use Nexus\Mcp\Core\Validation\EnumValueValidator;
 
 /**
  * The result returned by the client for an `elicitation/create` request.
@@ -50,7 +49,8 @@ final readonly class ElicitResult implements InputResponse
     public static function fromArray(array $data): static
     {
         Assert::that($data)->hasOffset('action', 'elicit result is missing the required "action" key.');
-        $action = EnumValueValidator::parse(ElicitAction::class, $data['action'], 'elicit result "action"');
+        Assert::that($data['action'])->isOneOf(array_column(ElicitAction::cases(), 'value'), 'elicit result "action" must be one of {choices}, {value} given.');
+        $action = ElicitAction::from($data['action']);
 
         $content = null;
 

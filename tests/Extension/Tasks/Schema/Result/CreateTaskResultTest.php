@@ -162,6 +162,11 @@ final class CreateTaskResultTest extends AbstractMcpTestCase
             '"result" is missing the required "status" key.',
         ];
 
+        yield 'status unknown' => [
+            ['status' => 'paused'] + $valid,
+            '"result.status" must be one of [\'working\', \'input_required\', \'completed\', \'cancelled\', \'failed\'], \'paused\' given.',
+        ];
+
         yield 'missing createdAt' => [
             array_diff_key($valid, ['createdAt' => true]),
             '"result" is missing the required "createdAt" key.',
