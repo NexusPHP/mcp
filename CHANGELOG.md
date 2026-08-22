@@ -8,6 +8,11 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp/commits/1.x)
 
+### Added
+
+- `ClientBuilder::setMetaExtrasFactory()` adds per-request `_meta` keys to every outbound request, such as
+  the W3C `traceparent`.
+
 ### Changed
 
 - A `resources/read` URI is refused past 8192 bytes at decode, bounding the `data.uri` echo. See

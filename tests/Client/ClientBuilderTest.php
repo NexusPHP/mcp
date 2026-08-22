@@ -23,6 +23,8 @@ use Nexus\Mcp\Core\Schema\Enum\SdkErrorCode;
 use Nexus\Mcp\Core\Schema\Icon;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
+use Nexus\Mcp\Core\Schema\MetaObject\RequestMetaObject;
+use Nexus\Mcp\Core\Schema\ProgressToken;
 use Nexus\Mcp\Core\Schema\ProtocolVersion;
 use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
 use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
@@ -102,6 +104,8 @@ final class ClientBuilderTest extends AbstractMcpTestCase
         yield 'setRequestIdFactory' => [static fn(ClientBuilder $b): ClientBuilder => $b->setRequestIdFactory(static fn(): int => 1)];
 
         yield 'setProgressTokenFactory' => [static fn(ClientBuilder $b): ClientBuilder => $b->setProgressTokenFactory(static fn(): int => 1)];
+
+        yield 'setMetaExtrasFactory' => [static fn(ClientBuilder $b): ClientBuilder => $b->setMetaExtrasFactory(static fn(): array => [])];
 
         yield 'addRequestHandler' => [static fn(ClientBuilder $b): ClientBuilder => $b->addRequestHandler(TestRequest::getMethod(), new ClosureRequestHandler(static fn(): EmptyResult => new EmptyResult()), TestRequest::class)];
 
@@ -225,6 +229,88 @@ final class ClientBuilderTest extends AbstractMcpTestCase
         $returned = $builder->setProgressTokenFactory(static fn(): string => 'tok');
 
         self::assertSame($builder, $returned);
+    }
+
+    public function testSetMetaExtrasFactoryIsFluent(): void
+    {
+        $builder = new ClientBuilder();
+
+        $returned = $builder->setMetaExtrasFactory(static fn(): array => []);
+
+        self::assertSame($builder, $returned);
+    }
+
+    public function testStampMetaCarriesNoExtrasWhenNoFactoryIsSet(): void
+    {
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
+
+        self::assertSame([], $client->stampMeta()->extras);
+    }
+
+    public function testStampMetaCallsTheMetaExtrasFactoryOncePerRequest(): void
+    {
+        $calls = 0;
+        $client = (new ClientBuilder())
+            ->setClientInfo('demo', '1.0.0')
+            ->setMetaExtrasFactory(static function () use (&$calls): array {
+                return ['traceparent' => \sprintf('00-%032d-%016d-01', ++$calls, $calls)];
+            })
+            ->build()
+        ;
+
+        $first = $client->stampMeta();
+        $second = $client->stampMeta();
+
+        self::assertSame(['traceparent' => \sprintf('00-%032d-%016d-01', 1, 1)], $first->extras);
+        self::assertSame(['traceparent' => \sprintf('00-%032d-%016d-01', 2, 2)], $second->extras);
+        self::assertStringContainsString(
+            '"traceparent":"00-00000000000000000000000000000001-0000000000000001-01"',
+            json_encode($first, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES),
+        );
+    }
+
+    public function testStampMetaDropsEveryLifecycleKeyTheMetaExtrasFactoryReturns(): void
+    {
+        $traceparent = '00-4bf92f3577b34da6a3ce929d0e0e4736-a1b2c3d4e5f60718-01';
+        $client = (new ClientBuilder())
+            ->setClientInfo('demo', '1.0.0')
+            ->setMetaExtrasFactory(static fn(): array => [
+                RequestMetaObject::PROTOCOL_VERSION_KEY => 'bogus',
+                RequestMetaObject::CLIENT_INFO_KEY => 'bogus',
+                RequestMetaObject::CLIENT_CAPABILITIES_KEY => 'bogus',
+                RequestMetaObject::LOG_LEVEL_KEY => 'bogus',
+                'progressToken' => 'bogus',
+                'traceparent' => $traceparent,
+            ])
+            ->build()
+        ;
+
+        $stamped = $client->stampMeta();
+        $meta = $stamped->toArray();
+
+        self::assertSame(['traceparent' => $traceparent], $stamped->extras);
+        self::assertArrayNotHasKey(RequestMetaObject::LOG_LEVEL_KEY, $meta);
+        self::assertArrayNotHasKey('progressToken', $meta);
+        self::assertArrayHasKey(RequestMetaObject::PROTOCOL_VERSION_KEY, $meta);
+        self::assertArrayHasKey(RequestMetaObject::CLIENT_INFO_KEY, $meta);
+        self::assertArrayHasKey(RequestMetaObject::CLIENT_CAPABILITIES_KEY, $meta);
+        self::assertSame(ProtocolVersion::LATEST_VERSION, $meta[RequestMetaObject::PROTOCOL_VERSION_KEY]);
+        self::assertSame(['name' => 'demo', 'version' => '1.0.0'], $meta[RequestMetaObject::CLIENT_INFO_KEY]);
+        self::assertSame([], $meta[RequestMetaObject::CLIENT_CAPABILITIES_KEY]);
+    }
+
+    public function testStampMetaKeepsTheProgressTokenOverTheMetaExtrasFactory(): void
+    {
+        $client = (new ClientBuilder())
+            ->setClientInfo('demo', '1.0.0')
+            ->setMetaExtrasFactory(static fn(): array => ['progressToken' => 'bogus'])
+            ->build()
+        ;
+
+        $meta = $client->stampMeta(new ProgressToken('tok'))->toArray();
+
+        self::assertArrayHasKey('progressToken', $meta);
+        self::assertSame('tok', $meta['progressToken']);
     }
 
     public function testAddRequestHandlerIsFluent(): void
