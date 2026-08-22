@@ -45,6 +45,22 @@ final class TaskCancellationRegistryTest extends AbstractMcpTestCase
         (new TaskCancellationRegistry())->cancel('missing');
     }
 
+    public function testCountFollowsRegisterAndRelease(): void
+    {
+        $registry = new TaskCancellationRegistry();
+
+        self::assertCount(0, $registry);
+
+        $registry->register('task-1');
+        $registry->register('task-2');
+
+        self::assertCount(2, $registry);
+
+        $registry->release('task-1');
+
+        self::assertCount(1, $registry);
+    }
+
     public function testReleaseDropsTheSource(): void
     {
         $registry = new TaskCancellationRegistry();

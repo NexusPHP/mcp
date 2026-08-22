@@ -37,12 +37,15 @@ use Psr\Log\NullLogger;
  */
 final readonly class TasksServerExtension implements RequestHandlerDecoratorInterface, ServerExtensionInterface
 {
+    public const int DEFAULT_MAX_RUNNING_TASKS = 1_024;
+
     private TaskCancellationRegistry $cancellations;
     private ToolTaskRunner $runner;
 
     /**
-     * @param array<non-empty-string, ToolTaskPolicy> $toolPolicies Keyed by tool name, absence meaning always-synchronous
-     * @param null|int                                $defaultTtlMs Retention after a terminal transition, `null` for unlimited
+     * @param array<non-empty-string, ToolTaskPolicy> $toolPolicies    Keyed by tool name, absence meaning always-synchronous
+     * @param null|int                                $defaultTtlMs    Retention after a terminal transition, `null` for unlimited
+     * @param int<1, max>                             $maxRunningTasks Tasks running at once before a further one is refused
      */
     public function __construct(
         private TaskStoreInterface $store = new InMemoryTaskStore(),
@@ -50,9 +53,10 @@ final readonly class TasksServerExtension implements RequestHandlerDecoratorInte
         private ?int $defaultTtlMs = 300_000,
         private int $defaultPollIntervalMs = 1_000,
         LoggerInterface $logger = new NullLogger(),
+        int $maxRunningTasks = self::DEFAULT_MAX_RUNNING_TASKS,
     ) {
         $this->cancellations = new TaskCancellationRegistry();
-        $this->runner = new ToolTaskRunner($store, $this->cancellations, $logger);
+        $this->runner = new ToolTaskRunner($store, $this->cancellations, $logger, $maxRunningTasks);
     }
 
     #[\Override]

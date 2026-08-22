@@ -1,0 +1,50 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * This file is part of the Nexus MCP SDK package.
+ *
+ * (c) 2026 John Paul E. Balandan, CPA <paulbalandan@gmail.com>
+ *
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
+ */
+
+namespace Nexus\Mcp\Tests\Extension\Tasks\Server\Exception;
+
+use Nexus\Mcp\Core\Exception\AbstractJsonRpcProtocolException;
+use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
+use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Extension\Tasks\Server\Exception\TaskLimitReachedException;
+use Nexus\Mcp\Tests\AbstractMcpTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
+
+/**
+ * @internal
+ */
+#[CoversClass(TaskLimitReachedException::class)]
+#[CoversClass(AbstractJsonRpcProtocolException::class)]
+#[Group('unit-tests')]
+#[Group('extension-tests')]
+final class TaskLimitReachedExceptionTest extends AbstractMcpTestCase
+{
+    public function testMessageNamesTheLimitItRefusedAt(): void
+    {
+        $exception = new TaskLimitReachedException(1_024, new RequestId(id: 7));
+
+        self::assertSame('Task limit reached: this server runs at most 1024 tasks at once.', $exception->getMessage());
+        self::assertSame(7, $exception->requestId?->id);
+    }
+
+    public function testCarriesTheLimitAsErrorData(): void
+    {
+        self::assertSame(['limit' => 4], (new TaskLimitReachedException(4))->errorData);
+    }
+
+    public function testUsesTheInternalErrorCode(): void
+    {
+        self::assertSame(ProtocolErrorCode::InternalError, TaskLimitReachedException::getErrorCode());
+    }
+}

@@ -68,6 +68,7 @@ final readonly class UpdateTaskRequestHandler implements RequestHandlerInterface
             return new EmptyResult();
         }
 
+        $this->runner->ensureCapacity($context->requestId);
         $this->store->trySetWorking($updated->taskId);
 
         $call = new CallToolRequest(

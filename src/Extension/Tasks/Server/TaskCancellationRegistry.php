@@ -21,7 +21,7 @@ use Amp\DeferredCancellation;
  *
  * @internal
  */
-final class TaskCancellationRegistry
+final class TaskCancellationRegistry implements \Countable
 {
     /**
      * @var array<non-empty-string, DeferredCancellation>
@@ -37,6 +37,12 @@ final class TaskCancellationRegistry
         $this->sources[$taskId] = $source;
 
         return $source->getCancellation();
+    }
+
+    #[\Override]
+    public function count(): int
+    {
+        return \count($this->sources);
     }
 
     /**

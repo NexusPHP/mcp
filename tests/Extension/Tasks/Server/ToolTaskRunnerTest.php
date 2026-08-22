@@ -14,7 +14,9 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Extension\Tasks\Server;
 
 use Amp\CancelledException;
+use Amp\DeferredFuture;
 use Amp\NullCancellation;
+use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Exception\InvalidParamsException;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequest;
@@ -27,8 +29,10 @@ use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
 use Nexus\Mcp\Extension\Tasks\Schema\Enum\TaskStatus;
+use Nexus\Mcp\Extension\Tasks\Server\Exception\TaskLimitReachedException;
 use Nexus\Mcp\Extension\Tasks\Server\Store\InMemoryTaskStore;
 use Nexus\Mcp\Extension\Tasks\Server\Store\TaskRecord;
+use Nexus\Mcp\Extension\Tasks\Server\Store\TaskStoreInterface;
 use Nexus\Mcp\Extension\Tasks\Server\TaskCancellationRegistry;
 use Nexus\Mcp\Extension\Tasks\Server\ToolTaskRunner;
 use Nexus\Mcp\Server\ServerContext;
@@ -231,13 +235,149 @@ final class ToolTaskRunnerTest extends AbstractMcpTestCase
         self::assertSame([], $sources);
     }
 
+    public function testConstructorRefusesANonPositiveCap(): void
+    {
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessageIs('maxRunningTasks must be a positive integer, 0 given.');
+
+        // @phpstan-ignore argument.type
+        new ToolTaskRunner(new InMemoryTaskStore(), new TaskCancellationRegistry(), new ArrayLogger(), 0);
+    }
+
+    public function testEnsureCapacityRefusesOnceTheCapIsRunning(): void
+    {
+        $gate = new DeferredFuture();
+        [$store, $runner] = self::buildRunner(new ClosureRequestHandler(
+            static function () use ($gate): Result {
+                $gate->getFuture()->await();
+
+                return new CallToolResult(content: []);
+            },
+        ), maxRunningTasks: 1);
+        $taskId = $store->createTask('slow_compute', null, null, 1_000)->taskId;
+
+        $runner->ensureCapacity(new RequestId(id: 7));
+        $runner->startTask($taskId, self::buildRequest(), self::buildContext(), null, null);
+
+        try {
+            $runner->ensureCapacity(new RequestId(id: 8));
+            self::fail('A second task must be refused while the first is running.');
+        } catch (TaskLimitReachedException $e) {
+            self::assertSame('Task limit reached: this server runs at most 1 tasks at once.', $e->getMessage());
+            self::assertSame(8, $e->requestId?->id);
+        }
+
+        $gate->complete();
+        delay(0);
+
+        $runner->ensureCapacity(new RequestId(id: 9));
+        $record = $store->findTask($taskId);
+        self::assertInstanceOf(TaskRecord::class, $record);
+        self::assertSame(TaskStatus::Completed, $record->status);
+    }
+
+    public function testEnsureCapacityAdmitsUpToTheCap(): void
+    {
+        $gate = new DeferredFuture();
+        [$store, $runner] = self::buildRunner(new ClosureRequestHandler(
+            static function () use ($gate): Result {
+                $gate->getFuture()->await();
+
+                return new CallToolResult(content: []);
+            },
+        ), maxRunningTasks: 2);
+
+        $runner->startTask($store->createTask('slow_compute', null, null, 1_000)->taskId, self::buildRequest(), self::buildContext(), null, null);
+        $runner->ensureCapacity(new RequestId(id: 8));
+        $runner->startTask($store->createTask('slow_compute', null, null, 1_000)->taskId, self::buildRequest(), self::buildContext(), null, null);
+
+        $this->expectException(TaskLimitReachedException::class);
+        $this->expectExceptionMessageIs('Task limit reached: this server runs at most 2 tasks at once.');
+
+        try {
+            $runner->ensureCapacity(new RequestId(id: 9));
+        } finally {
+            $gate->complete();
+            delay(0);
+        }
+    }
+
+    public function testAStoreThatThrowsOnSettleStillReleasesTheSlot(): void
+    {
+        $registry = new TaskCancellationRegistry();
+        $store = new class (new InMemoryTaskStore()) implements TaskStoreInterface {
+            public function __construct(private readonly InMemoryTaskStore $inner)
+            {
+            }
+
+            #[\Override]
+            public function createTask(string $toolName, ?array $arguments, ?int $ttlMs, int $pollIntervalMs): TaskRecord
+            {
+                return $this->inner->createTask($toolName, $arguments, $ttlMs, $pollIntervalMs);
+            }
+
+            #[\Override]
+            public function findTask(string $taskId): ?TaskRecord
+            {
+                return $this->inner->findTask($taskId);
+            }
+
+            #[\Override]
+            public function trySetWorking(string $taskId): bool
+            {
+                return $this->inner->trySetWorking($taskId);
+            }
+
+            #[\Override]
+            public function trySetCompleted(string $taskId, array $result): bool
+            {
+                throw new \RuntimeException('The store is unavailable.');
+            }
+
+            #[\Override]
+            public function trySetFailed(string $taskId, array $error, ?string $statusMessage = null): bool
+            {
+                throw new \RuntimeException('The store is unavailable.');
+            }
+
+            #[\Override]
+            public function trySetCancelled(string $taskId): bool
+            {
+                return $this->inner->trySetCancelled($taskId);
+            }
+
+            #[\Override]
+            public function trySetInputRequired(string $taskId, array $inputRequests, ?string $requestState): bool
+            {
+                return $this->inner->trySetInputRequired($taskId, $inputRequests, $requestState);
+            }
+
+            #[\Override]
+            public function resolveInputRequests(string $taskId, array $inputResponses): ?TaskRecord
+            {
+                return $this->inner->resolveInputRequests($taskId, $inputResponses);
+            }
+        };
+        $runner = new ToolTaskRunner($store, $registry, new ArrayLogger(), maxRunningTasks: 1);
+        $runner->bindInnerHandler(new ClosureRequestHandler(static fn(): Result => new CallToolResult(content: [])));
+        $taskId = $store->createTask('slow_compute', null, null, 1_000)->taskId;
+
+        $runner->startTask($taskId, self::buildRequest(), self::buildContext(), null, null);
+        delay(0);
+
+        self::assertCount(0, $registry);
+        $runner->ensureCapacity(new RequestId(id: 8));
+    }
+
     /**
+     * @param int<1, max> $maxRunningTasks
+     *
      * @return array{InMemoryTaskStore, ToolTaskRunner}
      */
-    private static function buildRunner(ClosureRequestHandler $inner, ?ArrayLogger $logger = null): array
+    private static function buildRunner(ClosureRequestHandler $inner, ?ArrayLogger $logger = null, int $maxRunningTasks = 1_024): array
     {
         $store = new InMemoryTaskStore();
-        $runner = new ToolTaskRunner($store, new TaskCancellationRegistry(), $logger ?? new ArrayLogger());
+        $runner = new ToolTaskRunner($store, new TaskCancellationRegistry(), $logger ?? new ArrayLogger(), $maxRunningTasks);
         $runner->bindInnerHandler($inner);
 
         return [$store, $runner];

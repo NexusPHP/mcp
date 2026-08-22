@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Extension\Tasks\Server\Handler;
 
+use Amp\DeferredFuture;
 use Amp\NullCancellation;
 use Nexus\Mcp\Core\Schema\ClientCapabilities;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
@@ -22,6 +23,7 @@ use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Extension\Tasks\Schema\Enum\TaskStatus;
 use Nexus\Mcp\Extension\Tasks\Schema\Result\CreateTaskResult;
+use Nexus\Mcp\Extension\Tasks\Server\Exception\TaskLimitReachedException;
 use Nexus\Mcp\Extension\Tasks\Server\Handler\TaskBrokeringCallToolHandler;
 use Nexus\Mcp\Extension\Tasks\Server\Store\InMemoryTaskStore;
 use Nexus\Mcp\Extension\Tasks\Server\Store\TaskRecord;
@@ -137,6 +139,45 @@ final class TaskBrokeringCallToolHandlerTest extends AbstractMcpTestCase
         $settled = $store->findTask($result->taskId);
         self::assertInstanceOf(TaskRecord::class, $settled);
         self::assertSame(TaskStatus::Completed, $settled->status);
+    }
+
+    public function testACallPastTheRunningTaskCapIsRefusedBeforeAnyRecordExists(): void
+    {
+        $gate = new DeferredFuture();
+        $store = new InMemoryTaskStore();
+        $runner = new ToolTaskRunner($store, new TaskCancellationRegistry(), new ArrayLogger(), maxRunningTasks: 1);
+        $inner = new ClosureRequestHandler(static function () use ($gate): Result {
+            $gate->getFuture()->await();
+
+            return new CallToolResult(content: []);
+        });
+        $runner->bindInnerHandler($inner);
+        $broker = new TaskBrokeringCallToolHandler(
+            inner: $inner,
+            identifier: self::IDENTIFIER,
+            store: $store,
+            runner: $runner,
+            toolPolicies: ['slow_compute' => new ToolTaskPolicy(support: TaskSupport::Optional)],
+            defaultTtlMs: 300_000,
+            defaultPollIntervalMs: 1_000,
+        );
+        $first = $broker->handle(self::buildRequest('slow_compute'), self::buildContext(declared: true));
+        self::assertInstanceOf(CreateTaskResult::class, $first);
+
+        try {
+            $broker->handle(self::buildRequest('slow_compute'), self::buildContext(declared: true));
+            self::fail('The second call must be refused while the first task runs.');
+        } catch (TaskLimitReachedException $e) {
+            self::assertSame(['limit' => 1], $e->errorData);
+            self::assertSame(7, $e->requestId?->id);
+        }
+
+        $records = (new \ReflectionProperty(InMemoryTaskStore::class, 'records'))->getValue($store);
+        self::assertIsArray($records);
+        self::assertCount(1, $records, 'A refused call leaves no record behind.');
+
+        $gate->complete();
+        delay(0);
     }
 
     /**

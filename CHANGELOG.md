@@ -24,6 +24,8 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Fixed
 
+- Task fibers are capped by `TasksServerExtension`'s `maxRunningTasks` (default 1024), refusing a further
+  task with `-32603` instead of running unbounded. See BREAKING_CHANGES.md.
 - An SSE stream whose reader falls behind is abandoned at `maxBufferedBytes` (default 1 MiB) instead of
   buffering without limit. See BREAKING_CHANGES.md.
 - OAuth metadata discovery no longer follows redirects, so a hostile origin cannot point a well-known

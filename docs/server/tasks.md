@@ -92,6 +92,14 @@ carries all the state.
 A background task cannot reach the creating request's connection. Outbound notifications from a task fiber are
 dropped with a debug log, and outbound requests throw.
 
+## Limits
+
+`maxRunningTasks` bounds how many task fibers run at once. It defaults to
+`TasksServerExtension::DEFAULT_MAX_RUNNING_TASKS` (1024). A `tools/call` that would start a task past the limit is
+refused with `-32603` and `data.limit` before any record is created, and a `tasks/update` that would resume a
+parked task past it is refused the same way, leaving the task `input_required` for a later retry. Tasks run
+outside the dispatcher's `maxInFlightDispatches` budget, so this is the cap that bounds them.
+
 ## Storage and retention
 
 `TasksServerExtension` takes a `TaskStoreInterface`. The default is `InMemoryTaskStore`. A task that has not

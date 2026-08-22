@@ -75,6 +75,8 @@ final readonly class TaskBrokeringCallToolHandler implements RequestHandlerInter
             return $this->inner->handle($request, $context);
         }
 
+        $this->runner->ensureCapacity($context->requestId);
+
         $record = $this->store->createTask(
             $request->params->name,
             $request->params->arguments,

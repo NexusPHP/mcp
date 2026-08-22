@@ -14,15 +14,18 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Extension\Tasks\Server;
 
 use Amp\CancelledException;
+use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Exception\AbstractJsonRpcProtocolException;
 use Nexus\Mcp\Core\Handler\RequestHandlerInterface;
 use Nexus\Mcp\Core\JsonRpc\ErrorFactory;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
+use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
 use Nexus\Mcp\Core\Schema\Result\InputResponse;
 use Nexus\Mcp\Extension\Tasks\Server\Exception\InputRequestKeyReusedException;
+use Nexus\Mcp\Extension\Tasks\Server\Exception\TaskLimitReachedException;
 use Nexus\Mcp\Extension\Tasks\Server\Store\TaskStoreInterface;
 use Nexus\Mcp\Server\ServerContext;
 use Psr\Log\LoggerInterface;
@@ -44,11 +47,16 @@ final class ToolTaskRunner
      */
     private ?RequestHandlerInterface $inner = null;
 
+    /**
+     * @param int<1, max> $maxRunningTasks
+     */
     public function __construct(
         private readonly TaskStoreInterface $store,
         private readonly TaskCancellationRegistry $cancellations,
         private readonly LoggerInterface $logger,
+        private readonly int $maxRunningTasks = TasksServerExtension::DEFAULT_MAX_RUNNING_TASKS,
     ) {
+        Assert::that($maxRunningTasks)->isPositiveInt('maxRunningTasks must be a positive integer, {value} given.');
     }
 
     /**
@@ -57,6 +65,19 @@ final class ToolTaskRunner
     public function bindInnerHandler(RequestHandlerInterface $inner): void
     {
         $this->inner = $inner;
+    }
+
+    /**
+     * Refuses the request that would start a task while the running-task cap is reached. Call it before the store
+     * records anything for the task, since a refusal leaves the store untouched.
+     *
+     * @throws TaskLimitReachedException
+     */
+    public function ensureCapacity(RequestId $requestId): void
+    {
+        if ($this->maxRunningTasks <= \count($this->cancellations)) {
+            throw new TaskLimitReachedException($this->maxRunningTasks, $requestId);
+        }
     }
 
     /**
@@ -85,8 +106,11 @@ final class ToolTaskRunner
         );
 
         async(function () use ($taskId, $request, $background, $inner): void {
-            $this->settleOutcome($taskId, $inner, $request, $background);
-            $this->cancellations->release($taskId);
+            try {
+                $this->settleOutcome($taskId, $inner, $request, $background);
+            } finally {
+                $this->cancellations->release($taskId);
+            }
         })->ignore();
     }
 

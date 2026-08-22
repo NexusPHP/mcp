@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Extension\Tasks\Server\Handler;
 
+use Amp\DeferredFuture;
 use Amp\NullCancellation;
 use Nexus\Mcp\Core\Exception\InvalidParamsException;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
@@ -27,6 +28,7 @@ use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Extension\Tasks\Schema\Enum\TaskStatus;
 use Nexus\Mcp\Extension\Tasks\Schema\Request\UpdateTaskRequest;
+use Nexus\Mcp\Extension\Tasks\Server\Exception\TaskLimitReachedException;
 use Nexus\Mcp\Extension\Tasks\Server\Handler\UpdateTaskRequestHandler;
 use Nexus\Mcp\Extension\Tasks\Server\Store\InMemoryTaskStore;
 use Nexus\Mcp\Extension\Tasks\Server\Store\TaskRecord;
@@ -169,6 +171,40 @@ final class UpdateTaskRequestHandlerTest extends AbstractMcpTestCase
             ],
             $seen,
         );
+    }
+
+    public function testAFullFulfilmentPastTheRunningTaskCapIsRefusedAndStaysParked(): void
+    {
+        $gate = new DeferredFuture();
+        $store = new InMemoryTaskStore();
+        $runner = new ToolTaskRunner($store, new TaskCancellationRegistry(), new ArrayLogger(), maxRunningTasks: 1);
+        $runner->bindInnerHandler(new ClosureRequestHandler(static function () use ($gate): Result {
+            $gate->getFuture()->await();
+
+            return new CallToolResult(content: []);
+        }));
+        $runner->startTask($store->createTask('other', null, null, 1_000)->taskId, CallToolRequest::fromArray([
+            'id' => 1,
+            'params' => ['_meta' => RequestMetaObjectFactory::shape(), 'name' => 'other'],
+        ]), self::buildContext(), null, null);
+
+        $taskId = $store->createTask('confirm_delete', null, null, 1_000)->taskId;
+        $store->trySetInputRequired($taskId, ['confirm' => self::buildElicitRequest()], 'state-1');
+        $handler = new UpdateTaskRequestHandler($store, $runner);
+
+        try {
+            $handler->handle(self::buildRequest($taskId, ['confirm' => ['action' => 'accept']]), self::buildContext());
+            self::fail('The resume must be refused while the cap is running.');
+        } catch (TaskLimitReachedException $e) {
+            self::assertSame(['limit' => 1], $e->errorData);
+        }
+
+        $parked = $store->findTask($taskId);
+        self::assertInstanceOf(TaskRecord::class, $parked);
+        self::assertSame(TaskStatus::InputRequired, $parked->status);
+
+        $gate->complete();
+        delay(0);
     }
 
     private static function buildUnboundRunner(InMemoryTaskStore $store): ToolTaskRunner

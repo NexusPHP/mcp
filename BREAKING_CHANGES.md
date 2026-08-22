@@ -6,6 +6,14 @@ for *when* breaking changes may land and how they are communicated lives in
 
 ## v0.15.0 to Unreleased
 
+### The tasks extension runs at most 1024 tasks at once
+
+Task fibers ran outside the dispatcher's in-flight budget with no cap of their own, so a client could start them
+at request rate. `TasksServerExtension` now takes `maxRunningTasks` (default 1024): a `tools/call` or `tasks/update`
+that would start one past the cap is refused with `-32603` (`TaskLimitReachedException`, `data.limit`): no record
+is created for the call, and a refused resume stays `input_required` for a later retry. A deployment that expects
+more concurrent tasks raises the cap.
+
 ### An SSE stream is abandoned once its reader falls 1 MiB behind
 
 `StreamableHttpServerTransport` buffered frames for a stalled reader without limit. It now takes a

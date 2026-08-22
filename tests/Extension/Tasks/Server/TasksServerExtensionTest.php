@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Extension\Tasks\Server;
 
+use Amp\DeferredFuture;
 use Amp\NullCancellation;
 use Nexus\Mcp\Core\Schema\ClientCapabilities;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
@@ -26,6 +27,7 @@ use Nexus\Mcp\Extension\Tasks\Schema\Request\CancelTaskRequest;
 use Nexus\Mcp\Extension\Tasks\Schema\Request\GetTaskRequest;
 use Nexus\Mcp\Extension\Tasks\Schema\Request\UpdateTaskRequest;
 use Nexus\Mcp\Extension\Tasks\Schema\Result\CreateTaskResult;
+use Nexus\Mcp\Extension\Tasks\Server\Exception\TaskLimitReachedException;
 use Nexus\Mcp\Extension\Tasks\Server\Handler\CancelTaskRequestHandler;
 use Nexus\Mcp\Extension\Tasks\Server\Handler\GetTaskRequestHandler;
 use Nexus\Mcp\Extension\Tasks\Server\Handler\TaskBrokeringCallToolHandler;
@@ -148,6 +150,52 @@ final class TasksServerExtensionTest extends AbstractMcpTestCase
         $settled = $store->findTask($result->taskId);
         self::assertInstanceOf(TaskRecord::class, $settled);
         self::assertSame(TaskStatus::Completed, $settled->status);
+    }
+
+    public function testTheRunningTaskCapReachesTheBroker(): void
+    {
+        $gate = new DeferredFuture();
+        $extension = new TasksServerExtension(
+            toolPolicies: ['slow_compute' => new ToolTaskPolicy(support: TaskSupport::Optional)],
+            maxRunningTasks: 1,
+        );
+        $decorate = $extension->getRequestHandlerDecorators()['tools/call'] ?? null;
+
+        if (null === $decorate) {
+            self::fail('The tasks extension must decorate "tools/call".');
+        }
+
+        $broker = $decorate(new ClosureRequestHandler(static function () use ($gate): Result {
+            $gate->getFuture()->await();
+
+            return new CallToolResult(content: []);
+        }));
+        $request = CallToolRequest::fromArray([
+            'id' => 7,
+            'params' => ['_meta' => RequestMetaObjectFactory::shape(
+                clientCapabilities: new ClientCapabilities(extensions: [Tasks::IDENTIFIER => []]),
+            ), 'name' => 'slow_compute'],
+        ]);
+        $context = new ServerContext(
+            new RequestId(id: 7),
+            new NullCancellation(),
+            RequestMetaObjectFactory::create(
+                clientCapabilities: new ClientCapabilities(extensions: [Tasks::IDENTIFIER => []]),
+            ),
+            new RecordingSender(),
+        );
+
+        self::assertInstanceOf(CreateTaskResult::class, $broker->handle($request, $context));
+
+        try {
+            $broker->handle($request, $context);
+            self::fail('The second task must be refused at a cap of one.');
+        } catch (TaskLimitReachedException $e) {
+            self::assertSame(['limit' => 1], $e->errorData);
+        } finally {
+            $gate->complete();
+            delay(0);
+        }
     }
 
     public function testRegistersOnAServerBuilderWithATaskCapableTool(): void
