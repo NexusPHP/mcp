@@ -24,6 +24,8 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Fixed
 
+- `InMemoryTaskStore` holds at most `maxRecords` (default 10 000), and below that ceiling `createTask()` reclaims
+  in amortised constant time instead of sweeping every record. See BREAKING_CHANGES.md.
 - Task fibers are capped by `TasksServerExtension`'s `maxRunningTasks` (default 1024), refusing a further
   task with `-32603` instead of running unbounded. See BREAKING_CHANGES.md.
 - An SSE stream whose reader falls behind is abandoned at `maxBufferedBytes` (default 1 MiB) instead of

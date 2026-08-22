@@ -104,8 +104,20 @@ outside the dispatcher's `maxInFlightDispatches` budget, so this is the cap that
 
 `TasksServerExtension` takes a `TaskStoreInterface`. The default is `InMemoryTaskStore`. A task that has not
 settled by `createdAt + ttlMs` is failed at its next observation. A terminal record, that failure included, stays
-readable for `ttlMs` milliseconds after it settles. A `null` ttl retains the task indefinitely and never
-force-fails it. The defaults are `ttlMs: 300_000` and `pollIntervalMs: 1_000`, both constructor-tunable.
+readable for `ttlMs` milliseconds after it settles. A `null` ttl never force-fails the task and keeps its record
+until the store needs the room. The defaults are `ttlMs: 300_000` and `pollIntervalMs: 1_000`, both
+constructor-tunable.
+
+`InMemoryTaskStore` holds at most `maxRecords` (default `InMemoryTaskStore::DEFAULT_MAX_RECORDS`, 10 000),
+settled records included. Each `createTask()` drops the settled records whose retention has elapsed, in settle
+order. At the ceiling it fails every overdue task and drops every expired record once, then evicts the oldest
+settled record whatever its retention. It refuses the new task only when every record is still live, which the
+server answers with `-32603`.
+
+A parked `input_required` task holds a record but no fiber slot, so `maxRunningTasks` does not bound it. Only its
+ttl does: an overdue parked task is failed at the ceiling, which frees its record. With `ttlMs: null` a parked
+task stays live until it is resumed or cancelled, so a client can fill the store with parked tasks and every
+later task-bound call is refused. Keep a finite ttl on a tool that returns `InputRequiredResult`.
 
 The in-memory store confines tasks to the process. The record survives in whatever store you implement, but the
 in-process cancellation map does not, so cancellation is cooperative only within the serving process.

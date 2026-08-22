@@ -16,7 +16,6 @@ namespace Nexus\Mcp\Tests\Extension\Tasks\Server;
 use Amp\CancelledException;
 use Amp\DeferredFuture;
 use Amp\NullCancellation;
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Exception\InvalidParamsException;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequest;
@@ -237,7 +236,7 @@ final class ToolTaskRunnerTest extends AbstractMcpTestCase
 
     public function testConstructorRefusesANonPositiveCap(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('maxRunningTasks must be a positive integer, 0 given.');
 
         // @phpstan-ignore argument.type

@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Extension\Tasks\Server\Store;
 
+use Nexus\Mcp\Core\Exception\RuntimeException;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequest;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequestedSchema;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitResult;
@@ -395,7 +396,21 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
         self::assertSame(TaskStatus::Working, $record->status);
     }
 
-    public function testCreateTaskSweepsOverdueNonTerminalRecords(): void
+    public function testCreateTaskStopsSweepingAtTheFirstUnexpiredSettledRecord(): void
+    {
+        $store = $this->buildStore();
+        $longLived = $store->createTask('slow_compute', null, 60_000, 1_000)->taskId;
+        $shortLived = $store->createTask('slow_compute', null, 1_000, 1_000)->taskId;
+        $store->trySetCompleted($longLived, ['resultType' => 'complete']);
+        $store->trySetCompleted($shortLived, ['resultType' => 'complete']);
+
+        $this->now = $this->now->modify('+2 seconds');
+        $created = $store->createTask('slow_compute', null, 1_000, 1_000)->taskId;
+
+        self::assertSame([$longLived, $shortLived, $created], array_keys(self::readRecords($store)));
+    }
+
+    public function testCreateTaskLeavesAnOverdueRecordToItsNextObservation(): void
     {
         $store = $this->buildStore();
         $overdue = $store->createTask('slow_compute', null, 1_000, 1_000)->taskId;
@@ -403,19 +418,69 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
         $this->now = $this->now->modify('+2 seconds');
         $store->createTask('slow_compute', null, 1_000, 1_000);
 
-        $records = (new \ReflectionProperty(InMemoryTaskStore::class, 'records'))->getValue($store);
-        self::assertIsArray($records);
+        $records = self::readRecords($store);
         self::assertArrayHasKey($overdue, $records);
-        $record = $records[$overdue];
-        self::assertInstanceOf(TaskRecord::class, $record);
-        self::assertSame(TaskStatus::Failed, $record->status);
+        self::assertSame(TaskStatus::Working, $records[$overdue]->status);
+    }
+
+    public function testAtTheCeilingCreateTaskResolvesEveryRecordBeforeEvicting(): void
+    {
+        $store = $this->buildStore(maxRecords: 2);
+        $overdue = $store->createTask('slow_compute', null, 1_000, 1_000)->taskId;
+        $live = $store->createTask('slow_compute', null, null, 1_000)->taskId;
 
         $this->now = $this->now->modify('+2 seconds');
-        $store->createTask('slow_compute', null, 1_000, 1_000);
+        $created = $store->createTask('slow_compute', null, 1_000, 1_000)->taskId;
 
-        $records = (new \ReflectionProperty(InMemoryTaskStore::class, 'records'))->getValue($store);
-        self::assertIsArray($records);
-        self::assertArrayNotHasKey($overdue, $records);
+        self::assertSame([$live, $created], array_keys(self::readRecords($store)));
+        self::assertNull($store->findTask($overdue));
+    }
+
+    public function testAtTheCeilingCreateTaskEvictsTheOldestSettledRecord(): void
+    {
+        $store = $this->buildStore(maxRecords: 3);
+        $first = $store->createTask('slow_compute', null, null, 1_000)->taskId;
+        $second = $store->createTask('slow_compute', null, null, 1_000)->taskId;
+        $live = $store->createTask('slow_compute', null, null, 1_000)->taskId;
+        $store->trySetCompleted($second, ['resultType' => 'complete']);
+        $store->trySetCompleted($first, ['resultType' => 'complete']);
+
+        $created = $store->createTask('slow_compute', null, null, 1_000)->taskId;
+
+        self::assertSame([$first, $live, $created], array_keys(self::readRecords($store)));
+        self::assertSame([$first], array_keys(self::readTerminalAt($store)));
+    }
+
+    public function testAtTheCeilingCreateTaskRefusesWhenEveryRecordIsLive(): void
+    {
+        $store = $this->buildStore(maxRecords: 2);
+        $store->createTask('slow_compute', null, null, 1_000);
+        $store->createTask('slow_compute', null, null, 1_000);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessageIs('The task store holds its maximum of 2 records and none of them has settled.');
+
+        $store->createTask('slow_compute', null, null, 1_000);
+    }
+
+    public function testBelowTheCeilingCreateTaskKeepsAnUnexpiredSettledRecord(): void
+    {
+        $store = $this->buildStore(maxRecords: 3);
+        $settled = $store->createTask('slow_compute', null, null, 1_000)->taskId;
+        $store->trySetCompleted($settled, ['resultType' => 'complete']);
+
+        $created = $store->createTask('slow_compute', null, null, 1_000)->taskId;
+
+        self::assertSame([$settled, $created], array_keys(self::readRecords($store)));
+    }
+
+    public function testConstructorRejectsANonPositiveCeiling(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('maxRecords must be a positive integer, 0 given.');
+
+        // @phpstan-ignore argument.type
+        new InMemoryTaskStore(maxRecords: 0);
     }
 
     public function testCreateTaskReadsTheClockOnceForTheWholeSweep(): void
@@ -424,7 +489,7 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
             ++$this->clockReads;
 
             return $this->now;
-        });
+        }, maxRecords: 4);
 
         for ($i = 0; $i < 3; ++$i) {
             $taskId = $store->createTask('slow_compute', null, 300_000, 1_000)->taskId;
@@ -437,6 +502,22 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
         $store->createTask('slow_compute', null, 300_000, 1_000);
 
         self::assertSame(1, $this->clockReads);
+        self::assertCount(4, self::readRecords($store));
+    }
+
+    public function testAtTheCeilingCreateTaskStopsOnceTheResolveFreesRoom(): void
+    {
+        $store = $this->buildStore(maxRecords: 2);
+        $longLived = $store->createTask('slow_compute', null, 60_000, 1_000)->taskId;
+        $shortLived = $store->createTask('slow_compute', null, 1_000, 1_000)->taskId;
+        $store->trySetCompleted($longLived, ['resultType' => 'complete']);
+        $store->trySetCompleted($shortLived, ['resultType' => 'complete']);
+
+        $this->now = $this->now->modify('+2 seconds');
+        $created = $store->createTask('slow_compute', null, 1_000, 1_000)->taskId;
+
+        self::assertSame([$longLived, $created], array_keys(self::readRecords($store)));
+        self::assertSame([$longLived], array_keys(self::readTerminalAt($store)));
     }
 
     public function testATerminalTaskExpiresAtItsRetentionBoundary(): void
@@ -477,9 +558,36 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
         self::assertInstanceOf(TaskRecord::class, $store->findTask($taskId));
     }
 
-    private function buildStore(): InMemoryTaskStore
+    /**
+     * @param int<1, max> $maxRecords
+     */
+    private function buildStore(int $maxRecords = InMemoryTaskStore::DEFAULT_MAX_RECORDS): InMemoryTaskStore
     {
-        return new InMemoryTaskStore(fn(): \DateTimeImmutable => $this->now);
+        return new InMemoryTaskStore(fn(): \DateTimeImmutable => $this->now, $maxRecords);
+    }
+
+    /**
+     * @return array<array-key, TaskRecord>
+     */
+    private static function readRecords(InMemoryTaskStore $store): array
+    {
+        $records = (new \ReflectionProperty(InMemoryTaskStore::class, 'records'))->getValue($store);
+        self::assertIsArray($records);
+        self::assertContainsOnlyInstancesOf(TaskRecord::class, $records);
+
+        return $records;
+    }
+
+    /**
+     * @return array<array-key, \DateTimeImmutable>
+     */
+    private static function readTerminalAt(InMemoryTaskStore $store): array
+    {
+        $terminalAt = (new \ReflectionProperty(InMemoryTaskStore::class, 'terminalAt'))->getValue($store);
+        self::assertIsArray($terminalAt);
+        self::assertContainsOnlyInstancesOf(\DateTimeImmutable::class, $terminalAt);
+
+        return $terminalAt;
     }
 
     private static function buildElicitRequest(): ElicitRequest

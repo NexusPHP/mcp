@@ -6,6 +6,14 @@ for *when* breaking changes may land and how they are communicated lives in
 
 ## v0.15.0 to Unreleased
 
+### `InMemoryTaskStore` holds at most 10 000 records
+
+A `null` ttl retained every record forever, and every `createTask()` swept the whole store. The store now takes
+`maxRecords` (default `InMemoryTaskStore::DEFAULT_MAX_RECORDS`, 10 000) and at that ceiling evicts the oldest
+settled record, or throws `RuntimeException` when every record is still live. An overdue task is no longer
+failed by an unrelated `createTask()` but at its next observation, or at the ceiling. A deployment that retains
+more settled tasks raises `maxRecords`.
+
 ### The tasks extension runs at most 1024 tasks at once
 
 Task fibers ran outside the dispatcher's in-flight budget with no cap of their own, so a client could start them

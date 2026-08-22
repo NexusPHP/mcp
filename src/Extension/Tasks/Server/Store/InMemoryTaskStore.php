@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Extension\Tasks\Server\Store;
 
+use Nexus\Assert\Assert;
+use Nexus\Mcp\Core\Exception\RuntimeException;
 use Nexus\Mcp\Core\JsonRpc\ErrorFactory;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Request\InputRequest;
@@ -25,12 +27,16 @@ use Nexus\Mcp\Extension\Tasks\Server\Exception\InputRequestKeyReusedException;
  */
 final class InMemoryTaskStore implements TaskStoreInterface
 {
+    public const int DEFAULT_MAX_RECORDS = 10_000;
+
     /**
      * @var array<non-empty-string, TaskRecord>
      */
     private array $records = [];
 
     /**
+     * Settle instants in settle order, so the first entry is the oldest settled record.
+     *
      * @var array<non-empty-string, \DateTimeImmutable>
      */
     private array $terminalAt = [];
@@ -42,21 +48,21 @@ final class InMemoryTaskStore implements TaskStoreInterface
 
     /**
      * @param null|\Closure(): \DateTimeImmutable $clock
+     * @param int<1, max>                         $maxRecords Records held at once, settled ones included
      */
-    public function __construct(?\Closure $clock = null)
-    {
+    public function __construct(
+        ?\Closure $clock = null,
+        private readonly int $maxRecords = self::DEFAULT_MAX_RECORDS,
+    ) {
         $this->clock = $clock ?? static fn(): \DateTimeImmutable => new \DateTimeImmutable();
+        Assert::that($maxRecords)->isPositiveInt('maxRecords must be a positive integer, {value} given.');
     }
 
     #[\Override]
     public function createTask(string $toolName, ?array $arguments, ?int $ttlMs, int $pollIntervalMs): TaskRecord
     {
         $instant = ($this->clock)();
-        $nowMs = self::toMillisecondTimestamp($instant);
-
-        foreach (array_keys($this->records) as $taskId) {
-            $this->resolveTask($taskId, $nowMs);
-        }
+        $this->reclaim(self::toMillisecondTimestamp($instant));
 
         $now = $instant->format(\DateTimeInterface::ATOM);
         $taskId = bin2hex(random_bytes(16));
@@ -209,6 +215,46 @@ final class InMemoryTaskStore implements TaskStoreInterface
             'pendingInputRequests' => $pending,
             'inputResponses' => $accepted,
         ]);
+    }
+
+    /**
+     * Frees room for one more record: drops the settled records that have expired in settle order, and at the
+     * ceiling resolves every record once and then evicts the oldest settled one.
+     *
+     * @throws RuntimeException
+     */
+    private function reclaim(int $nowMs): void
+    {
+        foreach (array_keys($this->terminalAt) as $taskId) {
+            $record = $this->records[$taskId] ?? null;
+            \assert($record instanceof TaskRecord);
+
+            if (! $this->hasExpired($taskId, $record, $nowMs)) {
+                break;
+            }
+
+            unset($this->records[$taskId], $this->terminalAt[$taskId]);
+        }
+
+        if ($this->maxRecords > \count($this->records)) {
+            return;
+        }
+
+        foreach (array_keys($this->records) as $taskId) {
+            $this->resolveTask($taskId, $nowMs);
+        }
+
+        if ($this->maxRecords > \count($this->records)) {
+            return;
+        }
+
+        $oldest = array_key_first($this->terminalAt);
+
+        if (null === $oldest) {
+            throw new RuntimeException(\sprintf('The task store holds its maximum of %d records and none of them has settled.', $this->maxRecords));
+        }
+
+        unset($this->records[$oldest], $this->terminalAt[$oldest]);
     }
 
     /**
