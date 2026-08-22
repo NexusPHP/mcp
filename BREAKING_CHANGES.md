@@ -6,6 +6,21 @@ for *when* breaking changes may land and how they are communicated lives in
 
 ## v0.15.0 to Unreleased
 
+### `VerifiedAccessToken` requires its expiry
+
+`expiresAt` was nullable and `BearerAuthenticationMiddleware` skipped the expiry check for a `null`, so a
+validator of your own could hand the server a token that never expired. It is now a required `int`, the second
+constructor argument, and the middleware always checks it. A validator that cannot learn a token's expiry
+(an introspection response carrying no `exp`, say) refuses the token by returning `null`, as
+`AccessTokenValidatorInterface` already asks:
+
+```php
+// before
+new VerifiedAccessToken($audience, $scopes, $subject, $clientId, $expiresAt);
+// after
+new VerifiedAccessToken($audience, $expiresAt, $scopes, $subject, $clientId);
+```
+
 ### The bearer token no longer travels to other paths on the resource's origin
 
 `AuthorizedHttpClient` attached the token to any request sharing the resource's origin, and followed

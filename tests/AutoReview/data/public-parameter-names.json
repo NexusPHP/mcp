@@ -446,10 +446,10 @@
     "Nexus\\Mcp\\Core\\Auth\\VerifiedAccessToken": {
         "__construct": [
             "audience",
+            "expiresAt",
             "scopes",
             "subject",
-            "clientId",
-            "expiresAt"
+            "clientId"
         ]
     },
     "Nexus\\Mcp\\Core\\Dispatch\\RequestBoundSender": {

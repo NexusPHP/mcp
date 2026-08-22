@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Auth;
 
+use Nexus\Assert\Assert;
+
 /**
  * What a validated bearer token grants, as reported by the host's token validator.
  *
@@ -27,17 +29,18 @@ final readonly class VerifiedAccessToken
 
     /**
      * @param list<string>           $audience  Resources the token was issued for, at least one of which must be this server
+     * @param int<1, max>            $expiresAt Unix timestamp the token expires at
      * @param list<non-empty-string> $scopes    Scopes the token was granted
      * @param null|non-empty-string  $subject   Principal the token acts for, absent when it carries no non-empty `sub` claim
      * @param null|non-empty-string  $clientId  OAuth client the token was issued to, absent when it names none
-     * @param null|int               $expiresAt Unix timestamp the token expires at
      */
     public function __construct(
         public array $audience,
+        public int $expiresAt,
         public array $scopes = [],
         public ?string $subject = null,
         public ?string $clientId = null,
-        public ?int $expiresAt = null,
     ) {
+        Assert::that($expiresAt)->isPositiveInt('Verified access token expiry must be a positive Unix timestamp, {value} given.');
     }
 }

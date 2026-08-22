@@ -17,6 +17,8 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Changed
 
+- `VerifiedAccessToken` requires `expiresAt`, now its second constructor argument, so no validator can hand the
+  middleware a token it never checks for expiry. See BREAKING_CHANGES.md.
 - `TaskClient` takes `minPollIntervalMs` (default 100) and raises a shorter server-suggested `pollIntervalMs`
   to it.
 - `SubscriptionStore` refuses a listen naming more than `maxResourceSubscriptionsPerStream` resource URIs

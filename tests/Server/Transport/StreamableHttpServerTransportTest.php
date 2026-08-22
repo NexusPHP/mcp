@@ -274,7 +274,7 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
     public function testTheValidatedTokenReachesHandlersOnTheReceiveContext(): void
     {
         $transport = $this->makeTransport();
-        $token = new VerifiedAccessToken(['https://mcp.test/'], ['files:read']);
+        $token = new VerifiedAccessToken(['https://mcp.test/'], 2_000_000_000, ['files:read']);
 
         $contexts = [];
         $transport->onMessage(static function (array $envelope, ReceiveContext $context) use (&$contexts): void {
@@ -293,7 +293,7 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
     public function testTheValidatedTokenReachesHandlersOfABufferedRequest(): void
     {
         $transport = $this->makeTransport(start: false);
-        $token = new VerifiedAccessToken(['https://mcp.test/'], ['files:read']);
+        $token = new VerifiedAccessToken(['https://mcp.test/'], 2_000_000_000, ['files:read']);
 
         $contexts = [];
         $this->listen($transport);
@@ -315,7 +315,7 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
     public function testTheValidatedTokenReachesHandlersOfAStreamedRequest(): void
     {
         $transport = $this->makeTransport(responseMode: ResponseMode::Sse, start: false);
-        $token = new VerifiedAccessToken(['https://mcp.test/'], ['files:read']);
+        $token = new VerifiedAccessToken(['https://mcp.test/'], 2_000_000_000, ['files:read']);
 
         $contexts = [];
         $this->listen($transport, $this->buildProgressServer());

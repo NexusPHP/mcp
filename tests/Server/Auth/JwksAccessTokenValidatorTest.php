@@ -219,6 +219,19 @@ final class JwksAccessTokenValidatorTest extends AbstractMcpTestCase
         self::assertNull($this->buildValidator()->validate('not-a-jwt'));
     }
 
+    public function testANonPositiveExpiryIsRefusedEvenUnderALenientLeeway(): void
+    {
+        $leeway = JWT::$leeway;
+        JWT::$leeway = time() + 100;
+
+        try {
+            self::assertNull($this->buildValidator()->validate($this->encodeForThisServer(['exp' => 0])));
+            self::assertSame(1, $this->buildValidator()->validate($this->encodeForThisServer(['exp' => 1]))?->expiresAt);
+        } finally {
+            JWT::$leeway = $leeway;
+        }
+    }
+
     public function testATokenCarryingNoExpiryIsRefused(): void
     {
         $token = $this->encodeExactly(['iss' => self::ISSUER, 'aud' => self::RESOURCE, 'sub' => 'user-7']);

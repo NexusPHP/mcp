@@ -16,6 +16,7 @@ namespace Nexus\Mcp\Tests\Core\Auth;
 use Nexus\Mcp\Core\Auth\VerifiedAccessToken;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
@@ -30,26 +31,46 @@ final class VerifiedAccessTokenTest extends AbstractMcpTestCase
     {
         $token = new VerifiedAccessToken(
             ['https://mcp.test/mcp'],
+            1_800_000_000,
             ['files:read'],
             'the-subject',
             'the-client',
-            1_800_000_000,
         );
 
         self::assertSame(['https://mcp.test/mcp'], $token->audience);
+        self::assertSame(1_800_000_000, $token->expiresAt);
         self::assertSame(['files:read'], $token->scopes);
         self::assertSame('the-subject', $token->subject);
         self::assertSame('the-client', $token->clientId);
-        self::assertSame(1_800_000_000, $token->expiresAt);
     }
 
-    public function testATokenNeedsOnlyItsAudience(): void
+    public function testATokenNeedsOnlyItsAudienceAndExpiry(): void
     {
-        $token = new VerifiedAccessToken(['https://mcp.test/mcp']);
+        $token = new VerifiedAccessToken(['https://mcp.test/mcp'], 1_800_000_000);
 
+        self::assertSame(1_800_000_000, $token->expiresAt);
         self::assertSame([], $token->scopes);
         self::assertNull($token->subject);
         self::assertNull($token->clientId);
-        self::assertNull($token->expiresAt);
+    }
+
+    #[DataProvider('provideANonPositiveExpiryIsRefusedCases')]
+    public function testANonPositiveExpiryIsRefused(int $expiresAt, string $expectedMessage): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs($expectedMessage);
+
+        // @phpstan-ignore argument.type
+        new VerifiedAccessToken(['https://mcp.test/mcp'], $expiresAt);
+    }
+
+    /**
+     * @return iterable<string, array{int, string}>
+     */
+    public static function provideANonPositiveExpiryIsRefusedCases(): iterable
+    {
+        yield 'zero' => [0, 'Verified access token expiry must be a positive Unix timestamp, 0 given.'];
+
+        yield 'negative' => [-1, 'Verified access token expiry must be a positive Unix timestamp, -1 given.'];
     }
 }

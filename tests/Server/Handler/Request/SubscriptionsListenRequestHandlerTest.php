@@ -289,6 +289,7 @@ final class SubscriptionsListenRequestHandlerTest extends AbstractMcpTestCase
             $sender,
             new ReceiveContext(authInfo: new VerifiedAccessToken(
                 audience: ['https://mcp.test'],
+                expiresAt: 2_000_000_000,
                 subject: $subject,
                 clientId: $clientId,
             )),

@@ -262,7 +262,7 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
 
     private function buildAuthentication(): BearerAuthenticationMiddleware
     {
-        $recognised = new VerifiedAccessToken(['https://mcp.test/']);
+        $recognised = new VerifiedAccessToken(['https://mcp.test/'], 2_000_000_000);
         $validator = self::createStub(AccessTokenValidatorInterface::class);
         $validator->method('validate')->willReturnCallback(
             static fn(string $presented): ?VerifiedAccessToken => 'the-token' === $presented ? $recognised : null,
