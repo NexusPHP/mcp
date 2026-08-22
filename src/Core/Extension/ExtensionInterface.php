@@ -44,24 +44,24 @@ interface ExtensionInterface
     public function getSettings(): array;
 
     /**
-     * @return array<non-empty-string, class-string<JsonRpcRequest<non-empty-string>>>
+     * @return list<class-string<JsonRpcRequest<non-empty-string>>>
      */
     public function getRequests(): array;
 
     /**
-     * @return array<non-empty-string, class-string<JsonRpcNotification<non-empty-string>>>
+     * @return list<class-string<JsonRpcNotification<non-empty-string>>>
      */
     public function getNotifications(): array;
 
     /**
-     * Handlers for `getRequests()`, under the same method keys.
+     * Handlers for `getRequests()`, keyed by the method each class declares.
      *
      * @return array<non-empty-string, RequestHandlerInterface<non-empty-string, Result, TContext>>
      */
     public function getRequestHandlers(): array;
 
     /**
-     * Handlers for `getNotifications()`, under the same method keys.
+     * Handlers for `getNotifications()`, keyed by the method each class declares.
      *
      * @return array<non-empty-string, NotificationHandlerInterface<non-empty-string>>
      */

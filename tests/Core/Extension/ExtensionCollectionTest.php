@@ -54,8 +54,8 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
         $collection->add(new StubExtension(
             identifier: 'com.example/feature',
             settings: ['flags' => ['beta']],
-            requests: [TestRequest::getMethod() => TestRequest::class],
-            notifications: [TestNotification::getMethod() => TestNotification::class],
+            requests: [TestRequest::class],
+            notifications: [TestNotification::class],
             requestHandlers: [TestRequest::getMethod() => $requestHandler],
             notificationHandlers: [TestNotification::getMethod() => $notificationHandler],
         ), outboundRequests: ['acme/lookup']);
@@ -124,15 +124,15 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
         $collection = new ExtensionCollection();
         $collection->add(new StubExtension(
             identifier: 'com.example/feature',
-            requests: [TestRequest::getMethod() => TestRequest::class],
-            notifications: [TestNotification::getMethod() => TestNotification::class],
+            requests: [TestRequest::class],
+            notifications: [TestNotification::class],
             requestHandlers: [TestRequest::getMethod() => $firstHandler],
             notificationHandlers: [TestNotification::getMethod() => $this->buildNotificationHandler()],
         ));
         $collection->add(new StubExtension(
             identifier: 'com.example/other',
-            requests: [TestClientRequest::getMethod() => TestClientRequest::class],
-            notifications: [TestSecondNotification::getMethod() => TestSecondNotification::class],
+            requests: [TestClientRequest::class],
+            notifications: [TestSecondNotification::class],
             requestHandlers: [TestClientRequest::getMethod() => $secondHandler],
             notificationHandlers: [TestSecondNotification::getMethod() => $this->buildNotificationHandler()],
         ));
@@ -164,12 +164,12 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
         (new ExtensionCollection())->add(new StubExtension(
             identifier: 'com.example/feature',
             requests: [
-                TestRequest::getMethod() => TestRequest::class,
-                TestClientRequest::getMethod() => TestClientRequest::class,
+                TestRequest::class,
+                TestClientRequest::class,
             ],
             notifications: [
-                TestSecondNotification::getMethod() => TestSecondNotification::class,
-                TestNotification::getMethod() => TestNotification::class,
+                TestSecondNotification::class,
+                TestNotification::class,
             ],
             requestHandlers: [
                 TestRequest::getMethod() => $this->buildRequestHandler(),
@@ -225,34 +225,6 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
         ));
     }
 
-    public function testAddRejectsARequestClassDeclaringADifferentMethod(): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs(
-            'Request class "Nexus\Mcp\Tests\Fixtures\Core\TestClientRequest" must declare the method "acme/lookup" it is registered for, \'tests/test-client-request\' declared.',
-        );
-
-        (new ExtensionCollection())->add(new StubExtension(
-            identifier: 'com.example/feature',
-            requests: ['acme/lookup' => TestClientRequest::class],
-            requestHandlers: ['acme/lookup' => $this->buildRequestHandler()],
-        ));
-    }
-
-    public function testAddRejectsANotificationClassDeclaringADifferentMethod(): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs(
-            'Notification class "Nexus\Mcp\Tests\Fixtures\Core\TestNotification" must declare the method "acme/ping" it is registered for, \'tests/test-notification\' declared.',
-        );
-
-        (new ExtensionCollection())->add(new StubExtension(
-            identifier: 'com.example/feature',
-            notifications: ['acme/ping' => TestNotification::class],
-            notificationHandlers: ['acme/ping' => $this->buildNotificationHandler()],
-        ));
-    }
-
     public function testAddRejectsARequestClassWithoutTheClientMarkerWhenRequired(): void
     {
         $this->expectException(\InvalidArgumentException::class);
@@ -262,7 +234,7 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
 
         (new ExtensionCollection())->add(new StubExtension(
             identifier: 'com.example/feature',
-            requests: [TestRequest::getMethod() => TestRequest::class],
+            requests: [TestRequest::class],
             requestHandlers: [TestRequest::getMethod() => $this->buildRequestHandler()],
         ), requireClientRequests: true);
     }
@@ -273,7 +245,7 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
 
         (new ExtensionCollection())->add(new StubExtension(
             identifier: 'com.example/feature',
-            requests: [TestRequest::getMethod() => TestRequest::class],
+            requests: [TestRequest::class],
             requestHandlers: [TestRequest::getMethod() => $this->buildRequestHandler()],
         ));
     }
@@ -287,7 +259,7 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
 
         (new ExtensionCollection())->add(new StubExtension(
             identifier: 'com.example/feature',
-            requests: [TestRequest::getMethod() => TestRequest::class],
+            requests: [TestRequest::class],
         ));
     }
 
@@ -313,7 +285,7 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
 
         (new ExtensionCollection())->add(new StubExtension(
             identifier: 'com.example/feature',
-            notifications: [TestNotification::getMethod() => TestNotification::class],
+            notifications: [TestNotification::class],
         ));
     }
 
@@ -339,7 +311,7 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
 
         (new ExtensionCollection())->add(new StubExtension(
             identifier: 'com.example/feature',
-            requests: ['tools/call' => CallToolRequest::class],
+            requests: [CallToolRequest::class],
             requestHandlers: ['tools/call' => $this->buildRequestHandler()],
         ));
     }
@@ -353,7 +325,7 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
 
         (new ExtensionCollection())->add(new StubExtension(
             identifier: 'com.example/feature',
-            notifications: ['notifications/progress' => ProgressNotification::class],
+            notifications: [ProgressNotification::class],
             notificationHandlers: ['notifications/progress' => $this->buildNotificationHandler()],
         ));
     }
@@ -363,7 +335,7 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
         $collection = new ExtensionCollection();
         $collection->add(new StubExtension(
             identifier: 'com.example/feature',
-            requests: [TestRequest::getMethod() => TestRequest::class],
+            requests: [TestRequest::class],
             requestHandlers: [TestRequest::getMethod() => $this->buildRequestHandler()],
         ));
 
@@ -375,7 +347,7 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
 
         $collection->add(new StubExtension(
             identifier: 'com.example/other',
-            requests: [TestRequest::getMethod() => TestRequest::class],
+            requests: [TestRequest::class],
             requestHandlers: [TestRequest::getMethod() => $this->buildRequestHandler()],
         ));
     }
@@ -385,7 +357,7 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
         $collection = new ExtensionCollection();
         $collection->add(new StubExtension(
             identifier: 'com.example/feature',
-            notifications: [TestNotification::getMethod() => TestNotification::class],
+            notifications: [TestNotification::class],
             notificationHandlers: [TestNotification::getMethod() => $this->buildNotificationHandler()],
         ));
 
@@ -397,7 +369,7 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
 
         $collection->add(new StubExtension(
             identifier: 'com.example/other',
-            notifications: [TestNotification::getMethod() => TestNotification::class],
+            notifications: [TestNotification::class],
             notificationHandlers: [TestNotification::getMethod() => $this->buildNotificationHandler()],
         ));
     }
@@ -412,7 +384,7 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
 
         (new ExtensionCollection())->add(new StubExtension(
             identifier: 'com.example/feature',
-            requests: [TestRequest::getMethod() => TestRequest::class],
+            requests: [TestRequest::class],
             requestHandlers: [TestRequest::getMethod() => $this->buildRequestHandler()],
         ), claimedRequests: [TestRequest::getMethod()]);
     }
@@ -427,7 +399,7 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
 
         (new ExtensionCollection())->add(new StubExtension(
             identifier: 'com.example/feature',
-            notifications: [TestNotification::getMethod() => TestNotification::class],
+            notifications: [TestNotification::class],
             notificationHandlers: [TestNotification::getMethod() => $this->buildNotificationHandler()],
         ), claimedNotifications: [TestNotification::getMethod()]);
     }
@@ -460,7 +432,7 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
         $collection = new ExtensionCollection();
         $collection->add(new StubExtension(
             identifier: 'com.example/feature',
-            requests: [TestRequest::getMethod() => TestRequest::class],
+            requests: [TestRequest::class],
             requestHandlers: [TestRequest::getMethod() => $this->buildRequestHandler()],
         ));
 
@@ -478,7 +450,7 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
         $collection = new ExtensionCollection();
         $collection->add(new StubExtension(
             identifier: 'com.example/feature',
-            notifications: [TestNotification::getMethod() => TestNotification::class],
+            notifications: [TestNotification::class],
             notificationHandlers: [TestNotification::getMethod() => $this->buildNotificationHandler()],
         ));
 
@@ -500,6 +472,30 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
         $collection->assertNotOwned('acme/unclaimed', isNotification: true);
     }
 
+    public function testAddRejectsAnExtensionDeclaringARequestMethodTwice(): void
+    {
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessageIs('Extension "com.example/feature" declares the request method "tests/test-request" twice.');
+
+        (new ExtensionCollection())->add(new StubExtension(
+            identifier: 'com.example/feature',
+            requests: [TestRequest::class, TestRequest::class],
+            requestHandlers: [TestRequest::getMethod() => $this->buildRequestHandler()],
+        ));
+    }
+
+    public function testAddRejectsAnExtensionDeclaringANotificationMethodTwice(): void
+    {
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessageIs('Extension "com.example/feature" declares the notification method "tests/test-notification" twice.');
+
+        (new ExtensionCollection())->add(new StubExtension(
+            identifier: 'com.example/feature',
+            notifications: [TestNotification::class, TestNotification::class],
+            notificationHandlers: [TestNotification::getMethod() => $this->buildNotificationHandler()],
+        ));
+    }
+
     public function testARejectedExtensionLeavesNoOwnershipBehind(): void
     {
         $collection = new ExtensionCollection();
@@ -508,8 +504,8 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
             $collection->add(new StubExtension(
                 identifier: 'com.example/feature',
                 requests: [
-                    TestRequest::getMethod() => TestRequest::class,
-                    'tools/call' => TestClientRequest::class,
+                    TestRequest::class,
+                    CallToolRequest::class,
                 ],
                 requestHandlers: [
                     TestRequest::getMethod() => $this->buildRequestHandler(),
@@ -517,7 +513,7 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
                 ],
             ), outboundRequests: ['acme/lookup']);
             self::fail('The spec-owned method must be rejected.');
-        } catch (\InvalidArgumentException) {
+        } catch (LogicException) {
         }
 
         self::assertNull($collection->findRequestOwner(TestRequest::getMethod()));

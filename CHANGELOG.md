@@ -17,6 +17,8 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Changed
 
+- `addRequestHandler()` and `addNotificationHandler()` take the envelope class and the handler, reading the
+  method from the class, and extensions declare their classes as a list. See BREAKING_CHANGES.md.
 - `ParameterHeaderValidationMiddleware` leaves its decoded envelope on the request under
   `StreamableHttpServerTransport::ENVELOPE_ATTRIBUTE`, so the transport parses a body once.
 - `VerifiedAccessToken` requires `expiresAt`, now its second constructor argument, so no validator can hand the

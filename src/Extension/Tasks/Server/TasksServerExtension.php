@@ -75,9 +75,9 @@ final readonly class TasksServerExtension implements RequestHandlerDecoratorInte
     public function getRequests(): array
     {
         return [
-            GetTaskRequest::getMethod() => GetTaskRequest::class,
-            UpdateTaskRequest::getMethod() => UpdateTaskRequest::class,
-            CancelTaskRequest::getMethod() => CancelTaskRequest::class,
+            GetTaskRequest::class,
+            UpdateTaskRequest::class,
+            CancelTaskRequest::class,
         ];
     }
 

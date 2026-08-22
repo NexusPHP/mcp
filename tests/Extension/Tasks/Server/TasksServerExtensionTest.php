@@ -72,9 +72,9 @@ final class TasksServerExtensionTest extends AbstractMcpTestCase
         $extension = new TasksServerExtension();
 
         self::assertSame([
-            'tasks/get' => GetTaskRequest::class,
-            'tasks/update' => UpdateTaskRequest::class,
-            'tasks/cancel' => CancelTaskRequest::class,
+            GetTaskRequest::class,
+            UpdateTaskRequest::class,
+            CancelTaskRequest::class,
         ], $extension->getRequests());
 
         $handlers = $extension->getRequestHandlers();

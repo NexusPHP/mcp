@@ -895,7 +895,7 @@ final class ClientTest extends AbstractMcpTestCase
             ->setLogger($logger)
             ->setClientInfo('demo', '1.0.0')
             ->addNotificationHandler(
-                'notifications/cancelled',
+                CancelledNotification::class,
                 new ClosureNotificationHandler(static fn() => throw new \RuntimeException('handler ran')),
             )
             ->build()
@@ -1516,7 +1516,7 @@ final class ClientTest extends AbstractMcpTestCase
         $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->addNotificationHandler(
-                ProgressNotification::getMethod(),
+                ProgressNotification::class,
                 new ClosureNotificationHandler(static function (JsonRpcNotification $n) use (&$delivered): void {
                     self::assertInstanceOf(ProgressNotification::class, $n);
                     $delivered[] = $n->params->progressToken->token;
@@ -2093,7 +2093,7 @@ final class ClientTest extends AbstractMcpTestCase
             ->setClientInfo('demo', '1.0.0')
             ->enableExtension(new StubClientExtension(
                 identifier: 'com.example/feature',
-                requests: [TestRequest::getMethod() => TestRequest::class],
+                requests: [TestRequest::class],
                 requestHandlers: [TestRequest::getMethod() => new ClosureRequestHandler(
                     static fn(): EmptyResult => throw new \RuntimeException('The gate must reject before the handler runs.'),
                 )],
@@ -2125,7 +2125,7 @@ final class ClientTest extends AbstractMcpTestCase
             ->setClientInfo('demo', '1.0.0')
             ->enableExtension(new StubClientExtension(
                 identifier: 'com.example/feature',
-                requests: [TestRequest::getMethod() => TestRequest::class],
+                requests: [TestRequest::class],
                 requestHandlers: [TestRequest::getMethod() => new ClosureRequestHandler(static fn(): EmptyResult => $marker)],
             ))
             ->build()
@@ -3412,7 +3412,7 @@ final class ClientTest extends AbstractMcpTestCase
         $seen = [];
         $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
-            ->addNotificationHandler('notifications/cancelled', new ClosureNotificationHandler(
+            ->addNotificationHandler(CancelledNotification::class, new ClosureNotificationHandler(
                 static function () use (&$seen): void {
                     $seen[] = 'handled';
                 },
@@ -3705,7 +3705,7 @@ final class ClientTest extends AbstractMcpTestCase
     {
         return (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
-            ->addNotificationHandler('notifications/cancelled', new ClosureNotificationHandler(
+            ->addNotificationHandler(CancelledNotification::class, new ClosureNotificationHandler(
                 static function () use (&$seen): void {
                     $seen[] = 'handled';
                 },

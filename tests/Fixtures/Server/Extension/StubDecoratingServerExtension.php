@@ -33,8 +33,8 @@ final readonly class StubDecoratingServerExtension implements RequestHandlerDeco
      * @param non-empty-string                                                                                                                                                      $identifier
      * @param array<non-empty-string, \Closure(RequestHandlerInterface<non-empty-string, Result, ServerContext>): RequestHandlerInterface<non-empty-string, Result, ServerContext>> $requestDecorators
      * @param array<string, mixed>                                                                                                                                                  $settings
-     * @param array<non-empty-string, class-string<JsonRpcRequest<non-empty-string>>>                                                                                               $requests
-     * @param array<non-empty-string, class-string<JsonRpcNotification<non-empty-string>>>                                                                                          $notifications
+     * @param list<class-string<JsonRpcRequest<non-empty-string>>>                                                                                                                  $requests
+     * @param list<class-string<JsonRpcNotification<non-empty-string>>>                                                                                                             $notifications
      * @param array<non-empty-string, RequestHandlerInterface<non-empty-string, Result, ServerContext>>                                                                             $requestHandlers
      * @param array<non-empty-string, NotificationHandlerInterface<non-empty-string>>                                                                                               $notificationHandlers
      */

@@ -6,15 +6,15 @@ Register handlers for server-to-client notifications at build time. A handler im
 ```php
 use Nexus\Mcp\Core\Schema\Notification\ToolListChangedNotification;
 
-->addNotificationHandler(ToolListChangedNotification::getMethod(), $myHandler)
+->addNotificationHandler(ToolListChangedNotification::class, $myHandler)
 ```
 
-Spec-defined notifications already parse, so the two arguments above are enough. A spec method keeps its
-registry envelope class, and registration refuses any other. A vendor notification method must also name the
-`JsonRpcNotification` subclass that parses it, and registration rejects a class that declares a different method:
+The class names the method through its `getMethod()`. A spec method keeps its registry envelope class, and
+registration refuses a lookalike declaring the same method. A vendor notification registers the
+`JsonRpcNotification` subclass that parses it the same way:
 
 ```php
-->addNotificationHandler('acme/heartbeat', $myHandler, AcmeHeartbeatNotification::class)
+->addNotificationHandler(AcmeHeartbeatNotification::class, $myHandler)
 ```
 
 ## Progress notifications

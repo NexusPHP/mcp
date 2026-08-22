@@ -22,10 +22,10 @@ enable time:
 | --- | --- |
 | `getIdentifier()` | The `{vendor-prefix}/{name}` capability identifier, e.g. `io.modelcontextprotocol/tasks`. |
 | `getSettings()` | The settings object advertised under `capabilities.extensions[identifier]`. Empty means supported with no settings. |
-| `getRequests()` | Inbound request method to `JsonRpcRequest` subclass, so the parser recognises the method. |
-| `getNotifications()` | Inbound notification method to `JsonRpcNotification` subclass. |
-| `getRequestHandlers()` | A handler per `getRequests()` key. |
-| `getNotificationHandlers()` | A handler per `getNotifications()` key. |
+| `getRequests()` | The `JsonRpcRequest` subclasses it serves, each naming its method through `getMethod()`. |
+| `getNotifications()` | The `JsonRpcNotification` subclasses it serves. |
+| `getRequestHandlers()` | A handler per `getRequests()` class, keyed by that class's method. |
+| `getNotificationHandlers()` | A handler per `getNotifications()` class, keyed by that class's method. |
 
 ### Validation at enable time
 
@@ -33,8 +33,8 @@ enable time:
 
 - The identifier must follow the `_meta` key grammar, with a mandatory prefix.
 - The settings must be a string-keyed object.
-- The class maps and the handler maps must pair the same method keys.
-- Every class must declare the method it is keyed under.
+- The handler maps must carry exactly the methods the declared classes name, and no class may name a method
+  twice.
 - Request classes must implement the `ClientRequest` marker with `RequestParams`-typed params. The dispatcher
   rejects anything else.
 - A method may not collide with the MCP specification, another enabled extension, or a builder-registered

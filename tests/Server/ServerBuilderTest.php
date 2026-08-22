@@ -16,6 +16,7 @@ namespace Nexus\Mcp\Tests\Server;
 use Nexus\Mcp\Core\Exception\LogicException;
 use Nexus\Mcp\Core\Handler\AbstractContext;
 use Nexus\Mcp\Core\Handler\RequestHandlerInterface;
+use Nexus\Mcp\Core\JsonRpc\JsonRpcMethodRegistry;
 use Nexus\Mcp\Core\Schema\ClientCapabilities;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Cursor;
@@ -1226,9 +1227,9 @@ final class ServerBuilderTest extends AbstractMcpTestCase
     {
         $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
-            ->addRequestHandler(TestClientRequest::getMethod(), new ClosureRequestHandler(
+            ->addRequestHandler(TestClientRequest::class, new ClosureRequestHandler(
                 static fn(): EmptyResult => new EmptyResult(),
-            ), TestClientRequest::class)
+            ))
             ->build()
         ;
 
@@ -1244,62 +1245,37 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             'Request class "Nexus\Mcp\Tests\Fixtures\Core\TestRequest" must implement "Nexus\Mcp\Core\Schema\Request\ClientRequest" for the server to dispatch it.',
         );
 
-        (new ServerBuilder())->addRequestHandler(TestRequest::getMethod(), new ClosureRequestHandler(
+        (new ServerBuilder())->addRequestHandler(TestRequest::class, new ClosureRequestHandler(
             static fn(): EmptyResult => new EmptyResult(),
-        ), TestRequest::class);
-    }
-
-    public function testAddRequestHandlerRejectsAClassDeclaringADifferentMethod(): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs(
-            'Request class "Nexus\Mcp\Tests\Fixtures\Core\TestClientRequest" must declare the method "acme/snapshot" it is registered for, \'tests/test-client-request\' declared.',
-        );
-
-        (new ServerBuilder())->addRequestHandler('acme/snapshot', new ClosureRequestHandler(
-            static fn(): EmptyResult => new EmptyResult(),
-        ), TestClientRequest::class);
+        ));
     }
 
     /**
-     * @param non-empty-string $method
+     * @param class-string<JsonRpcRequest<non-empty-string>> $request
      */
     #[DataProvider('provideAddRequestHandlerRejectsReservedSpecMethodCases')]
-    public function testAddRequestHandlerRejectsReservedSpecMethod(string $method): void
+    public function testAddRequestHandlerRejectsReservedSpecMethod(string $request): void
     {
+        $method = $request::getMethod();
         $this->expectException(LogicException::class);
         $this->expectExceptionMessageIs(\sprintf(
             'Request method "%s" is reserved by the MCP specification. Use replaceRequestHandler() to attach a handler to it.',
             $method,
         ));
 
-        (new ServerBuilder())->addRequestHandler($method, new ClosureRequestHandler(
+        (new ServerBuilder())->addRequestHandler($request, new ClosureRequestHandler(
             static fn(): EmptyResult => new EmptyResult(),
-        ), TestClientRequest::class);
+        ));
     }
 
     /**
-     * @return iterable<string, array{non-empty-string}>
+     * @return iterable<string, array{class-string<JsonRpcRequest<non-empty-string>>}>
      */
     public static function provideAddRequestHandlerRejectsReservedSpecMethodCases(): iterable
     {
-        yield 'completion/complete' => ['completion/complete'];
-
-        yield 'prompts/get' => ['prompts/get'];
-
-        yield 'prompts/list' => ['prompts/list'];
-
-        yield 'resources/list' => ['resources/list'];
-
-        yield 'resources/read' => ['resources/read'];
-
-        yield 'resources/templates/list' => ['resources/templates/list'];
-
-        yield 'server/discover' => ['server/discover'];
-
-        yield 'tools/call' => ['tools/call'];
-
-        yield 'tools/list' => ['tools/list'];
+        foreach (JsonRpcMethodRegistry::requests() as $method => $class) {
+            yield $method => [$class];
+        }
     }
 
     public function testAddNotificationHandlerDispatchesTheVendorExtensionMethod(): void
@@ -1308,11 +1284,11 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
         $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
-            ->addNotificationHandler(TestNotification::getMethod(), new ClosureNotificationHandler(
+            ->addNotificationHandler(TestNotification::class, new ClosureNotificationHandler(
                 static function () use (&$received): void {
                     ++$received;
                 },
-            ), TestNotification::class)
+            ))
             ->build()
         ;
 
@@ -1337,51 +1313,32 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         self::assertSame(1, $received);
     }
 
-    public function testAddNotificationHandlerRejectsAClassDeclaringADifferentMethod(): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs(
-            'Notification class "Nexus\Mcp\Tests\Fixtures\Core\TestNotification" must declare the method "acme/snapshot-done" it is registered for, \'tests/test-notification\' declared.',
-        );
-
-        (new ServerBuilder())->addNotificationHandler('acme/snapshot-done', new ClosureNotificationHandler(
-            static function (): void {},
-        ), TestNotification::class);
-    }
-
     /**
-     * @param non-empty-string $method
+     * @param class-string<JsonRpcNotification<non-empty-string>> $notification
      */
     #[DataProvider('provideAddNotificationHandlerRejectsReservedSpecMethodCases')]
-    public function testAddNotificationHandlerRejectsReservedSpecMethod(string $method): void
+    public function testAddNotificationHandlerRejectsReservedSpecMethod(string $notification): void
     {
+        $method = $notification::getMethod();
         $this->expectException(LogicException::class);
         $this->expectExceptionMessageIs(\sprintf(
             'Notification method "%s" is reserved by the MCP specification. Use replaceNotificationHandler() to attach a handler to it.',
             $method,
         ));
 
-        (new ServerBuilder())->addNotificationHandler($method, new ClosureNotificationHandler(
+        (new ServerBuilder())->addNotificationHandler($notification, new ClosureNotificationHandler(
             static function (): void {},
-        ), TestNotification::class);
+        ));
     }
 
     /**
-     * @return iterable<string, array{non-empty-string}>
+     * @return iterable<string, array{class-string<JsonRpcNotification<non-empty-string>>}>
      */
     public static function provideAddNotificationHandlerRejectsReservedSpecMethodCases(): iterable
     {
-        yield 'notifications/cancelled' => ['notifications/cancelled'];
-
-        yield 'notifications/progress' => ['notifications/progress'];
-
-        yield 'notifications/prompts/list_changed' => ['notifications/prompts/list_changed'];
-
-        yield 'notifications/resources/list_changed' => ['notifications/resources/list_changed'];
-
-        yield 'notifications/resources/updated' => ['notifications/resources/updated'];
-
-        yield 'notifications/tools/list_changed' => ['notifications/tools/list_changed'];
+        foreach (JsonRpcMethodRegistry::notifications() as $method => $class) {
+            yield $method => [$class];
+        }
     }
 
     public function testEnableExtensionAdvertisesTheCapabilitySlot(): void
@@ -1564,7 +1521,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             ->setServerInfo('demo', '1.0.0')
             ->enableExtension(new StubServerExtension(
                 identifier: 'com.example/feature',
-                notifications: [TestNotification::getMethod() => TestNotification::class],
+                notifications: [TestNotification::class],
                 notificationHandlers: [TestNotification::getMethod() => new ClosureNotificationHandler(
                     static function () use (&$received): void {
                         $received[] = 'feature';
@@ -1573,7 +1530,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             ))
             ->enableExtension(new StubServerExtension(
                 identifier: 'com.example/other',
-                notifications: [TestSecondNotification::getMethod() => TestSecondNotification::class],
+                notifications: [TestSecondNotification::class],
                 notificationHandlers: [TestSecondNotification::getMethod() => new ClosureNotificationHandler(
                     static function () use (&$received): void {
                         $received[] = 'other';
@@ -1615,7 +1572,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             ->enableExtension($this->buildServerExtension())
             ->enableExtension(new StubServerExtension(
                 identifier: 'com.example/other',
-                requests: [TestSecondClientRequest::getMethod() => TestSecondClientRequest::class],
+                requests: [TestSecondClientRequest::class],
                 requestHandlers: [TestSecondClientRequest::getMethod() => new ClosureRequestHandler(
                     static fn(): EmptyResult => new EmptyResult(),
                 )],
@@ -1679,9 +1636,9 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
     public function testEnableExtensionRejectsAMethodABuilderHandlerOwns(): void
     {
-        $builder = (new ServerBuilder())->addRequestHandler(TestClientRequest::getMethod(), new ClosureRequestHandler(
+        $builder = (new ServerBuilder())->addRequestHandler(TestClientRequest::class, new ClosureRequestHandler(
             static fn(): EmptyResult => new EmptyResult(),
-        ), TestClientRequest::class);
+        ));
 
         $this->expectException(LogicException::class);
         $this->expectExceptionMessageIs(
@@ -1693,9 +1650,9 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
     public function testEnableExtensionRejectsANotificationMethodABuilderHandlerOwns(): void
     {
-        $builder = (new ServerBuilder())->addNotificationHandler(TestNotification::getMethod(), new ClosureNotificationHandler(
+        $builder = (new ServerBuilder())->addNotificationHandler(TestNotification::class, new ClosureNotificationHandler(
             static function (): void {},
-        ), TestNotification::class);
+        ));
 
         $this->expectException(LogicException::class);
         $this->expectExceptionMessageIs(
@@ -1704,7 +1661,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
         $builder->enableExtension(new StubServerExtension(
             identifier: 'com.example/feature',
-            notifications: [TestNotification::getMethod() => TestNotification::class],
+            notifications: [TestNotification::class],
             notificationHandlers: [TestNotification::getMethod() => new ClosureNotificationHandler(
                 static function (): void {},
             )],
@@ -1720,16 +1677,16 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             'A builder-registered handler cannot claim the request method "tests/test-client-request" already owned by extension "com.example/feature".',
         );
 
-        $builder->addRequestHandler(TestClientRequest::getMethod(), new ClosureRequestHandler(
+        $builder->addRequestHandler(TestClientRequest::class, new ClosureRequestHandler(
             static fn(): EmptyResult => new EmptyResult(),
-        ), TestClientRequest::class);
+        ));
     }
 
     public function testAddNotificationHandlerRejectsAMethodAnExtensionOwns(): void
     {
         $builder = (new ServerBuilder())->enableExtension(new StubServerExtension(
             identifier: 'com.example/feature',
-            notifications: [TestNotification::getMethod() => TestNotification::class],
+            notifications: [TestNotification::class],
             notificationHandlers: [TestNotification::getMethod() => new ClosureNotificationHandler(
                 static function (): void {},
             )],
@@ -1740,9 +1697,9 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             'A builder-registered handler cannot claim the notification method "tests/test-notification" already owned by extension "com.example/feature".',
         );
 
-        $builder->addNotificationHandler(TestNotification::getMethod(), new ClosureNotificationHandler(
+        $builder->addNotificationHandler(TestNotification::class, new ClosureNotificationHandler(
             static function (): void {},
-        ), TestNotification::class);
+        ));
     }
 
     public function testEnableExtensionRejectsARequestClassWithoutTheClientMarker(): void
@@ -1754,7 +1711,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
         (new ServerBuilder())->enableExtension(new StubServerExtension(
             identifier: 'com.example/feature',
-            requests: [TestRequest::getMethod() => TestRequest::class],
+            requests: [TestRequest::class],
             requestHandlers: [TestRequest::getMethod() => new ClosureRequestHandler(
                 static fn(): EmptyResult => new EmptyResult(),
             )],
@@ -2579,11 +2536,11 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
         yield 'register' => [static fn(ServerBuilder $b): ServerBuilder => $b->register(new #[AsServer(name: 'late', version: '1.0.0')] class {})];
 
-        yield 'addRequestHandler' => [static fn(ServerBuilder $b): ServerBuilder => $b->addRequestHandler('completion/complete', new ClosureRequestHandler(static fn(): EmptyResult => new EmptyResult()), TestClientRequest::class)];
+        yield 'addRequestHandler' => [static fn(ServerBuilder $b): ServerBuilder => $b->addRequestHandler(TestClientRequest::class, new ClosureRequestHandler(static fn(): EmptyResult => new EmptyResult()))];
 
         yield 'replaceRequestHandler' => [static fn(ServerBuilder $b): ServerBuilder => $b->replaceRequestHandler('tools/list', new ClosureRequestHandler(static fn(): EmptyResult => new EmptyResult()))];
 
-        yield 'addNotificationHandler' => [static fn(ServerBuilder $b): ServerBuilder => $b->addNotificationHandler('notifications/progress', new ClosureNotificationHandler(static function (): void {}), TestNotification::class)];
+        yield 'addNotificationHandler' => [static fn(ServerBuilder $b): ServerBuilder => $b->addNotificationHandler(TestNotification::class, new ClosureNotificationHandler(static function (): void {}))];
 
         yield 'enableExtension' => [static fn(ServerBuilder $b): ServerBuilder => $b->enableExtension(new StubServerExtension(identifier: 'com.example/feature'))];
 
@@ -3230,7 +3187,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
     {
         return new StubServerExtension(
             identifier: 'com.example/feature',
-            requests: [TestClientRequest::getMethod() => TestClientRequest::class],
+            requests: [TestClientRequest::class],
             requestHandlers: [TestClientRequest::getMethod() => new ClosureRequestHandler(
                 static fn(): EmptyResult => new EmptyResult(),
             )],

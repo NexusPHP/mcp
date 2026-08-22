@@ -6,6 +6,26 @@ for *when* breaking changes may land and how they are communicated lives in
 
 ## v0.15.0 to Unreleased
 
+### Handler registration takes the envelope class, not a method name beside it
+
+`addRequestHandler()` and `addNotificationHandler()` on both builders took a method name, a handler, and the
+envelope class, and refused the three when the class declared another method. The method was redundant: the
+class's `getMethod()` is the registered name. Both now take the class first and the handler second, and the
+client's `addNotificationHandler()` always takes the class, the spec one included:
+
+```php
+// before
+$builder->addRequestHandler('acme/lookup', $handler, AcmeLookupRequest::class);
+$client->addNotificationHandler(ToolListChangedNotification::getMethod(), $handler);
+// after
+$builder->addRequestHandler(AcmeLookupRequest::class, $handler);
+$client->addNotificationHandler(ToolListChangedNotification::class, $handler);
+```
+
+`ExtensionInterface::getRequests()` and `getNotifications()` return a `list` of envelope classes instead of a
+method-keyed map. `getRequestHandlers()` and `getNotificationHandlers()` stay keyed by method, and a class
+naming a method twice is refused with `LogicException`.
+
 ### `VerifiedAccessToken` requires its expiry
 
 `expiresAt` was nullable and `BearerAuthenticationMiddleware` skipped the expiry check for a `null`, so a

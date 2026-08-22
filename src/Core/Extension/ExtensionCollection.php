@@ -24,7 +24,6 @@ use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\Request\ClientRequest;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Validation\ExtensionIdentifierValidator;
-use Nexus\Mcp\Core\Validation\MethodClassValidator;
 
 /**
  * Collection of the extensions a builder enables, owning the method-ownership ledgers.
@@ -109,8 +108,8 @@ final class ExtensionCollection
         }
 
         $settings = $extension->getSettings();
-        $requests = $extension->getRequests();
-        $notifications = $extension->getNotifications();
+        $requests = $this->keyByMethod($identifier, $extension->getRequests(), 'request');
+        $notifications = $this->keyByMethod($identifier, $extension->getNotifications(), 'notification');
         $requestHandlers = $extension->getRequestHandlers();
         $notificationHandlers = $extension->getNotificationHandlers();
 
@@ -120,8 +119,6 @@ final class ExtensionCollection
         $this->assertPairedKeys($identifier, array_keys($notifications), array_keys($notificationHandlers), 'notification');
 
         foreach ($requests as $method => $requestClass) {
-            MethodClassValidator::validate($requestClass, $method);
-
             if ($requireClientRequests) {
                 Assert::that($requestClass)->isSubclassOf(ClientRequest::class, \sprintf(
                     'Extension "%s" request class "%s" must implement "%s" for the server to dispatch it.',
@@ -135,7 +132,6 @@ final class ExtensionCollection
         }
 
         foreach ($notifications as $method => $notificationClass) {
-            MethodClassValidator::validate($notificationClass, $method, isNotification: true);
             $this->assertUnclaimedNotification($identifier, $method, $claimedNotifications);
         }
 
@@ -302,6 +298,34 @@ final class ExtensionCollection
     public static function refuseDuplicateDeclaration(string $identifier): never
     {
         throw new LogicException(\sprintf('Extension "%s" is declared more than once.', $identifier));
+    }
+
+    /**
+     * @template TClass of class-string<JsonRpcNotification<non-empty-string>>|class-string<JsonRpcRequest<non-empty-string>>
+     *
+     * @param non-empty-string         $identifier
+     * @param list<TClass>             $classes
+     * @param 'notification'|'request' $kind
+     *
+     * @return array<non-empty-string, TClass>
+     *
+     * @throws LogicException
+     */
+    private function keyByMethod(string $identifier, array $classes, string $kind): array
+    {
+        $keyed = [];
+
+        foreach ($classes as $class) {
+            $method = $class::getMethod();
+
+            if (\array_key_exists($method, $keyed)) {
+                throw new LogicException(\sprintf('Extension "%s" declares the %s method "%s" twice.', $identifier, $kind, $method));
+            }
+
+            $keyed[$method] = $class;
+        }
+
+        return $keyed;
     }
 
     /**

@@ -175,14 +175,12 @@
     },
     "Nexus\\Mcp\\Client\\ClientBuilder": {
         "addNotificationHandler": [
-            "method",
-            "handler",
-            "notificationClass"
+            "notification",
+            "handler"
         ],
         "addRequestHandler": [
-            "method",
-            "handler",
-            "requestClass"
+            "request",
+            "handler"
         ],
         "enableExtension": [
             "extension"
@@ -2573,9 +2571,8 @@
     },
     "Nexus\\Mcp\\Server\\ServerBuilder": {
         "addNotificationHandler": [
-            "method",
-            "handler",
-            "notificationClass"
+            "notification",
+            "handler"
         ],
         "addPrompt": [
             "prompt",
@@ -2587,9 +2584,8 @@
             "provider"
         ],
         "addRequestHandler": [
-            "method",
-            "handler",
-            "requestClass"
+            "request",
+            "handler"
         ],
         "addResource": [
             "resource",

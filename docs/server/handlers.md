@@ -1,19 +1,20 @@
 # Custom request and notification handlers
 
-For vendor-extension methods, those outside the MCP spec, registration names the handler and the envelope class
-that parses the method. The class is what makes the method parseable at all. The message parser only recognises
-methods it has a class for, and answers `-32601` for the rest.
+For vendor-extension methods, those outside the MCP spec, registration names the envelope class that parses the
+method and the handler that serves it. The class is what makes the method parseable at all, and its `getMethod()`
+is the method registered. The message parser only recognises methods it has a class for, and answers `-32601`
+for the rest.
 
 ```php
-->addRequestHandler('acme/lookup', new MyLookupHandler(), AcmeLookupRequest::class)
-->addNotificationHandler('acme/heartbeat', new MyHeartbeatHandler(), AcmeHeartbeatNotification::class)
+->addRequestHandler(AcmeLookupRequest::class, new MyLookupHandler())
+->addNotificationHandler(AcmeHeartbeatNotification::class, new MyHeartbeatHandler())
 ```
 
 ## The envelope class
 
 `AcmeLookupRequest` extends `JsonRpcRequest`, returns `'acme/lookup'` from `getMethod()`, and implements the
-`ClientRequest` marker. Registration rejects a class that declares a different method or lacks the marker, since
-the dispatcher only serves `ClientRequest` requests.
+`ClientRequest` marker. Registration rejects a class that lacks the marker, since the dispatcher only serves
+`ClientRequest` requests.
 
 Its params must be `RequestParams`-typed. They carry the lifecycle `_meta` every request is gated on. Otherwise
 the dispatcher answers `-32600`. Notification classes extend `JsonRpcNotification` the same way, without the
