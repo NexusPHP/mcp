@@ -20,6 +20,7 @@ use Nexus\Mcp\Server\Tool\ClosureToolExecutor;
 use Nexus\Mcp\Server\Tool\ToolEntry;
 use Nexus\Mcp\Server\Tool\ToolStore;
 use Nexus\Mcp\Server\Transport\Http\Middleware\ParameterHeaderValidationMiddleware;
+use Nexus\Mcp\Server\Transport\StreamableHttpServerTransport;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Server\Http\NonSeekableStream;
@@ -195,6 +196,40 @@ final class ParameterHeaderValidationMiddlewareTest extends AbstractMcpTestCase
             'method' => 'tools/call',
             'params' => 'oops',
         ]];
+    }
+
+    public function testHandsItsDecodedEnvelopeToTheTransport(): void
+    {
+        $handler = $this->buildHandler();
+        $envelope = ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/list'];
+
+        $this->buildMiddleware()->process($this->post($envelope), $handler);
+
+        self::assertInstanceOf(ServerRequestInterface::class, $handler->received);
+        self::assertSame($envelope, $handler->received->getAttribute(StreamableHttpServerTransport::ENVELOPE_ATTRIBUTE));
+    }
+
+    #[DataProvider('provideHandsNoEnvelopeToTheTransportForABodyThatIsNotAJsonArrayCases')]
+    public function testHandsNoEnvelopeToTheTransportForABodyThatIsNotAJsonArray(string $body): void
+    {
+        $handler = $this->buildHandler();
+
+        $this->buildMiddleware()->process($this->post($body), $handler);
+
+        self::assertInstanceOf(ServerRequestInterface::class, $handler->received);
+        self::assertArrayNotHasKey(StreamableHttpServerTransport::ENVELOPE_ATTRIBUTE, $handler->received->getAttributes());
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function provideHandsNoEnvelopeToTheTransportForABodyThatIsNotAJsonArrayCases(): iterable
+    {
+        yield 'undecodable' => ['{"jsonrpc":'];
+
+        yield 'a JSON string' => ['"x"'];
+
+        yield 'a JSON number' => ['42'];
     }
 
     public function testLeavesTheBodyReadableForTheTransport(): void

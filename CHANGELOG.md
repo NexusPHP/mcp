@@ -17,6 +17,8 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Changed
 
+- `ParameterHeaderValidationMiddleware` leaves its decoded envelope on the request under
+  `StreamableHttpServerTransport::ENVELOPE_ATTRIBUTE`, so the transport parses a body once.
 - `VerifiedAccessToken` requires `expiresAt`, now its second constructor argument, so no validator can hand the
   middleware a token it never checks for expiry. See BREAKING_CHANGES.md.
 - `TaskClient` takes `minPollIntervalMs` (default 100) and raises a shorter server-suggested `pollIntervalMs`

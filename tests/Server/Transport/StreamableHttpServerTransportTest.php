@@ -90,6 +90,19 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
         self::assertSame('', (string) $response->getBody());
     }
 
+    public function testAnEnvelopeAMiddlewareAlreadyDecodedIsNotParsedAgain(): void
+    {
+        $transport = $this->makeTransport();
+        $request = $this->makePost('{"jsonrpc":')->withAttribute(
+            StreamableHttpServerTransport::ENVELOPE_ATTRIBUTE,
+            ['jsonrpc' => '2.0', 'method' => 'notifications/cancelled', 'params' => ['requestId' => 7]],
+        );
+
+        [$response] = $this->handleAndRead($transport, $request);
+
+        self::assertSame(202, $response->getStatusCode());
+    }
+
     #[DataProvider('provideUndecodableBodyReturnsParseErrorCases')]
     public function testUndecodableBodyReturnsParseError(string $body): void
     {
