@@ -22,7 +22,7 @@ use Nexus\Mcp\Core\Schema\Error\HeaderMismatchError;
  *
  * @see https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/streamable-http#custom-headers-from-tool-parameters
  */
-final class ParameterHeaders
+final readonly class ParameterHeaders
 {
     public const string HEADER_PREFIX = 'Mcp-Param-';
 
@@ -45,15 +45,15 @@ final class ParameterHeaders
      *
      * @return array<non-empty-string, string>
      */
-    public static function build(array $bindings, array $arguments): array
+    public function build(array $bindings, array $arguments): array
     {
         $headers = [];
 
         foreach ($bindings as $binding) {
-            $value = self::normaliseIntegralFloat(self::readValueAtPath($arguments, $binding->path));
-            $string = self::stringifyPrimitive($value);
+            $value = $this->normaliseIntegralFloat($this->readValueAtPath($arguments, $binding->path));
+            $string = $this->stringifyPrimitive($value);
 
-            if (null === $string || self::exceedsSafeInteger($value)) {
+            if (null === $string || $this->exceedsSafeInteger($value)) {
                 continue;
             }
 
@@ -71,18 +71,18 @@ final class ParameterHeaders
      * @param array<array-key, mixed>      $arguments
      * @param array<string, string>        $headers
      */
-    public static function validate(array $bindings, array $arguments, array $headers): ?HeaderMismatchError
+    public function validate(array $bindings, array $arguments, array $headers): ?HeaderMismatchError
     {
         $headers = array_change_key_case($headers, \CASE_LOWER);
 
         foreach ($bindings as $binding) {
             $name = self::HEADER_PREFIX.$binding->headerName;
             $key = strtolower($name);
-            $bodyValue = self::normaliseIntegralFloat(self::readValueAtPath($arguments, $binding->path));
-            $bodyString = self::stringifyPrimitive($bodyValue);
+            $bodyValue = $this->normaliseIntegralFloat($this->readValueAtPath($arguments, $binding->path));
+            $bodyString = $this->stringifyPrimitive($bodyValue);
 
             if (! \array_key_exists($key, $headers)) {
-                if (null === $bodyString || self::exceedsSafeInteger($bodyValue)) {
+                if (null === $bodyString || $this->exceedsSafeInteger($bodyValue)) {
                     continue;
                 }
 
@@ -99,7 +99,7 @@ final class ParameterHeaders
                 return new HeaderMismatchError(\sprintf('The %s header is not a valid encoded value.', $name));
             }
 
-            if (! self::matches($binding->type, $decoded, $bodyValue, $bodyString)) {
+            if (! $this->matches($binding->type, $decoded, $bodyValue, $bodyString)) {
                 return new HeaderMismatchError(\sprintf('The %s header does not match the request body argument.', $name));
             }
         }
@@ -107,16 +107,16 @@ final class ParameterHeaders
         return null;
     }
 
-    private static function matches(string $type, string $decoded, mixed $bodyValue, string $bodyString): bool
+    private function matches(string $type, string $decoded, mixed $bodyValue, string $bodyString): bool
     {
-        if ('integer' === $type && \is_int($bodyValue) && ! self::exceedsSafeInteger($bodyValue) && preg_match(self::DECIMAL_PATTERN, $decoded) === 1) {
+        if ('integer' === $type && \is_int($bodyValue) && ! $this->exceedsSafeInteger($bodyValue) && preg_match(self::DECIMAL_PATTERN, $decoded) === 1) {
             return (float) $decoded === (float) $bodyValue;
         }
 
         return $decoded === $bodyString;
     }
 
-    private static function stringifyPrimitive(mixed $value): ?string
+    private function stringifyPrimitive(mixed $value): ?string
     {
         if (\is_string($value)) {
             return $value;
@@ -136,7 +136,7 @@ final class ParameterHeaders
     /**
      * The integer that JSON Schema and a JavaScript peer both read an integral float such as `5.0` as.
      */
-    private static function normaliseIntegralFloat(mixed $value): mixed
+    private function normaliseIntegralFloat(mixed $value): mixed
     {
         if (\is_float($value) && is_finite($value) && abs($value) <= self::SAFE_INTEGER_MAX && (float) (int) $value === $value) {
             return (int) $value;
@@ -145,7 +145,7 @@ final class ParameterHeaders
         return $value;
     }
 
-    private static function exceedsSafeInteger(mixed $value): bool
+    private function exceedsSafeInteger(mixed $value): bool
     {
         return \is_int($value) && ($value > self::SAFE_INTEGER_MAX || $value < -self::SAFE_INTEGER_MAX);
     }
@@ -154,7 +154,7 @@ final class ParameterHeaders
      * @param array<array-key, mixed> $arguments
      * @param list<string>            $path
      */
-    private static function readValueAtPath(array $arguments, array $path): mixed
+    private function readValueAtPath(array $arguments, array $path): mixed
     {
         $node = $arguments;
 

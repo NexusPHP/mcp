@@ -23,7 +23,7 @@ use Nexus\Mcp\Core\Schema\MetaObject\RequestMetaObject;
  *
  * @see https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/streamable-http#request-metadata
  */
-final class StandardHeaders
+final readonly class StandardHeaders
 {
     private const string PROTOCOL_VERSION_HEADER = 'MCP-Protocol-Version';
     private const string METHOD_HEADER = 'Mcp-Method';
@@ -37,22 +37,22 @@ final class StandardHeaders
      *
      * @return array<non-empty-string, string>
      */
-    public static function build(array $body): array
+    public function build(array $body): array
     {
         $headers = [];
-        $version = self::readVersion($body);
+        $version = $this->readVersion($body);
 
         if (null !== $version) {
             $headers[self::PROTOCOL_VERSION_HEADER] = $version;
         }
 
-        $method = self::readString($body, 'method');
+        $method = $this->readString($body, 'method');
 
         if (null !== $method) {
             $headers[self::METHOD_HEADER] = $method;
         }
 
-        $source = self::readName($body);
+        $source = $this->readName($body);
 
         if (null !== $source) {
             $headers[self::NAME_HEADER] = HeaderValueCodec::encode($source);
@@ -68,28 +68,28 @@ final class StandardHeaders
      * @param array<string, string> $headers
      * @param array<string, mixed>  $body
      */
-    public static function validate(array $headers, array $body): ?HeaderMismatchError
+    public function validate(array $headers, array $body): ?HeaderMismatchError
     {
         $headers = array_change_key_case($headers, \CASE_LOWER);
 
-        return self::checkVersion($headers, $body)
-            ?? self::checkMethod($headers, $body)
-            ?? self::checkName($headers, $body);
+        return $this->checkVersion($headers, $body)
+            ?? $this->checkMethod($headers, $body)
+            ?? $this->checkName($headers, $body);
     }
 
     /**
      * @param array<string, string> $headers
      * @param array<string, mixed>  $body
      */
-    private static function checkVersion(array $headers, array $body): ?HeaderMismatchError
+    private function checkVersion(array $headers, array $body): ?HeaderMismatchError
     {
-        $header = self::readLine($headers, self::PROTOCOL_VERSION_HEADER);
+        $header = $this->readLine($headers, self::PROTOCOL_VERSION_HEADER);
 
         if (null === $header) {
             return new HeaderMismatchError('The MCP-Protocol-Version header is required but absent.');
         }
 
-        $bodyVersion = self::readVersion($body);
+        $bodyVersion = $this->readVersion($body);
 
         if (null !== $bodyVersion && $header !== $bodyVersion) {
             return new HeaderMismatchError('The MCP-Protocol-Version header does not match the request body protocol version.');
@@ -102,15 +102,15 @@ final class StandardHeaders
      * @param array<string, string> $headers
      * @param array<string, mixed>  $body
      */
-    private static function checkMethod(array $headers, array $body): ?HeaderMismatchError
+    private function checkMethod(array $headers, array $body): ?HeaderMismatchError
     {
-        $header = self::readLine($headers, self::METHOD_HEADER);
+        $header = $this->readLine($headers, self::METHOD_HEADER);
 
         if (null === $header) {
             return new HeaderMismatchError('The Mcp-Method header is required but absent.');
         }
 
-        $bodyMethod = self::readString($body, 'method');
+        $bodyMethod = $this->readString($body, 'method');
 
         if (null !== $bodyMethod && $header !== $bodyMethod) {
             return new HeaderMismatchError('The Mcp-Method header does not match the request body method.');
@@ -123,14 +123,14 @@ final class StandardHeaders
      * @param array<string, string> $headers
      * @param array<string, mixed>  $body
      */
-    private static function checkName(array $headers, array $body): ?HeaderMismatchError
+    private function checkName(array $headers, array $body): ?HeaderMismatchError
     {
-        if (self::resolveNameField($body) === null) {
+        if ($this->resolveNameField($body) === null) {
             return null;
         }
 
-        $source = self::readName($body);
-        $header = self::readLine($headers, self::NAME_HEADER);
+        $source = $this->readName($body);
+        $header = $this->readLine($headers, self::NAME_HEADER);
 
         if (null === $header) {
             return null === $source
@@ -154,7 +154,7 @@ final class StandardHeaders
     /**
      * @param array<string, string> $headers Keys already lowercased
      */
-    private static function readLine(array $headers, string $name): ?string
+    private function readLine(array $headers, string $name): ?string
     {
         return $headers[strtolower($name)] ?? null;
     }
@@ -162,9 +162,9 @@ final class StandardHeaders
     /**
      * @param array<string, mixed> $body
      */
-    private static function readVersion(array $body): ?string
+    private function readVersion(array $body): ?string
     {
-        return self::readString($body, 'params', '_meta', RequestMetaObject::PROTOCOL_VERSION_KEY);
+        return $this->readString($body, 'params', '_meta', RequestMetaObject::PROTOCOL_VERSION_KEY);
     }
 
     /**
@@ -172,11 +172,11 @@ final class StandardHeaders
      *
      * @param array<string, mixed> $body
      */
-    private static function readName(array $body): ?string
+    private function readName(array $body): ?string
     {
-        $field = self::resolveNameField($body);
+        $field = $this->resolveNameField($body);
 
-        return null === $field ? null : self::readString($body, 'params', $field);
+        return null === $field ? null : $this->readString($body, 'params', $field);
     }
 
     /**
@@ -184,9 +184,9 @@ final class StandardHeaders
      *
      * @param array<string, mixed> $body
      */
-    private static function resolveNameField(array $body): ?string
+    private function resolveNameField(array $body): ?string
     {
-        return match (self::readString($body, 'method')) {
+        return match ($this->readString($body, 'method')) {
             'tools/call', 'prompts/get' => 'name',
             'resources/read' => 'uri',
             'tasks/get', 'tasks/update', 'tasks/cancel' => 'taskId',
@@ -197,7 +197,7 @@ final class StandardHeaders
     /**
      * @param array<string, mixed> $body
      */
-    private static function readString(array $body, string ...$path): ?string
+    private function readString(array $body, string ...$path): ?string
     {
         $node = $body;
 

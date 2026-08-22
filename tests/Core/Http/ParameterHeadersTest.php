@@ -38,7 +38,7 @@ final class ParameterHeadersTest extends AbstractMcpTestCase
     #[DataProvider('provideBuildCases')]
     public function testBuild(array $bindings, array $arguments, array $expected): void
     {
-        self::assertSame($expected, ParameterHeaders::build($bindings, $arguments));
+        self::assertSame($expected, (new ParameterHeaders())->build($bindings, $arguments));
     }
 
     /**
@@ -145,7 +145,7 @@ final class ParameterHeadersTest extends AbstractMcpTestCase
 
     public function testBuildEncodesNonAsciiValues(): void
     {
-        $headers = ParameterHeaders::build(
+        $headers = (new ParameterHeaders())->build(
             [new ParameterHeaderBinding(['region'], 'Region', 'string')],
             ['region' => 'wörld'],
         );
@@ -163,7 +163,7 @@ final class ParameterHeadersTest extends AbstractMcpTestCase
     #[DataProvider('provideValidateAcceptsCases')]
     public function testValidateAccepts(array $bindings, array $arguments, array $headers): void
     {
-        self::assertNull(ParameterHeaders::validate($bindings, $arguments, $headers));
+        self::assertNull((new ParameterHeaders())->validate($bindings, $arguments, $headers));
     }
 
     /**
@@ -215,7 +215,7 @@ final class ParameterHeadersTest extends AbstractMcpTestCase
     #[DataProvider('provideValidateRejectsCases')]
     public function testValidateRejects(array $bindings, array $arguments, array $headers): void
     {
-        self::assertInstanceOf(HeaderMismatchError::class, ParameterHeaders::validate($bindings, $arguments, $headers));
+        self::assertInstanceOf(HeaderMismatchError::class, (new ParameterHeaders())->validate($bindings, $arguments, $headers));
     }
 
     /**

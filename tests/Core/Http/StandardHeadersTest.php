@@ -44,7 +44,7 @@ final class StandardHeadersTest extends AbstractMcpTestCase
     #[DataProvider('provideValidateAcceptsCases')]
     public function testValidateAccepts(array $headers, array $body): void
     {
-        self::assertNull(StandardHeaders::validate($headers, $body));
+        self::assertNull((new StandardHeaders())->validate($headers, $body));
     }
 
     /**
@@ -115,7 +115,7 @@ final class StandardHeadersTest extends AbstractMcpTestCase
     #[DataProvider('provideValidateRejectsCases')]
     public function testValidateRejects(array $headers, array $body, string $expectedMessage): void
     {
-        $error = StandardHeaders::validate($headers, $body);
+        $error = (new StandardHeaders())->validate($headers, $body);
 
         self::assertInstanceOf(HeaderMismatchError::class, $error);
         self::assertSame($expectedMessage, $error->message);
@@ -218,7 +218,7 @@ final class StandardHeadersTest extends AbstractMcpTestCase
     #[DataProvider('provideBuildMirrorsTheBodyCases')]
     public function testBuildMirrorsTheBody(array $body, array $expected): void
     {
-        self::assertSame($expected, StandardHeaders::build($body));
+        self::assertSame($expected, (new StandardHeaders())->build($body));
     }
 
     /**
@@ -287,7 +287,7 @@ final class StandardHeadersTest extends AbstractMcpTestCase
     {
         $body = self::makeBody('resources/read', ['uri' => 'file:///tmp/note with spaces.txt']);
 
-        self::assertNull(StandardHeaders::validate(StandardHeaders::build($body), $body));
+        self::assertNull((new StandardHeaders())->validate((new StandardHeaders())->build($body), $body));
     }
 
     /**
